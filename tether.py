@@ -415,6 +415,9 @@ _WINDOW = armflag.arm("TETHER_WINDOW")
 # its non-lag bindings and its EVIDENCE lags, then, only with budget left, the same recorded chains
 # with their no-evidence lags. False restores item 2's one-pass order, for the tie guard only.
 _TWO_PASS = True
+# A reuse-installed term is a candidate the ground can grade (the reviewer, pending). False restores
+# the old path, for the must-fail only.
+_REUSE_CANDIDATE = True
 
 
 def _recording(chains, into: list):
@@ -2054,7 +2057,7 @@ class Agent:
         if self._routine_adopted is None:
             self._routine_adopted, self._plan_no = self.routine, self._plan_no + 1
         self.routine_state.pop("expect", None)
-        emit, rest = Rt.advance(self.routine, self._holds(state),
+        emit, rest = Rt.advance(self.routine, self._holds(state, "SETTLE"),
                                 self.routine_lib, self.routine_state)
         # DONE and EXHAUSTED are the ground's verdict on the plan. BLOCKED is not: an unreadable
         # guard is a channel fact (Fig 10), so it is handed on and ended at PLAN, with no verdict
@@ -5134,7 +5137,7 @@ class Agent:
                 self.gamma.book.get("plan_gate_no_hypothesis", 0) + 1)
         return best[1] if best else None
 
-    def _holds(self, state: dict[str, int]):
+    def _holds(self, state: dict[str, int], step: str = "PLAN"):
         """`holds(guard) -> True | False | None` for `routine.advance`. A guard is a SLOT NAME,
         and it holds when the objective bound there is satisfied.
 
@@ -5169,7 +5172,9 @@ class Agent:
                 # this is not *the guard is false*. Which of `goal_residual`'s five Nones fired
                 # is a different fact each time -- supply, type, perception or scope -- and no
                 # artifact could say. F207: the first routine this project formed died here.
-                self.led.record(self.cycle, "PLAN", guard, "guard_unreadable",
+                # the CALLER'S step: `_settle_routine` advances at SETTLE (F501), so a guard read
+                # there is a SETTLE row, after the cycle's demotes, never a PLAN row out of order
+                self.led.record(self.cycle, step, guard, "guard_unreadable",
                                 exit=exit_,
                                 bound=self.bound.get(guard),
                                 note="BLOCKED is 'could not read', never 'does not hold'")
@@ -7933,6 +7938,12 @@ class Agent:
                              + ("partial -- a remainder remains" if partial else "full closure"))
         stamp = "partial" if partial else "closed"
         self.gamma.accept(cand, seq=len(self.led), residual=f"reuse:{slot}@{self.cycle}:{stamp}")
+        # A CANDIDATE, AS A MINTED TERM IS (the mint's own route, ~"self.candidates[term.name]").
+        # Without it `settle` skips the term: it could never settle, never be demoted, and stayed
+        # bound and wrong in silence while the sweep promoted it (gridworld_arc_s0, 2026-10-09).
+        if _REUSE_CANDIDATE:
+            self.candidates.setdefault(cand.name, self.cycle)
+            self._cand_level[cand.name] = self.level
         return cand.name
 
     def settle(self, res: dict[str, SlotResidual]) -> None:

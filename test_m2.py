@@ -1911,7 +1911,7 @@ def check_an_acted_routine_is_settled_in_its_deciding_cycle():
     assert ag.routine is None, "the abandoned routine is still held"
     ag = _agent()
     slot = _plant(ag, 1)
-    ag._holds = lambda _state: (lambda _g: True)    # the guard holds: DONE
+    ag._holds = lambda _state, _step="PLAN": (lambda _g: True)    # the guard holds: DONE
     n0 = len(ag.led.entries)
     ag._settle_routine()
     ends = [e for e in ag.led.entries[n0:] if e.event == "routine_end"]
@@ -1929,7 +1929,7 @@ def check_a_blocked_routine_ends_at_planning_with_no_verdict():
     no shelving and no refusal."""
     ag = _agent()
     _plant(ag, 1)
-    ag._holds = lambda _state: (lambda _g: None)    # the guard cannot be read
+    ag._holds = lambda _state, _step="PLAN": (lambda _g: None)    # the guard cannot be read
     n0 = len(ag.led.entries)
     ag._settle_routine()
     assert len(ag.led.entries) == n0 and ag.routine is not None, (
@@ -1949,7 +1949,7 @@ def check_a_zero_act_routine_still_ends_at_planning():
     by the settlement, and choose() ends it exactly as before -- 0 acts, tested_no shelving."""
     ag = _agent()
     _plant(ag, 0)
-    ag._holds = lambda _state: (lambda _g: True)
+    ag._holds = lambda _state, _step="PLAN": (lambda _g: True)
     n0 = len(ag.led.entries)
     ag._settle_routine()
     assert len(ag.led.entries) == n0 and ag.routine is not None, (
