@@ -4227,7 +4227,7 @@ class Agent:
         # PER STEP (5b; the reviewer 12:27Z): `_gamma_read` was set only at one branch, so a
         # routine or probe exit carried the PREVIOUS cycle's value onto its REPEAT row.
         self._gamma_read = {}
-        self._split_term, self._routine_fed = None, []
+        self._split_term, self._routine_fed, self._last_real = None, [], None
         # SUPPORT AT ZERO REFUSES THE MODEL THE WHEEL. `bored()` means no slot carried
         # live mass: the model explains everything it can currently see, and an action
         # IT selects can only confirm it. So boredom does not pick a different draw --
@@ -6395,6 +6395,7 @@ class Agent:
         exists and never crosses**, which is the defect this project files most often.
         """
         self._aimed = r.coord
+        self._last_real = r                 # 5b: the realisation the taken press came from
         self._intent_now = want
         # The alphabet census was filled at `_realise_step` and `_mint_routine` and NOT here,
         # so it read 0 on 24 cycles where every exit named an intent. LOWER BOUND: an intent
@@ -8683,6 +8684,14 @@ class Agent:
             _fed = ([{**self._split_term, "role": "goal"}]
                     if by == "discriminate:goal" and self._split_term is not None
                     else list(self._routine_fed) if by == "routine" else [])
+            # THE ROUTE, WITH ITS SOURCE (the reviewer 15:49Z): which press came from the table and
+            # which from a library term, so a zero here is read and not built in (Fig 10 :19).
+            _r = self._last_real
+            if by in ("discriminate:goal", "routine") and _r is not None:
+                _t = getattr(_r, "term", None)
+                _fed.append({"kind": "press", "name": _t, "slot": None, "role": "route",
+                             "source": "term" if _t else "table", "why": _r.why,
+                             "seq": self.gamma.stamps.get(_t, {}).get("seq") if _t else None})
             self._gamma_read = {**self._gamma_read, "fed": _fed, "entered": bool(_fed)}
         if _RUIN_RECORD:
             # the board BEFORE the act and the coordinate it was REALISED at (never the intent's
@@ -8773,6 +8782,8 @@ class Agent:
                                "objects shared the vector, which the remedy cannot move"))
         if _FED:
             for _e in self._gamma_read.get("fed", ()):
+                if _e["name"] is None:
+                    continue                                    # a table route names no term
                 self._fed_rows.setdefault(_e["name"], []).append((len(self.led), _e["role"]))
         self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
                         integral=round(self.pe_integral(), 3),

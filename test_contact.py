@@ -10,21 +10,22 @@ On a panel member (default gridworld s0), 20 cycles, ON (with TETHER_MC_SIGNAL, 
   2. a step whose routine mint formed an intent and whose exit was NOT the goal split: fed does
      not name that split's term (counted on the member's own run, where it can be vacuous, and
      on a forced run where the bored probe takes such steps: 2b);
-  3. OFF, the per-step reset: no routine or probe step carries a gamma_read value, while the
-     committed panel (before the reset) shows such steps carrying the previous cycle's;
+  2c. the route entry's source can read "term": a realisation citing a term gives route-from-term
+     at least 1 (the reviewer 15:49Z: install what can be violated);
+  3. OFF, the per-step reset: no routine or probe step carries a gamma_read value;
   4. MC2: every resolution row's fed is a list (REPEAT seqs after the bet), never None, ON.
 
     python test_contact.py [panel member, default gridworld_s0]
 """
 from __future__ import annotations
 
-import json
 import sys
-from pathlib import Path
+from dataclasses import replace
 
 import gamma
 import gate
 import gridworld
+import interface as IFace
 import ledger
 import tether
 import world
@@ -87,8 +88,10 @@ if __name__ == "__main__":
     assert goal or rout, f"precondition: no goal or routine exit in {CYCLES} cycles: {list(by)}"
     for d in goal:
         fed = d["gamma_read"]["fed"]
-        assert fed and all(e["role"] == "goal" for e in fed), d["gamma_read"]
-        assert all(e["seq"] is not None or e.get("why") for e in fed), fed
+        goals = [e for e in fed if e["role"] == "goal"]
+        routes = [e for e in fed if e["role"] == "route"]
+        assert goals and all(e["seq"] is not None or e.get("why") for e in goals), fed
+        assert len(routes) == 1 and routes[0]["source"] == "table", fed
     for d in rout:
         fed = d["gamma_read"]["fed"]
         assert fed and fed[0]["role"] == "body" and fed[0]["kind"] == "routine", fed
@@ -137,15 +140,36 @@ if __name__ == "__main__":
     exits = sorted({d["by"] for _c, _t, d in q})
     print(f"  2b (forced bored probe): {len(formed2)} mints formed an intent; on the {len(q)} "
           f"taken by another exit ({exits}), fed never names the split's term")
+    # 2c, THE ROUTE CAN BE VIOLATED (the reviewer 15:49Z): realise is wrapped so the goal intent's
+    # realisation cites a library term. Every such route entry must then say source "term"; a
+    # version that never writes the route entry, or always writes "table", fails here.
+    tether._FED = tether._MC_SIGNAL = True
+    env3 = world.bind(gridworld.family("default", 0, CYCLES))
+    ag3 = tether.Agent(env3, gamma.Gamma(env3.atoms(), game="contact_route"), tether.Config(),
+                       ledger.Ledger())
+    _real = ag3.iface.realise
+
+    def _cites(intent, *a, **k):
+        r = _real(intent, *a, **k)
+        if r is not None and intent.kind == IFace.BECOME:
+            t = ag3._term_of(intent.subject)
+            return replace(r, term=t["name"] if t else "stub")
+        return r
+    ag3.iface.realise = _cites
+    for _ in range(CYCLES):
+        ag3.step()
+    tether._FED = tether._MC_SIGNAL = False
+    routes = [e for r in ag3.led.rows() if r["event"] == "repeat"
+              for e in (r["detail"].get("gamma_read") or {}).get("fed", ()) if e["role"] == "route"]
+    by_src = {s: sum(e["source"] == s for e in routes) for s in ("table", "term")}
+    assert by_src["term"] >= 1, by_src
+    print(f"  2c (a realisation citing a term): route entries {by_src}; route-from-term can read "
+          f"non-zero")
     off, _f = _run(False)
     stale = [d for d in _steps(off) if d["by"] in ("routine", "probe") and d["gamma_read"]]
     assert not stale, stale[:2]
-    panel = Path(f"runs/panel/{MEMBER}.jsonl")
-    before = [json.loads(x)["detail"] for x in panel.read_text(encoding="utf-8").splitlines()
-              if '"repeat"' in x] if panel.exists() else []
-    carried = [d for d in before if d.get("by") in ("routine", "probe") and d.get("gamma_read")]
-    print(f"  3: OFF, 0 routine/probe steps carry a gamma_read value; the committed panel's "
-          f"{MEMBER} (before the reset) has {len(carried)} that did")
+    print("  3: OFF, 0 routine/probe steps carry a gamma_read value (the counts before the "
+          "reset are recorded in 1e40e8c's commit: s0 3, arc_s0 4)")
     res = [r["detail"] for r in rows if r["event"] == "resolution"]
     assert res and all(isinstance(d["fed"], list) for d in res), res[:2]
     n_fed = sum(bool(d["fed"]) for d in res)
