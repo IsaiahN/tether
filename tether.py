@@ -455,6 +455,9 @@ _FED = armflag.arm("TETHER_CONTACT")
 # incumbent guarded by P, and the not-P rows searched on their own. Credit per (term, part); the
 # incumbent is shadow-graded on not-P rows and a broken partition reverts the split.
 _D5 = armflag.arm("TETHER_D5")
+# F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). OFF; reason in
+# conform/arms.py. ON, an intent guard (and "no intent") costs log2(G+1) like ACTED_* does.
+_GUARD_PRICE = armflag.arm("TETHER_GUARD_PRICE")
 # an ending's word -> Termination's kind; the seat's budgets are caps, every other word is its own
 _TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap"}
 # THE BOUNDARY ROWS' OWN CHAINS (the reviewer 2026-10-10 08:11Z, 09:40Z). retarget's boundary/ending
@@ -784,8 +787,11 @@ def _guard_bits(guard: Any, offered: int, refs: int = 0) -> float:
     pre-registration**, because whether those fixtures depend on it incidentally or by
     design is a question about `M2_STANDARD`'s intent and not about this code.
     """
-    if guard not in (ACTED_SELF, ACTED_ON) or offered <= 0:
+    if guard is None or offered <= 0:
         return 0.0
+    if guard not in (ACTED_SELF, ACTED_ON):
+        # F408 under TETHER_GUARD_PRICE: the choice it records, among the G on offer.
+        return math.log2(offered + 1) if _GUARD_PRICE else 0.0
     # **THE KIND, PLUS THE CHOICE OF REFERENT -- the reviewer, 2026-10-04.** Naming WHICH
     # object the press must land on is a second choice and costs its own bits, by the same
     # `log2(k+1)` form the corpus prices an added parameter at. **`ACTED_SELF` IS COLLAPSED
@@ -7438,6 +7444,8 @@ class Agent:
                     # walks or the price is charged against a population that was not offered.
                     _cand_refs = self._guard_refs(slot, operand_binds)
                     _gs = self._guards(robs, slot, _cand_refs)
+                    if _GUARD_PRICE:
+                        self._offered_now = len(_gs) - 1
                     # **THE REFERENT IS PAIRED WITH THE GUARD, NOT WITH THE BIND.** Hoisted
                     # with `_gs` for the reason the hoist exists: the price denominator must
                     # be the set the loop actually walks. An ACTED guard now carries ITS OWN
@@ -8051,6 +8059,11 @@ class Agent:
             detail["note"] = "pays but does not close R; the slot still owes"
         detail.update(term=term.name, term_depth=len(term), operand=term.operand,
                       term_bits=round(cost, 3), left_bits=round(left, 3))
+        if _GUARD_PRICE and term.guard is not None:
+            _g = getattr(self, "_offered_now", None)
+            detail.update(guard=str(term.guard), guards_offered=_g, guard_bits=(
+                round(_guard_bits(term.guard, _g or 0), 3)
+                if term.guard not in (ACTED_SELF, ACTED_ON) else None))
         # **§14.7's CHUNK REUSE COUNT, SPECIFIED IN THE CORPUS AND COMPUTED NOWHERE.**
         # *How often a term appears as a CONSTITUENT of a later mint* -- a composition event,
         # not a reading of R, which is why `behaviour.py` separates it from the per-slot rule.

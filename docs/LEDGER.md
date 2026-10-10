@@ -96,8 +96,8 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 | 7a(5) ruin A+B, C | DONE 480a4ed, fafb000 |
 | 7a(5b) contact instrument, route source | DONE 1e40e8c, 23a1ef9 |
 | 7a D5 split on strain | DONE e4c5dc7 (OFF, HELD) |
-| 7a D5 candidacy (two-sided witness) | BUILT, test_d5 2-15 pass; committing |
-| F408 price every named guard (TETHER_GUARD_PRICE) | NOTE posted 16:23 CDT; awaiting the reviewer |
+| 7a D5 candidacy (two-sided witness) | DONE a46d3f2 (OFF, HELD; full ON reading at 7½) |
+| F408 price every named guard (TETHER_GUARD_PRICE) | BUILT, accepted 21:31Z; committing (OFF) |
 | compounds | next after F408 |
 | 7d reverse lookup (`Library.light(abduce=...)`) | queued |
 | 7a(6)-(10) | queued |

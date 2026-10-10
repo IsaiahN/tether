@@ -242,6 +242,13 @@ ARMS: dict[str, str] = {
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
                           "not ruled",
+    "TETHER_GUARD_PRICE": "F408, every named guard priced (Fig 12 :99-102; the reviewer "
+                          "2026-10-10 21:31Z): ON, an intent guard and 'no intent' cost "
+                          "log2(G+1) over the G on offer, like ACTED_* (whose referent term "
+                          "stays); no guard is the free +1 slot. OFF because it reprices the "
+                          "mint's bargain: on the committed panel 1 of 25 guarded winners had "
+                          "a margin of 0.15 bits, so it changes which term wins; its full "
+                          "reading is at step 7.5",
     "TETHER_D5": "7a D5, split a slot's residual on strain (Fig 9 :4-5; the reviewer 2026-10-10 "
                  "15:58Z, 16:24Z): ON, when a held predicate (an intent kind, or ACTED_SELF) "
                  "cleanly separates the rows a term got right from the rows it got wrong, among "
