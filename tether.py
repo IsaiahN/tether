@@ -1664,7 +1664,7 @@ class Agent:
     def end_run(self, how: str = "cap") -> None:
         """The run ends with this level still open: its signals resolve at the GAME (MC2). The loops
         call it after their last step; `retarget` never sees a cap or a timeout."""
-        self._note_ending(how)
+        self._note_ending(how, "run")
         self._resolve_signals("game", how)
 
     def _fingerprint(self, before: dict) -> tuple[str, str]:
@@ -1672,7 +1672,7 @@ class Agent:
         The interface's reading, so the floor's key and the withhold's check are one."""
         return IFace.fingerprint(self.env, before)
 
-    def _mc3_note(self, how: str) -> None:
+    def _mc3_note(self, how: str, scope: str) -> None:
         """MC3: the GROUND's record of an ending -- its word, its kind, whether the level was
         cleared, the actions this level and this run, the attempts -- appended, never edited
         (Fig 2, "The anchor must not update"). Nothing the frame produces (bets, mints) enters it
@@ -1686,30 +1686,40 @@ class Agent:
         entry = {"how": how, "kind": "cleared" if cleared else _TERM_KIND.get(how, how),
                  "cleared": cleared,
                  "level": self.level, "actions_this_level": self._attempt_actions,
-                 "actions_this_run": self._run_actions, "attempts": self._level_attempts}
+                 "actions_this_run": self._run_actions, "attempts": self._level_attempts,
+                 # WHICH BUDGET AN ENDING RAN OUT (the reviewer 23:18Z), read from what followed
+                 # it, never from a cap: a new level (retarget) is "level", the run's end "run"
+                 "scope": scope}
         self._mc3.append(entry)
         _c, _s, _lv = self._boundary_key("@boundary")
         self.led.record(_c, "IMPORT", _s, "ground_record", **_lv, **{
             k: v for k, v in entry.items() if k != "level"})
 
     def _mc4(self, cand: Any) -> dict:
-        """MC4: a plan's need read against two things from MC3, kept apart and never combined.
-        reserve_seen is the budget learned by running out: the actions at the agent's own cap
-        endings, minus what this run has used ("the agent discovers its budget by running out";
-        a cap the world holds is never read). level_cost_seen is what cleared levels cost:
-        context, not a reserve. With no such ending, each reads "no record"."""
-        caps = [e["actions_this_run"] for e in self._mc3 if e["kind"] == "cap"]
+        """MC4: a plan's need read against what MC3 recorded, each kept apart, never combined.
+        The budget is learned by running out ("the agent discovers its budget by running out"; a
+        cap the world holds is never read), AT ITS OWN SCOPE (the reviewer 23:18Z): a cap ending
+        followed by a new level gives reserve_level_seen, read against this level's actions; one
+        that ended the run gives reserve_run_seen, read against this run's. level_cost_seen is
+        what cleared levels cost: context, not a reserve. With no such ending, "no record"."""
+        lv = [e["actions_this_level"] for e in self._mc3 if e["kind"] == "cap"
+              and e["scope"] == "level"]
+        run = [e["actions_this_run"] for e in self._mc3 if e["kind"] == "cap"
+               and e["scope"] == "run"]
         cleared = [e["actions_this_level"] for e in self._mc3 if e["cleared"]]
         return {"need": _confirm_actions(cand),
-                "reserve_seen": ([c - self._run_actions for c in caps] if caps else "no record"),
+                "reserve_level_seen": ([c - self._attempt_actions for c in lv] if lv
+                                       else "no record"),
+                "reserve_run_seen": ([c - self._run_actions for c in run] if run
+                                     else "no record"),
                 "level_cost_seen": ([min(cleared), max(cleared)] if cleared else "no record")}
 
-    def _note_ending(self, how: str) -> None:
+    def _note_ending(self, how: str, scope: str) -> None:
         """7a(5) A + B: one ending reaches Termination once -- the SAME word again with no step
         between (a WIN retargeted, then ended by the loop) is that ending, another word is another
         (a death, then the deadline) -- and a death adds its veto. Record only."""
         if _MC34:
-            self._mc3_note(how)
+            self._mc3_note(how, scope)
         if not _RUIN_RECORD or self._ending_counted == how:
             return
         self._ending_counted = how
@@ -1803,7 +1813,7 @@ class Agent:
         self.led.record(_c, "IMPORT", _s, "ending", **_lv, how=how, to_level=level,
                         reads=ENDING_READS.get(how, "unnamed ending"),
                         consumed_by="nothing yet -- boundary demotion is a separate item")
-        self._note_ending(how)
+        self._note_ending(how, "level")
         # §21.3: A COMPLETION IS A SETTLE, AND THE SWEEP IS HOW YOU FIND OUT WHAT CAUSED IT.
         # *A level completes at step 500 and the last action did not cause it -- the
         # trajectory did*, so crediting the final action is the delayed-effects bug at the
@@ -3010,10 +3020,13 @@ class Agent:
 
     def _cannot_finish(self, need: int | None) -> bool:
         """7a(9) MC4's reader: True only when the need is known and exceeds every reserve the
-        agent has learned by running out (habitat: a record that outlives one run)."""
-        reserve = self._mc4(None)["reserve_seen"] if _MC34 else "no record"
-        return (need is not None and isinstance(reserve, list) and bool(reserve)
-                and need > max(reserve))
+        agent has learned by running out AT A SCOPE it would run out in -- this level's, or this
+        run's -- each read against its own count (the reviewer 23:18Z)."""
+        if need is None or not _MC34:
+            return False
+        m = self._mc4(None)
+        return any(isinstance(r, list) and r and need > max(r)
+                   for r in (m["reserve_level_seen"], m["reserve_run_seen"]))
 
     def _waiting_reading(self) -> dict | None:
         """7a(9) factor 8, Agency.order's reader (R3: "an advertised action whose settled effect on

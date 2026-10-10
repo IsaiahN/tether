@@ -64,8 +64,9 @@ if __name__ == "__main__":
         r0 = [r["detail"] for r in m.led.rows() if r["event"] == "two_readings"][-1]
         assert r0["unable_to_finish"] == 0, r0                       # no record: drops nothing
         m._mc3.append({"how": "cap", "kind": "cap", "cleared": False, "level": 0,
-                       "actions_this_level": 30, "actions_this_run": 30, "attempts": 1})
-        m._run_actions = 20                                           # reserve_seen = [10]
+                       "actions_this_level": 30, "actions_this_run": 30, "attempts": 1,
+                       "scope": "run"})
+        m._run_actions = 20                                           # reserve_run_seen = [10]
         pick = m._two_readings("o0.row", [big, small], base=20.0)
         r1 = [r["detail"] for r in m.led.rows() if r["event"] == "two_readings"][-1]
         assert pick is small and r1["unable_to_finish"] == 1, r1

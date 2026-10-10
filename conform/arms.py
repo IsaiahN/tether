@@ -259,9 +259,12 @@ ARMS: dict[str, str] = {
                         "first panel reading at 7-and-a-half; carry is M7 and gated",
     "TETHER_MC34": "7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z): ON, every ending "
                    "is appended to the ground's record (word, kind, cleared, actions this "
-                   "level and run, attempts), and a plan's adoption row reads its need against "
-                   "reserve_seen (actions at the agent's own cap endings, minus this run's) and "
-                   "level_cost_seen (what cleared levels cost), kept apart; a world's cap is "
+                   "level and run, attempts, and the scope it ran out: level if a new level "
+                   "followed, run if the run ended), and a plan's adoption row reads its need "
+                   "against reserve_level_seen and reserve_run_seen (the agent's own cap "
+                   "endings at that scope, minus this level's or this run's actions; the "
+                   "reviewer 23:18Z) and level_cost_seen (what cleared levels cost), kept "
+                   "apart; a world's cap is "
                    "never read. OFF because it is a reading with no decision consumer yet: "
                    "item 9's per-plan factors are named to read it",
     "TETHER_CASCADE_AGENCY": "7a(6) H2, the in-between frames (R3 part 2; the reviewer "
