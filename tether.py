@@ -431,6 +431,14 @@ _CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE")
 # is the TRANSITION bet row itself (ledger.signal_sign); ON, each gets exactly one resolution row
 # when its level ends (retarget) or the run ends with the level open (end_run). Record only.
 _MC_SIGNAL = armflag.arm("TETHER_MC_SIGNAL")
+# 7a(5) A + B, THE RUIN RECORD (ARC_AGENT 19.3-19.4; the reviewer 2026-10-10 10:41Z). OFF; reason in
+# conform/arms.py. A: every ending reaches `self.term` exactly once. B: a death adds (fingerprint,
+# action, realised coordinate) to `self._vetoes`, which only grows (Fig 6). The fingerprint is the
+# world's BOARD where it gives one, else observe(), which is the whole state there (Fig 1). Record
+# only: nothing reads the vetoes until C, its own arm.
+_RUIN_RECORD = armflag.arm("TETHER_RUIN_RECORD")
+# an ending's word -> Termination's kind; the seat's budgets are caps, every other word is its own
+_TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap"}
 # THE BOUNDARY ROWS' OWN CHAINS (the reviewer 2026-10-10 08:11Z, 09:40Z). retarget's boundary/ending
 # and the death restart go on "@boundary", the 21.3 credit on "@credit", at THE CYCLE with the level
 # as a field: at cycle = self.level on "@loop" they sat behind that cycle's REPEAT row, and credit
@@ -1509,6 +1517,9 @@ class Agent:
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
+        self._vetoes: set[tuple] = set()       # 7a(5) B: (fingerprint, action, coordinate)
+        self._ruin_step: tuple | None = None   # this step's (fp, of, action, coord, cycle)
+        self._ending_counted: str | None = None  # the word counted with no step since
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
         # record carries its OWN evidence -- retrospective re-attribution is free in
@@ -1563,7 +1574,44 @@ class Agent:
     def end_run(self, how: str = "cap") -> None:
         """The run ends with this level still open: its signals resolve at the GAME (MC2). The loops
         call it after their last step; `retarget` never sees a cap or a timeout."""
+        self._note_ending(how)
         self._resolve_signals("game", how)
+
+    def _fingerprint(self, before: dict) -> tuple[str, str]:
+        """7a(5) B: the BOARD where the world gives one, else observe() (the whole state there)."""
+        board = getattr(self.env, "board", None)
+        b = board() if board is not None else None
+        if b is not None:
+            b = b.tolist() if hasattr(b, "tolist") else b
+            return hashlib.sha1(repr(b).encode()).hexdigest()[:16], "board"
+        return hashlib.sha1(repr(sorted(before.items())).encode()).hexdigest()[:16], "state"
+
+    def _note_ending(self, how: str) -> None:
+        """7a(5) A + B: one ending reaches Termination once -- the SAME word again with no step
+        between (a WIN retargeted, then ended by the loop) is that ending, another word is another
+        (a death, then the deadline) -- and a death adds its veto. Record only."""
+        if not _RUIN_RECORD or self._ending_counted == how:
+            return
+        self._ending_counted = how
+        _c, _s, _lv = self._boundary_key("@boundary")
+        was = self.term.klass()
+        self.term.ending(_TERM_KIND.get(how, how))
+        if self.term.klass() != was:
+            self.led.record(_c, "IMPORT", _s, "termination", **_lv, how=how, was=was,
+                            **self.term.report())
+        if how != "death":
+            return
+        if self._ruin_step is None:
+            self.led.record(_c, "IMPORT", _s, "veto", **_lv, killing_step=None,
+                            reads="a death with no action taken this step: nothing to veto")
+            return
+        fp, of, act, coord, cyc = self._ruin_step
+        key = (fp, act, coord)
+        new = key not in self._vetoes
+        self._vetoes.add(key)
+        self.led.record(_c, "IMPORT", _s, "veto", **_lv, fingerprint=fp, fingerprint_of=of,
+                        action=act, coord=list(coord) if coord is not None else None,
+                        at_cycle=cyc, new=new, vetoes=len(self._vetoes))
 
     def _resolve_signals(self, kind: str, how: str) -> None:
         """MC2: exactly one resolution row per open signal, pointing at its bet row, never editing
@@ -1629,6 +1677,7 @@ class Agent:
         self.led.record(_c, "IMPORT", _s, "ending", **_lv, how=how, to_level=level,
                         reads=ENDING_READS.get(how, "unnamed ending"),
                         consumed_by="nothing yet -- boundary demotion is a separate item")
+        self._note_ending(how)
         # §21.3: A COMPLETION IS A SETTLE, AND THE SWEEP IS HOW YOU FIND OUT WHAT CAUSED IT.
         # *A level completes at step 500 and the last action did not cause it -- the
         # trajectory did*, so crediting the final action is the delayed-effects bug at the
@@ -8350,6 +8399,8 @@ class Agent:
         # never fire. The declaration is still the domain's; only when it is read has moved.
         self.alphabet = self._alphabets(self.env)
         before = self.env.observe()
+        if _RUIN_RECORD:
+            self._ruin_step, self._ending_counted = None, None
         # ONE READING PER GOAL HYPOTHESIS, EVERY STEP, BEFORE ANYTHING ACTS ON IT. A trend
         # needs a series, and a series only exists if the reading is unconditional -- taking
         # it inside the branch that consumes it would record only the steps that already
@@ -8595,6 +8646,11 @@ class Agent:
         # exit that WANTS the contact names its own target in the intent, so there is no second
         # site guessing whose aim this was.**
         coord = self._aimed
+        if _RUIN_RECORD:
+            # the board BEFORE the act and the coordinate it was REALISED at (never the intent's
+            # subject, the a561fb2 lesson): the killing step's key if this step dies
+            self._ruin_step = (*self._fingerprint(before), action,
+                               tuple(coord) if coord is not None else None, self.cycle)
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         routed = self.route(res)

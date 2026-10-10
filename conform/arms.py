@@ -242,6 +242,17 @@ ARMS: dict[str, str] = {
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
                           "not ruled",
+    "TETHER_RUIN_RECORD": "7a(5) A + B (ARC_AGENT 19.3-19.4; the reviewer 2026-10-10 10:41Z): "
+                          "ON, every ending reaches instruments.Termination exactly once "
+                          "(retarget, or end_run unless retarget counted the same word; "
+                          "cap/time/run_end map to cap) with an IMPORT 'termination' row "
+                          "when its class "
+                          "changes, and a death adds (fingerprint, action, realised coordinate) "
+                          "to a veto set that only grows, one IMPORT 'veto' row each; the "
+                          "fingerprint is the world's board() where it gives one, else "
+                          "observe(). OFF because it is record only and new: nothing reads the "
+                          "vetoes until C (TETHER_RUIN, its own arm, which will require this "
+                          "one), and the panel has no deaths",
     "TETHER_MC_SIGNAL": "MC1 + MC2 (R3 item 4, 7a(4); the reviewer 2026-10-10 07:57Z): the signal "
                         "is the TRANSITION bet row the ground answered (ledger.signal_sign: paid "
                         "iff not vanished and mass 0); ON, each gets exactly one SETTLE "
