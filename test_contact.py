@@ -30,7 +30,8 @@ import world
 
 sys.dont_write_bytecode = True
 
-CYCLES = 20
+CYCLES = 20     # anchor: a declared convention, not measured; long enough on gridworld s0 for the
+                #   mint to fire (counted, asserted >= 1); movable
 
 
 def _run(on: bool) -> tuple[list[dict], list]:
