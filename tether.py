@@ -449,6 +449,12 @@ if _RUIN and not _RUIN_RECORD:
 # by the exit whose action is RETURNED, with its role (goal: it chose what to reach; route: its
 # prediction chose the press; body: a routine's step). Nothing decides from it (Fig 1).
 _FED = armflag.arm("TETHER_CONTACT")
+# 7a D5, SPLIT A SLOT'S RESIDUAL ON STRAIN (Fig 9 :4-5, :54-58; the reviewer 2026-10-10 15:58Z).
+# OFF; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term
+# gets right from the rows it gets wrong (at least 2 each side), the slot gets two PARTS: the
+# incumbent guarded by P, and the not-P rows searched on their own. Credit per (term, part); the
+# incumbent is shadow-graded on not-P rows and a broken partition reverts the split.
+_D5 = armflag.arm("TETHER_D5")
 # an ending's word -> Termination's kind; the seat's budgets are caps, every other word is its own
 _TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap"}
 # THE BOUNDARY ROWS' OWN CHAINS (the reviewer 2026-10-10 08:11Z, 09:40Z). retarget's boundary/ending
@@ -1539,6 +1545,13 @@ class Agent:
         self._routine_fed: list = []            # 5b: the routine exit's entries, this step
         self._plan_seqs: dict[int, int] = {}    # 5b: plan_no -> the seq of its mint row
         self._fed_rows: dict[str, list] = {}    # 5b: term -> (REPEAT seq, role) naming it
+        self._parts: dict[str, dict] = {}       # D5: slot -> {P, A (incumbent), B, ...}
+        self._d5_pending: dict[str, tuple] = {}  # D5: slot -> (P, numbers), split next step
+        self._row_filter: dict = {}             # D5: slot -> the rows part B's search sees
+        self._mint_part: dict | None = None     # D5: the part a running mint searches for
+        self._shadow: dict[str, int | None] = {}  # D5: the incumbent's shadow on a not-P step
+        self._d5_rows: dict[str, list] = {}     # D5: slot -> (trace row, predictor), this level
+        self._d5_said: set = set()              # D5: (slot, term) whose not-split was recorded
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
         # record carries its OWN evidence -- retrospective re-attribution is free in
@@ -1733,6 +1746,8 @@ class Agent:
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.slot_types = self._slot_types(env)   # and may type them differently
         self.bound, self.trace = {}, []
+        self._parts, self._d5_pending, self._shadow = {}, {}, {}
+        self._d5_rows, self._d5_said = {}, set()   # D5's scope is the level, a world event
         self._attempt_actions = 0
         self._trace_epoch += 1          # the tallies summarise a history that is gone
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
@@ -1882,8 +1897,10 @@ class Agent:
         # **AND THE INTENT RIDES WITH IT.** A guard is tested inside `Term.apply`, which
         # runs over THESE rows during replay -- so a guard keyed on an intent is
         # unevaluable unless the row carries the intent that produced it.
-        return [(b, a, af[slot], i, land) for b, a, af, i, land in self.trace
+        rows = [(b, a, af[slot], i, land) for b, a, af, i, land in self.trace
                 if slot in af and slot in b]
+        keep = self._row_filter.get(slot)       # D5: part B's search prices its own rows only
+        return [r for r in rows if keep(r)] if keep is not None else rows
 
     def _lookup(self, slot: str, hist: list) -> None:
         """FIG 9's ONE LOOKUP INTO THE LIBRARY, keyed by this residual (the reviewer 2026-10-07
@@ -3126,6 +3143,8 @@ class Agent:
         # slot. Measured: `o1.colour` is unbound at perceive-exit on 30 of 30 steps and
         # bound at settle-entry on 18 -- and those 18 are exactly the 18 refutations of a
         # term the habitat says is TRUE (`o1.colour` +1 mod 4 on 21 of 21 own clicks).
+        if _D5 and (self._parts or self._d5_pending):
+            self._d5_select(betting, before, action)
         self._pred_by = {s: self.bound.get(s) for s in betting}
         pred = {s: self._predict(s, before, action) for s in betting}
         raw = {s: self._pred_raw.get(s) for s in betting if pred[s] is not None}
@@ -4098,6 +4117,123 @@ class Agent:
         if isinstance(a, dict):
             return {s: int(v) for s, v in a.items()}
         return dict.fromkeys(env.slots(), int(a))
+
+    def _d5_holds(self, pred: str, slot: str, row: tuple | None = None) -> bool:
+        """D5: does the held predicate P hold, on a history row or (row None) on this step."""
+        owner = slot.rsplit(".", 1)[0]
+        if row is None:
+            if pred == ACTED_SELF:
+                return _same_object(self._last_landed, owner)
+            return (self._intent_now.kind if self._intent_now is not None else NO_INTENT) == pred
+        return _same_object(row[4], owner) if pred == ACTED_SELF else row[3] == pred
+
+    def _d5_cut(self, slot: str, name: str) -> tuple | None:
+        """D5's trigger (Fig 9 :4-5): a held predicate P with the incumbent right on every P row
+        and wrong on every other, at least 2 a side (probe.never_live's anchor: two is the
+        smallest number that separates), and the split pays: the incumbent's miss on the not-P
+        rows exceeds the guard's cost. Only predicates the agent already holds (Fig 6 :32)."""
+        term = self.gamma.library.get(name)
+        # THE TERM'S OWN RECORD, SCOPED BY THE LEVEL (the reviewer 16:24Z): every row on which
+        # THIS term predicted the slot in this level, across any demote or rebind. A boundary the
+        # agent produces (its own demote) may not decide which evidence counts (Fig 1 :27).
+        idx = [i for i, n in self._d5_rows.get(slot, ()) if n == name]
+        hist = [(b, a, af[slot], i, land) for b, a, af, i, land in
+                (self.trace[j] for j in idx if 0 <= j < len(self.trace))
+                if slot in af and slot in b]
+        if term is None or len(hist) < 4:
+            return None
+        wrong = [bool(self._residual_obs(slot, term, [r])) for r in hist]
+        preds = sorted({r[3] for r in hist if r[3] is not None})
+        if _ACTED_GUARD:
+            preds.append(ACTED_SELF)
+        for pred in preds:
+            on = [self._d5_holds(pred, slot, r) for r in hist]
+            right_p = sum(1 for o, w in zip(on, wrong, strict=True) if o and not w)
+            wrong_np = sum(1 for o, w in zip(on, wrong, strict=True) if not o and w)
+            if right_p < 2 or wrong_np < 2 or right_p + wrong_np != len(hist):
+                continue
+            miss = self._left(term, slot, [hist[i] for i, o in enumerate(on) if not o])
+            cost = _guard_bits(pred, len(preds))
+            if miss > cost:
+                return pred, {"right_on_p": right_p, "wrong_off_p": wrong_np,
+                              "incumbent_miss_bits_off_p": round(miss, 3),
+                              "guard_bits": round(cost, 3)}
+        n_right, n_wrong = wrong.count(False), wrong.count(True)
+        if n_right >= 2 and n_wrong >= 2 and (slot, name) not in self._d5_said:
+            # A UNION THE HELD PREDICATES DO NOT SEPARATE: recorded once, never split (design 5).
+            self._d5_said.add((slot, name))
+            self.led.record(self.cycle, "SETTLE", "@d5", "not_split", split_slot=slot, term=name,
+                            right=n_right, wrong=n_wrong, predicates=preds,
+                            reason="no held predicate separates the term's right rows from its "
+                                   "wrong rows in this level")
+        return None
+
+    def _d5_split(self, slot: str, pred: str, numbers: dict, inc: str | None = None) -> None:
+        """D5: part A keeps the incumbent on P rows; part B is searched by the SAME mint on the
+        not-P rows alone (history filtered), and its verdict stays the part's: the slot's park
+        state, wants and binding are restored after, so a part never speaks for the slot."""
+        inc = inc or self.bound.get(slot)
+        if not inc:
+            return
+        owed, abst = slot in self.owed_import, self.abstained.get(slot)
+        want, want_t = self.wants.get(slot), self._want_terms.get(slot)
+        self.bound.pop(slot, None)
+        self._row_filter[slot] = lambda r, _p=pred, _s=slot: not self._d5_holds(_p, _s, r)
+        self._mint_part = {"part": f"!{pred}", "slot": slot, "incumbent": inc}
+        try:
+            self.mint(slot)
+            got = self.bound.get(slot)
+        finally:
+            self._row_filter.pop(slot, None)
+            self._mint_part = None
+        part_b = got if got and got != inc else None
+        (self.owed_import.add if owed else self.owed_import.discard)(slot)
+        for store, val in ((self.abstained, abst), (self.wants, want), (self._want_terms, want_t)):
+            if val is None:
+                store.pop(slot, None)
+            else:
+                store[slot] = val
+        self.bound[slot] = inc
+        self._parts[slot] = {"P": pred, "A": inc, "B": part_b}
+        self.led.record(self.cycle, "MINT", "@d5", "split", split_slot=slot, P=pred,
+                        part_a=inc, part_b=part_b or "parked (its own park row names the part)",
+                        **numbers)
+
+    def _d5_select(self, betting: list, before: dict, action: str) -> None:
+        """D5: the part whose guard holds predicts this step; on a not-P step the incumbent's
+        prediction is kept as a SHADOW (not a bet, not acted on, not settled). A cut found at
+        the last settle is a partition from THIS step: its split runs in route, after the bet,
+        so without this the incumbent was charged for a not-P row (s1, c30: demoted by it)."""
+        parts = {**{s: {"P": c[0], "A": c[2], "B": None} for s, c in self._d5_pending.items()},
+                 **self._parts}
+        for slot, part in parts.items():
+            if slot not in betting:
+                continue
+            if self._d5_holds(part["P"], slot):
+                self.bound[slot] = part["A"]
+                self._shadow.pop(slot, None)
+                continue
+            self.bound[slot] = part["A"]
+            self._shadow[slot] = self._predict(slot, before, action)
+            if part["B"]:
+                self.bound[slot] = part["B"]
+            else:
+                self.bound.pop(slot, None)
+
+    def _d5_revert(self, slot: str) -> None:
+        """D5: the incumbent was right on a not-P step, so the partition claim is broken."""
+        part = self._parts.pop(slot)
+        self.bound[slot] = part["A"]
+        self.led.record(self.cycle, "SETTLE", "@d5", "partition_broken", split_slot=slot,
+                        P=part["P"], incumbent=part["A"], unbound=part["B"],
+                        verdict="the incumbent was right on a not-P row; the split reverts")
+
+    def _d5_dissolve(self, slot: str, name: str) -> None:
+        """D5: a part's term was demoted by the normal path; the split goes with it."""
+        part = self._parts.pop(slot)
+        self._shadow.pop(slot, None)
+        self.led.record(self.cycle, "SETTLE", "@d5", "dissolved", split_slot=slot, P=part["P"],
+                        demoted=name, part_a=part["A"], part_b=part["B"])
 
     def _residual_obs(self, slot: str, term: Term, hist: list) -> list:
         """R, DESCRIBED: the observations the bound term got wrong. Step 2 already sorts
@@ -7656,7 +7792,8 @@ class Agent:
         # **`candidates_tried` IS `rank`: CHAIN CANDIDATES ONLY.** Operand-TREE candidates are
         # priced without entering `rank` -- 86.8% of all pricing on default (2026-10-05) -- so
         # it is not the mint's work. `candidates_priced` is: every `_cannot_pay` call this mint.
-        detail = {"guards": guards, "candidates_seen": seen, "candidates_tried": rank,
+        detail = {**({"part": self._mint_part} if self._mint_part else {}),
+                  "guards": guards, "candidates_seen": seen, "candidates_tried": rank,
                   "candidates_priced": self._priced - _priced0,
                   "contest": contest,
                   # **`cuts` IS A SAMPLE AND `cut_counts` IS THE POPULATION -- `F413`.**
@@ -8202,6 +8339,16 @@ class Agent:
             # slot with no recorded maker is SKIPPED: an unattributed prediction is not
             # evidence against anybody.
             name = self._pred_by.get(slot)
+            if _D5 and slot in self._shadow:
+                # THE CUT STAYS FALSIFIABLE (the reviewer 15:58Z): the incumbent's shadow on a
+                # not-P step. Right there means the partition claim is broken; the split reverts.
+                sh = self._shadow.pop(slot)
+                if sh is not None and r.actual is not None and (
+                        sh == r.actual % self.alphabet[slot]):
+                    self._d5_revert(slot)
+                    continue
+            if _D5:
+                self._d5_rows.setdefault(slot, []).append((len(self.trace) - 1, name))
             if not name:
                 continue
             if r.mass > 0.0:
@@ -8211,6 +8358,10 @@ class Agent:
                 # BOTH outcomes of `refute` below: a settled term demoted and a candidate
                 # mispredicting are both the ground refusing what was said.
                 self._refuted_slot[slot] = name
+                if _D5 and slot not in self._parts and slot not in self._d5_pending:
+                    cut = self._d5_cut(slot, name)
+                    if cut is not None:
+                        self._d5_pending[slot] = (*cut, name)
                 held = self.gamma.is_settled(name, slot)
                 if self.gamma.refute(name, where=self._scope, slot=slot):
                     self.demoted.append(name)
@@ -8238,6 +8389,10 @@ class Agent:
                     # accumulating the evidence it needs to settle.
                     self.bound.pop(slot, None)
                     self.owed_import.add(slot)
+                    if _D5:
+                        self._d5_pending.pop(slot, None)
+                        if slot in self._parts:
+                            self._d5_dissolve(slot, name)
                 elif held:
                     # A MISS THAT COST NO STANDING: the evidence tally rose and stayed under the
                     # ceiling. Recorded as what it is; the binding stands, because only the
@@ -8705,7 +8860,15 @@ class Agent:
         # minted this cycle is swept only into slots whose own turn is still to come; a slot
         # already past its turn meets it through its own route next cycle.
         self._turn_ahead = {s for s, b, *_ in routed if b in (REBIND, REFUTED, MECHANISM)}
+        _split_now: set = set()
+        if _D5 and self._d5_pending:
+            for _slot in sorted(self._d5_pending):
+                self._d5_split(_slot, *self._d5_pending[_slot])
+                _split_now.add(_slot)
+            self._d5_pending.clear()
         for slot, b, fit, _why in routed:
+            if slot in _split_now:
+                continue
             if b == REBIND and fit:
                 self.bound[slot] = fit
                 self._carry(fit)

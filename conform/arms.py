@@ -242,6 +242,17 @@ ARMS: dict[str, str] = {
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
                           "not ruled",
+    "TETHER_D5": "7a D5, split a slot's residual on strain (Fig 9 :4-5; the reviewer 2026-10-10 "
+                 "15:58Z, 16:24Z): ON, when a held predicate (an intent kind, or ACTED_SELF) "
+                 "cleanly separates the rows a term got right from the rows it got wrong, among "
+                 "every row it predicted the slot in this level (2 a side, and it pays), the "
+                 "slot gets two parts: the incumbent guarded by P, and the not-P rows searched "
+                 "by the same mint on their own rows; credit per (term, part); the incumbent is "
+                 "shadow-graded on not-P steps and a broken partition reverts. OFF because it "
+                 "is new and changes binding; on fake it does not fire (no held predicate "
+                 "separates o2.drow: the true cut is the button). HELD until the candidate-cut "
+                 "amendment (one witness before acting) lands and is read (the reviewer 18:46Z; "
+                 "F408 cannot bind at a 2-a-side cut, so it was the wrong unblocker)",
     "TETHER_CONTACT": "7a(5b), the contact instrument (Isaiah 2026-10-10 06:46 CDT; the reviewer "
                       "11:46Z, 12:27Z): ON, the REPEAT row's gamma_read gains fed, one entry per "
                       "library term read by the exit whose action is RETURNED, {kind, name, slot, "
