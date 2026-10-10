@@ -101,7 +101,9 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 | compounds | BOUNDED BY VOCABULARY (the reviewer 22:09Z): not refuted, not built; see the verdict below |
 | 7d reverse lookup (`Library.light(abduce=...)`) | BOUNDED BY VOCABULARY (the reviewer 22:09Z): not refuted, not built; see the verdict below |
 | 7a(6) CASCADE_AGENCY (H2) | DONE d0ee341 (OFF, HELD: no cascade in the test worlds; habitat ARC, step 13). CARRIED (the reviewer 22:26Z): N1 attribute by the bbox (row..row+h-1, col..col+w-1) where h/w exist, anchor cell otherwise, with a must-fail for a plus-shaped mover, next time in `_cascade_agency` or at 13; N2 item 9's note names the reader of Agency.order, or 7½ records it as an orphan |
-| 7a(7)-(10): TWO_READINGS, MC3/MC4, per-plan factors, MC6 + D1-D3 | NEXT: TWO_READINGS |
+| 7a(7) TWO_READINGS | FOLDED INTO ITEM 9 (the reviewer 22:33Z): no occasions on the test worlds, since paying plans tie in both readings (arc_s1: 5-7 paying plans per search, all 6.966 bits and the same expect). Built as accepted 22:27Z and HELD on local branch `wip/item7-two-readings` (31d4576, worktree tether-wt-5b); it lands with item 9. FINDING: today the existing order picks among 5-7 plans identical in both currencies, and that pick is the one the ground grades, which item 9's record should watch. CARRIED: C1, a term whose operand needs actions to appear has an action reading too (Fig 12 :129), with item 9 or later; C2, the accumulation path's adoption row records the candidate's confirm reading (in the held build) |
+| 7a(8) MC3/MC4 (TETHER_MC34) | NEXT: building |
+| 7a(9)-(10): per-plan factors (+ dominance, + readers for Agency.order and MC4), MC6 + D1-D3 | queued |
 | 7b, 7c | queued |
 | 7½ switch-on and orphan audit: one full OFF and one full ON panel | queued |
 
