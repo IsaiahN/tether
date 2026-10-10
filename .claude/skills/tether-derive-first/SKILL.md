@@ -13,6 +13,8 @@ Isaiah, 2026-10-09: *"the tether is so good that it should be able to explain al
 
 1. **Name the residual, as an effect.** What does the current frame fail to explain, or what failed? State it in effect terms, not cause terms. Fig 9: *"your words are borrowed too, so describe the effect rather than the cause"* If it is several questions, unbundle first (Fig 9: *"Split it rather than search."*).
 
+1a. **Domain census, before any figure line is chosen.** Isaiah 2026-10-10 06:40 CDT, via the reviewer 11:42Z. Describe R: *arity · symmetry · scale* (Fig 9: *"describe it before you go looking, or / any frame you pick will seem to fit"*). Then name each domain by its **actors / currency / anchor** (Fig 4: *"Only the actors, the currency and the anchor change."*); if you cannot name the anchor, it is not a domain yet. Where two domains share a field, an event or a quantity, write the **union as its own compound** with its own loop (Fig 9: *"a case in two conditions is not a harder case of either"*). Order the domains upstream first (Fig 3). Derive per domain, mark each conclusion **triangulated** (two figures) or **single-source** (one line read twice is one source, Fig 2), and keep the verdicts per domain, never averaged (Fig 1). **A strain means the domain was misidentified**: the line governs a different quantity than the one being ruled on. Re-census before posting; *Strained* may be written only after a re-census, and then it goes to Isaiah as a gap. The reviewer writes its own census blind from the RESIDUAL line, so the RESIDUAL must stand alone.
+
 2. **Derive: open the source and find the lines that bear — BEFORE concluding.** Open the SVGs (all 13 figures, plus the Operators and Symbols tables) and the formula, joining tspans and stripping the base64 metadata (recipe below). For each candidate conclusion, find the figure, formula or substrate line it follows from, and quote it verbatim. Never reason from a summary, including memory's. Write these lines down first, as a DERIVATION block, then the conclusion.
 
 3. **Search in order: searched, inward, outward** (the formula, step 7).
@@ -36,7 +38,12 @@ Then write the post or ruling. The FIGURE CENSUS still closes it, as a check on 
 
 ```
 RESIDUAL (effect terms): …
-DERIVATION (before the conclusion):
+DOMAIN CENSUS (before any figure line is chosen):
+  R: arity … · symmetry … · scale …
+  - <domain>: actors … / currency … / anchor …
+  - union: <A> ∩ <B> = <compound>, its own loop
+  - order (Fig 3): upstream first
+DERIVATION (before the conclusion), per domain, each marked triangulated / single-source:
   - Fig N: "<verbatim>" → what follows
   - formula step k: "<verbatim>" → what follows
   - outward frame: <domain> — <shape match>; witness: <source>

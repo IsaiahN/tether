@@ -85,6 +85,22 @@ moved* is older than a day gets an explicit status chase, not a silent carry-for
 | **D5: unbundle a residual before calling it unreachable** -- opened 2026-10-09 (the reviewer 21:24Z, 21:37Z), joins item 10 | Read 2026-10-09 at b2cdc08: ABSENT. One term per slot (`tether.py` `self.bound`); the only split is a guard, `When(P, R)` with an identity else-branch that is never searched; a failed search records a verdict on the whole slot. **Must-fail, registered:** a residual that is a UNION of two conditions, each paid by a different rule on its own subset, is split and both parts paid; with the split off, the same record is reported unreachable. **No constant:** the trigger is Fig 9's (each rule keeps working on a different subset). **Design flag for item 10 (21:37Z):** two terms on one slot, or a guard whose else-branch is searched; the guard is the inward start (Fig 6). |
 | **Step-13 folder inventory** -- opened 2026-10-09 (16:28Z) | The local, gitignored folders (`replays/`, `recordings/`, `runs/`, `out/`, the imagemaps and replay chunks), with counts per game. **Inventory only: nothing moved, nothing committed.** **When:** before step 13. |
 
+## 7½ INVENTORY — every switch and every recorded-not-consumed row, added as items are built
+
+Isaiah 2026-10-10 06:47 CDT, via the reviewer 11:48Z: step 7½ (after step 7, before ANY code deletion) ends every OFF switch ON (its gate measured and passed, offline), RETIRED (code removed, reason given) or HELD (a named ruling, signed off by Isaiah), and every orphan CONNECTED (with a fixture and a must-fail) or RETIRED. One line per item: what it is, and what would turn it on or connect it. Seeded 2026-10-10 with the items the seat built or touched this week. The full arms census (`conform/arms.py`) and the wiring seat are the first act of 7½ itself, not this list.
+
+| item | kind | what would turn it on / connect it |
+|---|---|---|
+| `TETHER_RUIN_RECORD` (7a(5) A + B, 480a4ed) | switch, record only | read on a dying world (the snaps ladder's AVOID levels) and shown OFF-identical; C (`TETHER_RUIN`) requires it ON |
+| the `veto` rows and `_vetoes` | recorded, not consumed | C (ruin ordered first), its design note posted 2026-10-10 06:46 CDT |
+| the `termination` rows / `Termination.report()` | recorded, not consumed | no consumer named yet; candidates are C (death_possible says whether vetoes can exist at all) and the budget decisions in 7a(6)-(9) |
+| `TETHER_MC_SIGNAL` (7a(4) MC1 + MC2, d1fc98b) | switch, record only | its level half firing on a real level end (step 13), and a consumer for the rows |
+| MC2 `resolution` rows (`fed` None) | recorded, not consumed | 7a(5b), the contact instrument, gives `fed` a row to point at |
+| `TETHER_CARRY_PRICE` (item 3, eed7ada) | switch, behaviour | GATED: 3(b) resolved (every credited binding refuted or settled more than once, on ONE longer run shared with 2c) plus the one-settle bar |
+| `TETHER_WINDOW` (item 2) | switch, behaviour | GATED: 2c measured and ruled on the same longer shared run |
+| the `ending` row (`consumed_by` "nothing yet") and the 21.3 credit row's decay half | recorded, not consumed | boundary demotion, its own item (21.4, 21.5) |
+| the gapshape row ("published, not acted on") | recorded, not consumed | D5 + compounds + 7d (a): the residual description as the lookup key. The reverse lookup exists as `Library.light(changed, abduce=False|"after"|"merged")` (`library/library_runtime.py:314`, default False); no env arm named `TETHER_LIBRARY_ABDUCE` exists (grep, 2026-10-10) |
+
 ## PRIORITY 0 — THE SPACING SWEEP. LIVE RESULTS, updated 2026-09-20 as rungs land
 
 **Isaiah ruled it top priority in training. Built `18f83f2`, running since 14:27.**
