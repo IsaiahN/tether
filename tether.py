@@ -36,6 +36,7 @@ from gamma import (
     ACTED_ON,
     ACTED_SELF,
     IMPORTED,
+    MINTED,
     REJECTION_HALFLIFE,
     Ctx,
     Gamma,
@@ -422,6 +423,14 @@ _REUSE_CANDIDATE = True
 # 23:01Z, 00:37Z: nothing is trusted before it settles). False restores the old path, for the
 # must-fail only.
 _PROMOTE_AFTER_SETTLE = True
+# CARRY CREDIT (R3 item 3; DISCOVERY 503; H3(ii); R-D4; the reviewer 16:31Z, 21:18Z). OFF; reason in
+# conform/arms.py. A minted term's cost is paid once: reused where it RE-GROUNDS (left < base on the
+# slot's own record) it is priced on its leftover, and the library fit takes the lowest whole price.
+_CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE")
+# THE REFERENCE COST (the reviewer 21:55Z): a reused term's DEFINITION is paid once, but NAMING it
+# is paid per use, log2(H+1) over the H held terms (the corpus's +log2(k+1), as `_guard_bits`).
+# False removes it, for must-fail (r) only.
+_CARRY_REF = True
 
 
 def _recording(chains, into: list):
@@ -623,6 +632,13 @@ BOOKS: tuple[str, ...] = (
     "bargain_does_not_pay",             # `pays` -- the only one of the two that is a judgement
     "bargain_paid",                    # reached the contest
     "mint_no_residual",                 # refused by the residual precondition
+    # CARRY CREDIT (item 3, TETHER_CARRY_PRICE) and the seal repair's refusal (item 1).
+    "carry_pull_credited",              # a library pull priced on log2(H+1) + left
+    "carry_pull_uncredited",            # a library pull priced on cost + left
+    "carry_order_differs",              # the lowest whole price was not the first payer
+    "carry_sweep_credited",             # a sweep close priced on log2(H+1) + left
+    "carry_stale_close",                # a pre-boundary record closed by the sweep (MF-D3)
+    "unseal_leaves_more",               # a challenger refused for leaving more than the held rule
     # THE FIFTH TURN. Isaiah's crane game: the toy slipped and the SITUATION IMPROVED, and a
     # system recording only win/lose throws that entire turn away. Three buckets, never summed.
     "gap_improved",                     # the goal gap SHRANK on a slot since last cycle
@@ -1286,6 +1302,10 @@ class Agent:
         # `settled` IS A PROPERTY NOW -- see below. There is no set here to drift.
         self._settled_at_level: set[str] = set()   # the segment's starting line
         self._settled_lvl: set[str] = set()        # what settled in THIS level (P2's hold)
+        # CARRY (item 3): the ledger length at the level's start (CARRIED = entered before it), and
+        # each credited binding + its fate (3(b))
+        self._seq_at_level = 0
+        self._carry_log: dict[tuple[str, str], dict] = {}
         self.demoted: list[str] = []
         self.chain = I.Chain()
         self.rank = I.Rank()
@@ -1591,6 +1611,7 @@ class Agent:
                                        "decay is the incumbency pathology (§21.4)")
         self._settled_at_level = set(self.settled)
         self._settled_lvl = set()
+        self._seq_at_level = len(self.led)
         self._touch_cache = None      # a new world invalidates owners and contact alike
         self._peer_cache = None
         self._decomp_cache = None
@@ -3276,6 +3297,50 @@ class Agent:
                     yield Term(term.atoms, operand=b, guard=g,
                                operand_term=term.operand_term)
 
+    def _take_pull(self, n: str, cand: Term, slot: str, carry: dict | None = None) -> str:
+        """Bind a library pull: install a re-binding if it is new, and write the pull row."""
+        held, n = n, (n if cand.name == n
+                      else (cand.name if cand.name in self.gamma.library
+                            else self._install_reuse(cand, slot)))
+        st = self.gamma.stamps.get(held)
+        # STAMPS ARE DICTS. `getattr(st, "origin")` returned None on every pull, so
+        # the transfer column would have read *no imported term was ever pulled*
+        # whatever the truth -- sixth instance of an absence rendered as a value, and
+        # written in the same session that recorded the flavour.
+        #
+        # AND THE ROW CARRIES THE COMPOSITION AND THE HELD NAME. A re-bound import is
+        # installed under a NEW name stamped `accepted`, so a column keyed on the
+        # imported NAME could never match it however well transfer worked. The
+        # composition is what crossed, and it is what the reading has to key on.
+        self.led.record(self.cycle, "ROUTE", slot, "pull", term=n,
+                        held=held, chain=" . ".join(a.name for a in cand.atoms),
+                        rebound=held != n,
+                        origin=(st or {}).get("origin"),
+                        admitted=(st or {}).get("admitted"),
+                        **({"carry": carry} if carry is not None else {}),
+                        reads="a library entry REACHED FOR -- 14.7's bench pull")
+        return n
+
+    def _carry_credit(self, name: str, cand: Term, slot: str, left: float, base: float,
+                      held: Term, robs: list | None) -> bool:
+        """CARRY CREDIT (item 3). A MINTED term paid its cost at its own entry (DISCOVERY 503), so
+        where it RE-GROUNDS -- pays on this slot's own record alone, `left < base` -- it is priced
+        on its leftover. Never a prior or an import (nothing was paid), never pooled (one slot's
+        record), never a spectator (`bears_on`)."""
+        return ((self.gamma.stamps.get(name) or {}).get("origin") == MINTED and left < base
+                and robs is not None and self.bears_on(cand, slot, robs, held))
+
+    def _carry_ref(self) -> tuple[int, float]:
+        """What naming one held term costs: log2(H+1), H the held terms on offer, the +1 being
+        none of them (mint instead). The form is `_guard_bits`'s, the corpus's."""
+        h = len(self.gamma.library)
+        return h, (math.log2(h + 1) if _CARRY_REF else 0.0)
+
+    def _carry_note(self, name: str, slot: str, what: str) -> None:
+        rec = self._carry_log.get((name, slot))
+        if rec is not None:
+            rec[what] += 1
+
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
         """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.
 
@@ -3337,6 +3402,12 @@ class Agent:
         # `rejection_of`, so the order reads evidence of the current age rather than a total
         # frozen at whatever tick it was last touched.
         _gk = self._term_gkey(slot) if self._not else None
+        _paying: list = []
+        _today = None
+        _held_t = self.gamma.library[self.bound.get(slot, IDN)]
+        _carry_robs = (self._residual_obs(slot, _held_t, hist)
+                       if _CARRY_PRICE and _BARGAIN_FIT else None)
+        _h, _ref = self._carry_ref() if _CARRY_PRICE else (0, 0.0)
         for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
                                     youth=self.gamma.youth_of):
             if n == exclude or (self._not and self._term_refused(n, _gk)):
@@ -3384,30 +3455,44 @@ class Agent:
                     _left = self._left(cand, slot, hist)
                     _cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
                                       self.gamma.alphabet)
+                    if _CARRY_PRICE:
+                        # EVERY payer is collected and the lowest WHOLE price wins (H3: first is
+                        # not best); `_today` is the one the arm-OFF walk would have returned.
+                        if _today is None and pays(_cost, _left, _base):
+                            _today = (n, cand.name)
+                        _cred = self._carry_credit(n, cand, slot, _left, _base, _held_t,
+                                                   _carry_robs)
+                        _price = _ref + _left if _cred else _cost + _left
+                        if _price < _base:
+                            _paying.append((_price, len(_paying), n, cand, _cred, _left, _cost))
+                        continue
                     if not pays(_cost, _left, _base):
                         continue
                 elif not self._explains(cand, slot, hist):
                     continue
-                held, n = n, (n if cand.name == n
-                              else (cand.name if cand.name in self.gamma.library
-                                    else self._install_reuse(cand, slot)))
-                st = self.gamma.stamps.get(held)
-                # STAMPS ARE DICTS. `getattr(st, "origin")` returned None on every pull, so
-                # the transfer column would have read *no imported term was ever pulled*
-                # whatever the truth -- sixth instance of an absence rendered as a value, and
-                # written in the same session that recorded the flavour.
-                #
-                # AND THE ROW CARRIES THE COMPOSITION AND THE HELD NAME. A re-bound import is
-                # installed under a NEW name stamped `accepted`, so a column keyed on the
-                # imported NAME could never match it however well transfer worked. The
-                # composition is what crossed, and it is what the reading has to key on.
-                self.led.record(self.cycle, "ROUTE", slot, "pull", term=n,
-                                held=held, chain=" . ".join(a.name for a in cand.atoms),
-                                rebound=held != n,
-                                origin=(st or {}).get("origin"),
-                                admitted=(st or {}).get("admitted"),
-                                reads="a library entry REACHED FOR -- 14.7's bench pull")
-                return n
+                return self._take_pull(n, cand, slot)
+        if _paying:
+            price, _o, n, cand, cred, left_, cost_ = min(_paying, key=lambda x: (x[0], x[1]))
+            book = self.gamma.book
+            if cred:
+                book["carry_pull_credited"] = book.get("carry_pull_credited", 0) + 1
+            else:
+                book["carry_pull_uncredited"] = book.get("carry_pull_uncredited", 0) + 1
+            if _today != (n, cand.name):
+                book["carry_order_differs"] = book.get("carry_order_differs", 0) + 1
+            carry = {"price": round(price, 4), "credited": cred, "left": round(left_, 4),
+                     "held_terms": _h, "ref_bits": round(_ref, 4),
+                     "cost": round(cost_, 4), "base": round(_base, 4), "paying": len(_paying),
+                     "first_in_order": None if _today is None else _today[1],
+                     "carried": (cred and (self.gamma.stamps.get(n) or {}).get("seq", 0)
+                                 < self._seq_at_level)}
+            out = self._take_pull(n, cand, slot, carry=carry)
+            if cred:
+                self._carry_log[(out, slot)] = {
+                    "term": out, "slot": slot, "level": self.level, "cycle": self.cycle,
+                    "frames": len(hist), "left": carry["left"], "base": carry["base"],
+                    "carried": carry["carried"], "via": "pull", "settled": 0, "demoted": 0}
+            return out
         # REACHED AND FAILED, WHICH IS THE HALF NOTHING COULD SEE. *I looked for something with
         # this shape and found nothing* is an UNREACHED with a subject, and a retrieval that
         # returns nothing leaves no other trace at all.
@@ -7610,6 +7695,7 @@ class Agent:
         if unseal is not None and left > base_held:
             # SHORTER BUT EXPLAINING LESS: `outstanding` only grows, and `explain` cannot unspend,
             # so a replacement may not leave more than the rule it replaces.
+            self.gamma.book["unseal_leaves_more"] = self.gamma.book.get("unseal_leaves_more", 0) + 1
             detail["verdict"] = "unseal_leaves_more"
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
@@ -7775,7 +7861,10 @@ class Agent:
             # sit at the atom floor. Under this line it is never retracted. That is the
             # baseline's behaviour preserved exactly, which is the point; whether it is the
             # RIGHT condition is a separate question and a separate change.
-            return (rec.get("verdict") not in ("depth_exhausted", "under_floor")
+            # CARRY (item 3): the floor lemma bounds a NEW term's cost, not one already paid, so
+            # under the arm an under_floor record is swept too.
+            return (rec.get("verdict") not in (("depth_exhausted",) if _CARRY_PRICE
+                                               else ("depth_exhausted", "under_floor"))
                     or units_now > rec.get("units_then", 0))
 
         eligible = [t for t in targets if stale(t[3]) and t[2]]
@@ -7825,14 +7914,27 @@ class Agent:
             # so the ablation separates a bargain-accepted partial from a full closure.
             cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
                              self.gamma.alphabet)
-            if pays(cost, left, base):
+            # CARRY (item 3): the swept term was minted and paid its cost at its own entry, so
+            # where it re-grounds on this record alone (left < base) it pays on its leftover.
+            cred = (_CARRY_PRICE and left < base and (self.gamma.stamps.get(term.name) or {})
+                    .get("origin") == MINTED)
+            h_, ref_ = self._carry_ref() if cred else (0, 0.0)
+            # an under_floor record is open to a CREDITED term only (the reviewer 21:37Z)
+            floor_only = (_CARRY_PRICE and rec.get("verdict") == "under_floor"
+                          and units_now <= rec.get("units_then", 0))
+            if pays(ref_ if cred else cost, left, base) and (cred or not floor_only):
                 self.explain(slot, base - left)
+                if cred:
+                    self.gamma.book["carry_sweep_credited"] = (
+                        self.gamma.book.get("carry_sweep_credited", 0) + 1)
                 # THE SWEEP IS A PULL AND EMITTED NO PULL ROW. `reused()` counts `pull` rows
                 # and this is the only path that RE-BINDS, so every reuse it found was
                 # invisible to the bench-pull and transfer columns both.
                 self.led.record(self.cycle, "ROUTE", slot, "pull", term=cand.name,
                                 held=tkey, chain=" . ".join(a.name for a in cand.atoms),
                                 rebound=True, via="sweep",
+                                **({"carry_credited": cred, "held_terms": h_,
+                                    "ref_bits": round(ref_, 4)} if _CARRY_PRICE else {}),
                                 origin=(self.gamma.stamps.get(tkey) or {}).get("origin"),
                                 reads="a library entry reached for BY THE SWEEP")
                 self.chain.note_reuse_attempt(f"{'partial' if left > 0.0 else 'closed'}:{how}")
@@ -7856,6 +7958,18 @@ class Agent:
                 out = {"term": name, "slot": slot, "cycle": self.cycle,
                        "was": rec.get("verdict"), "via": how,
                        "cross_level": cross, "parked_on": rec.get("level")}
+                # MF-D3 (R-D2): a pre-boundary record closed here is STALE -- evidence, not a
+                # settle in this level, so its promotion waits for the term to settle here.
+                stale = _CARRY_PRICE and cross
+                if stale:
+                    out["stale"] = True
+                    self.gamma.book["carry_stale_close"] = (
+                        self.gamma.book.get("carry_stale_close", 0) + 1)
+                elif cred:
+                    self._carry_log[(name, slot)] = {
+                        "term": name, "slot": slot, "level": self.level, "cycle": self.cycle,
+                        "frames": len(hist), "left": round(left, 4), "base": round(base, 4),
+                        "carried": False, "via": "sweep", "settled": 0, "demoted": 0}
                 self.retro.append(out)
                 # SHADOW AND ECHO, and the sweep was throwing the verdict away. The
                 # target's residual is on the record before this term was accepted --
@@ -7867,7 +7981,8 @@ class Agent:
                         "observations": len(hist),
                         "recorded_before": self.gamma.stamps[name]["seq"],
                     }, {"closed": True, "slot": slot, "minted_for": origin_slot,
-                        "cross_level": cross, "via": how}))
+                        "cross_level": cross, "via": how,
+                        **({"stale": True} if stale else {})}))
                 # charged to the ORIGIN's chain, not the target's: the sweep is not the
                 # target slot's per-step loop running a second time, it is part of what
                 # happened when the origin minted. The target is named, not impersonated.
@@ -7876,7 +7991,8 @@ class Agent:
                                 guards={"support": True, "reachability": True,
                                         "novelty": False},
                                 note="minted here; it explains a residual parked elsewhere",
-                                was=out["was"], via=how, cross_level=cross)
+                                was=out["was"], via=how, cross_level=cross,
+                                **({"stale": True} if stale else {}))
             else:
                 # THE TWO REJECT ARMS WROTE NO ROW, AND THAT IS WHY THE ACCEPTANCE RULING
                 # CANNOT BE TAKEN YET. `F40` filed it as owed: `note_reuse_attempt` bumps a
@@ -7895,7 +8011,8 @@ class Agent:
                 # candidate improved (`left < base`) but cost made the bargain refuse it
                 # (`cost + left >= base`), and no-split means it reached nothing. The A6i misnomer
                 # (did-not-pay when pays was never consulted) is gone with the zero-remainder gate.
-                why = "did-not-pay" if left < base else "no-split"
+                why = ("under-floor-uncredited" if floor_only and pays(cost, left, base)
+                       else "did-not-pay" if left < base else "no-split")
                 self.chain.note_reuse_attempt(why)
                 # **THE STEP WAS WRONG AND A NEW SLOT EXPOSED IT -- 2026-09-24.** This row said
                 # `ROUTE` and is written from the MINT sweep, AFTER `park` has already run. For
@@ -7992,6 +8109,7 @@ class Agent:
                     # Capped -- a book that grows without bound is a leak, not a record.
                     if len(self._demoted_watch) < 64:
                         self._demoted_watch[name] = (slot, self.cycle)
+                    self._carry_note(name, slot, "demoted")
                     self.led.record(self.cycle, "SETTLE", slot, "demote", term=name,
                                     status="candidate",
                                     asked=[name, slot], ground_said=False,
@@ -8070,6 +8188,7 @@ class Agent:
             # cycle later than the one it was minted on IS the answer. Both facts were
             # here; neither was on the row, so a frame that never asked and one the
             # ground paid arrived looking the same.
+            self._carry_note(name, slot, "settled")
             self._settled_lvl.add(name)
             self.led.record(self.cycle, "SETTLE", slot, "settle", term=name,
                             status="accepted",
