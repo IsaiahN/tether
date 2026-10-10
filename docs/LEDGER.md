@@ -102,8 +102,8 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 | 7d reverse lookup (`Library.light(abduce=...)`) | BOUNDED BY VOCABULARY (the reviewer 22:09Z): not refuted, not built; see the verdict below |
 | 7a(6) CASCADE_AGENCY (H2) | DONE d0ee341 (OFF, HELD: no cascade in the test worlds; habitat ARC, step 13). CARRIED (the reviewer 22:26Z): N1 attribute by the bbox (row..row+h-1, col..col+w-1) where h/w exist, anchor cell otherwise, with a must-fail for a plus-shaped mover, next time in `_cascade_agency` or at 13; N2 item 9's note names the reader of Agency.order, or 7½ records it as an orphan |
 | 7a(7) TWO_READINGS | FOLDED INTO ITEM 9 (the reviewer 22:33Z): no occasions on the test worlds, since paying plans tie in both readings (arc_s1: 5-7 paying plans per search, all 6.966 bits and the same expect). Built as accepted 22:27Z and HELD on local branch `wip/item7-two-readings` (31d4576, worktree tether-wt-5b); it lands with item 9. FINDING: today the existing order picks among 5-7 plans identical in both currencies, and that pick is the one the ground grades, which item 9's record should watch. CARRIED: C1, a term whose operand needs actions to appear has an action reading too (Fig 12 :129), with item 9 or later; C2, the accumulation path's adoption row records the candidate's confirm reading (in the held build) |
-| 7a(8) MC3/MC4 (TETHER_MC34) | NEXT: building |
-| 7a(9)-(10): per-plan factors (+ dominance, + readers for Agency.order and MC4), MC6 + D1-D3 | queued |
+| 7a(8) MC3/MC4 (TETHER_MC34) | DONE (OFF, a reading; reader = item 9) |
+| 7a(9)-(10) | NEXT: item 9 note, naming the readers of Agency.order, dominance (held 31d4576) and MC4 |
 | 7b, 7c | queued |
 | 7½ switch-on and orphan audit: one full OFF and one full ON panel | queued |
 
@@ -125,6 +125,7 @@ Isaiah 2026-10-10 06:47 CDT, via the reviewer 11:48Z: step 7½ (after step 7, be
 | `TETHER_RUIN` (7a(5) C) | switch, behaviour | requires TETHER_RUIN_RECORD; its fixture is the dying snaps ladder; a real reading needs real deaths (step 13) and then the OFF/ON comparison on deaths repeated |
 | `TETHER_CONTACT` (7a(5b)) | switch, record only | a consumer for the fed field (D5 + compounds + 7d read which term fed which exit); its own rows are read now only by `conform/contact.py` |
 | `TETHER_GUARD_PRICE` (F408) | switch, behaviour (the mint's bargain) | its ON reading at 7½; short runs (4a837f4) showed it flips a 0.15-margin winner and holds a 1.67 one at G=2 |
+| `TETHER_MC34` (7a(8) MC3/MC4) | switch, record only (the ground's ending record; a plan's need beside reserve_seen and level_cost_seen) | its reader is item 9's per-plan factors; within one run both readings are mostly "no record", since a cap ending ends the run, so reserve_seen needs a record that outlives the run, which is open |
 | `TETHER_CASCADE_AGENCY` (7a(6) H2) | switch, record (Agency per-object order modes) | HELD: no cascade in the test worlds; habitat ARC, step 13; a consumer for Agency.order is not yet named |
 | `TETHER_D5` (7a D5) | switch, behaviour (binding) | **HELD until the candidate-cut amendment (one witness before acting) lands and is read** (the reviewer 18:46Z, restating 18:01Z's "until F408", which could not bind at a 2-a-side cut). The amendment is built (cut_candidate; cut_confirmed; cut_refuted with side P or not-P; cut_withdrawn only where no witness can arrive, verdict None); its full ON reading is at 7½. Then: its ON reading on the panel; a split reaching play needs an OBJ slot (goal exit) or a route from a term (5b reads none today) |
 | the `veto` rows and `_vetoes` | CONNECTED by C when TETHER_RUIN is ON | the record is consumed only under the C arm; with it OFF they are still recorded-not-consumed |

@@ -242,6 +242,13 @@ ARMS: dict[str, str] = {
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
                           "not ruled",
+    "TETHER_MC34": "7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z): ON, every ending "
+                   "is appended to the ground's record (word, kind, cleared, actions this "
+                   "level and run, attempts), and a plan's adoption row reads its need against "
+                   "reserve_seen (actions at the agent's own cap endings, minus this run's) and "
+                   "level_cost_seen (what cleared levels cost), kept apart; a world's cap is "
+                   "never read. OFF because it is a reading with no decision consumer yet: "
+                   "item 9's per-plan factors are named to read it",
     "TETHER_CASCADE_AGENCY": "7a(6) H2, the in-between frames (R3 part 2; the reviewer "
                              "2026-10-10 22:14Z): ON, the order objects change in inside one "
                              "action gives each non-controlled object a mode (self-moved, "

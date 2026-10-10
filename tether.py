@@ -461,6 +461,28 @@ _GUARD_PRICE = armflag.arm("TETHER_GUARD_PRICE")
 # 7a(6) H2, THE IN-BETWEEN FRAMES (R3 part 2; the reviewer 2026-10-10 22:14Z). OFF; reason in
 # conform/arms.py. ON, the order objects change in inside one action gives each one a mode.
 _CASCADE_AGENCY = armflag.arm("TETHER_CASCADE_AGENCY")
+# 7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z). OFF; reason in conform/arms.py. A
+# reading only: the ground's record of every ending, and a plan's need read against it.
+_MC34 = armflag.arm("TETHER_MC34")
+
+
+def _confirm_actions(r: Any) -> int | None:
+    """The actions until a plan has been SEEN TO HOLD (Fig 12 :126, "Actions price finding out
+    whether it holds"). A routine is confirmed only by running it, so this is its length in
+    presses: the cost of finding out it holds, not a proxy for "long is bad". None where it
+    cannot be counted (a choice, a library call)."""
+    if isinstance(r, Rt.Act):
+        return 1
+    if isinstance(r, Rt.Seq):
+        a, b = _confirm_actions(r.first), _confirm_actions(r.then)
+        return None if a is None or b is None else a + b
+    if isinstance(r, Rt.When):
+        return _confirm_actions(r.body)
+    if isinstance(r, Rt.Until):
+        b = _confirm_actions(r.body)
+        n = r.expect if r.expect is not None else r.budget
+        return None if b is None or n is None else n * b
+    return None
 SELF_MOVED, REACTING, MOVES_WITH = "self-moved", "reacting", "controlled"
 # an ending's word -> Termination's kind; the seat's budgets are caps, every other word is its own
 _TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap"}
@@ -1172,6 +1194,9 @@ class Agent:
         self.iface = IFace.Interface()
         self.iface.chooser = self._choose_known      # F480: the agent prices the known
         self._attempt_actions = 0     # actions since this level, or its last restart, began
+        self._mc3: list = []          # MC3: every ending, as the ground recorded it (append-only)
+        self._run_actions = 0         # MC3: actions this run
+        self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
         # WHICH MEMBERS ARE CURRENTLY DISCOUNTED, PER SCOPE. Held so the narration fires on the
         # TRANSITION rather than on every evaluation -- see `_scope_weights`.
         self._downrated: dict[str, frozenset] = {}
@@ -1625,10 +1650,41 @@ class Agent:
         The interface's reading, so the floor's key and the withhold's check are one."""
         return IFace.fingerprint(self.env, before)
 
+    def _mc3_note(self, how: str) -> None:
+        """MC3: the GROUND's record of an ending -- its word, its kind, whether the level was
+        cleared, the actions this level and this run, the attempts -- appended, never edited
+        (Fig 2, "The anchor must not update"). Nothing the frame produces (bets, mints) enters it
+        (Fig 1 :27). The same word again with no action between is that same ending."""
+        last = self._mc3[-1] if self._mc3 else None
+        if last and last["how"] == how and last["actions_this_run"] == self._run_actions:
+            return
+        kind = _TERM_KIND.get(how)
+        entry = {"how": how, "kind": kind or "cleared", "cleared": kind is None,
+                 "level": self.level, "actions_this_level": self._attempt_actions,
+                 "actions_this_run": self._run_actions, "attempts": self._level_attempts}
+        self._mc3.append(entry)
+        _c, _s, _lv = self._boundary_key("@boundary")
+        self.led.record(_c, "IMPORT", _s, "ground_record", **_lv, **{
+            k: v for k, v in entry.items() if k != "level"})
+
+    def _mc4(self, cand: Any) -> dict:
+        """MC4: a plan's need read against two things from MC3, kept apart and never combined.
+        reserve_seen is the budget learned by running out: the actions at the agent's own cap
+        endings, minus what this run has used ("the agent discovers its budget by running out";
+        a cap the world holds is never read). level_cost_seen is what cleared levels cost:
+        context, not a reserve. With no such ending, each reads "no record"."""
+        caps = [e["actions_this_run"] for e in self._mc3 if e["kind"] == "cap"]
+        cleared = [e["actions_this_level"] for e in self._mc3 if e["cleared"]]
+        return {"need": _confirm_actions(cand),
+                "reserve_seen": ([c - self._run_actions for c in caps] if caps else "no record"),
+                "level_cost_seen": ([min(cleared), max(cleared)] if cleared else "no record")}
+
     def _note_ending(self, how: str) -> None:
         """7a(5) A + B: one ending reaches Termination once -- the SAME word again with no step
         between (a WIN retargeted, then ended by the loop) is that ending, another word is another
         (a death, then the deadline) -- and a death adds its veto. Record only."""
+        if _MC34:
+            self._mc3_note(how)
         if not _RUIN_RECORD or self._ending_counted == how:
             return
         self._ending_counted = how
@@ -1763,6 +1819,8 @@ class Agent:
         self._d5_candidates = {}
         self._d5_rows, self._d5_said = {}, set()   # D5's scope is the level, a world event
         self._attempt_actions = 0
+        if _MC34:
+            self._level_attempts = 1
         self._trace_epoch += 1          # the tallies summarise a history that is gone
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
@@ -5805,6 +5863,8 @@ class Agent:
         """
         held, self._held_refutations = self._held_refutations, None
         self._attempt_actions = 0
+        if _MC34:
+            self._level_attempts += 1
         if not held:
             return
         idn = getattr(env, "identity", None)
@@ -6548,6 +6608,7 @@ class Agent:
         self._plan_sig = self._gap_key(gap) if gap is not None else None
         _mint_row = self.led.record(
                         self.cycle, "PLAN", slot, "routine", verdict="pays", plan_no=self._plan_no,
+                        **({"mc4": self._mc4(cand)} if _MC34 else {}),
                         routine=Rt.render(cand), length=Rt.length(cand),
                         units=Rt.length(cand, shelf),
                         chunked=Rt.length(cand) != Rt.length(cand, shelf),
@@ -8870,6 +8931,8 @@ class Agent:
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
         _prov = getattr(self.env, "provenance", lambda _a: None)(action)
         self._attempt_actions = 0 if _prov == "platform-universal" else self._attempt_actions + 1
+        if _MC34:
+            self._run_actions += 1
         # THE PHASE IS READ OFF THE SITE THAT CHOSE, never asserted alongside it. It
         # used to be `DIRECTED if a term is bound`, attached to an action drawn by the
         # identical mechanism either way -- a label the mechanism could not make.
