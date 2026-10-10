@@ -341,6 +341,8 @@ class Agency:
     tried: Counter = field(default_factory=Counter)     # (slot, action) -> times it was tried
     any_change: int = 0
     steps: int = 0
+    order: Counter = field(default_factory=Counter)     # H2: (object, mode) -> actions read
+    no_order: int = 0                                   # H2: actions with one frame, no order
 
     def note(self, action: str, changed: set[str], slots: list[str]) -> None:
         self.steps += 1
@@ -349,6 +351,15 @@ class Agency:
             self.tried[(s, action)] += 1
             if s in changed:
                 self.moved[(s, action)] += 1
+
+    def note_order(self, modes: dict[str, str] | None) -> None:
+        """H2 (R3; the reviewer 2026-10-10 22:14Z): the per-object mode read from the order of
+        changes inside one action. None means one frame came back, so there is no order."""
+        if modes is None:
+            self.no_order += 1
+            return
+        for obj, mode in modes.items():
+            self.order[(obj, mode)] += 1
 
     def contingent(self) -> list[str]:
         """Slots whose movement depends on WHICH action was taken."""

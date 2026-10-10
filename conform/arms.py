@@ -242,6 +242,13 @@ ARMS: dict[str, str] = {
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
                           "not ruled",
+    "TETHER_CASCADE_AGENCY": "7a(6) H2, the in-between frames (R3 part 2; the reviewer "
+                             "2026-10-10 22:14Z): ON, the order objects change in inside one "
+                             "action gives each non-controlled object a mode (self-moved, "
+                             "moving with the controlled one, reacting) in Agency. OFF and "
+                             "HELD because no test world has a cascade: only arc_world "
+                             "publishes one, and ARC is closed until step 13; proven on a "
+                             "hand-built cascade fixture",
     "TETHER_GUARD_PRICE": "F408, every named guard priced (Fig 12 :99-102; the reviewer "
                           "2026-10-10 21:31Z): ON, an intent guard and 'no intent' cost "
                           "log2(G+1) over the G on offer, like ACTED_* (whose referent term "

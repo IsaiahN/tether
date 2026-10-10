@@ -100,7 +100,8 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 | F408 price every named guard (TETHER_GUARD_PRICE) | DONE 4a837f4 (OFF; full reading at 7½) |
 | compounds | BOUNDED BY VOCABULARY (the reviewer 22:09Z): not refuted, not built; see the verdict below |
 | 7d reverse lookup (`Library.light(abduce=...)`) | BOUNDED BY VOCABULARY (the reviewer 22:09Z): not refuted, not built; see the verdict below |
-| 7a(6)-(10): CASCADE_AGENCY, TWO_READINGS, MC3/MC4, per-plan factors, MC6 + D1-D3 | NEXT |
+| 7a(6) CASCADE_AGENCY (H2) | DONE (OFF, HELD: no cascade in the test worlds; habitat ARC, step 13) |
+| 7a(7)-(10): TWO_READINGS, MC3/MC4, per-plan factors, MC6 + D1-D3 | NEXT: TWO_READINGS |
 | 7b, 7c | queued |
 | 7½ switch-on and orphan audit: one full OFF and one full ON panel | queued |
 

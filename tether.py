@@ -458,6 +458,10 @@ _D5 = armflag.arm("TETHER_D5")
 # F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). OFF; reason in
 # conform/arms.py. ON, an intent guard (and "no intent") costs log2(G+1) like ACTED_* does.
 _GUARD_PRICE = armflag.arm("TETHER_GUARD_PRICE")
+# 7a(6) H2, THE IN-BETWEEN FRAMES (R3 part 2; the reviewer 2026-10-10 22:14Z). OFF; reason in
+# conform/arms.py. ON, the order objects change in inside one action gives each one a mode.
+_CASCADE_AGENCY = armflag.arm("TETHER_CASCADE_AGENCY")
+SELF_MOVED, REACTING, MOVES_WITH = "self-moved", "reacting", "controlled"
 # an ending's word -> Termination's kind; the seat's budgets are caps, every other word is its own
 _TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap"}
 # THE BOUNDARY ROWS' OWN CHAINS (the reviewer 2026-10-10 08:11Z, 09:40Z). retarget's boundary/ending
@@ -2733,6 +2737,61 @@ class Agent:
                 return
         self.led.record(self.cycle, "PERCEIVE", "*", "cascade",
                         frames=len(frames), within_step=steps)
+
+    def _cascade_agency(self) -> None:
+        """H2: inside the last action, which sub-frame each object first changed in (a changed
+        cell at its before or after position; a position two objects share is not read). Against
+        the first sub-frame a CONTROLLED object (an action-contingent slot's owner) changed in:
+        earlier, or with nothing controlled changing, is SELF-MOVED; the same sub-frame is moving
+        WITH it; later and touching a controlled object is REACTING; later without contact has no
+        mode. One frame is no order, never a mode (Fig 10's dropped transients; Fig 12's
+        sequence bond: A then B, B needs A to have happened)."""
+        casc = getattr(self.env, "cascade", None)
+        if casc is None or not self.trace:
+            return
+        frames = casc()
+        before, _a, after, _i, _l = self.trace[-1]
+        if len(frames) < 2:
+            self.agency.note_order(None)
+            self.led.record(self.cycle, "PERCEIVE", "*", "cascade_modes", frames=len(frames),
+                            modes=None, reads="one frame: no order, so no mode")
+            return
+        own = getattr(self.env, "slot_owner", None)
+        att = getattr(self.env, "attribute_of", None)
+        owners, attrs = (own() if own else {}), (att() if att else {})
+        at: dict = {}
+        for state in (before, after):
+            pos: dict = {}
+            for s_, v in state.items():
+                if s_ in owners and attrs.get(s_) in ("row", "col"):
+                    pos.setdefault(owners[s_], {})[attrs[s_]] = v
+            for o_, p in pos.items():
+                if "row" in p and "col" in p:
+                    at.setdefault((p["row"], p["col"]), set()).add(o_)
+        first: dict = {}
+        for k, (a, b) in enumerate(zip(frames, frames[1:], strict=False)):
+            for r, row in enumerate(a):
+                for c, v in enumerate(row):
+                    if b[r][c] != v and len(at.get((r, c), ())) == 1:
+                        first.setdefault(next(iter(at[(r, c)])), k)
+        controlled = {owners[s_] for s_ in self.agency.contingent() if s_ in owners}
+        ks = [first[o_] for o_ in controlled if o_ in first]
+        kc = min(ks) if ks else None
+        touch = getattr(self.env, "contacts", None)
+        near = touch() if touch else {}
+        modes: dict = {}
+        for o_, k in sorted(first.items()):
+            if o_ in controlled:
+                continue
+            if kc is None or k < kc:
+                modes[o_] = SELF_MOVED
+            elif k == kc:
+                modes[o_] = MOVES_WITH
+            elif any(x in controlled for x in near.get(o_, ())):
+                modes[o_] = REACTING
+        self.agency.note_order(modes)
+        self.led.record(self.cycle, "PERCEIVE", "*", "cascade_modes", frames=len(frames),
+                        modes=modes, first=first, controlled=sorted(controlled))
 
     def _narrate_order(self) -> None:
         """Layer 2's whole output: the order was USED and is SAID, and nothing keeps it."""
@@ -8642,6 +8701,8 @@ class Agent:
         self._frame_cache = {}
         self._narrate_order()
         self._narrate_cascade()
+        if _CASCADE_AGENCY:
+            self._cascade_agency()
         self._narrate_matches()
         self._narrate_placements()
         self._narrate_cues()
