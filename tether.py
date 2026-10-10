@@ -431,6 +431,12 @@ _CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE")
 # is the TRANSITION bet row itself (ledger.signal_sign); ON, each gets exactly one resolution row
 # when its level ends (retarget) or the run ends with the level open (end_run). Record only.
 _MC_SIGNAL = armflag.arm("TETHER_MC_SIGNAL")
+# THE BOUNDARY ROWS' OWN CHAINS (the reviewer 2026-10-10 08:11Z, 09:40Z). retarget's boundary/ending
+# and the death restart go on "@boundary", the 21.3 credit on "@credit", at THE CYCLE with the level
+# as a field: at cycle = self.level on "@loop" they sat behind that cycle's REPEAT row, and credit
+# (SETTLE) sat behind the IMPORT rows, so gate check 1 refused every level end and every restart.
+# False reproduces that keying, for the must-fail only.
+_BOUNDARY_CHAIN = True
 # THE REFERENCE COST (the reviewer 21:55Z): a reused term's DEFINITION is paid once, but NAMING it
 # is paid per use, log2(H+1) over the H held terms (the corpus's +log2(k+1), as `_guard_bits`).
 # False removes it, for must-fail (r) only.
@@ -1547,6 +1553,13 @@ class Agent:
         self._prev_pred: dict[str, int] | None = None
         self.refusals: list[str] = []
 
+    def _boundary_key(self, slot: str) -> tuple[int, str, dict]:
+        """(cycle, slot, extra fields) for a boundary row: its own chain at the real cycle with the
+        level as a field, or -- _BOUNDARY_CHAIN False, the must-fail -- the old @loop keying."""
+        if _BOUNDARY_CHAIN:
+            return self.cycle, slot, {"level": self.level}
+        return self.level, "@loop", {}
+
     def end_run(self, how: str = "cap") -> None:
         """The run ends with this level still open: its signals resolve at the GAME (MC2). The loops
         call it after their last step; `retarget` never sees a cap or a timeout."""
@@ -1607,12 +1620,13 @@ class Agent:
         drop = getattr(self.env, "boundary", None)
         if drop is not None:
             drop()
-        self.led.record(self.level, "IMPORT", "@loop", "boundary",
+        _c, _s, _lv = self._boundary_key("@boundary")
+        self.led.record(_c, "IMPORT", _s, "boundary", **_lv,
                         env_dropped=drop is not None,
                         reads=("per-episode bindings the WORLD holds -- a colour identity is "
                                "valid only for the episode it was read in, so it drops where "
                                "`bound` and `trace` drop"))
-        self.led.record(self.level, "IMPORT", "@loop", "ending", how=how, to_level=level,
+        self.led.record(_c, "IMPORT", _s, "ending", **_lv, how=how, to_level=level,
                         reads=ENDING_READS.get(how, "unnamed ending"),
                         consumed_by="nothing yet -- boundary demotion is a separate item")
         # §21.3: A COMPLETION IS A SETTLE, AND THE SWEEP IS HOW YOU FIND OUT WHAT CAUSED IT.
@@ -1627,7 +1641,8 @@ class Agent:
         # on §21.5's event type -- so this row says where the missing half lives rather than
         # leaving a both-and looking finished.
         if how in ("advance", "win"):
-            self.led.record(self.level, "SETTLE", "@loop", "credit",
+            _cc, _cs, _clv = self._boundary_key("@credit")
+            self.led.record(_cc, "SETTLE", _cs, "credit", **_clv,
                             settled_here=sorted(self.settled - self._settled_at_level),
                             bound_here=sorted(set(self.bound.values())),
                             over_steps=len(self.trace), how=how,
@@ -5527,7 +5542,8 @@ class Agent:
                 continue
             self.refuted[k], self.refuted_at[k] = st, held[1][k]
             carried.append(k[0])
-        self.led.record(self.level, "IMPORT", "@loop", "restart",
+        _c, _s, _lv = self._boundary_key("@boundary")
+        self.led.record(_c, "IMPORT", _s, "restart", **_lv,
                         carried=sorted(carried), not_carried=not_carried,
                         reads="refutations held at the death; carried only where identity is sure")
 

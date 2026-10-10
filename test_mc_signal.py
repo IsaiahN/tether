@@ -5,8 +5,8 @@ shown here.
 
   1. the sign: paid, failed, vanished-at-mass-0 (failed), suspended / @bracket / @objective (none);
   2. a real run, ON: a level ended by hand at retarget, then the run ended -- every signal has
-     exactly one resolution of the right kind, the earlier rows are byte-identical after, the gate
-     passes;
+     exactly one resolution of the right kind, the earlier rows are byte-identical after, the
+     whole gate passes;
   3. MC1: the same hand-made bets with extra mints in one arm give identical signs and resolutions;
      a mutant sign reading an agent count, and one admitting the @bracket row, are both caught.
 
@@ -66,12 +66,9 @@ def check_real_run() -> None:
     kinds = [(by[s][0]["kind"], by[s][0]["how"]) for s in signals]
     assert kinds[:n_level] == [("level", "death")] * n_level and n_level > 0, kinds[:3]
     assert kinds[n_level:] == [("game", "cap")] * (len(signals) - n_level), kinds[-3:]
-    assert gate._resolutions(rows) is None, gate._resolutions(rows)
-    # NOT the whole gate: a level ended at level 0 already fails its step order on `@loop`, with
-    # this arm OFF too (retarget writes cycle=self.level; LEDGER, recorded 2026-10-10).
+    assert gate.check(rows)["verdict"] == gate.PASS, gate.check(rows)
     print(f"  real run: {len(signals)} signals, {n_level} resolved at the level (death), "
-          f"{len(signals) - n_level} at the game (cap); earlier rows unchanged; gate check 14 "
-          f"passes")
+          f"{len(signals) - n_level} at the game (cap); earlier rows unchanged; full gate passes")
 
 
 def _hand(extra_mints: int, sign) -> tuple[list, list]:
