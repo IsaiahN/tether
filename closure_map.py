@@ -1,3 +1,5 @@
+# ATOMS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 """The op -> closure derivation, with NO import path to any replay reader.
 
 SPLIT OUT OF `mapping.py` (reviewer ruling, 2026-09-20). `mapping.py` held two kinds of thing

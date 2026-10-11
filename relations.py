@@ -1,3 +1,6 @@
+# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
+# RELATIONS.md's live successor: library/relations.json + LIBRARY_SPEC section 3.
 """The composable-relation sensors (Isaiah, 2026-09-15): the ~15 relations `RELATIONS.md` marks
 COMPOSABLE from the frozen set, built as new INSTRUMENTS. The agent perceives 8 per-object
 attributes + `touching` (~9 of ~24 things its own frozen vocabulary can compute); these ground the

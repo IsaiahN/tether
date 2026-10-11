@@ -1,3 +1,6 @@
+# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
+# RELATIONS.md's live successor: library/relations.json + LIBRARY_SPEC section 3.
 """The action interface — the one layer that knows a button exists.
 
 **ISAIAH, 2026-09-28:** *"The agent shouldn't really care about what action they choose. It

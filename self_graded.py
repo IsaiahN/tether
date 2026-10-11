@@ -1,3 +1,5 @@
+# WORKING_SET.json (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 """The self-graded curriculum (TRAINING_PLAN.md Stage 1; reviewer-steered 2026-09-14).
 
 The library-closure IS a curriculum. Grow the parts bin by promoting reused parts from a TRAIN

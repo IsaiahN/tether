@@ -1,3 +1,6 @@
+# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
+# RELATIONS.md's live successor: library/relations.json + LIBRARY_SPEC section 3.
 """2a. The eight members over `arc_agi`. The ADAPTER, and deliberately nothing more.
 
 THE DECOMPOSITION IS NOT HERE. ARC has no named slots -- finding them is perception, which

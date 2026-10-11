@@ -1,3 +1,5 @@
+# VOCABULARY_FROZEN.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 """Reverse-engineer a human-panel replay into chunks and explain the derivation.
 
 PROCTOR-SIDE. Reads a human replay (the answer set), perceives each frame in the AGENT's own

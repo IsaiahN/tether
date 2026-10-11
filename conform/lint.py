@@ -1,3 +1,5 @@
+# ATOMS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 """lint: the static half. One file. Imports nothing from the build.
 
 A static pass is SINGLE-FRAME by construction: it reads a tree and reports. There is no

@@ -1,3 +1,5 @@
+# ATOMS.md, OPERATORS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11;
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 """The cue -> closure mapping (Isaiah, 2026-09-15): a chunk's mutations map to the CLOSURE atoms and
 their recipes that express the intent -- so the answer key names library derivations (composable via
 `OPERATORS.md`), not ad-hoc ops. This is the MAPPING job: match, do not search. Every target is

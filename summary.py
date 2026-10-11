@@ -1,3 +1,5 @@
+# CHEMISTRY.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 """The end-of-run summary. **A READER over the ledger and Γ, never a producer.**
 
 Same shape as `behaviour.py`: nothing here accumulates, and every number is a query over rows

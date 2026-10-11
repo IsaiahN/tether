@@ -1,3 +1,5 @@
+# ATOMS.md, OPERATORS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11;
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 """Lit atoms -> candidate molecules via the RECIPES (F162: the recipes, not the domain adjacency
 graph, are the atom->molecule composition). Reads the library's recipes (library/molecules.json
 since step 2, 2026-10-11; ATOMS.md's tables before that) into {molecule ->

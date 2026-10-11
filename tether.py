@@ -1,3 +1,6 @@
+# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
+# RELATIONS.md's live successor: library/relations.json + LIBRARY_SPEC section 3.
 """The loop. Steps 1 to 5.
 
 One track: an action is proposed by an utterance that type-checks and passes the gate, or

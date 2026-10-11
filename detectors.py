@@ -1,3 +1,5 @@
+# ATOMS.md, ATTRIBUTES.md (cited below) are docs/library-closure/ files DELETED 2026-10-11;
+# git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 """Atoms as DETECTORS (Isaiah, `TRAINING_PLAN.md` §13; `ATTRIBUTES.md`): every closure atom carries
 a boolean CONDITION that confirms it (`Movement` ⟺ position changed; `Solidity` ⟺ overlapArea==0).
 `ATTRIBUTES.md` records these as PROSE ("they are written as prose and they are the quantity"); this
