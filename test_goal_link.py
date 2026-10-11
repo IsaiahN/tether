@@ -9,7 +9,12 @@ o1.col).
      after steps o0.col is in `_goal_choice`'s candidate population (`_res`);
   must-fail (ruled): with the arm OFF, the wants -- `_goal_choice`'s candidate source -- are
      unchanged;
-  no overwrite: a slot that already wants something keeps its want, and the row says so.
+  no overwrite: a slot that already wants something keeps its want, and the row says so;
+  L2 (the reviewer 03:28Z): links made and refused ("slot already wants") are counted;
+  L1 must-fail: a held condition that still pays stays held on a recheck;
+  L1 must-pass: once it stops paying on the longer history it is unheld and its own want
+     released; a want the agent composed itself is never released;
+  already held: a later completion picking the same condition does not hold it again.
 
     python test_goal_link.py
 """
@@ -62,4 +67,34 @@ if __name__ == "__main__":
     assert occ.wants[SLOT] == "some . other<want>" and row["link"]["linked"] is False, row
     print(f"  no overwrite: {SLOT} already wanted 'some . other<want>'; kept, and the row says "
           f"'{row['link']['why']}'")
+    assert ag.gamma.book.get("goal_link_made") == 1
+    assert occ.gamma.book.get("goal_link_refused_wants") == 1
+    print("  L2: goal_link_made 1 on the linked agent, goal_link_refused_wants 1 on the "
+          "occupied one")
+    tether._GOAL_CONDITION = tether._GOAL_LINK = True
+    try:
+        ag._reach_hist = _hist(ag)
+        ag._goal_recheck()
+        assert ag._goal_conds and SLOT in ag.wants
+        print("  L1 must-fail: on the same history the condition still pays and stays held")
+        ag._goal_condition()
+        again = [r["detail"] for r in ag.led.rows() if r["event"] == "goal_condition"][-1]
+        assert again["pick"].startswith("already held") and len(ag._goal_conds) == 1
+        print(f"  already held: a second completion reads '{again['pick']}'; one condition held")
+        bad = [(dict(st, **{"o0.col": 1, "o1.col": 1}), False) for st, _ in _hist(ag)]
+        ag._reach_hist = _hist(ag) + bad
+        ag._goal_recheck()
+        un = [r["detail"] for r in ag.led.rows() if r["event"] == "goal_unheld"]
+        assert not ag._goal_conds and SLOT not in ag.wants and un and un[-1]["want_released"]
+        assert ag.gamma.book.get("goal_unlinked") == 1
+        print(f"  L1 must-pass: 40 more steps where the condition holds and the objective "
+              f"does not: cost {un[-1]['cost']} + left {un[-1]['left']} >= base "
+              f"{un[-1]['base_bits']}; unheld, its want released, goal_unlinked 1")
+        occ._reach_hist = _hist(occ) + bad
+        occ._goal_recheck()
+        assert not occ._goal_conds and occ.wants[SLOT] == "some . other<want>"
+        print("  L1, the agent's own want: the unlinked condition on the occupied slot is "
+              "dropped and the agent's want 'some . other<want>' stays")
+    finally:
+        tether._GOAL_CONDITION = tether._GOAL_LINK = False
     print("ok")

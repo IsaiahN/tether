@@ -715,6 +715,9 @@ BOOKS: tuple[str, ...] = (
     "plan_gate_qualified",              # gate 1: an objective passed
     "plan_gate_no_hypothesis",          # gate 1: nothing to filter. SUPPLY, not the bar
     "want_recurred",                    # a retained want that a LATER attempt wanted again
+    "goal_link_made",                   # build 3 L2: a goal condition became its slot's want
+    "goal_link_refused_wants",          # build 3 L2: refused, the slot already wanted
+    "goal_unlinked",                    # build 3 L1: a linked condition stopped paying
     # THE MUTATION OBSERVER, wired to the agent path 2026-09-26. `cue_seen` is the
     # denominator -- frames with a predecessor, so a mutation was POSSIBLE -- and
     # `cue_mutated` the numerator. `cue_blind` counts the abstentions apart, because a
@@ -1246,6 +1249,8 @@ class Agent:
         self._reach_hist: list = []   # build 2: (after-state, world reached?) per step, this level
         self._reach_epoch = 0
         self._goal_conds: dict = {}   # build 2: held goal conditions, key -> compiled (in-episode)
+        self._goal_text: dict = {}    # build 2: key -> the condition's text
+        self._goal_links: dict = {}   # build 3 L1: key -> (slot, want name) this link wrote
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
@@ -2244,6 +2249,8 @@ class Agent:
             if self._reach_epoch != self._trace_epoch:
                 self._reach_hist, self._reach_epoch = [], self._trace_epoch
             self._reach_hist.append((self.trace[-1][2], degree >= 1.0))
+            if self._goal_conds:
+                self._goal_recheck()
         start = max(self._sweep_from[0], self._seq_at_level)
         if prev is None or not (degree >= 1.0 > prev):
             if self._sweep_from[0] < self._seq_at_level:
@@ -2265,7 +2272,7 @@ class Agent:
         if _GOAL_CONDITION:
             self._goal_condition()
 
-    def _link_goal(self, c: Any) -> dict:
+    def _link_goal(self, key: str, c: Any) -> dict:
         """Objective build 3: a held goal condition becomes one of the agent's COMPOSED
         objectives, so `_goal_choice` and `_mint_routine` can pick it -- through a term the
         agent minted, never a goal we publish. The condition (a predicate on its slot) is closed
@@ -2280,11 +2287,39 @@ class Agent:
         if term.out_type != OBJ_TYPE:
             return {"linked": False, "why": f"closes to {term.out_type}, not an objective"}
         if c.slot in self.wants:
+            _book_add(self.gamma.book, "goal_link_refused_wants")      # L2
             return {"linked": False, "slot": c.slot, "why": "the slot already wants",
                     "held_want": self.wants[c.slot]}
         self.wants[c.slot] = term.name
         self._want_terms[c.slot] = term
+        self._goal_links[key] = (c.slot, term.name)
+        _book_add(self.gamma.book, "goal_link_made")                    # L2
         return {"linked": True, "slot": c.slot, "want": term.name}
+
+    def _goal_recheck(self) -> None:
+        """L1 (the reviewer 2026-10-11 03:28Z): a held goal condition stays held only while it
+        still pays the one bargain on the growing history (Fig 5 :42-44). Once it does not, it
+        is dropped and, if its link wrote a want that is still in place, the want is released;
+        a want the agent composed itself is never touched."""
+        rows = self._reach_hist
+        n, k = len(rows), sum(1 for _, hit in rows if hit)
+        base = k * math.log2(n) if n else 0.0
+        for key, c in list(self._goal_conds.items()):
+            cost, left, e = self._goal_price([c], rows)
+            if pays(cost, left, base):
+                continue
+            self._goal_conds.pop(key)
+            link = self._goal_links.pop(key, None)
+            released = bool(link and self.wants.get(link[0]) == link[1])
+            if released:
+                self.wants.pop(link[0], None)
+                self._want_terms.pop(link[0], None)
+                _book_add(self.gamma.book, "goal_unlinked")              # L2
+            self.led.record(self.cycle, "IMPORT", "@completion", "goal_unheld",
+                            key=key, condition=self._goal_text.pop(key, None), steps=n,
+                            reached=k, cost=round(cost, 3), left=round(left, 3), errors=e,
+                            base_bits=round(base, 3), want_released=released,
+                            reads="the held goal condition no longer pays on the longer history")
 
     def _goal_price(self, conds: list, rows: list) -> tuple[float, float, int]:
         """The one bargain on a 1-bit history (Fig 5 :42-44), as two-part description length,
@@ -2330,6 +2365,8 @@ class Agent:
         best = cands[0] if cands and pays(cands[0][1], cands[0][2], base) else None
         if best is None:
             detail["pick"] = "none paid"
+        elif best[4] in self._goal_text.values():
+            detail["pick"] = f"already held: {best[4]}"
         else:
             _t, cost, left, e, text, c = best
             lib = self._inv_library()
@@ -2339,8 +2376,9 @@ class Agent:
                                       receipt={"completion": self.cycle, "steps": n,
                                                "reached": k, "errors": e})
                 self._goal_conds[key] = c
+                self._goal_text[key] = text
                 if _GOAL_LINK:
-                    detail["link"] = self._link_goal(c)
+                    detail["link"] = self._link_goal(key, c)
                 safe, why = sys.modules["library_runtime"].carry_check(text, lib.readings)
                 detail.update(pick=text, key=key, carry=("may carry when M7 opens" if safe
                                                          else f"refused: {why}"))
