@@ -18,9 +18,11 @@ Verdicts: **KEEP** · **KEEP, UPDATE** · **MOVE** (to `library/` or `docs/corpu
 
 ## A. `docs/library-closure/` — 24 files: the library's sources. Data → `library/`; design → `library/LIBRARY_DESIGN.md`
 
+**SECTION HELD, 2026-10-11:** no delete, no move, no edit of any file here, RELATIONS.md included (its repoint-then-delete is cancelled). Unplaced (CLAUDE.md edit boundary), therefore handled as corpus; placement asked of Isaiah 2026-10-11 (reviewer 14:08 CDT).
+
 | file | verdict | where its content lives now |
 |---|---|---|
-| ATOMS.md | **MOVE** → `library/sources/ATOMS.md` | every entry is in atoms.json / molecules.json with `sources` pointing at its line; kept as the seed's source text. Loaded by composer.py, condition.py, kaggle_bundle.py until code change #1 |
+| ATOMS.md | **MOVE** → `library/sources/ATOMS.md` **HELD: cited by path; unplaced (see the section note).** | every entry is in atoms.json / molecules.json with `sources` pointing at its line; kept as the seed's source text. Loaded by composer.py, condition.py, kaggle_bundle.py until code change #1 |
 | ATTRIBUTES.md | **DELETE AFTER** code change #1 | attributes and conditions are on every entry (`attributes`, `condition`); the argument is LIBRARY_DESIGN §3. Loaded by condition.py today |
 | ATTRIBUTE_INDEX.json | **DELETE AFTER** #1 | `index.by_attribute`, `by_tag`, entry `encodings`. Read by composer.py today |
 | ATTRIBUTE_REACH.json, .md | **DELETE** | `reach_tier`/`encodings` on entries; argument in LIBRARY_DESIGN §3 |
@@ -61,11 +63,11 @@ Verdicts: **KEEP** · **KEEP, UPDATE** · **MOVE** (to `library/` or `docs/corpu
 | ARC_BUILD_PLAN.md | **KEEP, UPDATE** | mark its superseded parts in place |
 | TRAINING_PLAN.md | **KEEP, UPDATE** | cited by 11 .py files; its library sections now point to LIBRARY_SPEC; its stages predate today's order |
 | LIBRARY_RETRIEVAL.md | **DELETE AFTER** its rulings are confirmed in ISAIAH_RULINGS (item 9) | the 2026-09-22 rulings index → ISAIAH_RULINGS; the plan (generators, layers, observer) → LIBRARY_SPEC; the gap table is superseded by LIBRARY_SPEC §5 |
-| ARC_HUMAN_PRIORS.md | **MOVE** → `library/sources/` | the citation source for the HUMAN tier-1 priors (priors.py line 1) |
+| ARC_HUMAN_PRIORS.md | **MOVE** → `library/sources/` **HELD: cited by path; unplaced (see the section-A note).** | the citation source for the HUMAN tier-1 priors (priors.py line 1) |
 | DECOMPOSITION.md | **KEEP** | still cited (2026-09-22); not superseded |
 | REPAIRS.md, M2_PHASES.md | **KEEP** (historical record, cited by INDEX) | small; deleting gains little |
-| LEDGER.md | **DELETE** | stale since 2026-09-22; open items live in INDEX and the channel |
-| PERCEPTION_BUILD_PLAN.md | **DELETE** | its own header: "SUPERSEDED ... not to be worked from" (by LIBRARY_RETRIEVAL, now LIBRARY_SPEC) |
+| LEDGER.md | **DELETE** **SUPERSEDED 2026-10-11: LEDGER is the live record (reviewer 14:08 CDT) -- KEEP.** | stale since 2026-09-22; open items live in INDEX and the channel |
+| PERCEPTION_BUILD_PLAN.md | **DELETE** **HELD: unplaced (CLAUDE.md edit boundary); placement asked of Isaiah 2026-10-11 (reviewer 14:08 CDT).** | its own header: "SUPERSEDED ... not to be worked from" (by LIBRARY_RETRIEVAL, now LIBRARY_SPEC) |
 | DEMAND_LOG.md | **DELETE** | superseded by demand.py; its premise (the frozen vocabulary) was withdrawn |
 | CODE_AUDIT.md, FREEZE_READ.md, POST_FREEZE_QUEUE.md, PREREG_DEREFERENCE.md, SELF_GRADED_CURRICULUM.md | **DELETE** | finished or self-marked closed; nothing loads them |
 | STORY_PROOF.md, WINDOW_REPORT.md | **DELETE**, and repoint CLAUDE.md's "lesson" citations to the deleting commit | self-marked stale; kept only as lessons, and git keeps them |
