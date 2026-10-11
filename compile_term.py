@@ -68,6 +68,15 @@ PAIR = {"touching": "touches"}
 # its map declared as data at 02:18): "== 1" -> other<attr~1>, "== 0" -> same<attr~1>, run on the
 # attribute slot with its own previous value as operand. A change reading not listed is refused.
 CHANGE_OF = {"colour_changed": "colour"}
+# THE FACE COUNT (the reviewer 2026-10-11 14:17 CDT, under TETHER_RELATION_SET): the library's
+# contact(o, x) counts shared cell FACES (0 corner, 1 edge, 2+ face). Its presence and absence
+# are the face-level atom `touches` -- never the box slot touches_x, whose gap 0 counts corners.
+# Any other value needs the count itself, whose pair part is held back (TETHER_OBSERVER).
+FACE_COUNT = {"contact": "touches"}
+FACE_PRESENT = {(">", 0): False, ("!=", 0): False, ("==", 0): True}     # -> negate?
+# "== 0" on an EXTENT (14:17 CDT, under the arm): an extent is never negative, so "is zero" is
+# "not nonzero" -- sign (nonzero, on an EXTENT, not a direction) . holds . negate.
+EXTENT_ZERO = (("sign", "holds", "negate"), None)
 PREV = "~1"                  # tether.PREV, pinned by test_compile
 # Shapes that have no slot to run on, refused by name (section 3, section 7c).
 NOT_SLOTS = {"frame": "events are not slots", "board": "the board is not an object slot",
@@ -148,6 +157,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     if (isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call)
             and node.left.name in PAIR):
         return _pair(node, atoms)
+    if (_RELATION_SET and isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call)
+            and node.left.name in FACE_COUNT):
+        return _face(node, atoms)
     if isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call):
         # a pair reading names TWO objects; the atoms read one slot each (`touching` reads
         # whether its object touches ANY object), so no chain says "this pair"
@@ -185,6 +197,8 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     else:
         return Refusal(f"no template compares {reading} with the constant {right}")
     row = TABLE.get((node.op, kind))
+    if _RELATION_SET and rtype == "EXTENT" and (node.op, kind) == ("==", "zero"):
+        row = EXTENT_ZERO
     if (node.op, kind) in CONVERSE and all(n in atoms for n in CONVERSE[(node.op, kind)][0]):
         row = CONVERSE[(node.op, kind)]
     if row is None:
@@ -241,6 +255,26 @@ def _change(obj: str, reading: str, op: str, right: Any,
         return Refusal(why)
     slot, operand = f"{obj}.{attr}", f"{obj}.{attr}{PREV}"
     return Compiled(slot, gamma.Term(chain, operand=operand), operand)
+
+
+def _face(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
+    """contact(o, x) > 0 / != 0 / == 0 through the face atom; any other value is refused."""
+    call = node.left
+    if len(call.args) != 2 or not all(isinstance(a, condition.Slot) for a in call.args):
+        return Refusal(f"no template for {call} {node.op} {node.right}")
+    neg = FACE_PRESENT.get((node.op, node.right))
+    if neg is None:
+        return Refusal("the face count's pair part is held back (TETHER_OBSERVER)")
+    names = (FACE_COUNT[call.name], "negate") if neg else (FACE_COUNT[call.name],)
+    missing = [n for n in names if n not in atoms]
+    if missing:
+        return Refusal(f"Gamma holds no atom {missing}")
+    chain = tuple(atoms[n] for n in names)
+    why = _typed(chain, "OBJECT", "OBJECT")
+    if why:
+        return Refusal(why)
+    first, second = (a.name for a in call.args)
+    return Compiled(first, gamma.Term(chain, operand=second), second)
 
 
 def _pair(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
