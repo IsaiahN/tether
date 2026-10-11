@@ -478,9 +478,13 @@ _M6_INVENT = armflag.arm("TETHER_M6_INVENT")
 # 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). OFF; reason in conform/arms.py.
 # Compute only: no action, no bet, nothing installed -- a MUSE row is all it writes.
 _MC6 = armflag.arm("TETHER_MC6")
-# 7a(10) D1-D3, THE SAME LOOP ONE LEVEL UP (R3 part 2; the reviewer 2026-10-10 23:50Z). OFF; reason
-# in conform/arms.py. Process bets about GROUND outcomes, settled only at a level or game ending.
-_D13 = armflag.arm("TETHER_D13")
+# 7a(10) D1-D3, THE SAME LOOP ONE LEVEL UP (R3 part 2; the reviewer 2026-10-10 23:50Z). ON with
+# objective build 1 (02:19Z); reason in conform/arms.py. Process bets about GROUND outcomes,
+# settled only at a level or game ending.
+_D13 = armflag.arm("TETHER_D13", default=True)
+# OBJECTIVE BUILD 1, THE COMPLETION SWEEP (ARC_AGENT 21.3; the reviewer 2026-10-11 02:19Z). OFF;
+# reason in conform/arms.py. Record only: fires when the WORLD's objective is reached.
+_COMPLETION_SWEEP = armflag.arm("TETHER_COMPLETION_SWEEP")
 
 
 def _confirm_actions(r: Any) -> int | None:
@@ -1229,6 +1233,8 @@ class Agent:
         self._inv_seen: dict = {}     # M6: slot -> history length last tried
         self._step_row0 = 0           # MC6: the ledger length when this step began
         self._muse_last = None        # MC6 N2: (targets, methods) last tested, and its cycle
+        self._deg_prev = None         # the completion sweep: the world's degree last step
+        self._sweep_from = (0, 0, set(), set())   # (seq, cycle, settled, owed) at segment start
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
@@ -2213,6 +2219,34 @@ class Agent:
                     if o_["operand"] is not None and o_["operand"] not in got:
                         got.append(o_["operand"])
         return out
+
+    # ---------------------------------------------------------------- objective build 1
+    def _completion_sweep(self, degree: float) -> None:
+        """ARC_AGENT 21.3, "a completion is a settle, and the sweep is how you find out what caused
+        it", triggered by the completion itself (the reviewer 2026-10-11 02:19Z): the WORLD's
+        objective degree reaching 1.0 ("reached", not "banked"), never the agent's own predicted
+        completion. Re-examines the segment since the last completion -- what was live, which
+        terms settled, which owed slots closed -- and records it. Nothing is retargeted, no
+        binding dropped, no trace cleared."""
+        prev, self._deg_prev = self._deg_prev, degree
+        start = max(self._sweep_from[0], self._seq_at_level)
+        if prev is None or not (degree >= 1.0 > prev):
+            if self._sweep_from[0] < self._seq_at_level:
+                self._sweep_from = (len(self.led), self.cycle, set(self.settled),
+                                    set(self.owed_import))
+            return
+        seq0, cyc0, settled0, owed0 = self._sweep_from
+        rows = self.led.rows()[start:]
+        self.led.record(self.cycle, "IMPORT", "@completion", "completion_sweep",
+                        level=self.level, degree=round(degree, 4), segment_from_cycle=cyc0,
+                        segment_rows=len(rows), live=dict(sorted(self.bound.items())),
+                        settled_in_segment=sorted(set(self.settled) - settled0),
+                        closed_in_segment=sorted(owed0 - set(self.owed_import)),
+                        still_owed=sorted(self.owed_import),
+                        open_process_bets=len(self._process_bets),
+                        reads=("the world's objective was reached; the segment since the last "
+                               "completion, re-examined (21.3); nothing changed"))
+        self._sweep_from = (len(self.led), self.cycle, set(self.settled), set(self.owed_import))
 
     # ---------------------------------------------------------------- 7a(10) D1-D3
     def _process_bet(self, kind: str, slot: str, **what: Any) -> None:
@@ -9158,6 +9192,8 @@ class Agent:
         self._frame_cache = {}
         if _MC6:
             self._step_row0 = len(self.led)
+        if _COMPLETION_SWEEP and self._deg_prev is None:
+            self._deg_prev = self.env.objective()[1]     # the world's degree before acting
         self._narrate_order()
         self._narrate_cascade()
         if _CASCADE_AGENCY:
@@ -9534,6 +9570,8 @@ class Agent:
         if _MC6:
             self._muse()
         _, degree = self.env.objective()
+        if _COMPLETION_SWEEP:
+            self._completion_sweep(degree)
         self.clocks.note(not self.owed_import and bool(self.bound),
                          1 if degree >= 1.0 else 0)
         self.cycle += 1

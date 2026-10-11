@@ -257,13 +257,19 @@ ARMS: dict[str, str] = {
                            "16 arms together; this subset was not measured alone); 0 is the "
                            "one-flag control. Spelled `default=True`, default-on",
     "TETHER_D13": "7a(10) D1-D3, the same loop one level up (R3 part 2; the reviewer "
-                  "2026-10-10 23:50Z): ON, the agent's process states bet on GROUND "
-                  "outcomes -- an adopted plan that it clears the level, a parked slot "
-                  "that the world will confirm it by level end, its stall described as an "
-                  "effect -- and each settles only at a level or game ending, from the "
-                  "ending word or the world's grade of the slot's last bet, never from "
-                  "the agent's own diagnosis. OFF until 7-and-a-half: a record with no "
-                  "decision consumer yet",
+                  "2026-10-10 23:50Z): ON, the agent's process states bet on GROUND outcomes "
+                  "and each settles only at a level or game ending, from the ending word or "
+                  "the world's grade of the slot's last CHANGE after the park, never from the "
+                  "agent's own diagnosis. ON BY DEFAULT with objective build step 1 (the "
+                  "reviewer 2026-10-11 02:19Z), its consumer; record only. Spelled "
+                  "`default=True`, default-on",
+    "TETHER_COMPLETION_SWEEP": "objective build 1, the completion sweep (ARC_AGENT 21.3; the "
+                               "reviewer 2026-10-11 02:19Z): ON, when the WORLD's objective "
+                               "degree reaches 1.0 ('reached', not 'banked'), the segment since "
+                               "the last completion is re-examined and recorded: what was "
+                               "live, which terms settled, which owed slots closed. Record "
+                               "only; nothing retargeted, dropped or cleared. OFF until the "
+                               "objective build's panel",
     "TETHER_MC6": "7a(10) MC6 muse (R3 part 2; the reviewer 2026-10-10 23:50Z): ON, on a step "
                   "that owes nothing (owed_import empty, under_floor included, and this "
                   "step's bets paying), the settled methods are re-tested as chains on an "

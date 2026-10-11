@@ -245,6 +245,25 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"{d.get('step_index')}: I expected {slot} to change and it "
                                f"stayed {_n(d.get('unchanged_at'))}. That saved "
                                f"{d.get('actions_saved')} step(s) I would have spent on it."))
+        elif ev == "process_bet":
+            # D1: the agent betting on its own PROCESS, about an outcome only the ground settles
+            what = ("this plan clears the level" if d.get("kind") == "plan_clears" else
+                    f"the world will confirm {d.get('about')} by the level's end, though I "
+                    f"parked it ({(d.get('stall') or {}).get('effect', d.get('verdict'))})")
+            out.append(([seq], f"I bet on my own process: {what}. Only a level or game ending "
+                               f"settles that, never my own reading of it."))
+        elif ev == "process_settle":
+            verdict = {True: "right", False: "wrong", None: "unreadable"}.get(d.get("right"))
+            out.append(([seq], f"My {d.get('kind')} bet on {d.get('about')} was {verdict}: "
+                               f"{d.get('settled_by')} (at the {d.get('scope')}'s ending, "
+                               f"{d.get('how')})."))
+        elif ev == "completion_sweep":
+            n_set = len(d.get("settled_in_segment") or [])
+            out.append(([seq], f"The world's objective was reached. Since cycle "
+                               f"{d.get('segment_from_cycle')}, {n_set} "
+                               f"term(s) settled and {len(d.get('closed_in_segment') or [])} owed "
+                               f"slot(s) closed; {len(d.get('still_owed') or [])} still owe. I "
+                               f"record what was live and change nothing."))
         elif ev == "reuse_install":
             out.append(([seq], f"On {slot} the sweep put `{d.get('term')}` into my library "
                                f"without asking the bargain. It would have said "

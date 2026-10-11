@@ -163,6 +163,11 @@ REGENERATE: OFF `python conform/throttle.py panel` (or `conform/panel.py --membe
 | MC6 | OFF | 0 on all 7 (no level boundary on the panel; habitat snaps) | D1-D3 | no |
 | D13 | OFF | process bets: 22 14 18 5 17 14 17; every plan_clears settles False (gridworld only ends at the cap) | none yet | no (grades plans by the ending) |
 
+## OBJECTIVE BUILD (the reviewer 2026-10-11 02:19Z; the note 21:16 CDT accepted)
+
+- STEP 1, the COMPLETION SWEEP (TETHER_COMPLETION_SWEEP, OFF; D13 ON by default with it). When the WORLD's objective degree crosses to 1.0 ('reached', as ruled), the segment since the last completion is re-examined and recorded (ARC_AGENT 21.3): live bindings, terms settled, owed slots closed, still owed, open process bets. Record only. The world's degree before the first action is read once, so a completion on step one counts. test_completion_sweep.py: must-pass gridworld_s0 15 cycles (world flip at c11, one sweep at c11); (a) the one cycle the agent alone predicted completion has no sweep; (b) 15 calls, bound / trace / level / owed unchanged; (c) degree held at 0, no row; OFF never runs. snaps seed 0 (COUNT), one 60-step level: 6 world crossings at c0 5 21 25 42 47, 6 sweep rows at the same cycles. D13 ON made the m2 narration seat fail (process_bet had no sentence): speak.py now says process_bet, process_settle and completion_sweep. fast_check 24/25 (panel STALE by ruling).
+- D5 STAYS HELD until a confirmed cut survives to its level's end; M6 STAYS OFF pending the 0.113-bit arithmetic (the reviewer 02:37Z).
+
 ## 7½ SWITCH-ON (the reviewer 2026-10-11 02:19Z)
 
 - ON BY DEFAULT now: TETHER_GUARD_PRICE, TETHER_TWO_READINGS, TETHER_UNSEAL_START -- a SUBSET OF THE MEASURED ON CONFIGURATION (the ON panel ran 16 arms together; this subset was not measured alone). Loaded and checked on a 5-cycle gridworld_s0 run (arms row: these three ON; D5, M6_INVENT, CARRY_PRICE OFF); fast_check 24/25 (panel STALE by the flip, by ruling no new panel until the objective build).
