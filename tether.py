@@ -4210,7 +4210,7 @@ class Agent:
         # §16.8 SENSOR 3. Which slots moved under THIS action, so the control mode is a
         # contingency read rather than a label -- §16.2: it blends mid-game, so it is
         # detected per step and never used to name the game.
-        self.agency.note(action, {s for s, r in res.items() if r.mass > 0}, sorted(res))
+        self.agency.note(action, self._moved(res, before, after), sorted(res))
         self._integral += sum(r.mass for r in res.values())
         for _s, _r in res.items():
             self._outstanding[_s] = self._outstanding.get(_s, 0.0) + _r.mass
@@ -4377,6 +4377,14 @@ class Agent:
         rec = self._carry_log.get((name, slot))
         if rec is not None:
             rec[what] += 1
+
+    @staticmethod
+    def _moved(res: dict, before: dict, after: dict) -> set:
+        """Sensor 3 is defined on CHANGE (the reviewer 2026-10-11 12:49 CDT, ruled ungated): the
+        slots whose VALUE differs, read from the same before/after the residual is computed from.
+        It was fed the SURPRISED slots (mass > 0), so a well-predicted avatar dropped out of
+        `contingent()` and a predicted move that did not happen counted as moved."""
+        return {s for s in res if after.get(s) != before.get(s)}
 
     def _relational_surprise(self, derived: dict, dpred: dict, res: dict, after: dict,
                              before: dict) -> None:
