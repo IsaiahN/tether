@@ -553,6 +553,8 @@ _BETTING_PATH = {"tether.py", "gamma.py", "arc_atoms.py"}
 #
 # WHAT MOVED, AND EACH ON A CHECKABLE FACT RATHER THAN ON JUDGEMENT:
 #   composer    stdlib imports only; reads `ATOMS.md`, which is domain-agnostic priors
+#               (since step 2, 2026-10-11: + `inherited`, stdlib-only; reads library/ -- the
+#               same domain-agnostic priors, so the provenance test is unchanged)
 #   relations   stdlib imports only
 #   detectors   reaches `reverse_engineer` at line 128, under `__main__` -- clean as a LIBRARY
 #   observer    same, at line 163

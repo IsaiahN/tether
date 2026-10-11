@@ -127,6 +127,21 @@ def load() -> dict[str, Any]:
     return out
 
 
+@lru_cache(maxsize=2)
+def bare_index(kind: str = "both") -> dict[str, tuple[str, ...]]:
+    """{lowercased bare name -> EVERY `DOMAIN|Name` key carrying it}, over atoms, molecules or
+    both. STEP 2 (one library in code; the reviewer 2026-10-11 14:15Z): callers that keyed the
+    old seed by bare name read this view, built once here. A name several domains carry keeps
+    every key -- never the first one seen."""
+    lib = load()
+    kinds = ("atoms", "molecules") if kind == "both" else (kind,)
+    out: dict[str, list[str]] = {}
+    for k in kinds:
+        for key in lib[k]:
+            out.setdefault(key.split("|", 1)[-1].lower(), []).append(key)
+    return {b: tuple(keys) for b, keys in out.items()}
+
+
 def entry(key: str) -> dict | None:
     """One entry by its `DOMAIN|Name` key, atom or molecule. THE SEAT MAY ASK BY NAME; the agent
     reaches by tag. Nothing here is on the agent's path -- `reach` is."""

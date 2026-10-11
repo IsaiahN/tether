@@ -1,5 +1,6 @@
 """Lit atoms -> candidate molecules via the RECIPES (F162: the recipes, not the domain adjacency
-graph, are the atom->molecule composition). Parses ATOMS.md's recipe tables into {molecule ->
+graph, are the atom->molecule composition). Reads the library's recipes (library/molecules.json
+since step 2, 2026-10-11; ATOMS.md's tables before that) into {molecule ->
 ingredients} and, given the atoms a mutation lit (detectors.py), returns the molecules whose recipe
 those atoms COVER -- the composition the lit cues map to. Nothing invented: every molecule and its
 recipe is the closure's own; this only reads them.
@@ -14,7 +15,8 @@ This paragraph used to read *a CUE module, never imported by the betting path*. 
 stated premise was §12.3's *reaching is the only evidence the composition system works*, and Isaiah
 superseded that clause on 2026-09-19: the evidence moved to OOD composition, so an instrument on the
 training side cannot consume the measurement. Re-scoped by INPUT PROVENANCE instead of module name
--- this module reads `ATOMS.md` and nothing else, no board and no answer key. `mapping` stays
+-- this module reads the library (`ATOMS.md` until step 2, 2026-10-11) and nothing else, no board
+and no answer key. `mapping` stays
 blocked (it imports `reverse_engineer`), and KEY_BOUNDARY is untouched.
 
 **AND `F165`'s *0 molecules on all 25* WAS MEASURED THROUGH THAT WALL, so it reads UNTESTED rather
@@ -35,6 +37,8 @@ import re
 import sys
 from dataclasses import dataclass
 
+import inherited
+
 sys.dont_write_bytecode = True
 
 # THE SEED IS READ FROM BESIDE THIS FILE, NOT FROM WHEREVER THE PROCESS STARTED -- 2026-10-06.
@@ -42,8 +46,9 @@ sys.dont_write_bytecode = True
 # recorded provenance keeps the repo-relative path.
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
-_ATOMS_MD = "docs/library-closure/ATOMS.md"
-_INDEX_JSON = "docs/library-closure/ATTRIBUTE_INDEX.json"
+# STEP 2, ONE LIBRARY IN CODE (the reviewer 2026-10-11 14:15Z): recipes and encodings are read
+# from library/ through `inherited`, the one loader, and no longer from docs/library-closure/.
+_LIBRARY = "library/molecules.json"
 
 
 UNKNOWN = "?"          # a junction whose bond the GROUND has not settled yet
@@ -158,7 +163,8 @@ def _split_top(recipe: str) -> tuple[list[str], list[str]]:
 
 
 @functools.lru_cache(maxsize=2)
-def recipe_rows(path: str = _ATOMS_MD) -> dict:
+@functools.lru_cache(maxsize=1)
+def recipe_rows() -> dict:
     """{molecule -> {"ingredients": tuple IN ORDER, "junctions": tuple, "as_written": str}}.
 
     **ORDER IS KEPT AND THE BOND IS NOT INVENTED** -- the two halves of Isaiah's 2026-09-22 ruling.
@@ -174,28 +180,26 @@ def recipe_rows(path: str = _ATOMS_MD) -> dict:
     the corpus declining to say, not the corpus saying "conjunction" -- reading it as a claim is
     what made `Translate` a single composition instead of a family. The ground settles each
     junction, independently, via `Standing`; `n` ingredients have `n-1` of them.
+
+    READ FROM library/molecules.json SINCE STEP 2: the library has already resolved each written
+    ingredient to an entry, so an ingredient is that entry's bare name, in the recipe's order. A
+    molecule name several domains carry is keyed `DOMAIN|Name`, so none of them is dropped.
     """
+    multi = {b for b, keys in inherited.bare_index("molecules").items() if len(keys) > 1}
     out: dict = {}
-    with open(path if os.path.isabs(path) else os.path.join(_HERE, path),
-              encoding="utf-8") as fh:
-        for lineno, ln in enumerate(fh, 1):
-            m = re.match(r"\s*\|(.+?)\|(.+?)\|(.+?)\|\s*$", ln)
-            if not m:
-                continue
-            name = m.group(1).strip().strip("*").strip()
-            recipe = m.group(2).strip().strip("*").strip()
-            if not any(b in recipe for b in BONDS):
-                continue
-            ings, _written = _split_top(recipe)
-            if name and all(ings) and len(ings) > 1:
-                out[name] = {"ingredients": tuple(ings),
-                             "junctions": (UNKNOWN,) * (len(ings) - 1),
-                             "as_written": recipe,
-                             # 5.9.4 names it and the row did not carry it. Provenance is what
-                             # keeps the ablation partition reconstructible -- what was SEEDED
-                             # apart from what the ground settled -- and it cannot be rebuilt
-                             # afterwards from a row that never recorded where it came from.
-                             "provenance": f"seed:{path}:{lineno}"}
+    for key, m in inherited.load()["molecules"].items():
+        ings = tuple(i["ref"].split("|", 1)[-1] for i in m.get("ingredients") or ()
+                     if i.get("ref"))
+        if len(ings) < 2:
+            continue
+        bare = key.split("|", 1)[-1]
+        out[key if bare.lower() in multi else bare] = {
+            "ingredients": ings,
+            "junctions": (UNKNOWN,) * (len(ings) - 1),
+            "as_written": m.get("recipe") or " + ".join(ings),
+            # 5.9.4 names it: provenance keeps the ablation partition reconstructible -- what
+            # was SEEDED apart from what the ground settled.
+            "provenance": f"seed:{_LIBRARY}:{key}"}
     return out
 
 
@@ -344,12 +348,11 @@ def _norm(x: str) -> str:
 
 @functools.lru_cache(maxsize=1)
 def _encodings() -> dict:
-    """{normalised bare atom name -> its encoding classes}, from the library index."""
-    with open(os.path.join(_HERE, _INDEX_JSON), encoding="utf-8") as fh:
-        rows = json.load(fh)["atom_attributes"]
+    """{normalised bare atom name -> its encoding classes}, from each library entry (step 2)."""
+    lib = inherited.load()
     out: dict = {}
-    for key, v in rows.items():
-        out.setdefault(_norm(key.split("|", 1)[-1]), set()).update(v.get("encodings", ()))
+    for key, v in {**lib["molecules"], **lib["atoms"]}.items():
+        out.setdefault(_norm(key.split("|", 1)[-1]), set()).update(v.get("encodings") or ())
     return {k: frozenset(v) for k, v in out.items()}
 
 
@@ -461,7 +464,7 @@ def settle_tree(node: object, delta: dict) -> dict:
     return {"decided": decided, "undecided": undecided, "why": why}
 
 
-def candidates(lit: set, path: str = _ATOMS_MD, partial: bool = False) -> list[dict]:
+def candidates(lit: set, partial: bool = False) -> list[dict]:
     """Molecules whose recipe the lit atoms cover. Ranked by recipe size: a longer covered recipe
     is a more specific match.
 
@@ -495,7 +498,7 @@ def candidates(lit: set, path: str = _ATOMS_MD, partial: bool = False) -> list[d
 
     lit = {_norm(x) for x in lit}
     hits = []
-    for n, r in recipe_rows(path).items():
+    for n, r in recipe_rows().items():
         ing = r["ingredients"]
         hit = sum(1 for i in ing if _norm(i) in lit)
         if hit == len(ing) or (partial and hit):
@@ -510,7 +513,7 @@ def candidates(lit: set, path: str = _ATOMS_MD, partial: bool = False) -> list[d
     return sorted(hits, key=lambda d: (-d["coverage"], -d["size"], d["molecule"]))
 
 
-def bond_report(lit: set, delta: dict, path: str = _ATOMS_MD) -> str:
+def bond_report(lit: set, delta: dict) -> str:
     """The reviewer's pre-registered item-4 report: junctions decided / undecided BY BOND, how
     many decisions this delta supports, and **how often two readings of the same junction are
     both supported** -- the isomer case, which is the interesting failure.
@@ -519,7 +522,7 @@ def bond_report(lit: set, delta: dict, path: str = _ATOMS_MD) -> str:
     all-undecided is a statement about what PERCEPTION does not carry, with the missing quantity
     named per junction rather than summarised as a rate.
     """
-    cands = candidates(lit, path)
+    cands = candidates(lit)
     dec = und = iso = 0
     missing: dict[str, int] = {}
     for c in cands:

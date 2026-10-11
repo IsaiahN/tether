@@ -70,7 +70,8 @@ CODE = [
     "library/*",
 ]
 # Read 2026-10-08 at seat-act e50406d: only conform/figures.py opens docs/INDEX.md; composer,
-# condition, mapping, self_graded, detectors read docs/library-closure; kaggle_bundle reads
+# condition, mapping, self_graded, detectors read docs/library-closure (none at runtime since
+# step 2, 2026-10-11 -- the glob is kept, as a reuse input it costs nothing); kaggle_bundle reads
 # docs/example.
 DOCS_READ_BY_CODE = ["docs/library-closure/*", "docs/example/*"]
 LEDGERS = ["runs/*", "runs/**/*"]

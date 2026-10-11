@@ -34,9 +34,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 # READ AT RUNTIME, RELATIVE TO A MODULE'S OWN FILE (F449). A table, so a new one is added here
 # deliberately or it is not shipped -- and the check below refuses a row that does not exist.
 DATA = (
-    "docs/library-closure/ATOMS.md",        # composer.recipe_rows, condition.corpus_glosses
-    "docs/library-closure/ATTRIBUTES.md",   # condition.corpus_glosses
-    "library/atoms.json",                   # inherited
+    "library/atoms.json",                   # inherited; composer, condition (step 2)
     "library/molecules.json",
     "library/tag_index.json",
     "library/domains.json",

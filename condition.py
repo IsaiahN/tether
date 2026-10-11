@@ -292,26 +292,22 @@ def evaluate(node: Any, read: Callable[[str, tuple], Any]) -> bool | None:
 
 
 def corpus_glosses() -> dict:
-    """`{lowercased atom name: (prose gloss, source:line)}` from the READ-ONLY seed.
+    """`{lowercased atom name: ((prose gloss, source), ...)}` from the READ-ONLY library.
 
-    The seed is never written -- this reads it and nothing else. `ATOMS.md` rows are
-    `| Name | Recipe | prose gloss |`, and the gloss is informal English by design.
+    STEP 2 (one library in code; the reviewer 2026-10-11 14:15Z): each entry's `definition` in
+    library/ through `inherited`, no longer the docs/library-closure/ tables. Informal English by
+    design. A name several domains carry keeps EVERY domain's gloss, each with its source: no
+    domain is picked (the reviewer 2026-10-11 14:33Z).
     """
-    out: dict[str, tuple[str, str]] = {}
-    for rel in ("docs/library-closure/ATOMS.md", "docs/library-closure/ATTRIBUTES.md"):
-        try:
-            with open(os.path.join(_HERE, rel), encoding="utf-8") as fh:
-                lines = fh.read().splitlines()
-        except OSError:
-            continue
-        for n, ln in enumerate(lines, 1):
-            if not ln.startswith("|"):
-                continue
-            cells = [c.strip().strip("*`").strip() for c in ln.strip("|").split("|")]
-            if len(cells) < 3 or not cells[0] or cells[0].lower() in ("atom", "element"):
-                continue
-            key = cells[0].lower().replace(" ", "_")
-            out.setdefault(key, (cells[-1], f"{rel}:{n}"))
+    import inherited
+    lib = inherited.load()
+    out: dict[str, tuple[tuple[str, str], ...]] = {}
+    for kind, fname in (("atoms", "atoms.json"), ("molecules", "molecules.json")):
+        for key in sorted(lib[kind]):
+            gloss = (lib[kind][key] or {}).get("definition")
+            if gloss:
+                name = key.split("|", 1)[-1].lower().replace(" ", "_")
+                out[name] = out.get(name, ()) + ((gloss, f"library/{fname}:{key}"),)
     return out
 
 
@@ -326,16 +322,20 @@ def census(names: list[str]) -> str:
     gl = corpus_glosses()
     draft, blank, absent = [], [], []
     for nm in sorted(set(names)):
-        hit = gl.get(nm.lower())
-        if hit is None:
+        hits = gl.get(nm.lower())
+        if not hits:
             absent.append(nm)
             continue
-        text, src = hit
-        try:
-            parse(text)
-            draft.append((nm, text, src))
-        except ParseError as e:
-            blank.append((nm, str(e)[:38], src))
+        drafted = False
+        for text, src in hits:
+            try:
+                parse(text)
+                draft.append((nm, text, src))
+                drafted = True
+            except ParseError as e:
+                err = (nm, str(e)[:38], src)
+        if not drafted:
+            blank.append(err)
     tot = len(draft) + len(blank) + len(absent)
     out = [f"  CONDITION CENSUS over {tot} scoped atoms",
            f"    DRAFTABLE  {len(draft)}   a condition this grammar can state",

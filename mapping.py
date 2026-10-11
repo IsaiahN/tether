@@ -1,7 +1,8 @@
 """The cue -> closure mapping (Isaiah, 2026-09-15): a chunk's mutations map to the CLOSURE atoms and
 their recipes that express the intent -- so the answer key names library derivations (composable via
 `OPERATORS.md`), not ad-hoc ops. This is the MAPPING job: match, do not search. Every target is
-reachable/findable in the closure (`docs/library-closure/ATOMS.md`); nothing invented.
+reachable/findable in the closure (library/molecules.json via `composer` since step 2,
+2026-10-11; `docs/library-closure/ATOMS.md` before); nothing invented.
 
 The route is the RECIPE structure, validated against ATOMS.md (2026-09-15): the ARC-level
 transformations have direct closure entries with recipes -- Recolour = Co + Featural identity,

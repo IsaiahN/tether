@@ -19,24 +19,27 @@ from __future__ import annotations
 
 import collections
 import itertools
-import json
 import random
 
 HELDOUT = 0.3            # anchor: fraction held out, random ACROSS TIERS (reviewer's constraint)
 MAX_PROMOTIONS = 200     # anchor: bin-size cap, the x-axis of the flywheel curve
 
 
-def load_composites(path: str = "docs/library-closure/WORKING_SET.json") -> list[dict]:
-    with open(path, encoding="utf-8") as fh:
-        d = json.load(fh)
+def load_composites(n: int = 200) -> list[dict]:
+    """The level-2 layer: the `n` molecules other entries reach for most (called_by), from
+    library/ (step 2; the reviewer 2026-10-11 14:15Z) -- WORKING_SET.json's own definition of
+    set_b, recomputed from the library rather than read from docs/."""
+    import inherited
+    mols = inherited.load()["molecules"]
+    ranked = sorted(mols, key=lambda k: (-((mols[k].get("called_by") or {}).get("count") or 0), k))
     out = []
-    for c in d.get("set_b_level2", []):
-        r = c.get("recipe")
-        if not r:
-            continue
-        atoms = frozenset(x.strip() for x in r.split("+") if x.strip())
+    for key in ranked:
+        atoms = frozenset(i["ref"].split("|", 1)[-1] for i in mols[key].get("ingredients") or ()
+                          if i.get("ref"))
         if len(atoms) >= 2:
-            out.append({"name": c.get("name"), "atoms": atoms})
+            out.append({"name": key.split("|", 1)[-1], "atoms": atoms})
+        if len(out) == n:
+            break
     return out
 
 
