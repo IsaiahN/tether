@@ -2389,7 +2389,16 @@ class Agent:
         if other is None:
             return part
         moving = set(self.agency.contingent())
-        return other if other.slot in moving and part.slot not in moving else part
+        # BY SOURCES (the reviewer 2026-10-11 13:49 CDT): a pair slot is never bet on, so it is
+        # never in contingent(); it moves when ANY of its sources does -- o0.dist_o3 changes when
+        # o3 moves as much as when o0 does. An ordinary slot's only source is itself, so its test
+        # is unchanged.
+        dv = getattr(self.env, "derived", None)
+        derived = dv() if dv is not None else {}
+
+        def moves(slot: str) -> bool:
+            return any(s in moving for s in derived.get(slot, (slot,)))
+        return other if moves(other.slot) and not moves(part.slot) else part
 
     def _respell_goals(self) -> None:
         """BOTH SPELLINGS, OVER TIME (the reviewer 2026-10-11 12:12 CDT): a want linked before the

@@ -172,7 +172,13 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
         kind, other = "slot", right.name
         if "~" in other and not (_RELATION_SET and other == target + PREV):
             return Refusal("an earlier reading is compared only with its own slot, under the arm")
-        if _split(other)[1].split("~", 1)[0] != reading:
+        oreading = _split(other)[1].split("~", 1)[0]
+        # THE GOAL-PAIR REPAIR (the reviewer 2026-10-11 13:40 CDT): two pair slots read the same
+        # quantity when they carry the same RELATION (dist_o3 vs dist_o4), as the mint already
+        # takes them; pair vs non-pair and two different relations stay refused.
+        same_rel = (_RELATION_SET and rel is not None
+                    and relations.pair_attr(oreading) == rel)
+        if oreading != reading and not same_rel:
             return Refusal("the two sides read different quantities")
     elif right in (0, 1):
         kind, other = ("zero" if right == 0 else "one"), None
