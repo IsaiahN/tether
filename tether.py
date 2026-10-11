@@ -5903,6 +5903,16 @@ class Agent:
         if deg is None:
             _why(why, "degree-unresolved")
             return None
+        # b-0 AMENDED (the reviewer 2026-10-11 08:34Z; Fig 12 :112, "progress is a subtraction"):
+        # a subject want on an ORDERED slot is scored by HOW FAR it is from holding, the
+        # objective_gap over its domain's span, so it can shrink under play (Sec 13.4). A
+        # comparable-only slot has no distance and stays 0/1: selectable only at arrival.
+        if subject and deg < 1.0 and self.slot_types.get(slot) in ORDERED_TYPES:
+            dom = self._domain(slot, state, ctx)
+            gap = objective_gap(_sat, state[slot], True, dom)
+            span = (max(dom) - min(dom)) if dom else 0
+            if isinstance(gap, int) and not isinstance(gap, bool) and span > 0:
+                return min(1.0, gap / span)
         return 1.0 - deg
 
 
