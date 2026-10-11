@@ -639,7 +639,7 @@ after the fact there is nothing to catch, because after the fact the reading is 
   THAT HOLDS THE DEFINITION — 2026-09-05, THREE INSTANCES IN ONE SESSION, ALL MINE.** Each
   time I repaired a row for staleness and introduced a wrong name in the same edit. **`M2` is
   the multi-step plan; I wrote *`M2` is three items against built ends* into `STORY_PROOF`'s
-  `M2` row**, and the three items were link 3's gate. **The row said what `M2` was, in the
+  `M2` row** (the file is deleted; git keeps it at the parent of 057a4c5), and the three items were link 3's gate. **The row said what `M2` was, in the
   text I was editing.**
 
   **The cause is one sentence and it is not carelessness: the summary gets written from THE
@@ -713,8 +713,8 @@ after the fact there is nothing to catch, because after the fact the reading is 
   `I15`'s standing complaint answered with a case.
 
   **AND `I26` NAMES THE ONE SCOPE ERROR TO AVOID: the RECORD is not only `INDEX`.** For `F41`
-  I grepped `operand_term` across `*.py` and never across `docs/`, and `WINDOW_REPORT` §7 was
-  carrying a constraint that made the ruling smaller than I filed it.
+  I grepped `operand_term` across `*.py` and never across `docs/`, and `WINDOW_REPORT` §7 (deleted; in git at the
+  parent of 057a4c5) was carrying a constraint that made the ruling smaller than I filed it.
 
   **AND THE SCOPE IS STILL TOO NARROW -- THREE FAILURES IN ONE DAY, 2026-09-24, EACH IN A
   DIFFERENT PLACE AND EACH ONE GREP FROM THE ANSWER.** `I26` widened `*.py` to include `docs/`.
