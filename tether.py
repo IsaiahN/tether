@@ -493,6 +493,23 @@ _GOAL_CONDITION = armflag.arm("TETHER_GOAL_CONDITION")
 # OBJECTIVE BUILD 3, THE LINK TO COMPOSITION (the reviewer 2026-10-11 02:19Z, 03:14Z). OFF; reason
 # in conform/arms.py. A held goal condition becomes one of the agent's composed objectives.
 _GOAL_LINK = armflag.arm("TETHER_GOAL_LINK")
+# OBJECTIVE BUILD 2a, THE GOAL PAIR (the reviewer 2026-10-11 05:14Z). OFF; reason in
+# conform/arms.py. A held goal condition may be the AND of two conditions, priced as one term.
+_GOAL_PAIR = armflag.arm("TETHER_GOAL_PAIR")
+
+
+@dataclass(frozen=True)
+class _Pair:
+    """Two compiled goal conditions held together: true only when both are (the `both` atom's
+    meaning). Its length is both parts plus the joiner, priced once as one term."""
+    parts: tuple
+
+    @property
+    def slot(self) -> str:
+        return self.parts[0].slot
+
+    def holds(self, state: dict) -> bool:
+        return all(compile_term.run(c, state) is True for c in self.parts)
 
 
 def _confirm_actions(r: Any) -> int | None:
@@ -2283,6 +2300,8 @@ class Agent:
         into the objective stream with `all`, as the library-first path closes a view. Linked
         only where the slot holds no want: one want per slot, and replacing one the agent
         composed is not this item's to decide."""
+        if isinstance(c, _Pair):
+            return {"linked": False, "why": "a held pair is not linked yet: item (b), its own"}
         close = next((a for a in self.gamma.atoms if a.name == "all"), None)
         if close is None:
             return {"linked": False, "why": "no `all` atom to close the condition"}
@@ -2343,10 +2362,34 @@ class Agent:
         gets wrong. Monotone in mistakes, so the goal's negation never pays. Reads only the
         world's readings and the world's verdict. Listing occasions one by one pays for every
         one (M6-a)."""
-        cost = term_bits(sum(self.gamma.length(c.term) for c in conds), self.gamma.alphabet)
-        e = sum(1 for st, hit in rows
-                if any(compile_term.run(c, st) is True for c in conds) != hit)
+        def size(c: Any) -> int:      # a pair is both parts plus the `both` joiner
+            return (sum(self.gamma.length(x.term) for x in c.parts) + 1 if isinstance(c, _Pair)
+                    else self.gamma.length(c.term))
+
+        def true(c: Any, st: dict) -> bool:
+            return c.holds(st) if isinstance(c, _Pair) else compile_term.run(c, st) is True
+        cost = term_bits(sum(size(c) for c in conds), self.gamma.alphabet)
+        e = sum(1 for st, hit in rows if any(true(c, st) for c in conds) != hit)
         return cost, e * math.log2(len(rows)), e
+
+    def _goal_pairs(self, singles: list, rows: list) -> list:
+        """Build 2a (the reviewer 2026-10-11 05:14Z): the AND of two DIFFERENT conditions, each
+        priced as one term by `_goal_price`. SEARCH BOUND, recorded as one: a pair is formed only
+        from conditions true on EVERY step where the objective held (necessity), since a pair is
+        false wherever either part is."""
+        reached = [st for st, hit in rows if hit]
+        nec = sorted((x for x in singles
+                      if all(compile_term.run(x[5], st) is True for st in reached)),
+                     key=lambda x: x[4])
+        out = []
+        for i, a in enumerate(nec):
+            for b in nec[i + 1:]:
+                if a[4] == b[4]:
+                    continue                    # identical parts are not a pair
+                pair = _Pair((a[5], b[5]))
+                cost, left, e = self._goal_price([pair], rows)
+                out.append((cost + left, cost, left, e, f"{a[4]} and {b[4]}", pair))
+        return out
 
     def _goal_condition(self) -> None:
         """Objective build 2 (the reviewer 2026-10-11 02:19Z): at a completion, conditions from
@@ -2372,6 +2415,8 @@ class Agent:
                 continue
             cost, left, e = self._goal_price([c], rows)
             cands.append((cost + left, cost, left, e, text, c))
+        if _GOAL_PAIR:
+            cands += self._goal_pairs(cands, rows)
         cands.sort(key=lambda x: (x[0], x[4]))
         detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
                   "conditions": len(cands), "refused": dict(refused),

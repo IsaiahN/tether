@@ -263,6 +263,13 @@ ARMS: dict[str, str] = {
                   "agent's own diagnosis. ON BY DEFAULT with objective build step 1 (the "
                   "reviewer 2026-10-11 02:19Z), its consumer; record only. Spelled "
                   "`default=True`, default-on",
+    "TETHER_GOAL_PAIR": "objective build 2a, the goal pair (the reviewer 2026-10-11 05:14Z): ON, "
+                        "a held goal condition may be the AND of two different conditions, "
+                        "priced once as one term (both parts plus the `both` joiner); a pair is "
+                        "formed only from conditions true on every step the objective held (a "
+                        "search bound, recorded as one); L1's recheck and E1's close apply "
+                        "unchanged; a held pair is not linked (item (b)). Needs "
+                        "TETHER_GOAL_CONDITION ON. OFF until (b) and its reading",
     "TETHER_GOAL_LINK": "objective build 3, the link to composition (the reviewer 2026-10-11 "
                         "02:19Z, 03:14Z): ON, a held goal condition is closed into the "
                         "objective stream with `all` and becomes its slot's want, so "
