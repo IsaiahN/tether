@@ -6,6 +6,8 @@ own-slot converse of `above`. The arm is read at import, so each half runs in it
   ON:  Gamma holds `below`; the same condition runs on o0.row with o3.row as the operand, so the
        LEFT party is the subject (F1's case); below(1 vs 3) = 1, (3 vs 1) = 0, (2 vs 2) = 0;
        and like `above` it refuses an unordered reading ("o0.colour < o3.colour").
+  F1 (the reviewer 14:57Z): linked through the goal chain (_link_goal), the want lands on
+       o0.row -- the movable party -- ON, and on o3.row OFF.
 
     python test_relation_below.py
 """
@@ -34,6 +36,14 @@ if "below" in atoms:
     out["values"] = [b.fn(v, Ctx(operands=(o,))) for v, o in ((1, 3), (3, 1), (2, 2))]
     r = compile_term.compile_candidate({"condition": "o0.colour < o3.colour"}, atoms)
     out["colour"] = type(r).__name__
+import tether
+tether._GOAL_CONDITION = tether._GOAL_PAIR = tether._GOAL_LINK = True
+for sl in ("o0.row", "o3.row"):
+    ag.wants.pop(sl, None)
+    ag._want_terms.pop(sl, None)
+link = ag._link_goal("f1-case", c)
+out["linked"] = bool(link.get("linked"))
+out["wanting"] = sorted(sl for sl in ("o0.row", "o3.row") if sl in ag._want_scope)
 print(json.dumps(out))
 '''
 
@@ -50,12 +60,15 @@ if __name__ == "__main__":
     off = _run(False)
     assert not off["below"], off
     assert off["slot"] == "o3.row" and off["operand"] == "o0.row" and off["chain"] == ["above"], off
-    print(f"  OFF: no `below`; '<' runs above on {off['slot']} with operand {off['operand']}")
+    assert off["linked"] and off["wanting"] == ["o3.row"], off
+    print(f"  OFF: no `below`; '<' runs above on {off['slot']} with operand {off['operand']}; "
+          f"the linked want lands on {off['wanting']}")
     on = _run(True)
     assert on["below"], on
     assert on["slot"] == "o0.row" and on["operand"] == "o3.row" and on["chain"] == ["below"], on
     assert on["values"] == [1, 0, 0], on
     assert on["colour"] == "Refusal", on
+    assert on["linked"] and on["wanting"] == ["o0.row"], on
     print(f"  ON: '<' runs below on {on['slot']} with operand {on['operand']}; values "
-          f"{on['values']}; colour '<' refused")
+          f"{on['values']}; colour '<' refused; the linked want lands on {on['wanting']} (F1)")
     print("relation below: OK")
