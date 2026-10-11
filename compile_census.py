@@ -108,6 +108,24 @@ def relation_set_arm() -> tuple[int, dict, dict]:
     return n, census, {int(k): v for k, v in close.items()}
 
 
+# The call-family items (the reviewer 2026-10-11 14:17 CDT), keyed by their OFF refusal.
+FAMILY_ITEM = {"quantified over the group": "2, the group row",
+               "no pairwise atom: contact(o, x)": "5, contact",
+               "no pairwise atom: inside(o, x)": "6, inside",
+               "no template for the observer pair inside": "6, inside (the library writes > 0)",
+               "no pairwise atom: bbox(o, x)": "7, bbox",
+               "holds does not accept EXTENT": "9, EXTENT == 0"}
+
+
+def families(census: dict) -> collections.Counter:
+    """Refusals summed over roles, the if:/then: side folded away."""
+    fam: collections.Counter = collections.Counter()
+    for r in census.values():
+        for why, k in r["refused"].items():
+            fam[why.split(": ", 1)[-1] if why.startswith(("if: ", "then: ")) else why] += k
+    return fam
+
+
 def widenings(_atoms: dict) -> dict[str, tuple[dict, dict]]:
     """Proposed widenings not yet built, each an atom set and the compile rows it would use.
     None pending: 7a, touches<x> and 7b (the bridge atom holds, the reviewer 2026-10-08 23:54Z,
@@ -205,12 +223,26 @@ def main() -> int:
               "(an event is a transition, carried by the change readings); action(o, x) (the "
               "agent's own action is not a perceived slot); the board is not an object slot (only "
               "@goal.completed is); a change reading compared across objects.",
-              "", "Refusal families remaining ON (summed over roles):", ""]
-    fam: collections.Counter = collections.Counter()
-    for r in on.values():
-        for why, k in r["refused"].items():
-            fam[why.split(": ", 1)[-1] if why.startswith(("if: ", "then: ")) else why] += k
-    lines += [f"- {why} -- {k}" for why, k in fam.most_common()]
+              "", "## Refusal families OFF -> ON (summed over roles; a refusal that moves to "
+              "another reason is counted under each)", "",
+              "| family | item | refused OFF | refused ON | change |",
+              "|---|---|---|---|---|"]
+    fam_off, fam = families(base), families(on)
+    for why in sorted(set(fam_off) | set(fam), key=lambda w: (-fam_off.get(w, 0), w)):
+        item = next((v for k, v in FAMILY_ITEM.items() if why.startswith(k)), "")
+        a, b = fam_off.get(why, 0), fam.get(why, 0)
+        lines.append(f"| {why} | {item} | {a} | {b} | {b - a:+d} |")
+    fell = sum(fam_off[w] - fam.get(w, 0) for w in fam_off if fam_off[w] > fam.get(w, 0))
+    rose = sum(fam[w] - fam_off.get(w, 0) for w in fam if fam[w] > fam_off.get(w, 0))
+    lines += ["", f"A fall is not a compiled row: a refusal can move to another reason. Refusals "
+              f"that fell {fell}, refusals that rose {rose}; {fell} - {rose} = {fell - rose}, "
+              f"the compiled gain over all roles is {on_ok - base_ok}."]
+    lines += ["", "Family 2 (the RULE role, the reviewer 2026-10-11 14:50 CDT; "
+              "docs/cohesion/GROUP_ROW_NOTE.md, measured at 22d8273): a RULE row is a LAW, not a "
+              "goal. ROUTABLE, NO CONSUMER: 40,835 (20,043 all_same + 2,477 distinct + 18,315 "
+              "per-object AND over peers) -- no reader asks for the RULE role, so no routing is "
+              "built; VACUOUS AS WRITTEN: 35,132 (an order over all ordered pairs); the rest "
+              "(12,400 one-object, 1,619 board) stay in their own families."]
     lines += ["", "Correctness of what each form would compile (the equivalence fixture run "
               "under it):",
               ""] + notes

@@ -36,20 +36,20 @@ Base closure: {2: 1604, 3: 17376, 4: 181609}
 
 | change | compiled candidates (all roles) | gain | closure d2 / d3 / d4 | growth |
 |---|---|---|---|---|
-| TETHER_RELATION_SET ON (64 atoms) | 485549 | +0 | 1668 / 18219 / 191897 | x1.04 / x1.05 / x1.06 |
+| TETHER_RELATION_SET ON (64 atoms) | 501297 | +15748 | 1668 / 18219 / 191897 | x1.04 / x1.05 / x1.06 |
 
 ## TETHER_RELATION_SET: compiled / refused per role, OFF -> ON
 
 | role | compiled OFF | compiled ON | refused OFF | refused ON |
 |---|---|---|---|---|
-| STATE | 75967 | 75967 | 14019 | 14019 |
+| STATE | 75967 | 78219 | 14019 | 11767 |
 | PROCESS | 58699 | 58699 | 7359 | 7359 |
-| RELATION | 55535 | 55535 | 5067 | 5067 |
-| MEASURE | 20548 | 20548 | 1659 | 1659 |
-| CAUSE | 87633 | 87633 | 42764 | 42764 |
-| RESULT | 87633 | 87633 | 42764 | 42764 |
+| RELATION | 55535 | 57747 | 5067 | 2855 |
+| MEASURE | 20548 | 20588 | 1659 | 1619 |
+| CAUSE | 87633 | 92129 | 42764 | 38268 |
+| RESULT | 87633 | 92129 | 42764 | 38268 |
 | INSTRUMENT | 58699 | 58699 | 7359 | 7359 |
-| TEST | 40835 | 40835 | 10489 | 10489 |
+| TEST | 40835 | 43087 | 10489 | 8237 |
 | RULE | 0 | 0 | 89986 | 89986 |
 | AGENT | 0 | 0 | 66058 | 66058 |
 
@@ -57,17 +57,24 @@ BASE DRIFT since the 2026-10-08 census (3a59b23): RELATION compiled 57,386 -> 55
 
 Bounded by design (the reviewer 2026-10-11 14:17 CDT): events are not slots (an event is a transition, carried by the change readings); action(o, x) (the agent's own action is not a perceived slot); the board is not an object slot (only @goal.completed is); a change reading compared across objects.
 
-Refusal families remaining ON (summed over roles):
+## Refusal families OFF -> ON (summed over roles; a refusal that moves to another reason is counted under each)
 
-- events are not slots -- 95391
-- quantified over the group: needs a group row (not ruled) -- 89986
-- no pairwise atom: action(o, x) names two objects and no atom reads the pair -- 66058
-- the board is not an object slot -- 11404
-- no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 8421
-- no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 7298
-- no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 6750
-- a change reading compared across objects reads no slot -- 1851
-- holds does not accept EXTENT -- 365
+| family | item | refused OFF | refused ON | change |
+|---|---|---|---|---|
+| events are not slots |  | 95391 | 95727 | +336 |
+| quantified over the group: needs a group row (not ruled) | 2, the group row | 89986 | 89986 | +0 |
+| no pairwise atom: action(o, x) names two objects and no atom reads the pair |  | 66058 | 66058 | +0 |
+| the board is not an object slot |  | 11404 | 11404 | +0 |
+| no pairwise atom: contact(o, x) names two objects and no atom reads the pair | 5, contact | 8421 | 0 | -8421 |
+| no pairwise atom: bbox(o, x) names two objects and no atom reads the pair | 7, bbox | 7298 | 0 | -7298 |
+| no pairwise atom: inside(o, x) names two objects and no atom reads the pair | 6, inside | 6750 | 0 | -6750 |
+| a change reading compared across objects reads no slot |  | 1851 | 1851 | +0 |
+| holds does not accept EXTENT | 9, EXTENT == 0 | 365 | 0 | -365 |
+| no template for the observer pair inside > 0 | 6, inside (the library writes > 0) | 0 | 6750 | +6750 |
+
+A fall is not a compiled row: a refusal can move to another reason. Refusals that fell 22834, refusals that rose 7086; 22834 - 7086 = 15748, the compiled gain over all roles is 15748.
+
+Family 2 (the RULE role, the reviewer 2026-10-11 14:50 CDT; docs/cohesion/GROUP_ROW_NOTE.md, measured at 22d8273): a RULE row is a LAW, not a goal. ROUTABLE, NO CONSUMER: 40,835 (20,043 all_same + 2,477 distinct + 18,315 per-object AND over peers) -- no reader asks for the RULE role, so no routing is built; VACUOUS AS WRITTEN: 35,132 (an order over all ordered pairs); the rest (12,400 one-object, 1,619 board) stay in their own families.
 
 Correctness of what each form would compile (the equivalence fixture run under it):
 
