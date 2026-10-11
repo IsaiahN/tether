@@ -2321,6 +2321,8 @@ class Agent:
         only where the slot holds no want: one want per slot, and replacing one the agent
         composed is not this item's to decide."""
         parts = list(c.parts) if isinstance(c, _Pair) else [c]
+        if _RELATION_SET:
+            parts = [self._movable_spelling(p) for p in parts]
         close = next((a for a in self.gamma.atoms if a.name == "all"), None)
         if close is None:
             return {"linked": False, "why": "no `all` atom to close the condition"}
@@ -2346,6 +2348,43 @@ class Agent:
         _book_add(self.gamma.book, "goal_link_made")                    # L2
         return {"linked": True, "slots": [sl for sl, _t in terms],
                 "want": [t.name for _sl, t in terms], "scope": "subject"}
+
+    def _movable_spelling(self, part: Any) -> Any:
+        """BOTH SPELLINGS (TETHER_RELATION_SET; the reviewer 2026-10-11): a comparison of two slots
+        can be wanted on either party. The want goes on the party the agent's OWN reading marks
+        as movable -- a slot in Agency.contingent, the reading ARC B2's actor set is -- and on the
+        spelling as written when neither or both are. Same truth either way, so the price is
+        unchanged; only the subject of the want moves."""
+        other = compile_term.converse(part, {a.name: a for a in self.gamma.atoms})
+        if other is None:
+            return part
+        moving = set(self.agency.contingent())
+        return other if other.slot in moving and part.slot not in moving else part
+
+    def _respell_goals(self) -> None:
+        """BOTH SPELLINGS, OVER TIME (the reviewer 2026-10-11 12:12 CDT): a want linked before the
+        agent had read its own agency was spelled as written. When the reading now puts the
+        movable party on the other side, the link is released (the counted release path) and
+        re-linked there -- one want, never two. Left alone where the new subject already wants.
+        Only when the verdict CHANGES from the last re-spell (the link holds it), so a wobbling
+        reading cannot flip a want silently: every move writes a goal_respelled row."""
+        if not _RELATION_SET:
+            return
+        for key in sorted(self._goal_links):
+            c = self._goal_conds.get(key)
+            if c is None:
+                continue
+            parts = list(c.parts) if isinstance(c, _Pair) else [c]
+            now = [p.slot for p in (self._movable_spelling(p) for p in parts)]
+            had = [sl for sl, _n in self._goal_links[key]]
+            if now == had or any(sl in self.wants for sl in set(now) - set(had)):
+                continue
+            self._release_link(key)
+            link = self._link_goal(key, c)
+            self.led.record(self.cycle, "PLAN", "@completion", "goal_respelled", key=key,
+                            want=self._goal_text.get(key), was=had, now=link.get("slots"),
+                            linked=bool(link.get("linked")),
+                            reads="the movable-party verdict changed: the want moves to it")
 
     def _close_goals(self, how: str) -> None:
         """E1 (the reviewer 2026-10-11 03:38Z): a held goal condition CLOSES with its level --
@@ -9628,6 +9667,8 @@ class Agent:
             if _rel is not None:
                 _own = self._slot_owners(self.env)
                 _rel({_own[s] for s in self.agency.contingent() if s in _own})
+            if self._goal_links:
+                self._respell_goals()
         if _MC6:
             self._step_row0 = len(self.led)
         if _COMPLETION_SWEEP and self._deg_prev is None:

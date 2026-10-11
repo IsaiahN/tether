@@ -50,6 +50,10 @@ TABLE: dict[tuple[str, str], tuple] = {
 # B1 (TETHER_RELATION_SET): where Gamma holds `below`, "<" against a slot keeps the LEFT party
 # the subject instead of reversing the binding. Read off the atom set, so it follows the arm.
 CONVERSE: dict[tuple[str, str], tuple] = {("<", "slot"): (("below",), "x")}
+# BOTH SPELLINGS (TETHER_RELATION_SET; the reviewer 2026-10-11): a one-atom comparison of two
+# slots says the same thing run on either party -- above(a, b) is below(b, a); same and other
+# are symmetric. The atom that reads it from the other side.
+SWAP = {"above": "below", "below": "above", "same": "same", "other": "other"}
 # A pair reading written as a call, and the pair atom that grounds it (the reviewer 2026-10-08
 # 23:23Z): "== 1" -> the atom, "== 0" -> the atom then negate; it runs on the first object
 # with the second as its operand. A pair call not listed here has no atom and is refused.
@@ -188,6 +192,19 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     term = gamma.Term(chain, operand=operand,
                       operand_term=gamma.Term(op_chain) if op_chain else None)
     return Compiled(run_on, term, operand)
+
+
+def converse(c: Compiled, atoms: dict[str, gamma.Atom]) -> Compiled | None:
+    """The same comparison spelled on the OTHER party: run on the operand slot with the first
+    slot as operand, through the swapped atom. None where it has no other spelling here (a
+    multi-atom chain, an operand tree, a constant, or an atom Gamma does not hold)."""
+    if (len(c.term.atoms) != 1 or c.operand is None or c.term.operand_term is not None
+            or PREV in c.operand):
+        return None
+    name = SWAP.get(c.term.atoms[0].name)
+    if name is None or name not in atoms:
+        return None
+    return Compiled(c.operand, gamma.Term((atoms[name],), operand=c.slot), c.slot)
 
 
 def _change(obj: str, reading: str, op: str, right: Any,

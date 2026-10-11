@@ -44,6 +44,40 @@ for sl in ("o0.row", "o3.row"):
 link = ag._link_goal("f1-case", c)
 out["linked"] = bool(link.get("linked"))
 out["wanting"] = sorted(sl for sl in ("o0.row", "o3.row") if sl in ag._want_scope)
+m = compile_term.compile_candidate({"condition": "o3.row > o0.row"}, atoms)
+mirror = {}
+for label, moving in (("none", ()), ("o0", ("o0.row",)), ("o3", ("o3.row",))):
+    ag.agency = type(ag.agency)()
+    for sl in moving:
+        ag.agency.note("A", {sl}, sorted(ag.slots))
+        ag.agency.note("B", set(), sorted(ag.slots))
+    for sl in ("o0.row", "o3.row"):
+        ag.wants.pop(sl, None)
+        ag._want_terms.pop(sl, None)
+        ag._want_scope.pop(sl, None)
+    ag._goal_links.clear()
+    ag._link_goal("mirror-" + label, m)
+    mirror[label] = sorted(sl for sl in ("o0.row", "o3.row") if sl in ag._want_scope)
+out["mirror"] = mirror
+# (d) the reviewer 12:12 CDT: linked before anything is read, the want must MOVE when o0.row
+# then reads as moving -- one want, the release counted
+ag.agency = type(ag.agency)()
+for sl in ("o0.row", "o3.row"):
+    ag.wants.pop(sl, None)
+    ag._want_terms.pop(sl, None)
+    ag._want_scope.pop(sl, None)
+ag._goal_links.clear()
+ag._goal_conds["mirror-d"] = m
+ag._link_goal("mirror-d", m)
+first = sorted(sl for sl in ("o0.row", "o3.row") if sl in ag.wants)
+unl0 = ag.gamma.book.get("goal_unlinked", 0)
+ag.agency.note("A", {"o0.row"}, sorted(ag.slots))
+ag.agency.note("B", set(), sorted(ag.slots))
+ag._respell_goals()
+ag._respell_goals()                  # the reading did not change: no second move, no row
+rows = [r for r in ag.led.rows() if r["event"] == "goal_respelled"]
+out["respell"] = [first, sorted(sl for sl in ("o0.row", "o3.row") if sl in ag.wants),
+                  ag.gamma.book.get("goal_unlinked", 0) - unl0, len(rows)]
 print(json.dumps(out))
 '''
 
@@ -63,6 +97,10 @@ if __name__ == "__main__":
     assert off["linked"] and off["wanting"] == ["o3.row"], off
     print(f"  OFF: no `below`; '<' runs above on {off['slot']} with operand {off['operand']}; "
           f"the linked want lands on {off['wanting']}")
+    assert off["mirror"] == {"none": ["o3.row"], "o0": ["o3.row"], "o3": ["o3.row"]}, off
+    print("  OFF mirror 'o3.row > o0.row': the want stays on o3.row whatever moves")
+    assert off["respell"] == [["o3.row"], ["o3.row"], 0, 0], off
+    print("  OFF (d): linked on o3.row, o0.row then moves -- it stays on o3.row")
     on = _run(True)
     assert on["below"], on
     assert on["slot"] == "o0.row" and on["operand"] == "o3.row" and on["chain"] == ["below"], on
@@ -71,4 +109,11 @@ if __name__ == "__main__":
     assert on["linked"] and on["wanting"] == ["o0.row"], on
     print(f"  ON: '<' runs below on {on['slot']} with operand {on['operand']}; values "
           f"{on['values']}; colour '<' refused; the linked want lands on {on['wanting']} (F1)")
+    # BOTH SPELLINGS: the movable party, by the agent's own contingency reading; none moving
+    # keeps the written spelling (the must-fail: the pick is the reading, not the order)
+    assert on["mirror"] == {"none": ["o3.row"], "o0": ["o0.row"], "o3": ["o3.row"]}, on
+    print(f"  ON mirror 'o3.row > o0.row' (both spellings): {on['mirror']}")
+    assert on["respell"] == [["o3.row"], ["o0.row"], 1, 1], on       # one move, one row
+    print("  ON (d): linked on o3.row before anything is read; o0.row then moves -> the one "
+          "want is on o0.row, the release counted once")
     print("relation below: OK")
