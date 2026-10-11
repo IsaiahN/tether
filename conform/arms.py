@@ -263,6 +263,11 @@ ARMS: dict[str, str] = {
                   "agent's own diagnosis. ON BY DEFAULT with objective build step 1 (the "
                   "reviewer 2026-10-11 02:19Z), its consumer; record only. Spelled "
                   "`default=True`, default-on",
+    "TETHER_WANT_TARGET": "F2, one lookup for a slot's objective (the reviewer 2026-10-11 "
+                          "05:38Z): ON, _goal_target and _term_of read _objective_of -- the bound "
+                          "term if it is an objective, else the retained want -- the order "
+                          "goal_residual already used, so a want masked by a bound predictor "
+                          "yields its target. OFF until the live arc_s1 reading (step 8)",
     "TETHER_GOAL_PAIR": "objective build 2a, the goal pair (the reviewer 2026-10-11 05:14Z): ON, "
                         "a held goal condition may be the AND of two different conditions, "
                         "priced once as one term (both parts plus the `both` joiner); a pair is "

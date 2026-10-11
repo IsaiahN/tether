@@ -496,6 +496,9 @@ _GOAL_LINK = armflag.arm("TETHER_GOAL_LINK")
 # OBJECTIVE BUILD 2a, THE GOAL PAIR (the reviewer 2026-10-11 05:14Z). OFF; reason in
 # conform/arms.py. A held goal condition may be the AND of two conditions, priced as one term.
 _GOAL_PAIR = armflag.arm("TETHER_GOAL_PAIR")
+# F2 (the reviewer 2026-10-11 05:38Z): ONE lookup for a slot's objective. OFF; reason in
+# conform/arms.py. ON, _goal_target and _term_of read it as goal_residual already does.
+_WANT_TARGET = armflag.arm("TETHER_WANT_TARGET")
 
 
 @dataclass(frozen=True)
@@ -5831,19 +5834,9 @@ class Agent:
         boards, every one 0 or 1. **A scope fraction is bounded by the population**, so an
         objective true of one object in four reads 0.75 whatever any single slot is doing.
         """
-        name = self.bound.get(slot)
-        term = self.gamma.library.get(name) if name else None
-        # **AND IF THE ACTING TERM IS NOT A WANT, READ THE RETAINED ONE.** `bound` holds what
-        # SYSTEM 1 does now; `wants` holds what SYSTEM 2 is still after. While the contest was
-        # winner-take-all this function had nothing to read whenever a predictor won.
-        if getattr(term, "out_type", None) != OBJ_TYPE:
-            _w = self.wants.get(slot)
-            # THE LIBRARY FIRST, THEN THE RETAINED TERM. An accepted want is the same object
-            # either way; an UNPAID one exists only in `_want_terms`, and reading the library
-            # alone made this fallback a silent no-op on every unpaid want.
-            _wt = (self.gamma.library.get(_w) or self._want_terms.get(slot)) if _w else None
-            if _wt is not None:
-                name, term = _w, _wt
+        # **THE BOUND OBJECTIVE, ELSE THE RETAINED WANT** -- `bound` holds what SYSTEM 1 does now,
+        # `wants` what SYSTEM 2 is still after; one lookup for every reader (F2).
+        name, term = self._objective_of(slot)
         # WHICH None, NOT THAT None -- F207. The exits are different FACTS, not one abstention:
         # nothing bound is a SUPPLY claim, the wrong out_type is a TYPE claim, an absent slot is
         # a PERCEPTION claim, an empty group is a SCOPE claim. The first routine this project
@@ -7279,8 +7272,13 @@ class Agent:
     def _term_of(self, slot: str | None) -> dict | None:
         """5b: the objective term `_goal_target` reads for this slot, by the same lookup, with its
         seq (the gamma stamp's, or None and why)."""
-        name = (self.bound.get(slot) or self.wants.get(slot)) if slot else None
-        term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
+        if _WANT_TARGET:
+            name, term = self._objective_of(slot) if slot else (None, None)
+            if getattr(term, "out_type", None) != OBJ_TYPE:
+                return None             # a predictor is not an objective: neither is here
+        else:
+            name = (self.bound.get(slot) or self.wants.get(slot)) if slot else None
+            term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
         if term is None:
             return None
         tname = getattr(term, "name", name)
@@ -7301,6 +7299,20 @@ class Agent:
             out.append({**goal, "role": "goal"})
         return out
 
+    def _objective_of(self, slot: str) -> tuple:
+        """F2 (the reviewer 2026-10-11 05:38Z): this slot's objective, ONE lookup for every
+        reader -- the bound term if it is an objective, else the retained want (library first,
+        then _want_terms). goal_residual's order since it was written; _goal_target and _term_of
+        read it under TETHER_WANT_TARGET, so the selector and the target cannot disagree."""
+        name = self.bound.get(slot)
+        term = self.gamma.library.get(name) if name else None
+        if getattr(term, "out_type", None) != OBJ_TYPE:
+            _w = self.wants.get(slot)
+            _wt = (self.gamma.library.get(_w) or self._want_terms.get(slot)) if _w else None
+            if _wt is not None:
+                name, term = _w, _wt
+        return name, term
+
     def _goal_target(self, slot: str, before: dict[str, int]) -> int | None:
         """What the agent's OWN objective predicts this slot should become, or None.
 
@@ -7309,8 +7321,11 @@ class Agent:
         `None` where the slot already HOLDS (`objective_step` returns `current`), where nothing
         satisfies, or where no OBJ-typed term is there to read.
         """
-        name = self.bound.get(slot) or self.wants.get(slot)
-        term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
+        if _WANT_TARGET:
+            name, term = self._objective_of(slot)
+        else:
+            name = self.bound.get(slot) or self.wants.get(slot)
+            term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
         if term is None or getattr(term, "out_type", None) != OBJ_TYPE or slot not in before:
             return None
         if not self._applies(term, before):
