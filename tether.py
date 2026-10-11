@@ -2289,7 +2289,7 @@ class Agent:
         if _GOAL_CONDITION and self.trace:
             if self._reach_epoch != self._trace_epoch:
                 self._reach_hist, self._reach_epoch = [], self._trace_epoch
-            self._reach_hist.append((self.trace[-1][2], degree >= 1.0))
+            self._reach_hist.append((self._reach_row(self.trace[-1]), degree >= 1.0))
             if self._goal_conds:
                 self._goal_recheck()
         start = max(self._sweep_from[0], self._seq_at_level)
@@ -2312,6 +2312,16 @@ class Agent:
         self._sweep_from = (len(self.led), self.cycle, set(self.settled), set(self.owed_import))
         if _GOAL_CONDITION:
             self._goal_condition()
+
+    @staticmethod
+    def _reach_row(step: tuple) -> dict:
+        """A reach-history row: the transition's after-state, with its BEFORE-values as `slot~1`
+        (the reviewer 2026-10-11 12:35 CDT, ruled ungated). A goal condition that compares a slot
+        with its own earlier reading -- CHANGE_OF's `colour_changed`, B3's toward -- reads its
+        operand from here; without it every such condition read None and could never pay."""
+        before, _a, after = step[0], step[1], step[2]
+        assert not any(lag_of(k) for k in after), "a slot name already carries a lag suffix"
+        return {**after, **{k + PREV: v for k, v in before.items()}}
 
     def _link_goal(self, key: str, c: Any) -> dict:
         """Objective build 3: a held goal condition becomes one of the agent's COMPOSED
