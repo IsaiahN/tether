@@ -507,3 +507,23 @@ A ruling and a figure that conflict are recorded and resolved for the figure.
 - SEAT_ORIENTATION item 12(a), hand-drafting the prose conditions: retired.
 - Every "its own all-25" in the reviewer's 2026-10-08 arm rulings: paused until testing reopens;
   folded into the library work where they overlap.
+
+## 2026-10-11
+
+Relayed by the reviewer (Drive channel); Isaiah's words quoted as relayed.
+
+- **docs/library-closure/ IS PLACED: WORKING FILES, REMOVABLE** (15:23 CDT; the reviewer 15:24 CDT):
+  *"you can remove it, i have copies via git and saved a copy just now."* The three corpus
+  narratives moved to `docs/corpus/` (0d68ef4); the other 21 files deleted at 03aae57
+  (in git at 03aae57^). `docs/PERCEPTION_BUILD_PLAN.md`
+  is NOT placed by this: it stays held.
+- **KAGGLE IS ITS OWN MILESTONE, NOT THE STEP AFTER 13** (15:24 CDT; the reviewer 15:25 CDT):
+  *"i expect #11 and 13 to take a while, so separate kaggle out as its own thing, its mainly for
+  when the agent is generalizing well enough and passing all the test we are sending it etc which
+  would mean it was ready."* Step 14 (the M8 bundle that ships library/ whole and excludes testing/;
+  the notebook build; an offline dry run) opens only when the agent generalises and passes the
+  tests we send it -- step 13's registered evaluation, the 25 scrambled games included. The main
+  line is ALL-ON -> 5, 6, 11 -> 12 -> 13. The submission stays Isaiah's action and the Kaggle
+  credentials his only. No M8 bundle work starts early on the strength of this; step 11's
+  testing/ folder and the bundle's must-fail (a bundle containing a testing/ file is REFUSED) stay
+  with 11, as repo hygiene.

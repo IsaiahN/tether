@@ -414,8 +414,11 @@ class Clocks:
                           and m is None else "neither yet" if m is None else "both")}
 
 
-# THE MODULES THAT DECLARE ARMS (read through armflag). Data, so a fifth is a visible edit.
-ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms")
+# THE MODULES THAT DECLARE ARMS (read through armflag). Data, so a new one is a visible edit;
+# test_arm_modules checks it against every agent module whose source declares an arm (interface,
+# compile_term and gridworld were missing until 2026-10-11, so REALISE_CELL went unrecorded).
+ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms", "compile_term", "gridworld",
+               "interface")
 
 
 class Attribution:

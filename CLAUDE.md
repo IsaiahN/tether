@@ -1490,8 +1490,7 @@ awaiting a side rather than silently treated as one, and **until Isaiah places i
 as CORPUS** — the direction whose error is recoverable.
 
 > **PLACED 2026-10-11 by Isaiah (15:23 CDT, via the reviewer 15:24 CDT): working files, removed in
-> the Section A deletion commit (named in `docs/cohesion/DOCS_CONSOLIDATION.md` section A; git holds
-> every file at its parent); the three corpus narratives moved to `docs/corpus/` at 0d68ef4.** The
+> 03aae57 (git holds every file at 03aae57^; `docs/cohesion/DOCS_CONSOLIDATION.md` section A); the three corpus narratives moved to `docs/corpus/` at 0d68ef4.** The
 > entry below is kept as written.
 
 **AND A FOURTEENTH FILE IS UNPLACED, WHICH IS SEVENTEEN FILES AND THE WHOLE INHERITANCE:
