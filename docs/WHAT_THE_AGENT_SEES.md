@@ -1,6 +1,6 @@
 # An ARC game, from the agent's side — as the build produces it
 
-**A rewrite of `library-closure/ARC GAMEPLAY - WHAT THE AGENT SEES.md`, telling what this build
+**A rewrite of `library-closure/ARC GAMEPLAY - WHAT THE AGENT SEES.md` (moved unedited to `docs/corpus/` 2026-10-11), telling what this build
 actually produces after ten seams and three items of deliberation. The original is corpus and is left
 untouched; this is the working version, and `STORY_PROOF.md` is the line-by-line reconciliation.**
 

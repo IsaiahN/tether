@@ -1543,7 +1543,7 @@ its source section named, so the claim stays checkable against the original.
 
 > **AND THE SUPERSESSION IS `PERCEPTION_BUILD_PLAN.md` ONLY.** There is **no `PERCEPTION_PIPELINE.md`**;
 > the short name resolves to two documents on opposite sides of the document split, and
-> `docs/library-closure/PERCEPTION_PIPELINE_general.md` is **read-only SEED and stays untouched.** A
+> `docs/library-closure/PERCEPTION_PIPELINE_general.md` (moved unedited to `docs/corpus/` 2026-10-11, Isaiah placed the folder) is **read-only SEED and stays untouched.** A
 > seed cannot be superseded by a document derived from it without spending the independence that makes
 > the derivation checkable.
 

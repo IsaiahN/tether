@@ -39,9 +39,9 @@ Verdicts: **KEEP** · **KEEP, UPDATE** · **MOVE** (to `library/` or `docs/corpu
 | RELATIONS.md | **DELETE AFTER** comments updated | `relations.json`, `readings.json`; schema in LIBRARY_SPEC §3. Cited in comments of 7 .py files; repoint them to LIBRARY_SPEC |
 | TRAVERSAL.md | **DELETE** | LIBRARY_DESIGN §6 |
 | VOCABULARY_FROZEN.md | **DELETE** | withdrawn 2026-09-22; recorded in ISAIAH_RULINGS and LIBRARY_DESIGN §8 |
-| PERCEPTION_PIPELINE_general.md | **MOVE** → `docs/corpus/` | Isaiah's corpus spec; summarised in LIBRARY_DESIGN §7 |
-| ARC GAMEPLAY - WHAT THE AGENT SEES.md | **MOVE** → `docs/corpus/` | Isaiah's corpus narrative |
-| RECURSIVE_TRANSFORMATION.md | **MOVE** → `docs/corpus/` | proposed principle; LIBRARY_DESIGN §7 |
+| PERCEPTION_PIPELINE_general.md | **MOVE** → `docs/corpus/` -- DONE 2026-10-11 (Isaiah placed the folder 15:23 CDT; git mv, unedited) | Isaiah's corpus spec; summarised in LIBRARY_DESIGN §7 |
+| ARC GAMEPLAY - WHAT THE AGENT SEES.md | **MOVE** → `docs/corpus/` -- DONE 2026-10-11 (Isaiah placed the folder 15:23 CDT; git mv, unedited) | Isaiah's corpus narrative |
+| RECURSIVE_TRANSFORMATION.md | **MOVE** → `docs/corpus/` -- DONE 2026-10-11 (Isaiah placed the folder 15:23 CDT; git mv, unedited) | proposed principle; LIBRARY_DESIGN §7 |
 
 ## B. `docs/` top level — 40 files
 
