@@ -47,9 +47,15 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
+import armflag
 import observer
+import relations
 import world as _toy
 from gamma import Atom
+
+# B2 (the reviewer 2026-10-11 14:19Z, 14:33Z): pair relations as slots, every ordered pair.
+# OFF; reason in conform/arms.py.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
 
 sys.dont_write_bytecode = True
 
@@ -338,7 +344,18 @@ class GridWorld:
     def slots(self) -> list[str]:
         return sorted([*self.state, GOAL_SLOT]
                       + [f"o{i}.proximity" for i in range(N_OBJECTS)]
-                      + [f"o{i}.distance" for i in range(N_OBJECTS)])
+                      + [f"o{i}.distance" for i in range(N_OBJECTS)]
+                      + list(self._pairs()))
+
+    def _pairs(self) -> dict[str, int]:
+        """B2: every ordered pair's relation slots, from the objects' own cells (1x1 here)."""
+        if not _RELATION_SET:
+            return {}
+        objs = {f"o{i}": {"row": self.state[f"o{i}.row"], "col": self.state[f"o{i}.col"],
+                          "h": 1, "w": 1}
+                for i in range(N_OBJECTS)
+                if f"o{i}.row" in self.state and f"o{i}.col" in self.state}
+        return relations.pair_slots(objs)
 
     def atoms(self) -> list[Atom]:
         """THE TOY WORLD'S ATOMS, VERBATIM. See the module docstring: one variable moves."""
@@ -364,6 +381,11 @@ class GridWorld:
         for i in range(N_OBJECTS):
             a[f"o{i}.proximity"] = 2 * GRID
             a[f"o{i}.distance"] = 2 * GRID + 1   # 0..2*GRID inclusive: unreachable is a value
+        # B2: a box gap ranges 0..GRID-1, an offset over the board both ways (as arc_world's
+        # drow), a containment or contact is 0/1.
+        for k in self._pairs():
+            rel = relations.pair_attr(k.split(".", 1)[1])
+            a[k] = GRID if rel == "dist" else 2 * GRID if rel in ("drow", "dcol") else 2
         return a
 
     def relational_slots(self) -> tuple[str, ...]:
@@ -382,7 +404,9 @@ class GridWorld:
 
         It says what KIND an attribute is, never what to do about it: the consumer decides.
         """
-        return ("proximity", "distance")
+        # B2: every pair attribute is a relation to another object, declared here as the rest.
+        return ("proximity", "distance",
+                *sorted({k.split(".", 1)[1] for k in self._pairs()}))
 
     def slot_owner(self) -> dict[str, str]:
         """WHICH OBJECT EACH SLOT BELONGS TO. `o1.row` -> `o1`.
@@ -617,7 +641,8 @@ class GridWorld:
         """DERIVED, NEVER STORED -- no rule can write the goal; the agent only perceives it."""
         return {**self.state, GOAL_SLOT: self._completed(),
                 **{f"o{i}.proximity": self._proximity(f"o{i}") for i in range(N_OBJECTS)},
-                **{f"o{i}.distance": self._distance(f"o{i}") for i in range(N_OBJECTS)}}
+                **{f"o{i}.distance": self._distance(f"o{i}") for i in range(N_OBJECTS)},
+                **self._pairs()}
 
     def attribute_of(self) -> dict[str, str]:
         """Slot -> the attribute it holds. `ArcWorld` publishes this and this habitat did not,

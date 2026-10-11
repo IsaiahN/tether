@@ -275,7 +275,10 @@ ARMS: dict[str, str] = {
                            "accepted 14:33Z; Isaiah 09:15-09:26 CDT): ON, B1 -- arc_atoms "
                            "builds `below`, the own-slot converse of `above`, and "
                            "compile_term's '<' against a slot keeps the left party the "
-                           "subject. Later items join this arm. OFF until ALL-ON; build "
+                           "subject. B2 -- gridworld publishes every ordered pair's relations as "
+                           "slots `{a}.{rel}_{b}` (dist, drow, dcol, inside, touches; "
+                           "relations.pair_slots). Later items join this arm. OFF until "
+                           "ALL-ON; build "
                            "checks only (Isaiah 09:15)",
     "TETHER_ROUTINE_SUBJECT_BUDGET": "R-dir (c) (the reviewer 2026-10-11 10:39Z, 10:53Z): ON, a "
                                      "routine whose body is one BECOME intent takes its budget "

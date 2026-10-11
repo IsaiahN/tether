@@ -92,6 +92,45 @@ def offset(a: dict, b: dict) -> tuple[int, int]:
     return b["row"] - a["row"], b["col"] - a["col"]
 
 
+# -- PAIR RELATIONS AS SLOTS (B2, TETHER_RELATION_SET; the reviewer 2026-10-11 14:19Z, 14:33Z) ---
+
+# One slot per (relation, partner) on the SUBJECT object, named `{a}.{rel}_{b}` so every reader
+# of `obj.attr` sees owner `a` and attribute `{rel}_{b}`. Relative quantities only, keyed on the
+# world's persistent object names, never on colour or game: the box gap, the row/col offset, box
+# containment and box contact. A pair slot exists only while both objects do (came/gone).
+PAIR_RELATIONS: dict[str, str] = {"dist": "EXTENT", "drow": "DELTA", "dcol": "DELTA",
+                                  "inside": "BOOL", "touches": "BOOL"}
+
+
+def within(a: dict, b: dict) -> bool:
+    """a's box lies inside b's box (edges may coincide)."""
+    return (b["row"] <= a["row"] and a["row"] + a["h"] <= b["row"] + b["h"]
+            and b["col"] <= a["col"] and a["col"] + a["w"] <= b["col"] + b["w"])
+
+
+def pair_slots(objs: dict[str, dict]) -> dict[str, int]:
+    """`{"{a}.{rel}_{b}": value}` over every ordered pair of the objects given."""
+    out: dict[str, int] = {}
+    for a, ra in objs.items():
+        for b, rb in objs.items():
+            if a == b:
+                continue
+            dr, dc = offset(ra, rb)
+            gap = _cheby(ra, rb)
+            out[f"{a}.dist_{b}"] = gap
+            out[f"{a}.drow_{b}"] = dr
+            out[f"{a}.dcol_{b}"] = dc
+            out[f"{a}.inside_{b}"] = int(within(ra, rb))
+            out[f"{a}.touches_{b}"] = int(gap == 0)
+    return out
+
+
+def pair_attr(attr: str) -> str | None:
+    """The relation an attribute names, if it is a pair attribute (`dist_o3` -> `dist`)."""
+    rel, sep, _partner = attr.partition("_")
+    return rel if sep and rel in PAIR_RELATIONS else None
+
+
 # -- COLOUR-SOURCE (composable, resolves the CI-1 recolour-referent demand -- F169) ----------
 
 def colour_source(a: dict, others: list[dict]) -> dict | None:
