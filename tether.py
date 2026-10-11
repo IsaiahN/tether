@@ -416,6 +416,9 @@ _UNSEAL_START = armflag.arm("TETHER_UNSEAL_START", default=True)
 # THE HISTORY WINDOW (R3 item 2; Isaiah's H1; the reviewer 18:10Z, 18:15Z). OFF; reason in
 # conform/arms.py. Lags `slot~j` offered after every other binding, ranked; the budget bounds them.
 _WINDOW = armflag.arm("TETHER_WINDOW")
+# B2b's round 3 (the reviewer 2026-10-11 10:57 CDT): derived binds walked last; reason in
+# conform/arms.py under TETHER_RELATION_SET.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
 # ITEM 2b (the reviewer 19:45Z): under the window, the search runs in TWO PASSES -- every chain with
 # its non-lag bindings and its EVIDENCE lags, then, only with budget left, the same recorded chains
 # with their no-evidence lags. False restores item 2's one-pass order, for the tie guard only.
@@ -8155,6 +8158,7 @@ class Agent:
         self._window_info.pop(slot, None)
         _win_reached: set = set()            # TETHER_WINDOW: lag bindings the budget reached
         _pass2_chains = 0                    # item 2b: recorded chains pass 2 walked (its cost)
+        _derived_chains, _derb = 0, set()    # B2b: recorded chains round 3 walked; derived binds
         _lf_ops: dict = {}
         _lf_seen: set = set()                # every chain the library yielded in THIS mint
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
@@ -8238,6 +8242,22 @@ class Agent:
             if _WINDOW and slot in self._window_info:
                 _evn = {f"{slot}~{r['j']}" for r in self._window_info[slot]["evidence"]}
                 _no_ev = {b for b in operand_binds if b and lag_of(b) and b not in _evn}
+            # B2b TWO ROUNDS (the reviewer 2026-10-11 10:57 CDT): derivation order across the
+            # whole chain x bind enumeration, where the budget is charged. A DERIVED bind (a pair
+            # relation, or a lag of one) is walked in a LAST round over the chains round 1
+            # recorded, only with budget left -- an order, never a cut. THE ORDER OF THE
+            # DEFERRALS, FIXED: round 1 ordinary binds and evidence lags; round 2 no-evidence lags
+            # (item 2b, under the window); round 3 derived binds. A lag is a slot's own earlier
+            # reading, a derived bind restates its sources (Fig 13), so the lag goes first.
+            _dv = getattr(self.env, "derived", None)
+            _dv = set(_dv()) if _dv is not None and _RELATION_SET else set()
+            _derb = {b for b in operand_binds
+                     if b and (b in _dv or (lag_of(b) or ("",))[0] in _dv)}
+            _rounds = ((1,) + ((2,) if _WINDOW and _TWO_PASS else ())
+                       + ((3,) if _derb else ()))
+
+            def _round_of(b, _n=_no_ev, _d=_derb):
+                return 3 if b in _d else 2 if b in _n else 1
 
             # TWO STREAMS, ONE BARGAIN. A `val` term IS a prediction; an OBJ term is a WANT,
             # and `objective_step` turns it into one -- so both produce a predicted slot value
@@ -8323,8 +8343,7 @@ class Agent:
             # with their no-evidence lags. One round otherwise, so OFF is the old loop exactly.
             _rec2: dict = {}
             for _round, (_si, (in_t, out_t)) in (
-                    (r, x) for r in ((1, 2) if _WINDOW and _TWO_PASS else (1,))
-                    for x in enumerate(streams)):
+                    (r, x) for r in _rounds for x in enumerate(streams)):
                 # A THIRD KIND EXISTS ONCE THE STREAMS WIDEN, and it is named rather than
                 # folded into `objective`: a term ending at EXTENT is neither a prediction of
                 # the slot's next value nor a complete objective, and calling it one would put
@@ -8358,29 +8377,34 @@ class Agent:
                         c for c in self.gamma.enumerate_closure(
                             in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit)
                         if c.name not in _lf_names))
-                if _round == 2:
-                    _walk_these = ((c, 2) for c in _rec2.get(_si, ()))
-                elif _WINDOW and _TWO_PASS:
+                if _round > 1:
+                    _walk_these = ((c, _round) for c in _rec2.get(_si, ()))
+                elif len(_rounds) > 1:
                     _walk_these = ((c, 1) for c in _recording(_stream, _rec2.setdefault(_si, [])))
                 else:
                     _walk_these = ((c, 1) for c in _stream)
                 for cand, _pass in _walk_these:
-                    if _hit and (_si, cand.name) in _hit[1]:
+                    # Round 3's frontier key carries the round: a chain priced in round 1 has not
+                    # had its derived binds walked, so a resume must not skip them as priced.
+                    _pk = (_si, cand.name, 3) if _pass == 3 else (_si, cand.name)
+                    if _hit and _pk in _hit[1]:
                         _skipped += 1
                         continue
                     if rank >= self.cfg.work_budget:
                         st["budget_spent"] = True
                         break
                     binds = operand_binds if cand.reads_operand else [None]
-                    if _WINDOW and _TWO_PASS:
+                    if len(_rounds) > 1:
                         # PASS 1 walks what the window-OFF search walks plus the evidence lags;
-                        # PASS 2 only the no-evidence lags, so nothing is charged twice.
-                        binds = [x for x in binds if (x in _no_ev) == (_pass == 2)]
-                        if _pass == 2 and not binds:
+                        # PASS 2 only the no-evidence lags, PASS 3 only the derived binds, so
+                        # nothing is charged twice.
+                        binds = [x for x in binds if _round_of(x) == _pass]
+                        if _pass > 1 and not binds:
                             continue
                         _pass2_chains += _pass == 2
-                    if _pass == 2:
-                        _chain_incs = priced.setdefault((_si, cand.name), [])
+                        _derived_chains += _pass == 3
+                    if _pass > 1:
+                        _chain_incs = priced.setdefault(_pk, [])
                     else:
                         _chain_incs: list[str] = []
                         priced[(_si, cand.name)] = _chain_incs
@@ -8821,6 +8845,8 @@ class Agent:
             detail["chains_already_priced"] = _skipped
         if unseal is not None:
             detail["unseal"] = unseal
+        if _derb:
+            detail["derived_round"] = {"binds": len(_derb), "chains": _derived_chains}
         _win = self._window_info.pop(slot, None)
         if _win is not None:
             # WHAT THE WINDOW OFFERED AND WHAT THE BUDGET REACHED, by kind (Fig 13: counted).
