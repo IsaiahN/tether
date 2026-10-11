@@ -2154,6 +2154,13 @@ class Agent:
                             reads="blocked by a partner: the lookup tries solidity first")
         if not lit:
             return
+        if _RELATION_SET:
+            # C (c): a lit entry from the settled table says so -- provenance, nothing priced
+            inh = sorted(k for k, _w in lit if k in relations.SETTLED)
+            if inh:
+                self.led.record(self.cycle, "ROUTE", slot, "inherited_lit", entries=inh,
+                                settled_by=relations.SETTLED_BY,
+                                reads="settled core knowledge lit by this residual")
         rep_slot: dict = {}
         for s_, o_ in sorted(own.items()):
             rep_slot.setdefault(o_, s_)

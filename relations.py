@@ -143,6 +143,89 @@ def pair_attr(attr: str) -> str | None:
     return rel if sep and rel in PAIR_RELATIONS else None
 
 
+# -- THE SETTLED TABLE (C; the reviewer 2026-10-11 09:28-13:17 CDT; Isaiah 09:26) -----------------
+
+# Core knowledge the library already holds, loaded SETTLED: inherited, the way a hatchling has it,
+# and still refutable per (term, slot). Each entry is BOUND to the code that computes it, or named
+# UNBOUND -- a settled entry with no binding is an inert arm, and the ALL-ON orphan check lists it.
+# An atom binding is already settled in the only sense Gamma has (a PRIOR unit from birth), so no
+# standing changes here. Kinds: atom (one-atom terms), reading (a published attribute), compose (a
+# condition the compile path turns into a term), agent (the code that reads it), unbound (why).
+SETTLED_BY = "inherited (Isaiah 2026-10-11)"
+_TOWARD, _AWAY = "o0.dist_o3 < o0.dist_o3~1", "o0.dist_o3 > o0.dist_o3~1"
+_CONTINGENT = "instruments.Agency.contingent"
+_BLOCKED = "tether.Agent._blocked_reading"
+_TRACKER = "arc_percept.Objects.__call__"
+_CLOSURE = "gamma.Gamma.enumerate_closure"
+_PATH = "no agent-side path: the world's BFS is the world's own"
+SETTLED: dict[str, tuple] = {
+    "HUMAN|Order": ("atom", ("above", "below")),
+    "HUMAN|Number": ("atom", ("count",)),
+    "THOUGHT|Comparison": ("atom", ("above", "below", "same")),
+    "CYBERNETIC|Comparator": ("atom", ("same", "above", "below")),
+    "NETWORK|Rank": ("atom", ("rank_in", "is_max", "is_min")),
+    "DYNAMIC|Threshold": ("atom", ("above", "below")),
+    "PHENOMENOLOGICAL|Proximity": ("reading", ("dist",)),
+    "RAW DATA|Adjacency": ("reading", ("touches",)),
+    "HUMAN|Geometry": ("reading", ("dist", "drow", "dcol")),
+    "HUMAN|Topology": ("reading", ("inside",)),
+    "HUMAN|Contain": ("reading", ("inside",)),
+    "HUMAN|Surround": ("reading", ("inside",), "the partner inside the subject: the converse pair"),
+    "RAW DATA|Inside": ("reading", ("inside",)),
+    "RAW DATA|Outside": ("compose", "o0.inside_o3 == 0"),
+    "RAW DATA|Enclosure": ("reading", ("inside",), "box; hole: ARC's a~b.inside"),
+    "HUMAN|Chirality": ("reading", ("drow", "dcol")),
+    "RAW DATA|offset": ("reading", ("drow", "dcol")),
+    "NETWORK|Direction": ("reading", ("drow", "dcol"), "its sign through `sign`"),
+    "PSYCHOLOGICAL|Approach": ("compose", _TOWARD, "requires TETHER_PREV_OFFER (or the window)"),
+    "HUMAN|Avoid": ("compose", _AWAY, "requires TETHER_PREV_OFFER (or the window)"),
+    "KINETIC|Pursuit": ("compose", _TOWARD, "requires TETHER_PREV_OFFER (or the window)"),
+    "KINETIC|Flee": ("compose", _AWAY, "requires TETHER_PREV_OFFER (or the window)"),
+    "MORPHOGENETIC|Gradient": ("compose", _TOWARD, "requires TETHER_PREV_OFFER (or the window)"),
+    "CYBERNETIC|Goal seeking": ("agent", "tether.Agent._goal_choice"),
+    "RAW DATA|Sequence": ("unbound", "event order across objects: not checked"),
+    "HUMAN|Continuity": ("reading", ("age", "stability")),
+    "HUMAN|Subitise": ("atom", ("count",)),
+    "RAW DATA|THE SAME": ("atom", ("same",)),
+    "HUMAN|Featural identity": ("atom", ("same", "all_same", "any_same")),
+    "HUMAN|Causality": ("agent", _CONTINGENT),
+    "ADVERSARIAL|Contingency": ("agent", _CONTINGENT),
+    "HUMAN|Solidity": ("agent", _BLOCKED, "object contact; board edge not covered"),
+    "HUMAN|Collide": ("agent", _BLOCKED, "object contact; board edge not covered"),
+    "ADHERENCE|Obstacle": ("agent", _BLOCKED, "object contact; board edge not covered"),
+    "ONTOLOGICAL|Anomaly": ("unbound", "rule level; object-level odd-one-out composes, no entry"),
+    "HUMAN|Backchain": ("agent", _CLOSURE, "composition"),
+    "THOUGHT|Inference": ("agent", _CLOSURE, "composition"),
+    "THOUGHT|Reasoning chain": ("agent", _CLOSURE, "composition"),
+    "HUMAN|Analogise": ("atom", ("same",), "over two pair slots"),
+    "THOUGHT|Analogy": ("atom", ("same",), "over two pair slots"),
+    "HUMAN|Abstract": ("atom", ("same",), "over two pair slots"),
+    "HUMAN|Animacy": ("agent", _CONTINGENT),
+    "HUMAN|Movement": ("agent", "tether.Agent._moved"),
+    "ACTION|Push": ("agent", "tether.Agent._cascade_agency"),
+    "EMBODIMENT|Self agency": ("agent", _CONTINGENT),
+    "HUMAN|Intervene": ("agent", _CONTINGENT),
+    "HUMAN|Persist": ("agent", _TRACKER, "a covered object keeps its name; NULL, not removed"),
+    "HUMAN|beyond view": ("agent", _TRACKER, "a covered object keeps its name"),
+    "HUMAN|Reveal": ("agent", _TRACKER, "a covered object reads again when uncovered"),
+    "HUMAN|Layer": ("agent", _TRACKER, "the overlay rule"),
+    "HUMAN|Extrapolate": ("unbound", "no reading carries a hidden object's motion forward"),
+    "DESIRE|Goal": ("agent", "tether.Agent._goal_condition"),
+    "NETWORK|Path": ("unbound", _PATH),
+    "NETWORK|Short Path": ("unbound", _PATH),
+    "HUMAN|Navigate": ("unbound", _PATH),
+    "HUMAN|Wayfind": ("unbound", _PATH),
+    "HUMAN|Dead reckon": ("unbound", _PATH),
+    "HUMAN|Other's goal": ("unbound", "no reading of another agent's goal"),
+    "HUMAN|Cohesion": ("agent", _TRACKER),
+    "HUMAN|Track": ("agent", _TRACKER),
+    "HUMAN|Support": ("unbound", "no support reading"),
+    "HUMAN|Forward model": ("agent", "tether.Agent._predict"),
+    "HUMAN|Trajectory": ("reading", ("speed", "drow", "dcol")),
+    "HUMAN|Predict": ("agent", "tether.Agent._predict"),
+}
+
+
 # -- COLOUR-SOURCE (composable, resolves the CI-1 recolour-referent demand -- F169) ----------
 
 def colour_source(a: dict, others: list[dict]) -> dict | None:
