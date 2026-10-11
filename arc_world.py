@@ -318,7 +318,7 @@ class ArcWorld:
                 B = tr[b]
                 r = min(A["row"] + A["h"], B["row"] + B["h"]) - max(A["row"], B["row"])
                 c = min(A["col"] + A["w"], B["col"] + B["w"]) - max(A["col"], B["col"])
-                if r > 0 and c > 0:
+                if r > 0 and c > 0:          # sparse: absent = 0, declared in relations.SPARSE_PAIR
                     out[f"{a}~{b}.bbox"] = r * c
         # `inside` -- HOLE CONTAINMENT, the admitted atom finally built. ADMITTED 2026-09-08 and
         # absent from the registry until now: the only entry in `arc_atoms.ADMITTED` that was
@@ -339,7 +339,7 @@ class ArcWorld:
                 if b == a:
                     continue
                 cb = {tuple(c) for c in tr[b]["cells"]}
-                if cb and cb <= hole:
+                if cb and cb <= hole:        # sparse: absent = 0, declared in relations.SPARSE_PAIR
                     out[f"{a}~{b}.inside"] = 1
         return out
 

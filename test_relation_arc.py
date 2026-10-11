@@ -10,6 +10,10 @@ A synthetic frame of four objects: A alone, B and C touching (the one contact pa
   a4 derive() over a predicted state moves with the predicted row;
   a5 relate() stays AGENT-SIDE: no call reaches the wrapper (the game channel) and the frame is the
      same object, under different subject sets.
+  a6 THE SPARSE DECLARATION TIED TO THE WORLD (the reviewer 2026-10-11 14:50 CDT; Fig 10): with the
+     observer on, over a frame holding a ring with a peg in its hole and two interleaved boxes,
+     every emitted a~b.inside is 1 and every emitted a~b.bbox is > 0 (relations.SPARSE_PAIR's
+     premise: emitted only where it holds), and at least one of each is emitted.
 
     python test_relation_arc.py
 """
@@ -84,6 +88,53 @@ print(json.dumps(out))
 '''
 
 
+SPARSE = r'''
+import json, sys
+sys.dont_write_bytecode = True
+import numpy as np
+from arcengine import FrameDataRaw, GameState
+import arc_atoms, arc_percept, arc_predict
+from arc_world import ArcWorld
+
+class _Ring:
+    def _frame(self):
+        f = FrameDataRaw(game_id="sparse", state=GameState.NOT_FINISHED, levels_completed=0,
+                         win_levels=3, available_actions=[1, 2])
+        b = np.zeros((14, 14), dtype=int)
+        for r in range(1, 6):
+            for c in range(1, 6):
+                if r in (1, 5) or c in (1, 5):
+                    b[r][c] = 3                      # the ring, hole rows/cols 2-4
+        b[3][3] = 5                                  # the peg in the hole
+        for c in range(8, 12):
+            b[9][c] = 2                              # a bar ...
+        for r in range(7, 12):
+            b[r][10] = 4                             # ... crossed by another: interleaved boxes
+        b[9][10] = 2
+        f.frame = [b]
+        return f
+    def reset(self):
+        return self._frame()
+    def step(self, *a, **k):
+        return self._frame()
+
+env = ArcWorld(_Ring(), arc_percept.Objects(), arc_atoms.three_spaces(arc_predict.predict()),
+               palette=7, platform=())
+obs = env.observe()
+ins = {k: v for k, v in obs.items() if k.endswith(".inside") and "~" in k}
+box = {k: v for k, v in obs.items() if k.endswith(".bbox") and "~" in k}
+print(json.dumps({"inside": ins, "bbox": box}))
+'''
+
+
+def _sparse() -> dict:
+    env = dict(os.environ, TETHER_OBSERVER="1", PYTHONDONTWRITEBYTECODE="1")
+    p = subprocess.run([sys.executable, "-c", SPARSE], capture_output=True, text=True, env=env,
+                       cwd=os.path.dirname(os.path.abspath(__file__)), timeout=600)
+    assert p.returncode == 0, p.stderr[-2500:]
+    return json.loads(p.stdout.strip().splitlines()[-1])
+
+
 def _run(on: bool) -> dict:
     env = dict(os.environ, TETHER_RELATION_SET="1" if on else "0", PYTHONDONTWRITEBYTECODE="1")
     p = subprocess.run([sys.executable, "-c", PROBE], capture_output=True, text=True, env=env,
@@ -115,4 +166,10 @@ if __name__ == "__main__":
     print(f"  a4 derive: A.drow_D {on['drow_moves'][0]} -> {on['drow_moves'][1]} with A.row + 3")
     assert on["agent_side"] == [0, True], on
     print("  a5 relate() reaches no wrapper call and leaves the frame as it was")
+    sp = _sparse()
+    assert sp["inside"] and sp["bbox"], sp                          # non-vacuous
+    assert all(v == 1 for v in sp["inside"].values()), sp
+    assert all(v > 0 for v in sp["bbox"].values()), sp
+    print(f"  a6 observer emits only where it holds: {len(sp['inside'])} inside all 1, "
+          f"{len(sp['bbox'])} bbox all > 0 (relations.SPARSE_PAIR's premise)")
     print("relation arc: OK")

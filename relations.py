@@ -102,6 +102,13 @@ PAIR_RELATIONS: dict[str, str] = {"dist": "EXTENT", "drow": "DELTA", "dcol": "DE
                                   "inside": "BOOL", "touches": "BOOL"}
 
 
+# THE SPARSE OBSERVER PAIRS (the reviewer 2026-10-11 14:31 CDT): arc_world's observer emits
+# `a~b.inside` and `a~b.bbox` ONLY where the relation holds, so with both objects present an
+# absent pair IS this value. Declared once here (cited at arc_world's two emission sites), and
+# applied ONLY where a library condition is evaluated -- perception never sees a synthesised zero.
+SPARSE_PAIR: dict[str, int] = {"inside": 0, "bbox": 0}
+
+
 def within(a: dict, b: dict) -> bool:
     """a's box lies inside b's box (edges may coincide)."""
     return (b["row"] <= a["row"] and a["row"] + a["h"] <= b["row"] + b["h"]

@@ -10,6 +10,17 @@
      the box slot touches_x reads 1 (the trap's must-fail); at a shared face it reads True;
   c3 ON: "contact(o, x) == 0" reads True at the corner;
   e1 ON: "o1.residual == 0" compiles to sign . holds . negate: 0 -> True, 1 -> False;
+6/7, the sparse observer pairs (14:31 CDT): inside(o, x) -> x~o.inside (HOLE), bbox(o, x) -> the
+  sorted a~b.bbox; an absent pair with both objects present IS 0 (relations.SPARSE_PAIR), only
+  where a condition is evaluated:
+  s1 B in A's BOX, not its hole: inside(B, A) == 0 True, == 1 False -- never None; the box slot
+     B.inside_A reads 1 on the same scene (the trap's must-fail);
+  s2 B in A's hole: inside(B, A) == 1 True;
+  s3 A absent: None, not 0;
+  s4 the survivorship guard: over three rows (holds once, absent twice with both present) the
+     positive form reads [True, False, False], not [True, None, None];
+  s5 bbox(o, x) > 0: interleaved boxes True; separate objects False, not None;
+  s6 the direction pin: with only A~B.inside (B inside A), inside(A, B) == 1 reads False;
   OFF: both refused as before (the gate's must-fail).
 
     python test_relation_calls.py
@@ -49,6 +60,23 @@ if not isinstance(g, str):
     out["corner_zero"] = C.run(z, {"o": A, "x": corner})
 if not isinstance(e, str):
     out["extent"] = [C.run(e, {"o1.residual": 0}), C.run(e, {"o1.residual": 1})]
+i1, i0 = comp("inside(B, A) == 1"), comp("inside(B, A) == 0")
+bb, rev = comp("bbox(o, x) > 0"), comp("inside(A, B) == 1")
+both = {"A.row": 0, "B.row": 1}
+if not isinstance(i1, str):
+    hole = {**both, "A~B.inside": 1}
+    out["inside"] = {"slot": i1.slot,
+                     "s1": [C.run(i0, both), C.run(i1, both),
+                            int(relations.within({"row": 1, "col": 1, "h": 1, "w": 1},
+                                                 {"row": 0, "col": 0, "h": 3, "w": 3}))],
+                     "s2": C.run(i1, hole), "s3": C.run(i1, {"B.row": 1}),
+                     "s4": [C.run(i1, r) for r in (hole, both, both)],
+                     "s6": C.run(rev, {**both, "A~B.inside": 1})}
+if not isinstance(bb, str):
+    out["bbox"] = {"slot": bb.slot, "s5": [C.run(bb, {"o.row": 0, "x.row": 1, "o~x.bbox": 4}),
+                                          C.run(bb, {"o.row": 0, "x.row": 5})]}
+out["refused_off"] = [c if isinstance(c, str) else "compiled"
+                      for c in (comp("inside(B, A) == 1"), comp("bbox(o, x) > 0"))]
 print(json.dumps(out))
 '''
 
@@ -79,4 +107,18 @@ if __name__ == "__main__":
     assert on["o1.residual == 0"] == ["sign", "holds", "negate"] and on["extent"] == [True, False]
     print(f"  e1 o1.residual == 0 -> sign . holds . negate: 0 {on['extent'][0]}, "
           f"1 {on['extent'][1]}")
+    assert "compiled" not in off["refused_off"], off
+    ins = on["inside"]
+    assert ins["slot"] == "A~B.inside", ins                         # B inside A: A~B
+    assert ins["s1"] == [True, False, 1], ins
+    print(f"  s1 box-not-hole: inside==0 {ins['s1'][0]}, ==1 {ins['s1'][1]}; box slot "
+          f"inside_x {ins['s1'][2]} (the trap)")
+    assert ins["s2"] is True and ins["s3"] is None, ins
+    print(f"  s2 in the hole: {ins['s2']}; s3 A absent: {ins['s3']}")
+    assert ins["s4"] == [True, False, False], ins
+    print(f"  s4 survivorship guard: {ins['s4']}")
+    assert on["bbox"]["slot"] == "o~x.bbox" and on["bbox"]["s5"] == [True, False], on
+    print(f"  s5 bbox > 0: overlap {on['bbox']['s5'][0]}, separate {on['bbox']['s5'][1]}")
+    assert ins["s6"] is False, ins
+    print("  s6 direction pin: inside(A, B) == 1 with only A~B.inside reads False")
     print("relation calls: OK")

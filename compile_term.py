@@ -77,6 +77,13 @@ FACE_PRESENT = {(">", 0): False, ("!=", 0): False, ("==", 0): True}     # -> neg
 # "== 0" on an EXTENT (14:17 CDT, under the arm): an extent is never negative, so "is zero" is
 # "not nonzero" -- sign (nonzero, on an EXTENT, not a direction) . holds . negate.
 EXTENT_ZERO = (("sign", "holds", "negate"), None)
+# THE OBSERVER PAIR CALLS (6, 7; the reviewer 2026-10-11 14:17, 14:31 CDT): inside(o, x) is HOLE
+# containment, the observer's directed `x~o.inside` (x~o = o inside x), NEVER the box slot
+# inside_x; bbox(o, x) is the box overlap area, `a~b.bbox` named in sorted order. (op, right) ->
+# the chain; anything else is refused.
+OBSERVER_PAIR = {"inside": {("==", 1): ("holds",), ("==", 0): ("holds", "negate")},
+                 "bbox": {(">", 0): ("sign", "holds"), ("!=", 0): ("sign", "holds"),
+                          ("==", 0): ("sign", "holds", "negate")}}
 PREV = "~1"                  # tether.PREV, pinned by test_compile
 # Shapes that have no slot to run on, refused by name (section 3, section 7c).
 NOT_SLOTS = {"frame": "events are not slots", "board": "the board is not an object slot",
@@ -91,6 +98,10 @@ class Compiled:
     slot: str                 # the slot the term runs on, e.g. "o1.drow"
     term: gamma.Term
     operand: str | None       # the slot that fills operand 0, if any
+    # A SPARSE PAIR SLOT (6/7): the two objects it relates, and its value when they are both
+    # present and the slot is absent (relations.SPARSE_PAIR). Empty / None everywhere else.
+    parties: tuple = ()
+    absent: Any = None
 
 
 @dataclass(frozen=True)
@@ -160,6 +171,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     if (_RELATION_SET and isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call)
             and node.left.name in FACE_COUNT):
         return _face(node, atoms)
+    if (_RELATION_SET and isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call)
+            and node.left.name in OBSERVER_PAIR):
+        return _observer_pair(node, atoms)
     if isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call):
         # a pair reading names TWO objects; the atoms read one slot each (`touching` reads
         # whether its object touches ANY object), so no chain says "this pair"
@@ -257,6 +271,32 @@ def _change(obj: str, reading: str, op: str, right: Any,
     return Compiled(slot, gamma.Term(chain, operand=operand), operand)
 
 
+def _observer_pair(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
+    """inside(o, x) / bbox(o, x) onto the observer's sparse pair slot, carrying its parties and
+    the declared absent value so run() reads an absent pair as 0 when both objects are present."""
+    call = node.left
+    if len(call.args) != 2 or not all(isinstance(a, condition.Slot) for a in call.args):
+        return Refusal(f"no template for {call} {node.op} {node.right}")
+    names = OBSERVER_PAIR[call.name].get((node.op, node.right))
+    if names is None:
+        return Refusal(f"no template for the observer pair {call.name} {node.op} {node.right}")
+    missing = [n for n in names if n not in atoms]
+    if missing:
+        return Refusal(f"Gamma holds no atom {missing}")
+    o, x = (a.name for a in call.args)
+    if call.name == "inside":
+        slot, rtype = f"{x}~{o}.inside", "BOOL"
+    else:
+        a, b = sorted((o, x))
+        slot, rtype = f"{a}~{b}.bbox", "EXTENT"
+    chain = tuple(atoms[n] for n in names)
+    why = _typed(chain, rtype, None)
+    if why:
+        return Refusal(why)
+    return Compiled(slot, gamma.Term(chain), None, parties=(o, x),
+                    absent=relations.SPARSE_PAIR[call.name])
+
+
 def _face(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
     """contact(o, x) > 0 / != 0 / == 0 through the face atom; any other value is refused."""
     call = node.left
@@ -297,6 +337,9 @@ def _pair(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
 def run(c: Compiled, frame: dict[str, Any]) -> bool | None:
     """The compiled term on one frame (slot -> value): True / False, or None for could not tell."""
     from gamma import NOT_RESOLVED, Ctx
+    if frame.get(c.slot) is None and c.absent is not None and c.parties and all(
+            any(k.startswith(p + ".") for k in frame) for p in c.parties):
+        frame = {**frame, c.slot: c.absent}      # a sparse pair, both objects present: absent IS 0
     if frame.get(c.slot) is None or (c.operand and frame.get(c.operand) is None):
         return None
     ops: tuple = ()
