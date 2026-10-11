@@ -1362,6 +1362,7 @@ class Agent:
         # ballot's four went with the ballot, 2026-09-28, and a count written here would be
         # stale the next time an exit moves.
         self._split_why: str | None = None
+        self._gt_which: str | None = None   # which of _goal_target's None exits fired (F207)
         # THE INTENT THE GOAL EXIT ASKED FOR, kept so `_mint_routine` can plan in it rather
         # than in the button the interface returned. The plan's 16.
         self._goal_want: Any = None
@@ -7326,18 +7327,31 @@ class Agent:
         else:
             name = self.bound.get(slot) or self.wants.get(slot)
             term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
+        # WHICH None, NOT THAT None (F207; the reviewer 2026-10-11 06:24Z): each exit is a
+        # different fact, named in `_gt_which` for the refusal row; the return is unchanged.
+        self._gt_which = None
         if term is None or getattr(term, "out_type", None) != OBJ_TYPE or slot not in before:
+            self._gt_which = "no_obj_term"
             return None
         if not self._applies(term, before):
+            self._gt_which = "not_applies"
             return None
         ops = self._ops(term, before)
         if ops is None:
+            self._gt_which = "no_operands"
             return None
         ctx = self._eval_ctx(slot, before, action=self._last_action or "", operands=ops,
                              touching=self._touching(slot), shapes=False,
                              landed=self._last_landed)
         tgt = self._value_of(term, slot, before, ctx)
-        if tgt is NOT_RESOLVED or not isinstance(tgt, int) or tgt == before[slot]:
+        if tgt is NOT_RESOLVED:
+            self._gt_which = "not_resolved"
+            return None
+        if not isinstance(tgt, int):
+            self._gt_which = "not_int"
+            return None
+        if tgt == before[slot]:
+            self._gt_which = "already_holds"
             return None
         return tgt
 
@@ -7520,8 +7534,9 @@ class Agent:
         chosen = self._goal_choice(_why)
         if chosen is None:
             self._split_why = "no_goal_choice"
-            self.led.record(self.cycle, "PLAN", "@objective", "split_refused",
-                            why="no_goal_choice", **_why)
+            if commit:      # a probe writes no act rows; routine_refused names the why (5a')
+                self.led.record(self.cycle, "PLAN", "@objective", "split_refused",
+                                why="no_goal_choice", **_why)
             return None
         # **THE GOAL EXIT EMITS AN INTENT -- the first NON-exploratory one in the system.**
         # `docs/ACTION_INTERFACE_PLAN.md`. The selector above already chose the slot on the
@@ -7550,8 +7565,10 @@ class Agent:
             # A true-sounding string pointing at the wrong mechanism, which is the one thing a
             # whitebox record must not do.
             self._split_why = "no_goal_target"
-            self.led.record(self.cycle, "PLAN", chosen, "split_refused",
-                            why="no_goal_target", at=before.get(chosen))
+            if commit:
+                self.led.record(self.cycle, "PLAN", chosen, "split_refused",
+                                why="no_goal_target", which=self._gt_which,
+                                at=before.get(chosen))
             return None
         _ordered = self.slot_types.get(chosen) in ORDERED_TYPES
         _want = (IFace.Intent(IFace.BECOME, chosen, "+" if _tgt > before[chosen] else "-")
@@ -7583,9 +7600,10 @@ class Agent:
             # was never shown to do it again. Collapsing them would report a capability gap
             # as an absence of effect.
             self._split_why = "unordered_no_value_table"
-            self.led.record(self.cycle, "PLAN", chosen, "split_refused",
-                            why="unordered_no_value_table", target=_tgt,
-                            slot_type=self.slot_types.get(chosen))
+            if commit:
+                self.led.record(self.cycle, "PLAN", chosen, "split_refused",
+                                why="unordered_no_value_table", target=_tgt,
+                                slot_type=self.slot_types.get(chosen))
             return None
         # **THE INTERFACE ABSTAINED, AND THERE IS NO FALLBACK BEHIND IT ON PURPOSE.**
         # `docs/ACTION_INTERFACE_PLAN.md`. What stood here voted over `self.actions` using
@@ -7601,9 +7619,10 @@ class Agent:
         # it belongs to intent-level prediction, `(before, INTENT, after)` -- but it is NOT YET
         # BUILT, so **this exit fires less until it is**, and that is the expected direction.
         self._split_why = "no_realisation"
-        self.led.record(self.cycle, "PLAN", chosen, "split_refused",
-                        why="no_realisation", target=_tgt,
-                        n_actions=len(self.actions))
+        if commit:
+            self.led.record(self.cycle, "PLAN", chosen, "split_refused",
+                            why="no_realisation", target=_tgt,
+                            n_actions=len(self.actions))
         return None
 
     def members(self) -> dict:
