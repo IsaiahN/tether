@@ -2241,22 +2241,24 @@ class Agent:
         """D3: a process bet settles ONLY on a level or game outcome, read from the GROUND, never
         from the agent's own diagnosis (Fig 10, "A verifier that can reconstruct the claim
         cannot verify it."). A plan bet is right iff the level cleared (win or advance). A park
-        bet is right iff the world confirmed the slot's LAST bet this level (no mass); with no
-        bet on it, there is no ground reading and it says so. D2: an uncleared level's stall is
-        recorded as an effect, the actions it ran for."""
+        bet is graded on the slot's last CHANGE row after the park -- a step where the world
+        moved it -- right iff that bet carried no mass; a quiet step is paid by "nothing
+        happens" and explains nothing, so with no change after the park there is no ground
+        reading and it says so (the reviewer 00:14Z). D2: an uncleared level's stall is recorded
+        as an effect, the actions it ran for."""
         rows = self.led.rows()[self._seq_at_level:]
-        last = {}
-        for r in rows:
-            if r["event"] == "bet":
-                last[r["slot"]] = float(r["detail"].get("mass", 0) or 0)
         cleared = how in (WIN, ADVANCE)
         for b in self._process_bets:
+            moved = [r for r in rows if r["event"] == "bet" and r["slot"] == b["slot"]
+                     and r["seq"] > b["seq"]
+                     and r["detail"].get("actual") != r["detail"].get("from_value")]
             if b["kind"] == "plan_clears":
                 right, by = cleared, f"the level's ending: {how}"
-            elif b["slot"] in last:
-                right, by = last[b["slot"]] == 0.0, "the world's grade of the slot's last bet"
+            elif moved:
+                right = not float(moved[-1]["detail"].get("mass", 0) or 0)
+                by = "the world's grade of the slot's last change after the park"
             else:
-                right, by = None, "no bet on the slot this level: no ground reading"
+                right, by = None, "no change after the park: no ground reading"
             self.led.record(self.cycle, "SETTLE", "@process", "process_settle", bet_seq=b["seq"],
                             kind=b["kind"], about=b["slot"], right=right, settled_by=by,
                             scope=scope, how=how, level=self.level,

@@ -6,6 +6,8 @@ states bet on GROUND outcomes and each bet settles only at a level or game endin
   D3-a. a settle row is written only inside retarget or end_run, never mid-level;
   D3-b. the agent's own diagnosis never settles: emptying owed_import mid-level writes no settle
      and changes no verdict (a park bet is graded by the world's grade of the slot's last bet);
+  D3-c. a park bet is graded on the slot's last CHANGE after the park (the reviewer 00:14Z): a
+     parked slot that never moves again settles None, where the last-bet rule read it right;
   D1. a plan bet is about the ground: the same bet settles right on "advance", wrong on "death";
   OFF/ON: every row but the process rows is identical (seq stripped), so nothing chooses from it.
 
@@ -116,6 +118,27 @@ if __name__ == "__main__":
     assert g1 == g2 and len(g1) == 1, (g1, g2)
     print(f"  D3-b: emptying owed_import mid-level writes no settle, and the verdict ({g1[0]}) is "
           "the world's grade either way")
+    q = _agent()
+    for sl in sorted(q.slots):
+        q._park_bet(sl, {"verdict": "under_floor"})
+    seqs = {b["slot"]: b["seq"] for b in q._process_bets}
+    for _ in range(4):
+        q.step()
+    rows = q.led.rows()
+    quiet = []
+    for sl, sq in seqs.items():
+        after = [r["detail"] for r in rows if r["event"] == "bet" and r["slot"] == sl
+                 and r["seq"] > sq]
+        if after and not float(after[-1].get("mass", 0) or 0) and all(
+                a.get("actual") == a.get("from_value") for a in after):
+            quiet.append(sl)
+    assert quiet, "fixture: no slot stayed still after the park, so D3-c would be vacuous"
+    q._settle_process("level", "death")
+    got = {r["detail"]["about"]: r["detail"]["right"] for r in q.led.rows()
+           if r["event"] == "process_settle"}
+    assert all(got[sl] is None for sl in quiet), {sl: got[sl] for sl in quiet}
+    print(f"  D3-c: {len(quiet)} parked slots never moved after the park; their last bet paid "
+          f"(the old rule read right), and each settles None")
     out = []
     for how in ("advance", "death"):
         p = _agent()
