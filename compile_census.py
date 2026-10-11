@@ -226,6 +226,8 @@ def main() -> int:
               "@goal.completed is); a change reading compared across objects.",
               "", "## Refusal families OFF -> ON (summed over roles; a refusal that moves to "
               "another reason is counted under each)", "",
+              "Item numbers, one numbering throughout (the reviewer 2026-10-11 14:15 / 15:08 CDT): "
+              "2 the group row, 5 contact, 6 bbox, 7 inside, 9 EXTENT == 0.", "",
               "| family | item | refused OFF | refused ON | change |",
               "|---|---|---|---|---|"]
     fam_off, fam = families(base), families(on)

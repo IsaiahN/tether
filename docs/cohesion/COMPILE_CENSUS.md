@@ -59,6 +59,8 @@ Bounded by design (the reviewer 2026-10-11 14:17 CDT): events are not slots (an 
 
 ## Refusal families OFF -> ON (summed over roles; a refusal that moves to another reason is counted under each)
 
+Item numbers, one numbering throughout (the reviewer 2026-10-11 14:15 / 15:08 CDT): 2 the group row, 5 contact, 6 bbox, 7 inside, 9 EXTENT == 0.
+
 | family | item | refused OFF | refused ON | change |
 |---|---|---|---|---|
 | events are not slots |  | 95391 | 95829 | +438 |
