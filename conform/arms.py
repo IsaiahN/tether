@@ -250,6 +250,13 @@ ARMS: dict[str, str] = {
                            "(waiting) is read from Agency.order. OFF and HELD: on the test worlds "
                            "paying plans tie in both readings, no reserve is ever learned inside "
                            "one run, and Agency.order is empty without a cascade",
+    "TETHER_MC6": "7a(10) MC6 muse (R3 part 2; the reviewer 2026-10-10 23:50Z): ON, on a step "
+                  "that owes nothing (owed_import empty, under_floor included, and this "
+                  "step's bets paying), the settled methods are re-tested as chains on an "
+                  "earlier level's parked residuals, priced as the sweep prices them, and a "
+                  "MUSE row records what would pay and the compute spent; nothing is "
+                  "installed and no action is taken. OFF until 7-and-a-half: a reading with "
+                  "no consumer yet (D1-D3 are named to read it)",
     "TETHER_M6_INVENT": "7c M6 invent (ISAIAH_RULINGS 'Mint, invent, import'; the reviewer "
                         "2026-10-10 23:14Z): ON, at a budget_spent or priced_out_at_depth park "
                         "where the change recurred and nothing lit, the agent names a condition "

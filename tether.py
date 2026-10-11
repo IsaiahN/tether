@@ -15,6 +15,7 @@ import math
 import os
 import re
 import sys
+import time
 from collections import Counter
 from dataclasses import dataclass, field
 from dataclasses import replace as _replace
@@ -471,6 +472,9 @@ _TWO_READINGS = armflag.arm("TETHER_TWO_READINGS")
 # 7c M6 INVENT (ISAIAH_RULINGS "Mint, invent, import"; the reviewer 2026-10-10 23:14Z). OFF; reason
 # in conform/arms.py. Not the retired TETHER_INVENT: it names a COMPOSITION, priced by the bargain.
 _M6_INVENT = armflag.arm("TETHER_M6_INVENT")
+# 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). OFF; reason in conform/arms.py.
+# Compute only: no action, no bet, nothing installed -- a MUSE row is all it writes.
+_MC6 = armflag.arm("TETHER_MC6")
 
 
 def _confirm_actions(r: Any) -> int | None:
@@ -1217,6 +1221,7 @@ class Agent:
         self._invented: dict = {}     # M6: invented key -> its compiled condition (this run only)
         self._inv_lib = None          # M6: this agent's private library copy, made on first use
         self._inv_seen: dict = {}     # M6: slot -> history length last tried
+        self._step_row0 = 0           # MC6: the ledger length when this step began
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
         # WHICH MEMBERS ARE CURRENTLY DISCOUNTED, PER SCOPE. Held so the narration fires on the
@@ -2196,6 +2201,60 @@ class Agent:
                     if o_["operand"] is not None and o_["operand"] not in got:
                         got.append(o_["operand"])
         return out
+
+    # ---------------------------------------------------------------- 7a(10) MC6, MUSE
+    def _owes_nothing(self) -> bool:
+        """MC6's mastery (R3 part 2): no residual outstanding on the level -- owed_import empty,
+        an under_floor slot included ("the search is skipped; the debt is not"; the reviewer
+        23:50Z) -- and this step's bets paying: at least one, none carrying mass."""
+        if self.owed_import:
+            return False
+        bets = [r for r in self.led.rows()[self._step_row0:] if r["event"] == "bet"]
+        return bool(bets) and all(not float(r["detail"].get("mass", 0) or 0) for r in bets)
+
+    def _muse(self) -> None:
+        """MC6 (R3 part 2; the reviewer 2026-10-10 23:50Z). On a step that owes nothing, the
+        mastered methods (settled, non-atom terms) are re-tested against the residuals an
+        EARLIER level left parked (Fig 8, then Fig 7's room, then Fig 4's round trip), priced as
+        the sweep prices them. Compute only: a METHOD is its chain, re-bound on the parked slot's
+        own history; no binding crosses, nothing is installed, no action is taken. The gap and
+        the time spent are recorded."""
+        targets = {k: r for k, r in self.parked.items() if r.get("level") != self.level
+                   and r.get("hist")}
+        if not targets or not self._owes_nothing():
+            return
+        t0 = time.perf_counter()
+        methods = sorted(n for n, t in self.gamma.library.items()
+                         if not self.gamma.is_atom(t) and self.gamma.is_settled(n))
+        tried, paying, skipped = 0, [], Counter()
+        for key, rec in sorted(targets.items()):
+            slot, hist = rec["slot"], rec["hist"]
+            if slot not in self.alphabet:
+                skipped["slot has no alphabet this level"] += 1
+                continue
+            base = self._left(self.gamma.library[IDN], slot, hist)
+            for name in methods:
+                chain = self.gamma.library[name].atoms
+                best = None
+                for bind in [None] + [x for x in rec.get("slots", ()) if x != slot]:
+                    cand = Term(chain, operand=bind)
+                    tried += 1
+                    left = self._left(cand, slot, hist)
+                    if best is None or left < best[0]:
+                        best = (left, cand)
+                left, cand = best
+                cost = term_bits(self.gamma.length(cand), self.gamma.alphabet)
+                if pays(cost, left, base):
+                    paying.append({"parked": key, "method": name, "as": cand.name,
+                                   "cost": round(cost, 3), "left": round(left, 3),
+                                   "base": round(base, 3)})
+        self.led.record(self.cycle, "IMPORT", "@muse", "muse", level=self.level,
+                        targets=sorted(targets), methods=len(methods), tried=tried,
+                        paying=paying, skipped=dict(skipped),
+                        compute_ms=round(1000 * (time.perf_counter() - t0), 3),
+                        installed=False,
+                        reads=("a mastered method re-tested on an earlier level's parked "
+                               "residual; the gap recorded, nothing installed, no action"))
 
     # ---------------------------------------------------------------- 7c M6, INVENT
     def _inv_holds(self, key: str | None, state: dict) -> bool:
@@ -9011,6 +9070,8 @@ class Agent:
         self._peer_cache = None
         self._decomp_cache = None
         self._frame_cache = {}
+        if _MC6:
+            self._step_row0 = len(self.led)
         self._narrate_order()
         self._narrate_cascade()
         if _CASCADE_AGENCY:
@@ -9384,6 +9445,8 @@ class Agent:
         self.settle(res)
         self._settle_routine()
         self._promote()
+        if _MC6:
+            self._muse()
         _, degree = self.env.objective()
         self.clocks.note(not self.owed_import and bool(self.bound),
                          1 if degree >= 1.0 else 0)
