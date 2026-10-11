@@ -46,8 +46,9 @@ if __name__ == "__main__":
     near = _series(ag, base, (0, 1, 2))
     far = _series(ag, base, (2, 1, 0))
     print(f"  residuals approaching (o0.col 0,1,2 -> o3.col 3): {near}; drifting (2,1,0): {far}")
+    assert near == [0.75, 0.5, 0.25], near          # a, re-checked: no clipping (08:48Z)
     pick, why = _choose(ag, near)
-    assert pick == "o0.col" and all(r > 0 for r in near), (pick, why, near)
+    assert pick == "o0.col", (pick, why, near)
     tgt = ag._goal_target("o0.col", dict(base, **{"o0.col": 2}))
     assert tgt == 3, tgt
     print(f"  a: approached -> _goal_choice picks o0.col BEFORE it holds ({why}); "
@@ -83,4 +84,18 @@ if __name__ == "__main__":
     got = ag.goal_residual("o2.col", st)
     assert got == want, (got, want)
     print(f"  e: view want o2.col scored by its group fraction: {got} == {want}")
+    rows = [ag.goal_residual("o3.row", dict(base, **{"o0.row": r, "o3.row": 1}))
+            for r in (3, 2, 1, 0)]
+    assert rows == [0.75, 0.5, 0.25, 0.0], rows
+    print(f"  g: o3.row's want as o0.row goes 3 -> 0 (o3.row 1): {rows}")
+    st = dict(base, **{"o0.col": 1})
+    r_before = ag.goal_residual("o0.col", st)
+    b0, act, a0, intent, landed = ag.trace[-1]
+    for v in (0, 4, 2):
+        ag.trace.append((dict(b0, **{"o0.col": v}), act, dict(a0, **{"o0.col": v}), intent,
+                         landed))
+    r_after = ag.goal_residual("o0.col", st)
+    assert r_before == r_after == 0.5, (r_before, r_after)
+    print(f"  h: the shown domain widened by hand (o0.col 0, 4, 2 appended): R {r_before} -> "
+          f"{r_after}, unmoved")
     print("ok")

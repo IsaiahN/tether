@@ -99,8 +99,13 @@ if __name__ == "__main__":
         away = next(st for st, hit in ROWS if not hit and st["o0.col"] != st["o3.col"]
                     and st["o0.row"] >= st["o3.row"])
         home = dict(away, **{"o0.col": away["o3.col"], "o0.row": away["o3.row"] - 1})
-        assert lk.goal_residual("o0.col", away) == 1.0 and lk.goal_residual("o0.col", home) == 0.0
-        assert lk.goal_residual("o3.row", away) == 1.0 and lk.goal_residual("o3.row", home) == 0.0
+        # b-0 amended (08:34Z, 08:48Z): a subject want on an ordered slot reads its distance
+        # from holding over the alphabet, gap / (alphabet - 1); 0 exactly at home
+        unit = lk.alphabet["o0.col"] - 1
+        assert lk.goal_residual("o0.col", away) == abs(away["o0.col"] - away["o3.col"]) / unit
+        assert lk.goal_residual("o0.col", home) == 0.0
+        rr = lk.goal_residual("o3.row", away)
+        assert 0 < rr <= 1 and lk.goal_residual("o3.row", home) == 0.0, rr
         tc = lk._goal_target("o0.col", away)
         tr = lk._goal_target("o3.row", away)
         assert tc == away["o3.col"], tc

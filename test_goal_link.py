@@ -59,13 +59,16 @@ if __name__ == "__main__":
     state = dict(ag.trace[-1][0])
     on = dict(state, **{"o0.col": state["o1.col"]})
     off_st = dict(state, **{"o0.col": (state["o1.col"] + 1) % 5})
-    assert ag.goal_residual(SLOT, on) == 0.0 and ag.goal_residual(SLOT, off_st) == 1.0
+    # b-0 amended (08:34Z, 08:48Z): off it reads o0's own distance, gap / (alphabet - 1)
+    off_r = abs(off_st["o0.col"] - off_st["o1.col"]) / (ag.alphabet[SLOT] - 1)
+    assert ag.goal_residual(SLOT, on) == 0.0 and ag.goal_residual(SLOT, off_st) == off_r
+    assert 0 < off_r <= 1
     print(f"  must-pass: '{row['pick']}' linked as {SLOT}'s want '{link['want'][0]}', scope "
-          f"subject; R_goal 0 with o0 in o1's column, 1 without (o0's own satisfaction)")
+          f"subject; R_goal 0 with o0 in o1's column, {off_r} one column off (o0's own distance)")
     moved = dict(off_st, **{"o4.col": (off_st["o4.col"] + 1) % 5,
                             "o5.col": (off_st["o5.col"] + 2) % 5})
-    assert ag.goal_residual(SLOT, moved) == 1.0
-    print("  b-0 must-fail: moving objects other than o0 and o1 leaves it at 1")
+    assert ag.goal_residual(SLOT, moved) == off_r
+    print(f"  b-0 must-fail: moving objects other than o0 and o1 leaves it at {off_r}")
     view = "o2.col"
     ag._want_terms[view] = ag._want_terms[SLOT]
     ag.wants[view] = ag.wants[SLOT]

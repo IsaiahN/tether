@@ -51,7 +51,9 @@ if __name__ == "__main__":
     ag.bound["o0.col"] = PRED
     r = _both(ag, "o0.col", away)
     assert r[True][0] == away["o3.col"] and r[False][0] is None, r
-    assert ag.goal_residual("o0.col", away) == 1.0       # the selector already read the want
+    # the selector already read the want: its distance, gap / (alphabet - 1) (b-0 amended)
+    assert ag.goal_residual("o0.col", away) == (abs(away["o0.col"] - away["o3.col"])
+                                                / (ag.alphabet["o0.col"] - 1))
     print(f"  must-pass: o0.col bound to a predictor, wanting '{want}': ON target "
           f"{r[True][0]} (o3's column), OFF {r[False][0]} -- the selector and target agree ON")
     print(f"  1: OFF reads today's lookup: target None, _term_of {r[False][1]}")
