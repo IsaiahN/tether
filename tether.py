@@ -499,6 +499,10 @@ _GOAL_PAIR = armflag.arm("TETHER_GOAL_PAIR")
 # F2 (the reviewer 2026-10-11 05:38Z): ONE lookup for a slot's objective. OFF; reason in
 # conform/arms.py. ON, _goal_target and _term_of read it as goal_residual already does.
 _WANT_TARGET = armflag.arm("TETHER_WANT_TARGET")
+# F2's fallback (the reviewer 2026-10-11 07:20Z): the target reads a retained want ONLY where it is
+# subject-scoped (a goal-condition want); every own want keeps the masked lookup. OFF; reason in
+# conform/arms.py. With TETHER_WANT_TARGET also ON, the full unmask subsumes it.
+_WANT_TARGET_SUBJECT = armflag.arm("TETHER_WANT_TARGET_SUBJECT")
 
 
 @dataclass(frozen=True)
@@ -7278,8 +7282,7 @@ class Agent:
             if getattr(term, "out_type", None) != OBJ_TYPE:
                 return None             # a predictor is not an objective: neither is here
         else:
-            name = (self.bound.get(slot) or self.wants.get(slot)) if slot else None
-            term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
+            name, term = self._target_lookup(slot) if slot else (None, None)
         if term is None:
             return None
         tname = getattr(term, "name", name)
@@ -7314,6 +7317,19 @@ class Agent:
                 name, term = _w, _wt
         return name, term
 
+    def _target_lookup(self, slot: str) -> tuple:
+        """The target's lookup with TETHER_WANT_TARGET OFF: bound-or-want, so a val predictor bound
+        on the slot masks its want (the known split, LEDGER (A)). Under TETHER_WANT_TARGET_SUBJECT
+        a SUBJECT-SCOPED want (a goal-condition want, `_want_scope`) is read through
+        `_objective_of` instead; every own want stays masked."""
+        name = self.bound.get(slot) or self.wants.get(slot)
+        term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
+        if (_WANT_TARGET_SUBJECT and getattr(term, "out_type", None) != OBJ_TYPE
+                and self.wants.get(slot) is not None
+                and self._want_scope.get(slot) == self.wants.get(slot)):
+            return self._objective_of(slot)
+        return name, term
+
     def _goal_target(self, slot: str, before: dict[str, int]) -> int | None:
         """What the agent's OWN objective predicts this slot should become, or None.
 
@@ -7322,11 +7338,7 @@ class Agent:
         `None` where the slot already HOLDS (`objective_step` returns `current`), where nothing
         satisfies, or where no OBJ-typed term is there to read.
         """
-        if _WANT_TARGET:
-            name, term = self._objective_of(slot)
-        else:
-            name = self.bound.get(slot) or self.wants.get(slot)
-            term = (self.gamma.library.get(name) if name else None) or self._want_terms.get(slot)
+        name, term = (self._objective_of(slot) if _WANT_TARGET else self._target_lookup(slot))
         # WHICH None, NOT THAT None (F207; the reviewer 2026-10-11 06:24Z): each exit is a
         # different fact, named in `_gt_which` for the refusal row; the return is unchanged.
         self._gt_which = None

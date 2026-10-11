@@ -263,6 +263,12 @@ ARMS: dict[str, str] = {
                   "agent's own diagnosis. ON BY DEFAULT with objective build step 1 (the "
                   "reviewer 2026-10-11 02:19Z), its consumer; record only. Spelled "
                   "`default=True`, default-on",
+    "TETHER_WANT_TARGET_SUBJECT": "F2's fallback (the reviewer 2026-10-11 07:20Z, option (i)): ON, "
+                                  "_goal_target and _term_of read a retained want ONLY where "
+                                  "_want_scope names it (a goal-condition want); every own want "
+                                  "keeps the masked lookup. With TETHER_WANT_TARGET also ON, the "
+                                  "full unmask subsumes it. 7.5: OFF PENDING READING (B); "
+                                  "habitat arc_s1 at 120; reader the goal exit; gate (B)",
     "TETHER_WANT_TARGET": "F2, one lookup for a slot's objective (the reviewer 2026-10-11 "
                           "05:38Z): ON, _goal_target and _term_of read _objective_of -- the bound "
                           "term if it is an objective, else the retained want -- the order "
