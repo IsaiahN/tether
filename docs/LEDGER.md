@@ -132,6 +132,8 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 
 ## 7½ AUDIT, 2026-10-10 (the reviewer 2026-10-11 00:27Z, 00:45Z) -- both panels at 046d850, one throttle queue (cap 2 of 4 cores, gate 75%, cpu at launch 10-55%), 14 of 14 exit 0; OFF = runs/panel (panel seat: 7 current and passing); ON = 16 arms =1 in a detached worktree. Per member, never pooled.
 
+REGENERATE: OFF `python conform/throttle.py panel` (or `conform/panel.py --member <m>` per member); ON, in a worktree at 046d850, each member with these set to 1: TETHER_UNSEAL_START, TETHER_WINDOW, TETHER_PREV_OFFER, TETHER_CARRY_PRICE, TETHER_MC_SIGNAL, TETHER_CONTACT, TETHER_RUIN_RECORD, TETHER_RUIN, TETHER_D5, TETHER_GUARD_PRICE, TETHER_CASCADE_AGENCY, TETHER_MC34, TETHER_TWO_READINGS, TETHER_M6_INVENT, TETHER_MC6, TETHER_D13 (one line per member, run through `conform/throttle.py cmds FILE`).
+
 | member | wall OFF -> ON (s) | bets paying OFF -> ON | mints paid OFF -> ON | settles OFF -> ON | goal steps OFF -> ON |
 |---|---|---|---|---|---|
 | gridworld_s0 | 859 -> 1238 (+44%) | 2434 -> 2441 of 2879/2880 | 12 -> 10 | 74 -> 69 | 4 -> 2 |
