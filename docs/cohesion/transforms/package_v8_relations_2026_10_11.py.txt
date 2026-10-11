@@ -1,0 +1,309 @@
+"""Reviewer package v8: the relation vocabulary's missing conditions and stale statuses.
+
+Applies to library/relations.json SOURCE fields only (condition, status, section, plus the
+records below); every DERIVED field (kind, arity, reads, substrate, run, roles) is left to
+build_library.py. Run once on a copy of library/, then build_library.py, then --check.
+
+Rules followed:
+  - the record only grows: every status replaced keeps its old text as `status_2026_09`;
+    a mis-parsed section keeps its old text as `section_as_parsed`; a row lost to a name
+    collision in the 2026-09 parse is restored under `also` (with its own part/section);
+  - statuses are against origin/arc-agent at 3b777ab (2026-10-11), not asserted from memory;
+  - nothing here asserts a condition TRUE: conditions stay candidates the agent prices.
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+AT = "origin/arc-agent 3b777ab, 2026-10-11"
+ARM = "arm TETHER_RELATION_SET"           # pair slots a.{dist,drow,dcol,inside,touches}_b
+LAG = "TETHER_PREV_OFFER"                 # the slot~1 operand
+
+P2 = "Part 2 — Relative motion: how one moves with respect to another"
+P3 = "Part 3 — Constraint: what one body prevents another from doing"
+
+# name -> (condition or None to keep, status)
+V8: dict[str, tuple[str | None, str]] = {
+    # ---------------- Part 1.1 contact and its absence
+    "disjoint": (None, f"P ({ARM}) — a.dist_b > 0, the box gap (relations.pair_values). Default "
+                 "build: C — negate . touching. Box-level: two objects with interleaved boxes read "
+                 "gap 0 though they share no cell face."),
+    "touching": (None, "P — touching / touches<b> (arc_atoms.py:782, :847: a shared cell face), "
+                 f"published. Also a.touches_b ({ARM}), which is box gap 0 and so counts corner "
+                 "contact too; the two are kept apart."),
+    "intersecting": (None, "— on one board layer interiors never cross: segmentation gives each "
+                     "cell one object (RELATIONS.md 1.1, solidity). Box overlap is computable "
+                     "(relations.overlaps, internal) and is read only on the agent's PREDICTED "
+                     f"state, where a predicted intersection is B4's 'blocked' ({ARM})."),
+    "overlapping": (None, "— identically zero under solidity: two tracked objects never share a "
+                    "cell (RELATIONS.md 1.1). The bounding-box sensor the 2026-09 note asked for "
+                    "now exists (relations.overlaps), but only inside B4's reading of predicted "
+                    "states; it is not a published relation."),
+    "coincident": (None, "— the same blocker as overlapping (solidity); predicted states only."),
+    "point contact": ("boundaries meet only at a corner: diagonal neighbours, no shared face",
+                      f"C ({ARM}) — a.touches_b == 1 (box gap 0, corners included) with "
+                      "touches<b> == 0 (no shared face, arc_atoms.py:847)."),
+    "edge contact": ("exactly one cell face shared",
+                     "— as a count: the number of shared faces is the `contact` reading (arm "
+                     "TETHER_OBSERVER, pair part held back; AGENT|contact reads one object, not "
+                     "the pair). touches<b> says 'at least one face', not 'exactly one'."),
+    "face contact": ("a run of two or more shared cell faces",
+                     "— the same blocker as edge contact: the face count's pair part is held "
+                     "back."),
+    # ---------------- Part 1.2 containment
+    "contained": (None, f"P ({ARM}) — a.inside_b: a's box lies within b's box (relations.within). "
+                  "The bounding-box sensor the 2026-09 status asked for is built. Box-level: a "
+                  "box can sit inside a concave object's box without being enclosed by its cells; "
+                  "the enclosed-in-a-hole sense is the `inside` reading (a~b.inside, arm "
+                  "TETHER_OBSERVER). Two quantities, kept apart."),
+    "strictly contained": (None, f"C ({ARM}), not checked for reach — a.inside_b == 1 with no box "
+                           "edge shared: the offsets a.drow_b, a.dcol_b against the extents h, w. "
+                           "a.touches_b cannot separate it (it is 1 for every contained box)."),
+    "internally tangent": (None, f"C ({ARM}), not checked for reach — a.inside_b == 1 with one "
+                           "edge shared (a.drow_b == 0 or a.dcol_b == 0, or the far edges equal)."),
+    "contains": (None, f"P ({ARM}) — b.inside_a: the same pair slot read from the other subject. "
+                 "Pair slots are published both ways, and both-spellings' converse applies."),
+    "nested": (None, f"C ({ARM}), not checked for reach — a.inside_b and b.inside_c: a "
+               "conjunction over two pair slots, the shape 'between' has (reachability, 3b777ab)."),
+    # ---------------- Part 1.3 alignment and orientation
+    "collinear": (None, "C — two objects: same<b.row> or same<b.col> (one atom, reached). Three "
+                  f"objects: equal offsets a.drow_b == b.drow_c ({ARM}; same-relation-as compiles "
+                  "on the goal side since the goal-pair repair). Cue: relations.aligned "
+                  "(§12.3: a cue that narrows retrieval, never an operand)."),
+    "aligned": (None, "C — same<b.row> / same<b.col> on a.row / a.col (one atom, reached). "
+                "AGENT|aligned (arc_atoms.py:936) is the group form, 'lined up with others on "
+                "this attribute'. Cue relations.aligned (centroids), cue only (§12.3)."),
+    "parallel": (None, "C, not checked for reach — orientation is the order of w against h; two "
+                 "atoms per object. Cue relations.parallel, cue only (§12.3)."),
+    "perpendicular": (None, "C, not checked for reach — opposite orientations (w against h). Cue "
+                      "relations.perpendicular, cue only (§12.3)."),
+    "concentric": (None, "C, not checked for reach — equal centroids on both axes with unequal "
+                   "extent. AGENT|centroid gives one coordinate ('a slot holds one'), so it is two "
+                   "conjuncts. Cue relations.concentric, cue only (§12.3)."),
+    "offset": (None, f"P ({ARM}) — a.drow_b and a.dcol_b ARE the offset (b − a), every frame. "
+               f"'Maintained' is same<a.drow_b~1> ({LAG}). Cue relations.offset. NAMING: the pair "
+               "slot drow_b is an offset between two objects, NOT the per-object reading drow "
+               "(rows moved since the last frame). Same prefix, two quantities."),
+    "symmetric": (None, "C, partial — AGENT|canonical (arc_atoms.py:724) normalises ONE outline "
+                  "under rotation and reflection, and AGENT|symmetric (:745) reads one object's "
+                  "own symmetry. Between two objects, canonical . same<b.shape> is right only when "
+                  "b's outline is already canonical: the operand is not canonicalised. The 2026-09 "
+                  "blocker (frozenset unpublished) is lifted for one object, not yet for a pair."),
+    "congruent": (None, "C — same<b.shape> with same<b.h> and same<b.w> (the shape label licenses "
+                  "same/other). Cue relations.congruent, cue only (§12.3)."),
+    "similar": (None, "— the shape label carries no scale, and canonical normalises rotation and "
+                "reflection, not size. Unchanged: an erasure under scaling."),
+    # ---------------- Part 1.4 visibility
+    "occluding": (None, "— a single layer has no viewpoint and no depth (RELATIONS.md 1.4). On a "
+                  "layered board it is 'drawn over' (Layer = Abut + Contr partial); not built."),
+    "adjacent": (None, f"P ({ARM}) — a.dist_b <= 1, the box gap. Cue relations.adjacent. "
+                 "touches<b> is the face-sharing case."),
+    "interlocked": (None, "— needs a motion test, not a static one. B4's 'blocked' (arm) is the "
+                    "per-step ingredient; the same pair blocked in every direction is the "
+                    "inference. Not built."),
+    # ---------------- Part 2 relative motion (two frames)
+    "no relative motion": (None, "C — same<b.drow> and same<b.dcol> on a.drow / a.dcol (per-object "
+                           f"deltas, published); or same<a.drow_b~1> on the offset ({ARM} + "
+                           f"{LAG})."),
+    "translation": (None, f"C ({ARM} + {LAG}) — the offset a.drow_b or a.dcol_b differs from its "
+                    "own ~1 lag, with same<a.shape~1> (the label constant)."),
+    "rotation": (None, f"C, partial, not checked for reach — other<a.shape~1> ({LAG}) with the "
+                 "canonical outline unchanged. AGENT|canonical exists (arc_atoms.py:724), so the "
+                 "2026-09 erasure is lifted in part; a lagged canonical has no slot of its own."),
+    "rolling": ("contact maintained, no relative slip at the contact",
+                "— needs the rolling constraint, v = Rω; on a grid there is no continuous "
+                "rotation. Unchanged."),
+    "sliding": (None, f"C ({LAG}) — touches<b> held across the step (touches~1 and touches both "
+                "1) while the per-object deltas differ (other<b.drow> or other<b.dcol>)."),
+    "spinning": (None, "— rotation at the contact region; a grid has no continuous rotation. "
+                 "Unchanged."),
+    "orbiting": (None, f"C ({ARM} + {LAG}), not checked for reach — a.dist_b constant "
+                 "(same<a.dist_b~1>) while a.drow_b / a.dcol_b cycle. The cycle needs more than "
+                 "one lag: the window (TETHER_WINDOW)."),
+    "oscillating": (None, f"C ({LAG}) — the delta's direction differs from its own ~1 lag (sign, "
+                    "arc_atoms.py:943). Periodicity needs the window (TETHER_WINDOW)."),
+    # ---------------- Part 3 constraints (RELATIONS.md: none perceivable, all inferable)
+    "fixed": ("the two always move together: their offset never changes",
+              f"I ({ARM}) — inferable: same<a.drow_b~1> and same<a.dcol_b~1> on every step that "
+              "either moves; a held guard over the pair, not one reading. Part 3's missing 'P, a "
+              "predicate over two objects' is now the pair slot."),
+    "contact": ("touching becomes true",
+                "P — dcontact (observer contactPoints transitions, published), or touches<b> with "
+                f"touches~1 == 0 ({LAG})."),
+    "distance": ("separation never exceeds a bound (a tether or rod)",
+                 f"I ({ARM}) — a.dist_b never above a held value; a guard over the pair slot "
+                 "across the run, not one reading."),
+    "cable": ("pull but do not push: separation bounded, approach free",
+              f"I ({ARM}) — b's delta follows a's only when a.dist_b is at its bound and a moves "
+              "away; a guard, not checked for reach."),
+    "revolute": ("all motion removed but one rotation (a pivot)",
+                 "— a pivot needs continuous rotation; on a grid rotation is a 90-degree outline "
+                 "turn (AGENT|rotate). Not inferable from the readings held."),
+    "prismatic": ("all motion removed but one translation (a slot or rail)",
+                  "I — confined to one axis: the object's drow (or dcol) is always 0. A held "
+                  "per-object guard; it needs no pair."),
+    "planar": ("motion confined to a plane (a floor)",
+               "— vacuous on a 2-D board, where every object is planar. The useful reading is "
+               "'a floor': support under gravity (see gravity; HUMAN|Support is UNBOUND in the "
+               "settled table)."),
+    # ---------------- Part 4.1 contact forces (patterns over delta and touching)
+    "normal": ("a push perpendicular to the contact, detectable as a blocked move",
+               f"P ({ARM}) — B4 'blocked' (tether._blocked_reading): contact before, the agent's "
+               "OWN predicted overlap, subject unmoved; the lookup is cued to HUMAN|Solidity, "
+               "HUMAN|Collide, ADHERENCE|Obstacle."),
+    "friction, static": ("a move that fails while touching (tangential, prevents slip)",
+                         f"P, partial ({ARM}) — from the agent's side it is the same reading as "
+                         "normal (blocked while touching). Telling it apart needs the predicted "
+                         "move to run ALONG the contact, not into it; that split is not built."),
+    "friction, kinetic": ("motion slower than the action commands, during slip",
+                          "C, not built as a reading — the realised delta below the agent's own "
+                          "expected move (expected_move, the intent's per-iteration movement) "
+                          "while touching."),
+    "rolling resistance": ("opposes rolling",
+                           "— not detectable on a grid (RELATIONS.md 4.1: detectable as '—')."),
+    "tension": ("two objects move together at a distance (pull along a connector)",
+                f"C ({ARM} + {LAG}), not checked for reach — both move (per-object deltas equal, "
+                "nonzero) with a.dist_b > 0 held."),
+    "compression": ("shapes deform, or deltas go to zero, at contact",
+                    f"C ({LAG}) — other<a.shape~1> while the object persists, or the delta goes to "
+                    "0 on the step touches becomes 1."),
+    "spring": ("delta proportional to separation",
+               "— proportionality needs a ratio: the atoms compare, they do not divide. Not "
+               "reachable; a reach gap, recorded."),
+    "damping": ("delta decaying over frames (opposes relative velocity)",
+                f"C ({LAG}) — the delta's size falls from its own lag: below<…~1> on abs_delta "
+                "(arc_atoms.py)."),
+    "impact": ("a single-frame delta far above the usual (large, brief)",
+               "C, not checked for reach — is_max over the run's deltas (the window) or above a "
+               "held typical value."),
+    # ---------------- Part 4.2 field interactions
+    "gravity": ("a persistent delta in one direction absent support",
+                "I — a held per-object guard (the same signed drow every frame unless touching "
+                "something below). Support is UNBOUND in the settled table (HUMAN|Support)."),
+    "electric, magnetic": ("attraction or repulsion by distance, without contact",
+                           f"C ({ARM} + {LAG}) — attraction: below<a.dist_b~1> on a.dist_b (B3's "
+                           "toward) with no action on either; repulsion: above<a.dist_b~1>. "
+                           "SCOPE: on ARC the pair slot exists for contact pairs and (actor, any) "
+                           "pairs only (ARC B2), so two remote non-actors are not measured."),
+    "buoyancy": ("a delta against the gravitational one, under a condition",
+                 "I, not checked — a guard on gravity's pattern."),
+    "radiation, thermal": ("a value changing with proximity",
+                           f"C ({ARM}), not checked — a reading changing under a guard "
+                           "When(a.dist_b <= k, R). RELATIONS.md 4.2 recorded triggers_remote as "
+                           "unwritten; not re-checked for v8."),
+    # ---------------- Part 4.3 collision as a sequence
+    "approach": ("distance decreasing",
+                 f"C ({ARM} + {LAG}) — B3's toward: below<a.dist_b~1> on a.dist_b (78baeed). It "
+                 "compiles on the goal side too (B3, and the goal-pair repair)."),
+    "exchange": ("momentum transfers: one delta drops, another rises",
+                 f"C ({LAG}), not checked for reach — one object's abs_delta below its ~1 lag as "
+                 "the partner's rises above its own, on a step with contact; two conjuncts over "
+                 "two objects."),
+    "separate or stick": ("touching becomes false, or both deltas match thereafter",
+                          f"C ({ARM} + {LAG}) — separate: touches~1 == 1 and touches == 0; stick: "
+                          "the pair's offset constant after contact (see fixed)."),
+    "elastic": ("after contact both move, separation speed equal to approach speed",
+                "— as a ratio (speed after over speed before) it needs division; the atoms "
+                "compare, they do not divide. 'Both move after contact' is C."),
+    "inelastic": ("after contact both move, separating slower than they approached",
+                  "C, not checked for reach — an order comparison of two deltas across frames "
+                  "(the window); the exact ratio is out of reach, as for elastic."),
+    "perfectly inelastic": ("after contact they move as one",
+                            f"C ({ARM} + {LAG}) — after touches becomes 1, the pair's offset "
+                            "stays constant (see fixed) and both move."),
+    # ---------------- Part 5 non-rigid
+    "deformation": ("the object persists while its outline changes",
+                    f"C ({LAG}) — other<a.shape~1> with no gone/came for it; size changes read "
+                    "dcells (arm TETHER_OBSERVER), dh, dw."),
+    "fragmentation": ("one object becomes several",
+                      "P — one `gone` and two or more `came` on one step (published events). "
+                      "Which parts came from which original is the tracker's answer "
+                      "(permanence by overlap), not a reading."),
+    "merging": ("several objects become one",
+                "P — two `gone` and one `came`, or one persists and grows while its partner is "
+                "`gone` (see accretion). The seam's disappearance is a cell fact the tracker "
+                "answers."),
+    "accretion": ("one grows by absorbing another",
+                  "C — dcells > 0 (arm TETHER_OBSERVER) on one object on the step a partner "
+                  "touching it is `gone`."),
+    "erosion": ("one shrinks with no absorber",
+                "C — dcells < 0 (arm TETHER_OBSERVER) with no partner gaining."),
+    "flow": ("no fixed shape: the region changes shape and keeps its area",
+             f"C ({LAG}), not checked for reach — other<a.shape~1> every step while dcells == 0."),
+    "phase change": ("the kind changes at a threshold",
+                     "— a change of kind when a quantity crosses a threshold needs a held "
+                     "constant; the atoms compare slots, not slots against authored constants. "
+                     "Not built."),
+}
+
+# Rows the 2026-09 parse lost: a name used twice in RELATIONS.md kept only the later row.
+ALSO = {
+    "rolling": {"part": P3, "section": P3, "what it removes": "translation and rotation "
+                "independently", "on a grid": "wheel on ground",
+                "status": "I — as a constraint, inferable like the rest of Part 3; on a grid there "
+                "is no wheel, so it reduces to sliding or translation."},
+    "contact": {"part": P3, "section": P3, "what it removes": "interpenetration",
+                "on a grid": "solidity — a prior, already loaded",
+                "status": f"P ({ARM}) — B4 'blocked' is solidity read per step; the settled table "
+                "binds HUMAN|Solidity, HUMAN|Collide, ADHERENCE|Obstacle to it "
+                "(relations.SETTLED). "
+                "Board edges are not covered (no partner)."},
+    "compression": {"part": "Part 4 — Interaction: what one does to another",
+                    "section": "4.1 Contact forces", "direction": "push along a support",
+                    "detectable as": "one object moving because another did",
+                    "status": f"C ({ARM}) — b moves on the step a moves into it (a.touches_b "
+                    "before); Agency's contingency says which one the action moved."},
+}
+
+META_NOTE = (
+    "v8 (reviewer, 2026-10-11): the 37 rows with no condition/status filled from their own "
+    "RELATIONS.md columns; the 29 statuses re-read against the code at " + AT + " (the old text "
+    "kept as status_2026_09); sections the 2026-09 parse put under '1.4 Visibility' restored to "
+    "their part (old text as section_as_parsed); three rows lost to a name collision (rolling, "
+    "contact, compression appear twice in RELATIONS.md) restored under `also`. Status letters: "
+    "P perceived, C composable, I inferable as a held guard (RELATIONS.md Part 3: 'none is "
+    "perceivable and all are inferable'), — blocked with the blocker named. '(arm X)' = true only "
+    "with that switch on; TETHER_RELATION_SET joins the ALL-ON switch-on. 'not checked for reach' "
+    "= composable in principle, not yet confirmed by the closure query. Nothing here asserts a "
+    "condition true: conditions remain candidates the agent prices."
+)
+
+
+def apply(path: Path) -> dict:
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    rels = doc["relations"]
+    missing = set(V8) ^ set(rels)
+    if missing:
+        raise SystemExit(f"v8 and relations.json disagree on names: {sorted(missing)}")
+    n_cond = n_stat = n_sec = 0
+    for name, (cond, status) in V8.items():
+        r = rels[name]
+        if cond is not None:
+            if r.get("condition"):
+                raise SystemExit(f"{name}: v8 would overwrite an existing condition")
+            r["condition"] = cond
+            n_cond += 1
+        old = r.get("status")
+        if old and old != status:
+            r["status_2026_09"] = old
+        r["status"] = status
+        n_stat += 1
+        want = r["part"].split(" — ")[0]                      # e.g. "Part 2"
+        sec = r["section"]
+        if not sec.startswith(want.replace("Part ", "")) and not sec.startswith(want):
+            r["section_as_parsed"] = r["section"]
+            r["section"] = r["part"]
+            n_sec += 1
+    for name, extra in ALSO.items():
+        rels[name]["also"] = extra
+    doc["meta"]["v8"] = META_NOTE
+    path.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n")
+    return {"conditions_filled": n_cond, "statuses_written": n_stat, "sections_restored": n_sec,
+            "rows_restored": len(ALSO)}
+
+
+if __name__ == "__main__":
+    print(apply(Path(sys.argv[1])))
