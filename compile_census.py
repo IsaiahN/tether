@@ -89,6 +89,25 @@ def closure(atoms: dict) -> dict[int, int]:
     return {d: sum(g.space_exact(units, i, o, d) for i in ins for o in outs) for d in DEPTHS}
 
 
+def relation_set_arm() -> tuple[int, dict, dict]:
+    """Step 4 (i) (the reviewer 2026-10-11 13:31 CDT): the census with TETHER_RELATION_SET ON --
+    `below` in the atom set, pair readings stated -- beside the OFF base. In a FRESH process: the
+    arm admits `below` at import (ADMITTED), so it cannot be switched on inside this one."""
+    import json
+    import os
+    import subprocess
+    code = ("import json, compile_census as M; lib = M.LR.Library('library').load(); "
+            "a = M.arc_atoms_wired(); "
+            "print(json.dumps([len(a), M.library_census(lib, a), M.closure(a)]))")
+    env = dict(os.environ, TETHER_RELATION_SET="1", PYTHONDONTWRITEBYTECODE="1")
+    p = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env,
+                       cwd=str(Path(__file__).parent), timeout=1200)
+    if p.returncode:
+        raise RuntimeError(p.stderr[-2000:])
+    n, census, close = json.loads(p.stdout.strip().splitlines()[-1])
+    return n, census, {int(k): v for k, v in close.items()}
+
+
 def widenings(_atoms: dict) -> dict[str, tuple[dict, dict]]:
     """Proposed widenings not yet built, each an atom set and the compile rows it would use.
     None pending: 7a, touches<x> and 7b (the bridge atom holds, the reviewer 2026-10-08 23:54Z,
@@ -164,6 +183,34 @@ def main() -> int:
                             for d in DEPTHS)
         lines.append(f"| {name} | {ok} | +{ok - base_ok} | {cl[2]} / {cl[3]} / {cl[4]} "
                      f"| {growth} |")
+    n_on, on, on_close = relation_set_arm()
+    on_ok = sum(r["compiled"] for r in on.values())
+    growth = " / ".join(f"x{on_close[d] / base_close[d]:.2f}" if base_close[d] else "n/a"
+                        for d in DEPTHS)
+    lines.append(f"| TETHER_RELATION_SET ON ({n_on} atoms) | {on_ok} | "
+                 f"+{on_ok - base_ok} | {on_close[2]} / {on_close[3]} / {on_close[4]} "
+                 f"| {growth} |")
+    lines += ["", "## TETHER_RELATION_SET: compiled / refused per role, OFF -> ON", "",
+              "| role | compiled OFF | compiled ON | refused OFF | refused ON |",
+              "|---|---|---|---|---|"]
+    for role in base:
+        b, a = base[role], on[role]
+        lines.append(f"| {role} | {b['compiled']} | {a['compiled']} | "
+                     f"{b['candidates'] - b['compiled']} | {a['candidates'] - a['compiled']} |")
+    lines += ["", "BASE DRIFT since the 2026-10-08 census (3a59b23): RELATION compiled 57,386 -> "
+              "55,535 OFF. The 1,851 rows are exactly the family 'a change reading compared "
+              "across objects reads no slot', introduced at 4dcb447 (2026-10-09, the M4 reach "
+              "wire's CHANGE_OF route) -- a compile_term change, not step 2 and not the arm.",
+              "", "Bounded by design (the reviewer 2026-10-11 14:17 CDT): events are not slots "
+              "(an event is a transition, carried by the change readings); action(o, x) (the "
+              "agent's own action is not a perceived slot); the board is not an object slot (only "
+              "@goal.completed is); a change reading compared across objects.",
+              "", "Refusal families remaining ON (summed over roles):", ""]
+    fam: collections.Counter = collections.Counter()
+    for r in on.values():
+        for why, k in r["refused"].items():
+            fam[why.split(": ", 1)[-1] if why.startswith(("if: ", "then: ")) else why] += k
+    lines += [f"- {why} -- {k}" for why, k in fam.most_common()]
     lines += ["", "Correctness of what each form would compile (the equivalence fixture run "
               "under it):",
               ""] + notes

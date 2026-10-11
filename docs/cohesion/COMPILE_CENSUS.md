@@ -6,7 +6,7 @@ Library: 4048 seed entries x 10 roles, compiled against the 63 atoms the ARC wir
 |---|---|---|---|---|
 | STATE | 89986 | 75967 | 14019 | 3859 |
 | PROCESS | 66058 | 58699 | 7359 | 3893 |
-| RELATION | 60602 | 57386 | 3216 | 3738 |
+| RELATION | 60602 | 55535 | 5067 | 3711 |
 | MEASURE | 22207 | 20548 | 1659 | 3037 |
 | CAUSE | 130397 | 87633 | 42764 | 3655 |
 | RESULT | 130397 | 87633 | 42764 | 3655 |
@@ -19,7 +19,7 @@ Library: 4048 seed entries x 10 roles, compiled against the 63 atoms the ARC wir
 
 - **STATE**: events are not slots -- 9144; the board is not an object slot -- 1619; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004; holds does not accept EXTENT -- 40
 - **PROCESS**: events are not slots -- 7359
-- **RELATION**: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004
+- **RELATION**: a change reading compared across objects reads no slot -- 1851; no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 1135; no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1077; no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1004
 - **MEASURE**: the board is not an object slot -- 1619; holds does not accept EXTENT -- 40
 - **CAUSE**: if: events are not slots -- 23096; then: events are not slots -- 9355; if: the board is not an object slot -- 3561; if: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 2615; if: no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 2088; if: no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1920; if: holds does not accept EXTENT -- 129
 - **RESULT**: then: events are not slots -- 18195; if: events are not slots -- 15269; then: the board is not an object slot -- 2986; then: no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 2401; then: no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 1979; then: no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 1818; then: holds does not accept EXTENT -- 116
@@ -36,6 +36,38 @@ Base closure: {2: 1604, 3: 17376, 4: 181609}
 
 | change | compiled candidates (all roles) | gain | closure d2 / d3 / d4 | growth |
 |---|---|---|---|---|
+| TETHER_RELATION_SET ON (64 atoms) | 485549 | +0 | 1668 / 18219 / 191897 | x1.04 / x1.05 / x1.06 |
+
+## TETHER_RELATION_SET: compiled / refused per role, OFF -> ON
+
+| role | compiled OFF | compiled ON | refused OFF | refused ON |
+|---|---|---|---|---|
+| STATE | 75967 | 75967 | 14019 | 14019 |
+| PROCESS | 58699 | 58699 | 7359 | 7359 |
+| RELATION | 55535 | 55535 | 5067 | 5067 |
+| MEASURE | 20548 | 20548 | 1659 | 1659 |
+| CAUSE | 87633 | 87633 | 42764 | 42764 |
+| RESULT | 87633 | 87633 | 42764 | 42764 |
+| INSTRUMENT | 58699 | 58699 | 7359 | 7359 |
+| TEST | 40835 | 40835 | 10489 | 10489 |
+| RULE | 0 | 0 | 89986 | 89986 |
+| AGENT | 0 | 0 | 66058 | 66058 |
+
+BASE DRIFT since the 2026-10-08 census (3a59b23): RELATION compiled 57,386 -> 55,535 OFF. The 1,851 rows are exactly the family 'a change reading compared across objects reads no slot', introduced at 4dcb447 (2026-10-09, the M4 reach wire's CHANGE_OF route) -- a compile_term change, not step 2 and not the arm.
+
+Bounded by design (the reviewer 2026-10-11 14:17 CDT): events are not slots (an event is a transition, carried by the change readings); action(o, x) (the agent's own action is not a perceived slot); the board is not an object slot (only @goal.completed is); a change reading compared across objects.
+
+Refusal families remaining ON (summed over roles):
+
+- events are not slots -- 95391
+- quantified over the group: needs a group row (not ruled) -- 89986
+- no pairwise atom: action(o, x) names two objects and no atom reads the pair -- 66058
+- the board is not an object slot -- 11404
+- no pairwise atom: contact(o, x) names two objects and no atom reads the pair -- 8421
+- no pairwise atom: bbox(o, x) names two objects and no atom reads the pair -- 7298
+- no pairwise atom: inside(o, x) names two objects and no atom reads the pair -- 6750
+- a change reading compared across objects reads no slot -- 1851
+- holds does not accept EXTENT -- 365
 
 Correctness of what each form would compile (the equivalence fixture run under it):
 
