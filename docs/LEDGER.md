@@ -130,6 +130,37 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 - wall, the compiler's refusals verbatim: "events are not slots"; "no pairwise atom: bbox(o, x) / inside(o, x) / contact(o, x) names two objects and no atom reads the pair"; "the board is not an object slot".
 - reopen-when: a pairwise/relational atom exists in the vocabulary. That is an import question, with Isaiah (the reviewer 22:09Z), in the same family as 5b's button seam.
 
+## 7½ AUDIT, 2026-10-10 (the reviewer 2026-10-11 00:27Z, 00:45Z) -- both panels at 046d850, one throttle queue (cap 2 of 4 cores, gate 75%, cpu at launch 10-55%), 14 of 14 exit 0; OFF = runs/panel (panel seat: 7 current and passing); ON = 16 arms =1 in a detached worktree. Per member, never pooled.
+
+| member | wall OFF -> ON (s) | bets paying OFF -> ON | mints paid OFF -> ON | settles OFF -> ON | goal steps OFF -> ON |
+|---|---|---|---|---|---|
+| gridworld_s0 | 859 -> 1238 (+44%) | 2434 -> 2441 of 2879/2880 | 12 -> 10 | 74 -> 69 | 4 -> 2 |
+| gridworld_s1 | 924 -> 991 (+7%) | 2459 -> 2444 | 14 -> 8 | 67 -> 68 | 3 -> 2 |
+| gridworld_s2 | 1233 -> 1283 (+4%) | 2462 -> 2462 | 17 -> 9 | 48 -> 59 | 4 -> 4 |
+| fake | 206 -> 180 (-13%) | 1241 -> 1242 of 1308 | 1 -> 1 | 4 -> 4 | 0 -> 0 |
+| gridworld_arc_s0 | 322 -> 469 (+46%) | 2491 -> 2480 | 5 -> 4 | 71 -> 72 | 0 -> 2 |
+| gridworld_arc_s1 | 413 -> 638 (+54%) | 2478 -> 2457 | 7 -> 10 | 23 -> 40 | 1 -> 2 |
+| gridworld_arc_s2 | 579 -> 614 (+6%) | 2451 -> 2462 | 9 -> 5 | 58 -> 60 | 1 -> 3 |
+
+| arm | status | occasions in ON (s0 s1 s2 fake arc0 arc1 arc2) | reader | touches the objective? |
+|---|---|---|---|---|
+| UNSEAL_START | OFF | mint rows with unseal: 3 0 1 0 1 6 1 | the mint's bargain | no |
+| WINDOW | OFF | mint rows with window: 10 8 9 1 4 10 5 | the mint | no |
+| PREV_OFFER | OFF | no marker row (inert unless a ~1 term is offered) | the library offer | no |
+| CARRY_PRICE | OFF | credited pulls: 9 8 6 0 10 8 5 | the sweep | path exists (under_floor record open to a credited term); 0 pulls on @goal.completed / @objective on all 7 |
+| MC_SIGNAL | OFF | resolution rows: 2760 2760 2760 1228 2757 2754 2760 | none yet (D1-D3 named) | no |
+| CONTACT | OFF | resolutions with fed: 125 184 204 0 376 74 161 | conform/contact.py | no |
+| RUIN_RECORD | OFF | 0 on all 7 (nothing dies in gridworld or fake) | RUIN | no |
+| RUIN | OFF | 0 on all 7 | choose() | no |
+| D5 | OFF, HELD | @d5 rows: 23 27 30 2 22 33 18; cuts: s2 1 refuted, arc_s0 2 refuted, arc_s1 1 CONFIRMED (split) | the bet partition | no |
+| GUARD_PRICE | OFF | guard_bits on mints: 1 3 2 1 0 5 2 | the mint | no |
+| CASCADE_AGENCY | OFF, HELD | cascade_modes: 0 0 0 39 0 0 0 (fake only) | waiting reading | no |
+| MC34 | OFF | ground_record: 1 each (the run's cap ending) | TWO_READINGS' MC4 reader | no (records endings) |
+| TWO_READINGS | OFF, HELD | two_readings rows: 2 1 3 0 3 1 3 | routine adoption | no |
+| M6_INVENT | OFF | invent rows: 482 489 517 0 341 431 384; HELD inventions 0 0 0 0 1 3 0 (first ever; arc atoms only) | the mint/accept path | no (under_floor never triggers) |
+| MC6 | OFF | 0 on all 7 (no level boundary on the panel; habitat snaps) | D1-D3 | no |
+| D13 | OFF | process bets: 22 14 18 5 17 14 17; every plan_clears settles False (gridworld only ends at the cap) | none yet | no (grades plans by the ending) |
+
 ## 7½ INVENTORY — every switch and every recorded-not-consumed row, added as items are built
 
 Isaiah 2026-10-10 06:47 CDT, via the reviewer 11:48Z: step 7½ (after step 7, before ANY code deletion) ends every OFF switch ON (its gate measured and passed, offline), RETIRED (code removed, reason given) or HELD (a named ruling, signed off by Isaiah), and every orphan CONNECTED (with a fixture and a must-fail) or RETIRED. One line per item: what it is, and what would turn it on or connect it. Seeded 2026-10-10 with the items the seat built or touched this week. The full arms census (`conform/arms.py`) and the wiring seat are the first act of 7½ itself, not this list.
