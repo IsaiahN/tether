@@ -409,9 +409,10 @@ _PREV_OFFER = armflag.arm("TETHER_PREV_OFFER")
 # (the reviewer 2026-10-09 08:30Z). DEFAULT ON by the registered rule (10:02Z, re-measured after
 # the operand fix 10:19Z). OFF: the offers are recorded and not read.
 _LIBRARY_FIRST = armflag.arm("TETHER_LIBRARY_FIRST", default=True)
-# THE SEAL REPAIR (R3 item 1, the reviewer 2026-10-09; Isaiah's H1 and H3(i)). OFF; reason in
-# conform/arms.py. Inert unless a term reading an earlier frame is bound (TETHER_PREV_OFFER).
-_UNSEAL_START = armflag.arm("TETHER_UNSEAL_START")
+# THE SEAL REPAIR (R3 item 1, the reviewer 2026-10-09; Isaiah's H1 and H3(i)). ON (7.5 switch-on,
+# the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. Inert unless a term reading an
+# earlier frame is bound (TETHER_PREV_OFFER).
+_UNSEAL_START = armflag.arm("TETHER_UNSEAL_START", default=True)
 # THE HISTORY WINDOW (R3 item 2; Isaiah's H1; the reviewer 18:10Z, 18:15Z). OFF; reason in
 # conform/arms.py. Lags `slot~j` offered after every other binding, ranked; the budget bounds them.
 _WINDOW = armflag.arm("TETHER_WINDOW")
@@ -458,17 +459,19 @@ _FED = armflag.arm("TETHER_CONTACT")
 # incumbent guarded by P, and the not-P rows searched on their own. Credit per (term, part); the
 # incumbent is shadow-graded on not-P rows and a broken partition reverts the split.
 _D5 = armflag.arm("TETHER_D5")
-# F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). OFF; reason in
-# conform/arms.py. ON, an intent guard (and "no intent") costs log2(G+1) like ACTED_* does.
-_GUARD_PRICE = armflag.arm("TETHER_GUARD_PRICE")
+# F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). ON (7.5
+# switch-on, the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. An intent guard (and
+# "no intent") costs log2(G+1) like ACTED_* does.
+_GUARD_PRICE = armflag.arm("TETHER_GUARD_PRICE", default=True)
 # 7a(6) H2, THE IN-BETWEEN FRAMES (R3 part 2; the reviewer 2026-10-10 22:14Z). OFF; reason in
 # conform/arms.py. ON, the order objects change in inside one action gives each one a mode.
 _CASCADE_AGENCY = armflag.arm("TETHER_CASCADE_AGENCY")
 # 7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z). OFF; reason in conform/arms.py. A
 # reading only: the ground's record of every ending, and a plan's need read against it.
 _MC34 = armflag.arm("TETHER_MC34")
-# 7a(7) TWO READINGS (R3(a); the reviewer 2026-10-10 22:30Z). OFF; reason in conform/arms.py.
-_TWO_READINGS = armflag.arm("TETHER_TWO_READINGS")
+# 7a(7) TWO READINGS (R3(a); the reviewer 2026-10-10 22:30Z). ON (7.5 switch-on, 02:19Z); reason
+# in conform/arms.py.
+_TWO_READINGS = armflag.arm("TETHER_TWO_READINGS", default=True)
 # 7c M6 INVENT (ISAIAH_RULINGS "Mint, invent, import"; the reviewer 2026-10-10 23:14Z). OFF; reason
 # in conform/arms.py. Not the retired TETHER_INVENT: it names a COMPOSITION, priced by the bargain.
 _M6_INVENT = armflag.arm("TETHER_M6_INVENT")

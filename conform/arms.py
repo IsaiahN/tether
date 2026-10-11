@@ -214,9 +214,12 @@ ARMS: dict[str, str] = {
                            "the floor and seal the slot; a challenger leaving more than the held "
                            "rule is refused (unseal_leaves_more). Opens the seal; does not by "
                            "itself rebind on one record (swing: ~1 rule 10.422 vs any 2-atom "
-                           "closer >= 11.422); the rebind is item 3's (the reviewer 16:46Z). OFF "
-                           "until measured; inert while TETHER_PREV_OFFER is OFF (no such term is "
-                           "ever bound)",
+                           "closer >= 11.422); the rebind is item 3's (the reviewer 16:46Z). Inert "
+                           "while TETHER_PREV_OFFER is OFF unless the window binds a lagged term. "
+                           "ON BY DEFAULT since the 7.5 switch-on (the reviewer 2026-10-11 "
+                           "02:19Z), a SUBSET OF THE MEASURED ON CONFIGURATION (the ON panel ran "
+                           "16 arms together; this subset was not measured alone); 0 is the "
+                           "one-flag control. Spelled `default=True`, default-on",
     "TETHER_CARRY_PRICE": "carry credit (R3 item 3; DISCOVERY 503; H3(ii); R-D4; the reviewer "
                           "16:31Z, 21:18Z, 21:37Z): a MINTED term paid its cost at its own entry, "
                           "so where it RE-GROUNDS (pays on a slot's own record alone, left < base, "
@@ -247,9 +250,12 @@ ARMS: dict[str, str] = {
                            "confirm-actions, never their sum; MC4's reader drops a plan that "
                            "cannot finish inside a reserve learned by running out; the dominated "
                            "are dropped and the existing order picks on the frontier; factor 8 "
-                           "(waiting) is read from Agency.order. OFF and HELD: on the test worlds "
-                           "paying plans tie in both readings, no reserve is ever learned inside "
-                           "one run, and Agency.order is empty without a cascade",
+                           "(waiting) is read from Agency.order. On the test worlds paying plans "
+                           "mostly tie in both readings (a correctness rule: never a sum). "
+                           "ON BY DEFAULT since the 7.5 switch-on (the reviewer 2026-10-11 "
+                           "02:19Z), a SUBSET OF THE MEASURED ON CONFIGURATION (the ON panel ran "
+                           "16 arms together; this subset was not measured alone); 0 is the "
+                           "one-flag control. Spelled `default=True`, default-on",
     "TETHER_D13": "7a(10) D1-D3, the same loop one level up (R3 part 2; the reviewer "
                   "2026-10-10 23:50Z): ON, the agent's process states bet on GROUND "
                   "outcomes -- an adopted plan that it clears the level, a parked slot "
@@ -292,10 +298,12 @@ ARMS: dict[str, str] = {
     "TETHER_GUARD_PRICE": "F408, every named guard priced (Fig 12 :99-102; the reviewer "
                           "2026-10-10 21:31Z): ON, an intent guard and 'no intent' cost "
                           "log2(G+1) over the G on offer, like ACTED_* (whose referent term "
-                          "stays); no guard is the free +1 slot. OFF because it reprices the "
-                          "mint's bargain: on the committed panel 1 of 25 guarded winners had "
-                          "a margin of 0.15 bits, so it changes which term wins; its full "
-                          "reading is at step 7.5",
+                          "stays); no guard is the free +1 slot. A correctness rule: it reprices "
+                          "the mint's bargain so every named guard pays for the choice. "
+                          "ON BY DEFAULT since the 7.5 switch-on (the reviewer 2026-10-11 "
+                          "02:19Z), a SUBSET OF THE MEASURED ON CONFIGURATION (the ON panel ran "
+                          "16 arms together; this subset was not measured alone); 0 is the "
+                          "one-flag control. Spelled `default=True`, default-on",
     "TETHER_D5": "7a D5, split a slot's residual on strain (Fig 9 :4-5; the reviewer 2026-10-10 "
                  "15:58Z, 16:24Z): ON, when a held predicate (an intent kind, or ACTED_SELF) "
                  "cleanly separates the rows a term got right from the rows it got wrong, among "
