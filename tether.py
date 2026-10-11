@@ -1703,6 +1703,8 @@ class Agent:
         self._resolve_signals("game", how)
         if _D13:
             self._settle_process("game", how)
+        if self._goal_conds:
+            self._close_goals(how)
 
     def _fingerprint(self, before: dict) -> tuple[str, str]:
         """7a(5) B: the BOARD where the world gives one, else observe() (the whole state there).
@@ -1874,6 +1876,8 @@ class Agent:
         self._resolve_signals("level", how)
         if _D13:
             self._settle_process("level", how)
+        if self._goal_conds:
+            self._close_goals(how)
         self._settled_at_level = set(self.settled)
         self._settled_lvl = set()
         self._seq_at_level = len(self.led)
@@ -2295,6 +2299,17 @@ class Agent:
         self._goal_links[key] = (c.slot, term.name)
         _book_add(self.gamma.book, "goal_link_made")                    # L2
         return {"linked": True, "slot": c.slot, "want": term.name}
+
+    def _close_goals(self, how: str) -> None:
+        """E1 (the reviewer 2026-10-11 03:38Z): a held goal condition CLOSES with its level --
+        at a retarget or the run's end -- and is never re-priced against the next level's
+        empty history, which would unhold it with a false reason. No verdict, not counted as
+        unlinked; the wants are cleared by retarget's own rule. Carry is M7."""
+        for key in sorted(self._goal_conds):
+            self.led.record(self.cycle, "IMPORT", "@completion", "goal_closed", key=key,
+                            condition=self._goal_text.get(key), how=how, verdict=None,
+                            reads="closed with its level: no verdict on the condition")
+        self._goal_conds, self._goal_text, self._goal_links = {}, {}, {}
 
     def _goal_recheck(self) -> None:
         """L1 (the reviewer 2026-10-11 03:28Z): a held goal condition stays held only while it

@@ -14,7 +14,10 @@ o1.col).
   L1 must-fail: a held condition that still pays stays held on a recheck;
   L1 must-pass: once it stops paying on the longer history it is unheld and its own want
      released; a want the agent composed itself is never released;
-  already held: a later completion picking the same condition does not hold it again.
+  already held: a later completion picking the same condition does not hold it again;
+  E1 (the reviewer 03:38Z): at a retarget a held condition CLOSES with its level -- one
+     goal_closed row naming how, and after one more step no goal_unheld row and goal_unlinked
+     unchanged (an empty history is no verdict).
 
     python test_goal_link.py
 """
@@ -95,6 +98,23 @@ if __name__ == "__main__":
         assert not occ._goal_conds and occ.wants[SLOT] == "some . other<want>"
         print("  L1, the agent's own want: the unlinked condition on the occupied slot is "
               "dropped and the agent's want 'some . other<want>' stays")
+        e1, _b, _r = _held(True)
+        was_sweep = tether._COMPLETION_SWEEP
+        tether._COMPLETION_SWEEP = True
+        try:
+            unlinked0 = e1.gamma.book.get("goal_unlinked", 0)
+            e1.retarget(e1.env, 1, "advance")
+            e1.step()
+        finally:
+            tether._COMPLETION_SWEEP = was_sweep
+        rows = e1.led.rows()
+        closed = [r["detail"] for r in rows if r["event"] == "goal_closed"]
+        assert not [r for r in rows if r["event"] == "goal_unheld"]
+        assert e1.gamma.book.get("goal_unlinked", 0) == unlinked0 and not e1._goal_conds
+        assert len(closed) == 1 and closed[0]["how"] == "advance", closed
+        print(f"  E1: a retarget ('advance') then one step: one goal_closed row "
+              f"('{closed[0]['condition']}', how {closed[0]['how']}, no verdict), no goal_unheld, "
+              f"goal_unlinked unchanged")
     finally:
         tether._GOAL_CONDITION = tether._GOAL_LINK = False
     print("ok")
