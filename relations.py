@@ -108,6 +108,13 @@ def within(a: dict, b: dict) -> bool:
             and b["col"] <= a["col"] and a["col"] + a["w"] <= b["col"] + b["w"])
 
 
+def overlaps(a: dict, b: dict) -> bool:
+    """The two boxes share a cell (B4; the gap is 0 for touching AND overlapping, so a predicted
+    move INTO a partner needs this). Internal to a reading, not a published relation."""
+    return (a["row"] < b["row"] + b["h"] and b["row"] < a["row"] + a["h"]
+            and a["col"] < b["col"] + b["w"] and b["col"] < a["col"] + a["w"])
+
+
 def pair_values(ra: dict, rb: dict) -> dict[str, int]:
     """The five relations of the ordered pair (a, b), keyed by relation."""
     dr, dc = offset(ra, rb)

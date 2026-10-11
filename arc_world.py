@@ -788,6 +788,12 @@ class ArcWorld:
         return relations.pair_slots_over(boxes, [(a, b) for a, b in pairs
                                                  if a in boxes and b in boxes])
 
+    def boxes(self, state: dict) -> dict[str, dict]:
+        """B4: each object's box read from a state's slot values (row, col, h, w). The caller passes
+        a COMPLETE state: a source its prediction does not carry (h, w under a position-only
+        predictor) holds its before value, never absent -- or B4 never fires on such a world."""
+        return self._boxes(state, {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")})
+
     def derived(self) -> dict[str, tuple[str, ...]]:
         """Each pair slot and the slots it is computed from (both boxes' row, col, h, w)."""
         self._all()

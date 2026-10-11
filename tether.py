@@ -31,6 +31,7 @@ import inherited
 import instruments as I
 import interface as IFace
 import reach
+import relations
 import retrieval
 import routine as Rt
 from gamma import (
@@ -419,6 +420,8 @@ _WINDOW = armflag.arm("TETHER_WINDOW")
 # B2b's round 3 (the reviewer 2026-10-11 10:57 CDT): derived binds walked last; reason in
 # conform/arms.py under TETHER_RELATION_SET.
 _RELATION_SET = armflag.arm("TETHER_RELATION_SET")
+# B4: the settled S7 entries (solidity / collide / obstacle) a blocked stall cues in the lookup.
+S7_SOLIDITY = ("HUMAN|Solidity", "HUMAN|Collide", "ADHERENCE|Obstacle")
 # ITEM 2b (the reviewer 19:45Z): under the window, the search runs in TWO PASSES -- every chain with
 # its non-lag bindings and its EVIDENCE lags, then, only with budget left, the same recorded chains
 # with their no-evidence lags. False restores item 2's one-pass order, for the tie guard only.
@@ -1455,6 +1458,7 @@ class Agent:
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
+        self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
         self._reach_frames: tuple | None = None
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
@@ -2139,6 +2143,15 @@ class Agent:
                 changed[a] = 1
             changed.update({r: 1 for r, base in compile_term.CHANGE_OF.items() if base == a})
         lit = lib.light(changed) if changed and lib is not None else []
+        blk = self._blocked_now.get(slot) if _RELATION_SET and lib is not None else None
+        if blk is not None:
+            # B4's consumer (the reviewer 12:49 CDT): the stall described as an effect -- blocked
+            # by a partner -- cues the settled S7 entries first. An order, never a cut.
+            top = lit[0][1] if lit else 1.0
+            lit = [(k, top) for k in S7_SOLIDITY] + [e for e in lit if e[0] not in S7_SOLIDITY]
+            self.led.record(self.cycle, "ROUTE", slot, "blocked_cue", partners=list(blk),
+                            keys=list(S7_SOLIDITY),
+                            reads="blocked by a partner: the lookup tries solidity first")
         if not lit:
             return
         rep_slot: dict = {}
@@ -2150,7 +2163,7 @@ class Agent:
         # THE LIBRARY REPEATS ITSELF: hundreds of lit entries unfold into tens of thousands of
         # candidates over a few templates, so the DISTINCT compiled terms are indexed once per
         # (description, objects) and every entry that offered one is kept as its provenance.
-        ikey = (frozenset(changed), slot, mine, others)
+        ikey = (frozenset(changed), slot, mine, others, blk)
         index = self._reach_index.get(ikey)
         if index is None:
             index = self._reach_index[ikey] = self._index_reach(lib, lit, slot, mine, others)
@@ -4156,6 +4169,7 @@ class Agent:
             self._standing(s)
         if _derived:
             self._relational_surprise(_derived, _dpred, res, after, before)
+            self._blocked_reading(_derived, _ps, before, after, action)
 
         # the reward channel: on the figures, and reported here. Its remedy is the
         # composition of actions, which is not built -- so it is recorded, not actioned.
@@ -4377,6 +4391,45 @@ class Agent:
         rec = self._carry_log.get((name, slot))
         if rec is not None:
             rec[what] += 1
+
+    def _blocked_reading(self, derived: dict, pred: dict, before: dict, after: dict,
+                         action: str) -> None:
+        """B4, BLOCKED (the reviewer 2026-10-11 12:49 CDT), agent-side only -- the world's own
+        answer is never read. A subject touching a partner before the step, which the agent's OWN
+        prediction moved into the partner (boxes overlap), and which did not move: blocked by that
+        partner. The subject's predicted slots carry it to the lookup as an effect (S7 cue)."""
+        self._blocked_now = {}
+        boxes = getattr(self.env, "boxes", None)
+        if boxes is None:
+            return
+        pb, bb = boxes(pred), boxes(before)
+        hit: dict = {}                                    # subject -> (partners, meant slots)
+        for k, srcs in derived.items():
+            subj, attr = k.split(".", 1)
+            if relations.pair_attr(attr) != "touches" or before.get(k) != 1:
+                continue
+            x = attr.split("_", 1)[1]
+            own = srcs[:len(srcs) // 2]
+            if any(after.get(s) != before.get(s) for s in own):
+                continue                                  # the subject moved
+            meant = [s for s in own if pred.get(s) != before.get(s)]
+            if not meant or subj not in pb or x not in pb or subj not in bb or x not in bb:
+                continue                                  # no move predicted
+            if not relations.overlaps(pb[subj], pb[x]) or relations.overlaps(bb[subj], bb[x]):
+                continue                                  # not predicted INTO the partner
+            ps, ms = hit.setdefault(subj, (set(), set()))
+            ps.add(x)
+            ms.update(meant)
+        # EVERY PARTNER (the reviewer 13:07 CDT): one row per subject, the partners sorted, and the
+        # slots map to the set -- never the first found.
+        for subj in sorted(hit):
+            ps, ms = hit[subj]
+            for s in ms:
+                self._blocked_now[s] = tuple(sorted(ps))
+            self.led.record(self.cycle, "PERCEIVE", subj, "blocked", partners=sorted(ps),
+                            action=action, predicted={s: pred.get(s) for s in sorted(ms)},
+                            actual={s: after.get(s) for s in sorted(ms)},
+                            reads="predicted into a partner it touched, and did not move")
 
     @staticmethod
     def _moved(res: dict, before: dict, after: dict) -> set:

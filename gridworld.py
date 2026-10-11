@@ -362,6 +362,13 @@ class GridWorld:
                 if state.get(f"o{i}.row") is not None and state.get(f"o{i}.col") is not None}
         return relations.pair_slots(objs)
 
+    def boxes(self, state: dict) -> dict[str, dict]:
+        """B4: each object's box read from a state's slot values (1x1 cells here). The caller passes
+        a COMPLETE state: a source its prediction does not carry holds its before value."""
+        return {f"o{i}": {"row": state[f"o{i}.row"], "col": state[f"o{i}.col"], "h": 1, "w": 1}
+                for i in range(N_OBJECTS)
+                if state.get(f"o{i}.row") is not None and state.get(f"o{i}.col") is not None}
+
     def derived(self) -> dict[str, tuple[str, ...]]:
         """B2b: each pair slot and the slots it is computed from (both objects' row and col)."""
         return {k: tuple(f"{o}.{a}" for o in (k.split(".", 1)[0], k.rsplit("_", 1)[1])
