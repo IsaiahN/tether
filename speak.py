@@ -249,7 +249,7 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
             # D1: the agent betting on its own PROCESS, about an outcome only the ground settles
             what = ("this plan clears the level" if d.get("kind") == "plan_clears" else
                     f"the world will confirm {d.get('about')} by the level's end, though I "
-                    f"parked it ({(d.get('stall') or {}).get('effect', d.get('verdict'))})")
+                    f"parked it ({(d.get('stall') or {}).get('effect', d.get('park_verdict'))})")
             out.append(([seq], f"I bet on my own process: {what}. Only a level or game ending "
                                f"settles that, never my own reading of it."))
         elif ev == "process_settle":

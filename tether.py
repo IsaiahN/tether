@@ -472,9 +472,10 @@ _MC34 = armflag.arm("TETHER_MC34")
 # 7a(7) TWO READINGS (R3(a); the reviewer 2026-10-10 22:30Z). ON (7.5 switch-on, 02:19Z); reason
 # in conform/arms.py.
 _TWO_READINGS = armflag.arm("TETHER_TWO_READINGS", default=True)
-# 7c M6 INVENT (ISAIAH_RULINGS "Mint, invent, import"; the reviewer 2026-10-10 23:14Z). OFF; reason
-# in conform/arms.py. Not the retired TETHER_INVENT: it names a COMPOSITION, priced by the bargain.
-_M6_INVENT = armflag.arm("TETHER_M6_INVENT")
+# 7c M6 INVENT (ISAIAH_RULINGS "Mint, invent, import"; the reviewer 2026-10-10 23:14Z). ON by
+# default (the reviewer 2026-10-11 02:55Z); reason in conform/arms.py. Not the retired
+# TETHER_INVENT: it names a COMPOSITION, priced by the bargain.
+_M6_INVENT = armflag.arm("TETHER_M6_INVENT", default=True)
 # 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). OFF; reason in conform/arms.py.
 # Compute only: no action, no bet, nothing installed -- a MUSE row is all it writes.
 _MC6 = armflag.arm("TETHER_MC6")
@@ -485,6 +486,10 @@ _D13 = armflag.arm("TETHER_D13", default=True)
 # OBJECTIVE BUILD 1, THE COMPLETION SWEEP (ARC_AGENT 21.3; the reviewer 2026-10-11 02:19Z). OFF;
 # reason in conform/arms.py. Record only: fires when the WORLD's objective is reached.
 _COMPLETION_SWEEP = armflag.arm("TETHER_COMPLETION_SWEEP")
+# OBJECTIVE BUILD 2, THE GOAL CONDITION (the reviewer 2026-10-11 02:19Z). OFF; reason in
+# conform/arms.py. At a completion, a condition over readings that names when the world's
+# objective holds -- the flag is the then-side, never the subject. Needs the sweep ON.
+_GOAL_CONDITION = armflag.arm("TETHER_GOAL_CONDITION")
 
 
 def _confirm_actions(r: Any) -> int | None:
@@ -1235,6 +1240,9 @@ class Agent:
         self._muse_last = None        # MC6 N2: (targets, methods) last tested, and its cycle
         self._deg_prev = None         # the completion sweep: the world's degree last step
         self._sweep_from = (0, 0, set(), set())   # (seq, cycle, settled, owed) at segment start
+        self._reach_hist: list = []   # build 2: (after-state, world reached?) per step, this level
+        self._reach_epoch = 0
+        self._goal_conds: dict = {}   # build 2: held goal conditions, key -> compiled (in-episode)
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
@@ -2229,6 +2237,10 @@ class Agent:
         terms settled, which owed slots closed -- and records it. Nothing is retargeted, no
         binding dropped, no trace cleared."""
         prev, self._deg_prev = self._deg_prev, degree
+        if _GOAL_CONDITION and self.trace:
+            if self._reach_epoch != self._trace_epoch:
+                self._reach_hist, self._reach_epoch = [], self._trace_epoch
+            self._reach_hist.append((self.trace[-1][2], degree >= 1.0))
         start = max(self._sweep_from[0], self._seq_at_level)
         if prev is None or not (degree >= 1.0 > prev):
             if self._sweep_from[0] < self._seq_at_level:
@@ -2247,6 +2259,68 @@ class Agent:
                         reads=("the world's objective was reached; the segment since the last "
                                "completion, re-examined (21.3); nothing changed"))
         self._sweep_from = (len(self.led), self.cycle, set(self.settled), set(self.owed_import))
+        if _GOAL_CONDITION:
+            self._goal_condition()
+
+    def _goal_price(self, conds: list, rows: list) -> tuple[float, float, int]:
+        """The one bargain on a 1-bit history (Fig 5 :42-44), as two-part description length,
+        positions named at log2 N bits each: with no term, naming each step where the world's
+        objective held; with Q (any listed condition true), cost(Q) plus naming each step Q
+        gets wrong. Monotone in mistakes, so the goal's negation never pays. Reads only the
+        world's readings and the world's verdict. Listing occasions one by one pays for every
+        one (M6-a)."""
+        cost = term_bits(sum(self.gamma.length(c.term) for c in conds), self.gamma.alphabet)
+        e = sum(1 for st, hit in rows
+                if any(compile_term.run(c, st) is True for c in conds) != hit)
+        return cost, e * math.log2(len(rows)), e
+
+    def _goal_condition(self) -> None:
+        """Objective build 2 (the reviewer 2026-10-11 02:19Z): at a completion, conditions from
+        the library's own templates over the readings, each priced by `_goal_price` against
+        the history of when the world's objective held. The flag is the then-side, never the
+        subject; nothing about the target is published; the cheapest that pays is held
+        in-episode in the private library copy, its carry verdict recorded."""
+        rows = self._reach_hist
+        n, k = len(rows), sum(1 for _, hit in rows if hit)
+        if not k or k == n:
+            return
+        base = k * math.log2(n)
+        atoms = {a.name: a for a in self.gamma.atoms}
+        refused: Counter = Counter()
+        cands = []
+        for text in self._inv_conditions(rows[-1][0]):
+            c = self._compile_cache.get(text)
+            if c is None:
+                c = self._compile_cache[text] = compile_term.compile_candidate(
+                    {"condition": text}, atoms)
+            if isinstance(c, compile_term.Refusal):
+                refused[c.reason] += 1
+                continue
+            cost, left, e = self._goal_price([c], rows)
+            cands.append((cost + left, cost, left, e, text, c))
+        cands.sort(key=lambda x: (x[0], x[4]))
+        detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
+                  "conditions": len(cands), "refused": dict(refused),
+                  "cheapest": [{"if": x[4], "cost": round(x[1], 3), "left": round(x[2], 3),
+                                "errors": x[3]} for x in cands[:5]]}
+        best = cands[0] if cands and pays(cands[0][1], cands[0][2], base) else None
+        if best is None:
+            detail["pick"] = "none paid"
+        else:
+            _t, cost, left, e, text, c = best
+            lib = self._inv_library()
+            try:
+                key = lib.invent_atom(f"{self.gamma.game}_goal_{len(self._goal_conds) + 1}",
+                                      text, game=self.gamma.game, cycle=self.cycle,
+                                      receipt={"completion": self.cycle, "steps": n,
+                                               "reached": k, "errors": e})
+                self._goal_conds[key] = c
+                safe, why = sys.modules["library_runtime"].carry_check(text, lib.readings)
+                detail.update(pick=text, key=key, carry=("may carry when M7 opens" if safe
+                                                         else f"refused: {why}"))
+            except ValueError as err:
+                detail.update(pick="refused at creation", why=str(err), condition=text)
+        self.led.record(self.cycle, "IMPORT", "@completion", "goal_condition", **detail)
 
     # ---------------------------------------------------------------- 7a(10) D1-D3
     def _process_bet(self, kind: str, slot: str, **what: Any) -> None:
@@ -2272,7 +2346,7 @@ class Agent:
                   "coverage": detail.get("coverage")} if v == "budget_spent" else
                  {"effect": "sealed at depth", "depth": detail.get("depth"),
                   "seen": detail.get("candidates_seen")})
-        self._process_bet("parked_explained", slot, verdict=v, stall=stall)
+        self._process_bet("parked_explained", slot, park_verdict=v, stall=stall)
 
     def _settle_process(self, scope: str, how: str) -> None:
         """D3: a process bet settles ONLY on a level or game outcome, read from the GROUND, never
@@ -2468,7 +2542,9 @@ class Agent:
                 cost = self._inv_cost(f, [c], units)
                 cands.append((cost + left, cost, left, text, c, f))
         cands.sort(key=lambda x: (x[0], x[1], x[3], x[5].name))
-        detail = {"verdict": verdict, "moved_rows": len(moved), "rows": len(hist),
+        # park_verdict, never `verdict`: this row names the park that triggered it and is not
+        # itself an abstention (gate rule 9 reads `verdict` as one)
+        detail = {"park_verdict": verdict, "moved_rows": len(moved), "rows": len(hist),
                   "base_bits": round(base, 3), "conditions_held": len(conds),
                   "conditions_never_false": never_false, "refused": dict(refused),
                   "then_terms": len(fs), "priced": len(cands),
@@ -2491,7 +2567,7 @@ class Agent:
         name = f"{self.gamma.game}_inv_{len(self._invented) + 1}"
         try:
             key = lib.invent_atom(name, text, game=self.gamma.game, cycle=self.cycle,
-                                  receipt={"slot": slot, "verdict": detail.get("verdict"),
+                                  receipt={"slot": slot, "verdict": detail.get("park_verdict"),
                                            "moved_rows": detail.get("moved_rows"),
                                            "nothing_lit": True})
         except ValueError as e:

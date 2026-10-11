@@ -93,7 +93,7 @@ if __name__ == "__main__":
     assert d["key"] not in tether._library().runtime
     print(f"  spec 1: refused for carry ({rec['why']}); the shared library holds neither")
     n0 = len(ag._invented)
-    got = ag._hold_invention(SLOT, "o9.zork != 0", c, f, 1.0, base, hist, {"verdict": "x"})
+    got = ag._hold_invention(SLOT, "o9.zork != 0", c, f, 1.0, base, hist, {"park_verdict": "x"})
     last = [r["detail"] for r in ag.led.rows() if r["event"] == "invent"][-1]
     assert got is None and last["pick"] == "refused at creation" and len(ag._invented) == n0
     print(f"  spec 2: refused at creation and recorded ({last['why']})")

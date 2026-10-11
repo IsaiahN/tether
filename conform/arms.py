@@ -263,6 +263,15 @@ ARMS: dict[str, str] = {
                   "agent's own diagnosis. ON BY DEFAULT with objective build step 1 (the "
                   "reviewer 2026-10-11 02:19Z), its consumer; record only. Spelled "
                   "`default=True`, default-on",
+    "TETHER_GOAL_CONDITION": "objective build 2, the goal condition (the reviewer 2026-10-11 "
+                             "02:19Z): ON, at each completion the library's condition templates "
+                             "over the readings are priced against WHEN the world's objective "
+                             "held (positions named at log2 N bits: no term names each reached "
+                             "step, Q names each step it gets wrong), and the cheapest that pays "
+                             "is held in-episode in the private library copy; the flag is the "
+                             "then-side, never the subject; nothing about the target is "
+                             "published. Needs TETHER_COMPLETION_SWEEP ON. OFF until the "
+                             "objective build's panel",
     "TETHER_COMPLETION_SWEEP": "objective build 1, the completion sweep (ARC_AGENT 21.3; the "
                                "reviewer 2026-10-11 02:19Z): ON, when the WORLD's objective "
                                "degree reaches 1.0 ('reached', not 'banked'), the segment since "
@@ -282,8 +291,12 @@ ARMS: dict[str, str] = {
                         "where the change recurred and nothing lit, the agent names a condition "
                         "over the readings that held where the slot changed (f when Q, identity "
                         "otherwise), prices it at its whole length by the one bargain, and holds "
-                        "it in a private in-memory library copy only if it pays. OFF until its "
-                        "first panel reading at 7-and-a-half; carry is M7 and gated",
+                        "it in a private in-memory library copy only if it pays; carry is M7 and "
+                        "gated. ON BY DEFAULT (the reviewer 2026-10-11 02:55Z), a SUBSET OF THE "
+                        "MEASURED ON CONFIGURATION; its 0.113-bit margins are the uniform "
+                        "code's quantum (5 x log2 11 - term_bits 2), verified; wall cost bounded "
+                        "(+56 of +225 s on arc_s1, noise on arc_s0); 0 is the one-flag control. "
+                        "Spelled `default=True`, default-on",
     "TETHER_MC34": "7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z): ON, every ending "
                    "is appended to the ground's record (word, kind, cleared, actions this "
                    "level and run, attempts, and the scope it ran out: level if a new level "
