@@ -55,7 +55,7 @@ _TOKEN = re.compile(r"""
     | (?P<rparen>\))
     | (?P<comma>,)
     | (?P<num>-?\d+(?:\.\d+)?)
-    | (?P<name>[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_0-9]+)*)
+    | (?P<name>[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_0-9]+)*(?:~\d+)?)
     )""", re.X)
 
 

@@ -24,10 +24,16 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+import armflag
 import condition
 import gamma
+import relations
 
 SAME = gamma.SAME_AS_TARGET
+# B3 (the reviewer 2026-10-11 12:25 CDT): under the arm a pair reading (`dist_o3`) is typed by its
+# relation, and a slot may be compared with its OWN earlier reading (`slot~1`) -- toward is
+# "o0.dist_o3 < o0.dist_o3~1", away the converse. OFF; reason in conform/arms.py.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
 
 # (op, right side) -> (atom chain run on the target slot, operand side or None[, operand chain]).
 # right side: "zero" / "one" for a constant, "slot" for another object's same reading.
@@ -154,6 +160,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     if obj in NOT_SLOTS:
         return Refusal(NOT_SLOTS[obj])
     rtype = (readings().get(reading) or {}).get("type")
+    rel = relations.pair_attr(reading) if _RELATION_SET else None
+    if rtype is None and rel is not None:
+        rtype = relations.PAIR_RELATIONS[rel]
     if rtype is None:
         return Refusal(f"{reading!r} is not a library reading")
     right = node.right
@@ -161,7 +170,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
         return _change(obj, reading, node.op, right, atoms)
     if isinstance(right, condition.Slot):
         kind, other = "slot", right.name
-        if _split(other)[1] != reading:
+        if "~" in other and not (_RELATION_SET and other == target + PREV):
+            return Refusal("an earlier reading is compared only with its own slot, under the arm")
+        if _split(other)[1].split("~", 1)[0] != reading:
             return Refusal("the two sides read different quantities")
     elif right in (0, 1):
         kind, other = ("zero" if right == 0 else "one"), None
