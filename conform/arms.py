@@ -271,6 +271,13 @@ ARMS: dict[str, str] = {
                            "from column 2 "
                            "(run C, c98). expected_move keeps today's reading (cell=False). OFF: a "
                            "default-path reader, it needs its own panel reading",
+    "TETHER_ROUTINE_SUBJECT_BUDGET": "R-dir (c) (the reviewer 2026-10-11 10:39Z, 10:53Z): ON, a "
+                                     "routine whose body is one BECOME intent takes its budget "
+                                     "AND the count it claims (_expected) from that subject's "
+                                     "own gap -- |target - now| signed, 1 on a value want -- "
+                                     "not the group unsat; unreadable target keeps the group "
+                                     "count. OFF: a default-path reader, joins the objective "
+                                     "arms for a switch-on reading",
     "TETHER_ROUTINE_STALE": "R-dir (ii) (the reviewer 2026-10-11 10:39Z): ON, a held routine "
                             "whose step is a signed BECOME ends `stale` before pressing when the "
                             "live _goal_target reads the OPPOSITE sign to the minted one; an "

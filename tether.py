@@ -507,6 +507,10 @@ _WANT_TARGET_SUBJECT = armflag.arm("TETHER_WANT_TARGET_SUBJECT")
 # OPPOSITE sign to the one it was minted with ends "stale" before pressing. OFF; reason in
 # conform/arms.py.
 _ROUTINE_STALE = armflag.arm("TETHER_ROUTINE_STALE")
+# R-dir (c) (the reviewer 2026-10-11 10:39Z): a one-slot BECOME body can change only its subject,
+# so its budget, and the count it claims, come from that subject's own gap. OFF; reason in
+# conform/arms.py.
+_ROUTINE_SUBJECT_BUDGET = armflag.arm("TETHER_ROUTINE_SUBJECT_BUDGET")
 
 
 @dataclass(frozen=True)
@@ -3004,6 +3008,37 @@ class Agent:
             return None
         return {"minted_sign": emit.object, "live_sign": live, "target": tgt,
                 "at": before[sl], "subject": sl}
+
+    def _subject_gap(self, before: dict) -> int | None:
+        """R-dir (c): the body `_goal_want` is one BECOME on one slot, so the iterations it can
+        spend are that subject's own gap (b-0's scope, carried to the budget): |target - now| on a
+        signed want, 1 on a value want. The distance is objective_gap over the slot's domain, as
+        goal_residual scores a subject want (`_goal_target` gives only the next step). None -- the
+        group count stands -- where the body is not a BECOME intent or the gap is not readable."""
+        w = self._goal_want
+        if w is None or w.kind != IFace.BECOME or w.subject not in before:
+            return None
+        if w.value is not None:
+            return 1
+        sl = w.subject
+        if w.object not in ("+", "-"):
+            return None
+        _, term = self._objective_of(sl) if _WANT_TARGET else self._target_lookup(sl)
+        if (term is None or getattr(term, "out_type", None) != OBJ_TYPE
+                or not self._applies(term, before)):
+            return None
+        ops = self._ops(term, before)
+        if ops is None:
+            return None
+        ctx = self._eval_ctx(sl, before, action=self._last_action or "", operands=ops,
+                             touching=self._touching(sl), shapes=False,
+                             landed=self._last_landed)
+
+        def _sat(v: int) -> bool | None:
+            r = term.apply(v, ctx)
+            return None if r is NOT_RESOLVED else bool(r)
+        gap = objective_gap(_sat, before[sl], True, self._domain(sl, before, ctx))
+        return gap if isinstance(gap, int) and not isinstance(gap, bool) and gap > 0 else None
 
     def _act_n(self) -> int:
         """Acts chosen so far, derived from `self._acts` (not a second counter): the act a claim is
@@ -7146,6 +7181,14 @@ class Agent:
         # SITE and not in the pricing** -- raise this and the bargain has no defence, and the
         # place a reader would look for one is `term_bits`, which is specified to ignore it.
         loop_budget = max(int(round(unsat)), 1)
+        _claim = unsat
+        if _ROUTINE_SUBJECT_BUDGET:
+            _gap = self._subject_gap(before)
+            if _gap is not None:
+                loop_budget = _claim = _gap
+                self.led.record(self.cycle, "PLAN", slot, "subject_budget", budget=_gap,
+                                group_budget=max(int(round(unsat)), 1),
+                                subject=self._goal_want.subject)
         mine = tuple(s for s in sorted(self._disc) if s in before)
         # derived once: `reach` and `actions` both resolve a `Call` through it
         lib = self.routine_lib
@@ -7175,7 +7218,7 @@ class Agent:
         # SAFETY CAP: the plain loop reached exactly the residual and could at best tie, and a
         # smaller residual shrank what a routine was ALLOWED to claim (measured: reach 5 -> 1
         # when the library-fit gate changed). `expect` is the claim; `budget` stays the cap.
-        cands = [self._expected(c, unsat, before) for c in cands]
+        cands = [self._expected(c, _claim, before) for c in cands]
         if not cands:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason="every plan offered was refused under this scope, "
