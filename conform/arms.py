@@ -271,6 +271,12 @@ ARMS: dict[str, str] = {
                            "from column 2 "
                            "(run C, c98). expected_move keeps today's reading (cell=False). OFF: a "
                            "default-path reader, it needs its own panel reading",
+    "TETHER_ROUTINE_STALE": "R-dir (ii) (the reviewer 2026-10-11 10:39Z): ON, a held routine "
+                            "whose step is a signed BECOME ends `stale` before pressing when the "
+                            "live _goal_target reads the OPPOSITE sign to the minted one; an "
+                            "unreadable or held comparison keeps today's path (A1). A non-trial: "
+                            "no verdict, no refusal, not shelved. OFF: a default-path reader, "
+                            "joins the objective arms for a switch-on reading",
     "TETHER_WANT_TARGET_SUBJECT": "F2's fallback (the reviewer 2026-10-11 07:20Z, option (i)): ON, "
                                   "_goal_target and _term_of read a retained want ONLY where "
                                   "_want_scope names it (a goal-condition want); every own want "

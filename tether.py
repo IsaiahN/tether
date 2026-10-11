@@ -503,6 +503,10 @@ _WANT_TARGET = armflag.arm("TETHER_WANT_TARGET")
 # subject-scoped (a goal-condition want); every own want keeps the masked lookup. OFF; reason in
 # conform/arms.py. With TETHER_WANT_TARGET also ON, the full unmask subsumes it.
 _WANT_TARGET_SUBJECT = armflag.arm("TETHER_WANT_TARGET_SUBJECT")
+# R-dir (ii) (the reviewer 2026-10-11 10:39Z): a held routine whose live comparison now reads the
+# OPPOSITE sign to the one it was minted with ends "stale" before pressing. OFF; reason in
+# conform/arms.py.
+_ROUTINE_STALE = armflag.arm("TETHER_ROUTINE_STALE")
 
 
 @dataclass(frozen=True)
@@ -2886,7 +2890,8 @@ class Agent:
         else:
             self._routine_next = (self.routine, emit, rest)
 
-    def _end_routine(self, why: str, before: dict, step: str = "PLAN") -> None:
+    def _end_routine(self, why: str, before: dict, step: str = "PLAN",
+                     detail: dict | None = None) -> None:
         """A routine's ending: its verdict, shelving, refutation and record. Run where the ending is
         evaluated -- at the deciding cycle's SETTLE for a routine that has acted (F501), at PLAN for
         an ending found while choosing (unrealisable, or the zero-act case left OPEN)."""
@@ -2973,11 +2978,32 @@ class Agent:
         # how many routines died to the world removing their subject versus to supply.
         if why == Rt.BLOCKED and self._guard_exit:
             extra["blocked_why"] = self._guard_exit
+        if detail:
+            extra.update(detail)
         self.led.record(self.cycle, step, self.routine_for or "*", "routine_end",
                         outcome=why, routine=Rt.render(self.routine), **extra)
         self._guard_exit = None
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
+
+    def _stale_sign(self, emit: Any, before: dict) -> dict | None:
+        """R-dir (ii): the plan's premise is the sign it was minted with (Fig 12 :112); a live
+        comparison reading the OPPOSITE sign ends it as "stale" (Fig 5, Fig 6) -- a non-trial, so
+        no verdict and no refusal. An unreadable or held comparison is not an opposite reading
+        (Fig 1; the reviewer's A1): None, and the routine runs as today."""
+        sl = emit.subject
+        if emit.kind != IFace.BECOME or emit.object not in ("+", "-") or sl not in before:
+            return None
+        keep = self._gt_which
+        tgt = self._goal_target(sl, before)
+        self._gt_which = keep
+        if tgt is None:
+            return None
+        live = "+" if tgt > before[sl] else "-"
+        if live == emit.object:
+            return None
+        return {"minted_sign": emit.object, "live_sign": live, "target": tgt,
+                "at": before[sl], "subject": sl}
 
     def _act_n(self) -> int:
         """Acts chosen so far, derived from `self._acts` (not a second counter): the act a claim is
@@ -5239,7 +5265,9 @@ class Agent:
                                 "routine_recovered", outcome=_why,
                                 routine=Rt.render(self.routine),
                                 note="a fallback ran; the body's ending is NOT a refutation")
-            _act = (None if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
+            _stale = (self._stale_sign(emit, before)
+                      if _ROUTINE_STALE and isinstance(emit, IFace.Intent) else None)
+            _act = (None if _stale is not None or emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
                     else self._realise_step(emit, before))
             if _act is not None:
                 # THE CLAIM, MADE BEFORE THE ACTION LANDS. `advance` published which slots this
@@ -5268,7 +5296,8 @@ class Agent:
             # nor *the budget ran out*, and folding it into either would collapse two endings
             # into one -- `F207`'s defect exactly. It is a NON-TRIAL like the two beside it: the
             # plan never got to run, so it says nothing about whether the plan works.
-            why = (emit if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
+            why = ("stale" if _stale is not None
+                   else emit if emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
                    else Rt.UNREALISABLE if isinstance(emit, IFace.Intent)
                    else "unadvertised")
             # **THE ASSUMED -> TESTED UPGRADE, AND IT IS THE CALLER'S BY CONSTRUCTION.**
@@ -5284,7 +5313,7 @@ class Agent:
             # would be filed as a settled behaviour, callable at a name's price while claiming
             # its budget's reach. `exhausted` is a trial that failed; `blocked` and
             # `unadvertised` are NON-TRIALS and say nothing either way, so they are left alone.
-            self._end_routine(why, before)
+            self._end_routine(why, before, detail=_stale)
         # SYSTEM 2 RUNS BESIDE SYSTEM 1, NOT BEHIND IT -- Isaiah, 2026-09-09.
         # Formation used to sit ONLY at the fall-through, so `discriminate:learned` returning
         # first foreclosed it: `_mint_routine` was last called at cycle 11 on `ka59` and 7 on
