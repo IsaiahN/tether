@@ -21,6 +21,9 @@
      positive form reads [True, False, False], not [True, None, None];
   s5 bbox(o, x) > 0: interleaved boxes True; separate objects False, not None;
   s6 the direction pin: with only A~B.inside (B inside A), inside(A, B) == 1 reads False;
+  s7 (15:08 CDT) inside(B, A) > 0 -- the library's only spelling -- is == 1 spelled again: False at
+     box-not-hole through the sparse default (never None), True in the hole; != 0 the same;
+  s8 inside(B, A) > 1 refused "a BOOL is 0 or 1";
   OFF: both refused as before (the gate's must-fail).
 
     python test_relation_calls.py
@@ -72,6 +75,10 @@ if not isinstance(i1, str):
                      "s2": C.run(i1, hole), "s3": C.run(i1, {"B.row": 1}),
                      "s4": [C.run(i1, r) for r in (hole, both, both)],
                      "s6": C.run(rev, {**both, "A~B.inside": 1})}
+    g7, n7 = comp("inside(B, A) > 0"), comp("inside(B, A) != 0")
+    out["inside"]["s7"] = (g7 if isinstance(g7, str) else
+                           [C.run(g7, both), C.run(g7, hole), C.run(n7, both), C.run(n7, hole)])
+    out["inside"]["s8"] = comp("inside(B, A) > 1")
 if not isinstance(bb, str):
     out["bbox"] = {"slot": bb.slot, "s5": [C.run(bb, {"o.row": 0, "x.row": 1, "o~x.bbox": 4}),
                                           C.run(bb, {"o.row": 0, "x.row": 5})]}
@@ -121,4 +128,8 @@ if __name__ == "__main__":
     print(f"  s5 bbox > 0: overlap {on['bbox']['s5'][0]}, separate {on['bbox']['s5'][1]}")
     assert ins["s6"] is False, ins
     print("  s6 direction pin: inside(A, B) == 1 with only A~B.inside reads False")
+    assert ins["s7"] == [False, True, False, True], ins
+    print(f"  s7 inside > 0 / != 0: box-not-hole {ins['s7'][0]} (not None), hole {ins['s7'][1]}")
+    assert ins["s8"] == "a BOOL is 0 or 1", ins
+    print(f"  s8 inside > 1: {ins['s8']!r}")
     print("relation calls: OK")

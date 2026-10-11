@@ -77,13 +77,17 @@ FACE_PRESENT = {(">", 0): False, ("!=", 0): False, ("==", 0): True}     # -> neg
 # "== 0" on an EXTENT (14:17 CDT, under the arm): an extent is never negative, so "is zero" is
 # "not nonzero" -- sign (nonzero, on an EXTENT, not a direction) . holds . negate.
 EXTENT_ZERO = (("sign", "holds", "negate"), None)
-# THE OBSERVER PAIR CALLS (6, 7; the reviewer 2026-10-11 14:17, 14:31 CDT): inside(o, x) is HOLE
-# containment, the observer's directed `x~o.inside` (x~o = o inside x), NEVER the box slot
-# inside_x; bbox(o, x) is the box overlap area, `a~b.bbox` named in sorted order. (op, right) ->
-# the chain; anything else is refused.
-OBSERVER_PAIR = {"inside": {("==", 1): ("holds",), ("==", 0): ("holds", "negate")},
+# THE OBSERVER PAIR CALLS (6 bbox, 7 inside; the reviewer 2026-10-11 14:17, 14:31, 15:08 CDT):
+# inside(o, x) is HOLE containment, the observer's directed `x~o.inside` (x~o = o inside x),
+# NEVER the box slot inside_x; bbox(o, x) is the box overlap area, `a~b.bbox` named in sorted
+# order. (op, right) -> the chain; anything else is refused. inside is a BOOL, so "> 0" and
+# "!= 0" are "== 1" spelled again (the library writes only "> 0"); any value but 0 or 1 is
+# refused.
+OBSERVER_PAIR = {"inside": {("==", 1): ("holds",), (">", 0): ("holds",), ("!=", 0): ("holds",),
+                            ("==", 0): ("holds", "negate")},
                  "bbox": {(">", 0): ("sign", "holds"), ("!=", 0): ("sign", "holds"),
                           ("==", 0): ("sign", "holds", "negate")}}
+BOOL_PAIR = {"inside"}
 PREV = "~1"                  # tether.PREV, pinned by test_compile
 # Shapes that have no slot to run on, refused by name (section 3, section 7c).
 NOT_SLOTS = {"frame": "events are not slots", "board": "the board is not an object slot",
@@ -278,6 +282,8 @@ def _observer_pair(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusa
     if len(call.args) != 2 or not all(isinstance(a, condition.Slot) for a in call.args):
         return Refusal(f"no template for {call} {node.op} {node.right}")
     names = OBSERVER_PAIR[call.name].get((node.op, node.right))
+    if names is None and call.name in BOOL_PAIR:
+        return Refusal("a BOOL is 0 or 1")
     if names is None:
         return Refusal(f"no template for the observer pair {call.name} {node.op} {node.right}")
     missing = [n for n in names if n not in atoms]

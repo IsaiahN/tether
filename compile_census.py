@@ -111,9 +111,10 @@ def relation_set_arm() -> tuple[int, dict, dict]:
 # The call-family items (the reviewer 2026-10-11 14:17 CDT), keyed by their OFF refusal.
 FAMILY_ITEM = {"quantified over the group": "2, the group row",
                "no pairwise atom: contact(o, x)": "5, contact",
-               "no pairwise atom: inside(o, x)": "6, inside",
-               "no template for the observer pair inside": "6, inside (the library writes > 0)",
-               "no pairwise atom: bbox(o, x)": "7, bbox",
+               "no pairwise atom: bbox(o, x)": "6, bbox",
+               "no pairwise atom: inside(o, x)": "7, inside",
+               "no template for the observer pair inside": "7, inside",
+               "a BOOL is 0 or 1": "7, inside",
                "holds does not accept EXTENT": "9, EXTENT == 0"}
 
 
