@@ -562,10 +562,13 @@ class Interface:
             # reading the agent is entitled to, not a substitution.
             want_sign = 1 if (intent.object or "+") == "+" else -1
             if (_REALISE_CELL and cell and state is not None and intent.subject in state):
-                r = self._by_cell(intent.subject, int(state[intent.subject]), want_sign,
-                                  offered, ctx, env)
+                r, against = self._by_cell(intent.subject, int(state[intent.subject]),
+                                           want_sign, offered, ctx, env)
                 if r is not None:
                     return r
+                # the guard (the reviewer 10:07Z): falling through, an action whose OWN cell
+                # contradicts the want is excluded; a silent cell keeps the prior
+                offered = tuple(a for a in offered if a not in against)
             best, score, how = None, 0.0, ""
             for a in offered:
                 d = self.table.get(a, {}).get("delta", {})
@@ -1077,16 +1080,20 @@ class Interface:
         return tuple(sorted(kinds.items()))
 
     def _by_cell(self, slot: str, now: int, want_sign: int, offered: tuple[str, ...],
-                 ctx: tuple, env: Any) -> Realisation | None:
+                 ctx: tuple, env: Any) -> tuple[Realisation | None, set[str]]:
         """The cell tier (the reviewer 2026-10-11 09:53Z): an action's direction FROM THE CELL
         THE SLOT IS IN -- the sign of (after - before) in its `lands` entry keyed by the value
         before the press, as the 2026-09-28 ruling keys `lands` and `signs`. Only a singleton
         cell gives a direction (a cell holding two values is unreliable there). Tier 0a: this
         ctx; tier 0b: any ctx, non-relational slots only. None when no offered action has cell
-        evidence, or none of it goes the wanted way -- the caller then uses today's tiers."""
+        evidence, or none of it goes the wanted way -- the caller then uses today's tiers.
+        Also returns the actions whose own singleton cell (this ctx, else any) goes AGAINST the
+        want, for the caller's guard."""
         tiers = [("from this value here", True)]
         if not _is_relational(slot, env):
             tiers.append(("from this value", False))
+        against: set[str] = set()
+        decided: set[str] = set()
         for how, same_ctx in tiers:
             for a in offered:
                 vals = {v for (c, k, b), vs in self.table.get(a, {}).get("lands", {}).items()
@@ -1094,8 +1101,13 @@ class Interface:
                 if len(vals) == 1:
                     (after,) = vals
                     if (after > now) - (after < now) == want_sign:
-                        return Realisation(a, why=f"observed to move {slot} that way {how}")
-        return None
+                        return (Realisation(a, why=f"observed to move {slot} that way {how}"),
+                                against)
+                    if a not in decided:
+                        against.add(a)
+                if vals:
+                    decided.add(a)
+        return None, against
 
     def expected_move(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
                       state: dict | None = None, env: Any = None,

@@ -10,6 +10,10 @@ today's mean-delta tiers. Data: o0.col's cell evidence rebuilt from run (C)'s le
       legitimate +);
   m3: no cell evidence at the current value: ON and OFF pick the same;
   m4: a cell holding two values gives no direction from that cell;
+  m6 (10:07Z guard): left's cell at 2 is {1}, right has no cell there, want +: neither tier
+      picks left -- right by the prior, or None;
+  m7: gridworld_s0 c20's edge case (o0.row at 0, want -, down's cell from 0 is {1}, up has no
+      cell there) reproduces today's pick, up;
   expected_move is unchanged by the arm (cell=False there, scope of the ruling).
 
     python test_realise_cell.py
@@ -73,6 +77,28 @@ if __name__ == "__main__":
     assert _pick(g, 2, "+", True) == (None, None), _pick(g, 2, "+", True)
     print("  m4: right's cell at 2 holds {1, 3}: no direction from it; with no other "
           "evidence the pick is None")
+    g6 = _iface({"left|2": [1]}, {"left": (3, 4 + 4 - 1), "right": (2, 1 - 4)})
+    p6 = _pick(g6, 2, "+", True)
+    assert p6[0] != "left", p6
+    print(f"  m6: left's cell {{1}} at 2, right silent, want +: ON picks {p6[0]} ({p6[1]}); "
+          f"OFF picks {_pick(g6, 2, '+', False)[0]}")
+    f7 = IFace.Interface()
+    f7.table["down"] = {"lands": {(CTX, "o0.row", 0): {1}},
+                        "delta": {(CTX, "o0.row", IFace.SELF): (5, 5)}}
+    f7.table["up"] = {"delta": {(CTX, "o0.row", IFace.SELF): (5, -5)}}
+    was = IFace._REALISE_CELL
+    try:
+        out = []
+        for on_ in (False, True):
+            IFace._REALISE_CELL = on_
+            r7 = f7.realise(IFace.Intent(IFace.BECOME, "o0.row", "-"), OFFERED, CTX,
+                            {"o0.row": 0}, None)
+            out.append(r7.action if r7 else None)
+    finally:
+        IFace._REALISE_CELL = was
+    assert out == ["up", "up"], out
+    print(f"  m7: o0.row at 0, want -, down's cell {{1}}, up silent: OFF {out[0]}, ON {out[1]} "
+          "(today's pick reproduced)")
     em = []
     for on_ in (False, True):
         was = IFace._REALISE_CELL
