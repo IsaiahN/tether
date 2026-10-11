@@ -6,7 +6,8 @@ to o3.col's column, so the operand is a slot the world can move.
   1. moving operand: minted "o0.col +" (o0.col 2, o3.col 3); o3.col now 1 -> ends `stale` at
      PLAN with minted +, live -, and the routine is not held; OFF, no stale row;
   2. still operand (o3.col stays 3): the choice and the ledger rows equal OFF's;
-  3. a stale ending refuses nothing: refuted / _refusals / _reach_tested / routines unchanged;
+  3. a stale ending refuses nothing: the SAME shape passes the mint's refusal check after it
+     (the reviewer 10:53Z), and the control -- that routine ended `exhausted` -- is refused;
   6. unreadable operand (o3.col absent) and a held comparison: equal OFF's (A1).
 
     python test_routine_stale.py
@@ -55,10 +56,17 @@ if __name__ == "__main__":
     assert ag._routine_adopted is not r and ag.routine is not r, (ag.routine, r)
     off = _run(False, moved)
     assert not [e for e in _ends(off[3]) if e.get("outcome") == "stale"], _ends(off[3])
-    print(f"  1: moving operand -> stale {st[0]}; OFF: endings {[e['outcome'] for e in _ends(off[3])]}"
+    oe = [e["outcome"] for e in _ends(off[3])]
+    print(f"  1: moving operand -> stale {st[0]}; OFF: endings {oe}"
           f", choice {off[2]}")
     assert frozen == after, (frozen, after)
-    print(f"  3: refuted/_refusals/_reach_tested/routines {frozen} -> {after}")
+    key = ag._refusal_key(ag._characterise_gap("o0.col"), r)
+    assert not ag._refused(key), key
+    ag.routine, ag.routine_for, ag._routine_adopted = r, "o0.col", r
+    ag._end_routine(Rt.EXHAUSTED, moved)
+    assert ag._refused(key), key
+    print(f"  3: after stale the same shape is admissible (refused False); control, the same "
+          f"routine ended exhausted: refused True; counts {frozen} -> {after}")
     for name, s in (("2 still operand", base),
                     ("6 unreadable operand", {k: v for k, v in base.items() if k != "o3.col"}),
                     ("6 held comparison", dict(base, **{"o0.col": 3}))):
