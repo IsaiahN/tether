@@ -22,6 +22,7 @@ import arc_percept
 import arc_self
 import armflag
 import observer
+import relations
 import sensors
 
 SENSORS = sensors.minimum_set()
@@ -35,6 +36,9 @@ PLATFORM_UNIVERSAL = (GameAction.RESET.name,)
 # 2026-09-22. Item 4 (relations as per-pair slots) is here; it ships only with arm L, which
 # bounds the operand axis the wider slot set would otherwise multiply.
 _OBSERVER = armflag.arm("TETHER_OBSERVER")
+# ARC B2 (the reviewer 2026-10-11 10:11, 10:20, 11:48 CDT): pair relations as slots over the contact
+# pairs and the agent's actor pairs. OFF; reason in conform/arms.py.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
 
 
 def _oldest(d: dict) -> int:
@@ -118,6 +122,9 @@ class ArcWorld:
         self._contacts: dict[str, list[str]] | None = None
         self._contact_pts: list | None = None
         self._prev_contacts: dict[str, list[str]] | None = None
+        self._actors: frozenset = frozenset()          # ARC B2: set by the agent's `relate`
+        self._pair_read: dict[str, int] | None = None  # ARC B2: this frame's pair slots
+        self._pair_src: dict[str, tuple] = {}          # ARC B2: each pair slot's sources
         # 18.3's family lives HERE because the members read BOARDS and the agent may not.
         # What it holds that is episode-scoped is dropped by `boundary()`, which the loop
         # calls at a level change -- see `tether.retarget`.
@@ -361,7 +368,7 @@ class ArcWorld:
             seen = True
             return (0, int(o["row"]), int(o["col"]), s)
 
-        out = sorted(self._decomposed(), key=key)
+        out = sorted(self._all(), key=key)
         return out, ("raster" if seen else "name")
 
     def slots(self) -> list[str]:
@@ -389,7 +396,7 @@ class ArcWorld:
     def attribute_of(self) -> dict[str, str]:
         """`{slot: which attribute it holds}`. **The loop may not derive this** -- it would
         have to split the slot name, which is `slot_owner`'s reason, one field over."""
-        return {s: s.rsplit(".", 1)[1] for s in self._decomposed()}
+        return {s: s.rsplit(".", 1)[1] for s in self._all()}
 
     def peers(self) -> dict[str, tuple[str, ...]]:
         """`{slot: the SAME attribute on every OTHER object}`. **The loop may not derive this**
@@ -400,7 +407,7 @@ class ArcWorld:
         attribute*, which is the group question the loop could only ask one operand at a time.
         """
         by_attr: dict[str, list[str]] = {}
-        for s in self._decomposed():
+        for s in self._all():
             by_attr.setdefault(s.rsplit(".", 1)[1], []).append(s)
         return {s: tuple(x for x in group if x != s)
                 for group in by_attr.values() for s in group}
@@ -417,8 +424,14 @@ class ArcWorld:
         `arc_atoms.ATTRIBUTE_TYPE`, which is the same table `_extract` types its atoms with,
         because a slot IS an object's attribute and two tables would drift.
         """
-        return {s: arc_atoms.ATTRIBUTE_TYPE.get(s.rsplit(".", 1)[-1], s.rsplit(".", 1)[-1])
-                for s in self._decomposed()}
+        return {s: self._type_of(s.rsplit(".", 1)[-1]) for s in self._all()}
+
+    @staticmethod
+    def _type_of(attr: str) -> str:
+        rel = relations.pair_attr(attr)        # ARC B2: a pair slot is typed by its relation
+        if rel is not None:
+            return relations.PAIR_RELATIONS[rel]
+        return arc_atoms.ATTRIBUTE_TYPE.get(attr, attr)
 
     def sensors(self) -> Any:
         """The typed registry. `atoms()` declares Γ's vocabulary; this declares perception's.
@@ -483,7 +496,9 @@ class ArcWorld:
         relation is ever published AS a slot it belongs in this tuple**, and the consumer
         will pick it up with no further change.
         """
-        return ()
+        # ARC B2: the pair attributes ARE relations published as slots, declared here.
+        return tuple(sorted({k.rsplit(".", 1)[1] for k in self._all()
+                             if relations.pair_attr(k.rsplit(".", 1)[1])}))
 
     def slot_owner(self) -> dict[str, str]:
         """Which SUBJECT each slot is an attribute of. **The loop may not derive this.**
@@ -494,7 +509,7 @@ class ArcWorld:
         would be reading domain structure.** Grouping is that same split, so the domain
         declares it and the loop only compares.
         """
-        return {s: s.rsplit(".", 1)[0] for s in self._decomposed()}
+        return {s: s.rsplit(".", 1)[0] for s in self._all()}
 
     def atoms(self) -> list:
         return list(self._atoms)
@@ -560,7 +575,7 @@ class ArcWorld:
         13-colour board -- a collision introduced with the sensor and found while implementing
         this. A displacement ranges over the board, not the palette.
         """
-        d = self._decomposed()
+        d = self._all()
         b = self.board()
         # `b is None`, NEVER `if b`: the board is a numpy array and its truth value raises.
         # 8 seats read clean with this wrong, because no conform world hands back an array.
@@ -569,6 +584,13 @@ class ArcWorld:
         out: dict[str, int] = {}
         for s in d:
             key = s.rsplit(".", 1)[-1]
+            rel = relations.pair_attr(key)
+            if rel is not None:
+                # ARC B2: a box gap and an offset range over the board, as `drow`/`dcol` do; a
+                # containment or contact is 0/1.
+                out[s] = (max(h, w) if rel == "dist" else 2 * h if rel == "drow"
+                          else 2 * w if rel == "dcol" else 2)
+                continue
             if key == "completed":
                 # THE BOARD DECLARES ITS OWN RANGE. `win_levels` is what the game says winning
                 # takes, so the code over the goal slot is exactly as wide as the task is --
@@ -713,7 +735,78 @@ class ArcWorld:
         `rec.get(key, NOT_RESOLVED)` -- so the agent still READS NOT_RESOLVED, and the
         suspension falls out of machinery that already existed.
         """
-        return {k: v for k, v in self._decomposed().items() if v is not sensors.NOT_RESOLVED}
+        return {k: v for k, v in self._all().items() if v is not sensors.NOT_RESOLVED}
+
+    # -- ARC B2: pair relations as DERIVED slots ----------------------------------------------
+
+    def relate(self, subjects: Any) -> None:
+        """ARC B2 (the reviewer 2026-10-11 11:48 CDT): the agent's ACTOR SET -- the owners of its
+        own `Agency.contingent` slots -- steers which pairs this world measures: every pair whose
+        subject is an actor, beside the contact pairs. Attention steering perception; the world
+        still names, types and owns every slot.
+
+        AGENT-SIDE ONLY. It changes what the agent's own sensors compute over frames already
+        received, and is never forwarded to the game, the harness action channel or the gateway.
+
+        THE LAG, BY CONSTRUCTION: the agent calls this at the top of its step, before it
+        observes, with what its LAST step made contingent -- so actor pairs light one step after
+        contingency first appears. A changed set re-measures the current frame's pairs (computed
+        from the read; the tracker is not touched), so the agent's observe sees them."""
+        new = frozenset(subjects)
+        if new != self._actors:
+            self._actors = new
+            self._pair_read = None
+
+    def _pair_list(self) -> list[tuple[str, str]]:
+        """The ordered pairs measured this frame: contact pairs both ways, and actor pairs."""
+        tr = getattr(self._decompose, "tracked", None) or {}
+        names = sorted(tr)
+        pairs = {(a, b) for a, bs in self.contacts().items() for b in bs if a in tr and b in tr}
+        pairs |= {(a, b) for a in self._actors if a in tr for b in names if b != a}
+        return sorted(pairs)
+
+    def _boxes(self, state: dict, objs: set) -> dict[str, dict]:
+        """Each object's box read from SLOT values, so a predicted state derives as a seen one."""
+        out = {}
+        for o in objs:
+            vals = [state.get(f"{o}.{k}") for k in ("row", "col", "h", "w")]
+            if all(isinstance(v, int) for v in vals):
+                out[o] = dict(zip(("row", "col", "h", "w"), vals, strict=True))
+        return out
+
+    def _pairs_now(self) -> list[tuple[str, str]]:
+        return sorted({(src[0].rsplit(".", 1)[0], src[4].rsplit(".", 1)[0])
+                       for src in self._pair_src.values()})
+
+    def derive(self, state: dict) -> dict[str, int]:
+        """The pair slots computed from any state of slot values -- the instrument applied to a
+        predicted state (B2b (c)). A pair with an unreadable party is omitted."""
+        if not _RELATION_SET:
+            return {}
+        pairs = self._pairs_now()
+        boxes = self._boxes(state, {o for p in pairs for o in p})
+        return relations.pair_slots_over(boxes, [(a, b) for a, b in pairs
+                                                 if a in boxes and b in boxes])
+
+    def derived(self) -> dict[str, tuple[str, ...]]:
+        """Each pair slot and the slots it is computed from (both boxes' row, col, h, w)."""
+        self._all()
+        return dict(self._pair_src) if _RELATION_SET else {}
+
+    def _all(self) -> dict[str, int]:
+        """The frame's read plus its pair slots, computed FROM the read and never inside its
+        cache (the tracker advances once per frame). A pair whose party is covered stays, as
+        NOT_RESOLVED, like any covered attribute; it leaves when an object does."""
+        d = self._decomposed()
+        if not _RELATION_SET or not d or self.blind:
+            return d
+        if self._pair_read is None:
+            self._pair_src = {f"{a}.{rel}_{b}": tuple(f"{o}.{k}" for o in (a, b)
+                                                        for k in ("row", "col", "h", "w"))
+                              for a, b in self._pair_list() for rel in relations.PAIR_RELATIONS}
+            got = self.derive(d)
+            self._pair_read = {k: got.get(k, sensors.NOT_RESOLVED) for k in self._pair_src}
+        return {**d, **self._pair_read}
 
     def cues(self) -> dict | None:
         """WHAT MUTATED, AND WHICH PRIMITIVES ARE LIT ON EACH OBJECT -- the directed cue.
@@ -771,6 +864,7 @@ class ArcWorld:
         self._prev_contacts = self._contacts
         self._contacts = None      # and a new set of contacts
         self._contact_pts = None   # and a new set of typed contact points
+        self._pair_read = None     # and a new set of pair relations (ARC B2)
         now = self.board()
         if self.on_frame is not None:
             self.on_frame(was, action, now)

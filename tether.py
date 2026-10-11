@@ -9620,6 +9620,14 @@ class Agent:
         self._peer_cache = None
         self._decomp_cache = None
         self._frame_cache = {}
+        if _RELATION_SET:
+            # ARC B2 (the reviewer 2026-10-11 11:48 CDT): the agent's own actor set -- the owners
+            # of its contingent slots -- steers which pairs its sensors measure. Last step's
+            # contingency, so actor pairs lag it by one step. Never reaches the game.
+            _rel = getattr(self.env, "relate", None)
+            if _rel is not None:
+                _own = self._slot_owners(self.env)
+                _rel({_own[s] for s in self.agency.contingent() if s in _own})
         if _MC6:
             self._step_row0 = len(self.led)
         if _COMPLETION_SWEEP and self._deg_prev is None:

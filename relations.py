@@ -108,20 +108,25 @@ def within(a: dict, b: dict) -> bool:
             and b["col"] <= a["col"] and a["col"] + a["w"] <= b["col"] + b["w"])
 
 
+def pair_values(ra: dict, rb: dict) -> dict[str, int]:
+    """The five relations of the ordered pair (a, b), keyed by relation."""
+    dr, dc = offset(ra, rb)
+    gap = _cheby(ra, rb)
+    return {"dist": gap, "drow": dr, "dcol": dc, "inside": int(within(ra, rb)),
+            "touches": int(gap == 0)}
+
+
 def pair_slots(objs: dict[str, dict]) -> dict[str, int]:
     """`{"{a}.{rel}_{b}": value}` over every ordered pair of the objects given."""
+    return pair_slots_over(objs, [(a, b) for a in objs for b in objs if a != b])
+
+
+def pair_slots_over(objs: dict[str, dict], pairs: list) -> dict[str, int]:
+    """`{"{a}.{rel}_{b}": value}` over the ordered pairs given (ARC B2: contact and actor pairs)."""
     out: dict[str, int] = {}
-    for a, ra in objs.items():
-        for b, rb in objs.items():
-            if a == b:
-                continue
-            dr, dc = offset(ra, rb)
-            gap = _cheby(ra, rb)
-            out[f"{a}.dist_{b}"] = gap
-            out[f"{a}.drow_{b}"] = dr
-            out[f"{a}.dcol_{b}"] = dc
-            out[f"{a}.inside_{b}"] = int(within(ra, rb))
-            out[f"{a}.touches_{b}"] = int(gap == 0)
+    for a, b in pairs:
+        for rel, v in pair_values(objs[a], objs[b]).items():
+            out[f"{a}.{rel}_{b}"] = v
     return out
 
 
