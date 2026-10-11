@@ -349,13 +349,24 @@ class GridWorld:
 
     def _pairs(self) -> dict[str, int]:
         """B2: every ordered pair's relation slots, from the objects' own cells (1x1 here)."""
+        return self.derive(self.state) if _RELATION_SET else {}
+
+    def derive(self, state: dict) -> dict[str, int]:
+        """B2b (the reviewer 2026-10-11 10:30 CDT): the pair slots computed from ANY state the
+        caller gives -- the instrument applied to a predicted state, so the agent's relational
+        prediction comes from its own predicted positions and never from the world's truth."""
         if not _RELATION_SET:
             return {}
-        objs = {f"o{i}": {"row": self.state[f"o{i}.row"], "col": self.state[f"o{i}.col"],
-                          "h": 1, "w": 1}
+        objs = {f"o{i}": {"row": state[f"o{i}.row"], "col": state[f"o{i}.col"], "h": 1, "w": 1}
                 for i in range(N_OBJECTS)
-                if f"o{i}.row" in self.state and f"o{i}.col" in self.state}
+                if state.get(f"o{i}.row") is not None and state.get(f"o{i}.col") is not None}
         return relations.pair_slots(objs)
+
+    def derived(self) -> dict[str, tuple[str, ...]]:
+        """B2b: each pair slot and the slots it is computed from (both objects' row and col)."""
+        return {k: tuple(f"{o}.{a}" for o in (k.split(".", 1)[0], k.rsplit("_", 1)[1])
+                         for a in ("row", "col"))
+                for k in self._pairs()}
 
     def atoms(self) -> list[Atom]:
         """THE TOY WORLD'S ATOMS, VERBATIM. See the module docstring: one variable moves."""

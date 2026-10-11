@@ -3981,6 +3981,14 @@ class Agent:
         # term the habitat says is TRUE (`o1.colour` +1 mod 4 on 21 of 21 own clicks).
         if _D5 and (self._parts or self._d5_pending):
             self._d5_select(betting, before, action)
+        # B2b (the reviewer 2026-10-11 10:30 CDT): a DERIVED slot (a pair relation the world
+        # computes from other slots) is not an independent subject. It is not bet on; its
+        # prediction is the world's own instrument applied to the PREDICTED sources, and it
+        # enters the search only on a relational surprise (below). Fig 13: a member that draws
+        # on the same evidence as others carries no information of its own.
+        _derived = getattr(self.env, "derived", None)
+        _derived = _derived() if _derived is not None else {}
+        betting = [s for s in betting if s not in _derived]
         self._pred_by = {s: self.bound.get(s) for s in betting}
         pred = {s: self._predict(s, before, action) for s in betting}
         raw = {s: self._pred_raw.get(s) for s in betting if pred[s] is not None}
@@ -3992,6 +4000,12 @@ class Agent:
                             reads=("the bound term returned no reading, so no bet is made and "
                                    "no prediction error is claimed on this slot"))
         betting = [s for s in betting if pred[s] is not None]
+        _dpred: dict = {}
+        if _derived:
+            _ps = dict(before)
+            _ps.update({s: (raw[s] if raw.get(s) is not None else pred[s]) for s in betting})
+            _dpred = {k: v for k, v in self.env.derive(_ps).items() if k in _derived}
+        self._derived_pred = _dpred
         _, deg_before = self.env.objective()
         _real = IFace.Realisation(action, coord)
         # **THE ACTING-OBJECT KEY WAS TRIED HERE AND MEASURED HARMFUL -- 2026-09-28, dropped
@@ -4088,6 +4102,8 @@ class Agent:
             if _MC_SIGNAL:
                 self._signals.append((_bet.seq, s, self.bound.get(s, NO_CHANGE)))
             self._standing(s)
+        if _derived:
+            self._relational_surprise(_derived, _dpred, res, after, before)
 
         # the reward channel: on the figures, and reported here. Its remedy is the
         # composition of actions, which is not built -- so it is recorded, not actioned.
@@ -4309,6 +4325,31 @@ class Agent:
         rec = self._carry_log.get((name, slot))
         if rec is not None:
             rec[what] += 1
+
+    def _relational_surprise(self, derived: dict, dpred: dict, res: dict, after: dict,
+                             before: dict) -> None:
+        """B2b (d): a derived slot enters the search only when its observed value differs from
+        the relation derived from the predicted sources WHILE every source prediction held --
+        the genuinely relational residual (a blocked move: the mover was predicted to move,
+        the gap to shrink, and it did not). One summary row per cycle keeps the rest legible."""
+        held = surprised = 0
+        for k, srcs in derived.items():
+            if k not in dpred or k not in after:
+                continue
+            if not all(s in res and res[s].bits == 0 for s in srcs):
+                continue                      # a source missed: its own residual carries it
+            if after[k] == dpred[k]:
+                held += 1
+                continue
+            surprised += 1
+            bits = correction_bits(dpred[k] % self.alphabet[k], after[k], self.alphabet[k])
+            res[k] = SlotResidual(k, TRANSITION, dpred[k] % self.alphabet[k], after[k], bits)
+            self.led.record(self.cycle, "PERCEIVE", k, "relational_surprise", of=tuple(srcs),
+                            from_value=before.get(k), derived=dpred[k], actual=after[k],
+                            mass=bits, reads="the relation derived from the held source "
+                                             "predictions did not hold")
+        self.led.record(self.cycle, "PERCEIVE", "@derived", "derived", slots=len(derived),
+                        predicted=len(dpred), held=held, surprised=surprised)
 
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
         """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.
@@ -8067,7 +8108,14 @@ class Agent:
         # thing, never the answer itself"). An order, so every binding is still reached; it
         # matters because most mints stop on budget, where order decides what is reached.
         lib = self._named.get(slot, {}) if _LOOKUP_ORDER else {}
-        out = [None] + sorted(others, key=lambda s: (*rank(s), s not in lib, -seen[s], s))
+        # B2b, DERIVATION ORDER (the reviewer 2026-10-11 10:44 CDT): a derived slot (a pair
+        # relation computed from other slots) comes after every slot it could be derived from --
+        # it draws on the same evidence (Fig 13), so the higher-information operands are tried
+        # first. An order, never a cut: once the ordinary operands are spent it is still reached.
+        _der = getattr(self.env, "derived", None)
+        _der = set(_der()) if _der is not None else set()
+        out = [None] + sorted(others, key=lambda s: (s in _der, *rank(s), s not in lib,
+                                                     -seen[s], s))
         if _WINDOW:
             out += self._window_lags(slot, robs)
         return out
