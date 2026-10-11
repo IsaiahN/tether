@@ -475,6 +475,9 @@ _M6_INVENT = armflag.arm("TETHER_M6_INVENT")
 # 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). OFF; reason in conform/arms.py.
 # Compute only: no action, no bet, nothing installed -- a MUSE row is all it writes.
 _MC6 = armflag.arm("TETHER_MC6")
+# 7a(10) D1-D3, THE SAME LOOP ONE LEVEL UP (R3 part 2; the reviewer 2026-10-10 23:50Z). OFF; reason
+# in conform/arms.py. Process bets about GROUND outcomes, settled only at a level or game ending.
+_D13 = armflag.arm("TETHER_D13")
 
 
 def _confirm_actions(r: Any) -> int | None:
@@ -1222,6 +1225,8 @@ class Agent:
         self._inv_lib = None          # M6: this agent's private library copy, made on first use
         self._inv_seen: dict = {}     # M6: slot -> history length last tried
         self._step_row0 = 0           # MC6: the ledger length when this step began
+        self._muse_last = None        # MC6 N2: (targets, methods) last tested, and its cycle
+        self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
         # WHICH MEMBERS ARE CURRENTLY DISCOUNTED, PER SCOPE. Held so the narration fires on the
@@ -1671,6 +1676,8 @@ class Agent:
         call it after their last step; `retarget` never sees a cap or a timeout."""
         self._note_ending(how, "run")
         self._resolve_signals("game", how)
+        if _D13:
+            self._settle_process("game", how)
 
     def _fingerprint(self, before: dict) -> tuple[str, str]:
         """7a(5) B: the BOARD where the world gives one, else observe() (the whole state there).
@@ -1840,6 +1847,8 @@ class Agent:
                             decay_half="boundary demotion, its own item -- credit without "
                                        "decay is the incumbency pathology (§21.4)")
         self._resolve_signals("level", how)
+        if _D13:
+            self._settle_process("level", how)
         self._settled_at_level = set(self.settled)
         self._settled_lvl = set()
         self._seq_at_level = len(self.led)
@@ -2202,6 +2211,59 @@ class Agent:
                         got.append(o_["operand"])
         return out
 
+    # ---------------------------------------------------------------- 7a(10) D1-D3
+    def _process_bet(self, kind: str, slot: str, **what: Any) -> None:
+        """D1: one of the agent's PROCESS states made a bet about a GROUND outcome (R3 part 2,
+        seeded from routine.Expect). Recorded and held open; D3 settles it only at an ending."""
+        row = self.led.record(self.cycle, "PLAN", "@process", "process_bet", kind=kind,
+                              about=slot, level=self.level, **what)
+        self._process_bets.append({"seq": row.seq, "kind": kind, "slot": slot,
+                                   "level": self.level})
+
+    def _park_bet(self, slot: str, detail: dict) -> None:
+        """D1 + D2: a parked slot bets it will be explained by level end, its stall described as
+        an EFFECT the lookup can match by shape (sealed at depth d; stopped at bound b; under the
+        floor by x bits). One open bet per slot per level."""
+        v = detail.get("verdict")
+        if v not in ("under_floor", "budget_spent", "priced_out_at_depth") or any(
+                b["slot"] == slot and b["kind"] == "parked_explained"
+                for b in self._process_bets):
+            return
+        stall = ({"effect": "under the floor", "base_bits": detail.get("base_bits"),
+                  "floor_bits": detail.get("floor_bits")} if v == "under_floor" else
+                 {"effect": "search stopped at its bound", "seen": detail.get("candidates_seen"),
+                  "coverage": detail.get("coverage")} if v == "budget_spent" else
+                 {"effect": "sealed at depth", "depth": detail.get("depth"),
+                  "seen": detail.get("candidates_seen")})
+        self._process_bet("parked_explained", slot, verdict=v, stall=stall)
+
+    def _settle_process(self, scope: str, how: str) -> None:
+        """D3: a process bet settles ONLY on a level or game outcome, read from the GROUND, never
+        from the agent's own diagnosis (Fig 10, "A verifier that can reconstruct the claim
+        cannot verify it."). A plan bet is right iff the level cleared (win or advance). A park
+        bet is right iff the world confirmed the slot's LAST bet this level (no mass); with no
+        bet on it, there is no ground reading and it says so. D2: an uncleared level's stall is
+        recorded as an effect, the actions it ran for."""
+        rows = self.led.rows()[self._seq_at_level:]
+        last = {}
+        for r in rows:
+            if r["event"] == "bet":
+                last[r["slot"]] = float(r["detail"].get("mass", 0) or 0)
+        cleared = how in (WIN, ADVANCE)
+        for b in self._process_bets:
+            if b["kind"] == "plan_clears":
+                right, by = cleared, f"the level's ending: {how}"
+            elif b["slot"] in last:
+                right, by = last[b["slot"]] == 0.0, "the world's grade of the slot's last bet"
+            else:
+                right, by = None, "no bet on the slot this level: no ground reading"
+            self.led.record(self.cycle, "SETTLE", "@process", "process_settle", bet_seq=b["seq"],
+                            kind=b["kind"], about=b["slot"], right=right, settled_by=by,
+                            scope=scope, how=how, level=self.level,
+                            **({} if cleared else {"stall": {
+                                "effect": "level stalled", "actions": self._attempt_actions}}))
+        self._process_bets = []
+
     # ---------------------------------------------------------------- 7a(10) MC6, MUSE
     def _owes_nothing(self) -> bool:
         """MC6's mastery (R3 part 2): no residual outstanding on the level -- owed_import empty,
@@ -2226,6 +2288,16 @@ class Agent:
         t0 = time.perf_counter()
         methods = sorted(n for n, t in self.gamma.library.items()
                          if not self.gamma.is_atom(t) and self.gamma.is_settled(n))
+        # N2 (the reviewer 00:05Z): nothing changed since the last muse, nothing is re-tested
+        key = (tuple(sorted(targets)), tuple(methods))
+        if self._muse_last is not None and self._muse_last[0] == key:
+            self.led.record(self.cycle, "IMPORT", "@muse", "muse", level=self.level,
+                            unchanged_since=self._muse_last[1], tried=0, paying=[],
+                            compute_ms=round(1000 * (time.perf_counter() - t0), 3),
+                            installed=False,
+                            reads="the same targets and settled methods as that cycle's muse")
+            return
+        self._muse_last = (key, self.cycle)
         tried, paying, skipped = 0, [], Counter()
         for key, rec in sorted(targets.items()):
             slot, hist = rec["slot"], rec["hist"]
@@ -2253,6 +2325,10 @@ class Agent:
                         paying=paying, skipped=dict(skipped),
                         compute_ms=round(1000 * (time.perf_counter() - t0), 3),
                         installed=False,
+                        # N1 (the reviewer 00:05Z): as in the sweep, choosing the operand (bare
+                        # or one of the record's slots) is not charged; operand-choice pricing
+                        # is ONE queued item, never half-applied (the reviewer 2026-10-09 14:52Z)
+                        binding="unpriced",
                         reads=("a mastered method re-tested on an earlier level's parked "
                                "residual; the gap recorded, nothing installed, no action"))
 
@@ -6931,6 +7007,9 @@ class Agent:
                         unsat=round(unsat, 4), considered=len(priced), shelf=len(shelf),
                         route="learned: observed to move this slot the wanted way")
         self._plan_seqs[self._plan_no] = _mint_row.seq     # 5b: the routine's own seq
+        if _D13:
+            self._process_bet("plan_clears", slot, plan_no=self._plan_no,
+                              need=_confirm_actions(cand), plan_seq=_mint_row.seq)
 
     def _term_of(self, slot: str | None) -> dict | None:
         """5b: the objective term `_goal_target` reads for this slot, by the same lookup, with its
@@ -8376,6 +8455,8 @@ class Agent:
             if _LIBRARY_FIRST:
                 detail["library_first"] = dict(_lf_stats)
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
+            if _D13:
+                self._park_bet(slot, detail)
             if _M6_INVENT:
                 self._invent(slot, hist, base, base_held, detail["verdict"])
             return

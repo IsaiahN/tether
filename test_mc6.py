@@ -79,8 +79,14 @@ if __name__ == "__main__":
     lv = sorted({m["level"] for m in muses})
     tried = sum(m["tried"] for m in muses)
     pay = sum(len(m["paying"]) for m in muses)
-    print(f"  must-pass: {len(muses)} MUSE rows on seed 7 (levels {lv}); tried {tried} chain "
-          f"bindings, {pay} would pay; compute_ms median {ms[len(ms) // 2]}, max {ms[-1]}")
+    pairs = {(p["parked"], p["method"]) for m in muses for p in m["paying"]}
+    fresh = sum(1 for m in muses if "unchanged_since" not in m)
+    assert all(m["binding"] == "unpriced" for m in muses if "unchanged_since" not in m)
+    print(f"  must-pass: {len(muses)} MUSE rows on seed 7 (levels {lv}), {fresh} tested afresh, "
+          f"{len(muses) - fresh} unchanged-since (N2); tried {tried} chain bindings, {pay} would "
+          f"pay, {len(pairs)} DISTINCT (parked residual, method) pairs over "
+          f"{len({p[0] for p in pairs})} earlier-level residuals; binding unpriced (N1); "
+          f"compute_ms median {ms[len(ms) // 2]}, max {ms[-1]}")
     print(f"  MC6-d: {len(checked)} muse calls, every live structure unchanged across each")
     off = _ladder(False)
 

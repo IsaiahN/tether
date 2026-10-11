@@ -250,6 +250,14 @@ ARMS: dict[str, str] = {
                            "(waiting) is read from Agency.order. OFF and HELD: on the test worlds "
                            "paying plans tie in both readings, no reserve is ever learned inside "
                            "one run, and Agency.order is empty without a cascade",
+    "TETHER_D13": "7a(10) D1-D3, the same loop one level up (R3 part 2; the reviewer "
+                  "2026-10-10 23:50Z): ON, the agent's process states bet on GROUND "
+                  "outcomes -- an adopted plan that it clears the level, a parked slot "
+                  "that the world will confirm it by level end, its stall described as an "
+                  "effect -- and each settles only at a level or game ending, from the "
+                  "ending word or the world's grade of the slot's last bet, never from "
+                  "the agent's own diagnosis. OFF until 7-and-a-half: a record with no "
+                  "decision consumer yet",
     "TETHER_MC6": "7a(10) MC6 muse (R3 part 2; the reviewer 2026-10-10 23:50Z): ON, on a step "
                   "that owes nothing (owed_import empty, under_floor included, and this "
                   "step's bets paying), the settled methods are re-tested as chains on an "
