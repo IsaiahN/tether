@@ -263,6 +263,14 @@ ARMS: dict[str, str] = {
                   "agent's own diagnosis. ON BY DEFAULT with objective build step 1 (the "
                   "reviewer 2026-10-11 02:19Z), its consumer; record only. Spelled "
                   "`default=True`, default-on",
+    "TETHER_REALISE_CELL": "the cell tier (the reviewer 2026-10-11 09:53Z): ON, a direction intent "
+                           "reads each action's effect from the CELL the slot is in -- the sign of "
+                           "after - before in its singleton `lands` entry keyed (ctx, slot, "
+                           "before), this ctx then any ctx (non-relational) -- before today's "
+                           "mean-delta tiers, so a wrap seen at an edge cannot set the direction "
+                           "from column 2 "
+                           "(run C, c98). expected_move keeps today's reading (cell=False). OFF: a "
+                           "default-path reader, it needs its own panel reading",
     "TETHER_WANT_TARGET_SUBJECT": "F2's fallback (the reviewer 2026-10-11 07:20Z, option (i)): ON, "
                                   "_goal_target and _term_of read a retained want ONLY where "
                                   "_want_scope names it (a goal-condition want); every own want "

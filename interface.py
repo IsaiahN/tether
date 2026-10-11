@@ -31,6 +31,8 @@ from dataclasses import dataclass, field
 from dataclasses import replace as _replace
 from typing import Any
 
+import armflag
+
 sys.dont_write_bytecode = True
 
 # WHAT THE AGENT CAN MEAN. Deliberately NOT an action vocabulary -- these name what the agent
@@ -114,6 +116,11 @@ RELATIONAL: tuple[str, ...] = ("proximity",)
 # stored, so no object name enters a key.
 SELF, OTHER, NO_TARGET = "self", "other", "no_target"
 
+
+# THE CELL TIER (the reviewer 2026-10-11 09:53Z): a direction intent reads each action's effect
+# FROM THE CELL THE SLOT IS IN, keyed (ctx, slot, before) as `lands` and `signs` already are.
+# OFF; reason in conform/arms.py.
+_REALISE_CELL = armflag.arm("TETHER_REALISE_CELL")
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -402,7 +409,7 @@ class Interface:
 
     def realise(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
                 state: dict | None = None, env: Any = None,
-                withheld: Withheld = NO_WITHHELD) -> Realisation | None:
+                withheld: Withheld = NO_WITHHELD, cell: bool = True) -> Realisation | None:
         """**THE ONE DOOR, SO NO EXIT CAN SEND A SECOND CONSECUTIVE `RESET`.**
 
         **ISAIAH, 2026-09-29, AND IT IS A HARD CONSTRAINT RATHER THAN A PREFERENCE:** *fully
@@ -440,10 +447,10 @@ class Interface:
         # 7a(5) C: RUIN IS ORDERED FIRST. A pair the floor vetoes on this board is never offered,
         # unless every option is vetoed; then all are offered and `why` says so.
         offered, w, every = self._withhold(withheld, offered, state, env)
-        r = self._choose(intent, offered, ctx, state, env, w)
+        r = self._choose(intent, offered, ctx, state, env, w, cell=cell)
         if r is not None and r.action == RESET and self._last_was_reset:
             _alt = tuple(a for a in offered if a != RESET)
-            r = self._choose(intent, _alt, ctx, state, env, w) if _alt else None
+            r = self._choose(intent, _alt, ctx, state, env, w, cell=cell) if _alt else None
         if r is not None and every:
             r = _replace(r, why=f"{r.why}; {ALL_VETOED}")
         return r
@@ -463,7 +470,7 @@ class Interface:
 
     def _choose(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
                 state: dict | None = None, env: Any = None,
-                w: Withheld = NO_WITHHELD) -> Realisation | None:
+                w: Withheld = NO_WITHHELD, cell: bool = True) -> Realisation | None:
         """Pick an action that serves this intent, or abstain.
 
         **ABSTENTION IS A READING** -- §12.2. `None` means *this board's vocabulary cannot
@@ -554,6 +561,11 @@ class Interface:
             # -1 down. Abstain when nothing observed moves it -- an unrealisable intent is a
             # reading the agent is entitled to, not a substitution.
             want_sign = 1 if (intent.object or "+") == "+" else -1
+            if (_REALISE_CELL and cell and state is not None and intent.subject in state):
+                r = self._by_cell(intent.subject, int(state[intent.subject]), want_sign,
+                                  offered, ctx, env)
+                if r is not None:
+                    return r
             best, score, how = None, 0.0, ""
             for a in offered:
                 d = self.table.get(a, {}).get("delta", {})
@@ -1064,6 +1076,27 @@ class Interface:
             kinds[kind] = kinds.get(kind, 0) + 1
         return tuple(sorted(kinds.items()))
 
+    def _by_cell(self, slot: str, now: int, want_sign: int, offered: tuple[str, ...],
+                 ctx: tuple, env: Any) -> Realisation | None:
+        """The cell tier (the reviewer 2026-10-11 09:53Z): an action's direction FROM THE CELL
+        THE SLOT IS IN -- the sign of (after - before) in its `lands` entry keyed by the value
+        before the press, as the 2026-09-28 ruling keys `lands` and `signs`. Only a singleton
+        cell gives a direction (a cell holding two values is unreliable there). Tier 0a: this
+        ctx; tier 0b: any ctx, non-relational slots only. None when no offered action has cell
+        evidence, or none of it goes the wanted way -- the caller then uses today's tiers."""
+        tiers = [("from this value here", True)]
+        if not _is_relational(slot, env):
+            tiers.append(("from this value", False))
+        for how, same_ctx in tiers:
+            for a in offered:
+                vals = {v for (c, k, b), vs in self.table.get(a, {}).get("lands", {}).items()
+                        if k == slot and b == now and (c == ctx or not same_ctx) for v in vs}
+                if len(vals) == 1:
+                    (after,) = vals
+                    if (after > now) - (after < now) == want_sign:
+                        return Realisation(a, why=f"observed to move {slot} that way {how}")
+        return None
+
     def expected_move(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
                       state: dict | None = None, env: Any = None,
                       withheld: Withheld = NO_WITHHELD) -> float | None:
@@ -1089,7 +1122,9 @@ class Interface:
         """
         if intent.subject is None:
             return None
-        r = self.realise(intent, offered, ctx, state, env, withheld)
+        # cell=False: the per-press step stays today's reading (the reviewer 09:53Z scoped the
+        # cell tier to the action CHOICE only)
+        r = self.realise(intent, offered, ctx, state, env, withheld, cell=False)
         return None if r is None else self.step_of(r.action, intent.subject)
 
     def step_of(self, action: str, slot: str) -> float | None:
