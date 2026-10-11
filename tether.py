@@ -8384,9 +8384,10 @@ class Agent:
                 else:
                     _walk_these = ((c, 1) for c in _stream)
                 for cand, _pass in _walk_these:
-                    # Round 3's frontier key carries the round: a chain priced in round 1 has not
-                    # had its derived binds walked, so a resume must not skip them as priced.
-                    _pk = (_si, cand.name, 3) if _pass == 3 else (_si, cand.name)
+                    # A deferred round's frontier key carries the round (the reviewer 11:34 CDT):
+                    # a chain priced in round 1 has not had its deferred binds walked, so a resume
+                    # must not skip them as priced.
+                    _pk = (_si, cand.name, _pass) if _pass > 1 else (_si, cand.name)
                     if _hit and _pk in _hit[1]:
                         _skipped += 1
                         continue

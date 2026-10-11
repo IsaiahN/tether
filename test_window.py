@@ -229,6 +229,53 @@ def check_2b_d_one_and_two_pass_price_the_same_set_ties_counted() -> None:
         print("     TIE recorded:", d1.get("term"), d2.get("term"), t1)
 
 
+def _resume_walk(seq: list[int], budgets: tuple[int, ...]) -> list:
+    """Successive mints on ONE agent under the window, so each after the first resumes the
+    frontier the last one stored; per mint, its walked lag pairs and its record."""
+    ag = _agent()
+    ag.step()
+    slot = max(sorted(ag.slots), key=lambda s: ag.alphabet.get(s, 0))
+    base = dict(ag.trace[-1][0])
+    states = [{**base, slot: v} for v in seq]
+    ag.trace = [(states[i], "A", states[i + 1], tether.NO_INTENT, None)
+                for i in range(len(seq) - 1)]
+    ag._trace_pos = None
+    ag.bound.pop(slot, None)
+    out = []
+    orig = ag._operand_fits
+    for budget in budgets:
+        walked: set = set()
+
+        def spy(cand, s, x, _w=walked):
+            if s == slot and tether.lag_of(x):
+                _w.add((cand.name, x))
+            return orig(cand, s, x)
+        ag._operand_fits = spy
+        ag.cfg.work_budget = budget
+        keep = tether._WINDOW
+        try:
+            tether._WINDOW = True
+            ag.mint(slot)
+        finally:
+            tether._WINDOW = keep
+        rows = [r for r in ag.led.rows() if r.get("step") == "MINT" and r.get("slot") == slot]
+        out.append((walked, rows[-1]["detail"]))
+    return out
+
+
+def check_2b_e_a_resumed_mint_still_walks_its_no_evidence_lags() -> None:
+    """The reviewer 2026-10-11 11:34 CDT: a deferred round's frontier key carries the round. A mint
+    whose budget runs out in pass 1 records its chains as priced; the next mint on the slot resumes
+    and must still walk those chains' no-evidence lags in pass 2 -- the same lag pairs a fresh
+    mint walks. MUST-FAIL: with pass 2 keyed like pass 1, the resumed chains' lags are skipped."""
+    seq = [1, 2, 3, 5, 6, 8, 9, 0]                      # no lag has evidence: every lag is pass 2
+    [(fresh, _)] = _resume_walk(seq, (10 ** 6,))
+    [(w1, _), (w2, d2)] = _resume_walk(seq, (100, 10 ** 6))
+    assert not w1, len(w1)                              # the first mint ran out in pass 1
+    assert d2.get("chains_already_priced", 0) > 0, d2   # the second one RESUMED
+    assert fresh and w2 == fresh, (len(w2), len(fresh))
+
+
 def main() -> int:
     checks = [v for k, v in globals().items() if k.startswith("check_")]
     for c in checks:
