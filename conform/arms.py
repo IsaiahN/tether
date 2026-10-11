@@ -267,20 +267,31 @@ ARMS: dict[str, str] = {
                           "05:38Z): ON, _goal_target and _term_of read _objective_of -- the bound "
                           "term if it is an objective, else the retained want -- the order "
                           "goal_residual already used, so a want masked by a bound predictor "
-                          "yields its target. OFF until the live arc_s1 reading (step 8)",
+                          "yields its target. OFF until the live arc_s1 reading (step 8) "
+                          "'step 8' above was a slip, corrected 06:01Z. A DEFAULT-"
+                          "PATH change: the 42 masked refusals were the agent's own wants. 7.5: "
+                          "OFF PENDING READING (A); habitat: the 7-member panel at 60; reader: "
+                          "_goal_target and the goal exit; gate: (A) read and ruled",
     "TETHER_GOAL_PAIR": "objective build 2a, the goal pair (the reviewer 2026-10-11 05:14Z): ON, "
                         "a held goal condition may be the AND of two different conditions, "
                         "priced once as one term (both parts plus the `both` joiner); a pair is "
                         "formed only from conditions true on every step the objective held (a "
                         "search bound, recorded as one); L1's recheck and E1's close apply "
                         "unchanged; a held pair is not linked (item (b)). Needs "
-                        "TETHER_GOAL_CONDITION ON. OFF until (b) and its reading",
+                        "TETHER_GOAL_CONDITION ON. OFF until (b) and its reading "
+                        "(b) LANDED at 11adca0: a held pair links as one subject-scoped want per "
+                        "conjunct, so the 'not linked' above is superseded. 7.5: OFF PENDING "
+                        "READING (B); habitat: arc_s1 at 120; reader: TETHER_GOAL_LINK; gate: (B)"
+                        " read and ruled",
     "TETHER_GOAL_LINK": "objective build 3, the link to composition (the reviewer 2026-10-11 "
                         "02:19Z, 03:14Z): ON, a held goal condition is closed into the "
                         "objective stream with `all` and becomes its slot's want, so "
                         "_goal_choice and _mint_routine can pick it; linked only where the slot "
                         "holds no want (one want per slot; replacing one is not this item's). "
-                        "Needs TETHER_GOAL_CONDITION ON. OFF until the objective panel",
+                        "Needs TETHER_GOAL_CONDITION ON. OFF until the objective panel "
+                        "7.5: OFF PENDING READING (B); habitat: arc_s1 at 120; reader: "
+                        "_goal_choice and _goal_target (steers only with TETHER_WANT_TARGET); "
+                        "gate: (B) read and ruled",
     "TETHER_GOAL_CONDITION": "objective build 2, the goal condition (the reviewer 2026-10-11 "
                              "02:19Z): ON, at each completion the library's condition templates "
                              "over the readings are priced against WHEN the world's objective "
@@ -289,14 +300,20 @@ ARMS: dict[str, str] = {
                              "is held in-episode in the private library copy; the flag is the "
                              "then-side, never the subject; nothing about the target is "
                              "published. Needs TETHER_COMPLETION_SWEEP ON. OFF until the "
-                             "objective build's panel",
+                             "objective build's panel "
+                             "7.5: OFF PENDING READING (B); habitat: arc_s1 at 120 (a pair pays "
+                             "at c89, no single condition does); reader: TETHER_GOAL_LINK; gate: "
+                             "(B) read and ruled",
     "TETHER_COMPLETION_SWEEP": "objective build 1, the completion sweep (ARC_AGENT 21.3; the "
                                "reviewer 2026-10-11 02:19Z): ON, when the WORLD's objective "
                                "degree reaches 1.0 ('reached', not 'banked'), the segment since "
                                "the last completion is re-examined and recorded: what was "
                                "live, which terms settled, which owed slots closed. Record "
                                "only; nothing retargeted, dropped or cleared. OFF until the "
-                               "objective build's panel",
+                               "objective build's panel "
+                               "7.5: OFF PENDING READING (B); habitat: a world whose objective "
+                               "completes (arc_s1, 6 in 120); reader: TETHER_GOAL_CONDITION; "
+                               "gate: (B) read and ruled",
     "TETHER_MC6": "7a(10) MC6 muse (R3 part 2; the reviewer 2026-10-10 23:50Z): ON, on a step "
                   "that owes nothing (owed_import empty, under_floor included, and this "
                   "step's bets paying), the settled methods are re-tested as chains on an "

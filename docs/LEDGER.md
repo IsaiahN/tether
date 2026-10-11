@@ -210,6 +210,11 @@ Isaiah 2026-10-10 06:47 CDT, via the reviewer 11:48Z: step 7½ (after step 7, be
 | `TETHER_WINDOW` (item 2) | switch, behaviour | GATED: 2c measured and ruled on the same longer shared run |
 | the `ending` row (`consumed_by` "nothing yet") and the 21.3 credit row's decay half | recorded, not consumed | boundary demotion, its own item (21.4, 21.5) |
 | the gapshape row ("published, not acted on") | recorded, not consumed | D5 + compounds + 7d (a): the residual description as the lookup key. The reverse lookup exists as `Library.light(changed, abduce=False|"after"|"merged")` (`library/library_runtime.py:314`, default False); no env arm named `TETHER_LIBRARY_ABDUCE` exists (grep, 2026-10-10) |
+| `TETHER_WANT_TARGET` (F2, d55100f) | switch, behaviour (the goal exit's target; DEFAULT PATH) | OFF pending reading (A): the 7-member panel at 60, defaults vs defaults + WANT_TARGET, per member (the reviewer 06:01Z); reader `_goal_target`/the goal exit; gate (A) read and ruled |
+| `TETHER_COMPLETION_SWEEP` (objective 1) | switch, record only | OFF pending reading (B): arc_s1 at 120, WANT_TARGET=1 both arms, the chain OFF vs ON; reader TETHER_GOAL_CONDITION; gate (B) read and ruled, after (A) |
+| `TETHER_GOAL_CONDITION` (objective 2) | switch, behaviour (holds a condition in-episode) | OFF pending reading (B); habitat arc_s1 (the pair pays at c89, no single does); reader TETHER_GOAL_LINK; gate (B) |
+| `TETHER_GOAL_PAIR` (objective 2a) | switch, behaviour | OFF pending reading (B); reader TETHER_GOAL_LINK; one member, one pair: a single case, never an effect size |
+| `TETHER_GOAL_LINK` (objective 3, b-0, (b)) | switch, behaviour (writes wants) | OFF pending reading (B); reader `_goal_choice`/`_goal_target` (steers only with WANT_TARGET); gate (B) |
 
 ## PRIORITY 0 — THE SPACING SWEEP. LIVE RESULTS, updated 2026-09-20 as rungs land
 
