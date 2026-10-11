@@ -88,6 +88,10 @@ PRED, QUANT, VAL = "PRED", "QUANT", "val"
 # because it widens the closure the mint enumerates and that cost is measured before it is
 # defaulted, per §12.12: a feature is priced in EPISODES FORGONE, not in per-cycle percent.
 _ITERATE = armflag.arm("TETHER_ITERATE")
+# THE COMPARISON SET (the reviewer 2026-10-11 14:19Z, plan accepted 14:33Z): B1, the own-slot
+# converse of `above`, so either party of an order can be the subject. OFF; reason in
+# conform/arms.py.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
 
 # THE ONE TABLE. An object record's key -> the §12.2 type its values inhabit. `_extract` reads
 # it to type its atoms and `ArcWorld.slot_types` reads it to type its slots, and those are the
@@ -285,6 +289,15 @@ ADMITTED = {
               "identically. THE ONLY CANDIDATE THAT ADDS REACH AT max_depth=3: +15 chains "
               "where every other atom handed today adds none",
 }
+# B1's admission rides its arm (TETHER_RELATION_SET), so the phantom check below stays exact
+# in both arm states: an entry for an unbuilt atom is refused, as it should be.
+if _RELATION_SET:
+    ADMITTED["below"] = ("handed-2026-10-11 (arm TETHER_RELATION_SET): the comparison set, Isaiah "
+             "09:17-09:26 CDT and the reviewer 14:19Z -- inherited as HUMAN|Order / "
+             "THOUGHT|Comparison. The Operators table's ordered bond: different orders "
+             "are different terms, and no chain yields the OWN-SLOT converse -- "
+             "compile_term's reversed binding makes the other party the subject. Order "
+             "is shared by infants and animals (Spelke & Kinzler 2007; Nieder 2021)")
 
 # THE OTHER POPULATION: §11 CLAUSE ONE, *the loop cannot run without it*.
 #
@@ -831,6 +844,12 @@ def _relate() -> list[Atom]:
     def above(v: Any, c: Ctx) -> Any:
         return int(bool(c.operands) and v > c.operands[0])
 
+    # B1. The Operators table's comparison bond: "Symmetric: NO. Under an ordered bond, different
+    # orders are different terms." Reversing the binding (compile_term's "<") makes the OTHER
+    # object the subject; `below` keeps this one the subject, so its own slot can be steered.
+    def below(v: Any, c: Ctx) -> Any:
+        return int(bool(c.operands) and v < c.operands[0])
+
     # `0a`'s TYPING HALF, APPLIED HERE AT LAST. `gamma.Atom.operand_type` and
     # `_operand_fits` were built after these three and never reached them, and *an undeclared
     # type ADMITS* -- so `above` took ORDERED as its INPUT and ANY type as its OPERAND. That
@@ -866,7 +885,10 @@ def _relate() -> list[Atom]:
                  reads_ctx=("operands",)),
             Atom("above", above, ORDERED[0], PRED, reads_operand=True,
                  also_accepts=ORDERED[1:], operand_type=SAME_AS_TARGET,
-                 reads_ctx=("operands",))]
+                 reads_ctx=("operands",))] + (
+        [Atom("below", below, ORDERED[0], PRED, reads_operand=True,
+              also_accepts=ORDERED[1:], operand_type=SAME_AS_TARGET,
+              reads_ctx=("operands",))] if _RELATION_SET else [])
 
 
 def _count(v: Any, c: Ctx) -> Any:

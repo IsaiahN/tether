@@ -271,6 +271,12 @@ ARMS: dict[str, str] = {
                            "from column 2 "
                            "(run C, c98). expected_move keeps today's reading (cell=False). OFF: a "
                            "default-path reader, it needs its own panel reading",
+    "TETHER_RELATION_SET": "the comparison set (the reviewer 2026-10-11 14:19Z-14:28Z, plan "
+                           "accepted 14:33Z; Isaiah 09:15-09:26 CDT): ON, B1 -- arc_atoms "
+                           "builds `below`, the own-slot converse of `above`, and "
+                           "compile_term's '<' against a slot keeps the left party the "
+                           "subject. Later items join this arm. OFF until ALL-ON; build "
+                           "checks only (Isaiah 09:15)",
     "TETHER_ROUTINE_SUBJECT_BUDGET": "R-dir (c) (the reviewer 2026-10-11 10:39Z, 10:53Z): ON, a "
                                      "routine whose body is one BECOME intent takes its budget "
                                      "AND the count it claims (_expected) from that subject's "

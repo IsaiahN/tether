@@ -33,11 +33,13 @@ def load_composites(n: int = 200) -> list[dict]:
     mols = inherited.load()["molecules"]
     ranked = sorted(mols, key=lambda k: (-((mols[k].get("called_by") or {}).get("count") or 0), k))
     out = []
+    # DOMAIN|Name KEPT for the name and the atoms (the reviewer 2026-10-11 14:48Z, after
+    # WORKING_SET.json's own caution: "always read (domain, symbol) as the key, never symbol
+    # alone"): a bare name could merge two domains' atoms and change what counts as the same.
     for key in ranked:
-        atoms = frozenset(i["ref"].split("|", 1)[-1] for i in mols[key].get("ingredients") or ()
-                          if i.get("ref"))
+        atoms = frozenset(i["ref"] for i in mols[key].get("ingredients") or () if i.get("ref"))
         if len(atoms) >= 2:
-            out.append({"name": key.split("|", 1)[-1], "atoms": atoms})
+            out.append({"name": key, "atoms": atoms})
         if len(out) == n:
             break
     return out

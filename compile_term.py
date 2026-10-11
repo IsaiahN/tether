@@ -47,6 +47,9 @@ TABLE: dict[tuple[str, str], tuple] = {
     (">", "slot"): (("above",), "x"),               # more / after
     ("<", "slot"): (("above",), "o"),               # less / before: the binding reversed
 }
+# B1 (TETHER_RELATION_SET): where Gamma holds `below`, "<" against a slot keeps the LEFT party
+# the subject instead of reversing the binding. Read off the atom set, so it follows the arm.
+CONVERSE: dict[tuple[str, str], tuple] = {("<", "slot"): (("below",), "x")}
 # A pair reading written as a call, and the pair atom that grounds it (the reviewer 2026-10-08
 # 23:23Z): "== 1" -> the atom, "== 0" -> the atom then negate; it runs on the first object
 # with the second as its operand. A pair call not listed here has no atom and is refused.
@@ -161,6 +164,8 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
     else:
         return Refusal(f"no template compares {reading} with the constant {right}")
     row = TABLE.get((node.op, kind))
+    if (node.op, kind) in CONVERSE and all(n in atoms for n in CONVERSE[(node.op, kind)][0]):
+        row = CONVERSE[(node.op, kind)]
     if row is None:
         return Refusal(f"no template for {node.op} against a {kind}")
     names, side = row[0], row[1]
