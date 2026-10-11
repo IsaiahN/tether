@@ -53,16 +53,35 @@ def _held(link_on: bool, occupied: str | None = None):
 if __name__ == "__main__":
     ag, before, row = _held(True)
     link = row["link"]
-    assert link["linked"] and link["slot"] == SLOT and ag.wants[SLOT] == link["want"], row
-    state = ag.trace[-1][0]
-    g = ag.goal_residual(SLOT, state)
-    assert isinstance(g, (int, float)), g
+    assert link["linked"] and link["slots"] == [SLOT] and ag.wants[SLOT] == link["want"][0], row
+    assert link["scope"] == "subject" and ag._want_scope[SLOT] == ag.wants[SLOT]
+    # b-0: the number MEANS o0's own satisfaction -- 0 when o0.col == o1.col, 1 when not
+    state = dict(ag.trace[-1][0])
+    on = dict(state, **{"o0.col": state["o1.col"]})
+    off_st = dict(state, **{"o0.col": (state["o1.col"] + 1) % 5})
+    assert ag.goal_residual(SLOT, on) == 0.0 and ag.goal_residual(SLOT, off_st) == 1.0
+    print(f"  must-pass: '{row['pick']}' linked as {SLOT}'s want '{link['want'][0]}', scope "
+          f"subject; R_goal 0 with o0 in o1's column, 1 without (o0's own satisfaction)")
+    moved = dict(off_st, **{"o4.col": (off_st["o4.col"] + 1) % 5,
+                            "o5.col": (off_st["o5.col"] + 2) % 5})
+    assert ag.goal_residual(SLOT, moved) == 1.0
+    print("  b-0 must-fail: moving objects other than o0 and o1 leaves it at 1")
+    view = "o2.col"
+    ag._want_terms[view] = ag._want_terms[SLOT]
+    ag.wants[view] = ag.wants[SLOT]
+    grp = ag._group(view, state)
+    expect = 1 - sum(1 for v in grp if v == state["o1.col"]) / len(grp)
+    got = ag.goal_residual(view, state)
+    assert abs(got - expect) < 1e-9, (got, expect)
+    ag.wants.pop(view)
+    ag._want_terms.pop(view)
+    print(f"  b-0 must-fail: the same term as a NON-goal want on {view} is scored on its group, "
+          f"as before ({round(expect, 3)}: DISCOVERY Q21 unchanged)")
     for _ in range(3):
         ag.step()
     assert SLOT in ag._res, sorted(ag._res)
-    print(f"  must-pass: '{row['pick']}' linked as {SLOT}'s want '{link['want']}'; goal_residual "
-          f"reads {g}; after 3 steps {SLOT} is in _goal_choice's population "
-          f"({len(ag._res[SLOT])} readings)")
+    print(f"  after 3 steps {SLOT} is in _goal_choice's population ({len(ag._res[SLOT])} "
+          f"readings)")
     off, before, row = _held(False)
     assert off.wants == before and "link" not in row
     print("  must-fail: arm OFF, the wants (the candidate source) are unchanged and no link row")

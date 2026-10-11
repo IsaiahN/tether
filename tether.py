@@ -1268,6 +1268,7 @@ class Agent:
         self._goal_conds: dict = {}   # build 2: held goal conditions, key -> compiled (in-episode)
         self._goal_text: dict = {}    # build 2: key -> the condition's text
         self._goal_links: dict = {}   # build 3 L1: key -> (slot, want name) this link wrote
+        self._want_scope: dict = {}   # b-0: slot -> the want name scored on its SUBJECT alone
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
@@ -2300,24 +2301,32 @@ class Agent:
         into the objective stream with `all`, as the library-first path closes a view. Linked
         only where the slot holds no want: one want per slot, and replacing one the agent
         composed is not this item's to decide."""
-        if isinstance(c, _Pair):
-            return {"linked": False, "why": "a held pair is not linked yet: item (b), its own"}
+        parts = list(c.parts) if isinstance(c, _Pair) else [c]
         close = next((a for a in self.gamma.atoms if a.name == "all"), None)
         if close is None:
             return {"linked": False, "why": "no `all` atom to close the condition"}
-        term = Term(tuple(c.term.atoms) + (close,), operand=c.term.operand,
-                    operand_term=c.term.operand_term)
-        if term.out_type != OBJ_TYPE:
-            return {"linked": False, "why": f"closes to {term.out_type}, not an objective"}
-        if c.slot in self.wants:
+        terms = []
+        for part in parts:
+            term = Term(tuple(part.term.atoms) + (close,), operand=part.term.operand,
+                        operand_term=part.term.operand_term)
+            if term.out_type != OBJ_TYPE:
+                return {"linked": False, "why": f"closes to {term.out_type}, not an objective"}
+            terms.append((part.slot, term))
+        # (b): a pair links as one want per conjunct, each on its own subject slot -- all or
+        # none: if any slot already wants, the whole pair is refused, counted once
+        taken = {sl: self.wants[sl] for sl, _t in terms if sl in self.wants}
+        if taken or len({sl for sl, _t in terms}) < len(terms):
             _book_add(self.gamma.book, "goal_link_refused_wants")      # L2
-            return {"linked": False, "slot": c.slot, "why": "the slot already wants",
-                    "held_want": self.wants[c.slot]}
-        self.wants[c.slot] = term.name
-        self._want_terms[c.slot] = term
-        self._goal_links[key] = (c.slot, term.name)
+            return {"linked": False, "slots": [sl for sl, _t in terms],
+                    "why": "the slot already wants", "held_want": taken}
+        for sl, term in terms:
+            self.wants[sl] = term.name
+            self._want_terms[sl] = term
+            self._want_scope[sl] = term.name                            # b-0: subject scope
+        self._goal_links[key] = tuple((sl, t.name) for sl, t in terms)
         _book_add(self.gamma.book, "goal_link_made")                    # L2
-        return {"linked": True, "slot": c.slot, "want": term.name}
+        return {"linked": True, "slots": [sl for sl, _t in terms],
+                "want": [t.name for _sl, t in terms], "scope": "subject"}
 
     def _close_goals(self, how: str) -> None:
         """E1 (the reviewer 2026-10-11 03:38Z): a held goal condition CLOSES with its level --
@@ -2329,6 +2338,23 @@ class Agent:
                             condition=self._goal_text.get(key), how=how, verdict=None,
                             reads="closed with its level: no verdict on the condition")
         self._goal_conds, self._goal_text, self._goal_links = {}, {}, {}
+        self._want_scope = {}
+
+    def _release_link(self, key: str) -> bool:
+        """L1 / (b): release every want this link wrote that is still in place, and only those;
+        a want the agent composed itself is never touched."""
+        link = self._goal_links.pop(key, None) or ()
+        released = False
+        for sl, name in link:
+            if self.wants.get(sl) == name:
+                self.wants.pop(sl, None)
+                self._want_terms.pop(sl, None)
+                released = True
+            if self._want_scope.get(sl) == name:
+                self._want_scope.pop(sl, None)
+        if released:
+            _book_add(self.gamma.book, "goal_unlinked")                  # L2
+        return released
 
     def _goal_recheck(self) -> None:
         """L1 (the reviewer 2026-10-11 03:28Z): a held goal condition stays held only while it
@@ -2343,12 +2369,7 @@ class Agent:
             if pays(cost, left, base):
                 continue
             self._goal_conds.pop(key)
-            link = self._goal_links.pop(key, None)
-            released = bool(link and self.wants.get(link[0]) == link[1])
-            if released:
-                self.wants.pop(link[0], None)
-                self._want_terms.pop(link[0], None)
-                _book_add(self.gamma.book, "goal_unlinked")              # L2
+            released = self._release_link(key)
             self.led.record(self.cycle, "IMPORT", "@completion", "goal_unheld",
                             key=key, condition=self._goal_text.pop(key, None), steps=n,
                             reached=k, cost=round(cost, 3), left=round(left, 3), errors=e,
@@ -5857,7 +5878,11 @@ class Agent:
         if slot not in state:
             _why(why, "slot-absent-from-state")
             return None
-        group = self._group(slot, state)
+        # b-0 (the reviewer 2026-10-11 05:29Z): the scope of an objective is what it is ABOUT. A
+        # goal condition is about its own subject, so its population is this slot's value; every
+        # other want (a view) keeps the peer group, DISCOVERY Q21 unchanged.
+        subject = self._want_scope.get(slot) == name
+        group = (state[slot],) if subject else self._group(slot, state)
         if not group:
             _why(why, "empty-group")
             return None
@@ -5875,7 +5900,8 @@ class Agent:
         def _sat(v: int) -> bool | None:
             r = term.apply(v, ctx)
             return None if r is NOT_RESOLVED else bool(r)
-        deg = objective_degree(_sat, group, counts, self._scope_weights(slot, state))
+        deg = objective_degree(_sat, group, counts,
+                               None if subject else self._scope_weights(slot, state))
         if deg is None:
             _why(why, "degree-unresolved")
             return None

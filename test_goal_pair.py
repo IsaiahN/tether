@@ -8,7 +8,11 @@ objective held at 2, 16, 18, 20, 21, 89; o0-o5 rows and columns), tests/fixtures
   1. a restating pair does not pay (one pair per reached step costs more than the base);
   2. a pair of identical parts is refused (never formed);
   3. the negation never pays;
-  4. arm OFF changes nothing: no pair is priced and the pick is the single-condition one.
+  4. arm OFF changes nothing: no pair is priced and the pick is the single-condition one;
+  (b) (the reviewer 05:14Z, 05:29Z): with the link ON, the held pair links as TWO subject-scoped
+     wants -- on o0.col and o3.row (the "<" conjunct compiles by the reversed binding) -- whose
+     R_goal the avatar's own move takes from 1 to 0; an occupied slot refuses the WHOLE pair,
+     counted once; unholding releases both wants and only those.
 
     python test_goal_pair.py
 """
@@ -77,4 +81,50 @@ if __name__ == "__main__":
     off, row = _run(False)
     assert " and " not in row["pick"] and not any(" and " in c["if"] for c in row["cheapest"])
     print(f"  4: arm OFF: no pair priced; the pick is '{row['pick']}'")
+    tether._GOAL_CONDITION = tether._GOAL_PAIR = tether._GOAL_LINK = True
+    try:
+        lk = _agent()
+        for sl in ("o0.col", "o0.row"):
+            lk.wants.pop(sl, None)
+            lk._want_terms.pop(sl, None)
+        bound_on = {sl: lk.bound.get(sl) for sl in ("o0.col", "o0.row")}
+        lk._reach_hist = ROWS[:C89 + 1]
+        lk._goal_condition()
+        link = [r["detail"] for r in lk.led.rows() if r["event"] == "goal_condition"][-1]["link"]
+        # "o0.row < o3.row" compiles by the REVERSED binding (`above` run on o3.row with o0.row
+        # as operand): no atom says "below" on o0's own row. So the conjuncts' subjects are
+        # o0.col and o3.row -- recorded as found, for the reviewer's ruling.
+        assert link["linked"] and link["slots"] == ["o0.col", "o3.row"], link
+        assert all(lk._want_scope[sl] == lk.wants[sl] for sl in link["slots"])
+        away = next(st for st, hit in ROWS if not hit and st["o0.col"] != st["o3.col"]
+                    and st["o0.row"] >= st["o3.row"])
+        home = dict(away, **{"o0.col": away["o3.col"], "o0.row": away["o3.row"] - 1})
+        assert lk.goal_residual("o0.col", away) == 1.0 and lk.goal_residual("o0.col", home) == 0.0
+        assert lk.goal_residual("o3.row", away) == 1.0 and lk.goal_residual("o3.row", home) == 0.0
+        tc = lk._goal_target("o0.col", away)
+        tr = lk._goal_target("o3.row", away)
+        assert tc == away["o3.col"], tc
+        print(f"  (b) linked as two subject wants {link['want']} on {link['slots']}; bound "
+              f"before: {bound_on}")
+        print(f"      both R_goal read 1 with o0 at ({away['o0.row']},{away['o0.col']}) and 0 with "
+              f"o0 moved to ({home['o0.row']},{home['o0.col']}): the avatar moves both")
+        print(f"      objective targets: o0.col -> {tc} (o3's column); o3.row -> {tr} (a target "
+              f"for o3's row, which the avatar does not control) -- FOR RULING")
+        unlinked0 = lk.gamma.book.get("goal_unlinked", 0)
+        key = next(iter(lk._goal_conds))
+        assert lk._release_link(key) and not ({"o0.col", "o3.row"} & set(lk.wants))
+        assert lk.gamma.book.get("goal_unlinked") == unlinked0 + 1
+        print("  (b) release: both wants released together, goal_unlinked +1")
+        oc = _agent()
+        oc.wants.pop("o0.col", None)
+        oc.wants["o3.row"] = "some . other<want>"
+        oc._reach_hist = ROWS[:C89 + 1]
+        oc._goal_condition()
+        ol = [r["detail"] for r in oc.led.rows() if r["event"] == "goal_condition"][-1]["link"]
+        assert ol["linked"] is False and "o0.col" not in oc.wants, ol
+        assert oc.gamma.book.get("goal_link_refused_wants") == 1
+        print("  (b) refusal: o3.row already wanted, so the WHOLE pair is refused (no half-link), "
+              "counted once")
+    finally:
+        tether._GOAL_CONDITION = tether._GOAL_PAIR = tether._GOAL_LINK = False
     print("ok")
