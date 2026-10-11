@@ -263,6 +263,12 @@ ARMS: dict[str, str] = {
                   "agent's own diagnosis. ON BY DEFAULT with objective build step 1 (the "
                   "reviewer 2026-10-11 02:19Z), its consumer; record only. Spelled "
                   "`default=True`, default-on",
+    "TETHER_GOAL_LINK": "objective build 3, the link to composition (the reviewer 2026-10-11 "
+                        "02:19Z, 03:14Z): ON, a held goal condition is closed into the "
+                        "objective stream with `all` and becomes its slot's want, so "
+                        "_goal_choice and _mint_routine can pick it; linked only where the slot "
+                        "holds no want (one want per slot; replacing one is not this item's). "
+                        "Needs TETHER_GOAL_CONDITION ON. OFF until the objective panel",
     "TETHER_GOAL_CONDITION": "objective build 2, the goal condition (the reviewer 2026-10-11 "
                              "02:19Z): ON, at each completion the library's condition templates "
                              "over the readings are priced against WHEN the world's objective "

@@ -490,6 +490,9 @@ _COMPLETION_SWEEP = armflag.arm("TETHER_COMPLETION_SWEEP")
 # conform/arms.py. At a completion, a condition over readings that names when the world's
 # objective holds -- the flag is the then-side, never the subject. Needs the sweep ON.
 _GOAL_CONDITION = armflag.arm("TETHER_GOAL_CONDITION")
+# OBJECTIVE BUILD 3, THE LINK TO COMPOSITION (the reviewer 2026-10-11 02:19Z, 03:14Z). OFF; reason
+# in conform/arms.py. A held goal condition becomes one of the agent's composed objectives.
+_GOAL_LINK = armflag.arm("TETHER_GOAL_LINK")
 
 
 def _confirm_actions(r: Any) -> int | None:
@@ -2262,6 +2265,27 @@ class Agent:
         if _GOAL_CONDITION:
             self._goal_condition()
 
+    def _link_goal(self, c: Any) -> dict:
+        """Objective build 3: a held goal condition becomes one of the agent's COMPOSED
+        objectives, so `_goal_choice` and `_mint_routine` can pick it -- through a term the
+        agent minted, never a goal we publish. The condition (a predicate on its slot) is closed
+        into the objective stream with `all`, as the library-first path closes a view. Linked
+        only where the slot holds no want: one want per slot, and replacing one the agent
+        composed is not this item's to decide."""
+        close = next((a for a in self.gamma.atoms if a.name == "all"), None)
+        if close is None:
+            return {"linked": False, "why": "no `all` atom to close the condition"}
+        term = Term(tuple(c.term.atoms) + (close,), operand=c.term.operand,
+                    operand_term=c.term.operand_term)
+        if term.out_type != OBJ_TYPE:
+            return {"linked": False, "why": f"closes to {term.out_type}, not an objective"}
+        if c.slot in self.wants:
+            return {"linked": False, "slot": c.slot, "why": "the slot already wants",
+                    "held_want": self.wants[c.slot]}
+        self.wants[c.slot] = term.name
+        self._want_terms[c.slot] = term
+        return {"linked": True, "slot": c.slot, "want": term.name}
+
     def _goal_price(self, conds: list, rows: list) -> tuple[float, float, int]:
         """The one bargain on a 1-bit history (Fig 5 :42-44), as two-part description length,
         positions named at log2 N bits each: with no term, naming each step where the world's
@@ -2315,6 +2339,8 @@ class Agent:
                                       receipt={"completion": self.cycle, "steps": n,
                                                "reached": k, "errors": e})
                 self._goal_conds[key] = c
+                if _GOAL_LINK:
+                    detail["link"] = self._link_goal(c)
                 safe, why = sys.modules["library_runtime"].carry_check(text, lib.readings)
                 detail.update(pick=text, key=key, carry=("may carry when M7 opens" if safe
                                                          else f"refused: {why}"))
