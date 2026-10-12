@@ -454,6 +454,33 @@ def test_a_ledger_states_the_arms_its_run_had():
         assert off == [f"tether._ACTED_GUARD: recorded {was}, live {not was}"], off
     finally:
         tether._ACTED_GUARD = was
+    # WHICH CODE RAN (the reviewer 2026-10-12 12:41 CDT, item 4): the same row carries it
+    import os
+    import subprocess
+    import tempfile
+    assert {"files_sha", "n_files", "head", "tree", "dirty"} <= recorded.keys(), recorded.keys()
+    assert recorded["n_files"] > 0 and len(recorded["files_sha"]) == 64
+    # PLANT 3: one hashed file's bytes changed -> files_sha changes
+    with tempfile.TemporaryDirectory() as d:
+        f = os.path.join(d, "m.py")
+        with open(f, "wb") as fh:
+            fh.write(b"x = 1\n")
+        a = Attribution.files_sha([f], d)
+        with open(f, "wb") as fh:
+            fh.write(b"x = 2\n")
+        assert Attribution.files_sha([f], d) != a, "a changed file must change files_sha"
+    # PLANT 4: git absent -> None with a reason, never raised
+    real = subprocess.run
+
+    def _no_git(*_a, **_k):
+        raise FileNotFoundError("git")
+    subprocess.run = _no_git
+    try:
+        c = Attribution.code()
+    finally:
+        subprocess.run = real
+    assert c["head"] is None and c["tree"] is None and c["dirty"] is None, c
+    assert c["git_unknown"].startswith("FileNotFoundError") and len(c["files_sha"]) == 64, c
 
 
 def test_undeclared_death():

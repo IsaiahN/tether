@@ -570,3 +570,45 @@ class Attribution:
                 "reads": ("the capability state this measurement ran under, read from the "
                           "MODULE and not the environment -- flags resolve once at import. "
                           "State it beside the world and the population.")}
+
+    @staticmethod
+    def files_sha(files: list[str], root: str) -> str:
+        """sha256 over (path relative to `root`, bytes) of each file, in sorted path order."""
+        import hashlib
+        import os
+        h = hashlib.sha256()
+        for f in sorted(files, key=lambda p: os.path.relpath(p, root).replace(os.sep, "/")):
+            h.update(os.path.relpath(f, root).replace(os.sep, "/").encode() + b"\0")
+            with open(f, "rb") as fh:
+                h.update(fh.read() + b"\0")
+        return h.hexdigest()
+
+    @staticmethod
+    def code() -> dict:
+        """WHICH CODE RAN, beside which arms (the reviewer 2026-10-12 12:41 CDT, item 4).
+
+        `files_sha` hashes the project files IMPORTED when it is called, read where they ran, so
+        it needs no git (Kaggle) and shows a tree that changed between the members of a batch.
+        A module first imported later in the run is not in it. `head`/`tree`/`dirty` are git's
+        view of the same directory (`dirty`: tracked files only); where git cannot say they are
+        None with the reason, never raised. Nothing reads this to decide anything."""
+        import os
+        import subprocess
+        root = os.path.dirname(os.path.abspath(__file__))
+        base = os.path.normcase(root) + os.sep
+        files = sorted({os.path.abspath(f) for m in list(sys.modules.values())
+                        if isinstance(f := getattr(m, "__file__", None), str) and f.endswith(".py")
+                        and os.path.normcase(os.path.abspath(f)).startswith(base)
+                        and ".venv" not in os.path.relpath(f, root).split(os.sep)})
+        out: dict = {"files_sha": Attribution.files_sha(files, root), "n_files": len(files)}
+
+        def git(*a: str) -> str:
+            return subprocess.run(["git", "-C", root, *a], capture_output=True, text=True,
+                                  timeout=30, check=True).stdout.strip()
+        try:
+            out.update(head=git("rev-parse", "HEAD"), tree=git("rev-parse", "HEAD^{tree}"),
+                       dirty=bool(git("status", "--porcelain", "--untracked-files=no")))
+        except (OSError, subprocess.SubprocessError) as e:
+            out.update(head=None, tree=None, dirty=None,
+                       git_unknown=f"{type(e).__name__}: {e}"[:200])
+        return out
