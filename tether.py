@@ -2838,7 +2838,8 @@ class Agent:
         self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led), status="candidate",
-                        cited="no: candidate may be held, not cited")
+                        cited="no: candidate may be held, not cited",
+                        **({"part": self._mint_part} if self._mint_part else {}))
         self.chain.note_mint()
         self.sweep(term, slot)
         return term
@@ -9230,9 +9231,13 @@ class Agent:
                 "described" if prov is not None
                 else "chain_only" if any(names[:len(ch)] == ch for ch in _lf_seen) else "none")
         self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
+        # THE PART RIDES ON THE ACCEPT TOO (the reviewer 2026-10-11 23:03 CDT): a D5 part-B accept
+        # names the slot while the slot is restored to its incumbent; untagged, a count of
+        # accepts per slot reads it as the slot's own.
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led),
-                        status="candidate", cited="no: candidate may be held, not cited")
+                        status="candidate", cited="no: candidate may be held, not cited",
+                        **({"part": self._mint_part} if self._mint_part else {}))
         self.chain.note_mint()
         self.sweep(term, slot)
 
