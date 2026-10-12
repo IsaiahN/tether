@@ -1535,6 +1535,10 @@ name the order than have it chosen under time pressure.
 
 # PART 9 — THE CARRY-OVER FROM `PERCEPTION_BUILD_PLAN`, 2026-09-22
 
+> **2026-10-12: `docs/PERCEPTION_BUILD_PLAN.md` is DELETED** (Isaiah placed it 2026-10-11 17:00 CDT (the reviewer 17:03, 17:05 CDT): it may go after the reviewer's comparison of the agent against it (the reviewer's project doc, not in this repository; posted to the channel 2026-10-11 17:05 CDT) and after the panel). The source sections
+> named in this Part are read in git, at the parent of the commit whose subject begins
+> "Focus: L3 docs -- PERCEPTION_BUILD_PLAN deleted". This Part is the carry and stays as written.
+
 **Why this part exists.** The reviewer ruled `PERCEPTION_BUILD_PLAN.md` superseded by this document.
 **The audit found eleven load-bearing items living in NEITHER this document nor `TRAINING_PLAN`**, so
 marking it superseded first would have stranded them. Ruling, 18:00: *carry the eleven, THEN mark.*

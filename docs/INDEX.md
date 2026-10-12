@@ -43333,6 +43333,9 @@ undeclared. I have annotated rather than edited, per the reviewer — **and `CLA
 exactly this: *the boundary is what gets fuzzy, not the principle; a document appearing later needs
 a side.* It needs one.**
 
+> **2026-10-12 annotation:** it got one. Isaiah placed it 2026-10-11 17:00 CDT (the reviewer 17:03, 17:05 CDT): it may go after the reviewer's comparison of the agent against it (the reviewer's project doc, not in this repository; posted to the channel 2026-10-11 17:05 CDT) and after the panel; deleted 2026-10-12 in the commit whose
+> subject begins "Focus: L3 docs -- PERCEPTION_BUILD_PLAN deleted", git at its parent. This entry is kept as the record.
+
 ---
 
 ## `F277` — ISAIAH: STOP OVERFITTING TO BOARDS. The OOD set has none of these games, so per-board properties are something to be ROBUST TO, not to select on

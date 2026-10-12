@@ -69,7 +69,7 @@ Verdicts: **KEEP** · **KEEP, UPDATE** · **MOVE** (to `library/` or `docs/corpu
 | DECOMPOSITION.md | **KEEP** | still cited (2026-09-22); not superseded |
 | REPAIRS.md, M2_PHASES.md | **KEEP** (historical record, cited by INDEX) | small; deleting gains little |
 | LEDGER.md | **DELETE** **SUPERSEDED 2026-10-11: LEDGER is the live record (reviewer 14:08 CDT) -- KEEP.** | stale since 2026-09-22; open items live in INDEX and the channel |
-| PERCEPTION_BUILD_PLAN.md | **DELETE** **HELD: unplaced (CLAUDE.md edit boundary); placement asked of Isaiah 2026-10-11 (reviewer 14:08 CDT).** | its own header: "SUPERSEDED ... not to be worked from" (by LIBRARY_RETRIEVAL, now LIBRARY_SPEC) |
+| PERCEPTION_BUILD_PLAN.md | **DELETE** **HELD: unplaced (CLAUDE.md edit boundary); placement asked of Isaiah 2026-10-11 (reviewer 14:08 CDT).** **PLACED by Isaiah 2026-10-11 17:00 CDT (the reviewer 17:03, 17:05 CDT); DELETED 2026-10-12 in the commit whose subject begins "Focus: L3 docs -- PERCEPTION_BUILD_PLAN deleted" (git at its parent).** | its own header: "SUPERSEDED ... not to be worked from" (by LIBRARY_RETRIEVAL, now LIBRARY_SPEC) |
 | DEMAND_LOG.md | **DELETE** | superseded by demand.py; its premise (the frozen vocabulary) was withdrawn |
 | CODE_AUDIT.md, FREEZE_READ.md, POST_FREEZE_QUEUE.md, PREREG_DEREFERENCE.md, SELF_GRADED_CURRICULUM.md | **DELETE** | finished or self-marked closed; nothing loads them |
 | STORY_PROOF.md, WINDOW_REPORT.md | **DELETE**, and repoint CLAUDE.md's "lesson" citations to the deleting commit | self-marked stale; kept only as lessons, and git keeps them |
@@ -99,7 +99,7 @@ Verdicts: **KEEP** · **KEEP, UPDATE** · **MOVE** (to `library/` or `docs/corpu
 
    In `docs/`:
    - LEDGER.md
-   - PERCEPTION_BUILD_PLAN.md
+   - PERCEPTION_BUILD_PLAN.md (placed by Isaiah 2026-10-11 17:00 CDT; deleted 2026-10-12)
    - DEMAND_LOG.md
    - CODE_AUDIT.md
    - FREEZE_READ.md

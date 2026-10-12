@@ -518,7 +518,13 @@ Relayed by the reviewer (Drive channel); Isaiah's words quoted as relayed.
   *"you can remove it, i have copies via git and saved a copy just now."* The three corpus
   narratives moved to `docs/corpus/` (0d68ef4); the other 21 files deleted at 03aae57
   (in git at 03aae57^). `docs/PERCEPTION_BUILD_PLAN.md`
-  is NOT placed by this: it stays held.
+  is NOT placed by this: it stays held. *(placed at 17:00 CDT, below; deleted 2026-10-12)*
+- **docs/PERCEPTION_BUILD_PLAN.md IS PLACED: REMOVABLE** (17:00 CDT; the reviewer 17:03, 17:05 CDT):
+  *"yes, but i would like the agents current feature set compared to this old docs before its deleted to see how it compares or if anything lacks"* (17:00 CDT), and *"The file can be deleted after the panel, agreed"* (17:34 CDT, his item 5). So
+  it may go, but only after the reviewer's comparison of the agent's current features against the
+  plan (the reviewer's project doc, not in this repository; posted to the channel 17:05 CDT) and after the panel.
+  Deleted 2026-10-12 the 03aae57 way (re-grep, comment-only repoints, OFF identity); git holds it at
+  the parent of the commit whose subject begins "Focus: L3 docs -- PERCEPTION_BUILD_PLAN deleted".
 - **KAGGLE IS ITS OWN MILESTONE, NOT THE STEP AFTER 13** (15:24 CDT; the reviewer 15:25 CDT):
   *"i expect #11 and 13 to take a while, so separate kaggle out as its own thing, its mainly for
   when the agent is generalizing well enough and passing all the test we are sending it etc which

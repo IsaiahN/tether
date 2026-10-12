@@ -1489,6 +1489,11 @@ commit in this repository carries the same author, the seat's included.** So it 
 awaiting a side rather than silently treated as one, and **until Isaiah places it, it is handled
 as CORPUS** — the direction whose error is recoverable.
 
+> **`docs/PERCEPTION_BUILD_PLAN.md` IS PLACED AND DELETED.** Isaiah placed it 2026-10-11 17:00 CDT (the reviewer 17:03, 17:05 CDT): it may go after the reviewer's comparison of the agent against it (the reviewer's project doc, not in this repository; posted to the channel 2026-10-11 17:05 CDT) and after the panel. Deleted 2026-10-12 the
+> 03aae57 way, in the commit whose subject begins "Focus: L3 docs -- PERCEPTION_BUILD_PLAN deleted"; git holds it at that
+> commit's parent, and its load-bearing items live on as `docs/LIBRARY_RETRIEVAL.md` Part 9. **The
+> 15:23 CDT note directly below is about `docs/library-closure/` (the next entry), not this file.**
+>
 > **PLACED 2026-10-11 by Isaiah (15:23 CDT, via the reviewer 15:24 CDT): working files, removed in
 > 03aae57 (git holds every file at 03aae57^; `docs/cohesion/DOCS_CONSOLIDATION.md` section A); the three corpus narratives moved to `docs/corpus/` at 0d68ef4.** The
 > entry below is kept as written.
