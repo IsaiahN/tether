@@ -628,6 +628,9 @@ _STREAM_WIDEN = armflag.arm("TETHER_STREAM_WIDEN")
 # spent the least rank takes the next candidate (Fig 6: distribute the search, keep the searchers
 # independent), and a stream stops at its OWN kind's floor. OFF; reason in conform/arms.py.
 _STREAM_SHARE = armflag.arm("TETHER_STREAM_SHARE")
+# PARK WANT (the reviewer 2026-10-12 08:43, 08:52 CDT): the park return wrote no unpaid want, so
+# Isaiah 09-25's retained want reached only mints where something else paid. OFF; conform/arms.py.
+_PARK_WANT = armflag.arm("TETHER_PARK_WANT")
 # ITEM 7. Default OFF: it APPENDS TO THE ATOM REGISTRY, which every term reads.
 # **THE RANDOMISED HOLD -- MEASUREMENT ONLY, the reviewer 2026-10-03 ruling 3.** Withholds
 # the `ACTED_SELF` offer on a seeded ~half of ELIGIBLE occasions so a measurement run carries
@@ -8313,6 +8316,18 @@ class Agent:
         finally:
             self._memo = None
 
+    def _retain_unpaid_want(self, slot: str, wanted: tuple, detail: dict) -> None:
+        """The one writer of an unpaid objective want (Isaiah 2026-09-25): the mint's tail, and
+        under TETHER_PARK_WANT the park return too."""
+        self.wants[slot] = wanted[1].name
+        self._want_terms[slot] = wanted[1]
+        detail["want"] = wanted[1].name
+        detail["want_paid"] = False
+        detail["want_seen"] = wanted[2]        # attempts that have wanted this
+        _book_add(self.gamma.book, "want_recurred", 1 if wanted[2] > 1 else 0)
+        self.gamma.book["want_retained_unpaid"] = (
+            self.gamma.book.get("want_retained_unpaid", 0) + 1)
+
     def _mint(self, slot: str) -> None:
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
         _lf_stats = {"yielded": 0, "beyond_depth": 0}   # M4 library-first, read only when ON
@@ -9140,6 +9155,12 @@ class Agent:
                                             guards["novelty"], detail["verdict"]))
             if _LIBRARY_FIRST:
                 detail["library_first"] = dict(_lf_stats)
+            if _PARK_WANT and wanted is not None and detail["verdict"] in (
+                    "budget_spent", "not_novel", "priced_out_at_depth"):
+                # written BEFORE the row, so the row carries it; masked at _target_lookup when
+                # an earlier mint's term is still bound, which bound_at_park counts
+                detail["bound_at_park"] = slot in self.bound
+                self._retain_unpaid_want(slot, wanted, detail)
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             if _D13:
                 self._park_bet(slot, detail)
@@ -9183,14 +9204,7 @@ class Agent:
         elif wanted is not None:
             # THE RULING'S PATH, and the only one that has ever had traffic. A want that lost
             # the contest is still WANTED; what it does not get is the right to ACT.
-            self.wants[slot] = wanted[1].name
-            self._want_terms[slot] = wanted[1]
-            detail["want"] = wanted[1].name
-            detail["want_paid"] = False
-            detail["want_seen"] = wanted[2]        # attempts that have wanted this
-            _book_add(self.gamma.book, "want_recurred", 1 if wanted[2] > 1 else 0)
-            self.gamma.book["want_retained_unpaid"] = (
-                self.gamma.book.get("want_retained_unpaid", 0) + 1)
+            self._retain_unpaid_want(slot, wanted, detail)
         _total, left, cost, term = best
         if unseal is not None:
             # per rebinding (the reviewer 16:28Z, 16:31Z): both whole lengths, the start bits

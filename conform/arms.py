@@ -478,6 +478,13 @@ ARMS: dict[str, str] = {
                            "floor. No share or quota; the shared cap is unchanged. Records "
                            "stream_share on the MINT row. OFF until R1 and OFF identity are "
                            "accepted",
+    "TETHER_PARK_WANT": "The park return (the reviewer 2026-10-12 08:43, 08:52 CDT): when nothing"
+                        " in a mint paid, the mint returned before its tail and the unpaid "
+                        "objective want it ranked by recurrence (Isaiah 2026-09-25) was never "
+                        "written. Under the arm the park branch writes it through the tail's own "
+                        "writer, for budget_spent, not_novel and priced_out_at_depth, before the "
+                        "park row, which also carries bound_at_park. Chains only. OFF until "
+                        "R-exec, R-lever and OFF identity are accepted",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
                              "not-t is priced there (F496). The variable turns it OFF, so the A/B "
