@@ -513,6 +513,13 @@ _ROUTINE_STALE = armflag.arm("TETHER_ROUTINE_STALE")
 # so its budget, and the count it claims, come from that subject's own gap. OFF; reason in
 # conform/arms.py.
 _ROUTINE_SUBJECT_BUDGET = armflag.arm("TETHER_ROUTINE_SUBJECT_BUDGET")
+# COMMIT A, A-EXACT (the reviewer 2026-10-12 04:56 CDT): the R-alone bound evaluated once per
+# (chain, guard pair) instead of once per instance. Exact: rank still counts every instance
+# (the 8518 precedent) and every tree keeps its own bound (Isaiah 2026-09-24). OFF; reason in
+# conform/arms.py. _PAIR_BOUND_CHECK is fixture-only: the real `_cannot_pay` is also called for
+# every pair-refused instance and must agree.
+_PAIR_BOUND = armflag.arm("TETHER_PAIR_BOUND")
+_PAIR_BOUND_CHECK = False
 
 
 @dataclass(frozen=True)
@@ -5298,6 +5305,51 @@ class Agent:
             cell[term] = (len(robs), wrong)
         return False
 
+    def _pair_refused(self, cand, binds: list, pairs: list, gs: list, refs: list, slot: str,
+                      robs: list, base: float, units: tuple) -> set:
+        """COMMIT A: `_cannot_pay`'s own bound, read once per (chain, guard pair).
+
+        Within one chain and one (guard, referent) the instances differ only in the bind, and a
+        bind enters a row only as its operand value -- so on each row of R the chain is asked
+        once per DISTINCT operand tuple, through the agent's own `_applies`, `_ops`,
+        `_eval_ctx` and `_value_of` (the guard is evaluated by the term itself, Term.apply).
+        k(g, r) counts the rows no bind's value hits; the pair is refused when
+        cost(g) + log2(A) * k >= base. Every instance of a refused pair is wrong on at least
+        those k rows, so this is `_cannot_pay`'s necessary argument, never a new heuristic.
+        Trees are not covered: each is judged by its own bound (Isaiah, 2026-09-24).
+        """
+        A = self.alphabet[slot]
+        unit = math.log2(A)
+        k = dict.fromkeys(pairs, 0)
+        for state, action, actual, intent, landed in robs:
+            reps: dict = {}
+            for b in binds:
+                t0 = Term(cand.atoms, operand=b)
+                if not self._applies(t0, state):
+                    continue
+                ops = self._ops(t0, state)
+                if ops is None:
+                    continue
+                try:
+                    reps.setdefault(ops, b)
+                except TypeError:          # an unhashable operand: no sharing, one entry each
+                    reps[id(b)] = b
+            for g, r in pairs:
+                hit = False
+                for b in reps.values():
+                    t = Term(cand.atoms, operand=b, guard=g, guard_ref=r)
+                    got = self._value_of(t, slot, state, self._eval_ctx(
+                        slot, state, action=action, operands=self._ops(t, state), intent=intent,
+                        landed=landed, guard_ref=r))
+                    if got is not NOT_RESOLVED and got % A == actual % A:
+                        hit = True
+                        break
+                if not hit:
+                    k[(g, r)] += 1
+        chain_bits = term_bits(self.gamma.length(Term(cand.atoms), units), self.gamma.alphabet)
+        return {(g, r) for g, r in pairs
+                if chain_bits + _guard_bits(g, len(gs) - 1, len(refs)) + unit * k[(g, r)] >= base}
+
     def _out_of_step_range(self, term: Term, slot: str, state: dict, actual: int) -> bool:
         """P6: `_cannot_pay` needs a BOOLEAN and `objective_step` computes a VALUE.
 
@@ -8532,6 +8584,7 @@ class Agent:
                         if _WINDOW:
                             _win_reached.update(b for b in binds if lag_of(b))
                         continue
+                    _pref = None                 # COMMIT A: refused (g, ref) pairs, on first need
                     for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
                         if _WINDOW:
                             # THE BUDGET CHECKED INSIDE THE CHAIN (the reviewer 18:15Z), so the
@@ -8582,7 +8635,19 @@ class Agent:
                         # observations that need fixing, and a term that cannot fix enough of
                         # them is refused without the walk. 6.7x less work over the panel and
                         # nothing lost, because the bound is necessary rather than plausible.
-                        if self._cannot_pay(term, slot, robs, cost, base, rkey):
+                        if _PAIR_BOUND and _pref is None:
+                            _pref = self._pair_refused(cand, binds, _pairs, _gs, _refs, slot,
+                                                       robs, base, _units)
+                        if _PAIR_BOUND and (g, gref) in _pref:
+                            if _PAIR_BOUND_CHECK:
+                                assert self._cannot_pay(term, slot, robs, cost, base, rkey), (
+                                    f"pair bound refused a payable instance: {term.name}")
+                            else:
+                                self._priced += 1     # candidates_priced counts it as before
+                            _bounded = True
+                        else:
+                            _bounded = self._cannot_pay(term, slot, robs, cost, base, rkey)
+                        if _bounded:
                             cut_n["bounded-out: cannot pay on R alone"] += 1
                             if len(cuts) < 12:
                                 cuts.append({"name": term.name, "rank": rank, "reversible": True,

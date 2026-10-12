@@ -465,6 +465,12 @@ ARMS: dict[str, str] = {
                      "measured; under it ~1 is one lag of the block, not TETHER_PREV_OFFER's offer",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
+    "TETHER_PAIR_BOUND": "commit A, A-EXACT (the reviewer 2026-10-12 04:56 CDT): _cannot_pay's "
+                         "bound read once per (chain, guard pair), from each row's distinct "
+                         "operand values. Exact by construction: rank still counts every "
+                         "instance (the 8518 precedent), every tree keeps its own bound "
+                         "(Isaiah 2026-09-24). CPU only; OFF until its ledger identity and "
+                         "budget-removed fixture are accepted",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
                              "not-t is priced there (F496). The variable turns it OFF, so the A/B "
