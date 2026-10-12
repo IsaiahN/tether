@@ -4114,7 +4114,8 @@ class Agent:
         # not exist yet, so this claims the smaller thing and says so.
         # THE CONTEXT KEY IS READ BEFORE THE STEP, because it is the contact present WHEN THE
         # ACTION WAS TAKEN -- reading it after would key an effect by the world the effect made.
-        if self.iface.audit(_real, before, after, _ctx):
+        if self.iface.audit(_real, before, after, _ctx,
+                            IFace.Interface.context(self.env) if IFace._DEST_GAP else None):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
@@ -6770,17 +6771,24 @@ class Agent:
         Fig 12: actions are a currency -- every option costs one, and a restart also throws away
         the actions spent since this level (or its last restart) began. Fig 5: only an effect
         that changes the board can reach a gap elsewhere; a restart can when there is progress
-        to undo. Least-seen breaks ties, which keeps variety among equal moves."""
+        to undo. Least-seen breaks ties, which keeps variety among equal moves.
+
+        Under TETHER_DEST_GAP an option may carry a third field: whether it has been seen to lead
+        somewhere with an unknown knob (the reviewer 2026-10-12 13:04 CDT). It ranks AFTER price,
+        so a gap elsewhere never buys a restart (Fig 12)."""
         def price(e: str) -> int:
             return 1 + self._attempt_actions if e == IFace.RESTARTS else 1
 
         def reaches(e: str) -> bool:
             return e == IFace.CHANGES or (e == IFace.RESTARTS and self._attempt_actions > 0)
 
+        gap = [len(k) > 2 and bool(k[2]) for k in known]
         i = min(range(len(known)),
-                key=lambda j: (not reaches(known[j][0]), price(known[j][0]), known[j][1], j))
-        return i, (f"chose '{known[i][0]}' at price {price(known[i][0])} of "
-                   f"{sorted({(e, price(e)) for e, _n in known})}")
+                key=lambda j: (not reaches(known[j][0]), price(known[j][0]), not gap[j],
+                               known[j][1], j))
+        return i, (f"chose '{known[i][0]}' at price {price(known[i][0])}"
+                   f"{', toward an unknown knob' if gap[i] else ''} of "
+                   f"{sorted({(k[0], price(k[0])) for k in known})}")
 
     def restarted(self, env: Any) -> None:
         """THE SAME LEVEL AGAIN, after a death and the agent's RESET -- called by the harness, as

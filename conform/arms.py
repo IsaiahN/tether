@@ -489,6 +489,14 @@ ARMS: dict[str, str] = {
                         "writer, for budget_spent, not_novel and priced_out_at_depth, before the "
                         "park row, which also carries bound_at_park. Chains only. OFF until "
                         "R-exec, R-lever and OFF identity are accepted",
+    "TETHER_DEST_GAP": "Stage 1a (the reviewer 2026-10-12 12:41, 13:04 CDT): nothing recorded "
+                       "where a press LEADS, so the chooser's own Fig 5 line ('a gap "
+                       "elsewhere') could not be read and least-seen alternated between "
+                       "mapped contexts. Under the arm "
+                       "audit keeps the post-press context beside the pre-press key, and among "
+                       "equal-price reaching options ELICIT prefers one seen to lead where an "
+                       "offered action's effect is unknown (one step). OFF until fixture, OFF "
+                       "identity and R-exec are accepted; ground on the 25 in step 13",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
                              "not-t is priced there (F496). The variable turns it OFF, so the A/B "

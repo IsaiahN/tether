@@ -125,6 +125,11 @@ SELF, OTHER, NO_TARGET = "self", "other", "no_target"
 # OFF; reason in conform/arms.py.
 _REALISE_CELL = armflag.arm("TETHER_REALISE_CELL")
 
+# WHERE A PRESS LED (the reviewer 2026-10-12 13:04 CDT, stage 1a): the context read after the
+# press, kept beside the one it was taken in, and read by the chooser. OFF; reason in
+# conform/arms.py.
+_DEST_GAP = armflag.arm("TETHER_DEST_GAP")
+
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
 
@@ -749,12 +754,33 @@ class Interface:
         # prices and chooses; nothing is refused and nothing is pressed for it.
         if intent.kind == ELICIT and self.chooser is not None:
             known = [(self._known_effect(a, ctx), seen[a]) for a in offered]
+            if _DEST_GAP:
+                gaps = [self.leads_to_gap(a, ctx, offered) for a in offered]
+                known = [(e, n, g) for (e, n), g in zip(known, gaps, strict=True)]
             i, why = self.chooser(known)
+            if _DEST_GAP:
+                # the pick today's key would have made, so a ledger alone shows where the gap
+                # changed it (the reviewer 2026-10-12 14:56 CDT)
+                j, _ = self.chooser([(e, n) for e, n, _g in known])
+                why = (f"{why}; gaps {dict(zip(offered, gaps, strict=True))}; "
+                       f"today's key: {offered[j]}")
             return _made(offered[i], f"requested {asked}: nothing unknown here; {why}")
         fewest = min(seen.values())
         band = [a for a in offered if seen[a] == fewest]
         return _made(_pick(band), f"requested {asked}: all known here, least-seen taken")
 
+
+    def leads_to_gap(self, a: str, ctx: tuple, offered: tuple[str, ...]) -> bool:
+        """`a` has been seen to lead from `ctx` to a context where some action offered now has no
+        known effect -- the variety rule's own test (`fresh`, above) read in the destination.
+        No recorded destination is no gap seen. RESET is never an unknown knob: its effect is
+        inherited. ONE STEP: a mapped destination that leads on to an unknown knob reads False;
+        looking further would be planning over the map, and is not built."""
+        for d in self.table.get(a, {}).get("to", {}).get(ctx, ()):
+            if any(b != RESET and d not in self.table.get(b, {}).get("by_ctx", {})
+                   for b in offered):
+                return True
+        return False
 
     def _known_effect(self, a: str, ctx: tuple) -> str:
         """What `a` is KNOWN to do in this context, as a kind the agent can price. RESET's is the
@@ -1166,7 +1192,8 @@ class Interface:
                     n += cn
         return n
 
-    def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = ()) -> bool:
+    def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = (),
+              ctx_after: tuple | None = None) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 
         **RETURNS `True` FOR *CONDITIONAL*, NOT FOR *CHANGED*, AND THE DIFFERENCE IS ISAIAH'S
@@ -1256,6 +1283,12 @@ class Interface:
                                  if k.rsplit(".", 1)[-1] not in RELATIONAL))
         e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0, "delta": {}})
         e["n"] += 1
+        # WHERE IT LED (TETHER_DEST_GAP; the caller passes it only under the arm). Keyed by v1's
+        # contact-kind multiset, so "mapped there" is only as fine as that key, and a board with
+        # few contexts may read worked-out early. A press that ends a level records the next
+        # level's context, as it is.
+        if ctx_after is not None:
+            e.setdefault("to", {}).setdefault(ctx, set()).add(ctx_after)
         # **WHICH WAY, NOT ONLY WHICH SLOT.** A changed-set says an action touches `o0.row`; it
         # does not say whether it raises or lowers it, and *raise this slot* is the commonest
         # thing an agent can want. So the table keeps a running mean of the SIGNED change per
