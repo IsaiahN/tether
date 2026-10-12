@@ -4105,6 +4105,10 @@ class Agent:
         # RE-READ AFTER THE OBSERVATION, BEFORE ANYTHING IS PRICED: a label the step created
         # was priced under the count from before it existed, so a new shape 8 read as 0 under
         # 8 and the miss cost nothing (8 of 12 games, 2026-10-07).
+        # The alphabet the bets were made under: a slot that vanishes in this step is priced
+        # from it (the reviewer 2026-10-12 16:12). Every slot in `betting` is a key of it by
+        # construction: `betting` is drawn from `before`, read in the frame this was built in.
+        bet_alphabet = self.alphabet
         self.alphabet = self._alphabets(self.env)
         # JOB B's HALF THAT RUNS TODAY: this action does not have ONE fixed effect.
         # **I WROTE HERE THAT IT CANNOT FIRE ON GRIDWORLD AND THE RUN DISPROVED IT** -- four
@@ -4159,7 +4163,7 @@ class Agent:
             # `_applies`: missing is charged, never skipped.
             gone = s not in after
             actual = pred[s] if gone else after[s]
-            bits = (math.log2(self.alphabet[s]) if gone
+            bits = (math.log2(bet_alphabet[s]) if gone
                     else correction_bits(pred[s], actual, self.alphabet[s]))
             r = SlotResidual(s, TRANSITION, pred[s], actual, bits)
             res[s] = r
@@ -4170,7 +4174,8 @@ class Agent:
             _bet = self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
                             of=(s,),
                             from_value=before[s], predicted=raw.get(s), actual=actual,
-                            predicted_code=pred[s], alphabet=self.alphabet[s],
+                            predicted_code=pred[s],
+                            alphabet=(bet_alphabet[s] if gone else self.alphabet[s]),
                             **({"vanished": True} if gone else {}),
                             mass=r.bits, cause=self._cause(s, r.bits),
                             # NOT `IDN`: an unbound slot rests on a persistence prior,
