@@ -5178,6 +5178,23 @@ class Agent:
                                    "wrong rows in this level")
         return None
 
+    def _d5_splits(self) -> set:
+        """D5: run the pending splits, before the route loop, which skips the slots split here.
+        A SPLIT IS ITS SLOT'S TURN THIS CYCLE (F500; the reviewer 2026-10-11 22:59 CDT): part B's
+        mint is the slot's one chain, so the slot leaves _turn_ahead AFTER _d5_split returns --
+        never before, so the split's own mint sweeps as it did. Left in, a later mint's sweep this
+        cycle reached the split slot: MINT after its ACCEPT, and an install path into a slot
+        whose chain had run (the ALL-ON fake of panel c05a4bd, 14 rows on 6 of 7 splits)."""
+        done: set = set()
+        if _D5 and self._d5_pending:
+            for _slot in sorted(self._d5_pending):
+                self._d5_split(_slot, *self._d5_pending[_slot])
+                done.add(_slot)
+                if self._turn_ahead is not None:
+                    self._turn_ahead.discard(_slot)
+            self._d5_pending.clear()
+        return done
+
     def _d5_split(self, slot: str, pred: str, numbers: dict, inc: str | None = None) -> None:
         """D5: part A keeps the incumbent on P rows; part B is searched by the SAME mint on the
         not-P rows alone (history filtered), and its verdict stays the part's: the slot's park
@@ -10065,12 +10082,7 @@ class Agent:
         # minted this cycle is swept only into slots whose own turn is still to come; a slot
         # already past its turn meets it through its own route next cycle.
         self._turn_ahead = {s for s, b, *_ in routed if b in (REBIND, REFUTED, MECHANISM)}
-        _split_now: set = set()
-        if _D5 and self._d5_pending:
-            for _slot in sorted(self._d5_pending):
-                self._d5_split(_slot, *self._d5_pending[_slot])
-                _split_now.add(_slot)
-            self._d5_pending.clear()
+        _split_now = self._d5_splits()
         for slot, b, fit, _why in routed:
             if slot in _split_now:
                 continue
