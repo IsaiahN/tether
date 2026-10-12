@@ -600,7 +600,10 @@ class Attribution:
                         if isinstance(f := getattr(m, "__file__", None), str) and f.endswith(".py")
                         and os.path.normcase(os.path.abspath(f)).startswith(base)
                         and ".venv" not in os.path.relpath(f, root).split(os.sep)})
-        out: dict = {"files_sha": Attribution.files_sha(files, root), "n_files": len(files)}
+        # PYTHONHASHSEED is the run's hash seed as the launcher set it (None when unset): ours,
+        # so one run can be replayed; the being never reads it (the reviewer 2026-10-12 16:00)
+        out: dict = {"files_sha": Attribution.files_sha(files, root), "n_files": len(files),
+                     "pythonhashseed": os.environ.get("PYTHONHASHSEED")}
 
         def git(*a: str) -> str:
             return subprocess.run(["git", "-C", root, *a], capture_output=True, text=True,

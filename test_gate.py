@@ -458,7 +458,9 @@ def test_a_ledger_states_the_arms_its_run_had():
     import os
     import subprocess
     import tempfile
-    assert {"files_sha", "n_files", "head", "tree", "dirty"} <= recorded.keys(), recorded.keys()
+    assert {"files_sha", "n_files", "head", "tree", "dirty",
+            "pythonhashseed"} <= recorded.keys(), recorded.keys()
+    assert recorded["pythonhashseed"] == os.environ.get("PYTHONHASHSEED"), recorded
     assert recorded["n_files"] > 0 and len(recorded["files_sha"]) == 64
     # PLANT 3: one hashed file's bytes changed -> files_sha changes
     with tempfile.TemporaryDirectory() as d:
