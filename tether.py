@@ -9157,8 +9157,10 @@ class Agent:
                 detail["library_first"] = dict(_lf_stats)
             if _PARK_WANT and wanted is not None and detail["verdict"] in (
                     "budget_spent", "not_novel", "priced_out_at_depth"):
-                # written BEFORE the row, so the row carries it; masked at _target_lookup when
-                # an earlier mint's term is still bound, which bound_at_park counts
+                # written BEFORE the row, so the row carries it. A term still bound from an earlier
+                # mint may mask it: under TETHER_WANT_TARGET only an OBJ-typed one (_objective_of);
+                # otherwise any, for the mint's own wants (_target_lookup's bound-or-want).
+                # bound_at_park says one is bound
                 detail["bound_at_park"] = slot in self.bound
                 self._retain_unpaid_want(slot, wanted, detail)
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
