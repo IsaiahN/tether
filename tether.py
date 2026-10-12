@@ -566,6 +566,25 @@ _BOUNDARY_CHAIN = True
 _CARRY_REF = True
 
 
+def _kind_of(out_t: str) -> str:
+    """A stream's kind, from its output type."""
+    return ("predictor" if out_t == "val"
+            else "objective" if out_t == OBJ_TYPE else f"typed:{out_t}")
+
+
+def _floor_champion(by_kind: dict, kind: str, best, share: bool):
+    """D2: the champion a stream's floor test reads. ON: its own kind's (the reviewer 06:19 CDT).
+    OFF: the shared best, as before."""
+    return by_kind.get(kind) if share else best
+
+
+def _next_stream(live: list, spent: dict, share: bool) -> int:
+    """D2: the stream that takes the next candidate. OFF: the first live stream, which is the old
+    sequence (each stream to exhaustion before the next). ON: the least rank spent this round,
+    ties to list order. No share, weight or quota."""
+    return min(live, key=lambda s: (spent[s], s)) if share else live[0]
+
+
 def _recording(chains, into: list):
     """Yield each chain, recording it into `into`: pass 2 walks that record, a LOOKUP of what pass 1
     reached and never a second enumeration (the reviewer 19:45Z; Fig 12: nothing is re-earned)."""
@@ -605,6 +624,10 @@ def _replace_lib(lib: Any) -> Any:
 # arrivals do not -> OFF; calls-per-cycle growth steepens against the control -> OFF; binds
 # per candidate rises -> OFF. Each is a RESULT, not a failure.
 _STREAM_WIDEN = armflag.arm("TETHER_STREAM_WIDEN")
+# D2, STREAM SHARE (the reviewer 2026-10-12 05:43, 06:19 CDT): within a round, the stream that has
+# spent the least rank takes the next candidate (Fig 6: distribute the search, keep the searchers
+# independent), and a stream stops at its OWN kind's floor. OFF; reason in conform/arms.py.
+_STREAM_SHARE = armflag.arm("TETHER_STREAM_SHARE")
 # ITEM 7. Default OFF: it APPENDS TO THE ATOM REGISTRY, which every term reads.
 # **THE RANDOMISED HOLD -- MEASUREMENT ONLY, the reviewer 2026-10-03 ruling 3.** Withholds
 # the `ACTED_SELF` offer on a seeded ~half of ELIGIBLE occasions so a measurement run carries
@@ -8361,6 +8384,7 @@ class Agent:
         by_kind: dict[str, tuple] = {}
         wanted: tuple[float, Term, int] | None = None
         rank = 0
+        _share: dict = {}        # D2: per-stream rank/pays/turns, recorded under the arm
         _skey = _hit = None
         priced, _skipped = {}, 0
 
@@ -8480,14 +8504,14 @@ class Agent:
             # evidence lags), and round 2, only with budget left, walks the chains round 1 recorded
             # with their no-evidence lags. One round otherwise, so OFF is the old loop exactly.
             _rec2: dict = {}
-            for _round, (_si, (in_t, out_t)) in (
-                    (r, x) for r in _rounds for x in enumerate(streams)):
+
+            def _stream_open(_si, _round):
+                in_t, out_t = streams[_si]
                 # A THIRD KIND EXISTS ONCE THE STREAMS WIDEN, and it is named rather than
                 # folded into `objective`: a term ending at EXTENT is neither a prediction of
                 # the slot's next value nor a complete objective, and calling it one would put
                 # two quantities under one label at the site the contest is decided.
-                kind = ("predictor" if out_t == "val"
-                        else "objective" if out_t == OBJ_TYPE else f"typed:{out_t}")
+                kind = _kind_of(out_t)
                 by_fit = partial(retrieval.fits, gap=gap, in_type=in_t, out_type=out_t)
                 # THE INHERITED VOCABULARY ORDERS THE TIES, AND THE TIES ARE WHERE THE
                 # ORDERING ACTUALLY HAPPENS. `fits` returns an INTEGER 0..5 and its own
@@ -8521,7 +8545,48 @@ class Agent:
                     _walk_these = ((c, 1) for c in _recording(_stream, _rec2.setdefault(_si, [])))
                 else:
                     _walk_these = ((c, 1) for c in _stream)
-                for cand, _pass in _walk_these:
+                return kind, st, _walk_these
+
+            # D2: ONE scheduler per round; the body below runs once per candidate with the picked
+            # stream's kind/st/_si bound. OFF picks the first live stream: the old order.
+            # "pays_called" counts pays() CALLS while the stream holds the turn, trees included.
+            _share.update({k: {"rank": 0, "pays_called": 0, "turns": 0, "first_rank": None,
+                               "floor_stop": None} for k in range(len(streams))})
+            _floored: set = set()
+
+            def _stop(_s, _open, _live):
+                _live.remove(_s)
+                _st = _open[_s][1]
+                stats["seen"] += _st["seen"]
+                stats["estimate"] += _st["estimate"]
+                stats["budget_spent"] = stats["budget_spent"] or _st["budget_spent"]
+
+            for _round in _rounds:
+                _open: dict = {}
+                _live = [k for k in range(len(streams)) if k not in _floored]
+                _spent = dict.fromkeys(_live, 0)
+                _cur, _r0 = None, rank
+                while True:
+                    if _cur is not None:
+                        _spent[_cur] += rank - _r0
+                        _share[_cur]["rank"] += rank - _r0
+                        _cur = None
+                    if not _live:
+                        break
+                    _si = _next_stream(_live, _spent, _STREAM_SHARE)
+                    if _si not in _open:
+                        _open[_si] = _stream_open(_si, _round)
+                    kind, st, _walker = _open[_si]
+                    _nx = next(_walker, None)
+                    if _nx is None:
+                        _stop(_si, _open, _live)
+                        continue
+                    cand, _pass = _nx
+                    _cur, _r0 = _si, rank
+                    _sh = _share[_si]
+                    _sh["turns"] += 1
+                    if _sh["first_rank"] is None:
+                        _sh["first_rank"] = rank
                     # A deferred round's frontier key carries the round (the reviewer 11:34 CDT):
                     # a chain priced in round 1 has not had its deferred binds walked, so a resume
                     # must not skip them as priced.
@@ -8531,7 +8596,8 @@ class Agent:
                         continue
                     if rank >= self.cfg.work_budget:
                         st["budget_spent"] = True
-                        break
+                        _stop(_si, _open, _live)
+                        continue
                     binds = operand_binds if cand.reads_operand else [None]
                     if len(_rounds) > 1:
                         # PASS 1 walks what the window-OFF search walks plus the evidence lags;
@@ -8699,6 +8765,7 @@ class Agent:
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
                                 bleft = self._left(bt, slot, hist, base, bcost)
+                                _sh["pays_called"] += 1
                                 if not pays(bcost, bleft, base):
                                     continue
                                 btotal = bcost + bleft
@@ -8779,6 +8846,7 @@ class Agent:
                             if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                 continue
                             bleft = self._left(bt, slot, hist, base, bcost)
+                            _sh["pays_called"] += 1
                             if not pays(bcost, bleft, base):
                                 continue
                             btotal = bcost + bleft
@@ -8804,6 +8872,7 @@ class Agent:
                                 by_kind[kind] = (btotal, bleft, bcost, bt)
                             if best is None or btotal < best[0]:
                                 best = (btotal, bleft, bcost, bt)
+                        _sh["pays_called"] += 1
                         if not pays(cost, left, base):
                             cut_n["does-not-pay"] += 1
                             if len(cuts) < 12:
@@ -8901,11 +8970,16 @@ class Agent:
                     # The floor is the cheapest term the cost function admits, `k = 1`, and
                     # `term_bits` is monotone in `k`. Nothing remaining can beat an incumbent
                     # already at or under it. Necessary, like `_cannot_pay`'s bound.
-                    if best is not None and best[0] <= term_bits(1, self.gamma.alphabet):
-                        break
-                stats["seen"] += st["seen"]
-                stats["estimate"] += st["estimate"]
-                stats["budget_spent"] = stats["budget_spent"] or st["budget_spent"]
+                    # UNDER THE ARM THE FLOOR IS PER KIND (the reviewer 06:19 CDT): a want comes
+                    # from by_kind["objective"] or `wanted`, never from the winner, so
+                    # another kind's champion at the floor is no bound on this stream.
+                    # OFF keeps the shared best (a FINDING: the same starvation, rare).
+                    _fc = _floor_champion(by_kind, kind, best, _STREAM_SHARE)
+                    if _fc is not None and _fc[0] <= term_bits(1, self.gamma.alphabet):
+                        if _STREAM_SHARE:
+                            _sh["floor_stop"] = _round
+                            _floored.add(_si)
+                        _stop(_si, _open, _live)
                 # NO BREAK ACROSS STREAMS. There was one, and it made the contest a FALLBACK
                 # CHAIN rather than a contest: `("val","val")` runs first, so a predictor that
                 # explained perfectly ENDED THE SEARCH and the objective stream was never
@@ -8980,6 +9054,11 @@ class Agent:
                   "depth": self.cfg.max_depth, "units": stats["units"],
                   "space_estimate": est,
                   "coverage": round(seen / est, 6) if est else 0.0}
+        if _STREAM_SHARE and _share:
+            detail["stream_share"] = {
+                **{_kind_of(streams[k][1]): v for k, v in _share.items()},
+                "unasked": [_kind_of(streams[k][1]) for k, v in _share.items()
+                            if v["first_rank"] is None]}
         if _hit:
             detail["chains_already_priced"] = _skipped
         if unseal is not None:

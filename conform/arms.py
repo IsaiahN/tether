@@ -472,6 +472,12 @@ ARMS: dict[str, str] = {
                                 "abstain. Adds movables only. Needs TETHER_RELATION_SET for "
                                 "the pair slots. OFF until its s0 probe and OFF identity are "
                                 "accepted",
+    "TETHER_STREAM_SHARE": "D2 (the reviewer 2026-10-12 05:43, 06:19 CDT): within a round of "
+                           "mint's search the stream that has spent the least rank takes the next "
+                           "candidate (ties to list order), and a stream stops at its OWN kind's "
+                           "floor. No share or quota; the shared cap is unchanged. Records "
+                           "stream_share on the MINT row. OFF until R1 and OFF identity are "
+                           "accepted",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
                              "not-t is priced there (F496). The variable turns it OFF, so the A/B "
