@@ -578,6 +578,31 @@ def test_a_signal_resolved_twice_is_refused():
     _refuses(_resolved({"channel": "transition", "mass": 0.0}, twice=True), gate.RESOLVED_TWICE)
 
 
+def test_the_cli_exit_code_carries_the_verdict():
+    """A refusal exits non-zero (the reviewer 2026-10-11 22:56 CDT). gate.py printed its verdict
+    and always exited 0, and conform/check.py's gate stage passes on returncode 0 -- so that
+    stage could not fail. The refused ledger must turn the stage, read through check.py's own
+    run_stage, to something other than ok."""
+    import pathlib
+    import subprocess
+    import tempfile
+    here = pathlib.Path(__file__).parent
+    sys.path.insert(0, str(here / "conform"))
+    import check
+    bad = valid()
+    bad[3], bad[2] = dict(bad[2], seq=3), dict(bad[3], seq=2)     # ACCEPT before MINT
+    assert gate.check(bad)["token"] == gate.STEP_ORDER
+    with tempfile.TemporaryDirectory() as d:
+        for name, rows, want in (("ok", valid(), 0), ("bad", bad, 1)):
+            f = pathlib.Path(d) / f"{name}.jsonl"
+            f.write_text("".join(gate.json.dumps(r) + chr(10) for r in rows), encoding="utf-8")
+            rc = subprocess.run([sys.executable, str(here / "gate.py"), str(f)],
+                                capture_output=True, text=True).returncode
+            assert rc == want, f"{name}: exit {rc}, want {want}"
+            status, _ = check.run_stage([sys.executable, str(here / "gate.py"), str(f)])
+            assert (status == "ok") == (want == 0), f"{name}: check.py stage read {status}"
+
+
 # **THE RUNNER GOES LAST, AND IT COUNTS ITSELF -- `F416`.** It used to sit mid-file and
 # collect `globals()` at the moment it ran, so THREE test functions defined BELOW it did not
 # exist yet and were never collected: 20 defined, 17 run, and the seat reported green. The

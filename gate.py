@@ -338,4 +338,8 @@ def check_file(path: str) -> dict:
 
 
 if __name__ == "__main__":
-    print(json.dumps(check_file(sys.argv[1]), indent=2))
+    # THE EXIT CODE CARRIES THE VERDICT (the reviewer 2026-10-11 22:56 CDT): it was always 0,
+    # and conform/check.py's gate stage passes on returncode 0, so that stage could not fail.
+    _out = check_file(sys.argv[1])
+    print(json.dumps(_out, indent=2))
+    sys.exit(0 if _out["verdict"] == PASS else 1)
