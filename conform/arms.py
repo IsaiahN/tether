@@ -497,6 +497,13 @@ ARMS: dict[str, str] = {
                        "equal-price reaching options ELICIT prefers one seen to lead where an "
                        "offered action's effect is unknown (one step). OFF until fixture, OFF "
                        "identity and R-exec are accepted; ground on the 25 in step 13",
+    "TETHER_AIM_GAP": "Stage 1b (the reviewer 2026-10-12 15:26 CDT): an explore press at a click "
+                      "site went to a coordinate already known to move its subject (_aim_for) "
+                      "ahead of an object never pressed. Under the arm audit keeps each press's "
+                      "effect per (coordinate, pre-press context), and ELICIT aims first at an "
+                      "object not yet pressed in this context; BECOME keeps the known knob. OFF "
+                      "until fixture, OFF identity and R-exec are accepted; ground on the 25 in "
+                      "step 13",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
                              "not-t is priced there (F496). The variable turns it OFF, so the A/B "

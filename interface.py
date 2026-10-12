@@ -130,6 +130,11 @@ _REALISE_CELL = armflag.arm("TETHER_REALISE_CELL")
 # conform/arms.py.
 _DEST_GAP = armflag.arm("TETHER_DEST_GAP")
 
+# THE CLICK SITE'S VARIETY RULE (the reviewer 2026-10-12 15:26 CDT, stage 1b): what a press at a
+# coordinate did, per pre-press context, and an explore press aimed first at an object not yet
+# pressed here. OFF; reason in conform/arms.py.
+_AIM_GAP = armflag.arm("TETHER_AIM_GAP")
+
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
 
@@ -400,6 +405,9 @@ class Interface:
         # has exactly `clicked`'s lifetime -- a coordinate is only a referent while the board
         # holds still.
         self.aimed_effect: dict[tuple[int, int], set[str]] = {}
+        # TETHER_AIM_GAP: the same recording per (coordinate, pre-press context) -- 1a's grain
+        # carried to coordinates. Same lifetime and the same limit as `aimed_effect`.
+        self.aimed_by_ctx: dict[tuple, set[tuple[str, ...]]] = {}
         # **EVERY ATTRIBUTE THE ACTOR CODE HAS EVER JUDGED, so `RELATIONAL` cannot silently
         # miss one -- the reviewer, 2026-09-28.** That list is short, so anything not on it
         # counts as the object's OWN by default, and a new relational attribute (`contact`,
@@ -719,6 +727,15 @@ class Interface:
             # instance record consulted for WHICH coordinate. In a world where every effect is
             # SELF, hunting for a button is wasted presses and the sweep is right.
             coord = (self._aim_for(intent, state) if a in POSITIONED else None)
+            if _AIM_GAP and intent.kind == ELICIT and a in POSITIONED:
+                # an explore press goes first to an object not yet pressed IN THIS CONTEXT; a
+                # want (BECOME) keeps the known knob. `today` is what the old order pressed.
+                today, here = coord, self._unpressed_here(state, ctx, w.coords(a))
+                why = f"{why}; unpressed here: {len(here)}; today's aim: {today}"
+                if here:
+                    return Realisation(a, coord=here[0], unmapped=(a not in self.table),
+                                       why=f"{why}, aimed at {here[0]} where its effect here "
+                                           f"is unknown")
             if w.at(a, coord):
                 coord = None
             if coord is None and a in POSITIONED:
@@ -913,6 +930,14 @@ class Interface:
         if not best:
             return None
         return min(best, key=lambda c: (len(self.aimed_effect[c]), c))
+
+    def _unpressed_here(self, state: dict | None, ctx: tuple,
+                        avoid: set | frozenset = frozenset()) -> list[tuple[int, int]]:
+        """Object positions not yet pressed IN THIS CONTEXT, in sorted object order.
+        Limits, named: the v1 context key does not record a selection (a key's effect can
+        depend on a prior click); a coordinate is a referent only while the board holds still."""
+        return [at for at in self._spots(state)
+                if at not in avoid and (at, ctx) not in self.aimed_by_ctx]
 
     def _spots(self, state: dict | None) -> list[tuple[int, int]]:
         """Every object position on the board, as `(x=col, y=row)`, in sorted object order."""
@@ -1232,6 +1257,9 @@ class Interface:
         if r.coord is not None:
             self.aimed_effect.setdefault(r.coord, set()).update(
                 k for k in before if before.get(k) != after.get(k))
+            if _AIM_GAP:
+                self.aimed_by_ctx.setdefault((tuple(r.coord), ctx), set()).add(
+                    tuple(sorted(k for k in before if before.get(k) != after.get(k))))
         # **THE EFFECT IS WHAT THE ACTION DID TO OWN ATTRIBUTES, NOT EVERY SLOT THAT MOVED --
         # 2026-09-28, and it is the `actor_of` defect one level along.** Measured on gridworld
         # with no remap, `left` was flagged CHANGED because one context held these two:
