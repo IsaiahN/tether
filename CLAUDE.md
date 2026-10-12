@@ -144,6 +144,8 @@ per panel, and a cap-vs-estimate refusal · **every count restricted to the popu
 names** · never survivors-only · **per world, per seed, never pooled** · **arm state
 stated in every measurement** · read the mechanism before filing a ruling.
 
+**RUNNING JOBS.** Isaiah's throttle rule is never kill a running job, and it covers the seat's own jobs too: a running job always finishes. An amended instrument queues behind it; a hung, faulty or harmful job goes to Isaiah, or to a post to the reviewer first (the reviewer 2026-10-12 03:09 CDT).
+
 **NEW-SESSION RULES.** (1) **Declare which files you actually READ this session** and
 which you are relying on summaries for — and **never present yourself as the previous
 session**. (2) **Pass the reviewer's orientation test before touching code.** (3)

@@ -417,6 +417,7 @@ here in the same session it arrives, or the next search for it fails the same wa
   fixture shows that changing the harness's allowance changes behaviour ONLY through the frame-delivered
   value, which is recorded on the game's first row. **And the work-unit calibration (fitted on the fake)
   is re-checked PER GAME, predicted over measured, before the budget run.**
+  > ANNOTATION (the reviewer 2026-10-12 04:00 CDT, not Isaiah's text): `Config.work_budget` (tether.py, read at the cap in `_mint`) is a budget constant in the agent's code and is inside this ruling's letter. It is recorded as a KNOWN EXCEPTION, pending the cross-product design; its replacement is a bound the agent reads from its own running out or from the frame, never a config number. It stays for now because removing it unbounds mint (F180).
 
 ## 2026-10-08 (afternoon) — Isaiah adopts the reviewer's resolutions
 
