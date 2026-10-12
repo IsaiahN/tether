@@ -513,6 +513,11 @@ _ROUTINE_STALE = armflag.arm("TETHER_ROUTINE_STALE")
 # so its budget, and the count it claims, come from that subject's own gap. OFF; reason in
 # conform/arms.py.
 _ROUTINE_SUBJECT_BUDGET = armflag.arm("TETHER_ROUTINE_SUBJECT_BUDGET")
+# B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
+# context -- its object's signed offset from the controlled owners, read off the agent's own pair
+# slots -- two actions change it with different PURE signs. contingent()'s always/never, one level
+# down (Fig 11's second-order effect). OFF; reason in conform/arms.py.
+_DIRECTION_MOVABLE = armflag.arm("TETHER_DIRECTION_MOVABLE")
 
 
 @dataclass(frozen=True)
@@ -1635,6 +1640,10 @@ class Agent:
         self._not: dict[tuple, list[tuple]] = {}
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
+        # B: (slot -> (action, ctx) -> signs seen). Agency's lifetime, never the trace's: the
+        # trace clears at retarget, these do not, so the two movability readings cover one history.
+        self._dir: dict = {}
+        self._dir_scope_noted = False
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self._vetoes: set[tuple] = set()       # 7a(5) B: (fingerprint, action, coordinate)
         self._ruin_step: tuple | None = None   # this step's (fp, of, action, coord, cycle)
@@ -2363,10 +2372,70 @@ class Agent:
         """BY SOURCES (the reviewer 2026-10-11 13:49 CDT): a pair slot is never bet on, so it is
         never in contingent(); it moves when ANY of its sources does -- o0.dist_o3 changes when
         o3 moves as much as when o0 does. An ordinary slot's only source is itself."""
+        return self._movable_by(slot) is not None
+
+    def _movable_by(self, slot: str) -> str | None:
+        """Which reading says the slot moves: "contingent" (by sources), "direction" (B, arm only;
+        it can only ADD movables), or None."""
         moving = set(self.agency.contingent())
         dv = getattr(self.env, "derived", None)
         derived = dv() if dv is not None else {}
-        return any(s in moving for s in derived.get(slot, (slot,)))
+        srcs = derived.get(slot, (slot,))
+        if any(s in moving for s in srcs):
+            return "contingent"
+        if _DIRECTION_MOVABLE and any(self._moves_by_direction(s) for s in (slot, *srcs)):
+            return "direction"
+        return None
+
+    def _note_direction(self, action: str, before: dict, after: dict, slots: list) -> None:
+        """B: the sign of each ordered slot's change, keyed by (action, ctx). ctx is, for every
+        controlled owner c (an owner of a contingent() slot; never a name taken on trust), the
+        signs of the agent's own pair slots c.drow_X / c.dcol_X for the slot's object X ((c, 0, 0)
+        when X is c). Nothing is recorded where a needed pair slot is absent. A slot is read when
+        its type is ordered: the type map is the only categorical marker there is."""
+        ctrl = sorted({s.rsplit(".", 1)[0] for s in self.agency.contingent() if "." in s})
+        if not ctrl:
+            return
+        if not self._dir_scope_noted:
+            self._dir_scope_noted = True
+            kinds: dict = {}
+            for _s, _ty in self.slot_types.items():
+                kinds[str(_ty)] = kinds.get(str(_ty), 0) + 1
+            self.led.record(self.cycle, "PERCEIVE", "@direction", "direction_scope",
+                            ordered=list(ORDERED_TYPES), slot_types=kinds,
+                            reads=("a slot is read when its type is ordered; a categorical slot "
+                                   "the type map calls ordered is read too, and its sign means "
+                                   "nothing (a perception item, steps 5/6)"))
+        sg = lambda v: (v > 0) - (v < 0)              # noqa: E731
+        for s in slots:
+            if "." not in s or self.slot_types.get(s) not in ORDERED_TYPES:
+                continue
+            b, a = before.get(s), after.get(s)
+            if not isinstance(b, int) or not isinstance(a, int):
+                continue
+            x = s.rsplit(".", 1)[0]
+            ctx = []
+            for c in ctrl:
+                if c == x:
+                    ctx.append((c, 0, 0))
+                    continue
+                dr, dc = before.get(f"{c}.drow_{x}"), before.get(f"{c}.dcol_{x}")
+                if not isinstance(dr, int) or not isinstance(dc, int):
+                    ctx = None
+                    break
+                ctx.append((c, sg(dr), sg(dc)))
+            if ctx is None:
+                continue
+            self._dir.setdefault(s, {}).setdefault((action, tuple(ctx)), set()).add(sg(a - b))
+
+    def _moves_by_direction(self, slot: str) -> bool:
+        """Movable iff, in one ctx, the PURE cells (one sign seen) of two actions differ. A mixed
+        cell abstains. A changer that moves the same way whatever the action never qualifies."""
+        by_ctx: dict = {}
+        for (_action, ctx), signs in self._dir.get(slot, {}).items():
+            if len(signs) == 1:
+                by_ctx.setdefault(ctx, set()).add(next(iter(signs)))
+        return any(len(v) > 1 for v in by_ctx.values())
 
     def _respell_goals(self) -> None:
         """BOTH SPELLINGS, OVER TIME (the reviewer 2026-10-11 12:12 CDT): a want linked before the
@@ -4146,6 +4215,8 @@ class Agent:
         # §16.8 SENSOR 3. Which slots moved under THIS action, so the control mode is a
         # contingency read rather than a label -- §16.2: it blends mid-game, so it is
         # detected per step and never used to name the game.
+        if _DIRECTION_MOVABLE:          # before Agency.note: the controlled set as it stood
+            self._note_direction(action, before, after, sorted(res))
         self.agency.note(action, self._moved(res, before, after), sorted(res))
         self._integral += sum(r.mass for r in res.values())
         for _s, _r in res.items():
@@ -5944,6 +6015,8 @@ class Agent:
         if sel is not None:
             row.update(movable=self._moves_by_sources(sel), closer=self.improved(sel),
                        changed=after.get(sel) != before.get(sel))
+            if _DIRECTION_MOVABLE:
+                row["movable_by"] = self._movable_by(sel)
         self.led.record(self.cycle, "PERCEIVE", "*", "goal_choice", selected=sel,
                         longest=why.get("longest", 0), series=why.get("slots", 0),
                         wants_held=len(self.wants), action=action, **row)

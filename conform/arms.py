@@ -465,6 +465,13 @@ ARMS: dict[str, str] = {
                      "measured; under it ~1 is one lag of the block, not TETHER_PREV_OFFER's offer",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
+    "TETHER_DIRECTION_MOVABLE": "B (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable "
+                                "when, in one context (its object's signed offset from the "
+                                "controlled owners, from the agent's own pair slots), two "
+                                "actions change it with different PURE signs; mixed cells "
+                                "abstain. Adds movables only. Needs TETHER_RELATION_SET for "
+                                "the pair slots. OFF until its s0 probe and OFF identity are "
+                                "accepted",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
                              "not-t is priced there (F496). The variable turns it OFF, so the A/B "
