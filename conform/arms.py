@@ -111,19 +111,6 @@ ARMS: dict[str, str] = {
                           "owed under ruling 6, and one was not isolated from the want "
                           "state. Spelled `get(..., \"1\") != \"0\"`, which this census "
                           "reads as default-on",
-    "TETHER_DOWNRATE": "the agent discounts a scope member it has watched through at "
-                       "least one press of every action it has and never once seen move. "
-                       "**DEFAULT OFF, AND THE DEFAULT IS THE OPEN QUESTION.** The "
-                       "arithmetic is ruled (Isaiah, 2026-10-01: an all-inert scope makes "
-                       "downrating STEP ASIDE to the unweighted degree -- never silence a "
-                       "goal on inertness alone) and the policy is built. What is NOT "
-                       "settled is whether discounting makes the agent choose better or "
-                       "makes it disturb goals that already hold: with it on, the toy "
-                       "fixture loses 3 refusal rows and gains 8 `decision` rows while NO "
-                       "residual differs at the final state. **That is a behaviour question "
-                       "and it is Isaiah's, to be ruled on a gridworld A/B rather than on "
-                       "the toy** -- so the switch exists to make that A/B one script with "
-                       "one flag. Spelled `get(..., \"0\") != \"0\"`, default-off",
     "TETHER_LIBRARY_FIRST": "the library's offered chains (M4, the Figure 9 lookup) yielded before "
                             "the closure stream and priced by the one body (the reviewer 08:30Z). "
                             "ON by the registered rule (no closer lost, demo green, time "
@@ -795,6 +782,10 @@ RETIRED = {
     "TETHER_INVENT": "Isaiah 2026-10-04: inventing is just a bootleg composition -- fix "
                      "composition and imports and you will not need this crutch. Measured: "
                      "53 invented, 0 priced, 0 bound, 7 delta maps all fragments of `inc`.",
+    "TETHER_DOWNRATE": "Isaiah 2026-10-11 17:09 CDT: delete it, evolution does not keep what is "
+                       "not used. F386: met goals undone 4/6/10 ON vs 0/0/0 OFF; F425: its "
+                       "one caller never ran on click worlds. Intent covered by _goal_choice, "
+                       "both spellings and cascade agency.",
 }
 
 

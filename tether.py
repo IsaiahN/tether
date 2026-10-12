@@ -153,13 +153,6 @@ _REL_GAP = armflag.arm("TETHER_REL_GAP")
 # So the flip removed nothing. Three of the four were reading something other than what they
 # claimed, and the fourth is owed to a world with a real gap.
 _BARGAIN_FIT = armflag.arm("TETHER_BARGAIN_FIT", default=True)
-# **DOWNRATING, DEFAULT OFF -- the reviewer, 2026-10-01, on the `BARGAIN_FIT` pattern.** The
-# policy is built and its arithmetic is ruled; what is NOT settled is whether discounting a
-# member the agent cannot move makes it choose better or makes it disturb goals that already
-# hold. **That is a behaviour question and it is Isaiah's**, to be ruled on a gridworld A/B
-# rather than on the toy -- so the switch exists to make the A/B one script with one flag,
-# and the default is OFF until he rules.
-_DOWNRATE = armflag.arm("TETHER_DOWNRATE")
 
 # **THE ?ACTED GUARD, DEFAULT ON SINCE 2026-10-05 -- ISAIAH, on the settled/unsettled
 # principle, SUPERSEDING the earlier zero-failure bar.** It was OFF from 2026-10-02, the
@@ -1041,8 +1034,7 @@ def objective_gap(evaluate, current: int, ordered: bool, domain) -> Any:
     return min(abs(v - current) for v in hits) if ordered else 1
 
 
-def objective_degree(evaluate, scope, counts: dict | None = None,
-                     weights: list[float] | None = None) -> float | None:
+def objective_degree(evaluate, scope, counts: dict | None = None) -> float | None:
     """`degree(molecule)` — **the fraction of the SCOPE that satisfies the objective.**
 
     `DISCOVERY` Q21 answers *is `R_goal` measurable* and gives the measurement: a molecule is a
@@ -1077,31 +1069,7 @@ def objective_degree(evaluate, scope, counts: dict | None = None,
                       satisfied=sum(1 for v in seen if v))
     if not seen:
         return None
-    # **WEIGHTED, AND UNWEIGHTED BY DEFAULT -- Isaiah's downrating ruling, 2026-09-30.** The
-    # agent may discount a scope member it has watched and never been able to move. The
-    # weight arrives here ALIGNED TO `scope` because this function is handed VALUES and has
-    # no way to know which member produced which -- `_group` drops the names, so identity is
-    # recovered by the caller and passed alongside. `None` keeps every caller unchanged.
-    if weights is None:
-        return sum(1 for v in seen if v) / len(seen)
-    ws = [w for v, w in zip(vals, weights, strict=False) if v is not None]
-    tot = sum(ws)
-    if tot <= 0.0:
-        # **STEP ASIDE -- ISAIAH, 2026-10-01, AND THIS LINE USED TO RETURN `None`.** When
-        # downrating would discount the WHOLE scope it withdraws, and the scope is counted
-        # UNWEIGHTED, exactly as if downrating were not there.
-        #
-        # **THE `None` WAS MINE AND IT SILENCED THE AGENT.** Measured on 2026-09-30: with it,
-        # `goal_residual` returned `None`, so there was no goal, so nothing planned -- 0 PLAN
-        # rows on one arm and a routine that forms without it, gone. The reasoning was *an
-        # absent population is not a satisfied one*, which is TRUE OF AN EMPTY SCOPE and false
-        # here. **An EMPTY scope is absent; a scope the agent merely has not MOVED is NO
-        # EVIDENCE**, and no evidence means fall back, never fall silent.
-        #
-        # An empty scope still returns `None`, above, at `if not seen`. That distinction is
-        # Isaiah's and is the whole of why this is a fallback and not a repeal.
-        return sum(1 for v in seen if v) / len(seen)
-    return sum(w for v, w in zip(seen, ws, strict=False) if v) / tot
+    return sum(1 for v in seen if v) / len(seen)
 
 
 @dataclass
@@ -1296,9 +1264,6 @@ class Agent:
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
-        # WHICH MEMBERS ARE CURRENTLY DISCOUNTED, PER SCOPE. Held so the narration fires on the
-        # TRANSITION rather than on every evaluation -- see `_scope_weights`.
-        self._downrated: dict[str, frozenset] = {}
         # SET HERE AND NOT ONLY IN `retarget`. `_advertised` reads it at the top of every
         # step; it only ever REACHED that read after the set had changed, so the attribute's
         # absence before the first `retarget` was masked by an early return. Feeding the
@@ -3707,72 +3672,6 @@ class Agent:
         self._frame_cache[key] = (state, rec)
         return rec
 
-    def _scope_weights(self, slot: str, state: dict) -> list[float] | None:
-        """Which members of this slot's scope the agent has watched and never been able to move.
-
-        **ISAIAH'S DOWNRATING RULING, 2026-09-30.** A member the agent has observed through at
-        least one press of every action it has, and never once seen move, is discounted --
-        it still counts, it counts less.
-
-        **THE FLOOR IS DERIVED, NOT CHOSEN: one press for every action the agent has.** Fewer
-        than that and *nothing I did moved it* is not a claim about the member, it is a claim
-        about what has been tried. `speak`'s sentence says exactly this, and the number is in
-        the sentence so a reader can judge whether it was enough.
-
-        **AND IT TURNS ON A DISTINCTION `delta` ALONE CANNOT MAKE**, which is why the presence
-        counter exists (`interface.py`, and its comment says so): `delta` is written only for
-        slots that CHANGED, so a slot that never moves has no entry -- **the same answer as a
-        slot never seen.** *Observed N times and never moved* is evidence of inertness;
-        *never observed* is no evidence at all, and weighting the second would punish the
-        agent for not having looked.
-
-        Aligned to `_group`'s tuple by construction: the same peer list, filtered the same
-        way, in the same order. `_group` hands out VALUES and the identity is not recoverable
-        from them, so it is rebuilt here from the same source rather than inferred.
-
-        `None` when nothing is downrated, so the unweighted path stays byte-identical.
-        """
-        if not _DOWNRATE:
-            return None                     # default OFF: byte-identical to no policy at all
-        peers = [p for p in (self._peer_cache or {}).get(slot, ()) if p in state]
-        if not peers:
-            return None
-        floor = len(tuple(self.env.actions()))
-        if floor <= 0:
-            return None
-        moved = self.iface.moved_slots()
-        ws, cut = [], []
-        for p in peers:
-            seen_n = self.iface.present.get(p, 0)
-            if seen_n >= floor and p not in moved:
-                ws.append(0.0)
-                cut.append((p, seen_n))
-            else:
-                ws.append(1.0)
-        # **A ROW PER TRANSITION, NEVER PER EVALUATION -- the reviewer, 2026-10-01.** The
-        # first version narrated every downrated member on every call, and this runs once per
-        # goal evaluation: measured, **37 rows for ONE member, `o0.dcol`.** That read as an
-        # aggressive policy and was a narration defect -- the policy discounts a single member
-        # of a single scope on this fixture, which is the opposite of aggressive.
-        #
-        # **AND `member_restored` HAD NO PRODUCER AT ALL.** `speak` has carried its sentence
-        # since 07125ff and nothing ever emitted the event, so the lift was invisible while
-        # the discount was over-reported. *A discount nobody sees lifted is as silent as one
-        # nobody sees applied* -- that sentence's own comment, unmet by the code beneath it.
-        now = {p for p, _ in cut}
-        was = self._downrated.get(slot, frozenset())
-        for p, seen_n in sorted(c for c in cut if c[0] not in was):
-            self.led.record(self.cycle, "PLAN", p, "member_downrated",
-                            in_scope_of=slot, of_presses=seen_n, floor=floor,
-                            reads=("watched through at least one press of every action and "
-                                   "never once moved -- discounted, never silenced"))
-        for p in sorted(was - now):
-            self.led.record(self.cycle, "PLAN", p, "member_restored",
-                            in_scope_of=slot,
-                            reads="something moved it, so the evidence of inertness is gone")
-        self._downrated[slot] = frozenset(now)
-        return ws
-
     def _group(self, slot: str, state: dict) -> tuple:
         """The outer stream for one slot: this attribute's values on the other objects."""
         key = ("grp", slot, id(state))
@@ -6153,8 +6052,7 @@ class Agent:
         def _sat(v: int) -> bool | None:
             r = term.apply(v, ctx)
             return None if r is NOT_RESOLVED else bool(r)
-        deg = objective_degree(_sat, group, counts,
-                               None if subject else self._scope_weights(slot, state))
+        deg = objective_degree(_sat, group, counts)
         if deg is None:
             _why(why, "degree-unresolved")
             return None

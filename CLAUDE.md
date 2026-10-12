@@ -135,7 +135,7 @@ is between the seat, the reviewer and the corpus figures.
 gate · trust earned on held-out evidence **per (term, slot)** · refutation **per (term,
 slot)** · credit and blame only to **the term that made the prediction** · provenance kept
 and provable, **no game ID read by any decision** · `_invent` **RETIRED** · **`?ACTED` ON
-by default** (Isaiah 2026-10-05, superseding the zero-failure bar) · downrating **PARKED**
+by default** (Isaiah 2026-10-05, superseding the zero-failure bar) · downrating **PARKED** (deleted 2026-10-11 (Isaiah))
 · imports only for what cannot be composed, **in the grammar**.
 
 **DISCIPLINES.** **A FIGURE CENSUS FIRST, ON EVERY PROPOSAL AND RULING** (Isaiah 2026-10-07) · Pre-register with a **refuter and a precondition** · **treatment-executed
@@ -309,7 +309,7 @@ including `F422`'s forty rows, filed the same morning the gap was found.
 > since the failure that matters is a capability **silently absent** from the line.
 >
 > **12 OF THE 14 DEFAULTS STATE NO REASON FOR BEING OFF** — 3 to 10 words apiece, against
-> `_DOWNRATE`'s 147 and `_ACTED_GUARD`'s 93, which are the two under active work. The `arms`
+> `_DOWNRATE`'s 147 (deleted 2026-10-11 (Isaiah)) and `_ACTED_GUARD`'s 93, which are the two under active work. The `arms`
 > seat requires a ROW PER FLAG and passes on all eighteen; **it does not require the row to
 > justify the DEFAULT**, so for twelve arms the registry is a name index rather than a decision
 > record.

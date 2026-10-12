@@ -52277,6 +52277,8 @@ action or the world on its own. **These runs cannot answer it: they stored event
 row details**, so `of_presses`, `floor`, the delta table and the action history are all absent.
 Deferred rather than re-run, pending whether downrating is worth more work at all.
 
+> **2026-10-11 annotation:** TETHER_DOWNRATE and everything only it used were DELETED (Isaiah 17:09 CDT, "evolution does not keep what is not used"); the commit is the one whose subject begins "Focus: L1 goal -- TETHER_DOWNRATE deleted". This entry is kept as the record.
+
 ## F387 -- **SURFACING IS REACHED AND ACTING ON A REAL BOARD: 100% OF ACTIONABLE LOOKUPS, THREE SEEDS. AND THE HEAD-CHANGE RATE DOES NOT TRACK RECORD RICHNESS**
 
 F384 recorded the track-record ordering as built, unit-demonstrated, and **inert on
@@ -54893,6 +54895,8 @@ policy, and it is cheaper to know now than after a panel.
 
 
 ---
+
+> **2026-10-11 annotation:** TETHER_DOWNRATE and everything only it used were DELETED (Isaiah 17:09 CDT, "evolution does not keep what is not used"); the commit is the one whose subject begins "Focus: L1 goal -- TETHER_DOWNRATE deleted". This entry is kept as the record.
 
 ## F426 — **A5's EFFECT, MEASURED: IT CHANGES BINDINGS ON TWO OF THREE `default` SEEDS. AND MY PRE-REGISTERED REFUTER WAS KEYED TO THE WRONG QUANTITY — IT WATCHED `settled` WHILE THE MECHANISM MOVED `bound`**
 

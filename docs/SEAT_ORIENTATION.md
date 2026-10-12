@@ -339,7 +339,7 @@ Isaiah for what the figures already settle.
 - **`_invent` is RETIRED** — "bootleg composition".
 - **`?ACTED` is ON BY DEFAULT** (Isaiah, 2026-10-05, on the settled/unsettled principle —
   it supersedes the earlier pre-registered zero-failure bar).
-- **Downrating is PARKED.**
+- **Downrating is PARKED.** (deleted 2026-10-11 (Isaiah))
 - **Imports only for what CANNOT be composed, and they go in the GRAMMAR.**
 
 **THE PRICING RULINGS, which are easy to get wrong because two of them are partial:**
@@ -420,7 +420,7 @@ Isaiah for what the figures already settle.
 |---|---|---|
 | `?ACTED` (`TETHER_ACTED_GUARD`) | **ON. FLIPPED 2026-10-05 — the default is now `"1"` and `tether._ACTED_GUARD` reads `True`** | Isaiah's settled/unsettled ruling, superseding the zero-failure bar. **The warrant is HIS RULING, not the per-seed test**: at the flip, all six world-seeds read INSUFFICIENT and only the pooled fallback passed (guarded 3/7 vs unguarded 0/2) — see the comment at the flag. **Do not cite "the condition was met" as though it was met per seed.** The env var stays as the A/B switch. Offered only where a press lands on an object, so the `default` world is untouched. |
 | `_INVENT` | **REMOVED FROM THE TREE 2026-10-05** — flag, call site, `_invent` and the `conform/invent.py` seat | "bootleg composition"; RETIRED means gone. `conform/arms.py` `RETIRED` now refuses the flag if it is read anywhere. `gamma.invent` stays: a carried library re-invents on load |
-| downrating | **PARKED** | — |
+| downrating | **DELETED 2026-10-11 (Isaiah)** — was PARKED; the arm, `_scope_weights`, `moved_slots` and the narration removed together | "evolution does not keep what is not used" (`docs/ISAIAH_RULINGS.md` 2026-10-11) |
 | `_RECIPE_DEDUP` | **OFF** (unset env var) | the `continue` never fires; the branch only records a cut. I built a whole causal story on it being on — check before reusing. |
 | the uninformed draw | **always uninformed** | safety property, not a performance choice |
 
@@ -564,7 +564,8 @@ withdrawal first, then measure the module-scope reads again before changing a li
                  because the EXISTING coprime sweep moved rather than being rewritten.
     2f98779  L1  `Interface.moved_slots()` replaces the reach into `iface.table`. The
                  action key is now UNREACHABLE rather than merely unread. No-op today:
-                 its one caller is behind `_DOWNRATE`, parked.
+                 its one caller is behind `_DOWNRATE`, parked. (deleted 2026-10-11 (Isaiah): moved_slots,
+                 _scope_weights and the arm removed together)
     e80e780  L3  THE LAYER SEAT, `conform/layers.py`, the 20th. See below.
     c01a5d1  L1  **`?ACTED` FLIPPED ON** -- the default is `"1"`.
 

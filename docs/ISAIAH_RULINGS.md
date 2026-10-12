@@ -155,10 +155,12 @@ here in the same session it arrives, or the next search for it fails the same wa
   block or revert the agent.**
 - The agent **may downrate a goal-scope member** from its own evidence that nothing moves it;
   when every member looks inert, **downrating steps aside** and the goal counts normally.
+  *(superseded 2026-10-11: the downrating arm is deleted, see 2026-10-11 below)*
 
 ## 2026-10-01
 
-- **Downrating's default stays OFF until ARC-style boards (PARKED).**
+- **Downrating's default stays OFF until ARC-style boards (PARKED).** *(superseded 2026-10-11:
+  deleted, see 2026-10-11 below)*
 - **Click-only worlds have cause and effect** (one object acting as a button for another);
   seeking object-to-object relations is a missing feature for avatar and click-only games
   alike — **extend the existing machinery, do not duplicate it.**
@@ -527,3 +529,11 @@ Relayed by the reviewer (Drive channel); Isaiah's words quoted as relayed.
   credentials his only. No M8 bundle work starts early on the strength of this; step 11's
   testing/ folder and the bundle's must-fail (a bundle containing a testing/ file is REFUSED) stay
   with 11, as repo hygiene.
+- **TETHER_DOWNRATE IS DELETED** (17:09 CDT; the reviewer 17:10 CDT): *"in that case, delete
+  it, evolution does not keep what is not used"*. The downrating policy goes whole (the arm,
+  `_scope_weights`, the weighted branch of `objective_degree`, `moved_slots`, the narration).
+  Its intent -- goal parts the agent cannot affect must not distort what it does -- is covered
+  by the goal selector (`_goal_choice`: pursue only a goal that is shrinking; set aside, never
+  dropped), both spellings by sources, and cascade agency with B4 and the pair slots. This
+  supersedes the reviewer's 17:03 "rejoins ALL-ON at step 13"; F386's owed reading is
+  withdrawn with it.
