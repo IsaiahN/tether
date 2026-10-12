@@ -92,7 +92,11 @@ ARMS: dict[str, str] = {
                           "pre-registered test failed: payments up and TOTAL refusals down "
                           "on 6 of 6, refusal rate 19.67% -> 0.40% on three. Kept because "
                           "`buttons` seed 1 settled two guarded terms under a PRICED guard. "
-                          "Returns ON only under Isaiah's settled/unsettled rule",
+                          "Returns ON only under Isaiah's settled/unsettled rule. **ANNOTATED "
+                          "2026-10-12: the default is ON (tether.py 180, default=True) under "
+                          "Isaiah 2026-10-05 (?ACTED ON by default, superseding the zero-failure "
+                          "bar; CLAUDE.md standing rulings). DEFAULT OFF above is the earlier "
+                          "state, kept as written.**",
     "TETHER_AIMED_CURIOSITY": "the CURIOSITY exit names a subject -- the slot with the "
                               "most unexplained surprise that it has also watched move "
                               "(Figure 5's *large and compressible*) -- instead of "
