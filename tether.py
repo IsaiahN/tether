@@ -2356,17 +2356,17 @@ class Agent:
         other = compile_term.converse(part, {a.name: a for a in self.gamma.atoms})
         if other is None:
             return part
+        return other if (self._moves_by_sources(other.slot)
+                         and not self._moves_by_sources(part.slot)) else part
+
+    def _moves_by_sources(self, slot: str) -> bool:
+        """BY SOURCES (the reviewer 2026-10-11 13:49 CDT): a pair slot is never bet on, so it is
+        never in contingent(); it moves when ANY of its sources does -- o0.dist_o3 changes when
+        o3 moves as much as when o0 does. An ordinary slot's only source is itself."""
         moving = set(self.agency.contingent())
-        # BY SOURCES (the reviewer 2026-10-11 13:49 CDT): a pair slot is never bet on, so it is
-        # never in contingent(); it moves when ANY of its sources does -- o0.dist_o3 changes when
-        # o3 moves as much as when o0 does. An ordinary slot's only source is itself, so its test
-        # is unchanged.
         dv = getattr(self.env, "derived", None)
         derived = dv() if dv is not None else {}
-
-        def moves(slot: str) -> bool:
-            return any(s in moving for s in derived.get(slot, (slot,)))
-        return other if moves(other.slot) and not moves(part.slot) else part
+        return any(s in moving for s in derived.get(slot, (slot,)))
 
     def _respell_goals(self) -> None:
         """BOTH SPELLINGS, OVER TIME (the reviewer 2026-10-11 12:12 CDT): a want linked before the
@@ -2501,11 +2501,14 @@ class Agent:
                 continue
             cost, left, e = self._goal_price([c], rows)
             cands.append((cost + left, cost, left, e, text, c))
+        n_plain = len(cands)
         if _GOAL_PAIR:
             cands += self._goal_pairs(cands, rows)
+        lag = sum(1 for x in cands if any(lag_of(t) for t in re.findall(r"[\w.]+~\d+", x[4])))
         cands.sort(key=lambda x: (x[0], x[4]))
         detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
                   "conditions": len(cands), "refused": dict(refused),
+                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain, "lag": lag},
                   "cheapest": [{"if": x[4], "cost": round(x[1], 3), "left": round(x[2], 3),
                                 "errors": x[3]} for x in cands[:5]]}
         best = cands[0] if cands and pays(cands[0][1], cands[0][2], base) else None
@@ -4173,6 +4176,7 @@ class Agent:
         self._prev_pred = pred
         self._last_mass = {s: r.mass for s, r in res.items()}
         self._note_progress(after)
+        self._note_goal_choice(action, before, after)
         self._note_gap_shape(res)
         return res
 
@@ -5927,6 +5931,22 @@ class Agent:
                             # here is the honest and current state: it has never once chosen.
                             selected_want=self._goal_choice(),
                             wants_held=len(self.wants))
+
+    def _note_goal_choice(self, action: Any, before: dict, after: dict) -> None:
+        """THE SELECTOR, EVERY CYCLE (the reviewer 2026-10-11 20:58 CDT). `progress` names the
+        selected want only when something got closer, so a read of it sees the survivors only.
+        This row is written whatever the outcome: what was chosen, why nothing was, and for
+        the choice whether the agent can move it, whether it got closer, and whether this
+        cycle's action changed it. A record; nothing reads it to decide."""
+        why: dict = {}
+        sel = self._goal_choice(why=why)
+        row = {k: why.get(k, 0) for k in ("too_short", "flat", "rose", "qualified", "arrived")}
+        if sel is not None:
+            row.update(movable=self._moves_by_sources(sel), closer=self.improved(sel),
+                       changed=after.get(sel) != before.get(sel))
+        self.led.record(self.cycle, "PERCEIVE", "*", "goal_choice", selected=sel,
+                        longest=why.get("longest", 0), series=why.get("slots", 0),
+                        wants_held=len(self.wants), action=action, **row)
 
     def improved(self, slot: str) -> bool | None:
         """Did this slot get CLOSER to satisfying its objective since last cycle?

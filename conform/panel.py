@@ -88,7 +88,9 @@ def _member(name: str) -> None:
         import world
         g, seed = _gridworld(name)
         env = world.bind(g)
-        led = ledger.Ledger()
+        # Rows reach the file as they are recorded, so a long member can be read before it ends
+        # (the reviewer 2026-10-12 01:45 CDT); the end write below rewrites the same rows.
+        led = ledger.Ledger(led_path)
         ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=f"dt_default_{seed}"),
                           tether.Config(), led)
         for _ in range(CYCLES):
