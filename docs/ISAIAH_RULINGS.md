@@ -544,3 +544,7 @@ Relayed by the reviewer (Drive channel); Isaiah's words quoted as relayed.
   dropped), both spellings by sources, and cascade agency with B4 and the pair slots. This
   supersedes the reviewer's 17:03 "rejoins ALL-ON at step 13"; F386's owed reading is
   withdrawn with it.
+
+## 2026-10-12
+
+- **sensors_heavy.py IS KEPT, AND ITS WRONG `holes` READING IS TO BE REPAIRED** (about 10:15 CDT; the reviewer 10:16 CDT). Put to him with the seat's three facts (live on the default path through the observer, under ALL-ON and under OFF arms; it computes `_holes`, which its own docstring records as wrong; deletion means dropping the observer's perception or replacing those readings first), he chose *"Keep it, fix the wrong reading."* The option text he picked: *"Keep the file. Switch 'holes' to the existing correct version under the usual checks. Decide later whether to fold the file into the main perception code."* So the 10-09 step-5 line "delete sensors_heavy.py" is STRUCK; `holes` moves to `arc_percept.holes_of` under an arm, with a derive-first design post first and the build after the ALL-ON checkpoint's closing reading; folding the file in is deferred.

@@ -62,12 +62,16 @@ tether_agent, tether_runner, demo.
 | detectors.py | **RETIRE** after the template generator lands | conditions written by hand per atom: the 2,700-functions path in small (Figure 13) |
 | mapping.py | **MOVE** to `tools/` (seat-side) | lint-fenced as a cue module; an answer-key mapper, not the agent's path |
 | sensors_heavy.py | **DELETE** | its own docstring (reviewer 2026-09-23): "SUPERSEDED, AND PENDING DELETION … Do not build on this module". Two importers (detectors, observer) must drop it first |
+| sensors_heavy.py -- **ANNOTATED 2026-10-12** | **KEEP, Isaiah 2026-10-12; holes to be repaired** | the DELETE above was judged by docstring and importer grep, never by a run (the reviewer, 2026-10-12 10:16 CDT, owned). Live run at 56eafa6, gridworld: LOADED and CALLED on the default path, 3,473 calls / 10 cycles under ALL-ON and 873 / 3 cycles under OFF arms, through observer (observer.py 23, 41-42, 65, 127). Its docstring's "NEVER WIRED" is stale since 81114da. It computes `_holes`, which its docstring records as wrong (134 calls / 10 cycles); on these runs no decision read it (holes never mutated, Topology never lit, `_CUE_ATTR` has no holes). Isaiah ruled (about 10:15 CDT, via the reviewer 10:16): keep the file, switch `holes` to `arc_percept.holes_of` under the usual checks, decide later whether to fold the file in (docs/ISAIAH_RULINGS.md, 2026-10-12). |
 | self_graded.py | **KEEP, UPDATE** | read the library's `working_set` flags |
 | observer.py | **KEEP, UPDATE** | widen from "the frozen 8" (the freeze was withdrawn 2026-09-22) to readings.json |
 
 ### Seat-side tools (not imported by the agent; scripts with `__main__`) — MOVE to `tools/`
 arc_check, arc_online (keep; needed for the live gateway), arc_screen, demand, feeder,
 reverse_engineer, rlvr, framepair, synth, tieracc, transcript, check_paths (imported by nothing).
+**ANNOTATED 2026-10-12: framepair is NOT a seat-side tool. KEEP (live).** Live run at 56eafa6, gridworld, ALL-ON: LOADED and CALLED on the agent path (3,634 calls over two 10-cycle runs); a move to `tools/` would break the agent. Judged above by importer grep, not by a run (the reviewer, 2026-10-12 10:16 CDT, owned).
+
+**PLACED 2026-10-12 BY THE REVIEWER (10:16 CDT), files newer than this audit:** `compile_census.py` and `cue_bridge.py` are checking tools (one test each, no agent importer; not loaded in the 56eafa6 live run): step 11, to `tools/`. `tests/fixtures/plumb_game.py` is a test fixture: it stays with the tests under step 11's `testing/` design.
 Moving them stops the root mixing the agent with the instruments that measure it (Figure 10: the
 seat may author what has no truth value; keeping the two apart keeps that visible).
 
