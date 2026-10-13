@@ -26,7 +26,19 @@ a gridworld whose listing changes after cycle 1, so the run-level NOVEL test can
   raised is read from the traceback and reported (case 5 must fail in settle).
   MUTANTS: settle left open (case 3 must catch it); _d5_splits left open (case 4 must catch it).
 
-    python test_departed.py <tree-without-the-fix> [all-on env file]
+  The record's readers of a departure (the reviewer 2026-10-12 23:30), against a tree at 2092625
+  (argv[3]), constructed and called directly, arm-free:
+  case 6   _characterise describes a departed slot's effect as "gone" (2092625: "exact")
+  case 7a  a park bet, then an unbound departure and nothing else: no reading, settled_by names
+           the departure (2092625: no reading, "no change after the park")
+  case 7b  a park bet, then a departure from a term that predicted a change: no reading
+           (2092625: graded wrong on the departure)
+  case 7c  a park bet, a real change, then an unbound departure: graded on the real change, the
+           same on both trees
+  case 7d  as 7c with the departure from a term that predicted a change: graded on the real change
+           (2092625: graded wrong on the departure)
+
+    python test_departed.py <tree-without-the-fix> [all-on env file] [tree at 2092625]
 
 The ALL-ON half runs only when the env file is given, and the output says which halves ran.
 """
@@ -130,6 +142,53 @@ print(json.dumps({"err": err, "site": site, "dep": dep, "out": [out_before, out_
 '''.replace("@CONST@", repr((APPEAR, LEAVE, K))[1:-1])
 
 
+RECORD = r'''
+import json, math, sys
+sys.dont_write_bytecode = True
+tree, case = sys.argv[1], sys.argv[2]
+sys.path = [tree] + [p for p in sys.path if "scratchpad" not in p.replace("\\", "/")]
+import gamma, gridworld, ledger, tether, world
+env = world.bind(gridworld.family("default", 0))
+ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="departed"), tether.Config(), ledger.Ledger())
+a, b = sorted(ag.slots)[:2]
+if case == "6":
+    res = {a: tether.SlotResidual(a, tether.TRANSITION, 2, 2, math.log2(5), True),
+           b: tether.SlotResidual(b, tether.TRANSITION, 1, 3, 1.0)}
+    print(json.dumps({"effect": list(ag._characterise(res).effect)}))
+    sys.exit(0)
+
+
+def bet(frm, act, mass, gone):
+    ag.led.record(ag.cycle, "PERCEIVE", a, "bet", channel=tether.TRANSITION, from_value=frm,
+                  actual=act, mass=mass, **({"vanished": True} if gone else {}))
+
+
+ag._process_bet("parked_explained", a)
+for row in {"7a": [(2, 2, 2.0, True)], "7b": [(1, 2, 2.0, True)],
+            "7c": [(1, 2, 0.0, False), (2, 2, 2.0, True)],
+            "7d": [(1, 2, 0.0, False), (2, 3, 2.0, True)]}[case]:
+    bet(*row)
+ag._settle_process("level", "cap")
+got = [r for r in ag.led.rows() if r["event"] == "process_settle"][-1]["detail"]
+print(json.dumps({"right": got["right"], "by": got["settled_by"]}))
+'''
+LEFT = "the slot left the board after the park: no ground reading on its explanation"
+NO_CHANGE = "no change after the park: no ground reading"
+GRADED = "the world's grade of the slot's last change after the park"
+EXPECT = {"6": ({"effect": ["gone", "over"]}, {"effect": ["exact", "over"]}),
+          "7a": ({"right": None, "by": LEFT}, {"right": None, "by": NO_CHANGE}),
+          "7b": ({"right": None, "by": LEFT}, {"right": False, "by": GRADED}),
+          "7c": ({"right": True, "by": GRADED}, {"right": True, "by": GRADED}),
+          "7d": ({"right": True, "by": GRADED}, {"right": False, "by": GRADED})}
+
+
+def _record(tree: str, case: str, env: dict) -> dict:
+    out = subprocess.run([sys.executable, "-c", RECORD, tree, case], capture_output=True,
+                         text=True, env=env, timeout=600)
+    assert out.returncode == 0, out.stderr[-2000:]
+    return json.loads(out.stdout.strip().splitlines()[-1])
+
+
 def _env(env_file: str | None) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env["PYTHONDONTWRITEBYTECODE"], env["PYTHONHASHSEED"] = "1", "0"
@@ -222,6 +281,14 @@ def main() -> None:
         m2 = _run(here, 4, last[1], "d5")
         assert m2["err"] is not None, "MUTANT d5-open was not caught"
         ran.append("ALL-ON mutant d5-open caught")
+    if len(sys.argv) > 3:
+        for case, (want, want_pin) in EXPECT.items():
+            got, pin_got = _record(here, case, _env(None)), _record(sys.argv[3], case, _env(None))
+            assert got == want, f"case {case}: {got}, wanted {want}"
+            assert pin_got == want_pin, f"case {case} at 2092625: {pin_got}, wanted {want_pin}"
+            ran.append(f"c{case} " + ("same" if want == want_pin else "differs") + " at 2092625")
+    else:
+        ran.append("cases 6-7 not run (no 2092625 tree given)")
     print("test_departed: pass (" + "; ".join(ran) + ")")
 
 

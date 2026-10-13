@@ -2669,19 +2669,24 @@ class Agent:
         bet is graded on the slot's last CHANGE row after the park -- a step where the world
         moved it -- right iff that bet carried no mass; a quiet step is paid by "nothing
         happens" and explains nothing, so with no change after the park there is no ground
-        reading and it says so (the reviewer 00:14Z). D2: an uncleared level's stall is recorded
-        as an effect, the actions it ran for."""
+        reading and it says so (the reviewer 00:14Z). A departure is not a change: the slot left
+        the listing, which says nothing about its explanation, so it is no reading either. D2: an
+        uncleared level's stall is recorded as an effect, the actions it ran for."""
         rows = self.led.rows()[self._seq_at_level:]
         cleared = how in (WIN, ADVANCE)
         for b in self._process_bets:
-            moved = [r for r in rows if r["event"] == "bet" and r["slot"] == b["slot"]
-                     and r["seq"] > b["seq"]
+            after = [r for r in rows if r["event"] == "bet" and r["slot"] == b["slot"]
+                     and r["seq"] > b["seq"]]
+            moved = [r for r in after if not r["detail"].get("vanished")
                      and r["detail"].get("actual") != r["detail"].get("from_value")]
             if b["kind"] == "plan_clears":
                 right, by = cleared, f"the level's ending: {how}"
             elif moved:
                 right = not float(moved[-1]["detail"].get("mass", 0) or 0)
                 by = "the world's grade of the slot's last change after the park"
+            elif any(r["detail"].get("vanished") for r in after):
+                right, by = None, ("the slot left the board after the park: no ground reading "
+                                   "on its explanation")
             else:
                 right, by = None, "no change after the park: no ground reading"
             self.led.record(self.cycle, "SETTLE", "@process", "process_settle", bet_seq=b["seq"],
@@ -5938,6 +5943,8 @@ class Agent:
 
         def eff(x: str) -> str:
             r = res[x]
+            if r.gone:
+                return "gone"
             if isinstance(r.actual, int) and isinstance(r.predicted, int):
                 if r.actual > r.predicted:
                     return "over"
