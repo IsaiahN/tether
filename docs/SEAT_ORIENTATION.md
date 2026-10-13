@@ -879,6 +879,8 @@ it and found no such characterisation — **and more importantly it is a SKILL M
 > handed its answer** — `act` arrived knowing what each action does; a skill map would
 > arrive knowing what each game requires. Same failure, one level up.*
 
+> **ANNOTATION 2026-10-12 (Isaiah 14:03 CDT, via the reviewer 14:05):** a per-game reading of the 25 PUBLIC games now exists, by his ruling (*"...the proctor literally has the human replays - it should be able to ascertain it"*), and it is kept as this rule requires: seat-side at `tether-seat/GAME_READINGS.md`, outside the repository, read by no agent module, harness or test; scoped to the public set (Isaiah 14:44). Its uses: the ground pool is all 25, unauthored; a mechanism question may choose fitting games by the reading, named as chosen, and claims nothing about the ground from them (Isaiah 11:52; the reviewer 21:49 CDT); and reading results by type. It is never an input.
+
 **Putting a per-skill characterisation of the two sets at the top of the first file a new
 session reads is putting the skill map one step from being an input** — and it would arrive
 wearing the authority of an orientation. **The direction it was trying to express survives
