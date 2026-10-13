@@ -842,6 +842,10 @@ WHY_NOT = {
 # why a zero reading is not always HELD
 OWES = "not held: this step read zero and the slot still owes"
 
+# why a departed slot is not sorted: its miss is recorded, and no term is owed on a slot that
+# no longer exists (the reviewer 2026-10-12 22:35, 22:42; no fifth kind)
+LEFT_BOARD = "not sorted: left the board this step; the miss stays recorded"
+
 TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"
 
 
@@ -1178,6 +1182,7 @@ class SlotResidual:
     predicted: Any
     actual: Any
     bits: float
+    gone: bool = False      # the slot was bet on and is not listed after the act (perceive)
 
     @property
     def mass(self) -> float:
@@ -4165,7 +4170,7 @@ class Agent:
             actual = pred[s] if gone else after[s]
             bits = (math.log2(bet_alphabet[s]) if gone
                     else correction_bits(pred[s], actual, self.alphabet[s]))
-            r = SlotResidual(s, TRANSITION, pred[s], actual, bits)
+            r = SlotResidual(s, TRANSITION, pred[s], actual, bits, gone)
             res[s] = r
             # from_value is the input the bet was computed from, and it is the whole
             # difference between a bet on the BELIEF and one on the observation -- the
@@ -4993,6 +4998,12 @@ class Agent:
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         for slot, r in res.items():
+            if r.gone:
+                filed = self._refuted_slot.pop(slot, None)
+                self.led.record(self.cycle, "ROUTE", slot, "route", bin=None,
+                                why_not=LEFT_BOARD, support=len(self.trace),
+                                **({"refusal_not_priced": filed} if filed else {}))
+                continue
             _dropped = None
             was_refused = self._refuted_slot.pop(slot, None)
             # ONLY WHILE THE REFUSED TERM'S RESIDUAL PERSISTS -- the reviewer 2026-10-07 14:58Z
@@ -5186,7 +5197,7 @@ class Agent:
                                    "wrong rows in this level")
         return None
 
-    def _d5_splits(self) -> set:
+    def _d5_splits(self, gone: frozenset = frozenset()) -> set:
         """D5: run the pending splits, before the route loop, which skips the slots split here.
         A SPLIT IS ITS SLOT'S TURN THIS CYCLE (F500; the reviewer 2026-10-11 22:59 CDT): part B's
         mint is the slot's one chain, so the slot leaves _turn_ahead AFTER _d5_split returns --
@@ -5196,6 +5207,10 @@ class Agent:
         done: set = set()
         if _D5 and self._d5_pending:
             for _slot in sorted(self._d5_pending):
+                if _slot in gone:
+                    self.led.record(self.cycle, "MINT", _slot, "d5_split_not_run",
+                                    reason="pending split not run: left the board")
+                    continue
                 self._d5_split(_slot, *self._d5_pending[_slot])
                 done.add(_slot)
                 if self._turn_ahead is not None:
@@ -9634,6 +9649,14 @@ class Agent:
             # slot with no recorded maker is SKIPPED: an unattributed prediction is not
             # evidence against anybody.
             name = self._pred_by.get(slot)
+            if r.gone:
+                # a departure is not evidence against the term that predicted the slot's value
+                self._shadow.pop(slot, None)
+                self._d5_candidates.pop(slot, None)
+                if name:
+                    self.led.record(self.cycle, "SETTLE", slot, "not_judged", term=name,
+                                    reason="left the board")
+                continue
             if _D5 and slot in self._shadow:
                 # THE CUT STAYS FALSIFIABLE (the reviewer 15:58Z): the incumbent's shadow on a
                 # not-P step. Right there means the partition claim is broken; the split reverts.
@@ -10187,7 +10210,7 @@ class Agent:
         # minted this cycle is swept only into slots whose own turn is still to come; a slot
         # already past its turn meets it through its own route next cycle.
         self._turn_ahead = {s for s, b, *_ in routed if b in (REBIND, REFUTED, MECHANISM)}
-        _split_now = self._d5_splits()
+        _split_now = self._d5_splits(frozenset(s for s, r in res.items() if r.gone))
         for slot, b, fit, _why in routed:
             if slot in _split_now:
                 continue

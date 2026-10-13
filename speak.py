@@ -252,6 +252,8 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
             out.append(([seq], f"On {slot} the sweep put `{d.get('term')}` into my library "
                                f"without asking the bargain. It would have said "
                                f"{'yes' if d.get('would_pay') else 'no'}."))
+        elif ev == "route" and d.get("bin") is None:
+            out.append(([seq], f"On {slot} I was wrong: it left the board."))
         elif ev == "route" and d.get("bin") != "held":
             out.append(([seq], f"On {slot} I was wrong, and I read it as "
                                f"{d.get('bin')} -- {d.get('why_not')}."))
