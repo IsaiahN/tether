@@ -268,6 +268,15 @@ def axis_forms(condition: str) -> list[str]:
     return list(dict.fromkeys([condition, swap(condition), flip(condition), flip(swap(condition))]))
 
 
+_ID_EDGE = r"[A-Za-z0-9_~]"
+
+
+def _names(cond: str, ident: str) -> bool:
+    """v9 (2026-10-14): `ident` appears in `cond` as a WHOLE id, not inside another (o2 is not
+    named by "o20.age" nor by "o12~o2.contact"). The placeholder "{x}" works too: braces are
+    outside the edge class."""
+    return _re.search(rf"(?<!{_ID_EDGE}){_re.escape(ident)}(?!{_ID_EDGE})", cond) is not None
+
 class Library:
     def __init__(self, root: str | Path):
         self.root = Path(root)
@@ -278,6 +287,7 @@ class Library:
         self.by_reading: dict[str, list] = defaultdict(list)
         self.by_affects: dict[str, list] = defaultdict(list)  # v7: reading -> entries producing it
         self.ingredient_of: dict[str, list] = defaultdict(list)
+        self.partner_named = _names  # v9: the RELATION/MEASURE partner test (a whole id)
 
     # ---------------------------------------------------------------- loading
     def load(self) -> Library:
@@ -501,7 +511,10 @@ class Library:
                 c
                 for c in base
                 if c["template"] in COMPARE_TEMPLATES
-                and (f"{x}" in c["condition"] or self.readings[c["reading"]]["scope"] == "pair")
+                and (
+                    self.partner_named(c["condition"], x)
+                    or self.readings[c["reading"]]["scope"] == "pair"
+                )
             ]
             if role == "MEASURE":  # a magnitude: ordered comparisons, plus board/self quantities
                 out = [
@@ -915,6 +928,29 @@ def _selftest(root: str) -> int:
     caught = not all(ok for ok, _ in _abductive_checks(lib))
     lib.by_affects = saved
     check(caught, "MUST-FAIL: with the affects path removed, the abductive checks fail")
+    # v9: RELATION/MEASURE name the partner as a WHOLE id (504 was a substring); with its must-fail
+    nest = [("o20", "o2"), ("o35", "o3"), ("o12~o3", "o3")]
+    keys9 = list(dict.fromkeys([*lib.seed, *lib.runtime, *lib.learnings]))
+
+    def _owner_only() -> list:
+        out = []
+        for k in keys9:
+            for r in ("RELATION", "MEASURE"):
+                for o, x in nest:
+                    for c in lib.view(k, r, o, x):
+                        if (lib.readings[c["reading"]]["scope"] not in ("pair", "board", "self")
+                                and _names(c["condition"], o) and not _names(c["condition"], x)):
+                            out.append((k, r, o, x))
+                            break
+        return out
+
+    check(not _owner_only(), "RELATION/MEASURE admit no owner-only condition under a nested id")
+    saved9 = lib.partner_named
+    lib.partner_named = lambda cond, ident: ident in cond  # the old substring test, briefly
+    caught9 = bool(_owner_only())
+    lib.partner_named = saved9
+    check(caught9, "MUST-FAIL: with the old substring test restored, "
+                   "owner-only conditions are caught")
     try:
         lib.light({"colour_changed": 1}, abduce="sideways")
         check(False, "an unknown abduce mode is refused")

@@ -10,8 +10,10 @@ does), because a hand-made object (Agent.__new__) hid a method shadowed by an in
   h2 OFF: with the arm off, _lib_view is lib.view and holds nothing, counts nothing.
   h1 MUST-PASS: for every library entry, STATE, TEST, PROCESS and CAUSE, and every pair of the name
      panel, the held view put back under the names equals the NAMED view, field for field.
-  h3 MUST-FAIL: RELATION at (o20, o2) put back from the placeholder form differs from the named view
-     for some entry (library 504 filters on the text of x).
+  h3 MUST-PASS (flipped by package v9, 2026-10-14): RELATION at (o20, o2) put back from the
+     placeholder form equals the named view on every entry, because library 504 now names the
+     partner as a WHOLE id (_names). Before v9 it was a substring test and 2,724 entries differed.
+     RELATION and MEASURE stay out of _HELD_ROLES: holding them is its own change.
   h5 MUST-FAIL: a name with a brace (a synthetic id, here only) takes the bypass.
   h4 bypass half: at o == x _lib_view takes the bypass (counted once per entry and role).
   -- GATE line (s1-s4, h1, h2, h3, h5, h4's bypass half) --
@@ -74,7 +76,7 @@ def main() -> None:
     rel = [k for k in keys
            if tether._restore(lib.view(k, "RELATION", "{o}", "{x}"), "o20", "o2")
            != lib.view(k, "RELATION", "o20", "o2")]
-    assert rel, "RELATION at (o20, o2) restores exactly: the 504 exclusion is not seen"
+    assert not rel, f"RELATION at (o20, o2) differs on {len(rel)} entries: v9's filter is not in"
     # h5
     n0 = ag._view_hold_n["bypass_brace"]
     braced = lib.view(k0, "STATE", "o{1}", "o2")
@@ -87,7 +89,7 @@ def main() -> None:
           f"{len(nonempty)} non-empty "
           f"(entry, role); held {ag._view_hold_n['held']}, served {ag._view_hold_n['served']}, "
           f"bypass {({k: v for k, v in ag._view_hold_n.items() if k.startswith('bypass')})}; "
-          f"h3 RELATION differs on {len(rel)} entries)", flush=True)
+          f"h3 RELATION at (o20, o2) restores exactly on all {len(keys)} entries)", flush=True)
     # h4, the occurrence half (non-blocking)
     same = [(k, r) for k in keys for r in tether._HELD_ROLES
             if tether._restore(lib.view(k, r, "{o}", "{x}"), "o3", "o3")
