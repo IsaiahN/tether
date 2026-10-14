@@ -568,12 +568,21 @@ def _b4(rows):
 
 @_check("B5", "Step 3: 'SUPPORT AT ZERO IS AN INSTRUCTION, NOT A STOP ... perturb'",
         [{"event": "park", "slot": "s", "cycle": 0, "detail": {"verdict": "no_support"}},
-         {"event": "probe", "slot": "t", "cycle": 1, "detail": {}}],
+         {"event": "probe", "slot": "t", "cycle": 1, "detail": {}},
+         {"event": "park", "slot": "u", "cycle": 0, "detail": {"verdict": "no_support"}},
+         {"event": "probe", "slot": "@probe", "cycle": 1, "detail": {"already_turned": ["x"]}}],
         [{"event": "probe", "slot": "s", "detail": {}},
-         {"event": "park", "slot": "s", "detail": {"verdict": "no_support"}}], ("park", "probe"),
-                 n_bad=1, n_ok=1)
+         {"event": "park", "slot": "s", "detail": {"verdict": "no_support"}},
+         {"event": "park", "slot": "v", "detail": {"verdict": "no_support"}},
+         {"event": "probe", "slot": "@probe", "detail": {"already_turned": ["v"]}}],
+        ("park", "probe"),
+                 n_bad=2, n_ok=2)
 def _b5(rows):
     probed = {r.get("slot") for r in _rows(rows, "probe")}
+    # A PROBE THAT ANSWERED A SLOT PAST ITS TURN names it on "@probe" (already_turned), never
+    # after its ACCEPT (the reviewer 2026-10-14 07:42): it was probed this cycle all the same.
+    probed |= {s for r in _rows(rows, "probe")
+               for s in (r.get("detail") or {}).get("already_turned", ())}
     # A PARK IN THE LAST RECORDED CYCLE IS NOT JUDGED: the probe is chosen at the top of
     # the NEXT cycle, so there it has no occasion and the claim is undefined, not false.
     # The exemption is that checkable fact alone; the fixture above still FAILS (F467).
