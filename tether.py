@@ -5245,6 +5245,27 @@ class Agent:
                                    "wrong rows in this level")
         return None
 
+    def _flush_probe(self, turned: set) -> None:
+        """THE PROBE'S RECORD. ONE ROW PER SLOT THAT ASKED FOR IT, and `@probe` only when the
+        trigger was the global reading rather than any particular slot -- so a slot parked at
+        no_support can be matched to the probe that answered it (B5). A starved slot whose own
+        turn already ran this cycle takes NO MINT row after its ACCEPT (F500; the reviewer
+        2026-10-14 07:33). The probe's act was taken at the top of the cycle; this only records."""
+        late = sorted(s for s in self._starved if s in turned)
+        due = [s for s in sorted(self._starved) if s not in turned] or ([] if late else ["@probe"])
+        for slot in due:
+            self.led.record(self.cycle, "MINT", slot, "probe",
+                            **self.drive.report(),
+                            guards={"support": False, "reachability": False,
+                                    "novelty": False},
+                            note="support at zero; the model does not choose this one")
+        if late:
+            self.led.record(self.cycle, "MINT", "@probe", "probe", **self.drive.report(),
+                            already_turned=late,
+                            reads=("starved slots whose own turn ran this cycle: the probe "
+                                   "answered them, recorded here and not after their ACCEPT"))
+        self._starved.clear()
+
     def _d5_splits(self, gone: frozenset = frozenset()) -> set:
         """D5: run the pending splits, before the route loop, which skips the slots split here.
         A SPLIT IS ITS SLOT'S TURN THIS CYCLE (F500; the reviewer 2026-10-11 22:59 CDT): part B's
@@ -5758,6 +5779,8 @@ class Agent:
                 act = self._took(_untried, IFace.Intent(IFace.ELICIT))
             if self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
+            # target is an OBJECT id (_contact_target), never a slot: a slot-named target would put
+            # this MINT row ahead of that slot's PERCEIVE and break F500's order (reviewer 07:42).
             self.led.record(self.cycle, "MINT", target or "@contact", "system0",
                             why=why, target=target, action=act,
                             unexplored=len([k for k in self._contact_keys(before)
@@ -10261,6 +10284,9 @@ class Agent:
         # already past its turn meets it through its own route next cycle.
         self._turn_ahead = {s for s, b, *_ in routed if b in (REBIND, REFUTED, MECHANISM)}
         _split_now = self._d5_splits(frozenset(s for s, r in res.items() if r.gone))
+        # THE SLOTS WHOSE OWN TURN RUNS THIS CYCLE, for the probe flush below: a slot past its
+        # turn takes no MINT row after its ACCEPT (F500's rule; the probe flush, 2026-10-14).
+        _turned = set(self._turn_ahead) | set(_split_now)
         for slot, b, fit, _why in routed:
             if slot in _split_now:
                 continue
@@ -10295,17 +10321,7 @@ class Agent:
             self._turn_ahead.discard(slot)
         self._turn_ahead = None
         if by == "probe":
-            # ONE ROW PER SLOT THAT ASKED FOR IT, and `@probe` only when the trigger was
-            # the global reading rather than any particular slot. It used to be `@probe`
-            # always, so a slot parked at no_support could never be matched to the probe
-            # that answered it -- which is what B5 reads, and it was failing on it.
-            for slot in sorted(self._starved) or ["@probe"]:
-                self.led.record(self.cycle, "MINT", slot, "probe",
-                                **self.drive.report(),
-                                guards={"support": False, "reachability": False,
-                                        "novelty": False},
-                                note="support at zero; the model does not choose this one")
-            self._starved.clear()
+            self._flush_probe(_turned)
         if self.drive.never_live(len(self.actions)) and not self._said_never_live:
             # NAMED, AND THE REMEDY IS NOT BUILT. Every action has been drawn and no slot
             # has ever carried mass, so either the world is static or the slots do not
