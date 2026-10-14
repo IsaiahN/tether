@@ -89,6 +89,22 @@ OBSERVER_PAIR = {"inside": {("==", 1): ("holds",), (">", 0): ("holds",), ("!=", 
                           ("==", 0): ("sign", "holds", "negate")}}
 BOOL_PAIR = {"inside"}
 PREV = "~1"                  # tether.PREV, pinned by test_compile
+# T, EVERY ATOM NAME A COMPILE CAN LOOK UP (the tables above, "negate", and _change's same and
+# other). A compile reads the atoms only through these names and their types, so a compile held
+# across questions is keyed by them (tether's index hold, the reviewer 2026-10-14 12:23).
+TEMPLATE_ATOMS = frozenset(
+    [n for row in (*TABLE.values(), *CONVERSE.values()) for part in (row[0], *row[2:])
+     for n in part]
+    + [*PAIR.values(), *FACE_COUNT.values(), *EXTENT_ZERO[0], "negate", "same", "other"]
+    + [n for by in OBSERVER_PAIR.values() for names in by.values() for n in names])
+
+
+def signature(atoms: dict) -> tuple:
+    """What a compile can read of the atoms: each template atom present, with every field the
+    typing reads (all but `fn`), and the arm. An atom outside T never changes it."""
+    return (_RELATION_SET, tuple(sorted(
+        (n, a.in_type, a.out_type, a.reads_operand, a.operand_type, a.also_accepts,
+         a.polymorphic, a.elem_type) for n, a in atoms.items() if n in TEMPLATE_ATOMS)))
 # Shapes that have no slot to run on, refused by name (section 3, section 7c).
 NOT_SLOTS = {"frame": "events are not slots", "board": "the board is not an object slot",
              # the world's progress marker (world.GOAL_SLOT; the library's `board`), named

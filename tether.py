@@ -486,6 +486,14 @@ _MC6 = armflag.arm("TETHER_MC6")
 # change only: the same views, looked up rather than re-derived. 0 is the one-flag control.
 _VIEW_HOLD = armflag.arm("TETHER_VIEW_HOLD", default=True)
 _HELD_ROLES = ("STATE", "TEST", "PROCESS", "CAUSE")   # RELATION/MEASURE filter on x (library 504)
+# (b'-q) THE INDEX HOLD (Fig 12 :107-108; the reviewer 2026-10-14 12:19, 12:23). OFF; reason in
+# conform/arms.py. A held role's view is compiled ONCE per process under the placeholders and a
+# question binds its names to the result: no compile per question. A cost change only.
+_INDEX_HOLD = armflag.arm("TETHER_INDEX_HOLD")
+PH_O, PH_X = "PHo", "PHx"   # no id generator makes these (arc_percept 638, gridworld 225)
+_INDEX_STORE: dict = {}     # (compile_term.signature, entry, role) -> held compiles
+_INDEX_N: Counter = Counter()   # "held", "bound", "named"; read by test_index_hold only
+_PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 # 7a(10) D1-D3, THE SAME LOOP ONE LEVEL UP (R3 part 2; the reviewer 2026-10-10 23:50Z). ON with
 # objective build 1 (02:19Z); reason in conform/arms.py. Process bets about GROUND outcomes,
 # settled only at a level or game ending.
@@ -608,6 +616,30 @@ def _library():
         sys.path.insert(0, root)
     import library_runtime
     return library_runtime.Library(root).load()
+
+
+def _ph_sub(s: Any, o: str, x: str) -> Any:
+    return s if s is None else s.replace(PH_O, o).replace(PH_X, x)
+
+
+def _bound(c: Any, sub: Any, atoms: dict) -> Any:
+    """A held compile under this question's names: the names put back, the bbox pair re-sorted
+    (compile_term 296), the Term rebuilt from THIS Gamma's atoms by name. No compile."""
+    if c is None:
+        return None
+    if isinstance(c, compile_term.Refusal):
+        return compile_term.Refusal(sub(c.reason))
+
+    def term(t: Term) -> Term:
+        return _replace(t, atoms=tuple(atoms[a.name] for a in t.atoms), operand=sub(t.operand),
+                        guard_ref=sub(t.guard_ref),
+                        operand_term=term(t.operand_term) if t.operand_term is not None else None)
+    parties = tuple(sub(p) for p in c.parties)
+    slot = sub(c.slot)
+    if slot.endswith(".bbox"):
+        a, b = sorted(parties)
+        slot = f"{a}~{b}.bbox"
+    return compile_term.Compiled(slot, term(c.term), sub(c.operand), parties, c.absent)
 
 
 def _restore(held: list, o: str, x: str) -> list:
@@ -2252,13 +2284,13 @@ class Agent:
         causes: dict = {}
         refused: Counter = Counter()
         partner = others[0] if others else mine
+        sig = compile_term.signature(atoms) if _INDEX_HOLD else None
         for key, _w in lit:
             for role in reach.SINGLE:
-                for cand in self._lib_view(lib, key, role, mine, partner):
-                    if "quantifier" in cand:
+                for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms, sig):
+                    if c is None:
                         refused[compile_term.QUANTIFIED] += 1
                         continue
-                    c = comp(cand["condition"])
                     if isinstance(c, compile_term.Refusal):
                         refused[c.reason] += 1
                     elif c.slot == slot:
@@ -2270,8 +2302,8 @@ class Agent:
                         else:
                             hit[1]["entries"] += 1
             for o_ in others:
-                for cand in self._lib_view(lib, key, "CAUSE", o_, mine):
-                    if_c, then_c = comp(cand["if"]), comp(cand["then"])
+                for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp, atoms,
+                                                         sig):
                     if isinstance(if_c, compile_term.Refusal):
                         refused["if: " + if_c.reason] += 1
                         continue
@@ -2288,6 +2320,44 @@ class Agent:
                     else:
                         hit[2]["entries"] += 1
         return views, causes, refused
+
+    def _compiled(self, lib: Any, key: str, role: str, o: str, x: str, comp: Any, atoms: dict,
+                  sig: tuple | None) -> Any:
+        """(cand, compiled, then-compiled) per candidate: a CAUSE's if and then, a view's condition
+        with None for then, None for a quantified view. Under the index hold a held role whose
+        names are plain ids binds the compile held for its entry; anything else, or the arm OFF,
+        compiles the named text as before."""
+        if (sig is not None and role in _HELD_ROLES and o != x
+                and all(_PLAIN.fullmatch(n) and "PH" not in n for n in (o, x))):
+            _INDEX_N["bound"] += 1
+            sub = partial(_ph_sub, o=o, x=x)
+            return [(cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
+                    for cand, a, b in self._held_index(lib, key, role, atoms, sig)]
+        if sig is not None:
+            _INDEX_N["named"] += 1
+        if role == "CAUSE":
+            return ((cand, comp(cand["if"]), comp(cand["then"]))
+                    for cand in self._lib_view(lib, key, role, o, x))
+        return ((cand, None if "quantifier" in cand else comp(cand["condition"]), None)
+                for cand in self._lib_view(lib, key, role, o, x))
+
+    def _held_index(self, lib: Any, key: str, role: str, atoms: dict, sig: tuple) -> list:
+        """An entry's view in a held role, compiled ONCE under the placeholders and kept for the
+        process, keyed by what a compile can read of the atoms (compile_term.signature)."""
+        held = _INDEX_STORE.get((sig, key, role))
+        if held is None:
+            def comp(cond: str) -> Any:
+                return compile_term.compile_candidate({"condition": cond}, atoms)
+            held = []
+            for cand in lib.view(key, role, PH_O, PH_X):
+                if role == "CAUSE":
+                    held.append((cand, comp(cand["if"]), comp(cand["then"])))
+                else:
+                    held.append((cand, None if "quantifier" in cand
+                                 else comp(cand["condition"]), None))
+            _INDEX_STORE[(sig, key, role)] = held
+            _INDEX_N["held"] += 1
+        return held
 
     def _lib_view(self, lib: Any, key: str, role: str, o: str, x: str) -> list:
         """lib.view, LOOKED UP rather than re-derived (7e; Fig 12 :107-108). An entry's view in a

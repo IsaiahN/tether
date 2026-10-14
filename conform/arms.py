@@ -529,6 +529,15 @@ ARMS: dict[str, str] = {
                         "library never resets. its always storing'; the memory cost is accepted "
                         "(measured 9-35 MiB, bound about 112 MiB); 0 is the one-flag control. "
                         "Spelled `default=True`, default-on",
+    "TETHER_INDEX_HOLD": "(b'-q) the index hold (Fig 12 :107-108; the reviewer 2026-10-14 12:19, "
+                         "12:23): ON, a held role's view (STATE/TEST/PROCESS/CAUSE) is compiled "
+                         "ONCE per process under the placeholders PHo/PHx and kept, keyed by "
+                         "compile_term.signature (the template atoms and their types, and the "
+                         "arm); a question binds its names to it, re-sorts a bbox pair and "
+                         "rebuilds each Term from its own Gamma's atoms. Non-held roles, o == x "
+                         "and names that are not plain ids compile the named text as before. A "
+                         "cost change only. OFF until its panel (R'-0, R'-1, R'-2 registered "
+                         "2026-10-14 11:46 and 12:17)",
 }
 
 # DECLARED AT THE SITE, NOT INVENTED HERE. `arc_percept`'s shape-delta comment: *pairs with arm
