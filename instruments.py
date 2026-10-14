@@ -583,6 +583,23 @@ class Attribution:
                 h.update(fh.read() + b"\0")
         return h.hexdigest()
 
+    # The library as its three agent-path loaders read it: library_runtime.Library.load,
+    # inherited.load and compile_term.readings. test_gate checks this list against their reads.
+    LIBRARY_FILES = ("library/library_runtime.py", "library/readings.json", "library/atoms.json",
+                     "library/molecules.json", "library/agent_atoms.json", "library/relations.json",
+                     "library/index.json", "library/tag_index.json", "library/domains.json",
+                     "library/runtime.json", "library/learnings.json")
+
+    @staticmethod
+    def library_sha(root: str) -> tuple[str, int]:
+        """files_sha over the LIBRARY_FILES present on disk under `root`, and how many there were.
+        Read from disk whether or not the library has been imported: it loads lazily
+        (tether._library), so files_sha, which hashes only imported modules, cannot see it."""
+        import os
+        files = [f for p in Attribution.LIBRARY_FILES
+                 if os.path.isfile(f := os.path.join(root, *p.split("/")))]
+        return Attribution.files_sha(files, root), len(files)
+
     @staticmethod
     def code() -> dict:
         """WHICH CODE RAN, beside which arms (the reviewer 2026-10-12 12:41 CDT, item 4).
@@ -604,6 +621,8 @@ class Attribution:
         # so one run can be replayed; the being never reads it (the reviewer 2026-10-12 16:00)
         out: dict = {"files_sha": Attribution.files_sha(files, root), "n_files": len(files),
                      "pythonhashseed": os.environ.get("PYTHONHASHSEED")}
+        # THE LIBRARY ON DISK, imported or not (the reviewer 2026-10-14 03:41)
+        out["library_sha"], out["library_n_files"] = Attribution.library_sha(root)
 
         def git(*a: str) -> str:
             return subprocess.run(["git", "-C", root, *a], capture_output=True, text=True,

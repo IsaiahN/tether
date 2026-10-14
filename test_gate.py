@@ -483,6 +483,55 @@ def test_a_ledger_states_the_arms_its_run_had():
         subprocess.run = real
     assert c["head"] is None and c["tree"] is None and c["dirty"] is None, c
     assert c["git_unknown"].startswith("FileNotFoundError") and len(c["files_sha"]) == 64, c
+    # THE LIBRARY ON DISK (the reviewer 2026-10-14 03:41): the header stamps it, and the list names
+    # exactly the files the three agent-path loaders read
+    import builtins
+    import io
+    import shutil
+
+    import compile_term
+    import inherited
+    import instruments
+    root = os.path.dirname(os.path.abspath(instruments.__file__))
+    assert (recorded["library_sha"], recorded["library_n_files"]) == Attribution.library_sha(root)
+    # the spy sits at the open level: Path.read_text reaches io.open, a bare open() builtins.open;
+    # the three loaders are cached (tether._library, inherited.load, compile_term.readings), so each
+    # cache is cleared first or a loader already run would read nothing under the spy
+    seen: set = set()
+    real_open = io.open
+
+    def _spy(file, *a, **k):
+        if isinstance(file, (str, os.PathLike)):
+            rel = os.path.relpath(os.fspath(file), root).replace(os.sep, "/")
+            if rel.startswith("library/") and not rel.endswith(".py"):
+                seen.add(rel)
+        return real_open(file, *a, **k)
+    loaders = (tether._library, inherited.load, compile_term.readings)
+    for f in loaders:
+        f.cache_clear()
+    builtins.open = io.open = _spy
+    try:
+        inherited.load()
+        compile_term.readings()
+        tether._library()
+    finally:
+        builtins.open = io.open = real_open
+        for f in loaders:
+            f.cache_clear()
+    data = {p for p in Attribution.LIBRARY_FILES
+            if not p.endswith(".py") and os.path.isfile(os.path.join(root, *p.split("/")))}
+    assert seen == data, (sorted(seen - data), sorted(data - seen))
+    # PLANT 5: the same files under another root -> the same stamp; one byte more -> another
+    with tempfile.TemporaryDirectory() as d:
+        os.makedirs(os.path.join(d, "library"))
+        for p in Attribution.LIBRARY_FILES:
+            if os.path.isfile(src := os.path.join(root, *p.split("/"))):
+                shutil.copyfile(src, os.path.join(d, *p.split("/")))
+        a = Attribution.library_sha(d)
+        assert a == Attribution.library_sha(root), "the stamp must not depend on where it sits"
+        with open(os.path.join(d, "library", "library_runtime.py"), "ab") as fh:
+            fh.write(b"\n")
+        assert Attribution.library_sha(d)[0] != a[0], "a changed library file must change it"
 
 
 def test_undeclared_death():
