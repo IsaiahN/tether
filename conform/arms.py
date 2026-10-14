@@ -516,6 +516,16 @@ ARMS: dict[str, str] = {
     "TETHER_STARVED_CONTACT": "the starved-contact reading",
     "TETHER_STREAM_WIDEN": "the widened candidate streams",
     "TETHER_TYPED_BIND": "binding filtered by type",
+    "TETHER_VIEW_HOLD": "7e the view hold (Fig 12 :107-108; the reviewer 2026-10-14 00:49, "
+                        "00:57): ON, an entry's STATE/TEST/PROCESS/CAUSE view is derived once "
+                        "per run under the library's placeholders and the names are put back "
+                        "as text, a lookup in place of a re-derivation (R-c 0.839 on su15 and "
+                        "sp80, CAUSE control 0); RELATION/MEASURE, o == x and braced names take "
+                        "the named call. A cost change only. OFF: R7e-0/1/2/3 not refuted "
+                        "(the record identical OFF and ON on gridworld s0/s1@20, su15 and sp80 "
+                        "a1-3; su15 a2 333.5 -> 109.6 s, sp80 a3 100.5 -> 37.7 s); R7e-4 refuted "
+                        "as registered (the peak rise exceeded the hold's deep size by 0.3-2.3%); "
+                        "turning it ON is a memory-for-wall trade, Isaiah's ruling (2026-10-14)",
 }
 
 # DECLARED AT THE SITE, NOT INVENTED HERE. `arc_percept`'s shape-delta comment: *pairs with arm

@@ -481,6 +481,10 @@ _M6_INVENT = armflag.arm("TETHER_M6_INVENT", default=True)
 # 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). OFF; reason in conform/arms.py.
 # Compute only: no action, no bet, nothing installed -- a MUSE row is all it writes.
 _MC6 = armflag.arm("TETHER_MC6")
+# 7e THE VIEW HOLD (Fig 12 :107-108; the reviewer 2026-10-14 00:49, 00:57). OFF; reason in
+# conform/arms.py. A cost change only: the same views, looked up rather than re-derived.
+_VIEW_HOLD = armflag.arm("TETHER_VIEW_HOLD")
+_HELD_ROLES = ("STATE", "TEST", "PROCESS", "CAUSE")   # RELATION/MEASURE filter on x (library 504)
 # 7a(10) D1-D3, THE SAME LOOP ONE LEVEL UP (R3 part 2; the reviewer 2026-10-10 23:50Z). ON with
 # objective build 1 (02:19Z); reason in conform/arms.py. Process bets about GROUND outcomes,
 # settled only at a level or game ending.
@@ -603,6 +607,19 @@ def _library():
         sys.path.insert(0, root)
     import library_runtime
     return library_runtime.Library(root).load()
+
+
+def _restore(held: list, o: str, x: str) -> list:
+    """7e: a held view under the names o and x. Only the name-bearing fields (library view and
+    candidates: "condition"; CAUSE "if"/"then") are substituted; every other field is copied."""
+    out = []
+    for c in held:
+        c = dict(c)
+        for f in ("condition", "if", "then"):
+            if f in c:
+                c[f] = c[f].replace("{o}", o).replace("{x}", x)
+        out.append(c)
+    return out
 
 
 def _replace_lib(lib: Any) -> Any:
@@ -1463,6 +1480,8 @@ class Agent:
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
+        self._view_hold: dict = {}         # 7e: (entry, role) -> the view under "{o}"/"{x}"
+        self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
         self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
         self._reach_frames: tuple | None = None
         self.abstained: dict[str, dict] = {}
@@ -2234,7 +2253,7 @@ class Agent:
         partner = others[0] if others else mine
         for key, _w in lit:
             for role in reach.SINGLE:
-                for cand in lib.view(key, role, mine, partner):
+                for cand in self._lib_view(lib, key, role, mine, partner):
                     if "quantifier" in cand:
                         refused[compile_term.QUANTIFIED] += 1
                         continue
@@ -2250,7 +2269,7 @@ class Agent:
                         else:
                             hit[1]["entries"] += 1
             for o_ in others:
-                for cand in lib.view(key, "CAUSE", o_, mine):
+                for cand in self._lib_view(lib, key, "CAUSE", o_, mine):
                     if_c, then_c = comp(cand["if"]), comp(cand["then"])
                     if isinstance(if_c, compile_term.Refusal):
                         refused["if: " + if_c.reason] += 1
@@ -2268,6 +2287,29 @@ class Agent:
                     else:
                         hit[2]["entries"] += 1
         return views, causes, refused
+
+    def _lib_view(self, lib: Any, key: str, role: str, o: str, x: str) -> list:
+        """lib.view, LOOKED UP rather than re-derived (7e; Fig 12 :107-108). An entry's view in a
+        held role is derived once per run under the library's own placeholders and the names are
+        put back as text: candidates() names o and x only through t.format (library 647), so the
+        result is the named view. Bypassed, as the named call: a role that filters on a name
+        (RELATION/MEASURE, library 504), o == x (PROCESS de-duplicates by text, library 497-498),
+        a name with a brace. The key is (entry, role) because the route's library is fixed for the
+        process (_library is cached; inventions go to the private copy). IF THE ROUTE EVER READS
+        THE PRIVATE COPY, THE KEY MUST GAIN ITS VERSION."""
+        if not _VIEW_HOLD:
+            return lib.view(key, role, o, x)
+        why = ("role" if role not in _HELD_ROLES else "same" if o == x
+               else "brace" if any(b in o + x for b in "{}") else None)
+        if why:
+            self._view_hold_n["bypass_" + why] += 1
+            return lib.view(key, role, o, x)
+        held = self._view_hold.get((key, role))
+        if held is None:
+            held = self._view_hold[(key, role)] = lib.view(key, role, "{o}", "{x}")
+            self._view_hold_n["held"] += 1
+        self._view_hold_n["served"] += 1
+        return _restore(held, o, x)
 
     def _library_chains(self, slot: str, in_t: str, out_t: str, stats: dict,
                         ops: dict) -> list:
