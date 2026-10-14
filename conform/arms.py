@@ -524,8 +524,11 @@ ARMS: dict[str, str] = {
                         "the named call. A cost change only. OFF: R7e-0/1/2/3 not refuted "
                         "(the record identical OFF and ON on gridworld s0/s1@20, su15 and sp80 "
                         "a1-3; su15 a2 333.5 -> 109.6 s, sp80 a3 100.5 -> 37.7 s); R7e-4 refuted "
-                        "as registered (the peak rise exceeded the hold's deep size by 0.3-2.3%); "
-                        "turning it ON is a memory-for-wall trade, Isaiah's ruling (2026-10-14)",
+                        "as registered (the peak rise exceeded the hold's deep size by 0.3-2.3%). "
+                        "ON BY DEFAULT, Isaiah 2026-10-14 06:07 (via the reviewer 06:08): 'the "
+                        "library never resets. its always storing'; the memory cost is accepted "
+                        "(measured 9-35 MiB, bound about 112 MiB); 0 is the one-flag control. "
+                        "Spelled `default=True`, default-on",
 }
 
 # DECLARED AT THE SITE, NOT INVENTED HERE. `arc_percept`'s shape-delta comment: *pairs with arm

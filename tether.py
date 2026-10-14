@@ -481,9 +481,10 @@ _M6_INVENT = armflag.arm("TETHER_M6_INVENT", default=True)
 # 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). OFF; reason in conform/arms.py.
 # Compute only: no action, no bet, nothing installed -- a MUSE row is all it writes.
 _MC6 = armflag.arm("TETHER_MC6")
-# 7e THE VIEW HOLD (Fig 12 :107-108; the reviewer 2026-10-14 00:49, 00:57). OFF; reason in
-# conform/arms.py. A cost change only: the same views, looked up rather than re-derived.
-_VIEW_HOLD = armflag.arm("TETHER_VIEW_HOLD")
+# 7e THE VIEW HOLD (Fig 12 :107-108; the reviewer 2026-10-14 00:49, 00:57). ON by default
+# (Isaiah 2026-10-14 06:07: "the library never resets"); reason in conform/arms.py. A cost
+# change only: the same views, looked up rather than re-derived. 0 is the one-flag control.
+_VIEW_HOLD = armflag.arm("TETHER_VIEW_HOLD", default=True)
 _HELD_ROLES = ("STATE", "TEST", "PROCESS", "CAUSE")   # RELATION/MEASURE filter on x (library 504)
 # 7a(10) D1-D3, THE SAME LOOP ONE LEVEL UP (R3 part 2; the reviewer 2026-10-10 23:50Z). ON with
 # objective build 1 (02:19Z); reason in conform/arms.py. Process bets about GROUND outcomes,
