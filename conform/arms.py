@@ -744,6 +744,13 @@ def sites() -> dict[str, list[str]]:
     return found
 
 
+def _ruling_source(name: str) -> bool:
+    """A file whose `_FOO = True` is the AGENT's ruling. A test fixture sets a flag for its own
+    check and rules nothing for the agent: counted, 18 of 21 hits were fixtures and the census
+    read 34 ON where the run header read 23 (the reviewer 2026-10-14 06:42, A-1)."""
+    return name != "arms.py" and not name.startswith("test_")
+
+
 def ruled() -> dict[str, str]:
     """`{arm: "file:line"}` for arms a RULING turned on in code, rather than the environment.
 
@@ -752,7 +759,7 @@ def ruled() -> dict[str, str]:
     declared arm is simply not an arm and is ignored, so this cannot invent one."""
     out: dict[str, str] = {}
     for path in _tracked():
-        if path.name == "arms.py":
+        if not _ruling_source(path.name):
             continue
         try:
             text = path.read_text(encoding="utf-8")
@@ -826,6 +833,13 @@ def selftest() -> dict[str, str]:
     # AND ITS CONTROL: `= False` is not a ruling, and the regex must not claim it.
     out["D control"] = ("ok" if "SHAPE_DELTA" not in hits
                         else "UNWITNESSED (read `= False` as ON)")
+
+    # F -- A FIXTURE IS NOT A RULING (A-1): a test file's `= True` must not count as ON; and the
+    # control, so the case cannot pass by refusing every file.
+    out["F fixture"] = ("ok" if not _ruling_source("test_d5.py")
+                        else "UNWITNESSED (a test fixture counted as a ruling)")
+    out["F control"] = ("ok" if _ruling_source("arc_holdout.py")
+                        else "UNWITNESSED (the agent's own ruling was refused)")
     return out
 
 
