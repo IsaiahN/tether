@@ -441,23 +441,48 @@ def check_the_bundle_carries_every_module_the_harness_file_imports():
     assert not missing, f"the bundle lacks {missing}"
 
 
-def _bundle_reaches_its_library(pkg: str) -> str:
-    """'' if an ISOLATED interpreter (-I, only `pkg` on sys.path) can reach the agent's library from
-    the built bundle -- tether._library() not None, compile_term.readings(), inherited.load() --
-    with no module resolving inside the repo; otherwise the failure's last line."""
+_ISOLATED = """
+import importlib, os, sys
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import compile_term, inherited, tether
+assert tether._library() is not None, "tether._library() is None"
+compile_term.readings()
+inherited.load()
+for m in filter(None, sys.argv[3].split(",")):
+    importlib.import_module(m)
+n = lambda p: os.path.normcase(os.path.abspath(p))
+pkg, repo = n(sys.argv[1]), n(sys.argv[2]) + os.sep
+venv = repo + ".venv" + os.sep
+ours = {f[:-3] for f in os.listdir(pkg) if f.endswith(".py")} | {"library_runtime"}
+errs = []
+out = sorted(m for m, v in list(sys.modules.items())
+             if m in ours and not (isinstance(getattr(v, "__file__", None), str)
+                                   and n(v.__file__).startswith(pkg + os.sep)))
+if out:
+    errs.append(f"shipped but resolved outside the bundle: {out}")
+def inrepo(p):
+    q = n(p) + os.sep
+    return q.startswith(repo) and not q.startswith(venv)
+bad = sorted(p for p in sys.path if p and n(p) != pkg and inrepo(p))
+bad += sorted(m for m, v in list(sys.modules.items())
+              if isinstance(getattr(v, "__file__", None), str) and inrepo(v.__file__))
+if bad:
+    errs.append(f"resolved in the repo outside .venv: {bad}")
+assert not errs, " | ".join(errs)
+"""
+
+
+def _bundle_reaches_its_library(pkg: str, lazy: tuple = ()) -> str:
+    """'' if an ISOLATED interpreter (-I, only `pkg` on sys.path) reaches the agent's library and
+    every lazily imported module from the built bundle, else the failure's last line. POSITIVE:
+    every module the bundle ships resolves inside it. NEGATIVE: no sys.path entry and no module
+    file lies in the repo outside its .venv, which the positive form cannot see (a module NOT
+    shipped but found in the repo). Third-party modules from .venv are ignored by both."""
     import subprocess
-    code = ("import os, sys; sys.dont_write_bytecode = True; sys.path.insert(0, sys.argv[1]); "
-            "import compile_term, inherited, tether; "
-            "assert tether._library() is not None, 'tether._library() is None'; "
-            "compile_term.readings(); inherited.load(); "
-            "repo = os.path.normcase(sys.argv[2]); "
-            "bad = sorted(m for m, v in list(sys.modules.items()) "
-            "if isinstance(getattr(v, '__file__', None), str) "
-            "and os.path.normcase(os.path.abspath(v.__file__)).startswith(repo)); "
-            "assert not bad, f'resolved in the repo: {bad}'")
     here = os.path.dirname(os.path.abspath(__file__))
-    r = subprocess.run([sys.executable, "-I", "-B", "-c", code, pkg, here], cwd=pkg,
-                       capture_output=True, text=True, timeout=300)
+    r = subprocess.run([sys.executable, "-I", "-B", "-c", _ISOLATED, pkg, here, ",".join(lazy)],
+                       cwd=pkg, capture_output=True, text=True, timeout=300)
     return "" if r.returncode == 0 else ((r.stderr.strip().splitlines() or [""])[-1]
                                          or f"exit {r.returncode}")
 
@@ -470,7 +495,8 @@ def check_the_bundle_reaches_its_library_in_isolation():
 
     import kaggle_bundle
     with tempfile.TemporaryDirectory() as d:
-        why = _bundle_reaches_its_library(kaggle_bundle.build(out=d)["pkg"])
+        rep = kaggle_bundle.build(out=d)
+        why = _bundle_reaches_its_library(rep["pkg"], tuple(f[:-3] for f in rep["lazy"]))
     assert not why, f"the bundle cannot reach its own library: {why}"
 
 

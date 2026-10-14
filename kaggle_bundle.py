@@ -19,6 +19,7 @@ instruments.Attribution.LIBRARY_FILES, the list test_gate pins to the loaders' a
 """
 from __future__ import annotations
 
+import ast
 import base64
 import hashlib
 import json
@@ -74,8 +75,47 @@ def census(entry: str) -> list[str]:
     return files
 
 
+def _main_guarded(tree: ast.Module) -> set[int]:
+    """ids of the nodes under a module-level `if __name__ == "__main__":` -- a script's own code."""
+    out: set[int] = set()
+    for n in tree.body:
+        t = getattr(n, "test", None)
+        if (isinstance(n, ast.If) and isinstance(t, ast.Compare) and isinstance(t.left, ast.Name)
+                and t.left.id == "__name__"
+                and any(getattr(c, "value", None) == "__main__" for c in t.comparators)):
+            out |= {id(x) for b in n.body for x in ast.walk(b)}
+    return out
+
+
+def imported(files: list[str]) -> tuple[list[str], list[str]]:
+    """Every root module imported ANYWHERE in `files`, and in what they pull in, except under the
+    __main__ guard, closed over; and the LAZY ones among them (inside a function, an if or a try:
+    imports the executing census never sees). It reads the code, so nothing is listed by hand (the
+    reviewer 2026-10-14 (i-c), K1)."""
+    seen, lazy, todo = set(files), set(), list(files)
+    while todo:
+        with open(os.path.join(ROOT, todo.pop()), encoding="utf-8") as fh:
+            tree = ast.parse(fh.read())
+        guarded, top = _main_guarded(tree), {id(n) for n in tree.body}
+        for n in ast.walk(tree):
+            if id(n) in guarded or not isinstance(n, (ast.Import, ast.ImportFrom)):
+                continue
+            names = ([a.name for a in n.names] if isinstance(n, ast.Import)
+                     else [n.module] if n.module and not n.level else [])
+            for rel in (m.split(".")[0] + ".py" for m in names):
+                if rel[:-3] in NEVER or not os.path.isfile(os.path.join(ROOT, rel)):
+                    continue
+                if id(n) not in top:
+                    lazy.add(rel)
+                if rel not in seen:
+                    seen.add(rel)
+                    todo.append(rel)
+    return sorted(seen), sorted(lazy)
+
+
 def build(entry: str = "tether_runner", out: str = "out", sample: str = "") -> dict:
-    files = census(entry) + list(DATA)
+    modules, lazy = imported(census(entry))
+    files = modules + list(DATA)
     missing = [f for f in files if not os.path.isfile(os.path.join(ROOT, f))]
     if missing:
         raise SystemExit(f"listed but absent: {missing}")
@@ -98,7 +138,8 @@ def build(entry: str = "tether_runner", out: str = "out", sample: str = "") -> d
     with open(one, "w", encoding="utf-8") as fh:
         fh.write(body)
     report = {"files": len(files), "modules": len(files) - len(DATA), "data": len(DATA),
-              "digest": digest[:16], "bundle_bytes": os.path.getsize(one), "pkg": pkg, "one": one}
+              "lazy": lazy, "digest": digest[:16], "bundle_bytes": os.path.getsize(one),
+              "pkg": pkg, "one": one}
     # THE NOTEBOOK'S ONE FILE: the bundle, then the Agent class. `from __future__` is legal only as
     # a module's first statement, so it is dropped from the appended class -- and the result is
     # COMPILED here, so a broken file is refused at build time rather than found on Kaggle.
