@@ -9,8 +9,9 @@ samples is not ours to decide (queued to Isaiah, 2026-10-06):
 
 The module list is a CENSUS, not a list: the entry module is imported in a fresh interpreter and
 every repo module it pulls in is taken. Imports made lazily inside functions are not seen here --
-the fake-wrapper smoke run is the runtime census. The data files ARE a list (`DATA`), because a
-file read at runtime leaves no trace in sys.modules; each one is checked to exist.
+the fake-wrapper smoke run is the runtime census. The LIBRARY is not a census either: its runtime
+is imported lazily (tether._library) and its data is read from disk, so both come from ONE list,
+instruments.Attribution.LIBRARY_FILES, the list test_gate pins to the loaders' actual reads.
 
 `arcengine` is never bundled: it comes from the competition's wheels (interface bug 4).
 
@@ -31,15 +32,16 @@ sys.dont_write_bytecode = True
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# READ AT RUNTIME, RELATIVE TO A MODULE'S OWN FILE (F449). A table, so a new one is added here
-# deliberately or it is not shipped -- and the check below refuses a row that does not exist.
-DATA = (
-    "library/atoms.json",                   # inherited; composer, condition (step 2)
-    "library/molecules.json",
-    "library/tag_index.json",
-    "library/domains.json",
-    "library/agent_atoms.json",
-)
+# READ AT RUNTIME, RELATIVE TO A MODULE'S OWN FILE (F449): the library, its lazily imported runtime
+# included, as the one list the run header stamps (instruments.py); a listed file absent here (the
+# optional runtime/learnings layers) is absent on Kaggle too, and test_entry's isolated import of
+# the built bundle is what refuses a REQUIRED one going missing (the reviewer 2026-10-14 (i-b))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+from instruments import Attribution  # noqa: E402
+
+DATA = tuple(p for p in Attribution.LIBRARY_FILES
+             if os.path.isfile(os.path.join(ROOT, *p.split("/"))))
 NEVER = ("arcengine",)
 
 _CENSUS = """

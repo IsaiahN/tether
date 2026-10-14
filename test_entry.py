@@ -441,6 +441,39 @@ def check_the_bundle_carries_every_module_the_harness_file_imports():
     assert not missing, f"the bundle lacks {missing}"
 
 
+def _bundle_reaches_its_library(pkg: str) -> str:
+    """'' if an ISOLATED interpreter (-I, only `pkg` on sys.path) can reach the agent's library from
+    the built bundle -- tether._library() not None, compile_term.readings(), inherited.load() --
+    with no module resolving inside the repo; otherwise the failure's last line."""
+    import subprocess
+    code = ("import os, sys; sys.dont_write_bytecode = True; sys.path.insert(0, sys.argv[1]); "
+            "import compile_term, inherited, tether; "
+            "assert tether._library() is not None, 'tether._library() is None'; "
+            "compile_term.readings(); inherited.load(); "
+            "repo = os.path.normcase(sys.argv[2]); "
+            "bad = sorted(m for m, v in list(sys.modules.items()) "
+            "if isinstance(getattr(v, '__file__', None), str) "
+            "and os.path.normcase(os.path.abspath(v.__file__)).startswith(repo)); "
+            "assert not bad, f'resolved in the repo: {bad}'")
+    here = os.path.dirname(os.path.abspath(__file__))
+    r = subprocess.run([sys.executable, "-I", "-B", "-c", code, pkg, here], cwd=pkg,
+                       capture_output=True, text=True, timeout=300)
+    return "" if r.returncode == 0 else ((r.stderr.strip().splitlines() or [""])[-1]
+                                         or f"exit {r.returncode}")
+
+
+def check_the_bundle_reaches_its_library_in_isolation():
+    """The library is imported lazily and read from disk, so no import census sees it: built
+    offline into tmp, the bundle must reach it from an isolated interpreter (the reviewer 2026-10-14
+    (i-b); the must-fail was shown against 3043110's bundle, which raised ModuleNotFoundError)."""
+    import tempfile
+
+    import kaggle_bundle
+    with tempfile.TemporaryDirectory() as d:
+        why = _bundle_reaches_its_library(kaggle_bundle.build(out=d)["pkg"])
+    assert not why, f"the bundle cannot reach its own library: {why}"
+
+
 
 def gateway_one_card_takes_every_worker_process():
     """WIRING ONLY (reviewer, 2026-10-06; Fig 11 -- a harness proves wiring, never capability).
