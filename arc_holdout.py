@@ -25,6 +25,8 @@ the tree.
 from __future__ import annotations
 
 import collections
+import hashlib
+import json
 import logging
 import sys
 from pathlib import Path
@@ -195,10 +197,44 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     return env, ag, led, board, palette, loaded
 
 
+LOSSY = ("no standing: settled_on and settled_at are not written (gamma.save keeps only a stamp's "
+         "admitted and residual); an invented atom is written as its recorded delta and skipped on "
+         "load, so terms built on it do not return; operands are written for the record and not "
+         "re-bound on load")
+
+
+def save_only(ag: Any, out_dir: str | None, game: str, led_path: str | None) -> dict | None:
+    """THE STOP-LOSS (the reviewer 2026-10-14 11:32, 11:39): the run WRITES what its Gamma holds
+    and nothing ever reads it here. Never the `library` path, which wire() LOADS (194). One file per
+    run, named by what the run header says it ran (HEAD, the arm state's hash, world, game) and by
+    the run's own ledger (its name and its resolved path's hash); an existing file is never
+    overwritten. Lossy, and says so."""
+    if not out_dir:
+        return None
+    if not led_path:
+        return {"refused": "no ledger path, so no run id to name the file by"}
+    hdr = next((e.detail for e in ag.led.by_event("arms") if e.slot == "@run"), {})
+    arms = hashlib.sha256(json.dumps([sorted(hdr.get("on", ())), sorted(hdr.get("off", ()))])
+                          .encode()).hexdigest()[:16]
+    world = type(ag.env).__name__
+    head = (hdr.get("head") or "nohead")[:12]
+    # THE LEDGER'S RESOLVED PATH, hashed: two lanes may share a ledger STEM in different folders
+    # at one HEAD and arm state, and the second save would be refused and lost (the reviewer 12:05).
+    lid = hashlib.sha256(str(Path(led_path).resolve()).encode()).hexdigest()[:8]
+    path = Path(out_dir) / f"{world}_{game}_{head}_{arms}_{Path(led_path).stem}_{lid}.json"
+    if path.exists():
+        return {"refused": f"{path.name} exists; a save never overwrites"}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return ag.gamma.save(str(path), header={
+        "saved_by": "arc_holdout.save_only", "lossy": LOSSY, "world": world, "game": game,
+        "head": hdr.get("head"), "tree": hdr.get("tree"), "dirty": hdr.get("dirty"),
+        "files_sha": hdr.get("files_sha"), "arms_sha": arms, "ledger": str(led_path)})
+
+
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
          store: str | None = None, arc=None, stop_on_end: bool = False,
          led_path: str | None = None, on_frame=None,
-         cfg: Any = None) -> dict:
+         cfg: Any = None, save_only_dir: str | None = None) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
     **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
@@ -296,6 +332,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     rows = led.rows()
     g = ag.gamma
     saved = g.save(library) if library else None
+    saved_only = save_only(ag, save_only_dir, game, led_path)
 
     # FILED UNDER WHAT THE AGENT COMPUTED. The digest buckets, the level indexes within it, and
     # the episode is 1 + however many plays are already filed under that pair -- counted from
@@ -348,7 +385,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         "library": len(g.library), "admissions": g.admissions(),
         # §17.8's decision, visible in the report rather than in a process lifetime.
         "persistence": {"switch": library or "cold (default)",
-                        "loaded": loaded, "saved": saved,
+                        "loaded": loaded, "saved": saved, "saved_only": saved_only,
                         "handles": len(g.handles)},
         "lambda": g.type_report(), "atoms": len(g.atoms),
         "unexpressible": arc_predict.unexpressible(),

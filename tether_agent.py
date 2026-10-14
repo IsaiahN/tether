@@ -21,7 +21,8 @@ sys.dont_write_bytecode = True
 
 
 def run(w, game: str, max_actions: int, *, on_action=None, library: str | None = None,
-        cfg=None, led_path: str | None = None, deadline: float | None = None) -> dict:
+        cfg=None, led_path: str | None = None, deadline: float | None = None,
+        save_only_dir: str | None = None) -> dict:
     """Play one game on wrapper `w` until WIN, `max_actions` loop steps, or the deadline.
 
     `on_action(frame)` is called with the wrapper's frame after every step that acted -- the
@@ -57,7 +58,9 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     # THE GAME'S LIBRARY IS KEPT for the next game in this worker's sequence -- after WIN,
     # death or cap alike. No path, no save: a run with no sequence stays cold (F471).
     saved = ag.gamma.save(library) if library else None
+    # THE STOP-LOSS, the same rule as play: written, never read here (arc_holdout.save_only).
+    saved_only = arc_holdout.save_only(ag, save_only_dir, game, led_path)
     return {"game": game, "acted": acted_n, "cycles": ag.cycle, "end": end or "cap",
             "deaths": deaths, "agent_resets": ag._acts.get("RESET", 0),
             "levels": env.levels(), "refused_resets": getattr(env.w, "refused", 0),
-            "loaded": loaded, "saved": saved}
+            "loaded": loaded, "saved": saved, "saved_only": saved_only}

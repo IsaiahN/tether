@@ -1112,7 +1112,7 @@ class Gamma:
 
     # -- persistence: Â§17.8's decision, made rather than defaulted -------------------------
 
-    def save(self, path: str) -> dict:
+    def save(self, path: str, header: dict | None = None) -> dict:
         """Write the minted library. **SEAT-SIDE: the agent never calls this.**
 
         Â§17.8 asked for a POLICY and a SWITCH -- *state it, and make it switchable so the
@@ -1172,7 +1172,9 @@ class Gamma:
         # cycles-to-vindication; the halflife is re-derived from it on the far side. Carrying
         # the derived number instead would carry a conclusion without its basis -- and a value
         # whose provenance is gone cannot be revised by later evidence, only overwritten.
-        blob = {"terms": out,
+        # A HEADER, when the caller gives one, says what the file is and what it lacks (the
+        # stop-loss's "lossy" line, arc_holdout.save_only). load never reads it.
+        blob = {**({"header": header} if header else {}), "terms": out,
                 "invented": {n: rec for n, rec in self.invented.items() if rec.get("delta")},
                 "vindication": list(self.vindication),
                 "book": dict(self.book)}
