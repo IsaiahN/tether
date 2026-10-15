@@ -16,13 +16,14 @@ import sys
 import time
 
 import arc_holdout
+import lineage
 
 sys.dont_write_bytecode = True
 
 
 def run(w, game: str, max_actions: int, *, on_action=None, library: str | None = None,
         cfg=None, led_path: str | None = None, deadline: float | None = None,
-        save_only_dir: str | None = None) -> dict:
+        save_only_dir: str | None = None, lineage_dir: str | None = None) -> dict:
     """Play one game on wrapper `w` until WIN, `max_actions` loop steps, or the deadline.
 
     `on_action(frame)` is called with the wrapper's frame after every step that acted -- the
@@ -30,7 +31,8 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     harness's own `MAX_ACTIONS`: a termination bound, never a prior.
     """
     env, ag, led, board, palette, loaded = arc_holdout.wire(w, game, cfg=cfg, led_path=led_path,
-                                                            library=library)
+                                                            library=library,
+                                                            lineage_dir=lineage_dir)
     acted_n, was, end, deaths = 0, "", "", 0
     for _ in range(max_actions):
         # A WALL-CLOCK BOUND, like the step cap: the runner's per-game allowance, never a prior.
@@ -60,7 +62,10 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     saved = ag.gamma.save(library) if library else None
     # THE STOP-LOSS, the same rule as play: written, never read here (arc_holdout.save_only).
     saved_only = arc_holdout.save_only(ag, save_only_dir, game, led_path)
+    # (b'-g) the boundary's generation, the same call as play (lineage.py)
+    lineage_gen = lineage.write(lineage_dir, ag, game) if lineage.CARRY and lineage_dir else None
     return {"game": game, "acted": acted_n, "cycles": ag.cycle, "end": end or "cap",
             "deaths": deaths, "agent_resets": ag._acts.get("RESET", 0),
             "levels": env.levels(), "refused_resets": getattr(env.w, "refused", 0),
-            "loaded": loaded, "saved": saved, "saved_only": saved_only}
+            "loaded": loaded, "saved": saved, "saved_only": saved_only,
+            "lineage": lineage_gen}

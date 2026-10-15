@@ -21,6 +21,7 @@ import json
 import os
 import pathlib
 import random
+import re
 import sys
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
@@ -794,6 +795,10 @@ class Gamma:
         self.merged: dict[str, list[dict]] = {}
         self.stamps: dict[str, dict[str, Any]] = {}
         self.standing: dict[str, Standing] = {}
+        # (b'-g) the settle/refute EVIDENCE as the record, never read back as standing. Kept
+        # only when the lineage carry sets keep_evidence (lineage.py); empty otherwise.
+        self.keep_evidence = False
+        self.evidence: list[list] = []
         # name -> the two verdicts that promoted it. A dict rather than a set because
         # `primitive requires both` is only checkable if both are on the record.
         self.primitives: dict[str, dict] = {}
@@ -921,6 +926,8 @@ class Gamma:
         a mere read, so this is the established pattern rather than a new one. **Asserted as
         a refuter with a mutation control, not taken on the arithmetic.**
         """
+        if self.keep_evidence:
+            self.evidence.append(["settle", name, slot, where, self.tick])
         st = self.standing.setdefault(name, Standing())
         st.decay(self.tick, self.halflife)
         st.settled_at = self.tick
@@ -976,6 +983,8 @@ class Gamma:
         level, and the failure this records is *one board did not have the mechanic*, which
         happens at both scales. The caller is the one holding both.
         """
+        if self.keep_evidence:
+            self.evidence.append(["refute", name, slot, where, self.tick])
         st = self.standing.setdefault(name, Standing())
         was = self.is_settled(name, slot)
         st.refute(self.tick, self.halflife, where=where, slot=slot)
@@ -1126,6 +1135,19 @@ class Gamma:
         would be a second producer of the vocabulary. What is written is the COMPOSITION -- the
         atom NAMES in order -- plus origin, admitting clause and handle.
         """
+        blob = self.blob(header)
+        # ATOMIC: written beside it, then renamed into place. A kill mid-save (the platform's
+        # time limit) leaves the previous library whole, never a half-written one (F471).
+        tmp = f"{path}.tmp"
+        pathlib.Path(tmp).write_text(json.dumps(blob, indent=1), encoding="utf-8")
+        os.replace(tmp, path)
+        return {"written": len(blob["terms"]), "invented": len(blob["invented"]),
+                "path": path}
+
+    def blob(self, header: dict | None = None, with_names: bool = False) -> dict:
+        """The library as `save` writes it, as data (b'-g): lineage.py diffs and folds
+        this; `save` writes it unchanged. `with_names` adds each row's term name, for lineage
+        only, which must tell a term minted here from one it loaded."""
         out = []
         for name, t in self.library.items():
             if t.origin == PRIOR:
@@ -1151,7 +1173,8 @@ class Gamma:
                         # `stamps` holds DICTS: `getattr` on one returned None, so every term
                         # was saved with no admitting clause and no residual (F464).
                         "admitted": st.get("admitted") if st else None,
-                        "residual": st.get("residual") if st else None})
+                        "residual": st.get("residual") if st else None,
+                        **({"name": name} if with_names else {})})
         # ROUTE 2 -- reviewer, 2026-09-23. **THE RECORDED DELTA AND ITS LICENCE, NEVER THE
         # FUNCTION.** `invent` made the registry run-local, which broke this file's standing
         # assumption that atoms are "identical on both sides" -- so a term built on an invented
@@ -1174,16 +1197,10 @@ class Gamma:
         # whose provenance is gone cannot be revised by later evidence, only overwritten.
         # A HEADER, when the caller gives one, says what the file is and what it lacks (the
         # stop-loss's "lossy" line, arc_holdout.save_only). load never reads it.
-        blob = {**({"header": header} if header else {}), "terms": out,
+        return {**({"header": header} if header else {}), "terms": out,
                 "invented": {n: rec for n, rec in self.invented.items() if rec.get("delta")},
                 "vindication": list(self.vindication),
                 "book": dict(self.book)}
-        # ATOMIC: written beside it, then renamed into place. A kill mid-save (the platform's
-        # time limit) leaves the previous library whole, never a half-written one (F471).
-        tmp = f"{path}.tmp"
-        pathlib.Path(tmp).write_text(json.dumps(blob, indent=1), encoding="utf-8")
-        os.replace(tmp, path)
-        return {"written": len(out), "invented": len(blob["invented"]), "path": path}
 
     def load(self, path: str) -> dict:
         """Read a saved library into this Gamma. **SEAT-SIDE, and it REFUSES loudly.**
@@ -1210,6 +1227,20 @@ class Gamma:
             blob = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
         except (OSError, ValueError) as e:
             return {"loaded": 0, "cold": f"{type(e).__name__}: {e}"[:200]}
+        return self.load_blob(blob)
+
+    @staticmethod
+    def unbound_form(operand: str) -> str:
+        """An operand with every object id replaced by "?", by the slot grammar the worlds
+        publish: f"{name}.{attr}" (arc_percept 847-849), pairs f"{a}.{rel}_{b}" (arc_world 813),
+        compound owners a~b, and a ~j frame lag. o2.proximity -> ?.proximity; o1.adjacent_o3 ->
+        ?.adjacent_?."""
+        return "".join("?" if re.fullmatch(r"o\d+", tok) else tok
+                       for tok in re.split(r"([._~@])", operand))
+
+    def load_blob(self, blob: Any, parent: str | None = None) -> dict:
+        """`load`'s body, from data (b'-g): the lineage folds its chain and hands the fold
+        here. `parent`, when given, names the generation each carried term came from."""
         # BACKWARD-COMPATIBLE BY SHAPE, not by a version flag: files written before route 2 are
         # a bare list. A flag would be a second thing to keep in step with the format.
         rows = blob if isinstance(blob, list) else blob.get("terms", [])
@@ -1272,6 +1303,18 @@ class Gamma:
                      guard=r.get("guard"),
                      operand_term=(Term(tuple(self._by_name[n] for n in tree))
                                    if tree else None))
+            unbound = None
+            if (parent and r.get("operand") and t.name in self.library
+                    and self.library[t.name].origin == PRIOR):
+                # (b'-g), UNDER THE CARRY ONLY (the reviewer 2026-10-14 20:45): LOAD NEVER
+                # DESTROYS (F420; Isaiah 11:05). The binding does not cross, so every object id in
+                # the operand becomes "?", which no id generator makes (o{n}: arc_percept 638,
+                # gridworld 225); the entry is held by name, reads its slot as absent, and records
+                # what it lost. Not PH_O/PH_X (tether 493): _bound puts the question's objects
+                # back into those, which would be a re-binding, and that is phase 2's.
+                unbound = r["operand"]
+                t = Term(t.atoms, origin=IMPORTED, guard=t.guard,
+                         operand=self.unbound_form(unbound), operand_term=t.operand_term)
             if t.name in self.library:
                 # **`already_held` WAS ONE NUMBER OVER TWO OPPOSITE OUTCOMES -- `F420`.** A row
                 # can land on a composition this registry genuinely holds, which is a real
@@ -1295,7 +1338,10 @@ class Gamma:
                 self.handles[t.name] = r["handle"]   # the birth handle, carried
             # THE `carried` FIELD -- set at LOAD, so a term can say it did not originate here
             # without the reader having to parse a handle for a game name.
-            self.carried[t.name] = {"from": r.get("game"), "handle": r.get("handle")}
+            self.carried[t.name] = {"from": r.get("game"), "handle": r.get("handle"),
+                                    **({"parent": parent, "born": r.get("born")}
+                                       if parent else {}),
+                                    **({"unbound": unbound} if unbound else {})}
             took.append({"handle": r.get("handle"), "already_held": False,
                          "onto_atom": False, "name": t.name, "lost": None,
                          "unbound": bool(r.get("operand"))})

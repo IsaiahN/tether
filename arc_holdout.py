@@ -44,6 +44,7 @@ import gamma
 import gate
 import habitat
 import ledger
+import lineage
 import summary
 import tether
 from arc_world import ArcWorld
@@ -120,7 +121,7 @@ class ResetGuard:
 
 
 def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
-         library: str | None = None, on_frame=None):
+         library: str | None = None, on_frame=None, lineage_dir: str | None = None):
     """THE ONE WIRING OF AN ARC WRAPPER TO THE AGENT -- `play` and the Kaggle entry point both.
 
     Lifted out of `play` unchanged (2026-10-06) so the two cannot drift: the arm flags, the
@@ -194,6 +195,13 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
         cfg = tether.Config(max_depth=4)
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)
     loaded = ag.gamma.load(library) if library and Path(library).exists() else None
+    # (b'-g) ONE PATH: under the carry every instance starts from the lineage's chain, folded
+    # (lineage.py); OFF, or with no folder, nothing here runs.
+    if lineage.CARRY and lineage_dir:
+        rep = lineage.load(lineage_dir, ag)
+        # a ROOT with no library is a cold start, said so in the key play's Q25 set reads (279)
+        loaded = {"library": loaded, "lineage": rep,
+                  **({} if rep["parent"] or loaded else {"cold": "lineage root"})}
     return env, ag, led, board, palette, loaded
 
 
@@ -234,7 +242,8 @@ def save_only(ag: Any, out_dir: str | None, game: str, led_path: str | None) -> 
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
          store: str | None = None, arc=None, stop_on_end: bool = False,
          led_path: str | None = None, on_frame=None,
-         cfg: Any = None, save_only_dir: str | None = None) -> dict:
+         cfg: Any = None, save_only_dir: str | None = None,
+         lineage_dir: str | None = None) -> dict:
     """Download one game, run the loop on it, and report where the chain stops.
 
     **`library` IS §17.8's SWITCH, and the default is cold.** *State it, and make it switchable
@@ -267,7 +276,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         return {"error": f"{game} did not resolve"}
 
     env, ag, led, board, palette, loaded = wire(w, game, cfg=cfg, led_path=led_path,
-                                                library=library, on_frame=on_frame)
+                                                library=library, on_frame=on_frame,
+                                                lineage_dir=lineage_dir)
     # Q25 needs the set BEFORE play and there is exactly one moment it exists
     inherited = ({summary._chain(t) for t in ag.gamma.library.values()}
                  if loaded and not loaded.get("cold") else set())
@@ -338,6 +348,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     g = ag.gamma
     saved = g.save(library) if library else None
     saved_only = save_only(ag, save_only_dir, game, led_path)
+    # (b'-g) the boundary's generation, beside the stop-loss (lineage.py)
+    lineage_gen = lineage.write(lineage_dir, ag, game) if lineage.CARRY and lineage_dir else None
 
     # FILED UNDER WHAT THE AGENT COMPUTED. The digest buckets, the level indexes within it, and
     # the episode is 1 + however many plays are already filed under that pair -- counted from
@@ -391,6 +403,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         # §17.8's decision, visible in the report rather than in a process lifetime.
         "persistence": {"switch": library or "cold (default)",
                         "loaded": loaded, "saved": saved, "saved_only": saved_only,
+                        "lineage": lineage_gen,
                         "handles": len(g.handles)},
         "lambda": g.type_report(), "atoms": len(g.atoms),
         "unexpressible": arc_predict.unexpressible(),

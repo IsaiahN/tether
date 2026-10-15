@@ -549,6 +549,14 @@ ARMS: dict[str, str] = {
                            "play() calls restarted() as tether_agent.run does. Nothing dormant "
                            "is consulted by slot name. OFF until its panel (RL-0..RL-6, RL-2b, "
                            "registered 2026-10-14 16:29; RL-5 restated 17:02)",
+    "TETHER_LINEAGE_CARRY": "(b'-g) the lineage carry (Fig 12, Fig 10, Fig 4, Fig 6; the reviewer "
+                            "2026-10-14 20:18, 20:22): ON, with a lineage folder given, every game "
+                            "and run boundary writes a generation holding only what changed since "
+                            "its parent (term rows, status, settle/refute evidence, the dormant "
+                            "record), and the next instance loads the chain folded; no deletion, "
+                            "never overwritten, one tip or it raises. Evidence and the dormant "
+                            "record are the record only, never read back. OFF until Isaiah's word "
+                            "after R-g1..R-g3 (registered 2026-10-14 20:18) and the OFF identity",
 }
 
 # DECLARED AT THE SITE, NOT INVENTED HERE. `arc_percept`'s shape-delta comment: *pairs with arm
