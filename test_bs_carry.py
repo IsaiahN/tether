@@ -3,7 +3,10 @@ runs in the end-of-step-7 checklist. Every role is its own process, its arms set
 environment at start (TETHER_ATOMS_ONCE, TETHER_INDEX_HOLD, TETHER_SLOT_FILTER,
 TETHER_LINEAGE_CARRY). The bs_ mirror of test_bound_memo's X3 and test_lineage_boundary's L4.
 
-  W    a cold instance plays under ON (precondition: bound_slot > 0) and writes bs_ entries.
+  W    a cold instance plays under ON (precondition: bound_slot > 0) and writes bs_ entries. W
+       plays with PROMOTION held off (a seen set that never holds): since S1d (the reviewer
+       2026-10-15 12:42) a promoted pair is carried as its whole by bm_, never by bs_, so this
+       fixture, which tests the bs_ family itself, needs first-slot answers to carry.
   R    a new process loads them: every pending slot key asked through Agent._compiled is read
        from the carry before binding (bound_slot_from_carry == pending > 0), 0 unresolved, each
        equal to the slot-filtered named compile.
@@ -54,8 +57,15 @@ def _ask(ag, k):
     assert _own(got, atoms), ("not this instance's atoms", k)
 
 
+class _NeverSeen(set):
+    def add(self, _k):
+        pass
+
+
 def role_w(d):
+    tether._PAIRS_SEEN = _NeverSeen()
     env, ag = _agent(0)
+    ag._pairs_seen = _NeverSeen()
     lineage.load(d, ag)
     for _ in range(N):
         ag.step()

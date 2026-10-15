@@ -744,12 +744,17 @@ _BS_RESOLVE: dict[str, int] = {"resolved": 0, "unresolved": 0}
 
 
 def _bs_source(ag: Any) -> list:
-    """((sig, entry, role, o, x, slot), held indices, answers) this instance can see."""
+    """((sig, entry, role, o, x, slot), held indices, answers) this instance can see, for pairs with
+    NO whole in the whole memo: S1d (the reviewer 2026-10-15 12:42). A promoted pair is carried
+    once, as its whole, by bm_, and every slot of it is served from that whole's slot map, so a
+    slot answer cut from it is authored from the whole and never carried again."""
     import tether
     tok = getattr(ag, "_atoms_token", None)
     memo = tether._BOUND_SLOT_MEMO if tok else ag._bound_slot_cache
     idx = tether._BOUND_SLOT_IDX if tok else ag._bound_slot_idx
-    return [(k[1:], idx[k], v) for k, v in memo.items() if k[0] == tok and k in idx]
+    whole = tether._BOUND_MEMO if tok else ag._bound_cache
+    return [(k[1:], idx[k], v) for k, v in memo.items()
+            if k[0] == tok and k in idx and k[:6] not in whole]
 
 
 def write_bs(d: str | Path, ag: Any, h: str) -> dict | None:
