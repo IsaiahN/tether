@@ -722,12 +722,13 @@ def load_memo(d: str | Path, ag: Any, chain: list) -> dict | None:
         return None
     p = Path(d)
     sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
-    known = _MEMO_CARRIED.setdefault(str(p.resolve()), set())
+    folder = str(p.resolve())   # once per load, never per entry (the 13:25 install read)
+    known = _MEMO_CARRIED.setdefault(folder, set())
     rep: dict = {"pending": 0, "absent": 0, "signature_differs": 0, "unreadable": 0, "bytes": 0}
     for gh, body in _memo_bodies(p, BMEMO, sig, chain, rep):
         for e in body["entries"]:
             k = (sig, e["key"], e["role"], e["o"], e["x"])
-            _MEMO_PENDING[k] = {"gen": gh, "items": e["items"], "folder": str(p.resolve())}
+            _MEMO_PENDING[k] = {"gen": gh, "items": e["items"], "folder": folder}
             known.add((repr(sig), e["key"], e["role"], e["o"], e["x"]))
     rep["pending"] = len(_MEMO_PENDING)
     return rep
@@ -824,12 +825,13 @@ def load_bs(d: str | Path, ag: Any, chain: list) -> dict | None:
         return None
     p = Path(d)
     sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
-    known = _BS_CARRIED.setdefault(str(p.resolve()), set())
+    folder = str(p.resolve())   # once per load, never per entry (the 13:25 install read)
+    known = _BS_CARRIED.setdefault(folder, set())
     rep: dict = {"pending": 0, "absent": 0, "signature_differs": 0, "unreadable": 0, "bytes": 0}
     for gh, body in _memo_bodies(p, BSMEMO, sig, chain, rep):
         for e in body["entries"]:
             k = (sig, e["key"], e["role"], e["o"], e["x"], e["slot"])
-            _BS_PENDING[k] = {"gen": gh, "items": e["items"], "folder": str(p.resolve())}
+            _BS_PENDING[k] = {"gen": gh, "items": e["items"], "folder": folder}
             known.add((repr(sig), e["key"], e["role"], e["o"], e["x"], e["slot"]))
     rep["pending"] = len(_BS_PENDING)
     return rep
