@@ -2367,7 +2367,7 @@ class Agent:
         """An entry's view in a held role, compiled ONCE under the placeholders and kept for the
         process, keyed by what a compile can read of the atoms (compile_term.signature)."""
         held = _INDEX_STORE.get((sig, key, role))
-        if held is None and lineage.CARRY:
+        if held is None and lineage._CARRY:
             # (b'-g) D3, BOTH ARMS: a carried reference resolves at its first ask, or fails whole
             held = lineage.resolve(self, lib, key, role, sig)
         if held is None:

@@ -3,7 +3,10 @@
 
   m1 every top-level module (not a test, not conform/) whose source calls armflag.arm( is listed;
   m2 MUST-FAIL: with interface dropped from the list, the check names it;
-  m3 live: with TETHER_REALISE_CELL=1, Attribution.arms() lists interface._REALISE_CELL as ON.
+  m3 live: with TETHER_REALISE_CELL=1, Attribution.arms() lists interface._REALISE_CELL as ON;
+  m4 every module-level name assigned from armflag.arm( is _UPPER, the only form arms() records
+     (instruments: k.startswith("_") and k[1:2].isupper()); lineage.CARRY was public until
+     2026-10-15 and no header ever carried it.
 
     python test_arm_modules.py
 """
@@ -11,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -23,6 +27,19 @@ def declaring() -> set[str]:
     return {p.stem for p in ROOT.glob("*.py")
             if not p.stem.startswith("test_") and "armflag.arm(" in p.read_text(encoding="utf-8")
             and p.stem != "armflag"}
+
+
+def public_arms() -> list[str]:
+    """module:name for each module-level `NAME = armflag.arm(` whose name is not _UPPER."""
+    out = []
+    for p in sorted(ROOT.glob("*.py")):
+        if p.stem.startswith("test_") or p.stem == "armflag":
+            continue
+        for m in re.finditer(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*armflag\.arm\(",
+                             p.read_text(encoding="utf-8"), re.M):
+            if not (m.group(1).startswith("_") and m.group(1)[1:2].isupper()):
+                out.append(f"{p.stem}:{m.group(1)}")
+    return out
 
 
 def missing(listed: tuple) -> list[str]:
@@ -50,4 +67,6 @@ if __name__ == "__main__":
     arms = json.loads(p.stdout.strip().splitlines()[-1])
     assert "interface._REALISE_CELL" in arms["on"], arms
     print("  m3 live: interface._REALISE_CELL recorded ON")
+    assert not public_arms(), public_arms()
+    print("  m4 every module-level arm is _UPPER")
     print("arm modules: OK")

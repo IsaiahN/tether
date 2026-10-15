@@ -131,7 +131,7 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     # ledger 100) or the Agent built: under the carry a library= save and a lineage folder are one
     # history read twice, and vindication (a list with no identity) cannot be deduped (the
     # reviewer 2026-10-15 01:51, 01:56). Both stores stay on disk; nothing is lost.
-    if lineage.CARRY and lineage_dir and library:
+    if lineage._CARRY and lineage_dir and library:
         raise ValueError(f"wire: library={library} and lineage_dir={lineage_dir} under "
                          "TETHER_LINEAGE_CARRY: one history read twice, and vindication cannot "
                          "be deduped; pass one")
@@ -204,11 +204,11 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)
     # under the carry a library= row whose content was its operand is HELD unbound, as the
     # lineage holds it, never destroyed onto its atom (F420); OFF, as it was
-    loaded = (ag.gamma.load(library, hold_unbound=lineage.CARRY)
+    loaded = (ag.gamma.load(library, hold_unbound=lineage._CARRY)
               if library and Path(library).exists() else None)
     # (b'-g) ONE PATH: under the carry every instance starts from the lineage's chain, folded
     # (lineage.py); OFF, or with no folder, nothing here runs.
-    if lineage.CARRY and lineage_dir:
+    if lineage._CARRY and lineage_dir:
         rep = lineage.load(lineage_dir, ag)
         # a ROOT with no library is a cold start, said so in the key play's Q25 set reads (279)
         loaded = {"library": loaded, "lineage": rep,
@@ -360,7 +360,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     saved = g.save(library) if library else None
     saved_only = save_only(ag, save_only_dir, game, led_path)
     # (b'-g) the boundary's generation, beside the stop-loss (lineage.py)
-    lineage_gen = lineage.write(lineage_dir, ag, game) if lineage.CARRY and lineage_dir else None
+    lineage_gen = lineage.write(lineage_dir, ag, game) if lineage._CARRY and lineage_dir else None
 
     # FILED UNDER WHAT THE AGENT COMPUTED. The digest buckets, the level indexes within it, and
     # the episode is 1 + however many plays are already filed under that pair -- counted from

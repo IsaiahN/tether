@@ -30,7 +30,7 @@ import armflag
 import gamma
 import sensors
 
-CARRY = armflag.arm("TETHER_LINEAGE_CARRY")
+_CARRY = armflag.arm("TETHER_LINEAGE_CARRY")   # _UPPER, so the @run header records it
 PREFIX = "gen_"
 
 
@@ -342,7 +342,7 @@ def merge(d: str | Path, tips: list[str] | None = None) -> dict:
 
 
 # -- D3: THE HELD INDEX, CARRIED BESIDE THE GENERATION (the reviewer 2026-10-14 21:59) -------------
-# Under BOTH arms (CARRY and tether's INDEX_HOLD), each generation gets an index file beside it
+# Under BOTH arms (_CARRY and tether's _INDEX_HOLD), each generation gets an index file beside it
 # holding the held compiles THIS instance made, so a later instance installs them instead of
 # compiling again (Fig 12 :107-108). The index is derived reach (Fig 6): it never moves the
 # generation's hash, is never silently trusted, and a failure to write it never costs the

@@ -419,9 +419,10 @@ class Clocks:
 
 # THE MODULES THAT DECLARE ARMS (read through armflag). Data, so a new one is a visible edit;
 # test_arm_modules checks it against every agent module whose source declares an arm (interface,
-# compile_term and gridworld were missing until 2026-10-11, so REALISE_CELL went unrecorded).
+# compile_term and gridworld were missing until 2026-10-11, so REALISE_CELL went unrecorded;
+# lineage until 2026-10-15, so no header since 7d1a689 recorded TETHER_LINEAGE_CARRY).
 ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms", "compile_term", "gridworld",
-               "interface")
+               "interface", "lineage")
 
 
 class Attribution:

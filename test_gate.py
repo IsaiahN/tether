@@ -295,7 +295,7 @@ def _flip_child():
     import gamma as G
     import lineage
     from test_entry import FakeWrapper
-    assert lineage.CARRY, "the child must be started with TETHER_LINEAGE_CARRY=1"
+    assert lineage._CARRY, "the child must be started with TETHER_LINEAGE_CARRY=1"
     with tempfile.TemporaryDirectory() as d:
         a0 = arc_holdout.wire(FakeWrapper(), "fake")[1].gamma.atoms[0]
         src = G.Gamma([a0], game="A")
@@ -501,6 +501,15 @@ def test_a_ledger_states_the_arms_its_run_had():
     assert sum(1 for r in rows if r.get("event") == "arms") == 1, "the header is written once"
     recorded = Attribution.arms_row(rows)
     assert not Attribution.arms_disagree(recorded, Attribution.arms())
+    # EVERY ARM-DECLARING MODULE IS IN THE HEADER, checked here because test_arm_modules is run
+    # by nothing: it failed on lineage from 7d1a689 to 2026-10-15 unseen (the reviewer
+    # 2026-10-15 02:37)
+    import instruments
+    import test_arm_modules
+    assert not test_arm_modules.missing(instruments.ARM_MODULES), (
+        "an arm-declaring module is missing from the header", test_arm_modules.missing(
+            instruments.ARM_MODULES))
+    assert "lineage._CARRY" in recorded["on"] + recorded["off"], "the carry arm is not recorded"
     assert gate.check(rows)["verdict"] == gate.PASS, "the header must not move the gate"
     # PLANT 1: the header stripped
     try:

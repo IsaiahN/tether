@@ -63,7 +63,7 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     # THE STOP-LOSS, the same rule as play: written, never read here (arc_holdout.save_only).
     saved_only = arc_holdout.save_only(ag, save_only_dir, game, led_path)
     # (b'-g) the boundary's generation, the same call as play (lineage.py)
-    lineage_gen = lineage.write(lineage_dir, ag, game) if lineage.CARRY and lineage_dir else None
+    lineage_gen = lineage.write(lineage_dir, ag, game) if lineage._CARRY and lineage_dir else None
     return {"game": game, "acted": acted_n, "cycles": ag.cycle, "end": end or "cap",
             "deaths": deaths, "agent_resets": ag._acts.get("RESET", 0),
             "levels": env.levels(), "refused_resets": getattr(env.w, "refused", 0),

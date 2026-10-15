@@ -1243,7 +1243,7 @@ class Gamma:
         """`load`'s body, from data (b'-g): the lineage folds its chain and hands the fold
         here. `parent`, when given, names the generation each carried term came from.
         `hold_unbound` holds a row the same way on the library= path; wire passes the carry
-        arm (lineage.CARRY), so with the arm OFF that path is as it was (the reviewer
+        arm (lineage._CARRY), so with the arm OFF that path is as it was (the reviewer
         2026-10-15 01:51, 01:56)."""
         # BACKWARD-COMPATIBLE BY SHAPE, not by a version flag: files written before route 2 are
         # a bare list. A flag would be a second thing to keep in step with the format.

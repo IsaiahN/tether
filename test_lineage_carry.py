@@ -96,7 +96,7 @@ def _carries(rows, ag, rep, label):
 
 
 def on_checks():
-    assert lineage.CARRY and tether._LINEAGE_HOLD, "the child must be started with both arms"
+    assert lineage._CARRY and tether._LINEAGE_HOLD, "the child must be started with both arms"
     tmp = Path(tempfile.mkdtemp(prefix="lineage_"))
     d = tmp / "g"
     # R-g1: game 1 from the root, then game 2 loads its generation.
@@ -225,7 +225,7 @@ def on_checks():
 
 
 def second(d):
-    assert lineage.CARRY, "the second process must be started with the arm"
+    assert lineage._CARRY, "the second process must be started with the arm"
     _h, f = lineage.head(d)
     env, ag, rep = _agent(d, 5)
     composed, unbound = _carries(f["terms"], ag, rep, "R-g1 second process")

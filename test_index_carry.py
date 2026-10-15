@@ -213,7 +213,7 @@ def main():
 if __name__ == "__main__":
     if "--role" in sys.argv:
         role, d = sys.argv[sys.argv.index("--role") + 1], sys.argv[sys.argv.index("--role") + 2]
-        assert lineage.CARRY and tether._INDEX_HOLD, "the child must be started with both arms"
+        assert lineage._CARRY and tether._INDEX_HOLD, "the child must be started with both arms"
         {"a": lambda: role_a(d, False), "a2": lambda: role_a(d, True),
          "a3": lambda: role_a(d, "below"), "b": lambda: role_b(d), "c": lambda: role_c(d),
          "d": lambda: role_d(d), "e": lambda: role_e(d)}[role]()
