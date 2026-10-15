@@ -54,6 +54,7 @@ print("OUT " + json.dumps({{"resolve": [dict(lineage._RESOLVE), dict(lineage._ME
 
 def _child(mode: str, d: Path) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
+    env["TETHER_CARRY_RECORD"] = "0"   # S1g: tests the bm_/bs_ carry the asked record replaces
     r = subprocess.run([sys.executable, "-B", "-c", CHILD.format(mode=mode, d=str(d))], env=env,
                        capture_output=True, text=True, check=False, stdin=subprocess.DEVNULL)
     assert r.returncode == 0, f"{mode} failed:\n{r.stderr[-3000:]}"

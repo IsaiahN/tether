@@ -697,6 +697,13 @@ ARMS: dict[str, str] = {
                            "registered 2026-10-14 16:29; RL-5 restated 17:02)"
                            ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is"
                            " the record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_CARRY_RECORD": "S1g, the asked record (Isaiah 2026-10-15 13:26, option B; the "
+                           "reviewer 13:27): under the slot filter a generation carries which "
+                           "questions were asked (ak_), never the bound answers; a pair recorded "
+                           "as a whole is rebuilt whole at its first ask from the carried, live-"
+                           "checked index; bm_/bs_ stop for new generations, old files still "
+                           "load. OFF writes bm_/bs_ as before. default ON (Isaiah 2026-10-15 "
+                           "07:53); the switch is kept for the checklist's culprit isolation",
     "TETHER_LINEAGE_CARRY": "(b'-g) the lineage carry (Fig 12, Fig 10, Fig 4, Fig 6; the reviewer "
                             "2026-10-14 20:18, 20:22): ON, with a lineage folder given, every game "
                             "and run boundary writes a generation holding only what changed since "

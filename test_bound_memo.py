@@ -183,6 +183,7 @@ def role_r(d):
 def _child(role, d=None, carry=False):
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(TETHER_ATOMS_ONCE="1", TETHER_INDEX_HOLD="1")
+    env["TETHER_CARRY_RECORD"] = "0"   # S1g: tests the bm_/bs_ carry the asked record replaces
     if carry:
         env["TETHER_LINEAGE_CARRY"] = "1"
     r = subprocess.run([sys.executable, "-B", __file__, "--role", role, str(d)], env=env,

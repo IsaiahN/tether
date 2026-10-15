@@ -141,6 +141,7 @@ def _child(role, d):
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(TETHER_ATOMS_ONCE="1", TETHER_INDEX_HOLD="1", TETHER_SLOT_FILTER="1",
                TETHER_LINEAGE_CARRY="1")
+    env["TETHER_CARRY_RECORD"] = "0"   # S1g: tests the bm_/bs_ carry the asked record replaces
     r = subprocess.run([sys.executable, "-B", __file__, "--role", role, str(d)], env=env,
                        stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)
     sys.stdout.write(r.stdout)

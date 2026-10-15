@@ -77,6 +77,7 @@ print("OUT " + json.dumps(out, default=repr))
 
 def _child(role: str, d: Path) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
+    env["TETHER_CARRY_RECORD"] = "0"   # S1g: tests the bm_/bs_ carry the asked record replaces
     r = subprocess.run([sys.executable, "-B", "-c", CHILD.format(role=role, d=str(d))], env=env,
                        capture_output=True, text=True, check=False, stdin=subprocess.DEVNULL)
     assert r.returncode == 0, f"{role} failed:\n{r.stderr[-3000:]}"

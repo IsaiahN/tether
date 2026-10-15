@@ -2516,6 +2516,14 @@ class Agent:
                         _INDEX_N["bound"] += 1
                         memo[mkey] = whole
                 sub = partial(_ph_sub, o=o, x=x)
+                if whole is None and lineage._RECORD and lineage.recorded_whole(mkey):
+                    # S1g: recorded as a WHOLE (reused) in an earlier process: bound at once, as
+                    # promotion would, from the carried and live-checked index (S3)
+                    _INDEX_N["bound_slot_from_record"] += 1
+                    _INDEX_N["bound"] += 1
+                    whole = memo[mkey] = tuple(
+                        (cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
+                        for cand, a, b in self._held_index(lib, key, role, atoms, sig))
                 if whole is None and mkey in seen:
                     # PROMOTE ON REUSE: held as the WHOLE it is, so bm_ carries it (S3)
                     _INDEX_N["bound_slot_promoted"] += 1

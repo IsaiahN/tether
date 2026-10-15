@@ -36,6 +36,12 @@ _CARRY = armflag.arm("TETHER_LINEAGE_CARRY", default=True)   # _UPPER, so the @r
 # a generation at every level clear and death too, so a stop loses at most the current level.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
+# S1g, THE ASKED RECORD (Isaiah 2026-10-15 13:26, option B; the reviewer 13:27, 13:28): under the
+# slot filter a generation carries WHICH QUESTIONS WERE ASKED, never the bound answers; the next
+# process rebuilds each answer from the carried index by the existing binds. A5: an animal keeps
+# the map and the memory of where it has been, and walks the path again when it needs it.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_RECORD = armflag.arm("TETHER_CARRY_RECORD", default=True)
 PREFIX = "gen_"
 
 
@@ -332,10 +338,14 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         slot_memo = write_bs(p, ag, h)
     except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
         slot_memo = {"failed": f"{type(e).__name__}: {e}"[:200]}
+    try:   # S1g: the asked record, the same rule
+        asked = write_ak(p, ag, h)
+    except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
+        asked = {"failed": f"{type(e).__name__}: {e}"[:200]}
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, "terms": len(terms),
             "status": len(status), "evidence": len(gen["evidence"]), "dormant": len(dormant),
             "dormant_refused": len(refused), "index": idx, "memo": memo,
-            "slot_memo": slot_memo}
+            "slot_memo": slot_memo, "asked": asked}
 
 
 def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
@@ -361,7 +371,8 @@ def load(d: str | Path, ag: Any) -> dict:
                               "vindication": f["vindication"], "book": f["book"]}, parent=h)
     chain = _chain(Path(d))
     return {"parent": h, **rep, "index": load_index(d, ag, chain),
-            "memo": load_memo(d, ag, chain), "slot_memo": load_bs(d, ag, chain)}
+            "memo": load_memo(d, ag, chain), "slot_memo": load_bs(d, ag, chain),
+            "asked": load_ak(d, ag, chain)}
 
 
 def merge(d: str | Path, tips: list[str] | None = None) -> dict:
@@ -657,9 +668,12 @@ def _put_memo(p: Path, h: str, prefix: str, sig: tuple, entries: list, refused: 
     return {"written": name, "entries": len(entries), "refused": len(refused)}
 
 
-def _memo_bodies(p: Path, prefix: str, sig: tuple, chain: list, rep: dict) -> Any:
+def _memo_bodies(p: Path, prefix: str, sig: tuple, chain: list, rep: dict,
+                 any_sig: bool = False) -> Any:
     """Each generation's memo files of one family, root to tip: the body of every file whose name
-    is its own hash and whose signature is EQUAL; every other file is counted, never read on."""
+    is its own hash and whose signature is EQUAL; every other file is counted, never read on.
+    any_sig (S1g R1, the asked record): a file of another signature is counted AND read on, since
+    a question stays true when the atoms change; its answer is rebuilt under the current one."""
     arm, parts = _sig_parts(sig)
     for gh, _g in chain:
         if _g.get("merge"):
@@ -681,7 +695,8 @@ def _memo_bodies(p: Path, prefix: str, sig: tuple, chain: list, rep: dict) -> An
                 continue
             if body["sig_arm"] != arm or set(body["sig_atoms"]) != set(parts):
                 rep["signature_differs"] += 1
-                continue
+                if not any_sig:
+                    continue
             yield gh, body
 
 
@@ -691,6 +706,8 @@ def write_memo(d: str | Path, ag: Any, h: str) -> dict | None:
     import compile_term
     import tether
     if not (_CARRY and tether._INDEX_HOLD):
+        return None
+    if _RECORD and tether._SLOT_FILTER:   # S1g: the asked record carries these pairs
         return None
     p = Path(d)
     sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
@@ -795,6 +812,8 @@ def write_bs(d: str | Path, ag: Any, h: str) -> dict | None:
     import tether
     if not (_CARRY and tether._INDEX_HOLD and tether._SLOT_FILTER):
         return None
+    if _RECORD:   # S1g: the asked record carries these pairs
+        return None
     p = Path(d)
     sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
     known = _BS_CARRIED.setdefault(str(p.resolve()), set())
@@ -863,3 +882,84 @@ def resolve_bs(ag: Any, lib: Any, skey: tuple, atoms: dict) -> tuple | None:
         return None
     _BS_RESOLVE["resolved"] += 1
     return tuple(kept), got
+
+
+# S1g, THE ASKED RECORD's family. Each entry names a question this instance answered: a pair
+# (entry, role, o, x) held as a WHOLE (slot None: it was reused, so the next process binds its whole
+# at once), or a pair answered for ONE slot (that slot: the next process takes the first-slot path,
+# as it would cold). The answers are never written; they are rebuilt from the carried index, which
+# is checked against the live library at its first ask (resolve). Written once per generation for
+# what the chain does not yet hold; never deleted, never rewritten.
+AKMEMO = "ak_"
+_AK_CARRIED: dict[str, set] = {}   # folder -> (entry, role, o, x, slot): no signature (R1)
+_AK_PENDING: dict[tuple, dict] = {}   # (signature, entry, role, o, x) -> {gen, slots, folder}
+_AK_N: dict[str, int] = {"whole": 0, "slot": 0}   # recorded pairs met at their first ask
+
+
+def _ak_source(ag: Any) -> list:
+    """((sig, entry, role, o, x), slot or None) for every question this instance answered."""
+    import tether
+    tok = getattr(ag, "_atoms_token", None)
+    whole = tether._BOUND_MEMO if tok else ag._bound_cache
+    smemo = tether._BOUND_SLOT_MEMO if tok else ag._bound_slot_cache
+    out = [(k[1:], None) for k in whole if k[0] == tok]
+    out += [(k[1:6], k[6]) for k in smemo if k[0] == tok and k[:6] not in whole]
+    return out
+
+
+def write_ak(d: str | Path, ag: Any, h: str) -> dict | None:
+    """Beside generation `h`: the questions this signature answered that no ak_ file holds."""
+    import compile_term
+    import tether
+    if not (_CARRY and _RECORD and tether._INDEX_HOLD and tether._SLOT_FILTER):
+        return None
+    p = Path(d)
+    sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
+    known = _AK_CARRIED.setdefault(str(p.resolve()), set())
+    entries = []
+    for (s, key, role, o, x), slot in _ak_source(ag):
+        if s != sig or (key, role, o, x, slot) in known:
+            continue
+        entries.append({"key": key, "role": role, "o": o, "x": x, "slot": slot})
+    out = _put_memo(p, h, AKMEMO, sig, entries, [])
+    if "written" in out:
+        known.update((e["key"], e["role"], e["o"], e["x"], e["slot"]) for e in entries)
+    return out
+
+
+def load_ak(d: str | Path, ag: Any, chain: list) -> dict | None:
+    """Each generation's ak_ files, root to tip, PENDING their first ask (recorded). A file of
+    ANOTHER signature still loads (R1, the reviewer 2026-10-15 13:47; Isaiah 13:26 "the record is
+    never dropped"): it is counted as signature_differs and its questions pend under the current
+    signature, where the answer is rebuilt from the current, live-checked held view."""
+    import compile_term
+    import tether
+    if not (_CARRY and _RECORD and tether._INDEX_HOLD and tether._SLOT_FILTER) or not chain:
+        return None
+    p = Path(d)
+    sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
+    folder = str(p.resolve())
+    known = _AK_CARRIED.setdefault(folder, set())
+    rep: dict = {"pending": 0, "absent": 0, "signature_differs": 0, "unreadable": 0, "bytes": 0}
+    for gh, body in _memo_bodies(p, AKMEMO, sig, chain, rep, any_sig=True):
+        for e in body["entries"]:
+            k = (sig, e["key"], e["role"], e["o"], e["x"])
+            _AK_PENDING.setdefault(k, {"gen": gh, "slots": set(), "folder": folder})["slots"].add(
+                e["slot"])
+            known.add((e["key"], e["role"], e["o"], e["x"], e["slot"]))
+    rep["pending"] = len(_AK_PENDING)
+    return rep
+
+
+def recorded_whole(mkey: tuple) -> bool:
+    """At a pair's first ask: was it recorded as a WHOLE (reused) in an earlier process? The record
+    is consumed here; a pair recorded only for slots is counted and takes the first-slot path."""
+    _tok, sig, key, role, o, x = mkey
+    p = _AK_PENDING.pop((sig, key, role, o, x), None)
+    if p is None:
+        return False
+    if None in p["slots"]:
+        _AK_N["whole"] += 1
+        return True
+    _AK_N["slot"] += 1
+    return False
