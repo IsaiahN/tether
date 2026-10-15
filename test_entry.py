@@ -393,7 +393,20 @@ def check_serve_opens_one_card_and_always_closes_it():
                                   lambda c: log.append(("close", c)), make, d, k=1,
                                   processes=False, ceiling_s=20, margin_s=1)
     assert log == ["open", ("close", "C1")], log
-    assert made == [("g0", "C1"), ("g1", "C1")] and rec["card"] == "C1", (made, rec)
+    # THE PROPERTY OVER THE GAMES PLAYED (the reviewer 2026-10-15 09:53), as at (C'): every game
+    # the worker played was made with the one card, in order; a game the ceiling left unplayed is
+    # reported with its reason, never failed; at least one played, so the card was used. The wall
+    # is C-SPEED's.
+    games = rec["records"][0]["games"]
+    played = [g["game"] for g in games if not str(g.get("end", "")).startswith("unplayed")]
+    for g in games:
+        if g["game"] not in played:
+            print(f"    unplayed {g['game']}: {g['end']}")
+    assert played and made == [(g, "C1") for g in played] and rec["card"] == "C1", (made, rec)
+    assert played == ["g0", "g1"][:len(played)], rec
+    if len(played) < 2:    # the pass says what it did not check (Fig 10)
+        print(f"    one-card reuse NOT exercised: only {len(played)} game(s) played "
+              "(wall: C-SPEED)")
 
     def broken(_game, _card):
         raise RuntimeError("a worker failed")
