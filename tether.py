@@ -29,6 +29,7 @@ import armflag
 import compile_term
 import composer
 import condition
+import frontier as FR
 import grammar as G
 import inherited
 import instruments as I
@@ -527,6 +528,15 @@ _LINEAGE_HOLD = armflag.arm("TETHER_LINEAGE_HOLD", default=True)
 # reading is "the next board is UNKNOWN by design" (ledger ENDING_READS). Read here, used there.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _LEVEL_EDGE = armflag.arm("TETHER_LEVEL_EDGE", default=True)
+# A1-CONVERT (Isaiah 2026-10-15 08:07: "make sure it gives the autonomy to the agent to decide from
+# what they inform"; the reviewer 08:55, 09:05, 09:11, 09:12, 09:19, 09:33, 09:38): where an order
+# we wrote chose, the options go to frontier.frontier_pick in the agent's own readings and the
+# pick is recorded. One switch per group; OFF restores our order exactly.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_A1_CHOOSE = armflag.arm("TETHER_A1_CHOOSE", default=True)          # the known-effect pick
+_A1_STARVED = armflag.arm("TETHER_A1_STARVED", default=True)        # which starved slot to probe
+_A1_OBJECTIVE = armflag.arm("TETHER_A1_OBJECTIVE", default=True)    # bound objective vs want
+_A1_TIES = armflag.arm("TETHER_A1_TIES", default=True)              # the exact ties
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1387,6 +1397,9 @@ class Agent:
         # that moves CHOOSING through it is step 2 and is not done.
         self.iface = IFace.Interface()
         self.iface.chooser = self._choose_known      # F480: the agent prices the known
+        self._subject_n: collections.Counter = collections.Counter()   # A1: curiosity aimed
+        self._probe_n: collections.Counter = collections.Counter()     # A1: starved probes
+        self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
         self._mc3: list = []          # MC3: every ending, as the ground recorded it (append-only)
         self._invented: dict = {}     # M6: invented key -> its compiled condition (this run only)
@@ -2801,6 +2814,11 @@ class Agent:
             cands += self._goal_pairs(cands, rows)
         lag = sum(1 for x in cands if any(lag_of(t) for t in re.findall(r"[\w.]+~\d+", x[4])))
         cands.sort(key=lambda x: (x[0], x[4]))
+        if _A1_TIES and cands:          # A1: an exact tie in total, never by condition text
+            tied = [x for x in cands if x[0] == cands[0][0]]
+            if len(tied) > 1:
+                _a1k = self._choice("goal_condition", None, [(x[4], x[0], None) for x in tied])
+                cands.insert(0, cands.pop(next(i for i, x in enumerate(cands) if x[4] == _a1k)))
         detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
                   "conditions": len(cands), "refused": dict(refused),
                   "offered": {"plain": n_plain, "pair": len(cands) - n_plain, "lag": lag},
@@ -3063,7 +3081,14 @@ class Agent:
                   "then_terms": len(fs), "priced": len(cands),
                   "cheapest": [{"if": x[3], "then": x[5].name, "cost": round(x[1], 3),
                                 "left": round(x[2], 3)} for x in cands[:5]]}
-        best = cands[0] if cands and pays(cands[0][1], cands[0][2], base) else None
+        first = cands[0] if cands else None
+        if _A1_TIES and first is not None:     # A1: an exact tie in total, never by text or name
+            tied = [x for x in cands if x[0] == first[0]]
+            if len(tied) > 1:
+                _a1k = self._choice("invent", slot,
+                                   [((x[3], x[5].name), x[0], None) for x in tied])
+                first = next(x for x in tied if (x[3], x[5].name) == _a1k)
+        best = first if first is not None and pays(first[1], first[2], base) else None
         if best is None:
             detail["pick"] = "none paid"
             self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
@@ -3826,6 +3851,10 @@ class Agent:
             return a[1] <= b[1] and a[2] <= b[2] and (a[1] < b[1] or a[2] < b[2])
         frontier = [r for r in read if not any(beats(o, r) for o in read if o is not r)]
         pick = frontier[0][0]
+        if _A1_TIES and len(frontier) > 1:     # A1: steps 3-5 on the frontier, never its order
+            _a1k = self._choice("two_readings", slot,
+                             [(Rt.render(x[2]), b, c) for x, b, c in frontier])
+            pick = next(x for x, _b, _c in frontier if Rt.render(x[2]) == _a1k)
         self.led.record(self.cycle, "PLAN", slot, "two_readings", paying=len(paying) + unable,
                         unable_to_finish=unable, waiting=self._waiting_reading(),
                         dominated=len(read) - len(frontier),
@@ -5806,7 +5835,14 @@ class Agent:
         # `_starved`, which IS *the parks that precede this probe*, so B5's `followed` is
         # satisfied by construction rather than by a second mechanism.
         if _STARVED_CONTACT and self._starved:
-            aim = sorted(self._starved)[0].rsplit(".", 1)[0]
+            pick = sorted(self._starved)[0]
+            if _A1_STARVED and len(self._starved) > 1:
+                # A1: what is unexplained NOW gates and ranks; then the less-probed; then the draw
+                pick = self._choice("starved", None, [(s, None, None) for s in self._starved],
+                                    {s: self.outstanding(s) for s in self._starved},
+                                    {s: self._probe_n[s] for s in self._starved})
+            self._probe_n[pick] += 1
+            aim = pick.rsplit(".", 1)[0]
             self._s0_target = aim
             # **ONE INTENT, NOT A MODALITY CHOICE -- the plan's 19.** This read
             # `"ACTION6" if "ACTION6" in self.actions else self._toward(...)`, which is the
@@ -6087,10 +6123,17 @@ class Agent:
         without a subject exactly as it did before. The ledger says which happened.
         """
         best, top = None, 0.0
-        for slot in sorted(before):
-            v = self._understanding(slot)
+        vals = {slot: self._understanding(slot) for slot in sorted(before)}
+        for slot, v in vals.items():
             if v > top:
                 best, top = slot, v
+        if _A1_TIES and best is not None:      # A1: an exact tie goes to the less-aimed, not a name
+            tied = [s for s, v in vals.items() if v == top]
+            if len(tied) > 1:
+                best = self._choice("curiosity", None, [(s, None, None) for s in tied], None,
+                                    {s: self._subject_n[s] for s in tied})
+        if best is not None:
+            self._subject_n[best] += 1
         self.led.record(self.cycle, "PLAN", best or "@board", "curiosity",
                         subject=best, value=round(top, 4),
                         reads=("Figure 5 -- the gap that is large and compressible. "
@@ -7008,6 +7051,22 @@ class Agent:
         want = math.ceil(abs(unsat) / abs(per))
         return _replace(cand, expect=max(1, want))
 
+    def _choice(self, site: str, slot: str | None, options: list, residual: dict | None = None,
+                seen: dict | None = None):
+        """A1-CONVERT's A2 row: frontier_pick over the agent's own readings, recorded with the
+        frontier's readings, the residual and learning readings, the pick and its step."""
+        pick, by, front = FR.frontier_pick(options, residual, seen,
+                                           f"{self.cycle}:{site}:{slot}")
+        fr = set(front)
+        self.led.record(self.cycle, "PLAN", slot or "@choice", "choice", site=site,
+                        options=len(options),
+                        frontier=[[repr(n), b, a] for n, b, a in options if n in fr],
+                        residual=(None if residual is None else
+                                  {repr(n): residual.get(n, 0) for n, _b, _a in options}),
+                        seen=None if seen is None else {repr(n): seen.get(n, 0) for n in front},
+                        pick=repr(pick), by=by)
+        return pick
+
     def _choose_known(self, known: list[tuple[str, int]]) -> tuple[int, str]:
         """NOTHING IS UNKNOWN HERE, SO THE AGENT PRICES WHAT IS KNOWN -- Design A (the reviewer,
         2026-10-06; F480). `known` is one (effect, times seen here) per option, never a button.
@@ -7026,6 +7085,26 @@ class Agent:
         def reaches(e: str) -> bool:
             return e == IFace.CHANGES or (e == IFace.RESTARTS and self._attempt_actions > 0)
 
+        if _A1_CHOOSE:
+            # A1 (the reviewer 2026-10-15 09:33, 09:38). RESIDUAL = REACH toward what is open now:
+            # a known no-change reaches nothing (0); otherwise the interface's count of unknowns
+            # the option leads to (one when its destination is itself unrecorded). ACTIONS = the
+            # acts it costs in the world (a restart throws away this attempt's), None for a known
+            # no-change, whose finding-out is done (Fig 12). Then the least-seen, then the draw.
+            def reach(k) -> int:
+                if k[0] == IFace.NO_EFFECT:
+                    return 0
+                # leads back HERE: nothing thrown away, nothing reached (Design A's reaches)
+                if k[0] == IFace.RESTARTS and self._attempt_actions == 0:
+                    return 0
+                return int(k[2]) if len(k) > 2 else 1
+            i = self._choice("choose_known", None,
+                             [(j, None, None if k[0] == IFace.NO_EFFECT else price(k[0]))
+                              for j, k in enumerate(known)],
+                             {j: reach(k) for j, k in enumerate(known)},
+                             {j: k[1] for j, k in enumerate(known)})
+            return i, (f"chose '{known[i][0]}' at price {price(known[i][0])}, reach "
+                       f"{reach(known[i])}, of {sorted({(k[0], price(k[0])) for k in known})}")
         gap = [len(k) > 2 and bool(k[2]) for k in known]
         i = min(range(len(known)),
                 key=lambda j: (not reaches(known[j][0]), price(known[j][0]), not gap[j],
@@ -7934,6 +8013,27 @@ class Agent:
         read it under TETHER_WANT_TARGET, so the selector and the target cannot disagree."""
         name = self.bound.get(slot)
         term = self.gamma.library.get(name) if name else None
+        if _A1_OBJECTIVE and getattr(term, "out_type", None) == OBJ_TYPE:
+            # A1: a bound objective and a retained want both name this slot's objective; they are
+            # weighed (settled here gates; bits; grade events), never "bound first". One pick per
+            # (cycle, slot), so the selector and the target cannot disagree.
+            _w = self.wants.get(slot)
+            _wt = (self.gamma.library.get(_w) or self._want_terms.get(slot)) if _w else None
+            if _wt is not None and _w != name:
+                if self._obj_pick.get("cycle") != self.cycle:
+                    self._obj_pick = {"cycle": self.cycle}
+                if slot not in self._obj_pick:
+                    opts, res, grades = [], {}, {}
+                    for n, t in ((name, term), (_w, _wt)):
+                        st = self.gamma.standing.get(n)
+                        opts.append((n, term_bits(self.gamma.length(t, self._units_for(slot)),
+                                                  self.gamma.alphabet), None))
+                        res[n] = int(self.gamma.is_settled(n, slot))
+                        grades[n] = (len(st.settled_on) + (1 if st.rejections else 0)) if st else 0
+                    self._obj_pick[slot] = self._choice("objective", slot, opts, res, grades)
+                if self._obj_pick[slot] == _w:
+                    return _w, _wt
+            return name, term
         if getattr(term, "out_type", None) != OBJ_TYPE:
             _w = self.wants.get(slot)
             _wt = (self.gamma.library.get(_w) or self._want_terms.get(slot)) if _w else None
