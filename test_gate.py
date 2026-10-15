@@ -234,6 +234,11 @@ def test_a_guarded_term_arrives_with_its_guard_and_a_duplicate_still_dedups():
 
     THE DEFECT IS REINTRODUCED BY DELETING THE `guard=` ARGUMENT IN `load`, not by
     disabling this check.
+
+    OFF IDENTITY: the operand-only LOSS asserted under the default load (hold_unbound False)
+    is the pre-flip behavior, retired when CARRY is flipped. It pins OFF; it does not endorse
+    the loss. The ON twin (hold_unbound=True, what wire passes under the carry) asserts the
+    HOLD (the reviewer 2026-10-15 01:51).
     """
     import pathlib
     import tempfile
@@ -260,8 +265,9 @@ def test_a_guarded_term_arrives_with_its_guard_and_a_duplicate_still_dedups():
         # ACCEPT: the guarded term crosses, as itself, with its birth game recorded.
         assert "inc?ACTED_SELF" in dst.library, "a guarded term must ARRIVE with its guard"
         assert dst.carried["inc?ACTED_SELF"]["from"] == "A"
-        # LOSS: the operand-only term still collapses, and SAYS SO rather than
-        # reporting the benign-sounding `already_held`.
+        # OFF IDENTITY (the pre-flip behavior, retired when CARRY is flipped): the operand-only
+        # term still collapses, and SAYS SO rather than reporting the benign-sounding
+        # `already_held`.
         assert rep["destroyed_on_carry"] == 1, rep
         assert rep["destroyed"][0]["collapsed_to"] == "take"
         assert rep["destroyed"][0]["lost"] == "o1.colour"
@@ -269,6 +275,62 @@ def test_a_guarded_term_arrives_with_its_guard_and_a_duplicate_still_dedups():
         again = dst.load(path)
         assert again["loaded"] == 0 and again["deduped_onto_composition"] == 2, again
         assert again["destroyed_on_carry"] == 1, "the collapse is not a dedup"
+        # ON (hold_unbound=True, what wire passes under TETHER_LINEAGE_CARRY): HELD unbound
+        on = G.Gamma([take, inc], game="B")
+        rep = on.load(path, hold_unbound=True)
+        assert rep["destroyed_on_carry"] == 0 and "take<?.colour>" in on.library, rep
+        assert on.carried["take<?.colour>"]["unbound"] == "o1.colour", on.carried
+        again = on.load(path, hold_unbound=True)
+        assert again["deduped_onto_composition"] == 3 and again["destroyed_on_carry"] == 0, again
+
+
+def _flip_child():
+    """Run in a subprocess with TETHER_LINEAGE_CARRY=1 (test_wire_under_the_carry): (a) library=
+    with a lineage folder is refused before anything is touched; (b) library= alone holds an
+    operand-only row unbound through wire, which passes the arm to gamma.load."""
+    import pathlib
+    import tempfile
+
+    import arc_holdout
+    import gamma as G
+    import lineage
+    from test_entry import FakeWrapper
+    assert lineage.CARRY, "the child must be started with TETHER_LINEAGE_CARRY=1"
+    with tempfile.TemporaryDirectory() as d:
+        a0 = arc_holdout.wire(FakeWrapper(), "fake")[1].gamma.atoms[0]
+        src = G.Gamma([a0], game="A")
+        src.accept(G.Term(atoms=(a0,), operand="o1.colour"), seq=0, residual="s@0")
+        path = str(pathlib.Path(d) / "lib.json")
+        src.save(path)
+        lin = str(pathlib.Path(d) / "lin")
+        try:
+            arc_holdout.wire(FakeWrapper(), "fake", library=path, lineage_dir=lin)
+            raise AssertionError("FLIP (a): library= with a lineage folder was not refused")
+        except ValueError as e:
+            assert path in str(e) and lin in str(e), ("FLIP (a): the refusal names both", e)
+        ag, loaded = (lambda r: (r[1], r[5]))(arc_holdout.wire(FakeWrapper(), "fake",
+                                                                 library=path))
+        name = f"{a0.name}<?.colour>"
+        assert loaded["destroyed_on_carry"] == 0 and name in ag.gamma.library, (
+            "FLIP (b): the row was not held unbound through wire", loaded)
+        assert ag.gamma.carried[name]["unbound"] == "o1.colour", ag.gamma.carried[name]
+    print("flip child: OK")
+
+
+def test_wire_under_the_carry():
+    """The flip-commit list (the reviewer 2026-10-15 01:56): in ONE subprocess with the arm in its
+    environment, never a patched arm, (a) wire refuses library= with a lineage folder, and (b) wire
+    holds an operand-only library= row unbound."""
+    import os
+    import pathlib
+    import subprocess
+    here = pathlib.Path(__file__).parent
+    env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
+    env.update(TETHER_LINEAGE_CARRY="1", PYTHONHASHSEED="0")
+    r = subprocess.run([sys.executable, "-B", "-c", "import test_gate; test_gate._flip_child()"],
+                       cwd=str(here), env=env, stdin=subprocess.DEVNULL, capture_output=True,
+                       text=True)
+    assert r.returncode == 0 and "flip child: OK" in r.stdout, r.stderr[-2000:]
 
 
 def test_a_chain_that_loses_its_operand_is_not_reported_as_a_clean_arrival():

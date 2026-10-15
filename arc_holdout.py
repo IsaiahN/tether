@@ -127,6 +127,14 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     Lifted out of `play` unchanged (2026-10-06) so the two cannot drift: the arm flags, the
     palette read, `ArcWorld`, the ledger, the config and the library load are written once.
     """
+    # REFUSED FIRST, before the wrapper is touched, the Ledger opened (it truncates its file,
+    # ledger 100) or the Agent built: under the carry a library= save and a lineage folder are one
+    # history read twice, and vindication (a list with no identity) cannot be deduped (the
+    # reviewer 2026-10-15 01:51, 01:56). Both stores stay on disk; nothing is lost.
+    if lineage.CARRY and lineage_dir and library:
+        raise ValueError(f"wire: library={library} and lineage_dir={lineage_dir} under "
+                         "TETHER_LINEAGE_CARRY: one history read twice, and vindication cannot "
+                         "be deduped; pass one")
     w = w if isinstance(w, ResetGuard) else ResetGuard(w)
     # THE WRAPPER HAS ALREADY RESET (F452, F453). `arc.make()`'s wrapper resets in its own
     # `__init__`; a reset here was the second of two consecutive RESETs. Take its frame.
@@ -194,7 +202,10 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     if cfg is None:
         cfg = tether.Config(max_depth=4)
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)
-    loaded = ag.gamma.load(library) if library and Path(library).exists() else None
+    # under the carry a library= row whose content was its operand is HELD unbound, as the
+    # lineage holds it, never destroyed onto its atom (F420); OFF, as it was
+    loaded = (ag.gamma.load(library, hold_unbound=lineage.CARRY)
+              if library and Path(library).exists() else None)
     # (b'-g) ONE PATH: under the carry every instance starts from the lineage's chain, folded
     # (lineage.py); OFF, or with no folder, nothing here runs.
     if lineage.CARRY and lineage_dir:

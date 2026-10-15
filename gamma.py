@@ -1202,7 +1202,7 @@ class Gamma:
                 "vindication": list(self.vindication),
                 "book": dict(self.book)}
 
-    def load(self, path: str) -> dict:
+    def load(self, path: str, hold_unbound: bool = False) -> dict:
         """Read a saved library into this Gamma. **SEAT-SIDE, and it REFUSES loudly.**
 
         **THE COMPOSITION CROSSES AND THE BINDING DOES NOT**, which is the colour ruling
@@ -1227,7 +1227,7 @@ class Gamma:
             blob = json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
         except (OSError, ValueError) as e:
             return {"loaded": 0, "cold": f"{type(e).__name__}: {e}"[:200]}
-        return self.load_blob(blob)
+        return self.load_blob(blob, hold_unbound=hold_unbound)
 
     @staticmethod
     def unbound_form(operand: str) -> str:
@@ -1238,9 +1238,13 @@ class Gamma:
         return "".join("?" if re.fullmatch(r"o\d+", tok) else tok
                        for tok in re.split(r"([._~@])", operand))
 
-    def load_blob(self, blob: Any, parent: str | None = None) -> dict:
+    def load_blob(self, blob: Any, parent: str | None = None,
+                  hold_unbound: bool = False) -> dict:
         """`load`'s body, from data (b'-g): the lineage folds its chain and hands the fold
-        here. `parent`, when given, names the generation each carried term came from."""
+        here. `parent`, when given, names the generation each carried term came from.
+        `hold_unbound` holds a row the same way on the library= path; wire passes the carry
+        arm (lineage.CARRY), so with the arm OFF that path is as it was (the reviewer
+        2026-10-15 01:51, 01:56)."""
         # BACKWARD-COMPATIBLE BY SHAPE, not by a version flag: files written before route 2 are
         # a bare list. A flag would be a second thing to keep in step with the format.
         rows = blob if isinstance(blob, list) else blob.get("terms", [])
@@ -1304,7 +1308,7 @@ class Gamma:
                      operand_term=(Term(tuple(self._by_name[n] for n in tree))
                                    if tree else None))
             unbound = None
-            if (parent and r.get("operand") and t.name in self.library
+            if ((parent or hold_unbound) and r.get("operand") and t.name in self.library
                     and self.library[t.name].origin == PRIOR):
                 # (b'-g), UNDER THE CARRY ONLY (the reviewer 2026-10-14 20:45): LOAD NEVER
                 # DESTROYS (F420; Isaiah 11:05). The binding does not cross, so every object id in
