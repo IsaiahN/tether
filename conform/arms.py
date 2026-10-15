@@ -723,6 +723,27 @@ ARMS: dict[str, str] = {
                            "same views, causes and counts. OFF is the line before it exactly. "
                            "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
                            "the checklist's culprit isolation",
+    "TETHER_DEAD_PRICE": "Decay class S1 (Isaiah 2026-10-15 15:54; the reviewer 16:18, 18:13): "
+                         "on a dead board a press adds nothing to the restart's price, the "
+                         "restart reads the interface's reach (the leads-back zero skipped) and "
+                         "every other press reads reach 0. OFF is the line before it exactly. "
+                         "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
+                         "the checklist's culprit isolation",
+    "TETHER_SITUATED_EFFECT": "Decay class S2: an effect is stamped with its situation's epoch; "
+                              "within the epoch the latest decides, an earlier change carries, "
+                              "an earlier no-effect and destination lapse (read-side; the "
+                              "record only grows). OFF is the line before it exactly. "
+                              "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
+                              "the checklist's culprit isolation",
+    "TETHER_SITUATED_REACH": "Decay class S5: a reach verdict is filed with whether it was watched "
+                             "alive. OFF is the line before it exactly. "
+                             "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
+                             "the checklist's culprit isolation",
+    "TETHER_SITUATED_CLICK": "Decay class S11: a click from an earlier epoch excludes nothing; "
+                             "within the epoch recency orders (unclicked first). OFF is the line "
+                             "before it exactly. "
+                             "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
+                             "the checklist's culprit isolation",
     "TETHER_CARRY_RECORD": "S1g, the asked record (Isaiah 2026-10-15 13:26, option B; the "
                            "reviewer 13:27): under the slot filter a generation carries which "
                            "questions were asked (ak_), never the bound answers; a pair recorded "

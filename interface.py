@@ -145,6 +145,19 @@ _AIM_GAP = armflag.arm("TETHER_AIM_GAP", default=True)
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _A1_CHOOSE = armflag.arm("TETHER_A1_CHOOSE", default=True)
 _A1_TIES = armflag.arm("TETHER_A1_TIES", default=True)
+# THE DECAY CLASS (Isaiah 2026-10-15 15:54 "its what decay is for"; 10-09: staleness at
+# boundaries, within a level age only orders; the reviewer 16:18, 18:13). A situation is
+# (level, alive), numbered by an epoch the agent hands over at each boundary (situate). Every
+# record only GROWS (D1): an observation is stamped with its epoch and a lapse is read-side.
+# S1: on a dead board only the restart reaches anything (the agent's price is in tether).
+_DEAD_PRICE = armflag.arm("TETHER_DEAD_PRICE", default=True)
+# S2: within the epoch the LATEST observation of (action, context) decides; one from an earlier
+# epoch carries as a stale prior when it changed the board, and lapses (unknown again) when it
+# did nothing; a destination seen in an earlier epoch lapses (unrecorded)
+_SITUATED_EFFECT = armflag.arm("TETHER_SITUATED_EFFECT", default=True)
+# S11: a coordinate clicked in an earlier epoch excludes nothing; within the epoch recency
+# orders: unclicked first, then the least recently clicked
+_SITUATED_CLICK = armflag.arm("TETHER_SITUATED_CLICK", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -413,6 +426,9 @@ class Interface:
         # this interface itself aimed, so *unclicked* means *I have not tried there*, never
         # *the board says nothing is there*.
         self.clicked: set[tuple[int, int]] = set()
+        # S11: (epoch, coordinate) -> the audit it landed at; grows, never cleared (D1)
+        self.clicked_at: dict[tuple, int] = {}
+        self.epoch, self.alive = 0, True   # the agent's situation, handed over by situate
         # **LAYER 1's OTHER HALF -- INSTANCE MEMORY, AND IT IS DELIBERATELY NOT A KEY.**
         # `rel` says WHETHER acting on one object changes another in this world; it cannot say
         # WHICH object to press to move slot Y. That question is answered by what this agent
@@ -798,7 +814,7 @@ class Interface:
         if unmapped:
             return _made(_pick(unmapped), f"requested {asked}: never taken")
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
-        fresh = [a for a in offered if ctx not in self.table[a]["by_ctx"]]
+        fresh = [a for a in offered if self._known_now(a, ctx) is None]
         if fresh:
             return _made(_pick(fresh), f"requested {asked}: effect here not yet known")
         # everything mapped in this context. Take the one taken LEAST here -- still the agent's
@@ -827,6 +843,31 @@ class Interface:
         return _made(_pick(band), f"requested {asked}: all known here, least-seen taken")
 
 
+    def situate(self, epoch: int, alive: bool) -> None:
+        """The agent's situation, at each of its boundaries. Nothing recorded is dropped."""
+        self.epoch, self.alive = epoch, alive
+
+    def _known_now(self, a: str, ctx: tuple) -> str | None:
+        """S2: what `a` is known to do in `ctx` NOW: CHANGES, NO_EFFECT, or None (unknown).
+        The latest observation of this epoch decides; with none, an earlier change carries
+        as a stale prior and an earlier no-effect lapses."""
+        e = self.table.get(a, {})
+        if not _SITUATED_EFFECT:
+            sigs = e.get("by_ctx", {}).get(ctx)
+            return None if sigs is None else CHANGES if any(sigs) else NO_EFFECT
+        cur = [s for ep, s in e.get("ep", {}).get(ctx, ()) if ep == self.epoch]
+        if cur:
+            return CHANGES if cur[-1] else NO_EFFECT
+        return CHANGES if any(e.get("by_ctx", {}).get(ctx, ())) else None
+
+    def _to_now(self, a: str, ctx: tuple) -> tuple:
+        """S2: the destinations `a` was seen to lead to from `ctx` in THIS epoch."""
+        to = self.table.get(a, {}).get("to", {}).get(ctx, ())
+        if not _SITUATED_EFFECT:
+            return tuple(to)
+        ep = self.table.get(a, {}).get("to_ep", {}).get(ctx, {})
+        return tuple(d for d in to if self.epoch in ep.get(d, ()))
+
     def leads_to_gap(self, a: str, ctx: tuple, offered: tuple[str, ...]) -> bool:
         """`a` has been seen to lead from `ctx` to a context where some action offered now has no
         known effect -- the variety rule's own test (`fresh`, above) read in the destination.
@@ -844,19 +885,20 @@ class Interface:
         `ctx`, read from the table. No recorded destination: the destination itself is the one
         unknown, so 1. Recorded: the (destination, offered action) pairs with no known effect,
         one step, RESET never a knob (as leads_to_gap)."""
-        to = self.table.get(a, {}).get("to", {}).get(ctx, ())
+        if _DEAD_PRICE and not self.alive and a != RESET:
+            return 0   # S1: a dead board changes for nothing but the restart (Fig 5)
+        to = self._to_now(a, ctx)
         if not to:
             return 1
         return sum(1 for d in to for b in offered
-                   if b != RESET and d not in self.table.get(b, {}).get("by_ctx", {}))
+                   if b != RESET and self._known_now(b, d) is None)
 
     def _known_effect(self, a: str, ctx: tuple) -> str:
         """What `a` is KNOWN to do in this context, as a kind the agent can price. RESET's is the
         platform's documented consequence, inherited like ACTION6 taking a position."""
         if a == RESET:
             return RESTARTS
-        sigs = self.table.get(a, {}).get("by_ctx", {}).get(ctx, ())
-        return CHANGES if any(sigs) else NO_EFFECT
+        return CHANGES if self._known_now(a, ctx) == CHANGES else NO_EFFECT
 
     # ---- upward: what changed, in reasoning terms -------------------------------------
 
@@ -1038,6 +1080,12 @@ class Interface:
             return None
         rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
         cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
+        if _SITUATED_CLICK:
+            # S11: this epoch's clicks only, and recency orders (unclicked reads -1)
+            ats = [at for at in (self._at(obj, state) for obj in sorted(rows & cols))
+                   if at is not None and at not in avoid]
+            return min(ats, key=lambda at: self.clicked_at.get((self.epoch, at), -1),
+                       default=None)
         for obj in sorted(rows & cols):
             at = self._at(obj, state)
             if at is not None and at not in self.clicked and at not in avoid:
@@ -1299,6 +1347,7 @@ class Interface:
         self.audits += 1
         if r.coord is not None:
             self.clicked.add(r.coord)
+            self.clicked_at[(self.epoch, r.coord)] = self.audits
         # READ OFF `before`, NOT `after`. The cause is whatever was at the coordinate WHEN THE
         # PRESS LANDED -- on a board where the press moves things, reading `after` would
         # attribute the effect to whatever has since arrived there.
@@ -1368,6 +1417,8 @@ class Interface:
         # level's context, as it is.
         if ctx_after is not None:
             e.setdefault("to", {}).setdefault(ctx, set()).add(ctx_after)
+            e.setdefault("to_ep", {}).setdefault(ctx, {}).setdefault(
+                ctx_after, set()).add(self.epoch)
         # **WHICH WAY, NOT ONLY WHICH SLOT.** A changed-set says an action touches `o0.row`; it
         # does not say whether it raises or lowers it, and *raise this slot* is the commonest
         # thing an agent can want. So the table keeps a running mean of the SIGNED change per
@@ -1459,6 +1510,7 @@ class Interface:
         # that this reading is a true one about a wrapped board. Recorded so the next reader
         # does not try to fix a world property.
         seen.add(changed)
+        e.setdefault("ep", {}).setdefault(ctx, []).append((self.epoch, changed))   # S2, D1
         if len({x for v in e["by_ctx"].values() for x in v}) > 1:
             self.conditional.add(r.action)
         if changed_here:
