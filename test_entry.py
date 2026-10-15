@@ -332,6 +332,21 @@ def fake_make(_game, _card):
     return FakeWrapper()
 
 
+def _carries_in_order(rec, games):
+    """THE PROPERTY, over the games the worker PLAYED (the reviewer 2026-10-15 08:23): they are the
+    first of its sequence, in order; the first loads cold and every later one loads the carry; at
+    least two were played, so the carry ran. A game the ceiling left unplayed is reported with its
+    reason, never failed: the ceiling is the harness's bound, and the agent's wall is C-SPEED's."""
+    played = [g for g in rec["games"] if not str(g.get("end", "")).startswith("unplayed")]
+    for g in rec["games"][len(played):]:
+        print(f"    unplayed {g['game']}: {g['end']}")
+    assert len(played) >= 2, ("fewer than two games fit: the carry never ran",
+                              [(g["game"], g.get("allowance_s"), g["end"]) for g in rec["games"]])
+    assert [g["game"] for g in played] == games[:len(played)], rec
+    assert [g["loaded"] for g in played] == [False] + [True] * (len(played) - 1), rec
+    assert all(g["allowance_s"] > 0 for g in played), rec
+
+
 def check_the_runner_carries_in_order_per_worker():
     """THE K-WORKER RUNNER (F472): games assigned by ORDER, each worker its OWN library, and the
     second game in a worker LOADS what the first saved -- the carry. Run once in-process and once
@@ -348,8 +363,7 @@ def check_the_runner_carries_in_order_per_worker():
     with tempfile.TemporaryDirectory() as d:
         rec = tether_runner.run(games, "card", fake_make, d, k=1, processes=False,
                                 ceiling_s=30, margin_s=1)
-        loaded = [g["loaded"] for g in rec["records"][0]["games"]]
-        assert loaded == [False, True, True, True], rec
+        _carries_in_order(rec["records"][0], games)
     # REAL PROCESSES: two workers in parallel, each its OWN library, each carrying.
     with tempfile.TemporaryDirectory() as d:
         rec = tether_runner.run(games, "card", fake_make, d, k=2, processes=True,
@@ -357,9 +371,8 @@ def check_the_runner_carries_in_order_per_worker():
         assert rec["workers"] == 2 and len(rec["records"]) == 2, rec
         libs = {r["library"] for r in rec["records"]}
         assert len(libs) == 2 and all(os.path.exists(p) for p in libs), rec
-        for r in rec["records"]:
-            assert [g["loaded"] for g in r["games"]] == [False, True], r
-            assert all(g["allowance_s"] > 0 for g in r["games"]), r
+        for r, mine in zip(rec["records"], tether_runner.assign(games, 2), strict=True):
+            _carries_in_order(r, mine)
 
 
 def check_serve_opens_one_card_and_always_closes_it():
