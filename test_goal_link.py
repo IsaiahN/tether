@@ -125,7 +125,7 @@ if __name__ == "__main__":
         tether._COMPLETION_SWEEP = True
         try:
             unlinked0 = e1.gamma.book.get("goal_unlinked", 0)
-            e1.retarget(e1.env, 1, "advance")
+            e1.retarget(e1.env, 1, "level_advance")
             e1.step()
         finally:
             tether._COMPLETION_SWEEP = was_sweep
@@ -133,8 +133,8 @@ if __name__ == "__main__":
         closed = [r["detail"] for r in rows if r["event"] == "goal_closed"]
         assert not [r for r in rows if r["event"] == "goal_unheld"]
         assert e1.gamma.book.get("goal_unlinked", 0) == unlinked0 and not e1._goal_conds
-        assert len(closed) == 1 and closed[0]["how"] == "advance", closed
-        print(f"  E1: a retarget ('advance') then one step: one goal_closed row "
+        assert len(closed) == 1 and closed[0]["how"] == "level_advance", closed
+        print(f"  E1: a retarget ('level_advance') then one step: one goal_closed row "
               f"('{closed[0]['condition']}', how {closed[0]['how']}, no verdict), no goal_unheld, "
               f"goal_unlinked unchanged")
     finally:

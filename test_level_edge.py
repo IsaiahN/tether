@@ -3,9 +3,9 @@ WRITTEN, NOT RUN: it runs in the end-of-step-7 checklist. Each case is its own p
 in the environment at start. The world is test_entry's FakeWrapper with levels_completed raised
 from 0 to 1 at step CLEAR and no WIN: a level clear the terminal edge never reports.
 
-  E1   tether_agent.run, TETHER_LEVEL_EDGE ON: exactly one "ending" row with how="advance" at the
-       clear; Agent.level 0 -> 1; one @credit row; every @signal resolution at the clear has kind
-       "level".
+  E1   tether_agent.run, TETHER_LEVEL_EDGE ON: exactly one "ending" row with
+       how="level_advance" at the clear; Agent.level 0 -> 1; one @credit row; every @signal
+       resolution at the clear has kind "level".
   E2   arc_holdout.play on the same wrapper (handed in through arc.make): the same ending row
        and Agent.level 1.
   E3   with TETHER_LINEAGE_HOLD also ON: the dormant carry fires at the clear (ag._dormant grows).
@@ -94,7 +94,7 @@ def _child(case, arms, d=""):
 
 def main():
     e1 = _child("run", {"TETHER_LEVEL_EDGE": "1"})
-    assert e1["endings"] == ["advance"] and e1["level"] == 1 and e1["credit"] == 1, ("E1", e1)
+    assert e1["endings"] == ["level_advance"] and e1["level"] == 1 and e1["credit"] == 1, ("E1", e1)
     assert e1["kinds"] in ([], ["level"]), ("E1 kinds", e1)
     print(f"  E1 one advance ending at the clear, Agent.level 1, one @credit; kinds {e1['kinds']}")
     e2 = _child("play", {"TETHER_LEVEL_EDGE": "1"})

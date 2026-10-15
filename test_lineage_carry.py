@@ -153,7 +153,7 @@ def on_checks():
     env, ag, _ = _agent(rr, 3)
     for _ in range(N):
         ag.step()
-    ag.retarget(env, ag.level + 1, how="advance")
+    ag.retarget(env, ag.level + 1, how="level_advance")
     for _ in range(3):
         ag.step()
     ag.end_run("cap")

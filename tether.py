@@ -2026,7 +2026,7 @@ class Agent:
         # evidence there is.* The decay is boundary demotion, which is its own item and turns
         # on §21.5's event type -- so this row says where the missing half lives rather than
         # leaving a both-and looking finished.
-        if how in ("advance", "win"):
+        if how in (ADVANCE, WIN):
             _cc, _cs, _clv = self._boundary_key("@credit")
             self.led.record(_cc, "SETTLE", _cs, "credit", **_clv,
                             settled_here=sorted(self.settled - self._settled_at_level),

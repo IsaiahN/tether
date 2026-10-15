@@ -63,7 +63,7 @@ if __name__ == "__main__":
     assert ag._mc4(PLAN) == {"need": 6, "reserve_level_seen": "no record",
                              "reserve_run_seen": "no record", "level_cost_seen": "no record"}
     ag._run_actions, ag._attempt_actions = 14, 14
-    ag._mc3_note("advance", "level")
+    ag._mc3_note("level_advance", "level")
     ag._attempt_actions = 0
     ag._run_actions = 30
     ag._mc3_note("cap", "run")
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     w = _agent()
     w.env.cap = w.env.max_actions = 50
     w._run_actions = 10
-    w._mc3_note("advance", "level")
+    w._mc3_note("level_advance", "level")
     assert w._mc4(PLAN)["reserve_level_seen"] == w._mc4(PLAN)["reserve_run_seen"] == "no record"
     print("  2: a world cap of 50, never reached by an ending, is not read: both reserves "
           "'no record'")

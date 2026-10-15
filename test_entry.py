@@ -195,7 +195,7 @@ def check_a_restart_carries_refutations_only_where_identity_is_sure():
     assert all(k in ag.refuted for k in keys), f"a sure identity was not carried: {row}"
     assert row and sorted(row["carried"]) == sorted(k[0] for k in keys) and not row["not_carried"]
     # ACROSS AN ADVANCE NOTHING IS HELD: section 18.2's autoimmunity, unchanged.
-    _e, ag2, _k, row2 = _held_then_restarted(FakeWrapper(), ["ACTION2"], how="advance")
+    _e, ag2, _k, row2 = _held_then_restarted(FakeWrapper(), ["ACTION2"], how="level_advance")
     assert not ag2.refuted and row2 is None, "a refutation crossed an ADVANCE"
     # THE TWINS: both moved off their start, both re-found by shape -> neither carried, both named.
     env, ag, keys, row = _held_then_restarted(TwinWrapper(), ["ACTION4"] * 4)
@@ -251,7 +251,7 @@ def check_a_win_ends_the_run():
     import tether_agent
     w = FakeWrapper(script={2: GameState.WIN})
     out = tether_agent.run(w, "fake", max_actions=6)
-    assert out["end"] == "advance", f"a WIN did not end the run: {out}"
+    assert out["end"] == "game_win", f"a WIN did not end the run: {out}"
     assert w.calls.count("RESET") == 1, f"RESET sent around a win: {w.calls}"
 
 

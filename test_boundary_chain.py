@@ -35,7 +35,7 @@ def _run(chain: bool) -> list[dict]:
     ag.restarted(env)
     for _ in range(3):
         ag.step()
-    ag.retarget(env, ag.level + 1, how="advance")
+    ag.retarget(env, ag.level + 1, how="level_advance")
     for _ in range(3):
         ag.step()
     ag.end_run("cap")

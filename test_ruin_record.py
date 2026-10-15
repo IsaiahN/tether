@@ -118,8 +118,8 @@ if __name__ == "__main__":
           f"assumed {rc['assumed']}")
     win = _agent(snaps.Snap(_spec(4)))
     _play(win, win.env, "A")
-    win.retarget(win.env, 1, "advance")
-    win.end_run("advance")
+    win.retarget(win.env, 1, "level_advance")
+    win.end_run("level_advance")
     one = win.term.report()["endings"]
     _play(win, win.env, "A")
     win.end_run("cap")

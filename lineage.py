@@ -327,7 +327,7 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
 
 def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
     """THE BOUNDARY WRITE, one path for both runners (arc_holdout.play, tether_agent.run): a
-    generation at a level clear ("level") or a terminal edge ("death", "advance"), as write() makes
+    generation at a level clear ("level") or a terminal edge ("death", "game_win"), as write() makes
     one at the game's end. None unless the boundary arm, the carry and a folder are all present."""
     if not (_BOUNDARY and _CARRY and d):
         return None

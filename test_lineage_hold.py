@@ -98,7 +98,7 @@ def _header(ag):
 def on_checks():
     assert tether._LINEAGE_HOLD, "the child must be started with TETHER_LINEAGE_HOLD=1"
     # ADVANCE: RL-1 (types, trace), RL-5, RL-6, RL-4, RL-2, RL-2b.
-    env, ag, objs, before = _boundary(FakeWrapper(), "advance")
+    env, ag, objs, before = _boundary(FakeWrapper(), "level_advance")
     print(f"  HEADER: {_header(ag)}", flush=True)
     rec = ag._dormant[-1]
     for nm, at in tether._LINEAGE_STORES:
@@ -108,7 +108,7 @@ def on_checks():
     rows = [e.detail for e in ag.led.entries if e.event == "dormant"]
     assert {r["store"]: r["count"] for r in rows} == before, ("RL-5", rows)
     att = [e.detail for e in ag.led.entries if e.event == "attempt_end"]
-    assert len(att) == 1 and att[0]["ending"] == "advance", ("RL-6", att)
+    assert len(att) == 1 and att[0]["ending"] == "level_advance", ("RL-6", att)
     assert "refuted" not in repr(att[0]), ("RL-6 a verdict in the attempt row", att[0])
     named = repr(att[0]["actions_tried"]) + repr(att[0]["gap_kinds"])
     assert not any(o in named for o in objs), ("RL-4 a slot name in the attempt row", att[0])

@@ -24,6 +24,7 @@ import arc_atoms
 import arc_percept
 import arc_self
 import armflag
+import ledger
 import observer
 import relations
 import sensors
@@ -1020,7 +1021,7 @@ class ArcWorld:
     def terminal(self) -> str:
         f = self._frame
         if f.state == GameState.WIN:
-            return "advance"
+            return ledger.WIN    # the game won (F1b; Isaiah 08:30)
         if f.state == GameState.GAME_OVER:
             return "death"
         return ""
