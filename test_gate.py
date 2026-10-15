@@ -462,6 +462,33 @@ def test_a_ledger_states_the_arms_its_run_had():
             "pythonhashseed"} <= recorded.keys(), recorded.keys()
     assert recorded["pythonhashseed"] == os.environ.get("PYTHONHASHSEED"), recorded
     assert recorded["n_files"] > 0 and len(recorded["files_sha"]) == 64
+    # WHAT RAN (the reviewer 2026-10-15 00:09, 01:05): world, wrapper, game, entry, patched
+    d = head["detail"]
+    assert (d["world"], d["wrapper"], d["game"]) == ("gridworld.GridWorld", None,
+                                                     "arms_header"), d
+    assert d["entry"] and d["entry"].endswith(".py") and isinstance(d["patched_seen"], list) \
+        and isinstance(d["patched_declared"], list), d
+    # PLANT 5: a plain function, and (ii) a functools.wraps spy, from this file, put into a project
+    # class, are both seen (wraps copies __module__, never co_filename)
+    import functools
+    real_h = gamma.Term.handle
+    here = os.path.basename(__file__)
+
+    def _plain(self, g):
+        return real_h(self, g)
+
+    @functools.wraps(real_h)
+    def _wrapped(self, g):
+        return real_h(self, g)
+    for spy in (_plain, _wrapped):
+        gamma.Term.handle = spy
+        try:
+            seen = Attribution.run(env, ag.gamma)["patched_seen"]
+        finally:
+            gamma.Term.handle = real_h
+        assert f"gamma.Term.handle <- {here}" in seen, (spy.__name__, seen)
+    assert f"gamma.Term.handle <- {here}" not in Attribution.run(env, ag.gamma)["patched_seen"], (
+        "a restored function must not stay listed")
     # PLANT 3: one hashed file's bytes changed -> files_sha changes
     with tempfile.TemporaryDirectory() as d:
         f = os.path.join(d, "m.py")

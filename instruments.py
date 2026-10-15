@@ -21,6 +21,9 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
 
+# names a fixture declared through Attribution.declare_patch; read into the run header
+PATCHED: list[str] = []
+
 sys.dont_write_bytecode = True
 
 # -- the chain, in order. A later stage cannot be reached without every earlier signal.
@@ -599,6 +602,103 @@ class Attribution:
         files = [f for p in Attribution.LIBRARY_FILES
                  if os.path.isfile(f := os.path.join(root, *p.split("/")))]
         return Attribution.files_sha(files, root), len(files)
+
+    @staticmethod
+    def run(env: Any, gam: Any) -> dict:
+        """WHAT RAN, beside which code and arms (the reviewer 2026-10-15 00:09, 00:13, 01:05): the
+        world and its wrapper as classes, the game, the launched script, the patches the scan finds
+        and, kept apart, the ones a fixture declared. A fake harness and a real board differ in
+        the LAST link of "wrapper" (test_entry.FakeWrapper against the engine's own class).
+        Nothing reads this to decide anything."""
+        import os
+        root = os.path.dirname(os.path.abspath(__file__))
+
+        def cls(x: Any) -> str | None:
+            return None if x is None else f"{type(x).__module__}.{type(x).__qualname__}"
+        main = getattr(sys.modules.get("__main__"), "__file__", None)
+        entry = None
+        if main:
+            p = os.path.abspath(main)
+            inside = os.path.normcase(p).startswith(os.path.normcase(root) + os.sep)
+            entry = (os.path.relpath(p, root).replace(os.sep, "/") if inside
+                     else os.path.basename(p))
+        # the wrapper CHAIN through .w, outermost first: wire() wraps every ARC wrapper in
+        # ResetGuard (arc_holdout 130), so the first link reads the same for a fake board and a
+        # real one. Each link is read from the object's OWN __dict__, never getattr: ResetGuard
+        # forwards lookups through __getattr__ (arc_holdout 119-120), and getattr(o, "__dict__")
+        # falls through to it on an object with no __dict__, so the dict is read by
+        # object.__getattribute__, which never does. A repeat or an object with no __dict__ ends
+        # the walk (the reviewer 01:18 W1, 01:23)
+        def own(o: Any) -> dict:
+            try:
+                return object.__getattribute__(o, "__dict__")
+            except AttributeError:
+                return {}
+        chain, seen = [], set()
+        w = own(env).get("w")
+        while w is not None and id(w) not in seen:
+            seen.add(id(w))
+            chain.append(cls(w))
+            w = own(w).get("w")
+        return {"world": cls(env), "wrapper": chain or None,
+                "game": getattr(gam, "game", None), "entry": entry,
+                "patched_seen": Attribution.patched(root), "patched_declared": sorted(PATCHED)}
+
+    @staticmethod
+    def patched(root: str) -> list[str]:
+        """Functions whose CODE lives in the launched script or a test_* file, found in a project
+        module or one of its classes, as "owner.attr <- defining file". Read from the code object's
+        co_filename, which functools.wraps does not copy (the reviewer 01:05, A1). The project
+        modules are the ones code() hashes. It cannot see a patch made after this call, a replaced
+        constant, a replacement defined in a project module, or an attribute set on one instance;
+        declare_patch is for those, and is kept apart (patched_declared)."""
+        import os
+        import types
+        base = os.path.normcase(root) + os.sep
+        main = getattr(sys.modules.get("__main__"), "__file__", None)
+        main = os.path.normcase(os.path.abspath(main)) if main else None
+
+        def foreign(v: Any) -> str | None:
+            # TYPE-GATED before any attribute is read: the header runs in Agent.__init__ on every
+            # run, and an arbitrary object asked for an attribute runs its own __getattr__ (the
+            # reviewer 01:32)
+            if isinstance(v, property):
+                fns = [v.fget, v.fset, v.fdel]
+            elif isinstance(v, (staticmethod, classmethod, types.MethodType)):
+                fns = [v.__func__]
+            elif isinstance(v, types.FunctionType):
+                fns = [v]
+            else:
+                return None
+            for f in fns:
+                if isinstance(f, types.FunctionType):
+                    src = os.path.normcase(os.path.abspath(f.__code__.co_filename))
+                    if src == main or os.path.basename(src).startswith("test_"):
+                        return os.path.basename(src)
+            return None
+        out = []
+        for name, m in list(sys.modules.items()):
+            f = getattr(m, "__file__", None)
+            if (name == "__main__" or name.rsplit(".", 1)[-1].startswith("test_")
+                    or not isinstance(f, str)
+                    or not os.path.normcase(os.path.abspath(f)).startswith(base)
+                    or ".venv" in os.path.relpath(f, root).split(os.sep)):
+                continue
+            for attr, v in list(vars(m).items()):
+                if (src := foreign(v)) is not None:
+                    out.append(f"{name}.{attr} <- {src}")
+                elif isinstance(v, type) and v.__module__ == name:
+                    for a2, w in list(vars(v).items()):
+                        if (src := foreign(w)) is not None:
+                            out.append(f"{name}.{v.__qualname__}.{a2} <- {src}")
+        return sorted(out)
+
+    @staticmethod
+    def declare_patch(name: str) -> None:
+        """A fixture that patches what patched() cannot see names it here, before it builds the
+        Agent. Recorded as patched_declared, never as seen: a declared meaning is not a grounded
+        one (Fig 10)."""
+        PATCHED.append(name)
 
     @staticmethod
     def code() -> dict:

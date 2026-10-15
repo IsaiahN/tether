@@ -1417,7 +1417,7 @@ class Agent:
             arms = I.Attribution.arms()
             self.led.record(0, "PLAN", "@run", "arms", on=arms["on"], off=arms["off"],
                             modules=arms["modules"], not_loaded=arms["not_loaded"],
-                            **I.Attribution.code())
+                            **I.Attribution.code(), **I.Attribution.run(env, gam))
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
 
