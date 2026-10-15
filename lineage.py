@@ -401,6 +401,23 @@ def _ch(cand: dict) -> str:
     return hashlib.sha256(json.dumps(enc(cand), sort_keys=True).encode("utf-8")).hexdigest()[:16]
 
 
+# S1e (the reviewer 2026-10-15 13:01): a HELD candidate's hash, computed once. tether._INDEX_STORE
+# sets the held view for (signature, entry, role) once and never rebuilds it in a process, so the
+# candidate at position i under one signature is one object for the process, and a new signature
+# is a new key. The object is kept beside its hash and checked by identity before reuse. The
+# whole-check is unchanged: the same hashes, compared the same way. resolve()'s check of the LIVE
+# library view does not use this: it exists to see a changed library, and runs once per key.
+_CH_HELD: dict[tuple, tuple] = {}   # (signature, entry, role, position) -> (candidate, hash)
+
+
+def _held_ch(sig: tuple, key: str, role: str, i: int, cand: dict) -> str:
+    """_ch of a held candidate, once per (signature, entry, role, position) and object."""
+    got = _CH_HELD.get((sig, key, role, i))
+    if got is None or got[0] is not cand:
+        got = _CH_HELD[(sig, key, role, i)] = (cand, _ch(cand))
+    return got[1]
+
+
 def _sig_parts(sig: tuple) -> tuple[Any, list]:
     """The relation arm and each template atom's tuple, as text (compile_term.signature)."""
     return sig[0], sorted(repr(a) for a in sig[1])
@@ -459,7 +476,8 @@ def write_index(d: str | Path, ag: Any, h: str) -> dict | None:
             # BY REFERENCE (the reviewer 22:22): the candidate is its position in the view and its
             # hash, never a copy of the library; the compile is the derived part, kept whole
             entries.append({"key": key, "role": role,
-                            "items": [{"i": i, "ch": _ch(cand), "c": _enc_c(c), "t": _enc_c(t)}
+                            "items": [{"i": i, "ch": _held_ch(s, key, role, i, cand),
+                                       "c": _enc_c(c), "t": _enc_c(t)}
                                       for i, (cand, c, t) in enumerate(held)]})
         except Unencodable as e:
             refused.append({"key": key, "role": role, "type": e.type})
@@ -575,6 +593,8 @@ def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
     if match:
         held = [(view[i], c, t) for i, _, c, t in items]
         tether._INDEX_STORE[(sig, key, role)] = held
+        for i, ch, _, _ in items:   # S1e: these candidates are now the held view, hash checked
+            _CH_HELD[(sig, key, role, i)] = (view[i], ch)
         _RESOLVE["resolved"] += 1
         return held
     _RESOLVE["unresolved"] += 1
@@ -673,7 +693,8 @@ def write_memo(d: str | Path, ag: Any, h: str) -> dict | None:
             continue
         try:
             entries.append({"key": key, "role": role, "o": o, "x": x,
-                            "items": [{"i": i, "ch": _ch(cand), "c": _enc_c(c), "t": _enc_c(t)}
+                            "items": [{"i": i, "ch": _held_ch(s, key, role, i, cand),
+                                       "c": _enc_c(c), "t": _enc_c(t)}
                                       for i, (cand, c, t) in enumerate(answers)]})
         except Unencodable as e:
             refused.append({"key": key, "role": role, "o": o, "x": x, "type": e.type})
@@ -717,7 +738,9 @@ def resolve_memo(ag: Any, lib: Any, mkey: tuple, atoms: dict) -> tuple | None:
         held = ag._held_index(lib, key, role, atoms, sig)
         items = p["items"]
         if len(held) != len(items) or any(
-                it["i"] >= len(held) or _ch(held[it["i"]][0]) != it["ch"] for it in items):
+                it["i"] >= len(held)
+                or _held_ch(sig, key, role, it["i"], held[it["i"]][0]) != it["ch"]
+                for it in items):
             raise LookupError("the held view no longer matches")
         got = tuple((held[it["i"]][0], _dec_c(it["c"], atoms), _dec_c(it["t"], atoms))
                     for it in items)
@@ -772,7 +795,8 @@ def write_bs(d: str | Path, ag: Any, h: str) -> dict | None:
             continue
         try:
             entries.append({"key": key, "role": role, "o": o, "x": x, "slot": slot,
-                            "items": [{"i": i, "ch": _ch(cand), "c": _enc_c(c), "t": _enc_c(t)}
+                            "items": [{"i": i, "ch": _held_ch(s, key, role, i, cand),
+                                       "c": _enc_c(c), "t": _enc_c(t)}
                                       for i, (cand, c, t) in zip(idx, answers, strict=True)]})
         except Unencodable as e:
             refused.append({"key": key, "role": role, "o": o, "x": x, "slot": slot,
@@ -819,7 +843,7 @@ def resolve_bs(ag: Any, lib: Any, skey: tuple, atoms: dict) -> tuple | None:
         kept = [i for i, (_c, a, b) in enumerate(held) if tether._lands(role, a, b, slot, sub)]
         items = p["items"]
         if kept != [it["i"] for it in items] or any(
-                _ch(held[it["i"]][0]) != it["ch"] for it in items):
+                _held_ch(sig, key, role, it["i"], held[it["i"]][0]) != it["ch"] for it in items):
             raise LookupError("the held rows for this slot no longer match")
         got = tuple((held[it["i"]][0], _dec_c(it["c"], atoms), _dec_c(it["t"], atoms))
                     for it in items)
