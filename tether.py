@@ -519,6 +519,7 @@ _BOUND_MEMO: dict = {}     # (atoms_token, sig, entry, role, o, x) -> bound answ
 # S1: the slot-filtered answers, kept APART from _BOUND_MEMO so the lineage never writes a
 # partial view as a whole one: (atoms_token, sig, entry, role, o, x, slot) -> the rows bound
 _BOUND_SLOT_MEMO: dict = {}
+_BOUND_SLOT_IDX: dict = {}   # S1b: the same key -> the HELD indices of its rows (bs_ carries)
 _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 # (b'-l) THE LINEAGE HOLD, phase 1 (Fig 6, Fig 12, Fig 4; the reviewer 2026-10-14 16:29, 16:34,
 # 16:38, 17:02). ON; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
@@ -1623,6 +1624,7 @@ class Agent:
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
         self._bound_slot_cache: dict = {}  # S1: the same, filtered to one slot (+ slot in the key)
+        self._bound_slot_idx: dict = {}    # S1b: the held indices of those rows
         self._atoms_token = shared_token(self.gamma.atoms)   # None: this Agent's own memo
         self._view_hold: dict = {}         # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
@@ -2448,11 +2450,13 @@ class Agent:
                 and all(_PLAIN.fullmatch(n) and "PH" not in n for n in (o, x))):
             if slot is not None and _SLOT_FILTER:
                 # S1: only the rows that land on the asked slot (or that _index_reach counts) are
-                # bound, into the slot's OWN memo. A whole view already held (this process, or
-                # carried and checked whole) is read and filtered, never bound again (the reviewer
-                # 2026-10-15 11:14 N1); a filtered answer never enters the whole-view memo
+                # bound, into the slot's OWN memo. What is already held is read first, never bound
+                # again (the reviewer 2026-10-15 11:14 N1, 11:22): a whole view this process holds,
+                # then a slot answer carried in bs_ (S1b), then a whole carried in bm_; a filtered
+                # answer never enters the whole-view memo
                 _INDEX_N["bound_slot"] += 1
                 smemo = _BOUND_SLOT_MEMO if self._atoms_token else self._bound_slot_cache
+                sidx = _BOUND_SLOT_IDX if self._atoms_token else self._bound_slot_idx
                 skey = (self._atoms_token, sig, key, role, o, x, slot)
                 got = smemo.get(skey)
                 if got is not None:
@@ -2461,6 +2465,12 @@ class Agent:
                 memo = _BOUND_MEMO if self._atoms_token else self._bound_cache
                 mkey = (self._atoms_token, sig, key, role, o, x)
                 whole = memo.get(mkey)
+                carried = None if whole is not None else lineage.resolve_bs(self, lib, skey, atoms)
+                if carried is not None:
+                    _INDEX_N["bound_slot_from_carry"] += 1
+                    sidx[skey], got = carried
+                    smemo[skey] = got
+                    return list(got)
                 if whole is None:
                     whole = lineage.resolve_memo(self, lib, mkey, atoms)
                     if whole is not None:
@@ -2468,14 +2478,20 @@ class Agent:
                         # it is, so other slots and the next boundary write still have it (S3)
                         _INDEX_N["bound"] += 1
                         memo[mkey] = whole
+                # a whole view is aligned with the held rows, so its positions are the held indices
                 if whole is not None:
                     _INDEX_N["bound_slot_from_whole"] += 1
-                    got = tuple(r for r in whole if _lands(role, r[1], r[2], slot, _same))
+                    idx = tuple(i for i, r in enumerate(whole)
+                                if _lands(role, r[1], r[2], slot, _same))
+                    got = tuple(whole[i] for i in idx)
                 else:
                     sub = partial(_ph_sub, o=o, x=x)
-                    got = tuple((cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
-                                for cand, a, b in self._held_index(lib, key, role, atoms, sig)
+                    held = self._held_index(lib, key, role, atoms, sig)
+                    idx = tuple(i for i, (_c, a, b) in enumerate(held)
                                 if _lands(role, a, b, slot, sub))
+                    got = tuple((held[i][0], _bound(held[i][1], sub, atoms),
+                                 _bound(held[i][2], sub, atoms)) for i in idx)
+                sidx[skey] = idx
                 smemo[skey] = got
                 return list(got)
             _INDEX_N["bound"] += 1

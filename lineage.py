@@ -320,9 +320,14 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         memo = write_memo(p, ag, h)
     except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
         memo = {"failed": f"{type(e).__name__}: {e}"[:200]}
+    try:   # S1b: the slot answers, the same rule
+        slot_memo = write_bs(p, ag, h)
+    except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
+        slot_memo = {"failed": f"{type(e).__name__}: {e}"[:200]}
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, "terms": len(terms),
             "status": len(status), "evidence": len(gen["evidence"]), "dormant": len(dormant),
-            "dormant_refused": len(refused), "index": idx, "memo": memo}
+            "dormant_refused": len(refused), "index": idx, "memo": memo,
+            "slot_memo": slot_memo}
 
 
 def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
@@ -348,7 +353,7 @@ def load(d: str | Path, ag: Any) -> dict:
                               "vindication": f["vindication"], "book": f["book"]}, parent=h)
     chain = _chain(Path(d))
     return {"parent": h, **rep, "index": load_index(d, ag, chain),
-            "memo": load_memo(d, ag, chain)}
+            "memo": load_memo(d, ag, chain), "slot_memo": load_bs(d, ag, chain)}
 
 
 def merge(d: str | Path, tips: list[str] | None = None) -> dict:
@@ -610,6 +615,48 @@ def _memo_source(ag: Any) -> list:
     return [(k[1], k[2], k[3], k[4], k[5], v) for k, v in ag._bound_cache.items()]
 
 
+def _put_memo(p: Path, h: str, prefix: str, sig: tuple, entries: list, refused: list) -> dict:
+    """One memo file beside generation `h`, opened "xb", named by its own hash."""
+    arm, parts = _sig_parts(sig)
+    raw = json.dumps({"gen": h, "sig_arm": arm, "sig_atoms": parts, "entries": entries,
+                      "refused": refused}, sort_keys=True, indent=1).encode("utf-8")
+    name = f"{prefix}{h}_{hashlib.sha256(raw).hexdigest()[:16]}.json"
+    try:
+        with open(p / name, "xb") as fh:
+            fh.write(raw)
+    except FileExistsError:
+        return {"refused": f"{name} exists; a memo file is never overwritten"}
+    return {"written": name, "entries": len(entries), "refused": len(refused)}
+
+
+def _memo_bodies(p: Path, prefix: str, sig: tuple, chain: list, rep: dict) -> Any:
+    """Each generation's memo files of one family, root to tip: the body of every file whose name
+    is its own hash and whose signature is EQUAL; every other file is counted, never read on."""
+    arm, parts = _sig_parts(sig)
+    for gh, _g in chain:
+        if _g.get("merge"):
+            continue
+        files = sorted(p.glob(f"{prefix}{gh}_*.json"))
+        if not files:
+            rep["absent"] += 1      # a generation written before the memo carried, or with none
+            continue
+        for f in files:
+            raw = f.read_bytes()
+            rep["bytes"] += len(raw)
+            try:
+                body = json.loads(raw)
+            except ValueError:
+                rep["unreadable"] += 1
+                continue
+            if f.stem != f"{prefix}{gh}_{hashlib.sha256(raw).hexdigest()[:16]}":
+                rep["unreadable"] += 1
+                continue
+            if body["sig_arm"] != arm or set(body["sig_atoms"]) != set(parts):
+                rep["signature_differs"] += 1
+                continue
+            yield gh, body
+
+
 def write_memo(d: str | Path, ag: Any, h: str) -> dict | None:
     """Beside generation `h`: the bound answers for this Gamma's signature that no memo file of
     this chain already holds (the extension, never a copy). Opened "xb", named by its own hash."""
@@ -630,17 +677,10 @@ def write_memo(d: str | Path, ag: Any, h: str) -> dict | None:
                                       for i, (cand, c, t) in enumerate(answers)]})
         except Unencodable as e:
             refused.append({"key": key, "role": role, "o": o, "x": x, "type": e.type})
-    arm, parts = _sig_parts(sig)
-    raw = json.dumps({"gen": h, "sig_arm": arm, "sig_atoms": parts, "entries": entries,
-                      "refused": refused}, sort_keys=True, indent=1).encode("utf-8")
-    name = f"{BMEMO}{h}_{hashlib.sha256(raw).hexdigest()[:16]}.json"
-    try:
-        with open(p / name, "xb") as fh:
-            fh.write(raw)
-    except FileExistsError:
-        return {"refused": f"{name} exists; a memo file is never overwritten"}
-    known.update((repr(sig), e["key"], e["role"], e["o"], e["x"]) for e in entries)
-    return {"written": name, "entries": len(entries), "refused": len(refused)}
+    out = _put_memo(p, h, BMEMO, sig, entries, refused)
+    if "written" in out:
+        known.update((repr(sig), e["key"], e["role"], e["o"], e["x"]) for e in entries)
+    return out
 
 
 def load_memo(d: str | Path, ag: Any, chain: list) -> dict | None:
@@ -653,34 +693,13 @@ def load_memo(d: str | Path, ag: Any, chain: list) -> dict | None:
         return None
     p = Path(d)
     sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
-    arm, parts = _sig_parts(sig)
     known = _MEMO_CARRIED.setdefault(str(p.resolve()), set())
     rep: dict = {"pending": 0, "absent": 0, "signature_differs": 0, "unreadable": 0, "bytes": 0}
-    for gh, _g in chain:
-        if _g.get("merge"):
-            continue
-        files = sorted(p.glob(f"{BMEMO}{gh}_*.json"))
-        if not files:
-            rep["absent"] += 1      # a generation written before the memo carried, or with none
-            continue
-        for f in files:
-            raw = f.read_bytes()
-            rep["bytes"] += len(raw)
-            try:
-                body = json.loads(raw)
-            except ValueError:
-                rep["unreadable"] += 1
-                continue
-            if f.stem != f"{BMEMO}{gh}_{hashlib.sha256(raw).hexdigest()[:16]}":
-                rep["unreadable"] += 1
-                continue
-            if body["sig_arm"] != arm or set(body["sig_atoms"]) != set(parts):
-                rep["signature_differs"] += 1
-                continue
-            for e in body["entries"]:
-                k = (sig, e["key"], e["role"], e["o"], e["x"])
-                _MEMO_PENDING[k] = {"gen": gh, "items": e["items"], "folder": str(p.resolve())}
-                known.add((repr(sig), e["key"], e["role"], e["o"], e["x"]))
+    for gh, body in _memo_bodies(p, BMEMO, sig, chain, rep):
+        for e in body["entries"]:
+            k = (sig, e["key"], e["role"], e["o"], e["x"])
+            _MEMO_PENDING[k] = {"gen": gh, "items": e["items"], "folder": str(p.resolve())}
+            known.add((repr(sig), e["key"], e["role"], e["o"], e["x"]))
     rep["pending"] = len(_MEMO_PENDING)
     return rep
 
@@ -708,3 +727,100 @@ def resolve_memo(ag: Any, lib: Any, mkey: tuple, atoms: dict) -> tuple | None:
         return None
     _MEMO_RESOLVE["resolved"] += 1
     return got
+
+
+# S1b, THE SLOT ANSWERS CARRIED (the reviewer 2026-10-15 11:05, 11:22). Under TETHER_SLOT_FILTER the
+# agent binds only the held rows that land on the asked slot (tether._lands), and those answers are
+# what it learns in play, so they cross the boundary in their own family beside bm_, never written
+# as a whole view. Each item is the HELD INDEX, its candidate's hash and the answer by atom name. At
+# the first ask the held view's rows for that slot must be the SAME rows (the indices _lands keeps
+# now equal the carried ones, every hash equal): WHOLE FOR THAT SLOT. Any miss binds fresh, is
+# counted, and heals at the next write. Write point and loss window: bm_'s.
+BSMEMO = "bs_"
+# folder -> (signature repr, entry, role, o, x, slot) in its files
+_BS_CARRIED: dict[str, set] = {}
+_BS_PENDING: dict[tuple, dict] = {}   # (signature, entry, role, o, x, slot) -> {gen, items, folder}
+_BS_RESOLVE: dict[str, int] = {"resolved": 0, "unresolved": 0}
+
+
+def _bs_source(ag: Any) -> list:
+    """((sig, entry, role, o, x, slot), held indices, answers) this instance can see."""
+    import tether
+    tok = getattr(ag, "_atoms_token", None)
+    memo = tether._BOUND_SLOT_MEMO if tok else ag._bound_slot_cache
+    idx = tether._BOUND_SLOT_IDX if tok else ag._bound_slot_idx
+    return [(k[1:], idx[k], v) for k, v in memo.items() if k[0] == tok and k in idx]
+
+
+def write_bs(d: str | Path, ag: Any, h: str) -> dict | None:
+    """Beside generation `h`: the slot answers for this signature no bs_ file of the chain holds."""
+    import compile_term
+    import tether
+    if not (_CARRY and tether._INDEX_HOLD and tether._SLOT_FILTER):
+        return None
+    p = Path(d)
+    sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
+    known = _BS_CARRIED.setdefault(str(p.resolve()), set())
+    entries, refused = [], []
+    for (s, key, role, o, x, slot), idx, answers in _bs_source(ag):
+        if s != sig or (repr(s), key, role, o, x, slot) in known:
+            continue
+        try:
+            entries.append({"key": key, "role": role, "o": o, "x": x, "slot": slot,
+                            "items": [{"i": i, "ch": _ch(cand), "c": _enc_c(c), "t": _enc_c(t)}
+                                      for i, (cand, c, t) in zip(idx, answers, strict=True)]})
+        except Unencodable as e:
+            refused.append({"key": key, "role": role, "o": o, "x": x, "slot": slot,
+                            "type": e.type})
+    out = _put_memo(p, h, BSMEMO, sig, entries, refused)
+    if "written" in out:
+        known.update((repr(sig), e["key"], e["role"], e["o"], e["x"], e["slot"])
+                     for e in entries)
+    return out
+
+
+def load_bs(d: str | Path, ag: Any, chain: list) -> dict | None:
+    """Each generation's bs_ files, root to tip, PENDING their first ask (resolve_bs)."""
+    import compile_term
+    import tether
+    if not (_CARRY and tether._INDEX_HOLD and tether._SLOT_FILTER) or not chain:
+        return None
+    p = Path(d)
+    sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
+    known = _BS_CARRIED.setdefault(str(p.resolve()), set())
+    rep: dict = {"pending": 0, "absent": 0, "signature_differs": 0, "unreadable": 0, "bytes": 0}
+    for gh, body in _memo_bodies(p, BSMEMO, sig, chain, rep):
+        for e in body["entries"]:
+            k = (sig, e["key"], e["role"], e["o"], e["x"], e["slot"])
+            _BS_PENDING[k] = {"gen": gh, "items": e["items"], "folder": str(p.resolve())}
+            known.add((repr(sig), e["key"], e["role"], e["o"], e["x"], e["slot"]))
+    rep["pending"] = len(_BS_PENDING)
+    return rep
+
+
+def resolve_bs(ag: Any, lib: Any, skey: tuple, atoms: dict) -> tuple | None:
+    """(held indices, answers) for a carried slot answer at its FIRST ask, checked WHOLE FOR THAT
+    SLOT, or None (the caller reads on, and binds fresh at the end)."""
+    from functools import partial
+
+    import tether
+    _tok, sig, key, role, o, x, slot = skey
+    p = _BS_PENDING.pop((sig, key, role, o, x, slot), None)
+    if p is None:
+        return None
+    try:
+        held = ag._held_index(lib, key, role, atoms, sig)
+        sub = partial(tether._ph_sub, o=o, x=x)
+        kept = [i for i, (_c, a, b) in enumerate(held) if tether._lands(role, a, b, slot, sub)]
+        items = p["items"]
+        if kept != [it["i"] for it in items] or any(
+                _ch(held[it["i"]][0]) != it["ch"] for it in items):
+            raise LookupError("the held rows for this slot no longer match")
+        got = tuple((held[it["i"]][0], _dec_c(it["c"], atoms), _dec_c(it["t"], atoms))
+                    for it in items)
+    except (LookupError, Unencodable):   # a name this Gamma lacks is a KeyError: a miss
+        _BS_RESOLVE["unresolved"] += 1
+        _BS_CARRIED.get(p["folder"], set()).discard((repr(sig), key, role, o, x, slot))
+        return None
+    _BS_RESOLVE["resolved"] += 1
+    return tuple(kept), got
