@@ -50,6 +50,7 @@ from gamma import (
     Standing,
     Term,
     accepts_type,
+    shared_token,
 )
 from gamma import SAME_AS_TARGET as G_SAME
 from ledger import (
@@ -494,6 +495,10 @@ _INDEX_HOLD = armflag.arm("TETHER_INDEX_HOLD")
 PH_O, PH_X = "PHo", "PHx"   # no id generator makes these (arc_percept 638, gridworld 225)
 _INDEX_STORE: dict = {}     # (compile_term.signature, entry, role) -> held compiles
 _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent never reads it
+# THE BOUND ANSWERS OUTLIVE THE GAME (Isaiah 2026-10-15 06:01; the reviewer 06:10, 06:56): one
+# memo per PROCESS, keyed by the code primitives' content token, used only by an Agent whose
+# Gamma holds the shared objects (gamma.shared_token); any other Agent keeps its own memo.
+_BOUND_MEMO: dict = {}     # (atoms_token, sig, entry, role, o, x) -> bound answers
 _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 # (b'-l) THE LINEAGE HOLD, phase 1 (Fig 6, Fig 12, Fig 4; the reviewer 2026-10-14 16:29, 16:34,
 # 16:38, 17:02). OFF; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
@@ -1531,6 +1536,7 @@ class Agent:
         self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
+        self._atoms_token = shared_token(self.gamma.atoms)   # None: this Agent's own memo
         self._view_hold: dict = {}         # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
         self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
@@ -2357,15 +2363,20 @@ class Agent:
             # _bound is pure in (the held compile, o, x, this Gamma's atoms), so a repeated
             # question is a lookup (Fig 12; the reviewer 2026-10-15 04:57). A tuple is stored and a
             # fresh list returned, so no caller can alter the memo.
-            mkey = (sig, key, role, o, x)
-            got = self._bound_cache.get(mkey)
+            memo = _BOUND_MEMO if self._atoms_token else self._bound_cache
+            mkey = (self._atoms_token, sig, key, role, o, x)
+            got = memo.get(mkey)
+            if got is not None:
+                _INDEX_N["bound_memo_hit"] += 1
+                return list(got)
+            # a carried answer (lineage, under CARRY), checked whole at its first ask; counted
+            # apart from hits, so memo entries == bound - bound_memo_hit holds (S3)
+            got = lineage.resolve_memo(self, lib, mkey, atoms)
             if got is None:
                 sub = partial(_ph_sub, o=o, x=x)
-                got = self._bound_cache[mkey] = tuple(
-                    (cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
-                    for cand, a, b in self._held_index(lib, key, role, atoms, sig))
-            else:
-                _INDEX_N["bound_memo_hit"] += 1
+                got = tuple((cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
+                            for cand, a, b in self._held_index(lib, key, role, atoms, sig))
+            memo[mkey] = got
             return list(got)
         if sig is not None:
             _INDEX_N["named"] += 1

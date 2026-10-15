@@ -17,6 +17,8 @@ Reports lambda, the spectral radius of the type transfer matrix, against V = |at
 
 from __future__ import annotations
 
+import hashlib
+import inspect
 import json
 import os
 import pathlib
@@ -27,6 +29,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
+import armflag
 from sensors import CELL, CELLS, NOT_RESOLVED, Cells
 
 sys.dont_write_bytecode = True
@@ -336,6 +339,63 @@ class Atom:
                       self.elem_type, self.admitted))
             object.__setattr__(self, "_hash", h)
         return h
+
+
+# THE CODE PRIMITIVES, BUILT ONCE PER PROCESS (the reviewer 2026-10-15 06:10, 06:13, 06:56; Isaiah
+# 06:13 "the atoms that we have are built permanently"). These are the LETTERS the library's 4,048
+# atoms are compiled onto (52 on ARC at default arms, 63 under _ITERATE), not the library atoms.
+# restriction: default OFF until the end-of-step-7 checklist; required by Isaiah 2026-10-15 05:25
+# (the culprit switch), not by doubt. OFF, every builder's list is returned unchanged.
+_ATOMS_ONCE = armflag.arm("TETHER_ATOMS_ONCE")
+_PRIMITIVES: dict[str, tuple] = {}   # content token -> the one built tuple of code primitives
+_PRIMITIVES_REFUSED: dict[str, int] = {"no_source": 0}   # sets whose token could not be read
+
+
+def atoms_token(atoms: Any) -> str | None:
+    """A CONTENT token for a set of code primitives, the same on every machine and Python: each
+    atom's typing fields, its fn's module and qualname, and the digest of its SOURCE text with
+    CR normalised (the reviewer 2026-10-15 07:00; Isaiah 06:26). Never bytecode or ids. None when
+    any fn's source cannot be read: that set is REFUSED a token and counted. A closure's captured
+    run-time value is not read (C-hold-4a reads the builders)."""
+    rows = []
+    for a in atoms:
+        try:
+            src = inspect.getsource(a.fn).replace("\r\n", "\n")
+        except (OSError, TypeError):
+            _PRIMITIVES_REFUSED["no_source"] += 1
+            return None
+        # every field through repr, so the row is all str whatever a field holds (the fields are
+        # declared str, bool, None or tuples of str, gamma Atom; none carries an address)
+        rows.append(tuple(repr(v) for v in (
+            a.name, a.in_type, a.out_type, a.reads_operand, a.operand_type, a.also_accepts,
+            a.reads_ctx, a.polymorphic, a.elem_type, getattr(a.fn, "__module__", ""),
+            getattr(a.fn, "__qualname__", ""), hashlib.sha256(src.encode("utf-8")).hexdigest())))
+    return hashlib.sha256(json.dumps(sorted(rows)).encode("utf-8")).hexdigest()[:16]
+
+
+def primitives_once(atoms: list) -> list:
+    """Under TETHER_ATOMS_ONCE the FIRST build of a content is kept and every later build of the
+    same content gets those same objects (each Gamma still copies the list, Gamma.__init__)."""
+    if not _ATOMS_ONCE:
+        return atoms
+    tok = atoms_token(atoms)
+    if tok is None:     # refused: no source to name it by, so this build is not shared
+        return atoms
+    return list(_PRIMITIVES.setdefault(tok, tuple(atoms)))
+
+
+def shared_token(atoms: Any) -> str | None:
+    """The content token when these ARE the process's shared objects, in order; else None (the
+    caller keeps its per-Agent memo, so no Gamma is handed another's objects)."""
+    if not _ATOMS_ONCE:
+        return None
+    atoms = list(atoms)
+    tok = atoms_token(atoms)
+    held = _PRIMITIVES.get(tok) if tok is not None else None
+    if held is None or len(held) != len(atoms) or any(
+            a is not b for a, b in zip(held, atoms, strict=True)):
+        return None
+    return tok
 
 
 @dataclass(frozen=True)

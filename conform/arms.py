@@ -542,6 +542,17 @@ ARMS: dict[str, str] = {
                          "as OFF's text-keyed compile cache is (the reviewer 2026-10-15 04:57: "
                          "unmemoised, each new key re-bound every candidate, 12.6 M rebinds on "
                          "the fake)",
+    "TETHER_ATOMS_ONCE": "the code primitives built once per process (the reviewer 2026-10-15 "
+                         "06:10, 06:13, 06:56, 07:00, 07:13, 07:18; Isaiah 06:01, 06:13): ON, "
+                         "each builder's set is kept under a content token (every Atom field "
+                         "through repr, the CR-normalised source digest, never ids) and every "
+                         "later build of that content gets the same objects in its own list; an "
+                         "Agent over the shared objects keeps the index hold's bound answers in "
+                         "one memo per process, and under the lineage carry they are written by "
+                         "atom name beside each generation and resolved, checked whole, at first "
+                         "ask. A set with no source is refused a token and counted. OFF until the "
+                         "end-of-step-7 checklist (Isaiah 2026-10-15 05:25: each feature behind "
+                         "its own arm), not by doubt",
     "TETHER_LINEAGE_HOLD": "(b'-l) phase 1, the lineage hold (Fig 6, Fig 12, Fig 4; the reviewer "
                            "2026-10-14 16:29, 16:34, 16:38, 17:02): ON, every store retarget "
                            "clears, the trace included, is kept dormant in instance form with a "

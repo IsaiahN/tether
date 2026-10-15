@@ -298,9 +298,13 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         idx = write_index(p, ag, h)
     except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
         idx = {"failed": f"{type(e).__name__}: {e}"[:200]}
+    try:   # the bound memo by name, after the index; the same never-costs-the-generation rule
+        memo = write_memo(p, ag, h)
+    except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
+        memo = {"failed": f"{type(e).__name__}: {e}"[:200]}
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, "terms": len(terms),
             "status": len(status), "evidence": len(gen["evidence"]), "dormant": len(dormant),
-            "dormant_refused": len(refused), "index": idx}
+            "dormant_refused": len(refused), "index": idx, "memo": memo}
 
 
 def load(d: str | Path, ag: Any) -> dict:
@@ -313,7 +317,9 @@ def load(d: str | Path, ag: Any) -> dict:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
     rep = ag.gamma.load_blob({"terms": f["terms"], "invented": f["invented"],
                               "vindication": f["vindication"], "book": f["book"]}, parent=h)
-    return {"parent": h, **rep, "index": load_index(d, ag, _chain(Path(d)))}
+    chain = _chain(Path(d))
+    return {"parent": h, **rep, "index": load_index(d, ag, chain),
+            "memo": load_memo(d, ag, chain)}
 
 
 def merge(d: str | Path, tips: list[str] | None = None) -> dict:
@@ -548,3 +554,128 @@ def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
                       reason="unresolved candidates: the library's view no longer matches",
                       reads="the entry compiled fresh; the carried compile was not used")
     return None
+
+
+# -- THE BOUND MEMO, CARRIED BY NAME BESIDE THE GENERATION (the reviewer 2026-10-15 06:10, 06:13,
+# 06:56, 07:00; Isaiah 06:01) -------------------------------------------------------------------
+# Under BOTH arms (_CARRY and tether's _INDEX_HOLD) each generation gets a memo file holding the
+# bound answers THIS instance made that no earlier file of the chain holds. Objects never cross a
+# process: each answer is written by atom NAME (_enc_c) and its candidate by position and hash
+# (_ch), and at the first ask it is bound onto THIS Gamma's code primitives (_dec_c), checked
+# whole against the held view, as resolve does. A miss binds fresh and heals at the next write.
+# Write point: the generation (game end today); loss window: the current game.
+BMEMO = "bm_"
+_MEMO_CARRIED: dict[str, set] = {}   # folder -> (signature repr, entry, role, o, x) in its files
+_MEMO_PENDING: dict[tuple, dict] = {}   # (signature, entry, role, o, x) -> {gen, items, folder}
+_MEMO_RESOLVE: dict[str, int] = {"resolved": 0, "unresolved": 0}
+
+
+def _memo_source(ag: Any) -> list:
+    """(sig, entry, role, o, x, answers) this instance can see: the process memo's rows for its
+    token, or its own per-Agent memo."""
+    import tether
+    tok = getattr(ag, "_atoms_token", None)
+    if tok:
+        return [(k[1], k[2], k[3], k[4], k[5], v) for k, v in tether._BOUND_MEMO.items()
+                if k[0] == tok]
+    return [(k[1], k[2], k[3], k[4], k[5], v) for k, v in ag._bound_cache.items()]
+
+
+def write_memo(d: str | Path, ag: Any, h: str) -> dict | None:
+    """Beside generation `h`: the bound answers for this Gamma's signature that no memo file of
+    this chain already holds (the extension, never a copy). Opened "xb", named by its own hash."""
+    import compile_term
+    import tether
+    if not (_CARRY and tether._INDEX_HOLD):
+        return None
+    p = Path(d)
+    sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
+    known = _MEMO_CARRIED.setdefault(str(p.resolve()), set())
+    entries, refused = [], []
+    for s, key, role, o, x, answers in _memo_source(ag):
+        if s != sig or (repr(s), key, role, o, x) in known:
+            continue
+        try:
+            entries.append({"key": key, "role": role, "o": o, "x": x,
+                            "items": [{"i": i, "ch": _ch(cand), "c": _enc_c(c), "t": _enc_c(t)}
+                                      for i, (cand, c, t) in enumerate(answers)]})
+        except Unencodable as e:
+            refused.append({"key": key, "role": role, "o": o, "x": x, "type": e.type})
+    arm, parts = _sig_parts(sig)
+    raw = json.dumps({"gen": h, "sig_arm": arm, "sig_atoms": parts, "entries": entries,
+                      "refused": refused}, sort_keys=True, indent=1).encode("utf-8")
+    name = f"{BMEMO}{h}_{hashlib.sha256(raw).hexdigest()[:16]}.json"
+    try:
+        with open(p / name, "xb") as fh:
+            fh.write(raw)
+    except FileExistsError:
+        return {"refused": f"{name} exists; a memo file is never overwritten"}
+    known.update((repr(sig), e["key"], e["role"], e["o"], e["x"]) for e in entries)
+    return {"written": name, "entries": len(entries), "refused": len(refused)}
+
+
+def load_memo(d: str | Path, ag: Any, chain: list) -> dict | None:
+    """Each generation's memo file, root to tip, PENDING its first ask (resolve_memo). Only an
+    EQUAL signature is taken; any other file installs nothing and is counted (a bound answer
+    reads the compile it came from, so a changed signature means a different answer)."""
+    import compile_term
+    import tether
+    if not (_CARRY and tether._INDEX_HOLD) or not chain:
+        return None
+    p = Path(d)
+    sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
+    arm, parts = _sig_parts(sig)
+    known = _MEMO_CARRIED.setdefault(str(p.resolve()), set())
+    rep: dict = {"pending": 0, "absent": 0, "signature_differs": 0, "unreadable": 0, "bytes": 0}
+    for gh, _g in chain:
+        if _g.get("merge"):
+            continue
+        files = sorted(p.glob(f"{BMEMO}{gh}_*.json"))
+        if not files:
+            rep["absent"] += 1      # a generation written before the memo carried, or with none
+            continue
+        for f in files:
+            raw = f.read_bytes()
+            rep["bytes"] += len(raw)
+            try:
+                body = json.loads(raw)
+            except ValueError:
+                rep["unreadable"] += 1
+                continue
+            if f.stem != f"{BMEMO}{gh}_{hashlib.sha256(raw).hexdigest()[:16]}":
+                rep["unreadable"] += 1
+                continue
+            if body["sig_arm"] != arm or set(body["sig_atoms"]) != set(parts):
+                rep["signature_differs"] += 1
+                continue
+            for e in body["entries"]:
+                k = (sig, e["key"], e["role"], e["o"], e["x"])
+                _MEMO_PENDING[k] = {"gen": gh, "items": e["items"], "folder": str(p.resolve())}
+                known.add((repr(sig), e["key"], e["role"], e["o"], e["x"]))
+    rep["pending"] = len(_MEMO_PENDING)
+    return rep
+
+
+def resolve_memo(ag: Any, lib: Any, mkey: tuple, atoms: dict) -> tuple | None:
+    """A carried bound answer at its FIRST ask (tether._compiled's bound path): the held view for
+    the entry, checked WHOLE -- the same length and every position's hash -- then each answer
+    bound onto THIS Gamma's code primitives by name. Any miss returns None (the caller binds
+    fresh), is counted, and leaves the key out of the carried set, so the next write heals it."""
+    _tok, sig, key, role, o, x = mkey
+    p = _MEMO_PENDING.pop((sig, key, role, o, x), None)
+    if p is None:
+        return None
+    try:
+        held = ag._held_index(lib, key, role, atoms, sig)
+        items = p["items"]
+        if len(held) != len(items) or any(
+                it["i"] >= len(held) or _ch(held[it["i"]][0]) != it["ch"] for it in items):
+            raise LookupError("the held view no longer matches")
+        got = tuple((held[it["i"]][0], _dec_c(it["c"], atoms), _dec_c(it["t"], atoms))
+                    for it in items)
+    except (LookupError, Unencodable):   # a name this Gamma lacks is a KeyError: a miss
+        _MEMO_RESOLVE["unresolved"] += 1
+        _MEMO_CARRIED.get(p["folder"], set()).discard((repr(sig), key, role, o, x))
+        return None
+    _MEMO_RESOLVE["resolved"] += 1
+    return got

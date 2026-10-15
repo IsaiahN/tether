@@ -51,7 +51,7 @@ import armflag
 import observer
 import relations
 import world as _toy
-from gamma import Atom
+from gamma import Atom, primitives_once
 
 # B2 (the reviewer 2026-10-11 14:19Z, 14:33Z): pair relations as slots, every ordered pair.
 # OFF; reason in conform/arms.py.
@@ -377,7 +377,8 @@ class GridWorld:
 
     def atoms(self) -> list[Atom]:
         """THE TOY WORLD'S ATOMS, VERBATIM. See the module docstring: one variable moves."""
-        return self.atom_set if self.atom_set is not None else _toy.Transitions().atoms()
+        return (self.atom_set if self.atom_set is not None
+                else primitives_once(_toy.Transitions().atoms()))
 
     def actions(self) -> tuple[str, ...]:
         # ONE POSITIONED ACTION AND NOTHING ELSE. The agent cannot draw its way to a target

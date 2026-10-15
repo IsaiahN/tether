@@ -166,7 +166,9 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     # delta of a quantity it cannot itself measure.
     tether._SHAPE_DECODE = True
     arc_percept._SHAPE_DELTA = True
-    env = ArcWorld(w, arc_percept.Objects(), arc_atoms.three_spaces(arc_predict.predict()),
+    # the code primitives, the SAME objects for every game in the process under TETHER_ATOMS_ONCE
+    env = ArcWorld(w, arc_percept.Objects(),
+                   gamma.primitives_once(arc_atoms.three_spaces(arc_predict.predict())),
                    palette=palette, name=game)
     env.on_frame = on_frame     # seat-side tap for §13 step 4's verifier; None on a normal run
     led = ledger.Ledger(led_path)  # a path streams every row to jsonl as it is recorded
