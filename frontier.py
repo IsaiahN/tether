@@ -31,6 +31,14 @@ def _beats(a: tuple, b: tuple) -> bool:
     return bool(ax) and all(x <= y for x, y in ax) and any(x < y for x, y in ax)
 
 
+def draw_key(key: str, name) -> int:
+    """The recorded draw as a SORT POSITION, for a stream that is walked rather than picked from
+    (A1 group 2, sites 4, 6-8): the same seed and hash as the pick's draw, one value per item, so a
+    run tied on every reading is ordered by the draw, never by a name or a list position."""
+    h = hashlib.blake2b(f"{SEED}:{key}:{name!r}".encode(), digest_size=8).digest()
+    return int.from_bytes(h, "big")
+
+
 def frontier_pick(options: list, residual: dict | None, seen: dict | None, key: str) -> tuple:
     """options: (name, bits, actions). Returns (name, by, frontier names). An empty list is
     refused by name: there is nothing to choose, and the caller must not ask."""

@@ -669,6 +669,24 @@ ARMS: dict[str, str] = {
                            "per (cycle, slot); never bound-first. "
                            "default ON (Isaiah 2026-10-15 07:53); the switch is kept for the "
                            "checklist's culprit isolation",
+    "TETHER_A1_STREAM": "A1-CONVERT group 2 site 4 (the reviewer 2026-10-15 14:23): an exact tie "
+                        "in a stream's spent rank goes to the recorded draw, never the list order; "
+                        "and the stream_share row. default ON (Isaiah 2026-10-15 07:53); the "
+                        "switch is kept for the checklist's culprit isolation",
+    "TETHER_A1_LIBRARY": "A1-CONVERT group 2 site 6 (the reviewer 2026-10-15 09:05 U3, 14:23): the "
+                         "library chains enter the closure's walk at their own depth, evidence "
+                         "ordering them within it, never all first. default ON (Isaiah "
+                         "2026-10-15 07:53); the switch is kept for the checklist's culprit "
+                         "isolation",
+    "TETHER_A1_LOOKUP": "A1-CONVERT group 2 sites 7-8 (the reviewer 2026-10-15 14:27): the bind "
+                        "key in the shape's order (contact gate, derived, evidence, distinct "
+                        "values, draw); and the lookup_order row. default ON (Isaiah "
+                        "2026-10-15 07:53); the switch is kept for the checklist's culprit "
+                        "isolation",
+    "TETHER_A1_DOMAIN": "A1-CONVERT group 2 site 9 (the reviewer 2026-10-15 09:05 U2, 14:23): an "
+                        "objective's unseen values stay reachable, priced by novelty beside "
+                        "distance, never removed. default ON (Isaiah 2026-10-15 07:53); the "
+                        "switch is kept for the checklist's culprit isolation",
     "TETHER_A1_TIES": "A1-CONVERT exact ties (sites 10, 11, 12, goal_condition, and in the "
                       "interface the aim among the unpressed and the band pick): the least-"
                       "known, then the recorded draw; never a name, a text or a position. "

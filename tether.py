@@ -547,6 +547,14 @@ _A1_CHOOSE = armflag.arm("TETHER_A1_CHOOSE", default=True)          # the known-
 _A1_STARVED = armflag.arm("TETHER_A1_STARVED", default=True)        # which starved slot to probe
 _A1_OBJECTIVE = armflag.arm("TETHER_A1_OBJECTIVE", default=True)    # bound objective vs want
 _A1_TIES = armflag.arm("TETHER_A1_TIES", default=True)              # the exact ties
+# A1-CONVERT GROUP 2 (the reviewer 2026-10-15 09:05, 09:19, 14:23, 14:27; Isaiah 09:11, 14:15): the
+# streams, walked in the agent's own readings' order (the residual gate, then actions, with bits
+# inside), exact ties by the recorded draw; and an objective's unseen values priced, not removed.
+# Each default ON (Isaiah 2026-10-15 07:53); each OFF is today exactly; the switches are kept.
+_A1_STREAM = armflag.arm("TETHER_A1_STREAM", default=True)          # site 4: the stream share
+_A1_LIBRARY = armflag.arm("TETHER_A1_LIBRARY", default=True)        # site 6: library chains merged
+_A1_LOOKUP = armflag.arm("TETHER_A1_LOOKUP", default=True)          # sites 7-8: the bind key
+_A1_DOMAIN = armflag.arm("TETHER_A1_DOMAIN", default=True)          # site 9: the unseen priced
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -671,11 +679,88 @@ def _floor_champion(by_kind: dict, kind: str, best, share: bool):
     return by_kind.get(kind) if share else best
 
 
-def _next_stream(live: list, spent: dict, share: bool) -> int:
+def _next_stream(live: list, spent: dict, share: bool, key: str | None = None) -> int:
     """D2: the stream that takes the next candidate. OFF: the first live stream, which is the old
     sequence (each stream to exhaustion before the next). ON: the least rank spent this round,
-    ties to list order. No share, weight or quota."""
+    ties to list order; under TETHER_A1_STREAM (site 4) an exact tie goes to the recorded draw,
+    never to the list order. No share, weight or quota."""
+    if share and key is not None:
+        return min(live, key=lambda s: (spent[s], FR.draw_key(key, s)))
     return min(live, key=lambda s: (spent[s], s)) if share else live[0]
+
+
+def _merge_by_depth(lib_chains: list, closure, evidence: dict, key: str):
+    """A1 site 6 (the reviewer 2026-10-15 09:05 U3, 14:23): the library's chains enter the closure's
+    own walk order (shortest first) at their own depth, never all ahead of it. Within a depth,
+    evidence (the entries that offered the chain) orders a library chain ahead of the closure's,
+    which carry none; library chains tied on depth and evidence go by the recorded draw. Nothing is
+    enumerated twice: the closure is walked once, as before."""
+    pend = sorted(lib_chains, key=lambda c: (len(c.atoms), -evidence.get(c.name, 0),
+                                             FR.draw_key(key, c.name)))
+    i = 0
+    for c in closure:
+        while i < len(pend) and len(pend[i].atoms) <= len(c.atoms):
+            yield pend[i]
+            i += 1
+        yield c
+    yield from pend[i:]
+
+
+def _lookup_order(names: list, comp: dict, dk: str, evidence=None) -> list:
+    """A1 sites 7-8 (the reviewer 2026-10-15 14:23, 14:27): the shape's order over operand slots.
+    comp[s] = (contact, derived, library evidence, distinct values over the failing frames): the
+    residual GATE (in contact with the open slot's owner, 0 first), the ACTIONS walk (a derived
+    slot is one more composition step), BITS inside it (more evidence first), the residual
+    MAGNITUDE (more distinct values first), then the recorded draw. `evidence` replaces the
+    library count (site 7: this chain's offers). Least-known has no reading here (7h's)."""
+    def ev(s):
+        return comp[s][2] if evidence is None else evidence(s)
+    return sorted(names, key=lambda s: (comp[s][0], comp[s][1], -ev(s), -comp[s][3],
+                                        FR.draw_key(dk, s)))
+
+
+class _PricedDomain(frozenset):
+    """A1 site 9 (U2, the reviewer 2026-10-15 09:05, 14:23): the values an objective searches FIRST
+    (shown before this frame, and each operand +-1), carrying what prices the rest of the alphabet:
+    its size, the shown counts, the draw key and the agent's row writer. Nothing is removed."""
+
+
+def _priced_hit(evaluate, current: int, ordered: bool, dom: _PricedDomain):
+    """The satisfying value an objective aims at, read in two currencies held apart (Fig 12):
+    DISTANCE from current (actions) and NOVELTY (bits: 0 if shown, else log2 of the count of
+    unseen values). Only two values can be on the frontier: the nearest satisfying shown value,
+    and the nearest satisfying unseen one NEARER than it (a farther unseen one is dominated), so
+    the unseen walk stops at the shown answer's distance. Comparable-only: every distance is
+    equal, so a shown value dominates and the unseen are searched only when none is shown.
+    Values at one distance are tied, and the recorded draw decides, never the lower value (F1,
+    the reviewer 2026-10-15 14:42; TIES: never a position)."""
+    def dk(v):
+        return FR.draw_key(dom.key, v)
+    walk = sorted(dom, key=(lambda v: (abs(v - current), dk(v))) if ordered else dk)
+    shown = next((v for v in walk if v != current and evaluate(v)), None)
+    if shown is not None and not ordered:
+        return shown
+    unseen = None
+    if ordered:
+        for d in range(1, abs(shown - current) if shown is not None else dom.alpha):
+            ring = [v for v in (current - d, current + d)
+                    if 0 <= v < dom.alpha and v not in dom and evaluate(v)]
+            if ring:
+                unseen = min(ring, key=dk)
+                break
+    else:
+        ring = [v for v in range(dom.alpha) if v != current and v not in dom and evaluate(v)]
+        unseen = min(ring, key=dk) if ring else None
+    if unseen is None or shown is None:
+        return shown if unseen is None else unseen
+    n = dom.alpha - len(dom)
+    opts = [(shown, 0.0, abs(shown - current)),
+            (unseen, math.log2(n) if n > 1 else 0.0, abs(unseen - current))]
+    pick, by, front = FR.frontier_pick(opts, None, {shown: dom.counts.get(shown, 0), unseen: 0},
+                                       dom.key)
+    if dom.note is not None:
+        dom.note(opts, pick, by, front)
+    return pick
 
 
 def _recording(chains, into: list):
@@ -1195,6 +1280,11 @@ def objective_step(evaluate, current: int, ordered: bool, domain) -> Any:
         return NOT_RESOLVED
     if here:
         return current
+    if isinstance(domain, _PricedDomain):        # A1 site 9: the unseen priced, not removed
+        hit = _priced_hit(evaluate, current, ordered, domain)
+        if hit is None:
+            return NOT_RESOLVED
+        return hit if not ordered else (current - 1 if hit < current else current + 1)
     # P3: THE SAME ANSWER, ASKED AS A FIRST-MATCH. Both arms took ONE element out of a
     # fully-built list -- `hits[0]` and `min(key=(abs(v-current), v))` -- so the probe ran
     # the whole alphabet to answer a question the first hit settles. `evaluate` is `_sat`
@@ -1249,6 +1339,9 @@ def objective_gap(evaluate, current: int, ordered: bool, domain) -> Any:
         return NOT_RESOLVED
     if here:
         return 0
+    if isinstance(domain, _PricedDomain):        # A1 site 9: the unseen priced, not removed
+        hit = _priced_hit(evaluate, current, ordered, domain)
+        return None if hit is None else (abs(hit - current) if ordered else 1)
     hits = [v for v in domain if v != current and evaluate(v)]
     if not hits:
         return None
@@ -1648,6 +1741,7 @@ class Agent:
         # WHAT THE LIBRARY NAMED FOR EACH SLOT'S LAST RESIDUAL: partner reading -> molecules
         # relating it to the target. Read by `_bindings` as an ORDER, never a filter.
         self._named: dict[str, dict[str, list]] = {}
+        self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
@@ -2621,7 +2715,7 @@ class Agent:
         return _restore(held, o, x)
 
     def _library_chains(self, slot: str, in_t: str, out_t: str, stats: dict,
-                        ops: dict) -> list:
+                        ops: dict, evidence: dict | None = None) -> list:
         """M4 library-first: this slot's offered terms as BARE chains valid for one stream, in
         offer order, each priced later by the one body. A view ends at PRED; into the
         objective stream it is closed with `all`. A chain longer than max_depth is not
@@ -2650,6 +2744,9 @@ class Agent:
                         seen.add(chain.name)
                         out.append(chain)
                         stats["yielded"] += 1
+                    if evidence is not None:   # A1 site 6: the entries that offered this chain
+                        evidence[chain.name] = max(evidence.get(chain.name, 0),
+                                                   int(o_["prov"].get("entries", 1)))
                     # EVERY offered operand, in offer order: one chain offered with two operands
                     # keeps both (keying by chain alone dropped the later one before pricing)
                     got = ops.setdefault(chain.name, [])
@@ -4280,7 +4377,24 @@ class Agent:
         for o in ctx.operands:
             if isinstance(o, int) and not isinstance(o, bool):
                 dom.update((o - 1, o, o + 1))
-        return {v for v in dom if 0 <= v < alpha}
+        dom = {v for v in dom if 0 <= v < alpha}
+        if not _A1_DOMAIN:
+            return dom
+        # A1 site 9: the rest of the alphabet stays reachable, priced by novelty (_priced_hit). The
+        # least-known reading is presence: shown before this frame counts 1, an operand's
+        # neighbour or an unseen value 0 (a per-value frequency is 7h's, named)
+        out = _PricedDomain(dom)
+        out.alpha, out.key = alpha, f"{self.cycle}:{slot}:objective_domain"
+        out.counts = {v: 1 for v, at in first.items() if at <= n and 0 <= v < alpha}
+        out.note = partial(self._domain_row, slot)
+        return out
+
+    def _domain_row(self, slot: str, opts: list, pick: int, by: str, front: list) -> None:
+        """A1 site 9's A2 row: both values on the frontier, their readings, the pick, its step."""
+        self.led.record(self.cycle, "PLAN", slot, "choice", site="objective_domain",
+                        options=len(opts), frontier=[[repr(v), b, a] for v, b, a in opts
+                                                     if v in set(front)],
+                        residual=None, seen=None, pick=repr(pick), by=by)
 
     def _value_of(self, term: Term, slot: str, state: dict[str, int], ctx: Ctx):
         """A term's PREDICTED SLOT VALUE -- the edge from a term to a number, in one place.
@@ -8858,8 +8972,19 @@ class Agent:
         # first. An order, never a cut: once the ordinary operands are spent it is still reached.
         _der = getattr(self.env, "derived", None)
         _der = set(_der()) if _der is not None else set()
-        out = [None] + sorted(others, key=lambda s: (s in _der, *rank(s), s not in lib,
-                                                     -seen[s], s))
+        if _A1_LOOKUP:
+            # A1 sites 7-8 (the reviewer 2026-10-15 14:23, 14:27), the shape's order: the residual
+            # GATE (contact with the open slot's owner), the ACTIONS walk (a derived slot is one
+            # more composition step), BITS inside it (the library rows naming s), the residual
+            # MAGNITUDE (distinct values over the failing frames), then the recorded draw.
+            # Least-known has no reading here (7h's tried count, named), so it passes through.
+            dk = f"{self.cycle}:{slot}:lookup_order"
+            comp = {s: (rank(s)[0], s in _der, len(lib.get(s, ())), seen[s]) for s in others}
+            self._bind_key[slot] = (dk, comp)
+            out = [None] + _lookup_order(others, comp, dk)
+        else:
+            out = [None] + sorted(others, key=lambda s: (s in _der, *rank(s), s not in lib,
+                                                         -seen[s], s))
         if _WINDOW:
             out += self._window_lags(slot, robs)
         return out
@@ -8914,6 +9039,10 @@ class Agent:
         _derived_chains, _derb = 0, set()    # B2b: recorded chains round 3 walked; derived binds
         _lf_ops: dict = {}
         _lf_seen: set = set()                # every chain the library yielded in THIS mint
+        _lf_ev: dict = {}                    # A1 site 6: each library chain's evidence (entries)
+        _lf_reached: list = []               # A1 rows: the rank each evidenced chain was walked at
+        _best_rank = None                    # A1 rows: the rank the winner was priced at
+        _ns_calls = 0                        # A1 rows: stream-share picks this mint
         # THE RECIPES ALREADY HELD, once per mint rather than per candidate. A library Term's
         # chain is its atoms joined; `enumerate_closure` yields BARE chains, so `cand.name` is
         # exactly this key. O(library) against a per-candidate walk that is orders larger.
@@ -9123,14 +9252,15 @@ class Agent:
                         return _f(u) + inherited.term_affinity(u, _w)
                 st: dict = {"seen": 0, "budget_spent": False, "depth_exhausted": True,
                             "units": self.gamma.alphabet, "estimate": 0}
-                _lf = (self._library_chains(slot, in_t, out_t, _lf_stats, _lf_ops)
+                _lf = (self._library_chains(slot, in_t, out_t, _lf_stats, _lf_ops, _lf_ev)
                        if _LIBRARY_FIRST and _round == 1 else [])
                 _lf_names = {c.name for c in _lf}
                 _lf_seen.update(tuple(a.name for a in c.atoms) for c in _lf)
-                _stream = itertools.chain(_lf, (
-                        c for c in self.gamma.enumerate_closure(
+                _clo = (c for c in self.gamma.enumerate_closure(
                             in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit)
-                        if c.name not in _lf_names))
+                        if c.name not in _lf_names)
+                _stream = (_merge_by_depth(_lf, _clo, _lf_ev, f"{self.cycle}:{slot}:library:{_si}")
+                           if _A1_LIBRARY else itertools.chain(_lf, _clo))
                 if _round > 1:
                     _walk_these = ((c, _round) for c in _rec2.get(_si, ()))
                 elif len(_rounds) > 1:
@@ -9165,7 +9295,9 @@ class Agent:
                         _cur = None
                     if not _live:
                         break
-                    _si = _next_stream(_live, _spent, _STREAM_SHARE)
+                    _ns_calls += 1
+                    _si = _next_stream(_live, _spent, _STREAM_SHARE,
+                                       f"{self.cycle}:{slot}:stream_share" if _A1_STREAM else None)
                     if _si not in _open:
                         _open[_si] = _stream_open(_si, _round)
                     kind, st, _walker = _open[_si]
@@ -9190,6 +9322,8 @@ class Agent:
                         st["budget_spent"] = True
                         _stop(_si, _open, _live)
                         continue
+                    if _lf_ev.get(cand.name, 0) > 0:
+                        _lf_reached.append(rank)
                     binds = operand_binds if cand.reads_operand else [None]
                     if len(_rounds) > 1:
                         # PASS 1 walks what the window-OFF search walks plus the evidence lags;
@@ -9207,7 +9341,17 @@ class Agent:
                         priced[(_si, cand.name)] = _chain_incs
                     binds = [x for x in binds if self._operand_fits(cand, slot, x)]
                     _lf_first = [x for x in _lf_ops.get(cand.name, ()) if x in binds]
-                    if _lf_first:                                # the offered operands first
+                    if _lf_first and _A1_LOOKUP and slot in self._bind_key:
+                        # A1 site 7: the same key as site 8, with THIS chain's library offers as
+                        # the evidence; slots outside the key (None, window lags) keep their place
+                        _dk, _cp = self._bind_key[slot]
+                        _dk = f"{_dk}:{cand.name}"
+                        _of = frozenset(_lf_first)
+                        _in = _lookup_order([x for x in binds if x in _cp], _cp, _dk,
+                                            evidence=lambda x, _o=_of: int(x in _o))
+                        _it = iter(_in)
+                        binds = [next(_it) if x in _cp else x for x in binds]
+                    elif _lf_first:                              # the offered operands first
                         binds = _lf_first + [x for x in binds if x not in _lf_first]
                     # HOISTED so the guard PRICE can read how many were on offer -- the
                     # denominator `log2(G+1)` is over, and it must be the same set the loop
@@ -9383,6 +9527,7 @@ class Agent:
                                     by_kind[kind] = (btotal, bleft, bcost, bt)
                                 if best is None or btotal < best[0]:
                                     best = (btotal, bleft, bcost, bt)
+                                    _best_rank = rank
                             continue
                         left = self._left(term, slot, hist, base, cost)
                         # §4's TREE, AND THIS IS ITS FIRST PRODUCER. `operand_term` was
@@ -9464,6 +9609,7 @@ class Agent:
                                 by_kind[kind] = (btotal, bleft, bcost, bt)
                             if best is None or btotal < best[0]:
                                 best = (btotal, bleft, bcost, bt)
+                                _best_rank = rank
                         _sh["pays_called"] += 1
                         if not pays(cost, left, base):
                             cut_n["does-not-pay"] += 1
@@ -9551,6 +9697,7 @@ class Agent:
                             by_kind[kind] = (total, left, cost, term)
                         if best is None or total < best[0]:
                             best = (total, left, cost, term)
+                            _best_rank = rank
                     # AND THE STOPPING BOUND HAS TO BE NECESSARY, WHICH `left == 0.0` WAS NOT.
                     # Enumeration is ordered by retrieval fit, not by cost, so a term that
                     # explains everything says nothing about what a LATER, SHORTER one totals:
@@ -9668,6 +9815,46 @@ class Agent:
                         beyond_bound={"evidence": sum(b in _ev for b in _out),
                                       "no_evidence": sum(b not in _ev for b in _out)})
             detail["window"] = _win
+        if guards["support"] and base > floor:
+            # A1 GROUP 2's STREAM ROWS (the reviewer 2026-10-15 09:19, 14:23): one per (cycle, slot,
+            # site), what the walk did and never the walk -- where the winner sat, how far it went
+            # and why it stopped. No k: nothing is cut to a constant. The library row is written
+            # with the arm OFF too, so the checklist can read ON against OFF.
+            _won = best[3] if best is not None else None
+            _stop_why = {"found": int(_won is not None),
+                         "budget": int(bool(stats["budget_spent"])),
+                         "exhausted": int(_won is None and not stats["budget_spent"])}
+            if _LIBRARY_FIRST:
+                self.led.record(
+                    self.cycle, "PLAN", slot, "stream", site="library_merge", arm=_A1_LIBRARY,
+                    key=("depth; library evidence within a depth; the closure's by_fit; library "
+                         "ties by the draw") if _A1_LIBRARY else "library chains first",
+                    calls=1, walked_total=rank, walked_max=rank,
+                    winner=_won.name if _won is not None else None, winner_rank=_best_rank,
+                    stop=_stop_why, work_budget=self.cfg.work_budget,
+                    evidence_offered=sum(1 for v in _lf_ev.values() if v > 0),
+                    evidence_reached=len(_lf_reached), evidence_ranks=list(_lf_reached))
+            if _A1_LOOKUP and slot in self._bind_key:
+                _wop = _won.operand if _won is not None else None
+                self.led.record(
+                    self.cycle, "PLAN", slot, "stream", site="lookup_order",
+                    key=("contact gate; derived (actions); library evidence (bits); distinct "
+                         "values over the residual; the draw"),
+                    calls=1, walked_total=len(operand_binds), walked_max=len(operand_binds),
+                    winner=None if _won is None else repr(_wop),
+                    winner_rank=(operand_binds.index(_wop) if _won is not None
+                                 and _wop in operand_binds else None),
+                    stop=_stop_why, work_budget=self.cfg.work_budget)
+            if _A1_STREAM and _STREAM_SHARE and _share:
+                _wk = next((k for k, v in by_kind.items() if _won is not None and v[3] is _won),
+                           None)
+                self.led.record(
+                    self.cycle, "PLAN", slot, "stream", site="stream_share",
+                    key="least rank spent this round; exact ties by the draw",
+                    calls=_ns_calls, walked_total=sum(v["turns"] for v in _share.values()),
+                    walked_max=max(v["turns"] for v in _share.values()),
+                    winner=_wk, winner_rank=_best_rank, stop=_stop_why,
+                    work_budget=self.cfg.work_budget)
 
         if best is None:
             # THE VERDICT IS NOT ONE WORD. "I stopped early" and "the whole space at this
