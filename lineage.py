@@ -108,6 +108,14 @@ def _parents(g: dict) -> list[str]:
     return [g["parent"]] if g.get("parent") else []
 
 
+def _dumps(x: Any) -> bytes:
+    """The one form every lineage file is written in (S1f, the reviewer 2026-10-15 13:01): sorted
+    keys and compact separators (indent=1 was 42% of the bytes, the 12:59 read). Every file is
+    checked against the hash of its own bytes, so a file written indented still loads and
+    verifies; a new file's name differs because its bytes do, its content is the same."""
+    return json.dumps(x, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
 def _read(d: Path) -> dict[str, dict]:
     """Every generation in `d`, each verified against its own name; raises on a bad hash or a
     parent that is not in the folder."""
@@ -300,7 +308,7 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
            "book": {k: v for k, v in blob["book"].items() if base["book"].get(k) != v},
            "invented": {n: r for n, r in blob["invented"].items() if n not in base["invented"]},
            "dormant": dormant, "dormant_refused": refused}
-    raw = json.dumps(gen, sort_keys=True, indent=1).encode("utf-8")
+    raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
         with open(p / f"{PREFIX}{h}.json", "xb") as fh:
@@ -371,7 +379,7 @@ def merge(d: str | Path, tips: list[str] | None = None) -> dict:
     gen = {"lineage": 1, "parents": tips, "merge": True, "game": None, "terms": [], "status": [],
            "evidence": [], "vindication_tail": [], "book": {}, "invented": {}, "dormant": [],
            "dormant_refused": []}
-    raw = json.dumps(gen, sort_keys=True, indent=1).encode("utf-8")
+    raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
         with open(p / f"{PREFIX}{h}.json", "xb") as fh:
@@ -482,9 +490,9 @@ def write_index(d: str | Path, ag: Any, h: str) -> dict | None:
         except Unencodable as e:
             refused.append({"key": key, "role": role, "type": e.type})
     arm, parts = _sig_parts(sig)
-    raw = json.dumps({"gen": h, "sig_arm": arm, "sig_atoms": parts,
-                      "sig_names": sorted(a[0] for a in sig[1]), "entries": entries,
-                      "refused": refused}, sort_keys=True, indent=1).encode("utf-8")
+    raw = _dumps({"gen": h, "sig_arm": arm, "sig_atoms": parts,
+                  "sig_names": sorted(a[0] for a in sig[1]), "entries": entries,
+                  "refused": refused})
     ih = hashlib.sha256(raw).hexdigest()[:16]
     name = f"{IDX}{h}_{ih}.json"
     try:
@@ -638,8 +646,8 @@ def _memo_source(ag: Any) -> list:
 def _put_memo(p: Path, h: str, prefix: str, sig: tuple, entries: list, refused: list) -> dict:
     """One memo file beside generation `h`, opened "xb", named by its own hash."""
     arm, parts = _sig_parts(sig)
-    raw = json.dumps({"gen": h, "sig_arm": arm, "sig_atoms": parts, "entries": entries,
-                      "refused": refused}, sort_keys=True, indent=1).encode("utf-8")
+    raw = _dumps({"gen": h, "sig_arm": arm, "sig_atoms": parts, "entries": entries,
+                  "refused": refused})
     name = f"{prefix}{h}_{hashlib.sha256(raw).hexdigest()[:16]}.json"
     try:
         with open(p / name, "xb") as fh:
