@@ -13,6 +13,11 @@ ONCE under the placeholders and bound per question must be the compile of the na
        gamma 779-780, so growth is a Gamma built with one more atom).
   F4'  an atom inside T ("below") changes the key, and R'-1 holds under each atom set.
   O1   MUST-FAIL in process: tokens that a world can produce ("o1", "o2") break R'-1.
+  M1   the bound memo (the reviewer 2026-10-15 04:57): the same (entry, role, o, x) asked again
+       is served without _bound, equal to the first and to the named compile; a list the caller
+       altered does not reach the memo. M2: the pair reversed is bound, not served (an
+       order-losing key). M3: the same o with a new x is bound (x in the key; the reviewer
+       2026-10-15 05:11).
   MEM  3 sequential fake games in one fresh process, index hold ON, then OFF: held size,
        traced and peak memory per game.
   F1, F2 and F4 go through Agent._compiled, the path _index_reach calls. Phase 2 (R'-1 on the
@@ -177,6 +182,42 @@ def main() -> None:
         print("  F4 an atom outside T: the key unchanged, 0 compiles")
     finally:
         compile_term.compile_candidate = real
+    # M1 / M2 after the compile spy is restored: M1 compares with the named compile, which would
+    # move F4's count. Agent._compiled is the path; R'-1 calls tether._bound directly (72-75).
+    nb = []
+    real_bound = tether._bound
+    tether._bound = lambda *a: nb.append(1) or real_bound(*a)
+    try:
+        ag._bound_cache.clear()
+        hits = tether._INDEX_N["bound_memo_hit"]
+        r1 = _real(ag, lib, k, "o1", "o2", atoms, sig)
+        assert nb, ("M1: the first ask bound nothing", len(nb))
+        before = len(nb)
+        r2 = _real(ag, lib, k, "o1", "o2", atoms, sig)
+        assert len(nb) == before and tether._INDEX_N["bound_memo_hit"] == hits + 1, (
+            "M1: a repeated question was bound again", len(nb) - before)
+        named = _named(lib, k, "STATE", "o1", "o2", atoms)
+        form = [[(_form(a), _form(b)) for _c, a, b in r] for r in (r2, r1, named)]
+        assert form[0] == form[1] == form[2], "M1: the memo's answer differs"
+        # mutate the list _compiled ITSELF returns: _real copies it (85), which hid MF-3
+        raw = ag._compiled(lib, k, "STATE", "o1", "o2", None, atoms, sig)
+        raw.append("M1 sentinel")
+        r3 = _real(ag, lib, k, "o1", "o2", atoms, sig)
+        assert "M1 sentinel" not in r3 and len(r3) == len(r1), (
+            "M1: a caller's list reached the memo")
+        print(f"  M1 the bound memo: a repeat served without _bound ({before} binds once), equal "
+              "to the named compile; a caller's list does not reach it")
+        before = len(nb)
+        _real(ag, lib, k, "o2", "o1", atoms, sig)
+        assert len(nb) > before, ("M2: another (o, x) was served from the memo", len(nb) - before)
+        print(f"  M2 another (o, x): bound afresh ({len(nb) - before} binds)")
+        before, hits = len(nb), tether._INDEX_N["bound_memo_hit"]
+        _real(ag, lib, k, "o1", "o3", atoms, sig)
+        assert len(nb) > before and tether._INDEX_N["bound_memo_hit"] == hits, (
+            "M3: x not in the memo key", len(nb) - before)
+        print(f"  M3 the same o, a new x: bound afresh ({len(nb) - before} binds)")
+    finally:
+        tether._bound = real_bound
 
     # PHASE 2 AND THE MEMORY READS, EACH IN ITS OWN PROCESS, ARMS SET AT START (the reviewer
     # 2026-10-14 12:56). "below" exists only when the relation arm is ON AT IMPORT (arc_atoms

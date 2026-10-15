@@ -493,7 +493,7 @@ _HELD_ROLES = ("STATE", "TEST", "PROCESS", "CAUSE")   # RELATION/MEASURE filter 
 _INDEX_HOLD = armflag.arm("TETHER_INDEX_HOLD")
 PH_O, PH_X = "PHo", "PHx"   # no id generator makes these (arc_percept 638, gridworld 225)
 _INDEX_STORE: dict = {}     # (compile_term.signature, entry, role) -> held compiles
-_INDEX_N: Counter = Counter()   # "held", "bound", "named"; read by test_index_hold only
+_INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent never reads it
 _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 # (b'-l) THE LINEAGE HOLD, phase 1 (Fig 6, Fig 12, Fig 4; the reviewer 2026-10-14 16:29, 16:34,
 # 16:38, 17:02). OFF; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
@@ -1530,6 +1530,7 @@ class Agent:
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
+        self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
         self._view_hold: dict = {}         # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
         self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
@@ -2352,9 +2353,20 @@ class Agent:
         if (sig is not None and role in _HELD_ROLES and o != x
                 and all(_PLAIN.fullmatch(n) and "PH" not in n for n in (o, x))):
             _INDEX_N["bound"] += 1
-            sub = partial(_ph_sub, o=o, x=x)
-            return [(cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
-                    for cand, a, b in self._held_index(lib, key, role, atoms, sig)]
+            # RECORDED ONCE PER AGENT, as OFF's text-keyed _compile_cache records its compiles:
+            # _bound is pure in (the held compile, o, x, this Gamma's atoms), so a repeated
+            # question is a lookup (Fig 12; the reviewer 2026-10-15 04:57). A tuple is stored and a
+            # fresh list returned, so no caller can alter the memo.
+            mkey = (sig, key, role, o, x)
+            got = self._bound_cache.get(mkey)
+            if got is None:
+                sub = partial(_ph_sub, o=o, x=x)
+                got = self._bound_cache[mkey] = tuple(
+                    (cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
+                    for cand, a, b in self._held_index(lib, key, role, atoms, sig))
+            else:
+                _INDEX_N["bound_memo_hit"] += 1
+            return list(got)
         if sig is not None:
             _INDEX_N["named"] += 1
         if role == "CAUSE":

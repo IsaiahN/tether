@@ -130,6 +130,19 @@ Tests per item: at most 5 minutes (own fixture, one short OFF identity check, fa
 - wall, the compiler's refusals verbatim: "events are not slots"; "no pairwise atom: bbox(o, x) / inside(o, x) / contact(o, x) names two objects and no atom reads the pair"; "the board is not an object slot".
 - reopen-when: a pairwise/relational atom exists in the vocabulary. That is an import question, with Isaiah (the reviewer 22:09Z), in the same family as 5b's button seam.
 
+## END-OF-STEP-7 CHECKLIST -- run together, the features switched on, the defaults flip HERE (Isaiah 2026-10-15 05:25 CDT; the reviewer 05:25)
+
+Until then, per commit: ruff, test_gate, test_entry only. Each item writes its fixture, must-fails and refuters in its commit and adds ONE line here; nothing deferred is dropped. Failures here are findings, fixed and re-run in the same checklist.
+
+- **C-flip** -- the defaults flip plus its panel (gw s0/s1, su15, sp80, fake), walls reported against about 4.5 min per game.
+- **C-hold-1** -- the bound memo (the hold fix): OFF identity (gw s0@20, fake @5, arm OFF); the panel, fake OFF x3 / ON x3 + gw OFF/ON x1, unwrapped; D-b first; S1 min(ON) > max(OFF) _index_reach refutes; S2 bound_memo_hit 0 refutes; S3 memo entries == bound - bound_memo_hit; D-mem with peak working set. MF-1 -> M3, MF-2 -> "F2 atoms", MF-1 red and MF-2 red in chain2 (2026-10-15 05:41, 05:49). MF-3 STAYED GREEN there (M1 mutated _real's copy); M1 now mutates _compiled's own list: RE-CHECK MF-3.
+- **C-hold-2** -- test_index_carry once (R-d3 (i)-(iii)), on the memo's tree.
+- **C-hold-3** -- does the memo outlive a game? Read 2026-10-15 05:21: no, one Agent per game (tether_runner.worker 57-64; MEM fixture 298-301); confirm in the panel's counts.
+- **C-det** -- lineage determinism: test_lineage_carry prints its folder, keeps it on failure (TETHER_KEEP_LINEAGE_TMP=1 keeps it on success); diff the R-g generations of two runs.
+- **C-64** -- the 64 root test_*.py no runner invokes, each once, alone, 20-min cap; exit, wall, last or failing line; nothing fixed in the pass.
+- **C-rec** -- R-m1 over the recovery output: rows in = out + refused + excluded per source; source shas unchanged.
+- **C-7i ... C-7m** -- each item's written fixtures and must-fails.
+
 ## 7½ AUDIT, 2026-10-10 (the reviewer 2026-10-11 00:27Z, 00:45Z) -- both panels at 046d850, one throttle queue (cap 2 of 4 cores, gate 75%, cpu at launch 10-55%), 14 of 14 exit 0; OFF = runs/panel (panel seat: 7 current and passing); ON = 16 arms =1 in a detached worktree. Per member, never pooled.
 
 REGENERATE: OFF `python conform/throttle.py panel` (or `conform/panel.py --member <m>` per member); ON, in a worktree at 046d850, each member with these set to 1: TETHER_UNSEAL_START, TETHER_WINDOW, TETHER_PREV_OFFER, TETHER_CARRY_PRICE, TETHER_MC_SIGNAL, TETHER_CONTACT, TETHER_RUIN_RECORD, TETHER_RUIN, TETHER_D5, TETHER_GUARD_PRICE, TETHER_CASCADE_AGENCY, TETHER_MC34, TETHER_TWO_READINGS, TETHER_M6_INVENT, TETHER_MC6, TETHER_D13 (one line per member, run through `conform/throttle.py cmds FILE`).

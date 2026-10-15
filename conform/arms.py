@@ -537,7 +537,11 @@ ARMS: dict[str, str] = {
                          "rebuilds each Term from its own Gamma's atoms. Non-held roles, o == x "
                          "and names that are not plain ids compile the named text as before. A "
                          "cost change only. OFF until its panel (R'-0, R'-1, R'-2 registered "
-                         "2026-10-14 11:46 and 12:17)",
+                         "2026-10-14 11:46 and 12:17). The bound answer is kept per Agent, keyed "
+                         "(signature, entry, role, o, x), so a repeated question is a lookup, "
+                         "as OFF's text-keyed compile cache is (the reviewer 2026-10-15 04:57: "
+                         "unmemoised, each new key re-bound every candidate, 12.6 M rebinds on "
+                         "the fake)",
     "TETHER_LINEAGE_HOLD": "(b'-l) phase 1, the lineage hold (Fig 6, Fig 12, Fig 4; the reviewer "
                            "2026-10-14 16:29, 16:34, 16:38, 17:02): ON, every store retarget "
                            "clears, the trace included, is kept dormant in instance form with a "
