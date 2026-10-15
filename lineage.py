@@ -194,9 +194,14 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
             fh.write(raw)
     except FileExistsError:
         return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
+    # D3: the index AFTER the generation; its failure is recorded and never costs the generation
+    try:
+        idx = write_index(p, ag, h)
+    except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
+        idx = {"failed": f"{type(e).__name__}: {e}"[:200]}
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, "terms": len(terms),
             "status": len(status), "evidence": len(gen["evidence"]), "dormant": len(dormant),
-            "dormant_refused": len(refused)}
+            "dormant_refused": len(refused), "index": idx}
 
 
 def load(d: str | Path, ag: Any) -> dict:
@@ -209,4 +214,211 @@ def load(d: str | Path, ag: Any) -> dict:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
     rep = ag.gamma.load_blob({"terms": f["terms"], "invented": f["invented"],
                               "vindication": f["vindication"], "book": f["book"]}, parent=h)
-    return {"parent": h, **rep}
+    return {"parent": h, **rep, "index": load_index(d, ag, _chain(Path(d)))}
+
+
+# -- D3: THE HELD INDEX, CARRIED BESIDE THE GENERATION (the reviewer 2026-10-14 21:59) -------------
+# Under BOTH arms (CARRY and tether's INDEX_HOLD), each generation gets an index file beside it
+# holding the held compiles THIS instance made, so a later instance installs them instead of
+# compiling again (Fig 12 :107-108). The index is derived reach (Fig 6): it never moves the
+# generation's hash, is never silently trusted, and a failure to write it never costs the
+# generation (written first).
+IDX = "idx_"
+_CARRIED: dict[str, set] = {}   # lineage folder -> (signature repr, entry, role) in its index files
+# carried references not yet asked for: (signature, entry, role) -> {gen, items}; resolved at the
+# FIRST ask (resolve), never at load (the reviewer 22:27)
+_PENDING: dict[tuple, dict] = {}
+_RESOLVE: dict[str, int] = {"resolved": 0, "unresolved": 0}
+_ROWED: set = set()   # generations that already wrote their one unresolved row
+
+
+def _ch(cand: dict) -> str:
+    """A candidate's content hash: the reference checks the library's own view against it."""
+    return hashlib.sha256(json.dumps(enc(cand), sort_keys=True).encode("utf-8")).hexdigest()[:16]
+
+
+def _sig_parts(sig: tuple) -> tuple[Any, list]:
+    """The relation arm and each template atom's tuple, as text (compile_term.signature)."""
+    return sig[0], sorted(repr(a) for a in sig[1])
+
+
+def _enc_term(t: Any) -> dict:
+    return {"atoms": [a.name for a in t.atoms], "origin": t.origin, "operand": t.operand,
+            "guard": t.guard, "guard_ref": t.guard_ref,
+            "operand_term": _enc_term(t.operand_term) if t.operand_term is not None else None}
+
+
+def _dec_term(x: dict, atoms: dict) -> Any:
+    return gamma.Term(tuple(atoms[n] for n in x["atoms"]), origin=x["origin"],
+                      operand=x["operand"], guard=x["guard"], guard_ref=x["guard_ref"],
+                      operand_term=(_dec_term(x["operand_term"], atoms)
+                                    if x["operand_term"] is not None else None))
+
+
+def _enc_c(c: Any) -> Any:
+    import compile_term
+    if c is None:
+        return None
+    if isinstance(c, compile_term.Refusal):
+        return {"refusal": c.reason}
+    if isinstance(c, compile_term.Compiled):
+        return {"slot": c.slot, "term": _enc_term(c.term), "operand": c.operand,
+                "parties": list(c.parties), "absent": enc(c.absent)}
+    raise Unencodable(type(c).__name__)
+
+
+def _dec_c(x: Any, atoms: dict) -> Any:
+    import compile_term
+    if x is None:
+        return None
+    if "refusal" in x:
+        return compile_term.Refusal(x["refusal"])
+    return compile_term.Compiled(x["slot"], _dec_term(x["term"], atoms), x["operand"],
+                                 tuple(x["parties"]), dec(x["absent"]))
+
+
+def write_index(d: str | Path, ag: Any, h: str) -> dict | None:
+    """Beside generation `h`: the held compiles for this Gamma's signature that no index of this
+    chain already holds (the extension, never a copy). Opened "xb", named by its own hash."""
+    import compile_term
+    import tether
+    if not tether._INDEX_HOLD:
+        return None
+    p = Path(d)
+    sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
+    known = _CARRIED.setdefault(str(p.resolve()), set())
+    entries, refused = [], []
+    for (s, key, role), held in tether._INDEX_STORE.items():
+        if s != sig or (repr(s), key, role) in known:
+            continue
+        try:
+            # BY REFERENCE (the reviewer 22:22): the candidate is its position in the view and its
+            # hash, never a copy of the library; the compile is the derived part, kept whole
+            entries.append({"key": key, "role": role,
+                            "items": [{"i": i, "ch": _ch(cand), "c": _enc_c(c), "t": _enc_c(t)}
+                                      for i, (cand, c, t) in enumerate(held)]})
+        except Unencodable as e:
+            refused.append({"key": key, "role": role, "type": e.type})
+    arm, parts = _sig_parts(sig)
+    raw = json.dumps({"gen": h, "sig_arm": arm, "sig_atoms": parts,
+                      "sig_names": sorted(a[0] for a in sig[1]), "entries": entries,
+                      "refused": refused}, sort_keys=True, indent=1).encode("utf-8")
+    ih = hashlib.sha256(raw).hexdigest()[:16]
+    name = f"{IDX}{h}_{ih}.json"
+    try:
+        with open(p / name, "xb") as fh:
+            fh.write(raw)
+    except FileExistsError:
+        return {"refused": f"{name} exists; an index is never overwritten"}
+    known.update((repr(sig), e["key"], e["role"]) for e in entries)
+    return {"written": name, "entries": len(entries), "refused": len(refused)}
+
+
+def load_index(d: str | Path, ag: Any, chain: list) -> dict | None:
+    """Each generation's index, root to tip, as references PENDING their first ask (resolve), never
+    into tether's held store at load. EQUAL signature: installed.
+    ADDITIONS ONLY (same arm, every old atom tuple present unchanged): re-keyed, except an entry
+    holding a Refusal, which recompiles (an added atom may let it compile). Anything else -- a
+    missing, unreadable or mismatched file, or another signature difference -- installs NOTHING
+    from that file and writes one "index_rebuild" row naming the reason."""
+    import compile_term
+    import tether
+    if not tether._INDEX_HOLD or not chain:
+        return None
+    p = Path(d)
+    atoms = {a.name: a for a in ag.gamma.atoms}
+    sig = compile_term.signature(atoms)
+    arm, parts = _sig_parts(sig)
+    known = _CARRIED.setdefault(str(p.resolve()), set())
+    rep: dict = {"installed": 0, "rekeyed": 0, "refusals_recompile": 0, "rebuild": [], "bytes": 0}
+    folder = str(p.resolve())
+    counted: dict = {}   # key -> "installed" | "rekeyed", from the latest generation holding it
+    for gh, _g in chain:
+        files = sorted(p.glob(f"{IDX}{gh}_*.json"))
+        reason, body, same = None, None, False
+        if len(files) != 1:
+            reason = "missing" if not files else f"{len(files)} index files"
+        else:
+            raw = files[0].read_bytes()
+            rep["bytes"] += len(raw)
+            if files[0].stem != f"{IDX}{gh}_{hashlib.sha256(raw).hexdigest()[:16]}":
+                reason = "hash mismatch"
+            else:
+                try:
+                    body = json.loads(raw)
+                except ValueError:
+                    reason = "unreadable"
+        if body is not None:
+            old = set(body["sig_atoms"])
+            same = body["sig_arm"] == arm and old == set(parts)
+            # the one compile that reads the wider atom set (compile_term 236): an added CONVERSE
+            # atom switches a template, so a compile that SUCCEEDED may differ; nothing re-keys
+            conv = {n for row in compile_term.CONVERSE.values() for n in row[0]}
+            added = {a[0] for a in sig[1]} - set(body.get("sig_names", []))
+            if not same and not (body["sig_arm"] == arm and old < set(parts)):
+                reason = (f"signature: arm {body['sig_arm']} -> {arm}; "
+                          f"{len(old - set(parts))} atom(s) removed or changed")
+            elif not same and added & conv:
+                reason = ("an added atom changes a template choice (compile_term 236): "
+                          f"{sorted(added & conv)}")
+        if reason is not None:
+            _c, _s, _lv = ag._boundary_key("@lineage")
+            ag.led.record(_c, "IMPORT", _s, "index_rebuild", **_lv, generation=gh, reason=reason,
+                          reads="nothing installed from this index; compiled as at HEAD")
+            rep["rebuild"].append({"generation": gh, "reason": reason})
+            continue
+        for e in body["entries"]:
+            items = [(x["i"], x["ch"], _dec_c(x["c"], atoms), _dec_c(x["t"], atoms))
+                     for x in e["items"]]
+            k = (sig, e["key"], e["role"])
+            if not same and any(isinstance(z, compile_term.Refusal)
+                                for _, _, b, c in items for z in (b, c)):
+                rep["refusals_recompile"] += 1
+                if k in counted:   # an earlier generation's entry for this key is older still
+                    _PENDING.pop(k, None)
+                    del counted[k]
+                continue
+            # THE TIP WINS (the reviewer 23:23): a later generation holds a key again only when
+            # an earlier one missed and was rewritten (resolve), so it replaces the earlier entry
+            if k not in tether._INDEX_STORE:
+                _PENDING[k] = {"gen": gh, "items": items, "folder": folder}
+                counted[k] = "installed" if same else "rekeyed"
+            known.add((repr(sig), e["key"], e["role"]))
+    for how in counted.values():
+        rep[how] += 1
+    return rep
+
+
+def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
+    """A carried reference at its FIRST ask (tether._held_index, both arms): the library's own view
+    under the placeholders, checked WHOLE -- the same length and every position's hash. All match:
+    the carried compiles are held and nothing is compiled. Any miss: the entry is dropped for this
+    instance and compiled fresh, counted, and its generation writes one index_rebuild row; the
+    fresh compile is written by this generation's index, so the key heals."""
+    import tether
+    p = _PENDING.pop((sig, key, role), None)
+    if p is None:
+        return None
+    view = lib.view(key, role, tether.PH_O, tether.PH_X)
+    items = p["items"]
+    try:
+        match = len(view) == len(items) and all(i < len(view) and _ch(view[i]) == ch
+                                                for i, ch, _, _ in items)
+    except Unencodable:   # a view candidate with no form is a MISS, never raised to the agent
+        match = False
+    if match:
+        held = [(view[i], c, t) for i, _, c, t in items]
+        tether._INDEX_STORE[(sig, key, role)] = held
+        _RESOLVE["resolved"] += 1
+        return held
+    _RESOLVE["unresolved"] += 1
+    # HEALS (the reviewer 23:23): the key leaves this folder's known set, so this generation's
+    # write_index writes the fresh compile and the next load takes it (the tip wins)
+    _CARRIED.get(p["folder"], set()).discard((repr(sig), key, role))
+    if p["gen"] not in _ROWED:
+        _ROWED.add(p["gen"])
+        _c, _s, _lv = ag._boundary_key("@lineage")
+        ag.led.record(_c, "IMPORT", _s, "index_rebuild", **_lv, generation=p["gen"],
+                      reason="unresolved candidates: the library's view no longer matches",
+                      reads="the entry compiled fresh; the carried compile was not used")
+    return None
