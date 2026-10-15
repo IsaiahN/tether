@@ -674,6 +674,13 @@ ARMS: dict[str, str] = {
                       "known, then the recorded draw; never a name, a text or a position. "
                       "default ON (Isaiah 2026-10-15 07:53); the switch is kept for the "
                       "checklist's culprit isolation",
+    "TETHER_SLOT_FILTER": "SPEED-1 S1 (the reviewer 2026-10-15 11:05): under the hold, "
+                          "_index_reach binds only the held rows that land on the asked slot "
+                          "(a CAUSE's then-slot); refusals and quantified rows counted as "
+                          "before; its own memo, keyed with the slot, never written to the "
+                          "lineage as a whole view. OFF binds every held row, as before. "
+                          "default ON (Isaiah 2026-10-15 07:53); the switch is kept for the "
+                          "checklist's culprit isolation",
     "TETHER_LINEAGE_HOLD": "(b'-l) phase 1, the lineage hold (Fig 6, Fig 12, Fig 4; the reviewer "
                            "2026-10-14 16:29, 16:34, 16:38, 17:02): ON, every store retarget "
                            "clears, the trace included, is kept dormant in instance form with a "

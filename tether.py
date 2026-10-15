@@ -516,6 +516,9 @@ _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent 
 # memo per PROCESS, keyed by the code primitives' content token, used only by an Agent whose
 # Gamma holds the shared objects (gamma.shared_token); any other Agent keeps its own memo.
 _BOUND_MEMO: dict = {}     # (atoms_token, sig, entry, role, o, x) -> bound answers
+# S1: the slot-filtered answers, kept APART from _BOUND_MEMO so the lineage never writes a
+# partial view as a whole one: (atoms_token, sig, entry, role, o, x, slot) -> the rows bound
+_BOUND_SLOT_MEMO: dict = {}
 _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 # (b'-l) THE LINEAGE HOLD, phase 1 (Fig 6, Fig 12, Fig 4; the reviewer 2026-10-14 16:29, 16:34,
 # 16:38, 17:02). ON; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
@@ -537,6 +540,14 @@ _A1_CHOOSE = armflag.arm("TETHER_A1_CHOOSE", default=True)          # the known-
 _A1_STARVED = armflag.arm("TETHER_A1_STARVED", default=True)        # which starved slot to probe
 _A1_OBJECTIVE = armflag.arm("TETHER_A1_OBJECTIVE", default=True)    # bound objective vs want
 _A1_TIES = armflag.arm("TETHER_A1_TIES", default=True)              # the exact ties
+# SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
+# functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
+# the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
+# than composed."); refusals and quantified rows are counted as before. Nothing perceived, held
+# or checked is removed: only work whose result was thrown away is skipped. A5: an animal
+# looking for water does not taste every stone on the way. default ON (Isaiah 2026-10-15
+# 07:53); the switch is kept.
+_SLOT_FILTER = armflag.arm("TETHER_SLOT_FILTER", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -702,6 +713,35 @@ def _bound(c: Any, sub: Any, atoms: dict) -> Any:
         a, b = sorted(parties)
         slot = f"{a}~{b}.bbox"
     return compile_term.Compiled(slot, term(c.term), sub(c.operand), parties, c.absent)
+
+
+def _slot_of(c: Any, sub: Any) -> str:
+    """A held compile's slot under this question's names: _bound's own slot step (sub, then the bbox
+    pair re-sorted), without rebuilding the Term (S1)."""
+    slot = sub(c.slot)
+    if slot.endswith(".bbox"):
+        a, b = sorted(sub(p) for p in c.parties)
+        slot = f"{a}~{b}.bbox"
+    return slot
+
+
+def _lands(role: str, a: Any, b: Any, slot: str, sub: Any) -> bool:
+    """S1: is this held row needed for a question about `slot`? Every row _index_reach counts
+    (a quantified view, a refusal on either side) is kept; otherwise the row's own slot (a CAUSE's
+    then-slot) must be the asked one."""
+    if role == "CAUSE":
+        if (a is None or b is None or isinstance(a, compile_term.Refusal)
+                or isinstance(b, compile_term.Refusal)):
+            return True
+        return _slot_of(b, sub) == slot
+    if a is None or isinstance(a, compile_term.Refusal):
+        return True
+    return _slot_of(a, sub) == slot
+
+
+def _same(s: Any) -> Any:
+    """S1: the names of an already-bound row are this question's; nothing to put back."""
+    return s
 
 
 def _restore(held: list, o: str, x: str) -> list:
@@ -1582,6 +1622,7 @@ class Agent:
         self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
+        self._bound_slot_cache: dict = {}  # S1: the same, filtered to one slot (+ slot in the key)
         self._atoms_token = shared_token(self.gamma.atoms)   # None: this Agent's own memo
         self._view_hold: dict = {}         # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
@@ -2362,7 +2403,8 @@ class Agent:
         sig = compile_term.signature(atoms) if _INDEX_HOLD else None
         for key, _w in lit:
             for role in reach.SINGLE:
-                for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms, sig):
+                for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms, sig,
+                                                 slot=slot):
                     if c is None:
                         refused[compile_term.QUANTIFIED] += 1
                         continue
@@ -2378,7 +2420,7 @@ class Agent:
                             hit[1]["entries"] += 1
             for o_ in others:
                 for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp, atoms,
-                                                         sig):
+                                                         sig, slot=slot):
                     if isinstance(if_c, compile_term.Refusal):
                         refused["if: " + if_c.reason] += 1
                         continue
@@ -2397,13 +2439,45 @@ class Agent:
         return views, causes, refused
 
     def _compiled(self, lib: Any, key: str, role: str, o: str, x: str, comp: Any, atoms: dict,
-                  sig: tuple | None) -> Any:
+                  sig: tuple | None, slot: str | None = None) -> Any:
         """(cand, compiled, then-compiled) per candidate: a CAUSE's if and then, a view's condition
         with None for then, None for a quantified view. Under the index hold a held role whose
         names are plain ids binds the compile held for its entry; anything else, or the arm OFF,
         compiles the named text as before."""
         if (sig is not None and role in _HELD_ROLES and o != x
                 and all(_PLAIN.fullmatch(n) and "PH" not in n for n in (o, x))):
+            if slot is not None and _SLOT_FILTER:
+                # S1: only the rows that land on the asked slot (or that _index_reach counts) are
+                # bound, into the slot's OWN memo. A whole view already held (this process, or
+                # carried and checked whole) is read and filtered, never bound again (the reviewer
+                # 2026-10-15 11:14 N1); a filtered answer never enters the whole-view memo
+                _INDEX_N["bound_slot"] += 1
+                smemo = _BOUND_SLOT_MEMO if self._atoms_token else self._bound_slot_cache
+                skey = (self._atoms_token, sig, key, role, o, x, slot)
+                got = smemo.get(skey)
+                if got is not None:
+                    _INDEX_N["bound_slot_hit"] += 1
+                    return list(got)
+                memo = _BOUND_MEMO if self._atoms_token else self._bound_cache
+                mkey = (self._atoms_token, sig, key, role, o, x)
+                whole = memo.get(mkey)
+                if whole is None:
+                    whole = lineage.resolve_memo(self, lib, mkey, atoms)
+                    if whole is not None:
+                        # resolve_memo hands a carried view over once: kept as the WHOLE answer
+                        # it is, so other slots and the next boundary write still have it (S3)
+                        _INDEX_N["bound"] += 1
+                        memo[mkey] = whole
+                if whole is not None:
+                    _INDEX_N["bound_slot_from_whole"] += 1
+                    got = tuple(r for r in whole if _lands(role, r[1], r[2], slot, _same))
+                else:
+                    sub = partial(_ph_sub, o=o, x=x)
+                    got = tuple((cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
+                                for cand, a, b in self._held_index(lib, key, role, atoms, sig)
+                                if _lands(role, a, b, slot, sub))
+                smemo[skey] = got
+                return list(got)
             _INDEX_N["bound"] += 1
             # RECORDED ONCE PER AGENT, as OFF's text-keyed _compile_cache records its compiles:
             # _bound is pure in (the held compile, o, x, this Gamma's atoms), so a repeated
