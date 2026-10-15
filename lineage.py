@@ -877,7 +877,9 @@ def resolve_bs(ag: Any, lib: Any, skey: tuple, atoms: dict) -> tuple | None:
     try:
         held = ag._held_index(lib, key, role, atoms, sig)
         sub = partial(tether._ph_sub, o=o, x=x)
-        kept = [i for i, (_c, a, b) in enumerate(held) if tether._lands(role, a, b, slot, sub)]
+        kept = [i for i, (_c, a, b) in enumerate(held) if tether._lands(role, a, b, slot, sub)
+                and not (tether._SPEED2_COUNT
+                         and tether._tally_key(role, a, b, sub) is not None)]
         items = p["items"]
         if kept != [it["i"] for it in items] or any(
                 _held_ch(sig, key, role, it["i"], held[it["i"]][0]) != it["ch"] for it in items):

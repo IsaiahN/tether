@@ -716,6 +716,13 @@ ARMS: dict[str, str] = {
                            "registered 2026-10-14 16:29; RL-5 restated 17:02)"
                            ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is"
                            " the record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_SPEED2_COUNT": "SPEED-2 item 1 (Isaiah 2026-10-15 17:24; the reviewer 17:31, 17:32): "
+                           "a pair's refusals are counted ONCE into the Counter _index_reach "
+                           "adds, never re-iterated per slot, bound, or stored in a slot's memo; "
+                           "the named compile (compound partners) is split once per pair. The "
+                           "same views, causes and counts. OFF is the line before it exactly. "
+                           "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
+                           "the checklist's culprit isolation",
     "TETHER_CARRY_RECORD": "S1g, the asked record (Isaiah 2026-10-15 13:26, option B; the "
                            "reviewer 13:27): under the slot filter a generation carries which "
                            "questions were asked (ak_), never the bound answers; a pair recorded "
