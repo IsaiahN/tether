@@ -31,6 +31,11 @@ import gamma
 import sensors
 
 _CARRY = armflag.arm("TETHER_LINEAGE_CARRY")   # _UPPER, so the @run header records it
+# THE BOUNDARY WRITE (the reviewer 2026-10-15 06:46, 07:23, 07:32; Isaiah 06:20): under the carry,
+# a generation at every level clear and death too, so a stop loses at most the current level.
+# restriction: default OFF until the end-of-step-7 checklist; required by Isaiah 2026-10-15 05:25
+# (each feature behind its own arm), not by doubt.
+_BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY")
 PREFIX = "gen_"
 
 
@@ -263,25 +268,34 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
     prev = {_rid(r): r for r in base["terms"]}
     blob = ag.gamma.blob(with_names=True)
     terms, status = [], []
+    # under the boundary arm: what THIS instance already wrote, so a later write in the same game
+    # carries only what is new (F3); OFF, both are empty and the write is as before
+    written = getattr(ag, "_lineage_written", {}) if _BOUNDARY else {}
+    marks = getattr(ag, "_lineage_marks", {}) if _BOUNDARY else {}
+    new_names = []
     for r in blob["terms"]:
         # NEW = minted by this instance; a term it LOADED from the lineage carries its identity
         # in carried (born, handle), and only a non-marker change of its status is written (N1).
-        c = ag.gamma.carried.get(r.pop("name")) or {}
+        name = r.pop("name")
+        c = ag.gamma.carried.get(name) or written.get(name) or {}
         rid = (c.get("born"), c.get("handle"))
         if rid not in prev:
             terms.append(r)
+            new_names.append((name, r.get("handle")))
         elif r.get("admitted") not in (None, gamma.IMPORTED, prev[rid].get("admitted")):
             status.append({"born": rid[0], "handle": rid[1], "admitted": r["admitted"]})
     # THE DORMANT RECORD ITEM BY ITEM (the reviewer 21:14, I3): an item enc has no form for is
     # not written, and is named; it never costs the generation its terms, status or evidence.
     dormant, refused = [], []
-    for i, item in enumerate(getattr(ag, "_dormant", [])):
+    d0, e0 = marks.get("dormant", 0), marks.get("evidence", 0)
+    dormant_all = getattr(ag, "_dormant", [])
+    for i, item in enumerate(dormant_all[d0:], d0):
         try:
             dormant.append(enc(item))
         except Unencodable as e:
             refused.append({"i": i, "type": e.type})
     gen = {"lineage": 1, "parent": parent, "game": game, "terms": terms, "status": status,
-           "evidence": list(ag.gamma.evidence),
+           "evidence": list(ag.gamma.evidence)[e0:],
            "vindication_tail": list(blob["vindication"])[len(base["vindication"]):],
            "book": {k: v for k, v in blob["book"].items() if base["book"].get(k) != v},
            "invented": {n: r for n, r in blob["invented"].items() if n not in base["invented"]},
@@ -293,6 +307,10 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
             fh.write(raw)
     except FileExistsError:
         return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
+    if _BOUNDARY:   # the next write in this instance extends THIS one: one line (F2)
+        ag.lineage_parent = h
+        ag._lineage_written = {**written, **{n: {"born": h, "handle": hd} for n, hd in new_names}}
+        ag._lineage_marks = {"dormant": len(dormant_all), "evidence": len(ag.gamma.evidence)}
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -305,6 +323,17 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, "terms": len(terms),
             "status": len(status), "evidence": len(gen["evidence"]), "dormant": len(dormant),
             "dormant_refused": len(refused), "index": idx, "memo": memo}
+
+
+def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
+    """THE BOUNDARY WRITE, one path for both runners (arc_holdout.play, tether_agent.run): a
+    generation at a level clear ("level") or a terminal edge ("death", "advance"), as write() makes
+    one at the game's end. None unless the boundary arm, the carry and a folder are all present."""
+    if not (_BOUNDARY and _CARRY and d):
+        return None
+    # agent_level: Agent.level, which counts WIN/death edges until F1 lands; the 'how' field is
+    # the true label of the write
+    return {"how": how, "agent_level": ag.level, **write(d, ag, game)}
 
 
 def load(d: str | Path, ag: Any) -> dict:

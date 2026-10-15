@@ -553,6 +553,16 @@ ARMS: dict[str, str] = {
                          "ask. A set with no source is refused a token and counted. OFF until the "
                          "end-of-step-7 checklist (Isaiah 2026-10-15 05:25: each feature behind "
                          "its own arm), not by doubt",
+    "TETHER_LINEAGE_BOUNDARY": "the boundary write (the reviewer 2026-10-15 06:46, 07:30, "
+                               "07:32; Isaiah 06:20): ON with the carry and a lineage folder, "
+                               "both runners write a generation after a terminal edge's "
+                               "retarget and at a level clear (levels()[0] rising), through "
+                               "one helper, lineage.boundary; each write moves the parent so "
+                               "the chain stays one line, and carries only the terms, evidence "
+                               "and dormant items new since the last. Loss window: the current "
+                               "level. A write point only: nothing reaches the agent. OFF until "
+                               "the end-of-step-7 checklist (Isaiah 2026-10-15 05:25: each "
+                               "feature behind its own arm), not by doubt",
     "TETHER_LINEAGE_HOLD": "(b'-l) phase 1, the lineage hold (Fig 6, Fig 12, Fig 4; the reviewer "
                            "2026-10-14 16:29, 16:34, 16:38, 17:02): ON, every store retarget "
                            "clears, the trace included, is kept dormant in instance form with a "

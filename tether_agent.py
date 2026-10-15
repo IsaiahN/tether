@@ -34,6 +34,8 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
                                                             library=library,
                                                             lineage_dir=lineage_dir)
     acted_n, was, end, deaths = 0, "", "", 0
+    # the boundary write's edge and its reports; with the arm OFF nothing new is read
+    lv_seen, bounds = (env.levels()[0] if lineage._BOUNDARY else 0), []
     for _ in range(max_actions):
         # A WALL-CLOCK BOUND, like the step cap: the runner's per-game allowance, never a prior.
         if deadline is not None and time.time() >= deadline:
@@ -51,6 +53,17 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
         if end and end != was:
             ag.retarget(env, env.levels()[0], how=end)
             deaths += end == "death"
+        # THE BOUNDARY WRITE (lineage.boundary; the reviewer 2026-10-15 07:32): after the
+        # terminal edge's retarget, or else on a level clear (levels()[0] rising), read here
+        # exactly as terminal() is. A WRITE point only: nothing reaches the agent (F1 is its
+        # own item). The SAME block in arc_holdout.play and tether_agent.run.
+        if lineage._BOUNDARY:
+            lv = env.levels()[0]
+            if end and end != was:
+                bounds.append(lineage.boundary(lineage_dir, ag, game, end))
+            elif lv > lv_seen:
+                bounds.append(lineage.boundary(lineage_dir, ag, game, "level"))
+            lv_seen = lv
         was = end
         if end == "advance":    # WIN: the game is over and won. A death is not an end.
             break
@@ -68,4 +81,4 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
             "deaths": deaths, "agent_resets": ag._acts.get("RESET", 0),
             "levels": env.levels(), "refused_resets": getattr(env.w, "refused", 0),
             "loaded": loaded, "saved": saved, "saved_only": saved_only,
-            "lineage": lineage_gen}
+            "lineage": lineage_gen, "lineage_bounds": bounds}

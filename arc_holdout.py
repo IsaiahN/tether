@@ -304,6 +304,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     aff = env.aff
     endings = collections.Counter()
     was_terminal = ""
+    # the boundary write's edge and its reports; with the arm OFF nothing new is read
+    lv_seen, bounds = (env.levels()[0] if lineage._BOUNDARY else 0), []
     for _ in range(cycles):
         state = env.observe()
         # THE UNIT. `step` returns False when no action was proposed, and after the first
@@ -349,6 +351,17 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         # tether_agent.run does (its 47-48). The seat restarts nothing on the agent's behalf.
         if tether._LINEAGE_HOLD and was_terminal == "death" and not end:
             ag.restarted(env)
+        # THE BOUNDARY WRITE (lineage.boundary; the reviewer 2026-10-15 07:32): after the
+        # terminal edge's retarget, or else on a level clear (levels()[0] rising), read here
+        # exactly as terminal() is. A WRITE point only: nothing reaches the agent (F1 is its
+        # own item). The SAME block in arc_holdout.play and tether_agent.run.
+        if lineage._BOUNDARY:
+            lv = env.levels()[0]
+            if end and end != was_terminal:
+                bounds.append(lineage.boundary(lineage_dir, ag, game, end))
+            elif lv > lv_seen:
+                bounds.append(lineage.boundary(lineage_dir, ag, game, "level"))
+            lv_seen = lv
         was_terminal = end
         # `cycles` is a CAP, not the unit. play() otherwise runs the full count and every
         # cycle after the first GAME_OVER is a no-op, so ONE GAME start-to-finish needs
@@ -416,7 +429,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         # §17.8's decision, visible in the report rather than in a process lifetime.
         "persistence": {"switch": library or "cold (default)",
                         "loaded": loaded, "saved": saved, "saved_only": saved_only,
-                        "lineage": lineage_gen,
+                        "lineage": lineage_gen, "lineage_bounds": bounds,
                         "handles": len(g.handles)},
         "lambda": g.type_report(), "atoms": len(g.atoms),
         "unexpressible": arc_predict.unexpressible(),
