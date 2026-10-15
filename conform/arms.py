@@ -170,10 +170,6 @@ ARMS: dict[str, str] = {
                    "own within-run control. OFF in the shipping agent: a control that "
                    "changes what the agent is OFFERED is an instrument, and leaving it "
                    "on would make every later reading a reading of the instrument",
-    "TETHER_HOLD_SEED": "the hold's seed, so the withheld pattern is REPRODUCIBLE and "
-                        "a row can be replayed. An unseeded flip makes the treatment "
-                        "unrecoverable, and a row whose treatment cannot be "
-                        "reconstructed cannot be checked",
     "TETHER_ITERATE": "the fold constructs -- `cells`/`cell_row`/`cell_col`/`count_true`. "
                       "§12.0 rules the MEANS to iterate is INHERITANCE where a solved case "
                       "would be an answer, and the agent could hold a cell set and not walk it. "
@@ -781,8 +777,13 @@ _DEFAULT_ON = re.compile(
 _FALSY_DEFAULT = re.compile(r'''os\.environ\.get\(\s*["']TETHER_[A-Z0-9_]+["']\s*\)\s*$''')
 
 
-def defaults_on() -> dict[str, str]:
+def defaults_on(texts: dict[str, str] | None = None) -> dict[str, str]:
     """`{arm: "file:line"}` for arms whose DECLARATION is true with nothing exported.
+    `texts` ({path: text}) stands in for the tracked files, for the selftest.
+
+    **A VALUE IS NOT A SWITCH** (the reviewer 2026-10-14 06:49, 2026-10-15 14:56): a name in
+    `VALUES` is skipped, because its default is data -- `TETHER_HOLD_SEED`'s "0" is a seed, and
+    a non-empty string evaluates true, so it was counted ON.
 
     Keyed on the ARM NAME IN THE LINE, not on the module variable, because the inverted
     spellings deliberately differ (`_TALLY` <- `TETHER_NO_TALLY`). Read from the code like
@@ -792,16 +793,19 @@ def defaults_on() -> dict[str, str]:
     spellings would go stale the next time someone writes a third one, and the question --
     *is this true with an empty environment* -- has an exact answer.
     """
+    if texts is None:
+        texts = {}
+        for path in _tracked():
+            if path.name == "arms.py":
+                continue
+            try:
+                texts[path.relative_to(ROOT).as_posix()] = path.read_text(encoding="utf-8")
+            except OSError:
+                continue
     out: dict[str, str] = {}
-    for path in _tracked():
-        if path.name == "arms.py":
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except OSError:
-            continue
+    for name, text in texts.items():
         for i, line in enumerate(text.split("\n"), 1):
-            arms = _READ.findall(line)
+            arms = [a for a in _READ.findall(line) if a not in VALUES]
             if not arms or "=" not in line:
                 continue
             expr = line.split("=", 1)[1].strip()
@@ -814,7 +818,7 @@ def defaults_on() -> dict[str, str]:
                 continue
             if val:
                 for arm in arms:
-                    out[arm] = f"{path.relative_to(ROOT).as_posix()}:{i}"
+                    out[arm] = f"{name}:{i}"
     return out
 
 
@@ -822,7 +826,9 @@ _NO_ENV = type("armflag", (), {"arm": staticmethod(lambda _name, default=False: 
 
 # VALUES, NOT SWITCHES: read raw because they are not on/off. Data, so a new one is a visible
 # edit here rather than a quiet exemption in logic.
-VALUES = {"TETHER_HOLD_SEED": "the hold-out seed, an integer"}
+VALUES = {"TETHER_HOLD_SEED": "the hold-out seed, an integer, so the withheld pattern is "
+                              "REPRODUCIBLE and a row can be replayed (moved here from ARMS: "
+                              "a value is not a switch, the reviewer 2026-10-15 15:04)"}
 _RAW = re.compile(r'''os\.environ(?:\.get\(\s*|\[\s*)["'](TETHER_[A-Z0-9_]+)["']''')
 
 
@@ -929,22 +935,28 @@ def _tracked() -> list[Path]:
     return [ROOT / line for line in out.split("\n") if line.strip()]
 
 
-def sites() -> dict[str, list[str]]:
+def sites(texts: dict[str, str] | None = None) -> dict[str, list[str]]:
     """`{arm: ["file:line", ...]}` -- READ FROM THE CODE, never from the table.
 
     A census built from the table would agree with the table by construction, which is the
-    measurement that cannot fail. The table is the CLAIM and this is the WORLD."""
+    measurement that cannot fail. The table is the CLAIM and this is the WORLD.
+    `texts` ({path: text}) stands in for the tracked files, for the selftest. A name in
+    `VALUES` is not a switch, so it is not counted (the reviewer 2026-10-15 15:04)."""
+    if texts is None:
+        texts = {}
+        for path in _tracked():
+            if path.name == "arms.py":
+                continue
+            try:
+                texts[path.relative_to(ROOT).as_posix()] = path.read_text(encoding="utf-8")
+            except OSError:
+                continue
     found: dict[str, list[str]] = {}
-    for path in _tracked():
-        if path.name == "arms.py":
-            continue
-        try:
-            text = path.read_text(encoding="utf-8")
-        except OSError:
-            continue
+    for name, text in texts.items():
         for i, line in enumerate(text.split("\n"), 1):
             for arm in _READ.findall(line):
-                found.setdefault(arm, []).append(f"{path.relative_to(ROOT).as_posix()}:{i}")
+                if arm not in VALUES:
+                    found.setdefault(arm, []).append(f"{name}:{i}")
     return found
 
 
@@ -1044,6 +1056,21 @@ def selftest() -> dict[str, str]:
                         else "UNWITNESSED (a test fixture counted as a ruling)")
     out["F control"] = ("ok" if _ruling_source("arc_holdout.py")
                         else "UNWITNESSED (the agent's own ruling was refused)")
+
+    # G -- A VALUE IS NOT A SWITCH: a VALUES name whose default is a truthy string ("0") must
+    # not count as ON; and the control, a switch spelled the same way, must.
+    got = defaults_on({"x.py": '_HS = os.environ.get("TETHER_HOLD_SEED", "0")\n'
+                               '_X = os.environ.get("TETHER_X", "1") != "0"\n'})
+    out["G value"] = ("ok" if "TETHER_HOLD_SEED" not in got
+                      else "UNWITNESSED (a value's truthy default counted as ON)")
+    out["G control"] = ("ok" if got.get("TETHER_X") == "x.py:2"
+                        else f"UNWITNESSED (a default-ON switch was not seen: {got})")
+    sw = sites({"x.py": '_HS = os.environ.get("TETHER_HOLD_SEED", "0")\n'
+                        '_X = os.environ.get("TETHER_X", "1") != "0"\n'})
+    out["G switches"] = ("ok" if "TETHER_HOLD_SEED" not in sw
+                         and sw.get("TETHER_X") == ["x.py:2"]
+                         else f"UNWITNESSED (a value counted as a switch, or the switch "
+                              f"missed: {sw})")
     return out
 
 
