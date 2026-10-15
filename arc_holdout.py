@@ -321,6 +321,11 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
             # button. The seat restarting on the agent's behalf is the same purchase
             # against the same resource as the agent doing it. The controlled experiment
             # is a SEPARATE seat measurement with no Gamma in it -- see `controlled()`.
+        # (b'-l) D-b, ONE PATH FOR BOTH RUNNERS: after the GAME's "death" ending (its loss, not the
+        # agent's end), the agent's own RESET restarted the level, so restarted() reads it as
+        # tether_agent.run does (its 47-48). The seat restarts nothing on the agent's behalf.
+        if tether._LINEAGE_HOLD and was_terminal == "death" and not end:
+            ag.restarted(env)
         was_terminal = end
         # `cycles` is a CAP, not the unit. play() otherwise runs the full count and every
         # cycle after the first GAME_OVER is a no-op, so ONE GAME start-to-finish needs

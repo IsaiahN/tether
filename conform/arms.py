@@ -538,6 +538,17 @@ ARMS: dict[str, str] = {
                          "and names that are not plain ids compile the named text as before. A "
                          "cost change only. OFF until its panel (R'-0, R'-1, R'-2 registered "
                          "2026-10-14 11:46 and 12:17)",
+    "TETHER_LINEAGE_HOLD": "(b'-l) phase 1, the lineage hold (Fig 6, Fig 12, Fig 4; the reviewer "
+                           "2026-10-14 16:29, 16:34, 16:38, 17:02): ON, every store retarget "
+                           "clears, the trace included, is kept dormant in instance form with a "
+                           "count row per store, and one attempt row per attempt (the ending's "
+                           "sign, the actions and gap kinds THIS attempt tried; never a verdict); "
+                           "a same-level restart carries reach_tested, wants, undone and "
+                           "Drive.tried back per object where identity is sure, restarted's "
+                           "refutation carry names both objects of a pair owner (o12~o3), and "
+                           "play() calls restarted() as tether_agent.run does. Nothing dormant "
+                           "is consulted by slot name. OFF until its panel (RL-0..RL-6, RL-2b, "
+                           "registered 2026-10-14 16:29; RL-5 restated 17:02)",
 }
 
 # DECLARED AT THE SITE, NOT INVENTED HERE. `arc_percept`'s shape-delta comment: *pairs with arm
