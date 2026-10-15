@@ -32,8 +32,9 @@ import relations
 SAME = gamma.SAME_AS_TARGET
 # B3 (the reviewer 2026-10-11 12:25 CDT): under the arm a pair reading (`dist_o3`) is typed by its
 # relation, and a slot may be compared with its OWN earlier reading (`slot~1`) -- toward is
-# "o0.dist_o3 < o0.dist_o3~1", away the converse. OFF; reason in conform/arms.py.
-_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
+# "o0.dist_o3 < o0.dist_o3~1", away the converse. ON; reason in conform/arms.py.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
 
 # (op, right side) -> (atom chain run on the target slot, operand side or None[, operand chain]).
 # right side: "zero" / "one" for a constant, "slot" for another object's same reading.

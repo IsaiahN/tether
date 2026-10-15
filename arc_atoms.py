@@ -86,15 +86,17 @@ COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE, BOOL)   # equality is mean
 ORDERED = (POSITION, EXTENT, DELTA)       # order is meaningful only on these
 PRED, QUANT, VAL = "PRED", "QUANT", "val"
 
-# THE ITERATION ARM, DEFAULT OFF -- `LIBRARY_RETRIEVAL` §12.2.1. Adds `cells`/`cell_row`/
+# THE ITERATION ARM, DEFAULT ON -- `LIBRARY_RETRIEVAL` §12.2.1. Adds `cells`/`cell_row`/
 # `cell_col`/`count_true`, which make a cell set WALKABLE for the first time. Off by default
 # because it widens the closure the mint enumerates and that cost is measured before it is
 # defaulted, per §12.12: a feature is priced in EPISODES FORGONE, not in per-cycle percent.
-_ITERATE = armflag.arm("TETHER_ITERATE")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_ITERATE = armflag.arm("TETHER_ITERATE", default=True)
 # THE COMPARISON SET (the reviewer 2026-10-11 14:19Z, plan accepted 14:33Z): B1, the own-slot
-# converse of `above`, so either party of an order can be the subject. OFF; reason in
+# converse of `above`, so either party of an order can be the subject. ON; reason in
 # conform/arms.py.
-_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
 
 # THE ONE TABLE. An object record's key -> the §12.2 type its values inhabit. `_extract` reads
 # it to type its atoms and `ArcWorld.slot_types` reads it to type its slots, and those are the

@@ -54,8 +54,9 @@ import world as _toy
 from gamma import Atom, primitives_once
 
 # B2 (the reviewer 2026-10-11 14:19Z, 14:33Z): pair relations as slots, every ordered pair.
-# OFF; reason in conform/arms.py.
-_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
+# ON; reason in conform/arms.py.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
 
 sys.dont_write_bytecode = True
 

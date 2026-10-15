@@ -132,7 +132,8 @@ def _may_bind(cand: Any, slot_type: str | None) -> bool:
 _TYPED_BIND = armflag.arm("TETHER_TYPED_BIND")
 # F130 arm C: supply `_library_fit`'s retrieval the relation channel its two
 # sibling call sites already pass. Seat-side, off by default.
-_REL_GAP = armflag.arm("TETHER_REL_GAP")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_REL_GAP = armflag.arm("TETHER_REL_GAP", default=True)
 # F32 arm D: decide reuse by the ONE BARGAIN rather than by a zero remainder, which Isaiah
 # ruled out. **ON BY DEFAULT SINCE 2026-09-30 -- the flip LANDED, and the four M2 failures
 # that held it were diagnosed first, as the reviewer required.**
@@ -192,8 +193,9 @@ _AIMED_CURIOSITY = armflag.arm("TETHER_AIMED_CURIOSITY", default=True)
 # Measured: 94% of mints re-derive a chain already held, and `translate . recolour` was minted
 # 137 times in one run (F229). Isaiah: "adding a dup is a symptom of the found thing never being
 # searched for -- a deeper usage-of-terms problem." This arm makes the check see the RECIPE.
-# DEFAULT OFF, like every other arm, so the baseline it is measured against is preserved.
-_RECIPE_DEDUP = armflag.arm("TETHER_RECIPE_DEDUP")
+# WAS DEFAULT OFF, like every other arm, so the baseline it is measured against is preserved.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_RECIPE_DEDUP = armflag.arm("TETHER_RECIPE_DEDUP", default=True)
 
 # ARM G -- REBIND WHAT IS HELD. `_rebindings` returns early for any term that already carries an
 # operand, so only IMPORTS (which arrive unbound, `save` drops it) are ever re-bound. A term the
@@ -202,8 +204,9 @@ _RECIPE_DEDUP = armflag.arm("TETHER_RECIPE_DEDUP")
 # of the terms installed by mint, 100% (dc22) and 94% (ls20) were chains ALREADY IN THE LIBRARY,
 # and 85% / 41% of those were held with an operand locked to a DIFFERENT slot.
 # The principle is the method's own docstring: *composition crosses, binding does not* -- true of
-# every term, applied to loaded ones only. DEFAULT OFF like every other arm.
-_REBIND_HELD = armflag.arm("TETHER_REBIND_HELD")
+# every term, applied to loaded ones only. WAS DEFAULT OFF like every other arm.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_REBIND_HELD = armflag.arm("TETHER_REBIND_HELD", default=True)
 
 # ARM H -- THE GUARD AXIS IN RETRIEVAL. Reviewer ruling 2026-09-21, and it is the generation half
 # of F238. `mint` walks (operand x GUARD) via `_guards(robs)`; `_rebindings` varies only the
@@ -214,7 +217,8 @@ _REBIND_HELD = armflag.arm("TETHER_REBIND_HELD")
 # appearing in that residual's own observations -- never the full action set on every lookup.
 # The playbook's lookup fires on a SETTLED CHANGE and that event carries the action that produced
 # it, so handing retrieval the observation is giving it the event it was specified to key on.
-_GUARD_AXIS = armflag.arm("TETHER_GUARD_AXIS")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_GUARD_AXIS = armflag.arm("TETHER_GUARD_AXIS", default=True)
 
 # ARM I -- DECODE THE SHAPE STAND-IN. `arc_percept` computes the normalised offset frozenset every
 # frame and publishes an episode-local INT in its place; every SHAPE atom guards on a frozenset, so
@@ -222,9 +226,10 @@ _GUARD_AXIS = armflag.arm("TETHER_GUARD_AXIS")
 # is the inverse map, built for exactly this, with zero callers. This hands it to the atoms through
 # `Ctx` and changes NOTHING about what is published: the slot value, the alphabet and the bargain's
 # inputs are untouched. RELATIONS.md calls it "a build and not a decision to revisit ... no new
-# sensor, no entry rule, no exemption". DEFAULT OFF, because it makes seven dead atoms live and
+# sensor, no entry rule, no exemption". WAS DEFAULT OFF, because it makes seven dead atoms live and
 # that moves the closure.
-_SHAPE_DECODE = armflag.arm("TETHER_SHAPE_DECODE")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_SHAPE_DECODE = armflag.arm("TETHER_SHAPE_DECODE", default=True)
 # The incremental tally in `_cannot_pay`. ON by default, OFF for the identity A/B --
 # ONE script with one flag, never two scripts.
 _TALLY = not armflag.arm("TETHER_NO_TALLY")
@@ -379,13 +384,14 @@ _NOT_ATOM = armflag.arm("TETHER_NOT_ATOM")
 # operand-reading terms when R showed no dependence on another slot LOST A CLOSING TERM.*
 # Different rule, same family. `distinct compositions must not fall` is the falsifier.
 _DELTA_OPERANDS = armflag.arm("TETHER_DELTA_OPERANDS")
-# ITEM 6, THE RE-KEY. Default OFF. `F303` measured the key BEFORE this was built: a GLOBAL frame
+# ITEM 6, THE RE-KEY. Was default OFF. `F303` measured the key BEFORE this was built: a GLOBAL frame
 # delta is saturated at every granularity that crosses boards -- types 100% of cycles, attribute
 # names 91% -- because *did ANY slot of this type move ANYWHERE* is always yes across 1,688
 # slots. Scoped to the target's OWN OBJECT it is ~3%, median 0%, with nine objects in ten
 # changing nothing. The reviewer's ordering requires this narrowing BEFORE mint's `out_type` is
 # widened: widening without narrowing is how 735 million calls arrive nowhere.
-_DELTA_KEY = armflag.arm("TETHER_DELTA_KEY")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_DELTA_KEY = armflag.arm("TETHER_DELTA_KEY", default=True)
 # THE LOOK-UP'S PARTNER ORDERING. Direction ON (the reviewer 2026-10-08 00:54Z); `0` is the A/B
 # control. Orders the operand candidates, never excludes one.
 _LOOKUP_ORDER = armflag.arm("TETHER_LOOKUP_ORDER", default=True)
@@ -417,7 +423,8 @@ _UNSEAL_START = armflag.arm("TETHER_UNSEAL_START", default=True)
 _WINDOW = armflag.arm("TETHER_WINDOW")
 # B2b's round 3 (the reviewer 2026-10-11 10:57 CDT): derived binds walked last; reason in
 # conform/arms.py under TETHER_RELATION_SET.
-_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
 # B4: the settled S7 entries (solidity / collide / obstacle) a blocked stall cues in the lookup.
 S7_SOLIDITY = ("HUMAN|Solidity", "HUMAN|Collide", "ADHERENCE|Obstacle")
 # ITEM 2b (the reviewer 19:45Z): under the window, the search runs in TWO PASSES -- every chain with
@@ -435,44 +442,51 @@ _PROMOTE_AFTER_SETTLE = True
 # conform/arms.py. A minted term's cost is paid once: reused where it RE-GROUNDS (left < base on the
 # slot's own record) it is priced on its leftover, and the library fit takes the lowest whole price.
 _CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE")
-# MC1 + MC2 (7a(4); R3; the reviewer 2026-10-10 07:57Z). OFF; reason in conform/arms.py. The signal
+# MC1 + MC2 (7a(4); R3; the reviewer 2026-10-10 07:57Z). ON; reason in conform/arms.py. The signal
 # is the TRANSITION bet row itself (ledger.signal_sign); ON, each gets exactly one resolution row
 # when its level ends (retarget) or the run ends with the level open (end_run). Record only.
-_MC_SIGNAL = armflag.arm("TETHER_MC_SIGNAL")
-# 7a(5) A + B, THE RUIN RECORD (ARC_AGENT 19.3-19.4; the reviewer 2026-10-10 10:41Z). OFF; reason in
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_MC_SIGNAL = armflag.arm("TETHER_MC_SIGNAL", default=True)
+# 7a(5) A + B, THE RUIN RECORD (ARC_AGENT 19.3-19.4; the reviewer 2026-10-10 10:41Z). ON; reason in
 # conform/arms.py. A: every ending reaches `self.term` exactly once. B: a death adds (fingerprint,
 # action, realised coordinate) to `self._vetoes`, which only grows (Fig 6). The fingerprint is the
 # world's BOARD where it gives one, else observe(), which is the whole state there (Fig 1). Record
 # only: nothing reads the vetoes until C, its own arm.
-_RUIN_RECORD = armflag.arm("TETHER_RUIN_RECORD")
-# 7a(5) C, RUIN ORDERED FIRST (R3 Part 1; the reviewer 10:41Z, 11:53Z). OFF; reason in
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_RUIN_RECORD = armflag.arm("TETHER_RUIN_RECORD", default=True)
+# 7a(5) C, RUIN ORDERED FIRST (R3 Part 1; the reviewer 10:41Z, 11:53Z). ON; reason in
 # conform/arms.py. A pair the floor vetoes on THIS board is withheld from the one choose() call,
 # at the sites below the seam where the button and coordinate are chosen, unless every option is
 # vetoed. It reads the floor, so it cannot run without it.
-_RUIN = armflag.arm("TETHER_RUIN")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_RUIN = armflag.arm("TETHER_RUIN", default=True)
 if _RUIN and not _RUIN_RECORD:
     raise RuntimeError("TETHER_RUIN reads the veto floor: it needs TETHER_RUIN_RECORD on")
-# 7a(5b) THE CONTACT INSTRUMENT (Isaiah 2026-10-10 06:46 CDT; the reviewer 11:46Z, 12:27Z). OFF;
+# 7a(5b) THE CONTACT INSTRUMENT (Isaiah 2026-10-10 06:46 CDT; the reviewer 11:46Z, 12:27Z). ON;
 # reason in conform/arms.py. Record only: `gamma_read["fed"]` names, by seq, each library term read
 # by the exit whose action is RETURNED, with its role (goal: it chose what to reach; route: its
 # prediction chose the press; body: a routine's step). Nothing decides from it (Fig 1).
-_FED = armflag.arm("TETHER_CONTACT")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_FED = armflag.arm("TETHER_CONTACT", default=True)
 # 7a D5, SPLIT A SLOT'S RESIDUAL ON STRAIN (Fig 9 :4-5, :54-58; the reviewer 2026-10-10 15:58Z).
-# OFF; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term
+# ON; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term
 # gets right from the rows it gets wrong (at least 2 each side), the slot gets two PARTS: the
 # incumbent guarded by P, and the not-P rows searched on their own. Credit per (term, part); the
 # incumbent is shadow-graded on not-P rows and a broken partition reverts the split.
-_D5 = armflag.arm("TETHER_D5")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_D5 = armflag.arm("TETHER_D5", default=True)
 # F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). ON (7.5
 # switch-on, the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. An intent guard (and
 # "no intent") costs log2(G+1) like ACTED_* does.
 _GUARD_PRICE = armflag.arm("TETHER_GUARD_PRICE", default=True)
-# 7a(6) H2, THE IN-BETWEEN FRAMES (R3 part 2; the reviewer 2026-10-10 22:14Z). OFF; reason in
+# 7a(6) H2, THE IN-BETWEEN FRAMES (R3 part 2; the reviewer 2026-10-10 22:14Z). ON; reason in
 # conform/arms.py. ON, the order objects change in inside one action gives each one a mode.
-_CASCADE_AGENCY = armflag.arm("TETHER_CASCADE_AGENCY")
-# 7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z). OFF; reason in conform/arms.py. A
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_CASCADE_AGENCY = armflag.arm("TETHER_CASCADE_AGENCY", default=True)
+# 7a(8) MC3/MC4 (R3 part 2; the reviewer 2026-10-10 22:33Z). ON; reason in conform/arms.py. A
 # reading only: the ground's record of every ending, and a plan's need read against it.
-_MC34 = armflag.arm("TETHER_MC34")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_MC34 = armflag.arm("TETHER_MC34", default=True)
 # 7a(7) TWO READINGS (R3(a); the reviewer 2026-10-10 22:30Z). ON (7.5 switch-on, 02:19Z); reason
 # in conform/arms.py.
 _TWO_READINGS = armflag.arm("TETHER_TWO_READINGS", default=True)
@@ -480,18 +494,20 @@ _TWO_READINGS = armflag.arm("TETHER_TWO_READINGS", default=True)
 # default (the reviewer 2026-10-11 02:55Z); reason in conform/arms.py. Not the retired
 # TETHER_INVENT: it names a COMPOSITION, priced by the bargain.
 _M6_INVENT = armflag.arm("TETHER_M6_INVENT", default=True)
-# 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). OFF; reason in conform/arms.py.
+# 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). ON; reason in conform/arms.py.
 # Compute only: no action, no bet, nothing installed -- a MUSE row is all it writes.
-_MC6 = armflag.arm("TETHER_MC6")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_MC6 = armflag.arm("TETHER_MC6", default=True)
 # 7e THE VIEW HOLD (Fig 12 :107-108; the reviewer 2026-10-14 00:49, 00:57). ON by default
 # (Isaiah 2026-10-14 06:07: "the library never resets"); reason in conform/arms.py. A cost
 # change only: the same views, looked up rather than re-derived. 0 is the one-flag control.
 _VIEW_HOLD = armflag.arm("TETHER_VIEW_HOLD", default=True)
 _HELD_ROLES = ("STATE", "TEST", "PROCESS", "CAUSE")   # RELATION/MEASURE filter on x (library 504)
-# (b'-q) THE INDEX HOLD (Fig 12 :107-108; the reviewer 2026-10-14 12:19, 12:23). OFF; reason in
+# (b'-q) THE INDEX HOLD (Fig 12 :107-108; the reviewer 2026-10-14 12:19, 12:23). ON; reason in
 # conform/arms.py. A held role's view is compiled ONCE per process under the placeholders and a
 # question binds its names to the result: no compile per question. A cost change only.
-_INDEX_HOLD = armflag.arm("TETHER_INDEX_HOLD")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_INDEX_HOLD = armflag.arm("TETHER_INDEX_HOLD", default=True)
 PH_O, PH_X = "PHo", "PHx"   # no id generator makes these (arc_percept 638, gridworld 225)
 _INDEX_STORE: dict = {}     # (compile_term.signature, entry, role) -> held compiles
 _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent never reads it
@@ -501,10 +517,11 @@ _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent 
 _BOUND_MEMO: dict = {}     # (atoms_token, sig, entry, role, o, x) -> bound answers
 _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 # (b'-l) THE LINEAGE HOLD, phase 1 (Fig 6, Fig 12, Fig 4; the reviewer 2026-10-14 16:29, 16:34,
-# 16:38, 17:02). OFF; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
+# 16:38, 17:02). ON; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
 # form, as the record, and never consulted by slot name on a later level; a same-level restart
 # carries it back per object where identity is sure. One attempt row per attempt.
-_LINEAGE_HOLD = armflag.arm("TETHER_LINEAGE_HOLD")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_LINEAGE_HOLD = armflag.arm("TETHER_LINEAGE_HOLD", default=True)
 # F1, THE AGENT PERCEIVES A LEVEL CLEAR (the reviewer 2026-10-15 07:32, 07:42, 07:55): the runners
 # deliver a levels_completed rise with no terminal edge as retarget(how=ADVANCE), the ending whose
 # reading is "the next board is UNKNOWN by design" (ledger ENDING_READS). Read here, used there.
@@ -525,39 +542,47 @@ _LINEAGE_CARRY = ("reach_tested", "wants", "want_terms", "undone", "undone_acros
 # objective build 1 (02:19Z); reason in conform/arms.py. Process bets about GROUND outcomes,
 # settled only at a level or game ending.
 _D13 = armflag.arm("TETHER_D13", default=True)
-# OBJECTIVE BUILD 1, THE COMPLETION SWEEP (ARC_AGENT 21.3; the reviewer 2026-10-11 02:19Z). OFF;
+# OBJECTIVE BUILD 1, THE COMPLETION SWEEP (ARC_AGENT 21.3; the reviewer 2026-10-11 02:19Z). ON;
 # reason in conform/arms.py. Record only: fires when the WORLD's objective is reached.
-_COMPLETION_SWEEP = armflag.arm("TETHER_COMPLETION_SWEEP")
-# OBJECTIVE BUILD 2, THE GOAL CONDITION (the reviewer 2026-10-11 02:19Z). OFF; reason in
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_COMPLETION_SWEEP = armflag.arm("TETHER_COMPLETION_SWEEP", default=True)
+# OBJECTIVE BUILD 2, THE GOAL CONDITION (the reviewer 2026-10-11 02:19Z). ON; reason in
 # conform/arms.py. At a completion, a condition over readings that names when the world's
 # objective holds -- the flag is the then-side, never the subject. Needs the sweep ON.
-_GOAL_CONDITION = armflag.arm("TETHER_GOAL_CONDITION")
-# OBJECTIVE BUILD 3, THE LINK TO COMPOSITION (the reviewer 2026-10-11 02:19Z, 03:14Z). OFF; reason
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_GOAL_CONDITION = armflag.arm("TETHER_GOAL_CONDITION", default=True)
+# OBJECTIVE BUILD 3, THE LINK TO COMPOSITION (the reviewer 2026-10-11 02:19Z, 03:14Z). ON; reason
 # in conform/arms.py. A held goal condition becomes one of the agent's composed objectives.
-_GOAL_LINK = armflag.arm("TETHER_GOAL_LINK")
-# OBJECTIVE BUILD 2a, THE GOAL PAIR (the reviewer 2026-10-11 05:14Z). OFF; reason in
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_GOAL_LINK = armflag.arm("TETHER_GOAL_LINK", default=True)
+# OBJECTIVE BUILD 2a, THE GOAL PAIR (the reviewer 2026-10-11 05:14Z). ON; reason in
 # conform/arms.py. A held goal condition may be the AND of two conditions, priced as one term.
-_GOAL_PAIR = armflag.arm("TETHER_GOAL_PAIR")
-# F2 (the reviewer 2026-10-11 05:38Z): ONE lookup for a slot's objective. OFF; reason in
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_GOAL_PAIR = armflag.arm("TETHER_GOAL_PAIR", default=True)
+# F2 (the reviewer 2026-10-11 05:38Z): ONE lookup for a slot's objective. ON; reason in
 # conform/arms.py. ON, _goal_target and _term_of read it as goal_residual already does.
-_WANT_TARGET = armflag.arm("TETHER_WANT_TARGET")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_WANT_TARGET = armflag.arm("TETHER_WANT_TARGET", default=True)
 # F2's fallback (the reviewer 2026-10-11 07:20Z): the target reads a retained want ONLY where it is
 # subject-scoped (a goal-condition want); every own want keeps the masked lookup. OFF; reason in
 # conform/arms.py. With TETHER_WANT_TARGET also ON, the full unmask subsumes it.
 _WANT_TARGET_SUBJECT = armflag.arm("TETHER_WANT_TARGET_SUBJECT")
 # R-dir (ii) (the reviewer 2026-10-11 10:39Z): a held routine whose live comparison now reads the
-# OPPOSITE sign to the one it was minted with ends "stale" before pressing. OFF; reason in
+# OPPOSITE sign to the one it was minted with ends "stale" before pressing. ON; reason in
 # conform/arms.py.
-_ROUTINE_STALE = armflag.arm("TETHER_ROUTINE_STALE")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_ROUTINE_STALE = armflag.arm("TETHER_ROUTINE_STALE", default=True)
 # R-dir (c) (the reviewer 2026-10-11 10:39Z): a one-slot BECOME body can change only its subject,
-# so its budget, and the count it claims, come from that subject's own gap. OFF; reason in
+# so its budget, and the count it claims, come from that subject's own gap. ON; reason in
 # conform/arms.py.
-_ROUTINE_SUBJECT_BUDGET = armflag.arm("TETHER_ROUTINE_SUBJECT_BUDGET")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_ROUTINE_SUBJECT_BUDGET = armflag.arm("TETHER_ROUTINE_SUBJECT_BUDGET", default=True)
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
 # context -- its object's signed offset from the controlled owners, read off the agent's own pair
 # slots -- two actions change it with different PURE signs. contingent()'s always/never, one level
-# down (Fig 11's second-order effect). OFF; reason in conform/arms.py.
-_DIRECTION_MOVABLE = armflag.arm("TETHER_DIRECTION_MOVABLE")
+# down (Fig 11's second-order effect). ON; reason in conform/arms.py.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_DIRECTION_MOVABLE = armflag.arm("TETHER_DIRECTION_MOVABLE", default=True)
 
 
 @dataclass(frozen=True)
@@ -703,11 +728,13 @@ def _replace_lib(lib: Any) -> Any:
 _STREAM_WIDEN = armflag.arm("TETHER_STREAM_WIDEN")
 # D2, STREAM SHARE (the reviewer 2026-10-12 05:43, 06:19 CDT): within a round, the stream that has
 # spent the least rank takes the next candidate (Fig 6: distribute the search, keep the searchers
-# independent), and a stream stops at its OWN kind's floor. OFF; reason in conform/arms.py.
-_STREAM_SHARE = armflag.arm("TETHER_STREAM_SHARE")
+# independent), and a stream stops at its OWN kind's floor. ON; reason in conform/arms.py.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_STREAM_SHARE = armflag.arm("TETHER_STREAM_SHARE", default=True)
 # PARK WANT (the reviewer 2026-10-12 08:43, 08:52 CDT): the park return wrote no unpaid want, so
-# Isaiah 09-25's retained want reached only mints where something else paid. OFF; conform/arms.py.
-_PARK_WANT = armflag.arm("TETHER_PARK_WANT")
+# Isaiah 09-25's retained want reached only mints where something else paid. ON; conform/arms.py.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_PARK_WANT = armflag.arm("TETHER_PARK_WANT", default=True)
 # ITEM 7. Default OFF: it APPENDS TO THE ATOM REGISTRY, which every term reads.
 # **THE RANDOMISED HOLD -- MEASUREMENT ONLY, the reviewer 2026-10-03 ruling 3.** Withholds
 # the `ACTED_SELF` offer on a seeded ~half of ELIGIBLE occasions so a measurement run carries
@@ -720,7 +747,7 @@ _HOLD_SEED = os.environ.get("TETHER_HOLD_SEED", "0")
 # `_INVENT` / `_invent` REMOVED -- Isaiah 2026-10-04, *a bootleg composition*; RETIRED means
 # gone. Why, measured: `F431.6`. `conform/arms.py` `RETIRED` refuses the flag if it returns.
 
-# ARM M -- PERTURB THE STARVED SLOT, IN PARALLEL. SEAT-SIDE SWITCH, DEFAULT OFF.
+# ARM M -- PERTURB THE STARVED SLOT, IN PARALLEL. SEAT-SIDE SWITCH, DEFAULT ON.
 # `F269`'s table is the premise: on sk48 all seven probes fire in cycles 1-7 and all seventeen
 # `no_support` parks land in 16-18, so NO PROBE FOLLOWS ANY OF THEM. `bored()` is true EARLY,
 # when almost nothing is bound and there is nothing to perturb FOR, and false LATE, which is
@@ -731,7 +758,8 @@ _HOLD_SEED = os.environ.get("TETHER_HOLD_SEED", "0")
 # PROGRESS, like systems 1 and 2 happening IN PARALLEL ... CONTACT is the main mode.* So a
 # starved slot does not wait for the board to go quiet -- and the STARVED SET IS THE SWITCH,
 # no counter and no quota, exactly as the unexplored-contact count is System 0's.
-_STARVED_CONTACT = armflag.arm("TETHER_STARVED_CONTACT")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_STARVED_CONTACT = armflag.arm("TETHER_STARVED_CONTACT", default=True)
 
 # THE SATISFACTION PREDICATE'S SPELLING, AND IT EXISTS BECAUSE OF AN `A6i` OF MINE.
 # `condition.py`'s grammar is `expr := INSTRUMENT(args) | SLOT | NUMBER` -- **a bare SLOT is an

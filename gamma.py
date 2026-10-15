@@ -344,9 +344,9 @@ class Atom:
 # THE CODE PRIMITIVES, BUILT ONCE PER PROCESS (the reviewer 2026-10-15 06:10, 06:13, 06:56; Isaiah
 # 06:13 "the atoms that we have are built permanently"). These are the LETTERS the library's 4,048
 # atoms are compiled onto (52 on ARC at default arms, 63 under _ITERATE), not the library atoms.
-# restriction: default OFF until the end-of-step-7 checklist; required by Isaiah 2026-10-15 05:25
-# (the culprit switch), not by doubt. OFF, every builder's list is returned unchanged.
-_ATOMS_ONCE = armflag.arm("TETHER_ATOMS_ONCE")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+# OFF, every builder's list is returned unchanged.
+_ATOMS_ONCE = armflag.arm("TETHER_ATOMS_ONCE", default=True)
 _PRIMITIVES: dict[str, tuple] = {}   # content token -> the one built tuple of code primitives
 _PRIMITIVES_REFUSED: dict[str, int] = {"no_source": 0}   # sets whose token could not be read
 

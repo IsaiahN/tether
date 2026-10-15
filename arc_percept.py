@@ -34,15 +34,16 @@ import armflag
 
 sys.dont_write_bytecode = True
 
-# THE OBSERVER ARM, SEAT-SIDE SWITCH, DEFAULT OFF -- the same switch `arc_world` reads.
+# THE OBSERVER ARM, SEAT-SIDE SWITCH, DEFAULT ON -- the same switch `arc_world` reads.
 # Item 1 clause 1 lives behind it here: the rest of the corpus's cheap mutation set,
 # `observer._MUT_ATTR`'s `dh dw dcells recolour`, carried PER OBJECT rather than
 # counted. Its `recolour` is published here as `colour_changed`: `observer` is SEAT-SIDE
 # and its key never enters the agent's registry, where `recolour` is already taken.
 # aggregated to a count (`F165`).
-_OBSERVER = armflag.arm("TETHER_OBSERVER")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_OBSERVER = armflag.arm("TETHER_OBSERVER", default=True)
 
-# THE SHAPE-DELTA ARM, DEFAULT OFF. `dholes`/`dperimeter`: how a matched object's CELL-SET
+# THE SHAPE-DELTA ARM, DEFAULT ON. `dholes`/`dperimeter`: how a matched object's CELL-SET
 # quantities moved frame-to-frame. The reviewer cleared these on one test and it is worth
 # keeping at the site -- **no atom accepts `OBJECT_BEFORE`.** It reaches exactly two SENSORS
 # (`overlap`, `delta`) and zero atoms, so the agent cannot get at the previous object and
@@ -59,25 +60,28 @@ _OBSERVER = armflag.arm("TETHER_OBSERVER")
 # PAIRS WITH ARM I RATHER THAN STANDING ALONE: the `holes` and `perimeter` ATOMS only resolve
 # when `TETHER_SHAPE_DECODE` is on, so with arm I off the agent reads a delta of a quantity it
 # cannot itself measure. Both arms belong on together; that is a measurement, not a default.
-_SHAPE_DELTA = armflag.arm("TETHER_SHAPE_DELTA")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_SHAPE_DELTA = armflag.arm("TETHER_SHAPE_DELTA", default=True)
 
-# THE CELL-CHANGE ARM, DEFAULT OFF (the reviewer, 2026-10-07; INDEX F492). WHERE a matched object's
+# THE CELL-CHANGE ARM, DEFAULT ON (the reviewer, 2026-10-07; INDEX F492). WHERE a matched object's
 # cells changed since the last frame: the cells added and removed, each as a count (EXTENT -- the
 # type set has no COUNT, see `contact`) and a centroid (POSITION, floor of the mean). The shape id
 # names a new outline and says nothing of WHERE it differs, so a contained object's move reaches
 # its container only as a fresh name. Read only where `identity_of` is sure; otherwise unknown.
-_CELL_CHANGE = armflag.arm("TETHER_CELL_CHANGE")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_CELL_CHANGE = armflag.arm("TETHER_CELL_CHANGE", default=True)
 _CHANGE_ATTRS = ("add_n", "add_row", "add_col", "rem_n", "rem_row", "rem_col")
 
-# THE EMBEDDED INSTRUMENT SET, DEFAULT OFF -- Part 12 item 3, Isaiah: *"we can't have the
+# THE EMBEDDED INSTRUMENT SET, DEFAULT ON -- Part 12 item 3, Isaiah: *"we can't have the
 # agent waste time reinventing gravity."* Distance, speed, persistence and the rest are PAID
 # BILLS, available from frame 0 rather than derived at runtime.
 #
 # `age` IS THE FIRST AND IT UNBLOCKS SIX OF THE ELEVEN, because they were all waiting on the
-# same absent quantity rather than on six mechanisms. Default OFF because a new published
+# same absent quantity rather than on six mechanisms. Was default OFF because a new published
 # attribute widens the slot set, and §12.12 prices that in EPISODES FORGONE before it is
 # defaulted on -- 26s an action buys 4-9 episodes in the whole competition window.
-_INSTRUMENTS = armflag.arm("TETHER_INSTRUMENTS")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_INSTRUMENTS = armflag.arm("TETHER_INSTRUMENTS", default=True)
 
 
 def as_index_grid(frame: Any) -> list[list[int]] | None:

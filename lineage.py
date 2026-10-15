@@ -30,12 +30,12 @@ import armflag
 import gamma
 import sensors
 
-_CARRY = armflag.arm("TETHER_LINEAGE_CARRY")   # _UPPER, so the @run header records it
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_CARRY = armflag.arm("TETHER_LINEAGE_CARRY", default=True)   # _UPPER, so the @run header records it
 # THE BOUNDARY WRITE (the reviewer 2026-10-15 06:46, 07:23, 07:32; Isaiah 06:20): under the carry,
 # a generation at every level clear and death too, so a stop loses at most the current level.
-# restriction: default OFF until the end-of-step-7 checklist; required by Isaiah 2026-10-15 05:25
-# (each feature behind its own arm), not by doubt.
-_BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
 PREFIX = "gen_"
 
 
