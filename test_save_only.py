@@ -38,6 +38,10 @@ def _run(tmp: Path, name: str, save_only_dir: str | None = None) -> tuple[dict, 
 
 
 def main() -> None:
+    import tether
+    # C-seed-X (the reviewer 2026-10-15 15:27): two separately born agents compared, so one
+    # temperament: the old constant seed, a replay-style constant inside a test
+    tether._AGENT_SEED = False
     with tempfile.TemporaryDirectory() as t:
         tmp = Path(t)
         so = tmp / "saves"

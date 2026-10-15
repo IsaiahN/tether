@@ -314,6 +314,10 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
            "book": {k: v for k, v in blob["book"].items() if base["book"].get(k) != v},
            "invented": {n: r for n, r in blob["invented"].items() if n not in base["invented"]},
            "dormant": dormant, "dormant_refused": refused}
+    # the being's seed and the generation it lived (HOLD_SEED, the reviewer 15:04), so the next
+    # process continues it and a replay can read it; OFF writes neither, as before
+    if getattr(ag, "seed_source", "constant") != "constant":
+        gen["seed"], gen["generation"] = ag.seed, ag.generation
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
@@ -367,9 +371,13 @@ def load(d: str | Path, ag: Any) -> dict:
     ag.gamma.keep_evidence = True
     if h is None:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
+    chain = _chain(Path(d))
+    # the being's seed BEFORE anything is installed, so a handle the load mints is minted under
+    # the seed a replay will read (F-a, the reviewer 2026-10-15 15:23)
+    if hasattr(ag, "_seed_from_lineage"):
+        ag._seed_from_lineage({g["seed"] for _, g in chain if g.get("seed")}, len(chain), h)
     rep = ag.gamma.load_blob({"terms": f["terms"], "invented": f["invented"],
                               "vindication": f["vindication"], "book": f["book"]}, parent=h)
-    chain = _chain(Path(d))
     return {"parent": h, **rep, "index": load_index(d, ag, chain),
             "memo": load_memo(d, ag, chain), "slot_memo": load_bs(d, ag, chain),
             "asked": load_ak(d, ag, chain)}

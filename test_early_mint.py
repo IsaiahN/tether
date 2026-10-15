@@ -60,6 +60,9 @@ def _bare(rows: list[dict]) -> list[tuple]:
 
 
 if __name__ == "__main__":
+    # C-seed-X (the reviewer 2026-10-15 15:27): two separately born agents compared, so one
+    # temperament: the old constant seed, a replay-style constant inside a test
+    tether._AGENT_SEED = False
     new, formed = _run(old=False)
     old, formed_old = _run(old=True)
     assert formed >= 1 and formed == formed_old, (formed, formed_old)

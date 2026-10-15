@@ -379,6 +379,10 @@ class Interface:
     the agent built. **This table starts empty on every board and is filled only by acting.**
     """
 
+    # the being's seed, set by the agent at birth (HOLD_SEED, the reviewer 15:04 Q3: one animal);
+    # None is the old constant
+    draw_seed: str | None = None
+
     def __init__(self) -> None:
         self.pre = Preconditions()       # section 16.8 sensor 2; below the seam since 2026-10-05
         # THE AGENT'S CHOICE WHEN NOTHING IS UNKNOWN HERE (F480): handed the KNOWN effects, never
@@ -721,7 +725,8 @@ class Interface:
                 a, by, _f = FR.frontier_pick(
                     [(b, None, None) for b in band], {b: rank.get(b, 0) for b in band},
                     {b: len(self.table.get(b, {}).get("by_ctx", {}).get(ctx, ())) for b in band},
-                    f"pick:{self.audits}:{ctx!r}")    # the interface's own press count, read
+                    f"pick:{self.audits}:{ctx!r}",    # the interface's own press count, read
+                    self.draw_seed)
                 self.pick_by[by] += 1
                 return a
             return max(band, key=lambda a: (rank.get(a, 0), -band.index(a)))
@@ -765,7 +770,7 @@ class Interface:
                         aim, by, _f = FR.frontier_pick(
                             [(c, None, None) for c in here], {c: int(c == at) for c in here},
                             {c: len(self.aimed_effect.get(c, ())) for c in here},
-                            f"aim_gap:{self.audits}:{ctx!r}:{intent.subject}")
+                            f"aim_gap:{self.audits}:{ctx!r}:{intent.subject}", self.draw_seed)
                         self.pick_by[by] += 1
                     return Realisation(a, coord=aim, unmapped=(a not in self.table),
                                        why=f"{why}, aimed at {aim} where its effect here "

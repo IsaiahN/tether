@@ -212,7 +212,9 @@ def _restart_row(drive):
 
 def _child(extra: dict, label: str) -> None:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-    env.update(extra, TETHER_LINEAGE_HOLD="1", LINEAGE_ENV=label)
+    # C-seed-X (the reviewer 2026-10-15 15:27): RL-3 compares two separately born agents, so
+    # one temperament, the old constant seed
+    env.update(extra, TETHER_LINEAGE_HOLD="1", LINEAGE_ENV=label, TETHER_AGENT_SEED="0")
     r = subprocess.run([sys.executable, "-B", __file__, "--on"], cwd=os.getcwd(), env=env,
                        stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)
     sys.stdout.write(r.stdout)

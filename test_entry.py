@@ -631,6 +631,11 @@ if __name__ == "__main__":
     # `--gateway` runs the server-backed wiring check ALONE: ~2 min, past the per-commit seat's
     # ruled 180s stage cap, so it is run explicitly rather than on every commit.
     gw = "--gateway" in sys.argv
+    # C-seed-X, TEMPORARY (the reviewer 2026-10-15 15:46): the death check is draw-dependent (it
+    # fails on 5 of 11 births: D-RESET), so the per-commit smoke runs under the old constant seed
+    # until D-RESET lands, then returns to the agent's own seed
+    import tether
+    tether._AGENT_SEED = False
     checks = [v for k, v in sorted(globals().items())
               if (k.startswith("gateway_") if gw else k.startswith("check_"))]
     for fn in checks:

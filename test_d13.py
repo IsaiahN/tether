@@ -80,6 +80,9 @@ def _agent():
 
 
 if __name__ == "__main__":
+    # C-seed-X (the reviewer 2026-10-15 15:27): two separately born agents compared, so one
+    # temperament: the old constant seed, a replay-style constant inside a test
+    tether._AGENT_SEED = False
     tether.Agent.__init__ = _init
     tether.Agent._settle_process = _guarded
     for seed in (5, 7):

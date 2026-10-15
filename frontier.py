@@ -16,13 +16,13 @@ A reading is a number or None. `by` names the step that left exactly one option.
 from __future__ import annotations
 
 import hashlib
-import os
 import sys
 
 sys.dont_write_bytecode = True
 
-# the hold's seed; HOLD_SEED's item makes it the agent's
-SEED = os.environ.get("TETHER_HOLD_SEED", "0")
+# THE OFF VALUE (TETHER_AGENT_SEED=0): the constant every run drew with before the agent drew its
+# own. ON, each caller passes the agent's seed (HOLD_SEED, the reviewer 2026-10-15 14:56, 15:04).
+SEED = "0"
 BY = ("gate", "frontier", "residual", "learning", "draw")
 
 
@@ -31,15 +31,17 @@ def _beats(a: tuple, b: tuple) -> bool:
     return bool(ax) and all(x <= y for x, y in ax) and any(x < y for x, y in ax)
 
 
-def draw_key(key: str, name) -> int:
+def draw_key(key: str, name, seed: str | None = None) -> int:
     """The recorded draw as a SORT POSITION, for a stream that is walked rather than picked from
     (A1 group 2, sites 4, 6-8): the same seed and hash as the pick's draw, one value per item, so a
     run tied on every reading is ordered by the draw, never by a name or a list position."""
-    h = hashlib.blake2b(f"{SEED}:{key}:{name!r}".encode(), digest_size=8).digest()
+    s = SEED if seed is None else seed
+    h = hashlib.blake2b(f"{s}:{key}:{name!r}".encode(), digest_size=8).digest()
     return int.from_bytes(h, "big")
 
 
-def frontier_pick(options: list, residual: dict | None, seen: dict | None, key: str) -> tuple:
+def frontier_pick(options: list, residual: dict | None, seen: dict | None, key: str,
+                  seed: str | None = None) -> tuple:
     """options: (name, bits, actions). Returns (name, by, frontier names). An empty list is
     refused by name: there is nothing to choose, and the caller must not ask."""
     if not options:
@@ -61,5 +63,6 @@ def frontier_pick(options: list, residual: dict | None, seen: dict | None, key: 
         if len(pool) == 1:
             return pool[0], step, front
     pool = sorted(pool, key=repr)
-    h = hashlib.blake2b(f"{SEED}:{key}:{pool!r}".encode(), digest_size=8).digest()
+    s = SEED if seed is None else seed
+    h = hashlib.blake2b(f"{s}:{key}:{pool!r}".encode(), digest_size=8).digest()
     return pool[int.from_bytes(h, "big") % len(pool)], "draw", front

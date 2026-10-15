@@ -56,6 +56,7 @@ print("OUT " + json.dumps({{"load": rep, "parent": lin.get("parent"),
 def _child(mode: str, d: Path) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env["TETHER_CARRY_RECORD"] = "0"   # S1g: tests the bm_/bs_ carry the asked record replaces
+    env["TETHER_AGENT_SEED"] = "0"     # C-seed-X: two writers' folders compared, one temperament
     r = subprocess.run([sys.executable, "-B", "-c", CHILD.format(mode=mode, d=str(d))], env=env,
                        capture_output=True, text=True, check=False, stdin=subprocess.DEVNULL)
     assert r.returncode == 0, f"{mode} failed:\n{r.stderr[-3000:]}"

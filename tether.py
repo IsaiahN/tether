@@ -679,24 +679,25 @@ def _floor_champion(by_kind: dict, kind: str, best, share: bool):
     return by_kind.get(kind) if share else best
 
 
-def _next_stream(live: list, spent: dict, share: bool, key: str | None = None) -> int:
+def _next_stream(live: list, spent: dict, share: bool, key: str | None = None,
+                 seed: str | None = None) -> int:
     """D2: the stream that takes the next candidate. OFF: the first live stream, which is the old
     sequence (each stream to exhaustion before the next). ON: the least rank spent this round,
     ties to list order; under TETHER_A1_STREAM (site 4) an exact tie goes to the recorded draw,
     never to the list order. No share, weight or quota."""
     if share and key is not None:
-        return min(live, key=lambda s: (spent[s], FR.draw_key(key, s)))
+        return min(live, key=lambda s: (spent[s], FR.draw_key(key, s, seed)))
     return min(live, key=lambda s: (spent[s], s)) if share else live[0]
 
 
-def _merge_by_depth(lib_chains: list, closure, evidence: dict, key: str):
+def _merge_by_depth(lib_chains: list, closure, evidence: dict, key: str, seed: str | None = None):
     """A1 site 6 (the reviewer 2026-10-15 09:05 U3, 14:23): the library's chains enter the closure's
     own walk order (shortest first) at their own depth, never all ahead of it. Within a depth,
     evidence (the entries that offered the chain) orders a library chain ahead of the closure's,
     which carry none; library chains tied on depth and evidence go by the recorded draw. Nothing is
     enumerated twice: the closure is walked once, as before."""
     pend = sorted(lib_chains, key=lambda c: (len(c.atoms), -evidence.get(c.name, 0),
-                                             FR.draw_key(key, c.name)))
+                                             FR.draw_key(key, c.name, seed)))
     i = 0
     for c in closure:
         while i < len(pend) and len(pend[i].atoms) <= len(c.atoms):
@@ -706,7 +707,7 @@ def _merge_by_depth(lib_chains: list, closure, evidence: dict, key: str):
     yield from pend[i:]
 
 
-def _lookup_order(names: list, comp: dict, dk: str, evidence=None) -> list:
+def _lookup_order(names: list, comp: dict, dk: str, evidence=None, seed=None) -> list:
     """A1 sites 7-8 (the reviewer 2026-10-15 14:23, 14:27): the shape's order over operand slots.
     comp[s] = (contact, derived, library evidence, distinct values over the failing frames): the
     residual GATE (in contact with the open slot's owner, 0 first), the ACTIONS walk (a derived
@@ -716,7 +717,7 @@ def _lookup_order(names: list, comp: dict, dk: str, evidence=None) -> list:
     def ev(s):
         return comp[s][2] if evidence is None else evidence(s)
     return sorted(names, key=lambda s: (comp[s][0], comp[s][1], -ev(s), -comp[s][3],
-                                        FR.draw_key(dk, s)))
+                                        FR.draw_key(dk, s, seed)))
 
 
 class _PricedDomain(frozenset):
@@ -735,7 +736,7 @@ def _priced_hit(evaluate, current: int, ordered: bool, dom: _PricedDomain):
     Values at one distance are tied, and the recorded draw decides, never the lower value (F1,
     the reviewer 2026-10-15 14:42; TIES: never a position)."""
     def dk(v):
-        return FR.draw_key(dom.key, v)
+        return FR.draw_key(dom.key, v, getattr(dom, "seed", None))
     walk = sorted(dom, key=(lambda v: (abs(v - current), dk(v))) if ordered else dk)
     shown = next((v for v in walk if v != current and evaluate(v)), None)
     if shown is not None and not ordered:
@@ -757,7 +758,7 @@ def _priced_hit(evaluate, current: int, ordered: bool, dom: _PricedDomain):
     opts = [(shown, 0.0, abs(shown - current)),
             (unseen, math.log2(n) if n > 1 else 0.0, abs(unseen - current))]
     pick, by, front = FR.frontier_pick(opts, None, {shown: dom.counts.get(shown, 0), unseen: 0},
-                                       dom.key)
+                                       dom.key, getattr(dom, "seed", None))
     if dom.note is not None:
         dom.note(opts, pick, by, front)
     return pick
@@ -908,7 +909,49 @@ _PARK_WANT = armflag.arm("TETHER_PARK_WANT", default=True)
 # is offered is an instrument, not a capability, and leaving it on would make every later
 # reading a reading of the instrument.
 _HOLD = armflag.arm("TETHER_HOLD")
-_HOLD_SEED = os.environ.get("TETHER_HOLD_SEED", "0")
+# THE SEED IS THE AGENT'S (HOLD_SEED; the reviewer 2026-10-15 14:56, 15:04): drawn at birth from
+# the OS's entropy, recorded in the run header and the lineage, carried by a lineage (the same
+# being, Isaiah 10-14) with its generation index so a continued life does not replay its day, and
+# read back from a record for a replay (TETHER_SEED_FROM names the record, never a seed). Fig 10
+# :72-74 "the pool must be unauthored first and examined second". OFF: "0", as before.
+_AGENT_SEED = armflag.arm("TETHER_AGENT_SEED", default=True)
+
+
+def _seed_from_record(path: str) -> dict:
+    """A replay's seed and generation, READ from the record a run wrote: a ledger (the last @run
+    row carrying a seed) or a lineage generation. Nothing is chosen here, and a record that
+    carries no seed is refused by name; no constant stands in."""
+    from pathlib import Path
+    raw = Path(path).read_bytes()
+    tag = f"replay:{hashlib.sha256(raw).hexdigest()[:16]}"
+    text = raw.decode("utf-8")
+    if path.endswith(".jsonl"):
+        rows = [json.loads(ln) for ln in text.splitlines() if ln.strip()]
+        got = [r["detail"] for r in rows if r.get("slot") == "@run"
+               and (r.get("detail") or {}).get("seed_source", "constant") != "constant"]
+    else:
+        g = json.loads(text)
+        got = [g] if g.get("seed") is not None else []
+    if not got:
+        raise ValueError(f"TETHER_SEED_FROM={path}: the record carries no seed of the agent's; "
+                         "nothing is substituted")
+    return {"seed": got[-1]["seed"], "generation": int(got[-1].get("generation") or 0),
+            "seed_source": tag}
+
+
+def _seed_at_birth() -> dict:
+    """The agent's seed when it is made: OFF the old constant; a replay reads its record; else a
+    fresh draw from the OS that nothing of ours picks."""
+    if "TETHER_HOLD_SEED" in os.environ:
+        raise ValueError("TETHER_HOLD_SEED is retired (the reviewer 2026-10-15 15:04): the seed "
+                         "is the agent's; a replay names a record with TETHER_SEED_FROM")
+    if not _AGENT_SEED:
+        return {"seed": FR.SEED, "generation": 0, "seed_source": "constant"}
+    src = os.environ.get("TETHER_SEED_FROM")
+    if src:
+        return _seed_from_record(src)
+    import secrets
+    return {"seed": secrets.token_hex(8), "generation": 0, "seed_source": "birth"}
 
 # `_INVENT` / `_invent` REMOVED -- Isaiah 2026-10-04, *a bootleg composition*; RETIRED means
 # gone. Why, measured: `F431.6`. `conform/arms.py` `RETIRED` refuses the flag if it returns.
@@ -1628,10 +1671,13 @@ class Agent:
         # THE RUN HEADER: which arms this agent runs with, read from the live module values,
         # ONCE, before any step (the reviewer 2026-10-08 18:56Z; F424). Its own slot, so the
         # per-(cycle, slot) step order the gate checks cannot see it displace a PLAN row.
+        self._set_seed(**_seed_at_birth())
         if len(self.led) == 0:
             arms = I.Attribution.arms()
             self.led.record(0, "PLAN", "@run", "arms", on=arms["on"], off=arms["off"],
                             modules=arms["modules"], not_loaded=arms["not_loaded"],
+                            seed=self.seed, generation=self.generation,
+                            seed_source=self.seed_source,
                             **I.Attribution.code(), **I.Attribution.run(env, gam))
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
@@ -4385,6 +4431,7 @@ class Agent:
         # neighbour or an unseen value 0 (a per-value frequency is 7h's, named)
         out = _PricedDomain(dom)
         out.alpha, out.key = alpha, f"{self.cycle}:{slot}:objective_domain"
+        out.seed = self.draw_seed
         out.counts = {v: 1 for v, at in first.items() if at <= n and 0 <= v < alpha}
         out.note = partial(self._domain_row, slot)
         return out
@@ -7314,7 +7361,7 @@ class Agent:
         """A1-CONVERT's A2 row: frontier_pick over the agent's own readings, recorded with the
         frontier's readings, the residual and learning readings, the pick and its step."""
         pick, by, front = FR.frontier_pick(options, residual, seen,
-                                           f"{self.cycle}:{site}:{slot}")
+                                           f"{self.cycle}:{site}:{slot}", self.draw_seed)
         fr = set(front)
         self.led.record(self.cycle, "PLAN", slot or "@choice", "choice", site=site,
                         options=len(options),
@@ -8855,6 +8902,31 @@ class Agent:
             refs.add(own)
         return sorted(refs)
 
+    def _set_seed(self, seed: str, generation: int, seed_source: str) -> None:
+        """One seed for the being: the mind's draws, the interface's and the minted handles. ON, the
+        draw seed carries the generation index, so a continued life does not replay its day (the
+        reviewer 15:04 Q1); OFF, it is the old constant exactly."""
+        self.seed, self.generation, self.seed_source = seed, generation, seed_source
+        self.draw_seed = seed if seed_source == "constant" else f"{seed}:{generation}"
+        self.iface.draw_seed = self.draw_seed
+        self.gamma.draw_seed = None if seed_source == "constant" else self.draw_seed
+
+    def _seed_from_lineage(self, seeds: set, n: int, tip: str) -> None:
+        """The same being, continued (the reviewer 15:04 Q1): the lineage's seed and its length as
+        the generation index. A replay already carries both, and OFF has no seed to carry. A chain
+        carrying no seed (written before HOLD_SEED) or more than one keeps the birth seed, and says
+        so in the row."""
+        if self.seed_source == "constant" or self.seed_source.startswith("replay:"):
+            return
+        if len(seeds) == 1:
+            seed, src = next(iter(seeds)), f"lineage:{tip}"
+        else:
+            seed, src = self.seed, ("birth; the lineage carries no seed" if not seeds else
+                                    f"birth; the lineage carries {len(seeds)} seeds")
+        self._set_seed(seed, n, src)
+        self.led.record(0, "PLAN", "@run", "seed", seed=seed, generation=n, seed_source=src,
+                        lineage_seeds=sorted(seeds))
+
     def _held_now(self, slot: str | None) -> bool:
         """Is THIS eligible occasion in the withheld half? Seeded, so a run replays.
 
@@ -8862,7 +8934,7 @@ class Agent:
         and a row whose treatment cannot be reconstructed is a row that cannot be checked.
         """
         import hashlib
-        key = f"{_HOLD_SEED}:{self.cycle}:{slot}".encode()
+        key = f"{self.draw_seed}:{self.cycle}:{slot}".encode()
         return hashlib.blake2b(key, digest_size=8).digest()[0] < 128      # ~0.5
 
     def _operand_fits(self, cand, target: str, bind: str | None) -> bool:
@@ -8981,7 +9053,7 @@ class Agent:
             dk = f"{self.cycle}:{slot}:lookup_order"
             comp = {s: (rank(s)[0], s in _der, len(lib.get(s, ())), seen[s]) for s in others}
             self._bind_key[slot] = (dk, comp)
-            out = [None] + _lookup_order(others, comp, dk)
+            out = [None] + _lookup_order(others, comp, dk, seed=self.draw_seed)
         else:
             out = [None] + sorted(others, key=lambda s: (s in _der, *rank(s), s not in lib,
                                                          -seen[s], s))
@@ -9259,7 +9331,8 @@ class Agent:
                 _clo = (c for c in self.gamma.enumerate_closure(
                             in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit)
                         if c.name not in _lf_names)
-                _stream = (_merge_by_depth(_lf, _clo, _lf_ev, f"{self.cycle}:{slot}:library:{_si}")
+                _stream = (_merge_by_depth(_lf, _clo, _lf_ev, f"{self.cycle}:{slot}:library:{_si}",
+                                           self.draw_seed)
                            if _A1_LIBRARY else itertools.chain(_lf, _clo))
                 if _round > 1:
                     _walk_these = ((c, _round) for c in _rec2.get(_si, ()))
@@ -9297,7 +9370,8 @@ class Agent:
                         break
                     _ns_calls += 1
                     _si = _next_stream(_live, _spent, _STREAM_SHARE,
-                                       f"{self.cycle}:{slot}:stream_share" if _A1_STREAM else None)
+                                       f"{self.cycle}:{slot}:stream_share" if _A1_STREAM else None,
+                                       self.draw_seed)
                     if _si not in _open:
                         _open[_si] = _stream_open(_si, _round)
                     kind, st, _walker = _open[_si]
@@ -9348,7 +9422,8 @@ class Agent:
                         _dk = f"{_dk}:{cand.name}"
                         _of = frozenset(_lf_first)
                         _in = _lookup_order([x for x in binds if x in _cp], _cp, _dk,
-                                            evidence=lambda x, _o=_of: int(x in _o))
+                                            evidence=lambda x, _o=_of: int(x in _o),
+                                            seed=self.draw_seed)
                         _it = iter(_in)
                         binds = [next(_it) if x in _cp else x for x in binds]
                     elif _lf_first:                              # the offered operands first

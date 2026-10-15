@@ -164,6 +164,11 @@ ARMS: dict[str, str] = {
                           "set and §12.12 prices that in EPISODES FORGONE"
                           ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
                           "the record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_AGENT_SEED": "HOLD_SEED (the reviewer 2026-10-15 14:56, 15:04): the agent draws its "
+                         "own seed at birth from the OS, records it (run header, lineage), "
+                         "carries it through its lineage with the generation index, and every "
+                         "draw (mind, interface, minted handles) uses it. default ON (Isaiah "
+                         "2026-10-15 07:53); OFF is the old constant 0",
     "TETHER_HOLD": "THE RANDOMISED HOLD -- MEASUREMENT ONLY, the reviewer 2026-10-03 "
                    "ruling 3. Withholds the ACTED_SELF offer on a seeded ~half of "
                    "ELIGIBLE (cycle, slot) occasions so a measurement run carries its "
@@ -782,8 +787,8 @@ def defaults_on(texts: dict[str, str] | None = None) -> dict[str, str]:
     `texts` ({path: text}) stands in for the tracked files, for the selftest.
 
     **A VALUE IS NOT A SWITCH** (the reviewer 2026-10-14 06:49, 2026-10-15 14:56): a name in
-    `VALUES` is skipped, because its default is data -- `TETHER_HOLD_SEED`'s "0" is a seed, and
-    a non-empty string evaluates true, so it was counted ON.
+    `VALUES` is skipped, because its default is data -- `TETHER_HOLD_SEED`'s "0" (retired since
+    HOLD_SEED) was a seed, and a non-empty string evaluates true, so it was counted ON.
 
     Keyed on the ARM NAME IN THE LINE, not on the module variable, because the inverted
     spellings deliberately differ (`_TALLY` <- `TETHER_NO_TALLY`). Read from the code like
@@ -826,9 +831,9 @@ _NO_ENV = type("armflag", (), {"arm": staticmethod(lambda _name, default=False: 
 
 # VALUES, NOT SWITCHES: read raw because they are not on/off. Data, so a new one is a visible
 # edit here rather than a quiet exemption in logic.
-VALUES = {"TETHER_HOLD_SEED": "the hold-out seed, an integer, so the withheld pattern is "
-                              "REPRODUCIBLE and a row can be replayed (moved here from ARMS: "
-                              "a value is not a switch, the reviewer 2026-10-15 15:04)"}
+VALUES = {"TETHER_SEED_FROM": "a REPLAY: the path of a record (a ledger or a lineage generation) "
+                              "whose recorded seed and generation the agent reads; never a seed "
+                              "value (HOLD_SEED, the reviewer 2026-10-15 15:04)"}
 _RAW = re.compile(r'''os\.environ(?:\.get\(\s*|\[\s*)["'](TETHER_[A-Z0-9_]+)["']''')
 
 
@@ -916,7 +921,7 @@ def zero_is_off() -> list[str]:
         del os.environ["TETHER_ARMFLAG_PROBE"]
     plant = {"planted.py": '_X = bool(os.environ.get("TETHER_PLANTED"))\n'
                            'os.environ["TETHER_PLANTED"] = "1"\n'
-                           '_S = os.environ.get("TETHER_HOLD_SEED", "0")\n'}
+                           '_S = os.environ.get("TETHER_SEED_FROM", "0")\n'}
     hit = bypasses(plant)
     if len(hit) != 1 or "TETHER_PLANTED" not in hit[0]:
         bad.append(f"BYPASS      UNWITNESSED: planted raw read gave {hit} (want one finding; "
@@ -1059,15 +1064,15 @@ def selftest() -> dict[str, str]:
 
     # G -- A VALUE IS NOT A SWITCH: a VALUES name whose default is a truthy string ("0") must
     # not count as ON; and the control, a switch spelled the same way, must.
-    got = defaults_on({"x.py": '_HS = os.environ.get("TETHER_HOLD_SEED", "0")\n'
+    got = defaults_on({"x.py": '_HS = os.environ.get("TETHER_SEED_FROM", "0")\n'
                                '_X = os.environ.get("TETHER_X", "1") != "0"\n'})
-    out["G value"] = ("ok" if "TETHER_HOLD_SEED" not in got
+    out["G value"] = ("ok" if "TETHER_SEED_FROM" not in got
                       else "UNWITNESSED (a value's truthy default counted as ON)")
     out["G control"] = ("ok" if got.get("TETHER_X") == "x.py:2"
                         else f"UNWITNESSED (a default-ON switch was not seen: {got})")
-    sw = sites({"x.py": '_HS = os.environ.get("TETHER_HOLD_SEED", "0")\n'
+    sw = sites({"x.py": '_HS = os.environ.get("TETHER_SEED_FROM", "0")\n'
                         '_X = os.environ.get("TETHER_X", "1") != "0"\n'})
-    out["G switches"] = ("ok" if "TETHER_HOLD_SEED" not in sw
+    out["G switches"] = ("ok" if "TETHER_SEED_FROM" not in sw
                          and sw.get("TETHER_X") == ["x.py:2"]
                          else f"UNWITNESSED (a value counted as a switch, or the switch "
                               f"missed: {sw})")
@@ -1083,6 +1088,10 @@ RETIRED = {
                        "not used. F386: met goals undone 4/6/10 ON vs 0/0/0 OFF; F425: its "
                        "one caller never ran on click worlds. Intent covered by _goal_choice, "
                        "both spellings and cascade agency.",
+    "TETHER_HOLD_SEED": "the reviewer 2026-10-15 15:04 (HOLD_SEED Q2): a seed-valued input is "
+                        "a route to forcing the seed; the seed is the agent's, drawn at birth "
+                        "and recorded, and a replay names a record (TETHER_SEED_FROM). Setting "
+                        "it is refused by name at the agent's birth.",
 }
 
 

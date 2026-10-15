@@ -491,7 +491,7 @@ class Term:
     def reads_operand(self) -> bool:
         return any(a.reads_operand for a in self.atoms)
 
-    def handle(self, game: str) -> str:
+    def handle(self, game: str, seed: str | None = None) -> str:
         """`{game}_{INITIALS}_{kind}_{suffix}` -- PROVENANCE, assigned by the system.
 
         **The letters are the first letter of each atom IN COMPOSITION ORDER**, so the handle
@@ -536,7 +536,14 @@ class Term:
         # the handle.
         #
         # `random` rather than a wall clock, so nothing here reads the outside world.
-        h = "".join(random.choices("0123456789abcdef", k=8))
+        # UNDER THE AGENT'S SEED (HOLD_SEED, the reviewer 2026-10-15 15:04 Q4) the suffix is keyed
+        # off (seed, generation, the composition), so a replay mints the same names and its draws,
+        # which hash names, match; the dedup on the composition (`setdefault`, `_install`) is as it
+        # was. None is the old random suffix.
+        if seed is not None:
+            h = hashlib.blake2b(f"{seed}:{self.name}".encode(), digest_size=4).hexdigest()
+        else:
+            h = "".join(random.choices("0123456789abcdef", k=8))
         return f"{game}_{letters}_{kind}_{h}"
 
     @property
@@ -825,6 +832,8 @@ class Standing:
 
 
 class Gamma:
+    draw_seed: str | None = None    # the agent's, set at its birth (HOLD_SEED Q4); None: random
+
     def __init__(self, atoms: list[Atom], game: str = "x") -> None:
         """NO `molecules` PARAMETER, and its removal is the 2026-08-27 ruling in code.
 
@@ -914,7 +923,7 @@ class Gamma:
             # composition that already exists keeps the handle it was born with and a second
             # install cannot rewrite its provenance. Without this a re-mint would draw a fresh
             # handle for the same term and the two would read as two discoveries.
-            self.handles.setdefault(term.name, term.handle(self.game))
+            self.handles.setdefault(term.name, term.handle(self.game, self.draw_seed))
         self.stamps[term.name] = {"origin": term.origin, "seq": seq, "residual": residual,
                                   "admitted": admitted}
         self.standing.setdefault(term.name, Standing(last_tick=self.tick))
