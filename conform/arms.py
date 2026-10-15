@@ -679,6 +679,9 @@ ARMS: dict[str, str] = {
                           "(a CAUSE's then-slot); refusals and quantified rows counted as "
                           "before; its own memo, keyed with the slot, never written to the "
                           "lineage as a whole view. OFF binds every held row, as before. "
+                          "S1c (12:02): a pair asked for a second slot is promoted, its whole "
+                          "bound once and held as a whole; a held whole is read through a slot "
+                          "map built once, never scanned per slot. "
                           "default ON (Isaiah 2026-10-15 07:53); the switch is kept for the "
                           "checklist's culprit isolation",
     "TETHER_LINEAGE_HOLD": "(b'-l) phase 1, the lineage hold (Fig 6, Fig 12, Fig 4; the reviewer "

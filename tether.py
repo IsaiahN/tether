@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import collections
 import hashlib
+import heapq
 import itertools
 import json
 import math
@@ -520,6 +521,11 @@ _BOUND_MEMO: dict = {}     # (atoms_token, sig, entry, role, o, x) -> bound answ
 # partial view as a whole one: (atoms_token, sig, entry, role, o, x, slot) -> the rows bound
 _BOUND_SLOT_MEMO: dict = {}
 _BOUND_SLOT_IDX: dict = {}   # S1b: the same key -> the HELD indices of its rows (bs_ carries)
+# S1c (the reviewer 2026-10-15 12:02): keyed like _BOUND_MEMO and living with it. A pair (entry,
+# role, o, x) asked for a second slot is the first evidence it is reused, so its WHOLE is bound once
+# and held; a held whole is indexed ONCE by landing slot, so each slot is a lookup, never a scan
+_PAIRS_SEEN: set = set()     # pairs whose first slot was answered (bound, or carried in bs_)
+_BOUND_SLOT_MAP: dict = {}   # whole-memo key -> (landing slot -> row indices, every-slot indices)
 _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 # (b'-l) THE LINEAGE HOLD, phase 1 (Fig 6, Fig 12, Fig 4; the reviewer 2026-10-14 16:29, 16:34,
 # 16:38, 17:02). ON; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
@@ -743,6 +749,30 @@ def _lands(role: str, a: Any, b: Any, slot: str, sub: Any) -> bool:
 def _same(s: Any) -> Any:
     """S1: the names of an already-bound row are this question's; nothing to put back."""
     return s
+
+
+def _slot_map(role: str, whole: tuple) -> tuple:
+    """S1c: a held WHOLE indexed once: landing slot -> its row indices (a CAUSE lands on its
+    then-slot), and the rows _index_reach counts for every slot (quantified, a Refusal, a CAUSE
+    with None on either side), each list in held order. A bound row's slot is already in the
+    question's names, so c.slot is read, never substituted: the same rows _lands keeps."""
+    by: dict = {}
+    every = []
+    for i, (_c, a, b) in enumerate(whole):
+        if (a is None or isinstance(a, compile_term.Refusal)
+                or (role == "CAUSE" and (b is None or isinstance(b, compile_term.Refusal)))):
+            every.append(i)
+        else:
+            by.setdefault((b if role == "CAUSE" else a).slot, []).append(i)
+    return {k: tuple(v) for k, v in by.items()}, tuple(every)
+
+
+def _whole_rows(role: str, whole: tuple, slot: str, maps: dict, mkey: tuple) -> tuple:
+    """S1c: the held indices of a held whole's rows for `slot`, from its slot map (built once)."""
+    smap = maps.get(mkey)
+    if smap is None:
+        smap = maps[mkey] = _slot_map(role, whole)
+    return tuple(heapq.merge(smap[0].get(slot, ()), smap[1]))
 
 
 def _restore(held: list, o: str, x: str) -> list:
@@ -1625,6 +1655,8 @@ class Agent:
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
         self._bound_slot_cache: dict = {}  # S1: the same, filtered to one slot (+ slot in the key)
         self._bound_slot_idx: dict = {}    # S1b: the held indices of those rows
+        self._pairs_seen: set = set()      # S1c: as _PAIRS_SEEN, for an Agent with its own memo
+        self._bound_slot_map: dict = {}    # S1c: as _BOUND_SLOT_MAP, likewise
         self._atoms_token = shared_token(self.gamma.atoms)   # None: this Agent's own memo
         self._view_hold: dict = {}         # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
@@ -2453,10 +2485,14 @@ class Agent:
                 # bound, into the slot's OWN memo. What is already held is read first, never bound
                 # again (the reviewer 2026-10-15 11:14 N1, 11:22): a whole view this process holds,
                 # then a slot answer carried in bs_ (S1b), then a whole carried in bm_; a filtered
-                # answer never enters the whole-view memo
+                # answer never enters the whole-view memo. S1c (12:02): a pair asked for a second
+                # slot is PROMOTED, its whole bound once and held; a held whole is read through
+                # its slot map, a lookup, never a scan
                 _INDEX_N["bound_slot"] += 1
                 smemo = _BOUND_SLOT_MEMO if self._atoms_token else self._bound_slot_cache
                 sidx = _BOUND_SLOT_IDX if self._atoms_token else self._bound_slot_idx
+                seen = _PAIRS_SEEN if self._atoms_token else self._pairs_seen
+                maps = _BOUND_SLOT_MAP if self._atoms_token else self._bound_slot_map
                 skey = (self._atoms_token, sig, key, role, o, x, slot)
                 got = smemo.get(skey)
                 if got is not None:
@@ -2468,6 +2504,7 @@ class Agent:
                 carried = None if whole is not None else lineage.resolve_bs(self, lib, skey, atoms)
                 if carried is not None:
                     _INDEX_N["bound_slot_from_carry"] += 1
+                    seen.add(mkey)
                     sidx[skey], got = carried
                     smemo[skey] = got
                     return list(got)
@@ -2478,17 +2515,26 @@ class Agent:
                         # it is, so other slots and the next boundary write still have it (S3)
                         _INDEX_N["bound"] += 1
                         memo[mkey] = whole
+                sub = partial(_ph_sub, o=o, x=x)
+                if whole is None and mkey in seen:
+                    # PROMOTE ON REUSE: held as the WHOLE it is, so bm_ carries it (S3)
+                    _INDEX_N["bound_slot_promoted"] += 1
+                    _INDEX_N["bound"] += 1
+                    whole = memo[mkey] = tuple(
+                        (cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
+                        for cand, a, b in self._held_index(lib, key, role, atoms, sig))
                 # a whole view is aligned with the held rows, so its positions are the held indices
                 if whole is not None:
                     _INDEX_N["bound_slot_from_whole"] += 1
-                    idx = tuple(i for i, r in enumerate(whole)
-                                if _lands(role, r[1], r[2], slot, _same))
+                    idx = _whole_rows(role, whole, slot, maps, mkey)
                     got = tuple(whole[i] for i in idx)
                 else:
-                    sub = partial(_ph_sub, o=o, x=x)
+                    seen.add(mkey)
                     held = self._held_index(lib, key, role, atoms, sig)
+                    _INDEX_N["bound_slot_scanned"] += len(held)
                     idx = tuple(i for i, (_c, a, b) in enumerate(held)
                                 if _lands(role, a, b, slot, sub))
+                    _INDEX_N["bound_slot_first_binds"] += 2 * len(idx)
                     got = tuple((held[i][0], _bound(held[i][1], sub, atoms),
                                  _bound(held[i][2], sub, atoms)) for i in idx)
                 sidx[skey] = idx
