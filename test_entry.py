@@ -335,13 +335,18 @@ def fake_make(_game, _card):
 def _carries_in_order(rec, games):
     """THE PROPERTY, over the games the worker PLAYED (the reviewer 2026-10-15 08:23): they are the
     first of its sequence, in order; the first loads cold and every later one loads the carry; at
-    least two were played, so the carry ran. A game the ceiling left unplayed is reported with its
-    reason, never failed: the ceiling is the harness's bound, and the agent's wall is C-SPEED's."""
+    least one was played (two or more exercise the carry). A game the ceiling left unplayed is
+    reported with its reason, never failed: the ceiling is the harness's bound, and the agent's
+    wall is C-SPEED's.
+    FEWER THAN TWO is PRINTED, not failed (the reviewer 2026-10-15 10:21): the minimum moves to
+    the checklist's C-carry-run, where "not exercised" IS a fail."""
     played = [g for g in rec["games"] if not str(g.get("end", "")).startswith("unplayed")]
     for g in rec["games"][len(played):]:
         print(f"    unplayed {g['game']}: {g['end']}")
-    assert len(played) >= 2, ("fewer than two games fit: the carry never ran",
-                              [(g["game"], g.get("allowance_s"), g["end"]) for g in rec["games"]])
+    assert played, ("no game fit: nothing was played",
+                    [(g["game"], g.get("allowance_s"), g["end"]) for g in rec["games"]])
+    if len(played) < 2:    # the pass says what it did not check (Fig 10); C-carry-run checks it
+        print(f"    carry NOT exercised: only {len(played)} game(s) played (wall: C-SPEED)")
     assert [g["game"] for g in played] == games[:len(played)], rec
     assert [g["loaded"] for g in played] == [False] + [True] * (len(played) - 1), rec
     assert all(g["allowance_s"] > 0 for g in played), rec
