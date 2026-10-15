@@ -563,6 +563,13 @@ ARMS: dict[str, str] = {
                                "level. A write point only: nothing reaches the agent. OFF until "
                                "the end-of-step-7 checklist (Isaiah 2026-10-15 05:25: each "
                                "feature behind its own arm), not by doubt",
+    "TETHER_LEVEL_EDGE": "F1, the agent perceives a level clear (the reviewer 2026-10-15 07:32, "
+                         "07:42, 07:55): ON, both runners deliver a levels_completed rise with no "
+                         "terminal edge as retarget(how=ADVANCE), so the level's segment is "
+                         "credited, its signals resolve as a level, its owed slots park and "
+                         "Agent.level counts clears; with TETHER_LINEAGE_BOUNDARY one generation "
+                         "follows the retarget. Default ON (Isaiah 2026-10-15 07:53); the switch "
+                         "is kept for the checklist's culprit isolation",
     "TETHER_LINEAGE_HOLD": "(b'-l) phase 1, the lineage hold (Fig 6, Fig 12, Fig 4; the reviewer "
                            "2026-10-14 16:29, 16:34, 16:38, 17:02): ON, every store retarget "
                            "clears, the trace included, is kept dormant in instance form with a "

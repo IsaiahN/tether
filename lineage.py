@@ -331,8 +331,8 @@ def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
     one at the game's end. None unless the boundary arm, the carry and a folder are all present."""
     if not (_BOUNDARY and _CARRY and d):
         return None
-    # agent_level: Agent.level, which counts WIN/death edges until F1 lands; the 'how' field is
-    # the true label of the write
+    # agent_level: Agent.level, which counts WIN/death edges, and level clears too only under
+    # TETHER_LEVEL_EDGE (F1); the 'how' field is the true label of the write
     return {"how": how, "agent_level": ag.level, **write(d, ag, game)}
 
 

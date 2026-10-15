@@ -505,6 +505,11 @@ _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 # form, as the record, and never consulted by slot name on a later level; a same-level restart
 # carries it back per object where identity is sure. One attempt row per attempt.
 _LINEAGE_HOLD = armflag.arm("TETHER_LINEAGE_HOLD")
+# F1, THE AGENT PERCEIVES A LEVEL CLEAR (the reviewer 2026-10-15 07:32, 07:42, 07:55): the runners
+# deliver a levels_completed rise with no terminal edge as retarget(how=ADVANCE), the ending whose
+# reading is "the next board is UNKNOWN by design" (ledger ENDING_READS). Read here, used there.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_LEVEL_EDGE = armflag.arm("TETHER_LEVEL_EDGE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),

@@ -304,8 +304,9 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     aff = env.aff
     endings = collections.Counter()
     was_terminal = ""
-    # the boundary write's edge and its reports; with the arm OFF nothing new is read
-    lv_seen, bounds = (env.levels()[0] if lineage._BOUNDARY else 0), []
+    # the boundary edges' level and the write's reports; with both arms OFF nothing new is read
+    lv_seen = env.levels()[0] if (lineage._BOUNDARY or tether._LEVEL_EDGE) else 0
+    bounds = []
     for _ in range(cycles):
         state = env.observe()
         # THE UNIT. `step` returns False when no action was proposed, and after the first
@@ -351,16 +352,20 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         # tether_agent.run does (its 47-48). The seat restarts nothing on the agent's behalf.
         if tether._LINEAGE_HOLD and was_terminal == "death" and not end:
             ag.restarted(env)
-        # THE BOUNDARY WRITE (lineage.boundary; the reviewer 2026-10-15 07:32): after the
-        # terminal edge's retarget, or else on a level clear (levels()[0] rising), read here
-        # exactly as terminal() is. A WRITE point only: nothing reaches the agent (F1 is its
-        # own item). The SAME block in arc_holdout.play and tether_agent.run.
-        if lineage._BOUNDARY:
+        # THE BOUNDARY EDGES, ONE BLOCK IN BOTH RUNNERS (arc_holdout.play, tether_agent.run;
+        # the reviewer 2026-10-15 07:32, 07:42, 07:55). The terminal edge was retargeted above.
+        # A level clear with no terminal edge: under TETHER_LEVEL_EDGE the agent perceives it,
+        # through retarget(how=ADVANCE); under TETHER_LINEAGE_BOUNDARY one generation is written
+        # AFTER that retarget. One edge, one retarget, one write.
+        if lineage._BOUNDARY or tether._LEVEL_EDGE:
             lv = env.levels()[0]
-            if end and end != was_terminal:
-                bounds.append(lineage.boundary(lineage_dir, ag, game, end))
-            elif lv > lv_seen:
-                bounds.append(lineage.boundary(lineage_dir, ag, game, "level"))
+            term_edge = bool(end) and end != was_terminal
+            lvl_edge = not term_edge and lv > lv_seen
+            if lvl_edge and tether._LEVEL_EDGE:
+                ag.retarget(env, lv, how=ledger.ADVANCE)
+            if lineage._BOUNDARY and (term_edge or lvl_edge):
+                bounds.append(lineage.boundary(lineage_dir, ag, game,
+                                               end if term_edge else "level"))
             lv_seen = lv
         was_terminal = end
         # `cycles` is a CAP, not the unit. play() otherwise runs the full count and every

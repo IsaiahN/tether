@@ -16,7 +16,9 @@ import sys
 import time
 
 import arc_holdout
+import ledger
 import lineage
+import tether
 
 sys.dont_write_bytecode = True
 
@@ -34,8 +36,9 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
                                                             library=library,
                                                             lineage_dir=lineage_dir)
     acted_n, was, end, deaths = 0, "", "", 0
-    # the boundary write's edge and its reports; with the arm OFF nothing new is read
-    lv_seen, bounds = (env.levels()[0] if lineage._BOUNDARY else 0), []
+    # the boundary edges' level and the write's reports; with both arms OFF nothing new is read
+    lv_seen = env.levels()[0] if (lineage._BOUNDARY or tether._LEVEL_EDGE) else 0
+    bounds = []
     for _ in range(max_actions):
         # A WALL-CLOCK BOUND, like the step cap: the runner's per-game allowance, never a prior.
         if deadline is not None and time.time() >= deadline:
@@ -53,16 +56,20 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
         if end and end != was:
             ag.retarget(env, env.levels()[0], how=end)
             deaths += end == "death"
-        # THE BOUNDARY WRITE (lineage.boundary; the reviewer 2026-10-15 07:32): after the
-        # terminal edge's retarget, or else on a level clear (levels()[0] rising), read here
-        # exactly as terminal() is. A WRITE point only: nothing reaches the agent (F1 is its
-        # own item). The SAME block in arc_holdout.play and tether_agent.run.
-        if lineage._BOUNDARY:
+        # THE BOUNDARY EDGES, ONE BLOCK IN BOTH RUNNERS (arc_holdout.play, tether_agent.run;
+        # the reviewer 2026-10-15 07:32, 07:42, 07:55). The terminal edge was retargeted above.
+        # A level clear with no terminal edge: under TETHER_LEVEL_EDGE the agent perceives it,
+        # through retarget(how=ADVANCE); under TETHER_LINEAGE_BOUNDARY one generation is written
+        # AFTER that retarget. One edge, one retarget, one write.
+        if lineage._BOUNDARY or tether._LEVEL_EDGE:
             lv = env.levels()[0]
-            if end and end != was:
-                bounds.append(lineage.boundary(lineage_dir, ag, game, end))
-            elif lv > lv_seen:
-                bounds.append(lineage.boundary(lineage_dir, ag, game, "level"))
+            term_edge = bool(end) and end != was
+            lvl_edge = not term_edge and lv > lv_seen
+            if lvl_edge and tether._LEVEL_EDGE:
+                ag.retarget(env, lv, how=ledger.ADVANCE)
+            if lineage._BOUNDARY and (term_edge or lvl_edge):
+                bounds.append(lineage.boundary(lineage_dir, ag, game,
+                                               end if term_edge else "level"))
             lv_seen = lv
         was = end
         if end == "advance":    # WIN: the game is over and won. A death is not an end.
