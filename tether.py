@@ -3999,7 +3999,6 @@ class Agent:
         """
         return {"came": self._came, "gone": self._gone}
 
-    @_in_step("PERCEIVE")
     def _read_books(self, before: dict) -> None:
         """THE FOUR BOOKS, read each cycle and recorded against THE SCORE.
 
@@ -4081,7 +4080,7 @@ class Agent:
                                    / len(self.gamma.vindication))
         lv = getattr(self.env, "levels", None)
         done, win = lv() if lv else (0, 0)
-        self.led.record(self.cycle, "PERCEIVE", "*", "books",
+        self.led.record(self.cycle, self._running_step, "*", "books",
                         # THE SCORE. Every other number here is read against it.
                         score_levels=done, score_target=win,
                         # **DERIVED FROM `self._acts`, NOT A SECOND COUNTER.** I declared
@@ -4110,7 +4109,6 @@ class Agent:
                         halflife_earned=bool(self.gamma.vindication),
                         vindications=len(self.gamma.vindication), **self.gamma.book)
 
-    @_in_step("PERCEIVE")
     def _narrate_vocabulary(self) -> None:
         """ONCE PER RUN: what the corpus CALLS what this agent can already reach.
 
@@ -4132,7 +4130,7 @@ class Agent:
         # THE JOIN, REPORTED PER INGREDIENT. `None` = names no atom this agent holds;
         # `()` = holds the atom and it is bound nowhere, so it touched nothing this cycle.
         reach = {i: self._ingredient_slots(i) for m in mols for i in m["recipe"]}
-        self.led.record(self.cycle, "PERCEIVE", "*", "vocabulary",
+        self.led.record(self.cycle, self._running_step, "*", "vocabulary",
                         delta_keys=sorted(d),
                         ingredient_slots={k: (None if v is None else len(v))
                                           for k, v in reach.items()},
@@ -4242,17 +4240,15 @@ class Agent:
             self._branch_cache = got
         return got
 
-    @_in_step("PERCEIVE")
     def _narrate_placements(self) -> None:
         """The encounter half's reading. **`multi` is the mid-game colour change, counted.**"""
         fn = getattr(self.env, "placements", None)
         if fn is None:
             return
         p = fn()
-        self.led.record(self.cycle, "PERCEIVE", "*", "placements",
+        self.led.record(self.cycle, self._running_step, "*", "placements",
                         distinct=p["distinct"], changed=len(p["multi"]))
 
-    @_in_step("PERCEIVE")
     def _narrate_cues(self) -> None:
         """THE MUTATION OBSERVER, READ BY THE AGENT -- reviewer's ruling, 2026-09-26.
 
@@ -4291,13 +4287,12 @@ class Agent:
             _book_add(self.gamma.book, "cue_seen", 1)
             if muts["attributes"]:
                 _book_add(self.gamma.book, "cue_mutated", 1)
-        self.led.record(self.cycle, "PERCEIVE", "*", "cues",
+        self.led.record(self.cycle, self._running_step, "*", "cues",
                         mutated=dict(sorted(muts["attributes"].items())),
                         appeared=muts["appeared"], vanished=muts["vanished"],
                         objects=c["n_objects"], loci=len(loci),
                         primitives=sorted({p for ps in loci.values() for p in ps}))
 
-    @_in_step("PERCEIVE")
     def _narrate_matches(self) -> None:
         """The tracker's own certainty, per step. **Fixture-readable, and that is the point.**
 
@@ -4319,11 +4314,10 @@ class Agent:
             return
         by = Counter(r for r, _ in m.values())
         scores = [s for r, s in m.values() if r == "overlap"]
-        self.led.record(self.cycle, "PERCEIVE", "*", "matches",
+        self.led.record(self.cycle, self._running_step, "*", "matches",
                         routes=dict(sorted(by.items())), n=len(m),
                         min_overlap=round(min(scores), 4) if scores else None)
 
-    @_in_step("PERCEIVE")
     def _narrate_cascade(self) -> None:
         """The cascade's shape, per step. **A one-frame response is a READING, not silence.**
 
@@ -4348,7 +4342,7 @@ class Agent:
                                  for c, v in enumerate(row) if b[r][c] != v))
             except (TypeError, IndexError, KeyError):
                 return
-        self.led.record(self.cycle, "PERCEIVE", "*", "cascade",
+        self.led.record(self.cycle, self._running_step, "*", "cascade",
                         frames=len(frames), within_step=steps)
 
     def _two_readings(self, slot: str, ok: list, base: float) -> tuple:
@@ -4414,7 +4408,6 @@ class Agent:
                       - {a for (s_, a), n in self.agency.moved.items() if s_ in ctrl and n})
         return {"wait": acts, "self_moved": movers} if acts else None
 
-    @_in_step("PERCEIVE")
     def _cascade_agency(self) -> None:
         """H2: inside the last action, which sub-frame each object first changed in (a changed
         cell at its before or after position; a position two objects share is not read). Against
@@ -4430,7 +4423,8 @@ class Agent:
         before, _a, after, _i, _l = self.trace[-1]
         if len(frames) < 2:
             self.agency.note_order(None)
-            self.led.record(self.cycle, "PERCEIVE", "*", "cascade_modes", frames=len(frames),
+            self.led.record(self.cycle, self._running_step, "*", "cascade_modes",
+                            frames=len(frames),
                             modes=None, reads="one frame: no order, so no mode")
             return
         own = getattr(self.env, "slot_owner", None)
@@ -4467,22 +4461,21 @@ class Agent:
             elif any(x in controlled for x in near.get(o_, ())):
                 modes[o_] = REACTING
         self.agency.note_order(modes)
-        self.led.record(self.cycle, "PERCEIVE", "*", "cascade_modes", frames=len(frames),
+        self.led.record(self.cycle, self._running_step, "*", "cascade_modes", frames=len(frames),
                         modes=modes, first=first, controlled=sorted(controlled))
 
-    @_in_step("PERCEIVE")
     def _narrate_order(self) -> None:
         """Layer 2's whole output: the order was USED and is SAID, and nothing keeps it."""
         ro = getattr(self.env, "read_order", None)
         if ro is None:
             return
         order, pattern = ro()
-        self.led.record(self.cycle, "PERCEIVE", "*", "read_order",
+        self.led.record(self.cycle, self._running_step, "*", "read_order",
                         pattern=pattern, first=order[:3], n=len(order))
         md = getattr(self.env, "mode", None)
         if md is not None:
             m = md()
-            self.led.record(self.cycle, "PERCEIVE", "*", "mode",
+            self.led.record(self.cycle, self._running_step, "*", "mode",
                             board=m["board"], by=m["by"],
                             n_embodied=sum(1 for v in m["per_locus"].values()
                                            if v == "embodied"),
@@ -7210,7 +7203,8 @@ class Agent:
                 return YES                 # this agent has moved it that way, mostly
         return UNKNOWN
 
-    @_in_step("PERCEIVE")
+    # no _in_step: step() calls this BEFORE choose, so it runs in PLAN, deliberation before anything
+    # acts; decorated PERCEIVE in f4a48c4 its choice rows broke the ladder (the reviewer 2026-10-16)
     def note_goals(self, state: dict[str, int]) -> None:
         """One discrepancy reading per goal hypothesis per step. Held, never aggregated."""
         reach: dict[str, str] = {}
@@ -7289,7 +7283,7 @@ class Agent:
                 _n = self._undone[_key] = self._undone.get(_key, 0) + 1
                 _ak = (_said, _slot)
                 _an = self._undone_across[_ak] = self._undone_across.get(_ak, 0) + 1
-                self.led.record(self.cycle, "PERCEIVE", _slot, "goal_undone",
+                self.led.record(self.cycle, self._running_step, _slot, "goal_undone",
                                 was=round(float(_was), 4), now=round(float(_now), 4),
                                 # **THE DISCREPANCY IS NOT THE BOARD, AND A ROW THAT CARRIES
                                 # ONLY THE DISCREPANCY CANNOT BE CROSS-REFERENCED AGAINST ONE.**
@@ -7317,7 +7311,7 @@ class Agent:
                                              "about what to try, not a finding",
                                 reads="a goal I had met is no longer met; this is what I did")
         if reach:
-            self.led.record(self.cycle, "PERCEIVE", "*", "can",
+            self.led.record(self.cycle, self._running_step, "*", "can",
                             **{k: sum(1 for v in reach.values() if v == k)
                                for k in (YES, NO, UNKNOWN)})
         # AND THE SERIES ITSELF, BECAUSE `R_goal` IS THE ONE QUANTITY THE CHAIN TURNS ON AND WAS
@@ -7335,7 +7329,7 @@ class Agent:
             def _deltas(ser: list[float]) -> list[float]:
                 return [b - a for a, b in zip(ser[-w:], ser[-w + 1:], strict=False)]
             self.led.record(
-                self.cycle, "PERCEIVE", "*", "goal_series",
+                self.cycle, self._running_step, "*", "goal_series",
                 series={k: [round(float(v), 4) for v in ser[-w:]]
                         for k, ser in sorted(self._res.items())},
                 qualifies=sorted(k for k, ser in self._res.items()
@@ -9052,7 +9046,6 @@ class Agent:
                           "tuple order chose. A flat spread never reaches here -- the "
                           "`max > min` guard drops it to the uniform draw")}
 
-    @_in_step("PERCEIVE")
     def _advertised(self) -> None:
         """The action set is re-read every step, and a CHANGE is recorded.
 
@@ -9082,14 +9075,13 @@ class Agent:
         if cap is None or not cap.moved():
             self.actions = now
             return
-        self.led.record(self.cycle, "PERCEIVE", "@instrument", "advertised",
+        self.led.record(self.cycle, self._running_step, "@instrument", "advertised",
                         opened=len(cap.opened), closed=len(cap.closed),
                         was=len(self.actions), now=len(now),
                         after=self._last_action,
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
 
-    @_in_step("PERCEIVE")
     def _present(self) -> None:
         """The slot set is re-read every step, and a CHANGE is recorded.
 
@@ -9150,7 +9142,7 @@ class Agent:
         for k in orphaned:
             self.bound.pop(k, None)
             self.owed_import.add(k)
-        self.led.record(self.cycle, "PERCEIVE", "@instrument", "present",
+        self.led.record(self.cycle, self._running_step, "@instrument", "present",
                         gone=gone, came=came, orphaned=orphaned,
                         bound_lost=bound_lost,
                         # A BLIND FRAME LOOKS EXACTLY LIKE A BOARD THAT LOST EVERYTHING.
@@ -11399,8 +11391,6 @@ class Agent:
             self._ruin_step = (*self._step_fp, action,
                                tuple(coord) if coord is not None else None, self.cycle)
         res = self.perceive(action, coord, self._intent_now)
-        if self._test is not None:
-            self._test_row()
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         routed = self.route(res)
         # ONE CHAIN PER SLOT PER CYCLE (Fig 5; the reviewer 2026-10-07 16:12Z, F500): a term
@@ -11467,6 +11457,10 @@ class Agent:
                                 remedy="step 7 INWARD: a slot set that reaches what moves",
                                 built=False)
         self.settle(res)
+        if self._test is not None:
+            # 7j's grade, written in SETTLE time after the slot's ROUTE and MINT rows (moved from
+            # right after perceive, where it broke the ladder; the reviewer 2026-10-16 10:56)
+            self._test_row()
         self._settle_routine()
         self._promote()
         if _MC6:

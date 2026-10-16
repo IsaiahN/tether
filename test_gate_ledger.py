@@ -1,21 +1,24 @@
-"""test_gate_ledger: every row is labelled with the step actually running, and the gate passes a
-fresh ALL-ON ledger (the reviewer 2026-10-16 07:40, 07:45, 09:18, 09:23). test_gate passed 43/43
-while every ALL-ON ledger from 0996891 failed the gate, because no smoke ran the gate over a real
-ledger; and the gate's ordering sees a mislabel only when it follows a later step of the same slot,
-so the label is checked directly (THE CLASS GUARD).
+"""test_gate_ledger: every row is labelled with the step actually running, the running steps keep
+the ladder's order, and the gate passes a fresh ALL-ON ledger (the reviewer 2026-10-16 07:40, 07:45,
+09:18, 09:23, 10:42, 10:52). test_gate passed 43/43 while every ALL-ON ledger from 0996891 failed
+the gate, because no smoke ran the gate over a real ledger; and the gate's ordering sees a mislabel
+only when it follows a later step of the same slot, so both halves are checked directly.
 
-  GUARD Ledger.record is wrapped: for every row an Agent writes, its label must equal the agent's
-        _running_step at the write, except the ALLOW sites, rows by design labelled with a later
-        step the method itself carries out. Lineage's load-time IMPORT rows are written outside
-        an agent and are out of scope.
-  G1    a fake game (6 actions, the agent's own seed): the guard holds; gate.py exits 0.
-  G2    gridworld_s2, 11 steps, under C-seed-X (the old constant seed, so its cycle-10 sweep
-        lands): preconditions, at least one sweep row and one inline-phase row; the guard holds;
-        gate.py exits 0.
-  MF1   G1's stream rows put back at PLAN: gate.py refuses step-order.
-  MF2   G1's slot-bound choice rows put back at PLAN: gate.py refuses step-order.
-  MF3   G2's sweep rows (pull, reuse_install written in MINT) put back at ROUTE: the guard flags
-        them.
+  GUARD   Ledger.record is wrapped. LABEL: every row an Agent writes carries its _running_step,
+          except the ALLOW sites (rows by design labelled with a later step the method itself
+          carries out). LADDER: within each (cycle, slot) the running steps never go back on
+          ledger.STEPS, so a helper that runs out of the loop's order is caught even when its
+          label agrees with it. Lineage's load-time IMPORT rows are written outside an agent and
+          are out of scope.
+  G1      a fake game (6 actions, the agent's own seed): both guards hold; gate.py exits 0.
+  G2      gridworld_s2, 11 steps, under C-seed-X (the old constant seed, so its cycle-10 sweep
+          lands): preconditions, at least one sweep row and one inline-phase row; both guards
+          hold; gate.py exits 0.
+  MF1     G1's stream rows put back at PLAN: gate.py refuses step-order.
+  MF2     G1's slot-bound choice rows put back at PLAN: gate.py refuses step-order.
+  MF3     G2's sweep rows (pull, reuse_install written in MINT) put back at ROUTE: LABEL flags them.
+  MF4     _narrate_cues decorated PERCEIVE again (f4a48c4's error: the top-of-step block runs
+          before choose, in PLAN): 5 steps of gridworld_s2 and LADDER flags it.
 
     python test_gate_ledger.py
 """
@@ -31,7 +34,7 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 
 MAX_ACTIONS = 6
-GW_MEMBER, GW_STEPS = "gridworld_s2", 11
+GW_MEMBER, GW_STEPS, MF4_STEPS = "gridworld_s2", 11, 5
 ALLOW = {("_hold_invention", "accept"), ("_mint", "accept"), ("sweep", "retro"),
          ("_carry", "candidate_woken"), ("_route_reward", "route")}
 HERE = Path(__file__).parent
@@ -51,7 +54,19 @@ def put_back(rows: list, out: Path, pick) -> None:
 
 
 def bad(writes: list) -> list:
+    """LABEL: writes whose label is not the running step, outside ALLOW."""
     return [w for w in writes if w[2] != w[3] and (w[0], w[1]) not in ALLOW]
+
+
+def ladder(writes: list, steps: tuple) -> list:
+    """LADDER: writes whose running step goes back on the ladder within their (cycle, slot)."""
+    last, out = {}, []
+    for w in writes:
+        k, i = (w[5], w[6]), steps.index(w[3])
+        if k in last and i < last[k]:
+            out.append(w[:4] + w[5:])
+        last[k] = i
+    return out
 
 
 def main() -> int:
@@ -65,15 +80,27 @@ def main() -> int:
     import world
     from test_entry import FakeWrapper
 
-    writes: list = []           # (function, event, label, running, detail)
+    writes: list = []           # (function, event, label, running, detail, cycle, slot)
     real = ledger.Ledger.record
 
     def spy(self, cycle, step, slot, event, of=None, **detail):
         f = sys._getframe(1)
         ag = f.f_locals.get("self")
         if isinstance(ag, tether.Agent):
-            writes.append((f.f_code.co_name, event, step, ag._running_step, detail))
+            writes.append((f.f_code.co_name, event, step, ag._running_step, detail, cycle, slot))
         return real(self, cycle, step, slot, event, of, **detail)
+
+    def gridworld(steps: int, path: Path | None):
+        seed_was, tether._AGENT_SEED = tether._AGENT_SEED, False     # C-seed-X
+        try:
+            g, seed = panel._gridworld(GW_MEMBER)
+            env = world.bind(g)
+            ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=f"gate_{seed}"), tether.Config(),
+                              ledger.Ledger(path=str(path) if path else None))
+            for _ in range(steps):
+                ag.step()
+        finally:
+            tether._AGENT_SEED = seed_was
 
     ledger.Ledger.record = spy
     try:
@@ -82,8 +109,10 @@ def main() -> int:
             tether_agent.run(FakeWrapper(script={}), "fake", max_actions=MAX_ACTIONS,
                              lineage_dir=d, led_path=str(led))
             assert writes, "precondition: the guard saw no row"
-            assert not bad(writes), ("G1 guard: rows labelled with a step not running",
+            assert not bad(writes), ("G1 LABEL: rows labelled with a step not running",
                                      bad(writes)[:5])
+            assert not ladder(writes, ledger.STEPS), ("G1 LADDER: running steps go back",
+                                                      ladder(writes, ledger.STEPS)[:5])
             rows = [json.loads(ln) for ln in led.read_text(encoding="utf-8").splitlines()
                     if ln.strip()]
             stream = [r for r in rows if r.get("event") == "stream"]
@@ -93,8 +122,8 @@ def main() -> int:
             assert chosen, "precondition: no slot-bound choice row outside PLAN on the fake game"
             code, out = gate(led)
             assert code == 0, out[-600:]
-            print(f"  G1 {len(rows)} rows, {len(writes)} guarded writes, 0 mislabelled; "
-                  "gate exit 0")
+            print(f"  G1 {len(rows)} rows, {len(writes)} guarded writes, 0 mislabelled, "
+                  "0 ladder breaks; gate exit 0")
             badf = Path(d) / "bad.jsonl"
             put_back(rows, badf, lambda r: r.get("event") == "stream")
             code, out = gate(badf)
@@ -106,32 +135,37 @@ def main() -> int:
             print("  MF2 slot choice rows put back at PLAN: gate refuses step-order")
 
             writes.clear()
-            seed_was, tether._AGENT_SEED = tether._AGENT_SEED, False     # C-seed-X
-            try:
-                g, seed = panel._gridworld(GW_MEMBER)
-                env = world.bind(g)
-                gled = Path(d) / "gw.jsonl"
-                ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=f"gate_{seed}"),
-                                  tether.Config(), ledger.Ledger(path=str(gled)))
-                for _ in range(GW_STEPS):
-                    ag.step()
-            finally:
-                tether._AGENT_SEED = seed_was
+            gled = Path(d) / "gw.jsonl"
+            gridworld(GW_STEPS, gled)
             sweep = [w for w in writes if w[1] in ("pull", "reuse_install") and w[3] == "MINT"]
             inline = [w for w in writes if w[0] == "step" and w[3] != "PLAN"]
             assert sweep, f"precondition: no sweep row in {GW_STEPS} steps of {GW_MEMBER}"
             assert inline, "precondition: no row from step()'s inline phases"
-            assert not bad(writes), ("G2 guard: rows labelled with a step not running",
+            assert not bad(writes), ("G2 LABEL: rows labelled with a step not running",
                                      bad(writes)[:5])
+            assert not ladder(writes, ledger.STEPS), ("G2 LADDER: running steps go back",
+                                                      ladder(writes, ledger.STEPS)[:5])
             code, out = gate(gled)
             assert code == 0, out[-600:]
             print(f"  G2 {GW_MEMBER} {GW_STEPS} steps: {len(writes)} guarded writes, "
                   f"{len(sweep)} sweep rows under MINT, {len(inline)} inline-phase rows, "
-                  "0 mislabelled; gate exit 0")
+                  "0 mislabelled, 0 ladder breaks; gate exit 0")
             planted = [(f, e, "ROUTE" if (e in ("pull", "reuse_install") and r == "MINT") else s,
-                        r, x) for f, e, s, r, x in writes]
+                        r, *rest) for f, e, s, r, *rest in writes]
             assert bad(planted), "MF3: sweep rows put back at ROUTE were not flagged"
-            print(f"  MF3 sweep rows put back at ROUTE: the guard flags {len(bad(planted))}")
+            print(f"  MF3 sweep rows put back at ROUTE: LABEL flags {len(bad(planted))}")
+
+            writes.clear()
+            cues = tether.Agent._narrate_cues
+            tether.Agent._narrate_cues = tether._in_step("PERCEIVE")(cues)
+            try:
+                gridworld(MF4_STEPS, None)
+            finally:
+                tether.Agent._narrate_cues = cues
+            assert ladder(writes, ledger.STEPS), ("MF4: a top-of-step helper in PERCEIVE was not "
+                                                  "flagged")
+            print(f"  MF4 _narrate_cues back in PERCEIVE: LADDER flags "
+                  f"{len(ladder(writes, ledger.STEPS))} in {MF4_STEPS} steps")
     finally:
         ledger.Ledger.record = real
     print("gate_ledger: OK")
