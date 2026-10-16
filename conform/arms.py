@@ -796,6 +796,12 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7H_KIND_CARRY": "7h (h), H3 (the reviewer 2026-10-16 12:33): A1's starved and "
+                            "curiosity counts are also kept by kind (owner kind, attribute "
+                            "type), written per generation and summed at load; the carried-in "
+                            "count is A1's second tie-break key after the slot count, and the "
+                            "choice row says tie_by. OFF: no tally, no carry, no second key. "
+                            "default ON (Isaiah 2026-10-15 07:53, 17:26)",
     "TETHER_LIBRARY_ABDUCE": "7d, the reverse lookup (the reviewer 2026-10-16 11:56, 12:00): "
                              "Library.light abduce=\"after\" at M4's lookup, one abduce row per "
                              "lookup (lit / extra / new / routed / refused); frame.came compiles "

@@ -599,6 +599,9 @@ _7M_ANALOGY = armflag.arm("TETHER_7M_ANALOGY", default=True)
 # reading are asked after the forward ones (Library.light abduce="after"); one "abduce" row per
 # lookup
 _LIBRARY_ABDUCE = armflag.arm("TETHER_LIBRARY_ABDUCE", default=True)
+# 7h (h), H3 (the reviewer 2026-10-16 12:33): A1's counts by KIND carried across the lineage, and
+# read in the next game as the second tie-break key; the slot counts are unchanged
+_7H_KIND_CARRY = armflag.arm("TETHER_7H_KIND_CARRY", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1718,6 +1721,11 @@ class Agent:
         self.iface.chooser = self._choose_known      # F480: the agent prices the known
         self._subject_n: collections.Counter = collections.Counter()   # A1: curiosity aimed
         self._probe_n: collections.Counter = collections.Counter()     # A1: starved probes
+        # 7h (h): the same counts by kind: this instance's, the lineage's (read, never added to),
+        # and what the last generation write took
+        self._kind_n: dict = {"starved": collections.Counter(), "curiosity": collections.Counter()}
+        self._kind_carried_in: dict = {"starved": {}, "curiosity": {}}
+        self._kind_n_written: dict = {"starved": {}, "curiosity": {}}
         self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
         # the decay class: the situation (level, alive) and its epoch, set at the agent's own
@@ -6487,8 +6495,9 @@ class Agent:
                 # A1: what is unexplained NOW gates and ranks; then the less-probed; then the draw
                 pick = self._choice("starved", None, [(s, None, None) for s in self._starved],
                                     {s: self.outstanding(s) for s in self._starved},
-                                    {s: self._probe_n[s] for s in self._starved})
+                                    self._seen_n("starved", self._probe_n, self._starved))
             self._probe_n[pick] += 1
+            self._count_kind("starved", pick)
             aim = pick.rsplit(".", 1)[0]
             self._s0_target = aim
             # **ONE INTENT, NOT A MODALITY CHOICE -- the plan's 19.** This read
@@ -6779,9 +6788,10 @@ class Agent:
             tied = [s for s, v in vals.items() if v == top]
             if len(tied) > 1:
                 best = self._choice("curiosity", None, [(s, None, None) for s in tied], None,
-                                    {s: self._subject_n[s] for s in tied})
+                                    self._seen_n("curiosity", self._subject_n, tied))
         if best is not None:
             self._subject_n[best] += 1
+            self._count_kind("curiosity", best)
         self.led.record(self.cycle, "PLAN", best or "@board", "curiosity",
                         subject=best, value=round(top, 4),
                         reads=("Figure 5 -- the gap that is large and compressible. "
@@ -7710,6 +7720,19 @@ class Agent:
         pick, by, front = FR.frontier_pick(options, residual, seen,
                                            f"{self.cycle}:{site}:{slot}", self.draw_seed)
         fr = set(front)
+        tie = {}
+        if (by in ("learning", "draw") and seen
+                and isinstance(next(iter(seen.values())), tuple)):
+            # 7h (h): which key decided -- the slot count, the carried kind count, or neither
+            pool = front
+            if residual is not None:
+                top = max(residual.get(n, 0) for n in pool)
+                pool = [n for n in pool if residual.get(n, 0) == top]
+            low = min(seen[n][0] for n in pool)
+            tied = [n for n in pool if seen[n][0] == low]
+            lowc = min(seen[n][1] for n in tied)
+            tie = {"tie_by": "slot" if len(tied) == 1 else "kind_carry"
+                   if sum(seen[n][1] == lowc for n in tied) < len(tied) else "draw"}
         # a slot's choice is labelled with the step running; a slot-free one stays PLAN (its own
         # (cycle, slot)) and says when it was made in in_step
         self.led.record(self.cycle, self._running_step if slot else "PLAN", slot or "@choice",
@@ -7720,9 +7743,29 @@ class Agent:
                         residual=(None if residual is None else
                                   {repr(n): residual.get(n, 0) for n, _b, _a in options}),
                         seen=None if seen is None else {repr(n): seen.get(n, 0) for n in front},
-                        pick=repr(pick), by=by,
+                        pick=repr(pick), by=by, **tie,
                         **({"root": self._root_id} if _7H_ROOT else {}))
         return pick
+
+    def _kind_key(self, slot: str) -> str:
+        """7h (h): a slot as its KIND -- the owner's kind (7l; a pair takes the kind pair) and the
+        attribute type -- so what carries is a method, never this game's object ids (Fig 4)."""
+        owner = slot.rsplit(".", 1)[0]
+        return repr((tuple(self._kind(o) for o in owner.split("~")),
+                     str(self.slot_types.get(slot))))
+
+    def _count_kind(self, site: str, slot: str) -> None:
+        if _7H_KIND_CARRY and hasattr(self, "_kind_n"):   # an Agent built by __new__ has none
+            self._kind_n[site][self._kind_key(slot)] += 1
+
+    def _seen_n(self, site: str, slot_n: Any, slots: Any) -> dict:
+        """A1's learning reading: the slot count, then (7h (h)) the count the lineage carried in
+        for the slot's kind. Within a game the second key is fixed, so today's order holds
+        wherever the slot counts differ; OFF it is the slot count alone, as before."""
+        if not _7H_KIND_CARRY or not hasattr(self, "_kind_carried_in"):
+            return {s: slot_n[s] for s in slots}
+        carried = self._kind_carried_in[site]
+        return {s: (slot_n[s], carried.get(self._kind_key(s), 0)) for s in slots}
 
     def _choose_known(self, known: list[tuple[str, int]]) -> tuple[int, str]:
         """NOTHING IS UNKNOWN HERE, SO THE AGENT PRICES WHAT IS KNOWN -- Design A (the reviewer,

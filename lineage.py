@@ -328,6 +328,12 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         gen["kinds_landed"] = sorted([k, r, list(ko), list(kx)] for k, r, ko, kx in new_kinds)
         gen["episodes"] = list(getattr(ag, "_kind_episodes", [])
                                [getattr(ag, "_kind_episode_mark", 0):])
+    if tether._7H_KIND_CARRY and hasattr(ag, "_kind_n"):
+        # 7h (h): A1's counts by kind since the last write; the load sums the chain
+        gen["kind_counts"] = {site: {k: n - ag._kind_n_written[site].get(k, 0)
+                                     for k, n in sorted(c.items())
+                                     if n > ag._kind_n_written[site].get(k, 0)}
+                              for site, c in ag._kind_n.items()}
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
@@ -342,6 +348,10 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         if "kinds_landed" in gen:
             ag._kinds_carried = ag._kinds_carried | new_kinds
             ag._kind_episode_mark = len(ag._kind_episodes)
+        # a write without the boundary is a sibling of the last (the parent does not advance),
+        # so the mark moves only with the parent
+        if "kind_counts" in gen:
+            ag._kind_n_written = {site: dict(c) for site, c in ag._kind_n.items()}
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -398,6 +408,14 @@ def load(d: str | Path, ag: Any) -> dict:
                           for k, r, ko, kx in g.get("kinds_landed", ())}
         ag._kind_pairs = ag._kind_pairs | {(ko, kx) for _k, _r, ko, kx in ag._kind_known}
         rep["kinds_known"] = len(ag._kind_known)
+    if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
+        # 7h (h): the kind counts of every generation, root to tip, read as A1's second key
+        for _h, g in chain:
+            for site, c in g.get("kind_counts", {}).items():
+                into = ag._kind_carried_in.setdefault(site, {})
+                for k, n in c.items():
+                    into[k] = into.get(k, 0) + n
+        rep["kind_counts_in"] = {s: sum(c.values()) for s, c in ag._kind_carried_in.items()}
     if gamma._SETTLED_CORE:
         # 7i (2): a carried term keeps the standing it had, LEARNED and revisable (the reviewer
         # 2026-10-15 19:04); the record itself is unchanged
