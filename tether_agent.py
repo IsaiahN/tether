@@ -85,7 +85,10 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     # (b'-g) the boundary's generation, the same call as play (lineage.py)
     lineage_gen = lineage.write(lineage_dir, ag, game) if lineage._CARRY and lineage_dir else None
     return {"game": game, "acted": acted_n, "cycles": ag.cycle, "end": end or "cap",
-            "deaths": deaths, "agent_resets": ag._acts.get("RESET", 0),
+            # D-RESET-COUNT (the reviewer 2026-10-15 19:45): the RESETs that REACHED the game; one
+            # the guard refused (arc_holdout 109-110) was chosen, counted in _acts, and never sent
+            "deaths": deaths,
+            "agent_resets": ag._acts.get("RESET", 0) - getattr(env.w, "refused_step", 0),
             "levels": env.levels(), "refused_resets": getattr(env.w, "refused", 0),
             "loaded": loaded, "saved": saved, "saved_only": saved_only,
             "lineage": lineage_gen, "lineage_bounds": bounds}

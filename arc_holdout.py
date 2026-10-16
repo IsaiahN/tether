@@ -82,6 +82,9 @@ class ResetGuard:
         self.w = w
         self.strict = strict
         self.refused = 0
+        # D-RESET-COUNT (the reviewer 2026-10-15 19:59): the refusals of a step(RESET) -- a press
+        # the agent chose -- apart from a refused reset() call, which is never the agent's
+        self.refused_step = 0
         self.last_was_reset = getattr(w, "observation_space", None) is not None
 
     @property
@@ -106,6 +109,7 @@ class ResetGuard:
 
     def step(self, action, data=None, reasoning=None):
         if action is GameAction.RESET and self.last_was_reset:
+            self.refused_step += 1
             return self._refuse("step(RESET)")
         kw = {}
         if data is not None:
