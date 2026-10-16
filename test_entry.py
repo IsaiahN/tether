@@ -454,6 +454,18 @@ def check_the_notebook_runs_our_runner_in_place_of_swarm():
     assert "".join(nb["cells"][1]["source"]).endswith("x = 1\n"), "the agent body was not written"
 
 
+def check_the_bundle_holds_no_test_file():
+    """Step 7 (the reviewer 2026-10-16 15:24): the submission bundle -- the files a fresh
+    interpreter loads when it imports tether_runner -- holds no test: no test_*.py, nothing
+    under tests/ or testing/ (where step 11 moves them). A test reaching the bundle would ship
+    the seat's instruments."""
+    import kaggle_bundle
+    files = kaggle_bundle.census("tether_runner")
+    bad = [f for f in files if pathlib.PurePath(f).name.startswith("test_")
+           or pathlib.PurePath(f).parts[0] in ("tests", "testing")]
+    assert files and not bad, (len(files), bad)
+
+
 def check_the_census_is_never_an_input():
     """13.3 (the reviewer 2026-10-16 14:49): the game-type census is a READING, never an input --
     no repository .py file but this check names its folder or file, so no agent code can load it."""
