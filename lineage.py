@@ -328,6 +328,12 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         gen["kinds_landed"] = sorted([k, r, list(ko), list(kx)] for k, r, ko, kx in new_kinds)
         gen["episodes"] = list(getattr(ag, "_kind_episodes", [])
                                [getattr(ag, "_kind_episode_mark", 0):])
+    if tether._7H_TRACE and hasattr(ag, "_line_grade"):
+        # 7h (d): how each kind's lines ended since the last write; the load sums the chain
+        gen["line_grades"] = {k: {o: n - ag._line_grade_written.get(k, {}).get(o, 0)
+                                  for o, n in sorted(c.items())
+                                  if n > ag._line_grade_written.get(k, {}).get(o, 0)}
+                              for k, c in sorted(ag._line_grade.items())}
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade"):
         # 7h (a): the root shapes' outcome counts since the last write; the load sums the chain
         gen["root_grades"] = {s: {o: n - ag._root_grade_written.get(s, {}).get(o, 0)
@@ -356,6 +362,8 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
             ag._kind_episode_mark = len(ag._kind_episodes)
         # a write without the boundary is a sibling of the last (the parent does not advance),
         # so the mark moves only with the parent
+        if "line_grades" in gen:
+            ag._line_grade_written = {k: dict(c) for k, c in ag._line_grade.items()}
         if "root_grades" in gen:
             ag._root_grade_written = {s: dict(c) for s, c in ag._root_grade.items()}
         if "kind_counts" in gen:
@@ -416,6 +424,14 @@ def load(d: str | Path, ag: Any) -> dict:
                           for k, r, ko, kx in g.get("kinds_landed", ())}
         ag._kind_pairs = ag._kind_pairs | {(ko, kx) for _k, _r, ko, kx in ag._kind_known}
         rep["kinds_known"] = len(ag._kind_known)
+    if tether._7H_TRACE and hasattr(ag, "_line_grade_in"):
+        # 7h (d): every generation's line grades, root to tip
+        for _h, g in chain:
+            for k, c in g.get("line_grades", {}).items():
+                into = ag._line_grade_in.setdefault(k, {})
+                for o, n in c.items():
+                    into[o] = into.get(o, 0) + n
+        rep["line_kinds_in"] = len(ag._line_grade_in)
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade_in"):
         # 7h (a): every generation's root grades, root to tip
         for _h, g in chain:

@@ -624,6 +624,9 @@ _INDEX_AFFECTS = armflag.arm("TETHER_INDEX_AFFECTS", default=True)
 # 7h (c), RECURSION AT THE LEAVE (Fig 9: unbundle before calling it a gap): a slot D5 is splitting
 # is never left, and the leave row says whether a held predicate splits the rows into lawful parts
 _7H_UNBUNDLE = armflag.arm("TETHER_7H_UNBUNDLE", default=True)
+# 7h (d), THE RECALLABLE GRADED TRACE: each line of thought (a slot's search) is graded by the
+# slot's kind when it ends -- paid or left -- carried by the lineage, and read at the leave
+_7H_TRACE = armflag.arm("TETHER_7H_TRACE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1758,6 +1761,10 @@ class Agent:
         self._root_grade_in: dict = {}
         self._root_grade_written: dict = {}
         self._rescoped: set = set()      # 7h (b): (cycle, taken, passed) already recorded
+        # 7h (d): per slot kind, how its lines ended -- this instance's, the lineage's, written
+        self._line_grade: dict = {}
+        self._line_grade_in: dict = {}
+        self._line_grade_written: dict = {}
         self._contra_q: list = []        # 3a: this step's contradictions, for perception
         self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
@@ -9706,24 +9713,33 @@ class Agent:
         record (Fig 10); the residual stays (Fig 11); only the mint pauses."""
         key = (self.level, self._root_id)
         ln = self._leave_line.get(slot)
-        if ln is None or ln["key"] != key:
+        began = ln is not None and ln["key"] == key   # 7h (d): a line already under way
+        if not began:
             ln = self._leave_line[slot] = {"key": key, "first": out0, "mints": 0}
         ln["mints"] += 1
         now = self.outstanding(slot)
         if self.bound.get(slot) is not None or now < ln["first"]:
             self._leave_line.pop(slot, None)     # a child moved: the line goes on
+            if _7H_TRACE and began and hasattr(self, "_line_grade"):
+                self._line_grade.setdefault(self._kind_key(slot),
+                                            collections.Counter())["paid"] += 1
             return
         bk = self._bind_key.get(slot) if _7H_TRIED else None
         closure = sorted(bk[1]) if bk else []
         tried = [self._tried[(self.level, slot, s)] for s in closure]
         if not closure or min(tried) < 1:
             return
+        rec = self._line_record(slot) if _7H_TRACE and hasattr(self, "_line_grade") else None
+        if rec is not None and rec["paid"] > rec["left"] and min(tried) < 2:
+            return       # 7h (d): this kind of line has paid before -- search the room again
         unb = None
         if _7H_UNBUNDLE:
             if _D5 and (slot in self._parts or slot in self._d5_pending
                         or slot in self._d5_candidates):
                 return       # D5 is splitting this line: the parts are still being searched
             unb = self._unbundle(slot)
+        if rec is not None:
+            self._line_grade.setdefault(self._kind_key(slot), collections.Counter())["left"] += 1
         self._leave_held[slot] = {"level": self.level, "root": self._root_id,
                                   "cycle": self.cycle, "slots": set(self.slots), "skipped": 0,
                                   "seen": set(), "upto": 0}
@@ -9736,8 +9752,16 @@ class Agent:
                         outstanding_first=ln["first"], outstanding_now=now,
                         mints=ln["mints"],
                         **({"unbundled": unb} if _7H_UNBUNDLE else {}),
+                        **({"kind_record": rec} if rec is not None else {}),
                         reopen=("a level boundary, a new root, a new transition of the slot, "
                                 "or a new operand in the closure"))
+
+    def _line_record(self, slot: str) -> dict:
+        """7h (d): how lines on this slot's KIND ended, the lineage's plus this instance's."""
+        k = self._kind_key(slot)
+        n = collections.Counter(self._line_grade_in.get(k, {}))
+        n.update(self._line_grade.get(k, {}))
+        return {"paid": n["paid"], "left": n["left"]}
 
     def _unbundle(self, slot: str) -> dict:
         """7h (c): is the slot's record a UNION of lawful parts (Fig 9: "a case in two conditions

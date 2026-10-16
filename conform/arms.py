@@ -799,6 +799,13 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7H_TRACE": "7h (d), the recallable graded trace, smallest form (Isaiah 2026-10-16 "
+                       "16:21): each line (a slot's search) is graded by the slot's kind "
+                       "(7h (h)'s key) when it ends -- paid (bound, or its outstanding fell) "
+                       "or left (7f) -- written per generation, summed at load; read at the "
+                       "leave: a kind whose lines paid more than they were left is searched "
+                       "a second full pass before leaving. The leave row carries "
+                       "kind_record. OFF: no grades, the leave as before. default ON",
     "TETHER_7H_UNBUNDLE": "7h (c), recursion's smallest form at 7f's leave (Isaiah 2026-10-16 "
                           "16:21): a slot D5 is splitting (parts, pending, candidate) is never "
                           "left, and the leave row carries unbundled -- whether a held "
