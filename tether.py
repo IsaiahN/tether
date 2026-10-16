@@ -595,6 +595,10 @@ _7J_TEST = armflag.arm("TETHER_7J_TEST", default=True)
 # at site 8
 _7L_KIND = armflag.arm("TETHER_7L_KIND", default=True)
 _7M_ANALOGY = armflag.arm("TETHER_7M_ANALOGY", default=True)
+# 7d, THE REVERSE LOOKUP (the reviewer 2026-10-16 11:56): the entries filed as PRODUCING a changed
+# reading are asked after the forward ones (Library.light abduce="after"); one "abduce" row per
+# lookup
+_LIBRARY_ABDUCE = armflag.arm("TETHER_LIBRARY_ABDUCE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -858,7 +862,7 @@ def _bound(c: Any, sub: Any, atoms: dict) -> Any:
     if slot.endswith(".bbox"):
         a, b = sorted(parties)
         slot = f"{a}~{b}.bbox"
-    return compile_term.Compiled(slot, term(c.term), sub(c.operand), parties, c.absent)
+    return compile_term.Compiled(slot, term(c.term), sub(c.operand), parties, c.absent, c.via)
 
 
 def _slot_of(c: Any, sub: Any) -> str:
@@ -2634,6 +2638,11 @@ class Agent:
                 changed[a] = 1
             changed.update({r: 1 for r, base in compile_term.CHANGE_OF.items() if base == a})
         lit = lib.light(changed) if changed and lib is not None else []
+        _extra: set = set()
+        if _LIBRARY_ABDUCE and changed and lib is not None:
+            _fwd = {k for k, _w in lit}
+            lit = lib.light(changed, abduce="after")
+            _extra = {k for k, _w in lit} - _fwd
         blk = self._blocked_now.get(slot) if _RELATION_SET and lib is not None else None
         if blk is not None:
             # B4's consumer (the reviewer 12:49 CDT): the stall described as an effect -- blocked
@@ -2666,6 +2675,16 @@ class Agent:
         if index is None:
             index = self._reach_index[ikey] = self._index_reach(lib, lit, slot, mine, others)
         views, causes, refused = index
+        if _LIBRARY_ABDUCE:
+            # 7d's row: what the reverse lookup added -- entries lit only by it, the distinct
+            # terms they were first to offer, and the terms routed through an event (via)
+            _new = (sum(1 for _c, p in views.values() if p["library"] in _extra)
+                    + sum(1 for *_x, p in causes.values() if p["library"] in _extra))
+            self.led.record(self.cycle, self._running_step, slot, "abduce",
+                            lit=len(lit) - len(_extra), extra=len(_extra), new=_new,
+                            routed=sum(1 for _c, p in views.values() if p.get("via"))
+                            + sum(1 for *_x, p in causes.values() if p.get("via")),
+                            refused=sum(refused.values()))
         if self._reach_frames is None or self._reach_frames[0] != self._trace_epoch \
                 or self._reach_frames[1] != len(self.trace):
             self._reach_frames = (self._trace_epoch, len(self.trace), reach.frames(
@@ -2704,11 +2723,16 @@ class Agent:
         per condition (the compiler is a pure function of the condition and the atoms)."""
         atoms = {a.name: a for a in self.gamma.atoms}
 
-        def comp(cond: str) -> Any:
-            got = self._compile_cache.get(cond)
+        def comp(cond: str, subject: str | None = None) -> Any:
+            # 7d: a frame event compiles on its subject, so only its key carries the subject;
+            # OFF passes none, so came is refused as before the arm
+            if not _LIBRARY_ABDUCE or not cond.startswith("frame."):
+                subject = None
+            k = cond if subject is None else (cond, subject)
+            got = self._compile_cache.get(k)
             if got is None:
-                got = self._compile_cache[cond] = compile_term.compile_candidate(
-                    {"condition": cond}, atoms)
+                got = self._compile_cache[k] = compile_term.compile_candidate(
+                    {"condition": cond}, atoms, subject=subject)
             return got
         views: dict = {}
         causes: dict = {}
@@ -2731,7 +2755,8 @@ class Agent:
                         if hit is None:
                             views[c.term.name] = (c, {"library": key, "role": role,
                                                       "template": cand.get("template"),
-                                                      "entries": 1})
+                                                      "entries": 1,
+                                                      **({"via": c.via} if c.via else {})})
                         else:
                             hit[1]["entries"] += 1
                         _landed += 1
@@ -2754,8 +2779,10 @@ class Agent:
                     pk = (if_c.term.name, if_c.slot, then_c.term.name)
                     hit = causes.get(pk)
                     if hit is None:
+                        _via = if_c.via or then_c.via
                         causes[pk] = (if_c, then_c, {"library": key, "role": "CAUSE",
-                                                     "bond": cand.get("bond"), "entries": 1})
+                                                     "bond": cand.get("bond"), "entries": 1,
+                                                     **({"via": _via} if _via else {})})
                     else:
                         hit[2]["entries"] += 1
                     _landed += 1
@@ -2900,9 +2927,10 @@ class Agent:
                 by: dict = {}
                 rest, cnt = [], Counter()
                 for cand in self._lib_view(lib, key, role, o, x):
-                    row = ((cand, comp(cand["if"]), comp(cand["then"])) if role == "CAUSE"
+                    row = ((cand, comp(cand["if"], o), comp(cand["then"], x))
+                           if role == "CAUSE"
                            else (cand, None if "quantifier" in cand
-                                 else comp(cand["condition"]), None))
+                                 else comp(cand["condition"], o), None))
                     k = _tally_key(role, row[1], row[2], _same)
                     if k is not None:
                         cnt[k] += 1
@@ -2915,9 +2943,9 @@ class Agent:
             tally.update(hit[1])
             return list(hit[0].get(slot, ())) + list(hit[2])
         if role == "CAUSE":
-            return ((cand, comp(cand["if"]), comp(cand["then"]))
+            return ((cand, comp(cand["if"], o), comp(cand["then"], x))
                     for cand in self._lib_view(lib, key, role, o, x))
-        return ((cand, None if "quantifier" in cand else comp(cand["condition"]), None)
+        return ((cand, None if "quantifier" in cand else comp(cand["condition"], o), None)
                 for cand in self._lib_view(lib, key, role, o, x))
 
     def _pair_count(self, lib: Any, key: str, role: str, o: str, x: str, atoms: dict,
@@ -2948,15 +2976,16 @@ class Agent:
             # (b'-g) D3, BOTH ARMS: a carried reference resolves at its first ask, or fails whole
             held = lineage.resolve(self, lib, key, role, sig)
         if held is None:
-            def comp(cond: str) -> Any:
-                return compile_term.compile_candidate({"condition": cond}, atoms)
+            def comp(cond: str, subject: str | None = None) -> Any:
+                return compile_term.compile_candidate(
+                    {"condition": cond}, atoms, subject=subject if _LIBRARY_ABDUCE else None)
             held = []
             for cand in lib.view(key, role, PH_O, PH_X):
                 if role == "CAUSE":
-                    held.append((cand, comp(cand["if"]), comp(cand["then"])))
+                    held.append((cand, comp(cand["if"], PH_O), comp(cand["then"], PH_X)))
                 else:
                     held.append((cand, None if "quantifier" in cand
-                                 else comp(cand["condition"]), None))
+                                 else comp(cand["condition"], PH_O), None))
             _INDEX_STORE[(sig, key, role)] = held
             _INDEX_N["held"] += 1
         return held

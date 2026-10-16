@@ -495,7 +495,8 @@ def _enc_c(c: Any) -> Any:
         return {"refusal": c.reason}
     if isinstance(c, compile_term.Compiled):
         return {"slot": c.slot, "term": _enc_term(c.term), "operand": c.operand,
-                "parties": list(c.parties), "absent": enc(c.absent)}
+                "parties": list(c.parties), "absent": enc(c.absent),
+                **({"via": c.via} if c.via else {})}
     raise Unencodable(type(c).__name__)
 
 
@@ -506,7 +507,7 @@ def _dec_c(x: Any, atoms: dict) -> Any:
     if "refusal" in x:
         return compile_term.Refusal(x["refusal"])
     return compile_term.Compiled(x["slot"], _dec_term(x["term"], atoms), x["operand"],
-                                 tuple(x["parties"]), dec(x["absent"]))
+                                 tuple(x["parties"]), dec(x["absent"]), x.get("via"))
 
 
 def write_index(d: str | Path, ag: Any, h: str) -> dict | None:

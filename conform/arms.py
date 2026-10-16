@@ -796,6 +796,13 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_LIBRARY_ABDUCE": "7d, the reverse lookup (the reviewer 2026-10-16 11:56, 12:00): "
+                             "Library.light abduce=\"after\" at M4's lookup, one abduce row per "
+                             "lookup (lit / extra / new / routed / refused); frame.came compiles "
+                             "to {subject}.age == 0 marked via=event:came. OFF: no reverse "
+                             "lookup and no came route; refusal wording stays named (the "
+                             "reviewer 12:19). default ON (Isaiah 2026-10-15 07:53, 17:26); "
+                             "the switch is kept for the checklist's culprit isolation",
     "TETHER_7M_ANALOGY": "7m: at site 8 a pair whose kinds were asked before goes first, "
                          "before the 7h tried count and the draw; an order, never a cut. "
                          "OFF is the line before it exactly. "

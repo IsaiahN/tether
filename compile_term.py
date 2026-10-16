@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -106,6 +106,32 @@ def signature(atoms: dict) -> tuple:
     return (_RELATION_SET, tuple(sorted(
         (n, a.in_type, a.out_type, a.reads_operand, a.operand_type, a.also_accepts,
          a.polymorphic, a.elem_type) for n, a in atoms.items() if n in TEMPLATE_ATOMS)))
+# 7d, THE EVENT ROUTE (the reviewer 2026-10-16 11:56, 12:00; 10-11 14:17: an event is a transition,
+# carried by the change readings): a frame event is compiled onto a change reading the agent
+# ALREADY carries, on the role's subject. frame.came > 0 (some object appeared) -> {subject}.age
+# == 0 (this object appeared: age is 0 when an object has no previous frame, arc_percept 712), a
+# NARROWING marked via="event:came". The other events have no reading and are refused by name.
+EVENT_OF = {"came": ((">", 0), "age", "==", 0)}
+EVENT_GAP = ("gone", "action", "press")
+
+
+def _event(node: Any, subject: str | None, atoms: dict) -> Any:
+    """A frame event onto a change reading of the subject (EVENT_OF), a named refusal (EVENT_GAP),
+    or None when the event is neither (it keeps "events are not slots")."""
+    obj, reading = _split(node.left.name)
+    if obj != "frame":
+        return None
+    if reading in EVENT_GAP:
+        return Refusal(f"no change reading for {reading}")
+    route = EVENT_OF.get(reading)
+    if route is None or (node.op, node.right) != route[0]:
+        return None
+    if subject is None:
+        return Refusal(f"no change reading for {reading} without a subject")
+    got = compile_candidate({"condition": f"{subject}.{route[1]} {route[2]} {route[3]}"}, atoms)
+    return replace(got, via=f"event:{reading}") if isinstance(got, Compiled) else got
+
+
 # Shapes that have no slot to run on, refused by name (section 3, section 7c).
 NOT_SLOTS = {"frame": "events are not slots", "board": "the board is not an object slot",
              # the world's progress marker (world.GOAL_SLOT; the library's `board`), named
@@ -123,6 +149,9 @@ class Compiled:
     # present and the slot is absent (relations.SPARSE_PAIR). Empty / None everywhere else.
     parties: tuple = ()
     absent: Any = None
+    # A ROUTED EVENT (7d): set when the term was compiled through EVENT_OF, e.g. "event:came",
+    # so a narrowed event (some object came -> this object came) is never read as a native slot
+    via: str | None = None
 
 
 @dataclass(frozen=True)
@@ -175,7 +204,8 @@ def _typed(chain: tuple[gamma.Atom, ...], slot_type: str, operand_type: str | No
 QUANTIFIED = "quantified over the group: needs a group row (not ruled)"
 
 
-def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
+def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom],
+                      subject: str | None = None) -> Compiled | Refusal:
     """One candidate (`{"condition": "o1.drow > 0", ...}`), compiled or refused with a reason."""
     if "quantifier" in cand:
         return Refusal(QUANTIFIED)
@@ -202,6 +232,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom]) -> Compiled | Re
                        f"reads the pair")
     if not (isinstance(node, condition.Cmp) and isinstance(node.left, condition.Slot)):
         return Refusal("not a comparison of one slot")
+    ev = _event(node, subject, atoms)
+    if ev is not None:
+        return ev
     target = node.left.name
     obj, reading = _split(target)
     if obj in NOT_SLOTS:
