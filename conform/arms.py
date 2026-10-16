@@ -796,6 +796,12 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7I_ROUTE": "3a, 7i ROUTED (the seat 2026-10-16 14:14): an innate term refuted on a "
+                       "slot (at the refute site) and a settled term refused (refuse_term) are "
+                       "queued per step; beside the indistinct row one PERCEIVE row "
+                       "contradiction_routed names them and carries resolve()'s remedy. "
+                       "Nothing is demoted or removed. OFF: no queue, no row. default ON "
+                       "(Isaiah 2026-10-15 07:53, 17:26)",
     "TETHER_7H_RESCOPE": "7h (b), B1 (the reviewer 2026-10-16 13:54, 13:57): in _goal_choice a "
                          "qualifying slot whose held goal shape (7h (a)) reads refuted by level "
                          "outcomes ranks after every other qualifying slot; still chosen when "

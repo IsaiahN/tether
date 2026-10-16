@@ -614,6 +614,9 @@ _7H_ROOT_GRADE = armflag.arm("TETHER_7H_ROOT_GRADE", default=True)
 # 7h (b), B1 (the reviewer 2026-10-16 13:57): a goal slot whose held shape is refuted by level
 # outcomes ranks after every other qualifying slot -- ordered, never removed
 _7H_RESCOPE = armflag.arm("TETHER_7H_RESCOPE", default=True)
+# 3a, 7i ROUTED (the seat 2026-10-16 14:14): a ground contradiction -- an innate term refuted, a
+# settled term refused -- is a perception trigger, beside the indistinct one
+_7I_ROUTE = armflag.arm("TETHER_7I_ROUTE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1748,6 +1751,7 @@ class Agent:
         self._root_grade_in: dict = {}
         self._root_grade_written: dict = {}
         self._rescoped: set = set()      # 7h (b): (cycle, taken, passed) already recorded
+        self._contra_q: list = []        # 3a: this step's contradictions, for perception
         self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
         # the decay class: the situation (level, alive) and its epoch, set at the agent's own
@@ -8095,6 +8099,8 @@ class Agent:
             self.led.record(self.cycle, "MINT", slot, "contradiction", term=name,
                             reads=("a settled term and its refusal both stand: two scopes, an "
                                    "error in the ground, or a world that changed -- not decided"))
+            if _7I_ROUTE and hasattr(self, "_contra_q"):
+                self._contra_q.append({"slot": slot, "term": name, "kind": "settled refused"})
         return True
 
     def _persists(self, name: str, slot: str) -> bool:
@@ -11134,6 +11140,8 @@ class Agent:
                         slot not in self._d5_candidates):
                     _found = self._d5_cut(slot, name)
                 held = self.gamma.is_settled(name, slot)
+                if _7I_ROUTE and name in getattr(self.gamma, "innate", ()):
+                    self._contra_q.append({"slot": slot, "term": name, "kind": "innate refuted"})
                 _demoted_now = self.gamma.refute(name, where=self._scope, slot=slot)
                 if _found is not None and not _demoted_now:
                     # A CANDIDATE, NOT A PARTITION (the reviewer 18:46Z, Fig 9 :60): the cut was
@@ -11754,6 +11762,15 @@ class Agent:
                             remedy=self.resolve() if indist else None,
                             reads=("same featural vector, different |R|. Ranked by how many "
                                    "objects shared the vector, which the remedy cannot move"))
+            if _7I_ROUTE and self._contra_q:
+                # 3a: a ground contradiction suspects the READING first (core concepts are innate
+                # and settled, Isaiah 10-14 07:08), so it goes to perception's remedy by name
+                q, self._contra_q = self._contra_q, []
+                self.led.record(self.cycle - 1, self._running_step, "@vector",
+                                "contradiction_routed", contradictions=q,
+                                slots=sorted({c["slot"] for c in q}), remedy=self.resolve(),
+                                reads=("a ground contradiction is a perception trigger: the "
+                                       "reading is suspected before the concept"))
         if _FED:
             for _e in self._gamma_read.get("fed", ()):
                 if _e["name"] is None:
