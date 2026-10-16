@@ -5,7 +5,8 @@
   m2 MUST-FAIL: with interface dropped from the list, the check names it;
   m3 live: with TETHER_REALISE_CELL=1, Attribution.arms() lists interface._REALISE_CELL as ON;
   m4 every module-level name assigned from armflag.arm( is _UPPER, the only form arms() records
-     (instruments: k.startswith("_") and k[1:2].isupper()); lineage.CARRY was public until
+     (instruments: k.startswith("_") and an upper or a digit next; the digit since 2026-10-16,
+     when 13 _7x arms were found missing from every header); lineage.CARRY was public until
      2026-10-15 and no header ever carried it.
 
     python test_arm_modules.py
@@ -37,7 +38,8 @@ def public_arms() -> list[str]:
             continue
         for m in re.finditer(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*armflag\.arm\(",
                              p.read_text(encoding="utf-8"), re.M):
-            if not (m.group(1).startswith("_") and m.group(1)[1:2].isupper()):
+            if not (m.group(1).startswith("_") and (m.group(1)[1:2].isupper()
+                                                   or m.group(1)[1:2].isdigit())):
                 out.append(f"{p.stem}:{m.group(1)}")
     return out
 

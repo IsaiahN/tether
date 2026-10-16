@@ -579,7 +579,8 @@ class Attribution:
                 continue
             loaded.append(name)
             flags.update({f"{name}.{k}": v for k, v in vars(mod).items()
-                          if k.startswith("_") and k[1:2].isupper() and isinstance(v, bool)})
+                          if k.startswith("_") and (k[1:2].isupper() or k[1:2].isdigit())
+                          and isinstance(v, bool)})   # _7H_ROOT etc. (2026-10-16)
         on = sorted(k for k, v in flags.items() if v)
         off = sorted(k for k, v in flags.items() if not v)
         return {"on": on, "off": off, "n_on": len(on), "n_off": len(off),
