@@ -796,6 +796,16 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7F_LEAVE": "7h (i), 7f LEAVE (the reviewer 2026-10-16 13:02, 13:05): after a mint, "
+                       "a slot whose lookup closure was tried to its end at this level with "
+                       "nothing bound and its outstanding not fallen since the line's first "
+                       "mint is LEFT: one leave row (verdict unreachable at this budget, its "
+                       "scope and attempt record); mint() on it returns at once until the "
+                       "level or the root changes, the slot shows a (before, action, after) "
+                       "transition not held at the leave (13:14), or a new operand appears; "
+                       "then one reopen row "
+                       "(reopen_by, skipped). Outstanding untouched; attention unchanged. "
+                       "OFF: no rows, no skip. default ON (Isaiah 2026-10-15 07:53, 17:26)",
     "TETHER_7H_KIND_CARRY": "7h (h), H3 (the reviewer 2026-10-16 12:33): A1's starved and "
                             "curiosity counts are also kept by kind (owner kind, attribute "
                             "type), written per generation and summed at load; the carried-in "

@@ -602,6 +602,9 @@ _LIBRARY_ABDUCE = armflag.arm("TETHER_LIBRARY_ABDUCE", default=True)
 # 7h (h), H3 (the reviewer 2026-10-16 12:33): A1's counts by KIND carried across the lineage, and
 # read in the next game as the second tie-break key; the slot counts are unchanged
 _7H_KIND_CARRY = armflag.arm("TETHER_7H_KIND_CARRY", default=True)
+# 7h (i), 7f LEAVE (the reviewer 2026-10-16 13:05): a slot's line is left when its closure is
+# searched to the end and nothing moved; a recorded verdict, never a silence
+_7F_LEAVE = armflag.arm("TETHER_7F_LEAVE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1726,6 +1729,9 @@ class Agent:
         self._kind_n: dict = {"starved": collections.Counter(), "curiosity": collections.Counter()}
         self._kind_carried_in: dict = {"starved": {}, "curiosity": {}}
         self._kind_n_written: dict = {"starved": {}, "curiosity": {}}
+        # 7f LEAVE: per slot, its line under (level, root) since the first mint; the left slots
+        self._leave_line: dict = {}
+        self._leave_held: dict = {}
         self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
         # the decay class: the situation (level, alive) and its epoch, set at the agent's own
@@ -9508,11 +9514,82 @@ class Agent:
         2026-10-05). SCOPED TO THE MINT, and every entry holds a reference to the row it keys on,
         so no row can be freed and its id reused while the memo lives. Byte-identical by
         construction; checked on four worlds."""
+        if _7F_LEAVE and hasattr(self, "_leave_held") and not self._may_mint(slot):
+            return None
+        out0 = self.outstanding(slot) if _7F_LEAVE else None
         self._memo = {}
         try:
-            return self._mint(slot)
+            got = self._mint(slot)
         finally:
             self._memo = None
+        if _7F_LEAVE and hasattr(self, "_leave_held"):   # an Agent built by __new__ has none
+            self._leave_check(slot, out0)
+        return got
+
+    def _may_mint(self, slot: str) -> bool:
+        """7f: True when the slot may be minted -- it is not left, or it reopens now (the level,
+        the root, new evidence -- a transition of the slot not held at the leave -- or a new
+        operand), with one row saying which."""
+        lf = self._leave_held.get(slot)
+        if lf is None:
+            return True
+        new = self._transitions(slot, lf)
+        by = ("level" if lf["level"] != self.level else "root" if lf["root"] != self._root_id
+              else "evidence" if new else "operand" if set(self.slots) - lf["slots"] else None)
+        if by is None:
+            lf["skipped"] += 1
+            return False
+        del self._leave_held[slot]
+        self._leave_line.pop(slot, None)
+        self.led.record(self.cycle, self._running_step, slot, "reopen", reopen_by=by,
+                        skipped=lf["skipped"], left_at=lf["cycle"], root=self._root_id)
+        return True
+
+    def _leave_check(self, slot: str, out0: Any) -> None:
+        """7f: after a mint, the line is left when NO CHILD MOVES -- every operand of the
+        slot's closure tried at this level (the room searched to its end) and, since the line's
+        first mint, nothing bound and the outstanding not fallen. The witness is the attempt
+        record (Fig 10); the residual stays (Fig 11); only the mint pauses."""
+        key = (self.level, self._root_id)
+        ln = self._leave_line.get(slot)
+        if ln is None or ln["key"] != key:
+            ln = self._leave_line[slot] = {"key": key, "first": out0, "mints": 0}
+        ln["mints"] += 1
+        now = self.outstanding(slot)
+        if self.bound.get(slot) is not None or now < ln["first"]:
+            self._leave_line.pop(slot, None)     # a child moved: the line goes on
+            return
+        bk = self._bind_key.get(slot) if _7H_TRIED else None
+        closure = sorted(bk[1]) if bk else []
+        tried = [self._tried[(self.level, slot, s)] for s in closure]
+        if not closure or min(tried) < 1:
+            return
+        self._leave_held[slot] = {"level": self.level, "root": self._root_id,
+                                  "cycle": self.cycle, "slots": set(self.slots), "skipped": 0,
+                                  "seen": set(), "upto": 0}
+        self._transitions(slot, self._leave_held[slot])
+        self.led.record(self.cycle, self._running_step, slot, "leave", root=self._root_id,
+                        level=self.level, verdict="unreachable at this budget",
+                        scope=(f"the {len(closure)} operands of this slot's lookup closure at "
+                               "this level, each tried at least once"),
+                        closure=len(closure), tried_min=min(tried), tried_max=max(tried),
+                        outstanding_first=ln["first"], outstanding_now=now,
+                        mints=ln["mints"],
+                        reopen=("a level boundary, a new root, a new transition of the slot, "
+                                "or a new operand in the closure"))
+
+    def _transitions(self, slot: str, lf: dict) -> list:
+        """7f: the slot's (before, action, after) triples in the trace since the last read, kept
+        in the leave; returns those not held before (new evidence the closure was never tried
+        against). Incremental, so the trace is read once."""
+        new = []
+        for before, action, after, *_ in self.trace[lf["upto"]:]:
+            t = (before.get(slot), action, after.get(slot))
+            if t not in lf["seen"]:
+                lf["seen"].add(t)
+                new.append(t)
+        lf["upto"] = len(self.trace)
+        return new
 
     def _retain_unpaid_want(self, slot: str, wanted: tuple, detail: dict) -> None:
         """The one writer of an unpaid objective want (Isaiah 2026-09-25): the mint's tail, and
