@@ -21,6 +21,7 @@ import re
 import sys
 import time
 from collections import Counter
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from dataclasses import replace as _replace
 from functools import cache, partial, wraps
@@ -1673,17 +1674,24 @@ def _in_step(step: str):
     def wrap(f):
         @wraps(f)
         def run(self, *a, **k):
-            prev, self._running_step = self._running_step, step
-            try:
+            with self._step_scope(step):
                 return f(self, *a, **k)
-            finally:
-                self._running_step = prev
         return run
     return wrap
 
 
 class Agent:
-    _running_step = "PLAN"     # the step running now; _in_step sets it, PLAN between steps
+    _running_step = "PLAN"     # the step running now; _in_step and _step_scope set it
+
+    @contextmanager
+    def _step_scope(self, step: str):
+        """_in_step for an inline phase of step() or an entry point: the step running for
+        the block, restored after (the reviewer 2026-10-16 09:23)."""
+        prev, self._running_step = self._running_step, step
+        try:
+            yield
+        finally:
+            self._running_step = prev
 
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
@@ -2223,6 +2231,7 @@ class Agent:
         The interface's reading, so the floor's key and the withhold's check are one."""
         return IFace.fingerprint(self.env, before)
 
+    @_in_step("IMPORT")
     def _mc3_note(self, how: str, scope: str) -> None:
         """MC3: the GROUND's record of an ending -- its word, its kind, whether the level was
         cleared, the actions this level and this run, the attempts -- appended, never edited
@@ -2265,6 +2274,7 @@ class Agent:
                                      else "no record"),
                 "level_cost_seen": ([min(cleared), max(cleared)] if cleared else "no record")}
 
+    @_in_step("IMPORT")
     def _note_ending(self, how: str, scope: str) -> None:
         """7a(5) A + B: one ending reaches Termination once -- the SAME word again with no step
         between (a WIN retargeted, then ended by the loop) is that ending, another word is another
@@ -2294,6 +2304,7 @@ class Agent:
                         action=act, coord=list(coord) if coord is not None else None,
                         at_cycle=cyc, new=new, vetoes=len(self._vetoes))
 
+    @_in_step("SETTLE")
     def _resolve_signals(self, kind: str, how: str) -> None:
         """MC2: exactly one resolution row per open signal, pointing at its bet row, never editing
         it (Fig 6). `kind` is an order (bet < level < game, Fig 13), never a weight; nothing is
@@ -2315,6 +2326,7 @@ class Agent:
                                    "names the bound term"))
         self._signals = []
 
+    @_in_step("IMPORT")
     def retarget(self, env: Any, level: int, how: str = ADVANCE) -> None:
         """Move to the next level. Gamma and standing carry; the trace and the bindings
         do not, because slot names mean nothing across a boundary.
@@ -2379,13 +2391,14 @@ class Agent:
         # leaving a both-and looking finished.
         if how in (ADVANCE, WIN):
             _cc, _cs, _clv = self._boundary_key("@credit")
-            self.led.record(_cc, "SETTLE", _cs, "credit", **_clv,
-                            settled_here=sorted(self.settled - self._settled_at_level),
-                            bound_here=sorted(set(self.bound.values())),
-                            over_steps=len(self.trace), how=how,
-                            note="the segment is credited, not the last action",
-                            decay_half="boundary demotion, its own item -- credit without "
-                                       "decay is the incumbency pathology (§21.4)")
+            with self._step_scope("SETTLE"):
+                self.led.record(_cc, "SETTLE", _cs, "credit", **_clv,
+                                settled_here=sorted(self.settled - self._settled_at_level),
+                                bound_here=sorted(set(self.bound.values())),
+                                over_steps=len(self.trace), how=how,
+                                note="the segment is credited, not the last action",
+                                decay_half="boundary demotion, its own item -- credit without "
+                                           "decay is the incumbency pathology (§21.4)")
         self._resolve_signals("level", how)
         if _D13:
             self._settle_process("level", how)
@@ -3012,6 +3025,7 @@ class Agent:
         return out
 
     # ---------------------------------------------------------------- objective build 1
+    @_in_step("IMPORT")
     def _completion_sweep(self, degree: float) -> None:
         """ARC_AGENT 21.3, "a completion is a settle, and the sweep is how you find out what caused
         it", triggered by the completion itself (the reviewer 2026-10-11 02:19Z): the WORLD's
@@ -3199,6 +3213,7 @@ class Agent:
                             linked=bool(link.get("linked")),
                             reads="the movable-party verdict changed: the want moves to it")
 
+    @_in_step("IMPORT")
     def _close_goals(self, how: str) -> None:
         """E1 (the reviewer 2026-10-11 03:38Z): a held goal condition CLOSES with its level --
         at a retarget or the run's end -- and is never re-priced against the next level's
@@ -3227,6 +3242,7 @@ class Agent:
             _book_add(self.gamma.book, "goal_unlinked")                  # L2
         return released
 
+    @_in_step("IMPORT")
     def _goal_recheck(self) -> None:
         """L1 (the reviewer 2026-10-11 03:28Z): a held goal condition stays held only while it
         still pays the one bargain on the growing history (Fig 5 :42-44). Once it does not, it
@@ -3283,6 +3299,7 @@ class Agent:
                 out.append((cost + left, cost, left, e, f"{a[4]} and {b[4]}", pair))
         return out
 
+    @_in_step("IMPORT")
     def _goal_condition(self) -> None:
         """Objective build 2 (the reviewer 2026-10-11 02:19Z): at a completion, conditions from
         the library's own templates over the readings, each priced by `_goal_price` against
@@ -3350,7 +3367,7 @@ class Agent:
     def _process_bet(self, kind: str, slot: str, **what: Any) -> None:
         """D1: one of the agent's PROCESS states made a bet about a GROUND outcome (R3 part 2,
         seeded from routine.Expect). Recorded and held open; D3 settles it only at an ending."""
-        row = self.led.record(self.cycle, "PLAN", "@process", "process_bet", kind=kind,
+        row = self.led.record(self.cycle, self._running_step, "@process", "process_bet", kind=kind,
                               about=slot, level=self.level, **what)
         self._process_bets.append({"seq": row.seq, "kind": kind, "slot": slot,
                                    "level": self.level})
@@ -3372,6 +3389,7 @@ class Agent:
                   "seen": detail.get("candidates_seen")})
         self._process_bet("parked_explained", slot, park_verdict=v, stall=stall)
 
+    @_in_step("SETTLE")
     def _settle_process(self, scope: str, how: str) -> None:
         """D3: a process bet settles ONLY on a level or game outcome, read from the GROUND, never
         from the agent's own diagnosis (Fig 10, "A verifier that can reconstruct the claim
@@ -3416,6 +3434,7 @@ class Agent:
         bets = [r for r in self.led.rows()[self._step_row0:] if r["event"] == "bet"]
         return bool(bets) and all(not float(r["detail"].get("mass", 0) or 0) for r in bets)
 
+    @_in_step("IMPORT")
     def _muse(self) -> None:
         """MC6 (R3 part 2; the reviewer 2026-10-10 23:50Z). On a step that owes nothing, the
         mastered methods (settled, non-atom terms) are re-tested against the residuals an
@@ -3627,6 +3646,8 @@ class Agent:
         else:
             self.owed_import.add(slot)
         self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
+        # (c) ACCEPT by design: this row records the ACCEPT this method itself performs, a later
+        # step carried out inside MINT (the reviewer 2026-10-16 09:23)
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led), status="candidate",
                         cited="no: candidate may be held, not cited",
@@ -3771,7 +3792,7 @@ class Agent:
         else:
             self._routine_next = (self.routine, emit, rest)
 
-    def _end_routine(self, why: str, before: dict, step: str = "PLAN",
+    def _end_routine(self, why: str, before: dict, step: str | None = None,
                      detail: dict | None = None) -> None:
         """A routine's ending: its verdict, shelving, refutation and record. Run where the ending is
         evaluated -- at the deciding cycle's SETTLE for a routine that has acted (F501), at PLAN for
@@ -3861,7 +3882,8 @@ class Agent:
             extra["blocked_why"] = self._guard_exit
         if detail:
             extra.update(detail)
-        self.led.record(self.cycle, step, self.routine_for or "*", "routine_end",
+        self.led.record(self.cycle, step or self._running_step, self.routine_for or "*",
+                        "routine_end",
                         outcome=why, routine=Rt.render(self.routine), **extra)
         self._guard_exit = None
         self.routine, self.routine_for = None, None
@@ -3922,7 +3944,7 @@ class Agent:
         about is the one `step` counts right after `choose` returns it."""
         return sum(self._acts.values())
 
-    def _check_expectation(self, before: dict, step: str = "PLAN") -> bool:
+    def _check_expectation(self, before: dict, step: str | None = None) -> bool:
         """Did the last step's claim hold? **ABANDON on divergence -- not revise, not re-plan.**
 
         Returns True when the routine was abandoned, so the caller stops running it.
@@ -3946,7 +3968,7 @@ class Agent:
         if now != was:
             return False                      # the claim held; carry on
         saved = Rt.length(self.routine) if self.routine is not None else 0
-        self.led.record(self.cycle, step, slot, "routine_abandoned",
+        self.led.record(self.cycle, step or self._running_step, slot, "routine_abandoned",
                         reason="expected this slot to change and it did not",
                         # `step_index`, NOT `step`: `led.record`'s own first positional is
                         # `step`, so the obvious name silently shadowed it.
@@ -3977,6 +3999,7 @@ class Agent:
         """
         return {"came": self._came, "gone": self._gone}
 
+    @_in_step("PERCEIVE")
     def _read_books(self, before: dict) -> None:
         """THE FOUR BOOKS, read each cycle and recorded against THE SCORE.
 
@@ -4087,6 +4110,7 @@ class Agent:
                         halflife_earned=bool(self.gamma.vindication),
                         vindications=len(self.gamma.vindication), **self.gamma.book)
 
+    @_in_step("PERCEIVE")
     def _narrate_vocabulary(self) -> None:
         """ONCE PER RUN: what the corpus CALLS what this agent can already reach.
 
@@ -4218,6 +4242,7 @@ class Agent:
             self._branch_cache = got
         return got
 
+    @_in_step("PERCEIVE")
     def _narrate_placements(self) -> None:
         """The encounter half's reading. **`multi` is the mid-game colour change, counted.**"""
         fn = getattr(self.env, "placements", None)
@@ -4227,6 +4252,7 @@ class Agent:
         self.led.record(self.cycle, "PERCEIVE", "*", "placements",
                         distinct=p["distinct"], changed=len(p["multi"]))
 
+    @_in_step("PERCEIVE")
     def _narrate_cues(self) -> None:
         """THE MUTATION OBSERVER, READ BY THE AGENT -- reviewer's ruling, 2026-09-26.
 
@@ -4271,6 +4297,7 @@ class Agent:
                         objects=c["n_objects"], loci=len(loci),
                         primitives=sorted({p for ps in loci.values() for p in ps}))
 
+    @_in_step("PERCEIVE")
     def _narrate_matches(self) -> None:
         """The tracker's own certainty, per step. **Fixture-readable, and that is the point.**
 
@@ -4296,6 +4323,7 @@ class Agent:
                         routes=dict(sorted(by.items())), n=len(m),
                         min_overlap=round(min(scores), 4) if scores else None)
 
+    @_in_step("PERCEIVE")
     def _narrate_cascade(self) -> None:
         """The cascade's shape, per step. **A one-frame response is a READING, not silence.**
 
@@ -4386,6 +4414,7 @@ class Agent:
                       - {a for (s_, a), n in self.agency.moved.items() if s_ in ctrl and n})
         return {"wait": acts, "self_moved": movers} if acts else None
 
+    @_in_step("PERCEIVE")
     def _cascade_agency(self) -> None:
         """H2: inside the last action, which sub-frame each object first changed in (a changed
         cell at its before or after position; a position two objects share is not read). Against
@@ -4441,6 +4470,7 @@ class Agent:
         self.led.record(self.cycle, "PERCEIVE", "*", "cascade_modes", frames=len(frames),
                         modes=modes, first=first, controlled=sorted(controlled))
 
+    @_in_step("PERCEIVE")
     def _narrate_order(self) -> None:
         """Layer 2's whole output: the order was USED and is SAID, and nothing keeps it."""
         ro = getattr(self.env, "read_order", None)
@@ -4667,6 +4697,7 @@ class Agent:
                         residual=None, seen=None, pick=repr(pick), by=by,
                         **({"root": self._root_id} if _7H_ROOT else {}))
 
+    @_in_step("SETTLE")
     def _test_row(self) -> None:
         """7j: one SETTLE row per goal-exit test: the term, its prediction (the target), the slot
         before and after, the outcome by the slot's own type, and the 7h root it belongs to
@@ -4712,6 +4743,7 @@ class Agent:
                         owed=sorted(self.owed_import),
                         reads="what is shown, what is expected, what is still open")
 
+    @_in_step("SETTLE")
     def _intent_verdict(self, how: str) -> None:
         """7h GRADED: at the boundary the ground's ending under the root, and whether the held
         goal hypothesis was the one in force at the end. A record only."""
@@ -5118,6 +5150,8 @@ class Agent:
             b, why = REBIND, "not mechanism: the current approach advanced the degree"
         else:
             b, why = MECHANISM, "not rebinding: nothing in the library advances the degree"
+        # (c) ROUTE by design: this row records the routing perceive itself performs for the reward
+        # slot, a later step carried out inside PERCEIVE (the reviewer 2026-10-16 09:23)
         self.led.record(self.cycle, "ROUTE", "@objective", "route", bin=b, why_not=why,
                         channel=REWARD, degree=round(degree, 4),
                         remedy="deferred: composition of actions is not built at agent scale")
@@ -5208,7 +5242,7 @@ class Agent:
         # installed under a NEW name stamped `accepted`, so a column keyed on the
         # imported NAME could never match it however well transfer worked. The
         # composition is what crossed, and it is what the reading has to key on.
-        self.led.record(self.cycle, "ROUTE", slot, "pull", term=n,
+        self.led.record(self.cycle, self._running_step, slot, "pull", term=n,
                         held=held, chain=" . ".join(a.name for a in cand.atoms),
                         rebound=held != n,
                         origin=(st or {}).get("origin"),
@@ -6012,6 +6046,7 @@ class Agent:
                                    "wrong rows in this level")
         return None
 
+    @_in_step("MINT")
     def _flush_probe(self, turned: set) -> None:
         """THE PROBE'S RECORD. ONE ROW PER SLOT THAT ASKED FOR IT, and `@probe` only when the
         trigger was the global reading rather than any particular slot -- so a slot parked at
@@ -6033,6 +6068,7 @@ class Agent:
                                    "answered them, recorded here and not after their ACCEPT"))
         self._starved.clear()
 
+    @_in_step("MINT")
     def _d5_splits(self, gone: frozenset = frozenset()) -> set:
         """D5: run the pending splits, before the route loop, which skips the slots split here.
         A SPLIT IS ITS SLOT'S TURN THIS CYCLE (F500; the reviewer 2026-10-11 22:59 CDT): part B's
@@ -6054,6 +6090,7 @@ class Agent:
             self._d5_pending.clear()
         return done
 
+    @_in_step("MINT")
     def _d5_split(self, slot: str, pred: str, numbers: dict, inc: str | None = None) -> None:
         """D5: part A keeps the incumbent on P rows; part B is searched by the SAME mint on the
         not-P rows alone (history filtered), and its verdict stays the part's: the slot's park
@@ -6136,6 +6173,7 @@ class Agent:
                             incumbent=name, actual=r.actual, side="not-P",
                             verdict="the incumbent was right on the first not-P step after the cut")
 
+    @_in_step("SETTLE")
     def _d5_level_end(self) -> None:
         """D5: the level is the cut's scope, so what is outstanding at its end leaves with a row.
         A candidate or a confirmed-but-unsplit cut is WITHDRAWN (no witness can arrive); a live
@@ -6553,9 +6591,10 @@ class Agent:
                 act = self._took(_untried, IFace.Intent(IFace.ELICIT))
             if self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
-            # target is an OBJECT id (_contact_target), never a slot: a slot-named target would put
-            # this MINT row ahead of that slot's PERCEIVE and break F500's order (reviewer 07:42).
-            self.led.record(self.cycle, "MINT", target or "@contact", "system0",
+            # target is an OBJECT id (_contact_target), never a slot. The row is labelled with the
+            # step running (PLAN, choose), first on the ladder, so F500's order holds without the
+            # object-id workaround the old MINT label needed (the reviewer 2026-10-16 09:49).
+            self.led.record(self.cycle, self._running_step, target or "@contact", "system0",
                             why=why, target=target, action=act,
                             unexplored=len([k for k in self._contact_keys(before)
                                             if k not in self._contact_seen]),
@@ -7171,6 +7210,7 @@ class Agent:
                 return YES                 # this agent has moved it that way, mostly
         return UNKNOWN
 
+    @_in_step("PERCEIVE")
     def note_goals(self, state: dict[str, int]) -> None:
         """One discrepancy reading per goal hypothesis per step. Held, never aggregated."""
         reach: dict[str, str] = {}
@@ -7413,7 +7453,7 @@ class Agent:
                 self.gamma.book.get("plan_gate_no_hypothesis", 0) + 1)
         return best[1] if best else None
 
-    def _holds(self, state: dict[str, int], step: str = "PLAN"):
+    def _holds(self, state: dict[str, int], step: str | None = None):
         """`holds(guard) -> True | False | None` for `routine.advance`. A guard is a SLOT NAME,
         and it holds when the objective bound there is satisfied.
 
@@ -7450,7 +7490,7 @@ class Agent:
                 # artifact could say. F207: the first routine this project formed died here.
                 # the CALLER'S step: `_settle_routine` advances at SETTLE (F501), so a guard read
                 # there is a SETTLE row, after the cycle's demotes, never a PLAN row out of order
-                self.led.record(self.cycle, step, guard, "guard_unreadable",
+                self.led.record(self.cycle, step or self._running_step, guard, "guard_unreadable",
                                 exit=exit_,
                                 bound=self.bound.get(guard),
                                 note="BLOCKED is 'could not read', never 'does not hold'")
@@ -7592,6 +7632,8 @@ class Agent:
         # birth cycle is untouched** -- that is the quantity whose movement took M2 to 27/30.
         if name in self.candidates:
             if self._cand_level.get(name) != self.level:
+                # (c) ACCEPT by design: this row records the ACCEPT this method itself performs, a
+                # later step carried out inside MINT (the reviewer 2026-10-16 09:23)
                 self.led.record(self.cycle, "ACCEPT", name, "candidate_woken",
                                 was=self._cand_level.get(name), now=self.level,
                                 born=self.candidates[name],
@@ -7708,6 +7750,7 @@ class Agent:
                    f"{', toward an unknown knob' if gap[i] else ''} of "
                    f"{sorted({(k[0], price(k[0])) for k in known})}")
 
+    @_in_step("IMPORT")
     def restarted(self, env: Any) -> None:
         """THE SAME LEVEL AGAIN, after a death and the agent's RESET -- called by the harness, as
         `retarget` is. The death's boundary HELD the slot-keyed refutations. Each comes back only
@@ -7745,6 +7788,7 @@ class Agent:
                         carried=sorted(carried), not_carried=not_carried,
                         reads="refutations held at the death; carried only where identity is sure")
 
+    @_in_step("SETTLE")
     def _hold_lineage(self, how: str) -> None:
         """(b'-l) D-c, D-a, D-selection at a boundary, BEFORE retarget clears. Every store it clears
         is kept dormant in instance form, copied by its own type (Fig 6: a store that deletes cannot
@@ -7782,6 +7826,7 @@ class Agent:
             return set().union(*(Agent._objs_named(y) for y in x)) if x else set()
         return set()
 
+    @_in_step("IMPORT")
     def _carry_lineage(self, env: Any) -> None:
         """(b'-l) D-b: on a same-level restart after the game's "death" ending (a loss in the game,
         not the agent's end: the agent, like a player, keeps everything), that boundary's stores in
@@ -7838,6 +7883,7 @@ class Agent:
         gap = self._characterise_gap(slot)
         return self._gap_key(gap) if gap is not None else None
 
+    @_in_step("MINT")
     def refuse_term(self, name: str, slot: str, **detail) -> bool:
         """Record not-t on this slot's gap shape. Only a HELD term can be refused, so a refusal is
         the record of held-and-given-up (P5). Adds and removes nothing else (P1). A SETTLED term
@@ -7869,6 +7915,7 @@ class Agent:
         deltas = [b - a for a, b in zip(series, series[1:], strict=False)]
         return not (all(d <= 0 for d in deltas) and any(d < 0 for d in deltas))
 
+    @_in_step("MINT")
     def _price_refusal(self, slot: str) -> None:
         """The MINT step's act for a slot `route` filed to REFUTED, at that slot's own turn --
         priced on the library as its own mint would be. Priced for every filed slot up front, a
@@ -9005,6 +9052,7 @@ class Agent:
                           "tuple order chose. A flat spread never reaches here -- the "
                           "`max > min` guard drops it to the uniform draw")}
 
+    @_in_step("PERCEIVE")
     def _advertised(self) -> None:
         """The action set is re-read every step, and a CHANGE is recorded.
 
@@ -9041,6 +9089,7 @@ class Agent:
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
 
+    @_in_step("PERCEIVE")
     def _present(self) -> None:
         """The slot set is re-read every step, and a CHANGE is recorded.
 
@@ -10479,6 +10528,8 @@ class Agent:
         # THE PART RIDES ON THE ACCEPT TOO (the reviewer 2026-10-11 23:03 CDT): a D5 part-B accept
         # names the slot while the slot is restored to its incumbent; untagged, a count of
         # accepts per slot reads it as the slot's own.
+        # (c) ACCEPT by design: this row records the ACCEPT this method itself performs, a later
+        # step carried out inside MINT (the reviewer 2026-10-16 09:23)
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led),
                         status=detail.get("core", "candidate"),
@@ -10623,7 +10674,7 @@ class Agent:
                 # THE SWEEP IS A PULL AND EMITTED NO PULL ROW. `reused()` counts `pull` rows
                 # and this is the only path that RE-BINDS, so every reuse it found was
                 # invisible to the bench-pull and transfer columns both.
-                self.led.record(self.cycle, "ROUTE", slot, "pull", term=cand.name,
+                self.led.record(self.cycle, self._running_step, slot, "pull", term=cand.name,
                                 held=tkey, chain=" . ".join(a.name for a in cand.atoms),
                                 rebound=True, via="sweep",
                                 **({"carry_credited": cred, "held_terms": h_,
@@ -10679,6 +10730,8 @@ class Agent:
                 # charged to the ORIGIN's chain, not the target's: the sweep is not the
                 # target slot's per-step loop running a second time, it is part of what
                 # happened when the origin minted. The target is named, not impersonated.
+                # (c) ACCEPT by design: this row records the ACCEPT this method itself performs, a
+                # later step carried out inside MINT (the reviewer 2026-10-16 09:23)
                 self.led.record(self.cycle, "ACCEPT", origin_slot, "retro", term=name,
                                 verdict="retroactive resolution", target=tkey,
                                 guards={"support": True, "reachability": True,
@@ -10751,7 +10804,7 @@ class Agent:
         # and its own `pull` row is a ROUTE row, so an `ACCEPT` here puts a later ROUTE for the
         # same slot out of order -- `chase: ROUTE after ACCEPT`, refused at seq 39. **The step
         # is a fact about WHEN the row is written, not about what the event feels like.**
-        self.led.record(self.cycle, "ROUTE", slot, "reuse_install", term=cand.name,
+        self.led.record(self.cycle, self._running_step, slot, "reuse_install", term=cand.name,
                         cost=round(cost, 4), left=round(left, 4),
                         base=None if base is None else round(base, 4),
                         would_pay=None if base is None else pays(cost, left, base),
@@ -10932,6 +10985,7 @@ class Agent:
 
     # -- the utterance: the only way an action is proposed --------------------------------
 
+    @_in_step("PERCEIVE")
     def _utter(self, action: str, before: dict[str, int], focal: str) -> tuple[str, list]:
         see = [G.compose(G.SEE, G.Leaf(G.T.OBJECT, s), G.Leaf(G.T.REGION, s),
                          G.Leaf(G.T.ATTR, before[s])) for s in self.slots if s in before]
@@ -11097,10 +11151,11 @@ class Agent:
             # here and `sp80_wall` its last 9 of 40, indistinguishable in the ledger from a
             # board that lost its objects. `None` where the world does not compute it -- a
             # world that cannot say must not report `False`, which would claim a clean read.
-            self.led.record(self.cycle, "PERCEIVE", "@loop", "no_slots",
-                            slots=0, cause=CHANNEL_CLOSED,
-                            blind=getattr(self.env, "blind", None),
-                            reads="the slot set is empty; what that MEANS is not read here")
+            with self._step_scope("PERCEIVE"):
+                self.led.record(self.cycle, "PERCEIVE", "@loop", "no_slots",
+                                slots=0, cause=CHANNEL_CLOSED,
+                                blind=getattr(self.env, "blind", None),
+                                reads="the slot set is empty; what that MEANS is not read here")
             # NO ACTION WAS TAKEN, SO NOTHING PRECEDED THE NEXT FRAME. `_advertised` runs at
             # the top of every step and reads `_last_action` (Preconditions is fed in
             # `perceive` now, which a dead cycle never reaches); leaving it
@@ -11119,10 +11174,11 @@ class Agent:
         # first line already names the legal outcome: *an action is proposed ... OR THERE IS
         # NO ACTION*, and the loop never reached it because it died one layer down.
         if not self.actions:
-            self.led.record(self.cycle, "ROUTE", "@loop", "no_action",
-                            actions=0, cause=CHANNEL_CLOSED,
-                            reads="the environment surfaced no action; what that MEANS is "
-                                  "not read here")
+            with self._step_scope("ROUTE"):
+                self.led.record(self.cycle, "ROUTE", "@loop", "no_action",
+                                actions=0, cause=CHANNEL_CLOSED,
+                                reads="the environment surfaced no action; what that MEANS is "
+                                      "not read here")
             self._last_action = None
             self.cycle += 1
             return False
@@ -11284,18 +11340,19 @@ class Agent:
                             reason="this exit has no phase; classify it at `PHASE_OF`")
         self.phases.note(phase)
 
-        try:
-            bid, utts = self._utter(action, before, focal)
-        except G.Ill as exc:
-            self.refusals.append(str(exc))
-            self.led.record(self.cycle, "PERCEIVE", focal, "refused", reason=str(exc))
-            return False
+        with self._step_scope("PERCEIVE"):
+            try:
+                bid, utts = self._utter(action, before, focal)
+            except G.Ill as exc:
+                self.refusals.append(str(exc))
+                self.led.record(self.cycle, "PERCEIVE", focal, "refused", reason=str(exc))
+                return False
 
-        for kind, uid, term in utts:
-            # all three belong to step 1 -- "bet, act, observe" is one step
-            self.led.record(self.cycle, "PERCEIVE", focal, "utterance", kind=kind,
-                            id=uid, text=repr(term),
-                            heads=[a.head for a in term.args if hasattr(a, "head")])
+            for kind, uid, term in utts:
+                # all three belong to step 1 -- "bet, act, observe" is one step
+                self.led.record(self.cycle, "PERCEIVE", focal, "utterance", kind=kind,
+                                id=uid, text=repr(term),
+                                heads=[a.head for a in term.args if hasattr(a, "head")])
 
         self._last_action = action
         # F28: a positioned action needs a position, and the agent chooses it from PERCEPTION --
@@ -11354,38 +11411,40 @@ class Agent:
         # THE SLOTS WHOSE OWN TURN RUNS THIS CYCLE, for the probe flush below: a slot past its
         # turn takes no MINT row after its ACCEPT (F500's rule; the probe flush, 2026-10-14).
         _turned = set(self._turn_ahead) | set(_split_now)
-        for slot, b, fit, _why in routed:
-            if slot in _split_now:
-                continue
-            if b == REBIND and fit:
-                self.bound[slot] = fit
-                self._carry(fit)
-                self.rank.note(fit, self.cycle)
-                self.owed_import.discard(slot)
-                self.abstained.pop(slot, None)
-                self.led.record(self.cycle, "ACCEPT", slot, "rebind", term=fit,
-                                status="candidate", note="refit; the library did not change")
-            elif b == REFUTED:
-                self._price_refusal(slot)
-                # a competitor where the library holds one; otherwise the gap is genuinely
-                # new and MECHANISM's answer is the right one.
-                if fit:
+        with self._step_scope("ACCEPT"):
+            for slot, b, fit, _why in routed:
+                if slot in _split_now:
+                    continue
+                if b == REBIND and fit:
                     self.bound[slot] = fit
                     self._carry(fit)
                     self.rank.note(fit, self.cycle)
-                    # THE SAME ACT AS A REBIND, SO THE SAME BOOKKEEPING (the reviewer 2026-10-07
-                    # 13:11Z, F497): a fitting library term bound, awaiting the ground. Left owed,
-                    # the slot drove seed 0's decisions apart from the rebind path.
                     self.owed_import.discard(slot)
                     self.abstained.pop(slot, None)
-                    self.led.record(self.cycle, "ACCEPT", slot, "compete", term=fit,
-                                    status="candidate",
-                                    note="the bound term was refused here; this is its competitor")
-                else:
+                    self.led.record(self.cycle, "ACCEPT", slot, "rebind", term=fit,
+                                    status="candidate", note="refit; the library did not change")
+                elif b == REFUTED:
+                    self._price_refusal(slot)
+                    # a competitor where the library holds one; otherwise the gap is genuinely
+                    # new and MECHANISM's answer is the right one.
+                    if fit:
+                        self.bound[slot] = fit
+                        self._carry(fit)
+                        self.rank.note(fit, self.cycle)
+                        # THE SAME ACT AS A REBIND, SO THE SAME BOOKKEEPING (the reviewer 2026-10-07
+                        # 13:11Z, F497): a fitting library term bound, awaiting the ground. Left
+                        # owed, the slot drove seed 0's decisions apart from the rebind path.
+                        self.owed_import.discard(slot)
+                        self.abstained.pop(slot, None)
+                        self.led.record(self.cycle, "ACCEPT", slot, "compete", term=fit,
+                                        status="candidate",
+                                        note=("the bound term was refused here; this is its "
+                                              "competitor"))
+                    else:
+                        self.mint(slot)
+                elif b == MECHANISM:
                     self.mint(slot)
-            elif b == MECHANISM:
-                self.mint(slot)
-            self._turn_ahead.discard(slot)
+                self._turn_ahead.discard(slot)
         self._turn_ahead = None
         if by == "probe":
             self._flush_probe(_turned)
@@ -11396,16 +11455,17 @@ class Agent:
             # CHANNEL_CLOSED about the INTERFACE, and its remedy is step 7 INWARD, which
             # does not exist. Recording it beats a silent zero.
             self._said_never_live = True
-            self.led.record(self.cycle, "IMPORT", "@instrument", "unreached",
-                            observations=self.drive.n, trials=self.drive.trials(),
-                            slots=sorted(self.slots),
-                            verdict="no SINGLE action, each drawn from at least two "
-                                    "distinct states, changed any slot",
-                            scope="single actions, from the states occupied -- this "
-                                  "does not exclude a SEQUENCE, because the "
-                                  "denominator is over actions",
-                            remedy="step 7 INWARD: a slot set that reaches what moves",
-                            built=False)
+            with self._step_scope("IMPORT"):
+                self.led.record(self.cycle, "IMPORT", "@instrument", "unreached",
+                                observations=self.drive.n, trials=self.drive.trials(),
+                                slots=sorted(self.slots),
+                                verdict="no SINGLE action, each drawn from at least two "
+                                        "distinct states, changed any slot",
+                                scope="single actions, from the states occupied -- this "
+                                      "does not exclude a SEQUENCE, because the "
+                                      "denominator is over actions",
+                                remedy="step 7 INWARD: a slot set that reaches what moves",
+                                built=False)
         self.settle(res)
         self._settle_routine()
         self._promote()
@@ -11420,60 +11480,63 @@ class Agent:
         # §12.4's trigger is a PERCEPTION reading -- the vocabulary failing to resolve two
         # things the world distinguishes -- so it is recorded, not acted on here.
         indist = self.indistinguishable()
-        self.led.record(self.cycle - 1, "PERCEIVE", "@vector", "indistinct",
-                        pairs=len(indist), top=indist[:3],
-                        remedy=self.resolve() if indist else None,
-                        reads=("same featural vector, different |R|. Ranked by how many "
-                               "objects shared the vector, which the remedy cannot move"))
+        with self._step_scope("PERCEIVE"):
+            self.led.record(self.cycle - 1, "PERCEIVE", "@vector", "indistinct",
+                            pairs=len(indist), top=indist[:3],
+                            remedy=self.resolve() if indist else None,
+                            reads=("same featural vector, different |R|. Ranked by how many "
+                                   "objects shared the vector, which the remedy cannot move"))
         if _FED:
             for _e in self._gamma_read.get("fed", ()):
                 if _e["name"] is None:
                     continue                                    # a table route names no term
                 self._fed_rows.setdefault(_e["name"], []).append((len(self.led), _e["role"]))
-        self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
-                        integral=round(self.pe_integral(), 3),
-                        outstanding=round(self.outstanding(), 3),
-                        # DID THIS CHOICE CONSULT GAMMA AT ALL -- F225. Set in `choose`;
-                        # `{}` where a held routine returned before selection ran.
-                        gamma_read=self._gamma_read,
-                        # LEVEL ON EVERY REPEAT ROW, because a per-level series cannot be
-                        # reconstructed without it. The `ending` row carries `to_level` and
-                        # records the BOUNDARY; nothing said which level a given cycle was in,
-                        # so the four columns had no way to be segmented.
-                        level=self.level,
-                        # THE ACTION, BESIDE THE EXIT THAT CHOSE IT. `by` said WHICH BRANCH
-                        # picked, and nothing said WHAT WAS PRESSED -- so a reader could see a
-                        # prediction miss and not what preceded it, which is half the loop.
-                        # It was reachable only as a substring of the `ACT(NEED(...))` utterance,
-                        # and parsing a rendering to recover a value the loop already holds is
-                        # the reconstruction `transcript.py` exists to refuse.
-                        action=action,
-                        # WHERE IT LANDED (Fig 11, the habitat's half; the reviewer 2026-10-08
-                        # 02:30Z). `None` for an action with no position.
-                        press=getattr(self, "_press_seen", None),
-                        # WHO OFFERED IT: the game by declaration, or the platform in every
-                        # state (RESET, F477). None where the world cannot say.
-                        provenance=getattr(self.env, "provenance", lambda _a: None)(action),
-                        phase=phase, by=by, stage=self.chain.seg.stage(),
-                        gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
-                        # REACH BESIDE THE LIBRARY, because the pair is the reading and one
-                        # of them was a RECONSTRUCTION. `F50` replayed `units()` from SETTLE
-                        # rows to put the two series side by side -- the count agreed with an
-                        # independently derived one at both boards, so the reconstruction was
-                        # sound, and it was still a reconstruction of a value the loop holds.
-                        # The figure's sentence is *reach is DERIVED and can fall while the
-                        # record only grows*, and a reader cannot check that against a number
-                        # the ledger does not carry.
-                        reach=len(self.gamma.units()),
-                        # AND `any_live`, WHICH `F57` FOUND UNREACHABLE WHERE IT MATTERS.
-                        # `Drive.report()` carries it and reaches the ledger at ONE site,
-                        # inside `if by == "probe"` -- so the state explaining the probe
-                        # branch's silence is written only when the branch speaks, and reads
-                        # 4 rows in the toy world against 0 on every ARC board. **An
-                        # instrument placed where it can only ever confirm.** Here it is on a
-                        # row that exists every cycle regardless of which branch ran.
-                        any_live=self.drive.live,
-                        admissions=self.gamma.admissions())
+        with self._step_scope("REPEAT"):
+            self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
+                            integral=round(self.pe_integral(), 3),
+                            outstanding=round(self.outstanding(), 3),
+                            # DID THIS CHOICE CONSULT GAMMA AT ALL -- F225. Set in `choose`;
+                            # `{}` where a held routine returned before selection ran.
+                            gamma_read=self._gamma_read,
+                            # LEVEL ON EVERY REPEAT ROW, because a per-level series cannot be
+                            # reconstructed without it. The `ending` row carries `to_level` and
+                            # records the BOUNDARY; nothing said which level a given cycle was in,
+                            # so the four columns had no way to be segmented.
+                            level=self.level,
+                            # THE ACTION, BESIDE THE EXIT THAT CHOSE IT. `by` said WHICH BRANCH
+                            # picked, and nothing said WHAT WAS PRESSED -- so a reader could see a
+                            # prediction miss and not what preceded it, which is half the loop.
+                            # It was reachable only as a substring of the `ACT(NEED(...))`
+                            # utterance, and parsing a rendering to recover a value the loop already
+                            # holds is
+                            # the reconstruction `transcript.py` exists to refuse.
+                            action=action,
+                            # WHERE IT LANDED (Fig 11, the habitat's half; the reviewer 2026-10-08
+                            # 02:30Z). `None` for an action with no position.
+                            press=getattr(self, "_press_seen", None),
+                            # WHO OFFERED IT: the game by declaration, or the platform in every
+                            # state (RESET, F477). None where the world cannot say.
+                            provenance=getattr(self.env, "provenance", lambda _a: None)(action),
+                            phase=phase, by=by, stage=self.chain.seg.stage(),
+                            gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
+                            # REACH BESIDE THE LIBRARY, because the pair is the reading and one
+                            # of them was a RECONSTRUCTION. `F50` replayed `units()` from SETTLE
+                            # rows to put the two series side by side -- the count agreed with an
+                            # independently derived one at both boards, so the reconstruction was
+                            # sound, and it was still a reconstruction of a value the loop holds.
+                            # The figure's sentence is *reach is DERIVED and can fall while the
+                            # record only grows*, and a reader cannot check that against a number
+                            # the ledger does not carry.
+                            reach=len(self.gamma.units()),
+                            # AND `any_live`, WHICH `F57` FOUND UNREACHABLE WHERE IT MATTERS.
+                            # `Drive.report()` carries it and reaches the ledger at ONE site,
+                            # inside `if by == "probe"` -- so the state explaining the probe
+                            # branch's silence is written only when the branch speaks, and reads
+                            # 4 rows in the toy world against 0 on every ARC board. **An
+                            # instrument placed where it can only ever confirm.** Here it is on a
+                            # row that exists every cycle regardless of which branch ran.
+                            any_live=self.drive.live,
+                            admissions=self.gamma.admissions())
         return True
 
     def run(self, cycles: int) -> Report:

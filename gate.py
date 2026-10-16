@@ -118,8 +118,9 @@ def _inputs(rows: list[dict]) -> dict | None:
             if ev == "accept":
                 accepted.add(str(r.get("detail", {}).get("term")))
         elif ev == "reuse_install":
-            # a reuse enters Gamma on the same bargain as a mint, as a ROUTE row (the sweep and the
-            # library pull run in ROUTE); since P1 it is a candidate, so it may settle
+            # a reuse enters Gamma on the same bargain as a mint; its row is labelled with the
+            # step running (ROUTE from the library pull, MINT from the sweep, which runs inside
+            # mint; the reviewer 2026-10-16 09:14); since P1 it is a candidate, so it may settle
             accepted.add(str(r.get("detail", {}).get("term")))
         elif ev == "settle" and str(r.get("detail", {}).get("term")) not in accepted:
             return _v("inputs", MISSING_INPUT, r.get("seq"), "settle without accept")
