@@ -621,6 +621,9 @@ _7I_ROUTE = armflag.arm("TETHER_7I_ROUTE", default=True)
 # 15:10): an atom the agent makes is tagged with the reading it can AFFECT, so the abductive lookup
 # (by_affects) can reach it; the tag is the bare reading, never a slot
 _INDEX_AFFECTS = armflag.arm("TETHER_INDEX_AFFECTS", default=True)
+# 7h (c), RECURSION AT THE LEAVE (Fig 9: unbundle before calling it a gap): a slot D5 is splitting
+# is never left, and the leave row says whether a held predicate splits the rows into lawful parts
+_7H_UNBUNDLE = armflag.arm("TETHER_7H_UNBUNDLE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -9715,6 +9718,12 @@ class Agent:
         tried = [self._tried[(self.level, slot, s)] for s in closure]
         if not closure or min(tried) < 1:
             return
+        unb = None
+        if _7H_UNBUNDLE:
+            if _D5 and (slot in self._parts or slot in self._d5_pending
+                        or slot in self._d5_candidates):
+                return       # D5 is splitting this line: the parts are still being searched
+            unb = self._unbundle(slot)
         self._leave_held[slot] = {"level": self.level, "root": self._root_id,
                                   "cycle": self.cycle, "slots": set(self.slots), "skipped": 0,
                                   "seen": set(), "upto": 0}
@@ -9726,8 +9735,34 @@ class Agent:
                         closure=len(closure), tried_min=min(tried), tried_max=max(tried),
                         outstanding_first=ln["first"], outstanding_now=now,
                         mints=ln["mints"],
+                        **({"unbundled": unb} if _7H_UNBUNDLE else {}),
                         reopen=("a level boundary, a new root, a new transition of the slot, "
                                 "or a new operand in the closure"))
+
+    def _unbundle(self, slot: str) -> dict:
+        """7h (c): is the slot's record a UNION of lawful parts (Fig 9: "a case in two conditions
+        is not a harder case of either")? A held predicate -- the intent tags its own rows carry,
+        the ones D5 splits on -- splits the rows so that within each part the slot's value after
+        is a function of its value before, while over all rows it is not; each part at least 2
+        rows. Read, never acted on here: searching each part alone is RECURSE-PARTS."""
+        rows = [(b[slot], af[slot], r[3] if len(r) > 3 else None)
+                for r in self.trace for b, af in [(r[0], r[2])] if slot in b and slot in af]
+
+        def lawful(rs: list) -> bool:
+            seen: dict = {}
+            return all(seen.setdefault(x, y) == y for x, y, _p in rs)
+
+        if len(rows) < 4:
+            return {"verdict": "too few rows to split", "rows": len(rows)}
+        if lawful(rows):
+            return {"verdict": "not a union", "rows": len(rows)}
+        for pred in sorted({p for *_r, p in rows if p is not None}, key=repr):
+            on = [r for r in rows if r[2] == pred]
+            off = [r for r in rows if r[2] != pred]
+            if len(on) >= 2 and len(off) >= 2 and lawful(on) and lawful(off):
+                return {"verdict": "a union", "pred": repr(pred), "on": len(on),
+                        "off": len(off), "rows": len(rows)}
+        return {"verdict": "no held predicate splits it", "rows": len(rows)}
 
     def _transitions(self, slot: str, lf: dict) -> list:
         """7f: the slot's (before, action, after) triples in the trace since the last read, kept

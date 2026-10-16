@@ -799,6 +799,13 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7H_UNBUNDLE": "7h (c), recursion's smallest form at 7f's leave (Isaiah 2026-10-16 "
+                          "16:21): a slot D5 is splitting (parts, pending, candidate) is never "
+                          "left, and the leave row carries unbundled -- whether a held "
+                          "predicate splits the slot's rows into parts each lawful (after a "
+                          "function of before) while the whole is not. A read; searching "
+                          "the parts alone is RECURSE-PARTS on the after-list. OFF: the leave "
+                          "as before. default ON (Isaiah 2026-10-15 07:53, 17:26)",
     "TETHER_INDEX_AFFECTS": "step 5, the search index (Isaiah, RULINGS_CHECK item 8; the reviewer "
                             "2026-10-16 15:06, 15:10): the two atoms the agent makes are tagged "
                             "with the bare reading they affect -- an invention with its slot's "
