@@ -44,13 +44,18 @@ tether.Agent._compiled = cspy
 w = FakeWrapper(script={2: GameState.GAME_OVER})
 tether_agent.run(w, "fake", max_actions=int(sys.argv[2]), lineage_dir=d)
 ag = agents[0]
-landed = ag._kind_asked
+landed = ag._kind_landed
+full = {(ko, kx) for _k, _r, ko, kx in ag._kind_landed | ag._kind_known}
+fresh = all(ag._kind(o) == tuple(sorted({str(ag.slot_types.get(s)) for s in ag.slots
+                                          if s.split('.')[0] == o}))
+            for o in {s.split('.')[0] for s in ag.slots})
 pairs = {(ko, kx) for _k, _r, ko, kx in landed}
 asked_only = sorted({(ko, kx) for _k, _r, ko, kx in asked} - pairs)
 print("OUT " + json.dumps({"asked": len(asked), "landed": len(landed),
                            "subset": landed <= asked,
                            "asked_only_pairs": [[list(a), list(b)] for a, b in asked_only],
-                           "landed_pairs": len(pairs)}))
+                           "landed_pairs": len(pairs), "cache_equal": ag._kind_pairs == full,
+                           "kind_fresh": fresh}))
 """
 
 LOAD = r"""
@@ -77,7 +82,8 @@ def main() -> None:
     run = _run(RUN, d, "6")
     gens = [json.loads(Path(d, f).read_text(encoding="utf-8"))
             for f in os.listdir(d) if f.startswith("gen_")]
-    kinds = [k for g in gens for k in g.get("kinds", [])]
+    kinds = [k for g in gens for k in g.get("kinds_landed", [])]
+    assert not any("kinds" in g for g in gens), "the old key was written"
     eps = [e for g in gens for e in g.get("episodes", [])]
     assert kinds and eps, ("L1: nothing written", len(kinds), len(eps))
     names = re.compile(r"\bo\d+\b")
@@ -85,7 +91,7 @@ def main() -> None:
     assert all("salience" in e and "outcome" in e for e in eps), "L1 episode fields"
     objs = {o for e in eps for o in [e["o"], *e["x"]]}
     distinct = {tuple(x) for k in kinds for x in (k[2], k[3])}
-    added = len(json.dumps({"kinds": kinds, "episodes": eps}))
+    added = len(json.dumps({"kinds_landed": kinds, "episodes": eps}))
     print(f"  L1 {len(kinds)} general entries, {len(eps)} episode rows, {added} bytes added;"
           f" {len(distinct)} distinct kinds over {len(objs)} objects;"
           f" salience {sorted({e['salience'] for e in eps})[:4]}")
@@ -94,6 +100,10 @@ def main() -> None:
     assert run["subset"] and run["landed"] < run["asked"], ("G1", run)
     print(f"  G1 {run['landed']} landed of {run['asked']} asked (entry, role, kind pair);"
           f" {run['landed_pairs']} kind pairs carry a landing")
+    assert run["cache_equal"], "C: the cached pairs differ from a full rebuild"
+    assert run["kind_fresh"], "K: a cached kind differs from one read fresh"
+    print("  C the cached kind pairs equal a full rebuild; K every cached kind equals a fresh"
+          " read after the run's retarget")
     got = _run(LOAD, d)
     assert got["kinds_known"] > 0, ("L2", got)
     print(f"  L2 a second process loads {got['kinds_known']} kind entries")

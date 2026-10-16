@@ -1700,7 +1700,8 @@ class Agent:
         self._root_shown: dict | None = None
         self._test: dict | None = None   # 7j: the goal exit's prediction, until the outcome
         # 7l: kinds asked here, kinds loaded from the lineage, episodes; what the lineage wrote
-        self._kind_asked: set = set()
+        self._kind_landed: set = set()
+        self._kind_pairs: set = set()   # 7m: (kind_o, kind_x) of every landed or loaded entry
         self._kind_known: set = set()
         self._kind_episodes: list = []
         self._kinds_carried: set = set()
@@ -1763,6 +1764,7 @@ class Agent:
         self._s0_target: str | None = None
         self.alphabet = self._alphabets(env)
         self.slot_types = self._slot_types(env)
+        self._kind_cache = {}   # 7l: kinds read fresh
         self.cfg = cfg if cfg is not None else Config()
         # not `led or ...`: an empty Ledger has len 0 and is therefore falsy
         self.led = led if led is not None else Ledger(mode=self.cfg.mode)
@@ -2382,6 +2384,7 @@ class Agent:
         self.actions = tuple(env.actions())       # a new level may advertise differently
         self.alphabet = self._alphabets(env)      # a new level may value slots differently
         self.slot_types = self._slot_types(env)   # and may type them differently
+        self._kind_cache = {}   # 7l: kinds read fresh
         if _D5:
             self._d5_level_end()
         if _LINEAGE_HOLD:
@@ -2703,7 +2706,7 @@ class Agent:
                 if _7L_KIND and _landed:
                     # G1 (the reviewer 2026-10-15 20:54): the KIND entry records what LANDED,
                     # never only what was asked (Fig 12: the group fixes the outcome)
-                    self._kind_asked.add((key, role, self._kind(mine), self._kind(partner)))
+                    self._land_kind((key, role, self._kind(mine), self._kind(partner)))
             for o_ in others:
                 _landed = 0
                 for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp, atoms,
@@ -2725,7 +2728,7 @@ class Agent:
                         hit[2]["entries"] += 1
                     _landed += 1
                 if _7L_KIND and _landed:
-                    self._kind_asked.add((key, "CAUSE", self._kind(o_), self._kind(mine)))
+                    self._land_kind((key, "CAUSE", self._kind(o_), self._kind(mine)))
         if _7L_KIND:
             self._kind_episodes.append({"game": self.gamma.game, "level": self.level, "slot": slot,
                                    "o": mine, "x": list(others),
@@ -2733,9 +2736,14 @@ class Agent:
                                    "salience": self.outstanding(slot)})
         return views, causes, refused
 
+    def _land_kind(self, entry: tuple) -> None:
+        """7l: a landed (entry, role, kind_o, kind_x); 7m's pair set kept with it."""
+        self._kind_landed.add(entry)
+        self._kind_pairs.add((entry[2], entry[3]))
+
     def _kind(self, owner: str) -> tuple:
         """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots."""
-        k = (id(self.slot_types), owner)
+        k = (owner, len(self.slots))   # cleared wherever slot_types is replaced
         got = self._kind_cache.get(k)
         if got is None:
             got = self._kind_cache[k] = tuple(sorted({
@@ -9081,6 +9089,7 @@ class Agent:
         self.slots = list(now)
         self.alphabet = self._alphabets(self.env)
         self.slot_types = self._slot_types(self.env)
+        self._kind_cache = {}   # 7l: kinds read fresh
 
     def _guards(self, robs: list, slot: str | None = None,
                 refs: list[str] | None = None) -> list[str | None]:
@@ -9319,7 +9328,7 @@ class Agent:
             dk = f"{self.cycle}:{slot}:lookup_order"
             if _7M_ANALOGY:
                 # 7m: the kind pairs that LANDED before, here or in the lineage (any entry, role)
-                _pairs = {(ko, kx) for _k, _r, ko, kx in self._kind_asked | self._kind_known}
+                _pairs = self._kind_pairs   # kept as entries land and load (O(1) here)
                 _mine = self._kind(slot.split(".")[0])
             comp = {s: (rank(s)[0], s in _der, len(lib.get(s, ())), seen[s],
                         *((-int((_mine, self._kind(s.split(".")[0])) in _pairs),)
