@@ -586,6 +586,14 @@ _7H_ROOT = armflag.arm("TETHER_7H_ROOT", default=True)
 # exit acting on the agent's own objective term -- gets one row pairing the term's prediction
 # with what the ground then showed, linked to the 7h root. A record read by no chooser (A1)
 _7J_TEST = armflag.arm("TETHER_7J_TEST", default=True)
+# 7l (the reviewer 2026-10-15 17:32, 20:41, 20:54): the library answers that LANDED, by KIND as
+# the agent holds it (the sorted attribute types of an owner's slots; the SHAPE value is not
+# canonical, arc_percept 853-855 numbers shapes in order of first sight), and one episode per
+# ask (game, level, slot, pair, what landed, salience = the slot's outstanding surprise);
+# carried by the lineage, read by no chooser. 7m: a pair whose kinds LANDED before goes first
+# at site 8
+_7L_KIND = armflag.arm("TETHER_7L_KIND", default=True)
+_7M_ANALOGY = armflag.arm("TETHER_7M_ANALOGY", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -756,11 +764,12 @@ def _lookup_order(names: list, comp: dict, dk: str, evidence=None, seed=None) ->
     slot is one more composition step), BITS inside it (more evidence first), the residual
     MAGNITUDE (more distinct values first), then the recorded draw. `evidence` replaces the
     library count (site 7: this chain's offers). LEAST-KNOWN is comp[s][4] when present (7h's
-    tried count this level, fewer first), before the draw."""
+    tried count this level, fewer first), before the draw. 7m puts ANALOGY before it (a kind
+    pair seen before, first): the extra fields are read in order, so OFF keeps today's key."""
     def ev(s):
         return comp[s][2] if evidence is None else evidence(s)
     return sorted(names, key=lambda s: (comp[s][0], comp[s][1], -ev(s), -comp[s][3],
-                                        *comp[s][4:5], FR.draw_key(dk, s, seed)))
+                                        *comp[s][4:], FR.draw_key(dk, s, seed)))
 
 
 class _PricedDomain(frozenset):
@@ -1690,6 +1699,13 @@ class Agent:
         self._root_held: list = []
         self._root_shown: dict | None = None
         self._test: dict | None = None   # 7j: the goal exit's prediction, until the outcome
+        # 7l: kinds asked here, kinds loaded from the lineage, episodes; what the lineage wrote
+        self._kind_asked: set = set()
+        self._kind_known: set = set()
+        self._kind_episodes: list = []
+        self._kinds_carried: set = set()
+        self._kind_episode_mark = 0
+        self._kind_cache: dict = {}
         self._mc3: list = []          # MC3: every ending, as the ground recorded it (append-only)
         self._invented: dict = {}     # M6: invented key -> its compiled condition (this run only)
         self._inv_lib = None          # M6: this agent's private library copy, made on first use
@@ -2667,6 +2683,7 @@ class Agent:
         sig = compile_term.signature(atoms) if _INDEX_HOLD else None
         for key, _w in lit:
             for role in reach.SINGLE:
+                _landed = 0   # 7l G1: what this (entry, role) put on the slot
                 for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms, sig,
                                                  slot=slot, tally=tally):
                     if c is None:
@@ -2682,7 +2699,13 @@ class Agent:
                                                       "entries": 1})
                         else:
                             hit[1]["entries"] += 1
+                        _landed += 1
+                if _7L_KIND and _landed:
+                    # G1 (the reviewer 2026-10-15 20:54): the KIND entry records what LANDED,
+                    # never only what was asked (Fig 12: the group fixes the outcome)
+                    self._kind_asked.add((key, role, self._kind(mine), self._kind(partner)))
             for o_ in others:
+                _landed = 0
                 for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp, atoms,
                                                          sig, slot=slot, tally=tally):
                     if isinstance(if_c, compile_term.Refusal):
@@ -2700,7 +2723,24 @@ class Agent:
                                                      "bond": cand.get("bond"), "entries": 1})
                     else:
                         hit[2]["entries"] += 1
+                    _landed += 1
+                if _7L_KIND and _landed:
+                    self._kind_asked.add((key, "CAUSE", self._kind(o_), self._kind(mine)))
+        if _7L_KIND:
+            self._kind_episodes.append({"game": self.gamma.game, "level": self.level, "slot": slot,
+                                   "o": mine, "x": list(others),
+                                   "outcome": len(views) + len(causes),
+                                   "salience": self.outstanding(slot)})
         return views, causes, refused
+
+    def _kind(self, owner: str) -> tuple:
+        """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots."""
+        k = (id(self.slot_types), owner)
+        got = self._kind_cache.get(k)
+        if got is None:
+            got = self._kind_cache[k] = tuple(sorted({
+                str(self.slot_types.get(s)) for s in self.slots if s.split(".")[0] == owner}))
+        return got
 
     def _compiled(self, lib: Any, key: str, role: str, o: str, x: str, comp: Any, atoms: dict,
                   sig: tuple | None, slot: str | None = None,
@@ -9277,7 +9317,13 @@ class Agent:
             # MAGNITUDE (distinct values over the failing frames), then the recorded draw.
             # Least-known has no reading here (7h's tried count, named), so it passes through.
             dk = f"{self.cycle}:{slot}:lookup_order"
+            if _7M_ANALOGY:
+                # 7m: the kind pairs that LANDED before, here or in the lineage (any entry, role)
+                _pairs = {(ko, kx) for _k, _r, ko, kx in self._kind_asked | self._kind_known}
+                _mine = self._kind(slot.split(".")[0])
             comp = {s: (rank(s)[0], s in _der, len(lib.get(s, ())), seen[s],
+                        *((-int((_mine, self._kind(s.split(".")[0])) in _pairs),)
+                          if _7M_ANALOGY else ()),
                         *((self._tried[(self.level, slot, s)],) if _7H_TRIED else ()))
                     for s in others}
             self._bind_key[slot] = (dk, comp)

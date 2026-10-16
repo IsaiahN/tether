@@ -321,6 +321,13 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
     # process continues it and a replay can read it; OFF writes neither, as before
     if getattr(ag, "seed_source", "constant") != "constant":
         gen["seed"], gen["generation"] = ag.seed, ag.generation
+    import tether
+    if tether._7L_KIND:
+        # 7l: the kinds asked since the last write, and the episodes since it (written through)
+        new_kinds = getattr(ag, "_kind_asked", set()) - getattr(ag, "_kinds_carried", set())
+        gen["kinds"] = sorted([k, r, list(ko), list(kx)] for k, r, ko, kx in new_kinds)
+        gen["episodes"] = list(getattr(ag, "_kind_episodes", [])
+                               [getattr(ag, "_kind_episode_mark", 0):])
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
@@ -332,6 +339,9 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         ag.lineage_parent = h
         ag._lineage_written = {**written, **{n: {"born": h, "handle": hd} for n, hd in new_names}}
         ag._lineage_marks = {"dormant": len(dormant_all), "evidence": len(ag.gamma.evidence)}
+        if "kinds" in gen:
+            ag._kinds_carried = ag._kinds_carried | new_kinds
+            ag._kind_episode_mark = len(ag._kind_episodes)
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -381,6 +391,12 @@ def load(d: str | Path, ag: Any) -> dict:
         ag._seed_from_lineage({g["seed"] for _, g in chain if g.get("seed")}, len(chain), h)
     rep = ag.gamma.load_blob({"terms": f["terms"], "invented": f["invented"],
                               "vindication": f["vindication"], "book": f["book"]}, parent=h)
+    import tether
+    if tether._7L_KIND and hasattr(ag, "_kind_known"):
+        # 7l: every generation's kinds, root to tip, known to this instance (7m reads them)
+        ag._kind_known = {(k, r, tuple(ko), tuple(kx)) for _h, g in chain
+                          for k, r, ko, kx in g.get("kinds", ())}
+        rep["kinds_known"] = len(ag._kind_known)
     if gamma._SETTLED_CORE:
         # 7i (2): a carried term keeps the standing it had, LEARNED and revisable (the reviewer
         # 2026-10-15 19:04); the record itself is unchanged
