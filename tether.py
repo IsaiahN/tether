@@ -582,6 +582,10 @@ _SITUATED_REACH = armflag.arm("TETHER_SITUATED_REACH", default=True)
 _7H_TRIED = armflag.arm("TETHER_7H_TRIED", default=True)
 _7H_SHOWN = armflag.arm("TETHER_7H_SHOWN", default=True)
 _7H_ROOT = armflag.arm("TETHER_7H_ROOT", default=True)
+# 7j (the reviewer 2026-10-15 17:32, 20:27): a choice made to test a held hypothesis -- the goal
+# exit acting on the agent's own objective term -- gets one row pairing the term's prediction
+# with what the ground then showed, linked to the 7h root. A record read by no chooser (A1)
+_7J_TEST = armflag.arm("TETHER_7J_TEST", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -724,6 +728,25 @@ def _merge_by_depth(lib_chains: list, closure, evidence: dict, key: str, seed: s
             i += 1
         yield c
     yield from pend[i:]
+
+
+def _test_outcome(before: Any, after: Any, target: Any, ordered: bool) -> str:
+    """7j: what the ground showed against what the term predicted. Closer and farther need an
+    ORDERED value (the slot's own type, ORDERED_TYPES); a categorical value is reached or not
+    (J-a, the reviewer 2026-10-15 20:27)."""
+    if after is None:
+        return "slot gone"
+    if after == target:
+        return "reached"
+    if after == before:
+        return "no change"
+    # J-c (the reviewer 2026-10-15 20:41): a value that is not a number (None, a tuple, a
+    # string) cannot be closer or farther, so it is graded as categorical
+    num = all(isinstance(v, (int, float)) and not isinstance(v, bool)
+              for v in (before, after, target))
+    if not ordered or not num:
+        return "not reached"
+    return "closer" if abs(after - target) < abs(before - target) else "farther"
 
 
 def _lookup_order(names: list, comp: dict, dk: str, evidence=None, seed=None) -> list:
@@ -1666,6 +1689,7 @@ class Agent:
         self._root_id: str | None = None
         self._root_held: list = []
         self._root_shown: dict | None = None
+        self._test: dict | None = None   # 7j: the goal exit's prediction, until the outcome
         self._mc3: list = []          # MC3: every ending, as the ground recorded it (append-only)
         self._invented: dict = {}     # M6: invented key -> its compiled condition (this run only)
         self._inv_lib = None          # M6: this agent's private library copy, made on first use
@@ -4574,6 +4598,21 @@ class Agent:
                                                      if v in set(front)],
                         residual=None, seen=None, pick=repr(pick), by=by,
                         **({"root": self._root_id} if _7H_ROOT else {}))
+
+    def _test_row(self) -> None:
+        """7j: one SETTLE row per goal-exit test: the term, its prediction (the target), the slot
+        before and after, the outcome by the slot's own type, and the 7h root it belongs to
+        (in_root: the term is one of the root's held hypotheses)."""
+        t, self._test = self._test, None
+        slot = t["slot"]
+        after = (self.trace[-1][2] if self.trace else {}).get(slot)
+        ordered = self.slot_types.get(slot) in ORDERED_TYPES
+        held = f"{slot}:{t['term']}" if t["term"] is not None else None
+        self.led.record(self.cycle, "SETTLE", slot, "hypothesis_test", term=t["term"],
+                        target=t["target"], before=t["before"], after=after, ordered=ordered,
+                        outcome=_test_outcome(t["before"], after, t["target"], ordered),
+                        intent=t["intent"], root=self._root_id,
+                        in_root=held is not None and held in self._root_held)
 
     def _held_goal(self) -> list:
         """7h: the goal hypotheses the agent holds now, in its own terms (the held goal
@@ -8813,6 +8852,10 @@ class Agent:
             if not commit:
                 return _r.action
             self._split_term = self._term_of(chosen) if _FED else None
+            if _7J_TEST:
+                _tt = self._split_term or self._term_of(chosen) or {}
+                self._test = {"slot": chosen, "term": _tt.get("name"), "target": _tgt,
+                              "before": before.get(chosen), "intent": _want.says()}
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))
             return self._took(_r, _want)
@@ -11212,6 +11255,8 @@ class Agent:
             self._ruin_step = (*self._step_fp, action,
                                tuple(coord) if coord is not None else None, self.cycle)
         res = self.perceive(action, coord, self._intent_now)
+        if self._test is not None:
+            self._test_row()
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         routed = self.route(res)
         # ONE CHAIN PER SLOT PER CYCLE (Fig 5; the reviewer 2026-10-07 16:12Z, F500): a term

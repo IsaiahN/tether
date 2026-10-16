@@ -776,6 +776,19 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                         "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7J_TEST": "7j (the reviewer 2026-10-15 17:32, 20:27): the goal exit's choice gets "
+                      "one hypothesis_test row pairing the objective term's prediction with "
+                      "what the ground showed (ordered or categorical by the slot's type), "
+                      "linked to the 7h root; read by no chooser. "
+                      "OFF is the line before it exactly. "
+                      "default ON (Isaiah 2026-10-15 07:53, 17:26); "
+                      "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7K_LEARN": "7k: ELICIT's fresh pick reads the unknowns each action reaches "
+                       "(more first) and its presses everywhere (fewer first) before the "
+                       "draw. "
+                       "OFF is the line before it exactly. "
+                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
+                       "the switch is kept for the checklist's culprit isolation",
     "TETHER_CARRY_RECORD": "S1g, the asked record (Isaiah 2026-10-15 13:26, option B; the "
                            "reviewer 13:27): under the slot filter a generation carries which "
                            "questions were asked (ak_), never the bound answers; a pair recorded "

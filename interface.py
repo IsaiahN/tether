@@ -158,6 +158,11 @@ _SITUATED_EFFECT = armflag.arm("TETHER_SITUATED_EFFECT", default=True)
 # S11: a coordinate clicked in an earlier epoch excludes nothing; within the epoch recency
 # orders: unclicked first, then the least recently clicked
 _SITUATED_CLICK = armflag.arm("TETHER_SITUATED_CLICK", default=True)
+# 7k (the reviewer 2026-10-15 17:32, 20:27): ELICIT's fresh pick reads LEARNING VALUE before the
+# draw -- the residual is the unknowns an action reaches (reach, more first), the learning
+# reading its presses over every context (table n, fewer first). The interface informs; the
+# frontier picks (A1). default ON; OFF is today's _pick exactly
+_7K_LEARN = armflag.arm("TETHER_7K_LEARN", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -734,13 +739,18 @@ class Interface:
         # score can always be maximised by one button; a constraint on repetition cannot be**,
         # which is what stops `learned`'s collapse (`ACTION2`, 105 of 150 on `ls20`) travelling
         # below the seam wearing the word exploration.
-        def _pick(band: list[str]) -> str:
+        def _pick(band: list[str], learn: bool = False) -> str:
             if _A1_TIES and len(band) > 1:
                 # A1: the separability rank is the residual reading; then the least-seen here;
-                # then the draw. The band's list position never decides.
+                # then the draw. The band's list position never decides. 7k: for ELICIT's fresh
+                # band, the unknowns each reaches and its presses everywhere instead
+                lv = learn and _7K_LEARN and intent.kind == ELICIT
                 a, by, _f = FR.frontier_pick(
-                    [(b, None, None) for b in band], {b: rank.get(b, 0) for b in band},
-                    {b: len(self.table.get(b, {}).get("by_ctx", {}).get(ctx, ())) for b in band},
+                    [(b, None, None) for b in band],
+                    ({b: self.reach(b, ctx, offered) for b in band} if lv else
+                     {b: rank.get(b, 0) for b in band}),
+                    ({b: self.table.get(b, {}).get("n", 0) for b in band} if lv else
+                     {b: len(self.table.get(b, {}).get("by_ctx", {}).get(ctx, ())) for b in band}),
                     f"pick:{self.audits}:{ctx!r}",    # the interface's own press count, read
                     self.draw_seed)
                 self.pick_by[by] += 1
@@ -816,7 +826,8 @@ class Interface:
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
         fresh = [a for a in offered if self._known_now(a, ctx) is None]
         if fresh:
-            return _made(_pick(fresh), f"requested {asked}: effect here not yet known")
+            return _made(_pick(fresh, learn=True),
+                         f"requested {asked}: effect here not yet known")
         # everything mapped in this context. Take the one taken LEAST here -- still the agent's
         # call to explore, and refusing would be the interface overruling it.
         seen = {a: len(self.table[a]["by_ctx"].get(ctx, ())) for a in offered}
