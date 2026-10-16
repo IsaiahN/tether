@@ -605,6 +605,9 @@ _7H_KIND_CARRY = armflag.arm("TETHER_7H_KIND_CARRY", default=True)
 # 7h (i), 7f LEAVE (the reviewer 2026-10-16 13:05): a slot's line is left when its closure is
 # searched to the end and nothing moved; a recorded verdict, never a silence
 _7F_LEAVE = armflag.arm("TETHER_7F_LEAVE", default=True)
+# 7h (f), choose()'s exit order (the reviewer 2026-10-16 13:29): the live middle exits are chosen
+# by A1's readings, the goal-directed ones deferring to System 0 while it is active
+_7H_EXIT_CHOICE = armflag.arm("TETHER_7H_EXIT_CHOICE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1732,6 +1735,7 @@ class Agent:
         # 7f LEAVE: per slot, its line under (level, root) since the first mint; the left slots
         self._leave_line: dict = {}
         self._leave_held: dict = {}
+        self._exit_n: collections.Counter = collections.Counter()   # 7h (f): (level, exit) taken
         self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
         # the decay class: the situation (level, alive) and its epoch, set at the agent's own
@@ -6495,7 +6499,11 @@ class Agent:
         # answering. Returning `probe` is not a relabel: the flush writes one row per slot in
         # `_starved`, which IS *the parks that precede this probe*, so B5's `followed` is
         # satisfied by construction rather than by a second mechanism.
-        if _STARVED_CONTACT and self._starved:
+        take, s0_tw, dist_r = None, None, None
+        if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
+                self.drive.bored() and not (_STARVED_CONTACT and self._starved)):
+            take, s0_tw, dist_r = self._exit_choice(before)
+        if _STARVED_CONTACT and self._starved and take in (None, "probe"):
             pick = sorted(self._starved)[0]
             if _A1_STARVED and len(self._starved) > 1:
                 # A1: what is unexplained NOW gates and ranks; then the less-probed; then the draw
@@ -6521,7 +6529,7 @@ class Agent:
             if act is None:
                 act = self._undirected(before)
             return act, "probe"
-        if self.drive.bored():
+        if take is None and self.drive.bored():
             # AND THE AIM IS CLEARED. `_s0_target` survives until `retarget`, so an ordinary
             # bored probe would otherwise inherit whatever arm M last pointed at and coordinate
             # an unrelated action on a stale slot.
@@ -6564,8 +6572,8 @@ class Agent:
         # learned arm, so it generates the (before, action, after) evidence binding needs. The
         # switch is state-derived (coverage), never a cycle constant -- and ALWAYS ON as of
         # Isaiah's 2026-09-29 ruling, so the only gate left is whether the state calls for it.
-        if self._system0_active():
-            target, why = self._contact_target(before)
+        if (take is None and self._system0_active()) or take == "system0":
+            target, why = s0_tw if s0_tw is not None else self._contact_target(before)
             self._s0_target = target
             act = self._undirected(before)
             self._intent_now = None      # a bare draw means nothing; `None` is the reading
@@ -6648,9 +6656,11 @@ class Agent:
         # which cannot fail while a button exists, would fire here every time and starve the
         # mint, the goal split and the draw. The verb keeps the refusal and drops the ranking.
         _want = IFace.Intent(IFace.DISTINGUISH)
-        _r = self.iface.realise(_want, tuple(self.actions),
-                                IFace.Interface.context(self.env), before, self.env,
-                                withheld=self._withheld)
+        # 7h (f): a chosen distinguish reuses the gate's realise; a chosen goal skips it
+        _r = (dist_r if take == "distinguish" else None if take == "goal"
+              else self.iface.realise(_want, tuple(self.actions),
+                                      IFace.Interface.context(self.env), before, self.env,
+                                      withheld=self._withheld))
         if _r is not None:
             self.led.record(self.cycle, "PLAN", "@board", "intent",
                             reads=(_want.says(), _r.why))
@@ -6658,8 +6668,9 @@ class Agent:
         # AND THE REFUSAL IS A READING ABOUT THE BOARD, NOT A NON-EVENT. *Nothing here tells my
         # alternatives apart* is what the contingency family exists to be able to say, and it
         # was previously an unrecorded `return None` inside the ranking loop.
-        self.led.record(self.cycle, "PLAN", "@board", "split_refused",
-                        why="nothing_separates", n_actions=len(self.actions))
+        if take != "goal":   # a goal chosen over a live distinguish: nothing was refused
+            self.led.record(self.cycle, "PLAN", "@board", "split_refused",
+                            why="nothing_separates", n_actions=len(self.actions))
         # THE FALL-THROUGH ATTEMPT STAYS, AND IS NOT REDUNDANT. Here System 1 has no opinion --
         # the alternative is a blind draw -- so a routine formed now may take the turn at once.
         # The guard is only against attempting TWICE in one cycle, which would refuse twice and
@@ -7720,7 +7731,7 @@ class Agent:
         return _replace(cand, expect=max(1, want))
 
     def _choice(self, site: str, slot: str | None, options: list, residual: dict | None = None,
-                seen: dict | None = None):
+                seen: dict | None = None, extra: dict | None = None):
         """A1-CONVERT's A2 row: frontier_pick over the agent's own readings, recorded with the
         frontier's readings, the residual and learning readings, the pick and its step."""
         pick, by, front = FR.frontier_pick(options, residual, seen,
@@ -7749,9 +7760,49 @@ class Agent:
                         residual=(None if residual is None else
                                   {repr(n): residual.get(n, 0) for n, _b, _a in options}),
                         seen=None if seen is None else {repr(n): seen.get(n, 0) for n in front},
-                        pick=repr(pick), by=by, **tie,
+                        pick=repr(pick), by=by, **tie, **(extra or {}),
                         **({"root": self._root_id} if _7H_ROOT else {}))
         return pick
+
+    def _exit_choice(self, before: dict) -> tuple:
+        """7h (f): which middle exit takes the turn, by A1's readings -- residual = the outstanding
+        of the slots the exit aims at, actions 1 each, seen = turns it took at this level, then
+        the draw. While System 0 is active (an action not yet tried at two states, or a contact
+        kind unexplored) the goal-directed exits defer to it (Isaiah's System 0 ruling): the
+        contest is starved probe vs system0; otherwise starved probe, distinguish, goal.
+        Returns (exit or None, the contact target read for system0, distinguish's realise)."""
+        s0 = self._system0_active()
+        starved = _STARVED_CONTACT and bool(self._starved)
+        opts, res = [], {}
+        s0_tw = dist_r = None
+        if starved:
+            opts.append("probe")
+            res["probe"] = max(self.outstanding(s) for s in self._starved)
+        if s0:
+            s0_tw = self._contact_target(before)
+            opts.append("system0")
+            res["system0"] = max((self.outstanding(s) for s in self.slots
+                                  if s.split(".")[0] == s0_tw[0]), default=0)
+        else:
+            dist_r = self.iface.realise(IFace.Intent(IFace.DISTINGUISH), tuple(self.actions),
+                                        IFace.Interface.context(self.env), before, self.env,
+                                        withheld=self._withheld)
+            if dist_r is not None:
+                opts.append("distinguish")
+                res["distinguish"] = 0       # it aims at the board, not a slot
+            gslot = self._goal_choice()
+            if gslot is not None and self._goal_split(before, commit=False) is not None:
+                opts.append("goal")
+                res["goal"] = self.outstanding(gslot)
+        if not opts:
+            return None, s0_tw, dist_r
+        fixed = ("probe" if starved else "system0" if s0 else "distinguish" if dist_r is not None
+                 else "goal")
+        pick = self._choice("exit", None, [(e, None, 1) for e in opts], res,
+                            {e: self._exit_n[(self.level, e)] for e in opts},
+                            extra={"s0_defer": s0, "fixed_would": fixed})
+        self._exit_n[(self.level, pick)] += 1
+        return pick, s0_tw, dist_r
 
     def _kind_key(self, slot: str) -> str:
         """7h (h): a slot as its KIND -- the owner's kind (7l; a pair takes the kind pair) and the

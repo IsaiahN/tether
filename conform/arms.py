@@ -796,6 +796,15 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7H_EXIT_CHOICE": "7h (f), choose()'s exit order (the reviewer 2026-10-16 13:24, "
+                             "13:29): the held routine first, bored a gate, mint-a-routine a "
+                             "planner, draw the fallback; the live middle exits are chosen by "
+                             "A1's readings (residual = outstanding of the aimed slots, actions "
+                             "1, seen = turns at this level). While System 0 is active the "
+                             "goal-directed exits (distinguish, goal) defer: the contest is "
+                             "starved probe vs system0. One exit row with s0_defer and "
+                             "fixed_would. OFF: today's fixed order. default ON (Isaiah "
+                             "2026-10-15 07:53, 17:26)",
     "TETHER_7F_LEAVE": "7h (i), 7f LEAVE (the reviewer 2026-10-16 13:02, 13:05): after a mint, "
                        "a slot whose lookup closure was tried to its end at this level with "
                        "nothing bound and its outstanding not fallen since the line's first "
