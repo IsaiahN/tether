@@ -744,6 +744,13 @@ ARMS: dict[str, str] = {
                              "before it exactly. "
                              "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
                              "the checklist's culprit isolation",
+    "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
+                         "18:45): the run header adds files_blob (the .py files on disk minus "
+                         "an exclusion table of directory names) and library_blob, each over "
+                         "git blob ids with CRLF read as LF; new names, so never compared with "
+                         "files_sha/library_sha, which are kept. Nothing reads them to decide. "
+                         "OFF writes the header as before. default ON (Isaiah 2026-10-15 07:53, "
+                         "17:26); the switch is kept for the checklist's culprit isolation",
     "TETHER_CARRY_RECORD": "S1g, the asked record (Isaiah 2026-10-15 13:26, option B; the "
                            "reviewer 13:27): under the slot filter a generation carries which "
                            "questions were asked (ak_), never the bound answers; a pair recorded "
