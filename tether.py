@@ -23,7 +23,7 @@ import time
 from collections import Counter
 from dataclasses import dataclass, field
 from dataclasses import replace as _replace
-from functools import cache, partial
+from functools import cache, partial, wraps
 from typing import Any
 
 import armflag
@@ -1665,7 +1665,26 @@ def _why(d: dict | None, reason: str) -> None:
         d["exit"] = reason
 
 
+def _in_step(step: str):
+    """The loop step a method runs in, held on the agent while it runs and restored after (a nested
+    call, route -> mint, gets its own). A row written from inside it -- a choice made mid-step -- is
+    labelled with the step actually running, never by fiat (the reviewer 2026-10-16 07:45; A1's rows
+    were labelled PLAN wherever they ran and failed the gate's step-order check)."""
+    def wrap(f):
+        @wraps(f)
+        def run(self, *a, **k):
+            prev, self._running_step = self._running_step, step
+            try:
+                return f(self, *a, **k)
+            finally:
+                self._running_step = prev
+        return run
+    return wrap
+
+
 class Agent:
+    _running_step = "PLAN"     # the step running now; _in_step sets it, PLAN between steps
+
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
@@ -3712,6 +3731,7 @@ class Agent:
                 hit.append(slot)
         return tuple(sorted(hit))
 
+    @_in_step("SETTLE")
     def _settle_routine(self) -> None:
         """A routine that has ACTED is settled in the cycle whose observation decides it (F501;
         Fig 2). Its expectation, then one advance, read the state this cycle observed -- the state
@@ -4641,7 +4661,7 @@ class Agent:
 
     def _domain_row(self, slot: str, opts: list, pick: int, by: str, front: list) -> None:
         """A1 site 9's A2 row: both values on the frontier, their readings, the pick, its step."""
-        self.led.record(self.cycle, "PLAN", slot, "choice", site="objective_domain",
+        self.led.record(self.cycle, self._running_step, slot, "choice", site="objective_domain",
                         options=len(opts), frontier=[[repr(v), b, a] for v, b, a in opts
                                                      if v in set(front)],
                         residual=None, seen=None, pick=repr(pick), by=by,
@@ -4780,6 +4800,7 @@ class Agent:
             # anywhere licensed citation here.
             self._stood.append((slot, name, self.gamma.is_settled(name, slot)))
 
+    @_in_step("PROMOTE")
     def _promote(self) -> None:
         """Step 6: what step 1 stood on, and what the sweep earned."""
         wait = []
@@ -4836,6 +4857,7 @@ class Agent:
             return CHANNEL_CLOSED
         return GENUINE
 
+    @_in_step("PERCEIVE")
     def perceive(self, action: str,
                  coord: tuple[int, int] | None = None,
                  intent: Any = None) -> dict[str, SlotResidual]:
@@ -5787,6 +5809,7 @@ class Agent:
             total += correction_bits(got, actual, self.alphabet[slot])
         return total
 
+    @_in_step("ROUTE")
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         for slot, r in res.items():
@@ -7622,7 +7645,11 @@ class Agent:
         pick, by, front = FR.frontier_pick(options, residual, seen,
                                            f"{self.cycle}:{site}:{slot}", self.draw_seed)
         fr = set(front)
-        self.led.record(self.cycle, "PLAN", slot or "@choice", "choice", site=site,
+        # a slot's choice is labelled with the step running; a slot-free one stays PLAN (its own
+        # (cycle, slot)) and says when it was made in in_step
+        self.led.record(self.cycle, self._running_step if slot else "PLAN", slot or "@choice",
+                        "choice", site=site,
+                        **({} if slot else {"in_step": self._running_step}),
                         options=len(options),
                         frontier=[[repr(n), b, a] for n, b, a in options if n in fr],
                         residual=(None if residual is None else
@@ -9361,6 +9388,7 @@ class Agent:
                                    "untested": sum(1 for r in no_ev if not r["recurred"])}
         return [f"{slot}~{j}" for j in order]
 
+    @_in_step("MINT")
     def mint(self, slot: str) -> None:
         """ONE MINT WITH ITS EVALUATION MEMO. A Ctx and an operand read are pure functions of
         their inputs, and inside one mint they repeat ~1,281x and ~740x (counted, default seed 0,
@@ -10180,13 +10208,16 @@ class Agent:
             # site), what the walk did and never the walk -- where the winner sat, how far it went
             # and why it stopped. No k: nothing is cut to a constant. The library row is written
             # with the arm OFF too, so the checklist can read ON against OFF.
+            # Written under MINT, the step they happen in (labelled PLAN from fbe9f41 to this
+            # fix, failing the gate's step-order check on every ALL-ON ledger; the reviewer
+            # 2026-10-16).
             _won = best[3] if best is not None else None
             _stop_why = {"found": int(_won is not None),
                          "budget": int(bool(stats["budget_spent"])),
                          "exhausted": int(_won is None and not stats["budget_spent"])}
             if _LIBRARY_FIRST:
                 self.led.record(
-                    self.cycle, "PLAN", slot, "stream", site="library_merge", arm=_A1_LIBRARY,
+                    self.cycle, "MINT", slot, "stream", site="library_merge", arm=_A1_LIBRARY,
                     key=("depth; library evidence within a depth; the closure's by_fit; library "
                          "ties by the draw") if _A1_LIBRARY else "library chains first",
                     calls=1, walked_total=rank, walked_max=rank,
@@ -10197,7 +10228,7 @@ class Agent:
             if _A1_LOOKUP and slot in self._bind_key:
                 _wop = _won.operand if _won is not None else None
                 self.led.record(
-                    self.cycle, "PLAN", slot, "stream", site="lookup_order",
+                    self.cycle, "MINT", slot, "stream", site="lookup_order",
                     key=("contact gate; derived (actions); library evidence (bits); distinct "
                          "values over the residual; the draw"),
                     calls=1, walked_total=len(operand_binds), walked_max=len(operand_binds),
@@ -10209,7 +10240,7 @@ class Agent:
                 _wk = next((k for k, v in by_kind.items() if _won is not None and v[3] is _won),
                            None)
                 self.led.record(
-                    self.cycle, "PLAN", slot, "stream", site="stream_share",
+                    self.cycle, "MINT", slot, "stream", site="stream_share",
                     key="least rank spent this round; exact ties by the draw",
                     calls=_ns_calls, walked_total=sum(v["turns"] for v in _share.values()),
                     walked_max=max(v["turns"] for v in _share.values()),
@@ -10737,6 +10768,7 @@ class Agent:
             self._cand_level[cand.name] = self.level
         return cand.name
 
+    @_in_step("SETTLE")
     def settle(self, res: dict[str, SlotResidual]) -> None:
         """The ground settles it, by held-out payment: a term predicts a transition it was
         never fitted to. And it un-settles the same way -- a settled term that mispredicts
