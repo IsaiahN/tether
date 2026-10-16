@@ -799,6 +799,14 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_INDEX_AFFECTS": "step 5, the search index (Isaiah, RULINGS_CHECK item 8; the reviewer "
+                            "2026-10-16 15:06, 15:10): the two atoms the agent makes are tagged "
+                            "with the bare reading they affect -- an invention with its slot's "
+                            "attribute, a goal condition with completed -- when the library knows "
+                            "it as a reading, so the abductive lookup (by_affects) can reach "
+                            "them. The tag is within the game: inventions are this agent's "
+                            "private library (M7 carry off). OFF: no affects, as before. "
+                            "default ON (Isaiah 2026-10-15 07:53, 17:26)",
     "TETHER_7I_ROUTE": "3a, 7i ROUTED (the seat 2026-10-16 14:14): an innate term refuted on a "
                        "slot (at the refute site) and a settled term refused (refuse_term) are "
                        "queued per step; beside the indistinct row one PERCEIVE row "

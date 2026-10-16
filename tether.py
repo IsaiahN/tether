@@ -617,6 +617,10 @@ _7H_RESCOPE = armflag.arm("TETHER_7H_RESCOPE", default=True)
 # 3a, 7i ROUTED (the seat 2026-10-16 14:14): a ground contradiction -- an innate term refuted, a
 # settled term refused -- is a perception trigger, beside the indistinct one
 _7I_ROUTE = armflag.arm("TETHER_7I_ROUTE", default=True)
+# STEP 5, THE SEARCH INDEX'S MISSING HALF (Isaiah, RULINGS_CHECK item 8; the reviewer 2026-10-16
+# 15:10): an atom the agent makes is tagged with the reading it can AFFECT, so the abductive lookup
+# (by_affects) can reach it; the tag is the bare reading, never a slot
+_INDEX_AFFECTS = armflag.arm("TETHER_INDEX_AFFECTS", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -3414,7 +3418,8 @@ class Agent:
                 key = lib.invent_atom(f"{self.gamma.game}_goal_{len(self._goal_conds) + 1}",
                                       text, game=self.gamma.game, cycle=self.cycle,
                                       receipt={"completion": self.cycle, "steps": n,
-                                               "reached": k, "errors": e})
+                                               "reached": k, "errors": e},
+                                      affects=self._affects(lib, "completed"))
                 self._goal_conds[key] = c
                 self._goal_text[key] = text
                 if _GOAL_LINK:
@@ -3576,6 +3581,15 @@ class Agent:
             total += self._left(f if on else idn, slot, [row])
         return total
 
+    @staticmethod
+    def _affects(lib: Any, reading: str) -> list[str]:
+        """Step 5: the affects tag of an atom the agent makes -- the BARE reading it explains (the
+        slot's attribute after its last dot, never the object), when the library knows it as a
+        reading; otherwise none (the caller names it). OFF: none, as before."""
+        if not _INDEX_AFFECTS or reading not in getattr(lib, "readings", {}):
+            return []
+        return [reading]
+
     def _inv_library(self) -> Any:
         """A private copy: an invention lights for THIS agent only, never another game in the
         process (Fig 4; carry is M7). library/ is never written."""
@@ -3684,10 +3698,14 @@ class Agent:
         lib = self._inv_library()
         name = f"{self.gamma.game}_inv_{len(self._invented) + 1}"
         try:
+            _aff = self._affects(lib, slot.rsplit(".", 1)[-1])
+            if _INDEX_AFFECTS:
+                detail["affects"] = _aff or "not a reading"
             key = lib.invent_atom(name, text, game=self.gamma.game, cycle=self.cycle,
                                   receipt={"slot": slot, "verdict": detail.get("park_verdict"),
                                            "moved_rows": detail.get("moved_rows"),
-                                           "nothing_lit": True})
+                                           "nothing_lit": True},
+                                  affects=_aff)
         except ValueError as e:
             detail.update(pick="refused at creation", why=str(e), condition=text)
             self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
