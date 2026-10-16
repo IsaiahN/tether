@@ -6792,7 +6792,9 @@ class Agent:
         """`{key: (a, b)}` for this frame's contact points, keyed by KIND OF SITUATION rather
         than by object name -- `(contact kind, the two shape ids sorted)`. Names churn every
         frame and would leave everything permanently unexplored; `_gap_key` and `paths` settled
-        that once already -- *vocabulary permanent, instances transient.*
+        that once already -- *vocabulary permanent, instances transient.* WITHIN A GAME ONLY (3c,
+        2026-10-16): the shape ids are this board's encounter indices, and `_contact_seen` is never
+        carried by the lineage, so nothing here crosses a game.
 
         AND RE-OPENING NEEDS NO MACHINERY. Isaiah: *new states of a board introduce new items
         or change the state of something, in which case the rules of how that contact works

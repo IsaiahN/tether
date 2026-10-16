@@ -155,7 +155,9 @@ ARMS: dict[str, str] = {
     "TETHER_NOT_ATOM": "not-t priced as one atom slot instead of the bits to name which "
                        "predicting term is wrong (the default, reviewer 2026-10-07). The figures "
                        "leave the price OPEN; this arm keeps the alternative readable (F496)",
-    "TETHER_DELTA_OPERANDS": "deltas offered as operands",
+    "TETHER_DELTA_OPERANDS": "deltas offered as operands. HELD OFF on its named defect, the "
+                             "lost closing term (the reviewer 2026-10-15 17:32; 3e census "
+                             "2026-10-16)",
     "TETHER_GUARD_AXIS": "the guard axis in the reject key"
                          ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
                          "the record; the switch is kept for the checklist's culprit isolation",
@@ -591,7 +593,8 @@ ARMS: dict[str, str] = {
                               " is the record; the switch is kept for the checklist's culprit "
                               "isolation",
     "TETHER_STREAM_WIDEN": "the widened candidate streams",
-    "TETHER_TYPED_BIND": "binding filtered by type",
+    "TETHER_TYPED_BIND": "binding filtered by type. HELD OFF on its named defect, the tn36 "
+                         "loss (the reviewer 2026-10-15 17:32; 3e census 2026-10-16)",
     "TETHER_VIEW_HOLD": "7e the view hold (Fig 12 :107-108; the reviewer 2026-10-14 00:49, "
                         "00:57): ON, an entry's STATE/TEST/PROCESS/CAUSE view is derived once "
                         "per run under the library's placeholders and the names are put back "
