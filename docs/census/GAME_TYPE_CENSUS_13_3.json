@@ -1,0 +1,705 @@
+{
+ "header": "13.3 GAME-TYPE CENSUS -- A READING, NEVER AN INPUT. The agent never loads this file; no agent code imports or reads docs/census (checked in the smoke). Records only: the 13.1 calibration rows at d662c2d (OFF rows: CALC, the 21:10 master; ON rows: CALD, the 17:46 master, else CALC's ON lanes; a lane cut before its row is censored), each game's metadata.json, and its code for a named limit. A cell no record fills reads 'not in records'. Seat's reading, written blind (the reviewer seals its own, 2026-10-16 14:49). ALL WALLS ARE AT d662c2d (pre-repoint, pre-defaults-flip, before 7d/7h/7f/3a): they describe that commit, not today's head, and are not current cost.",
+ "rows": [
+  {
+   "game": "ar25",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3"
+   ],
+   "limit": "not in records; died at step 64 on 07-24",
+   "wall_off": {
+    "median_s": 42.5,
+    "max_s": 91.3,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 213.2,
+    "max_s": 523.7,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "death@64"
+  },
+  {
+   "game": "bp35",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION3",
+    "ACTION4",
+    "ACTION6"
+   ],
+   "limit": "not in records; died at step 16 on 07-24",
+   "wall_off": {
+    "median_s": 180.4,
+    "max_s": 286.4,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": null,
+    "max_s": null,
+    "cycles": 0,
+    "note": "no row written: the lane was cut before its row; no cycle finished in the lane"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "death@16"
+  },
+  {
+   "game": "cd82",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3",
+    "ACTION4"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 18.6,
+    "max_s": 76.3,
+    "cycles": 4,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 281.2,
+    "max_s": 575.4,
+    "cycles": 4,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "cn04",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3",
+    "ACTION4",
+    "ACTION5"
+   ],
+   "limit": "not in records; died at step 75 on 07-24",
+   "wall_off": {
+    "median_s": 22.0,
+    "max_s": 37.5,
+    "cycles": 5,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 202.6,
+    "max_s": 266.9,
+    "cycles": 5,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "death@75"
+  },
+  {
+   "game": "dc22",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 24.2,
+    "max_s": 79.9,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 833.7,
+    "max_s": 1066.7,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "ft09",
+   "tags": [],
+   "mode": "not in records ([])",
+   "acts_taken_off": [
+    "ACTION6",
+    "RESET"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 1.3,
+    "max_s": 1.3,
+    "cycles": 5,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 60.8,
+    "max_s": 2306.3,
+    "cycles": 5,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "click",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "g50t",
+   "tags": [
+    "keyboard"
+   ],
+   "mode": "avatar (keyboard)",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3",
+    "ACTION4",
+    "ACTION5"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 11.7,
+    "max_s": 59.8,
+    "cycles": 5,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 177.0,
+    "max_s": 503.2,
+    "cycles": 5,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "effect",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "ka59",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 10.7,
+    "max_s": 44.3,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 162.2,
+    "max_s": 499.8,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "lf52",
+   "tags": [
+    "click"
+   ],
+   "mode": "click-only",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3",
+    "ACTION4",
+    "ACTION6"
+   ],
+   "limit": "not in records; died at step 64 on 07-24",
+   "wall_off": {
+    "median_s": 1.8,
+    "max_s": 41.5,
+    "cycles": 5,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 2.8,
+    "max_s": 2.8,
+    "cycles": 1,
+    "note": "no row written: the lane was cut before its row; walls from the log, censored"
+   },
+   "family": "not in this project's records",
+   "family_0724": "effect",
+   "outcome_0724": "death@64"
+  },
+  {
+   "game": "lp85",
+   "tags": [
+    "click"
+   ],
+   "mode": "click-only",
+   "acts_taken_off": [
+    "ACTION6",
+    "RESET"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 0.8,
+    "max_s": 0.9,
+    "cycles": 5,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 5.5,
+    "max_s": 639.5,
+    "cycles": 5,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "click",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "ls20",
+   "tags": [
+    "keyboard"
+   ],
+   "mode": "avatar (keyboard)",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 24.3,
+    "max_s": 54.5,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 376.9,
+    "max_s": 695.3,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "m0r0",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 11.3,
+    "max_s": 29.2,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 90.8,
+    "max_s": 187.2,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "two_body",
+   "outcome_0724": "1 level, survives to cap"
+  },
+  {
+   "game": "r11l",
+   "tags": [
+    "click"
+   ],
+   "mode": "click-only",
+   "acts_taken_off": [
+    "ACTION6",
+    "RESET"
+   ],
+   "limit": "60 actions (r11l.py 1407: _max_actions = 60; 1809 ends the level at it); died at step 60 on 07-24",
+   "wall_off": {
+    "median_s": 7.2,
+    "max_s": 21.8,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 109.2,
+    "max_s": 689.4,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "click",
+   "outcome_0724": "death@60"
+  },
+  {
+   "game": "re86",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 20.5,
+    "max_s": 40.5,
+    "cycles": 2,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 238.1,
+    "max_s": 475.3,
+    "cycles": 2,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "s5i5",
+   "tags": [
+    "click"
+   ],
+   "mode": "click-only",
+   "acts_taken_off": [
+    "ACTION6",
+    "RESET"
+   ],
+   "limit": "not in records; died at step 50 on 07-24",
+   "wall_off": {
+    "median_s": 8.2,
+    "max_s": 10.5,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 154.8,
+    "max_s": 591.5,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "click",
+   "outcome_0724": "death@50"
+  },
+  {
+   "game": "sb26",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION5",
+    "ACTION6",
+    "ACTION7",
+    "RESET"
+   ],
+   "limit": "64 energy (sb26.py 723: an energy of 64; what spends it is not read here); died at step 65 on 07-24",
+   "wall_off": {
+    "median_s": 1.7,
+    "max_s": 8.6,
+    "cycles": 5,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 117.2,
+    "max_s": 502.9,
+    "cycles": 5,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "effect",
+   "outcome_0724": "death@65"
+  },
+  {
+   "game": "sc25",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3"
+   ],
+   "limit": "not in records; died at step 52 on 07-24",
+   "wall_off": {
+    "median_s": 28.1,
+    "max_s": 35.8,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 521.9,
+    "max_s": 826.0,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "death@52"
+  },
+  {
+   "game": "sk48",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 214.1,
+    "max_s": 254.5,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": null,
+    "max_s": null,
+    "cycles": 0,
+    "note": "no row written: the lane was cut before its row; no cycle finished in the lane"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "sp80",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3",
+    "ACTION4",
+    "ACTION5"
+   ],
+   "limit": "not in records; died at step 30 on 07-24",
+   "wall_off": {
+    "median_s": 12.7,
+    "max_s": 17.7,
+    "cycles": 5,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 112.1,
+    "max_s": 345.8,
+    "cycles": 5,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "death@30"
+  },
+  {
+   "game": "su15",
+   "tags": [
+    "click"
+   ],
+   "mode": "click-only",
+   "acts_taken_off": [
+    "ACTION6",
+    "ACTION7",
+    "RESET"
+   ],
+   "limit": "not in records; died at step 43 on 07-24",
+   "wall_off": {
+    "median_s": 0.5,
+    "max_s": 0.6,
+    "cycles": 4,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 174.6,
+    "max_s": 425.0,
+    "cycles": 4,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "click",
+   "outcome_0724": "death@43"
+  },
+  {
+   "game": "tn36",
+   "tags": [
+    "click"
+   ],
+   "mode": "click-only",
+   "acts_taken_off": [
+    "ACTION6",
+    "RESET"
+   ],
+   "limit": "not in records; died at step 71 on 07-24",
+   "wall_off": {
+    "median_s": 23.4,
+    "max_s": 30.3,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 4.6,
+    "max_s": 4.6,
+    "cycles": 1,
+    "note": "no row written: the lane was cut before its row; walls from the log, censored"
+   },
+   "family": "not in this project's records",
+   "family_0724": "click",
+   "outcome_0724": "1 level, death@71 (L2)"
+  },
+  {
+   "game": "tr87",
+   "tags": [
+    "keyboard"
+   ],
+   "mode": "avatar (keyboard)",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 46.6,
+    "max_s": 91.9,
+    "cycles": 2,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": null,
+    "max_s": null,
+    "cycles": 0,
+    "note": "no row written: the lane was cut before its row; no cycle finished in the lane"
+   },
+   "family": "not in this project's records",
+   "family_0724": "effect",
+   "outcome_0724": "stall"
+  },
+  {
+   "game": "tu93",
+   "tags": [
+    "keyboard_click"
+   ],
+   "mode": "both",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3"
+   ],
+   "limit": "not in records; died at step 50 on 07-24",
+   "wall_off": {
+    "median_s": 25.4,
+    "max_s": 54.2,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 2.0,
+    "max_s": 2.0,
+    "cycles": 1,
+    "note": "no row written: the lane was cut before its row; walls from the log, censored"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "death@50"
+  },
+  {
+   "game": "vc33",
+   "tags": [
+    "click"
+   ],
+   "mode": "click-only",
+   "acts_taken_off": [
+    "ACTION6",
+    "RESET"
+   ],
+   "limit": "not in records; died at step 50 on 07-24",
+   "wall_off": {
+    "median_s": 3.8,
+    "max_s": 4.8,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 63.5,
+    "max_s": 103.7,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "click",
+   "outcome_0724": "death@50"
+  },
+  {
+   "game": "wa30",
+   "tags": [
+    "keyboard"
+   ],
+   "mode": "avatar (keyboard)",
+   "acts_taken_off": [
+    "ACTION1",
+    "ACTION2",
+    "ACTION3"
+   ],
+   "limit": "not in records (the game code is obfuscated; no named limit found)",
+   "wall_off": {
+    "median_s": 5.9,
+    "max_s": 10.5,
+    "cycles": 3,
+    "note": "row"
+   },
+   "wall_on": {
+    "median_s": 117.1,
+    "max_s": 162.6,
+    "cycles": 3,
+    "note": "row"
+   },
+   "family": "not in this project's records",
+   "family_0724": "directional",
+   "outcome_0724": "stall"
+  }
+ ]
+}

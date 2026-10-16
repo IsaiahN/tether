@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import os
+import pathlib
 import sys
 
 import numpy as np
@@ -451,6 +452,17 @@ def check_the_notebook_runs_our_runner_in_place_of_swarm():
     run = "".join(nb["cells"][2]["source"])
     assert "python -m agents.templates.my_agent" in run and "main.py" not in run, run
     assert "".join(nb["cells"][1]["source"]).endswith("x = 1\n"), "the agent body was not written"
+
+
+def check_the_census_is_never_an_input():
+    """13.3 (the reviewer 2026-10-16 14:49): the game-type census is a READING, never an input --
+    no repository .py file but this check names its folder or file, so no agent code can load it."""
+    here = pathlib.Path(__file__).resolve().parent
+    hits = [str(f.relative_to(here)) for f in here.rglob("*.py")
+            if ".venv" not in f.parts and f.name != "test_entry.py"
+            and any(t in f.read_text(encoding="utf-8", errors="replace")
+                    for t in ("docs/census", "docs\census", "GAME_TYPE_CENSUS"))]
+    assert not hits, hits
 
 
 def check_the_bundle_carries_every_module_the_harness_file_imports():
