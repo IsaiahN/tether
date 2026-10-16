@@ -16,7 +16,10 @@ More than one tip, or a link that does not verify, RAISES with the tips or the b
 a silent pick of a tip, never a silent cold start. An empty or absent folder is the root, said so.
 
 The evidence and the dormant record are the RECORD: written and folded, never read back into
-standing or into a live store (standing is 7i's; the kind forms are (b'-l) phase 2's)."""
+standing or into a live store (standing is 7i's; the kind forms are (b'-l) phase 2's).
+ANNOTATED 2026-10-15 (7i, the reviewer 19:04, 19:36): under TETHER_SETTLED_CORE the folded
+evidence IS read back into standing at load (Gamma.replay), globally, never per slot; the
+record itself is unchanged. The dormant record is still not read back."""
 from __future__ import annotations
 
 import dataclasses
@@ -378,6 +381,10 @@ def load(d: str | Path, ag: Any) -> dict:
         ag._seed_from_lineage({g["seed"] for _, g in chain if g.get("seed")}, len(chain), h)
     rep = ag.gamma.load_blob({"terms": f["terms"], "invented": f["invented"],
                               "vindication": f["vindication"], "book": f["book"]}, parent=h)
+    if gamma._SETTLED_CORE:
+        # 7i (2): a carried term keeps the standing it had, LEARNED and revisable (the reviewer
+        # 2026-10-15 19:04); the record itself is unchanged
+        rep["replayed"] = ag.gamma.replay(f["evidence"])
     return {"parent": h, **rep, "index": load_index(d, ag, chain),
             "memo": load_memo(d, ag, chain), "slot_memo": load_bs(d, ag, chain),
             "asked": load_ak(d, ag, chain)}

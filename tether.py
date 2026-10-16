@@ -40,6 +40,7 @@ import reach
 import relations
 import retrieval
 import routine as Rt
+from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import (
     ACTED_ON,
     ACTED_SELF,
@@ -861,6 +862,17 @@ def _slot_map(role: str, whole: tuple) -> tuple:
         else:
             by.setdefault((b if role == "CAUSE" else a).slot, []).append(i)
     return {k: tuple(v) for k, v in by.items()}, tuple(every)
+
+
+def _core_kind(offers: Any, term: Any) -> str | None:
+    """7i: "inherit" when an offer is the library's description of the WHOLE term with its operand
+    and the term is one atom or concept, "learn" when it is a whole multi-atom recipe, None when
+    no offer equals it (an extension, another operand: new, earned in play)."""
+    names = tuple(a.name for a in term.atoms)
+    if any(o_["operand"] == term.operand and tuple(a.name for a in o_["term"].atoms) == names
+           for o_ in offers):
+        return "inherit" if len(names) == 1 else "learn"
+    return None
 
 
 def _tally_key(role: str, a: Any, b: Any, sub: Any) -> str | None:
@@ -10248,6 +10260,10 @@ class Agent:
                          == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
             if prov is not None:
                 detail["library"] = prov
+                _core = _core_kind(self._lib_offers.get(slot, ()), term) if G_SETTLED_CORE else None
+                if _core is not None:
+                    detail["core"] = (self.gamma.inherit if _core == "inherit"
+                                      else self.gamma.learn)(term.name)
             # HOW the library moved this winner (the reviewer 11:00Z): `described` -- chain and
             # operand both offered (the stamp); `chain_only` -- the chain arrived by the library's
             # order with an operand it did not offer; `none` -- not by this mint's offers. A
@@ -10262,7 +10278,8 @@ class Agent:
         # accepts per slot reads it as the slot's own.
         self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
                         origin=term.origin, seq=len(self.led),
-                        status="candidate", cited="no: candidate may be held, not cited",
+                        status=detail.get("core", "candidate"),
+                        cited="no: candidate may be held, not cited",
                         **({"part": self._mint_part} if self._mint_part else {}))
         self.chain.note_mint()
         self.sweep(term, slot)

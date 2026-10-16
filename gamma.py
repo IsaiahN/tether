@@ -54,6 +54,8 @@ IDN_NAME = "idn"
 # afterwards. Recorded at entry because it is unrecoverable later; what each value IMPLIES for
 # the wipe is a separate and deferred decision, and nothing here presupposes it.
 NECESSARY, PROMOTED, ACCEPTED = "necessary", "promoted", "accepted"
+# 7i: the clauses a library description is admitted under (the reviewer 2026-10-15 19:04)
+INHERITED, LEARNED = "inherited", "learned"
 # THE FIFTH, AND ITS WIPE SEMANTICS ARE DELIBERATELY UNDECIDED -- 2026-09-26.
 #
 # Isaiah's THIRD clause, 2026-09-08: an atom may be handed when the agent's own machinery
@@ -347,6 +349,14 @@ class Atom:
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 # OFF, every builder's list is returned unchanged.
 _ATOMS_ONCE = armflag.arm("TETHER_ATOMS_ONCE", default=True)
+# 7i, THE SETTLED CORE (Isaiah 2026-10-14 07:08, 07:14 "we cant start from scratch"; the
+# reviewer 2026-10-15 17:32, 19:04). INNATE: an atom or concept -- every PRIOR one-atom term,
+# and a mint that is the library's own one-atom description -- is never demoted; a ground
+# contradiction is RECORDED (a perception-bug signal). LEARNED: a mint that is a library
+# recipe whole starts settled and is revisable. A carried term keeps the standing it had
+# (lineage replays the evidence). NEW compositions earn in play, as before. Innate is umwelt,
+# never a slot preference: nothing here settles a term on a slot. default ON; OFF = today
+_SETTLED_CORE = armflag.arm("TETHER_SETTLED_CORE", default=True)
 _PRIMITIVES: dict[str, tuple] = {}   # content token -> the one built tuple of code primitives
 _PRIMITIVES_REFUSED: dict[str, int] = {"no_source": 0}   # sets whose token could not be read
 
@@ -868,6 +878,7 @@ class Gamma:
         # only when the lineage carry sets keep_evidence (lineage.py); empty otherwise.
         self.keep_evidence = False
         self.evidence: list[list] = []
+        self.innate: set[str] = set()   # 7i: names whose standing a refute never moves
         # name -> the two verdicts that promoted it. A dict rather than a set because
         # `primitive requires both` is only checkable if both are on the record.
         self.primitives: dict[str, dict] = {}
@@ -927,7 +938,63 @@ class Gamma:
         self.stamps[term.name] = {"origin": term.origin, "seq": seq, "residual": residual,
                                   "admitted": admitted}
         self.standing.setdefault(term.name, Standing(last_tick=self.tick))
+        if _SETTLED_CORE and term.origin == PRIOR and len(term.atoms) == 1:
+            # already settled in the only sense Gamma has, a PRIOR unit from birth
+            # (relations.py:161-162); innate adds that a refute never moves it
+            self.innate.add(term.name)
         return term
+
+    def inherit(self, name: str) -> str:
+        """7i (1a): the library's own one-atom description, INNATE: settled from the start and
+        never demoted. Stamped INHERITED, which crosses the lineage in the row."""
+        st = self.standing.setdefault(name, Standing(last_tick=self.tick))
+        if st.settled_at is None:
+            st.settled_at = self.tick
+        self.stamps.setdefault(name, {})["admitted"] = INHERITED
+        self.innate.add(name)
+        return INHERITED
+
+    def learn(self, name: str) -> str:
+        """7i (1b): a library recipe taken whole, LEARNED: settled from the start (prior
+        experience, not a cold candidate) and still revisable by an ordinary refute."""
+        st = self.standing.setdefault(name, Standing(last_tick=self.tick))
+        if st.settled_at is None:
+            st.settled_at = self.tick
+        self.stamps.setdefault(name, {})["admitted"] = LEARNED
+        return LEARNED
+
+    def replay(self, rows: list) -> dict:
+        """7i (2): the carried settle/refute evidence, applied in order to the terms this Gamma
+        holds, each at its own tick, with nothing written again; a contradiction row is the
+        record and is not applied. Counts of what was applied and what was not.
+
+        A1 (the reviewer 2026-10-15 19:36): GLOBAL, never per slot. Slot names are a board's,
+        so after the rows are applied with their slots (which keeps the global standing exactly
+        as it ended) the per-slot standing of every replayed name is cleared: no term arrives
+        settled, or refused, on a slot of a new board (A4)."""
+        def tup(x: Any) -> Any:
+            return tuple(tup(v) for v in x) if isinstance(x, list) else x
+        out = {"settle": 0, "refute": 0, "not_held": 0, "record": 0}
+        keep, tick = self.keep_evidence, self.tick
+        self.keep_evidence = False
+        try:
+            for r in rows:
+                kind, name, slot, where, t = r[:5]
+                if kind not in ("settle", "refute") or name in self.innate:
+                    out["record"] += 1
+                    continue
+                if name not in self.library:
+                    out["not_held"] += 1
+                    continue
+                self.tick = t
+                (self.settle if kind == "settle" else self.refute)(name, tup(where), slot)
+                out[kind] += 1
+                st = self.standing[name]
+                st.settled_on.clear()
+                st.refusals_on.clear()
+        finally:
+            self.keep_evidence, self.tick = keep, tick
+        return out
 
     def admissions(self) -> dict[str, int]:
         """How many entries cited each of Â§11's two clauses.
@@ -1052,6 +1119,21 @@ class Gamma:
         level, and the failure this records is *one board did not have the mechanic*, which
         happens at both scales. The caller is the one holding both.
         """
+        if _SETTLED_CORE and name in self.innate:
+            # 7i: INNATE. The contradiction is RECORDED, never a demotion; on a slot the
+            # binding may still move (Q1, the reviewer 2026-10-15 19:04): settled_on loses
+            # that slot, the global standing stays
+            if self.keep_evidence:
+                self.evidence.append(["contradiction", name, slot, where, self.tick])
+            self.book["contradictions"] = self.book.get("contradictions", 0) + 1
+            st = self.standing.setdefault(name, Standing())
+            was = self.is_settled(name, slot)
+            at, on = st.settled_at, set(st.settled_on)
+            st.refute(self.tick, self.halflife, where=where, slot=slot)
+            st.settled_at = at
+            if slot is None:
+                st.settled_on = on
+            return was and not self.is_settled(name, slot)
         if self.keep_evidence:
             self.evidence.append(["refute", name, slot, where, self.tick])
         st = self.standing.setdefault(name, Standing())
@@ -1407,6 +1489,9 @@ class Gamma:
                 continue          # dedup on the COMPOSITION -- it keeps the handle it has
             self._install(t, seq=-2, residual=r.get("residual"),
                           admitted=IMPORTED if t.origin == IMPORTED else r.get("admitted"))
+            if _SETTLED_CORE and r.get("admitted") in (INHERITED, LEARNED):
+                # 7i: the clause crosses in the row; innate stays innate, learned learned
+                (self.inherit if r["admitted"] == INHERITED else self.learn)(t.name)
             if r.get("handle"):
                 self.handles[t.name] = r["handle"]   # the birth handle, carried
             # THE `carried` FIELD -- set at LOAD, so a term can say it did not originate here

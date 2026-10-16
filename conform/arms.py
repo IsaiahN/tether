@@ -751,6 +751,14 @@ ARMS: dict[str, str] = {
                          "files_sha/library_sha, which are kept. Nothing reads them to decide. "
                          "OFF writes the header as before. default ON (Isaiah 2026-10-15 07:53, "
                          "17:26); the switch is kept for the checklist's culprit isolation",
+    "TETHER_SETTLED_CORE": "7i, the settled core (Isaiah 2026-10-14 07:08, 07:14; the reviewer "
+                           "2026-10-15 19:04): INNATE -- every PRIOR one-atom term and a mint "
+                           "that is the library's one-atom description -- is never demoted, a "
+                           "contradiction recorded; LEARNED -- a library recipe taken whole -- "
+                           "starts settled and is revisable; a carried term keeps its standing "
+                           "(lineage replays the evidence). OFF is the line before it exactly. "
+                           "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
+                           "the checklist's culprit isolation",
     "TETHER_CARRY_RECORD": "S1g, the asked record (Isaiah 2026-10-15 13:26, option B; the "
                            "reviewer 13:27): under the slot filter a generation carries which "
                            "questions were asked (ak_), never the bound answers; a pair recorded "
