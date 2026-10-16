@@ -611,6 +611,9 @@ _7H_EXIT_CHOICE = armflag.arm("TETHER_7H_EXIT_CHOICE", default=True)
 # 7h (a), A1 (the reviewer 2026-10-16 13:47): the root's held goal shapes, by kind, GRADED by level
 # outcomes and carried by the lineage; a graded record, never a minted term (Fig 5)
 _7H_ROOT_GRADE = armflag.arm("TETHER_7H_ROOT_GRADE", default=True)
+# 7h (b), B1 (the reviewer 2026-10-16 13:57): a goal slot whose held shape is refuted by level
+# outcomes ranks after every other qualifying slot -- ordered, never removed
+_7H_RESCOPE = armflag.arm("TETHER_7H_RESCOPE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1744,6 +1747,7 @@ class Agent:
         self._root_grade: dict = {}
         self._root_grade_in: dict = {}
         self._root_grade_written: dict = {}
+        self._rescoped: set = set()      # 7h (b): (cycle, taken, passed) already recorded
         self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
         # the decay class: the situation (level, alive) and its epoch, set at the agent's own
@@ -4782,6 +4786,19 @@ class Agent:
         return {"shape": shape, "wins": n["win"], "clears": n["clear"], "deaths": n["death"],
                 "label": label}
 
+    def _refuted_slots(self) -> dict:
+        """7h (b): {slot: its grade} for each slot whose OWN held goal shape (its kind and the
+        term held on it) reads refuted by level outcomes; unsupported and mixed do not re-rank
+        (one failure is not a verdict)."""
+        out = {}
+        held = [(c.slot, c.term.name) for c in self._goal_conds.values()
+                if getattr(c, "slot", None)] + [(s, str(t)) for s, t in self.wants.items()]
+        for slot, term in held:
+            g = self._shape_grade(repr((self._kind_key(slot), term)))
+            if g["label"] == "refuted by level outcomes":
+                out[slot] = g
+        return out
+
     def _held_goal(self) -> list:
         """7h: the goal hypotheses the agent holds now, in its own terms (the held goal
         conditions, and each want as slot:term)."""
@@ -7471,6 +7488,8 @@ class Agent:
         # here. **The whole ACT space is downstream of this one string.**
         tally = {"too_short": 0, "flat": 0, "rose": 0, "qualified": 0, "arrived": 0}
         longest = 0
+        refuted = self._refuted_slots() if _7H_RESCOPE and hasattr(self, "_rescoped") else {}
+        plain: tuple[float, str] | None = None     # 7h (b): the pick without the rank
         for slot, series in sorted(self._res.items()):
             longest = max(longest, len(series))
             # **AN OBJECTIVE THAT HAS ARRIVED IS NOT ONE TO PURSUE, AND ARRIVING LOOKS EXACTLY
@@ -7508,12 +7527,26 @@ class Agent:
             if all(d <= 0 for d in deltas) and any(d < 0 for d in deltas):
                 tally["qualified"] += 1
                 shrink = -sum(deltas)
-                if best is None or shrink > best[0]:
+                if refuted:
+                    if plain is None or shrink > plain[0]:
+                        plain = (shrink, slot)
+                    shrink_r = (slot not in refuted, shrink)
+                    if best is None or shrink_r > best[0]:
+                        best = (shrink_r, slot)
+                elif best is None or shrink > best[0]:
                     best = (shrink, slot)
             elif any(d > 0 for d in deltas):
                 tally["rose"] += 1
             else:
                 tally["flat"] += 1
+        if refuted and best and plain and best[1] != plain[1]:
+            k = (self.cycle, best[1], plain[1])
+            if k not in self._rescoped:
+                self._rescoped.add(k)
+                self.led.record(self.cycle, self._running_step, best[1], "rescope",
+                                root=self._root_id, taken=best[1], passed=plain[1],
+                                refuted=refuted[plain[1]],
+                                reads="a goal shape refuted by level outcomes ranks after")
         if why is not None:
             why.update(tally)
             why["slots"] = len(self._res)

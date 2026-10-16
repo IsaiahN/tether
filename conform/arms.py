@@ -796,6 +796,14 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7H_RESCOPE": "7h (b), B1 (the reviewer 2026-10-16 13:54, 13:57): in _goal_choice a "
+                         "qualifying slot whose held goal shape (7h (a)) reads refuted by level "
+                         "outcomes ranks after every other qualifying slot; still chosen when "
+                         "nothing else qualifies, never removed. One rescope row (running step) "
+                         "when the rank changes the pick. unsupported and mixed do not re-rank. "
+                         "The 7f lines and tried counts re-scope by construction (keyed by "
+                         "root). OFF: today's selection. default ON (Isaiah 2026-10-15 07:53, "
+                         "17:26)",
     "TETHER_7H_ROOT_GRADE": "7h (a), A1 (the reviewer 2026-10-16 13:46, 13:47): the root's held "
                             "goal hypotheses as shapes by kind (slot kind, term), graded by the "
                             "ground's level endings (win, clear, death; a cap grades nothing), "
