@@ -799,6 +799,12 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_3C_CANON": "3c-CANON (the reviewer 2026-10-16 14:49; Isaiah 16:21, 16:41): the ARC "
+                       "world publishes shape_code(owner), a stable hash of the object's "
+                       "normalised cells (the same form, the same code, on any board), and "
+                       "_kind adds it, so 7l, 7m, 7h (h) and (a)/(b) read form, not an "
+                       "encounter index. Worlds without it (gridworld, the toy) keep the type "
+                       "kind. OFF: the type kind everywhere. default ON",
     "TETHER_7H_TRACE": "7h (d), the recallable graded trace, smallest form (Isaiah 2026-10-16 "
                        "16:21): each line (a slot's search) is graded by the slot's kind "
                        "(7h (h)'s key) when it ends -- paid (bound, or its outstanding fell) "

@@ -627,6 +627,9 @@ _7H_UNBUNDLE = armflag.arm("TETHER_7H_UNBUNDLE", default=True)
 # 7h (d), THE RECALLABLE GRADED TRACE: each line of thought (a slot's search) is graded by the
 # slot's kind when it ends -- paid or left -- carried by the lineage, and read at the leave
 _7H_TRACE = armflag.arm("TETHER_7H_TRACE", default=True)
+# 3c-CANON: an object's kind adds its CANONICAL shape code when the world publishes one (the same
+# form, the same code, on any board); a world that publishes none keeps the type-tuple kind
+_3C_CANON = armflag.arm("TETHER_3C_CANON", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -2849,12 +2852,20 @@ class Agent:
         self._kind_pairs.add((entry[2], entry[3]))
 
     def _kind(self, owner: str) -> tuple:
-        """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots."""
-        k = (owner, len(self.slots))   # cleared wherever slot_types is replaced
+        """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots;
+        under 3c-CANON also its canonical shape code where the world publishes one."""
+        code = None
+        if _3C_CANON:
+            fn = getattr(self.env, "shape_code", None)
+            code = fn(owner) if fn is not None else None
+        k = (owner, len(self.slots), code)   # cleared wherever slot_types is replaced
         got = self._kind_cache.get(k)
         if got is None:
-            got = self._kind_cache[k] = tuple(sorted({
+            got = tuple(sorted({
                 str(self.slot_types.get(s)) for s in self.slots if s.split(".")[0] == owner}))
+            if code is not None:
+                got = (*got, f"form={code}")
+            self._kind_cache[k] = got
         return got
 
     def _compiled(self, lib: Any, key: str, role: str, o: str, x: str, comp: Any, atoms: dict,

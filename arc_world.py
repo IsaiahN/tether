@@ -14,6 +14,7 @@ read game internals, and there is nothing here that knows what any board means.
 """
 from __future__ import annotations
 
+import hashlib
 import sys
 from collections.abc import Callable
 from typing import Any
@@ -127,6 +128,7 @@ class ArcWorld:
         self._read: dict[str, int] | None = None
         self._contacts: dict[str, list[str]] | None = None
         self._contact_pts: list | None = None
+        self._shape_codes: dict = {}   # 3c-CANON: normalised cells -> their stable code
         self._prev_contacts: dict[str, list[str]] | None = None
         self._actors: frozenset = frozenset()          # ARC B2: set by the agent's `relate`
         self._pair_read: dict[str, int] | None = None  # ARC B2: this frame's pair slots
@@ -467,6 +469,22 @@ class ArcWorld:
                         out[b].append(a)
             self._contacts = out
         return self._contacts
+
+    def shape_code(self, owner: str) -> int | None:
+        """3c-CANON: the object's CANONICAL form as a stable number -- a hash of its cells
+        normalised to the bounding box's corner (arc_percept 203), so the same form reads the
+        same code on any board, unlike the published `.shape`, an encounter index. None when
+        the object is not tracked this frame."""
+        obj = self._decompose.tracked.get(owner)
+        cells = obj.get("shape") if isinstance(obj, dict) else None
+        if not cells:
+            return None
+        code = self._shape_codes.get(cells)
+        if code is None:
+            raw = repr(sorted(tuple(c) for c in cells)).encode()
+            code = self._shape_codes[cells] = int.from_bytes(
+                hashlib.blake2b(raw, digest_size=6).digest(), "big")
+        return code
 
     def contact_points(self) -> list[tuple[str, str, str]]:
         """`(a, b, kind)` for every touching pair this frame, kind from RELATIONS.md 1.1.

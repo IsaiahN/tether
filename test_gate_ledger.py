@@ -106,8 +106,15 @@ def main() -> int:
     try:
         with tempfile.TemporaryDirectory() as d:
             led = Path(d) / "fake.jsonl"
-            tether_agent.run(FakeWrapper(script={}), "fake", max_actions=MAX_ACTIONS,
-                             lineage_dir=d, led_path=str(led))
+            # C-seed-X for G1 too (2026-10-16): under the per-birth seed the fake run's path
+            # varied by the draw, and with it whether a slot-bound choice row was written, so
+            # the precondition below passed or failed by the draw
+            seed_was, tether._AGENT_SEED = tether._AGENT_SEED, False
+            try:
+                tether_agent.run(FakeWrapper(script={}), "fake", max_actions=MAX_ACTIONS,
+                                 lineage_dir=d, led_path=str(led))
+            finally:
+                tether._AGENT_SEED = seed_was
             assert writes, "precondition: the guard saw no row"
             assert not bad(writes), ("G1 LABEL: rows labelled with a step not running",
                                      bad(writes)[:5])
