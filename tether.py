@@ -608,6 +608,9 @@ _7F_LEAVE = armflag.arm("TETHER_7F_LEAVE", default=True)
 # 7h (f), choose()'s exit order (the reviewer 2026-10-16 13:29): the live middle exits are chosen
 # by A1's readings, the goal-directed ones deferring to System 0 while it is active
 _7H_EXIT_CHOICE = armflag.arm("TETHER_7H_EXIT_CHOICE", default=True)
+# 7h (a), A1 (the reviewer 2026-10-16 13:47): the root's held goal shapes, by kind, GRADED by level
+# outcomes and carried by the lineage; a graded record, never a minted term (Fig 5)
+_7H_ROOT_GRADE = armflag.arm("TETHER_7H_ROOT_GRADE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1736,6 +1739,11 @@ class Agent:
         self._leave_line: dict = {}
         self._leave_held: dict = {}
         self._exit_n: collections.Counter = collections.Counter()   # 7h (f): (level, exit) taken
+        # 7h (a): the root's goal shapes; per shape this instance's and the lineage's outcome counts
+        self._root_shapes: list = []
+        self._root_grade: dict = {}
+        self._root_grade_in: dict = {}
+        self._root_grade_written: dict = {}
         self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
         # the decay class: the situation (level, alive) and its epoch, set at the agent's own
@@ -4753,6 +4761,27 @@ class Agent:
                         intent=t["intent"], root=self._root_id,
                         in_root=held is not None and held in self._root_held)
 
+    def _goal_shapes(self) -> list:
+        """7h (a): each held goal hypothesis as its SHAPE -- the slot's kind (7h (h)'s key: owner
+        kind and attribute type) and the term -- never this game's names (Fig 4)."""
+        out = {repr((self._kind_key(c.slot), c.term.name)) for c in self._goal_conds.values()
+               if getattr(c, "slot", None)}
+        out |= {repr((self._kind_key(s), str(t))) for s, t in self.wants.items()}
+        return sorted(out)
+
+    def _shape_grade(self, shape: str) -> dict:
+        """7h (a): a shape's outcome counts, the lineage's plus this instance's, and the label
+        READ from them: one failure is not a verdict (Isaiah 09-29) -- refuted needs two losses
+        and no win, and a refuted shape that later wins comes back (the counts say so)."""
+        n = collections.Counter(self._root_grade_in.get(shape, {}))
+        n.update(self._root_grade.get(shape, {}))
+        won, lost = n["win"] + n["clear"], n["death"]
+        label = ("refuted by level outcomes" if lost >= 2 and not won else
+                 "unsupported" if lost and not won else "mixed" if lost else
+                 "carried" if won else "ungraded")
+        return {"shape": shape, "wins": n["win"], "clears": n["clear"], "deaths": n["death"],
+                "label": label}
+
     def _held_goal(self) -> list:
         """7h: the goal hypotheses the agent holds now, in its own terms (the held goal
         conditions, and each want as slot:term)."""
@@ -4776,11 +4805,15 @@ class Agent:
         self._root_id = f"L{self.level}:E{self._epoch}"
         self._root_held = self._held_goal()
         self._root_shown = shown
+        if _7H_ROOT_GRADE:
+            self._root_shapes = self._goal_shapes()
         self.led.record(self.cycle, "PLAN", "@intent", "intent_root", root=self._root_id,
                         level=self.level, alive=self._alive, shown=shown, changed=changed,
                         expected=self._root_held or "none held",
                         open=sorted(s for s in self.slots if self.outstanding(s) > 0),
                         owed=sorted(self.owed_import),
+                        **({"graded": [self._shape_grade(s) for s in self._root_shapes]}
+                           if _7H_ROOT_GRADE else {}),
                         reads="what is shown, what is expected, what is still open")
 
     @_in_step("SETTLE")
@@ -4792,6 +4825,14 @@ class Agent:
         self.led.record(self.cycle, "SETTLE", "@intent", "intent_verdict", root=self._root_id,
                         ending=how, held_in_force=self._held_goal() == self._root_held,
                         held=self._root_held or "none held")
+        out = {WIN: "win", ADVANCE: "clear", "death": "death"}.get(how)
+        if _7H_ROOT_GRADE and out is not None:
+            # graded by the ground's ending only (a cap or a run end grades nothing)
+            for s in self._root_shapes:
+                self._root_grade.setdefault(s, collections.Counter())[out] += 1
+            self.led.record(self.cycle, self._running_step, "@intent", "intent_graded",
+                            root=self._root_id, ending=how, outcome=out,
+                            graded=[self._shape_grade(s) for s in self._root_shapes])
         self._root_id = None
 
     def _value_of(self, term: Term, slot: str, state: dict[str, int], ctx: Ctx):

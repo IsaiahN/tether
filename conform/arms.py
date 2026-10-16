@@ -796,6 +796,14 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7H_ROOT_GRADE": "7h (a), A1 (the reviewer 2026-10-16 13:46, 13:47): the root's held "
+                            "goal hypotheses as shapes by kind (slot kind, term), graded by the "
+                            "ground's level endings (win, clear, death; a cap grades nothing), "
+                            "written per generation and summed at load; intent_root carries "
+                            "each shape's counts and the label read from them (refuted needs "
+                            "two losses and no win). A graded record, never a minted term; "
+                            "(b) is its consumer. OFF: no shapes, no grades. default ON "
+                            "(Isaiah 2026-10-15 07:53, 17:26)",
     "TETHER_7H_EXIT_CHOICE": "7h (f), choose()'s exit order (the reviewer 2026-10-16 13:24, "
                              "13:29): the held routine first, bored a gate, mint-a-routine a "
                              "planner, draw the fallback; the live middle exits are chosen by "
