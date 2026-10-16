@@ -807,6 +807,11 @@ ARMS: dict[str, str] = {
                             "them. The tag is within the game: inventions are this agent's "
                             "private library (M7 carry off). OFF: no affects, as before. "
                             "default ON (Isaiah 2026-10-15 07:53, 17:26)",
+    "TETHER_HOLES_REPOINT": "step 6, the sensors_heavy repoint (Isaiah 2026-10-12 via the reviewer "
+                            "10:16; REPO_AUDIT sensors_heavy KEEP): sensors_heavy._holes returns "
+                            "arc_percept.holes_of, the one implementation (enclosed regions); OFF "
+                            "is the old border flood (cells, wrong on 56 of 263 wa30 objects). "
+                            "default ON (Isaiah 2026-10-15 07:53, 17:26)",
     "TETHER_7I_ROUTE": "3a, 7i ROUTED (the seat 2026-10-16 14:14): an innate term refuted on a "
                        "slot (at the refute site) and a settled term refused (refuse_term) are "
                        "queued per step; beside the indistinct row one PERCEIVE row "

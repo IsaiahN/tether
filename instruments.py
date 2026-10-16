@@ -432,9 +432,10 @@ class Clocks:
 # compile_term and gridworld were missing until 2026-10-11, so REALISE_CELL went unrecorded;
 # lineage until 2026-10-15, so no header since 7d1a689 recorded TETHER_LINEAGE_CARRY;
 # gamma from 2026-10-15, for TETHER_ATOMS_ONCE).
-# instruments from 2026-10-15, for TETHER_BLOB_STAMP.
+# instruments from 2026-10-15, for TETHER_BLOB_STAMP; sensors_heavy from 2026-10-16, for
+# TETHER_HOLES_REPOINT (step 6).
 ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms", "compile_term", "gridworld",
-               "interface", "lineage", "gamma", "instruments")
+               "interface", "lineage", "gamma", "instruments", "sensors_heavy")
 
 
 class Attribution:
