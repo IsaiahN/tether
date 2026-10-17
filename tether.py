@@ -721,6 +721,13 @@ _STEP_BUDGET = armflag.arm("TETHER_STEP_BUDGET", default=True)
 # a DECLARED convention (Fig 10), visible and movable, never tuned to a board: the median step's
 # whole lookup work on lf52 (4666226, 12 steps: 13.1 s at ~14 us), so half the steps run as today
 STEP_BUDGET = 1_000_000
+# C1b, THE RANK (the reviewer 2026-10-17 17:07, 17:29, 17:30; Fig 9 :40-41 "keep every cut ranked
+# and reversible"): the step's lookups are spent in class order -- owed and changed, changed, our
+# own act's (its landing object, or one in contact with it in the frame's read), owed and still,
+# the rest -- stable within a class. Only the lookups: route hands the mints today's order, since a
+# mint changes what a later mint sees and a lookup changes no other lookup. OFF: b7c7a0b's order
+_STEP_RANK = armflag.arm("TETHER_STEP_RANK", default=True)
+RANK_CLASSES = ("owed_changed", "changed", "own_act", "owed_still", "rest")
 
 
 class _CapReached(Exception):
@@ -2163,6 +2170,8 @@ class Agent:
         self._route_at = 0
         self._owed_q: dict = {}            # C1: slot -> question id, the lookups left unasked
         self._spent = self._asked = self._not_asked = 0   # C1: this step's evaluations, lookups
+        self._route_cls: dict = {}         # C1b: this step's slot -> rank class
+        self._class_n: dict = {}           # C1b: class -> [asked, not asked] this step
         self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
@@ -6244,6 +6253,8 @@ class Agent:
             qid = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
             self._owed_q[slot] = qid
             self._not_asked += 1
+            if slot in self._route_cls:
+                self._class_n[self._route_cls[slot]][1] += 1
             self.owed_import.add(slot)
             self.led.record(self.cycle, "ROUTE", slot, "budget_owed", question=list(qid),
                             spent=self._spent, budget=STEP_BUDGET,
@@ -6252,6 +6263,8 @@ class Agent:
         else:
             self._owed_q.pop(slot, None)
             self._asked += 1
+            if slot in self._route_cls:
+                self._class_n[self._route_cls[slot]][0] += 1
             self._lookup(slot, hist)
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
         # `rejection_of`, so the order reads evidence of the current age rather than a total
@@ -6698,11 +6711,18 @@ class Agent:
     @_in_step("ROUTE")
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
+        pos = {s: i for i, s in enumerate(res)}       # today's order, handed back to the mints
+        self._route_cls = {}
         if _STEP_BUDGET:
             # C1: this step's budget starts at zero; the slots a budget left unasked go first,
             # the rest keep today's order (so a budget that never binds changes nothing)
             self._spent = self._asked = self._not_asked = 0
-            if self._owed_q:
+            self._class_n = {c: [0, 0] for c in RANK_CLASSES}
+            if _STEP_RANK:
+                self._route_cls = {s: self._rank_class(s) for s in res}
+                res = {s: res[s] for s in sorted(res, key=lambda s: (
+                    RANK_CLASSES.index(self._route_cls[s]), pos[s]))}
+            elif self._owed_q:
                 res = {**{s: res[s] for s in self._owed_q if s in res},
                        **{s: r for s, r in res.items() if s not in self._owed_q}}
         self._route_order, self._route_at = list(res), 0   # where a cap mid-route lands
@@ -6792,9 +6812,28 @@ class Agent:
                             spent=self._spent, asked=self._asked, not_asked=self._not_asked,
                             owed_questions=len(set(self._owed_q.values())),
                             owed_lookups=len(self._owed_q),
+                            **({"classes": {c: v for c, v in self._class_n.items() if any(v)}}
+                               if _STEP_RANK else {}),
                             reads="this step's lookup evaluations against the budget, and the "
                                   "owed queue carried to the next step")
+        if _STEP_RANK:
+            out.sort(key=lambda t: pos[t[0]])           # the mints run in today's order
         return out
+
+    def _rank_class(self, slot: str) -> str:
+        """C1b: the slot's class for this step's lookup order. CHANGED: its value moved between the
+        trace's last two frames; OWN ACT: its object is the act's landing object, or is in contact
+        with it in the frame's published read (an a~b.contact reading -- the world's, not a bet)."""
+        b, _a, af = self.trace[-1][:3] if self.trace else ({}, None, {})
+        changed = b.get(slot) != af.get(slot)
+        if slot in self._owed_q:
+            return "owed_changed" if changed else "owed_still"
+        if changed:
+            return "changed"
+        o, land = slot.split(".", 1)[0], self._last_landed
+        if land and (o == land or af.get(f"{min(o, land)}~{max(o, land)}.contact")):
+            return "own_act"
+        return "rest"
 
     # -- steps 3 to 5 -------------------------------------------------------------------
 

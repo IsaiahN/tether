@@ -869,6 +869,12 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_STEP_RANK": "C1b (the reviewer 2026-10-17 17:07, 17:29, 17:30): the step's lookups "
+                        "are spent in class order -- owed and changed, changed, our own act's, "
+                        "owed and still, the rest -- stable within a class; route hands the "
+                        "mints today's order (a mint changes later mints, a lookup no other "
+                        "lookup). @budget counts asked / not asked per class. OFF: b7c7a0b's "
+                        "order (owed first, then today's). default ON",
     "TETHER_PAIR_NOT_OBJECT": "C1a (the reviewer 2026-10-17 14:24): a library pairing whose "
                               "object name is a pair owner (o0~o1) is refused once, counted "
                               "('a pair owner is not an object name') and never compiled -- "
