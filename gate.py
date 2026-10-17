@@ -100,14 +100,30 @@ def _steps(rows: list[dict]) -> dict | None:
     return None
 
 
+def _declared(rows: list[dict]) -> dict[int, set]:
+    """Per cycle, the slots the world declared derived, rebuilt from the "@derived" rows' adds and
+    drops in ledger order."""
+    now: set = set()
+    out: dict[int, set] = {}
+    for r in rows:
+        if r.get("event") == "derived" and r.get("slot") == "@derived":
+            d = r.get("detail", {})
+            now = (now | set(d.get("declared_add", ()))) - set(d.get("declared_drop", ()))
+            out[r.get("cycle", 0)] = set(now)
+    return out
+
+
 def _inputs(rows: list[dict]) -> dict | None:
-    """2. No step consumed an input that never arrived."""
+    """2. No step consumed an input that never arrived. A declared-derived slot is never bet on:
+    its input is a relational_surprise row (B2b), counted only for a slot the "@derived" rows
+    declare -- never on the surprise row's own say-so (the reviewer 2026-10-17 15:18)."""
     bets: set[tuple[int, str]] = set()
     minted: set[tuple[int, str]] = set()
     accepted: set[str] = set()
+    declared = _declared(rows)
     for r in rows:
         c, slot, ev = r.get("cycle", 0), r.get("slot"), r.get("event")
-        if ev == "bet":
+        if ev == "bet" or (ev == "relational_surprise" and slot in declared.get(c, ())):
             bets.add((c, slot))
         elif ev == "route" and (c, slot) not in bets:
             return _v("inputs", MISSING_INPUT, r.get("seq"), f"route without bet: {slot}")

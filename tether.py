@@ -6111,8 +6111,15 @@ class Agent:
                             from_value=before.get(k), derived=dpred[k], actual=after[k],
                             mass=bits, reads="the relation derived from the held source "
                                              "predictions did not hold")
+        # the declared set as adds / drops against what THIS ledger last recorded, so gate.py
+        # can tell a relational surprise on a declared slot (its input) from one on any other
+        led_id, was = self.__dict__.get("_declared_rec", (None, set()))
+        was = was if led_id == id(self.led) else set()
+        now = set(derived)
+        self._declared_rec = (id(self.led), now)
         self.led.record(self.cycle, "PERCEIVE", "@derived", "derived", slots=len(derived),
-                        predicted=len(dpred), held=held, surprised=surprised)
+                        predicted=len(dpred), held=held, surprised=surprised,
+                        declared_add=sorted(now - was), declared_drop=sorted(was - now))
 
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
         """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.

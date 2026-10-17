@@ -66,6 +66,31 @@ def test_missing_input():
     _refuses(r, gate.MISSING_INPUT)
 
 
+def _surprised(slot="s", declared=("s",)):
+    """valid() with its bet replaced by a relational surprise on `slot` and an "@derived" row
+    declaring `declared` (B2b: a declared-derived slot's input is its surprise, never a bet)."""
+    m = "specified"
+    r = [x for x in valid() if x["event"] != "bet"]
+    return [{"mode": m, "seq": -2, "cycle": 0, "step": "PERCEIVE", "slot": slot,
+             "event": "relational_surprise", "detail": {"derived": 0, "actual": 1, "mass": 1.0}},
+            {"mode": m, "seq": -1, "cycle": 0, "step": "PERCEIVE", "slot": "@derived",
+             "event": "derived", "detail": {"declared_add": list(declared), "declared_drop": []}},
+            *r]
+
+
+def test_a_declared_slots_relational_surprise_is_its_input():
+    assert gate.check(_surprised())["verdict"] == gate.PASS
+
+
+def test_a_declared_slots_route_without_its_surprise_refuses():
+    r = [x for x in _surprised() if x["event"] != "relational_surprise"]
+    _refuses(r, gate.MISSING_INPUT)
+
+
+def test_a_surprise_on_an_undeclared_slot_is_no_input():
+    _refuses(_surprised(declared=("s.add_n",)), gate.MISSING_INPUT)
+
+
 def _reused(term, cycle=0, slot="s", seq=2):
     return {"mode": "specified", "seq": seq, "cycle": cycle, "step": "ROUTE", "slot": slot,
             "event": "reuse_install", "detail": {"term": term}}
