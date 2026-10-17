@@ -706,6 +706,12 @@ _CLOCK_DESC = armflag.arm("TETHER_CLOCK_DESC", default=True)
 # "cap reached mid-step" row; the runner's own end path then writes the record and the lineage.
 # OFF: the step runs to its end whatever the clock (e77a982)
 _CAP_MIDSTEP = armflag.arm("TETHER_CAP_MIDSTEP", default=True)
+# C1a, A PAIR OWNER IS NOT AN OBJECT NAME (the reviewer 2026-10-17 14:24; Fig 5 mis-attached): a
+# library lookup bound pair owners ("o0~o1") into an entry's object names; the condition grammar
+# has no "~" identifier, so every such candidate refused at parse -- 88% of lf52 cycle 2's
+# evaluations, and 5.69 M pairings over 4 cycles landed 0 rows. Such a pairing is refused once,
+# counted, and never compiled; pair owners stay cause candidates in the ranking. OFF: d777217
+_PAIR_NOT_OBJECT = armflag.arm("TETHER_PAIR_NOT_OBJECT", default=True)
 
 
 class _CapReached(Exception):
@@ -1421,6 +1427,7 @@ OWES = "not held: this step read zero and the slot still owes"
 LEFT_BOARD = "not sorted: left the board this step; the miss stays recorded"
 CAP_UNREACHED = ("not sorted: the cap reached mid-step before this slot's turn; the residual "
                  "stays recorded")
+PAIR_NOT_OBJECT = "a pair owner is not an object name"   # C1a: one per (entry, role, pairing)
 
 TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"
 # 7h (e): a two-step prediction made in thought, graded a step later -- its own channel, never
@@ -3226,8 +3233,12 @@ class Agent:
         if partner is None:     # E1 part 2 passes the views' partner apart from the ranked causes
             partner = others[0] if others else mine
         sig = compile_term.signature(atoms) if _INDEX_HOLD else None
+        _pno = _PAIR_NOT_OBJECT and ("~" in mine or "~" in partner)
         for key, _w in lit:
             for role in reach.SINGLE:
+                if _pno:
+                    refused[PAIR_NOT_OBJECT] += 1
+                    continue
                 _landed = 0   # 7l G1: what this (entry, role) put on the slot
                 for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms, sig,
                                                  slot=slot, tally=tally):
@@ -3251,6 +3262,9 @@ class Agent:
                     # never only what was asked (Fig 12: the group fixes the outcome)
                     self._land_kind((key, role, self._kind(mine), self._kind(partner)))
             for o_ in others:
+                if _PAIR_NOT_OBJECT and ("~" in o_ or "~" in mine):
+                    refused[PAIR_NOT_OBJECT] += 1
+                    continue
                 _landed = 0
                 for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp, atoms,
                                                          sig, slot=slot, tally=tally):

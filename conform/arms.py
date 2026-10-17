@@ -863,6 +863,14 @@ ARMS: dict[str, str] = {
                           "the runner's own end path flushes the record and the lineage. "
                           "OFF: the step runs to its end whatever the clock (e77a982). "
                           "default ON",
+    "TETHER_PAIR_NOT_OBJECT": "C1a (the reviewer 2026-10-17 14:24): a library pairing whose "
+                              "object name is a pair owner (o0~o1) is refused once, counted "
+                              "('a pair owner is not an object name') and never compiled -- "
+                              "the grammar has no '~' identifier, so every candidate refused "
+                              "at parse (88% of lf52 cycle 2's evaluations; 5.69 M pairings, "
+                              "0 rows landed). Pair owners stay cause candidates in the "
+                              "ranking. OFF: compiled and refused per candidate (d777217). "
+                              "default ON",
     "TETHER_DERIVED_PERCEPT": "E0 (the reviewer 2026-10-17 12:53, 12:59): the percept declares "
                               "what it derives -- h / w / the frame deltas from shape, motion "
                               "from row / col, colour_changed from colour, gridworld proximity "
