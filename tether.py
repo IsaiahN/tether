@@ -675,6 +675,12 @@ _REACH_SHARE = armflag.arm("TETHER_REACH_SHARE", default=True)
 # probe, the hazard learned per spot, kind and actor (diagnose.py). It names the probe; acting on it
 # is 3a-PROBE. OFF: the contradiction is routed to the reading only (7i, d99cfbe)
 _3A_DIAGNOSE = armflag.arm("TETHER_3A_DIAGNOSE", default=True)
+# E1 BIND ONCE (the reviewer 2026-10-17 08:57: exact, the seat's): a held compile's Term is rebuilt
+# under the question's names once per (held Term, o, x) and shared by every row that holds it, so a
+# duplicate row costs a lookup. _bound is pure in those and this Gamma's atoms; every row is equal
+# to the rebuild. OFF: rebuilt per row (5987421)
+_BIND_ONCE = armflag.arm("TETHER_BIND_ONCE", default=True)
+_BOUND_TERM: dict = {}     # (atoms_token, held Term, o, x) -> the Term bound, with _BOUND_MEMO
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
 # alone (the same mint on its own rows) and the terms found are held as D5 parts under the predicate
@@ -933,9 +939,10 @@ def _ph_sub(s: Any, o: str, x: str) -> Any:
     return s if s is None else s.replace(PH_O, o).replace(PH_X, x)
 
 
-def _bound(c: Any, sub: Any, atoms: dict) -> Any:
+def _bound(c: Any, sub: Any, atoms: dict, terms: dict | None = None, tk: tuple = ()) -> Any:
     """A held compile under this question's names: the names put back, the bbox pair re-sorted
-    (compile_term 296), the Term rebuilt from THIS Gamma's atoms by name. No compile."""
+    (compile_term 296), the Term rebuilt from THIS Gamma's atoms by name. No compile. With `terms`
+    (BIND ONCE) the rebuilt Term is looked up by (*tk, held Term), tk naming the atoms and o, x."""
     if c is None:
         return None
     if isinstance(c, compile_term.Refusal):
@@ -950,7 +957,17 @@ def _bound(c: Any, sub: Any, atoms: dict) -> Any:
     if slot.endswith(".bbox"):
         a, b = sorted(parties)
         slot = f"{a}~{b}.bbox"
-    return compile_term.Compiled(slot, term(c.term), sub(c.operand), parties, c.absent, c.via)
+    if terms is None:
+        t = term(c.term)
+    else:
+        k = (*tk, c.term)
+        t = terms.get(k)
+        if t is None:
+            t = terms[k] = term(c.term)
+            _INDEX_N["bind_once_built"] += 1
+        else:
+            _INDEX_N["bind_once_shared"] += 1
+    return compile_term.Compiled(slot, t, sub(c.operand), parties, c.absent, c.via)
 
 
 def _slot_of(c: Any, sub: Any) -> str:
@@ -2100,6 +2117,7 @@ class Agent:
         self._reach_fsig: tuple | None = None   # E1 X1: what the current frames were built from
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
+        self._bound_term_cache: dict = {}  # BIND ONCE: as _BOUND_TERM, for an Agent's own memo
         self._bound_slot_cache: dict = {}  # S1: the same, filtered to one slot (+ slot in the key)
         self._bound_slot_idx: dict = {}    # S1b: the held indices of those rows
         self._pair_tally: dict = {}        # SPEED-2: as _PAIR_TALLY, per Agent
@@ -3160,6 +3178,14 @@ class Agent:
             self._kind_cache[k] = got
         return got
 
+    def _bind_terms(self, o: str, x: str) -> tuple:
+        """BIND ONCE: _bound's (terms memo, key prefix) for names (o, x), living with the bound
+        memos (the process's under an atoms token, this Agent's otherwise); () when OFF."""
+        if not _BIND_ONCE:
+            return ()
+        return (_BOUND_TERM if self._atoms_token else self._bound_term_cache,
+                (self._atoms_token, o, x))
+
     def _compiled(self, lib: Any, key: str, role: str, o: str, x: str, comp: Any, atoms: dict,
                   sig: tuple | None, slot: str | None = None,
                   tally: Counter | None = None) -> Any:
@@ -3208,20 +3234,21 @@ class Agent:
                         _INDEX_N["bound"] += 1
                         memo[mkey] = whole
                 sub = partial(_ph_sub, o=o, x=x)
+                bt = self._bind_terms(o, x)
                 if whole is None and lineage._RECORD and lineage.recorded_whole(mkey):
                     # S1g: recorded as a WHOLE (reused) in an earlier process: bound at once, as
                     # promotion would, from the carried and live-checked index (S3)
                     _INDEX_N["bound_slot_from_record"] += 1
                     _INDEX_N["bound"] += 1
                     whole = memo[mkey] = tuple(
-                        (cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
+                        (cand, _bound(a, sub, atoms, *bt), _bound(b, sub, atoms, *bt))
                         for cand, a, b in self._held_index(lib, key, role, atoms, sig))
                 if whole is None and mkey in seen and not _REACH_SHARE:
                     # PROMOTE ON REUSE: held as the WHOLE it is, so bm_ carries it (S3)
                     _INDEX_N["bound_slot_promoted"] += 1
                     _INDEX_N["bound"] += 1
                     whole = memo[mkey] = tuple(
-                        (cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
+                        (cand, _bound(a, sub, atoms, *bt), _bound(b, sub, atoms, *bt))
                         for cand, a, b in self._held_index(lib, key, role, atoms, sig))
                 # a whole view is aligned with the held rows, so its positions are the held indices
                 if whole is not None:
@@ -3241,8 +3268,8 @@ class Agent:
                     idx = _landing_rows(role, held, (sig, key, role), slot, sub, tally is not None)
                     _INDEX_N["bound_slot_indexed"] += 1
                     _INDEX_N["bound_slot_first_binds"] += 2 * len(idx)
-                    got = tuple((held[i][0], _bound(held[i][1], sub, atoms),
-                                 _bound(held[i][2], sub, atoms)) for i in idx)
+                    got = tuple((held[i][0], _bound(held[i][1], sub, atoms, *bt),
+                                 _bound(held[i][2], sub, atoms, *bt)) for i in idx)
                 else:
                     seen.add(mkey)
                     held = self._held_index(lib, key, role, atoms, sig)
@@ -3251,8 +3278,8 @@ class Agent:
                                 if _lands(role, a, b, slot, sub)
                                 and (tally is None or _tally_key(role, a, b, sub) is None))
                     _INDEX_N["bound_slot_first_binds"] += 2 * len(idx)
-                    got = tuple((held[i][0], _bound(held[i][1], sub, atoms),
-                                 _bound(held[i][2], sub, atoms)) for i in idx)
+                    got = tuple((held[i][0], _bound(held[i][1], sub, atoms, *bt),
+                                 _bound(held[i][2], sub, atoms, *bt)) for i in idx)
                 sidx[skey] = idx
                 smemo[skey] = got
                 return list(got)
@@ -3272,7 +3299,8 @@ class Agent:
             got = lineage.resolve_memo(self, lib, mkey, atoms)
             if got is None:
                 sub = partial(_ph_sub, o=o, x=x)
-                got = tuple((cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
+                bt = self._bind_terms(o, x)
+                got = tuple((cand, _bound(a, sub, atoms, *bt), _bound(b, sub, atoms, *bt))
                             for cand, a, b in self._held_index(lib, key, role, atoms, sig))
             memo[mkey] = got
             return list(got)

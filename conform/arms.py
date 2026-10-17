@@ -835,6 +835,11 @@ ARMS: dict[str, str] = {
                           "from frame 0 whenever the frames' inputs change. Every verdict "
                           "unchanged. OFF: every cause re-tested from frame 0 each step, one "
                           "entry kept per trace length. default ON",
+    "TETHER_BIND_ONCE": "E1 BIND ONCE (the reviewer 2026-10-17 08:57: exact, the seat's): a "
+                        "held compile's Term is rebuilt under the question's names once per "
+                        "(held Term, o, x) and shared by every row holding it, kept with the "
+                        "bound memos. Every row equal to the rebuild. OFF: rebuilt per row "
+                        "(5987421). default ON",
     "TETHER_3A_DIAGNOSE": "E2, 3a DIAGNOSE (Isaiah 2026-10-17 03:37, 04:59; the reviewer PART "
                           "2c, 05:00, 05:01): a contradiction is diagnosed per slot before "
                           "anything is blamed -- noise, recall, own slip, world change or moved, "
