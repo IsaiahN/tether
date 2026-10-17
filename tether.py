@@ -641,6 +641,12 @@ _7H_REHEARSE = armflag.arm("TETHER_7H_REHEARSE", default=True)
 # never a recording). Re-invented on load into the agent's private library, on trial; the library
 # route reads that private copy, its invented keys carrying a content hash as their version
 _M7_INV = armflag.arm("TETHER_M7_INV", default=True)
+# SPEED-2, THE MINT PREFIX TALLY BOUNDED (3d census: 244 of 389 MB at 11 steps; the reviewer
+# 2026-10-16 19:01 Q10). The cache stays (Isaiah 10-14) and is GENERATIONAL: each mint on a slot
+# keeps the tallies its walk touches, beside the previous walk's; older ones go. The bound is the
+# mint's own walk, no constant; a dropped entry costs one recompute, and every price is unchanged
+# (the tally is an exact prefix sum)
+_SPEED2_BOUND = armflag.arm("TETHER_SPEED2_BOUND", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -6531,9 +6537,16 @@ class Agent:
         # The abort below stores its PARTIAL total with the count it covered, so a refusal
         # is resumed rather than recomputed.
         cell = rkey if _TALLY else None
+        prev = None
+        if isinstance(cell, tuple):     # SPEED-2: (this walk's generation, the previous walk's)
+            cell, prev = cell
         wrong, start = 0, 0
         if cell is not None:
             seen = cell.get(term)
+            if seen is None and prev:
+                seen = prev.pop(term, None)
+                if seen is not None:
+                    cell[term] = seen   # touched again: it lives in this walk's generation
             if seen is not None:
                 start, wrong = seen
                 if start > len(robs):
@@ -10030,9 +10043,11 @@ class Agent:
                 self.cycle if _SHAPE_DECODE else 0)
         _seen = self._tally.get(slot)
         if _seen is None or _seen[0] != _tri:
-            _seen = (_tri, {})          # the slot moved; its old tallies can never be hit
+            _seen = (_tri, {}, {})      # the slot moved; its old tallies can never be hit
             self._tally[slot] = _seen
-        rkey = _seen[1]
+        elif _SPEED2_BOUND:             # this walk starts a generation; the one before it goes
+            _seen = self._tally[slot] = (_tri, {}, _seen[1])
+        rkey = (_seen[1], _seen[2]) if _SPEED2_BOUND else _seen[1]
         # HOISTED, because `units()` rebuilds a list and the pricing runs once per candidate.
         _units = self._units_for(slot)
         # THE CHEAPEST TERM THE COST FUNCTION ADMITS. `pays` is `cost + left < base`,

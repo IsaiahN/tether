@@ -805,6 +805,11 @@ ARMS: dict[str, str] = {
                        "_kind adds it, so 7l, 7m, 7h (h) and (a)/(b) read form, not an "
                        "encounter index. Worlds without it (gridworld, the toy) keep the type "
                        "kind. OFF: the type kind everywhere. default ON",
+    "TETHER_SPEED2_BOUND": "SPEED-2 (3d census; the reviewer 2026-10-16 19:01 Q10): the mint "
+                           "prefix tally is generational per slot -- this walk's entries and "
+                           "the previous walk's are kept, older ones dropped; a cache that "
+                           "stays, bounded by the mint's own walk, every price unchanged. OFF: "
+                           "the tally grows until the slot's triple moves. default ON",
     "TETHER_M7_INV": "M7-INV (Isaiah 2026-10-15 06:01; the reviewer 2026-10-16 19:01 Q3): an "
                      "invention is carried as its method (template with {o}/{x}, reading, "
                      "affects, then-chain, standing then), named with a content hash; the "
