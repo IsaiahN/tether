@@ -357,6 +357,11 @@ _ATOMS_ONCE = armflag.arm("TETHER_ATOMS_ONCE", default=True)
 # (lineage replays the evidence). NEW compositions earn in play, as before. Innate is umwelt,
 # never a slot preference: nothing here settles a term on a slot. default ON; OFF = today
 _SETTLED_CORE = armflag.arm("TETHER_SETTLED_CORE", default=True)
+# R1, THE UNITS MEMO (the reviewer 2026-10-17 17:43, 17:47): units() rebuilt every unit Term and
+# re-sorted on every call, and the pricing loops call it per candidate (17.3% of samples on lf52).
+# Held under a key of everything it reads: the atoms, the settled set (scanned from standing, so no
+# writer can be missed) and the rank's version. OFF: rebuilt each call (ffbdf14)
+_UNITS_MEMO = armflag.arm("TETHER_UNITS_MEMO", default=True)
 _PRIMITIVES: dict[str, tuple] = {}   # content token -> the one built tuple of code primitives
 _PRIMITIVES_REFUSED: dict[str, int] = {"no_source": 0}   # sets whose token could not be read
 
@@ -905,6 +910,7 @@ class Gamma:
         # registry order this had, so installing a rank is an observable change and not
         # installing one changes nothing.
         self.unit_rank = None
+        self._units_memo: tuple | None = None   # R1: (key, the units as a tuple)
         for a in atoms:
             # THE ATOM'S OWN CLAUSE IF IT DECLARED ONE. A blanket `NECESSARY` was true of the
             # VOCABULARY and false of most of its members, and `admissions()` read
@@ -1576,7 +1582,28 @@ class Gamma:
             n += Gamma.length(t.operand_term, units)
         return n
 
+    def _units_key(self) -> tuple:
+        """R1: everything units() reads: the atoms, the settled names, the rank and its version."""
+        rk = getattr(self.unit_rank, "__self__", None)
+        return (len(self.atoms),
+                frozenset(n for n, st in self.standing.items()
+                          if st.settled and n in self.library),
+                self.unit_rank is not None, getattr(rk, "ver", None))
+
+    def units_held(self) -> tuple:
+        """R1: units() as a held tuple, rebuilt only when its key moves (TETHER_UNITS_MEMO)."""
+        if not _UNITS_MEMO:
+            return tuple(self._units_built())
+        key = self._units_key()
+        if self._units_memo is None or self._units_memo[0] != key:
+            self._units_memo = (key, tuple(self._units_built()))
+        return self._units_memo[1]
+
     def units(self) -> list[Term]:
+        """What the search composes FROM (R1: from units_held, a fresh list each call)."""
+        return list(self.units_held()) if _UNITS_MEMO else self._units_built()
+
+    def _units_built(self) -> list[Term]:
         """What the search composes FROM: the atoms, plus every SETTLED term as one unit.
 
         The closure does not change -- MINT still cannot add an atom. What changes is what

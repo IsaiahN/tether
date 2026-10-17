@@ -228,11 +228,13 @@ class Rank:
 
     used: dict[str, int] = field(default_factory=dict)
     last: dict[str, int] = field(default_factory=dict)
+    ver: int = 0        # R1: bumped by note, the only writer of used / last (the units memo key)
 
     def note(self, name: str, cycle: int) -> None:
         """This term just closed a residual. Both terms of the rank come off one event."""
         self.used[name] = self.used.get(name, 0) + 1
         self.last[name] = cycle
+        self.ver += 1
 
     def key(self, unit: Any) -> tuple:
         n = unit.name

@@ -869,6 +869,12 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_UNITS_MEMO": "R1 (the reviewer 2026-10-17 17:43, 17:47): gamma.units() is held "
+                         "under a key of everything it reads -- the atoms, the settled names "
+                         "(scanned from standing), the rank's version (bumped in Rank.note, its "
+                         "only writer) -- and _units_for under the units, the slot's refusal key "
+                         "and the grow-only refusal scope's lengths; exact by construction. "
+                         "OFF: rebuilt each call (ffbdf14). default ON",
     "TETHER_STEP_RANK": "C1b (the reviewer 2026-10-17 17:07, 17:29, 17:30): the step's lookups "
                         "are spent in class order -- owed and changed, changed, our own act's, "
                         "owed and still, the rest -- stable within a class; route hands the "

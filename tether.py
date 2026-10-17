@@ -43,6 +43,7 @@ import relations
 import retrieval
 import routine as Rt
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
+from gamma import _UNITS_MEMO as G_UNITS_MEMO
 from gamma import (
     ACTED_ON,
     ACTED_SELF,
@@ -2172,6 +2173,7 @@ class Agent:
         self._spent = self._asked = self._not_asked = 0   # C1: this step's evaluations, lookups
         self._route_cls: dict = {}         # C1b: this step's slot -> rank class
         self._class_n: dict = {}           # C1b: class -> [asked, not asked] this step
+        self._units_for_memo: dict = {}    # R1: _units_for's refusal-filtered units
         self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
@@ -9007,13 +9009,25 @@ class Agent:
         shortcut while its refusal stands, so terms that paid only through it re-price at full
         length and fall BY DERIVATION (P3). Found by SEQUENCE CONTAINMENT: no composition
         lineage is kept (F496 records it as a later improvement)."""
-        units = tuple(self.gamma.units())
+        units = self.gamma.units_held() if G_UNITS_MEMO else tuple(self.gamma.units())
         if not self._not:
             return units
         gk = self._term_gkey(slot)
+        if G_UNITS_MEMO:
+            # R1: keyed on the units (the same held tuple), the slot's refusal key, and the
+            # refusal scope's versions -- _not is appended only, and the library and the routines
+            # only grow, so their lengths version their name sets exactly
+            mkey = (gk, sum(len(v) for v in self._not.values()), len(self.gamma.library),
+                    len(self.routine_lib))
+            hit = self._units_for_memo.get(mkey)
+            if hit is not None and hit[0] is units:
+                return hit[1]
         out = {self.gamma.library[n].atoms for (n, g) in self._not
                if g == gk and n in self.gamma.library and self._term_refused(n, g)}
-        return tuple(u for u in units if len(u.atoms) < 2 or u.atoms not in out)
+        got = tuple(u for u in units if len(u.atoms) < 2 or u.atoms not in out)
+        if G_UNITS_MEMO:
+            self._units_for_memo[mkey] = (units, got)
+        return got
 
     def _rejection(self, key: tuple) -> float:
         """The decayed strength of rejection. `Standing.decay` on the LOGICAL clock -- cycles,
