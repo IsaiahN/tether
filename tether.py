@@ -4903,10 +4903,18 @@ class Agent:
     def _goal_shapes(self) -> list:
         """7h (a): each held goal hypothesis as its SHAPE -- the slot's kind (7h (h)'s key: owner
         kind and attribute type) and the term -- never this game's names (Fig 4)."""
-        out = {repr((self._kind_key(c.slot), c.term.name)) for c in self._goal_conds.values()
-               if getattr(c, "slot", None)}
+        out = {repr((self._kind_key(s), n)) for s, n in self._cond_parts()}
         out |= {repr((self._kind_key(s), str(t))) for s, t in self.wants.items()}
         return sorted(out)
+
+    def _cond_parts(self):
+        """(slot, term name) for each held goal condition -- a goal PAIR (_Pair, TETHER_GOAL_PAIR)
+        as each of its parts, since a pair has no single term (B, 2026-10-16 night: _goal_choice
+        raised on c.term whenever a pair was held)."""
+        for c in self._goal_conds.values():
+            for p in getattr(c, "parts", (c,)):
+                if getattr(p, "slot", None) and getattr(p, "term", None) is not None:
+                    yield p.slot, p.term.name
 
     def _shape_grade(self, shape: str) -> dict:
         """7h (a): a shape's outcome counts, the lineage's plus this instance's, and the label
@@ -4926,8 +4934,7 @@ class Agent:
         term held on it) reads refuted by level outcomes; unsupported and mixed do not re-rank
         (one failure is not a verdict)."""
         out = {}
-        held = [(c.slot, c.term.name) for c in self._goal_conds.values()
-                if getattr(c, "slot", None)] + [(s, str(t)) for s, t in self.wants.items()]
+        held = list(self._cond_parts()) + [(s, str(t)) for s, t in self.wants.items()]
         for slot, term in held:
             g = self._shape_grade(repr((self._kind_key(slot), term)))
             if g["label"] == "refuted by level outcomes":

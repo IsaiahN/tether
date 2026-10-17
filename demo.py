@@ -64,7 +64,8 @@ def main(cycles: int = 16) -> int:
         print(f"  origin    : {gam.stamps[e.detail['term']]}")
         print("  VERDICT   : it pays the bargain and does not close the gap. Accepting it")
         print("              was correct; settling for it is not. The slot still owes.")
-        print(f"  the truth : {TRUTH[e.slot]}")
+        # a board slot (@goal.completed) has no planted rule; a birth may mint on it
+        print(f"  the truth : {TRUTH.get(e.slot, 'no planted rule: a board slot')}")
     else:
         print("  no partial term was minted this run.")
 
