@@ -3030,6 +3030,46 @@ class Agent:
             return {own[s_] for s_ in af.keys() | b.keys()
                     if s_ in own and b.get(s_) != af.get(s_)}
 
+        # the own act's reach (the reviewer 2026-10-17 09:05; Fig 5 :12, Fig 11 :43): the agent's
+        # BODY is the owners of its contingent slots plus what the act was aimed at or landed on;
+        # a slot derived from body slots, or relational with its reference undeclared, moves with
+        # the body, so a change there with the body moving is our own act through a relation
+        body_slots = set(self.agency.contingent())
+        dv = getattr(self.env, "derived", None)
+        derived = dv() if dv is not None else {}
+
+        def body_moved(i):
+            b, _a, af, _it, _l = self.trace[i]
+            moved = {s_ for s_ in af.keys() | b.keys() if b.get(s_) != af.get(s_)}
+            body = {own[s_] for s_ in body_slots if s_ in own}
+            body |= {o_ for o_ in (self._3a_aim.get((ep, i)), self.trace[i][4]) if o_}
+            return moved, {s_ for s_ in moved if own.get(s_) in body}
+
+        def own_reach(i):
+            moved, mine = body_moved(i)
+            if slot in derived:
+                return any(s_ in mine for s_ in derived[slot])
+            return IFace._is_relational(slot, self.env) and bool(mine)
+
+        def own_owners(i):
+            moved, mine = body_moved(i)
+            out_ = {own[s_] for s_ in mine}
+            per: dict = {}
+            for s_ in moved - mine:
+                if s_ in own:
+                    per.setdefault(own[s_], []).append(s_)
+            # moved with the body: a declared source on it, or relational with the reference
+            # undeclared while the body moved -- own_reach's own rule, applied to the candidate
+            out_ |= {o_ for o_, ss in per.items()
+                     if all(any(x in mine for x in derived[s_]) if s_ in derived
+                            else IFace._is_relational(s_, self.env) and bool(mine) for s_ in ss)}
+            return out_
+
+        def owner_moved(i):
+            b, _a, af, _it, _l = self.trace[i]
+            return any(own.get(s_) == owner and b.get(s_) != af.get(s_) and s_ not in derived
+                       and not IFace._is_relational(s_, self.env) for s_ in af.keys() | b.keys())
+
         shape = getattr(self.env, "shape_code", None)
         code = shape(owner) if shape else None
         attr = att.get(slot)
@@ -3050,7 +3090,8 @@ class Agent:
             alt_predicts=lambda r: any(self._left(o, slot, [hrow(r)]) <= 0 for o in others),
             changed_of=changed_of, touching_now=set(self._touching(slot)),
             kind=f"{self._kind_str(owner)}|{attr}", kind_of=self._kind_str, moved_to=moved_to,
-            hazard=self._3a_hazard, min_repeat=MIN_REPEAT)
+            hazard=self._3a_hazard, min_repeat=MIN_REPEAT, own_reach=own_reach,
+            own_owners=own_owners, owner_moved=owner_moved)
         if out.get("stale"):
             self._3a_stale[slot] = self.cycle
         return out

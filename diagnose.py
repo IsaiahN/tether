@@ -51,14 +51,25 @@ def diagnose(rows: list, slot: str, owner: str, *, persists: bool,
              alt_predicts: Callable[[tuple], bool],
              changed_of: Callable[[int], set], touching_now: set, kind: str,
              kind_of: Callable[[str], str], moved_to: Callable[[object], str | None],
-             hazard: Hazard, min_repeat: int, gap_cap: int = 8) -> dict:
+             hazard: Hazard, min_repeat: int, gap_cap: int = 8,
+             own_reach: Callable[[int], bool] = lambda _i: False,
+             own_owners: Callable[[int], set] = lambda _i: set(),
+             owner_moved: Callable[[int], bool] = lambda _i: False) -> dict:
     """One contradiction on `slot` (owned by `owner`), diagnosed. `rows`: the slot's trace rows in
     order, each (i, before, action, after, aim, landed) -- aim the object the act was meant for,
     landed the one the press landed on (None where unknown). Readers: `predicts(row)` the
     contradicted term was right on that row; `predicts_with(row, action)` the same with another
     action; `alt_predicts(row)` some other held term was right; `changed_of(i)` the owners that
     changed in transition i; `moved_to(value)` another object of the same canonical form now
-    holding the remembered value on the same attribute, or None. Returns the verdict row."""
+    holding the remembered value on the same attribute, or None. `own_reach(i)`: the own act of
+    transition i reached the slot without aiming at its owner -- through a relation to something
+    the act moved (Fig 11 :43, the contact cascade); `own_owners(i)`: what the own act moved in
+    transition i (the agent's body and what derives from it), never an actor candidate (Fig 5 :12,
+    mis-attached: our own act through a relation is not another actor); `owner_moved(i)`: the
+    slot's owner changed its own non-derived slots in transition i (it moved itself). Own reach
+    makes our act a candidate that cannot be ruled out, never a bar on the world (Fig 9 :60): a
+    reached row where the owner also moved itself is a COMPOUND, credited to both (the reviewer
+    09:20; Isaiah 04:59). Returns the verdict row."""
     out = {"at": slot, "kind": kind}      # "at": the ledger's own `slot` is the row's key
     if not persists:                                                     # D0 NOISE
         return {**out, "verdict": "noise", "next_probe": None,
@@ -72,19 +83,26 @@ def diagnose(rows: list, slot: str, owner: str, *, persists: bool,
     if not gap:
         return {**out, "verdict": "undiagnosed", "next_probe": None,
                 "evidence": "the term held on the latest row: no gap to read"}
-    own_rows = [r for r in gap if owner in (r[4], r[5])]
+    reached = [r[0] for r in gap if owner not in (r[4], r[5]) and own_reach(r[0])]
+    aimed = [r for r in gap if owner in (r[4], r[5])]
+    own_rows = aimed + [r for r in gap if r[0] in reached]
+    compound = [i for i in reached if owner_moved(i)]
     # actor candidates: the objects that CHANGED in the gap (moved, recoloured, ...), the agent's
     # own targets aside; a motionless bystander is never one, whatever it touches (an enabling
     # condition is part 2's constant, not an actor). Contact is recorded beside them, not counted
     cands = set()
     for r in gap:
-        cands |= changed_of(r[0])
+        cands |= changed_of(r[0]) - own_owners(r[0])
     cands -= {owner} | {r[5] for r in gap if r[5]} | {r[4] for r in gap if r[4]}
+    if compound:
+        cands.add(owner)      # it moved itself: the actor of its own relational change
     actors = sorted({kind_of(c) for c in cands}) or [UNSEEN]
     order = ("D3", "D2") if hazard.world_first(slot, kind, actors) else ("D2", "D3")
     changed_in_gap = any(r[1].get(slot) != r[3].get(slot) for r in gap)
     out.update(t_last=rows[k_last][0], gap=len(gap), order="".join(order), actors=actors,
                near=sorted(kind_of(c) for c in cands & set(touching_now)))
+    if reached:
+        out["own_reach"] = reached     # own rows through a relation, not by aim
     for d in order:
         if d == "D2":                                                    # D2 OWN ACT (slip)
             slip = [r[0] for r in gap
@@ -95,7 +113,7 @@ def diagnose(rows: list, slot: str, owner: str, *, persists: bool,
                 return {**out, "verdict": "slip", "rows": slip,
                         "next_probe": "repeat the intended act",
                         "evidence": "right intention, wrong execution: the press landed elsewhere"}
-        elif not own_rows and changed_in_gap:                            # D3 WORLD CHANGE
+        elif not aimed and (not reached or compound) and changed_in_gap:  # D3 WORLD CHANGE
             for a in actors:
                 hazard.near[a] += 1
             for a in list(hazard.near):
@@ -107,6 +125,15 @@ def diagnose(rows: list, slot: str, owner: str, *, persists: bool,
             for a in credited or [UNSEEN]:
                 hazard.world["actor"][a] += 1
             scopes = ["spot", "kind"] + (["actor"] if credited else [])
+            if compound:                     # own act through the relation AND the world
+                hazard.own["spot"][slot] += 1
+                hazard.own["kind"][kind] += 1
+                return {**out, "verdict": "compound", "rows": compound, "scopes": scopes,
+                        "credited": credited, "stale": True, "closed_at": rows[k_last][0],
+                        "next_probe": ("watch the actor; re-observe what it reached" if credited
+                                       else "re-observe the slot before betting on memory"),
+                        "evidence": "the own act reached the slot through a relation and its "
+                                    "owner moved itself: credited to both"}
             to = moved_to(rows[k_last][3].get(slot))
             if to is not None:
                 return {**out, "verdict": "moved", "from": owner, "to": to, "scopes": scopes,

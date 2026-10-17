@@ -12,6 +12,11 @@ Fig 11 :70: wiring, never capability); the in-agent reading is C-3A-DIAGNOSE.
   T7  the press landed elsewhere than intended: slip
   T8  the hazard prior: after world changes on a spot, D3 runs before D2 there
   T9  two causes at once on two objects in one step: two verdicts, no global mode
+  T10 an own move changes a relational slot of an untouched object (the reviewer 09:05): not
+      world_changed, and what moved with the body is never an actor; MF-T10 the same change with
+      the body still is world_changed
+  T11 the agent moves AND o2 moves itself in the same row, o2.proximity changes: a compound,
+      credited to both; o2's kind credited only from the second repeat (the reviewer 09:20)
 """
 import sys
 
@@ -29,7 +34,8 @@ def rows_for(slot: str, vals: list, aim: list, landed: list) -> list:
     return out
 
 
-def run(rows, slot, owner, ok, *, hz, changed=None, moved=None, persists=True, swap_ok=None):
+def run(rows, slot, owner, ok, *, hz, changed=None, moved=None, persists=True, swap_ok=None,
+        reach=frozenset(), body=None, omoved=frozenset()):
     return D.diagnose(rows, slot, owner, persists=persists,
                       predicts=lambda r: r[0] in ok,
                       predicts_with=lambda r, a: (swap_ok or set()) >= {(r[0], a)},
@@ -37,7 +43,10 @@ def run(rows, slot, owner, ok, *, hz, changed=None, moved=None, persists=True, s
                       changed_of=lambda i: (changed or {}).get(i, set()),
                       touching_now=set(), kind=slot.split(".")[1],
                       kind_of=lambda o: o.rstrip("0123456789"),
-                      moved_to=lambda _v: moved, hazard=hz, min_repeat=MIN_REPEAT)
+                      moved_to=lambda _v: moved, hazard=hz, min_repeat=MIN_REPEAT,
+                      own_reach=lambda i: i in reach,
+                      own_owners=lambda i: (body or {}).get(i, set()),
+                      owner_moved=lambda i: i in omoved)
 
 
 def main() -> int:
@@ -119,6 +128,31 @@ def main() -> int:
     assert va["verdict"] == "world_changed" and vb["verdict"] == "slip", (va, vb)
     assert hz.world["spot"]["b1.row"] == 0 and hz.own["spot"]["a1.row"] == 0, (hz.world, hz.own)
     print("T9 one step, two objects:", va["verdict"], "/", vb["verdict"])
+
+    # T10: the avatar a0 moves on row 2 (unaimed at o2); o2.proximity (relative to a0) changes, and
+    # the pair owner a0~o2 changes with it. Own act through a relation: no world change, no actor
+    hz = D.Hazard()
+    rows = rows_for("o2.proximity", [3, 3, 3, 4], [None, None, "a0"], [None, None, "a0"])
+    v = run(rows, "o2.proximity", "o2", {0, 1}, hz=hz, changed={2: {"a0", "a0~o2"}},
+            reach={2}, body={2: {"a0", "a0~o2"}})
+    assert v["verdict"] != "world_changed" and v["actors"] == [D.UNSEEN], v
+    assert v["own_reach"] == [2] and not hz.world["spot"] and not hz.near, (v, hz.world)
+    vm = run(rows_for("o2.proximity", [3, 3, 3, 4], [None, None, "z9"], [None, None, "z9"]),
+             "o2.proximity", "o2", {0, 1}, hz=D.Hazard(), changed={2: {"swap1"}})
+    assert vm["verdict"] == "world_changed", vm                         # MF-T10
+    print("T10 own act through a relation:", v["verdict"], "; MF-T10 body still:", vm["verdict"])
+
+    hz = D.Hazard()                                                                   # T11
+    got = []
+    for _ in range(2):
+        v = run(rows_for("o2.proximity", [3, 3, 3, 5], [None, None, "a0"], [None, None, "a0"]),
+                "o2.proximity", "o2", {0, 1}, hz=hz, changed={2: {"a0", "a0~o2", "o2"}},
+                reach={2}, body={2: {"a0", "a0~o2"}}, omoved={2})
+        assert v["verdict"] == "compound" and v["actors"] == ["o"], v
+        got.append(v["credited"])
+    assert got == [[], ["o"]], got
+    assert hz.own["spot"]["o2.proximity"] == 2 and hz.world["spot"]["o2.proximity"] == 2, hz.own
+    print("T11 compound, credited both; owner kind credited by repeat:", got)
     print("3a_diagnose: OK")
     return 0
 
