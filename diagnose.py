@@ -20,6 +20,8 @@ from collections.abc import Callable
 sys.dont_write_bytecode = True
 
 UNSEEN = "unseen"          # the hidden hand: a change with no candidate actor (Saxe et al. 2005)
+# the verdicts that rule the change our own (all need an own row, or are the own slip)
+OWN_VERDICTS = frozenset({"slip", "stale_expectation", "order", "scope", "model_too_small"})
 
 
 class Hazard:
@@ -37,6 +39,13 @@ class Hazard:
         coincidence. Before that it is a candidate, ranked and reversible (Fig 9 :41)."""
         return self.near[actor] >= min_repeat and self.near[actor] > self.away[actor]
 
+    def unseen(self, spot: str, kind: str, n: int) -> None:
+        """Part 2's "no visible cause" as an unseen actor on this spot and kind (n=+1), or that
+        provisional credit held out / withdrawn (n=-1)."""
+        self.world["spot"][spot] += n
+        self.world["kind"][kind] += n
+        self.world["actor"][UNSEEN] += n
+
     def world_first(self, spot: str, kind: str, actors) -> bool:
         """D3 before D2 when this object's HIGHEST world count passes its slip+order count: the
         opponent end of the range; at zero the own-act checks run first (the cube end)."""
@@ -45,7 +54,24 @@ class Hazard:
         return hw > self.own["spot"][spot] + self.own["kind"][kind]
 
 
-def diagnose(rows: list, slot: str, owner: str, *, persists: bool,
+def diagnose(rows: list, slot: str, owner: str, *, hazard: Hazard,
+             unseen: tuple | None = None, **kw) -> dict:
+    """`_diagnose` with part 2's provisional unseen-actor credit settled (the reviewer 2026-10-17
+    09:40). `unseen` = (kind, trace row) of that credit for this slot, or None. When its row lies in
+    the gap being read, it is the hypothesis under test, so it is held out of the hazard order; an
+    own verdict leaves it withdrawn (the row says so: a correcting row, nothing removed, Fig 1),
+    world_changed / moved / compound put it back."""
+    taken: dict = {}
+    out = _diagnose(rows, slot, owner, hazard=hazard, unseen=unseen, taken=taken, **kw)
+    if taken:
+        if out["verdict"] in OWN_VERDICTS:
+            out["withdrawn"] = "part 2's unseen-actor credit: the change is ruled own"
+        else:
+            hazard.unseen(slot, taken["kind"], +1)
+    return out
+
+
+def _diagnose(rows: list, slot: str, owner: str, *, persists: bool,
              predicts: Callable[[tuple], bool],
              predicts_with: Callable[[tuple, str], bool],
              alt_predicts: Callable[[tuple], bool],
@@ -54,7 +80,8 @@ def diagnose(rows: list, slot: str, owner: str, *, persists: bool,
              hazard: Hazard, min_repeat: int, gap_cap: int = 8,
              own_reach: Callable[[int], bool] = lambda _i: False,
              own_owners: Callable[[int], set] = lambda _i: set(),
-             owner_moved: Callable[[int], bool] = lambda _i: False) -> dict:
+             owner_moved: Callable[[int], bool] = lambda _i: False,
+             unseen: tuple | None = None, taken: dict | None = None) -> dict:
     """One contradiction on `slot` (owned by `owner`), diagnosed. `rows`: the slot's trace rows in
     order, each (i, before, action, after, aim, landed) -- aim the object the act was meant for,
     landed the one the press landed on (None where unknown). Readers: `predicts(row)` the
@@ -83,6 +110,9 @@ def diagnose(rows: list, slot: str, owner: str, *, persists: bool,
     if not gap:
         return {**out, "verdict": "undiagnosed", "next_probe": None,
                 "evidence": "the term held on the latest row: no gap to read"}
+    if unseen is not None and taken is not None and unseen[1] > rows[k_last][0]:
+        hazard.unseen(slot, unseen[0], -1)      # the hypothesis under test sets no prior
+        taken["kind"] = unseen[0]
     reached = [r[0] for r in gap if owner not in (r[4], r[5]) and own_reach(r[0])]
     aimed = [r for r in gap if owner in (r[4], r[5])]
     own_rows = aimed + [r for r in gap if r[0] in reached]

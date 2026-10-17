@@ -367,7 +367,9 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
                               if n > ag._cause_kind_written.get(k, 0)}
     if tether._3A_DIAGNOSE and hasattr(ag, "_3a_hazard"):
         # E2: the hazard by KIND and by ACTOR (templates, never a board's spots), since the last
-        # write; the load adds them back as a head start
+        # write; the load adds them back as a head start. Pending unseen credits the agent's own
+        # act reached are settled first, so a lineage never carries one (the reviewer 09:40)
+        ag._3a_settle()
         gen["hazard_3a"] = {fam: {k: n - ag._3a_written.get(fam, {}).get(k, 0)
                                   for k, n in sorted(c.items())
                                   if n > ag._3a_written.get(fam, {}).get(k, 0)}

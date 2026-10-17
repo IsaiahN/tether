@@ -2111,7 +2111,8 @@ class Agent:
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
         self._3a_hazard = diagnose.Hazard()   # E2: world/own counts per spot, kind, actor
         self._3a_stale: dict = {}          # E2: slot -> the cycle it was marked stale
-        self._3a_unseen: set = set()       # E2: (epoch, slot) handed over as "no visible cause"
+        self._3a_unseen: dict = {}         # E2: (epoch, slot) -> (kind, trace row) handed over as
+        #                                    "no visible cause", until 3a settles it
         self._3a_written: dict = {}        # E2: the kind/actor counts already in a generation
         self._3a_in: dict = {}             # E2: those counts carried in by the lineage
         self._reach_fsig: tuple | None = None   # E1 X1: what the current frames were built from
@@ -3002,6 +3003,36 @@ class Agent:
                 "r0": self._last_landed if self._last_landed in objects else None}
         return tuple(reached + lifted), info, len(tiers), covaried
 
+    def _3a_settle(self) -> None:
+        """E2 (the reviewer 2026-10-17 09:40): part 2's unseen-actor credits are provisional.
+        Before a diagnosis reads the hazard, a pending credit whose change the agent's own act
+        reached on its row -- a slot of its body (the owners of its contingent slots, or what it
+        aimed at or landed on), a slot derived from a body slot, or a relational slot with its
+        reference undeclared while the body moved -- is withdrawn, with a correcting row (Fig 5
+        :12; Fig 1: nothing removed)."""
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        body_slots = set(self.agency.contingent())
+        dv = getattr(self.env, "derived", None)
+        derived = dv() if dv is not None else {}
+        for key, got in list(self._3a_unseen.items()):
+            if got is None or key[0] != self._trace_epoch or not 0 <= got[1] < len(self.trace):
+                continue
+            slot, (kind, i) = key[1], got
+            b, _a, af, _it, land = self.trace[i]
+            body = {own[s_] for s_ in body_slots if s_ in own}
+            body |= {o_ for o_ in (self._3a_aim.get((key[0], i)), land) if o_}
+            mine = {s_ for s_ in af.keys() | b.keys()
+                    if b.get(s_) != af.get(s_) and own.get(s_) in body}
+            reached = (slot in mine or (any(x in mine for x in derived[slot]) if slot in derived
+                       else IFace._is_relational(slot, self.env) and bool(mine)))
+            if reached:
+                self._3a_hazard.unseen(slot, kind, -1)
+                self._3a_unseen[key] = None
+                self.led.record(self.cycle, self._running_step, "@vector", "unseen_withdrawn",
+                                at=slot, kind=kind, row=i,
+                                reads="part 2's unseen-actor credit withdrawn: the agent's own act "
+                                      "reached this change")
+
     def _diagnose_one(self, c: dict) -> dict:
         """E2: one contradiction on a slot, diagnosed by diagnose.diagnose from this agent's own
         trace and readers; the stale mark kept. Never raises: a missing term or owner is a row."""
@@ -3009,6 +3040,7 @@ class Agent:
         t = self.gamma.library.get(name)
         own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
         owner = own.get(slot)
+        self._3a_settle()
         if t is None or owner is None:
             return {"at": slot, "verdict": "undiagnosed", "next_probe": None,
                     "evidence": "no term" if t is None else "the slot names no owner"}
@@ -3047,6 +3079,8 @@ class Agent:
 
         def own_reach(i):
             moved, mine = body_moved(i)
+            if slot in mine:
+                return True
             if slot in derived:
                 return any(s_ in mine for s_ in derived[slot])
             return IFace._is_relational(slot, self.env) and bool(mine)
@@ -3091,7 +3125,9 @@ class Agent:
             changed_of=changed_of, touching_now=set(self._touching(slot)),
             kind=f"{self._kind_str(owner)}|{attr}", kind_of=self._kind_str, moved_to=moved_to,
             hazard=self._3a_hazard, min_repeat=MIN_REPEAT, own_reach=own_reach,
-            own_owners=own_owners, owner_moved=owner_moved)
+            own_owners=own_owners, owner_moved=owner_moved, unseen=self._3a_unseen.get((ep, slot)))
+        if out.get("withdrawn"):
+            self._3a_unseen[(ep, slot)] = None      # settled: never held out or withdrawn twice
         if out.get("stale"):
             self._3a_stale[slot] = self.cycle
         return out
@@ -3110,11 +3146,8 @@ class Agent:
             if _3A_DIAGNOSE and kind is not None and key not in self._3a_unseen:
                 # handed to 3a once per slot: an UNSEEN actor or a board rule for this spot and
                 # kind (the reviewer 06:49; Saxe et al. 2005) -- the hidden-cause step
-                self._3a_unseen.add(key)
-                hz = self._3a_hazard
-                hz.world["spot"][slot] += 1
-                hz.world["kind"][kind] += 1
-                hz.world["actor"][diagnose.UNSEEN] += 1
+                self._3a_unseen[key] = (kind, len(self.trace) - 1)
+                self._3a_hazard.unseen(slot, kind, +1)
                 info["to_3a"] = "unseen actor"
 
     def _index_reach(self, lib: Any, lit: list, slot: str, mine: str, others: tuple,

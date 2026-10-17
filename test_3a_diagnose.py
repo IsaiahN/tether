@@ -17,6 +17,8 @@ Fig 11 :70: wiring, never capability); the in-agent reading is C-3A-DIAGNOSE.
       the body still is world_changed
   T11 the agent moves AND o2 moves itself in the same row, o2.proximity changes: a compound,
       credited to both; o2's kind credited only from the second repeat (the reviewer 09:20)
+  T12 part 2's no visible cause credits an unseen actor; 3a rules the change own: the credit is
+      held out of the order and withdrawn (the reviewer 09:40); MF-T12 a world change keeps it
 """
 import sys
 
@@ -35,7 +37,7 @@ def rows_for(slot: str, vals: list, aim: list, landed: list) -> list:
 
 
 def run(rows, slot, owner, ok, *, hz, changed=None, moved=None, persists=True, swap_ok=None,
-        reach=frozenset(), body=None, omoved=frozenset()):
+        reach=frozenset(), body=None, omoved=frozenset(), unseen=None):
     return D.diagnose(rows, slot, owner, persists=persists,
                       predicts=lambda r: r[0] in ok,
                       predicts_with=lambda r, a: (swap_ok or set()) >= {(r[0], a)},
@@ -46,7 +48,7 @@ def run(rows, slot, owner, ok, *, hz, changed=None, moved=None, persists=True, s
                       moved_to=lambda _v: moved, hazard=hz, min_repeat=MIN_REPEAT,
                       own_reach=lambda i: i in reach,
                       own_owners=lambda i: (body or {}).get(i, set()),
-                      owner_moved=lambda i: i in omoved)
+                      owner_moved=lambda i: i in omoved, unseen=unseen)
 
 
 def main() -> int:
@@ -153,6 +155,21 @@ def main() -> int:
     assert got == [[], ["o"]], got
     assert hz.own["spot"]["o2.proximity"] == 2 and hz.world["spot"]["o2.proximity"] == 2, hz.own
     print("T11 compound, credited both; owner kind credited by repeat:", got)
+
+    hz = D.Hazard()                                                                   # T12
+    hz.unseen("o2.proximity", "proximity", +1)          # part 2, on trace row 2
+    v = run(rows_for("o2.proximity", [3, 3, 3, 4], [None, None, "a0"], [None, None, "a0"]),
+            "o2.proximity", "o2", {0, 1}, hz=hz, changed={2: {"a0"}}, reach={2},
+            body={2: {"a0"}}, unseen=("proximity", 2))
+    assert v["verdict"] == "model_too_small" and v.get("withdrawn") and v["order"] == "D2D3", v
+    assert hz.world["spot"]["o2.proximity"] == 0 and hz.world["actor"][D.UNSEEN] == 0, hz.world
+    hz = D.Hazard()
+    hz.unseen("o2.proximity", "proximity", +1)
+    vm = run(rows_for("o2.proximity", [3, 3, 3, 4], [None, None, "z9"], [None, None, "z9"]),
+             "o2.proximity", "o2", {0, 1}, hz=hz, changed={2: {"swap1"}}, unseen=("proximity", 2))
+    assert vm["verdict"] == "world_changed" and not vm.get("withdrawn"), vm       # MF-T12
+    assert hz.world["spot"]["o2.proximity"] == 2, hz.world     # the credit back, plus D3's own
+    print("T12 ruled own: credit withdrawn, order", v["order"], "; MF-T12 world keeps it")
     print("3a_diagnose: OK")
     return 0
 
