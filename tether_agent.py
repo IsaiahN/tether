@@ -35,6 +35,7 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     env, ag, led, board, palette, loaded = arc_holdout.wire(w, game, cfg=cfg, led_path=led_path,
                                                             library=library,
                                                             lineage_dir=lineage_dir)
+    ag.deadline = deadline   # the wall allowance, read between lookups too (TETHER_CAP_MIDSTEP)
     acted_n, was, end, deaths = 0, "", "", 0
     # the boundary edges' level and the write's reports; with both arms OFF nothing new is read
     lv_seen = env.levels()[0] if (lineage._BOUNDARY or tether._LEVEL_EDGE) else 0

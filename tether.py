@@ -699,6 +699,17 @@ _ENTRY_USE = armflag.arm("TETHER_ENTRY_USE", default=True)
 # part of the effect and stays in. NOT exact: it changes what the library lights. OFF: every slot
 # that varied is in the description (5217b8d)
 _CLOCK_DESC = armflag.arm("TETHER_CLOCK_DESC", default=True)
+# THE CAP ENDS A STEP BETWEEN LOOKUPS (the reviewer 2026-10-17 10:47, 11:35): the runner's wall
+# allowance (Agent.deadline, set by the runner, never a prior) was read only between steps, so a
+# step outlived it to the supervisor's stop and nothing was flushed. Now, before each library
+# lookup, a passed deadline stops the step: no further lookup and none of the step's rest; one
+# "cap reached mid-step" row; the runner's own end path then writes the record and the lineage.
+# OFF: the step runs to its end whatever the clock (e77a982)
+_CAP_MIDSTEP = armflag.arm("TETHER_CAP_MIDSTEP", default=True)
+
+
+class _CapReached(Exception):
+    """The runner's deadline passed between two lookups; caught at step's route call only."""
 _BOUND_TERM: dict = {}     # (atoms_token, held Term, o, x) -> the Term bound, with _BOUND_MEMO
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
@@ -2129,6 +2140,7 @@ class Agent:
         self._cause_kind_written: dict = {}   # the counts already written to a generation
         self._entry_use: dict = {}         # 1b: entry -> {lit, offered, refused, explained, last}
         self._own_quiet: set = set()       # 1: own-clock slots with own residual 0 this step
+        self.deadline: float | None = None  # the runner's wall allowance (time.time()); None: none
         self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
@@ -6128,6 +6140,8 @@ class Agent:
         # lands in the ledger, and the gate can check that the citation preceded the pull.*
         # Nothing recorded it until now -- the ordering was real at this site and unwritten,
         # which is the one thing this session found genuinely ABSENT rather than unconsumed.
+        if _CAP_MIDSTEP and self.deadline is not None and time.time() >= self.deadline:
+            raise _CapReached
         self.led.record(self.cycle, "ROUTE", slot, "reach",
                         gap={k: v for k, v in gap.items() if k != "varies"},
                         reads=("the gap, cited BEFORE the library is read. One record, three "
@@ -12139,7 +12153,8 @@ class Agent:
     # -- driving ---------------------------------------------------------------------------
 
     def step(self, action: str | None = None) -> bool:
-        """One turn. Returns False if no action was proposed -- which is a legal outcome."""
+        """One turn. Returns False if no action was proposed -- which is a legal outcome. Under
+        TETHER_CAP_MIDSTEP a deadline passed between two lookups ends the turn at the route."""
         if _7H_ROOT and self._root_id is None and self._alive:
             self._intent_root()   # 7h: the first step of every live situation
         self._touch_cache = None      # a new step is a new frame, so contact and owners go
@@ -12464,7 +12479,16 @@ class Agent:
                                tuple(coord) if coord is not None else None, self.cycle)
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
-        routed = self.route(res)
+        try:
+            routed = self.route(res)
+        except _CapReached:
+            # the press went out in perceive; the rest of this step is not run (the only caller of
+            # the lookups is route, so this is the one place the cap can land)
+            self.led.record(self.cycle, "ROUTE", "@cap", "cap_mid_step", acted=True,
+                            overrun_s=round(time.time() - self.deadline, 1),
+                            reads="cap reached mid-step: the agent stopped between lookups and "
+                                  "ran none of the rest of this step")
+            return True
         # ONE CHAIN PER SLOT PER CYCLE (Fig 5; the reviewer 2026-10-07 16:12Z, F500): a term
         # minted this cycle is swept only into slots whose own turn is still to come; a slot
         # already past its turn meets it through its own route next cycle.

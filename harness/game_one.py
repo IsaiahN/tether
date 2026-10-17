@@ -90,6 +90,8 @@ def _capped(self, *a, **k):
         return False
     st["steps"] += 1
     st["agent"] = self
+    if getattr(self, "deadline", None) is None:
+        self.deadline = DEADLINE      # the cap, read between lookups too (TETHER_CAP_MIDSTEP)
     t = time.time()
     out = _orig(self, *a, **k)
     st["step_s"].append(round(time.time() - t, 2))

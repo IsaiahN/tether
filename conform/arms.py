@@ -856,6 +856,13 @@ ARMS: dict[str, str] = {
                         "lit, offered, refused and explained, and the last (generation, "
                         "cycle) it explained a residual; carried by the lineage per "
                         "generation. Record only, no consumer. OFF: not kept. default ON",
+    "TETHER_CAP_MIDSTEP": "THE CAP ENDS A STEP BETWEEN LOOKUPS (the reviewer 2026-10-17 "
+                          "10:47, 11:35): the runner sets Agent.deadline (its wall "
+                          "allowance, never a prior); before each library lookup a passed "
+                          "deadline stops the step there with one @cap cap_mid_step row, so "
+                          "the runner's own end path flushes the record and the lineage. "
+                          "OFF: the step runs to its end whatever the clock (e77a982). "
+                          "default ON",
     "TETHER_3A_DIAGNOSE": "E2, 3a DIAGNOSE (Isaiah 2026-10-17 03:37, 04:59; the reviewer PART "
                           "2c, 05:00, 05:01): a contradiction is diagnosed per slot before "
                           "anything is blamed -- noise, recall, own slip, world change or moved, "
