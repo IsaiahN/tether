@@ -829,6 +829,12 @@ ARMS: dict[str, str] = {
                            "the previous walk's are kept, older ones dropped; a cache that "
                            "stays, bounded by the mint's own walk, every price unchanged. OFF: "
                            "the tally grows until the slot's triple moves. default ON",
+    "TETHER_REACH_EXACT": "E1 X1 (the 10-17 crash audit; the reviewer 2026-10-17 06:38): the "
+                          "library route's CAUSE verdict is a fold over the frames, so a step "
+                          "reads only the frames not yet read, one entry per pair; restarted "
+                          "from frame 0 whenever the frames' inputs change. Every verdict "
+                          "unchanged. OFF: every cause re-tested from frame 0 each step, one "
+                          "entry kept per trace length. default ON",
     "TETHER_M7_INV": "M7-INV (Isaiah 2026-10-15 06:01; the reviewer 2026-10-16 19:01 Q3): an "
                      "invention is carried as its method (template with {o}/{x}, reading, "
                      "affects, then-chain, standing then), named with a content hash; the "

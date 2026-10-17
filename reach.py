@@ -54,6 +54,30 @@ def cause(if_c: C.Compiled, then_c: C.Compiled, frs: list[dict]) -> dict:
             "if_now": a[-1] if a else None}
 
 
+def cause_fold(state: list | None, if_c: C.Compiled, then_c: C.Compiled,
+               frs: list[dict]) -> tuple[list, dict]:
+    """`cause` as a fold over the frames (E1 X1, TETHER_REACH_EXACT): the state carries
+    composer.holds' `⇒` reading (seen_a, b_before_a), the counts and the last if-side, so a later
+    call reads only the frames after the ones already read. The same verdict as `cause` on the same
+    frames: frames already read are recorded, and re-reading them re-spends them (Fig 12 :107-108).
+    The caller restarts the fold (state None) whenever the frames themselves may differ."""
+    n, seen_a, b_before_a, asked, held, refuted, if_now = state or (0, False, False, 0, 0, 0, None)
+    for f in frs[n:]:
+        x, y = C.run(if_c, f), C.run(then_c, f)
+        if y is True:
+            v = not (b_before_a or not seen_a)
+            asked += 1
+            held += v is True
+            refuted += v is False
+        if not seen_a and y is True and x is not True:
+            b_before_a = True
+        seen_a = seen_a or x is True
+        if_now = x
+    st = [len(frs), seen_a, b_before_a, asked, held, refuted, if_now if frs else None]
+    return st, {"supported": asked > 0 and refuted == 0 and held > 0, "asked": asked,
+                "held": held, "refuted": refuted, "if_now": st[6]}
+
+
 def compile_cause(cand: dict, atoms: dict) -> tuple[C.Compiled, C.Compiled] | str:
     """Both sides compiled, or the first side's refusal as a reason string."""
     sides = []

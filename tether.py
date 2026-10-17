@@ -647,6 +647,12 @@ _M7_INV = armflag.arm("TETHER_M7_INV", default=True)
 # mint's own walk, no constant; a dropped entry costs one recompute, and every price is unchanged
 # (the tally is an exact prefix sum)
 _SPEED2_BOUND = armflag.arm("TETHER_SPEED2_BOUND", default=True)
+# E1 X1, THE LIBRARY ROUTE'S CAUSE TEST (the 10-17 crash audit; the reviewer 06:38): a CAUSE verdict
+# is a fold over the frames, so each step reads only the frames not yet read and keeps one entry per
+# pair, never one per trace length (Fig 12 :107-108: recorded, re-deriving it is a lookup). The fold
+# restarts whenever the frames may differ (epoch, or the objects' representative slots). Every
+# verdict, offer and choice unchanged
+_REACH_EXACT = armflag.arm("TETHER_REACH_EXACT", default=True)
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
 # alone (the same mint on its own rows) and the terms found are held as D5 parts under the predicate
@@ -2018,6 +2024,8 @@ class Agent:
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
+        self._reach_fold: dict = {}        # E1 X1: a CAUSE pair -> (frames sig, fold state)
+        self._reach_fsig: tuple | None = None   # E1 X1: what the current frames were built from
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
         self._bound_slot_cache: dict = {}  # S1: the same, filtered to one slot (+ slot in the key)
@@ -2788,17 +2796,35 @@ class Agent:
                 or self._reach_frames[1] != len(self.trace):
             self._reach_frames = (self._trace_epoch, len(self.trace), reach.frames(
                 self.trace, lambda st: {o_: self._record(s_, st) for o_, s_ in rep_slot.items()}))
+            if _REACH_EXACT:
+                # X1: what every frame was built from; any change and each fold starts again from
+                # frame 0 (a restart reads more, never less, so the verdict stays exact)
+                dc = self._decomp_cache or ({}, {}, {})
+                self._reach_fsig = (self._trace_epoch, tuple(sorted(rep_slot.items())),
+                                    tuple(sorted(dc[0].items())), tuple(sorted(dc[1].items())),
+                                    repr(sorted(dc[2].items(), key=lambda kv: str(kv[0]))))
         frs = self._reach_frames[2]
         units = self._units_for(slot)
         offers, rows = [], []
         for c, prov in views.values():
             offers.append(self._lib_offer(c, prov))
         for if_c, then_c, prov in causes.values():
-            vkey = (if_c.term.name, if_c.slot, then_c.term.name, then_c.slot,
-                    self._trace_epoch, len(frs))
-            v = self._reach_verdicts.get(vkey)
-            if v is None:
-                v = self._reach_verdicts[vkey] = reach.cause(if_c, then_c, frs)
+            if _REACH_EXACT:
+                fkey = (if_c.term.name, if_c.slot, then_c.term.name, then_c.slot)
+                held = self._reach_fold.get(fkey)
+                if held is not None and held[0] == self._reach_fsig and held[1][0] == len(frs):
+                    v = held[2]
+                else:
+                    state = held[1] if held is not None and held[0] == self._reach_fsig \
+                        and held[1][0] <= len(frs) else None
+                    state, v = reach.cause_fold(state, if_c, then_c, frs)
+                    self._reach_fold[fkey] = (self._reach_fsig, state, v)
+            else:
+                vkey = (if_c.term.name, if_c.slot, then_c.term.name, then_c.slot,
+                        self._trace_epoch, len(frs))
+                v = self._reach_verdicts.get(vkey)
+                if v is None:
+                    v = self._reach_verdicts[vkey] = reach.cause(if_c, then_c, frs)
             prov = {**prov, "if": if_c.term.name, "guard_bits": reach.bits(
                 if_c, lambda t: term_bits(self.gamma.length(t, units), self.gamma.alphabet))}
             off = self._lib_offer(then_c, prov, v)
