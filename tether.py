@@ -635,6 +635,12 @@ _3C_CANON = armflag.arm("TETHER_3C_CANON", default=True)
 # naming the read slots whose predicted value differed. Read by the routine adoption check, which
 # attaches a multi-step expectation only where the subject's rehearsal held (ARC_AGENT 17.5)
 _7H_REHEARSE = armflag.arm("TETHER_7H_REHEARSE", default=True)
+# M7-INV (Isaiah 2026-10-15 06:01 "results outlive the game"; the reviewer 2026-10-16 19:01 Q3): an
+# invention is carried as its METHOD -- the condition template with placeholders, the reading it
+# explained, its affects, its then-chain and its standing -- never the filled text (Fig 4: a method,
+# never a recording). Re-invented on load into the agent's private library, on trial; the library
+# route reads that private copy, its invented keys carrying a content hash as their version
+_M7_INV = armflag.arm("TETHER_M7_INV", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1800,6 +1806,12 @@ class Agent:
         self._mc3: list = []          # MC3: every ending, as the ground recorded it (append-only)
         self._invented: dict = {}     # M6: invented key -> its compiled condition (this run only)
         self._inv_lib = None          # M6: this agent's private library copy, made on first use
+        # M7-INV: condition text -> its template form; the inventions to carry (and the lineage's
+        # write mark); the carried ones re-invented at load
+        self._inv_tpl: dict[str, str] = {}
+        self._inv_carry: list[dict] = []
+        self._inv_carry_written = 0
+        self._inv_carried_in: list[dict] = []
         self._inv_seen: dict = {}     # M6: slot -> history length last tried
         self._step_row0 = 0           # MC6: the ledger length when this step began
         self._muse_last = None        # MC6 N2: (targets, methods) last tested, and its cycle
@@ -2692,7 +2704,10 @@ class Agent:
         CAUSE is tested where bonds are tested; an offer is kept for the mint only if it holds
         now, is not held already, and passes the ~1 gate. Nothing lit, nothing written."""
         self._lib_offers[slot] = []
-        lib = _library()
+        # M7-INV (ii): once this agent holds inventions -- its own or carried -- the route reads
+        # its private copy, so they can be lit; every shared entry there is the shared one, and
+        # an invented key carries its content hash, which is the version _lib_view asks for
+        lib = (self._inv_lib if _M7_INV and self._inv_lib is not None else _library())
         att = getattr(self.env, "attribute_of", None)
         att = att() if att else {}
         known = compile_term.readings()
@@ -3635,6 +3650,35 @@ class Agent:
             self._inv_lib = _replace_lib(lib)
         return self._inv_lib
 
+    def _reinvent_carried(self, carried: list[dict]) -> dict:
+        """M7-INV (iii): the lineage's inventions re-invented in this agent's private library,
+        each under its carried name (so a carried question about it resolves), its template as
+        the condition (the library generates its views from its readings), its affects as tags,
+        and its provenance in the receipt. ON TRIAL: an entry's standing is earned from this
+        game's ground, never carried in as settled (the reviewer 2026-10-16 19:01 Q3)."""
+        lib = self._inv_library() if carried else None
+        made, refused = [], []
+        for rec in carried:
+            if lib is None or lib.get(f"AGENT-INVENTED|{rec['name']}"):
+                continue
+            try:
+                lib.invent_atom(rec["name"], rec["template"], game=self.gamma.game,
+                                cycle=self.cycle,
+                                receipt={"carried": True, "from_game": rec.get("game"),
+                                         "born": rec.get("born"), "then": rec.get("then"),
+                                         "standing_then": rec.get("standing")},
+                                affects=rec.get("affects") or [])
+                made.append(rec["name"])
+            except ValueError as e:
+                refused.append({"name": rec["name"], "why": str(e)[:120]})
+        self._inv_carried_in = list(carried)
+        if carried:
+            self.led.record(self.cycle, self._running_step, "@lineage", "invention_carried",
+                            carried=len(carried), reinvented=made, refused=refused,
+                            reads=("inventions carried as their method, re-invented on trial in "
+                                   "the private library; standing is earned here"))
+        return {"carried": len(carried), "reinvented": len(made), "refused": len(refused)}
+
     def _inv_conditions(self, state: dict) -> list[str]:
         """The library's own condition grammar (`TEMPLATES`, by reading type) filled over the
         objects and readings in this state: the shapes the library writes, never a list of ours."""
@@ -3646,11 +3690,16 @@ class Agent:
                       if isinstance(v, int) and "." in k and "~" not in k and "@" not in k)
         objs = sorted({k.split(".", 1)[0] for k in keys})
         out = []
+        if _M7_INV:     # this call's texts only, never accumulated (read by _hold_invention)
+            self._inv_tpl = {}
         for k in keys:
             o, r = k.split(".", 1)
             for _label, t in templates.get((rd.get(r) or {}).get("type"), ()):
                 for x in ([x for x in objs if x != o] if "{x}" in t else [None]):
-                    out.append(t.format(o=o, x=x, r=r))
+                    text = t.format(o=o, x=x, r=r)
+                    out.append(text)
+                    if _M7_INV:     # the method behind the text, objects as placeholders
+                        self._inv_tpl[text] = t.format(o="{o}", x="{x}", r=r)
         return out
 
     def _invent(self, slot: str, hist: list, base: float, base_held: float, verdict: str) -> None:
@@ -3732,6 +3781,8 @@ class Agent:
         condition naming no reading is refused at creation and recorded."""
         lib = self._inv_library()
         name = f"{self.gamma.game}_inv_{len(self._invented) + 1}"
+        if _M7_INV:     # the key's version: its content, so a process-level cache keyed by it
+            name += "_" + hashlib.sha256(f"{text}|{f.name}".encode()).hexdigest()[:8]
         try:
             _aff = self._affects(lib, slot.rsplit(".", 1)[-1])
             if _INDEX_AFFECTS:
@@ -3748,8 +3799,16 @@ class Agent:
         self._invented[key] = c
         term = Term(f.atoms, operand=f.operand, guard=INVENTED_GUARD, guard_ref=key)
         left = self._left(term, slot, hist)
+        tpl = self._inv_tpl.get(text) if _M7_INV else None
+        if tpl is not None:
+            self._inv_carry.append({"name": name, "template": tpl, "affects": list(_aff),
+                                    "reading": slot.rsplit(".", 1)[-1], "term": term.name,
+                                    "then": [a.name for a in f.atoms], "game": self.gamma.game,
+                                    "born": self.cycle})
         detail.update(pick=term.name, condition=text, key=key, term_bits=round(cost, 3),
-                      left_bits=round(left, 3), carry="M7, off")
+                      left_bits=round(left, 3),
+                      carry=("M7-INV: carried as its template" if tpl is not None
+                             else "M7, off"))
         detail["explained"], detail["overclaimed"] = self.explain(slot, base_held - left)
         self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
         self.bound[slot] = term.name

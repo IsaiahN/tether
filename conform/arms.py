@@ -805,6 +805,12 @@ ARMS: dict[str, str] = {
                        "_kind adds it, so 7l, 7m, 7h (h) and (a)/(b) read form, not an "
                        "encounter index. Worlds without it (gridworld, the toy) keep the type "
                        "kind. OFF: the type kind everywhere. default ON",
+    "TETHER_M7_INV": "M7-INV (Isaiah 2026-10-15 06:01; the reviewer 2026-10-16 19:01 Q3): an "
+                     "invention is carried as its method (template with {o}/{x}, reading, "
+                     "affects, then-chain, standing then), named with a content hash; the "
+                     "lineage carries the records and the load re-invents them on trial in "
+                     "the private library, which the route then reads. OFF: inventions "
+                     "private to the game, the route on the shared library. default ON",
     "TETHER_7H_REHEARSE": "7h (e), mental rehearsal (Isaiah 2026-10-14 06:23; the reviewer "
                           "2026-10-16 19:01 Q1): a settled term's prediction is chained one "
                           "more step in thought under the same action; the next step, if it "

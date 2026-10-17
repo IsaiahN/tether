@@ -334,6 +334,12 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
                                   for o, n in sorted(c.items())
                                   if n > ag._line_grade_written.get(k, {}).get(o, 0)}
                               for k, c in sorted(ag._line_grade.items())}
+    if tether._M7_INV and hasattr(ag, "_inv_carry"):
+        # M7-INV: the inventions made since the last write, as their method, with the standing
+        # their term holds now (a record of it; the next game starts them on trial)
+        gen["inventions"] = [{**r, "standing": ("settled" if ag.gamma.is_settled(r["term"])
+                                                else "candidate")}
+                             for r in ag._inv_carry[ag._inv_carry_written:]]
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade"):
         # 7h (a): the root shapes' outcome counts since the last write; the load sums the chain
         gen["root_grades"] = {s: {o: n - ag._root_grade_written.get(s, {}).get(o, 0)
@@ -366,6 +372,8 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
             ag._line_grade_written = {k: dict(c) for k, c in ag._line_grade.items()}
         if "root_grades" in gen:
             ag._root_grade_written = {s: dict(c) for s, c in ag._root_grade.items()}
+        if "inventions" in gen:
+            ag._inv_carry_written = len(ag._inv_carry)
         if "kind_counts" in gen:
             ag._kind_n_written = {site: dict(c) for site, c in ag._kind_n.items()}
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
@@ -440,6 +448,10 @@ def load(d: str | Path, ag: Any) -> dict:
                 for o, n in c.items():
                     into[o] = into.get(o, 0) + n
         rep["root_shapes_in"] = len(ag._root_grade_in)
+    if tether._M7_INV and hasattr(ag, "_reinvent_carried"):
+        # M7-INV: every generation's inventions, root to tip, re-invented on trial
+        rep["inventions_in"] = ag._reinvent_carried(
+            [r for _h, g in chain for r in g.get("inventions", ())])
     if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
         # 7h (h): the kind counts of every generation, root to tip, read as A1's second key
         for _h, g in chain:
