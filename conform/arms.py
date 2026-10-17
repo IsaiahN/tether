@@ -847,6 +847,10 @@ ARMS: dict[str, str] = {
                         "if the settled cells and colour are unchanged else 0, F the tracker "
                         "advances read); maker none, so no term is credited or blamed; bet "
                         "rows say own_clock. OFF: bet on as no_change (6f37e8e). default ON",
+    "TETHER_ENTRY_USE": "E1 1b (the reviewer 2026-10-17 10:47): per library entry, times "
+                        "lit, offered, refused and explained, and the last (generation, "
+                        "cycle) it explained a residual; carried by the lineage per "
+                        "generation. Record only, no consumer. OFF: not kept. default ON",
     "TETHER_3A_DIAGNOSE": "E2, 3a DIAGNOSE (Isaiah 2026-10-17 03:37, 04:59; the reviewer PART "
                           "2c, 05:00, 05:01): a contradiction is diagnosed per slot before "
                           "anything is blamed -- noise, recall, own slip, world change or moved, "

@@ -687,6 +687,11 @@ _BIND_ONCE = armflag.arm("TETHER_BIND_ONCE", default=True)
 # bound term or the persistence prior predicts it (6f37e8e)
 _OWN_CLOCK = armflag.arm("TETHER_OWN_CLOCK", default=True)
 OWN_CLOCK = "own_clock"     # the bet row's maker label: the instrument, not a term
+# E1 1b, THE PER-ENTRY USE RECORD (the reviewer 2026-10-17 10:47; Fig 12 :107 what is recorded is a
+# lookup): per library entry, how often it was lit, offered, refused (withheld on the frames) and
+# explained a residual (the mint's winner carries its provenance), and when it last explained one;
+# carried by the lineage per generation. Record only: nothing reads it yet. OFF: not kept
+_ENTRY_USE = armflag.arm("TETHER_ENTRY_USE", default=True)
 _BOUND_TERM: dict = {}     # (atoms_token, held Term, o, x) -> the Term bound, with _BOUND_MEMO
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
@@ -2115,6 +2120,9 @@ class Agent:
         self._cause_kind_n: Counter = Counter()   # E1 part 2: "cause|effect|attr" kinds supported
         self._cause_kind_in: dict = {}     # the same, carried in by the lineage (summed at load)
         self._cause_kind_written: dict = {}   # the counts already written to a generation
+        self._entry_use: dict = {}         # 1b: entry -> {lit, offered, refused, explained, last}
+        self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
+        self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
         self._3a_hazard = diagnose.Hazard()   # E2: world/own counts per spot, kind, actor
         self._3a_stale: dict = {}          # E2: slot -> the cycle it was marked stale
@@ -2859,6 +2867,9 @@ class Agent:
                             reads="blocked by a partner: the lookup tries solidity first")
         if not lit:
             return
+        if _ENTRY_USE:
+            for k, _w in lit:
+                self._use(k, "lit")
         if _RELATION_SET:
             # C (c): a lit entry from the settled table says so -- provenance, nothing priced
             inh = sorted(k for k, _w in lit if k in relations.SETTLED)
@@ -2954,6 +2965,9 @@ class Agent:
             self._rank_moved(slot, rank, n_tiers, explained=bool(rows),
                              kind=f"{self._kind_str(mine)}|{att.get(slot)}")
         self._lib_offers[slot] = [o_ for o_ in offers if o_["offered"]]
+        if _ENTRY_USE:
+            for o_ in offers:
+                self._use(o_["prov"].get("library"), "offered" if o_["offered"] else "refused")
         self.led.record(self.cycle, "ROUTE", slot, "library", changed=sorted(changed),
                         lit=len(lit), views=len(views), causes=len(causes),
                         supported=rows, offered=len(self._lib_offers[slot]),
@@ -3258,6 +3272,15 @@ class Agent:
                 got = (*got, f"form={code}")
             self._kind_cache[k] = got
         return got
+
+    def _use(self, key: str | None, what: str, last: bool = False) -> None:
+        """1b: one use of a library entry, counted; `last` stamps (generation, cycle)."""
+        if key is None:
+            return
+        c = self._entry_use.setdefault(key, {})
+        c[what] = c.get(what, 0) + 1
+        if last:
+            c["last"] = [getattr(self, "generation", 0), self.cycle]
 
     def _bind_terms(self, o: str, x: str) -> tuple:
         """BIND ONCE: _bound's (terms memo, key prefix) for names (o, x), living with the bound
@@ -11531,6 +11554,8 @@ class Agent:
                          == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
             if prov is not None:
                 detail["library"] = prov
+                if _ENTRY_USE:
+                    self._use(prov.get("library"), "explained", last=True)
                 _core = _core_kind(self._lib_offers.get(slot, ()), term) if G_SETTLED_CORE else None
                 if _core is not None:
                     detail["core"] = (self.gamma.inherit if _core == "inherit"

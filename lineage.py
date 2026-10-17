@@ -365,6 +365,17 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         gen["cause_kinds"] = {k: n - ag._cause_kind_written.get(k, 0)
                               for k, n in sorted(ag._cause_kind_n.items())
                               if n > ag._cause_kind_written.get(k, 0)}
+    if tether._ENTRY_USE and hasattr(ag, "_entry_use"):
+        # 1b: each library entry's use since the last write (counts as deltas; last explained)
+        eu = {}
+        for k, c in sorted(ag._entry_use.items()):
+            w = ag._entry_use_written.get(k, {})
+            d = {f: n - w.get(f, 0) for f, n in c.items() if f != "last" and n > w.get(f, 0)}
+            if c.get("last") is not None and c.get("last") != w.get("last"):
+                d["last"] = c["last"]
+            if d:
+                eu[k] = d
+        gen["entry_use"] = eu
     if tether._3A_DIAGNOSE and hasattr(ag, "_3a_hazard"):
         # E2: the hazard by KIND and by ACTOR (templates, never a board's spots), since the last
         # write; the load adds them back as a head start. Pending unseen credits the agent's own
@@ -402,6 +413,8 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
             ag._cause_kind_written = dict(ag._cause_kind_n)
         if "hazard_3a" in gen:
             ag._3a_written = {f: dict(c) for f, c in _hazard_families(ag._3a_hazard).items()}
+        if "entry_use" in gen:
+            ag._entry_use_written = {k: dict(c) for k, c in ag._entry_use.items()}
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -492,6 +505,14 @@ def load(d: str | Path, ag: Any) -> dict:
             for k, n in g.get("cause_kinds", {}).items():
                 ag._cause_kind_in[k] = ag._cause_kind_in.get(k, 0) + n
         rep["cause_kinds_in"] = len(ag._cause_kind_in)
+    if tether._ENTRY_USE and hasattr(ag, "_entry_use_in"):
+        # 1b: every generation's entry use, root to tip, summed (last: the latest stamp)
+        for _h, g in chain:
+            for ek, du in g.get("entry_use", {}).items():
+                into = ag._entry_use_in.setdefault(ek, {})
+                for fld, n in du.items():
+                    into[fld] = n if fld == "last" else into.get(fld, 0) + n
+        rep["entry_use_in"] = len(ag._entry_use_in)
     if tether._3A_DIAGNOSE and hasattr(ag, "_3a_hazard"):
         # E2: every generation's kind/actor hazard, root to tip, added to this agent's own
         fams = _hazard_families(ag._3a_hazard)
