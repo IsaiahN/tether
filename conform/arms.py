@@ -863,6 +863,12 @@ ARMS: dict[str, str] = {
                           "the runner's own end path flushes the record and the lineage. "
                           "OFF: the step runs to its end whatever the clock (e77a982). "
                           "default ON",
+    "TETHER_STEP_BUDGET": "C1 (the reviewer 2026-10-17 14:12, 15:36): each step spends at most "
+                          "STEP_BUDGET = 1,000,000 evaluations (an entry x role x pairing call or "
+                          "a row it yields), checked between lookups as the cap is; a lookup "
+                          "not run is recorded (budget_owed) under its question's id and its "
+                          "slot owes, asked first next step; one @budget row per step with the "
+                          "owed queue. OFF: no bound (3a8238c). default ON",
     "TETHER_PAIR_NOT_OBJECT": "C1a (the reviewer 2026-10-17 14:24): a library pairing whose "
                               "object name is a pair owner (o0~o1) is refused once, counted "
                               "('a pair owner is not an object name') and never compiled -- "

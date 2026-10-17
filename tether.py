@@ -712,6 +712,15 @@ _CAP_MIDSTEP = armflag.arm("TETHER_CAP_MIDSTEP", default=True)
 # evaluations, and 5.69 M pairings over 4 cycles landed 0 rows. Such a pairing is refused once,
 # counted, and never compiled; pair owners stay cause candidates in the ranking. OFF: d777217
 _PAIR_NOT_OBJECT = armflag.arm("TETHER_PAIR_NOT_OBJECT", default=True)
+# C1, THE PER-STEP BUDGET (the reviewer 2026-10-17 14:12, 15:36): a step's library lookups had no
+# bound. Each step spends at most STEP_BUDGET evaluations -- an entry x role x pairing call or a row
+# it yields (lf52: ~14 us each) -- checked BETWEEN lookups, as the cap is, so one lookup is never
+# cut. A lookup not run is recorded and carried under its question's id (the cycle and the slot's
+# object), and owed slots are asked first next step. OFF: no bound (3a8238c)
+_STEP_BUDGET = armflag.arm("TETHER_STEP_BUDGET", default=True)
+# a DECLARED convention (Fig 10), visible and movable, never tuned to a board: the median step's
+# whole lookup work on lf52 (4666226, 12 steps: 13.1 s at ~14 us), so half the steps run as today
+STEP_BUDGET = 1_000_000
 
 
 class _CapReached(Exception):
@@ -2152,6 +2161,8 @@ class Agent:
         self.deadline: float | None = None  # the runner's wall allowance (time.time()); None: none
         self._route_order: list = []       # this step's route order and how far it got (the cap)
         self._route_at = 0
+        self._owed_q: dict = {}            # C1: slot -> question id, the lookups left unasked
+        self._spent = self._asked = self._not_asked = 0   # C1: this step's evaluations, lookups
         self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
@@ -3240,8 +3251,10 @@ class Agent:
                     refused[PAIR_NOT_OBJECT] += 1
                     continue
                 _landed = 0   # 7l G1: what this (entry, role) put on the slot
+                self._spent += 1     # C1: one evaluation per call, one per row it yields
                 for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms, sig,
                                                  slot=slot, tally=tally):
+                    self._spent += 1
                     if c is None:
                         refused[compile_term.QUANTIFIED] += 1
                         continue
@@ -3266,8 +3279,10 @@ class Agent:
                     refused[PAIR_NOT_OBJECT] += 1
                     continue
                 _landed = 0
+                self._spent += 1
                 for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp, atoms,
                                                          sig, slot=slot, tally=tally):
+                    self._spent += 1
                     if isinstance(if_c, compile_term.Refusal):
                         refused["if: " + if_c.reason] += 1
                         continue
@@ -6181,7 +6196,20 @@ class Agent:
                         reads=("the gap, cited BEFORE the library is read. One record, three "
                                "consumers: the pull count, the description's ordering proof, "
                                "and an import's shadow test"))
-        self._lookup(slot, hist)
+        if _STEP_BUDGET and self._spent >= STEP_BUDGET:
+            own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+            qid = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
+            self._owed_q[slot] = qid
+            self._not_asked += 1
+            self.owed_import.add(slot)
+            self.led.record(self.cycle, "ROUTE", slot, "budget_owed", question=list(qid),
+                            spent=self._spent, budget=STEP_BUDGET,
+                            reads="not asked: the step's budget was spent; owed, asked first next "
+                                  "step")
+        else:
+            self._owed_q.pop(slot, None)
+            self._asked += 1
+            self._lookup(slot, hist)
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
         # `rejection_of`, so the order reads evidence of the current age rather than a total
         # frozen at whatever tick it was last touched.
@@ -6627,6 +6655,13 @@ class Agent:
     @_in_step("ROUTE")
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
+        if _STEP_BUDGET:
+            # C1: this step's budget starts at zero; the slots a budget left unasked go first,
+            # the rest keep today's order (so a budget that never binds changes nothing)
+            self._spent = self._asked = self._not_asked = 0
+            if self._owed_q:
+                res = {**{s: res[s] for s in self._owed_q if s in res},
+                       **{s: r for s, r in res.items() if s not in self._owed_q}}
         self._route_order, self._route_at = list(res), 0   # where a cap mid-route lands
         for slot, r in res.items():
             self._route_at += 1
@@ -6707,6 +6742,13 @@ class Agent:
                             # WHY THE BIN DROPPED ITS COMPETITOR, so the cause is read, not
                             # inferred (F497): a starved slot.
                             **({"competitor_dropped": _dropped} if _dropped else {}))
+        if _STEP_BUDGET:
+            self.led.record(self.cycle, "ROUTE", "@budget", "budget", budget=STEP_BUDGET,
+                            spent=self._spent, asked=self._asked, not_asked=self._not_asked,
+                            owed_questions=len(set(self._owed_q.values())),
+                            owed_lookups=len(self._owed_q),
+                            reads="this step's lookup evaluations against the budget, and the "
+                                  "owed queue carried to the next step")
         return out
 
     # -- steps 3 to 5 -------------------------------------------------------------------
