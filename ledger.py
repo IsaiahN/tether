@@ -6,13 +6,24 @@ checker can read it without reading the machine, and why the checker can be doma
 
 from __future__ import annotations
 
+import atexit
 import json
 import sys
+import weakref
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+import armflag
+
 sys.dont_write_bytecode = True
+
+# R2, ONE HELD HANDLE (the reviewer 2026-10-17 17:58, 18:04): each row opened and closed the file
+# (~12% of samples on lf52 with the asdict it drives). Now the path is opened once, at the first
+# row, and FLUSHED after every row, so the loss window stays one row; closed at end_run and at
+# exit; a write after a close reopens it. OFF: opened per row (011c8c8)
+_LEDGER_HANDLE = armflag.arm("TETHER_LEDGER_HANDLE", default=True)
+_OPEN: weakref.WeakSet = weakref.WeakSet()   # ledgers holding a handle, closed at exit
 
 # the eight loop steps. An entry that cannot name one is a defect, not a log line.
 # `PLAN` IS FIRST, AND THE WRITE ORDER DECIDED IT RATHER THAN A VIEW ABOUT COGNITION. The
@@ -118,6 +129,7 @@ class Ledger:
         self.mode = mode
         self._entries: list[Entry] = []
         self._path = Path(path) if path else None
+        self._fh = None
         if self._path is not None:
             self._path.parent.mkdir(parents=True, exist_ok=True)
             self._path.write_text("", encoding="utf-8")
@@ -132,9 +144,24 @@ class Ledger:
         e = Entry(len(self._entries), cycle, step, slot, event, detail, of)
         self._entries.append(e)
         if self._path is not None:
-            with self._path.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(self._row(e), sort_keys=True, default=str) + "\n")
+            line = json.dumps(self._row(e), sort_keys=True, default=str) + "\n"
+            if _LEDGER_HANDLE:
+                if self._fh is None:
+                    self._fh = self._path.open("a", encoding="utf-8")
+                    _OPEN.add(self)
+                self._fh.write(line)
+                self._fh.flush()
+            else:
+                with self._path.open("a", encoding="utf-8") as fh:
+                    fh.write(line)
         return e
+
+    def close(self) -> None:
+        """R2: close the held handle (end_run, and at exit); a later row reopens it."""
+        if self._fh is not None:
+            self._fh.close()
+            self._fh = None
+            _OPEN.discard(self)
 
     def _row(self, e: Entry) -> dict[str, Any]:
         d = {"mode": self.mode, **asdict(e)}
@@ -146,12 +173,19 @@ class Ledger:
     def entries(self) -> list[Entry]:
         return list(self._entries)
 
-    def rows(self) -> list[dict[str, Any]]:
-        """What the gate reads. Plain data, no objects from this module."""
-        return [self._row(e) for e in self._entries]
+    def rows(self, start: int = 0) -> list[dict[str, Any]]:
+        """What the gate reads. Plain data, no objects from this module. R2: from `start` on only,
+        so a reader of the tail no longer converts the whole ledger."""
+        return [self._row(e) for e in self._entries[start:]]
 
     def by_event(self, event: str) -> list[Entry]:
         return [e for e in self._entries if e.event == event]
+
+
+@atexit.register
+def _close_all() -> None:
+    for led in list(_OPEN):
+        led.close()
 
 
 def signal_sign(row: dict[str, Any]) -> str | None:

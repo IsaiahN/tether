@@ -869,6 +869,11 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_LEDGER_HANDLE": "R2 (the reviewer 2026-10-17 17:58, 18:04): the ledger's path is "
+                            "opened once, at the first row, and flushed after every row (the "
+                            "loss window stays one row); closed at end_run and at exit; a row "
+                            "after a close reopens it. OFF: opened and closed per row "
+                            "(011c8c8). default ON",
     "TETHER_UNITS_MEMO": "R1 (the reviewer 2026-10-17 17:43, 17:47): gamma.units() is held "
                          "under a key of everything it reads -- the atoms, the settled names "
                          "(scanned from standing), the rank's version (bumped in Rank.note, its "

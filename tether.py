@@ -2533,6 +2533,9 @@ class Agent:
             self._settle_process("game", how)
         if self._goal_conds:
             self._close_goals(how)
+        close = getattr(self.led, "close", None)
+        if close is not None:
+            close()                  # R2: the run's rows are written; a later row reopens it
 
     def _fingerprint(self, before: dict) -> tuple[str, str]:
         """7a(5) B: the BOARD where the world gives one, else observe() (the whole state there).
@@ -3693,7 +3696,7 @@ class Agent:
                                     set(self.owed_import))
             return
         seq0, cyc0, settled0, owed0 = self._sweep_from
-        rows = self.led.rows()[start:]
+        rows = self.led.rows(start)
         self.led.record(self.cycle, "IMPORT", "@completion", "completion_sweep",
                         level=self.level, degree=round(degree, 4), segment_from_cycle=cyc0,
                         segment_rows=len(rows), live=dict(sorted(self.bound.items())),
@@ -4047,7 +4050,7 @@ class Agent:
         reading and it says so (the reviewer 00:14Z). A departure is not a change: the slot left
         the listing, which says nothing about its explanation, so it is no reading either. D2: an
         uncleared level's stall is recorded as an effect, the actions it ran for."""
-        rows = self.led.rows()[self._seq_at_level:]
+        rows = self.led.rows(self._seq_at_level)
         cleared = how in (WIN, ADVANCE)
         for b in self._process_bets:
             after = [r for r in rows if r["event"] == "bet" and r["slot"] == b["slot"]
@@ -4078,7 +4081,7 @@ class Agent:
         23:50Z) -- and this step's bets paying: at least one, none carrying mass."""
         if self.owed_import:
             return False
-        bets = [r for r in self.led.rows()[self._step_row0:] if r["event"] == "bet"]
+        bets = [r for r in self.led.rows(self._step_row0) if r["event"] == "bet"]
         return bool(bets) and all(not float(r["detail"].get("mass", 0) or 0) for r in bets)
 
     @_in_step("IMPORT")
