@@ -805,6 +805,15 @@ ARMS: dict[str, str] = {
                        "_kind adds it, so 7l, 7m, 7h (h) and (a)/(b) read form, not an "
                        "encounter index. Worlds without it (gridworld, the toy) keep the type "
                        "kind. OFF: the type kind everywhere. default ON",
+    "TETHER_7H_REHEARSE": "7h (e), mental rehearsal (Isaiah 2026-10-14 06:23; the reviewer "
+                          "2026-10-16 19:01 Q1): a settled term's prediction is chained one "
+                          "more step in thought under the same action; the next step, if it "
+                          "repeats the action, grades it on its own channel (rehearsal rows: "
+                          "held, links_held, differed = the read slots predicted wrong), never "
+                          "summed into the transition residual. Reader: _expected attaches a "
+                          "routine's multi-step expect only where the subject's last rehearsal "
+                          "this level held (rehearsal_read row). OFF: no rehearsal, _expected "
+                          "as before. default ON",
     "TETHER_7H_TRACE": "7h (d), the recallable graded trace, smallest form (Isaiah 2026-10-16 "
                        "16:21): each line (a slot's search) is graded by the slot's kind "
                        "(7h (h)'s key) when it ends -- paid (bound, or its outstanding fell) "

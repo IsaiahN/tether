@@ -630,6 +630,11 @@ _7H_TRACE = armflag.arm("TETHER_7H_TRACE", default=True)
 # 3c-CANON: an object's kind adds its CANONICAL shape code when the world publishes one (the same
 # form, the same code, on any board); a world that publishes none keeps the type-tuple kind
 _3C_CANON = armflag.arm("TETHER_3C_CANON", default=True)
+# 7h (e), REHEARSAL (Isaiah 2026-10-14 06:23; the reviewer 2026-10-16 19:01 Q1): a settled term's
+# prediction is chained one step further in thought; the next step grades it on its own channel,
+# naming the read slots whose predicted value differed. Read by the routine adoption check, which
+# attaches a multi-step expectation only where the subject's rehearsal held (ARC_AGENT 17.5)
+_7H_REHEARSE = armflag.arm("TETHER_7H_REHEARSE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1278,6 +1283,9 @@ OWES = "not held: this step read zero and the slot still owes"
 LEFT_BOARD = "not sorted: left the board this step; the miss stays recorded"
 
 TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"
+# 7h (e): a two-step prediction made in thought, graded a step later -- its own channel, never
+# summed into the transition residual (a miss caused by an operand would blame a term right twice)
+REHEARSAL = "rehearsal"
 
 
 def correction_bits(a: int, b: int, alphabet: int) -> float:
@@ -1966,6 +1974,12 @@ class Agent:
         # observation so both sides are in one form; a residue beside a raw value read a correct
         # bet as a miss twice on 2026-10-07 (the reviewer 23:30Z, Fig 13).
         self._pred_raw: dict[str, int] = {}
+        # 7h (e): rehearsals made this step, graded next step; and each slot's last verdict
+        # (level, held|missed), read by `_expected`. Situated: a verdict from another level is
+        # not read (staleness is boundary-only, Isaiah 10-09)
+        self._rehearse_held: dict[str, tuple] = {}
+        self._rehearse_rec: dict[str, tuple[int, str]] = {}
+        self._rehearse_last_read: tuple | None = None
         # WHAT THE LIBRARY NAMED FOR EACH SLOT'S LAST RESIDUAL: partner reading -> molecules
         # relating it to the target. Read by `_bindings` as an ORDER, never a filter.
         self._named: dict[str, dict[str, list]] = {}
@@ -4951,6 +4965,67 @@ class Agent:
         self._pred_raw[slot] = got
         return got % self.alphabet[slot]
 
+    def _rehearse_make(self, betting: list, before: dict, action: str, coord, pred: dict,
+                       raw: dict) -> dict:
+        """7h (e) REHEARSAL: chain a SETTLED term one step further in thought. The predicted
+        board after this action is `before` with every bet replaced by its prediction; the term
+        is asked again on it, under the same action. Graded next step if that step repeats the
+        action (`_rehearse_read`). Only settled terms: a candidate's one-step bet is still on
+        trial, so a chain over it would test nothing new. `_pred_raw` is the live bet's record
+        and is restored, so the rehearsal leaves no trace on the step's own rows."""
+        state1 = dict(before)
+        state1.update({s: (raw[s] if raw.get(s) is not None else pred[s]) for s in betting})
+        keep, out = dict(self._pred_raw), {}
+        try:
+            for s in betting:
+                name = self.bound.get(s)
+                if not name or name not in self.gamma.library or not self.gamma.is_settled(name, s):
+                    continue
+                v2 = self._predict(s, state1, action)
+                if v2 is None:
+                    continue
+                op = self.gamma.library[name].operand
+                reads = {s} | ({op.split("~")[0]} if op else set())
+                out[s] = (v2, (action, coord), self.cycle, self.level, name,
+                          {k: state1.get(k) for k in sorted(reads)})
+        finally:
+            self._pred_raw = keep
+        return out
+
+    def _rehearse_read(self, res: dict, before: dict, after: dict, action: str, coord,
+                       made: dict) -> None:
+        """7h (e): grade last step's rehearsals on their OWN channel. A rehearsal is graded only
+        when this step repeated its action, in the same level, one cycle on. HELD: the two-step
+        prediction matched. MISSED with links_held: both one-step bets on the slot were right
+        and the chain still missed, so something the term reads was predicted wrong or not
+        predicted -- `differed` names the read slots whose predicted value was not the board's.
+        Never added to `outstanding`: the operand's own miss is already charged to the term that
+        made it (credit only to the term that predicted), so this is a dependency finding, not
+        a second residual. Then this step's rehearsals are held for the next."""
+        held, compared, missed, links = self._rehearse_held, 0, 0, 0
+        for s, (v2, act, cyc, lvl, name, state1, right1) in sorted(held.items()):
+            if (act != (action, coord) or cyc != self.cycle - 1 or lvl != self.level
+                    or s not in after or s not in res or not self.alphabet.get(s)):
+                continue
+            miss = correction_bits(v2, after[s], self.alphabet[s]) > 0
+            both = bool(right1) and res[s].bits == 0
+            differed = sorted(k for k, v in state1.items() if before.get(k) != v)
+            compared, missed = compared + 1, missed + miss
+            links += bool(miss and both)
+            self._rehearse_rec[s] = (self.level, "missed" if miss else "held")
+            self.led.record(self.cycle, self._running_step, s, "rehearsal", channel=REHEARSAL,
+                            of=(s,), term=name, rehearsed_at=cyc, predicted_code=v2,
+                            actual=after[s], held=not miss,
+                            links_held=(both if miss else None), differed=differed,
+                            reads=("a two-step chain made in thought, graded on its own channel; "
+                                   "never summed into the transition residual"))
+        self._rehearse_held = {s: v + (s in res and res[s].bits == 0,)
+                               for s, v in made.items()}
+        if made or compared:
+            self.led.record(self.cycle, self._running_step, "@rehearsal", "rehearsal",
+                            rehearsed=len(made), compared=compared, misses=missed,
+                            links_held_misses=links)
+
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
         driving the bet, which is the only way it ever accumulates the held-out evidence
@@ -5075,6 +5150,9 @@ class Agent:
                             reads=("the bound term returned no reading, so no bet is made and "
                                    "no prediction error is claimed on this slot"))
         betting = [s for s in betting if pred[s] is not None]
+        # 7h (e): rehearse BEFORE acting, from the same before-state and the same bets
+        _rehearsed = (self._rehearse_make(betting, before, action, coord, pred, raw)
+                      if _7H_REHEARSE else {})
         _dpred: dict = {}
         if _derived:
             _ps = dict(before)
@@ -5186,6 +5264,8 @@ class Agent:
         if _derived:
             self._relational_surprise(_derived, _dpred, res, after, before)
             self._blocked_reading(_derived, _ps, before, after, action)
+        if _7H_REHEARSE:
+            self._rehearse_read(res, before, after, action, coord, _rehearsed)
 
         # the reward channel: on the figures, and reported here. Its remedy is the
         # composition of actions, which is not built -- so it is recorded, not actioned.
@@ -7839,6 +7919,21 @@ class Agent:
         _want = cand.body.action
         if not isinstance(_want, IFace.Intent):
             return cand
+        # 7h (e)'s READER (the reviewer 2026-10-16 19:01 Q1): a multi-step expectation is
+        # trusted only where the subject's own rehearsal HELD this level. Its last rehearsal
+        # missed -> no expect (reach falls back to the budget, as with no model); never
+        # rehearsed -> as before. The agent's own record decides; one row says which.
+        if _7H_REHEARSE and _want.subject in self._rehearse_rec:
+            lvl, verdict = self._rehearse_rec[_want.subject]
+            if lvl == self.level and (self.cycle, _want.subject) != self._rehearse_last_read:
+                self._rehearse_last_read = (self.cycle, _want.subject)
+                self.led.record(self.cycle, self._running_step, _want.subject,
+                                "rehearsal_read", verdict=verdict,
+                                expect=("withheld" if verdict == "missed" else "trusted"),
+                                reads=("a multi-step expectation is attached only where the "
+                                       "subject's last rehearsal held"))
+            if lvl == self.level and verdict == "missed":
+                return cand
         # 7a(5) C: the withheld set is ONE board's; another state gets none (the reviewer 11:53Z)
         per = self.iface.expected_move(_want, tuple(self.actions),
                                        self.iface.context(self.env), before, self.env,
