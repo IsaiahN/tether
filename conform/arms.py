@@ -840,6 +840,13 @@ ARMS: dict[str, str] = {
                         "(held Term, o, x) and shared by every row holding it, kept with the "
                         "bound memos. Every row equal to the rebuild. OFF: rebuilt per row "
                         "(5987421). default ON",
+    "TETHER_OWN_CLOCK": "E1 OWN CLOCK (the reviewer 2026-10-17 10:05; Fig 5 :12; the "
+                        "reafference principle): age and stability, which the agent's own "
+                        "perception writes by its own rule, are predicted by that rule when "
+                        "the frames arrive (env.own_expected: age prev + F, stability prev + F "
+                        "if the settled cells and colour are unchanged else 0, F the tracker "
+                        "advances read); maker none, so no term is credited or blamed; bet "
+                        "rows say own_clock. OFF: bet on as no_change (6f37e8e). default ON",
     "TETHER_3A_DIAGNOSE": "E2, 3a DIAGNOSE (Isaiah 2026-10-17 03:37, 04:59; the reviewer PART "
                           "2c, 05:00, 05:01): a contradiction is diagnosed per slot before "
                           "anything is blamed -- noise, recall, own slip, world change or moved, "

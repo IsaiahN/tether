@@ -551,6 +551,7 @@ class Objects:
 
     def __init__(self) -> None:
         self.tracked: dict[str, dict] = {}
+        self.updates = 0    # OWN CLOCK: one per tracker advance (a response's frame count, read)
         # Names whose identity across frames was REFUSED -- add-only, read by `identity_of`.
         self.refused_identity: set[str] = set()
         self._next = 0
@@ -801,6 +802,7 @@ class Objects:
                 else:
                     obj.update(dict.fromkeys(_CHANGE_ATTRS))
         self.tracked = fresh
+        self.updates += 1
 
         state: dict[str, int] = {}
         for name, obj in self.tracked.items():

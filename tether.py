@@ -680,6 +680,13 @@ _3A_DIAGNOSE = armflag.arm("TETHER_3A_DIAGNOSE", default=True)
 # duplicate row costs a lookup. _bound is pure in those and this Gamma's atoms; every row is equal
 # to the rebuild. OFF: rebuilt per row (5987421)
 _BIND_ONCE = armflag.arm("TETHER_BIND_ONCE", default=True)
+# E1 OWN CLOCK (the reviewer 2026-10-17 10:05; Fig 5 :12 mis-attached; reafference, von Holst &
+# Mittelstaedt 1950): a slot the agent's own perception writes by its own rule (env.own_expected:
+# age, stability) is predicted by that rule when the frames arrive, never bet on as no_change; its
+# maker is none, so no term is credited or blamed, and what it leaves is a real residual. OFF: the
+# bound term or the persistence prior predicts it (6f37e8e)
+_OWN_CLOCK = armflag.arm("TETHER_OWN_CLOCK", default=True)
+OWN_CLOCK = "own_clock"     # the bet row's maker label: the instrument, not a term
 _BOUND_TERM: dict = {}     # (atoms_token, held Term, o, x) -> the Term bound, with _BOUND_MEMO
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
@@ -5617,6 +5624,17 @@ class Agent:
         else:
             self.env.step(action)
         after = self.env.observe()
+        _own_clock: set = set()
+        if _OWN_CLOCK:
+            # the instrument's own expectation, formed now that the frames are in (a corollary
+            # discharge timed to the reafference): it replaces the bet on those slots
+            _oe = getattr(self.env, "own_expected", None)
+            _oe = _oe() if _oe is not None else {}
+            for s in betting:
+                if s in _oe and s in after:
+                    pred[s] = raw[s] = _oe[s]
+                    self._pred_by[s] = None
+                    _own_clock.add(s)
         # RE-READ AFTER THE OBSERVATION, BEFORE ANYTHING IS PRICED: a label the step created
         # was priced under the count from before it existed, so a new shape 8 read as 0 under
         # 8 and the miss cost nothing (8 of 12 games, 2026-10-07).
@@ -5696,7 +5714,8 @@ class Agent:
                             # NOT `IDN`: an unbound slot rests on a persistence prior,
                             # and recording it as a term made 104 of 110 staleness
                             # readings noise. `_predict` still falls back to `idn`.
-                            bound=self.bound.get(s, NO_CHANGE),
+                            bound=(OWN_CLOCK if s in _own_clock
+                                   else self.bound.get(s, NO_CHANGE)),
                             # **WHAT THE AGENT MEANT, ON THE ROW THAT RECORDS ITS BET.** It
                             # named neither the action nor the intent before, so the model's
                             # own record could not say what the prediction was made under.

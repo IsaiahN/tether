@@ -872,6 +872,7 @@ class ArcWorld:
                 if act.is_complex() and x is not None and y is not None else None)
         was = self.board()
         was_objs = {k: dict(v) for k, v in self._decompose.tracked.items()}
+        u0 = getattr(self._decompose, "updates", None)
         nxt = self.w.step(act, data=data) if data is not None else self.w.step(act)
         # AN EMPTY STACK IS "NOTHING RENDERED", NOT "NO BOARD". At GAME_OVER and WIN the engine
         # answers every non-RESET action with `frame=[]` (a bare FrameData, levels unset), so
@@ -899,6 +900,9 @@ class ArcWorld:
         if self.on_frame is not None:
             self.on_frame(was, action, now)
         self._decomposed()          # re-track before reading contact on the new frame
+        # OWN CLOCK: the settled objects before this action and how many tracker advances it took
+        # (the response's frame count, read, never assumed)
+        self._own = (was_objs, (self._decompose.updates - u0) if u0 is not None else 0)
         # BOTH READERS ABSTAIN ON A BLIND FRAME, AND ONLY ONE OF THEM USED TO. When `blind`,
         # `_decomposed` never calls the tracker, so `tracked` KEEPS ITS LAST READABLE STATE --
         # and `note` then compared stale to stale and wrote 15 bindings in a single step,
@@ -911,6 +915,30 @@ class ArcWorld:
             if was is not None and now is not None:
                 self.selves.observe(was, action, now)
             self.aff.note(was_objs, dict(self._decompose.tracked), mover=None)
+
+    def own_expected(self) -> dict[str, int]:
+        """OWN CLOCK (the reviewer 2026-10-17 10:05; the reafference principle, von Holst &
+        Mittelstaedt 1950): the slots this perception writes BY ITS OWN RULE, with the value that
+        rule gives from the settled readings, formed when the frames arrive. `age` of a continuing
+        track = its previous settled age + F, the tracker advances this action took; `stability` =
+        its previous settled stability + F if the settled cells and colour are those of the previous
+        settled frame, else 0 (so only a mid-cascade change that reverted leaves a residual). None
+        at birth, on a covered object, a blind frame, or before the first action. It says what our
+        own bookkeeping did, never what the board will do; F stays a reading."""
+        was, f = getattr(self, "_own", ({}, 0))
+        if f <= 0 or self.blind:
+            return {}
+        out: dict[str, int] = {}
+        for o, obj in self._decompose.tracked.items():
+            p = was.get(o)
+            if p is None or obj.get("covered") or p.get("covered"):
+                continue
+            if isinstance(p.get("age"), int) and "age" in obj:
+                out[f"{o}.age"] = p["age"] + f
+            if isinstance(p.get("stability"), int) and "stability" in obj:
+                same = p.get("cells") == obj.get("cells") and p.get("colour") == obj.get("colour")
+                out[f"{o}.stability"] = p["stability"] + f if same else 0
+        return out
 
     def identity(self, obj: str) -> str | None:
         """How `obj` was re-found on the latest frame: "overlap", "unique-shape", "look-alike",
