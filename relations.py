@@ -32,7 +32,18 @@ from __future__ import annotations
 
 import sys
 
+import armflag
+
 sys.dont_write_bytecode = True
+
+# E0, THE PERCEPT DECLARES WHAT IT DERIVES (the reviewer 2026-10-17 12:53, 12:59; Fig 12 :125 one
+# description; the stability ruling at 10:05): an attribute the percept computes by its own rule
+# from readings it already publishes (h / w and the frame deltas from the object's shape, motion
+# from row / col, colour_changed from colour; gridworld's proximity and distance from positions)
+# is declared through derived(), so it is predicted from its sources and carries a residual only
+# when its sources held (B2b's relational surprise). Read by arc_world and gridworld; one flag.
+# OFF: only the pair slots are declared, as before (610654c)
+_DERIVED_PERCEPT = armflag.arm("TETHER_DERIVED_PERCEPT", default=True)
 
 
 def _centroid(o: dict) -> tuple[float, float]:

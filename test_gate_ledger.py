@@ -10,15 +10,17 @@ only when it follows a later step of the same slot, so both halves are checked d
           ledger.STEPS, so a helper that runs out of the loop's order is caught even when its
           label agrees with it. Lineage's load-time IMPORT rows are written outside an agent and
           are out of scope.
-  G1      a fake game (6 actions, the agent's own seed): both guards hold; gate.py exits 0.
-  G2      gridworld_s2, 11 steps, under C-seed-X (the old constant seed, so its cycle-10 sweep
-          lands): preconditions, at least one sweep row and one inline-phase row; both guards
-          hold; gate.py exits 0.
+  G1      a fake game (12 actions, C-seed-X): both guards hold; gate.py exits 0.
+  G2      gridworld_s2, 11 steps, under C-seed-X: precondition, one inline-phase row; both
+          guards hold; gate.py exits 0. Then a second 11-step run with TETHER_DERIVED_PERCEPT
+          off, the one member where the MINT-site sweep is reached (step 3): precondition, at
+          least one sweep row under MINT; LABEL holds.
   MF1     G1's stream rows put back at PLAN: gate.py refuses step-order.
   MF2     G1's slot-bound choice rows put back at PLAN: gate.py refuses step-order.
-  MF3     G2's sweep rows (pull, reuse_install written in MINT) put back at ROUTE: LABEL flags them.
+  MF3     G2's arm-off sweep rows (pull, reuse_install written in MINT) put back at ROUTE:
+          LABEL flags them.
   MF4     _narrate_cues decorated PERCEIVE again (f4a48c4's error: the top-of-step block runs
-          before choose, in PLAN): 5 steps of gridworld_s2 and LADDER flags it.
+          before choose, in PLAN): 11 steps of gridworld_s2 and LADDER flags it.
 
     python test_gate_ledger.py
 """
@@ -33,8 +35,14 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 
-MAX_ACTIONS = 6
-GW_MEMBER, GW_STEPS, MF4_STEPS = "gridworld_s2", 11, 5
+# 12, not 6, since E0 (TETHER_DERIVED_PERCEPT, 2026-10-17): the precondition needs one mint SEARCH
+# (a stream row). At 6 actions the only searches had been on drow / dcol / speed, the double
+# charges E0 declares derived; without them every mint there parks under the floor (42 of 42);
+# 12 actions give 111 stream rows
+MAX_ACTIONS = 12
+# MF4_STEPS 11, not 5, since E0: LADDER catches the misplaced cue row only once a PLAN row
+# follows it on "*" (note_goals); with E0 its first is at cycle 10 (cycle 4 with the arm off)
+GW_MEMBER, GW_STEPS, MF4_STEPS = "gridworld_s2", 11, 11
 ALLOW = {("_hold_invention", "accept"), ("_mint", "accept"), ("sweep", "retro"),
          ("_carry", "candidate_woken"), ("_route_reward", "route")}
 HERE = Path(__file__).parent
@@ -75,6 +83,7 @@ def main() -> int:
 
     import gamma
     import ledger
+    import relations
     import tether
     import tether_agent
     import world
@@ -144,9 +153,7 @@ def main() -> int:
             writes.clear()
             gled = Path(d) / "gw.jsonl"
             gridworld(GW_STEPS, gled)
-            sweep = [w for w in writes if w[1] in ("pull", "reuse_install") and w[3] == "MINT"]
             inline = [w for w in writes if w[0] == "step" and w[3] != "PLAN"]
-            assert sweep, f"precondition: no sweep row in {GW_STEPS} steps of {GW_MEMBER}"
             assert inline, "precondition: no row from step()'s inline phases"
             assert not bad(writes), ("G2 LABEL: rows labelled with a step not running",
                                      bad(writes)[:5])
@@ -155,8 +162,23 @@ def main() -> int:
             code, out = gate(gled)
             assert code == 0, out[-600:]
             print(f"  G2 {GW_MEMBER} {GW_STEPS} steps: {len(writes)} guarded writes, "
-                  f"{len(sweep)} sweep rows under MINT, {len(inline)} inline-phase rows, "
-                  "0 mislabelled, 0 ladder breaks; gate exit 0")
+                  f"{len(inline)} inline-phase rows, 0 mislabelled, 0 ladder breaks; gate exit 0")
+
+            # THE MINT-SITE SWEEP WITH TETHER_DERIVED_PERCEPT OFF (the reviewer 2026-10-17 14:00):
+            # its label does not depend on the arm, but with the arm on gridworld_s2 never
+            # reaches it (0 in 40 steps; its early sweeps were on proximity / distance, the
+            # double charges E0 declares derived), so it is checked where it is reached
+            writes.clear()
+            arm_was, relations._DERIVED_PERCEPT = relations._DERIVED_PERCEPT, False
+            try:
+                gridworld(GW_STEPS, None)
+            finally:
+                relations._DERIVED_PERCEPT = arm_was
+            sweep = [w for w in writes if w[1] in ("pull", "reuse_install") and w[3] == "MINT"]
+            assert sweep, f"precondition: no MINT sweep row in {GW_STEPS} steps, arm off"
+            assert not bad(writes), ("G2 LABEL, arm off: rows labelled with a step not running",
+                                     bad(writes)[:5])
+            print(f"  G2 arm off: {len(sweep)} sweep rows under MINT, 0 mislabelled")
             planted = [(f, e, "ROUTE" if (e in ("pull", "reuse_install") and r == "MINT") else s,
                         r, *rest) for f, e, s, r, *rest in writes]
             assert bad(planted), "MF3: sweep rows put back at ROUTE were not flagged"

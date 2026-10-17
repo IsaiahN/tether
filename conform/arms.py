@@ -863,6 +863,13 @@ ARMS: dict[str, str] = {
                           "the runner's own end path flushes the record and the lineage. "
                           "OFF: the step runs to its end whatever the clock (e77a982). "
                           "default ON",
+    "TETHER_DERIVED_PERCEPT": "E0 (the reviewer 2026-10-17 12:53, 12:59): the percept declares "
+                              "what it derives -- h / w / the frame deltas from shape, motion "
+                              "from row / col, colour_changed from colour, gridworld proximity "
+                              "and distance from positions; pair sources resolved through to "
+                              "shape -- so they are predicted from their sources and carry a "
+                              "residual only as B2b relational surprise. OFF: only the pair "
+                              "slots are declared (610654c). default ON",
     "TETHER_3A_DIAGNOSE": "E2, 3a DIAGNOSE (Isaiah 2026-10-17 03:37, 04:59; the reviewer PART "
                           "2c, 05:00, 05:01): a contradiction is diagnosed per slot before "
                           "anything is blamed -- noise, recall, own slip, world change or moved, "

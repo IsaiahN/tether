@@ -44,7 +44,8 @@ def case(before, pred_set, after_set):
     rows = [r for r in ag.led.rows()[n0:] if r["event"] == "blocked"]
     return [[r["slot"], r["detail"]["partners"]] for r in rows]
 b = before_at(c3 + side)
-out = {"n_derived": len(derived)}
+import relations
+out = {"n_derived": len([k for k in derived if relations.pair_attr(k.split(".", 1)[1])])}
 out["blocked"] = case(b, {"o0.col": c3}, {})
 out["free"] = case(before_at(c3 + 3 * side), {"o0.col": c3 + 2 * side}, {})
 out["moved"] = case(b, {"o0.col": c3}, {"o0.col": c3})

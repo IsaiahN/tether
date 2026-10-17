@@ -1,0 +1,138 @@
+"""E0, THE PERCEPT DECLARES WHAT IT DERIVES, TETHER_DERIVED_PERCEPT (the reviewer 2026-10-17 12:53,
+12:59). Scripted ARC worlds, the agent playing a few actions in each.
+
+  M     constant velocity (+3 cols per action, no own act): col's own term (an operand term reading
+        the derived dcol) binds by the 5th step and predicts with residual 0 after; dcol and speed
+        are not bet on (derived); no relational surprise (the derivation is exact on a one-frame
+        response) -- momentum survives E0
+  MF-M  the mover stops: a residual on col at the step it stops
+  R     a resize in place (the object widens each action): residual on shape, none bet on w / h /
+        dw / dcells, no relational surprise
+  T     a mid-cascade change that reverts (two-frame responses, the object widens in the
+        intermediate frame only): a relational_surprise row on a frame delta with its source
+        (shape) held
+  OFF   TETHER_DERIVED_PERCEPT=0: dcol is bet on again (today's per-slot charge)
+
+    python test_derived_percept.py
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+
+CHILD = r'''
+import json, os, sys, tempfile
+sys.dont_write_bytecode = True
+import numpy as np
+from arcengine import FrameDataRaw, GameState
+import tether_agent
+mode, N = sys.argv[1], int(sys.argv[2])
+
+class W:
+    def __init__(self):
+        self.calls, self._last, self.t = [], None, 0
+        self.reset()
+    @property
+    def observation_space(self):
+        return self._last
+    def board(self, t, mid=False):
+        b = np.zeros((40, 64), dtype=int)
+        b[2:6, 2:6] = 7                                       # S, still
+        if mode in ("drift", "stop"):
+            c = 6 + 3 * min(t, 5 if mode == "stop" else t)
+            b[20:23, c:c + 3] = 3
+        elif mode == "resize":
+            b[20:23, 10:10 + 2 + t] = 3                       # widens one column per action
+        elif mode == "transient":
+            b[20:23, 10:13 + (1 if mid else 0)] = 3           # wider only mid-cascade
+        return b
+    def _f(self, frames):
+        f = FrameDataRaw(game_id="derive", state=GameState.NOT_FINISHED, levels_completed=0,
+                         win_levels=2, guid="g", available_actions=[1, 2])
+        f.frame = frames
+        self._last = f
+        return f
+    def reset(self):
+        self.calls.append("RESET")
+        return self._f([self.board(0)])
+    def step(self, action, data=None, reasoning=None):
+        self.calls.append(action.name)
+        self.t += 1
+        if mode == "transient":
+            return self._f([self.board(self.t, mid=True), self.board(self.t)])
+        return self._f([self.board(self.t)])
+
+led = os.path.join(tempfile.mkdtemp(), "d.jsonl")
+tether_agent.run(W(), "derive", max_actions=N, led_path=led)
+rows = [json.loads(x) for x in open(led, encoding="utf-8")]
+bets = [r for r in rows if r.get("event") == "bet" and r["detail"].get("channel") == "transition"]
+cols = {}
+for r in bets:
+    if r["slot"].endswith(".col"):
+        cols.setdefault(r["slot"].rsplit(".", 1)[0], set()).add(r["detail"].get("actual"))
+widths = {}
+for r in rows:
+    if r.get("event") == "bet" and r["slot"].endswith(".shape"):
+        widths.setdefault(r["slot"].rsplit(".", 1)[0], set()).add(r["detail"].get("actual"))
+mover = max(cols, key=lambda o: len(cols[o])) if mode in ("drift", "stop") else max(
+    widths or cols, key=lambda o: len((widths or cols)[o]))
+mine = [r for r in bets if r["slot"].rsplit(".", 1)[0] == mover]
+out = {"mover": mover,
+       "col": [(r["cycle"], r["detail"].get("bound"), round(r["detail"].get("mass", 0), 2))
+               for r in mine if r["slot"].endswith(".col")],
+       "massive": sorted({r["slot"].rsplit(".", 1)[1] for r in mine
+                           if r["detail"].get("mass", 0) > 0}),
+       "bet_attrs": sorted({r["slot"].rsplit(".", 1)[1] for r in mine}),
+       "rel": [(r["slot"], r.get("of"), r["detail"].get("derived"),
+                r["detail"].get("actual"))
+               for r in rows if r.get("event") == "relational_surprise"
+               and r["slot"].rsplit(".", 1)[0] == mover]}
+print(json.dumps(out))
+'''
+
+
+def child(mode: str, n: int, extra: dict | None = None) -> dict:
+    env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
+    env.update({"PYTHONDONTWRITEBYTECODE": "1", **(extra or {})})
+    p = subprocess.run([sys.executable, "-B", "-c", CHILD, mode, str(n)], capture_output=True,
+                       text=True, env=env, cwd=os.path.dirname(os.path.abspath(__file__)),
+                       stdin=subprocess.DEVNULL)
+    assert p.returncode == 0, p.stderr[-2000:]
+    return json.loads(p.stdout.strip().splitlines()[-1])
+
+
+def main() -> int:
+    m = child("drift", 8)
+    bound = {c: (b, ms) for c, b, ms in m["col"]}
+    late = [bound[c] for c in sorted(bound) if c >= 4]
+    assert late and all(b.startswith("translate<") and ms == 0 for b, ms in late), m["col"]   # M
+    assert "dcol" not in m["bet_attrs"] and "speed" not in m["bet_attrs"], m["bet_attrs"]
+    assert not m["rel"], m["rel"]
+    print("M col from cycle 4:", late[0], "; dcol/speed bet on:", "dcol" in m["bet_attrs"],
+          "; relational surprises", len(m["rel"]))
+    s = child("stop", 9)
+    stop = [(c, b, ms) for c, b, ms in s["col"] if c == 5]
+    assert stop and stop[0][2] > 0, s["col"]                                            # MF-M
+    print("MF-M the mover stops at cycle 5: col", stop[0])
+    r = child("resize", 5)
+    assert "shape" in r["massive"] and not ({"w", "h", "dw", "dcells"} & set(r["bet_attrs"])), r
+    assert not r["rel"], r["rel"]                                                       # R
+    print("R resize: residual on", r["massive"], "; w/h/dw/dcells bet on:",
+          sorted({"w", "h", "dw", "dcells"} & set(r["bet_attrs"])), "; relational", len(r["rel"]))
+    t = child("transient", 4)
+    assert t["rel"] and all(any(x.endswith(".shape") for x in (src or ()))
+                            for _s, src, _d, _a in t["rel"]), t["rel"]                  # T
+    print("T transient: relational surprises", t["rel"][:3])
+    off = child("drift", 6, {"TETHER_DERIVED_PERCEPT": "0"})
+    assert "dcol" in off["bet_attrs"], off["bet_attrs"]                                   # OFF
+    print("OFF: dcol bet on again:", "dcol" in off["bet_attrs"])
+    print("derived_percept: OK")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

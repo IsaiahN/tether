@@ -3312,6 +3312,15 @@ class Agent:
         if last:
             c["last"] = [getattr(self, "generation", 0), self.cycle]
 
+    def _derive(self, state: dict, before: dict) -> dict:
+        """The world's derive on a predicted state; worlds that derive frame deltas (E0) take
+        the before-state too, others read the state alone."""
+        fn = self.env.derive
+        if self.__dict__.get("_derive_takes_before") is None:
+            import inspect
+            self._derive_takes_before = "before" in inspect.signature(fn).parameters
+        return fn(state, before=before) if self._derive_takes_before else fn(state)
+
     def _bind_terms(self, o: str, x: str) -> tuple:
         """BIND ONCE: _bound's (terms memo, key prefix) for names (o, x), living with the bound
         memos (the process's under an atoms token, this Agent's otherwise); () when OFF."""
@@ -5662,7 +5671,7 @@ class Agent:
         if _derived:
             _ps = dict(before)
             _ps.update({s: (raw[s] if raw.get(s) is not None else pred[s]) for s in betting})
-            _dpred = {k: v for k, v in self.env.derive(_ps).items() if k in _derived}
+            _dpred = {k: v for k, v in self._derive(_ps, before).items() if k in _derived}
         self._derived_pred = _dpred
         _, deg_before = self.env.objective()
         _real = IFace.Realisation(action, coord)

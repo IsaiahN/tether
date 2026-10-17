@@ -46,6 +46,13 @@ _OBSERVER = armflag.arm("TETHER_OBSERVER", default=True)
 # pairs and the agent's actor pairs. ON; reason in conform/arms.py.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
+# E0: each object attribute the percept derives, and the readings it derives it from (the frame
+# deltas from the before-state's readings too). The cell-change attributes (add_* / rem_*) are NOT
+# here: they also depend on how the tracker established identity (identity_of), not only on readings
+_OBJ_DERIVED = {"h": ("shape",), "w": ("shape",), "dh": ("shape",), "dw": ("shape",),
+                "dcells": ("shape",), "dholes": ("shape",), "dperimeter": ("shape",),
+                "drow": ("row",), "dcol": ("col",), "speed": ("row", "col"),
+                "colour_changed": ("colour",)}
 
 
 def _oldest(d: dict) -> int:
@@ -802,15 +809,21 @@ class ArcWorld:
         return sorted({(src[0].rsplit(".", 1)[0], src[4].rsplit(".", 1)[0])
                        for src in self._pair_src.values()})
 
-    def derive(self, state: dict) -> dict[str, int]:
+    def derive(self, state: dict, before: dict | None = None) -> dict[str, int]:
         """The pair slots computed from any state of slot values -- the instrument applied to a
-        predicted state (B2b (c)). A pair with an unreadable party is omitted."""
+        predicted state (B2b (c)). A pair with an unreadable party is omitted. Under
+        TETHER_DERIVED_PERCEPT also the object attributes (_obj_derive), and the boxes read h / w
+        from the state's shape, so a predicted shape moves the pair slots too."""
+        objd = self._obj_derive(state, before) if relations._DERIVED_PERCEPT else {}
         if not _RELATION_SET:
-            return {}
+            return objd
+        if objd:
+            state = {**state, **{k: v for k, v in objd.items()
+                                 if k.rsplit(".", 1)[1] in ("h", "w")}}
         pairs = self._pairs_now()
         boxes = self._boxes(state, {o for p in pairs for o in p})
-        return relations.pair_slots_over(boxes, [(a, b) for a, b in pairs
-                                                 if a in boxes and b in boxes])
+        return {**objd, **relations.pair_slots_over(boxes, [(a, b) for a, b in pairs
+                                                             if a in boxes and b in boxes])}
 
     def boxes(self, state: dict) -> dict[str, dict]:
         """B4: each object's box read from a state's slot values (row, col, h, w). The caller passes
@@ -819,9 +832,74 @@ class ArcWorld:
         return self._boxes(state, {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")})
 
     def derived(self) -> dict[str, tuple[str, ...]]:
-        """Each pair slot and the slots it is computed from (both boxes' row, col, h, w)."""
-        self._all()
-        return dict(self._pair_src) if _RELATION_SET else {}
+        """Each pair slot and the slots it is computed from (both boxes' row, col, h, w). Under
+        TETHER_DERIVED_PERCEPT also each object attribute the percept computes from readings it
+        publishes (_OBJ_DERIVED), and a pair slot's h / w resolved through to the shape they come
+        from, so "every source held" means row, col and shape held."""
+        d = self._all()
+        out = dict(self._pair_src) if _RELATION_SET else {}
+        if not relations._DERIVED_PERCEPT:
+            return out
+
+        def through(src):
+            got = []
+            for s_ in src:
+                o, a = s_.rsplit(".", 1)
+                s2 = f"{o}.shape" if a in ("h", "w") else s_
+                if s2 not in got:
+                    got.append(s2)
+            return tuple(got)
+        out = {k: through(v) for k, v in out.items()}
+        for k in d:
+            o, a = k.rsplit(".", 1)
+            if a in _OBJ_DERIVED and f"{o}.shape" in d:
+                out[k] = tuple(f"{o}.{x}" for x in _OBJ_DERIVED[a])
+        return out
+
+    def _shape_key(self, label: Any) -> frozenset | None:
+        """The percept's own shape key (the cell set at the origin) for a published label."""
+        tab = getattr(self._decompose, "_shapes", None) or {}
+        inv = self.__dict__.get("_shape_inv")
+        if inv is None or len(inv) != len(tab):
+            inv = self._shape_inv = {v: k for k, v in tab.items()}
+        return inv.get(label) if isinstance(label, int) else None
+
+    def _obj_derive(self, state: dict, before: dict | None) -> dict[str, int]:
+        """E0: the object attributes derived from a state's (and the before-state's) readings,
+        by the percept's own rules: h / w are the shape key's extent (arc_percept 202-203), the
+        frame deltas are differences of those and of holes_of / perimeter_of / the cell count,
+        drow / dcol of row / col (delta_of), speed their larger magnitude, colour_changed the
+        colour compared."""
+        out: dict[str, int] = {}
+        for k, lab in state.items():
+            o, a = k.rsplit(".", 1)
+            if a != "shape":
+                continue
+            key = self._shape_key(lab)
+            if key is None:
+                continue
+            out[f"{o}.h"] = max(r for r, _c in key) + 1
+            out[f"{o}.w"] = max(c for _r, c in key) + 1
+            if before is None:
+                continue
+            bkey = self._shape_key(before.get(k))
+            if bkey is not None:
+                bh, bw = max(r for r, _c in bkey) + 1, max(c for _r, c in bkey) + 1
+                out[f"{o}.dh"], out[f"{o}.dw"] = out[f"{o}.h"] - bh, out[f"{o}.w"] - bw
+                out[f"{o}.dcells"] = len(key) - len(bkey)
+                out[f"{o}.dholes"] = arc_percept.holes_of(key) - arc_percept.holes_of(bkey)
+                out[f"{o}.dperimeter"] = (arc_percept.perimeter_of(key)
+                                          - arc_percept.perimeter_of(bkey))
+            pos = [state.get(f"{o}.row"), state.get(f"{o}.col"),
+                   before.get(f"{o}.row"), before.get(f"{o}.col")]
+            if all(isinstance(v, int) for v in pos):
+                dr, dc = pos[0] - pos[2], pos[1] - pos[3]
+                out[f"{o}.drow"], out[f"{o}.dcol"] = dr, dc
+                out[f"{o}.speed"] = max(abs(dr), abs(dc))
+            c1, c0 = state.get(f"{o}.colour"), before.get(f"{o}.colour")
+            if isinstance(c1, int) and isinstance(c0, int):
+                out[f"{o}.colour_changed"] = int(c1 != c0)
+        return out
 
     def _all(self) -> dict[str, int]:
         """The frame's read plus its pair slots, computed FROM the read and never inside its

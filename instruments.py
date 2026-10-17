@@ -435,7 +435,7 @@ class Clocks:
 # instruments from 2026-10-15, for TETHER_BLOB_STAMP; sensors_heavy from 2026-10-16, for
 # TETHER_HOLES_REPOINT (step 6).
 ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms", "compile_term", "gridworld",
-               "interface", "lineage", "gamma", "instruments", "sensors_heavy")
+               "interface", "lineage", "gamma", "instruments", "sensors_heavy", "relations")
 
 
 class Attribution:

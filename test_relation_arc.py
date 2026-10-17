@@ -68,7 +68,8 @@ def pairs_of(keys):
                    if relations.pair_attr(k.rsplit(".", 1)[1])})
 obs = env.observe()
 out["off_or_on_pairs"] = pairs_of(obs)
-out["derived_n"] = len(env.derived())
+out["derived_n"] = len([k for k in env.derived()                 # the PAIR slots derived
+                         if relations.pair_attr(k.rsplit(".", 1)[1])])
 ok_vals = all(obs[f"{a}.{rel}_{b}"] == v for a, b in pairs_of(obs)
               for rel, v in relations.pair_values(tr[a], tr[b]).items())
 types, alpha, own, rels = env.slot_types(), env.alphabet(), env.slot_owner(), env.relational_slots()

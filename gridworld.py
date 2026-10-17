@@ -350,9 +350,24 @@ class GridWorld:
 
     def _pairs(self) -> dict[str, int]:
         """B2: every ordered pair's relation slots, from the objects' own cells (1x1 here)."""
-        return self.derive(self.state) if _RELATION_SET else {}
+        return self._pair_derive(self.state) if _RELATION_SET else {}
 
     def derive(self, state: dict) -> dict[str, int]:
+        """The pair slots from any state (_pair_derive), and under TETHER_DERIVED_PERCEPT each
+        object's proximity and distance by this world's own rules (_proximity, _distance) applied
+        to that state -- the world stating its rule, as it does for the pairs."""
+        out = self._pair_derive(state) if _RELATION_SET else {}
+        if relations._DERIVED_PERCEPT and all(state.get(f"o{i}.{a}") is not None
+                                              for i in (0, 2) for a in ("row", "col")):
+            for i in range(N_OBJECTS):
+                who = f"o{i}"
+                if state.get(who + ".row") is None or state.get(who + ".col") is None:
+                    continue
+                out[who + ".proximity"] = self._proximity_in(state, who)
+                out[who + ".distance"] = self._distance_in(state, who)
+        return out
+
+    def _pair_derive(self, state: dict) -> dict[str, int]:
         """B2b (the reviewer 2026-10-11 10:30 CDT): the pair slots computed from ANY state the
         caller gives -- the instrument applied to a predicted state, so the agent's relational
         prediction comes from its own predicted positions and never from the world's truth."""
@@ -371,10 +386,46 @@ class GridWorld:
                 if state.get(f"o{i}.row") is not None and state.get(f"o{i}.col") is not None}
 
     def derived(self) -> dict[str, tuple[str, ...]]:
-        """B2b: each pair slot and the slots it is computed from (both objects' row and col)."""
-        return {k: tuple(f"{o}.{a}" for o in (k.split(".", 1)[0], k.rsplit("_", 1)[1])
-                         for a in ("row", "col"))
-                for k in self._pairs()}
+        """B2b: each pair slot and the slots it is computed from (both objects' row and col).
+        Under TETHER_DERIVED_PERCEPT also proximity (from its object and o0) and distance (also the
+        wall o2, which _blocked reads)."""
+        out = {k: tuple(f"{o}.{a}" for o in (k.split(".", 1)[0], k.rsplit("_", 1)[1])
+                        for a in ("row", "col"))
+               for k in self._pairs()}
+        if relations._DERIVED_PERCEPT:
+            for i in range(N_OBJECTS):
+                who = f"o{i}"
+                if who + ".row" in self.state:
+                    pos = (f"{who}.row", f"{who}.col", "o0.row", "o0.col")
+                    out[who + ".proximity"] = pos
+                    out[who + ".distance"] = (*pos, "o2.row", "o2.col")
+        return out
+
+    def _proximity_in(self, state: dict, who: str) -> int:
+        """_proximity's rule on a given state."""
+        return (abs(state[who + ".row"] - state["o0.row"])
+                + abs(state[who + ".col"] - state["o0.col"]))
+
+    def _distance_in(self, state: dict, who: str) -> int:
+        """_distance's rule (breadth-first, wrapped, the wall o2 blocking) on a given state."""
+        from collections import deque
+        start = (state["o0.row"] % GRID, state["o0.col"] % GRID)
+        goal = (state[who + ".row"] % GRID, state[who + ".col"] % GRID)
+        if start == goal:
+            return 0
+        wall = (state["o2.row"] % GRID, state["o2.col"] % GRID)
+        seen, q = {start}, deque([(start, 0)])
+        while q:
+            (r, c), d = q.popleft()
+            for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nxt = self._wrap(r + dr, c + dc)
+                if nxt in seen or nxt == wall:
+                    continue
+                if nxt == goal:
+                    return d + 1
+                seen.add(nxt)
+                q.append((nxt, d + 1))
+        return 2 * GRID
 
     def atoms(self) -> list[Atom]:
         """THE TOY WORLD'S ATOMS, VERBATIM. See the module docstring: one variable moves."""
