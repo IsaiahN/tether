@@ -653,6 +653,14 @@ _SPEED2_BOUND = armflag.arm("TETHER_SPEED2_BOUND", default=True)
 # restarts whenever the frames may differ (epoch, or the objects' representative slots). Every
 # verdict, offer and choice unchanged
 _REACH_EXACT = armflag.arm("TETHER_REACH_EXACT", default=True)
+# E1 PART 2, WHO MAY BE A CAUSE (Isaiah 2026-10-17 06:42 "change first, contact second, and rank and
+# budget"; the reviewer 06:49): the CAUSE side of the route asks, per changed slot, its own act's
+# target first, then the objects that changed (most recent first), then the contact cascade ring by
+# ring, then every object no ring reached; a kind that already caused this kind of effect goes
+# first in its tier. ONE RING PER STEP while the slot's change stays unexplained; nothing is
+# excluded, the unreached are counted "unreached at this budget", and every tier reached with no
+# cause supported is recorded "no visible cause". OFF: every other object, every step (part 1)
+_REACH_RANK = armflag.arm("TETHER_REACH_RANK", default=True)
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
 # alone (the same mint on its own rows) and the terms found are held as D5 parts under the predicate
@@ -2025,6 +2033,11 @@ class Agent:
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
         self._reach_fold: dict = {}        # E1 X1: a CAUSE pair -> (frames sig, fold state)
+        self._rank_ring: dict = {}         # E1 part 2: (epoch, slot) -> (ring, cycle it moved)
+        self._rank_age: tuple | None = None   # E1 part 2: (epoch, trace length, object -> age)
+        self._cause_kind_n: Counter = Counter()   # E1 part 2: "cause|effect|attr" kinds supported
+        self._cause_kind_in: dict = {}     # the same, carried in by the lineage (summed at load)
+        self._cause_kind_written: dict = {}   # the counts already written to a generation
         self._reach_fsig: tuple | None = None   # E1 X1: what the current frames were built from
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
@@ -2777,10 +2790,23 @@ class Agent:
         # THE LIBRARY REPEATS ITSELF: hundreds of lit entries unfold into tens of thousands of
         # candidates over a few templates, so the DISTINCT compiled terms are indexed once per
         # (description, objects) and every entry that offered one is kept as its provenance.
-        ikey = (frozenset(changed), slot, mine, others, blk)
-        index = self._reach_index.get(ikey)
-        if index is None:
-            index = self._reach_index[ikey] = self._index_reach(lib, lit, slot, mine, others)
+        rank = None
+        if _REACH_RANK:
+            # E1 part 2: the views keep today's partner; only the CAUSE side is ranked and budgeted
+            cands, rank, n_tiers, _cov = self._rank_causes(slot, mine, own, tuple(rep_slot), att)
+            # REACH-LIT-KEY: the lit entries are in the key, so an index built before an
+            # invention is never served after it (the reviewer 07:03)
+            ikey = (frozenset(changed), slot, mine, cands, blk, others[:1],
+                    tuple(k for k, _w in lit))
+            index = self._reach_index.get(ikey)
+            if index is None:
+                index = self._reach_index[ikey] = self._index_reach(
+                    lib, lit, slot, mine, cands, partner=others[0] if others else mine)
+        else:
+            ikey = (frozenset(changed), slot, mine, others, blk)
+            index = self._reach_index.get(ikey)
+            if index is None:
+                index = self._reach_index[ikey] = self._index_reach(lib, lit, slot, mine, others)
         views, causes, refused = index
         if _LIBRARY_ABDUCE:
             # 7d's row: what the reverse lookup added -- entries lit only by it, the distinct
@@ -2832,17 +2858,85 @@ class Agent:
             if v["supported"]:
                 rows.append({**prov, "then": then_c.term.name, **v,
                              "offered": off["offered"], "why": off["why"]})
+                if rank is not None and own.get(if_c.slot) is not None:
+                    # the kind record the boost reads: this kind of object caused this kind of
+                    # effect on this attribute (supported by the frames; never a game id)
+                    _o = own[if_c.slot]
+                    self._cause_kind_n["|".join((self._kind_str(_o), self._kind_str(mine),
+                                                 str(att.get(slot)),
+                                                 "cov" if _o in _cov else "nocov"))] += 1
+        if rank is not None:
+            self._rank_moved(slot, rank, n_tiers, explained=bool(rows))
         self._lib_offers[slot] = [o_ for o_ in offers if o_["offered"]]
         self.led.record(self.cycle, "ROUTE", slot, "library", changed=sorted(changed),
                         lit=len(lit), views=len(views), causes=len(causes),
                         supported=rows, offered=len(self._lib_offers[slot]),
                         withheld=dict(Counter(o_["why"] for o_ in offers if not o_["offered"])),
-                        refused=dict(refused),
+                        refused=dict(refused), **({"rank": rank} if rank is not None else {}),
                         reads=("the library lit by this residual's description; the distinct views "
                                "and CAUSE then-sides that compile onto this slot, tested and "
                                "recorded, each with the count of entries that offered it"))
 
-    def _index_reach(self, lib: Any, lit: list, slot: str, mine: str, others: tuple) -> tuple:
+    def _kind_str(self, owner: str | None) -> str | None:
+        return None if owner is None else "/".join(self._kind(owner))
+
+    def _rank_causes(self, slot: str, mine: str, own: dict, objects, att: dict) -> tuple:
+        """E1 part 2: the CAUSE candidates this step may ask for `slot`, and the record of the
+        budget. (cands in order, info). The ring is per (epoch, slot) and is moved by `_rank_moved`
+        once the step's causes are tested."""
+        n = len(self.trace)
+        if self._rank_age is None or self._rank_age[:2] != (self._trace_epoch, n):
+            # ONE PASS PER STEP over the trail, per object and never per entry (the reviewer
+            # 06:54, 07:19): which objects changed in each transition, and when each last did
+            age: dict = {}
+            changed_t: list = []
+            for t in range(n):
+                before, _a, after, _i, _l = self.trace[t]
+                ch = {own[s_] for s_ in after.keys() | before.keys()
+                      if s_ in own and before.get(s_) != after.get(s_)}
+                for o_ in ch:
+                    age[o_] = n - 1 - t                     # the latest change wins
+                changed_t.append(ch)
+            self._rank_age = (self._trace_epoch, n, age, changed_t)
+        age, changed_t = self._rank_age[2], self._rank_age[3]
+        effect_t = [b.get(slot) != af.get(slot) for b, _a, af, _i, _l in self.trace]
+        dp, constant = reach.trail(changed_t, effect_t, objects)
+        covaried = frozenset(o_ for o_, v in dp.items() if v > 0)
+        self._touching(slot)                        # fills the frame's contact cache
+        adj = (self._touch_cache[1] or {}) if self._touch_cache else {}
+        effect = (self._kind_str(mine), str(att.get(slot)))
+        # the boost reads only causes that CO-VARIED: a constant "supported" trivially says
+        # nothing about when, so it never trains the boost toward static objects (the reviewer)
+        known = {k.split("|")[0] for d in (self._cause_kind_n, self._cause_kind_in)
+                 for k in d if k.split("|")[1:] == [effect[0], effect[1], "cov"]}
+        boosted = frozenset(o_ for o_ in objects if self._kind_str(o_) in known)
+        tiers = reach.cause_tiers(mine, self._last_landed, age, adj, objects, boosted,
+                                  dp, constant)
+        if not tiers:                               # no other object: nothing to rank
+            return (), {"ring": 0, "tiers": 0, "reached": 0, "lifted": 0, "unreached": 0,
+                        "r0": None}, 0, covaried
+        ring = min(self._rank_ring.get((self._trace_epoch, slot), (0, None))[0], len(tiers) - 1)
+        reached = [o_ for t in tiers[:ring + 1] for o_ in t]
+        lifted = [o_ for t in tiers[ring + 1:] for o_ in t if o_ in boosted]
+        info = {"ring": ring, "tiers": len(tiers), "reached": len(reached), "lifted": len(lifted),
+                "unreached": sum(map(len, tiers)) - len(reached) - len(lifted),
+                "covaried": len(covaried), "constant": len(constant),
+                "r0": self._last_landed if self._last_landed in objects else None}
+        return tuple(reached + lifted), info, len(tiers), covaried
+
+    def _rank_moved(self, slot: str, info: dict, n_tiers: int, explained: bool) -> None:
+        """The one-ring-per-step budget, moved once per step per slot (reach.next_ring)."""
+        key = (self._trace_epoch, slot)
+        held = self._rank_ring.get(key)
+        if n_tiers == 0 or (held is not None and held[1] == self.cycle):
+            return
+        ring, exhausted = reach.next_ring(info["ring"], n_tiers, explained)
+        self._rank_ring[key] = (ring, self.cycle)
+        if exhausted and not explained:
+            info["no_visible_cause"] = True
+
+    def _index_reach(self, lib: Any, lit: list, slot: str, mine: str, others: tuple,
+                     partner: str | None = None) -> tuple:
         """The distinct compiled views and CAUSE pairs that land on `slot`, each with its first
         entry and the count of entries offering it; refusals counted by reason. Compiled once
         per condition (the compiler is a pure function of the condition and the atoms)."""
@@ -2863,7 +2957,8 @@ class Agent:
         causes: dict = {}
         refused: Counter = Counter()
         tally = refused if _SPEED2_COUNT else None
-        partner = others[0] if others else mine
+        if partner is None:     # E1 part 2 passes the views' partner apart from the ranked causes
+            partner = others[0] if others else mine
         sig = compile_term.signature(atoms) if _INDEX_HOLD else None
         for key, _w in lit:
             for role in reach.SINGLE:

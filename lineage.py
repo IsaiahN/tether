@@ -352,6 +352,11 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
                                      for k, n in sorted(c.items())
                                      if n > ag._kind_n_written[site].get(k, 0)}
                               for site, c in ag._kind_n.items()}
+    if tether._REACH_RANK and hasattr(ag, "_cause_kind_n"):
+        # E1 part 2: which kind of object caused which kind of effect, since the last write
+        gen["cause_kinds"] = {k: n - ag._cause_kind_written.get(k, 0)
+                              for k, n in sorted(ag._cause_kind_n.items())
+                              if n > ag._cause_kind_written.get(k, 0)}
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
@@ -376,6 +381,8 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
             ag._inv_carry_written = len(ag._inv_carry)
         if "kind_counts" in gen:
             ag._kind_n_written = {site: dict(c) for site, c in ag._kind_n.items()}
+        if "cause_kinds" in gen:
+            ag._cause_kind_written = dict(ag._cause_kind_n)
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -460,6 +467,12 @@ def load(d: str | Path, ag: Any) -> dict:
                 for k, n in c.items():
                     into[k] = into.get(k, 0) + n
         rep["kind_counts_in"] = {s: sum(c.values()) for s, c in ag._kind_carried_in.items()}
+    if tether._REACH_RANK and hasattr(ag, "_cause_kind_in"):
+        # E1 part 2: the cause-kind record of every generation, root to tip, read by the boost
+        for _h, g in chain:
+            for k, n in g.get("cause_kinds", {}).items():
+                ag._cause_kind_in[k] = ag._cause_kind_in.get(k, 0) + n
+        rep["cause_kinds_in"] = len(ag._cause_kind_in)
     if gamma._SETTLED_CORE:
         # 7i (2): a carried term keeps the standing it had, LEARNED and revisable (the reviewer
         # 2026-10-15 19:04); the record itself is unchanged

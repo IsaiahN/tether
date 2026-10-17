@@ -835,6 +835,14 @@ ARMS: dict[str, str] = {
                           "from frame 0 whenever the frames' inputs change. Every verdict "
                           "unchanged. OFF: every cause re-tested from frame 0 each step, one "
                           "entry kept per trace length. default ON",
+    "TETHER_REACH_RANK": "E1 part 2 (Isaiah 2026-10-17 06:42; the reviewer 06:49): the route's "
+                         "CAUSE candidates ranked and budgeted, never excluded -- the agent's "
+                         "own act's target, then the objects that changed (most recent first), "
+                         "then the contact cascade ring by ring, then every object no ring "
+                         "reached; a kind that already caused this kind of effect first in its "
+                         "tier (the record carried by the lineage); one ring per step while "
+                         "unexplained, 'no visible cause' when every tier is reached. OFF: every "
+                         "other object every step (part 1). default ON",
     "TETHER_M7_INV": "M7-INV (Isaiah 2026-10-15 06:01; the reviewer 2026-10-16 19:01 Q3): an "
                      "invention is carried as its method (template with {o}/{x}, reading, "
                      "affects, then-chain, standing then), named with a content hash; the "

@@ -78,6 +78,82 @@ def cause_fold(state: list | None, if_c: C.Compiled, then_c: C.Compiled,
                 "held": held, "refuted": refuted, "if_now": st[6]}
 
 
+def cause_tiers(mine: str, landed: str | None, age: dict, adj: dict, objects,
+                boosted=frozenset(), dp=None, constant=frozenset()) -> list[tuple[str, ...]]:
+    """E1 part 2 (Isaiah 2026-10-17 06:42, 06:54; the reviewer 06:49, 06:54): WHO may be the CAUSE
+    of a change on `mine`, in the order an organism asks, and every other object in some tier -- an
+    order for the budget, never a verdict (Fig 9 :60). Tier 0: the object the agent's own act
+    landed on (R0, first), then the objects that changed, the most recent first (R1). Tiers 1..:
+    the contact cascade out from `mine`, ring by ring (R2; Fig 11 :44). The last tier: every object
+    no ring reached, so nothing is excluded (Fig 11 :61). Inside a tier, after R0: the higher the
+    contingency of its changes with the effect (`dp`, reach.trail) the earlier, then a kind that
+    already caused this kind of effect (`boosted`), then recency; CONSTANT objects last --
+    deferred, never cut, since a constant may be an enabling condition (Fig 5 :43-44: a term that
+    says nothing about WHEN fails the bargain). `age`: object -> frames since it last changed
+    (absent: no change seen); `adj`: object -> what it touches."""
+    pool = sorted(o for o in objects if o != mine)
+    seen = {mine}
+    dp = dp or {}
+
+    def tier(cands, pinned=()) -> tuple[str, ...]:
+        out = [o for o in cands if o not in seen]
+        seen.update(out)
+        rest = [o for o in out if o not in pinned]
+        return tuple(o for o in out if o in pinned) + tuple(sorted(   # stable: keeps the order
+            rest, key=lambda o: (o in constant, -max(dp.get(o, 0.0), 0.0), o not in boosted,
+                                 age.get(o, len(pool)))))
+
+    r0 = (landed,) if landed in pool else ()
+    r1 = sorted((o for o in pool if o in age and o not in r0), key=lambda o: (age[o], o))
+    tiers = [tier([*r0, *r1], pinned=r0)]
+    ring = {mine}
+    while True:
+        nxt = sorted({n for o in ring for n in adj.get(o, ()) if n in pool and n not in seen})
+        if not nxt:
+            break
+        tiers.append(tier(nxt))
+        ring = set(nxt)
+    tiers.append(tier(pool))
+    return [t for t in tiers if t]
+
+
+def trail(changed: list, effect: list, objects) -> tuple[dict, frozenset]:
+    """Co-variation over the trail as CONTINGENCY on change events (Isaiah 06:54; the reviewer
+    07:19; Rescorla 1968): per object, dP = P(it changed in the transition of the effect or the
+    one just before | the effect) - P(the same | no effect). `changed`: one set per transition of
+    the objects whose readings changed in it; `effect`: one bool per transition, the slot itself
+    changed. A timer or noise changes every frame, so its dP is about 0; a trigger that changes
+    only before the effect has dP > 0; a constant never changed. (dP per object, the constants).
+    Neither is a verdict: the cause test still decides (Fig 9 :60)."""
+    n_e = sum(1 for e in effect if e)
+    n_o = len(effect) - n_e
+    seen = set().union(*changed) if changed else set()
+    dp: dict = {}
+    for o in objects:
+        if o not in seen:
+            continue
+        on = off = 0
+        for t, e in enumerate(effect):
+            c = o in changed[t] or (t > 0 and o in changed[t - 1])
+            if c and e:
+                on += 1
+            elif c:
+                off += 1
+        dp[o] = (on / n_e if n_e else 0.0) - (off / n_o if n_o else 0.0)
+    return dp, frozenset(o for o in objects if o not in seen)
+
+
+def next_ring(ring: int, n_tiers: int, explained: bool) -> tuple[int, bool]:
+    """The budget, one ring per step while the slot's change stays unexplained: (the ring to
+    reach next step, every tier reached and still nothing). A supported cause stops the advance and
+    the ring is kept, so a later failure resumes from it (the blocking guard: a whole tier is
+    tested in its step, so a co-cause in the same tier is never cut off)."""
+    if explained:
+        return ring, False
+    last = n_tiers - 1
+    return min(ring + 1, last), ring >= last
+
+
 def compile_cause(cand: dict, atoms: dict) -> tuple[C.Compiled, C.Compiled] | str:
     """Both sides compiled, or the first side's refusal as a reason string."""
     sides = []
