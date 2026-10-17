@@ -6,6 +6,8 @@ the past and it steps again.
      its overrun_s (wall at the cap minus the deadline, >= 0), and no library row after the deadline
   P2 the record still flushes: lineage.write after the cap writes a generation carrying entry_use,
      and a fresh agent loads equal counts
+  P3 the capped ledger passes gate.py: every live slot the cap left unsorted has its route row
+     (CAP_UNREACHED), so the routing check still accounts for every residual
   MF-P1 TETHER_CAP_MIDSTEP=0: the same deadline is ignored inside the step (no cap row, library
      rows written after it)
 
@@ -46,7 +48,9 @@ cap = [r for r in after if r.get("event") == "cap_mid_step"]
 libs = [r for r in after if r.get("event") == "library"]
 out = {"warm_steps": n, "cap_rows": len(cap), "lib_after": len(libs), "acted": acted,
        "overrun": [r["detail"].get("overrun_s") for r in cap],
-       "cap_slot": cap[0]["slot"] if cap else None}
+       "cap_slot": cap[0]["slot"] if cap else None, "led": led,
+       "unreached": sum(1 for r in after if r.get("event") == "route"
+                        and r["detail"].get("why_not") == tether.CAP_UNREACHED)}
 if tether._ENTRY_USE and tether._CAP_MIDSTEP:
     ld = os.path.join(d, "lin")
     lineage.write(ld, ag, "gw")
@@ -80,6 +84,12 @@ def main() -> int:
     assert on["written"] > 0 and on["loaded"] == on["written"] and on["equal"], on       # P2
     print("P1 cap row", on["cap_rows"], "library rows after the deadline", on["lib_after"],
           "; P2 entry_use written", on["written"], "loaded", on["loaded"], "equal", on["equal"])
+    g = subprocess.run([sys.executable, "-B", "gate.py", on["led"]], capture_output=True, text=True,
+                       cwd=os.path.dirname(os.path.abspath(__file__)), stdin=subprocess.DEVNULL,
+                       env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
+    verdict = json.loads(g.stdout)["verdict"]
+    assert verdict == "pass", g.stdout[-600:]                                         # P3
+    print("P3 gate on the capped ledger:", verdict, "; unreached route rows", on["unreached"])
     off = child({"TETHER_CAP_MIDSTEP": "0"})
     assert off["cap_rows"] == 0 and off["lib_after"] > 0, off                            # MF-P1
     print("MF-P1 OFF: cap rows", off["cap_rows"], "library rows after the deadline",

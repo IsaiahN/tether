@@ -1419,6 +1419,8 @@ OWES = "not held: this step read zero and the slot still owes"
 # why a departed slot is not sorted: its miss is recorded, and no term is owed on a slot that
 # no longer exists (the reviewer 2026-10-12 22:35, 22:42; no fifth kind)
 LEFT_BOARD = "not sorted: left the board this step; the miss stays recorded"
+CAP_UNREACHED = ("not sorted: the cap reached mid-step before this slot's turn; the residual "
+                 "stays recorded")
 
 TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"
 # 7h (e): a two-step prediction made in thought, graded a step later -- its own channel, never
@@ -2141,6 +2143,8 @@ class Agent:
         self._entry_use: dict = {}         # 1b: entry -> {lit, offered, refused, explained, last}
         self._own_quiet: set = set()       # 1: own-clock slots with own residual 0 this step
         self.deadline: float | None = None  # the runner's wall allowance (time.time()); None: none
+        self._route_order: list = []       # this step's route order and how far it got (the cap)
+        self._route_at = 0
         self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
@@ -6593,7 +6597,9 @@ class Agent:
     @_in_step("ROUTE")
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
+        self._route_order, self._route_at = list(res), 0   # where a cap mid-route lands
         for slot, r in res.items():
+            self._route_at += 1
             if r.gone:
                 filed = self._refuted_slot.pop(slot, None)
                 self.led.record(self.cycle, "ROUTE", slot, "route", bin=None,
@@ -12483,11 +12489,17 @@ class Agent:
             routed = self.route(res)
         except _CapReached:
             # the press went out in perceive; the rest of this step is not run (the only caller of
-            # the lookups is route, so this is the one place the cap can land)
+            # the lookups is route, so this is the one place the cap can land). Every slot from the
+            # interrupted one on gets its route row, so the record still says which live residual
+            # was never sorted (the gate's routing check)
+            for s_ in self._route_order[self._route_at - 1:]:
+                self.led.record(self.cycle, "ROUTE", s_, "route", bin=None,
+                                why_not=CAP_UNREACHED, support=len(self.trace))
             self.led.record(self.cycle, "ROUTE", "@cap", "cap_mid_step", acted=True,
                             overrun_s=round(time.time() - self.deadline, 1),
                             reads="cap reached mid-step: the agent stopped between lookups and "
                                   "ran none of the rest of this step")
+            self.cycle += 1     # the turn happened (a press went out); the next row is a new cycle
             return True
         # ONE CHAIN PER SLOT PER CYCLE (Fig 5; the reviewer 2026-10-07 16:12Z, F500): a term
         # minted this cycle is swept only into slots whose own turn is still to come; a slot
