@@ -805,6 +805,12 @@ ARMS: dict[str, str] = {
                        "_kind adds it, so 7l, 7m, 7h (h) and (a)/(b) read form, not an "
                        "encounter index. Worlds without it (gridworld, the toy) keep the type "
                        "kind. OFF: the type kind everywhere. default ON",
+    "TETHER_RESET_KNOWN": "D-WIN-RESET (the reviewer 2026-10-16 19:01 Q4): on a live board RESET "
+                          "is a known effect (it restarts the level), never an unknown to "
+                          "elicit: it leaves the never-taken and effect-unknown bands of "
+                          "ELICIT/DISTINGUISH and stays among the priced known effects; a dead "
+                          "board keeps it everywhere. OFF: RESET elicited as never taken. "
+                          "default ON",
     "TETHER_7H_LEARNED_ORDER": "U1 (the reviewer 2026-10-16 19:01 Q2): A1's learning reading "
                                "gains a third key, left minus paid over the slot kind's "
                                "lines (lineage and own), lower first, after the slot count "

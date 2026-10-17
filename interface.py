@@ -163,6 +163,13 @@ _SITUATED_CLICK = armflag.arm("TETHER_SITUATED_CLICK", default=True)
 # reading its presses over every context (table n, fewer first). The interface informs; the
 # frontier picks (A1). default ON; OFF is today's _pick exactly
 _7K_LEARN = armflag.arm("TETHER_7K_LEARN", default=True)
+# D-WIN-RESET (the reviewer 2026-10-15 19:36; 2026-10-16 19:01 Q4): RESET's effect is the
+# platform's documented consequence (_known_effect: it restarts the level), so on a LIVE board it is
+# not an unknown to elicit -- it leaves the never-taken and effect-unknown bands and stays among
+# the KNOWN effects the agent prices (a restart costs the actions spent this level). On a dead board
+# it stays everywhere, as the decay class needs. Isaiah 09-29: RESET ungated, "the one requirement
+# is that the interface knows what each does"
+_RESET_KNOWN = armflag.arm("TETHER_RESET_KNOWN", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -820,17 +827,20 @@ class Interface:
             return Realisation(a, coord=coord, unmapped=(a not in self.table), why=why)
 
         asked = "exploration" if intent.kind == ELICIT else "something that separates"
-        unmapped = [a for a in offered if a not in self.table]
+        # D-WIN-RESET: on a live board RESET is known, never an unknown to elicit
+        known_a_priori = {RESET} if (_RESET_KNOWN and self.alive) else set()
+        unmapped = [a for a in offered if a not in self.table and a not in known_a_priori]
         if unmapped:
             return _made(_pick(unmapped), f"requested {asked}: never taken")
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
-        fresh = [a for a in offered if self._known_now(a, ctx) is None]
+        fresh = [a for a in offered
+                 if self._known_now(a, ctx) is None and a not in known_a_priori]
         if fresh:
             return _made(_pick(fresh, learn=True),
                          f"requested {asked}: effect here not yet known")
         # everything mapped in this context. Take the one taken LEAST here -- still the agent's
         # call to explore, and refusing would be the interface overruling it.
-        seen = {a: len(self.table[a]["by_ctx"].get(ctx, ())) for a in offered}
+        seen = {a: len(self.table.get(a, {}).get("by_ctx", {}).get(ctx, ())) for a in offered}
         # **DESIGN A -- the reviewer, 2026-10-06 (F480).** For ELICIT, least-seen among KNOWN
         # effects was curiosity with no target (Fig 5) and an unpriced cost (Fig 12), decided
         # here. So the interface REPORTS what each action is known to do here and the AGENT
@@ -849,8 +859,9 @@ class Interface:
                 why = (f"{why}; gaps {dict(zip(offered, gaps, strict=True))}; "
                        f"today's key: {offered[j]}")
             return _made(offered[i], f"requested {asked}: nothing unknown here; {why}")
-        fewest = min(seen.values())
-        band = [a for a in offered if seen[a] == fewest]
+        pool = [a for a in offered if a not in known_a_priori] or list(offered)
+        fewest = min(seen[a] for a in pool)
+        band = [a for a in pool if seen[a] == fewest]
         return _made(_pick(band), f"requested {asked}: all known here, least-seen taken")
 
 
