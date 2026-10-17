@@ -112,6 +112,15 @@ def _child(arms: dict) -> list:
     return json.loads(out["ROWS"]), json.loads(out["PICKBY"])
 
 
+def _our_order(opts, _res, _seen, _key):
+    """MF-P's planted pick: the first option, our order. It refuses an empty list as
+    frontier_pick does, so the must-fail reaches the cases it was written to fail (the reviewer
+    2026-10-16 08:29: the bare lambda raised IndexError on p1's empty-list case first)."""
+    if not opts:
+        raise ValueError("no options")
+    return opts[0][0], "frontier", [opts[0][0]]
+
+
 def main() -> None:
     p1()
     print("  P1 the five steps each decide their case; the draw replays")
@@ -124,7 +133,7 @@ def main() -> None:
     n = a2(rows)
     print(f"  A2 {n} choice rows consistent with their readings; interface pick_by {by}")
     try:
-        p1(lambda opts, _res, _seen, _key: (opts[0][0], "frontier", [opts[0][0]]))
+        p1(_our_order)
     except AssertionError:
         print("  MF-P must-fail fired: our order fails P1")
     else:

@@ -779,7 +779,7 @@ def _next_stream(live: list, spent: dict, share: bool, key: str | None = None,
                  seed: str | None = None) -> int:
     """D2: the stream that takes the next candidate. OFF: the first live stream, which is the old
     sequence (each stream to exhaustion before the next). ON: the least rank spent this round,
-    ties to list order; under TETHER_A1_STREAM (site 4) an exact tie goes to the recorded draw,
+    ties to the lower stream id; under TETHER_A1_STREAM (site 4) an exact tie goes to the draw,
     never to the list order. No share, weight or quota."""
     if share and key is not None:
         return min(live, key=lambda s: (spent[s], FR.draw_key(key, s, seed)))
@@ -10914,8 +10914,11 @@ class Agent:
                 self.led.record(
                     self.cycle, "MINT", slot, "stream", site="stream_share",
                     key="least rank spent this round; exact ties by the draw",
-                    calls=_ns_calls, walked_total=sum(v["turns"] for v in _share.values()),
-                    walked_max=max(v["turns"] for v in _share.values()),
+                    # walked in RANK, the unit winner_rank is in (B, 2026-10-16 night: turns count
+                    # chains, rank counts every chain x bind x guard priced; one row, one unit)
+                    calls=_ns_calls, walked_total=rank,
+                    walked_max=max(v["rank"] for v in _share.values()),
+                    turns_total=sum(v["turns"] for v in _share.values()),
                     winner=_wk, winner_rank=_best_rank, stop=_stop_why,
                     work_budget=self.cfg.work_budget)
 

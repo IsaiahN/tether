@@ -473,7 +473,7 @@ def check_the_census_is_never_an_input():
     hits = [str(f.relative_to(here)) for f in here.rglob("*.py")
             if ".venv" not in f.parts and f.name != "test_entry.py"
             and any(t in f.read_text(encoding="utf-8", errors="replace")
-                    for t in ("docs/census", "docs\census", "GAME_TYPE_CENSUS"))]
+                    for t in ("docs/census", r"docs\census", "GAME_TYPE_CENSUS"))]
     assert not hits, hits
 
 

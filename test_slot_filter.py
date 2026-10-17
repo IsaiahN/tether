@@ -30,7 +30,7 @@ from test_entry import FakeWrapper
 if {wrong}:
     real = tether._lands
     tether._lands = lambda role, a, b, slot, sub: real(role, a, b, slot + ".wrong", sub)
-calls, last = [], {}
+calls, last = [], {{}}
 orig = tether.Agent._index_reach
 def spy(self, lib, lit, slot, mine, others):
     last["lib"] = lib
@@ -79,7 +79,9 @@ print("OUT " + json.dumps({{"calls": calls, "acts": acts, "rows": rows, "pre": p
 
 def _child(arms: dict, wrong: bool = False) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-    env.update(arms)
+    # C-seed-X: two separately born agents compared under ONE temperament, or the per-birth
+    # seed alone makes their paths differ (the same pin as test_speed2_count)
+    env.update({"TETHER_AGENT_SEED": "0"}, **arms)
     r = subprocess.run([sys.executable, "-B", "-c", CHILD.format(wrong=wrong)], env=env,
                        capture_output=True, text=True, check=False, stdin=subprocess.DEVNULL)
     assert r.returncode == 0, r.stderr[-3000:]

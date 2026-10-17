@@ -155,21 +155,9 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
         declared = 0
     palette = max(declared, int(max(int(v) for row in board for v in row)) + 1)
 
-    # **SET BEFORE THE ATOM SET IS BUILT, AND THE FIRST PLACEMENT WAS WRONG.** `three_spaces`
-    # reads `_ITERATE` on the line below; the flag originally sat forty lines further down with
-    # the config, so **`max_depth` reached the agent and the fold atoms did not** -- no crash,
-    # no failing seat, the capability simply absent. Caught by an executes-check that spied the
-    # atom set, which is the only thing that could have seen it. See `play`'s ruling note below.
-    arc_atoms._ITERATE = True
-    # **ISAIAH'S RULING, 2026-09-27: WE ARE FRONTLOADING, AND THAT IS THE GENERAL ANSWER.**
-    # Arm I and its declared partner, on for the ARC path by the same route `_ITERATE` took --
-    # `arms.py` holds that flipping an arm is a measurement AND a ruling and that the seat does
-    # neither; this is the ruling half, so the env census still reads OFF while the capability
-    # is LIVE. The pair is `arc_percept`'s own (`PAIRS` in `conform/arms.py`): the `holes` and
-    # `perimeter` atoms resolve only under arm I, so shape deltas alone would hand the agent a
-    # delta of a quantity it cannot itself measure.
-    tether._SHAPE_DECODE = True
-    arc_percept._SHAPE_DELTA = True
+    # C-cleanup-1 (the reviewer 2026-10-15 08:07): arc_atoms._ITERATE, tether._SHAPE_DECODE and
+    # arc_percept._SHAPE_DELTA were forced ON here for the ARC path; since the flip (Isaiah
+    # 2026-10-15 07:53) their module defaults are ON, so the forced sets only hid an OFF switch.
     # the code primitives, the SAME objects for every game in the process under TETHER_ATOMS_ONCE
     env = ArcWorld(w, arc_percept.Objects(),
                    gamma.primitives_once(arc_atoms.three_spaces(arc_predict.predict())),
