@@ -692,6 +692,13 @@ OWN_CLOCK = "own_clock"     # the bet row's maker label: the instrument, not a t
 # explained a residual (the mint's winner carries its provenance), and when it last explained one;
 # carried by the lineage per generation. Record only: nothing reads it yet. OFF: not kept
 _ENTRY_USE = armflag.arm("TETHER_ENTRY_USE", default=True)
+# E1 1, OWN CLOCKS OUT OF THE DESCRIPTION (the reviewer 2026-10-17 10:47; Fig 9 :29-30 "describe the
+# effect rather than the cause"; the reafference ruling at 10:05 applied to the description): an
+# own-clock slot whose own residual is 0 this step moved as our own bookkeeping said, so it is left
+# out of "what varied with it"; a nonzero own residual (a mid-cascade transient, an age fault) is
+# part of the effect and stays in. NOT exact: it changes what the library lights. OFF: every slot
+# that varied is in the description (5217b8d)
+_CLOCK_DESC = armflag.arm("TETHER_CLOCK_DESC", default=True)
 _BOUND_TERM: dict = {}     # (atoms_token, held Term, o, x) -> the Term bound, with _BOUND_MEMO
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
@@ -2121,6 +2128,7 @@ class Agent:
         self._cause_kind_in: dict = {}     # the same, carried in by the lineage (summed at load)
         self._cause_kind_written: dict = {}   # the counts already written to a generation
         self._entry_use: dict = {}         # 1b: entry -> {lit, offered, refused, explained, last}
+        self._own_quiet: set = set()       # 1: own-clock slots with own residual 0 this step
         self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
@@ -2811,6 +2819,11 @@ class Agent:
         scope = {s for s, o in own.items() if o == mine}
         gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types, scope=scope)
         described = {s: self.slot_types[s] for s in (slot, *gap["varies"]) if s in self.slot_types}
+        held_out = []
+        if _CLOCK_DESC:
+            held_out = sorted(s for s in described if s != slot and s in self._own_quiet)
+            for s in held_out:
+                del described[s]
         found = composer.lookup(described)
         read = composer.read_pairs(found["pairs"], [b for b, _act, _val, _intent, _landed in hist])
         held = [{k: r[k] for k in ("molecule", "left", "right", "left_reading", "right_reading",
@@ -2825,6 +2838,7 @@ class Agent:
         self._named[slot] = named
         self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
                         described=sorted(described), junctions=found["junctions"],
+                        **({"own_clock_out": held_out} if held_out else {}),
                         offered=len(found["pairs"]), held=held, named=sorted(named),
                         reads=("the library looked up by this residual's own description; "
                                "pairs offered, bonds read over its frames, nothing adopted"))
@@ -5748,6 +5762,8 @@ class Agent:
             if _MC_SIGNAL:
                 self._signals.append((_bet.seq, s, self.bound.get(s, NO_CHANGE)))
             self._standing(s)
+        # the own-clock slots that moved exactly as our bookkeeping said (residual 0) this step
+        self._own_quiet = {s for s in _own_clock if s in res and res[s].bits == 0}
         if _derived:
             self._relational_surprise(_derived, _dpred, res, after, before)
             self._blocked_reading(_derived, _ps, before, after, action)
