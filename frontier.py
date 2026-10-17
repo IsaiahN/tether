@@ -51,7 +51,12 @@ def frontier_pick(options: list, residual: dict | None, seen: dict | None, key: 
         room = [o for o in options if residual.get(o[0], 0) > 0]
         if len(room) == 1:
             return room[0][0], "gate", [room[0][0]]
-    front = [o[0] for o in room if not any(_beats(p, o) for p in room if p is not o)]
+    # whether an option is beaten depends only on its two readings, and equal readings never beat
+    # each other: so the frontier is taken over the DISTINCT readings, the same set as every pair
+    # (D, 2026-10-16 night: an invention's exact tie of ~10^5 options made the pairwise check hang)
+    reads = {(o[1], o[2]) for o in room}
+    beaten = {r for r in reads if any(_beats((None, *q), (None, *r)) for q in reads if q != r)}
+    front = [o[0] for o in room if (o[1], o[2]) not in beaten]
     pool = front
     if len(pool) == 1:
         return pool[0], "frontier", front
