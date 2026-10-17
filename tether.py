@@ -2464,6 +2464,23 @@ class Agent:
         self._prev_pred: dict[str, int] | None = None
         self.refusals: list[str] = []
 
+    def _close_owed(self, how: str) -> None:
+        """C1 at a boundary (the reviewer 2026-10-17 15:54): every question the budget left owed
+        from the attempt that ended is CLOSED with one row naming it and its unasked members --
+        never silently dropped (Fig 9: a filter is never a verdict) -- and the queue empties. The
+        slots' own debt (owed_import, parked with history at a level end) is untouched."""
+        if not self._owed_q:
+            return
+        by: dict = {}
+        for s_, q in self._owed_q.items():
+            by.setdefault(q, []).append(s_)
+        _c, _s, _lv = self._boundary_key("@owed")
+        for q, members in by.items():
+            self.led.record(_c, self._running_step, _s, "owed_closed", **_lv, question=list(q),
+                            unasked=sorted(members), how=how,
+                            reads="owed_closed: the level ended before this question was asked")
+        self._owed_q = {}
+
     def _boundary_key(self, slot: str) -> tuple[int, str, dict]:
         """(cycle, slot, extra fields) for a boundary row: its own chain at the real cycle with the
         level as a field, or -- _BOUNDARY_CHAIN False, the must-fail -- the old @loop keying."""
@@ -2591,6 +2608,8 @@ class Agent:
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
         self._intent_verdict(how)
+        if _STEP_BUDGET:
+            self._close_owed(how)
         for slot in sorted(self.owed_import):
             rec = dict(self.abstained.get(slot, {}))
             rec.update(slot=slot, level=self.level, hist=self.history(slot),
@@ -8718,6 +8737,8 @@ class Agent:
         travelling changed and silent (the reviewer, 2026-10-06). The rest are NAMED, not carried.
         """
         held, self._held_refutations = self._held_refutations, None
+        if _STEP_BUDGET:
+            self._close_owed("restart")
         self._attempt_actions = 0
         self._alive, self._epoch = True, self._epoch + 1   # the same level, alive again
         self.iface.situate(self._epoch, self._alive)
