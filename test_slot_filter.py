@@ -63,13 +63,16 @@ if tether._SLOT_FILTER and not {wrong}:
     smemo.clear()
     nb, real = [], tether._bound
     tether._bound = lambda *a: nb.append(1) or real(*a)
-    got = ag._compiled(last["lib"], key, role, o, x, None, atoms, sig, slot=slot)
+    # called as the agent calls it: under SPEED-2 (TETHER_SPEED2_COUNT) with a tally, so the
+    # refusals are counted, never rows -- the slot memo it is compared with holds landings only
+    _tl = (lambda: __import__("collections").Counter()) if tether._SPEED2_COUNT else (lambda: None)
+    got = ag._compiled(last["lib"], key, role, o, x, None, atoms, sig, slot=slot, tally=_tl())
     tether._bound = real
     memo = tether._BOUND_MEMO if ag._atoms_token else ag._bound_cache
     mkey = sk[:6]
     memo[mkey] = tuple(r for r in memo[mkey] if r != before[0])
     smemo.clear()
-    cut = ag._compiled(last["lib"], key, role, o, x, None, atoms, sig, slot=slot)
+    cut = ag._compiled(last["lib"], key, role, o, x, None, atoms, sig, slot=slot, tally=_tl())
     pre = {{"binds": len(nb), "same": tuple(got) == before, "rows": len(got),
             "cut_differs": tuple(cut) != before}}
 print("OUT " + json.dumps({{"calls": calls, "acts": acts, "rows": rows, "pre": pre,

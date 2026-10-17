@@ -46,9 +46,13 @@ tether_agent.run(w, "fake", max_actions=int(sys.argv[2]), lineage_dir=d)
 ag = agents[0]
 landed = ag._kind_landed
 full = {(ko, kx) for _k, _r, ko, kx in ag._kind_landed | ag._kind_known}
-fresh = all(ag._kind(o) == tuple(sorted({str(ag.slot_types.get(s)) for s in ag.slots
-                                          if s.split('.')[0] == o}))
-            for o in {s.split('.')[0] for s in ag.slots})
+# a fresh read is the type tuple, plus the canonical form where the world publishes one (3c-CANON)
+_code = getattr(ag.env, 'shape_code', None) if tether._3C_CANON else None
+def _fresh(o):
+    got = tuple(sorted({str(ag.slot_types.get(s)) for s in ag.slots if s.split('.')[0] == o}))
+    c = _code(o) if _code is not None else None
+    return (*got, f'form={c}') if c is not None else got
+fresh = all(ag._kind(o) == _fresh(o) for o in {s.split('.')[0] for s in ag.slots})
 pairs = {(ko, kx) for _k, _r, ko, kx in landed}
 asked_only = sorted({(ko, kx) for _k, _r, ko, kx in asked} - pairs)
 print("OUT " + json.dumps({"asked": len(asked), "landed": len(landed),

@@ -78,6 +78,10 @@ def main() -> None:
         if e == "choice":
             live = [r for r in by_seq if r[0] < s]
             want = live[-1][1]["root"] if live else None
+            # a root graded by a verdict (the death) before this choice is closed: while dead there
+            # is no root (R1), so a choice made then -- 7h (f)'s exit row -- carries none
+            if live and any(live[-1][0] < v < s for v, _vd in verdicts):
+                want = None
             if d.get("root") != want:
                 bad.append([s, d.get("root"), want])
     n_choice = sum(e == "choice" for _s, e, _d in run["rows"])

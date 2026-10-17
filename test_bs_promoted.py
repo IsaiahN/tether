@@ -32,12 +32,12 @@ from test_entry import FakeWrapper
 ROLE, D = {role!r}, {d!r}
 slots, asked = {{}}, []
 real = tether.Agent._compiled
-def compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=None):
+def compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=None, tally=None):
     if (slot is not None and sig is not None and role in tether._HELD_ROLES and o != x
             and all(tether._PLAIN.fullmatch(v) and "PH" not in v for v in (o, x))):
         slots.setdefault((sig, key, role, o, x), set()).add(slot)
         asked.append((self, lib, key, role, o, x, atoms, sig))
-    return real(self, lib, key, role, o, x, comp, atoms, sig, slot=slot)
+    return real(self, lib, key, role, o, x, comp, atoms, sig, slot=slot, tally=tally)
 tether.Agent._compiled = compiled
 if ROLE == "mf":
     def all_slots(ag):

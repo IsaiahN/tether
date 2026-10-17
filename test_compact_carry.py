@@ -33,8 +33,8 @@ if MODE == "old":
     lineage._dumps = lambda x: json.dumps(x, sort_keys=True, indent=1).encode("utf-8")
 digest = hashlib.sha256()
 real = tether.Agent._compiled
-def compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=None):
-    got = real(self, lib, key, role, o, x, comp, atoms, sig, slot=slot)
+def compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=None, tally=None):
+    got = real(self, lib, key, role, o, x, comp, atoms, sig, slot=slot, tally=tally)
     if slot is not None:
         got = list(got)
         digest.update(repr((key, role, o, x, slot,

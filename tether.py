@@ -4914,11 +4914,11 @@ class Agent:
         and no win, and a refuted shape that later wins comes back (the counts say so)."""
         n = collections.Counter(self._root_grade_in.get(shape, {}))
         n.update(self._root_grade.get(shape, {}))
-        won, lost = n["win"] + n["clear"], n["death"]
+        won, lost = n["game_win"] + n["clear"], n["death"]
         label = ("refuted by level outcomes" if lost >= 2 and not won else
                  "unsupported" if lost and not won else "mixed" if lost else
                  "carried" if won else "ungraded")
-        return {"shape": shape, "wins": n["win"], "clears": n["clear"], "deaths": n["death"],
+        return {"shape": shape, "wins": n["game_win"], "clears": n["clear"], "deaths": n["death"],
                 "label": label}
 
     def _refuted_slots(self) -> dict:
@@ -4974,15 +4974,17 @@ class Agent:
         goal hypothesis was the one in force at the end. A record only."""
         if not _7H_ROOT or self._root_id is None:
             return
-        self.led.record(self.cycle, "SETTLE", "@intent", "intent_verdict", root=self._root_id,
+        # ITS OWN CHAIN (B, 2026-10-16 night): the verdict is SETTLE at a boundary and the next
+        # situation's root is PLAN in the same cycle, so one slot would read PLAN after SETTLE
+        self.led.record(self.cycle, "SETTLE", "@intent_end", "intent_verdict", root=self._root_id,
                         ending=how, held_in_force=self._held_goal() == self._root_held,
                         held=self._root_held or "none held")
-        out = {WIN: "win", ADVANCE: "clear", "death": "death"}.get(how)
+        out = {WIN: "game_win", ADVANCE: "clear", "death": "death"}.get(how)   # F1b words (W1)
         if _7H_ROOT_GRADE and out is not None:
             # graded by the ground's ending only (a cap or a run end grades nothing)
             for s in self._root_shapes:
                 self._root_grade.setdefault(s, collections.Counter())[out] += 1
-            self.led.record(self.cycle, self._running_step, "@intent", "intent_graded",
+            self.led.record(self.cycle, self._running_step, "@intent_end", "intent_graded",
                             root=self._root_id, ending=how, outcome=out,
                             graded=[self._shape_grade(s) for s in self._root_shapes])
         self._root_id = None
