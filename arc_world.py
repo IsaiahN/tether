@@ -53,6 +53,8 @@ _OBJ_DERIVED = {"h": ("shape",), "w": ("shape",), "dh": ("shape",), "dw": ("shap
                 "dcells": ("shape",), "dholes": ("shape",), "dperimeter": ("shape",),
                 "drow": ("row",), "dcol": ("col",), "speed": ("row", "col"),
                 "colour_changed": ("colour",)}
+# E0b: the observer-item-4 pair slots (_relation_slots), each a function of both parties' cells
+_OBS_PAIR = ("contact", "bbox", "inside")
 
 
 def _oldest(d: dict) -> int:
@@ -814,7 +816,8 @@ class ArcWorld:
         predicted state (B2b (c)). A pair with an unreadable party is omitted. Under
         TETHER_DERIVED_PERCEPT also the object attributes (_obj_derive), and the boxes read h / w
         from the state's shape, so a predicted shape moves the pair slots too."""
-        objd = self._obj_derive(state, before) if relations._DERIVED_PERCEPT else {}
+        objd = ({**self._obj_derive(state, before), **self._obs_pair_derive(state)}
+                if relations._DERIVED_PERCEPT else {})
         if not _RELATION_SET:
             return objd
         if objd:
@@ -854,6 +857,44 @@ class ArcWorld:
             o, a = k.rsplit(".", 1)
             if a in _OBJ_DERIVED and f"{o}.shape" in d:
                 out[k] = tuple(f"{o}.{x}" for x in _OBJ_DERIVED[a])
+            elif a in _OBS_PAIR and "~" in o:
+                out[k] = tuple(f"{p}.{s}" for p in o.split("~", 1) for s in ("row", "col", "shape"))
+        return out
+
+    def _obs_pair_derive(self, state: dict) -> dict[str, int]:
+        """E0b: the observer-item-4 pair slots of this frame from a state's readings, each party's
+        cells rebuilt as its shape key placed at (row, col) -- the key is the cells less exactly
+        that origin (arc_percept 199-203) -- and measured by _relation_slots' own rules. Keys from
+        the frame's read, never derived() (_all calls derive before its pair read exists)."""
+        cells: dict[str, frozenset | None] = {}
+
+        def cells_of(o: str) -> frozenset | None:
+            if o not in cells:
+                key = self._shape_key(state.get(f"{o}.shape"))
+                r, c = state.get(f"{o}.row"), state.get(f"{o}.col")
+                cells[o] = (frozenset((r + dr, c + dc) for dr, dc in key)
+                            if key is not None and isinstance(r, int) and isinstance(c, int)
+                            else None)
+            return cells[o]
+        out: dict[str, int] = {}
+        for k in getattr(self, "_read", None) or {}:
+            own, a = k.rsplit(".", 1)
+            if a not in _OBS_PAIR or "~" not in own:
+                continue
+            x, y = own.split("~", 1)
+            A, B = cells_of(x), cells_of(y)
+            if A is None or B is None:
+                continue
+            if a == "contact":
+                out[k] = arc_percept.contact_faces({"cells": A}, {"cells": B})
+            elif a == "bbox":
+                r = (min(max(p for p, _q in A), max(p for p, _q in B)) + 1
+                     - max(min(p for p, _q in A), min(p for p, _q in B)))
+                c = (min(max(q for _p, q in A), max(q for _p, q in B)) + 1
+                     - max(min(q for _p, q in A), min(q for _p, q in B)))
+                out[k] = r * c if r > 0 and c > 0 else 0
+            else:
+                out[k] = int(bool(B) and B.issubset(arc_percept.enclosed_of(A)))
         return out
 
     def _shape_key(self, label: Any) -> frozenset | None:

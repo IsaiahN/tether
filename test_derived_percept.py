@@ -12,6 +12,13 @@
         intermediate frame only): a relational_surprise row on a frame delta with its source
         (shape) held
   OFF   TETHER_DERIVED_PERCEPT=0: dcol is bet on again (today's per-slot charge)
+  E0b, the observer-item-4 pair slots a~b.contact / bbox / inside (the reviewer 14:12):
+  X     derive() on each observed frame of a ring with a mover inside reproduces every published
+        contact / bbox / inside value (the cells rebuilt as shape key + (row, col))
+  P     the mover steps right inside the ring's hole until it touches the wall: residual on its
+        col (and the undeclared add_* / rem_*) only; no bet on the pair's contact / bbox / inside;
+        no relational surprise
+  MF-P  TETHER_DERIVED_PERCEPT=0: the pair's inside / bbox are bet on again
 
     python test_derived_percept.py
 """
@@ -49,6 +56,11 @@ class W:
             b[20:23, 10:10 + 2 + t] = 3                       # widens one column per action
         elif mode == "transient":
             b[20:23, 10:13 + (1 if mid else 0)] = 3           # wider only mid-cascade
+        elif mode in ("ring", "x"):
+            b[2:6, 2:6] = 0
+            b[12:19, 12:19] = 7                               # a ring, its hole 13-17 x 13-17
+            b[13:18, 13:18] = 0
+            b[15, 14 + min(t, 3)] = 3                         # touches the wall at col 18 from t=3
         return b
     def _f(self, frames):
         f = FrameDataRaw(game_id="derive", state=GameState.NOT_FINISHED, levels_completed=0,
@@ -66,6 +78,26 @@ class W:
             return self._f([self.board(self.t, mid=True), self.board(self.t)])
         return self._f([self.board(self.t)])
 
+if mode == "x":
+    import arc_atoms, arc_percept, arc_predict, gamma
+    from arc_world import ArcWorld
+    env = ArcWorld(W(), arc_percept.Objects(),
+                   gamma.primitives_once(arc_atoms.three_spaces(arc_predict.predict())),
+                   palette=10, name="x")
+    acts = [a for a in env.actions()]
+    out = {"frames": 0, "checked": 0, "wrong": [], "attrs": []}
+    for i in range(N):
+        d = env.observe()
+        got = env.derive(d)
+        keys = [k for k in d if "~" in k.rsplit(".", 1)[0]
+                and k.rsplit(".", 1)[1] in ("contact", "bbox", "inside")]
+        out["frames"] += 1
+        out["checked"] += len(keys)
+        out["attrs"] = sorted(set(out["attrs"]) | {k.rsplit(".", 1)[1] for k in keys})
+        out["wrong"] += [(i, k, d[k], got.get(k)) for k in keys if got.get(k) != d[k]]
+        env.step(acts[0])
+    print(json.dumps(out))
+    sys.exit()
 led = os.path.join(tempfile.mkdtemp(), "d.jsonl")
 tether_agent.run(W(), "derive", max_actions=N, led_path=led)
 rows = [json.loads(x) for x in open(led, encoding="utf-8")]
@@ -78,7 +110,7 @@ widths = {}
 for r in rows:
     if r.get("event") == "bet" and r["slot"].endswith(".shape"):
         widths.setdefault(r["slot"].rsplit(".", 1)[0], set()).add(r["detail"].get("actual"))
-mover = max(cols, key=lambda o: len(cols[o])) if mode in ("drift", "stop") else max(
+mover = max(cols, key=lambda o: len(cols[o])) if mode in ("drift", "stop", "ring") else max(
     widths or cols, key=lambda o: len((widths or cols)[o]))
 mine = [r for r in bets if r["slot"].rsplit(".", 1)[0] == mover]
 out = {"mover": mover,
@@ -91,6 +123,12 @@ out = {"mover": mover,
                 r["detail"].get("actual"))
                for r in rows if r.get("event") == "relational_surprise"
                and r["slot"].rsplit(".", 1)[0] == mover]}
+mine_pair = [r for r in bets if mover in r["slot"].rsplit(".", 1)[0].split("~")
+             and "~" in r["slot"].rsplit(".", 1)[0]]
+out["pair_bets"] = sorted({r["slot"].rsplit(".", 1)[1] for r in mine_pair})
+out["pair_rel"] = [(r["slot"], r["detail"].get("derived"), r["detail"].get("actual"))
+                   for r in rows if r.get("event") == "relational_surprise"
+                   and "~" in r["slot"].rsplit(".", 1)[0]]
 print(json.dumps(out))
 '''
 
@@ -130,6 +168,19 @@ def main() -> int:
     off = child("drift", 6, {"TETHER_DERIVED_PERCEPT": "0"})
     assert "dcol" in off["bet_attrs"], off["bet_attrs"]                                   # OFF
     print("OFF: dcol bet on again:", "dcol" in off["bet_attrs"])
+    x = child("x", 5)
+    assert x["checked"] and not x["wrong"] and set(x["attrs"]) == {"contact", "bbox", "inside"}, x
+    print("X derive reproduces", x["checked"], "published pair readings over", x["frames"],
+          "frames:", x["attrs"])                                                          # X
+    p = child("ring", 6)
+    # add_* / rem_* stay bet (identity-dependent, not declared; priced as B in E3)
+    own = [a for a in p["massive"] if not a.startswith(("add_", "rem_"))]
+    assert own == ["col"] and not p["pair_bets"] and not p["pair_rel"], p                  # P
+    print("P ring: residual on", p["massive"], "; pair bets", p["pair_bets"], "; relational",
+          len(p["pair_rel"]))
+    poff = child("ring", 6, {"TETHER_DERIVED_PERCEPT": "0"})
+    assert {"inside", "bbox"} <= set(poff["pair_bets"]), poff["pair_bets"]                # MF-P
+    print("MF-P OFF: pair bets", poff["pair_bets"])
     print("derived_percept: OK")
     return 0
 

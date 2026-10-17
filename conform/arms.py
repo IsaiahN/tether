@@ -867,7 +867,9 @@ ARMS: dict[str, str] = {
                               "what it derives -- h / w / the frame deltas from shape, motion "
                               "from row / col, colour_changed from colour, gridworld proximity "
                               "and distance from positions; pair sources resolved through to "
-                              "shape -- so they are predicted from their sources and carry a "
+                              "shape; E0b (14:12) the observer pairs a~b.contact / bbox / "
+                              "inside from both parties' row, col, shape -- so they are "
+                              "predicted from their sources and carry a "
                               "residual only as B2b relational surprise. OFF: only the pair "
                               "slots are declared (610654c). default ON",
     "TETHER_3A_DIAGNOSE": "E2, 3a DIAGNOSE (Isaiah 2026-10-17 03:37, 04:59; the reviewer PART "
