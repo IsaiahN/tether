@@ -2464,6 +2464,30 @@ class Agent:
         self._prev_pred: dict[str, int] | None = None
         self.refusals: list[str] = []
 
+    def _cap_due(self) -> bool:
+        """The runner's deadline has passed (TETHER_CAP_MIDSTEP). Read at every between-work point
+        a step has -- before each lookup, each slot's route, each mint, and the step's tail -- so a
+        step whose budget left no lookup still meets the cap (the reviewer 2026-10-17 16:56)."""
+        return _CAP_MIDSTEP and self.deadline is not None and time.time() >= self.deadline
+
+    def _cap_end(self, at: str, step: str) -> bool:
+        """The step stops at a passed deadline: one "@cap" row naming where (route / mint / tail);
+        the turn happened (the press went out in perceive), so the cycle advances."""
+        overrun = time.time() - self.deadline
+        # WHAT THE SKIPPED REST OWES (the reviewer 17:15 (b)), read at each part's write site: the
+        # carried parts read stores that persist; the lost ones read only this step's state
+        self.led.record(self.cycle, step, "@cap", "cap_mid_step", acted=True, at=at,
+                        overrun_s=round(overrun, 1),
+                        carried=["promotion (_promotions persists)", "muse (reads parked)",
+                                 "contradictions (_contra_q persists)"],
+                        lost=["routine settle against this step's observation",
+                              "this step's completion-sweep reach row", "this step's clock note",
+                              "this step's indistinct, fed and REPEAT rows"],
+                        reads="cap reached mid-step: the agent stopped between units of work and "
+                              "ran none of the rest of this step")
+        self.cycle += 1
+        return True
+
     def _close_owed(self, how: str) -> None:
         """C1 at a boundary (the reviewer 2026-10-17 15:54): every question the budget left owed
         from the attempt that ended is CLOSED with one row naming it and its unasked members --
@@ -2608,8 +2632,6 @@ class Agent:
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
         self._intent_verdict(how)
-        if _STEP_BUDGET:
-            self._close_owed(how)
         for slot in sorted(self.owed_import):
             rec = dict(self.abstained.get(slot, {}))
             rec.update(slot=slot, level=self.level, hist=self.history(slot),
@@ -2652,6 +2674,8 @@ class Agent:
         self.led.record(_c, "IMPORT", _s, "ending", **_lv, how=how, to_level=level,
                         reads=ENDING_READS.get(how, "unnamed ending"),
                         consumed_by="nothing yet -- boundary demotion is a separate item")
+        if _STEP_BUDGET:
+            self._close_owed(how)    # after the boundary's own rows: the level ended, then this
         self._note_ending(how, "level")
         # §21.3: A COMPLETION IS A SETTLE, AND THE SWEEP IS HOW YOU FIND OUT WHAT CAUSED IT.
         # *A level completes at step 500 and the last action did not cause it -- the
@@ -6208,7 +6232,7 @@ class Agent:
         # lands in the ledger, and the gate can check that the citation preceded the pull.*
         # Nothing recorded it until now -- the ordering was real at this site and unwritten,
         # which is the one thing this session found genuinely ABSENT rather than unconsumed.
-        if _CAP_MIDSTEP and self.deadline is not None and time.time() >= self.deadline:
+        if self._cap_due():
             raise _CapReached
         self.led.record(self.cycle, "ROUTE", slot, "reach",
                         gap={k: v for k, v in gap.items() if k != "varies"},
@@ -6684,6 +6708,8 @@ class Agent:
         self._route_order, self._route_at = list(res), 0   # where a cap mid-route lands
         for slot, r in res.items():
             self._route_at += 1
+            if self._cap_due():
+                raise _CapReached       # before this slot's turn (the reviewer 2026-10-17 16:56)
             if r.gone:
                 filed = self._refuted_slot.pop(slot, None)
                 self.led.record(self.cycle, "ROUTE", slot, "route", bin=None,
@@ -12588,12 +12614,7 @@ class Agent:
             for s_ in self._route_order[self._route_at - 1:]:
                 self.led.record(self.cycle, "ROUTE", s_, "route", bin=None,
                                 why_not=CAP_UNREACHED, support=len(self.trace))
-            self.led.record(self.cycle, "ROUTE", "@cap", "cap_mid_step", acted=True,
-                            overrun_s=round(time.time() - self.deadline, 1),
-                            reads="cap reached mid-step: the agent stopped between lookups and "
-                                  "ran none of the rest of this step")
-            self.cycle += 1     # the turn happened (a press went out); the next row is a new cycle
-            return True
+            return self._cap_end("route", "ROUTE")
         # ONE CHAIN PER SLOT PER CYCLE (Fig 5; the reviewer 2026-10-07 16:12Z, F500): a term
         # minted this cycle is swept only into slots whose own turn is still to come; a slot
         # already past its turn meets it through its own route next cycle.
@@ -12603,9 +12624,24 @@ class Agent:
         # turn takes no MINT row after its ACCEPT (F500's rule; the probe flush, 2026-10-14).
         _turned = set(self._turn_ahead) | set(_split_now)
         with self._step_scope("ACCEPT"):
-            for slot, b, fit, _why in routed:
+            for _i, (slot, b, fit, _why) in enumerate(routed):
                 if slot in _split_now:
                     continue
+                if b in (MECHANISM, REFUTED) and self._cap_due():
+                    # before this mint: the slots whose mint was not run say so, then the step ends
+                    for s_, b_, f_, _w in routed[_i:]:
+                        if s_ not in _split_now and (b_ == MECHANISM or (b_ == REFUTED
+                                                                          and not f_)):
+                            # it OWES (the reviewer 17:15 (a)): its residual was never closed, so
+                            # the next route sees it again even at a zero slice, as an owed slot
+                            self.owed_import.add(s_)
+                            self.led.record(self.cycle, "ACCEPT", s_, "cap_unminted", bin=b_,
+                                            owes=True,
+                                            reads="not minted: the cap reached mid-step before "
+                                                  "this slot's mint; it owes, and the next route "
+                                                  "sees it again")
+                    self._turn_ahead = None
+                    return self._cap_end("mint", "ACCEPT")
                 if b == REBIND and fit:
                     self.bound[slot] = fit
                     self._carry(fit)
@@ -12662,6 +12698,10 @@ class Agent:
             # 7j's grade, written in SETTLE time after the slot's ROUTE and MINT rows (moved from
             # right after perceive, where it broke the ladder; the reviewer 2026-10-16 10:56)
             self._test_row()
+        with self._step_scope("SETTLE"):
+            if self._cap_due():
+                # before the tail (routines, promotion, the sweeps): this step's bets are settled
+                return self._cap_end("tail", "SETTLE")
         self._settle_routine()
         self._promote()
         if _MC6:
