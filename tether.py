@@ -5684,7 +5684,9 @@ class Agent:
         # may not read domain structure, which is that side channel's whole reason.
         _scope = None
         if _DELTA_KEY:
-            own = self.env.slot_owner()
+            # C-DEMO: a world that publishes no owners (the toy Transitions) declares no scope,
+            # the reading the lookup at _library_reach already takes; never a crash
+            own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
             mine = own.get(slot)
             _scope = {s_ for s_, o_ in own.items() if o_ == mine} if mine else None
         gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types,
