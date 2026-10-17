@@ -805,6 +805,14 @@ ARMS: dict[str, str] = {
                        "_kind adds it, so 7l, 7m, 7h (h) and (a)/(b) read form, not an "
                        "encounter index. Worlds without it (gridworld, the toy) keep the type "
                        "kind. OFF: the type kind everywhere. default ON",
+    "TETHER_7H_RECURSE": "7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54): at 7f's leave, "
+                         "a union where "
+                         "a held predicate splits into lawful parts is searched part by part by "
+                         "the same mint and the terms held as D5 parts; the line is not left. "
+                         "OFF: the leave records the union and leaves, as before. default ON",
+    "TETHER_7H_ROUTE_GRADE": "7h (d) by route: a line that paid also counts paid_by_<route> "
+                             "(invention, carried, library, mint, fell) under its kind, carried "
+                             "with the grades. OFF: paid/left only. default ON",
     "TETHER_SPEED2_BOUND": "SPEED-2 (3d census; the reviewer 2026-10-16 19:01 Q10): the mint "
                            "prefix tally is generational per slot -- this walk's entries and "
                            "the previous walk's are kept, older ones dropped; a cache that "

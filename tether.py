@@ -647,6 +647,13 @@ _M7_INV = armflag.arm("TETHER_M7_INV", default=True)
 # mint's own walk, no constant; a dropped entry costs one recompute, and every price is unchanged
 # (the tally is an exact prefix sum)
 _SPEED2_BOUND = armflag.arm("TETHER_SPEED2_BOUND", default=True)
+# 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
+# leave, a union a held predicate splits into lawful parts is not left -- each part is searched
+# alone (the same mint on its own rows) and the terms found are held as D5 parts under the predicate
+_7H_RECURSE = armflag.arm("TETHER_7H_RECURSE", default=True)
+# 7h (d) BY ROUTE: a line that paid is also graded by the route that bound it -- the library, a
+# mint, an invention, a carried term -- beside its kind: which way of thinking paid
+_7H_ROUTE_GRADE = armflag.arm("TETHER_7H_ROUTE_GRADE", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1788,6 +1795,7 @@ class Agent:
         self._line_grade: dict = {}
         self._line_grade_in: dict = {}
         self._line_grade_written: dict = {}
+        self._lib_won: set = set()       # 7h (d) by route: library-route wins at a mint
         self._contra_q: list = []        # 3a: this step's contradictions, for perception
         self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
@@ -9899,8 +9907,10 @@ class Agent:
         if self.bound.get(slot) is not None or now < ln["first"]:
             self._leave_line.pop(slot, None)     # a child moved: the line goes on
             if _7H_TRACE and began and hasattr(self, "_line_grade"):
-                self._line_grade.setdefault(self._kind_key(slot),
-                                            collections.Counter())["paid"] += 1
+                g = self._line_grade.setdefault(self._kind_key(slot), collections.Counter())
+                g["paid"] += 1
+                if _7H_ROUTE_GRADE:
+                    g["paid_by_" + self._route_of(slot)] += 1
             return
         bk = self._bind_key.get(slot) if _7H_TRIED else None
         closure = sorted(bk[1]) if bk else []
@@ -9916,6 +9926,9 @@ class Agent:
                         or slot in self._d5_candidates):
                 return       # D5 is splitting this line: the parts are still being searched
             unb = self._unbundle(slot)
+            if (_7H_RECURSE and _D5 and unb.get("verdict") == "a union"
+                    and self._recurse_parts(slot, unb["P"])):
+                return       # the union's parts were searched alone and are held: not left
         if rec is not None:
             self._line_grade.setdefault(self._kind_key(slot), collections.Counter())["left"] += 1
         self._leave_held[slot] = {"level": self.level, "root": self._root_id,
@@ -9933,6 +9946,67 @@ class Agent:
                         **({"kind_record": rec} if rec is not None else {}),
                         reopen=("a level boundary, a new root, a new transition of the slot, "
                                 "or a new operand in the closure"))
+
+    def _route_of(self, slot: str) -> str:
+        """7h (d) by route: which way of thinking bound the slot -- an invention, a carried term,
+        a library-route win, a mint -- or, nothing bound, the outstanding fell."""
+        t = self.gamma.library.get(self.bound.get(slot) or "")
+        if t is None:
+            return "fell"
+        if t.guard == INVENTED_GUARD:
+            return "invention"
+        if t.origin == IMPORTED:
+            return "carried"
+        return "library" if t.name in self._lib_won else "mint"
+
+    def _recurse_parts(self, slot: str, pred: Any) -> bool:
+        """RECURSE-PARTS (Fig 9 :55-58: "a case in two conditions is not a harder case of either"):
+        each part of a union is searched ALONE by the same mint on its own rows (D5's row filter),
+        and the terms found are held as D5 parts under the predicate -- the P part predicts where P
+        holds, the not-P part elsewhere, and D5's shadow reverts a partition the ground breaks. The
+        slot's park state, wants and abstention are restored around the searches, so a part never
+        speaks for the slot. True when the P part found a term (then the line is not left)."""
+        if slot in self._parts or slot in self._d5_pending or self._row_filter.get(slot):
+            return False
+        owed, abst = slot in self.owed_import, self.abstained.get(slot)
+        want, want_t = self.wants.get(slot), self._want_terms.get(slot)
+        was = self.bound.get(slot)
+        found: dict = {}
+        for side in ("P", "!P"):
+            neg = side == "!P"
+            self.bound.pop(slot, None)
+            self._row_filter[slot] = (
+                lambda r, _p=pred, _s=slot, _n=neg: self._d5_holds(_p, _s, r) != _n)
+            self._mint_part = {"part": ("!" if neg else "") + str(pred), "slot": slot,
+                               "incumbent": None, "by": "recurse"}
+            self._memo = {}
+            try:
+                self._mint(slot)
+                found[side] = self.bound.get(slot)
+            finally:
+                self._row_filter.pop(slot, None)
+                self._mint_part = None
+                self._memo = None
+        (self.owed_import.add if owed else self.owed_import.discard)(slot)
+        for store, val in ((self.abstained, abst), (self.wants, want), (self._want_terms, want_t)):
+            if val is None:
+                store.pop(slot, None)
+            else:
+                store[slot] = val
+        a, b = found.get("P"), found.get("!P")
+        if a:
+            self._parts[slot] = {"P": pred, "A": a, "B": b}
+            self.bound[slot] = a
+        elif was is None:
+            self.bound.pop(slot, None)
+        else:
+            self.bound[slot] = was
+        self.led.record(self.cycle, self._running_step, slot, "recurse_parts", P=repr(pred),
+                        part_p=a or "none found", part_not_p=b or "none found", held=bool(a),
+                        reads=("a union searched part by part; held under the predicate as a D5 "
+                               "split" if a else "a union searched part by part; the P part "
+                               "found nothing, so the line is left as before"))
+        return bool(a)
 
     def _line_record(self, slot: str) -> dict:
         """7h (d): how lines on this slot's KIND ended, the lineage's plus this instance's."""
@@ -9962,7 +10036,7 @@ class Agent:
             on = [r for r in rows if r[2] == pred]
             off = [r for r in rows if r[2] != pred]
             if len(on) >= 2 and len(off) >= 2 and lawful(on) and lawful(off):
-                return {"verdict": "a union", "pred": repr(pred), "on": len(on),
+                return {"verdict": "a union", "pred": repr(pred), "P": pred, "on": len(on),
                         "off": len(off), "rows": len(rows)}
         return {"verdict": "no held predicate splits it", "rows": len(rows)}
 
@@ -11055,6 +11129,8 @@ class Agent:
             detail["library_route"] = (
                 "described" if prov is not None
                 else "chain_only" if any(names[:len(ch)] == ch for ch in _lf_seen) else "none")
+            if _7H_ROUTE_GRADE and detail["library_route"] != "none":
+                self._lib_won.add(term.name)
         self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
         # THE PART RIDES ON THE ACCEPT TOO (the reviewer 2026-10-11 23:03 CDT): a D5 part-B accept
         # names the slot while the slot is restored to its incumbent; untagged, a count of
