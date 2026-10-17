@@ -661,6 +661,12 @@ _REACH_EXACT = armflag.arm("TETHER_REACH_EXACT", default=True)
 # excluded, the unreached are counted "unreached at this budget", and every tier reached with no
 # cause supported is recorded "no visible cause". OFF: every other object, every step (part 1)
 _REACH_RANK = armflag.arm("TETHER_REACH_RANK", default=True)
+# E1 C4, ONE OBJECT'S CAUSE WORK SHARED ACROSS ITS SLOTS (the reviewer 2026-10-17 08:04): a pair
+# asked for a second slot was PROMOTED, every one of its rows bound for all of the object's ~26
+# slots while ~2 are live; and each (pair, slot) scanned every held row with substitution. Now a
+# (pair, slot) reads its rows from the entry's landing groups, held once under the placeholders,
+# and binds only those. The same rows in the same order; nothing promoted that no slot asked for
+_REACH_SHARE = armflag.arm("TETHER_REACH_SHARE", default=True)
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
 # alone (the same mint on its own rows) and the terms found are held as D5 parts under the predicate
@@ -982,6 +988,45 @@ def _slot_map(role: str, whole: tuple) -> tuple:
         else:
             by.setdefault((b if role == "CAUSE" else a).slot, []).append(i)
     return {k: tuple(v) for k, v in by.items()}, tuple(every)
+
+
+_LANDING: dict = {}    # C4: (sig, entry, role) -> (held list, landing groups, every-slot rows)
+
+
+def _landing_rows(role: str, held: list, key: tuple, slot: str, sub: Any, tallied: bool) -> tuple:
+    """C4 (E1; the reviewer 2026-10-17 08:04): the held indices _lands keeps for `slot`, read from
+    the entry's rows grouped ONCE under the placeholders by the slot template they land on, so a
+    (pair, slot) question substitutes a few templates instead of every row. The rows _index_reach
+    counts for every slot come too: with the tally only the uncounted ones (a CAUSE side None
+    with no Refusal), as the scan's `_tally_key is None` test keeps. Held order, as the scan."""
+    got = _LANDING.get(key)
+    if got is None or got[0] is not held:
+        groups: dict = {}
+        counted, uncounted = [], []
+        for i, (_c, a, b) in enumerate(held):
+            if role == "CAUSE":
+                if isinstance(a, compile_term.Refusal) or isinstance(b, compile_term.Refusal):
+                    counted.append(i)
+                    continue
+                if a is None or b is None:
+                    uncounted.append(i)
+                    continue
+                c = b
+            else:
+                if a is None or isinstance(a, compile_term.Refusal):
+                    counted.append(i)
+                    continue
+                c = a
+            bbox = c.slot.endswith(".bbox")
+            groups.setdefault((c.slot, tuple(c.parties) if bbox else None), []).append(i)
+        got = _LANDING[key] = (held, {g: tuple(v) for g, v in groups.items()},
+                               tuple(counted), tuple(uncounted))
+    _held, groups, counted, uncounted = got
+    out = [i for (tpl, parties), ix in groups.items()
+           if (f"{min(sub(p) for p in parties)}~{max(sub(p) for p in parties)}.bbox"
+               if parties is not None else sub(tpl)) == slot for i in ix]
+    out += uncounted if tallied else (*counted, *uncounted)
+    return tuple(sorted(out))
 
 
 def _core_kind(offers: Any, term: Any) -> str | None:
@@ -3093,7 +3138,7 @@ class Agent:
                     whole = memo[mkey] = tuple(
                         (cand, _bound(a, sub, atoms), _bound(b, sub, atoms))
                         for cand, a, b in self._held_index(lib, key, role, atoms, sig))
-                if whole is None and mkey in seen:
+                if whole is None and mkey in seen and not _REACH_SHARE:
                     # PROMOTE ON REUSE: held as the WHOLE it is, so bm_ carries it (S3)
                     _INDEX_N["bound_slot_promoted"] += 1
                     _INDEX_N["bound"] += 1
@@ -3108,6 +3153,18 @@ class Agent:
                         idx = tuple(heapq.merge(maps[mkey][0].get(slot, ()),
                                                 _pair_tally_of(self, mkey)[1]))
                     got = tuple(whole[i] for i in idx)
+                elif _REACH_SHARE:
+                    # C4: the rows for this slot read from the entry's landing groups, held once
+                    # under the placeholders; only they are bound, so a row is bound for the slot
+                    # it lands on and never for an object's other ~25 slots. The same rows, in
+                    # held order, as the scan below
+                    seen.add(mkey)
+                    held = self._held_index(lib, key, role, atoms, sig)
+                    idx = _landing_rows(role, held, (sig, key, role), slot, sub, tally is not None)
+                    _INDEX_N["bound_slot_indexed"] += 1
+                    _INDEX_N["bound_slot_first_binds"] += 2 * len(idx)
+                    got = tuple((held[i][0], _bound(held[i][1], sub, atoms),
+                                 _bound(held[i][2], sub, atoms)) for i in idx)
                 else:
                     seen.add(mkey)
                     held = self._held_index(lib, key, role, atoms, sig)

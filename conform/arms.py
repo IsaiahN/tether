@@ -835,6 +835,12 @@ ARMS: dict[str, str] = {
                           "from frame 0 whenever the frames' inputs change. Every verdict "
                           "unchanged. OFF: every cause re-tested from frame 0 each step, one "
                           "entry kept per trace length. default ON",
+    "TETHER_REACH_SHARE": "E1 C4 (the reviewer 2026-10-17 08:04): a (pair, slot) of the "
+                          "library route reads its held rows from the entry's landing groups "
+                          "(grouped once by slot template under the placeholders) and binds "
+                          "only those; no pair is promoted to a whole bound for every slot. "
+                          "The same rows in the same order. OFF: promote on reuse and scan every "
+                          "held row per (pair, slot). default ON",
     "TETHER_REACH_RANK": "E1 part 2 (Isaiah 2026-10-17 06:42; the reviewer 06:49): the route's "
                          "CAUSE candidates ranked and budgeted, never excluded -- the agent's "
                          "own act's target, then the objects that changed (most recent first), "
