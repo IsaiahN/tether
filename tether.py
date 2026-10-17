@@ -654,6 +654,11 @@ _7H_RECURSE = armflag.arm("TETHER_7H_RECURSE", default=True)
 # 7h (d) BY ROUTE: a line that paid is also graded by the route that bound it -- the library, a
 # mint, an invention, a carried term -- beside its kind: which way of thinking paid
 _7H_ROUTE_GRADE = armflag.arm("TETHER_7H_ROUTE_GRADE", default=True)
+# U1, THE LEARNED ORDER OF LINES (the reviewer 2026-10-16 19:01 Q2): where the residual, the slot
+# count and the carried kind count all tie at A1's starved and curiosity picks, the kind whose
+# lines PAID more than they were left goes first -- read from the carried and own line grades, an
+# order in actions and outcomes, never folded into the bargain's bits (Fig 12 :125)
+_7H_LEARNED_ORDER = armflag.arm("TETHER_7H_LEARNED_ORDER", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -8042,8 +8047,12 @@ class Agent:
             low = min(seen[n][0] for n in pool)
             tied = [n for n in pool if seen[n][0] == low]
             lowc = min(seen[n][1] for n in tied)
+            tied2 = [n for n in tied if seen[n][1] == lowc]
             tie = {"tie_by": "slot" if len(tied) == 1 else "kind_carry"
-                   if sum(seen[n][1] == lowc for n in tied) < len(tied) else "draw"}
+                   if len(tied2) < len(tied) else "draw"}
+            if (tie["tie_by"] == "draw" and len(seen[tied2[0]]) > 2
+                    and len({seen[n][2] for n in tied2}) > 1):
+                tie["tie_by"] = "learned_order"     # U1: the kinds' line grades decided
         # a slot's choice is labelled with the step running; a slot-free one stays PLAN (its own
         # (cycle, slot)) and says when it was made in in_step
         self.led.record(self.cycle, self._running_step if slot else "PLAN", slot or "@choice",
@@ -8116,6 +8125,13 @@ class Agent:
         if not _7H_KIND_CARRY or not hasattr(self, "_kind_carried_in"):
             return {s: slot_n[s] for s in slots}
         carried = self._kind_carried_in[site]
+        if _7H_LEARNED_ORDER and _7H_TRACE and hasattr(self, "_line_grade"):
+            # U1: the third key, lower first -- left minus paid over this kind's lines, lineage
+            # and own; with no record it is 0 for every kind, so the order is as before
+            def lo(s: str) -> int:
+                rec = self._line_record(s)
+                return rec["left"] - rec["paid"]
+            return {s: (slot_n[s], carried.get(self._kind_key(s), 0), lo(s)) for s in slots}
         return {s: (slot_n[s], carried.get(self._kind_key(s), 0)) for s in slots}
 
     def _choose_known(self, known: list[tuple[str, int]]) -> tuple[int, str]:

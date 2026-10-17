@@ -805,6 +805,11 @@ ARMS: dict[str, str] = {
                        "_kind adds it, so 7l, 7m, 7h (h) and (a)/(b) read form, not an "
                        "encounter index. Worlds without it (gridworld, the toy) keep the type "
                        "kind. OFF: the type kind everywhere. default ON",
+    "TETHER_7H_LEARNED_ORDER": "U1 (the reviewer 2026-10-16 19:01 Q2): A1's learning reading "
+                               "gains a third key, left minus paid over the slot kind's "
+                               "lines (lineage and own), lower first, after the slot count "
+                               "and the carried kind count; never in the bits. OFF: two "
+                               "keys, as before. default ON",
     "TETHER_7H_RECURSE": "7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54): at 7f's leave, "
                          "a union where "
                          "a held predicate splits into lawful parts is searched part by part by "
