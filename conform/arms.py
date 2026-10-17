@@ -835,6 +835,15 @@ ARMS: dict[str, str] = {
                           "from frame 0 whenever the frames' inputs change. Every verdict "
                           "unchanged. OFF: every cause re-tested from frame 0 each step, one "
                           "entry kept per trace length. default ON",
+    "TETHER_3A_DIAGNOSE": "E2, 3a DIAGNOSE (Isaiah 2026-10-17 03:37, 04:59; the reviewer PART "
+                          "2c, 05:00, 05:01): a contradiction is diagnosed per slot before "
+                          "anything is blamed -- noise, recall, own slip, world change or moved, "
+                          "the own acts' order, scope or model too small, reading, else "
+                          "undiagnosed -- one contradiction_diagnosed row with its next probe; "
+                          "the hazard per spot, kind and actor (kind/actor carried by the "
+                          "lineage); part 2's 'no visible cause' credited as an unseen actor. "
+                          "Acting on the probe is 3a-PROBE. OFF: routed to the reading only "
+                          "(7i). default ON",
     "TETHER_REACH_SHARE": "E1 C4 (the reviewer 2026-10-17 08:04): a (pair, slot) of the "
                           "library route reads its held rows from the entry's landing groups "
                           "(grouped once by slot template under the placeholders) and binds "

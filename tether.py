@@ -31,6 +31,7 @@ import armflag
 import compile_term
 import composer
 import condition
+import diagnose
 import frontier as FR
 import grammar as G
 import inherited
@@ -667,6 +668,13 @@ _REACH_RANK = armflag.arm("TETHER_REACH_RANK", default=True)
 # (pair, slot) reads its rows from the entry's landing groups, held once under the placeholders,
 # and binds only those. The same rows in the same order; nothing promoted that no slot asked for
 _REACH_SHARE = armflag.arm("TETHER_REACH_SHARE", default=True)
+# E2, 3a DIAGNOSE BEFORE REPAIR (Isaiah 2026-10-17 03:37 "the design of step 3a ... is settled",
+# 04:59 per spot, kind and actor; the reviewer PART 2c, 05:00, 05:01). A contradiction (an innate
+# term refuted, a settled term refused) is diagnosed per slot in order -- noise, recall, own slip,
+# world change (or moved), the own acts' order, scope, reading -- one recorded verdict with its next
+# probe, the hazard learned per spot, kind and actor (diagnose.py). It names the probe; acting on it
+# is 3a-PROBE. OFF: the contradiction is routed to the reading only (7i, d99cfbe)
+_3A_DIAGNOSE = armflag.arm("TETHER_3A_DIAGNOSE", default=True)
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
 # alone (the same mint on its own rows) and the terms found are held as D5 parts under the predicate
@@ -2083,6 +2091,12 @@ class Agent:
         self._cause_kind_n: Counter = Counter()   # E1 part 2: "cause|effect|attr" kinds supported
         self._cause_kind_in: dict = {}     # the same, carried in by the lineage (summed at load)
         self._cause_kind_written: dict = {}   # the counts already written to a generation
+        self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
+        self._3a_hazard = diagnose.Hazard()   # E2: world/own counts per spot, kind, actor
+        self._3a_stale: dict = {}          # E2: slot -> the cycle it was marked stale
+        self._3a_unseen: set = set()       # E2: (epoch, slot) handed over as "no visible cause"
+        self._3a_written: dict = {}        # E2: the kind/actor counts already in a generation
+        self._3a_in: dict = {}             # E2: those counts carried in by the lineage
         self._reach_fsig: tuple | None = None   # E1 X1: what the current frames were built from
         self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
@@ -2911,7 +2925,8 @@ class Agent:
                                                  str(att.get(slot)),
                                                  "cov" if _o in _cov else "nocov"))] += 1
         if rank is not None:
-            self._rank_moved(slot, rank, n_tiers, explained=bool(rows))
+            self._rank_moved(slot, rank, n_tiers, explained=bool(rows),
+                             kind=f"{self._kind_str(mine)}|{att.get(slot)}")
         self._lib_offers[slot] = [o_ for o_ in offers if o_["offered"]]
         self.led.record(self.cycle, "ROUTE", slot, "library", changed=sorted(changed),
                         lit=len(lit), views=len(views), causes=len(causes),
@@ -2969,7 +2984,61 @@ class Agent:
                 "r0": self._last_landed if self._last_landed in objects else None}
         return tuple(reached + lifted), info, len(tiers), covaried
 
-    def _rank_moved(self, slot: str, info: dict, n_tiers: int, explained: bool) -> None:
+    def _diagnose_one(self, c: dict) -> dict:
+        """E2: one contradiction on a slot, diagnosed by diagnose.diagnose from this agent's own
+        trace and readers; the stale mark kept. Never raises: a missing term or owner is a row."""
+        slot, name = c["slot"], c["term"]
+        t = self.gamma.library.get(name)
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        owner = own.get(slot)
+        if t is None or owner is None:
+            return {"at": slot, "verdict": "undiagnosed", "next_probe": None,
+                    "evidence": "no term" if t is None else "the slot names no owner"}
+        att_fn = getattr(self.env, "attribute_of", None)
+        att = att_fn() if att_fn else {}
+        ep = self._trace_epoch
+        rows = [(i, b, a, af, self._3a_aim.get((ep, i)), land)
+                for i, (b, a, af, _it, land) in enumerate(self.trace) if slot in b and slot in af]
+        intent = {i: it for i, (_b, _a, _af, it, _l) in enumerate(self.trace)}
+
+        def hrow(r, action=None):
+            return (r[1], r[2] if action is None else action, r[3][slot], intent[r[0]], r[5])
+
+        others = [self.gamma.library[n] for n in sorted(set(self.bound.values()) - {name, IDN})
+                  if n in self.gamma.library][:50]
+
+        def changed_of(i):
+            b, _a, af, _it, _l = self.trace[i]
+            return {own[s_] for s_ in af.keys() | b.keys()
+                    if s_ in own and b.get(s_) != af.get(s_)}
+
+        shape = getattr(self.env, "shape_code", None)
+        code = shape(owner) if shape else None
+        attr = att.get(slot)
+        now = self.trace[-1][2] if self.trace else {}
+
+        def moved_to(v):
+            if v is None or code is None:
+                return None
+            for s2, o2 in sorted(own.items()):
+                if o2 != owner and att.get(s2) == attr and now.get(s2) == v and shape(o2) == code:
+                    return o2
+            return None
+
+        out = diagnose.diagnose(
+            rows, slot, owner, persists=self._persists(name, slot),
+            predicts=lambda r: self._left(t, slot, [hrow(r)]) <= 0,
+            predicts_with=lambda r, a: self._left(t, slot, [hrow(r, a)]) <= 0,
+            alt_predicts=lambda r: any(self._left(o, slot, [hrow(r)]) <= 0 for o in others),
+            changed_of=changed_of, touching_now=set(self._touching(slot)),
+            kind=f"{self._kind_str(owner)}|{attr}", kind_of=self._kind_str, moved_to=moved_to,
+            hazard=self._3a_hazard, min_repeat=MIN_REPEAT)
+        if out.get("stale"):
+            self._3a_stale[slot] = self.cycle
+        return out
+
+    def _rank_moved(self, slot: str, info: dict, n_tiers: int, explained: bool,
+                    kind: str | None = None) -> None:
         """The one-ring-per-step budget, moved once per step per slot (reach.next_ring)."""
         key = (self._trace_epoch, slot)
         held = self._rank_ring.get(key)
@@ -2979,6 +3048,15 @@ class Agent:
         self._rank_ring[key] = (ring, self.cycle)
         if exhausted and not explained:
             info["no_visible_cause"] = True
+            if _3A_DIAGNOSE and kind is not None and key not in self._3a_unseen:
+                # handed to 3a once per slot: an UNSEEN actor or a board rule for this spot and
+                # kind (the reviewer 06:49; Saxe et al. 2005) -- the hidden-cause step
+                self._3a_unseen.add(key)
+                hz = self._3a_hazard
+                hz.world["spot"][slot] += 1
+                hz.world["kind"][kind] += 1
+                hz.world["actor"][diagnose.UNSEEN] += 1
+                info["to_3a"] = "unseen actor"
 
     def _index_reach(self, lib: Any, lit: list, slot: str, mine: str, others: tuple,
                      partner: str | None = None) -> tuple:
@@ -5611,6 +5689,13 @@ class Agent:
                            self._intent_now.kind if self._intent_now is not None
                            else NO_INTENT,
                            self._last_landed))
+        if _3A_DIAGNOSE:
+            # D2's aim: the object the act was MEANT for (the intent's subject), beside where the
+            # press landed; None where no intent named one (D2 is then skipped, never guessed)
+            subj = self._intent_now.subject if self._intent_now is not None else None
+            own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+            self._3a_aim[(self._trace_epoch, len(self.trace) - 1)] = (
+                own.get(subj, subj) if subj is not None else None)
         # ONE CLOCK: the cycle, which a level boundary does not reset. The trace length did, so a
         # term's rejection froze at every boundary, while the halflife it decays at is in cycles.
         self.gamma.tick = self.cycle
@@ -12314,6 +12399,13 @@ class Agent:
                                 slots=sorted({c["slot"] for c in q}), remedy=self.resolve(),
                                 reads=("a ground contradiction is a perception trigger: the "
                                        "reading is suspected before the concept"))
+                if _3A_DIAGNOSE:
+                    # E2: each contradiction diagnosed before anything is blamed; the row sits
+                    # at the same non-slot key, so no slot's ladder sees PERCEIVE after SETTLE
+                    for c in q:
+                        self.led.record(self.cycle - 1, self._running_step, "@vector",
+                                        "contradiction_diagnosed", term=c["term"],
+                                        trigger=c["kind"], **self._diagnose_one(c))
         if _FED:
             for _e in self._gamma_read.get("fed", ()):
                 if _e["name"] is None:

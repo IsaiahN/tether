@@ -117,6 +117,14 @@ def _parents(g: dict) -> list[str]:
     return [g["parent"]] if g.get("parent") else []
 
 
+def _hazard_families(hz: Any) -> dict:
+    """E2: the parts of 3a's hazard that are TEMPLATES and so may cross a boundary -- the world
+    counts by kind and by actor, the own counts by kind, and the actor trust -- each the live
+    Counter, never a copy. Spots are one board's and stay in the game."""
+    return {"world_kind": hz.world["kind"], "world_actor": hz.world["actor"],
+            "own_kind": hz.own["kind"], "near": hz.near, "away": hz.away}
+
+
 def _dumps(x: Any) -> bytes:
     """The one form every lineage file is written in (S1f, the reviewer 2026-10-15 13:01): sorted
     keys and compact separators (indent=1 was 42% of the bytes, the 12:59 read). Every file is
@@ -357,6 +365,13 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         gen["cause_kinds"] = {k: n - ag._cause_kind_written.get(k, 0)
                               for k, n in sorted(ag._cause_kind_n.items())
                               if n > ag._cause_kind_written.get(k, 0)}
+    if tether._3A_DIAGNOSE and hasattr(ag, "_3a_hazard"):
+        # E2: the hazard by KIND and by ACTOR (templates, never a board's spots), since the last
+        # write; the load adds them back as a head start
+        gen["hazard_3a"] = {fam: {k: n - ag._3a_written.get(fam, {}).get(k, 0)
+                                  for k, n in sorted(c.items())
+                                  if n > ag._3a_written.get(fam, {}).get(k, 0)}
+                            for fam, c in _hazard_families(ag._3a_hazard).items()}
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
@@ -383,6 +398,8 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
             ag._kind_n_written = {site: dict(c) for site, c in ag._kind_n.items()}
         if "cause_kinds" in gen:
             ag._cause_kind_written = dict(ag._cause_kind_n)
+        if "hazard_3a" in gen:
+            ag._3a_written = {f: dict(c) for f, c in _hazard_families(ag._3a_hazard).items()}
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -473,6 +490,18 @@ def load(d: str | Path, ag: Any) -> dict:
             for k, n in g.get("cause_kinds", {}).items():
                 ag._cause_kind_in[k] = ag._cause_kind_in.get(k, 0) + n
         rep["cause_kinds_in"] = len(ag._cause_kind_in)
+    if tether._3A_DIAGNOSE and hasattr(ag, "_3a_hazard"):
+        # E2: every generation's kind/actor hazard, root to tip, added to this agent's own
+        fams = _hazard_families(ag._3a_hazard)
+        for _h, g in chain:
+            for fam, c in g.get("hazard_3a", {}).items():
+                if fam in fams:
+                    fams[fam].update(c)
+                    into = ag._3a_in.setdefault(fam, {})
+                    for k, n in c.items():
+                        into[k] = into.get(k, 0) + n
+        ag._3a_written = {f: dict(c) for f, c in fams.items()}   # carried-in is not re-written
+        rep["hazard_3a_in"] = {f: sum(c.values()) for f, c in ag._3a_in.items()}
     if gamma._SETTLED_CORE:
         # 7i (2): a carried term keeps the standing it had, LEARNED and revisable (the reviewer
         # 2026-10-15 19:04); the record itself is unchanged
