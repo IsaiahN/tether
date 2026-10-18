@@ -759,6 +759,10 @@ _G1_WANT = armflag.arm("TETHER_G1_WANT", default=True)
 # the only writer of its want. A declared-derived slot that MOVED and wants nothing is minted for
 # the objective only: the tail writes the want, the head never binds. OFF: no such want (433e689)
 _DERIVED_WANT = armflag.arm("TETHER_DERIVED_WANT", default=True)
+# G1-S (the reviewer 2026-10-18 11:19): a pair reading names its partner in its attribute
+# ("dcol_o1"), which no reading is; G1 asks on the base when the base is a known reading. OFF: G1
+# asks on the attribute as named (1e8ccbe)
+_G1_SUFFIX = armflag.arm("TETHER_G1_SUFFIX", default=True)
 # R4, MEMO ADMISSION (the reviewer 2026-10-17 17:35 C, amended 23:52 (A)): the AGENT-level instance
 # memos -- keyed by this board's slot and object names -- store an answer only when its key is asked
 # a SECOND time (the first ask computes, uses and records the key; promote-on-reuse, S1c, is the
@@ -3140,6 +3144,9 @@ class Agent:
                 o = own.get(d) or ""
                 parties = o.split("~") if "~" in o else [o]
                 a = att.get(d)
+                base, _, who = (a or "").rpartition("_")
+                if _G1_SUFFIX and a not in known and base in known and who[1:].isdigit():
+                    a = base            # "<reading>_oN": the reading, its partner named apart
                 lit = lib.light({a: 1}) if a in known else []
                 if not lit:
                     continue
