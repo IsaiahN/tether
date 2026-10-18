@@ -92,7 +92,10 @@ def main() -> int:
     writes: list = []           # (function, event, label, running, detail, cycle, slot)
     real = ledger.Ledger.record
 
+    held: dict = {}
+
     def spy(self, cycle, step, slot, event, of=None, **detail):
+        held[str(getattr(self, "_path", ""))] = self
         f = sys._getframe(1)
         ag = f.f_locals.get("self")
         if isinstance(ag, tether.Agent):
@@ -108,6 +111,7 @@ def main() -> int:
                               ledger.Ledger(path=str(path) if path else None))
             for _ in range(steps):
                 ag.step()
+            ag.led.close()        # no end_run here: the helper closes the handle R2 holds
         finally:
             tether._AGENT_SEED = seed_was
 
@@ -124,6 +128,9 @@ def main() -> int:
                                  lineage_dir=d, led_path=str(led))
             finally:
                 tether._AGENT_SEED = seed_was
+            # R2 + R4 (the reviewer 2026-10-18 00:35): no row reopens the held handle after the
+            # run's close, so the file is free at cleanup
+            assert held.get(str(led)) is not None and held[str(led)]._fh is None, "handle open"
             assert writes, "precondition: the guard saw no row"
             assert not bad(writes), ("G1 LABEL: rows labelled with a step not running",
                                      bad(writes)[:5])

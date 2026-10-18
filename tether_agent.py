@@ -85,6 +85,11 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     saved_only = arc_holdout.save_only(ag, save_only_dir, game, led_path)
     # (b'-g) the boundary's generation, the same call as play (lineage.py)
     lineage_gen = lineage.write(lineage_dir, ag, game) if lineage._CARRY and lineage_dir else None
+    # R2 REOPEN (the reviewer 2026-10-18 01:18): the lineage write is the boundary's last writer
+    # (_3a_settle's rows reopen the handle end_run closed), so the ledger closes again here
+    close = getattr(ag.led, "close", None)
+    if close is not None:
+        close()
     return {"game": game, "acted": acted_n, "cycles": ag.cycle, "end": end or "cap",
             # D-RESET-COUNT (the reviewer 2026-10-15 19:45): the RESETs that REACHED the game; one
             # the guard refused (arc_holdout 109-110) was chosen, counted in _acts, and never sent

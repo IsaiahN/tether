@@ -373,6 +373,11 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     saved_only = save_only(ag, save_only_dir, game, led_path)
     # (b'-g) the boundary's generation, beside the stop-loss (lineage.py)
     lineage_gen = lineage.write(lineage_dir, ag, game) if lineage._CARRY and lineage_dir else None
+    # R2 REOPEN (the reviewer 2026-10-18 01:18): the lineage write is the boundary's last writer
+    # (_3a_settle's rows reopen the handle end_run closed), so the ledger closes again here
+    close = getattr(ag.led, "close", None)
+    if close is not None:
+        close()
 
     # FILED UNDER WHAT THE AGENT COMPUTED. The digest buckets, the level indexes within it, and
     # the episode is 1 + however many plays are already filed under that pair -- counted from
