@@ -869,6 +869,12 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_USED_CARRY": "L1b (the reviewer 2026-10-17 19:06): the code's learned weight per "
+                         "unit (Rank.used + Standing.paid by atom sequence, never by binding) "
+                         "and the settlements are written on each generation and summed root "
+                         "to tip at load; neither crossed before (Rank lives on the Agent, "
+                         "load_blob installs fresh standing). OFF: nothing written or read "
+                         "(a102c5a). default ON",
     "TETHER_PRIOR_CODE": "L1 (the reviewer 2026-10-17 18:13 (a), 18:40, 18:48): a transition "
                          "term's stating cost is its length under a NORMALIZED code over "
                          "{units, END}, p(s) = (w(s) + 1) / Z, w = Rank.used + Standing.paid of "

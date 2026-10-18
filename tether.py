@@ -2043,7 +2043,7 @@ class Agent:
             self.led.record(0, "PLAN", "@run", "arms", on=arms["on"], off=arms["off"],
                             modules=arms["modules"], not_loaded=arms["not_loaded"],
                             seed=self.seed, generation=self.generation,
-                            seed_source=self.seed_source,
+                            seed_source=self.seed_source, alphabet=gam.alphabet,  # L1b: A priced
                             **I.Attribution.code(), **I.Attribution.run(env, gam))
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
