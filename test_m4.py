@@ -84,8 +84,8 @@ def _run(**arms) -> tuple[list, list]:
     """The ledger rows and every (cycle, chain, offered operands) yielded on SLOT."""
     yielded, orig = [], tether.Agent._library_chains
 
-    def spy(self, slot, in_t, out_t, stats, ops):
-        got = orig(self, slot, in_t, out_t, stats, ops)
+    def spy(self, slot, in_t, out_t, stats, ops, *a, **k):     # fbe9f41: and evidence
+        got = orig(self, slot, in_t, out_t, stats, ops, *a, **k)
         if slot == SLOT:
             yielded.extend((self.cycle, c.name, list(ops.get(c.name, ()))) for c in got)
         return got
@@ -132,7 +132,20 @@ def test_the_contagion_pair_reaches_the_mint_with_its_operand():
 def test_an_emptied_library_leaves_the_old_path_identical(full: list):
     rows, yielded = _run(prev=True, first=True, library=False)
     assert not yielded and not any(r.get("event") == "library" for r in rows)
-    assert _old_path(rows) == _old_path(full), "the library changed the old path"
+    # RESTATED (the reviewer 2026-10-18 11:03): the library has consumers past the reach wire
+    # since E1 / K1 / A1's summons, so its lookup and choice rows are library-fed and differ by
+    # design. The old path is the DECISIONS: bet, settle, mint and act rows, equal in content
+    def _decisions(rs):
+        return [(r["cycle"], r["slot"], r["event"], json.dumps(r.get("detail"), sort_keys=True,
+                                                               default=str))
+                for r in rs if r.get("event") in ("bet", "settle", "mint", "act")]
+    assert _decisions(rows) == _decisions(full), "the library changed the old path's decisions"
+    ca = [r for r in full if r.get("event") == "choice"]
+    cb = [r for r in rows if r.get("event") == "choice"]
+    d = next(((x, y) for x, y in zip(ca, cb, strict=False)
+              if x.get("detail") != y.get("detail")), None)
+    print(f"  (information) choice rows {len(ca)} / {len(cb)}; first library-fed difference: "
+          f"{None if d is None else (d[0]['cycle'], d[0]['slot'])}")
 
 
 def test_the_prev_gate_withholds_the_pair():
@@ -150,4 +163,4 @@ if __name__ == "__main__":
     print(f"m4: {PAIR_IF} => {PAIR_THEN} supported and offered on {n} lookup(s), provenance "
           f"{prov!r} (+{entries - 1} more entries), yielded to the mint with {OPERAND} on "
           f"{sum(OPERAND in o for _c, _n, o in ylds)} of {len(ylds)} chains; the library emptied "
-          f"leaves the old path identical; the ~1 gate withholds it with the arm OFF")
+          f"leaves the old path's decisions identical; the ~1 gate withholds it with the arm OFF")

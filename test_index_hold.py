@@ -62,15 +62,18 @@ def _form(c):
 
 
 def _named(lib, key, role, o, x, atoms):
-    """Today's compile of the named text, fresh (no cache)."""
-    def comp(cond):
-        return compile_term.compile_candidate({"condition": cond}, atoms)
+    """Today's compile of the named text, fresh (no cache), as _held_index compiles since 7d
+    (d99aca5): each side with its subject under TETHER_LIBRARY_ABDUCE (o for if, x for then)."""
+    def comp(cond, subject=None):
+        return compile_term.compile_candidate(
+            {"condition": cond}, atoms, subject=subject if tether._LIBRARY_ABDUCE else None)
     out = []
     for cand in lib.view(key, role, o, x):
         if role == "CAUSE":
-            out.append((cand, comp(cand["if"]), comp(cand["then"])))
+            out.append((cand, comp(cand["if"], o), comp(cand["then"], x)))
         else:
-            out.append((cand, None if "quantifier" in cand else comp(cand["condition"]), None))
+            out.append((cand, None if "quantifier" in cand else comp(cand["condition"], o),
+                        None))
     return out
 
 
@@ -156,7 +159,7 @@ def main() -> None:
     k = next(k for k in keys if lib.view(k, "STATE", "o1", "o2"))
     calls = []
     real = compile_term.compile_candidate
-    compile_term.compile_candidate = lambda c, a: calls.append(1) or real(c, a)
+    compile_term.compile_candidate = lambda c, a, **k: calls.append(1) or real(c, a, **k)
     try:
         tether._INDEX_STORE.clear()
         _real(ag, lib, k, "o1", "o2", atoms, sig)
@@ -188,7 +191,9 @@ def main() -> None:
     real_bound = tether._bound
     tether._bound = lambda *a: nb.append(1) or real_bound(*a)
     try:
-        ag._bound_cache.clear()
+        # the memo the agent reads: with an atoms token it is the process's _BOUND_MEMO, not the
+        # agent's own cache, so clearing only the cache left the earlier checks' binds held
+        (tether._BOUND_MEMO if ag._atoms_token else ag._bound_cache).clear()
         hits = tether._INDEX_N["bound_memo_hit"]
         r1 = _real(ag, lib, k, "o1", "o2", atoms, sig)
         assert nb, ("M1: the first ask bound nothing", len(nb))

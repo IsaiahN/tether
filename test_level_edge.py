@@ -75,8 +75,11 @@ def role(case, d):
         ends = _endings(ag)
         out.update(endings=[e.detail.get("how") for e in ends], level=ag.level,
                    credit=sum(1 for e in ag.led.entries if e.slot == "@credit"),
+                   # AT THE CLEAR: under TETHER_MC_SIGNAL (ON since 083c07b) end_run also
+                   # resolves the signals opened after it, as kind "game" (tether.py:2601)
                    kinds=sorted({e.detail.get("kind") for e in ag.led.entries
-                                 if e.slot == "@signal" and e.event == "resolution"}),
+                                 if e.slot == "@signal" and e.event == "resolution"
+                                 and e.detail.get("how") == "level_advance"}),
                    dormant=[seen["dormant_before"], seen["dormant_after"]])
     out["bounds"] = [{k: b.get(k) for k in ("how", "agent_level")} for b in
                      rep.get("lineage_bounds") or [] if b]

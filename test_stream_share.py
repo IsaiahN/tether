@@ -45,8 +45,8 @@ for _ in range(CYCLES):
 tether._STREAM_SHARE = MODE != "off"
 picked = [None]
 orig_next, orig_pays = tether._next_stream, tether.pays
-def ns(live, spent, share):
-    r = live[0] if MODE == "strict" else orig_next(live, spent, share)
+def ns(live, spent, share, *a):     # fbe9f41: _next_stream takes key and seed too
+    r = live[0] if MODE == "strict" else orig_next(live, spent, share, *a)
     picked[0] = r
     return r
 counts = {}
@@ -82,8 +82,8 @@ tether._STREAM_SHARE = True
 FLOORED = (float("-inf"), 0.0, 0.0, None)
 turns, pays_n, picked = {}, {}, [None]
 orig_next, orig_pays, orig_fc = tether._next_stream, tether.pays, tether._floor_champion
-def ns(live, spent, share):
-    r = orig_next(live, spent, share)
+def ns(live, spent, share, *a):
+    r = orig_next(live, spent, share, *a)
     picked[0] = r
     turns[r] = turns.get(r, 0) + 1
     return r

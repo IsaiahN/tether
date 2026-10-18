@@ -75,9 +75,11 @@ def main() -> None:
     _child("old", old_d)
     _child("new", new_d)
     old_r, new_r = _child("new", old_d), _child("new", new_d)
-    # THE PANEL PRECONDITION: each reader loaded a generation and resolved from the index and bm_
+    # THE PANEL PRECONDITION: each reader loaded a generation and resolved from the index and bs_;
+    # under C4 (REACH-SHARE, 5987421) no whole is held, so bm_ is empty by design (the reviewer
+    # 2026-10-18 07:30, as for test_held_ch)
     for r in (old_r, new_r):
-        assert r["parent"] and r["resolve"][0]["resolved"] and r["resolve"][1]["resolved"], r
+        assert r["parent"] and r["resolve"][0]["resolved"] and r["resolve"][2]["resolved"], r
         assert not (r["load"]["memo"] or {}).get("unreadable"), r
         assert not (r["load"]["slot_memo"] or {}).get("unreadable"), r
     assert old_r["load"] == new_r["load"], ("(a) the load reports differ", old_r, new_r)

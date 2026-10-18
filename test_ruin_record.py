@@ -71,7 +71,11 @@ def _play(ag: tether.Agent, snap: snaps.Snap, actions: str) -> str | None:
 def _ladder(on: bool) -> tether.Agent:
     """(start of s0, actions): A from 2 dies; the retry of the same board dies the same way;
     B from 1 dies on another board; B then A from 2 survives (s0 4, 5)."""
-    was, tether._RUIN_RECORD = tether._RUIN_RECORD, on
+    # THE RECORD ALONE: TETHER_RUIN (ON since the 10-15 flip, 083c07b) withholds what the floor
+    # vetoes, a behaviour change of its own (test_ruin_withhold), and it needs the record on
+    # (tether.py:474). Off in both arms, so ON vs OFF isolates the record: an OLD regime for RUIN
+    was = (tether._RUIN_RECORD, tether._RUIN)
+    tether._RUIN_RECORD, tether._RUIN = on, False
     plan = [(2, "A"), (2, "A"), (1, "B"), (2, "BA")]
     snap = snaps.Snap(_spec(plan[0][0]))
     ag, last = _agent(snap), "run_end"
@@ -81,7 +85,7 @@ def _ladder(on: bool) -> tether.Agent:
             ag.retarget(bind(snap), lv, last)
         last = _play(ag, snap, acts) or "run_end"
     ag.end_run("cap")
-    tether._RUIN_RECORD = was
+    tether._RUIN_RECORD, tether._RUIN = was
     return ag
 
 
@@ -90,9 +94,12 @@ def _ev(ag: tether.Agent, event: str) -> list[dict]:
 
 
 def _bare(rows: list[dict]) -> list[tuple]:
-    """Every row but the run's `arms` row, which states the arm and so must differ."""
-    return [(r["cycle"], r["step"], r["slot"], r["event"], repr(r["detail"])) for r in rows
-            if r["event"] != "arms"]
+    """Every row but the run's `arms` row, which states the arm and so must differ; a field that
+    names another row by seq (MC_SIGNAL's signal_seq, ON since the 10-15 flip) is left out, as the
+    ON arm's veto / termination rows set aside before the comparison shift every later seq."""
+    return [(r["cycle"], r["step"], r["slot"], r["event"],
+             repr({k: v for k, v in r["detail"].items() if not k.endswith("seq")}))
+            for r in rows if r["event"] != "arms"]
 
 
 if __name__ == "__main__":
@@ -145,6 +152,9 @@ if __name__ == "__main__":
     for coord in ((1, 2), (5, 6)):
 
         def _choose(_before, _c=coord, _ag=aimed):
+            # what the real choose() clears on entry (tether.py:7950); step() reads _last_real
+            # under TETHER_CONTACT, default ON since the 10-15 flip (083c07b)
+            _ag._split_term, _ag._routine_fed, _ag._last_real = None, [], None
             _ag._aimed = _c
             return "A", "probe"
         aimed.choose = _choose

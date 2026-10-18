@@ -37,8 +37,8 @@ if MODE == "off":
     lineage._held_ch = lambda sig, key, role, i, cand: lineage._ch(cand)
 digest = hashlib.sha256()
 real = tether.Agent._compiled
-def compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=None):
-    got = real(self, lib, key, role, o, x, comp, atoms, sig, slot=slot)
+def compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=None, **kw):
+    got = real(self, lib, key, role, o, x, comp, atoms, sig, slot=slot, **kw)
     if slot is not None:
         got = list(got)
         digest.update(repr((key, role, o, x, slot,
@@ -87,8 +87,10 @@ def main() -> None:
     shutil.copytree(d, on_d)
     shutil.copytree(d, off_d)
     on, off = _child("on", on_d), _child("off", off_d)
-    # THE PANEL PRECONDITION: process 2 resolved something from each carried family it read
-    assert on["resolve"][0]["resolved"] > 0 and on["resolve"][1]["resolved"] > 0, on
+    # THE PANEL PRECONDITION: process 2 resolved something from each carried family it read -- the
+    # index and bs_; under C4 (REACH-SHARE, 5987421) no pair is promoted, so no whole is held and
+    # bm_ is empty by design (the reviewer 2026-10-18 07:30)
+    assert on["resolve"][0]["resolved"] > 0 and on["resolve"][2]["resolved"] > 0, on
     assert on == off, ("(a) the cache changed a resolve count or an answer", on, off)
     print(f"  (a) process 2 with and without the cache: resolve {on['resolve']}, answers "
           f"{on['answers'][:16]} identical")

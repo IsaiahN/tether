@@ -29,6 +29,11 @@ import tether
 from test_goal_condition import _agent, _hist
 
 sys.dont_write_bytecode = True
+# THE REGIME THESE c89 FIXTURES WERE WRITTEN IN (B O1, the reviewer 2026-10-18 09:24): an exact
+# tie in the goal pick goes by text order (TETHER_A1_TIES, a recorded draw since 0996891) and
+# every birth has one temperament (TETHER_AGENT_SEED, cab5bd5). An OLD regime, so a green here
+# does not cover the default (LEDGER: B 2026-10-18, O1)
+tether._A1_TIES = tether._AGENT_SEED = False
 SLOT = "o0.col"
 
 

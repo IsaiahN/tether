@@ -147,7 +147,9 @@ if __name__ == "__main__":
           f"all_vetoed True, '{IFace.ALL_VETOED}' set")
     # 5
     env5 = {**os.environ, "TETHER_RUIN": "1", "PYTHONDONTWRITEBYTECODE": "1"}
-    env5.pop("TETHER_RUIN_RECORD", None)
+    # RUIN_RECORD defaults ON since the 10-15 flip (083c07b), so an absent variable no longer
+    # means OFF: the check states it
+    env5["TETHER_RUIN_RECORD"] = "0"
     p5 = subprocess.run([sys.executable, "-c", "import tether"], env=env5, capture_output=True,
                         text=True, cwd=Path(__file__).parent, check=False)
     ok5 = subprocess.run([sys.executable, "-c", "import tether"],

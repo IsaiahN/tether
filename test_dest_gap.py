@@ -120,5 +120,10 @@ def main() -> None:
           f"mutant {OLD}; {len(before)} earlier chooser call(s) unchanged by the arm)")
 
 
+SKIP = ("superseded by A1 (0996891): under TETHER_A1_CHOOSE (default ON) the known options carry "
+        "a reach count, not leads_to_gap, and the pick is a recorded draw, so the pinned call this "
+        "test reads cannot occur (B 2026-10-18 O1; the reviewer 09:24: a skip, never a deletion)")
+
 if __name__ == "__main__":
-    main()
+    # a SKIP exits non-zero with its reason, so no tally reads it as a pass
+    sys.exit(f"test_dest_gap: SKIP -- {SKIP}")

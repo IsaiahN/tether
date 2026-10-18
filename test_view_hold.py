@@ -94,8 +94,13 @@ def main() -> None:
     same = [(k, r) for k in keys for r in tether._HELD_ROLES
             if tether._restore(lib.view(k, r, "{o}", "{x}"), "o3", "o3")
             != lib.view(k, r, "o3", "o3")]
-    assert same, "o == x restores exactly for every entry: the bypass guards nothing"
-    print(f"test_view_hold: h4 pass (o == x differs on {len(same)} (entry, role), first {same[0]})")
+    # ruled NON-BLOCKING (the reviewer 01:07) and recorded failing at birth (0495be4): printed,
+    # never asserted, so the gate above is what this file passes or fails on
+    if same:
+        print(f"test_view_hold: h4 pass (o == x differs on {len(same)} (entry, role), "
+              f"first {same[0]})")
+    else:
+        print("test_view_hold: h4 NON-BLOCKING, not met: o == x restores exactly for every entry")
 
 
 if __name__ == "__main__":

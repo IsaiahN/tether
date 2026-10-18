@@ -97,8 +97,13 @@ def test_each_named_refusal_is_refused_with_its_reason():
                  "o1.colour_changed == 0"):
         assert isinstance(C.compile_candidate({"condition": cond}, atoms), C.Compiled), cond
     for cond, reason in [
-                         ("contact(o1, o2) == 1", "no pairwise atom"),
-                         ("frame.came > 0", "events are not slots"),
+                         # under TETHER_RELATION_SET (default ON since 10-15) the face count
+                         # names its own refusal (4416ab7); OFF, no pairwise atom
+                         ("contact(o1, o2) == 1", "pair part is held back" if C._RELATION_SET
+                          else "no pairwise atom"),
+                         # 7d (d99aca5) routes "came" through its change reading; with no
+                         # subject it names its own refusal
+                         ("frame.came > 0", "no change reading for came without a subject"),
                          ("board.completed > 0", "not an object slot"),
                          ("@goal.row < o2.row", "@goal is the board's progress marker"),
                          ("o1.row > @goal.row", "@goal is the board's progress marker")]:
@@ -166,12 +171,15 @@ def test_down_as_the_plain_chain_is_caught_at_zero():
 def test_a_swapped_binding_is_caught():
     """MUST-FAIL: "less" compiled with the binding NOT reversed means "more"; it must disagree."""
     atoms = _atoms()
-    keep = C.TABLE[("<", "slot")]
+    keep, keep_c = C.TABLE[("<", "slot")], C.CONVERSE[("<", "slot")]
     C.TABLE[("<", "slot")] = (("above",), "x")
+    # under TETHER_RELATION_SET "<" against a slot reads CONVERSE (below, x) wherever Gamma holds
+    # below (B1), so the swap is planted on that path too: (below, o) is "more"
+    C.CONVERSE[("<", "slot")] = (("below",), "o")
     try:
         bad, _n, _r = disagreements(atoms)
     finally:
-        C.TABLE[("<", "slot")] = keep
+        C.TABLE[("<", "slot")], C.CONVERSE[("<", "slot")] = keep, keep_c
     assert bad, "the swapped binding in the 'less' row was not caught"
     return bad
 

@@ -109,11 +109,13 @@ def _fresh(ag, sig, pairs, label):
     """(iii): each pair's held compile equals the compile made fresh, as _held_index makes it."""
     lib, atoms = tether._library(), {a.name: a for a in ag.gamma.atoms}
 
-    def comp(cond):
-        return compile_term.compile_candidate({"condition": cond}, atoms)
+    # as _held_index compiles since 7d (d99aca5): each side with its subject under the arm
+    def comp(cond, subject=None):
+        return compile_term.compile_candidate(
+            {"condition": cond}, atoms, subject=subject if tether._LIBRARY_ABDUCE else None)
     for key, role in pairs:
-        fresh = [(c, comp(c["if"]), comp(c["then"])) if role == "CAUSE"
-                 else (c, None if "quantifier" in c else comp(c["condition"]), None)
+        fresh = [(c, comp(c["if"], tether.PH_O), comp(c["then"], tether.PH_X)) if role == "CAUSE"
+                 else (c, None if "quantifier" in c else comp(c["condition"], tether.PH_O), None)
                  for c in lib.view(key, role, tether.PH_O, tether.PH_X)]
         assert tether._INDEX_STORE[(sig, key, role)] == fresh, ("R-d3 carried differs", label, key,
                                                                 role)

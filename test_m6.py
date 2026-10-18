@@ -79,8 +79,13 @@ if __name__ == "__main__":
     deep = gamma.Term(tuple(f.atoms) * (ag.cfg.max_depth + 1), operand=f.operand)
     k = ag.gamma.length(deep) + ag.gamma.length(c.term)
     assert k > ag.cfg.max_depth
-    assert ag._inv_cost(deep, [c]) == tether.term_bits(k, ag.gamma.alphabet)
-    assert ag._inv_cost(deep, [c]) > tether.term_bits(ag.cfg.max_depth, ag.gamma.alphabet)
+    # priced as the mint prices a term (_bits: under TETHER_PRIOR_CODE, default ON since a102c5a,
+    # the normalized code, not term_bits), over BOTH parts, and the part past max_depth is paid:
+    # the same term cut at max_depth costs strictly less (the arm-on reading, the reviewer 10-18 O2)
+    cut = gamma.Term(tuple(f.atoms) * ag.cfg.max_depth, operand=f.operand)
+    assert ag._inv_cost(deep, [c]) == ag._bits((deep, ()), (c.term, ()))
+    assert ag._inv_cost(deep, [c]) > ag._inv_cost(cut, [c]), (ag._inv_cost(deep, [c]),
+                                                              ag._inv_cost(cut, [c]))
     print(f"  M6-b: length {k} past max_depth {ag.cfg.max_depth} is priced at its whole length")
     u = _agent()
     u._invent(SLOT, _trace(u), _base(u, _trace(u)), 0.0, "under_floor")

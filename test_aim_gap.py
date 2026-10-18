@@ -54,6 +54,9 @@ print(json.dumps({"rows": rows, "aimed_effect": moves}, default=str))
 def _run(mode: str) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env["PYTHONDONTWRITEBYTECODE"] = "1"
+    # THE REGIME THE PIN WAS FOUND IN (B 2026-10-18 O1): the aim by the first unpressed cell, not
+    # A1's recorded draw (TETHER_A1_TIES, 0996891), and one temperament (cab5bd5). An OLD regime
+    env.update(TETHER_A1_TIES="0", TETHER_AGENT_SEED="0")
     here = os.path.dirname(os.path.abspath(__file__))
     out = subprocess.run([sys.executable, "-c", PROBE, FAMILY, str(SEED), str(STEPS), mode],
                          cwd=here, env=env, capture_output=True, text=True, timeout=300)
