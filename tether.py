@@ -3323,6 +3323,14 @@ class Agent:
         read = composer.read_pairs(found["pairs"], [b for b, _act, _val, _intent, _landed in hist])
         held = [{k: r[k] for k in ("molecule", "left", "right", "left_reading", "right_reading",
                                    "held", "via", "occasions")} for r in read if r["held"]]
+        # (b2) (the reviewer 2026-10-18 02:28): the row carries the held bonds' COUNT, a DIGEST and
+        # the first 50, never the whole list -- the pairs are derived, rebuilt from the
+        # description and the frames (Fig 6), and no reader needs more (test_obj_event:188 reads
+        # obj_event / shared); lf52's o59.shape row was 452 MB
+        dig = hashlib.sha256()
+        for h_ in held:
+            dig.update(json.dumps(h_, sort_keys=True, ensure_ascii=False).encode())
+            dig.update(b"\n")
         named_of: dict = {}
         for m in members:
             named: dict[str, list] = {}
@@ -3337,7 +3345,9 @@ class Agent:
         self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
                         described=sorted(described), junctions=found["junctions"],
                         **({"own_clock_out": held_out} if held_out else {}),
-                        offered=len(found["pairs"]), held=held, named=sorted(named_of[slot]),
+                        offered=len(found["pairs"]), held_n=len(held),
+                        held_digest=dig.hexdigest()[:16], held_sample=held[:50],
+                        named=sorted(named_of[slot]),
                         **({"obj_event": ev, "members": list(members)} if ev is not None else {}),
                         reads=("the library looked up by this residual's own description; "
                                "pairs offered, bonds read over its frames, nothing adopted"))
