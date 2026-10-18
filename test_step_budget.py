@@ -61,7 +61,7 @@ class Advance(FakeWrapper):
 
 d = tempfile.mkdtemp()
 led = os.path.join(d, "b.jsonl")
-w = Advance() if mode == "advance" else FakeWrapper(script=script)
+w = Advance() if mode == "level_advance" else FakeWrapper(script=script)
 tether_agent.run(w, "fake", max_actions=12, led_path=led, lineage_dir=d)
 print(led)
 '''
@@ -158,7 +158,7 @@ def main() -> int:
     assert crossed, "MF-D: no owed question crossed the boundary with the close removed"   # MF-D
     print("MF-D close removed:", len(crossed), "owed rows after the death carry a question from "
           "before it, e.g.", [(r["cycle"], r["detail"]["question"]) for r in crossed[:2]])
-    v = child("1", mode="advance")
+    v = child("1", mode="level_advance")
     vc = [r for r in v if r.get("event") == "owed_closed"]
     hows = {r["detail"]["how"] for r in vc}
     assert vc and hows == {"level_advance"}, [r["detail"] for r in vc][:2]
@@ -171,7 +171,7 @@ def main() -> int:
     end_seq = [r["seq"] for r in v if r.get("event") == "ending"
                and r["detail"].get("how") == "level_advance"]
     assert end_seq and end_seq[0] < min(r["seq"] for r in vc), (end_seq, vc[0]["seq"])
-    vo = child("1", {"TETHER_LEVEL_EDGE": "0"}, mode="advance")
+    vo = child("1", {"TETHER_LEVEL_EDGE": "0"}, mode="level_advance")
     assert not [r for r in vo if r.get("event") == "owed_closed"]
     vx = [r for r in vo if r.get("event") == "budget_owed" and r["cycle"] > vb
           and r["detail"]["question"][0] <= vb]

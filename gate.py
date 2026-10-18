@@ -116,14 +116,17 @@ def _declared(rows: list[dict]) -> dict[int, set]:
 def _inputs(rows: list[dict]) -> dict | None:
     """2. No step consumed an input that never arrived. A declared-derived slot is never bet on:
     its input is a relational_surprise row (B2b), counted only for a slot the "@derived" rows
-    declare -- never on the surprise row's own say-so (the reviewer 2026-10-17 15:18)."""
+    declare -- never on the surprise row's own say-so (the reviewer 2026-10-17 15:18). E0-W's
+    derived_asked row is the same kind of input for its want-only mint (the reviewer
+    2026-10-18 11:03), counted under the same declared-slot rule."""
     bets: set[tuple[int, str]] = set()
     minted: set[tuple[int, str]] = set()
     accepted: set[str] = set()
     declared = _declared(rows)
     for r in rows:
         c, slot, ev = r.get("cycle", 0), r.get("slot"), r.get("event")
-        if ev == "bet" or (ev == "relational_surprise" and slot in declared.get(c, ())):
+        if ev == "bet" or (ev in ("relational_surprise", "derived_asked")
+                           and slot in declared.get(c, ())):
             bets.add((c, slot))
         elif ev == "route" and (c, slot) not in bets:
             return _v("inputs", MISSING_INPUT, r.get("seq"), f"route without bet: {slot}")

@@ -900,6 +900,13 @@ ARMS: dict[str, str] = {
                       "the library condition the change made true, closed with all; bare "
                       "quantifiers refused; one want per event, never bound or bet; origin and "
                       "outcome recorded to the boundary. OFF: no such want (f631977). default ON",
+    "TETHER_DERIVED_WANT": "E0-W (the reviewer 2026-10-18 11:03): a declared-derived slot that "
+                           "moved and wants nothing is minted for the objective only; the want "
+                           "is written, the slot never bound, bet or charged (E0 stands for "
+                           "pricing). OFF: no such want (433e689). default ON",
+    "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
+                        "(dcol for dcol_o1) when the base is a known reading; nothing else is "
+                        "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",
     "TETHER_OBJ_EVENT": "E1-E3 (the reviewer 2026-10-17 12:53, 21:48, 21:53): an owner with two "
                         "or more live residual slots in a step is one question -- one lookup over "
                         "its members' united description, each member answered from its own "
