@@ -3283,6 +3283,7 @@ class Agent:
             return
         members = self._events[ev] if ev is not None else (slot,)
         described: dict = {}
+        desc_of: dict = {}
         held_out = []
         for m in members:
             # each member described by its own residual, scoped to its own object; the event's
@@ -3290,13 +3291,35 @@ class Agent:
             hm = hist if m == slot else self.history(m)
             sc = {s for s, o in own.items() if o == own.get(m)}
             gap = retrieval.characterise(hm, m, list(self.alphabet), self.slot_types, scope=sc)
-            described.update({s: self.slot_types[s] for s in (m, *gap["varies"])
-                              if s in self.slot_types})
+            desc_of[m] = {s: self.slot_types[s] for s in (m, *gap["varies"])
+                          if s in self.slot_types}
+            described.update(desc_of[m])
         if _CLOCK_DESC:
             held_out = sorted(s for s in described if s not in members and s in self._own_quiet)
             for s in held_out:
                 del described[s]
-        found = composer.lookup(described)
+                for d_ in desc_of.values():
+                    d_.pop(s, None)
+        if ev is None:
+            found = composer.lookup(described)
+        else:
+            # (b1) (the reviewer 2026-10-18 02:28): an event's pairs are the union of each
+            # member's OWN pair set, never pairs across the union of readings -- a cross-member
+            # pair is a compound no member's residual described (Fig 9), and over the union the
+            # pairs grew with its square (lf52 o59.shape: 65 readings, 1.86 M pairs)
+            seen_p: set = set()
+            pairs, query = [], set()
+            for m in members:
+                fm = composer.lookup(desc_of[m])
+                query.update(fm["query"])
+                for p in fm["pairs"]:
+                    k_ = (p["molecule"], p["left"], p["right"], p["left_reading"],
+                          p["right_reading"])
+                    if k_ not in seen_p:
+                        seen_p.add(k_)
+                        pairs.append(p)
+            found = {"query": sorted(query), "pairs": pairs,
+                     "junctions": len({(p["molecule"], p["left"], p["right"]) for p in pairs})}
         read = composer.read_pairs(found["pairs"], [b for b, _act, _val, _intent, _landed in hist])
         held = [{k: r[k] for k in ("molecule", "left", "right", "left_reading", "right_reading",
                                    "held", "via", "occasions")} for r in read if r["held"]]
