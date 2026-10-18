@@ -747,6 +747,13 @@ _OBJ_EVENT = armflag.arm("TETHER_OBJ_EVENT", default=True)
 # each covered member's binding and leftover -- and admitted when that is below the covered
 # members' joint price; each member keeps its own binding, bet and settle. OFF: gate-only
 _EVENT_SHARED = armflag.arm("TETHER_EVENT_SHARED", default=True)
+# G1, RELATIONAL WANTS PER EVENT (the reviewer 2026-10-17 15:30, 23:04, 23:17): since E0b a derived
+# slot has no residual, so the mint never writes a want on it -- seen, never wanted. Per event, ONE
+# objective-only question over the derived slots it changed; the want is the library condition the
+# change made TRUE (held after, not before), closed with "all" as the goal link closes one; bare
+# quantifiers refused; kept as a want, never bound or bet; its origin and outcome recorded. OFF:
+# no such want (f631977)
+_G1_WANT = armflag.arm("TETHER_G1_WANT", default=True)
 # C1b, THE RANK (the reviewer 2026-10-17 17:07, 17:29, 17:30; Fig 9 :40-41 "keep every cut ranked
 # and reversible"): the step's lookups are spent in class order -- owed and changed, changed, our
 # own act's (its landing object, or one in contact with it in the frame's read), owed and still,
@@ -1997,6 +2004,7 @@ class Agent:
         self._event_of: dict = {}
         self._ev_done: dict = {}
         self._ev_base: dict = {}
+        self._g1: dict = {}     # G1: derived slot -> its want, origin and outcome counts
         self._late = (0, 0)                # K1: this step's T4 / T5 entries (asked, not asked)
         self._k1_trunc = False             # K1: the last index walk was cut by the budget
         self._deferred: set = set()        # K1: (slot, delta kind) a T1 hit deferred, to re-ask
@@ -2690,6 +2698,14 @@ class Agent:
         Everything still owed is parked WITH its history, which is the only way a term
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
+        if _G1_WANT and self._g1:
+            # G1: the ending is the ground's vote on each relational want held through it
+            self.led.record(self.cycle, "SETTLE", "@g1_end", "g1_outcomes", how=how,
+                            level=self.level, wants=[{"slot": d, **r}
+                                                     for d, r in sorted(self._g1.items())],
+                            reads="G1: each relational want held at this boundary, its origin "
+                                  "and its outcome so far; the ending votes")
+            self._g1 = {}
         self._intent_verdict(how)
         for slot in sorted(self.owed_import):
             rec = dict(self.abstained.get(slot, {}))
@@ -2995,6 +3011,93 @@ class Agent:
             if _EVENT_SHARED and price > floor:
                 self._event_shared(p, [m for m in ind if self.candidates.get(
                     self.bound.get(m)) != self.cycle], att)
+
+    # G1 (the reviewer 15:30 (b)): the quantifier atoms -- always available, so never a want alone
+    _G1_FREE = frozenset(("all", "any", "none", "all_same", "any_same", "none_same", "all_of",
+                          "some_of", "one_of", "none_of"))
+
+    def _g1_wants(self) -> None:
+        """G1: per event, one objective-only question over the derived slots it CHANGED this step
+        (a derived slot is no member: it carries no residual). The want is the library condition
+        on such a slot that the change made TRUE -- it holds after the step and did not before
+        (the reviewer 23:17), ladder order breaking ties -- closed into an objective with "all" as
+        the goal link closes one (tether 4206). A condition of quantifier atoms alone is refused;
+        a slot that already wants keeps its want; one want per event per step; never bound or bet.
+        The wants already held are followed first: met / unmet from goal_residual, or replaced."""
+        for d, rec in self._g1.items():
+            if self.wants.get(d) != rec["want"]:
+                rec["replaced"] = True
+            elif self._res.get(d):
+                rec["met" if self._res[d][-1] <= 0 else "unmet"] += 1
+        if not self.trace:
+            return
+        before, after = self.trace[-1][0], self.trace[-1][2]
+        der = self.env.derived() if hasattr(self.env, "derived") else {}
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        att = self.env.attribute_of() if hasattr(self.env, "attribute_of") else {}
+        lib = self._inv_lib if _M7_INV and self._inv_lib is not None else _library()
+        close = next((a for a in self.gamma.atoms if a.name == "all"), None)
+        if lib is None or close is None:
+            return
+        known = compile_term.readings()
+        k1 = _DELTA_KIND or _MOLECULES or _ATTR_INDEX
+        for p, mem in sorted(self._events.items()):
+            srcs = set(mem)
+            changed = [d for d, src in sorted(der.items())
+                       if d in after and d in before and after[d] != before[d]
+                       and (srcs & set(src) or p in (own.get(d) or "").split("~"))]
+            if not changed:
+                continue
+            formed, free, held = None, 0, None
+            for d in changed:
+                o = own.get(d) or ""
+                parties = o.split("~") if "~" in o else [o]
+                a = att.get(d)
+                lit = lib.light({a: 1}) if a in known else []
+                if not lit:
+                    continue
+                dk = self._delta_kind(d, self.history(d)) if _DELTA_KIND else None
+                if k1:
+                    lit, _n = self._tiers(lib, lit, dk, parties[0], {d: self.slot_types.get(d)},
+                                          att)
+                self._cur_dk, self._dk_this, self._dk_of = dk, set(), {d: dk}
+                views, _causes, _ref = self._index_reach(lib, lit, d, parties[0], (),
+                                                         partner=parties[-1], probe=True)
+                for c, prov in views.values():
+                    if all(x.name in self._G1_FREE for x in c.term.atoms):
+                        free += 1
+                        continue
+                    if (compile_term.run(c, after) is True
+                            and compile_term.run(c, before) is not True):
+                        term = Term(tuple(c.term.atoms) + (close,), operand=c.term.operand,
+                                    operand_term=c.term.operand_term)
+                        if term.out_type == OBJ_TYPE:
+                            formed = (d, term, prov, dk)
+                            break
+                if formed:
+                    break
+            if formed is not None:
+                d, term, prov, dk = formed
+                if d in self.wants:
+                    held, formed = self.wants[d], None
+                else:
+                    self.wants[d] = term.name
+                    self._want_terms[d] = term
+                    self._want_scope[d] = term.name
+                    origin = {"origin": "derived-change", "obj_event": p,
+                              "dk": list(dk) if dk else None, "entry": prov.get("library")}
+                    self._g1[d] = {"want": term.name, **origin, "formed": self.cycle,
+                                   "pursued": 0, "met": 0, "unmet": 0}
+                    if _ENTRY_USE:
+                        self._use(prov.get("library"), "wanted")
+                    self.led.record(self.cycle, "MINT", d, "g1_want", want=term.name, **origin,
+                                    reads="G1: the relational state this event just reached, "
+                                          "kept as a want -- never bound, never bet")
+            self.led.record(self.cycle, "MINT", "@event", "g1", owner=p, changed=changed,
+                            formed=formed[0] if formed else None, refused_free=free,
+                            no_new_state=formed is None and held is None,
+                            **({"held_want": held} if held else {}),
+                            reads="G1: the event's changed relations asked once for a want")
 
     def _joint(self, bases: dict, att: dict) -> float:
         """E3's joint code over independent members: the sum, the cell-change group as its max."""
@@ -12957,6 +13060,8 @@ class Agent:
         # reinvention no grep can see, and the laxer criterion was mine rather than the
         # corpus's.**
         _want_slot = self._goal_choice()
+        if _G1_WANT and _want_slot in self._g1:
+            self._g1[_want_slot]["pursued"] += 1        # G1's outcome: the selector chose it
         if _want_slot is not None and _want_slot in before:
             focal = _want_slot
             self.gamma.book["focus_by_want"] = self.gamma.book.get("focus_by_want", 0) + 1
@@ -13214,6 +13319,8 @@ class Agent:
         if _OBJ_EVENT and self._events:
             with self._step_scope("MINT"):
                 self._event_prices()
+                if _G1_WANT:
+                    self._g1_wants()
         if by == "probe":
             self._flush_probe(_turned)
         if self.drive.never_live(len(self.actions)) and not self._said_never_live:

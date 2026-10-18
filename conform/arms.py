@@ -869,6 +869,11 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_G1_WANT": "G1 (the reviewer 2026-10-17 15:30, 23:04, 23:17): per event, one "
+                      "objective-only question over the derived slots it changed; the want is "
+                      "the library condition the change made true, closed with all; bare "
+                      "quantifiers refused; one want per event, never bound or bet; origin and "
+                      "outcome recorded to the boundary. OFF: no such want (f631977). default ON",
     "TETHER_OBJ_EVENT": "E1-E3 (the reviewer 2026-10-17 12:53, 21:48, 21:53): an owner with two "
                         "or more live residual slots in a step is one question -- one lookup over "
                         "its members' united description, each member answered from its own "
