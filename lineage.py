@@ -279,6 +279,12 @@ def head(d: str | Path) -> tuple[str | None, dict]:
     return (chain[-1][0] if chain else None), fold(chain)
 
 
+def _ksorted(rows) -> list:
+    """The kind lists sorted by a TOTAL order: a delta kind's third element is an int on some
+    keys and a str on others (ar25, E4a 2026-10-18); plain sorting compares element by element."""
+    return sorted(rows, key=lambda x: json.dumps(x, sort_keys=True, default=str))
+
+
 def write(d: str | Path, ag: Any, game: str) -> dict:
     """The boundary's generation: only what changed since the parent the instance LOADED
     (ag.lineage_parent), against that parent's fold. Named by its own hash; never overwritten."""
@@ -352,7 +358,7 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
                                        if ag._kind_landed_n[(k, r, ko, kx)] >
                                        was_n.get((k, r, ko, kx), 0))
             was_dk2 = getattr(ag, "_kdk_written", {})
-            gen["kinds_dk_last"] = sorted([list(d_), k, list(t_), *v]
+            gen["kinds_dk_last"] = _ksorted([list(d_), k, list(t_), *v]
                                           for (d_, k, t_), v in ag._kdk_last.items()
                                           if ag._kind_landed_dk[(d_, k, t_)] >
                                           was_dk2.get((d_, k, t_), 0))
@@ -361,12 +367,12 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
     if tether._DELTA_KIND and hasattr(ag, "_kind_landed_dk"):
         # K1: the landings with their delta kind since the last write; the load sums the chain
         was_dk = getattr(ag, "_kdk_written", {})
-        gen["kinds_landed_dk"] = sorted(
+        gen["kinds_landed_dk"] = _ksorted(
             [list(dk_), k, list(tg), n - was_dk.get((dk_, k, tg), 0)]
             for (dk_, k, tg), n in ag._kind_landed_dk.items()
             if n > was_dk.get((dk_, k, tg), 0))
         was_off = getattr(ag, "_koff_written", {})
-        gen["kinds_offered_dk"] = sorted(
+        gen["kinds_offered_dk"] = _ksorted(
             [list(dk_), k, list(ko), n - was_off.get((dk_, k, ko), 0)]
             for (dk_, k, ko), n in ag._kind_offered_dk.items()
             if n > was_off.get((dk_, k, ko), 0))
