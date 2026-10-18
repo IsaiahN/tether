@@ -727,6 +727,16 @@ _STEP_BUDGET = armflag.arm("TETHER_STEP_BUDGET", default=True)
 # a DECLARED convention (Fig 10), visible and movable, never tuned to a board: the median step's
 # whole lookup work on lf52 (4666226, 12 steps: 13.1 s at ~14 us), so half the steps run as today
 STEP_BUDGET = 1_000_000
+# K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
+# 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
+# is stored with every landing, and the lit list is TIERS, an order, never a cut: T1a-c what landed
+# for this delta kind (this object kind, any, this cluster); T2 carried landings with no delta kind;
+# T3 today's by_reading lit; T4 the molecules molecules_lit offers over them; T5 by_cluster's
+# entries for the described clusters. T4 / T5 are walked only while the step's budget remains, and
+# a T1 offer defers T2-T5 for that ask. Each arm OFF drops its tiers (83d67f7)
+_DELTA_KIND = armflag.arm("TETHER_DELTA_KIND", default=True)       # the store, T1 and T2
+_MOLECULES = armflag.arm("TETHER_MOLECULES", default=True)         # T4
+_ATTR_INDEX = armflag.arm("TETHER_ATTR_INDEX", default=True)       # T5
 # C1b, THE RANK (the reviewer 2026-10-17 17:07, 17:29, 17:30; Fig 9 :40-41 "keep every cut ranked
 # and reversible"): the step's lookups are spent in class order -- owed and changed, changed, our
 # own act's (its landing object, or one in contact with it in the frame's read), owed and still,
@@ -1963,6 +1973,19 @@ class Agent:
         self._kind_landed: set = set()
         self._kind_pairs: set = set()   # 7m: (kind_o, kind_x) of every landed or loaded entry
         self._kind_known: set = set()
+        # K1: (delta kind, entry, role, kind_o, kind_x) -> landings, this run's and carried; the
+        # T1 index (delta kind, kind_o) -> {entry: landings}; the delta kind of the lookup running
+        self._kind_landed_dk: Counter = Counter()
+        self._kind_known_dk: Counter = Counter()
+        self._dk_index: dict = {}
+        self._cur_dk: tuple | None = None
+        self._dk_this: set = set()         # K1: this lookup's landings, counted once
+        self._late = (0, 0)                # K1: this step's T4 / T5 entries (asked, not asked)
+        self._k1_trunc = False             # K1: the last index walk was cut by the budget
+        self._deferred: set = set()        # K1: (slot, delta kind) a T1 hit deferred, to re-ask
+        # K1 (the reviewer 20:43): (delta kind, entry, target kind) -> asks where it was OFFERED
+        self._kind_offered_dk: Counter = Counter()
+        self._kind_known_off: Counter = Counter()
         self._kind_episodes: list = []
         self._kinds_carried: set = set()
         self._kind_episode_mark = 0
@@ -2938,9 +2961,109 @@ class Agent:
                         offered=len(found["pairs"]), held=held, named=sorted(named),
                         reads=("the library looked up by this residual's own description; "
                                "pairs offered, bonds read over its frames, nothing adopted"))
-        self._library_reach(slot, mine, own, described)
+        self._library_reach(slot, mine, own, described,
+                            dk=self._delta_kind(slot, hist) if _DELTA_KIND else None)
 
-    def _library_reach(self, slot: str, mine: str, own: dict, described: dict) -> None:
+    def _delta_kind(self, slot: str, hist: list) -> tuple | None:
+        """K1: HOW the residual's own slot changed -- (cluster, sign, size class), from its last
+        frame. A change reading's kind is its own value's; a level's is its difference's. Ordered
+        values: "+" / "-" / "0" and the bit length of the magnitude (the code's log2 scale);
+        unordered ones: "ne" / "0" and "-". None with no cluster, no frame, or no value."""
+        att = getattr(self.env, "attribute_of", None)
+        a = (att() if att else {}).get(slot)
+        cl = inherited.READING_CLUSTER.get(a)
+        if not cl or not hist:
+            return None
+        before, after = hist[-1][0].get(slot), hist[-1][2]
+        if after is NOT_RESOLVED or after is None or (
+                a not in inherited.DELTA_READINGS and (before is NOT_RESOLVED or before is None)):
+            return None
+        ordered = (self.slot_types.get(slot) in ORDERED_TYPES and isinstance(after, int)
+                   and not isinstance(after, bool))
+        if not ordered:
+            moved = bool(after) if a in inherited.DELTA_READINGS else after != before
+            return (cl[0], "ne" if moved else "0", "-")
+        v = after if a in inherited.DELTA_READINGS else after - before
+        return (cl[0], "+" if v > 0 else "-" if v < 0 else "0", abs(v).bit_length())
+
+    def _tiers(self, lib: Any, lit: list, dk: tuple | None, mine: str, described: dict,
+               att: dict) -> tuple[list, dict]:
+        """K1: the lit list as tiers, an ORDER and never a cut, each key once at its first tier:
+        T1a / T1b / T1c what was OFFERED before under this delta kind and this object kind / this
+        delta kind / this cluster (the back-off ladder; the probe); T2 carried landings with no
+        delta kind, this object kind; T3 today's lit; T1d what only LANDED (the reviewer 20:43,
+        21:03); T4 the molecules molecules_lit offers over T1a-T3; T5 by_cluster's entries for the
+        described readings' clusters, atoms before molecules. (list, sizes)"""
+        seen: set = set()
+        out: list = []
+        n: dict = {}
+
+        def put(tier: str, keys: list) -> None:
+            c = 0
+            for k, w in keys:
+                if k not in seen and lib.get(k) is not None:
+                    seen.add(k)
+                    out.append((k, w))
+                    c += 1
+            n[tier] = c
+
+        def ranked(cnt: Counter) -> list:
+            return sorted(cnt.items(), key=lambda kv: (-kv[1], kv[0]))
+
+        if _DELTA_KIND and dk is not None:
+            ko = self._kind(mine)
+
+            def rung(d: tuple, tgt: tuple) -> str | None:
+                # the TARGET's kind: a view lands on its own object (kind_o), a CAUSE on kind_x
+                return ("a" if tgt == ko else "b") if d == dk else "c" if d[0] == dk[0] else None
+            land = {r_: Counter() for r_ in "abc"}
+            off = {r_: Counter() for r_ in "abc"}
+            for (d, k, tgt), m in itertools.chain(self._kind_landed_dk.items(),
+                                                  self._kind_known_dk.items()):
+                g_ = rung(d, tgt)
+                if g_:
+                    land[g_][k] += m
+            for (d, k, tgt), m in itertools.chain(self._kind_offered_dk.items(),
+                                                  self._kind_known_off.items()):
+                g_ = rung(d, tgt)
+                if g_:
+                    off[g_][k] += m
+            # the 20:43 ruling: T1a-c are what was OFFERED (passed the explains test) before, by
+            # offers, then landings; T1d is what only LANDED (order, never a cut)
+            for g_ in "abc":
+                put(f"T1{g_}", sorted(((k, float(m)) for k, m in off[g_].items()),
+                                      key=lambda kv, g_=g_: (-kv[1], -land[g_][kv[0]], kv[0])))
+            offered_any = set().union(*off.values())
+            landed_only = Counter()
+            for g_ in "abc":
+                for k, m in land[g_].items():
+                    if k not in offered_any:
+                        landed_only[k] += m
+            with_dk = {e[1:] for e in itertools.chain(self._kind_landed_dk, self._kind_known_dk)}
+            put("T2", ranked(Counter(k for (k, r, o, x) in self._kind_known
+                                     if (x if r == "CAUSE" else o) == ko
+                                     and (k, x if r == "CAUSE" else o) not in with_dk)))
+        put("T3", lit)
+        upto_t3 = {k for k, _w in out}
+        if _DELTA_KIND and dk is not None:
+            # the reviewer 21:03: T1d AFTER T3 -- the present description first, history that never
+            # explained after it, and walked under the step's budget with T4 / T5
+            put("T1d", ranked(landed_only))
+        if _MOLECULES:
+            put("T4", [(m["key"], 0.0) for m in lib.molecules_lit(upto_t3)])
+        if _ATTR_INDEX:
+            bc, _why = inherited.by_cluster()
+            cls = {c for s in described for c in inherited.READING_CLUSTER.get(att.get(s), ())}
+            score = Counter(k for c in cls for k in bc.get(c, ()))
+
+            def molecule(k: str) -> bool:
+                return bool((lib.get(k) or {}).get("ingredients"))
+            put("T5", [(k, float(m)) for k, m in sorted(
+                score.items(), key=lambda kv: (molecule(kv[0]), -kv[1], kv[0]))])
+        return out, n
+
+    def _library_reach(self, slot: str, mine: str, own: dict, described: dict,
+                       dk: tuple | None = None) -> None:
         """M4 (METAPROGRAMMING_DESIGN section 4; the reviewer 2026-10-09 07:14Z, 07:23Z). The
         library lit by THIS residual's description -- the slot and what varied with it, as
         readings -- and every view and CAUSE then-side that compiles onto this slot, recorded. A
@@ -2975,6 +3098,11 @@ class Agent:
             self.led.record(self.cycle, "ROUTE", slot, "blocked_cue", partners=list(blk),
                             keys=list(S7_SOLIDITY),
                             reads="blocked by a partner: the lookup tries solidity first")
+        tiers = None
+        k1 = (_DELTA_KIND or _MOLECULES or _ATTR_INDEX) and lib is not None
+        self._cur_dk, self._dk_this = (dk if k1 else None), set()
+        if k1:
+            lit, tiers = self._tiers(lib, lit, dk, mine, described, att)
         if not lit:
             return
         if _ENTRY_USE:
@@ -3000,20 +3128,61 @@ class Agent:
         if _REACH_RANK:
             # E1 part 2: the views keep today's partner; only the CAUSE side is ranked and budgeted
             cands, rank, n_tiers, _cov = self._rank_causes(slot, mine, own, tuple(rep_slot), att)
-            # REACH-LIT-KEY: the lit entries are in the key, so an index built before an
-            # invention is never served after it (the reviewer 07:03)
-            ikey = (frozenset(changed), slot, mine, cands, blk, others[:1],
-                    tuple(k for k, _w in lit))
-            index = self._reach_index.get(ikey)
-            if index is None:
-                index = self._reach_index[ikey] = self._index_reach(
-                    lib, lit, slot, mine, cands, partner=others[0] if others else mine)
-        else:
-            ikey = (frozenset(changed), slot, mine, others, blk)
-            index = self._reach_index.get(ikey)
-            if index is None:
-                index = self._reach_index[ikey] = self._index_reach(lib, lit, slot, mine, others)
+        n_t1 = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c")) if tiers else 0
+        # T1d, T4 and T5 are the list's tail, walked only while the step's budget remains
+        n_late = sum(tiers.get(t, 0) for t in ("T1d", "T4", "T5")) if tiers else 0
+        late = frozenset(k for k, _w in lit[len(lit) - n_late:]) if n_late else frozenset()
+        a0, na0 = self._late
+
+        def _index_for(lit_: list, probe: bool = False) -> tuple:
+            """The index of these lit entries, memoised; a walk the step's budget truncated (K1's
+            T4 / T5 guard) is never memoised, so a later step with budget left walks it whole."""
+            self._k1_trunc = False
+            if _REACH_RANK:
+                # REACH-LIT-KEY: the lit entries are in the key, so an index built before an
+                # invention is never served after it (the reviewer 07:03)
+                ikey = (frozenset(changed), slot, mine, cands, blk, others[:1],
+                        tuple(k for k, _w in lit_))
+                got = self._reach_index.get(ikey)
+                if got is None:
+                    got = self._index_reach(lib, lit_, slot, mine, cands,
+                                            partner=others[0] if others else mine,
+                                            late=late, probe=probe)
+            else:
+                ikey = (frozenset(changed), slot, mine, others, blk,
+                        *((tuple(k for k, _w in lit_),) if k1 else ()))
+                got = self._reach_index.get(ikey)
+                if got is None:
+                    got = self._index_reach(lib, lit_, slot, mine, others, late=late, probe=probe)
+            if ikey not in self._reach_index and not self._k1_trunc:
+                self._reach_index[ikey] = got
+            return got
+
+        # K1's DEFERRAL (the reviewer 20:28 item 4): the walk never stopped on an explaining
+        # candidate (_index_reach walks every lit entry; the explains test is _lib_offer's, after).
+        # When T1 lists entries, they are indexed and tested first; if one is offered, T2-T5 are not
+        # walked this ask, counted as deferred. The same residual asked again (same slot, same delta
+        # kind) walks them all, so the cut stays ranked and reversible (Fig 9 :40-41).
+        deferred = 0
+        index = None
+        if n_t1 and (slot, dk) not in self._deferred:
+            idx1 = _index_for(lit[:n_t1], probe=True)
+            if any(o_["offered"] for o_ in self._offers_of(
+                    idx1, slot, self._frames_for(rep_slot))[0]):
+                index, deferred = idx1, len(lit) - n_t1
+                self._deferred.add((slot, dk))
+        if index is None:
+            self._deferred.discard((slot, dk))
+            index = _index_for(lit)
         views, causes, refused = index
+        if tiers is not None:
+            a1, na1 = self._late
+            self.led.record(self.cycle, "ROUTE", slot, "lookup_tiers",
+                            dk=list(dk) if dk else None, listed=tiers, deferred=deferred,
+                            late_asked=a1 - a0, late_not_asked=na1 - na0,
+                            reads="K1: the lit list as tiers -- listed per tier, the tiers a T1 "
+                                  "hit deferred, and the T4 / T5 entries the step's budget let "
+                                  "this lookup ask")
         if _LIBRARY_ABDUCE:
             # 7d's row: what the reverse lookup added -- entries lit only by it, the distinct
             # terms they were first to offer, and the terms routed through an event (via)
@@ -3024,6 +3193,43 @@ class Agent:
                             routed=sum(1 for _c, p in views.values() if p.get("via"))
                             + sum(1 for *_x, p in causes.values() if p.get("via")),
                             refused=sum(refused.values()))
+        frs = self._frames_for(rep_slot)
+        offers, sup = self._offers_of(index, slot, frs)
+        if _DELTA_KIND and dk is not None:
+            # K1 (the reviewer 20:43): the entries whose candidate passed _lib_offer's explains test
+            # in this ask, once each, under the residual's delta kind and its object's kind
+            _ko = self._kind(mine)
+            for k_ in {o_["prov"].get("library") for o_ in offers if o_["offered"]} - {None}:
+                self._kind_offered_dk[(dk, k_, _ko)] += 1
+        rows = []
+        for prov, if_c, then_c, v, off in sup:
+            rows.append({**prov, "then": then_c.term.name, **v,
+                         "offered": off["offered"], "why": off["why"]})
+            if rank is not None and own.get(if_c.slot) is not None:
+                # the kind record the boost reads: this kind of object caused this kind of
+                # effect on this attribute (supported by the frames; never a game id)
+                _o = own[if_c.slot]
+                self._cause_kind_n["|".join((self._kind_str(_o), self._kind_str(mine),
+                                             str(att.get(slot)),
+                                             "cov" if _o in _cov else "nocov"))] += 1
+        if rank is not None:
+            self._rank_moved(slot, rank, n_tiers, explained=bool(rows),
+                             kind=f"{self._kind_str(mine)}|{att.get(slot)}")
+        self._lib_offers[slot] = [o_ for o_ in offers if o_["offered"]]
+        if _ENTRY_USE:
+            for o_ in offers:
+                self._use(o_["prov"].get("library"), "offered" if o_["offered"] else "refused")
+        self.led.record(self.cycle, "ROUTE", slot, "library", changed=sorted(changed),
+                        lit=len(lit), views=len(views), causes=len(causes),
+                        supported=rows, offered=len(self._lib_offers[slot]),
+                        withheld=dict(Counter(o_["why"] for o_ in offers if not o_["offered"])),
+                        refused=dict(refused), **({"rank": rank} if rank is not None else {}),
+                        reads=("the library lit by this residual's description; the distinct views "
+                               "and CAUSE then-sides that compile onto this slot, tested and "
+                               "recorded, each with the count of entries that offered it"))
+
+    def _frames_for(self, rep_slot: dict) -> list:
+        """The reach frames over the trace, rebuilt when the trace moved (one object per epoch)."""
         if self._reach_frames is None or self._reach_frames[0] != self._trace_epoch \
                 or self._reach_frames[1] != len(self.trace):
             self._reach_frames = (self._trace_epoch, len(self.trace), reach.frames(
@@ -3035,9 +3241,15 @@ class Agent:
                 self._reach_fsig = (self._trace_epoch, tuple(sorted(rep_slot.items())),
                                     tuple(sorted(dc[0].items())), tuple(sorted(dc[1].items())),
                                     repr(sorted(dc[2].items(), key=lambda kv: str(kv[0]))))
-        frs = self._reach_frames[2]
+        return self._reach_frames[2]
+
+    def _offers_of(self, index: tuple, slot: str, frs: list) -> tuple[list, list]:
+        """An index's views and CAUSE then-sides as offers, each cause tested on the frames:
+        (offers, [(prov, if_c, then_c, verdict, offer) for every supported cause]). The verdicts
+        are memoised; nothing else is written (K1's T1 probe reads it before the tail does)."""
+        views, causes, _refused = index
         units = self._units_for(slot)
-        offers, rows = [], []
+        offers, sup = [], []
         for c, prov in views.values():
             offers.append(self._lib_offer(c, prov))
         for if_c, then_c, prov in causes.values():
@@ -3062,30 +3274,8 @@ class Agent:
             off = self._lib_offer(then_c, prov, v)
             offers.append(off)
             if v["supported"]:
-                rows.append({**prov, "then": then_c.term.name, **v,
-                             "offered": off["offered"], "why": off["why"]})
-                if rank is not None and own.get(if_c.slot) is not None:
-                    # the kind record the boost reads: this kind of object caused this kind of
-                    # effect on this attribute (supported by the frames; never a game id)
-                    _o = own[if_c.slot]
-                    self._cause_kind_n["|".join((self._kind_str(_o), self._kind_str(mine),
-                                                 str(att.get(slot)),
-                                                 "cov" if _o in _cov else "nocov"))] += 1
-        if rank is not None:
-            self._rank_moved(slot, rank, n_tiers, explained=bool(rows),
-                             kind=f"{self._kind_str(mine)}|{att.get(slot)}")
-        self._lib_offers[slot] = [o_ for o_ in offers if o_["offered"]]
-        if _ENTRY_USE:
-            for o_ in offers:
-                self._use(o_["prov"].get("library"), "offered" if o_["offered"] else "refused")
-        self.led.record(self.cycle, "ROUTE", slot, "library", changed=sorted(changed),
-                        lit=len(lit), views=len(views), causes=len(causes),
-                        supported=rows, offered=len(self._lib_offers[slot]),
-                        withheld=dict(Counter(o_["why"] for o_ in offers if not o_["offered"])),
-                        refused=dict(refused), **({"rank": rank} if rank is not None else {}),
-                        reads=("the library lit by this residual's description; the distinct views "
-                               "and CAUSE then-sides that compile onto this slot, tested and "
-                               "recorded, each with the count of entries that offered it"))
+                sup.append((prov, if_c, then_c, v, off))
+        return offers, sup
 
     def _kind_str(self, owner: str | None) -> str | None:
         return None if owner is None else "/".join(self._kind(owner))
@@ -3282,7 +3472,8 @@ class Agent:
                 info["to_3a"] = "unseen actor"
 
     def _index_reach(self, lib: Any, lit: list, slot: str, mine: str, others: tuple,
-                     partner: str | None = None) -> tuple:
+                     partner: str | None = None, late: frozenset = frozenset(),
+                     probe: bool = False) -> tuple:
         """The distinct compiled views and CAUSE pairs that land on `slot`, each with its first
         entry and the count of entries offering it; refusals counted by reason. Compiled once
         per condition (the compiler is a pure function of the condition and the atoms)."""
@@ -3307,7 +3498,16 @@ class Agent:
             partner = others[0] if others else mine
         sig = compile_term.signature(atoms) if _INDEX_HOLD else None
         _pno = _PAIR_NOT_OBJECT and ("~" in mine or "~" in partner)
-        for key, _w in lit:
+        for i_, (key, _w) in enumerate(lit):
+            if key in late:
+                # K1's COST GUARD: T4 / T5 are asked only while the step's budget remains; the
+                # rest is counted not asked, and the truncated index is not memoised
+                a_, na_ = self._late
+                if _STEP_BUDGET and self._spent >= STEP_BUDGET:
+                    self._late = (a_, na_ + sum(1 for k_, _x in lit[i_:] if k_ in late))
+                    self._k1_trunc = True
+                    break
+                self._late = (a_ + 1, na_)
             for role in reach.SINGLE:
                 if _pno:
                     refused[PAIR_NOT_OBJECT] += 1
@@ -3365,17 +3565,29 @@ class Agent:
                     _landed += 1
                 if _7L_KIND and _landed:
                     self._land_kind((key, "CAUSE", self._kind(o_), self._kind(mine)))
-        if _7L_KIND:
+        if _7L_KIND and not probe:      # K1: a T1 probe is not a second episode of this lookup
             self._kind_episodes.append({"game": self.gamma.game, "level": self.level, "slot": slot,
                                    "o": mine, "x": list(others),
                                    "outcome": len(views) + len(causes),
-                                   "salience": self.outstanding(slot)})
+                                   "salience": self.outstanding(slot),
+                                   # K1 (the reviewer 21:03): the delta kind the episode answered,
+                                   # so the record rebuilds any finer index the ladder drops
+                                   **({"dk": list(self._cur_dk)}
+                                      if _DELTA_KIND and self._cur_dk is not None else {})})
         return views, causes, refused
 
     def _land_kind(self, entry: tuple) -> None:
         """7l: a landed (entry, role, kind_o, kind_x); 7m's pair set kept with it."""
         self._kind_landed.add(entry)
         self._kind_pairs.add((entry[2], entry[3]))
+        if _DELTA_KIND and self._cur_dk is not None:
+            # K1: the landing with the delta kind it answered, keyed (dk, entry, target kind) --
+            # the INDEX the ladder reads (the reviewer 21:03, form b); 7l's kinds_landed and the
+            # episodes are the record. Once per lookup: a T1 probe and the full walk count one
+            e = (self._cur_dk, entry[0], entry[3] if entry[1] == "CAUSE" else entry[2])
+            if e not in self._dk_this:
+                self._dk_this.add(e)
+                self._kind_landed_dk[e] += 1
 
     def _kind(self, owner: str) -> tuple:
         """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots;
@@ -6738,6 +6950,7 @@ class Agent:
             # C1: this step's budget starts at zero; the slots a budget left unasked go first,
             # the rest keep today's order (so a budget that never binds changes nothing)
             self._spent = self._asked = self._not_asked = 0
+            self._late = (0, 0)
             self._class_n = {c: [0, 0] for c in RANK_CLASSES}
             if _STEP_RANK:
                 self._route_cls = {s: self._rank_class(s) for s in res}
@@ -6835,6 +7048,8 @@ class Agent:
                             owed_lookups=len(self._owed_q),
                             **({"classes": {c: v for c, v in self._class_n.items() if any(v)}}
                                if _STEP_RANK else {}),
+                            **({"late_asked": self._late[0], "late_not_asked": self._late[1]}
+                               if (_MOLECULES or _ATTR_INDEX) else {}),
                             reads="this step's lookup evaluations against the budget, and the "
                                   "owed queue carried to the next step")
         if _STEP_RANK:

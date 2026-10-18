@@ -1,3 +1,5 @@
 # derived library files are byte-checked by build_library.py --check: pin them to LF on every OS
 library/*.json text eol=lf
 library/BUILD_REPORT.md text eol=lf
+# K1: Isaiah's ATTRIBUTE_INDEX, corpus, sha256-checked at load: stored byte-for-byte
+docs/corpus/ATTRIBUTE_INDEX.json -text

@@ -869,6 +869,22 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_DELTA_KIND": "K1 (the reviewer 2026-10-17 20:25, 20:28, 20:43): the residual's delta "
+                         "kind (cluster, sign, size class) is stored with every landing and every "
+                         "offer; the lit list leads with T1a-c (offered before: this kind, any "
+                         "object kind, this cluster) and T2 (carried, no delta kind), and T1d "
+                         "(landed only) follows T3 under the budget guard; a T1a-c offer defers "
+                         "the rest for that ask, a re-ask of the same "
+                         "(slot, kind) walks all. An order, never a cut. OFF: 83d67f7. default ON",
+    "TETHER_MOLECULES": "K1 (the reviewer 2026-10-17 17:47, 20:25): T4, the molecules "
+                        "Library.molecules_lit offers over the entries already listed (its first "
+                        "caller), walked only while the step's budget remains; priced by their "
+                        "atom expansion (the alphabet does not grow). OFF: 83d67f7. default ON",
+    "TETHER_ATTR_INDEX": "K1 (the reviewer 2026-10-17 17:35 A, 17:37): T5, ATTRIBUTE_INDEX's "
+                         "by_cluster entries for the described readings' clusters (the declared "
+                         "reading -> cluster table), atoms before molecules, walked only while the "
+                         "step's budget remains; the corpus file hash-checked, T5 empty and why "
+                         "when it is absent or changed. OFF: 83d67f7. default ON",
     "TETHER_REPLAY_UNIT": "R7i (the reviewer 2026-10-17 19:50): 7i's replay applies a carried "
                           "settle / refute row to the term load installed from that row (the "
                           "generation row keeps its old name as was; load records renamed), so "

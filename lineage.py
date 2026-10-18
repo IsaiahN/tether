@@ -338,6 +338,18 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         gen["kinds_landed"] = sorted([k, r, list(ko), list(kx)] for k, r, ko, kx in new_kinds)
         gen["episodes"] = list(getattr(ag, "_kind_episodes", [])
                                [getattr(ag, "_kind_episode_mark", 0):])
+    if tether._DELTA_KIND and hasattr(ag, "_kind_landed_dk"):
+        # K1: the landings with their delta kind since the last write; the load sums the chain
+        was_dk = getattr(ag, "_kdk_written", {})
+        gen["kinds_landed_dk"] = sorted(
+            [list(dk_), k, list(tg), n - was_dk.get((dk_, k, tg), 0)]
+            for (dk_, k, tg), n in ag._kind_landed_dk.items()
+            if n > was_dk.get((dk_, k, tg), 0))
+        was_off = getattr(ag, "_koff_written", {})
+        gen["kinds_offered_dk"] = sorted(
+            [list(dk_), k, list(ko), n - was_off.get((dk_, k, ko), 0)]
+            for (dk_, k, ko), n in ag._kind_offered_dk.items()
+            if n > was_off.get((dk_, k, ko), 0))
     if gamma._USED_CARRY:
         # L1b: Rank.used per unit since the last write; the load sums the chain (the reviewer
         # 2026-10-17 19:06, 19:33). Paid is not written here: 7i's replay restores it
@@ -412,6 +424,9 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         # so the mark moves only with the parent
         if "unit_used" in gen:
             ag._uu_written = uu
+        if "kinds_landed_dk" in gen:
+            ag._kdk_written = dict(ag._kind_landed_dk)
+            ag._koff_written = dict(ag._kind_offered_dk)
         if "line_grades" in gen:
             ag._line_grade_written = {k: dict(c) for k, c in ag._line_grade.items()}
         if "root_grades" in gen:
@@ -490,6 +505,15 @@ def load(d: str | Path, ag: Any) -> dict:
                           for k, r, ko, kx in g.get("kinds_landed", ())}
         ag._kind_pairs = ag._kind_pairs | {(ko, kx) for _k, _r, ko, kx in ag._kind_known}
         rep["kinds_known"] = len(ag._kind_known)
+    if tether._DELTA_KIND and hasattr(ag, "_kind_known_dk"):
+        # K1: every generation's landings with their delta kind, root to tip
+        for _h, g in chain:
+            for dk_, k, tg, n in g.get("kinds_landed_dk", ()):
+                ag._kind_known_dk[(tuple(dk_), k, tuple(tg))] += n
+            for dk_, k, ko, n in g.get("kinds_offered_dk", ()):
+                ag._kind_known_off[(tuple(dk_), k, tuple(ko))] += n
+        rep["kinds_known_dk"] = len(ag._kind_known_dk)
+        rep["kinds_known_off"] = len(ag._kind_known_off)
     if tether._7H_TRACE and hasattr(ag, "_line_grade_in"):
         # 7h (d): every generation's line grades, root to tip
         for _h, g in chain:

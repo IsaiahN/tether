@@ -43,6 +43,7 @@ producer of reach. The four files are read once and the callables are built PER 
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from functools import cache, lru_cache
@@ -52,6 +53,49 @@ from typing import Any
 sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).parent / "library"
+
+# K1 (the reviewer 2026-10-17 17:35 A, 17:37, 17:47, 20:25): Isaiah's ATTRIBUTE_INDEX, CORPUS, read
+# only and hash-checked (his original, restored byte-for-byte from 03aae57^). Its by_cluster files
+# library entries under 17 semantic clusters; the lookup ORDERS by it and never excludes.
+CORPUS_INDEX = Path(__file__).parent / "docs" / "corpus" / "ATTRIBUTE_INDEX.json"
+INDEX_SHA = "fa95115c17b5880a96aaed48b379f1a4282090d0ca9396eb3cc2a924a0e3c645"
+# THE AGENT'S READINGS TO THE INDEX'S CLUSTERS -- one declared convention (Fig 10), the primary
+# cluster first. The agent's own process readings (level, residual, standing, ...) are the agent's,
+# not the world's, and file under none.
+READING_CLUSTER: dict[str, tuple[str, ...]] = {
+    **dict.fromkeys(("row", "col", "add_row", "add_col", "rem_row", "rem_col"), ("POSITION",)),
+    **dict.fromkeys(("drow", "dcol"), ("MOTION", "DIRECTION")),
+    "speed": ("SPEED", "MOTION"),
+    **dict.fromkeys(("h", "w", "bbox", "dh", "dw", "dbbox"), ("EXTENT",)),
+    **dict.fromkeys(("dcells", "add_n", "rem_n"), ("COUNT", "EXTENT")),
+    **dict.fromkeys(("shape", "dholes", "dperimeter"), ("SHAPE", "STRUCTURE")),
+    **dict.fromkeys(("colour", "colour_changed"), ("COLOUR",)),
+    **dict.fromkeys(("contact", "inside", "touching", "dcontact", "dinside"), ("CONTACT",)),
+    **dict.fromkeys(("age", "prev"), ("TIME",)),
+    **dict.fromkeys(("stability", "completed", "dcompleted", "filled"), ("STATE",)),
+    **dict.fromkeys(("came", "gone"), ("CHANGE", "IDENTITY")),
+    **dict.fromkeys(("action", "press"), ("ACTION",)),
+}
+# K1 amendment 2 (the reviewer 2026-10-17 20:28): a reading that IS already a change takes the kind
+# of its own value -- sign(v), bit length of |v| -- never of its difference, which would turn steady
+# motion into "0" and a reversal into a size. The cell-change counts and the change flags are
+# changes too; add_row / add_col / rem_row / rem_col are POSITIONS of the change and are levels.
+DELTA_READINGS = frozenset((
+    "drow", "dcol", "dh", "dw", "dcells", "dholes", "dperimeter", "dcontact", "dinside",
+    "dcompleted", "dbbox", "speed", "add_n", "rem_n", "colour_changed", "came", "gone"))
+
+
+@cache
+def by_cluster() -> tuple[dict[str, tuple[str, ...]], str | None]:
+    """K1: ({cluster: the entries it files}, None), read once; ({}, why) when the corpus file is
+    absent or not Isaiah's (its hash moved) -- never an exception."""
+    try:
+        raw = CORPUS_INDEX.read_bytes()
+    except OSError as e:
+        return {}, f"absent: {type(e).__name__}"
+    if hashlib.sha256(raw).hexdigest() != INDEX_SHA:
+        return {}, "sha256 mismatch"
+    return {c: tuple(v) for c, v in json.loads(raw)["by_cluster"].items()}, None
 
 # THE CUE'S CLASSES TO THE LIBRARY'S TAGS, AND IT IS A TABLE RATHER THAN A RULE. `_CUE_ATTR` in
 # `tether` is the same shape and says why: the observer's classes and the library's tags agree
