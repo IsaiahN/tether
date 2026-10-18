@@ -3065,8 +3065,7 @@ class Agent:
         slot owner stays a per-slot question. One ROUTE row per event."""
         own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
         groups: dict = {}
-        # sorted: an event is a set of slots, so its members never follow res's (ranked) order
-        for s, r in sorted(res.items()):
+        for s, r in res.items():     # res's order: C1 asks the slots a budget left unasked first
             if r.gone or not (r.mass > 0.0 or s in self.owed_import):
                 continue
             o = own.get(s)
@@ -3079,7 +3078,7 @@ class Agent:
                 self._event_of.setdefault(s, p)     # a pair slot looks up with its first party
         self._ev_done, self._ev_base = {}, {}
         for p, m in sorted(self._events.items()):
-            self.led.record(self.cycle, "ROUTE", "@event", "event", owner=p, members=list(m),
+            self.led.record(self.cycle, "ROUTE", "@event", "event", owner=p, members=sorted(m),
                             reads="E1: one object's change read on several slots -- one question")
 
     # E3 (the reviewer 12:53, 21:53): the cell-change readings are functions of the cell set E0 did
@@ -3233,7 +3232,7 @@ class Agent:
             price = (sum(b for m, b in ind.items() if att.get(m) not in self._CELL_GROUP)
                      + (max(cells) if cells else 0.0))
             self.led.record(self.cycle, "MINT", "@event", "event_price", owner=p,
-                            members=list(mem), priced={m: round(b, 3) for m, b in got.items()},
+                            members=sorted(mem), priced={m: round(b, 3) for m, b in got.items()},
                             derived_out=sorted(m for m in got if m in der),
                             unpriced=sorted(m for m in mem if m not in got),
                             rule="A+B(cells)" if len(cells) > 1 else "A",
@@ -3547,7 +3546,7 @@ class Agent:
                         offered=len(found["pairs"]), held_n=len(held),
                         held_digest=dig.hexdigest()[:16], held_sample=held[:50],
                         named=sorted(named_of[slot]),
-                        **({"obj_event": ev, "members": list(members)} if ev is not None else {}),
+                        **({"obj_event": ev, "members": sorted(members)} if ev is not None else {}),
                         reads=("the library looked up by this residual's own description; "
                                "pairs offered, bonds read over its frames, nothing adopted"))
         dk = self._delta_kind(slot, hist) if _DELTA_KIND else None

@@ -69,13 +69,29 @@ def firsts(rows: list) -> list:
     return out
 
 
+# COST READINGS, set aside from E's identity (the reviewer 2026-10-18 13:45): the consolidation's
+# memo sizes follow the lookup ORDER the rank changes, so they differ by design and decide nothing
+COST = (("@memo", "memo_sizes"),)
+
+
 def main() -> int:
-    on = keep(child(10 ** 12))
-    off = keep(child(10 ** 12, {"TETHER_STEP_RANK": "0"}))
+    on_all = keep(child(10 ** 12))
+    off_all = keep(child(10 ** 12, {"TETHER_STEP_RANK": "0"}))
+    aside = sum(1 for r in on_all + off_all if (r.get("slot"), r.get("event")) in COST)
+    on = [r for r in on_all if (r.get("slot"), r.get("event")) not in COST]
+    off = [r for r in off_all if (r.get("slot"), r.get("event")) not in COST]
     seq_on = [clean(r) for r in on if r.get("step") != "ROUTE"]
     seq_off = [clean(r) for r in off if r.get("step") != "ROUTE"]
     assert seq_on == seq_off, (len(seq_on), len(seq_off), next(
         ((i, a, b) for i, (a, b) in enumerate(zip(seq_on, seq_off, strict=False)) if a != b), None))
+    # MF-E: a planted change to a NON-cost row turns E red, so the set-aside did not empty it
+    rows_on = [r for r in on if r.get("step") != "ROUTE"]
+    k = len(rows_on) // 2
+    planted = [clean({**r, "detail": {**(r.get("detail") or {}), "planted": 1}})
+               if i == k
+               else clean(r) for i, r in enumerate(rows_on)]
+    assert planted != seq_off, "MF-E did not fail"
+    print(f"  E sets aside {aside} @memo size rows (cost); MF-E: a planted non-cost change is seen")
     cyc = {r["cycle"] for r in on} | {r["cycle"] for r in off}
     for c in sorted(cyc):
         a = Counter(clean(r) for r in on if r.get("step") == "ROUTE" and r["cycle"] == c)
