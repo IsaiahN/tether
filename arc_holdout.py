@@ -207,6 +207,10 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
         # a ROOT with no library is a cold start, said so in the key play's Q25 set reads (279)
         loaded = {"library": loaded, "lineage": rep,
                   **({} if rep["parent"] or loaded else {"cold": "lineage root"})}
+    if tether._CONSOLIDATE:
+        # CONSOLIDATION's backstop: a game's start folds whatever an earlier game in this process
+        # left in the bound stores, after the record has loaded
+        ag._consolidate("game_start")
     return env, ag, led, board, palette, loaded
 
 

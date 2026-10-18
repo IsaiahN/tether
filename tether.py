@@ -764,6 +764,46 @@ _G1_WANT = armflag.arm("TETHER_G1_WANT", default=True)
 # it stays built and OFF. Both OFF: stored on the first ask, never cleared (e945a7f)
 _MEMO_CLEAR = armflag.arm("TETHER_MEMO_CLEAR", default=True)
 _MEMO_ADMIT = armflag.arm("TETHER_MEMO_ADMIT", default=False)
+# CONSOLIDATION (Isaiah 2026-10-18 04:10, 04:20, 04:26; the reviewer 04:21, 04:25, 04:27, 04:43):
+# at every boundary the agent can see -- a level end, its own restart, a game's start -- and when
+# its body reaches half its ceiling, the instance-keyed bound stores (keyed by this board's object
+# names) are cleared; what outlives them is the kind store, K1's counts, the index and the record
+# (ak_, the episodes), which the lookup wrote as the answers landed. One @consolidate row a fold.
+# OFF: the bound stores outlive every boundary (the 10-15 06:01 carry)
+_CONSOLIDATE = armflag.arm("TETHER_CONSOLIDATE", default=True)
+
+
+def _commit_bytes() -> int | None:
+    """The process's own commit (the body measure the supervisor caps), or None off Windows."""
+    if os.name != "nt":
+        return None
+    import ctypes
+    import ctypes.wintypes as wt
+
+    class _PMC(ctypes.Structure):
+        _fields_ = [("cb", wt.DWORD), ("PageFaultCount", wt.DWORD),
+                    *((n, ctypes.c_size_t) for n in (
+                        "PeakWorkingSetSize", "WorkingSetSize", "QuotaPeakPagedPoolUsage",
+                        "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage",
+                        "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage"))]
+    k32, ps = ctypes.WinDLL("kernel32"), ctypes.WinDLL("psapi")
+    k32.GetCurrentProcess.restype = wt.HANDLE
+    ps.GetProcessMemoryInfo.argtypes = [wt.HANDLE, ctypes.POINTER(_PMC), wt.DWORD]
+    c = _PMC()
+    c.cb = ctypes.sizeof(_PMC)
+    if not ps.GetProcessMemoryInfo(k32.GetCurrentProcess(), ctypes.byref(c), c.cb):
+        return None
+    return int(c.PagefileUsage)
+
+
+def _fold_ceiling() -> int | None:
+    """The supervisor's per-process ceiling in bytes (SUP_CEILING); TETHER_CONSOLIDATE_CEILING
+    lowers it for a fixture. None with no supervisor: then no size trigger."""
+    v = os.environ.get("TETHER_CONSOLIDATE_CEILING") or os.environ.get("SUP_CEILING") or ""
+    try:
+        return int(v) or None
+    except ValueError:
+        return None
 # R4's hit counter (the reviewer 23:52), record only: the carried keys, so a hit on an answer the
 # lineage handed over is counted apart (E4 reads whether carried answers are ever reused)
 _BS_CARRIED: set = set()
@@ -2004,6 +2044,18 @@ class Agent:
         self._kind_landed: set = set()
         self._kind_pairs: set = set()   # 7m: (kind_o, kind_x) of every landed or loaded entry
         self._kind_known: set = set()
+        # CONSOLIDATION (the reviewer 04:43 2a-2b): each 7l key's landings (this run's, and the
+        # lineage's summed at load) and when it last landed, (game, level, step, seq) with seq the
+        # lifetime landing ordinal; the same last_seen for K1's keys; landings by the target
+        # slot's class (derived / ordinary), a reading only
+        self._kind_landed_n: Counter = Counter()
+        self._kind_known_n: Counter = Counter()
+        self._kind_last: dict = {}
+        self._kdk_last: dict = {}
+        self._kind_seq = 0
+        self._kind_cls: Counter = Counter()
+        self._kind_cls_keys: dict = {"derived": set(), "ordinary": set()}
+        self._pair_cache: tuple = (None, {})
         # K1: (delta kind, entry, role, kind_o, kind_x) -> landings, this run's and carried; the
         # T1 index (delta kind, kind_o) -> {entry: landings}; the delta kind of the lookup running
         self._kind_landed_dk: Counter = Counter()
@@ -2019,6 +2071,14 @@ class Agent:
         self._ev_done: dict = {}
         self._ev_base: dict = {}
         self._g1: dict = {}     # G1: derived slot -> its want, origin and outcome counts
+        # CONSOLIDATION: the commit at the last size-fold (the hysteresis) and the size-folds it
+        # held back; this cycle's derived / transient slots (Q1's hit class)
+        self._fold_last_commit: int | None = None
+        self._fold_suppressed = 0
+        self._ak_kept: set = set()     # the asked record's keys a fold cleared from the stores
+        self._fold_n = 0               # the folds so far, the join key of the @body record
+        self._body_rows: list = []     # @body: each fold's commit before / after and ms
+        self._dslots: tuple = (None, frozenset())
         # R4: the keys each admitted memo has been asked once (kept across a boundary clear)
         self._seen_keys: dict = {m: set() for m in ("reach_index", "compile", "fold", "verdicts",
                                                     "units_for")}
@@ -2724,6 +2784,8 @@ class Agent:
             for m in (self._reach_index, self._reach_verdicts, self._reach_fold,
                       self._compile_cache, self._units_for_memo, self._frontiers):
                 m.clear()
+        if _CONSOLIDATE:
+            self._consolidate(how)
         if _G1_WANT and self._g1:
             # G1: the ending is the ground's vote on each relational want held through it
             self.led.record(self.cycle, "SETTLE", "@g1_end", "g1_outcomes", how=how,
@@ -3033,12 +3095,111 @@ class Agent:
                   "bound_slot_cache": len(self._bound_slot_cache)}
         hits = {k: _INDEX_N.get(k, 0) for k in (
             "bound_slot", "bound_slot_hit", "bound_slot_hit_carried", "bound_slot_from_carry",
-            "bound_whole_lookup", "bound_whole_hit", "bound_whole_hit_carried")}
+            "bound_whole_lookup", "bound_whole_hit", "bound_whole_hit_carried",
+            *(("bound_slot_hit_derived",) if _CONSOLIDATE else ()))}
+        if _CONSOLIDATE:
+            exempt["bound_slot_landed"] = self._landed_by_class()     # Q2
         self.led.record(self.cycle, "SETTLE", "@memo", "memo_sizes", at=at, agent=agent,
                         exempt=exempt, asked={m: len(v) for m, v in self._seen_keys.items()},
                         carried={"bs": len(_BS_CARRIED), "bm": len(_BM_CARRIED)}, hits=hits,
                         reads="R4: the memos' entries at this boundary (agent-level, cleared "
                               "next; exempt, kept), the asked keys, the bound memos' hits")
+
+    def _derived_now(self) -> frozenset:
+        """CONSOLIDATION: this cycle's derived or transient slots -- a key of env.derived() (pair
+        slots, the percept's derived attributes) or a change reading (inherited.DELTA_READINGS)."""
+        if self._dslots[0] != self.cycle:
+            der = getattr(self.env, "derived", None)
+            att = getattr(self.env, "attribute_of", None)
+            s = set(der()) if der is not None else set()
+            if att is not None:
+                s |= {k for k, a in att().items() if a in inherited.DELTA_READINGS}
+            self._dslots = (self.cycle, frozenset(s))
+        return self._dslots[1]
+
+    def _landed_by_class(self) -> dict:
+        """Q2: the slot memo's entries that LANDED (a non-empty answer), by the slot's class."""
+        der, out = self._derived_now(), Counter()
+        for k, v in itertools.chain(_BOUND_SLOT_MEMO.items(), self._bound_slot_cache.items()):
+            if v:
+                out["derived" if k[-1] in der else "ordinary"] += 1
+        return dict(out)
+
+    def _bound_stores(self) -> dict:
+        """The instance-keyed bound stores (keyed by this board's object names), the module's and
+        this agent's twins (used when there is no shared atoms token)."""
+        return {"bound_memo": _BOUND_MEMO, "bound_slot_memo": _BOUND_SLOT_MEMO,
+                "bound_slot_idx": _BOUND_SLOT_IDX, "pairs_seen": _PAIRS_SEEN,
+                "bound_slot_map": _BOUND_SLOT_MAP, "bound_term": _BOUND_TERM,
+                "bound_cache": self._bound_cache, "bound_slot_cache": self._bound_slot_cache,
+                "bound_slot_idx_own": self._bound_slot_idx, "pairs_seen_own": self._pairs_seen,
+                "bound_slot_map_own": self._bound_slot_map}
+
+    @_in_step("SETTLE")
+    def _consolidate(self, trigger: str) -> None:
+        """CONSOLIDATION, one fold: the instance-keyed bound stores are counted and cleared. What
+        landed in them already reached the kind store, K1's counts and the episodes when it landed
+        (_land_kind, the lookup's episode), so nothing is re-added; ak_ and the episodes are never
+        touched. Asked again, an instance answer is rebuilt from the library and the record."""
+        t0, c0 = time.perf_counter(), _commit_bytes()
+        stores = self._bound_stores()
+        before = {n: len(m) for n, m in stores.items()}
+        rows = sum(len(v) for v in itertools.chain(_BOUND_SLOT_MEMO.values(),
+                                                   self._bound_slot_cache.values()))
+        landed = self._landed_by_class()
+        # the asked record (ak_) is read from these stores at the lineage write, so the questions
+        # asked so far are KEPT (keys only, no answers) before the clear -- never dropped. At a
+        # game's start the leftovers are an earlier agent's, which wrote its own ak_: not kept
+        kept_n = 0
+        if trigger != "game_start":
+            k_ = lineage._ak_source(self, kept=False)
+            kept_n = len(k_)
+            self._ak_kept.update(k_)
+        for m in stores.values():
+            m.clear()
+        _BS_CARRIED.clear()
+        _BM_CARRIED.clear()
+        c1 = _commit_bytes()
+        self._fold_n += 1
+        # the row carries only what two runs share; the BODY's readings (commit, ms) go to the
+        # @body side record, joined by the fold's number (the reviewer 06:03), so two runs' ledgers
+        # stay byte-identical -- unless a size fold fires, which reads the body by design
+        self.led.record(self.cycle, "SETTLE", "@consolidate", "consolidate", trigger=trigger,
+                        fold=self._fold_n, level=self.level, before=before,
+                        slot_rows_before=rows, after={n: len(m) for n, m in stores.items()},
+                        landed_cleared=landed, ceiling=_fold_ceiling(),
+                        size_suppressed=self._fold_suppressed, asked_kept=kept_n,
+                        asked_kept_total=len(self._ak_kept),
+                        kinds_by_class={**dict(self._kind_cls),
+                                        **{f"{c}_keys": len(v)
+                                           for c, v in self._kind_cls_keys.items()}},
+                        reads="CONSOLIDATION: the instance-keyed bound stores counted and cleared "
+                              "at this boundary; the kind store, K1's counts, the index and the "
+                              "record stay; the body's readings are in @body by fold")
+        body = {"slot": "@body", "event": "consolidate", "fold": self._fold_n, "cycle": self.cycle,
+                "game": self.gamma.game, "trigger": trigger, "commit_before": c0,
+                "commit_after": c1, "ms": round(1000 * (time.perf_counter() - t0), 1)}
+        self._body_rows.append(body)
+        path = getattr(self.led, "_path", None)
+        if path is not None:
+            with open(f"{path}.body.jsonl", "a" if self._fold_n > 1 else "w",
+                      encoding="utf-8") as fh:     # a fresh side file with each agent
+                fh.write(json.dumps(body) + "\n")
+
+    def _size_fold(self) -> None:
+        """CONSOLIDATION's size trigger, at a step's start: commit >= the ceiling / 2 folds (the
+        step's transient memory was about the size of what is held: 3.37 of 6.35 GiB at the E1
+        close). HYSTERESIS: after a size-fold, none again until commit exceeds its value then;
+        the ones held back are counted. No supervisor, no ceiling: no size trigger."""
+        ceil = _fold_ceiling()
+        c = _commit_bytes() if ceil is not None else None
+        if c is None or c < ceil // 2:
+            return
+        if self._fold_last_commit is not None and c <= self._fold_last_commit:
+            self._fold_suppressed += 1
+            return
+        self._fold_last_commit = c
+        self._consolidate("size")
 
     def _event_prices(self) -> None:
         """E3: each event's price -- the joint code over its NON-derived members (env.derived()),
@@ -3438,9 +3599,16 @@ class Agent:
                     off[g_][k] += m
             # the 20:43 ruling: T1a-c are what was OFFERED (passed the explains test) before, by
             # offers, then landings; T1d is what only LANDED (order, never a cut)
+            last: dict = {}
+            if _CONSOLIDATE:
+                # CONSOLIDATION's recency (the reviewer 04:43 2d, 04:55 3): an entry's latest
+                # landing over its K1 keys; it breaks ties only, so the 20:43 order stands
+                for (_d, k, _t), v in self._kdk_last.items():
+                    last[k] = max(last.get(k, 0), v[3])
             for g_ in "abc":
                 put(f"T1{g_}", sorted(((k, float(m)) for k, m in off[g_].items()),
-                                      key=lambda kv, g_=g_: (-kv[1], -land[g_][kv[0]], kv[0])))
+                                      key=lambda kv, g_=g_: (-kv[1], -land[g_][kv[0]],
+                                                             -last.get(kv[0], 0), kv[0])))
             offered_any = set().union(*off.values())
             landed_only = Counter()
             for g_ in "abc":
@@ -3448,15 +3616,28 @@ class Agent:
                     if k not in offered_any:
                         landed_only[k] += m
             with_dk = {e[1:] for e in itertools.chain(self._kind_landed_dk, self._kind_known_dk)}
-            put("T2", ranked(Counter(k for (k, r, o, x) in self._kind_known
-                                     if (x if r == "CAUSE" else o) == ko
-                                     and (k, x if r == "CAUSE" else o) not in with_dk)))
+            t2 = [(k, r, o, x) for (k, r, o, x) in self._kind_known
+                  if (x if r == "CAUSE" else o) == ko
+                  and (k, x if r == "CAUSE" else o) not in with_dk]
+            if _CONSOLIDATE:
+                # n_landed (the lineage's summed counts) first, then the latest landing
+                n_, l_ = Counter(), {}
+                for e_ in t2:
+                    n_[e_[0]] += self._kind_known_n.get(e_, 1)
+                    l_[e_[0]] = max(l_.get(e_[0], 0), self._kind_last.get(e_, (0, 0, 0, 0))[3])
+                put("T2", sorted(n_.items(), key=lambda kv: (-kv[1], -l_[kv[0]], kv[0])))
+            else:
+                put("T2", ranked(Counter(k for (k, r, o, x) in t2)))
         put("T3", lit)
         upto_t3 = {k for k, _w in out}
         if _DELTA_KIND and dk is not None:
             # the reviewer 21:03: T1d AFTER T3 -- the present description first, history that never
             # explained after it, and walked under the step's budget with T4 / T5
-            put("T1d", ranked(landed_only))
+            if _CONSOLIDATE:
+                put("T1d", sorted(landed_only.items(),
+                                  key=lambda kv: (-kv[1], -last.get(kv[0], 0), kv[0])))
+            else:
+                put("T1d", ranked(landed_only))
         if _MOLECULES:
             put("T4", [(m["key"], 0.0) for m in lib.molecules_lit(upto_t3)])
         if _ATTR_INDEX:
@@ -3976,7 +4157,7 @@ class Agent:
                     # never only what was asked (Fig 12: the group fixes the outcome)
                     for t_ in sorted(_landed):
                         self._land_kind((key, role, self._kind(mine), self._kind(partner)),
-                                        dk=self._dk_of.get(t_))
+                                        dk=self._dk_of.get(t_), slot=t_)
             for o_ in others:
                 if _PAIR_NOT_OBJECT and ("~" in o_ or "~" in mine):
                     refused[PAIR_NOT_OBJECT] += 1
@@ -4009,7 +4190,7 @@ class Agent:
                 if _7L_KIND and _landed:
                     for t_ in sorted(_landed):
                         self._land_kind((key, "CAUSE", self._kind(o_), self._kind(mine)),
-                                        dk=self._dk_of.get(t_))
+                                        dk=self._dk_of.get(t_), slot=t_)
         if _7L_KIND and not probe:      # K1: a T1 probe is not a second episode of this lookup
             self._kind_episodes.append({"game": self.gamma.game, "level": self.level, "slot": slot,
                                    "o": mine, "x": list(others),
@@ -4021,10 +4202,20 @@ class Agent:
                                       if _DELTA_KIND and self._cur_dk is not None else {})})
         return views, causes, refused
 
-    def _land_kind(self, entry: tuple, dk: tuple | None = None) -> None:
+    def _land_kind(self, entry: tuple, dk: tuple | None = None, slot: str | None = None) -> None:
         """7l: a landed (entry, role, kind_o, kind_x); 7m's pair set kept with it."""
         self._kind_landed.add(entry)
         self._kind_pairs.add((entry[2], entry[3]))
+        if _CONSOLIDATE and ("7l", entry, slot) not in self._dk_this:
+            # once per lookup and target, as K1 counts: a T1 probe and the full walk count one
+            self._dk_this.add(("7l", entry, slot))
+            self._kind_seq += 1
+            self._kind_landed_n[entry] += 1
+            self._kind_last[entry] = (self.gamma.game, self.level, self.cycle, self._kind_seq)
+            if slot is not None:
+                c_ = "derived" if slot in self._derived_now() else "ordinary"
+                self._kind_cls[c_] += 1
+                self._kind_cls_keys[c_].add(entry)
         dk = dk if dk is not None else self._cur_dk
         if _DELTA_KIND and dk is not None:
             # K1: the landing with the delta kind it answered, keyed (dk, entry, target kind) --
@@ -4034,6 +4225,29 @@ class Agent:
             if e not in self._dk_this:
                 self._dk_this.add(e)
                 self._kind_landed_dk[e] += 1
+                if _CONSOLIDATE:
+                    self._kdk_last[e] = (self.gamma.game, self.level, self.cycle, self._kind_seq)
+                    if slot is not None:
+                        self._kind_cls_keys.setdefault(
+                            "k1_derived" if slot in self._derived_now() else "k1_ordinary",
+                            set()).add(e)
+
+    def _pair_counts(self) -> dict:
+        """CONSOLIDATION, 7m's order: (kind_o, kind_x) -> (landings, latest landing's seq) over
+        every 7l key, this run's and the lineage's (a set-form key counts 1); recomputed only when
+        a landing or a load has moved it."""
+        sig = (self._kind_seq, len(self._kind_known), len(self._kind_landed))
+        if self._pair_cache[0] == sig:
+            return self._pair_cache[1]
+        out: dict = {}
+        for e_ in self._kind_known | self._kind_landed:
+            n = self._kind_known_n.get(e_, 0 if e_ in self._kind_landed_n else 1) + \
+                self._kind_landed_n.get(e_, 0)
+            p = (e_[2], e_[3])
+            v = out.get(p, (0, 0))
+            out[p] = (v[0] + n, max(v[1], self._kind_last.get(e_, (0, 0, 0, 0))[3]))
+        self._pair_cache = (sig, out)
+        return out
 
     def _kind(self, owner: str) -> tuple:
         """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots;
@@ -4109,6 +4323,8 @@ class Agent:
                 got = smemo.get(skey)
                 if got is not None:
                     _INDEX_N["bound_slot_hit"] += 1
+                    if _CONSOLIDATE and slot in self._derived_now():
+                        _INDEX_N["bound_slot_hit_derived"] += 1     # Q1: the hit's slot class
                     if skey in _BS_CARRIED:
                         _INDEX_N["bound_slot_hit_carried"] += 1     # R4: a carried answer reused
                     return list(got)
@@ -9497,6 +9713,8 @@ class Agent:
         held, self._held_refutations = self._held_refutations, None
         if _STEP_BUDGET:
             self._close_owed("restart")
+        if _CONSOLIDATE:
+            self._consolidate("restart")
         self._attempt_actions = 0
         self._alive, self._epoch = True, self._epoch + 1   # the same level, alive again
         self.iface.situate(self._epoch, self._alive)
@@ -11155,9 +11373,14 @@ class Agent:
                 # 7m: the kind pairs that LANDED before, here or in the lineage (any entry, role)
                 _pairs = self._kind_pairs   # kept as entries land and load (O(1) here)
                 _mine = self._kind(slot.split(".")[0])
+                if _CONSOLIDATE:
+                    _pairs = self._pair_counts()
             comp = {s: (rank(s)[0], s in _der, len(lib.get(s, ())), seen[s],
                         *((-int((_mine, self._kind(s.split(".")[0])) in _pairs),)
-                          if _7M_ANALOGY else ()),
+                          if _7M_ANALOGY and not _CONSOLIDATE else ()),
+                        *(tuple(-v for v in _pairs.get((_mine, self._kind(s.split(".")[0])),
+                                                       (0, 0)))
+                          if _7M_ANALOGY and _CONSOLIDATE else ()),
                         *((self._tried[(self.level, slot, s)],) if _7H_TRIED else ()))
                     for s in others}
             self._bind_key[slot] = (dk, comp)
@@ -13030,6 +13253,8 @@ class Agent:
         self._peer_cache = None
         self._decomp_cache = None
         self._frame_cache = {}
+        if _CONSOLIDATE:
+            self._size_fold()         # CONSOLIDATION's size trigger, at the step boundary
         if _RELATION_SET:
             # ARC B2 (the reviewer 2026-10-11 11:48 CDT): the agent's own actor set -- the owners
             # of its contingent slots -- steers which pairs its sensors measure. Last step's

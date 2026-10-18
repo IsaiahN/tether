@@ -883,6 +883,18 @@ ARMS: dict[str, str] = {
                          "budget pays for (late_asked 364 vs 0); revisit only if lf52's byte "
                          "attribution shows these memos large. OFF: stored on the first ask "
                          "(e945a7f). default OFF",
+    "TETHER_CONSOLIDATE": "CONSOLIDATION (Isaiah 2026-10-18 04:10, 04:20, 04:26; the reviewer "
+                          "04:21, 04:43, 04:55): at a level end, the agent's restart, a game's "
+                          "start, and when commit reaches half the supervisor's ceiling "
+                          "(hysteresis: not again until commit exceeds its value then), the six "
+                          "instance-keyed bound stores and the agent's twins are counted and "
+                          "cleared, one @consolidate row each; nothing is re-added (7l and K1 "
+                          "learn at landing), ak_ and the episodes untouched. The 7l kind store "
+                          "counts its landings (n_landed, summed at load; a set-form generation "
+                          "counts 1) and keeps last_seen on 7l and K1 keys; T1 / T1d / T2 and "
+                          "7m order by n_landed then last_seen (orders, never excludes). OFF: "
+                          "the bound stores outlive every boundary, the 7l store is a set "
+                          "(e79ac10). default ON",
     "TETHER_G1_WANT": "G1 (the reviewer 2026-10-17 15:30, 23:04, 23:17): per event, one "
                       "objective-only question over the derived slots it changed; the want is "
                       "the library condition the change made true, closed with all; bare "

@@ -6,7 +6,8 @@
        (offer, bind, bet, mint, want) is the same, since each memo holds a pure function of its key
   A    _admit: False on a key's first ask, True on its second; always True with the arm off
   C    a boundary (retarget) clears the agent-level instance memos and keeps the asked keys; the
-       exempt bound memos (Isaiah 10-15 06:01) are untouched
+       instance-keyed bound memos are CLEARED under TETHER_CONSOLIDATE (one @consolidate row) and
+       untouched with it OFF (the 10-15 06:01 carry; restated the reviewer 2026-10-18 05:28)
   MF   the fake and gridworld_s2 (15 steps): the agent-level memos hold FEWER entries with the arm
        ON than OFF (OFF stores every first ask); peak commit reported beside them
   H    the @memo row carries the bound memos' hit counter (lookups, hits, carried hits)
@@ -112,11 +113,14 @@ def main() -> int:
     ag.retarget(env, 1, how=tether.ADVANCE)
     assert not ag._reach_index and not ag._compile_cache and not ag._reach_fold, "C: not cleared"
     assert {m: len(v) for m, v in ag._seen_keys.items()} == asked, "C: asked keys lost"       # C
-    assert (len(tether._BOUND_MEMO), len(tether._BOUND_SLOT_MEMO),
-            len(tether._PAIRS_SEEN)) == exempt, "C: an exempt memo changed"
+    now = (len(tether._BOUND_MEMO), len(tether._BOUND_SLOT_MEMO), len(tether._PAIRS_SEEN))
+    if tether._CONSOLIDATE:
+        assert sum(exempt) and now == (0, 0, 0), ("C: the bound memos not cleared", exempt, now)
+    else:
+        assert now == exempt, "C: an exempt memo changed"
     tether._MEMO_ADMIT, tether._MEMO_CLEAR = was
-    print(f"C the boundary cleared the agent-level memos, kept the asked keys {asked} and the "
-          f"exempt bound memos {exempt}")
+    print(f"C the boundary cleared the agent-level memos, kept the asked keys {asked}; the bound "
+          f"memos {exempt} -> {now} (TETHER_CONSOLIDATE {tether._CONSOLIDATE})")
 
     for w in ("fake", "gridworld"):
         s_on = on["sizes"] if w == "fake" else child(w, "1")["sizes"]

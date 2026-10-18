@@ -338,6 +338,26 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         gen["kinds_landed"] = sorted([k, r, list(ko), list(kx)] for k, r, ko, kx in new_kinds)
         gen["episodes"] = list(getattr(ag, "_kind_episodes", [])
                                [getattr(ag, "_kind_episode_mark", 0):])
+        if tether._CONSOLIDATE:
+            # CONSOLIDATION (the reviewer 04:43 2a-2b): each key's landings since the last write,
+            # and the latest landing of each key landed since it (7l and K1); summed / latest at
+            # load
+            was_n = getattr(ag, "_kn_written", {})
+            gen["kinds_landed_n"] = sorted(
+                [k, r, list(ko), list(kx), n - was_n.get((k, r, ko, kx), 0)]
+                for (k, r, ko, kx), n in ag._kind_landed_n.items()
+                if n > was_n.get((k, r, ko, kx), 0))
+            gen["kinds_last"] = sorted([k, r, list(ko), list(kx), *v]
+                                       for (k, r, ko, kx), v in ag._kind_last.items()
+                                       if ag._kind_landed_n[(k, r, ko, kx)] >
+                                       was_n.get((k, r, ko, kx), 0))
+            was_dk2 = getattr(ag, "_kdk_written", {})
+            gen["kinds_dk_last"] = sorted([list(d_), k, list(t_), *v]
+                                          for (d_, k, t_), v in ag._kdk_last.items()
+                                          if ag._kind_landed_dk[(d_, k, t_)] >
+                                          was_dk2.get((d_, k, t_), 0))
+            gen["kinds_by_class"] = {**dict(ag._kind_cls),
+                                     **{f"{c}_keys": len(v) for c, v in ag._kind_cls_keys.items()}}
     if tether._DELTA_KIND and hasattr(ag, "_kind_landed_dk"):
         # K1: the landings with their delta kind since the last write; the load sums the chain
         was_dk = getattr(ag, "_kdk_written", {})
@@ -420,6 +440,8 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         if "kinds_landed" in gen:
             ag._kinds_carried = ag._kinds_carried | new_kinds
             ag._kind_episode_mark = len(ag._kind_episodes)
+        if "kinds_landed_n" in gen:
+            ag._kn_written = dict(ag._kind_landed_n)
         # a write without the boundary is a sibling of the last (the parent does not advance),
         # so the mark moves only with the parent
         if "unit_used" in gen:
@@ -505,6 +527,28 @@ def load(d: str | Path, ag: Any) -> dict:
                           for k, r, ko, kx in g.get("kinds_landed", ())}
         ag._kind_pairs = ag._kind_pairs | {(ko, kx) for _k, _r, ko, kx in ag._kind_known}
         rep["kinds_known"] = len(ag._kind_known)
+        if tether._CONSOLIDATE:
+            # CONSOLIDATION: landings summed root to tip; a generation written before the counts
+            # (set form) gives each of its keys n = 1, counted; the latest landing wins by seq
+            set_form = 0
+            for _h, g in chain:
+                if "kinds_landed_n" in g:
+                    for k, r, ko, kx, n in g["kinds_landed_n"]:
+                        ag._kind_known_n[(k, r, tuple(ko), tuple(kx))] += n
+                else:
+                    for k, r, ko, kx in g.get("kinds_landed", ()):
+                        ag._kind_known_n[(k, r, tuple(ko), tuple(kx))] += 1
+                        set_form += 1
+                for k, r, ko, kx, *v in g.get("kinds_last", ()):
+                    e_ = (k, r, tuple(ko), tuple(kx))
+                    if v[3] >= ag._kind_last.get(e_, (0, 0, 0, -1))[3]:
+                        ag._kind_last[e_] = tuple(v)
+                for d_, k, t_, *v in g.get("kinds_dk_last", ()):
+                    e_ = (tuple(d_), k, tuple(t_))
+                    if v[3] >= ag._kdk_last.get(e_, (0, 0, 0, -1))[3]:
+                        ag._kdk_last[e_] = tuple(v)
+            ag._kind_seq = max([v[3] for v in ag._kind_last.values()] + [ag._kind_seq])
+            rep["kinds_set_form"] = set_form
     if tether._DELTA_KIND and hasattr(ag, "_kind_known_dk"):
         # K1: every generation's landings with their delta kind, root to tip
         for _h, g in chain:
@@ -1101,14 +1145,18 @@ _AK_PENDING: dict[tuple, dict] = {}   # (signature, entry, role, o, x) -> {gen, 
 _AK_N: dict[str, int] = {"whole": 0, "slot": 0}   # recorded pairs met at their first ask
 
 
-def _ak_source(ag: Any) -> list:
-    """((sig, entry, role, o, x), slot or None) for every question this instance answered."""
+def _ak_source(ag: Any, kept: bool = True) -> list:
+    """((sig, entry, role, o, x), slot or None) for every question this instance answered --
+    with, under CONSOLIDATION, the questions a fold already cleared from the stores (kept)."""
     import tether
     tok = getattr(ag, "_atoms_token", None)
     whole = tether._BOUND_MEMO if tok else ag._bound_cache
     smemo = tether._BOUND_SLOT_MEMO if tok else ag._bound_slot_cache
     out = [(k[1:], None) for k in whole if k[0] == tok]
     out += [(k[1:6], k[6]) for k in smemo if k[0] == tok and k[:6] not in whole]
+    if kept and getattr(ag, "_ak_kept", None):
+        have = set(out)
+        out += [k for k in sorted(ag._ak_kept, key=repr) if k not in have]
     return out
 
 
