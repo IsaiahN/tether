@@ -2020,6 +2020,7 @@ class Agent:
         self._ev_base: dict = {}
         self._g1: dict = {}     # G1: derived slot -> its want, origin and outcome counts
         # R4: the keys each admitted memo has been asked once (kept across a boundary clear)
+        self._hits0: dict = dict(_INDEX_N)    # R4's hit counter is read as this agent's deltas
         self._seen_keys: dict = {m: set() for m in ("reach_index", "compile", "fold", "verdicts",
                                                     "units_for")}
         self._late = (0, 0)                # K1: this step's T4 / T5 entries (asked, not asked)
@@ -2990,7 +2991,8 @@ class Agent:
         slot owner stays a per-slot question. One ROUTE row per event."""
         own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
         groups: dict = {}
-        for s, r in res.items():
+        # sorted: an event is a set of slots, so its members never follow res's (ranked) order
+        for s, r in sorted(res.items()):
             if r.gone or not (r.mass > 0.0 or s in self.owed_import):
                 continue
             o = own.get(s)
@@ -3031,7 +3033,9 @@ class Agent:
                   "bound_slot_map": len(_BOUND_SLOT_MAP), "pairs_seen": len(_PAIRS_SEEN),
                   "bound_term": len(_BOUND_TERM), "bound_cache": len(self._bound_cache),
                   "bound_slot_cache": len(self._bound_slot_cache)}
-        hits = {k: _INDEX_N.get(k, 0) for k in (
+        # THIS AGENT'S hits, since its birth: _INDEX_N is the process's, so a second game in one
+        # process read the first's too (test_save_only, 2026-10-18 B)
+        hits = {k: _INDEX_N.get(k, 0) - self._hits0.get(k, 0) for k in (
             "bound_slot", "bound_slot_hit", "bound_slot_hit_carried", "bound_slot_from_carry",
             "bound_whole_lookup", "bound_whole_hit", "bound_whole_hit_carried")}
         self.led.record(self.cycle, "SETTLE", "@memo", "memo_sizes", at=at, agent=agent,
