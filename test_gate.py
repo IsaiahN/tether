@@ -91,6 +91,31 @@ def test_a_surprise_on_an_undeclared_slot_is_no_input():
     _refuses(_surprised(declared=("s.add_n",)), gate.MISSING_INPUT)
 
 
+def _asked(slot="s", declared=("s",), ask=True):
+    """E0-W's want-only mint (the reviewer 2026-10-18 12:34): an "@derived" row declaring
+    `declared`, a derived_asked row on `slot` (unless ask is False), then the mint's park on "s"."""
+    m = "specified"
+    return [{"mode": m, "seq": 0, "cycle": 0, "step": "PERCEIVE", "slot": "@derived",
+             "event": "derived", "detail": {"declared_add": list(declared), "declared_drop": []}},
+            *([{"mode": m, "seq": 1, "cycle": 0, "step": "MINT", "slot": slot,
+                "event": "derived_asked", "detail": {}}] if ask else []),
+            {"mode": m, "seq": 2, "cycle": 0, "step": "MINT", "slot": "s", "event": "park",
+             "detail": {"verdict": "under_floor",
+                        "guards": {"support": True, "reachability": True, "novelty": True}}}]
+
+
+def test_a_declared_slots_derived_ask_is_its_want_only_input():
+    assert gate.check(_asked())["verdict"] == gate.PASS
+
+
+def test_mf_g1_a_declared_slots_park_with_no_bet_and_no_ask_refuses():
+    _refuses(_asked(ask=False), gate.MISSING_INPUT)
+
+
+def test_mf_g2_an_ask_on_an_undeclared_slot_is_no_input():
+    _refuses(_asked(declared=("s.add_n",)), gate.MISSING_INPUT)
+
+
 def _reused(term, cycle=0, slot="s", seq=2):
     return {"mode": "specified", "seq": seq, "cycle": cycle, "step": "ROUTE", "slot": slot,
             "event": "reuse_install", "detail": {"term": term}}
