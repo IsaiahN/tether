@@ -869,6 +869,17 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_OBJ_EVENT": "E1-E3 (the reviewer 2026-10-17 12:53, 21:48, 21:53): an owner with two "
+                        "or more live residual slots in a step is one question -- one lookup over "
+                        "its members' united description, each member answered from its own "
+                        "bucket and bet / settled on its own -- priced as the joint code over its "
+                        "non-derived members (the cell-change group as its largest). OFF: per "
+                        "slot (089789e). default ON",
+    "TETHER_EVENT_SHARED": "E3 (the reviewer 2026-10-17 21:53), under TETHER_OBJ_EVENT: a chain "
+                           "already offered to two or more of an event's unexplained members is "
+                           "stated once -- its cost plus each member's binding and leftover -- "
+                           "and admitted below the covered members' joint price; guarded chains "
+                           "are not priced shared yet. OFF: gate-only. default ON",
     "TETHER_DELTA_KIND": "K1 (the reviewer 2026-10-17 20:25, 20:28, 20:43): the residual's delta "
                          "kind (cluster, sign, size class) is stored with every landing and every "
                          "offer; the lit list leads with T1a-c (offered before: this kind, any "

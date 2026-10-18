@@ -737,6 +737,16 @@ STEP_BUDGET = 1_000_000
 _DELTA_KIND = armflag.arm("TETHER_DELTA_KIND", default=True)       # the store, T1 and T2
 _MOLECULES = armflag.arm("TETHER_MOLECULES", default=True)         # T4
 _ATTR_INDEX = armflag.arm("TETHER_ATTR_INDEX", default=True)       # T5
+# E1-E3, OBJECT EVENTS (the reviewer 2026-10-17 12:47 design, 12:53, 21:48): an owner with two or
+# more live residual slots in a step is ONE question -- one lookup over its members' united
+# description, each member answered from its own bucket and still bet / settled on its own
+# readings -- and its price is the joint code over its NON-derived members. OFF: per slot (089789e)
+_OBJ_EVENT = armflag.arm("TETHER_OBJ_EVENT", default=True)
+# E3's SHARED TERM (the reviewer 2026-10-17 21:53), under TETHER_OBJ_EVENT: a chain already offered
+# to two or more of an event's unexplained members is stated ONCE -- its cost under L1's code, plus
+# each covered member's binding and leftover -- and admitted when that is below the covered
+# members' joint price; each member keeps its own binding, bet and settle. OFF: gate-only
+_EVENT_SHARED = armflag.arm("TETHER_EVENT_SHARED", default=True)
 # C1b, THE RANK (the reviewer 2026-10-17 17:07, 17:29, 17:30; Fig 9 :40-41 "keep every cut ranked
 # and reversible"): the step's lookups are spent in class order -- owed and changed, changed, our
 # own act's (its landing object, or one in contact with it in the frame's read), owed and still,
@@ -1980,6 +1990,13 @@ class Agent:
         self._dk_index: dict = {}
         self._cur_dk: tuple | None = None
         self._dk_this: set = set()         # K1: this lookup's landings, counted once
+        self._dk_of: dict = {}             # K1 / E2: the delta kind each asked slot lands under
+        # E1 / E2: this step's object events (owner -> members), each member's event, the events
+        # already asked (owner -> their members' offers), and the members' bases (E3)
+        self._events: dict = {}
+        self._event_of: dict = {}
+        self._ev_done: dict = {}
+        self._ev_base: dict = {}
         self._late = (0, 0)                # K1: this step's T4 / T5 entries (asked, not asked)
         self._k1_trunc = False             # K1: the last index walk was cut by the budget
         self._deferred: set = set()        # K1: (slot, delta kind) a T1 hit deferred, to re-ask
@@ -2925,6 +2942,166 @@ class Agent:
         keep = self._row_filter.get(slot)       # D5: part B's search prices its own rows only
         return [r for r in rows if keep(r)] if keep is not None else rows
 
+    def _events_now(self, res: dict) -> None:
+        """E1 (the reviewer 2026-10-17 12:53, 21:48): this step's OBJECT EVENTS -- an owner with two
+        or more live residual slots (a pair owner a~b under both parties, whole tokens). A single-
+        slot owner stays a per-slot question. One ROUTE row per event."""
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        groups: dict = {}
+        for s, r in res.items():
+            if r.gone or not (r.mass > 0.0 or s in self.owed_import):
+                continue
+            o = own.get(s)
+            for p in (o.split("~") if o and "~" in o else [o] if o else []):
+                groups.setdefault(p, []).append(s)
+        self._events = {p: tuple(m) for p, m in groups.items() if len(m) >= 2}
+        self._event_of = {}
+        for p, m in self._events.items():
+            for s in m:
+                self._event_of.setdefault(s, p)     # a pair slot looks up with its first party
+        self._ev_done, self._ev_base = {}, {}
+        for p, m in sorted(self._events.items()):
+            self.led.record(self.cycle, "ROUTE", "@event", "event", owner=p, members=list(m),
+                            reads="E1: one object's change read on several slots -- one question")
+
+    # E3 (the reviewer 12:53, 21:53): the cell-change readings are functions of the cell set E0 did
+    # not declare derived, so as a group they are priced as their LARGEST member, never summed
+    _CELL_GROUP = frozenset(("add_n", "rem_n", "add_row", "add_col", "rem_row", "rem_col"))
+
+    def _event_prices(self) -> None:
+        """E3: each event's price -- the joint code over its NON-derived members (env.derived()),
+        the undeclared cell-change group as its largest member -- against the floor, one row per
+        event, with the rule that priced it ("A", or "A+B(cells)")."""
+        der = set(self.env.derived()) if hasattr(self.env, "derived") else set()
+        att = self.env.attribute_of() if hasattr(self.env, "attribute_of") else {}
+        floor = self._floor_bits()
+        for p, mem in sorted(self._events.items()):
+            got = {m: self._ev_base[m] for m in mem if m in self._ev_base}
+            if not got:
+                continue
+            ind = {m: b for m, b in got.items() if m not in der}
+            cells = [b for m, b in ind.items() if att.get(m) in self._CELL_GROUP]
+            price = (sum(b for m, b in ind.items() if att.get(m) not in self._CELL_GROUP)
+                     + (max(cells) if cells else 0.0))
+            self.led.record(self.cycle, "MINT", "@event", "event_price", owner=p,
+                            members=list(mem), priced={m: round(b, 3) for m, b in got.items()},
+                            derived_out=sorted(m for m in got if m in der),
+                            unpriced=sorted(m for m in mem if m not in got),
+                            rule="A+B(cells)" if len(cells) > 1 else "A",
+                            price=round(price, 3), floor=round(floor, 3), clears=price > floor,
+                            best_member=round(max(got.values()), 3),
+                            reads="E3: the event's description priced once -- its independent "
+                                  "readings' joint code -- against the cheapest term")
+            if _EVENT_SHARED and price > floor:
+                self._event_shared(p, [m for m in ind if self.candidates.get(
+                    self.bound.get(m)) != self.cycle], att)
+
+    def _joint(self, bases: dict, att: dict) -> float:
+        """E3's joint code over independent members: the sum, the cell-change group as its max."""
+        cells = [b for m, b in bases.items() if att.get(m) in self._CELL_GROUP]
+        return (sum(b for m, b in bases.items() if att.get(m) not in self._CELL_GROUP)
+                + (max(cells) if cells else 0.0))
+
+    def _bind_bits(self, term: Term, member: str) -> float:
+        """E3: what saying a member's BINDING costs (the reviewer 21:53, 22:10) -- the operand and
+        any operand tree, which the shared chain's identity leaves out. The operand: nothing when
+        it is none, or the member's OWN reading or own delta (the same owner, the same field or "d"
+        + it, a lag of it included: row -> o.drow is "follows its own change"); else the choice
+        among the board's slots, log2(k + 1), the corpus's price for an added parameter (ARC_AGENT
+        2042). The tree: its atoms under L1's code, stated for this member."""
+        bits = 0.0
+        op = term.operand
+        if op is not None:
+            lag = lag_of(op)
+            base_op = lag[0] if lag else op
+            o_m, a_m = member.rsplit(".", 1)
+            o_p, _, a_p = base_op.rpartition(".")
+            if not (o_p == o_m and a_p in (a_m, "d" + a_m)):
+                bits += math.log2(len(self.slots) + 1)
+        if term.operand_term is not None:
+            c = self.gamma.code()
+            b, _k = c.bits((Term(term.operand_term.atoms), ()))
+            bits += b - c.end
+        return bits
+
+    def _event_shared(self, p: str, open_: list, att: dict) -> None:
+        """E3: the shared term, smallest form -- among the chains _lib_offer already offered to two
+        or more of the event's unexplained members, the cheapest stated once whose cost + bindings
+        + leftovers is below the covered members' joint price is minted, once, and each covered
+        member is bound to its own binding of it. No new search; nothing found, nothing written."""
+        groups: dict = {}
+        old: dict = {}       # the 21:53 build's key (with the operand tree), counted for the record
+        offered_members = 0
+        for m in open_:
+            seen: set = set()
+            offered_members += bool(self._lib_offers.get(m))
+            for o_ in self._lib_offers.get(m, ()):
+                t = o_["term"]
+                # THE CHAIN'S IDENTITY (the reviewer 22:10; R7i's unit identity): the atom sequence
+                # and the guard kind; the operand and its tree are the member's binding
+                ident = (tuple(a.name for a in t.atoms), t.guard)
+                tree = tuple(a.name for a in t.operand_term.atoms) if t.operand_term else None
+                old.setdefault((*ident, tree), set()).add(m)
+                if ident not in seen:
+                    seen.add(ident)
+                    groups.setdefault(ident, []).append((m, t))
+        best, guarded, cheapest = None, 0, None
+        for ident, cov in sorted(groups.items(), key=lambda kv: str(kv[0])):
+            if len(cov) < 2:
+                continue
+            if ident[1] is not None:
+                guarded += 1        # a guard's price is per-member today; not priced shared yet
+                continue
+            chain = Term(cov[0][1].atoms)                     # stated once: the bare chain
+            cost = self._bits((chain, self._units_for(cov[0][0])))
+            each = {m: (self._bind_bits(t, m), self._left(t, m, self.history(m)), t)
+                    for m, t in cov}
+            total = cost + sum(b + lf for b, lf, _t in each.values())
+            price = self._joint({m: self._ev_base[m] for m in each}, att)
+            if cheapest is None or total - price < cheapest[0] - cheapest[1]:
+                cheapest = (total, price)
+            if total < price and (best is None or total < best[0]):
+                best = (total, price, cost, each)
+        self.led.record(self.cycle, "MINT", "@event", "event_shared", owner=p,
+                        offered_members=offered_members,
+                        groups=sum(1 for v in groups.values() if len(v) >= 2),
+                        groups_old_key=sum(1 for v in old.values() if len(v) >= 2),
+                        guarded_unpriced=guarded, admitted=best is not None,
+                        **({"nearest_total": round(cheapest[0], 3),
+                            "nearest_price": round(cheapest[1], 3)} if cheapest else {}),
+                        reads="E3: the chains offered to two or more members, under the key "
+                              "(atoms, guard) and under the 21:53 key with the operand tree")
+        if best is None:
+            return
+        total, price, cost, each = best
+        for m, (b, lf, t) in each.items():
+            self.explain(m, self._ev_base[m] - lf)
+            if t.name not in self.gamma.library:   # a held term is bound, as a rebind is
+                self.gamma.accept(t, seq=len(self.led), residual=f"{m}@{self.cycle}:event:{p}")
+            self.bound[m] = t.name
+            self.rank.note(t.name, self.cycle)
+            self.candidates[t.name] = self.cycle
+            self._cand_level[t.name] = self.level
+            if lf == 0.0:
+                self.owed_import.discard(m)
+                self.abstained.pop(m, None)
+            else:
+                self.owed_import.add(m)
+            self.led.record(self.cycle, "MINT", m, "event_bound", obj_event=p, term=t.name,
+                            binding_bits=round(b, 3), left_bits=round(lf, 3),
+                            base_bits=round(self._ev_base[m], 3),
+                            reads="E3: this member bound to its own binding of the event's "
+                                  "shared term; it is bet and settled on its own")
+        self.led.record(self.cycle, "MINT", "@event", "event_mint", owner=p,
+                        chain=" . ".join(a.name for a in next(iter(each.values()))[2].atoms),
+                        covered=sorted(each), cost_bits=round(cost, 3),
+                        binding_bits={m: round(v[0], 3) for m, v in each.items()},
+                        left_bits={m: round(v[1], 3) for m, v in each.items()},
+                        total_bits=round(total, 3), price_bits=round(price, 3),
+                        guarded_unpriced=guarded,
+                        reads="E3: one chain stated once for the event's covered members -- its "
+                              "cost, their bindings and leftovers below their joint price")
+
     def _lookup(self, slot: str, hist: list) -> None:
         """FIG 9's ONE LOOKUP INTO THE LIBRARY, keyed by this residual (the reviewer 2026-10-07
         22:48Z, 22:53Z, 23:00Z). The description is `characterise`'s own, SCOPED to the target's
@@ -2935,34 +3112,65 @@ class Agent:
         mine = own.get(slot)
         if mine is None:
             return
-        scope = {s for s, o in own.items() if o == mine}
-        gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types, scope=scope)
-        described = {s: self.slot_types[s] for s in (slot, *gap["varies"]) if s in self.slot_types}
+        ev = self._event_of.get(slot) if _OBJ_EVENT else None
+        if ev is not None and ev in self._ev_done:
+            # E2: this event was asked once this step; this member takes its own bucket
+            got = self._ev_done[ev]
+            self._lib_offers[slot] = list(got["offers"].get(slot, []))
+            self._named[slot] = got["named"].get(slot, {})
+            self.led.record(self.cycle, "ROUTE", slot, "lookup", obj_event=ev, shared=True,
+                            offered=len(self._lib_offers[slot]),
+                            reads="E2: this member's answers from its event's one lookup")
+            return
+        members = self._events[ev] if ev is not None else (slot,)
+        described: dict = {}
         held_out = []
+        for m in members:
+            # each member described by its own residual, scoped to its own object; the event's
+            # description is their union (E2: one question per event)
+            hm = hist if m == slot else self.history(m)
+            sc = {s for s, o in own.items() if o == own.get(m)}
+            gap = retrieval.characterise(hm, m, list(self.alphabet), self.slot_types, scope=sc)
+            described.update({s: self.slot_types[s] for s in (m, *gap["varies"])
+                              if s in self.slot_types})
         if _CLOCK_DESC:
-            held_out = sorted(s for s in described if s != slot and s in self._own_quiet)
+            held_out = sorted(s for s in described if s not in members and s in self._own_quiet)
             for s in held_out:
                 del described[s]
         found = composer.lookup(described)
         read = composer.read_pairs(found["pairs"], [b for b, _act, _val, _intent, _landed in hist])
         held = [{k: r[k] for k in ("molecule", "left", "right", "left_reading", "right_reading",
                                    "held", "via", "occasions")} for r in read if r["held"]]
-        named: dict[str, list] = {}
-        for p in found["pairs"]:
-            ends = (p["left_reading"], p["right_reading"])
-            if slot in ends:
-                other = ends[1] if ends[0] == slot else ends[0]
-                if p["molecule"] not in named.setdefault(other, []):
-                    named[other].append(p["molecule"])
-        self._named[slot] = named
+        named_of: dict = {}
+        for m in members:
+            named: dict[str, list] = {}
+            for p in found["pairs"]:
+                ends = (p["left_reading"], p["right_reading"])
+                if m in ends:
+                    other = ends[1] if ends[0] == m else ends[0]
+                    if p["molecule"] not in named.setdefault(other, []):
+                        named[other].append(p["molecule"])
+            named_of[m] = named
+        self._named[slot] = named_of[slot]
         self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
                         described=sorted(described), junctions=found["junctions"],
                         **({"own_clock_out": held_out} if held_out else {}),
-                        offered=len(found["pairs"]), held=held, named=sorted(named),
+                        offered=len(found["pairs"]), held=held, named=sorted(named_of[slot]),
+                        **({"obj_event": ev, "members": list(members)} if ev is not None else {}),
                         reads=("the library looked up by this residual's own description; "
                                "pairs offered, bonds read over its frames, nothing adopted"))
-        self._library_reach(slot, mine, own, described,
-                            dk=self._delta_kind(slot, hist) if _DELTA_KIND else None)
+        dk = self._delta_kind(slot, hist) if _DELTA_KIND else None
+        if ev is None:
+            self._library_reach(slot, mine, own, described, dk=dk)
+            return
+        # a pair slot under two events is ANSWERED once, by the event it was assigned to (the
+        # reviewer 21:53); it still lends its description to both
+        answer = tuple(m for m in members if self._event_of.get(m) == ev)
+        dks = {m: (dk if m == slot else self._delta_kind(m, self.history(m))) if _DELTA_KIND
+               else None for m in answer}
+        self._library_reach(slot, mine, own, described, dk=dk, members=answer, dks=dks)
+        self._ev_done[ev] = {"offers": {m: list(self._lib_offers.get(m, [])) for m in answer},
+                             "named": named_of}
 
     def _delta_kind(self, slot: str, hist: list) -> tuple | None:
         """K1: HOW the residual's own slot changed -- (cluster, sign, size class), from its last
@@ -2987,7 +3195,7 @@ class Agent:
         return (cl[0], "+" if v > 0 else "-" if v < 0 else "0", abs(v).bit_length())
 
     def _tiers(self, lib: Any, lit: list, dk: tuple | None, mine: str, described: dict,
-               att: dict) -> tuple[list, dict]:
+               att: dict, more: tuple = ()) -> tuple[list, dict]:
         """K1: the lit list as tiers, an ORDER and never a cut, each key once at its first tier:
         T1a / T1b / T1c what was OFFERED before under this delta kind and this object kind / this
         delta kind / this cluster (the back-off ladder; the probe); T2 carried landings with no
@@ -3013,9 +3221,17 @@ class Agent:
         if _DELTA_KIND and dk is not None:
             ko = self._kind(mine)
 
+            kinds = (dk, *more)     # E2: an event asks with every member's delta kind
+
             def rung(d: tuple, tgt: tuple) -> str | None:
-                # the TARGET's kind: a view lands on its own object (kind_o), a CAUSE on kind_x
-                return ("a" if tgt == ko else "b") if d == dk else "c" if d[0] == dk[0] else None
+                # the TARGET's kind: a view lands on its own object (kind_o), a CAUSE on kind_x;
+                # the nearest rung over the asked kinds ("a" before "b" before "c")
+                best = None
+                for q in kinds:
+                    g = ("a" if tgt == ko else "b") if d == q else "c" if d[0] == q[0] else None
+                    if g and (best is None or g < best):
+                        best = g
+                return best
             land = {r_: Counter() for r_ in "abc"}
             off = {r_: Counter() for r_ in "abc"}
             for (d, k, tgt), m in itertools.chain(self._kind_landed_dk.items(),
@@ -3063,7 +3279,8 @@ class Agent:
         return out, n
 
     def _library_reach(self, slot: str, mine: str, own: dict, described: dict,
-                       dk: tuple | None = None) -> None:
+                       dk: tuple | None = None, members: tuple = (),
+                       dks: dict | None = None) -> None:
         """M4 (METAPROGRAMMING_DESIGN section 4; the reviewer 2026-10-09 07:14Z, 07:23Z). The
         library lit by THIS residual's description -- the slot and what varied with it, as
         readings -- and every view and CAUSE then-side that compiles onto this slot, recorded. A
@@ -3101,8 +3318,15 @@ class Agent:
         tiers = None
         k1 = (_DELTA_KIND or _MOLECULES or _ATTR_INDEX) and lib is not None
         self._cur_dk, self._dk_this = (dk if k1 else None), set()
+        # E2: an event's members, each landing under its own delta kind; one slot otherwise
+        tg = tuple(members) or (slot,)
+        self._dk_of = dict(dks) if (members and k1 and dks) else {slot: self._cur_dk}
+        for m in tg:
+            self._lib_offers[m] = []
         if k1:
-            lit, tiers = self._tiers(lib, lit, dk, mine, described, att)
+            lit, tiers = self._tiers(lib, lit, dk, mine, described, att,
+                                     more=tuple(d for m, d in (dks or {}).items()
+                                                if members and m != slot and d))
         if not lit:
             return
         if _ENTRY_USE:
@@ -3142,18 +3366,20 @@ class Agent:
                 # REACH-LIT-KEY: the lit entries are in the key, so an index built before an
                 # invention is never served after it (the reviewer 07:03)
                 ikey = (frozenset(changed), slot, mine, cands, blk, others[:1],
-                        tuple(k for k, _w in lit_))
+                        tuple(k for k, _w in lit_), *((tg,) if members else ()))
                 got = self._reach_index.get(ikey)
                 if got is None:
                     got = self._index_reach(lib, lit_, slot, mine, cands,
                                             partner=others[0] if others else mine,
-                                            late=late, probe=probe)
+                                            late=late, probe=probe, targets=tg)
             else:
                 ikey = (frozenset(changed), slot, mine, others, blk,
-                        *((tuple(k for k, _w in lit_),) if k1 else ()))
+                        *((tuple(k for k, _w in lit_),) if k1 else ()),
+                        *((tg,) if members else ()))
                 got = self._reach_index.get(ikey)
                 if got is None:
-                    got = self._index_reach(lib, lit_, slot, mine, others, late=late, probe=probe)
+                    got = self._index_reach(lib, lit_, slot, mine, others, late=late, probe=probe,
+                                            targets=tg)
             if ikey not in self._reach_index and not self._k1_trunc:
                 self._reach_index[ikey] = got
             return got
@@ -3194,39 +3420,52 @@ class Agent:
                             + sum(1 for *_x, p in causes.values() if p.get("via")),
                             refused=sum(refused.values()))
         frs = self._frames_for(rep_slot)
-        offers, sup = self._offers_of(index, slot, frs)
-        if _DELTA_KIND and dk is not None:
-            # K1 (the reviewer 20:43): the entries whose candidate passed _lib_offer's explains test
-            # in this ask, once each, under the residual's delta kind and its object's kind
-            _ko = self._kind(mine)
-            for k_ in {o_["prov"].get("library") for o_ in offers if o_["offered"]} - {None}:
-                self._kind_offered_dk[(dk, k_, _ko)] += 1
-        rows = []
-        for prov, if_c, then_c, v, off in sup:
-            rows.append({**prov, "then": then_c.term.name, **v,
-                         "offered": off["offered"], "why": off["why"]})
-            if rank is not None and own.get(if_c.slot) is not None:
-                # the kind record the boost reads: this kind of object caused this kind of
-                # effect on this attribute (supported by the frames; never a game id)
-                _o = own[if_c.slot]
-                self._cause_kind_n["|".join((self._kind_str(_o), self._kind_str(mine),
-                                             str(att.get(slot)),
-                                             "cov" if _o in _cov else "nocov"))] += 1
-        if rank is not None:
-            self._rank_moved(slot, rank, n_tiers, explained=bool(rows),
-                             kind=f"{self._kind_str(mine)}|{att.get(slot)}")
-        self._lib_offers[slot] = [o_ for o_ in offers if o_["offered"]]
-        if _ENTRY_USE:
-            for o_ in offers:
-                self._use(o_["prov"].get("library"), "offered" if o_["offered"] else "refused")
-        self.led.record(self.cycle, "ROUTE", slot, "library", changed=sorted(changed),
-                        lit=len(lit), views=len(views), causes=len(causes),
-                        supported=rows, offered=len(self._lib_offers[slot]),
-                        withheld=dict(Counter(o_["why"] for o_ in offers if not o_["offered"])),
-                        refused=dict(refused), **({"rank": rank} if rank is not None else {}),
-                        reads=("the library lit by this residual's description; the distinct views "
-                               "and CAUSE then-sides that compile onto this slot, tested and "
-                               "recorded, each with the count of entries that offered it"))
+        for m in tg:
+            # E2: each member's own bucket, its own offers, its own row (Fig 1: per slot); one slot
+            # is the whole index, as before
+            if members:
+                idx_m = ({k: v for k, v in views.items() if v[0].slot == m},
+                         {k: v for k, v in causes.items() if v[1].slot == m}, refused)
+                mine_m, dk_m = own.get(m), self._dk_of.get(m)
+            else:
+                idx_m, mine_m, dk_m = index, mine, dk
+            offers, sup = self._offers_of(idx_m, m, frs)
+            if _DELTA_KIND and dk_m is not None and mine_m is not None:
+                # K1 (the reviewer 20:43): the entries whose candidate passed _lib_offer's explains
+                # test in this ask, once each, under the residual's delta kind and its object's kind
+                _ko = self._kind(mine_m)
+                for k_ in {o_["prov"].get("library") for o_ in offers if o_["offered"]} - {None}:
+                    self._kind_offered_dk[(dk_m, k_, _ko)] += 1
+            rows = []
+            for prov, if_c, then_c, v, off in sup:
+                rows.append({**prov, "then": then_c.term.name, **v,
+                             "offered": off["offered"], "why": off["why"]})
+                if rank is not None and m == slot and own.get(if_c.slot) is not None:
+                    # the kind record the boost reads: this kind of object caused this kind of
+                    # effect on this attribute (supported by the frames; never a game id)
+                    _o = own[if_c.slot]
+                    self._cause_kind_n["|".join((self._kind_str(_o), self._kind_str(mine),
+                                                 str(att.get(slot)),
+                                                 "cov" if _o in _cov else "nocov"))] += 1
+            if rank is not None and m == slot:
+                self._rank_moved(slot, rank, n_tiers, explained=bool(rows),
+                                 kind=f"{self._kind_str(mine)}|{att.get(slot)}")
+            self._lib_offers[m] = [o_ for o_ in offers if o_["offered"]]
+            if _ENTRY_USE:
+                for o_ in offers:
+                    self._use(o_["prov"].get("library"),
+                              "offered" if o_["offered"] else "refused")
+            self.led.record(self.cycle, "ROUTE", m, "library", changed=sorted(changed),
+                            lit=len(lit), views=len(idx_m[0]), causes=len(idx_m[1]),
+                            supported=rows, offered=len(self._lib_offers[m]),
+                            withheld=dict(Counter(o_["why"] for o_ in offers
+                                                  if not o_["offered"])),
+                            refused=dict(refused),
+                            **({"rank": rank} if rank is not None and m == slot else {}),
+                            **({"obj_event": self._event_of.get(slot)} if members else {}),
+                            reads=("the library lit by this residual's description; the distinct "
+                                   "views and CAUSE then-sides that compile onto this slot, tested "
+                                   "and recorded, each with the count of entries that offered it"))
 
     def _frames_for(self, rep_slot: dict) -> list:
         """The reach frames over the trace, rebuilt when the trace moved (one object per epoch)."""
@@ -3473,7 +3712,7 @@ class Agent:
 
     def _index_reach(self, lib: Any, lit: list, slot: str, mine: str, others: tuple,
                      partner: str | None = None, late: frozenset = frozenset(),
-                     probe: bool = False) -> tuple:
+                     probe: bool = False, targets: tuple = ()) -> tuple:
         """The distinct compiled views and CAUSE pairs that land on `slot`, each with its first
         entry and the count of entries offering it; refusals counted by reason. Compiled once
         per condition (the compiler is a pure function of the condition and the atoms)."""
@@ -3512,59 +3751,68 @@ class Agent:
                 if _pno:
                     refused[PAIR_NOT_OBJECT] += 1
                     continue
-                _landed = 0   # 7l G1: what this (entry, role) put on the slot
+                _landed: set = set()   # 7l G1: the slots this (entry, role) put something on
                 self._spent += 1     # C1: one evaluation per call, one per row it yields
-                for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms, sig,
-                                                 slot=slot, tally=tally):
-                    self._spent += 1
-                    if c is None:
-                        refused[compile_term.QUANTIFIED] += 1
-                        continue
-                    if isinstance(c, compile_term.Refusal):
-                        refused[c.reason] += 1
-                    elif c.slot == slot:
-                        hit = views.get(c.term.name)
-                        if hit is None:
-                            views[c.term.name] = (c, {"library": key, "role": role,
-                                                      "template": cand.get("template"),
-                                                      "entries": 1,
-                                                      **({"via": c.via} if c.via else {})})
-                        else:
-                            hit[1]["entries"] += 1
-                        _landed += 1
+                for t_ in (targets or (slot,)):
+                    # E2: an event's members, each through its own slot memo (S1); one slot else
+                    for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms,
+                                                     sig, slot=t_, tally=tally):
+                        self._spent += 1
+                        if c is None:
+                            refused[compile_term.QUANTIFIED] += 1
+                            continue
+                        if isinstance(c, compile_term.Refusal):
+                            refused[c.reason] += 1
+                        elif c.slot == t_:
+                            vk = (t_, c.term.name) if targets else c.term.name
+                            hit = views.get(vk)
+                            if hit is None:
+                                views[vk] = (c, {"library": key, "role": role,
+                                                 "template": cand.get("template"),
+                                                 "entries": 1,
+                                                 **({"via": c.via} if c.via else {})})
+                            else:
+                                hit[1]["entries"] += 1
+                            _landed.add(t_)
                 if _7L_KIND and _landed:
                     # G1 (the reviewer 2026-10-15 20:54): the KIND entry records what LANDED,
                     # never only what was asked (Fig 12: the group fixes the outcome)
-                    self._land_kind((key, role, self._kind(mine), self._kind(partner)))
+                    for t_ in sorted(_landed):
+                        self._land_kind((key, role, self._kind(mine), self._kind(partner)),
+                                        dk=self._dk_of.get(t_))
             for o_ in others:
                 if _PAIR_NOT_OBJECT and ("~" in o_ or "~" in mine):
                     refused[PAIR_NOT_OBJECT] += 1
                     continue
-                _landed = 0
+                _landed = set()
                 self._spent += 1
-                for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp, atoms,
-                                                         sig, slot=slot, tally=tally):
-                    self._spent += 1
-                    if isinstance(if_c, compile_term.Refusal):
-                        refused["if: " + if_c.reason] += 1
-                        continue
-                    if isinstance(then_c, compile_term.Refusal):
-                        refused["then: " + then_c.reason] += 1
-                        continue
-                    if then_c.slot != slot:
-                        continue
-                    pk = (if_c.term.name, if_c.slot, then_c.term.name)
-                    hit = causes.get(pk)
-                    if hit is None:
-                        _via = if_c.via or then_c.via
-                        causes[pk] = (if_c, then_c, {"library": key, "role": "CAUSE",
-                                                     "bond": cand.get("bond"), "entries": 1,
-                                                     **({"via": _via} if _via else {})})
-                    else:
-                        hit[2]["entries"] += 1
-                    _landed += 1
+                for t_ in (targets or (slot,)):
+                    for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp,
+                                                             atoms, sig, slot=t_, tally=tally):
+                        self._spent += 1
+                        if isinstance(if_c, compile_term.Refusal):
+                            refused["if: " + if_c.reason] += 1
+                            continue
+                        if isinstance(then_c, compile_term.Refusal):
+                            refused["then: " + then_c.reason] += 1
+                            continue
+                        if then_c.slot != t_:
+                            continue
+                        pk = ((if_c.term.name, if_c.slot, then_c.term.name, t_) if targets
+                              else (if_c.term.name, if_c.slot, then_c.term.name))
+                        hit = causes.get(pk)
+                        if hit is None:
+                            _via = if_c.via or then_c.via
+                            causes[pk] = (if_c, then_c, {"library": key, "role": "CAUSE",
+                                                         "bond": cand.get("bond"), "entries": 1,
+                                                         **({"via": _via} if _via else {})})
+                        else:
+                            hit[2]["entries"] += 1
+                        _landed.add(t_)
                 if _7L_KIND and _landed:
-                    self._land_kind((key, "CAUSE", self._kind(o_), self._kind(mine)))
+                    for t_ in sorted(_landed):
+                        self._land_kind((key, "CAUSE", self._kind(o_), self._kind(mine)),
+                                        dk=self._dk_of.get(t_))
         if _7L_KIND and not probe:      # K1: a T1 probe is not a second episode of this lookup
             self._kind_episodes.append({"game": self.gamma.game, "level": self.level, "slot": slot,
                                    "o": mine, "x": list(others),
@@ -3576,15 +3824,16 @@ class Agent:
                                       if _DELTA_KIND and self._cur_dk is not None else {})})
         return views, causes, refused
 
-    def _land_kind(self, entry: tuple) -> None:
+    def _land_kind(self, entry: tuple, dk: tuple | None = None) -> None:
         """7l: a landed (entry, role, kind_o, kind_x); 7m's pair set kept with it."""
         self._kind_landed.add(entry)
         self._kind_pairs.add((entry[2], entry[3]))
-        if _DELTA_KIND and self._cur_dk is not None:
+        dk = dk if dk is not None else self._cur_dk
+        if _DELTA_KIND and dk is not None:
             # K1: the landing with the delta kind it answered, keyed (dk, entry, target kind) --
             # the INDEX the ladder reads (the reviewer 21:03, form b); 7l's kinds_landed and the
             # episodes are the record. Once per lookup: a T1 probe and the full walk count one
-            e = (self._cur_dk, entry[0], entry[3] if entry[1] == "CAUSE" else entry[2])
+            e = (dk, entry[0], entry[3] if entry[1] == "CAUSE" else entry[2])
             if e not in self._dk_this:
                 self._dk_this.add(e)
                 self._kind_landed_dk[e] += 1
@@ -6960,6 +7209,8 @@ class Agent:
                 res = {**{s: res[s] for s in self._owed_q if s in res},
                        **{s: r for s, r in res.items() if s not in self._owed_q}}
         self._route_order, self._route_at = list(res), 0   # where a cap mid-route lands
+        if _OBJ_EVENT:
+            self._events_now(res)
         for slot, r in res.items():
             self._route_at += 1
             if self._cap_due():
@@ -10966,6 +11217,8 @@ class Agent:
         hist = self.history(slot)
         held = self.gamma.library[self.bound.get(slot, IDN)]
         base = self._accumulated(slot, held)
+        if _OBJ_EVENT and slot in self._event_of and self._mint_part is None:
+            self._ev_base[slot] = base      # E3: what this member leaves unexplained, for its event
         # THE SEAL (H3(i)): a held rule reading an earlier frame leaves its unseen starts as its
         # leftover, and that alone can sit under the floor, so no rule -- not one explaining all of
         # it -- could pay. The starts are the held rule's own price (H1: "paid ONCE, inside its own
@@ -12958,6 +13211,9 @@ class Agent:
                     self.mint(slot)
                 self._turn_ahead.discard(slot)
         self._turn_ahead = None
+        if _OBJ_EVENT and self._events:
+            with self._step_scope("MINT"):
+                self._event_prices()
         if by == "probe":
             self._flush_probe(_turned)
         if self.drive.never_live(len(self.actions)) and not self._said_never_live:
