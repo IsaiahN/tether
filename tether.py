@@ -754,6 +754,11 @@ _EVENT_SHARED = armflag.arm("TETHER_EVENT_SHARED", default=True)
 # quantifiers refused; kept as a want, never bound or bet; its origin and outcome recorded. OFF:
 # no such want (f631977)
 _G1_WANT = armflag.arm("TETHER_G1_WANT", default=True)
+# E0-W, DERIVED SLOTS STAY WANTABLE (the reviewer 2026-10-18 11:03): E0 stands for pricing (a
+# declared-derived slot is never bet on, 6426), but it took the slot's residual and so the mint,
+# the only writer of its want. A declared-derived slot that MOVED and wants nothing is minted for
+# the objective only: the tail writes the want, the head never binds. OFF: no such want (433e689)
+_DERIVED_WANT = armflag.arm("TETHER_DERIVED_WANT", default=True)
 # R4, MEMO ADMISSION (the reviewer 2026-10-17 17:35 C, amended 23:52 (A)): the AGENT-level instance
 # memos -- keyed by this board's slot and object names -- store an answer only when its key is asked
 # a SECOND time (the first ask computes, uses and records the key; promote-on-reuse, S1c, is the
@@ -2019,6 +2024,8 @@ class Agent:
         self._ev_done: dict = {}
         self._ev_base: dict = {}
         self._g1: dict = {}     # G1: derived slot -> its want, origin and outcome counts
+        self._want_only = False     # E0-W: this mint writes a want and never binds
+        self._dw_tried: dict = {}   # E0-W: derived slot -> the transitions held at its asks
         # R4: the keys each admitted memo has been asked once (kept across a boundary clear)
         self._hits0: dict = dict(_INDEX_N)    # R4's hit counter is read as this agent's deltas
         self._seen_keys: dict = {m: set() for m in ("reach_index", "compile", "fold", "verdicts",
@@ -2835,6 +2842,7 @@ class Agent:
         self._trace_epoch += 1          # the tallies summarise a history that is gone
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
+        self._dw_tried = {}
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
         # last reading or step, an undone count, each read on the next level's same NAME.
         self.wants, self._want_terms, self._reach_tested = {}, {}, {}
@@ -3075,6 +3083,25 @@ class Agent:
     # G1 (the reviewer 15:30 (b)): the quantifier atoms -- always available, so never a want alone
     _G1_FREE = frozenset(("all", "any", "none", "all_same", "any_same", "none_same", "all_of",
                           "some_of", "one_of", "none_of"))
+
+    def _derived_wants(self) -> None:
+        """E0-W: each declared-derived slot that moved this step and wants nothing is minted for
+        its objective alone, so it is wanted as before E0 and never bound, bet or charged."""
+        der = self.env.derived() if hasattr(self.env, "derived") else {}
+        before, after = self.trace[-1][0], self.trace[-1][2]
+        for d in sorted(der):
+            if d in self.wants or before.get(d) is None or after.get(d) in (None, before[d]):
+                continue
+            t = (before[d], self.trace[-1][1], after[d])   # 7f: asked again on new evidence only
+            if t in self._dw_tried.setdefault(d, set()):
+                continue
+            self._dw_tried[d].add(t)
+            self.led.record(self.cycle, "MINT", d, "derived_asked")     # E4 counts the asks
+            self._want_only = True
+            try:
+                self.mint(d)
+            finally:
+                self._want_only = False
 
     def _g1_wants(self) -> None:
         """G1: per event, one objective-only question over the derived slots it CHANGED this step
@@ -12358,6 +12385,11 @@ class Agent:
             # THE RULING'S PATH, and the only one that has ever had traffic. A want that lost
             # the contest is still WANTED; what it does not get is the right to ACT.
             self._retain_unpaid_want(slot, wanted, detail)
+        if getattr(self, "_want_only", False):
+            # E0-W: the want is written; a declared-derived slot is never bound (6426 never bets it)
+            self.led.record(self.cycle, "MINT", slot, "want_only", of=(slot,),
+                            want=detail.get("want"))
+            return
         _total, left, cost, term = best
         if unseal is not None:
             # per rebinding (the reviewer 16:28Z, 16:31Z): both whole lengths, the start bits
@@ -13428,6 +13460,9 @@ class Agent:
                 self._event_prices()
                 if _G1_WANT:
                     self._g1_wants()
+        if _DERIVED_WANT and self.trace:
+            with self._step_scope("MINT"):
+                self._derived_wants()
         if by == "probe":
             self._flush_probe(_turned)
         if self.drive.never_live(len(self.actions)) and not self._said_never_live:
