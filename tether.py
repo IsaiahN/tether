@@ -42,6 +42,7 @@ import reach
 import relations
 import retrieval
 import routine as Rt
+from gamma import _PRIOR_CODE as G_PRIOR_CODE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import _UNITS_MEMO as G_UNITS_MEMO
 from gamma import (
@@ -311,6 +312,10 @@ ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
 #   a correction on one slot-transition: log2(M) bits, a uniform code over the M values
 #   a term of k atoms:                   (k+1) * log2(|atoms|+1), the atoms plus a stop
 CODE = ("uniform(M) per correction; (k+1)*log2(|atoms|+1) + (k-1)*log2(|bonds|) per term")
+# L1 (TETHER_PRIOR_CODE): the term half under the normalized code over the record (gamma.Code)
+PRIOR_CODE = ("uniform(M) per correction; sum over units of -log2((w+1)/Z) + -log2(END/Z) "
+              "+ (k-1)*log2(|bonds|) per term, w = Rank.used + Standing.paid, "
+              "END = |atoms|/recipe length + settlements")
 
 # HOW MANY BOND TYPES THE TERM LANGUAGE HAS. A `Term` is applied left to right, which is ONE
 # bond -- sequence -- so this is 1 and the bond term is `log2(1) = 0`.
@@ -4126,7 +4131,7 @@ class Agent:
                     if best is None or left < best[0]:
                         best = (left, cand)
                 left, cand = best
-                cost = term_bits(self.gamma.length(cand), self.gamma.alphabet)
+                cost = self._bits((cand, ()))
                 if pays(cost, left, base):
                     paying.append({"parked": key, "method": name, "as": cand.name,
                                    "cost": round(cost, 3), "left": round(left, 3),
@@ -4151,8 +4156,20 @@ class Agent:
     def _inv_cost(self, f: Term, conds: list, units: tuple = ()) -> float:
         """M6-b: the WHOLE length, the then-term's atoms plus every condition's, priced as the mint
         prices a term of that length. Nothing is discounted for lying past the searched depth."""
-        k = self.gamma.length(f, units) + sum(self.gamma.length(c.term) for c in conds)
-        return term_bits(k, self.gamma.alphabet)
+        return self._bits((f, units), *((c.term, ()) for c in conds))
+
+    def _bits(self, *parts: tuple) -> float:
+        """What stating the (term, units) parts as ONE term costs. L1 (TETHER_PRIOR_CODE): its
+        length under the normalized code over the record (gamma.Code); OFF: term_bits of the
+        summed length, today's uniform code."""
+        if not G_PRIOR_CODE:
+            return term_bits(sum(self.gamma.length(t, u) for t, u in parts), self.gamma.alphabet)
+        b, k = self.gamma.code().bits(*parts)
+        return b + (k - 1) * math.log2(max(BONDS, 1))
+
+    def _floor_bits(self) -> float:
+        """The cheapest term the code admits: one unit plus END (term_bits(1, A) when OFF)."""
+        return self.gamma.code().floor if G_PRIOR_CODE else term_bits(1, self.gamma.alphabet)
 
     def _inv_left(self, f: Term, conds: list, slot: str, hist: list) -> float:
         """What `f` when any condition holds, identity otherwise, leaves unexplained (in bits)."""
@@ -6326,8 +6343,7 @@ class Agent:
                 # bound term leaves.
                 if _BARGAIN_FIT:
                     _left = self._left(cand, slot, hist)
-                    _cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
-                                      self.gamma.alphabet)
+                    _cost = self._bits((cand, self._units_for(slot)))
                     if _CARRY_PRICE:
                         # EVERY payer is collected and the lowest WHOLE price wins (H3: first is
                         # not best); `_today` is the one the arm-OFF walk would have returned.
@@ -8992,7 +9008,7 @@ class Agent:
         if t is None or not hist or IDN not in self.gamma.library:
             return False, {}
         k = len({n for n in self._pred_by.values() if n})
-        cost = term_bits(self.gamma.length(t, self._units_for(slot)), self.gamma.alphabet)
+        cost = self._bits((t, self._units_for(slot)))
         cost += (math.log2(self.gamma.alphabet + 1) if _NOT_ATOM
                  else math.log2(k) if k > 1 else 0.0)
         with_t = self._left(t, slot, hist)
@@ -9739,8 +9755,7 @@ class Agent:
                     opts, res, grades = [], {}, {}
                     for n, t in ((name, term), (_w, _wt)):
                         st = self.gamma.standing.get(n)
-                        opts.append((n, term_bits(self.gamma.length(t, self._units_for(slot)),
-                                                  self.gamma.alphabet), None))
+                        opts.append((n, self._bits((t, self._units_for(slot))), None))
                         res[n] = int(self.gamma.is_settled(n, slot))
                         grades[n] = (len(st.settled_on) + (1 if st.rejections else 0)) if st else 0
                     self._obj_pick[slot] = self._choice("objective", slot, opts, res, grades)
@@ -10745,8 +10760,7 @@ class Agent:
         if _UNSEAL_START and lag_of(held.operand) is not None:
             starts = sum(1 for r in hist if self._no_earlier_frame(held, r[0]))
             if starts:
-                cost_h = term_bits(self.gamma.length(held, self._units_for(slot)),
-                                   self.gamma.alphabet)
+                cost_h = self._bits((held, self._units_for(slot)))
                 base = base_held + cost_h
                 unseal = {"starts": starts, "held_cost": round(cost_h, 3),
                           "base_held": round(base_held, 3), "bar": round(base, 3)}
@@ -10773,8 +10787,9 @@ class Agent:
         # `_left` is a sum of non-negative bits, and `term_bits` is monotone in `k` with
         # `length() >= 1` -- so `floor >= base` proves NO term pays, at any depth, under
         # any binding, before a candidate is enumerated. Same lemma as the inner break
-        # 170 lines down, applied as a precondition instead of a stopping rule.
-        floor = term_bits(1, self.gamma.alphabet)
+        # 170 lines down, applied as a precondition instead of a stopping rule. L1: under the
+        # normalized code every symbol costs at least the cheapest unit, so the lemma holds.
+        floor = self._floor_bits()
         guards = {"support": base > 0.0, "reachability": False, "novelty": False}
         cuts: list[dict] = []
         # THE RECORD KEEPS 12 CUTS AND COUNTS EVERY REASON -- 2026-10-06. A cut beyond the
@@ -11076,8 +11091,7 @@ class Agent:
                     # refused on cost alone. Exact: `rank` (the work budget) still counts them and
                     # `novelty` is still read; only the cut bookkeeping differs, as its own reason.
                     _n = len(binds) * len(_pairs)
-                    if _n and robs and (term_bits(self.gamma.length(Term(cand.atoms), _units),
-                                         self.gamma.alphabet)
+                    if _n and robs and (self._bits((Term(cand.atoms), _units))
                                + min(_guard_bits(g, len(_gs) - 1, len(_refs)) for g in _gs)
                                >= base):
                         if not guards["novelty"]:
@@ -11136,8 +11150,7 @@ class Agent:
                         # the space it was always stated over.
                         cost = _price.get(g)
                         if cost is None:
-                            cost = _price[g] = (term_bits(self.gamma.length(term, _units),
-                                                          self.gamma.alphabet)
+                            cost = _price[g] = (self._bits((term, _units))
                                                 + _guard_bits(g, len(_gs) - 1, len(_refs)))
                         # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
                         # every candidate is exhaustive search; R already names the
@@ -11179,11 +11192,13 @@ class Agent:
                                 # THE GUARD PRICE APPLIES HERE TOO. `_trees` carries `g`
                                 # onto the tree, so pricing it only in the main loop gave
                                 # ONE TERM TWO PRICES depending on which path reached it.
-                                bcost = _price.get((g, True))
+                                # L1: keyed by the branch too -- under the code a branch's
+                                # weight is its own; under term_bits every branch costs the same
+                                _bk = (g, True, bt.operand_term.atoms)
+                                bcost = _price.get(_bk)
                                 if bcost is None:
-                                    bcost = _price[(g, True)] = (
-                                        term_bits(self.gamma.length(bt, _units),
-                                                  self.gamma.alphabet)
+                                    bcost = _price[_bk] = (
+                                        self._bits((bt, _units))
                                         + _guard_bits(g, len(_gs) - 1, len(_refs)))
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
@@ -11256,11 +11271,11 @@ class Agent:
                             if self.gamma.is_atom(bt) or (
                                     _maybe_lib and bt.name in self.gamma.library):
                                 continue
-                            bcost = _price.get((g, True))
+                            _bk = (g, True, bt.operand_term.atoms)    # L1: keyed by the branch
+                            bcost = _price.get(_bk)
                             if bcost is None:
-                                bcost = _price[(g, True)] = (
-                                    term_bits(self.gamma.length(bt, _units),
-                                              self.gamma.alphabet)
+                                bcost = _price[_bk] = (
+                                    self._bits((bt, _units))
                                     + _guard_bits(g, len(_gs) - 1, len(_refs)))
                             # **THE SAME BOUND HERE, AND IT CHANGES NO OUTCOME.** `_cannot_pay`
                             # PROVES `cost + left >= base`, which is exactly `not pays` -- so
@@ -11401,7 +11416,7 @@ class Agent:
                     # another kind's champion at the floor is no bound on this stream.
                     # OFF keeps the shared best (a FINDING: the same starvation, rare).
                     _fc = _floor_champion(by_kind, kind, best, _STREAM_SHARE)
-                    if _fc is not None and _fc[0] <= term_bits(1, self.gamma.alphabet):
+                    if _fc is not None and _fc[0] <= floor:     # the mint's floor (L1)
                         if _STREAM_SHARE:
                             _sh["floor_stop"] = _round
                             _floored.add(_si)
@@ -11474,7 +11489,8 @@ class Agent:
                   # term read ZERO cut rows on BOTH arms of an A/B -- including the arm
                   # where it WON -- which is how the truncation was found. A zero equal on
                   # both arms is a broken instrument, not a finding.
-                  "code": CODE, "base_bits": round(base, 3), "cuts": cuts,
+                  "code": PRIOR_CODE if G_PRIOR_CODE else CODE, "base_bits": round(base, 3),
+                  "cuts": cuts,
                   "cut_counts": dict(cut_n),
                   "budget_exhausted": bool(stats["budget_spent"]),
                   "depth": self.cfg.max_depth, "units": stats["units"],
@@ -11913,8 +11929,7 @@ class Agent:
             # the candidate PAYS -- `cost + left < base` -- read off the trace (cost/left/base),
             # never a constant. The provenance rides in the residual stamp (`:partial`/`:closed`)
             # so the ablation separates a bargain-accepted partial from a full closure.
-            cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
-                             self.gamma.alphabet)
+            cost = self._bits((cand, self._units_for(slot)))
             # CARRY (item 3): the swept term was minted and paid its cost at its own entry, so
             # where it re-grounds on this record alone (left < base) it pays on its leftover.
             cred = (_CARRY_PRICE and left < base and (self.gamma.stamps.get(term.name) or {})
@@ -12054,8 +12069,7 @@ class Agent:
         # THE REUSE PATH PRICED A REUSE AT DERIVATION COST, which is the one place the
         # asymmetry was load-bearing: 19 of 21 installs read `would_pay=False` against a
         # cost that charged for work the ground had already bought.
-        cost = term_bits(self.gamma.length(cand, self._units_for(slot)),
-                         self.gamma.alphabet)
+        cost = self._bits((cand, self._units_for(slot)))
         left = self._left(cand, slot, hist)
         # `ROUTE`, NOT `ACCEPT`, AND THE GATE SAID SO. The sweep runs inside the ROUTE phase
         # and its own `pull` row is a ROUTE row, so an `ACCEPT` here puts a later ROUTE for the

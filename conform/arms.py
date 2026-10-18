@@ -869,6 +869,14 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_PRIOR_CODE": "L1 (the reviewer 2026-10-17 18:13 (a), 18:40, 18:48): a transition "
+                         "term's stating cost is its length under a NORMALIZED code over "
+                         "{units, END}, p(s) = (w(s) + 1) / Z, w = Rank.used + Standing.paid of "
+                         "the library terms a unit states, END = |atoms| / the library's mean "
+                         "recipe length (3.026) + settlements; Kraft sums to 1; no library and "
+                         "nothing learned is today's uniform code exactly. The condition code is "
+                         "unchanged (no recipe prior: its count read back compile_term's table). "
+                         "OFF: term_bits (9f26ee9). default ON",
     "TETHER_LEDGER_HANDLE": "R2 (the reviewer 2026-10-17 17:58, 18:04): the ledger's path is "
                             "opened once, at the first row, and flushed after every row (the "
                             "loss window stays one row); closed at end_run and at exit; a row "

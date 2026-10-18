@@ -20,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import inspect
 import json
+import math
 import os
 import pathlib
 import random
@@ -362,6 +363,12 @@ _SETTLED_CORE = armflag.arm("TETHER_SETTLED_CORE", default=True)
 # Held under a key of everything it reads: the atoms, the settled set (scanned from standing, so no
 # writer can be missed) and the rank's version. OFF: rebuilt each call (ffbdf14)
 _UNITS_MEMO = armflag.arm("TETHER_UNITS_MEMO", default=True)
+# L1, THE NORMALIZED CODE (the reviewer 2026-10-17 18:13 (a)): a term's stating cost is its length
+# under a real code over {units, END}, p(s) = (w(s) + 1) / Z, not the uniform (k + 1) log2(A + 1).
+# w = Rank.used + Standing.paid of the library terms a unit states; END's weight starts at
+# A / (the library's mean recipe length) and gains one per settlement. No library and nothing
+# learned: today's uniform code exactly. OFF: tether.term_bits (9f26ee9)
+_PRIOR_CODE = armflag.arm("TETHER_PRIOR_CODE", default=True)
 _PRIMITIVES: dict[str, tuple] = {}   # content token -> the one built tuple of code primitives
 _PRIMITIVES_REFUSED: dict[str, int] = {"no_source": 0}   # sets whose token could not be read
 
@@ -846,6 +853,30 @@ class Standing:
         return self.settled_at is not None
 
 
+class Code:
+    """L1: per-unit costs (keyed by the atom sequence), END's cost, and the cost of a unit with no
+    weight (an atom outside the units). Kraft: the 2^-cost over the units plus END sum to 1."""
+
+    __slots__ = ("cost", "end", "dear", "floor", "info")
+
+    def __init__(self, cost: dict, end: float, dear: float, info: dict) -> None:
+        self.cost, self.end, self.dear, self.info = cost, end, dear, info
+        self.floor = min(cost.values(), default=dear) + end   # the cheapest one-unit term
+
+    def bits(self, *parts: tuple) -> tuple[float, int]:
+        """(the symbols' bits plus one END, how many symbols) over (term, units) parts."""
+        b, k = 0.0, 0
+        for t, units in parts:
+            for s in Gamma.symbols(t, units):
+                k += 1
+                c = self.cost.get(s)
+                b += c if c is not None else sum(self.cost.get((a,), self.dear) for a in s)
+        return b + self.end, k
+
+    def kraft(self) -> float:
+        return sum(2.0 ** -c for c in self.cost.values()) + 2.0 ** -self.end
+
+
 class Gamma:
     draw_seed: str | None = None    # the agent's, set at its birth (HOLD_SEED Q4); None: random
 
@@ -911,6 +942,8 @@ class Gamma:
         # installing one changes nothing.
         self.unit_rank = None
         self._units_memo: tuple | None = None   # R1: (key, the units as a tuple)
+        self._code_memo: tuple | None = None    # L1: (the units tuple, _paid_ver, the Code)
+        self._paid_ver = 0                      # L1: bumped by settle and the two loads
         for a in atoms:
             # THE ATOM'S OWN CLAUSE IF IT DECLARED ONE. A blanket `NECESSARY` was true of the
             # VOCABULARY and false of most of its members, and `admissions()` read
@@ -1076,6 +1109,7 @@ class Gamma:
         # THE TOTAL, UNCONDITIONAL -- and the breakdown BESIDE it, never instead of it. The
         # same two lines `refute` writes, in the same order, so the pair cannot drift apart.
         st.confirmations += 1.0
+        self._paid_ver += 1
         if where is not None:
             st.paid[where] = st.paid.get(where, 0) + 1
         # THE SLOT, BESIDE THE SCOPE AND NEVER INSTEAD OF IT. `where` answers which BOARD
@@ -1402,6 +1436,7 @@ class Gamma:
         `hold_unbound` holds a row the same way on the library= path; wire passes the carry
         arm (lineage._CARRY), so with the arm OFF that path is as it was (the reviewer
         2026-10-15 01:51, 01:56)."""
+        self._paid_ver += 1     # L1: a load can move paid with the settled set unchanged
         # BACKWARD-COMPATIBLE BY SHAPE, not by a version flag: files written before route 2 are
         # a bare list. A flag would be a second thing to keep in step with the format.
         rows = blob if isinstance(blob, list) else blob.get("terms", [])
@@ -1581,6 +1616,49 @@ class Gamma:
         if t.operand_term is not None:
             n += Gamma.length(t.operand_term, units)
         return n
+
+    @staticmethod
+    def symbols(t: Term, units: tuple = ()) -> list[tuple]:
+        """L1: the units `length` counts, as atom sequences: len(symbols(t, u)) == length(t, u)."""
+        if units:
+            cached = Gamma._UNIT_SET
+            if cached[0] is not units:
+                cached = (units, frozenset(u.atoms for u in units))
+                Gamma._UNIT_SET = cached
+            if t.atoms in cached[1]:
+                return [t.atoms]
+        out = [(a,) for a in t.atoms]
+        if t.operand_term is not None:
+            out += Gamma.symbols(t.operand_term, units)
+        return out
+
+    def code(self) -> Code:
+        """L1: the normalized code under the record, held until the units or a paid count move."""
+        units = self.units_held()
+        m = self._code_memo
+        if m is not None and m[0] is units and m[1] == self._paid_ver:
+            return m[2]
+        c = self._code_built(units)
+        self._code_memo = (units, self._paid_ver, c)
+        return c
+
+    def _code_built(self, units: tuple) -> Code:
+        import inherited
+        used = getattr(getattr(self.unit_rank, "__self__", None), "used", None) or {}
+        w = {u.atoms: 0 for u in units}
+        stated = 0
+        for n, t in self.library.items():
+            st = self.standing.get(n)
+            p = sum(st.paid.values()) if st is not None else 0
+            stated += p
+            if t.atoms in w:
+                w[t.atoms] += used.get(n, 0) + p
+        rl = inherited.recipe_length()
+        end_w = (len(self.atoms) / rl if rl else 1.0) + stated
+        z = sum(v + 1 for v in w.values()) + end_w
+        return Code({k: math.log2(z / (v + 1)) for k, v in w.items()}, math.log2(z / end_w),
+                    math.log2(z), {"z": z, "end_w": end_w, "recipe_length": rl,
+                                   "weighted": sum(1 for v in w.values() if v)})
 
     def _units_key(self) -> tuple:
         """R1: everything units() reads: the atoms, the settled names, the rank and its version."""

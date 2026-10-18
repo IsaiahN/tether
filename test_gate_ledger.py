@@ -13,8 +13,8 @@ only when it follows a later step of the same slot, so both halves are checked d
   G1      a fake game (12 actions, C-seed-X): both guards hold; gate.py exits 0.
   G2      gridworld_s2, 11 steps, under C-seed-X: precondition, one inline-phase row; both
           guards hold; gate.py exits 0. Then a second 11-step run with TETHER_DERIVED_PERCEPT
-          off, the one member where the MINT-site sweep is reached (step 3): precondition, at
-          least one sweep row under MINT; LABEL holds.
+          and TETHER_PRIOR_CODE off, where the MINT-site sweep is reached (step 11):
+          precondition, at least one sweep row under MINT; LABEL holds.
   MF1     G1's stream rows put back at PLAN: gate.py refuses step-order.
   MF2     G1's slot-bound choice rows put back at PLAN: gate.py refuses step-order.
   MF3     G2's arm-off sweep rows (pull, reuse_install written in MINT) put back at ROUTE:
@@ -168,12 +168,17 @@ def main() -> int:
             # its label does not depend on the arm, but with the arm on gridworld_s2 never
             # reaches it (0 in 40 steps; its early sweeps were on proximity / distance, the
             # double charges E0 declares derived), so it is checked where it is reached
+            # AND WITH TETHER_PRIOR_CODE OFF (L1, 2026-10-17): under the normalized code the mint
+            # takes another path and gridworld_s2 reaches no sweep in 15 steps (first at step 11
+            # with the code off); the label does not depend on the code either
             writes.clear()
             arm_was, relations._DERIVED_PERCEPT = relations._DERIVED_PERCEPT, False
+            code_was, tether.G_PRIOR_CODE = tether.G_PRIOR_CODE, False
             try:
                 gridworld(GW_STEPS, None)
             finally:
                 relations._DERIVED_PERCEPT = arm_was
+                tether.G_PRIOR_CODE = code_was
             sweep = [w for w in writes if w[1] in ("pull", "reuse_install") and w[3] == "MINT"]
             assert sweep, f"precondition: no MINT sweep row in {GW_STEPS} steps, arm off"
             assert not bad(writes), ("G2 LABEL, arm off: rows labelled with a step not running",
