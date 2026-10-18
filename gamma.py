@@ -374,6 +374,12 @@ _PRIOR_CODE = armflag.arm("TETHER_PRIOR_CODE", default=True)
 # replay of the carried settle rows. Carried per UNIT (the atom sequence), never per binding.
 # OFF: nothing written or read (a102c5a)
 _USED_CARRY = armflag.arm("TETHER_USED_CARRY", default=True)
+# R7i (the reviewer 2026-10-17 19:50): 7i's replay matched evidence by NAME, and a bound or guarded
+# term reloads under another name (load drops the binding and the guard's referent), so its rows
+# were not_held. A generation's term row now keeps its old name ("was"); load records what it
+# installed from that row; the replay applies each row to that term. The method crosses, the
+# binding does not. OFF: by name, as before (ffb365c)
+_REPLAY_UNIT = armflag.arm("TETHER_REPLAY_UNIT", default=True)
 
 
 def unit_key(atoms: tuple) -> str:
@@ -955,6 +961,8 @@ class Gamma:
         self._code_memo: tuple | None = None    # L1: (the units tuple, _paid_ver, the Code)
         self._paid_ver = 0                      # L1: bumped by settle and the two loads
         self.carried_used: dict[str, int] = {}   # L1b: unit_key -> the lineage's Rank.used
+        self.renamed: dict[str, str] = {}        # R7i: a carried row's old name -> its term here
+        self.lost_onto_atom: set[str] = set()    # R7i: rows load merged onto a PRIOR atom (F420)
         for a in atoms:
             # THE ATOM'S OWN CLAUSE IF IT DECLARED ONE. A blanket `NECESSARY` was true of the
             # VOCABULARY and false of most of its members, and `admissions()` read
@@ -1024,17 +1032,24 @@ class Gamma:
         settled, or refused, on a slot of a new board (A4)."""
         def tup(x: Any) -> Any:
             return tuple(tup(v) for v in x) if isinstance(x, list) else x
-        out = {"settle": 0, "refute": 0, "not_held": 0, "record": 0}
+        out = {"settle": 0, "refute": 0, "not_held": 0, "record": 0,
+               **({"renamed": 0, "onto_atom": 0} if _REPLAY_UNIT else {})}
         keep, tick = self.keep_evidence, self.tick
         self.keep_evidence = False
         try:
             for r in rows:
                 kind, name, slot, where, t = r[:5]
+                if _REPLAY_UNIT and name not in self.library and name in self.renamed:
+                    # R7i: the row's term reloaded under another name; apply it there
+                    name = self.renamed[name]
+                    out["renamed"] += 1
                 if kind not in ("settle", "refute") or name in self.innate:
                     out["record"] += 1
                     continue
                 if name not in self.library:
-                    out["not_held"] += 1
+                    # R7i: a term load merged onto a PRIOR atom was destroyed (F420): its own count
+                    lost = _REPLAY_UNIT and name in self.lost_onto_atom
+                    out["onto_atom" if lost else "not_held"] += 1
                     continue
                 self.tick = t
                 (self.settle if kind == "settle" else self.refute)(name, tup(where), slot)
@@ -1538,7 +1553,13 @@ class Gamma:
                 took.append({"handle": r.get("handle"), "already_held": True,
                              "onto_atom": onto_atom, "name": t.name, "unbound": False,
                              "lost": r.get("guard") or r.get("operand")})
+                if r.get("was") and not onto_atom:     # R7i: onto an atom, the term is gone
+                    self.renamed[r["was"]] = t.name
+                elif r.get("was"):
+                    self.lost_onto_atom.add(r["was"])  # R7i: F420's loss, counted at replay
                 continue          # dedup on the COMPOSITION -- it keeps the handle it has
+            if r.get("was"):
+                self.renamed[r["was"]] = t.name        # R7i: what load installed from this row
             self._install(t, seq=-2, residual=r.get("residual"),
                           admitted=IMPORTED if t.origin == IMPORTED else r.get("admitted"))
             if _SETTLED_CORE and r.get("admitted") in (INHERITED, LEARNED):

@@ -302,6 +302,8 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         # NEW = minted by this instance; a term it LOADED from the lineage carries its identity
         # in carried (born, handle), and only a non-marker change of its status is written (N1).
         name = r.pop("name")
+        if gamma._REPLAY_UNIT:
+            r["was"] = name     # R7i: the replay finds the term load installs from this row
         c = ag.gamma.carried.get(name) or written.get(name) or {}
         rid = (c.get("born"), c.get("handle"))
         if rid not in prev:

@@ -869,6 +869,12 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_REPLAY_UNIT": "R7i (the reviewer 2026-10-17 19:50): 7i's replay applies a carried "
+                          "settle / refute row to the term load installed from that row (the "
+                          "generation row keeps its old name as was; load records renamed), so "
+                          "bound and guarded terms, which reload under another name, are no "
+                          "longer not_held; the method crosses, the binding does not. OFF: by "
+                          "name (ffb365c). default ON",
     "TETHER_USED_CARRY": "L1b (the reviewer 2026-10-17 19:06, 19:33): Rank.used per unit (by "
                          "atom sequence, never by binding) is written on each generation and "
                          "summed root to tip at load; it lived on the Agent, so it never "

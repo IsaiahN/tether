@@ -10,6 +10,10 @@
   I2  after a real lineage write and load, a term that earned its standing is settled again (the
       evidence replayed); control: with the arm OFF it arrives a candidate
   I6  after the reload an innate name stays innate and a learned name stays learned
+  I2b / I6b  (R7i, the reviewer 2026-10-17 19:50) the same for BOUND terms, which reload under
+      another name: an earned bound term arrives settled with its paid; a learned bound recipe
+      that was demoted arrives learned, not innate, and demoted. MF-R: with TETHER_REPLAY_UNIT=0
+      (by name, as before) the earned bound term arrives a candidate
   I7  after the reload no term is settled on any slot (A1: the replay is global)
   A2  the hook's predicate (_core_kind): one atom inherit, multi-atom learn, an extension and
       another operand candidate
@@ -45,20 +49,23 @@ g = ag.gamma
 a0, a1 = g.atoms[0], g.atoms[1]
 T = {"inn": Term((a0,), origin=MINTED, operand="o0.row"),
      "lrn": Term((a0, a1), origin=MINTED), "lrn2": Term((a1, a0, a1), origin=MINTED),
-     "new": Term((a1, a0), origin=MINTED), "cand": Term((a1,), origin=MINTED, operand="o0.col")}
+     "new": Term((a1, a0), origin=MINTED), "cand": Term((a1,), origin=MINTED, operand="o0.col"),
+     "bnd": Term((a1, a0, a0), origin=MINTED, operand="o0.row"),
+     "bdm": Term((a0, a0, a1), origin=MINTED, operand="o0.col")}
 for t in T.values():
     g.accept(t, seq=0, residual="fixture")
 n = {k: t.name for k, t in T.items()}
 if gamma._SETTLED_CORE:
-    g.inherit(n["inn"]); g.learn(n["lrn"]); g.learn(n["lrn2"])
+    g.inherit(n["inn"]); g.learn(n["lrn"]); g.learn(n["lrn2"]); g.learn(n["bdm"])
 out = {"born": {k: g.is_settled(v) for k, v in n.items()},
        "admitted": {k: g.stamps[v].get("admitted") for k, v in n.items()},
        "innate_slot": g.is_settled(n["inn"], "o0.row")}
-g.settle(n["new"]); g.settle(n["cand"])
+g.settle(n["new"]); g.settle(n["cand"]); g.settle(n["bnd"], "default:L0")
 g.settle(n["new"], slot="s2")
 out["slot_pre"] = g.is_settled(n["new"], "s2")
 for _ in range(2):
     g.refute(n["inn"]); g.refute(n["cand"]); g.refute(n["lrn"]); g.refute(a0.name)
+    g.refute(n["bdm"])
 g.settle(n["inn"], slot="s1")
 out["slot_before"] = g.is_settled(n["inn"], "s1")
 for _ in range(2):
@@ -76,6 +83,13 @@ out.update(reload={k: g2.is_settled(v) for k, v in n.items()},
            reload_admitted={k: (g2.stamps.get(v) or {}).get("admitted") for k, v in n.items()},
            reload_innate={k: v in g2.innate for k, v in n.items()},
            replayed=rep.get("replayed"),
+           reload_bound={k: [g2.renamed.get(n[k]),
+                             g2.is_settled(g2.renamed.get(n[k], n[k])),
+                             (g2.stamps.get(g2.renamed.get(n[k], n[k])) or {}).get("admitted"),
+                             g2.renamed.get(n[k], n[k]) in g2.innate,
+                             dict((g2.standing.get(g2.renamed.get(n[k], n[k])) or
+                                   gamma.Standing()).paid)]
+                         for k in ("bnd", "bdm")},
            reload_slots=sorted(nm for nm, st in g2.standing.items() if st.settled_on),
            # a one-atom term's operand binding does not cross, so it reloads under its unbound
            # form (gamma load_blob); found by its INHERITED stamp, not by its old name
@@ -114,6 +128,7 @@ def _run(code: str, arms: dict) -> dict:
 
 def main() -> None:
     on, off = _run(CHILD, {}), _run(CHILD, {"TETHER_SETTLED_CORE": "0"})
+    by_name = _run(CHILD, {"TETHER_REPLAY_UNIT": "0"})
     assert on["born"]["inn"] and on["admitted"]["inn"] == "inherited", ("I1", on["born"])
     assert on["after"]["inn"] and on["contradictions"] >= 4 and "contradiction" in on["rows"], (
         "I1: an innate term was demoted, or its contradiction not recorded", on)
@@ -140,6 +155,16 @@ def main() -> None:
             and not on["reload_innate"]["lrn2"]), ("I6 learned", on)
     assert not on["reload"]["lrn"], "I6: a demoted learned recipe came back settled"
     print("  I6 innate stays innate, learned stays learned (a demoted one stays demoted)")
+    bnd, bdm = on["reload_bound"]["bnd"], on["reload_bound"]["bdm"]
+    assert bnd[0] and bnd[1] and bnd[4] == {"default:L0": 1} and not bnd[3], ("I2b", bnd)
+    print(f"  I2b a bound earned term reloads as {bnd[0]!r}, settled, paid {bnd[4]}")
+    assert bdm[0] and bdm[2] == "learned" and not bdm[3] and not bdm[1], ("I6b", bdm)
+    print(f"  I6b a demoted learned bound recipe reloads as {bdm[0]!r}: learned, not innate, "
+          "demoted")
+    nb = by_name["reload_bound"]["bnd"]
+    assert not nb[1] and not nb[4], ("MF-R: by name the bound term still arrived settled", nb)
+    print(f"  MF-R by name only (TETHER_REPLAY_UNIT=0): the bound term arrives a candidate, paid "
+          f"{nb[4]} (replayed {by_name['replayed']})")
     assert on["slot_pre"] and not on["reload_slots"], ("I7", on["slot_pre"], on["reload_slots"])
     print("  I7 a term settled on a slot before the boundary is settled on no slot after it")
     from types import SimpleNamespace as NS
