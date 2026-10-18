@@ -869,6 +869,20 @@ ARMS: dict[str, str] = {
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
                           "owed queue. OFF: no bound (3a8238c). default ON",
+    "TETHER_MEMO_CLEAR": "R4 (the reviewer 2026-10-17 17:35 C, split 2026-10-18 00:10): the "
+                         "agent-level instance memos (_reach_index, _reach_verdicts, _reach_fold, "
+                         "_compile_cache, _units_for_memo, _frontiers) are cleared at every "
+                         "boundary, after one @memo row of sizes and the bound memos' hit "
+                         "counter; their keys hold this board's names; Isaiah's carried bound "
+                         "memos are exempt (10-15 06:01). OFF: never cleared (e945a7f). "
+                         "default ON",
+    "TETHER_MEMO_ADMIT": "R4 (the reviewer 2026-10-17 23:52 (A), split 2026-10-18 00:10): the "
+                         "agent-level memos store an answer only on its key's SECOND ask; the "
+                         "asked keys are kept. OFF because RK-3 fired: it saved 17 entries on "
+                         "the fake (640 vs 657) and 6 on gridworld, and cost recomputation the "
+                         "budget pays for (late_asked 364 vs 0); revisit only if lf52's byte "
+                         "attribution shows these memos large. OFF: stored on the first ask "
+                         "(e945a7f). default OFF",
     "TETHER_G1_WANT": "G1 (the reviewer 2026-10-17 15:30, 23:04, 23:17): per event, one "
                       "objective-only question over the derived slots it changed; the want is "
                       "the library condition the change made true, closed with all; bare "

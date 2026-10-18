@@ -754,6 +754,20 @@ _EVENT_SHARED = armflag.arm("TETHER_EVENT_SHARED", default=True)
 # quantifiers refused; kept as a want, never bound or bet; its origin and outcome recorded. OFF:
 # no such want (f631977)
 _G1_WANT = armflag.arm("TETHER_G1_WANT", default=True)
+# R4, MEMO ADMISSION (the reviewer 2026-10-17 17:35 C, amended 23:52 (A)): the AGENT-level instance
+# memos -- keyed by this board's slot and object names -- store an answer only when its key is asked
+# a SECOND time (the first ask computes, uses and records the key; promote-on-reuse, S1c, is the
+# same rule for wholes), and are cleared at every boundary; the record of asked keys is kept.
+# Isaiah's carried bound memos (10-15 06:01: the bound answers outlive the game) are exempt.
+# SPLIT (the reviewer 2026-10-18 00:10, RK-3 fired): the CLEAR is free and correct (the keys hold
+# this board's names); admission saved ~17 entries and cost recomputation the budget pays for, so
+# it stays built and OFF. Both OFF: stored on the first ask, never cleared (e945a7f)
+_MEMO_CLEAR = armflag.arm("TETHER_MEMO_CLEAR", default=True)
+_MEMO_ADMIT = armflag.arm("TETHER_MEMO_ADMIT", default=False)
+# R4's hit counter (the reviewer 23:52), record only: the carried keys, so a hit on an answer the
+# lineage handed over is counted apart (E4 reads whether carried answers are ever reused)
+_BS_CARRIED: set = set()
+_BM_CARRIED: set = set()
 # C1b, THE RANK (the reviewer 2026-10-17 17:07, 17:29, 17:30; Fig 9 :40-41 "keep every cut ranked
 # and reversible"): the step's lookups are spent in class order -- owed and changed, changed, our
 # own act's (its landing object, or one in contact with it in the frame's read), owed and still,
@@ -2005,6 +2019,9 @@ class Agent:
         self._ev_done: dict = {}
         self._ev_base: dict = {}
         self._g1: dict = {}     # G1: derived slot -> its want, origin and outcome counts
+        # R4: the keys each admitted memo has been asked once (kept across a boundary clear)
+        self._seen_keys: dict = {m: set() for m in ("reach_index", "compile", "fold", "verdicts",
+                                                    "units_for")}
         self._late = (0, 0)                # K1: this step's T4 / T5 entries (asked, not asked)
         self._k1_trunc = False             # K1: the last index walk was cut by the budget
         self._deferred: set = set()        # K1: (slot, delta kind) a T1 hit deferred, to re-ask
@@ -2586,6 +2603,8 @@ class Agent:
             self._settle_process("game", how)
         if self._goal_conds:
             self._close_goals(how)
+        if _MEMO_CLEAR or _MEMO_ADMIT:
+            self._memo_sizes(f"end:{how}")      # R4: the memos' sizes at the run's end
         close = getattr(self.led, "close", None)
         if close is not None:
             close()                  # R2: the run's rows are written; a later row reopens it
@@ -2698,6 +2717,13 @@ class Agent:
         Everything still owed is parked WITH its history, which is the only way a term
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
+        if _MEMO_CLEAR:
+            # R4: the agent-level instance memos are this board's and are cleared here; the asked
+            # keys, the kind stores, the record and the carried bound memos stay
+            self._memo_sizes(how)
+            for m in (self._reach_index, self._reach_verdicts, self._reach_fold,
+                      self._compile_cache, self._units_for_memo, self._frontiers):
+                m.clear()
         if _G1_WANT and self._g1:
             # G1: the ending is the ground's vote on each relational want held through it
             self.led.record(self.cycle, "SETTLE", "@g1_end", "g1_outcomes", how=how,
@@ -2983,6 +3009,36 @@ class Agent:
     # E3 (the reviewer 12:53, 21:53): the cell-change readings are functions of the cell set E0 did
     # not declare derived, so as a group they are priced as their LARGEST member, never summed
     _CELL_GROUP = frozenset(("add_n", "rem_n", "add_row", "add_col", "rem_row", "rem_col"))
+
+    def _admit(self, memo: str, key: Any) -> bool:
+        """R4: may this answer be stored? Always with the arm off; with it on, only on the key's
+        SECOND ask (the first is recorded in the kept set of asked keys)."""
+        if not _MEMO_ADMIT:
+            return True
+        seen = self._seen_keys[memo]
+        if key in seen:
+            return True
+        seen.add(key)
+        return False
+
+    @_in_step("SETTLE")
+    def _memo_sizes(self, at: str) -> None:
+        """R4: each memo's entries, the asked keys, and the bound memos' hit counter, one row."""
+        agent = {"reach_index": len(self._reach_index), "reach_verdicts": len(self._reach_verdicts),
+                 "reach_fold": len(self._reach_fold), "compile": len(self._compile_cache),
+                 "units_for": len(self._units_for_memo), "frontiers": len(self._frontiers)}
+        exempt = {"bound_memo": len(_BOUND_MEMO), "bound_slot_memo": len(_BOUND_SLOT_MEMO),
+                  "bound_slot_map": len(_BOUND_SLOT_MAP), "pairs_seen": len(_PAIRS_SEEN),
+                  "bound_term": len(_BOUND_TERM), "bound_cache": len(self._bound_cache),
+                  "bound_slot_cache": len(self._bound_slot_cache)}
+        hits = {k: _INDEX_N.get(k, 0) for k in (
+            "bound_slot", "bound_slot_hit", "bound_slot_hit_carried", "bound_slot_from_carry",
+            "bound_whole_lookup", "bound_whole_hit", "bound_whole_hit_carried")}
+        self.led.record(self.cycle, "SETTLE", "@memo", "memo_sizes", at=at, agent=agent,
+                        exempt=exempt, asked={m: len(v) for m, v in self._seen_keys.items()},
+                        carried={"bs": len(_BS_CARRIED), "bm": len(_BM_CARRIED)}, hits=hits,
+                        reads="R4: the memos' entries at this boundary (agent-level, cleared "
+                              "next; exempt, kept), the asked keys, the bound memos' hits")
 
     def _event_prices(self) -> None:
         """E3: each event's price -- the joint code over its NON-derived members (env.derived()),
@@ -3483,7 +3539,8 @@ class Agent:
                 if got is None:
                     got = self._index_reach(lib, lit_, slot, mine, others, late=late, probe=probe,
                                             targets=tg)
-            if ikey not in self._reach_index and not self._k1_trunc:
+            if ikey not in self._reach_index and not self._k1_trunc \
+                    and self._admit("reach_index", ikey):
                 self._reach_index[ikey] = got
             return got
 
@@ -3604,13 +3661,16 @@ class Agent:
                     state = held[1] if held is not None and held[0] == self._reach_fsig \
                         and held[1][0] <= len(frs) else None
                     state, v = reach.cause_fold(state, if_c, then_c, frs)
-                    self._reach_fold[fkey] = (self._reach_fsig, state, v)
+                    if self._admit("fold", fkey):
+                        self._reach_fold[fkey] = (self._reach_fsig, state, v)
             else:
                 vkey = (if_c.term.name, if_c.slot, then_c.term.name, then_c.slot,
                         self._trace_epoch, len(frs))
                 v = self._reach_verdicts.get(vkey)
                 if v is None:
-                    v = self._reach_verdicts[vkey] = reach.cause(if_c, then_c, frs)
+                    v = reach.cause(if_c, then_c, frs)
+                    if self._admit("verdicts", vkey):
+                        self._reach_verdicts[vkey] = v
             prov = {**prov, "if": if_c.term.name, "guard_bits": reach.bits(
                 if_c, lambda t: term_bits(self.gamma.length(t, units), self.gamma.alphabet))}
             off = self._lib_offer(then_c, prov, v)
@@ -3829,8 +3889,9 @@ class Agent:
             k = cond if subject is None else (cond, subject)
             got = self._compile_cache.get(k)
             if got is None:
-                got = self._compile_cache[k] = compile_term.compile_candidate(
-                    {"condition": cond}, atoms, subject=subject)
+                got = compile_term.compile_candidate({"condition": cond}, atoms, subject=subject)
+                if self._admit("compile", k):
+                    self._compile_cache[k] = got
             return got
         views: dict = {}
         causes: dict = {}
@@ -4015,18 +4076,27 @@ class Agent:
                 got = smemo.get(skey)
                 if got is not None:
                     _INDEX_N["bound_slot_hit"] += 1
+                    if skey in _BS_CARRIED:
+                        _INDEX_N["bound_slot_hit_carried"] += 1     # R4: a carried answer reused
                     return list(got)
                 whole = memo.get(mkey)
+                _INDEX_N["bound_whole_lookup"] += 1
+                if whole is not None:
+                    _INDEX_N["bound_whole_hit"] += 1
+                    if mkey in _BM_CARRIED:
+                        _INDEX_N["bound_whole_hit_carried"] += 1
                 carried = None if whole is not None else lineage.resolve_bs(self, lib, skey, atoms)
                 if carried is not None:
                     _INDEX_N["bound_slot_from_carry"] += 1
                     seen.add(mkey)
                     sidx[skey], got = carried
                     smemo[skey] = got
+                    _BS_CARRIED.add(skey)
                     return list(got)
                 if whole is None:
                     whole = lineage.resolve_memo(self, lib, mkey, atoms)
                     if whole is not None:
+                        _BM_CARRIED.add(mkey)
                         # resolve_memo hands a carried view over once: kept as the WHOLE answer
                         # it is, so other slots and the next boundary write still have it (S3)
                         _INDEX_N["bound"] += 1
@@ -9613,7 +9683,7 @@ class Agent:
         out = {self.gamma.library[n].atoms for (n, g) in self._not
                if g == gk and n in self.gamma.library and self._term_refused(n, g)}
         got = tuple(u for u in units if len(u.atoms) < 2 or u.atoms not in out)
-        if G_UNITS_MEMO:
+        if G_UNITS_MEMO and self._admit("units_for", mkey):
             self._units_for_memo[mkey] = (units, got)
         return got
 
