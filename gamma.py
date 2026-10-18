@@ -369,9 +369,9 @@ _UNITS_MEMO = armflag.arm("TETHER_UNITS_MEMO", default=True)
 # A / (the library's mean recipe length) and gains one per settlement. No library and nothing
 # learned: today's uniform code exactly. OFF: tether.term_bits (9f26ee9)
 _PRIOR_CODE = armflag.arm("TETHER_PRIOR_CODE", default=True)
-# L1b (the reviewer 2026-10-17 19:06): the code's learned weights cross the lineage. Neither
-# Rank.used (on the Agent) nor Standing.paid (load_blob installs fresh standing) crossed, so every
-# process re-earned its preparedness. Carried per UNIT (the atom sequence), never per binding.
+# L1b (the reviewer 2026-10-17 19:06, 19:33): Rank.used crosses the lineage. It lived on the Agent,
+# so every process re-earned that half of its preparedness; Standing.paid already crosses, by 7i's
+# replay of the carried settle rows. Carried per UNIT (the atom sequence), never per binding.
 # OFF: nothing written or read (a102c5a)
 _USED_CARRY = armflag.arm("TETHER_USED_CARRY", default=True)
 
@@ -954,8 +954,7 @@ class Gamma:
         self._units_memo: tuple | None = None   # R1: (key, the units as a tuple)
         self._code_memo: tuple | None = None    # L1: (the units tuple, _paid_ver, the Code)
         self._paid_ver = 0                      # L1: bumped by settle and the two loads
-        self.carried_weights: dict[str, int] = {}   # L1b: unit_key -> the lineage's weight
-        self.carried_stated = 0                      # L1b: the lineage's settlements
+        self.carried_used: dict[str, int] = {}   # L1b: unit_key -> the lineage's Rank.used
         for a in atoms:
             # THE ATOM'S OWN CLAUSE IF IT DECLARED ONE. A blanket `NECESSARY` was true of the
             # VOCABULARY and false of most of its members, and `admissions()` read
@@ -1654,37 +1653,41 @@ class Gamma:
         self._code_memo = (units, self._paid_ver, c)
         return c
 
-    def unit_weights(self) -> tuple[dict[str, int], int]:
-        """L1b: THIS instance's learned weight per unit, keyed by its atom sequence (unit_key) --
-        Rank.used + Standing.paid summed over the library terms that state it, so an instance's
-        binding never crosses -- and its settlements (END's count)."""
+    def unit_weights(self) -> tuple[dict[str, int], dict[str, int], int]:
+        """L1: the learned weight per unit, keyed by its atom sequence (unit_key) and summed over
+        the library terms that state it, so no binding is in the key: (Rank.used by unit -- this
+        instance's own, the only half L1b carries --, Standing.paid by unit, the settlements END
+        counts). Paid needs no carry: 7i's Gamma.replay re-applies the carried settle rows at
+        load (lineage.py, TETHER_SETTLED_CORE), so it is restored in standing -- one count, one
+        place (the reviewer 2026-10-17 19:33)."""
         used = getattr(getattr(self.unit_rank, "__self__", None), "used", None) or {}
-        out: dict[str, int] = {}
+        u_out: dict[str, int] = {}
+        p_out: dict[str, int] = {}
         stated = 0
         for n, t in self.library.items():
             st = self.standing.get(n)
             p = sum(st.paid.values()) if st is not None else 0
             stated += p
-            c = used.get(n, 0) + p
-            if c:
-                k = unit_key(t.atoms)
-                out[k] = out.get(k, 0) + c
-        return out, stated
+            k = unit_key(t.atoms)
+            if used.get(n):
+                u_out[k] = u_out.get(k, 0) + used[n]
+            if p:
+                p_out[k] = p_out.get(k, 0) + p
+        return u_out, p_out, stated
 
-    def carry_weights(self, weights: dict[str, int], stated: int) -> None:
-        """L1b: the lineage's unit weights and settlements, summed root to tip, into the code."""
-        self.carried_weights, self.carried_stated = dict(weights), int(stated)
+    def carry_used(self, used: dict[str, int]) -> None:
+        """L1b: the lineage's Rank.used per unit, summed root to tip, into the code."""
+        self.carried_used = dict(used)
         self._paid_ver += 1
 
     def _code_built(self, units: tuple) -> Code:
         import inherited
-        mine, stated = self.unit_weights()
-        cw = self.carried_weights if _USED_CARRY else {}
+        mine, paid, stated = self.unit_weights()
+        cu = self.carried_used if _USED_CARRY else {}
         w = {}
         for u in units:
             k = unit_key(u.atoms)
-            w[u.atoms] = mine.get(k, 0) + cw.get(k, 0)
-        stated += self.carried_stated if _USED_CARRY else 0
+            w[u.atoms] = mine.get(k, 0) + paid.get(k, 0) + cu.get(k, 0)
         rl = inherited.recipe_length()
         end_w = (len(self.atoms) / rl if rl else 1.0) + stated
         z = sum(v + 1 for v in w.values()) + end_w

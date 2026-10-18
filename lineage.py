@@ -337,13 +337,12 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         gen["episodes"] = list(getattr(ag, "_kind_episodes", [])
                                [getattr(ag, "_kind_episode_mark", 0):])
     if gamma._USED_CARRY:
-        # L1b: the code's learned weight per unit and the settlements since the last write; the
-        # load sums the chain (the reviewer 2026-10-17 19:06)
-        uw, stated = ag.gamma.unit_weights()
-        was, was_s = getattr(ag, "_uw_written", {}), getattr(ag, "_stated_written", 0)
-        gen["unit_weights"] = {k: n - was.get(k, 0) for k, n in sorted(uw.items())
-                               if n > was.get(k, 0)}
-        gen["stated"] = stated - was_s
+        # L1b: Rank.used per unit since the last write; the load sums the chain (the reviewer
+        # 2026-10-17 19:06, 19:33). Paid is not written here: 7i's replay restores it
+        uu = ag.gamma.unit_weights()[0]
+        was = getattr(ag, "_uu_written", {})
+        gen["unit_used"] = {k: n - was.get(k, 0) for k, n in sorted(uu.items())
+                            if n > was.get(k, 0)}
     if tether._7H_TRACE and hasattr(ag, "_line_grade"):
         # 7h (d): how each kind's lines ended since the last write; the load sums the chain
         gen["line_grades"] = {k: {o: n - ag._line_grade_written.get(k, {}).get(o, 0)
@@ -409,8 +408,8 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
             ag._kind_episode_mark = len(ag._kind_episodes)
         # a write without the boundary is a sibling of the last (the parent does not advance),
         # so the mark moves only with the parent
-        if "unit_weights" in gen:
-            ag._uw_written, ag._stated_written = uw, stated
+        if "unit_used" in gen:
+            ag._uu_written = uu
         if "line_grades" in gen:
             ag._line_grade_written = {k: dict(c) for k, c in ag._line_grade.items()}
         if "root_grades" in gen:
@@ -475,13 +474,13 @@ def load(d: str | Path, ag: Any) -> dict:
     rep = ag.gamma.load_blob({"terms": f["terms"], "invented": f["invented"],
                               "vindication": f["vindication"], "book": f["book"]}, parent=h)
     if gamma._USED_CARRY:
-        # L1b: every generation's unit weights and settlements, root to tip, into the code
+        # L1b: every generation's Rank.used per unit, root to tip, into the code
         tot: dict[str, int] = {}
         for _h, g in chain:
-            for k, n in (g.get("unit_weights") or {}).items():
+            for k, n in (g.get("unit_used") or {}).items():
                 tot[k] = tot.get(k, 0) + n
-        ag.gamma.carry_weights(tot, sum(g.get("stated", 0) for _h, g in chain))
-        rep["unit_weights"] = len(tot)
+        ag.gamma.carry_used(tot)
+        rep["unit_used"] = len(tot)
     import tether
     if tether._7L_KIND and hasattr(ag, "_kind_known"):
         # 7l: every generation's kinds, root to tip, known to this instance (7m reads them)
