@@ -58,6 +58,13 @@ _ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=True)
 # it on"): OFF, every load is the saves' fold (14.35 GiB on the E4 life, over B); ON, that fold is
 # reached only on a refusal. TETHER_MEMORY_STORE=0 is the old path.
 _MEMORY_STORE = armflag.arm("TETHER_MEMORY_STORE", default=True)
+# S6 H, THE STORE HEALS AT OPEN (the reviewer 2026-10-19; the K crash runs): (1) a store failing
+# its cheap check WITH a WAL is checkpointed (TRUNCATE) and checked again, size and quick_check --
+# committed pages still in the WAL make page_count exceed the file, so a correct store read as
+# short and the load fell back to the saves' fold; (2) a store still failing is SET ASIDE (renamed
+# .dead-<UTC>, never deleted) and rebuilt from the saves by catch_up, as a folder with no store
+# already is. The load report carries what was done. OFF: as 753339c
+_STORE_HEAL = armflag.arm("TETHER_STORE_HEAL", default=True)
 PREFIX = "gen_"
 
 
@@ -584,6 +591,45 @@ def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
     return {"how": how, "agent_level": ag.level, **write(d, ag, game, sleep=False)}
 
 
+def _heal(p: Path, ok: bool, why: str) -> tuple[bool, str, dict]:
+    """H: a store failing its cheap check is checkpointed if it has a WAL and checked again, the
+    size check AND a quick_check (a checkpoint can extend a short file over a page it lost); if it
+    still fails, its files are renamed .dead-<UTC> (kept, never deleted) and the folder reads as one
+    with no store, which open_store creates and catch_up rebuilds from the saves."""
+    import sqlite3
+
+    import lineage_store as ls
+    rep: dict = {}
+    if not ok and why != "no store" and ls.wal_bytes(p) > 0:
+        rep["wal_bytes"] = ls.wal_bytes(p)
+        qc = None
+        try:
+            con = ls.open_store(p)
+            try:
+                rep.update(ls.checkpoint(con))
+                # a checkpoint can EXTEND a short file to the WAL's page count, and a cut page
+                # the WAL does not hold then reads as zeros: the size check would pass on it
+                qc = con.execute("PRAGMA quick_check").fetchone()[0]
+            finally:
+                con.close()
+        except (sqlite3.DatabaseError, ls.Refused) as e:
+            rep["checkpoint_failed"] = str(e)[:200]
+        ok, why = ls.header_ok(p)
+        rep["after_checkpoint"], rep["quick_check"] = why, qc
+        if ok and qc != "ok":
+            ok, why = False, f"quick_check {qc}"[:200]
+    if not ok and why != "no store":
+        stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+        moved = []
+        for n in (ls.DB, f"{ls.DB}-wal", f"{ls.DB}-shm"):
+            if (p / n).exists():
+                (p / n).rename(p / f"{n}.dead-{stamp}")
+                moved.append(n)
+        rep["set_aside"] = {"why": why, "files": moved, "suffix": f".dead-{stamp}"}
+        ok, why = ls.header_ok(p)
+    return ok, why, rep
+
+
 def _store_view(d: str | Path, ag: Any) -> dict:
     """Everything load() takes from the chain, read from the memory folder's store after merging
     any save it lacks. Reads only, so a refusal leaves the agent untouched."""
@@ -593,6 +639,9 @@ def _store_view(d: str | Path, ag: Any) -> dict:
     if any(p.glob(f"{BMEMO}*.json")) or any(p.glob(f"{BSMEMO}*.json")):
         raise ls.Refused("bm_/bs_ files are in the archive; the store does not hold them")
     ok, why = ls.header_ok(p)
+    healed: dict = {}
+    if _STORE_HEAL:
+        ok, why, healed = _heal(p, ok, why)
     if not ok and why != "no store":
         raise ls.Refused(f"the store failed its check at open: {why}")
     con = ls.open_store(p)
@@ -601,7 +650,7 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         sym = dict(con.execute("SELECT id, s FROM sym"))
         tip = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
         if tip is None:     # a first-ever load: no save merged, no blob yet (the root view)
-            return {"tip": None, "fold": None, "counts": None, "merged": merged}
+            return {"tip": None, "fold": None, "counts": None, "merged": merged, "healed": healed}
         f = json.loads(con.execute("SELECT v FROM blob WHERE k='fold'").fetchone()[0])
         c = json.loads(con.execute("SELECT v FROM blob WHERE k='counts'").fetchone()[0])
         atoms = {a.name: a for a in ag.gamma.atoms}
@@ -637,7 +686,8 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         seeds = [json.loads(s_) for (s_,) in con.execute("SELECT seed FROM seeds ORDER BY k")]
     finally:
         con.close()
-    return {"tip": tip and tip[0], "fold": f, "counts": c, "merged": merged, "sig": sig,
+    return {"tip": tip and tip[0], "fold": f, "counts": c, "merged": merged, "healed": healed,
+            "sig": sig,
             "atoms": atoms, "folder": str(p.resolve()),
             "evidence": evidence, "vindication": vindication, "seeds": seeds,
             "pairs": {(tuple(json.loads(sym[o])), tuple(json.loads(sym[x]))): (n, max(last, 0))
@@ -670,6 +720,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
                               "vindication": v["vindication"],
                               "book": f.get("book", {})}, parent=h)
     rep["store_merged_at_load"] = len(v["merged"])
+    if v["healed"]:
+        rep["store_healed"] = v["healed"]
     if gamma._USED_CARRY:
         ag.gamma.carry_used(dict(c.get("unit_used", {})))
         rep["unit_used"] = len(c.get("unit_used", {}))

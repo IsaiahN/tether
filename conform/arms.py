@@ -1115,6 +1115,15 @@ ARMS: dict[str, str] = {
                          "OFF is the line before it exactly. "
                          "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                          "the switch is kept for the checklist's culprit isolation",
+    "TETHER_STORE_HEAL": "S6 H (the reviewer 2026-10-19; the K crash runs): under "
+                         "TETHER_MEMORY_STORE, a store failing its cheap check at load WITH a WAL "
+                         "is checkpointed "
+                         "(TRUNCATE) and checked again, size and quick_check "
+                         "(committed WAL pages made a correct store "
+                         "read as short); one still failing is set aside (renamed .dead-<UTC>, "
+                         "never deleted) and rebuilt from the saves by catch_up, where the load "
+                         "fell back to the saves' fold. The load report carries store_healed. "
+                         "OFF: as 753339c. default ON",
     "TETHER_MEMORY_STORE": "the consolidated memory (the reviewer 2026-10-19 06:13-07:35; Isaiah "
                            "06:12): lineage.load reads the memory folder's store "
                            "(lineage_store.py: one indexed SQLite file, integer keys, derived from "
