@@ -175,10 +175,28 @@ def _read_hashed(f: Path, prefix: str) -> dict:
     return json.loads(raw)
 
 
+# THE PAIR TABLE'S INVARIANT (the reviewer 10:13 item 3; the seat 10:26): pair.n is the sum over the
+# pair's kind rows of in_landed * (n if has_n else 1), and pair.last_seq the latest l_seq of those
+# rows -- what _pair_counts reads off the old load (every known key: its summed n, else 1). The
+# merge keeps it by the change in the touched rows' contribution, read before and after.
+_PAIR_CONTRIB = ("SELECT k.kind_o, k.kind_x, SUM(CASE WHEN k.has_n THEN k.n ELSE 1 END), "
+                 "MAX(k.l_seq) FROM temp.touched t JOIN kind k ON k.entry=t.entry AND "
+                 "k.role=t.role AND k.kind_o=t.kind_o AND k.kind_x=t.kind_x WHERE k.in_landed=1 "
+                 "GROUP BY k.kind_o, k.kind_x")
+
+
 def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
     def kkey(e):
         return (s(e[0]), s(e[1]), s(_j(e[2])), s(_j(e[3])))
     kl = sorted({kkey(e) for e in g.get("kinds_landed", ())})
+    con.execute("CREATE TEMP TABLE IF NOT EXISTS touched(entry INTEGER, role INTEGER, "
+                "kind_o INTEGER, kind_x INTEGER, PRIMARY KEY(entry, role, kind_o, kind_x)) "
+                "WITHOUT ROWID")
+    con.execute("DELETE FROM temp.touched")
+    con.executemany("INSERT OR IGNORE INTO temp.touched VALUES (?,?,?,?)",
+                    [*kl, *(kkey(e) for e in g.get("kinds_landed_n", ())),
+                     *(kkey(e) for e in g.get("kinds_last", ()))])
+    before = {(o, x): n for o, x, n, _l in con.execute(_PAIR_CONTRIB)}
     con.executemany("INSERT INTO kind VALUES (?,?,?,?,1,0,0,NULL,NULL,NULL,-1) "
                     "ON CONFLICT DO UPDATE SET in_landed=1", kl)
     con.executemany("INSERT INTO kind VALUES (?,?,?,?,0,?,1,NULL,NULL,NULL,-1) "
@@ -190,11 +208,11 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
     con.executemany("INSERT INTO kind VALUES (?,?,?,?,0,0,0,?,?,?,?) "
                     + UPSERT_LAST.format(t="kind"),
                     [(*kkey(e), *e[4:8]) for e in g.get("kinds_last", ())])
-    con.executemany("INSERT INTO pair VALUES (?,?,?,-1) "
-                    "ON CONFLICT DO UPDATE SET n = n + excluded.n",
-                    [(s(_j(e[2])), s(_j(e[3])), e[4]) for e in g.get("kinds_landed_n", ())])
-    con.executemany("UPDATE pair SET last_seq = max(last_seq, ?) WHERE kind_o=? AND kind_x=?",
-                    [(e[7], s(_j(e[2])), s(_j(e[3]))) for e in g.get("kinds_last", ())])
+    after = con.execute(_PAIR_CONTRIB).fetchall()
+    con.executemany("INSERT INTO pair VALUES (?,?,?,?) ON CONFLICT DO UPDATE SET "
+                    "n = n + excluded.n, last_seq = max(last_seq, excluded.last_seq)",
+                    sorted((o, x, n - before.get((o, x), 0), last) for o, x, n, last in after))
+    con.execute("DELETE FROM temp.touched")
     con.executemany("INSERT INTO kind_dk VALUES (?,?,?,?,NULL,NULL,NULL,-1) "
                     "ON CONFLICT DO UPDATE SET n = n + excluded.n",
                     sorted((s(_j(e[0])), s(e[1]), s(_j(e[2])), e[3])
