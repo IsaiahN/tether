@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 DB = "memory.db"
-SCHEMA = 3
+SCHEMA = 4
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT);
 CREATE TABLE IF NOT EXISTS sym(id INTEGER PRIMARY KEY, s TEXT UNIQUE);
@@ -48,6 +48,11 @@ CREATE TABLE IF NOT EXISTS held(key INTEGER, role INTEGER, gen TEXT, sig INTEGER
 CREATE INDEX IF NOT EXISTS kind_dk_et ON kind_dk(entry, tgt);
 CREATE INDEX IF NOT EXISTS kind_nocount ON kind(entry) WHERE has_n = 0 AND in_landed = 1;
 CREATE INDEX IF NOT EXISTS kind_t2 ON kind(entry) WHERE no_dk = 1 AND in_landed = 1;
+CREATE TABLE IF NOT EXISTS evidence(k INTEGER, i INTEGER, row TEXT, PRIMARY KEY(k, i))
+    WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS vindication(k INTEGER, i INTEGER, row TEXT, PRIMARY KEY(k, i))
+    WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS seeds(k INTEGER PRIMARY KEY, seed TEXT);
 """
 UPSERT_LAST = ("ON CONFLICT DO UPDATE SET l_game=excluded.l_game, l_level=excluded.l_level, "
                "l_cycle=excluded.l_cycle, l_seq=excluded.l_seq WHERE excluded.l_seq >= {t}.l_seq")
@@ -143,9 +148,7 @@ def _fold_apply(f: dict, h: str, g: dict) -> dict:
         rows[k]["admitted"] = st["admitted"]
     for fld in ("invented", "book"):
         f.setdefault(fld, {}).update(g[fld])
-    f.setdefault("vindication", []).extend(g["vindication_tail"])
-    f.setdefault("evidence", []).extend(g["evidence"])
-    return f
+    return f      # vindication and evidence are appended to their own tables (merge_save)
 
 
 def _add(into: dict, d: dict) -> None:
@@ -165,8 +168,6 @@ def _counts_apply(c: dict, g: dict) -> dict:
         for fld, n in du.items():
             into[fld] = n if fld == "last" else into.get(fld, 0) + n
     c.setdefault("inventions", []).extend(g.get("inventions", ()))
-    if g.get("seed"):
-        c.setdefault("seeds", []).append(g["seed"])
     if "kinds_landed_n" not in g and g.get("kinds_landed"):
         c["kinds_set_form"] = c.get("kinds_set_form", 0) + len(g["kinds_landed"])
     return c
@@ -320,6 +321,14 @@ def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict) -> 
     else:
         con.execute("INSERT OR REPLACE INTO meta VALUES ('idx_gap', ?)",
                     (_j([h, f"{len(files)} index files"]),))
+    # the O(life) parts, APPENDED (the reviewer 08:17 3a, 11:27): never rewritten, never removed
+    con.executemany("INSERT INTO evidence VALUES (?,?,?)",
+                    [(k, i, json.dumps(e)) for i, e in enumerate(g["evidence"])])
+    con.executemany("INSERT INTO vindication VALUES (?,?,?)",
+                    [(k, i, json.dumps(e)) for i, e in enumerate(g["vindication_tail"])])
+    _meta_add(con, "n_vindication", len(g["vindication_tail"]))
+    if g.get("seed"):
+        con.execute("INSERT INTO seeds VALUES (?,?)", (k, json.dumps(g["seed"])))
     f = _fold_apply(_get_blob(con, "fold", {}), h, g)
     c = _counts_apply(_get_blob(con, "counts", {}), g)
     c["n_saves"] = k

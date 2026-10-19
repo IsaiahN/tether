@@ -311,10 +311,13 @@ def _store_base(p: Path, parent: str | None) -> tuple[Any, dict] | str:
             con.close()
             return f"the store's tip {tip[0] if tip else None} is not the parent {parent}"
         f = json.loads((con.execute("SELECT v FROM blob WHERE k='fold'").fetchone() or ["{}"])[0])
+        nv = con.execute("SELECT v FROM meta WHERE k='n_vindication'").fetchone()
     except ls.Refused as e:
         con.close()
         return f"catch_up refused: {e}"[:300]
-    return con, {"terms": list(f.get("rows", {}).values()), "vindication": f.get("vindication", []),
+    # write() reads only the LENGTH of the stored vindication (schema 4; the reviewer 11:27)
+    return con, {"terms": list(f.get("rows", {}).values()),
+                 "n_vindication": int(nv[0] if nv else 0),
                  "book": f.get("book", {}), "invented": f.get("invented", {})}
 
 
@@ -347,6 +350,7 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
         keep = _ancestors(dict(chain), parent) if parent else set()
         upto = [(h, g) for h, g in chain if h in keep]
         base = fold(upto)
+        base["n_vindication"] = len(base["vindication"])
     prev = {_rid(r): r for r in base["terms"]}
     blob = ag.gamma.blob(with_names=True)
     terms, status = [], []
@@ -380,7 +384,7 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
             refused.append({"i": i, "type": e.type})
     gen = {"lineage": 1, "parent": parent, "game": game, "terms": terms, "status": status,
            "evidence": list(ag.gamma.evidence)[e0:],
-           "vindication_tail": list(blob["vindication"])[len(base["vindication"]):],
+           "vindication_tail": list(blob["vindication"])[base["n_vindication"]:],
            "book": {k: v for k, v in blob["book"].items() if base["book"].get(k) != v},
            "invented": {n: r for n, r in blob["invented"].items() if n not in base["invented"]},
            "dormant": dormant, "dormant_refused": refused}
@@ -621,10 +625,17 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         koff = con.execute("SELECT dk, entry, ko, n FROM kind_off").fetchall()
         held = con.execute("SELECT key, role, gen, items FROM held").fetchall()
         wholes = con.execute("SELECT entry, role, o, x FROM ak_whole").fetchall()
+        # the O(life) parts from their append-only tables, in fold()'s chain order (schema 4)
+        evidence = [json.loads(r) for (r,) in
+                    con.execute("SELECT row FROM evidence ORDER BY k, i")]
+        vindication = [json.loads(r) for (r,) in
+                       con.execute("SELECT row FROM vindication ORDER BY k, i")]
+        seeds = [json.loads(s_) for (s_,) in con.execute("SELECT seed FROM seeds ORDER BY k")]
     finally:
         con.close()
     return {"tip": tip and tip[0], "fold": f, "counts": c, "merged": merged, "sig": sig,
             "atoms": atoms, "folder": str(p.resolve()),
+            "evidence": evidence, "vindication": vindication, "seeds": seeds,
             "pairs": {(tuple(json.loads(sym[o])), tuple(json.loads(sym[x]))): (n, max(last, 0))
                       for o, x, n, last in pairs},
             "nocount": {key((2, 3), e, r, ko, kx) for e, r, ko, kx in nocount},
@@ -649,10 +660,10 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     if h is None:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
     if hasattr(ag, "_seed_from_lineage"):
-        ag._seed_from_lineage(set(c.get("seeds", [])), c["n_saves"], h)
+        ag._seed_from_lineage(set(v["seeds"]), c["n_saves"], h)
     rep = ag.gamma.load_blob({"terms": list(f.get("rows", {}).values()),
                               "invented": f.get("invented", {}),
-                              "vindication": f.get("vindication", []),
+                              "vindication": v["vindication"],
                               "book": f.get("book", {})}, parent=h)
     rep["store_merged_at_load"] = len(v["merged"])
     if gamma._USED_CARRY:
@@ -709,7 +720,7 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         ag._3a_written = {fm: dict(x) for fm, x in fams.items()}
         rep["hazard_3a_in"] = {fm: sum(x.values()) for fm, x in ag._3a_in.items()}
     if gamma._SETTLED_CORE:
-        rep["replayed"] = ag.gamma.replay(f.get("evidence", []))
+        rep["replayed"] = ag.gamma.replay(v["evidence"])
     return {"parent": h, **rep, "index": _store_index(v), "memo": _store_none(v, "memo"),
             "slot_memo": _store_none(v, "bs"), "asked": _store_asked(v)}
 
