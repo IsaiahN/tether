@@ -621,8 +621,13 @@ def _heal(p: Path, ok: bool, why: str) -> tuple[bool, str, dict]:
             try:
                 rep.update(ls.checkpoint(con))
                 # a checkpoint can EXTEND a short file to the WAL's page count, and a cut page
-                # the WAL does not hold then reads as zeros: the size check would pass on it
-                qc = con.execute("PRAGMA quick_check").fetchone()[0]
+                # the WAL does not hold then reads as zeros: the size check would pass on it.
+                # Its own try: on a lost page quick_check can RAISE rather than report (h_chain2
+                # f4), and that is not a failed checkpoint
+                try:
+                    qc = con.execute("PRAGMA quick_check").fetchone()[0]
+                except sqlite3.DatabaseError as e:
+                    qc = f"error: {e}"[:200]
             finally:
                 con.close()
         except (sqlite3.DatabaseError, ls.Refused) as e:
