@@ -27,6 +27,8 @@ import hashlib
 import heapq
 import json
 import os
+import time
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -294,21 +296,24 @@ def _ksorted(rows) -> list:
     return sorted(rows, key=lambda x: json.dumps(x, sort_keys=True, default=str))
 
 
-def _store_base(p: Path, parent: str | None) -> tuple[Any, dict] | None:
+def _store_base(p: Path, parent: str | None) -> tuple[Any, dict] | str:
     """Under TETHER_MEMORY_STORE: the parent's fold read from the store (a lookup), when the store's
-    tip IS the parent; None means the archive's re-fold is used, as before."""
+    tip IS the parent; otherwise the reason the archive's O(life) re-fold is used instead."""
     import lineage_store as ls
-    con = ls.open_store(p)
+    try:
+        con = ls.open_store(p)
+    except ls.Refused as e:
+        return f"open refused: {e}"[:300]
     try:
         ls.catch_up(con, p)
         tip = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
         if (tip[0] if tip else None) != parent:
             con.close()
-            return None
+            return f"the store's tip {tip[0] if tip else None} is not the parent {parent}"
         f = json.loads((con.execute("SELECT v FROM blob WHERE k='fold'").fetchone() or ["{}"])[0])
-    except ls.Refused:
+    except ls.Refused as e:
         con.close()
-        return None
+        return f"catch_up refused: {e}"[:300]
     return con, {"terms": list(f.get("rows", {}).values()), "vindication": f.get("vindication", []),
                  "book": f.get("book", {}), "invented": f.get("invented", {})}
 
@@ -328,10 +333,15 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
     p.mkdir(parents=True, exist_ok=True)
     parent = getattr(ag, "lineage_parent", None)
     sb = _store_base(p, parent) if _MEMORY_STORE else None
-    if sb is not None:
+    if isinstance(sb, tuple):
         store_con, base = sb
     else:
         store_con = None
+        if sb is not None:
+            # S5 (the reviewer 08:03 3a): the arm fell back to the O(life) re-fold; never silent
+            _c, _s, _lv = ag._boundary_key("@lineage")
+            ag.led.record(_c, "SETTLE", _s, "store_refold", **_lv, reason=sb,
+                          reads="the save's base re-folded from the archive, O(life)")
         chain = _chain(p)
         # the parent and what it descends from, in fold order (a DAG has no prefix to slice)
         keep = _ancestors(dict(chain), parent) if parent else set()
@@ -535,11 +545,18 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
         # a crash between the two leaves the save unmerged, and the next open merges it
         import lineage_store as ls
         try:
+            t0 = time.perf_counter()
             for f in sorted(p.glob(f"*{h}*.json")):
                 _fsync(f)
+            t_fsync = round(time.perf_counter() - t0, 3)
             store = ls.merge_save(store_con, p, h, json.loads(raw))   # the bytes catch_up reads
+            store["s_fsync"] = t_fsync
             if sleep:
                 store["sleep"] = ls.sleep(store_con)
+            elif ls.WAL_BOUND_BYTES is not None and ls.wal_bytes(p) > ls.WAL_BOUND_BYTES:
+                # the WAL's SIZE bound (07:12 c, 07:19 3, 08:03 3b): a checkpoint at this boundary,
+                # never mid-move; its time is a PLAY-PATH cost and is reported as one
+                store["wal_bound"] = {"wal_bytes": ls.wal_bytes(p), **ls.checkpoint(store_con)}
         except ls.Refused as e:
             store = {"refused": str(e)[:200]}
         finally:
@@ -1413,14 +1430,113 @@ def _ak_source(ag: Any, kept: bool = True) -> list:
     return out
 
 
+def _ak_rows(ag: Any) -> Counter:
+    """S4: the times-asked counter (Agent._ak_asked) keyed as _ak_source keys its rows -- a slot
+    ask of a pair held WHOLE is that pair's whole row (slot None), as the old form writes it."""
+    import tether
+    tok = getattr(ag, "_atoms_token", None)
+    whole = tether._BOUND_MEMO if tok else ag._bound_cache
+    out: Counter = Counter()
+    for k, n in ag._ak_asked.items():
+        out[k[:6] + (None,) if k[:6] in whole else k] += n
+    return out
+
+
+def _ak_order(r: tuple) -> tuple:
+    """Form 2's row order: the row's own fields, slot None after any slot (no repr, no sig)."""
+    return r[0], r[1], r[2], r[3], r[4] is None, r[4] or ""
+
+
+def _ak_entries(ag: Any, tok: Any, sig: tuple) -> Any:
+    """Form 2's rows, in _ak_order, one dict at a time: (key, role, o, x, slot) of this token and
+    signature from the times-asked counter, a slot ask of a pair held WHOLE folded into that
+    pair's whole row (its n summed, as _ak_rows sums it). One sorted list of row tuples is held,
+    never a copy of the counter nor the file's encoded form."""
+    import tether
+    whole = tether._BOUND_MEMO if tok else ag._bound_cache
+    rows = sorted(((k[2:6] + (None,) if k[:6] in whole else k[2:], n)
+                   for k, n in ag._ak_asked.items()
+                   if k[0] == tok and (k[1] is sig or k[1] == sig)),
+                  key=lambda rn: _ak_order(rn[0]))
+    i = 0
+    while i < len(rows):
+        r, n = rows[i]
+        i += 1
+        while i < len(rows) and rows[i][0] == r:
+            n += rows[i][1]
+            i += 1
+        yield {"key": r[0], "role": r[1], "o": r[2], "x": r[3], "slot": r[4], "n": n}
+
+
+def _put_memo_stream(p: Path, h: str, prefix: str, sig: tuple, entries: Any, extra: dict,
+                     chunk: int = 20000) -> dict:
+    """_put_memo's file, BYTE-IDENTICAL to _dumps of the same body, written as it is encoded (S5 c,
+    the reviewer 09:36): the entries in bounded chunks through a running sha256 into a .part file,
+    renamed to its hash name at the end -- a rename never overwrites, as "xb" never does. Every
+    other key of the body sorts after "entries", so the entries open the object."""
+    arm, parts = _sig_parts(sig)
+    rest = {"gen": h, "sig_arm": arm, "sig_atoms": parts, "refused": [], **extra}
+    assert all(k > "entries" for k in rest), "the entries must be the body's first key"
+    tail = _dumps(rest)
+    tmp = p / f"{prefix}{h}.part"
+    moved = []
+    if tmp.exists():   # a crash's leftover: never a save (no hash name), and never deleted (09:45)
+        moved.append(_set_aside(tmp))
+    sha, n, first = hashlib.sha256(), 0, True
+    with open(tmp, "xb") as fh:
+        def put(b: bytes) -> None:
+            sha.update(b)
+            fh.write(b)
+        put(b'{"entries":[')
+        buf: list = []
+        for e in entries:
+            buf.append(json.dumps(e, sort_keys=True, separators=(",", ":")))
+            n += 1
+            if len(buf) >= chunk:
+                put(("" if first else ",").encode() + ",".join(buf).encode("utf-8"))
+                first, buf = False, []
+        if buf:
+            put(("" if first else ",").encode() + ",".join(buf).encode("utf-8"))
+        put(b"]," + tail[1:])
+    name = f"{prefix}{h}_{sha.hexdigest()[:16]}.json"
+    try:
+        os.rename(tmp, p / name)
+    except FileExistsError:
+        moved.append(_set_aside(tmp))
+        return {"refused": f"{name} exists; a memo file is never overwritten", "set_aside": moved}
+    return {"written": name, "entries": n, "refused": 0, **({"set_aside": moved} if moved else {})}
+
+
+def _set_aside(f: Path) -> dict:
+    """A file the code made and will not use is RENAMED aside under a tombstone name, never deleted
+    (the reviewer 09:45: nothing is deleted without Isaiah's word); the caller records the row."""
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    dead = f.with_name(f"{f.name}.dead-{stamp}")
+    size = f.stat().st_size
+    os.rename(f, dead)
+    return {"path": str(dead), "bytes": size, "stamp": stamp}
+
+
 def write_ak(d: str | Path, ag: Any, h: str) -> dict | None:
-    """Beside generation `h`: the questions this signature answered that no ak_ file holds."""
+    """Beside generation `h`: the questions this signature answered that no ak_ file holds.
+    Under TETHER_MEMORY_STORE (S4, the reviewer 08:26 item 3): the questions asked SINCE THE LAST
+    SAVE, each with n = times asked, in form 2; the counter is cleared once the file is written."""
     import compile_term
     import tether
     if not (_CARRY and _RECORD and tether._INDEX_HOLD and tether._SLOT_FILTER):
         return None
     p = Path(d)
     sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
+    if _MEMORY_STORE:
+        tok = getattr(ag, "_atoms_token", None)
+        out = _put_memo_stream(p, h, AKMEMO, sig, _ak_entries(ag, tok, sig), {"form": 2})
+        for m in out.get("set_aside", ()):
+            _c, _s, _lv = ag._boundary_key("@lineage")
+            ag.led.record(_c, "SETTLE", _s, "set_aside", **_lv, **m,
+                          reads="a .part the code made and did not use, renamed aside, not deleted")
+        if "written" in out:
+            ag._ak_asked.clear()
+        return out
     known = _AK_CARRIED.setdefault(str(p.resolve()), set())
     entries = []
     for (s, key, role, o, x), slot in _ak_source(ag):

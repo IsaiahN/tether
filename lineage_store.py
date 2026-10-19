@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 DB = "memory.db"
-SCHEMA = 1
+SCHEMA = 2
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT);
 CREATE TABLE IF NOT EXISTS sym(id INTEGER PRIMARY KEY, s TEXT UNIQUE);
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS saves(h TEXT PRIMARY KEY, k INTEGER, parent TEXT);
 CREATE TABLE IF NOT EXISTS blob(k TEXT PRIMARY KEY, v TEXT);
 CREATE TABLE IF NOT EXISTS asked_tally(entry INTEGER, role INTEGER, slot_class INTEGER,
     n_variants INTEGER, n_asked INTEGER, n_landed INTEGER, first_save INTEGER,
-    last_save INTEGER, PRIMARY KEY(entry, role, slot_class)) WITHOUT ROWID;
+    last_save INTEGER, n_saves_asked INTEGER, PRIMARY KEY(entry, role, slot_class)) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS ak_whole(entry TEXT, role TEXT, o TEXT, x TEXT,
     PRIMARY KEY(entry, role, o, x)) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS kind(entry INTEGER, role INTEGER, kind_o INTEGER, kind_x INTEGER,
@@ -66,8 +66,12 @@ def open_store(folder: str | Path, cache_kib: int = 262144,
     con.execute(f"PRAGMA cache_size=-{int(cache_kib)}")
     con.execute(f"PRAGMA mmap_size={int(mmap_bytes)}")
     con.executescript(SCHEMA_SQL)
-    if con.execute("SELECT v FROM meta WHERE k='schema'").fetchone() is None:
+    got = con.execute("SELECT v FROM meta WHERE k='schema'").fetchone()
+    if got is None:
         con.execute("INSERT INTO meta VALUES ('schema', ?)", (str(SCHEMA),))
+    elif got[0] != str(SCHEMA):
+        con.close()
+        raise Refused(f"store schema {got[0]}, this code writes {SCHEMA}")
     return con
 
 
@@ -205,18 +209,31 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
                            for e in g.get("kinds_offered_dk", ())))
 
 
-def _merge_asked(con: sqlite3.Connection, s: "Syms", k: int, bodies: list) -> None:
+def _merge_asked(con: sqlite3.Connection, s: "Syms", k: int, h: str, bodies: list) -> None:
+    """The OLD form (each row a variant's first appearance over the life) adds to n_variants. The
+    NEW form (form 2, S4: the rows asked since the last save, each with n = times asked) adds n to
+    n_asked and 1 to n_saves_asked (the memory saves the class was asked in; not counts' n_saves,
+    the saves merged), and leaves n_variants frozen (the reviewer 08:26 item 3): a new-form row
+    cannot tell a new variant from a repeat without a per-variant table."""
     for body in bodies:
+        new = body.get("form") == 2
         tally: dict = {}
         for e in body["entries"]:
             if e["slot"] is None:
                 con.execute("INSERT OR IGNORE INTO ak_whole VALUES (?,?,?,?)",
                             (e["key"], e["role"], e["o"], e["x"]))
             key = (e["key"], e["role"], (e["slot"] or "").split(".", 1)[-1])
-            tally[key] = tally.get(key, 0) + e.get("n", 1)
-        con.executemany("INSERT INTO asked_tally VALUES (?,?,?,?,0,0,?,?) ON CONFLICT DO UPDATE "
-                        "SET n_variants = n_variants + excluded.n_variants, "
-                        "last_save = excluded.last_save",
+            tally[key] = tally.get(key, 0) + (e["n"] if new else 1)
+        if not new:
+            con.executemany("INSERT INTO asked_tally VALUES (?,?,?,?,0,0,?,?,0) ON CONFLICT "
+                            "DO UPDATE SET n_variants = n_variants + excluded.n_variants, "
+                            "last_save = excluded.last_save",
+                            sorted((s(a), s(b), s(c), n, k, k) for (a, b, c), n in tally.items()))
+            continue
+        con.execute("INSERT OR IGNORE INTO meta VALUES ('n_variants_frozen_from', ?)", (h,))
+        con.executemany("INSERT INTO asked_tally VALUES (?,?,?,0,?,0,?,?,1) ON CONFLICT DO UPDATE "
+                        "SET n_asked = n_asked + excluded.n_asked, "
+                        "n_saves_asked = n_saves_asked + 1, last_save = excluded.last_save",
                         sorted((s(a), s(b), s(c), n, k, k) for (a, b, c), n in tally.items()))
 
 
@@ -244,7 +261,7 @@ def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict) -> 
     t1 = time.perf_counter()
     con.execute("BEGIN")
     s = Syms(con)
-    _merge_asked(con, s, k, aks)
+    _merge_asked(con, s, k, h, aks)
     _merge_kinds(con, s, g)
     if idx is not None:
         _merge_held(con, s, h, idx)
@@ -263,6 +280,28 @@ def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict) -> 
     t3 = time.perf_counter()
     return {"save": h, "k": k, "s_read": round(t1 - t0, 3), "s_statements": round(t2 - t1, 3),
             "s_commit": round(t3 - t2, 3)}
+
+
+# THE WAL's SIZE BOUND (the reviewer 07:12 c, 07:19 3, 08:03 3b; ruled 10:08): a SIZE, never a time
+# or an SSD assumption. Measured by T5b (wal_probe.py c318adaa, lineage_cnt's 19 saves, no
+# checkpoint): point lookups and cluster reads FLAT from 101 MB to 555 MB of WAL, the -shm about
+# 2 KB per MB, private bytes unchanged, so neither B nor read cost binds there. The bound is the
+# EDGE OF WHAT WAS MEASURED; above it needs a new curve. Refuter: lookups rising with the WAL
+# inside it, or the -shm growing faster than linear. A save that leaves the WAL above it
+# checkpoints at that boundary (about 10.6 s on this HDD), reported as a play-path cost.
+WAL_BOUND_BYTES: int | None = 555_137_072
+
+
+def wal_bytes(folder: str | Path) -> int:
+    w = Path(folder) / f"{DB}-wal"
+    return w.stat().st_size if w.exists() else 0
+
+
+def checkpoint(con: sqlite3.Connection) -> dict:
+    """The WAL bound's checkpoint alone, at a boundary: no quick_check (that stays in the sleep)."""
+    t0 = time.perf_counter()
+    con.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    return {"s_checkpoint": round(time.perf_counter() - t0, 3)}
 
 
 def sleep(con: sqlite3.Connection) -> dict:

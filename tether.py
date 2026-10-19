@@ -2100,6 +2100,7 @@ class Agent:
         self._fold_last_commit: int | None = None
         self._fold_suppressed = 0
         self._ak_kept: set = set()     # the asked record's keys a fold cleared from the stores
+        self._ak_asked: Counter = Counter()   # S4, under TETHER_MEMORY_STORE: times each asked
         self._fold_n = 0               # the folds so far, the join key of the @body record
         self._body_rows: list = []     # @body: each fold's commit before / after and ms
         self._dslots: tuple = (None, frozenset())
@@ -3185,6 +3186,9 @@ class Agent:
             k_ = lineage._ak_source(self, kept=False)
             kept_n = len(k_)
             self._ak_kept.update(k_)
+            if lineage._MEMORY_STORE:
+                # S4: the counter outlives the clear, keyed as the record keys it now
+                self._ak_asked = lineage._ak_rows(self)
         for m in stores.values():
             m.clear()
         _BS_CARRIED.clear()
@@ -4367,6 +4371,8 @@ class Agent:
                 seen = _PAIRS_SEEN if self._atoms_token else self._pairs_seen
                 maps = _BOUND_SLOT_MAP if self._atoms_token else self._bound_slot_map
                 skey = (self._atoms_token, sig, key, role, o, x, slot)
+                if lineage._MEMORY_STORE:
+                    self._ak_asked[skey] += 1     # S4: times asked; only write_ak reads it
                 memo = _BOUND_MEMO if self._atoms_token else self._bound_cache
                 mkey = (self._atoms_token, sig, key, role, o, x)
                 if tally is not None:
@@ -4459,6 +4465,8 @@ class Agent:
             # fresh list returned, so no caller can alter the memo.
             memo = _BOUND_MEMO if self._atoms_token else self._bound_cache
             mkey = (self._atoms_token, sig, key, role, o, x)
+            if lineage._MEMORY_STORE:
+                self._ak_asked[(*mkey, None)] += 1     # S4: a whole ask, times asked
             got = memo.get(mkey)
             if got is not None:
                 _INDEX_N["bound_memo_hit"] += 1
