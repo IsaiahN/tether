@@ -2101,6 +2101,8 @@ class Agent:
         self._fold_suppressed = 0
         self._ak_kept: set = set()     # the asked record's keys a fold cleared from the stores
         self._ak_asked: Counter = Counter()   # S4, under TETHER_MEMORY_STORE: times each asked
+        self._kind_store: dict | None = None  # the store load's snapshots for the kind readers
+        self._kind_store_ver = 0              # +1 at every assignment; _pair_counts' cache key
         self._fold_n = 0               # the folds so far, the join key of the @body record
         self._body_rows: list = []     # @body: each fold's commit before / after and ms
         self._dslots: tuple = (None, frozenset())
@@ -3671,16 +3673,33 @@ class Agent:
                 for k, m in land[g_].items():
                     if k not in offered_any:
                         landed_only[k] += m
-            with_dk = {e[1:] for e in itertools.chain(self._kind_landed_dk, self._kind_known_dk)}
-            t2 = [(k, r, o, x) for (k, r, o, x) in self._kind_known
-                  if (x if r == "CAUSE" else o) == ko
-                  and (k, x if r == "CAUSE" else o) not in with_dk]
+            if self._kind_store is not None:
+                # the store load (the reviewer 10:45): the candidates are the life's known keys with
+                # no dk landing (no_dk, kept at merge); only this run's dk landings remain to filter
+                cand = self._kind_store["t2"]
+                run_dk = {e[1:] for e in self._kind_landed_dk}
+                t2 = [(k, r, o, x) for (k, r, o, x) in cand
+                      if (x if r == "CAUSE" else o) == ko
+                      and (k, x if r == "CAUSE" else o) not in run_dk]
+            else:
+                with_dk = {e[1:] for e in itertools.chain(self._kind_landed_dk,
+                                                          self._kind_known_dk)}
+                t2 = [(k, r, o, x) for (k, r, o, x) in self._kind_known
+                      if (x if r == "CAUSE" else o) == ko
+                      and (k, x if r == "CAUSE" else o) not in with_dk]
             if _CONSOLIDATE:
                 # n_landed (the lineage's summed counts) first, then the latest landing
                 n_, l_ = Counter(), {}
                 for e_ in t2:
-                    n_[e_[0]] += self._kind_known_n.get(e_, 1)
-                    l_[e_[0]] = max(l_.get(e_[0], 0), self._kind_last.get(e_, (0, 0, 0, 0))[3])
+                    if self._kind_store is not None:
+                        kn, lv = self._kind_store["t2"][e_]
+                        last = (self._kind_last[e_][3] if e_ in self._kind_last
+                                else lv[3] if lv[0] is not None else 0)
+                    else:
+                        kn = self._kind_known_n.get(e_, 1)
+                        last = self._kind_last.get(e_, (0, 0, 0, 0))[3]
+                    n_[e_[0]] += kn
+                    l_[e_[0]] = max(l_.get(e_[0], 0), last)
                 put("T2", sorted(n_.items(), key=lambda kv: (-kv[1], -l_[kv[0]], kv[0])))
             else:
                 put("T2", ranked(Counter(k for (k, r, o, x) in t2)))
@@ -4292,10 +4311,22 @@ class Agent:
         """CONSOLIDATION, 7m's order: (kind_o, kind_x) -> (landings, latest landing's seq) over
         every 7l key, this run's and the lineage's (a set-form key counts 1); recomputed only when
         a landing or a load has moved it."""
-        sig = (self._kind_seq, len(self._kind_known), len(self._kind_landed))
+        sig = (self._kind_seq, len(self._kind_known), len(self._kind_landed), self._kind_store_ver)
         if self._pair_cache[0] == sig:
             return self._pair_cache[1]
         out: dict = {}
+        if self._kind_store is not None:
+            # the store load (the reviewer 10:13, 10:45): the life's pairs as read at load, then
+            # this run's landings -- a known-with-no-count key counted 1 there counts landed_n here
+            out = dict(self._kind_store["pairs"])
+            nocount = self._kind_store["nocount"]
+            for e_ in self._kind_landed:
+                n = self._kind_landed_n.get(e_, 0) - (1 if e_ in nocount else 0)
+                p = (e_[2], e_[3])
+                v = out.get(p, (0, 0))
+                out[p] = (v[0] + n, max(v[1], self._kind_last.get(e_, (0, 0, 0, 0))[3]))
+            self._pair_cache = (sig, out)
+            return out
         for e_ in self._kind_known | self._kind_landed:
             n = self._kind_known_n.get(e_, 0 if e_ in self._kind_landed_n else 1) + \
                 self._kind_landed_n.get(e_, 0)

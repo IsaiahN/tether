@@ -607,8 +607,15 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         def key(*xs):
             return tuple(tuple(json.loads(sym[x])) if i in xs[0] else sym[x]
                          for i, x in enumerate(xs[1:]))
-        kind = con.execute("SELECT entry, role, kind_o, kind_x, in_landed, n, has_n, l_game, "
-                           "l_level, l_cycle, l_seq FROM kind").fetchall()
+        # THE KIND TRIO IS NOT READ (the reviewer 08:17 item 2, 10:45): the pair table, the
+        # known-with-no-count keys and the T2 candidates (two partial indexes), and two counters
+        pairs = con.execute("SELECT kind_o, kind_x, n, last_seq FROM pair").fetchall()
+        nocount = con.execute("SELECT entry, role, kind_o, kind_x FROM kind "
+                              "WHERE has_n = 0 AND in_landed = 1").fetchall()
+        t2 = con.execute("SELECT entry, role, kind_o, kind_x, n, has_n, l_game, l_level, "
+                         "l_cycle, l_seq FROM kind WHERE no_dk = 1 AND in_landed = 1").fetchall()
+        meta = dict(con.execute("SELECT k, v FROM meta WHERE k IN "
+                                "('kinds_known', 'kind_seq_max')"))
         kdk = con.execute("SELECT dk, entry, tgt, n, l_game, l_level, l_cycle, l_seq "
                           "FROM kind_dk").fetchall()
         koff = con.execute("SELECT dk, entry, ko, n FROM kind_off").fetchall()
@@ -618,8 +625,13 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         con.close()
     return {"tip": tip and tip[0], "fold": f, "counts": c, "merged": merged, "sig": sig,
             "atoms": atoms, "folder": str(p.resolve()),
-            "kind": [(key((2, 3), e, r, ko, kx), il, n, hn, lv)
-                     for e, r, ko, kx, il, n, hn, *lv in kind],
+            "pairs": {(tuple(json.loads(sym[o])), tuple(json.loads(sym[x]))): (n, max(last, 0))
+                      for o, x, n, last in pairs},
+            "nocount": {key((2, 3), e, r, ko, kx) for e, r, ko, kx in nocount},
+            "t2": {key((2, 3), e, r, ko, kx): (n if hn else 1, tuple(lv))
+                   for e, r, ko, kx, n, hn, *lv in t2},
+            "kinds_known": int(meta.get("kinds_known", 0)),
+            "kind_seq_max": int(meta.get("kind_seq_max", 0)),
             "kdk": [(key((0, 2), dk, e, t), n, lv) for dk, e, t, n, *lv in kdk],
             "koff": [(key((0, 2), dk, e, ko), n) for dk, e, ko, n in koff],
             "held": [(sym[k], sym[r], g, json.loads(it)) for k, r, g, it in held],
@@ -647,19 +659,17 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         ag.gamma.carry_used(dict(c.get("unit_used", {})))
         rep["unit_used"] = len(c.get("unit_used", {}))
     if tether._7L_KIND and hasattr(ag, "_kind_known"):
-        ag._kind_known = {k for k, il, _n, _hn, _lv in v["kind"] if il}
-        ag._kind_pairs = ag._kind_pairs | {(ko, kx) for _k, _r, ko, kx in ag._kind_known}
-        rep["kinds_known"] = len(ag._kind_known)
+        # the trio stays EMPTY: what its two readers need is held instead (tether _pair_counts,
+        # _tiers' T2), as load-time snapshots, so a mid-game merge does not move them
+        ag._kind_store = {"pairs": v["pairs"], "nocount": v["nocount"], "t2": v["t2"]}
+        ag._kind_store_ver += 1
+        ag._kind_pairs = ag._kind_pairs | set(v["pairs"])
+        rep["kinds_known"] = v["kinds_known"]
         if tether._CONSOLIDATE:
-            for k, _il, n, hn, lv in v["kind"]:
-                if hn:
-                    ag._kind_known_n[k] += n
-                if lv[0] is not None:
-                    ag._kind_last[k] = tuple(lv)
             for k, _n, lv in v["kdk"]:
                 if lv[0] is not None:
                     ag._kdk_last[k] = tuple(lv)
-            ag._kind_seq = max([x[3] for x in ag._kind_last.values()] + [ag._kind_seq])
+            ag._kind_seq = max(v["kind_seq_max"], ag._kind_seq)
             rep["kinds_set_form"] = c.get("kinds_set_form", 0)
     if tether._DELTA_KIND and hasattr(ag, "_kind_known_dk"):
         for k, n, _lv in v["kdk"]:

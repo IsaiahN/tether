@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 DB = "memory.db"
-SCHEMA = 2
+SCHEMA = 3
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT);
 CREATE TABLE IF NOT EXISTS sym(id INTEGER PRIMARY KEY, s TEXT UNIQUE);
@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS ak_whole(entry TEXT, role TEXT, o TEXT, x TEXT,
     PRIMARY KEY(entry, role, o, x)) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS kind(entry INTEGER, role INTEGER, kind_o INTEGER, kind_x INTEGER,
     in_landed INTEGER, n INTEGER, has_n INTEGER, l_game TEXT, l_level INTEGER,
-    l_cycle INTEGER, l_seq INTEGER, PRIMARY KEY(entry, role, kind_o, kind_x)) WITHOUT ROWID;
+    l_cycle INTEGER, l_seq INTEGER, no_dk INTEGER,
+    PRIMARY KEY(entry, role, kind_o, kind_x)) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS pair(kind_o INTEGER, kind_x INTEGER, n INTEGER, last_seq INTEGER,
     PRIMARY KEY(kind_o, kind_x)) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS kind_dk(dk INTEGER, entry INTEGER, tgt INTEGER, n INTEGER,
@@ -44,6 +45,9 @@ CREATE TABLE IF NOT EXISTS sig(id INTEGER PRIMARY KEY, arm TEXT, atoms TEXT, nam
     UNIQUE(arm, atoms, names));
 CREATE TABLE IF NOT EXISTS held(key INTEGER, role INTEGER, gen TEXT, sig INTEGER, items TEXT,
     PRIMARY KEY(key, role)) WITHOUT ROWID;
+CREATE INDEX IF NOT EXISTS kind_dk_et ON kind_dk(entry, tgt);
+CREATE INDEX IF NOT EXISTS kind_nocount ON kind(entry) WHERE has_n = 0 AND in_landed = 1;
+CREATE INDEX IF NOT EXISTS kind_t2 ON kind(entry) WHERE no_dk = 1 AND in_landed = 1;
 """
 UPSERT_LAST = ("ON CONFLICT DO UPDATE SET l_game=excluded.l_game, l_level=excluded.l_level, "
                "l_cycle=excluded.l_cycle, l_seq=excluded.l_seq WHERE excluded.l_seq >= {t}.l_seq")
@@ -183,6 +187,19 @@ _PAIR_CONTRIB = ("SELECT k.kind_o, k.kind_x, SUM(CASE WHEN k.has_n THEN k.n ELSE
                  "MAX(k.l_seq) FROM temp.touched t JOIN kind k ON k.entry=t.entry AND "
                  "k.role=t.role AND k.kind_o=t.kind_o AND k.kind_x=t.kind_x WHERE k.in_landed=1 "
                  "GROUP BY k.kind_o, k.kind_x")
+_KNOWN_TOUCHED = ("SELECT COUNT(*) FROM temp.touched t JOIN kind k ON k.entry=t.entry AND "
+                  "k.role=t.role AND k.kind_o=t.kind_o AND k.kind_x=t.kind_x WHERE k.in_landed=1")
+
+
+def _meta_add(con: sqlite3.Connection, k: str, d: int) -> None:
+    v = con.execute("SELECT v FROM meta WHERE k=?", (k,)).fetchone()
+    con.execute("INSERT OR REPLACE INTO meta VALUES (?, ?)", (k, str(int(v[0] if v else 0) + d)))
+
+
+def _meta_max(con: sqlite3.Connection, k: str, x: int) -> None:
+    v = con.execute("SELECT v FROM meta WHERE k=?", (k,)).fetchone()
+    con.execute("INSERT OR REPLACE INTO meta VALUES (?, ?)",
+                (k, str(max(int(v[0]) if v else x, x))))
 
 
 def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
@@ -197,22 +214,26 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
                     [*kl, *(kkey(e) for e in g.get("kinds_landed_n", ())),
                      *(kkey(e) for e in g.get("kinds_last", ()))])
     before = {(o, x): n for o, x, n, _l in con.execute(_PAIR_CONTRIB)}
-    con.executemany("INSERT INTO kind VALUES (?,?,?,?,1,0,0,NULL,NULL,NULL,-1) "
+    known0 = con.execute(_KNOWN_TOUCHED).fetchone()[0]
+    con.executemany("INSERT INTO kind VALUES (?,?,?,?,1,0,0,NULL,NULL,NULL,-1,0) "
                     "ON CONFLICT DO UPDATE SET in_landed=1", kl)
-    con.executemany("INSERT INTO kind VALUES (?,?,?,?,0,?,1,NULL,NULL,NULL,-1) "
+    con.executemany("INSERT INTO kind VALUES (?,?,?,?,0,?,1,NULL,NULL,NULL,-1,0) "
                     "ON CONFLICT DO UPDATE SET n = n + excluded.n, has_n = 1",
                     sorted((*kkey(e), e[4]) for e in g.get("kinds_landed_n", ())))
     if "kinds_landed_n" not in g:     # a set-form generation counts each key once (load, 545)
         con.executemany("UPDATE kind SET n = n + 1, has_n = 1 "
                         "WHERE entry=? AND role=? AND kind_o=? AND kind_x=?", kl)
-    con.executemany("INSERT INTO kind VALUES (?,?,?,?,0,0,0,?,?,?,?) "
+    con.executemany("INSERT INTO kind VALUES (?,?,?,?,0,0,0,?,?,?,?,0) "
                     + UPSERT_LAST.format(t="kind"),
                     [(*kkey(e), *e[4:8]) for e in g.get("kinds_last", ())])
     after = con.execute(_PAIR_CONTRIB).fetchall()
     con.executemany("INSERT INTO pair VALUES (?,?,?,?) ON CONFLICT DO UPDATE SET "
                     "n = n + excluded.n, last_seq = max(last_seq, excluded.last_seq)",
                     sorted((o, x, n - before.get((o, x), 0), last) for o, x, n, last in after))
-    con.execute("DELETE FROM temp.touched")
+    _meta_add(con, "kinds_known", con.execute(_KNOWN_TOUCHED).fetchone()[0] - known0)
+    seqs = [e[7] for e in g.get("kinds_last", ())]
+    if seqs:
+        _meta_max(con, "kind_seq_max", max(seqs))
     con.executemany("INSERT INTO kind_dk VALUES (?,?,?,?,NULL,NULL,NULL,-1) "
                     "ON CONFLICT DO UPDATE SET n = n + excluded.n",
                     sorted((s(_j(e[0])), s(e[1]), s(_j(e[2])), e[3])
@@ -221,6 +242,19 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
                     + UPSERT_LAST.format(t="kind_dk"),
                     [(s(_j(e[0])), s(e[1]), s(_j(e[2])), *e[3:7])
                      for e in g.get("kinds_dk_last", ())])
+    # T2's CANDIDATE FLAG (the reviewer 10:45 item 2): no_dk = 1 iff no kind_dk row with n > 0
+    # exists for (entry, target), target = kind_x for a CAUSE, kind_o otherwise -- the old T2's
+    # rule (tether.py _tiers) over the old load's kind_known_dk (summed n > 0 only)
+    cause = s("CAUSE")
+    con.execute("UPDATE kind SET no_dk = NOT EXISTS (SELECT 1 FROM kind_dk d WHERE "
+                "d.entry = kind.entry AND d.n > 0 AND d.tgt = CASE WHEN kind.role = ? "
+                "THEN kind.kind_x ELSE kind.kind_o END) WHERE (entry, role, kind_o, kind_x) "
+                "IN (SELECT entry, role, kind_o, kind_x FROM temp.touched)", (cause,))
+    con.executemany("UPDATE kind SET no_dk = 0 WHERE entry = ? AND no_dk = 1 AND "
+                    "((role = ? AND kind_x = ?) OR (role <> ? AND kind_o = ?))",
+                    sorted({(s(e[1]), cause, s(_j(e[2])), cause, s(_j(e[2])))
+                            for e in g.get("kinds_landed_dk", ()) if e[3] > 0}))
+    con.execute("DELETE FROM temp.touched")
     con.executemany("INSERT INTO kind_off VALUES (?,?,?,?) "
                     "ON CONFLICT DO UPDATE SET n = n + excluded.n",
                     sorted((s(_j(e[0])), s(e[1]), s(_j(e[2])), e[3])
