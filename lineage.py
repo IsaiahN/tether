@@ -324,6 +324,9 @@ def _store_base(p: Path, parent: str | None) -> tuple[Any, dict] | str:
     except ls.Refused as e:
         con.close()
         return f"catch_up refused: {e}"[:300]
+    except BaseException:
+        con.close()
+        raise
     # write() reads only the LENGTH of the stored vindication (schema 4; the reviewer 11:27)
     return con, {"terms": list(f.get("rows", {}).values()),
                  "n_vindication": int(nv[0] if nv else 0),
@@ -341,12 +344,22 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
     Under TETHER_MEMORY_STORE the parent's fold is a store lookup, and the save is merged into the
     store after its archive files are written and synced; `sleep` (a game's end, never a boundary
     inside a game) also runs the store's checkpoint."""
+    held: list = []
+    try:
+        return _write(d, ag, game, sleep, held)
+    finally:    # the store's connection is closed on every path, an error's included
+        for con in held:
+            con.close()
+
+
+def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     p = Path(d)
     p.mkdir(parents=True, exist_ok=True)
     parent = getattr(ag, "lineage_parent", None)
     sb = _store_base(p, parent) if _MEMORY_STORE else None
     if isinstance(sb, tuple):
         store_con, base = sb
+        held.append(store_con)
     else:
         store_con = None
         if sb is not None:
@@ -620,14 +633,46 @@ def _heal(p: Path, ok: bool, why: str) -> tuple[bool, str, dict]:
             ok, why = False, f"quick_check {qc}"[:200]
     if not ok and why != "no store":
         stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
-        moved = []
+        moved, tries = [], {}
         for n in (ls.DB, f"{ls.DB}-wal", f"{ls.DB}-shm"):
-            if (p / n).exists():
-                (p / n).rename(p / f"{n}.dead-{stamp}")
+            if not (p / n).exists():
+                continue
+            err = _rename_retry(p / n, p / f"{n}.dead-{stamp}", tries, n)
+            if err is None:
                 moved.append(n)
-        rep["set_aside"] = {"why": why, "files": moved, "suffix": f".dead-{stamp}"}
+                continue
+            # another process holds it past the schedule: put back what this call moved and refuse,
+            # so _store_view raises Refused (the fallback before H) and the load never crashes
+            for m in moved:
+                (p / f"{m}.dead-{stamp}").rename(p / m)
+            rep["set_aside_failed"] = {"why": why, "file": n, "error": err[:200], "attempts": tries,
+                                       "restored": moved}
+            return False, f"set-aside failed: {n} {err}"[:200], rep
+        rep["set_aside"] = {"why": why, "files": moved, "suffix": f".dead-{stamp}",
+                            "attempts": tries}
         ok, why = ls.header_ok(p)
     return ok, why, rep
+
+
+# H's set-aside rename retries on a fixed schedule (the reviewer 2026-10-19 17:58 3b): an outside
+# holder of the file (an antivirus scan, an indexer) is usually brief. 6 attempts, 2.0 s of waits
+_RENAME_WAITS = (0.1, 0.2, 0.3, 0.6, 0.8)
+
+
+def _rename_retry(src: Path, dst: Path, tries: dict, n: str) -> str | None:
+    """None once src is renamed to dst, else the last error after the schedule. tries[n] counts the
+    attempts made."""
+    err = None
+    for i, wait in enumerate((0.0, *_RENAME_WAITS)):
+        if wait:
+            time.sleep(wait)
+        tries[n] = i + 1
+        try:
+            src.rename(dst)
+            return None
+        except OSError as e:
+            err = f"{type(e).__name__}: {e}"
+    return err
 
 
 def _store_view(d: str | Path, ag: Any) -> dict:

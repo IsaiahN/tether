@@ -69,18 +69,21 @@ def path(folder: str | Path) -> Path:
 def open_store(folder: str | Path, cache_kib: int = 262144,
                mmap_bytes: int = 1 << 30) -> sqlite3.Connection:
     con = sqlite3.connect(path(folder), isolation_level=None)
-    con.execute("PRAGMA journal_mode=WAL")
-    con.execute("PRAGMA synchronous=NORMAL")
-    con.execute("PRAGMA wal_autocheckpoint=0")    # never a checkpoint inside a merge's commit
-    con.execute(f"PRAGMA cache_size=-{int(cache_kib)}")
-    con.execute(f"PRAGMA mmap_size={int(mmap_bytes)}")
-    con.executescript(SCHEMA_SQL)
-    got = con.execute("SELECT v FROM meta WHERE k='schema'").fetchone()
-    if got is None:
-        con.execute("INSERT INTO meta VALUES ('schema', ?)", (str(SCHEMA),))
-    elif got[0] != str(SCHEMA):
+    try:        # on any failure the connection is closed before the error leaves (no handle held)
+        con.execute("PRAGMA journal_mode=WAL")
+        con.execute("PRAGMA synchronous=NORMAL")
+        con.execute("PRAGMA wal_autocheckpoint=0")    # never a checkpoint inside a merge's commit
+        con.execute(f"PRAGMA cache_size=-{int(cache_kib)}")
+        con.execute(f"PRAGMA mmap_size={int(mmap_bytes)}")
+        con.executescript(SCHEMA_SQL)
+        got = con.execute("SELECT v FROM meta WHERE k='schema'").fetchone()
+        if got is None:
+            con.execute("INSERT INTO meta VALUES ('schema', ?)", (str(SCHEMA),))
+        elif got[0] != str(SCHEMA):
+            raise Refused(f"store schema {got[0]}, this code writes {SCHEMA}")
+    except BaseException:
         con.close()
-        raise Refused(f"store schema {got[0]}, this code writes {SCHEMA}")
+        raise
     return con
 
 
@@ -93,13 +96,19 @@ def header_ok(folder: str | Path) -> tuple[bool, str]:
         return False, "no store"
     try:
         con = sqlite3.connect(f"file:{p.as_posix()}?mode=ro", uri=True)
+    except sqlite3.DatabaseError as e:
+        return False, f"unreadable: {e}"
+    # closed on EVERY path: a handle left open on "unreadable" blocked H's set-aside rename on
+    # Windows and crashed the load (h_chain f2, 2026-10-19)
+    try:
         pc = con.execute("PRAGMA page_count").fetchone()[0]
         ps = con.execute("PRAGMA page_size").fetchone()[0]
         schema = con.execute("SELECT v FROM meta WHERE k='schema'").fetchone()
         last = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
-        con.close()
     except sqlite3.DatabaseError as e:
         return False, f"unreadable: {e}"
+    finally:
+        con.close()
     if os.path.getsize(p) < pc * ps:
         return False, f"size {os.path.getsize(p)} < page_count x page_size {pc * ps}"
     if schema is None or schema[0] != str(SCHEMA):
