@@ -968,6 +968,14 @@ ARMS: dict[str, str] = {
                          "only writer) -- and _units_for under the units, the slot's refusal key "
                          "and the grow-only refusal scope's lengths; exact by construction. "
                          "OFF: rebuilt each call (ffbdf14). default ON",
+    "TETHER_UNITS_VER": "S6 (iv) (the reviewer 2026-10-19 14:56, 15:05): R1's key scanned all of "
+                        "standing on every units_held call; now one count is bumped by every "
+                        "mutation of the library and standing dicts and by a Standing's settled_at "
+                        "flipping None <-> a tick (watched at the containers, so no writer can be "
+                        "missed), and the scan runs only after such a write, the held tuple kept "
+                        "when the key reads the same; a rebound plain dict falls back to the scan. "
+                        "Identical decisions by construction. OFF: the scan every call (753339c). "
+                        "default ON",
     "TETHER_STEP_RANK": "C1b (the reviewer 2026-10-17 17:07, 17:29, 17:30): the step's lookups "
                         "are spent in class order -- owed and changed, changed, our own act's, "
                         "owed and still, the rest -- stable within a class; route hands the "

@@ -363,6 +363,14 @@ _SETTLED_CORE = armflag.arm("TETHER_SETTLED_CORE", default=True)
 # Held under a key of everything it reads: the atoms, the settled set (scanned from standing, so no
 # writer can be missed) and the rank's version. OFF: rebuilt each call (ffbdf14)
 _UNITS_MEMO = armflag.arm("TETHER_UNITS_MEMO", default=True)
+# S6 (iv), THE UNITS VERSION (the reviewer 2026-10-19 14:56 (iv), 15:05): R1's key scanned all of
+# standing on every units_held call (55.3% of P's sc25 firing step, inclusive). Now every write that
+# can move the settled set bumps one count -- any mutation of the library or standing dict, and a
+# Standing's settled_at flipping between None and a tick -- watched at the containers, never at the
+# writer sites, so no writer can be missed; the scan runs only after such a write, and the held
+# tuple is kept when it reads the same key. OFF: the scan on every call (753339c)
+_UNITS_VER = armflag.arm("TETHER_UNITS_VER", default=True)
+_WRITES = [0]   # the settled set's writes, every Gamma's (shared: it can only over-invalidate)
 # L1, THE NORMALIZED CODE (the reviewer 2026-10-17 18:13 (a)): a term's stating cost is its length
 # under a real code over {units, END}, p(s) = (w(s) + 1) / Z, not the uniform (k + 1) log2(A + 1).
 # w = Rank.used + Standing.paid of the library terms a unit states; END's weight starts at
@@ -657,9 +665,55 @@ class Term:
         return value
 
 
+class _Watched(dict):
+    """(iv): the library's and standing's dict; every mutation counts in _WRITES."""
+
+    __slots__ = ()
+
+    def __setitem__(self, k: Any, v: Any) -> None:
+        _WRITES[0] += 1
+        dict.__setitem__(self, k, v)
+
+    def __delitem__(self, k: Any) -> None:
+        _WRITES[0] += 1
+        dict.__delitem__(self, k)
+
+    def setdefault(self, k: Any, d: Any = None) -> Any:
+        if k not in self:
+            _WRITES[0] += 1
+        return dict.setdefault(self, k, d)
+
+    def pop(self, *a: Any) -> Any:
+        _WRITES[0] += 1
+        return dict.pop(self, *a)
+
+    def popitem(self) -> tuple:
+        _WRITES[0] += 1
+        return dict.popitem(self)
+
+    def update(self, *a: Any, **k: Any) -> None:
+        _WRITES[0] += 1
+        dict.update(self, *a, **k)
+
+    def clear(self) -> None:
+        _WRITES[0] += 1
+        dict.clear(self)
+
+    def __ior__(self, o: Any) -> _Watched:
+        _WRITES[0] += 1
+        return dict.__ior__(self, o)
+
+
 @dataclass
 class Standing:
     """A term's record against the ground. Weighted, clocked, and never a hard ban."""
+
+    if _UNITS_VER:
+        def __setattr__(self, name: str, value: Any) -> None:
+            if name == "settled_at" and ((value is None)
+                                         != (getattr(self, "settled_at", None) is None)):
+                _WRITES[0] += 1     # (iv): settled <-> not, the one flip the settled set reads
+            object.__setattr__(self, name, value)
 
     settled_at: int | None = None
     rejections: float = 0.0
@@ -910,7 +964,7 @@ class Gamma:
             raise ValueError("Gamma needs at least one atom")
         self.atoms = list(atoms)
         self._by_name = {a.name: a for a in atoms}
-        self.library: dict[str, Term] = {}
+        self.library: dict[str, Term] = _Watched() if _UNITS_VER else {}
         # PROVENANCE, one field. `{game}_{INITIALS}_{kind}_{suffix}` -- the game is where the
         # term was MINTED, and it does not change when the term is later pulled elsewhere.
         self.game = str(game)
@@ -925,7 +979,7 @@ class Gamma:
         # handle of every instance absorbed into it.
         self.merged: dict[str, list[dict]] = {}
         self.stamps: dict[str, dict[str, Any]] = {}
-        self.standing: dict[str, Standing] = {}
+        self.standing: dict[str, Standing] = _Watched() if _UNITS_VER else {}
         # (b'-g) the settle/refute EVIDENCE as the record, never read back as standing. Kept
         # only when the lineage carry sets keep_evidence (lineage.py); empty otherwise.
         self.keep_evidence = False
@@ -957,7 +1011,7 @@ class Gamma:
         # registry order this had, so installing a rank is an observable change and not
         # installing one changes nothing.
         self.unit_rank = None
-        self._units_memo: tuple | None = None   # R1: (key, the units as a tuple)
+        self._units_memo: tuple | None = None   # R1: (key, the units as a tuple, (iv)'s count key)
         self._code_memo: tuple | None = None    # L1: (the units tuple, _paid_ver, the Code)
         self._paid_ver = 0                      # L1: bumped by settle and the two loads
         self.carried_used: dict[str, int] = {}   # L1b: unit_key -> the lineage's Rank.used
@@ -1728,10 +1782,20 @@ class Gamma:
         """R1: units() as a held tuple, rebuilt only when its key moves (TETHER_UNITS_MEMO)."""
         if not _UNITS_MEMO:
             return tuple(self._units_built())
+        m = self._units_memo
+        cheap = None
+        # (iv): only while both dicts are the watched ones (a rebound plain dict: the scan)
+        if _UNITS_VER and type(self.library) is _Watched and type(self.standing) is _Watched:
+            rk = getattr(self.unit_rank, "__self__", None)
+            cheap = (_WRITES[0], len(self.atoms), self.unit_rank is not None,
+                     getattr(rk, "ver", None))
+            if m is not None and m[2] == cheap:
+                return m[1]
         key = self._units_key()
-        if self._units_memo is None or self._units_memo[0] != key:
-            self._units_memo = (key, tuple(self._units_built()))
-        return self._units_memo[1]
+        if m is None or m[0] != key:
+            m = (key, tuple(self._units_built()), cheap)
+        self._units_memo = (key, m[1], cheap)
+        return m[1]
 
     def units(self) -> list[Term]:
         """What the search composes FROM (R1: from units_held, a fresh list each call)."""
