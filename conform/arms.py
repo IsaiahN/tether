@@ -904,6 +904,10 @@ ARMS: dict[str, str] = {
                            "moved and wants nothing is minted for the objective only; the want "
                            "is written, the slot never bound, bet or charged (E0 stands for "
                            "pricing). OFF: no such want (433e689). default ON",
+    "TETHER_ALPHA_LAST": "ALPHA-LAST (the reviewer 2026-10-18 19:47): a slot that left the slot "
+                         "set keeps the alphabet it last had, so sweep can price a departed parked "
+                         "slot; a present slot reads as before. OFF: the departed read raises "
+                         "KeyError (38b2daa). default ON",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",

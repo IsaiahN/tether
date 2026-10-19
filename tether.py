@@ -763,6 +763,11 @@ _DERIVED_WANT = armflag.arm("TETHER_DERIVED_WANT", default=True)
 # ("dcol_o1"), which no reading is; G1 asks on the base when the base is a known reading. OFF: G1
 # asks on the attribute as named (1e8ccbe)
 _G1_SUFFIX = armflag.arm("TETHER_G1_SUFFIX", default=True)
+# ALPHA-LAST (the reviewer 2026-10-18 19:47): a slot that left the slot set keeps the alphabet it
+# last had, as bet_alphabet prices a slot that vanishes in a step. sweep prices parked records of
+# departed slots by design, and the per-step alphabet held only current slots: KeyError (E4a g50t,
+# ka59). OFF: a plain dict, the departed read raises (38b2daa)
+_ALPHA_LAST = armflag.arm("TETHER_ALPHA_LAST", default=True)
 # R4, MEMO ADMISSION (the reviewer 2026-10-17 17:35 C, amended 23:52 (A)): the AGENT-level instance
 # memos -- keyed by this board's slot and object names -- store an answer only when its key is asked
 # a SECOND time (the first ask computes, uses and records the key; promote-on-reuse, S1c, is the
@@ -824,6 +829,16 @@ _BM_CARRIED: set = set()
 # mint changes what a later mint sees and a lookup changes no other lookup. OFF: b7c7a0b's order
 _STEP_RANK = armflag.arm("TETHER_STEP_RANK", default=True)
 RANK_CLASSES = ("owed_changed", "changed", "own_act", "owed_still", "rest")
+
+
+class _Alphabet(dict):
+    """The per-slot alphabet, whose missing key is the size that slot last had (ALPHA-LAST). `in`,
+    get(), iteration and items() never call __missing__, so they see the current slots only; a
+    slot never seen still raises."""
+    __slots__ = ("last",)
+
+    def __missing__(self, slot: str) -> int:
+        return self.last[slot]
 
 
 class _CapReached(Exception):
@@ -2165,7 +2180,7 @@ class Agent:
         self._recovered_pending: list = []
         self._contact_pick = None
         self._s0_target: str | None = None
-        self.alphabet = self._alphabets(env)
+        self.alphabet = self._with_last(self._alphabets(env))
         self.slot_types = self._slot_types(env)
         self._kind_cache = {}   # 7l: kinds read fresh
         self.cfg = cfg if cfg is not None else Config()
@@ -2888,7 +2903,7 @@ class Agent:
         self.env, self.level = env, level
         self.slots = env.slots()
         self.actions = tuple(env.actions())       # a new level may advertise differently
-        self.alphabet = self._alphabets(env)      # a new level may value slots differently
+        self.alphabet = self._with_last(self._alphabets(env))   # a new level may re-value slots
         self.slot_types = self._slot_types(env)   # and may type them differently
         self._kind_cache = {}   # 7l: kinds read fresh
         if _D5:
@@ -6727,7 +6742,7 @@ class Agent:
         # from it (the reviewer 2026-10-12 16:12). Every slot in `betting` is a key of it by
         # construction: `betting` is drawn from `before`, read in the frame this was built in.
         bet_alphabet = self.alphabet
-        self.alphabet = self._alphabets(self.env)
+        self.alphabet = self._with_last(self._alphabets(self.env))
         # JOB B's HALF THAT RUNS TODAY: this action does not have ONE fixed effect.
         # **I WROTE HERE THAT IT CANNOT FIRE ON GRIDWORLD AND THE RUN DISPROVED IT** -- four
         # times in eight steps, because `down` is sometimes BLOCKED. The rule is invariant and
@@ -7839,6 +7854,16 @@ class Agent:
         a name."""
         f = getattr(env, "slot_owner", None)
         return {str(k): str(v) for k, v in f().items()} if f is not None else {}
+
+    def _with_last(self, a: dict) -> dict:
+        """ALPHA-LAST: the refreshed alphabet, remembering each slot's last size. OFF: `a` as is."""
+        if not _ALPHA_LAST:
+            return a
+        last = self.__dict__.setdefault("_alpha_last", {})
+        last.update(a)
+        out = _Alphabet(a)
+        out.last = last
+        return out
 
     @staticmethod
     def _alphabets(env) -> dict[str, int]:
@@ -11167,7 +11192,7 @@ class Agent:
                         note="an object arrived or left; a new slot has no history "
                              "and owes nothing yet")
         self.slots = list(now)
-        self.alphabet = self._alphabets(self.env)
+        self.alphabet = self._with_last(self._alphabets(self.env))
         self.slot_types = self._slot_types(self.env)
         self._kind_cache = {}   # 7l: kinds read fresh
 
@@ -13324,7 +13349,7 @@ class Agent:
         # `2**(h*w)` over its own bounding box, which moves when the object resizes -- and a
         # resize changes slot VALUES, not the slot SET, so the three existing refresh sites
         # never fire. The declaration is still the domain's; only when it is read has moved.
-        self.alphabet = self._alphabets(self.env)
+        self.alphabet = self._with_last(self._alphabets(self.env))
         before = self.env.observe()
         if _RUIN_RECORD:
             self._ruin_step, self._ending_counted = None, None
