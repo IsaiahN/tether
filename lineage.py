@@ -600,7 +600,7 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         merged = ls.catch_up(con, p)
         sym = dict(con.execute("SELECT id, s FROM sym"))
         tip = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
-        if tip is None:     # a first-ever load: no save merged, no blob yet (_load_from_store's root)
+        if tip is None:     # a first-ever load: no save merged, no blob yet (the root view)
             return {"tip": None, "fold": None, "counts": None, "merged": merged}
         f = json.loads(con.execute("SELECT v FROM blob WHERE k='fold'").fetchone()[0])
         c = json.loads(con.execute("SELECT v FROM blob WHERE k='counts'").fetchone()[0])
