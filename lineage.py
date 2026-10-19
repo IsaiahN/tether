@@ -46,8 +46,9 @@ _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _RECORD = armflag.arm("TETHER_CARRY_RECORD", default=True)
 # ONE PASS (the reviewer 2026-10-19 06:09 d, 06:13): load reads and folds the memory saves once;
-# head()'s pass is the same chain and the same fold, read twice. OFF until its row compare passes.
-_ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=False)
+# head()'s pass is the same chain and the same fold, read twice. Default ON (the reviewer 06:35: its
+# compare passed, a byte-identical save); the switch is kept as a stop-gap until the store loads.
+_ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=True)
 PREFIX = "gen_"
 
 
