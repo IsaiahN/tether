@@ -22,7 +22,7 @@ assert MODE in ("on", "off") and VAR in ("normal", "mf_nofilter", "boundary", "m
 if MODE == "on":
     os.environ["TETHER_MEMORY_STORE"] = "1"
 else:
-    os.environ.pop("TETHER_MEMORY_STORE", None)
+    os.environ["TETHER_MEMORY_STORE"] = "0"   # explicit: the default is ON (17:03)
 sys.path = [p for p in sys.path if "scratchpad" not in p]
 sys.path.insert(0, REPO)
 os.chdir(REPO)

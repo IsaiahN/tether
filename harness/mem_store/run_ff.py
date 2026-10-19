@@ -21,8 +21,7 @@ assert os.path.isdir(lin) and len([f for f in os.listdir(lin) if f.endswith(".js
 ENV = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_") and k != "PYTHONMALLOC"}
 ENV["PYTHONDONTWRITEBYTECODE"] = "1"
 ENV["PYTHONHASHSEED"] = "0"
-if ON:
-    ENV["TETHER_MEMORY_STORE"] = "1"
+ENV["TETHER_MEMORY_STORE"] = "1" if ON else "0"   # both ways explicit: the default is ON (17:03)
 os.makedirs(OUT, exist_ok=True)
 CHILD = ([PY, "-B", "-c", ("import lineage, sys; print('MEMORY_STORE', lineage._MEMORY_STORE, 'hashseed', "
                             "__import__('os').environ.get('PYTHONHASHSEED'))")] if DRY else

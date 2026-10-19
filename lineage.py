@@ -54,8 +54,10 @@ _RECORD = armflag.arm("TETHER_CARRY_RECORD", default=True)
 _ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=True)
 # THE CONSOLIDATED MEMORY (the reviewer 2026-10-19 06:13-07:35; Isaiah 06:12): load reads the
 # memory folder's store (lineage_store.py) instead of re-reading every save; a folder the store
-# cannot answer exactly loads from the archive as before. Default OFF until its compares pass.
-_MEMORY_STORE = armflag.arm("TETHER_MEMORY_STORE", default=False)
+# cannot answer exactly loads from the archive as before. Default ON (Isaiah 2026-10-19 17:03 "turn
+# it on"): OFF, every load is the saves' fold (14.35 GiB on the E4 life, over B); ON, that fold is
+# reached only on a refusal. TETHER_MEMORY_STORE=0 is the old path.
+_MEMORY_STORE = armflag.arm("TETHER_MEMORY_STORE", default=True)
 PREFIX = "gen_"
 
 
@@ -598,6 +600,8 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         merged = ls.catch_up(con, p)
         sym = dict(con.execute("SELECT id, s FROM sym"))
         tip = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
+        if tip is None:     # a first-ever load: no save merged, no blob yet (_load_from_store's root)
+            return {"tip": None, "fold": None, "counts": None, "merged": merged}
         f = json.loads(con.execute("SELECT v FROM blob WHERE k='fold'").fetchone()[0])
         c = json.loads(con.execute("SELECT v FROM blob WHERE k='counts'").fetchone()[0])
         atoms = {a.name: a for a in ag.gamma.atoms}

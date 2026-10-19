@@ -1,7 +1,7 @@
 """S2's N/N CHECK (the reviewer 2026-10-19 06:13 f, 07:35): one process builds the agent over sc25 with the lineage
 COPY loaded through arc_holdout.wire (as e4_stream does), plays NOTHING, and writes a canonical digest of every
 structure load() fills: per structure its length and the sha256 of a canonical form (sets and dicts sorted, tuples
-kept), plus the full canonical form of the small ones. Run once with TETHER_MEMORY_STORE unset and once with it set,
+kept), plus the full canonical form of the small ones. Run once with TETHER_MEMORY_STORE=0 and once with it set,
 in two processes; compare the two digest files structure by structure.
 argv: repo lineage_copy out_json"""
 import hashlib

@@ -1122,7 +1122,9 @@ ARMS: dict[str, str] = {
                            "instead of re-reading every save; a folder the store cannot answer "
                            "exactly (a merge generation, another signature, bm_/bs_ files, a "
                            "failed check at open) loads from the saves as before, with a "
-                           "store_refused row. default OFF until its compares pass",
+                           "store_refused row. default ON (Isaiah 2026-10-19 17:03 'turn it "
+                           "on'; OFF every load is the saves' fold, 14.35 GiB on the E4 life). "
+                           "OFF (=0): the saves' fold, as before",
     "TETHER_ONE_PASS": "the one-pass load (the reviewer 2026-10-19 06:09 d, 06:13): lineage.load "
                        "reads and folds the memory saves' chain once; head()'s pass was the same "
                        "chain and the same fold, read twice (a 4.95 GiB transient measured at 1 s, "

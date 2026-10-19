@@ -14,8 +14,7 @@ assert not os.path.exists(os.path.join(OUT, "k1.json")), "the out dir already ho
 ENV = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_") and k != "PYTHONMALLOC"}
 ENV["PYTHONDONTWRITEBYTECODE"] = "1"
 ENV["PYTHONHASHSEED"] = "0"
-if ON:
-    ENV["TETHER_MEMORY_STORE"] = "1"
+ENV["TETHER_MEMORY_STORE"] = "1" if ON else "0"   # both ways explicit: the default is ON (17:03)
 os.makedirs(OUT, exist_ok=True)
 CHILD = [PY, "-B", os.path.join(HERE, "k1_digest.py"), repo, lin, os.path.join(OUT, "k1.json")]
 p = subprocess.run([PY, "-B", os.path.join(repo, "harness", "supervise.py"), "--out", os.path.join(OUT, "sup"),

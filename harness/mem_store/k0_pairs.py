@@ -2,7 +2,7 @@
 OLD load's kind trio, on the same saves? (1) Every *.json of a lineage COPY hard-linked into an empty scratch folder
 (never written) and a store built there by lineage_store.open_store + catch_up; its pair table read and decoded through
 sym: (kind_o, kind_x) -> (n, last_seq). (2) The agent built over sc25 through arc_holdout.wire on the COPY itself with
-TETHER_MEMORY_STORE unset (the old load), playing nothing; ag._pair_counts() read: (kind_o, kind_x) -> (landings,
+TETHER_MEMORY_STORE=0 (the old load), playing nothing; ag._pair_counts() read: (kind_o, kind_x) -> (landings,
 latest seq). Compared N/N on the keys and on (n, last), each key in a canonical json form. Printed: counts, the first
 20 differences, and how many differences each field carries.
 argv: repo lineage_copy scratch_dir"""
@@ -43,7 +43,7 @@ import arc_holdout  # noqa: E402
 import lineage  # noqa: E402
 from arc_agi import Arcade  # noqa: E402
 
-assert not lineage._MEMORY_STORE, "run with TETHER_MEMORY_STORE unset: the old load"
+assert not lineage._MEMORY_STORE, "run with TETHER_MEMORY_STORE=0: the old load"
 games = sorted(os.listdir(os.path.join(REPO, "environment_files")))
 first = random.Random("49b07888").sample(games, len(games))[0]
 arc = Arcade(operation_mode=arc_holdout._mode())
