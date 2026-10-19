@@ -26,6 +26,7 @@ import dataclasses
 import hashlib
 import heapq
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -49,6 +50,10 @@ _RECORD = armflag.arm("TETHER_CARRY_RECORD", default=True)
 # head()'s pass is the same chain and the same fold, read twice. Default ON (the reviewer 06:35: its
 # compare passed, a byte-identical save); the switch is kept as a stop-gap until the store loads.
 _ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=True)
+# THE CONSOLIDATED MEMORY (the reviewer 2026-10-19 06:13-07:35; Isaiah 06:12): load reads the
+# memory folder's store (lineage_store.py) instead of re-reading every save; a folder the store
+# cannot answer exactly loads from the archive as before. Default OFF until its compares pass.
+_MEMORY_STORE = armflag.arm("TETHER_MEMORY_STORE", default=False)
 PREFIX = "gen_"
 
 
@@ -289,17 +294,49 @@ def _ksorted(rows) -> list:
     return sorted(rows, key=lambda x: json.dumps(x, sort_keys=True, default=str))
 
 
-def write(d: str | Path, ag: Any, game: str) -> dict:
+def _store_base(p: Path, parent: str | None) -> tuple[Any, dict] | None:
+    """Under TETHER_MEMORY_STORE: the parent's fold read from the store (a lookup), when the store's
+    tip IS the parent; None means the archive's re-fold is used, as before."""
+    import lineage_store as ls
+    con = ls.open_store(p)
+    try:
+        ls.catch_up(con, p)
+        tip = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
+        if (tip[0] if tip else None) != parent:
+            con.close()
+            return None
+        f = json.loads((con.execute("SELECT v FROM blob WHERE k='fold'").fetchone() or ["{}"])[0])
+    except ls.Refused:
+        con.close()
+        return None
+    return con, {"terms": list(f.get("rows", {}).values()), "vindication": f.get("vindication", []),
+                 "book": f.get("book", {}), "invented": f.get("invented", {})}
+
+
+def _fsync(f: Path) -> None:
+    with open(f, "r+b") as fh:
+        os.fsync(fh.fileno())
+
+
+def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
     """The boundary's generation: only what changed since the parent the instance LOADED
-    (ag.lineage_parent), against that parent's fold. Named by its own hash; never overwritten."""
+    (ag.lineage_parent), against that parent's fold. Named by its own hash; never overwritten.
+    Under TETHER_MEMORY_STORE the parent's fold is a store lookup, and the save is merged into the
+    store after its archive files are written and synced; `sleep` (a game's end, never a boundary
+    inside a game) also runs the store's checkpoint."""
     p = Path(d)
     p.mkdir(parents=True, exist_ok=True)
     parent = getattr(ag, "lineage_parent", None)
-    chain = _chain(p)
-    # the parent and what it descends from, in fold order (a DAG has no prefix to slice)
-    keep = _ancestors(dict(chain), parent) if parent else set()
-    upto = [(h, g) for h, g in chain if h in keep]
-    base = fold(upto)
+    sb = _store_base(p, parent) if _MEMORY_STORE else None
+    if sb is not None:
+        store_con, base = sb
+    else:
+        store_con = None
+        chain = _chain(p)
+        # the parent and what it descends from, in fold order (a DAG has no prefix to slice)
+        keep = _ancestors(dict(chain), parent) if parent else set()
+        upto = [(h, g) for h, g in chain if h in keep]
+        base = fold(upto)
     prev = {_rid(r): r for r in base["terms"]}
     blob = ag.gamma.blob(with_names=True)
     terms, status = [], []
@@ -442,6 +479,8 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         with open(p / f"{PREFIX}{h}.json", "xb") as fh:
             fh.write(raw)
     except FileExistsError:
+        if store_con is not None:
+            store_con.close()
         return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
     if _BOUNDARY:   # the next write in this instance extends THIS one: one line (F2)
         ag.lineage_parent = h
@@ -490,10 +529,25 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
         asked = write_ak(p, ag, h)
     except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
         asked = {"failed": f"{type(e).__name__}: {e}"[:200]}
+    store = None
+    if store_con is not None:
+        # THE ORDER (the reviewer 07:12 item 4): the archive's files synced first, then the merge;
+        # a crash between the two leaves the save unmerged, and the next open merges it
+        import lineage_store as ls
+        try:
+            for f in sorted(p.glob(f"*{h}*.json")):
+                _fsync(f)
+            store = ls.merge_save(store_con, p, h, json.loads(raw))   # the bytes catch_up reads
+            if sleep:
+                store["sleep"] = ls.sleep(store_con)
+        except ls.Refused as e:
+            store = {"refused": str(e)[:200]}
+        finally:
+            store_con.close()
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, "terms": len(terms),
             "status": len(status), "evidence": len(gen["evidence"]), "dormant": len(dormant),
             "dormant_refused": len(refused), "index": idx, "memo": memo,
-            "slot_memo": slot_memo, "asked": asked}
+            "slot_memo": slot_memo, "asked": asked, **({"store": store} if store else {})}
 
 
 def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
@@ -504,12 +558,195 @@ def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
         return None
     # agent_level: Agent.level, which counts WIN/death edges, and level clears too only under
     # TETHER_LEVEL_EDGE (F1); the 'how' field is the true label of the write
-    return {"how": how, "agent_level": ag.level, **write(d, ag, game)}
+    return {"how": how, "agent_level": ag.level, **write(d, ag, game, sleep=False)}
+
+
+def _store_view(d: str | Path, ag: Any) -> dict:
+    """Everything load() takes from the chain, read from the memory folder's store after merging
+    any save it lacks. Reads only, so a refusal leaves the agent untouched."""
+    import compile_term
+    import lineage_store as ls
+    p = Path(d)
+    if any(p.glob(f"{BMEMO}*.json")) or any(p.glob(f"{BSMEMO}*.json")):
+        raise ls.Refused("bm_/bs_ files are in the archive; the store does not hold them")
+    ok, why = ls.header_ok(p)
+    if not ok and why != "no store":
+        raise ls.Refused(f"the store failed its check at open: {why}")
+    con = ls.open_store(p)
+    try:
+        merged = ls.catch_up(con, p)
+        sym = dict(con.execute("SELECT id, s FROM sym"))
+        tip = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
+        f = json.loads(con.execute("SELECT v FROM blob WHERE k='fold'").fetchone()[0])
+        c = json.loads(con.execute("SELECT v FROM blob WHERE k='counts'").fetchone()[0])
+        atoms = {a.name: a for a in ag.gamma.atoms}
+        sig = compile_term.signature(atoms)
+        arm, parts = _sig_parts(sig)
+        sigs = {i: (json.loads(a), json.loads(b)) for i, a, b in
+                con.execute("SELECT id, arm, atoms FROM sig")}
+        if any(a != arm or set(b) != set(parts) for a, b in sigs.values()):
+            raise ls.Refused("a carried index was written under another signature")
+
+        def key(*xs):
+            return tuple(tuple(json.loads(sym[x])) if i in xs[0] else sym[x]
+                         for i, x in enumerate(xs[1:]))
+        kind = con.execute("SELECT entry, role, kind_o, kind_x, in_landed, n, has_n, l_game, "
+                           "l_level, l_cycle, l_seq FROM kind").fetchall()
+        kdk = con.execute("SELECT dk, entry, tgt, n, l_game, l_level, l_cycle, l_seq "
+                          "FROM kind_dk").fetchall()
+        koff = con.execute("SELECT dk, entry, ko, n FROM kind_off").fetchall()
+        held = con.execute("SELECT key, role, gen, items FROM held").fetchall()
+        wholes = con.execute("SELECT entry, role, o, x FROM ak_whole").fetchall()
+    finally:
+        con.close()
+    return {"tip": tip and tip[0], "fold": f, "counts": c, "merged": merged, "sig": sig,
+            "atoms": atoms, "folder": str(p.resolve()),
+            "kind": [(key((2, 3), e, r, ko, kx), il, n, hn, lv)
+                     for e, r, ko, kx, il, n, hn, *lv in kind],
+            "kdk": [(key((0, 2), dk, e, t), n, lv) for dk, e, t, n, *lv in kdk],
+            "koff": [(key((0, 2), dk, e, ko), n) for dk, e, ko, n in koff],
+            "held": [(sym[k], sym[r], g, json.loads(it)) for k, r, g, it in held],
+            "wholes": wholes}
+
+
+def _load_from_store(d: str | Path, ag: Any) -> dict:
+    """load() under TETHER_MEMORY_STORE: the same agent state, built from the store. Each step
+    mirrors load() below, in its order."""
+    import tether
+    v = _store_view(d, ag)
+    h, f, c = v["tip"], v["fold"], v["counts"]
+    ag.lineage_parent = h
+    ag.gamma.keep_evidence = True
+    if h is None:
+        return {"parent": None, "root": "no generation yet; this instance writes the first"}
+    if hasattr(ag, "_seed_from_lineage"):
+        ag._seed_from_lineage(set(c.get("seeds", [])), c["n_saves"], h)
+    rep = ag.gamma.load_blob({"terms": list(f.get("rows", {}).values()),
+                              "invented": f.get("invented", {}),
+                              "vindication": f.get("vindication", []),
+                              "book": f.get("book", {})}, parent=h)
+    rep["store_merged_at_load"] = len(v["merged"])
+    if gamma._USED_CARRY:
+        ag.gamma.carry_used(dict(c.get("unit_used", {})))
+        rep["unit_used"] = len(c.get("unit_used", {}))
+    if tether._7L_KIND and hasattr(ag, "_kind_known"):
+        ag._kind_known = {k for k, il, _n, _hn, _lv in v["kind"] if il}
+        ag._kind_pairs = ag._kind_pairs | {(ko, kx) for _k, _r, ko, kx in ag._kind_known}
+        rep["kinds_known"] = len(ag._kind_known)
+        if tether._CONSOLIDATE:
+            for k, _il, n, hn, lv in v["kind"]:
+                if hn:
+                    ag._kind_known_n[k] += n
+                if lv[0] is not None:
+                    ag._kind_last[k] = tuple(lv)
+            for k, _n, lv in v["kdk"]:
+                if lv[0] is not None:
+                    ag._kdk_last[k] = tuple(lv)
+            ag._kind_seq = max([x[3] for x in ag._kind_last.values()] + [ag._kind_seq])
+            rep["kinds_set_form"] = c.get("kinds_set_form", 0)
+    if tether._DELTA_KIND and hasattr(ag, "_kind_known_dk"):
+        for k, n, _lv in v["kdk"]:
+            if n:
+                ag._kind_known_dk[k] += n
+        for k, n in v["koff"]:
+            ag._kind_known_off[k] += n
+        rep["kinds_known_dk"] = len(ag._kind_known_dk)
+        rep["kinds_known_off"] = len(ag._kind_known_off)
+    if tether._7H_TRACE and hasattr(ag, "_line_grade_in"):
+        for k, d_ in c.get("line_grades", {}).items():
+            ag._line_grade_in.setdefault(k, {}).update(d_)
+        rep["line_kinds_in"] = len(ag._line_grade_in)
+    if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade_in"):
+        for s, d_ in c.get("root_grades", {}).items():
+            ag._root_grade_in.setdefault(s, {}).update(d_)
+        rep["root_shapes_in"] = len(ag._root_grade_in)
+    if tether._M7_INV and hasattr(ag, "_reinvent_carried"):
+        rep["inventions_in"] = ag._reinvent_carried(list(c.get("inventions", [])))
+    if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
+        for site, d_ in c.get("kind_counts", {}).items():
+            ag._kind_carried_in.setdefault(site, {}).update(d_)
+        rep["kind_counts_in"] = {s: sum(x.values()) for s, x in ag._kind_carried_in.items()}
+    if tether._REACH_RANK and hasattr(ag, "_cause_kind_in"):
+        ag._cause_kind_in.update(c.get("cause_kinds", {}))
+        rep["cause_kinds_in"] = len(ag._cause_kind_in)
+    if tether._ENTRY_USE and hasattr(ag, "_entry_use_in"):
+        for ek, du in c.get("entry_use", {}).items():
+            ag._entry_use_in.setdefault(ek, {}).update(du)
+        rep["entry_use_in"] = len(ag._entry_use_in)
+    if tether._3A_DIAGNOSE and hasattr(ag, "_3a_hazard"):
+        fams = _hazard_families(ag._3a_hazard)
+        for fam, d_ in c.get("hazard_3a", {}).items():
+            if fam in fams:
+                fams[fam].update(d_)
+                ag._3a_in.setdefault(fam, {}).update(d_)
+        ag._3a_written = {fm: dict(x) for fm, x in fams.items()}
+        rep["hazard_3a_in"] = {fm: sum(x.values()) for fm, x in ag._3a_in.items()}
+    if gamma._SETTLED_CORE:
+        rep["replayed"] = ag.gamma.replay(f.get("evidence", []))
+    return {"parent": h, **rep, "index": _store_index(v), "memo": _store_none(v, "memo"),
+            "slot_memo": _store_none(v, "bs"), "asked": _store_asked(v)}
+
+
+def _store_index(v: dict) -> dict | None:
+    """load_index's result from the store's held table (the tip's entry per key), one signature
+    (anything else was refused in _store_view)."""
+    import tether
+    if not tether._INDEX_HOLD:
+        return None
+    known = _CARRIED.setdefault(v["folder"], set())
+    n = 0
+    for key, role, gh, items in v["held"]:
+        k = (v["sig"], key, role)
+        if k not in tether._INDEX_STORE:
+            _PENDING[k] = {"gen": gh, "items": [(x["i"], x["ch"], _dec_c(x["c"], v["atoms"]),
+                                                 _dec_c(x["t"], v["atoms"])) for x in items],
+                           "folder": v["folder"]}
+            n += 1
+        known.add((repr(v["sig"]), key, role))
+    return {"installed": n, "rekeyed": 0, "refusals_recompile": 0, "rebuild": [],
+            "from_store": True}
+
+
+def _store_none(v: dict, which: str) -> dict | None:
+    """load_memo / load_bs with no bm_/bs_ files in the folder: the same known-set side effect."""
+    import tether
+    if which == "memo":
+        if not (_CARRY and tether._INDEX_HOLD):
+            return None
+        _MEMO_CARRIED.setdefault(v["folder"], set())
+    else:
+        if not (_CARRY and tether._INDEX_HOLD and tether._SLOT_FILTER):
+            return None
+        _BS_CARRIED.setdefault(v["folder"], set())
+    return {"pending": 0, "absent": v["counts"]["n_saves"], "signature_differs": 0,
+            "unreadable": 0, "bytes": 0, "from_store": True}
+
+
+def _store_asked(v: dict) -> dict | None:
+    """load_ak's result from the store: only the WHOLE pairs pend (the slot rows carry no decision
+    reader since E1 C4; the reviewer 04:36); the condensed tally stays on disk."""
+    import tether
+    if not (_CARRY and _RECORD and tether._INDEX_HOLD and tether._SLOT_FILTER):
+        return None
+    _AK_CARRIED.setdefault(v["folder"], set())
+    for e, r, o, x in v["wholes"]:
+        p_ = _AK_PENDING.setdefault((v["sig"], e, r, o, x),
+                                    {"gen": v["tip"], "slots": set(), "folder": v["folder"]})
+        p_["slots"].add(None)
+    return {"pending": len(_AK_PENDING), "from_store": True}
 
 
 def load(d: str | Path, ag: Any) -> dict:
     """The next instance's start: the chain folded into its Gamma as IMPORTED terms naming the tip,
     and the evidence record turned on. The fold's evidence and dormant record are not read back."""
+    if _MEMORY_STORE and d:
+        import lineage_store
+        try:
+            return _load_from_store(d, ag)
+        except lineage_store.Refused as e:
+            _c, _s, _lv = ag._boundary_key("@lineage")
+            ag.led.record(_c, "IMPORT", _s, "store_refused", **_lv, reason=str(e)[:300],
+                          reads="the memory store could not answer exactly; loaded from the saves")
     if _ONE_PASS:
         p = Path(d)
         chain = _chain(p) if p.is_dir() else []

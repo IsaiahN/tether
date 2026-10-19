@@ -1115,6 +1115,14 @@ ARMS: dict[str, str] = {
                          "OFF is the line before it exactly. "
                          "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                          "the switch is kept for the checklist's culprit isolation",
+    "TETHER_MEMORY_STORE": "the consolidated memory (the reviewer 2026-10-19 06:13-07:35; Isaiah "
+                           "06:12): lineage.load reads the memory folder's store "
+                           "(lineage_store.py: one indexed SQLite file, integer keys, derived from "
+                           "and rebuildable from the saves) after merging any save it lacks, "
+                           "instead of re-reading every save; a folder the store cannot answer "
+                           "exactly (a merge generation, another signature, bm_/bs_ files, a "
+                           "failed check at open) loads from the saves as before, with a "
+                           "store_refused row. default OFF until its compares pass",
     "TETHER_ONE_PASS": "the one-pass load (the reviewer 2026-10-19 06:09 d, 06:13): lineage.load "
                        "reads and folds the memory saves' chain once; head()'s pass was the same "
                        "chain and the same fold, read twice (a 4.95 GiB transient measured at 1 s, "
