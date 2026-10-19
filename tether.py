@@ -10,6 +10,7 @@ optional.
 
 from __future__ import annotations
 
+import bisect
 import collections
 import hashlib
 import heapq
@@ -648,6 +649,13 @@ _7H_REHEARSE = armflag.arm("TETHER_7H_REHEARSE", default=True)
 # never a recording). Re-invented on load into the agent's private library, on trial; the library
 # route reads that private copy, its invented keys carrying a content hash as their version
 _M7_INV = armflag.arm("TETHER_M7_INV", default=True)
+# S6 (v), THE FACTORED PRICING (the reviewer 2026-10-19 15:35 item 3): an invention's (condition,
+# then-term) pair costs the then-term's symbols, then the condition's, then END, folded left to
+# right (Code.bits), so each part is walked once and a pair is a float fold bit-equal to _inv_cost;
+# the pick (first, A1's ties, the cheapest five) is kept streaming, never the list of every pair.
+# Identical decisions and ledger rows. Under TETHER_PRIOR_CODE only. OFF: priced pair by pair
+# (753339c)
+_INV_FACTOR = armflag.arm("TETHER_INV_FACTOR", default=True)
 # SPEED-2, THE MINT PREFIX TALLY BOUNDED (3d census: 244 of 389 MB at 11 steps; the reviewer
 # 2026-10-16 19:01 Q10). The cache stays (Isaiah 10-14) and is GENERATIONAL: each mint on a slot
 # keeps the tallies its walk touches, beside the previous walk's; older ones go. The bound is the
@@ -5132,6 +5140,76 @@ class Agent:
         prices a term of that length. Nothing is discounted for lying past the searched depth."""
         return self._bits((f, units), *((c.term, ()) for c in conds))
 
+    def _inv_pairs(self, conds: list, fs: list, idb: list, units: tuple, hist: list) -> Any:
+        """(v): every (condition, then-term) pair as (ci, fi, total, cost, left), in _invent's order
+        (conditions outer). Each part's symbols are walked once and every float operation runs in
+        Code.bits' order, so each cost is bit-equal to _inv_cost(f, [c], units)."""
+        code = self.gamma.code()
+        bond = math.log2(max(BONDS, 1))
+
+        def vals(t: Term, u: tuple) -> list:
+            out = []
+            for s in Gamma.symbols(t, u):
+                v = code.cost.get(s)     # Code.bits' own per-symbol value, the same expression
+                out.append(v if v is not None
+                           else sum(code.cost.get((a,), code.dear) for a in s))
+            return out
+
+        pre = []
+        for f, _fb in fs:
+            b, vs = 0.0, vals(f, units)
+            for v in vs:
+                b += v
+            pre.append((b, len(vs)))
+        n, lefts = len(hist), {}
+        # left's inputs: fb (the then-term's, fixed: fi), truth (the condition's: tk), idb and n
+        # (fixed for the firing). So (fi, tk) is the whole key.
+        for ci, (_text, c, truth) in enumerate(conds):
+            vc, tk = vals(c.term, ()), self._inv_truth_key(truth)
+            for fi, (_f, fb) in enumerate(fs):
+                left = lefts.get((fi, tk))
+                if left is None:
+                    left = lefts[(fi, tk)] = sum(fb[i] if truth[i] else idb[i] for i in range(n))
+                b, kf = pre[fi]
+                for v in vc:
+                    b += v
+                cost = (b + code.end) + (kf + len(vc) - 1) * bond
+                yield ci, fi, cost + left, cost, left
+        if self.gamma.code() is not code:     # the code the pairs were priced under never moved
+            raise RuntimeError("_inv_pairs: the code moved while the pairs were priced")
+
+    @staticmethod
+    def _inv_truth_key(truth: list) -> tuple:
+        """(v): the condition's half of the left cache's key (the then-term's is its index)."""
+        return tuple(truth)
+
+    def _inv_pick(self, conds: list, fs: list, idb: list, units: tuple,
+                  hist: list) -> tuple[int, list, list]:
+        """(v): _invent's pick without the list of every pair: (how many were priced, the cheapest
+        five in (total, cost, text, then) order, every pair at the least total in that order), each
+        pair as _invent's (total, cost, left, text, c, f): equal to sorting every pair, then
+        slicing."""
+        priced, top, keys, tied, tmin = 0, [], [], [], None
+        for ci, fi, total, cost, left in self._inv_pairs(conds, fs, idb, units, hist):
+            priced += 1
+            if len(top) == 5 and total > keys[-1][0]:
+                continue
+            text, c, _truth = conds[ci]
+            f = fs[fi][0]
+            x = (total, cost, left, text, c, f)
+            if tmin is None or total < tmin:
+                tmin, tied = total, [x]
+            elif total == tmin:
+                tied.append(x)
+            key = (total, cost, text, f.name)
+            if len(top) < 5 or key < keys[-1]:
+                i = bisect.bisect_right(keys, key)
+                keys.insert(i, key)
+                top.insert(i, x)
+                del keys[5:], top[5:]
+        tied.sort(key=lambda x: (x[0], x[1], x[3], x[5].name))
+        return priced, top, tied
+
     def _bits(self, *parts: tuple) -> float:
         """What stating the (term, units) parts as ONE term costs. L1 (TETHER_PRIOR_CODE): its
         length under the normalized code over the record (gamma.Code); OFF: term_bits of the
@@ -5267,24 +5345,29 @@ class Agent:
                     fb = [self._left(f, slot, [r]) for r in hist]
                     if any(fb[i] == 0.0 for i in moved):
                         fs.append((f, fb))
-        cands = []
-        for text, c, truth in conds:
-            for f, fb in fs:
-                left = sum(fb[i] if truth[i] else idb[i] for i in range(len(hist)))
-                cost = self._inv_cost(f, [c], units)
-                cands.append((cost + left, cost, left, text, c, f))
-        cands.sort(key=lambda x: (x[0], x[1], x[3], x[5].name))
+        if _INV_FACTOR and G_PRIOR_CODE:
+            priced, top, tied = self._inv_pick(conds, fs, idb, units, hist)
+        else:
+            cands = []
+            for text, c, truth in conds:
+                for f, fb in fs:
+                    left = sum(fb[i] if truth[i] else idb[i] for i in range(len(hist)))
+                    cost = self._inv_cost(f, [c], units)
+                    cands.append((cost + left, cost, left, text, c, f))
+            cands.sort(key=lambda x: (x[0], x[1], x[3], x[5].name))
+            priced, top, tied = len(cands), cands[:5], None
         # park_verdict, never `verdict`: this row names the park that triggered it and is not
         # itself an abstention (gate rule 9 reads `verdict` as one)
         detail = {"park_verdict": verdict, "moved_rows": len(moved), "rows": len(hist),
                   "base_bits": round(base, 3), "conditions_held": len(conds),
                   "conditions_never_false": never_false, "refused": dict(refused),
-                  "then_terms": len(fs), "priced": len(cands),
+                  "then_terms": len(fs), "priced": priced,
                   "cheapest": [{"if": x[3], "then": x[5].name, "cost": round(x[1], 3),
-                                "left": round(x[2], 3)} for x in cands[:5]]}
-        first = cands[0] if cands else None
+                                "left": round(x[2], 3)} for x in top]}
+        first = top[0] if top else None
         if _A1_TIES and first is not None:     # A1: an exact tie in total, never by text or name
-            tied = [x for x in cands if x[0] == first[0]]
+            if tied is None:
+                tied = [x for x in cands if x[0] == first[0]]
             if len(tied) > 1:
                 _a1k = self._choice("invent", slot,
                                    [((x[3], x[5].name), x[0], None) for x in tied])

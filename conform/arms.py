@@ -968,6 +968,13 @@ ARMS: dict[str, str] = {
                          "only writer) -- and _units_for under the units, the slot's refusal key "
                          "and the grow-only refusal scope's lengths; exact by construction. "
                          "OFF: rebuilt each call (ffbdf14). default ON",
+    "TETHER_INV_FACTOR": "S6 (v) (the reviewer 2026-10-19 15:35, 15:56): an invention's "
+                         "(condition, then-term) pairs are priced from each part walked once and "
+                         "folded in Code.bits' order, bit-equal to _inv_cost, with left cached per "
+                         "(then-term, the condition's truth vector), its whole input; the pick "
+                         "(first, A1's ties, the cheapest five) is kept streaming, never the list "
+                         "of every pair. Identical decisions and ledger rows; under "
+                         "TETHER_PRIOR_CODE only. OFF: priced pair by pair (753339c). default ON",
     "TETHER_STEP_RANK": "C1b (the reviewer 2026-10-17 17:07, 17:29, 17:30): the step's lookups "
                         "are spent in class order -- owed and changed, changed, our own act's, "
                         "owed and still, the rest -- stable within a class; route hands the "
