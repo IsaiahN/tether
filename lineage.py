@@ -45,6 +45,9 @@ _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
 # the map and the memory of where it has been, and walks the path again when it needs it.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _RECORD = armflag.arm("TETHER_CARRY_RECORD", default=True)
+# ONE PASS (the reviewer 2026-10-19 06:09 d, 06:13): load reads and folds the memory saves once;
+# head()'s pass is the same chain and the same fold, read twice. OFF until its row compare passes.
+_ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=False)
 PREFIX = "gen_"
 
 
@@ -506,12 +509,18 @@ def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
 def load(d: str | Path, ag: Any) -> dict:
     """The next instance's start: the chain folded into its Gamma as IMPORTED terms naming the tip,
     and the evidence record turned on. The fold's evidence and dormant record are not read back."""
-    h, f = head(d)
+    if _ONE_PASS:
+        p = Path(d)
+        chain = _chain(p) if p.is_dir() else []
+        h, f = (chain[-1][0] if chain else None), fold(chain)
+    else:
+        h, f = head(d)
     ag.lineage_parent = h
     ag.gamma.keep_evidence = True
     if h is None:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
-    chain = _chain(Path(d))
+    if not _ONE_PASS:
+        chain = _chain(Path(d))
     # the being's seed BEFORE anything is installed, so a handle the load mints is minted under
     # the seed a replay will read (F-a, the reviewer 2026-10-15 15:23)
     if hasattr(ag, "_seed_from_lineage"):

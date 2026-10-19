@@ -1115,6 +1115,11 @@ ARMS: dict[str, str] = {
                          "OFF is the line before it exactly. "
                          "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                          "the switch is kept for the checklist's culprit isolation",
+    "TETHER_ONE_PASS": "the one-pass load (the reviewer 2026-10-19 06:09 d, 06:13): lineage.load "
+                       "reads and folds the memory saves' chain once; head()'s pass was the same "
+                       "chain and the same fold, read twice (a 4.95 GiB transient measured at 1 s, "
+                       "06:04). The values are the same; OFF reads twice as before. default OFF "
+                       "until its row compare passes (the reviewer 06:09)",
     "TETHER_CARRY_RECORD": "S1g, the asked record (Isaiah 2026-10-15 13:26, option B; the "
                            "reviewer 13:27): under the slot filter a generation carries which "
                            "questions were asked (ak_), never the bound answers; a pair recorded "
