@@ -52,7 +52,9 @@ import arc_holdout  # noqa: E402
 import tether  # noqa: E402
 
 T0 = time.time()
-DEADLINE = T0 + A.cap_s
+# the cap counts PLAY: it starts at the agent's first step, so wiring the agent and loading the
+# carried lineage fall outside it (the reviewer 2026-10-18 20:24, "deadline_after_load")
+DEADLINE = None
 CEILING = int(os.environ.get("SUP_CEILING", "0")) or None
 st = {"censored": False, "won": False, "steps": 0, "actions": 0, "step_s": [], "levels": [],
       "peak_commit_mb": 0.0, "near_ceiling": False}
@@ -83,6 +85,10 @@ _orig = tether.Agent.step
 
 
 def _capped(self, *a, **k):
+    global DEADLINE
+    if DEADLINE is None:
+        DEADLINE = time.time() + A.cap_s
+        st["play_start_s"] = round(time.time() - T0, 1)
     if st["won"]:
         return False
     if time.time() > DEADLINE:
@@ -205,6 +211,7 @@ if A.profile:
     profile_dump()
 sp = st["step_s"]
 out = {"game": A.game, "wall_s": round(time.time() - T0, 1), "cap_s": A.cap_s,
+       "deadline_after_load": True, "play_start_s": st.get("play_start_s"),
        "censored": st["censored"], "won": st["won"], "agent_steps": st["steps"],
        "actions": st["actions"], "s_per_step_mean": round(sum(sp) / len(sp), 1) if sp else None,
        "s_per_step_max": max(sp) if sp else None,
