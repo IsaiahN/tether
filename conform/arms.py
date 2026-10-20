@@ -796,6 +796,12 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7L_FINER": "3c, the finer kind (the seat 2026-10-16 14:36): _kind(owner) adds the "
+                       "owner's shape id as last perceived (the key class _contact_keys uses), "
+                       "so 7l, 7m, 7h (h) and (a)/(b) all read the finer kind through one "
+                       "definition; before the first step there is no reading and the kind is "
+                       "the type tuple. OFF: today's kind. default ON (Isaiah 2026-10-15 07:53, "
+                       "17:26)",
     "TETHER_7I_ROUTE": "3a, 7i ROUTED (the seat 2026-10-16 14:14): an innate term refuted on a "
                        "slot (at the refute site) and a settled term refused (refuse_term) are "
                        "queued per step; beside the indistinct row one PERCEIVE row "

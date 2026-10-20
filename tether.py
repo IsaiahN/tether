@@ -617,6 +617,9 @@ _7H_RESCOPE = armflag.arm("TETHER_7H_RESCOPE", default=True)
 # 3a, 7i ROUTED (the seat 2026-10-16 14:14): a ground contradiction -- an innate term refuted, a
 # settled term refused -- is a perception trigger, beside the indistinct one
 _7I_ROUTE = armflag.arm("TETHER_7I_ROUTE", default=True)
+# 3c, THE FINER KIND (the seat 2026-10-16 14:36): an object's kind adds its shape id, the key
+# _contact_keys already uses -- the form, never the name
+_7L_FINER = armflag.arm("TETHER_7L_FINER", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -2835,12 +2838,20 @@ class Agent:
         self._kind_pairs.add((entry[2], entry[3]))
 
     def _kind(self, owner: str) -> tuple:
-        """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots."""
-        k = (owner, len(self.slots))   # cleared wherever slot_types is replaced
+        """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots;
+        under 3c also its shape id as last perceived (the key _contact_keys uses: "vocabulary
+        permanent, instances transient"), so two forms with one slot layout are two kinds."""
+        sid = None
+        if _7L_FINER and self.trace:
+            sid = self.trace[-1][2].get(owner + ".shape")
+        k = (owner, len(self.slots), sid)   # cleared wherever slot_types is replaced
         got = self._kind_cache.get(k)
         if got is None:
-            got = self._kind_cache[k] = tuple(sorted({
+            got = tuple(sorted({
                 str(self.slot_types.get(s)) for s in self.slots if s.split(".")[0] == owner}))
+            if sid is not None:
+                got = (*got, f"shape={int(sid)}")
+            self._kind_cache[k] = got
         return got
 
     def _compiled(self, lib: Any, key: str, role: str, o: str, x: str, comp: Any, atoms: dict,
