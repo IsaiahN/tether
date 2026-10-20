@@ -32,9 +32,9 @@ if {wrong}:
     tether._lands = lambda role, a, b, slot, sub: real(role, a, b, slot + ".wrong", sub)
 calls, last = [], {{}}
 orig = tether.Agent._index_reach
-def spy(self, lib, lit, slot, mine, others):
+def spy(self, lib, lit, slot, mine, others, **kw):
     last["lib"] = lib
-    views, causes, refused = orig(self, lib, lit, slot, mine, others)
+    views, causes, refused = orig(self, lib, lit, slot, mine, others, **kw)
     calls.append([slot, mine, list(others),
                   sorted([n, c.slot, i["library"], i["role"], i["entries"]]
                          for n, (c, i) in views.items()),
