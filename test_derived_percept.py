@@ -11,6 +11,8 @@
   T     a mid-cascade change that reverts (two-frame responses, the object widens in the
         intermediate frame only): a relational_surprise row on a frame delta with its source
         (shape) held (derived_new under TETHER_DERIVED_SUBJECT, the same fields, never a residual)
+  T-OFF TETHER_DERIVED_SUBJECT=0: the same case writes relational_surprise rows, and ON (above)
+        derived_new rows only -- the test separates the DS arms
   OFF   TETHER_DERIVED_PERCEPT=0: dcol is bet on again (today's per-slot charge)
   E0b, the observer-item-4 pair slots a~b.contact / bbox / inside (the reviewer 14:12):
   X     derive() on each observed frame of a ring with a mover inside reproduces every published
@@ -121,7 +123,7 @@ out = {"mover": mover,
                            if r["detail"].get("mass", 0) > 0}),
        "bet_attrs": sorted({r["slot"].rsplit(".", 1)[1] for r in mine}),
        "rel": [(r["slot"], r.get("of"), r["detail"].get("derived"),
-                r["detail"].get("actual"))
+                r["detail"].get("actual"), r["event"])
                for r in rows if r.get("event") in REL
                and r["slot"].rsplit(".", 1)[0] == mover]}
 mine_pair = [r for r in bets if mover in r["slot"].rsplit(".", 1)[0].split("~")
@@ -164,8 +166,12 @@ def main() -> int:
           sorted({"w", "h", "dw", "dcells"} & set(r["bet_attrs"])), "; relational", len(r["rel"]))
     t = child("transient", 4)
     assert t["rel"] and all(any(x.endswith(".shape") for x in (src or ()))
-                            for _s, src, _d, _a in t["rel"]), t["rel"]                  # T
+                            for _s, src, _d, _a, _e in t["rel"]), t["rel"]              # T
+    assert {e for *_x, e in t["rel"]} == {"derived_new"}, t["rel"]          # T under DS (ON)
     print("T transient: relational surprises", t["rel"][:3])
+    toff = child("transient", 4, {"TETHER_DERIVED_SUBJECT": "0"})
+    assert toff["rel"] and {e for *_x, e in toff["rel"]} == {"relational_surprise"}, toff  # T-OFF
+    print("T-OFF (TETHER_DERIVED_SUBJECT=0): relational surprises", toff["rel"][:3])
     off = child("drift", 6, {"TETHER_DERIVED_PERCEPT": "0"})
     assert "dcol" in off["bet_attrs"], off["bet_attrs"]                                   # OFF
     print("OFF: dcol bet on again:", "dcol" in off["bet_attrs"])
