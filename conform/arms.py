@@ -190,6 +190,12 @@ ARMS: dict[str, str] = {
                        "to be provable against its own absence, and a default-off one is an "
                        "optimisation nobody runs",
     "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
+    "TETHER_PREV_OFFER": "each slot's own value one frame earlier (slot~1) offered as an "
+                         "operand in _bindings. ON: 16 of 18 ~1 terms settled held-out on "
+                         "the five-member panel; costs up to x2.15 mint time (gridworld s2) "
+                         "from a changed path, 2026-10-09 (the reviewer 04:55Z). OFF if a "
+                         "member's ~1 demotes exceed its ~1 settles, or the harness time "
+                         "limit is threatened",
     "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
     "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
