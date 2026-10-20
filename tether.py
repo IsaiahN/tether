@@ -986,6 +986,12 @@ def _canon_goal(text: str) -> str:
 # one at a time through the selector -> routine path, refuted on arrival without a clear or set
 # aside when stalled; the next must differ; all refuted -> a pair; then System 0. OFF: no proposal
 _GOAL_HYP = armflag.arm("TETHER_GOAL_HYPOTHESES", default=True)
+# GQ2b, F-a + F-b (the reviewer 2026-10-20 14:27 (b)): a group-scoped objective is judged MEMBER by
+# MEMBER, each in its own context (its peers as the group, its own record), the subject included,
+# so the residual is a real fraction that moves when a member moves; and the goal sites read
+# shapes (the decoder is cached per cycle). OFF: every peer judged with the SUBJECT's context, whose
+# group contains that peer -- aligned / any_same / none_same constant -- and shapes off (8ef01f2)
+_GROUP_MEMBER = armflag.arm("TETHER_GROUP_MEMBER", default=True)
 
 
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
@@ -9685,13 +9691,26 @@ class Agent:
             _why(why, "operand-unreadable")
             return None
         ctx = self._eval_ctx(slot, state, action=self._last_action or "", operands=ops,
-                             touching=self._touching(slot), shapes=False,
+                             touching=self._touching(slot), shapes=_GROUP_MEMBER,
                              landed=self._last_landed)
 
         def _sat(v: int) -> bool | None:
             r = term.apply(v, ctx)
             return None if r is NOT_RESOLVED else bool(r)
-        deg = objective_degree(_sat, group, counts)
+        if _GROUP_MEMBER and not subject:
+            # GQ2b: each member m judged in ITS OWN context -- ctx.group = m's peers, ctx.obj =
+            # m's record -- the subject one of them; the scope is the whole family
+            members = [slot] + [p for p in self._peer_cache.get(slot, ()) if p in state]
+
+            def _sat_m(m: str) -> bool | None:
+                cm = self._eval_ctx(m, state, action=self._last_action or "", operands=ops,
+                                    touching=self._touching(m), shapes=True,
+                                    landed=self._last_landed)
+                r = term.apply(state[m], cm)
+                return None if r is NOT_RESOLVED else bool(r)
+            deg = objective_degree(_sat_m, members, counts)
+        else:
+            deg = objective_degree(_sat, group, counts)
         if deg is None:
             _why(why, "degree-unresolved")
             return None
@@ -9708,6 +9727,14 @@ class Agent:
                 return min(1.0, gap / span)
         return 1.0 - deg
 
+
+    def _scope_n(self, slot: str, state: dict) -> int:
+        """How many members a slot's objective is scored over, for the routine's unsat: its peers,
+        and under GQ2b (TETHER_GROUP_MEMBER) the subject too when the objective is a view."""
+        n = len(self._group(slot, state))
+        if _GROUP_MEMBER and self._want_scope.get(slot) != self._objective_of(slot)[0]:
+            n += 1                  # GQ2b: the subject is a member of its own scope
+        return n
 
     def can(self, guard: Any, state: dict[str, int]) -> str:
         """`CAN(P)` — §14.3's affordance, and it is **ACHIEVABLE, not SATISFIABLE.**
@@ -11127,7 +11154,7 @@ class Agent:
                                    "the objective already holds across its whole scope",
                             r_goal=rg)
             return
-        unsat = rg * len(self._group(slot, before))
+        unsat = rg * self._scope_n(slot, before)
         # DEFEASIBLE ON SURPRISE -- §18.2's second route: *a fitness-conditional gate-drop
         # where DECISIVE NEW SURPRISE reopens a refuted hypothesis.* The surprise here is the
         # goal residual RISING above what it was when the routine was refuted: the world has got
@@ -11524,7 +11551,7 @@ class Agent:
             self._gt_which = "no_operands"
             return None
         ctx = self._eval_ctx(slot, before, action=self._last_action or "", operands=ops,
-                             touching=self._touching(slot), shapes=False,
+                             touching=self._touching(slot), shapes=_GROUP_MEMBER,
                              landed=self._last_landed)
         tgt = self._value_of(term, slot, before, ctx)
         if tgt is NOT_RESOLVED:

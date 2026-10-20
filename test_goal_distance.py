@@ -79,7 +79,9 @@ if __name__ == "__main__":
     def _sat(v):
         r = term.apply(v, ctx)
         return None if r is tether.NOT_RESOLVED else bool(r)
-    want = 1.0 - tether.objective_degree(_sat, ag._group("o2.col", st))
+    # GQ2b (TETHER_GROUP_MEMBER): the subject is a member of its own scope
+    scope = ((st["o2.col"],) if tether._GROUP_MEMBER else ()) + ag._group("o2.col", st)
+    want = 1.0 - tether.objective_degree(_sat, scope)
     got = ag.goal_residual("o2.col", st)
     assert got == want, (got, want)
     print(f"  e: view want o2.col scored by its group fraction: {got} == {want}")

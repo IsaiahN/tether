@@ -81,6 +81,8 @@ if __name__ == "__main__":
     ag._want_terms[view] = ag._want_terms[SLOT]
     ag.wants[view] = ag.wants[SLOT]
     grp = ag._group(view, state)
+    if tether._GROUP_MEMBER:       # GQ2b: the subject is a member of its own scope
+        grp = (state[view],) + grp
     expect = 1 - sum(1 for v in grp if v == state[P]) / len(grp)
     got = ag.goal_residual(view, state)
     assert abs(got - expect) < 1e-9, (got, expect)

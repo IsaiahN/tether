@@ -950,6 +950,13 @@ ARMS: dict[str, str] = {
                               "pursued through the selector -> routine path, ended on arrival "
                               "without a clear or a stall; the next differs; then a pair; then "
                               "System 0. OFF: no proposal (86c7998). default ON",
+    "TETHER_GROUP_MEMBER": "GQ2b, F-a + F-b (the reviewer 2026-10-20 14:27 (b)): a group-scoped "
+                           "objective is judged member by member, each in its own context (its "
+                           "peers, its record), the subject included, so the residual is a real "
+                           "fraction that moves when one member moves; the goal sites read "
+                           "shapes (cached per cycle). OFF: each peer judged with the subject's "
+                           "context (aligned / any_same / none_same constant), shapes off "
+                           "(8ef01f2). default ON",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",
