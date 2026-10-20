@@ -35,6 +35,7 @@ from dataclasses import replace as _replace
 from typing import Any
 
 import armflag
+import frontier as FR
 
 sys.dont_write_bytecode = True
 
@@ -137,6 +138,13 @@ _DEST_GAP = armflag.arm("TETHER_DEST_GAP", default=True)
 # pressed here. ON; reason in conform/arms.py.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _AIM_GAP = armflag.arm("TETHER_AIM_GAP", default=True)
+# A1-CONVERT (the reviewer 2026-10-15 09:33): WHICH coordinate or button realises an intent is the
+# interface's business (Isaiah 09:27), decided here by the same frontier_pick on the interface's
+# own readings and recorded here; the agent never receives a coordinate or a button. A1_CHOOSE
+# carries the reach count the agent's known-effect pick reads.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_A1_CHOOSE = armflag.arm("TETHER_A1_CHOOSE", default=True)
+_A1_TIES = armflag.arm("TETHER_A1_TIES", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -376,6 +384,9 @@ class Interface:
         # THE AGENT'S CHOICE WHEN NOTHING IS UNKNOWN HERE (F480): handed the KNOWN effects, never
         # the buttons, it returns an index and its reason. None = no agent attached.
         self.chooser: Any = None
+        # A1-CONVERT: how often each step of frontier_pick decided a press here (gate, frontier,
+        # residual, learning, draw); the interface's own record of how it realised intents.
+        self.pick_by: Counter = Counter()
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
         # `probe.Drive`'s seed, which is `crc32(b"") & 0xFFFF == 0` at both construction sites
         # in `tether`. Held here so the moved sweep is byte-identical rather than merely alike.
@@ -704,6 +715,15 @@ class Interface:
         # which is what stops `learned`'s collapse (`ACTION2`, 105 of 150 on `ls20`) travelling
         # below the seam wearing the word exploration.
         def _pick(band: list[str]) -> str:
+            if _A1_TIES and len(band) > 1:
+                # A1: the separability rank is the residual reading; then the least-seen here;
+                # then the draw. The band's list position never decides.
+                a, by, _f = FR.frontier_pick(
+                    [(b, None, None) for b in band], {b: rank.get(b, 0) for b in band},
+                    {b: len(self.table.get(b, {}).get("by_ctx", {}).get(ctx, ())) for b in band},
+                    f"pick:{self.audits}:{ctx!r}")    # the interface's own press count, read
+                self.pick_by[by] += 1
+                return a
             return max(band, key=lambda a: (rank.get(a, 0), -band.index(a)))
 
         def _made(a: str, why: str) -> Realisation:
@@ -736,9 +756,20 @@ class Interface:
                 today, here = coord, self._unpressed_here(state, ctx, w.coords(a))
                 why = f"{why}; unpressed here: {len(here)}; today's aim: {today}"
                 if here:
-                    return Realisation(a, coord=here[0], unmapped=(a not in self.table),
-                                       why=f"{why}, aimed at {here[0]} where its effect here "
-                                           f"is unknown")
+                    aim, by = here[0], "first"
+                    if _A1_TIES and len(here) > 1:
+                        # A1: the subject's own object gates; the less-known coordinate next;
+                        # then the draw. Not the sorted object order.
+                        obj = intent.subject.rsplit(".", 1)[0] if intent.subject else None
+                        at = self._at(obj, state) if obj and state is not None else None
+                        aim, by, _f = FR.frontier_pick(
+                            [(c, None, None) for c in here], {c: int(c == at) for c in here},
+                            {c: len(self.aimed_effect.get(c, ())) for c in here},
+                            f"aim_gap:{self.audits}:{ctx!r}:{intent.subject}")
+                        self.pick_by[by] += 1
+                    return Realisation(a, coord=aim, unmapped=(a not in self.table),
+                                       why=f"{why}, aimed at {aim} where its effect here "
+                                           f"is unknown (by {by})")
             if w.at(a, coord):
                 coord = None
             if coord is None and a in POSITIONED:
@@ -775,10 +806,11 @@ class Interface:
         if intent.kind == ELICIT and self.chooser is not None:
             known = [(self._known_effect(a, ctx), seen[a]) for a in offered]
             if _DEST_GAP:
-                gaps = [self.leads_to_gap(a, ctx, offered) for a in offered]
+                gaps = ([self.reach(a, ctx, offered) for a in offered] if _A1_CHOOSE else
+                        [self.leads_to_gap(a, ctx, offered) for a in offered])
                 known = [(e, n, g) for (e, n), g in zip(known, gaps, strict=True)]
             i, why = self.chooser(known)
-            if _DEST_GAP:
+            if _DEST_GAP and not _A1_CHOOSE:
                 # the pick today's key would have made, so a ledger alone shows where the gap
                 # changed it (the reviewer 2026-10-12 14:56 CDT)
                 j, _ = self.chooser([(e, n) for e, n, _g in known])
@@ -801,6 +833,17 @@ class Interface:
                    for b in offered):
                 return True
         return False
+
+    def reach(self, a: str, ctx: tuple, offered: tuple[str, ...]) -> int:
+        """A1-CONVERT site 2 (the reviewer 2026-10-15 09:33): the unknowns `a` can get to from
+        `ctx`, read from the table. No recorded destination: the destination itself is the one
+        unknown, so 1. Recorded: the (destination, offered action) pairs with no known effect,
+        one step, RESET never a knob (as leads_to_gap)."""
+        to = self.table.get(a, {}).get("to", {}).get(ctx, ())
+        if not to:
+            return 1
+        return sum(1 for d in to for b in offered
+                   if b != RESET and d not in self.table.get(b, {}).get("by_ctx", {}))
 
     def _known_effect(self, a: str, ctx: tuple) -> str:
         """What `a` is KNOWN to do in this context, as a kind the agent can price. RESET's is the

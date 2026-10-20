@@ -652,6 +652,28 @@ ARMS: dict[str, str] = {
                          "Agent.level counts clears; with TETHER_LINEAGE_BOUNDARY one generation "
                          "follows the retarget. Default ON (Isaiah 2026-10-15 07:53); the switch "
                          "is kept for the checklist's culprit isolation",
+    "TETHER_A1_CHOOSE": "A1-CONVERT site 2 (the reviewer 2026-10-15 09:33, 09:38): the known-"
+                        "effect pick through frontier_pick: residual = REACH (0 for a known "
+                        "no-change; else the interface's count of unknowns reached), actions = "
+                        "acts in the world (a restart throws away this attempt's; None for a "
+                        "known no-change); then least-seen, then the draw. "
+                        "default ON (Isaiah 2026-10-15 07:53); the switch is kept for the "
+                        "checklist's culprit isolation",
+    "TETHER_A1_STARVED": "A1-CONVERT site 3: which starved slot to probe, through "
+                         "frontier_pick: residual = outstanding(slot), learning = how often "
+                         "probed (_probe_n), then the draw; never sorted()[0]. "
+                         "default ON (Isaiah 2026-10-15 07:53); the switch is kept for the "
+                         "checklist's culprit isolation",
+    "TETHER_A1_OBJECTIVE": "A1-CONVERT site 5: a bound objective and a retained want weighed "
+                           "(settled here gates; bits = term_bits; grade events), one pick "
+                           "per (cycle, slot); never bound-first. "
+                           "default ON (Isaiah 2026-10-15 07:53); the switch is kept for the "
+                           "checklist's culprit isolation",
+    "TETHER_A1_TIES": "A1-CONVERT exact ties (sites 10, 11, 12, goal_condition, and in the "
+                      "interface the aim among the unpressed and the band pick): the least-"
+                      "known, then the recorded draw; never a name, a text or a position. "
+                      "default ON (Isaiah 2026-10-15 07:53); the switch is kept for the "
+                      "checklist's culprit isolation",
     "TETHER_LINEAGE_HOLD": "(b'-l) phase 1, the lineage hold (Fig 6, Fig 12, Fig 4; the reviewer "
                            "2026-10-14 16:29, 16:34, 16:38, 17:02): ON, every store retarget "
                            "clears, the trace included, is kept dormant in instance form with a "
