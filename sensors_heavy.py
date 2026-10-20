@@ -7,10 +7,14 @@ the four corrections below before using any reading in it.
      (like observer/detectors)" and `conform/lint.py`'s `_CUE_MODULES` is
      {relations, observer, mapping, detectors, composer} -- this module is NOT in it. It
      stays out of the betting path only as a side effect of its two importers being guarded.
-  2  IT WAS NEVER WIRED, WHICH IS WHY IT WAS NEVER VALIDATED. Measured with all five arms
+  2  STALE SINCE 81114da (REPO_AUDIT, 2026-10-12): it IS loaded and called on the default path
+     through observer (3,473 calls / 10 cycles ALL-ON on gridworld). The original note follows.
+     IT WAS NEVER WIRED, WHICH IS WHY IT WAS NEVER VALIDATED. Measured with all five arms
      ON: it does not appear in `sys.modules` after the agent steps. No flag turns it on;
      there is no import edge to turn on.
-  3  `_holes` IS WRONG. It seeds its flood from the bbox BORDER cells, so an object occupying
+  3  REPAIRED BY STEP 6 (TETHER_HOLES_REPOINT, default ON): `_holes` now returns
+     arc_percept.holes_of; OFF is the old flood. The original note follows.
+     `_holes` IS WRONG. It seeds its flood from the bbox BORDER cells, so an object occupying
      its own border blocks the flood and every interior cell reads as enclosed -- and it
      counts CELLS where the agent's atom counts enclosed REGIONS. 56 disagreements of 263
      objects on wa30; a 5x5 ring reads 9 against the correct 1. The one implementation is
@@ -29,6 +33,13 @@ from __future__ import annotations
 
 import sys
 
+import arc_percept
+import armflag
+
+# STEP 6, THE HOLES REPOINT (Isaiah 2026-10-12: keep the file, switch holes to
+# arc_percept.holes_of): the one implementation counts enclosed REGIONS; OFF is _holes as it was
+_HOLES_REPOINT = armflag.arm("TETHER_HOLES_REPOINT", default=True)
+
 sys.dont_write_bytecode = True
 
 # encodings actually computed here from a single frame (no history)
@@ -43,9 +54,11 @@ UNBUILT = {"BEHAVIOURAL", "RULE"}
 
 
 def _holes(o: dict) -> int:
-    """ENCLOSED holes -- interior background surrounded by the object, NOT bbox-minus-cells (which
-    counts concavity: an L-shape has no hole). Flood-fill background from the bbox border; whatever
-    it cannot reach is enclosed."""
+    """ENCLOSED holes. Under the repoint (default) this is arc_percept.holes_of, the one
+    implementation (enclosed REGIONS, flooded from outside the bbox). OFF keeps the old border
+    flood below, which counted CELLS and misread an object on its own border (56 of 263 on wa30)."""
+    if _HOLES_REPOINT:
+        return arc_percept.holes_of(o["cells"])
     cells = {tuple(c) for c in o["cells"]}
     if not cells:
         return 0
