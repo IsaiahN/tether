@@ -1,0 +1,57 @@
+"""A1-CONVERT: THE ONE SHAPE OF A CHOICE (the reviewer 2026-10-15 09:12, 09:19, 09:33, 09:38;
+Isaiah 09:11, 09:27). Imported by tether (the agent's choices) and by interface (how an intent
+is realised), so neither copies it and neither imports the other for it.
+
+    1  the residual gates (Fig 8 "Residual first, frame second"; Fig 7 "The room is summoned by the
+       residual"): if any option's residual reading is > 0, the options at 0 leave;
+    2  two readings held apart, never summed (Fig 12): (bits, actions); an option the others beat on
+       the axes both read leaves (an axis no option reads is not an axis; None neither beats nor
+       is beaten);
+    3  among the frontier, the larger residual reading;
+    4  the least-known, by the site's record count;
+    5  the recorded draw, seeded as the hold is (tether _held_now), never a name or a position.
+
+A reading is a number or None. `by` names the step that left exactly one option.
+"""
+from __future__ import annotations
+
+import hashlib
+import os
+import sys
+
+sys.dont_write_bytecode = True
+
+# the hold's seed; HOLD_SEED's item makes it the agent's
+SEED = os.environ.get("TETHER_HOLD_SEED", "0")
+BY = ("gate", "frontier", "residual", "learning", "draw")
+
+
+def _beats(a: tuple, b: tuple) -> bool:
+    ax = [(x, y) for x, y in ((a[1], b[1]), (a[2], b[2])) if x is not None and y is not None]
+    return bool(ax) and all(x <= y for x, y in ax) and any(x < y for x, y in ax)
+
+
+def frontier_pick(options: list, residual: dict | None, seen: dict | None, key: str) -> tuple:
+    """options: (name, bits, actions). Returns (name, by, frontier names). An empty list is
+    refused by name: there is nothing to choose, and the caller must not ask."""
+    if not options:
+        raise ValueError("frontier_pick: no options to choose among")
+    room = options
+    if residual is not None and any(residual.get(o[0], 0) > 0 for o in options):
+        room = [o for o in options if residual.get(o[0], 0) > 0]
+        if len(room) == 1:
+            return room[0][0], "gate", [room[0][0]]
+    front = [o[0] for o in room if not any(_beats(p, o) for p in room if p is not o)]
+    pool = front
+    if len(pool) == 1:
+        return pool[0], "frontier", front
+    for step, reading, best in (("residual", residual, max), ("learning", seen, min)):
+        if reading is None:
+            continue
+        top = best(reading.get(n, 0) for n in pool)
+        pool = [n for n in pool if reading.get(n, 0) == top]
+        if len(pool) == 1:
+            return pool[0], step, front
+    pool = sorted(pool, key=repr)
+    h = hashlib.blake2b(f"{SEED}:{key}:{pool!r}".encode(), digest_size=8).digest()
+    return pool[int.from_bytes(h, "big") % len(pool)], "draw", front
