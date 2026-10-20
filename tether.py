@@ -656,6 +656,12 @@ _M7_INV = armflag.arm("TETHER_M7_INV", default=True)
 # Identical decisions and ledger rows. Under TETHER_PRIOR_CODE only. OFF: priced pair by pair
 # (753339c)
 _INV_FACTOR = armflag.arm("TETHER_INV_FACTOR", default=True)
+# (ii-a1) THE A1 CHOICE ONLY WHEN THE TIED TOTAL PAYS (the reviewer 2026-10-20 03:14, 04:47;
+# Isaiah 07:45). Every tie member shares cost + left, so payment is fixed before the choice; an
+# unpaid tie's pick was discarded, a recorded decision that decided nothing (Fig 13 :126). The
+# failed tie is kept as its size, n_tied, on the "none paid" row (held-and-given-up, Fig 6 :46);
+# no decision reads it. OFF: the choice at every tie (5872919)
+_INV_CHOICE_PAYS = armflag.arm("TETHER_INV_CHOICE_PAYS", default=True)
 # SPEED-2, THE MINT PREFIX TALLY BOUNDED (3d census: 244 of 389 MB at 11 steps; the reviewer
 # 2026-10-16 19:01 Q10). The cache stays (Isaiah 10-14) and is GENERATIONAL: each mint on a slot
 # keeps the tallies its walk touches, beside the previous walk's; older ones go. The bound is the
@@ -5430,7 +5436,9 @@ class Agent:
         if _A1_TIES and first is not None:     # A1: an exact tie in total, never by text or name
             if tied is None:
                 tied = [x for x in cands if x[0] == first[0]]
-            if len(tied) > 1:
+            if len(tied) > 1 and _INV_CHOICE_PAYS:
+                detail["n_tied"] = len(tied)
+            if len(tied) > 1 and (not _INV_CHOICE_PAYS or pays(first[1], first[2], base)):
                 _a1k = self._choice("invent", slot,
                                    [((x[3], x[5].name), x[0], None) for x in tied])
                 first = next(x for x in tied if (x[3], x[5].name) == _a1k)

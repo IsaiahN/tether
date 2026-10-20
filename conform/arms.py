@@ -990,6 +990,14 @@ ARMS: dict[str, str] = {
                          "(first, A1's ties, the cheapest five) is kept streaming, never the list "
                          "of every pair. Identical decisions and ledger rows; under "
                          "TETHER_PRIOR_CODE only. OFF: priced pair by pair (753339c). default ON",
+    "TETHER_INV_CHOICE_PAYS": "(ii-a1) (the reviewer 2026-10-20 03:14, 04:47, 07:46; "
+                              "Isaiah 07:45): an invention's A1 tie is chosen only when "
+                              "the tied total pays; every tie member shares cost + left, "
+                              "so an unpaid tie's pick was discarded and its choice row "
+                              "recorded a decision that decided nothing (Fig 13 :126). "
+                              "The failed tie is kept as n_tied on the 'none paid' row, "
+                              "an aggregate no decision reads (Fig 6 :46). OFF: the "
+                              "choice at every tie (5872919). default ON",
     "TETHER_STEP_RANK": "C1b (the reviewer 2026-10-17 17:07, 17:29, 17:30): the step's lookups "
                         "are spent in class order -- owed and changed, changed, our own act's, "
                         "owed and still, the rest -- stable within a class; route hands the "
