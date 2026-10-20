@@ -962,6 +962,14 @@ def arrival(series) -> str:
     return TOUCHED if series and series[-1] <= 0 else OPEN
 
 
+# GQ1, A LEVEL CLEAR COUNTS (the reviewer 2026-10-20 14:27; Isaiah 14:11): the completion sweep
+# fires on the step that RAISED the world's degree (any level clear), not only at degree 1.0 (on
+# ARC the whole game); candidates come from the clearing step's after AND before states; held
+# conditions are SHELVED at ADVANCE / WIN with (game, level) and carried as their method through
+# M7-INV. OFF: degree >= 1.0 > prev, conditions closed with their level (7091be4)
+_LEVEL_GOAL = armflag.arm("TETHER_LEVEL_GOAL", default=True)
+
+
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
 # context -- its object's signed offset from the controlled owners, read off the agent's own pair
 # slots -- two actions change it with different PURE signs. contingent()'s always/never, one level
@@ -2196,6 +2204,9 @@ class Agent:
         self._reach_epoch = 0
         self._goal_conds: dict = {}   # build 2: held goal conditions, key -> compiled (in-episode)
         self._goal_text: dict = {}    # build 2: key -> the condition's text
+        self._goal_n = 0              # GQ1: goal atoms are numbered for the agent's life
+        self._goal_meta: dict = {}    # GQ1: key -> met_state, templates, affects (for the shelf)
+        self._goal_shelf: dict = {}   # GQ1: shelved goal conditions, key -> provenance + record
         self._goal_links: dict = {}   # build 3 L1: key -> (slot, want name) this link wrote
         self._want_scope: dict = {}   # b-0: slot -> the want name scored on its SUBJECT alone
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
@@ -2950,6 +2961,8 @@ class Agent:
         self._resolve_signals("level", how)
         if _D13:
             self._settle_process("level", how)
+        if self._goal_conds and _LEVEL_GOAL and how in (WIN, ADVANCE):
+            self._shelve_goals(how)
         if self._goal_conds:
             self._close_goals(how)
         self._settled_at_level = set(self.settled)
@@ -4849,14 +4862,18 @@ class Agent:
         terms settled, which owed slots closed -- and records it. Nothing is retargeted, no
         binding dropped, no trace cleared."""
         prev, self._deg_prev = self._deg_prev, degree
+        # GQ1: a completion is the EVENT, the step that raised the degree (a level clear); after
+        # one the degree stays raised for the whole next level, so a threshold would be wrong
+        done = (prev is not None and degree > prev) if _LEVEL_GOAL else None
         if _GOAL_CONDITION and self.trace:
             if self._reach_epoch != self._trace_epoch:
                 self._reach_hist, self._reach_epoch = [], self._trace_epoch
-            self._reach_hist.append((self._reach_row(self.trace[-1]), degree >= 1.0))
+            self._reach_hist.append((self._reach_row(self.trace[-1]),
+                                     done if _LEVEL_GOAL else degree >= 1.0))
             if self._goal_conds:
                 self._goal_recheck()
         start = max(self._sweep_from[0], self._seq_at_level)
-        if prev is None or not (degree >= 1.0 > prev):
+        if prev is None or not (done if _LEVEL_GOAL else degree >= 1.0 > prev):
             if self._sweep_from[0] < self._seq_at_level:
                 self._sweep_from = (len(self.led), self.cycle, set(self.settled),
                                     set(self.owed_import))
@@ -5041,6 +5058,36 @@ class Agent:
         self._goal_conds, self._goal_text, self._goal_links = {}, {}, {}
         self._want_scope = {}
 
+    def _shelve_goals(self, how: str) -> None:
+        """GQ1 (the reviewer 2026-10-20 14:27): a goal condition learned at a clear outlives its
+        level as a RANKED HYPOTHESIS, never wiped: shelved with its provenance (game, level), a
+        record (one clear won with it), and carried as its METHOD (the template, never the
+        instance text) through M7-INV, a pair part by part. The level's links still close."""
+        for key in sorted(self._goal_conds):
+            meta = self._goal_meta.get(key, {})
+            rec = {"name": key, "text": self._goal_text.get(key), "game": self.gamma.game,
+                   "level": meta.get("level", self.level), "born": self.cycle, "how": how,
+                   "met_state": meta.get("met_state"), "templates": meta.get("templates", []),
+                   "record": {"won": 1, "lost": 0}}
+            self._goal_shelf[key] = rec
+            carried = []
+            if _M7_INV:
+                for i, (tpl, part) in enumerate(zip(meta.get("templates", ()),
+                                                    meta.get("parts", ()), strict=False)):
+                    if not tpl:
+                        continue
+                    name = key if len(meta.get("parts", ())) == 1 else f"{key}_{i + 1}"
+                    self._inv_carry.append({
+                        "name": name, "template": tpl, "affects": meta.get("affects", []),
+                        "reading": "completed", "term": name, "then": [],
+                        "game": self.gamma.game, "born": self.cycle, "kind": "goal",
+                        "level": rec["level"], "met_state": rec["met_state"], "part": part})
+                    carried.append(name)
+            self.led.record(self.cycle, "IMPORT", "@completion", "goal_shelved", key=key,
+                            condition=rec["text"], level=rec["level"], how=how,
+                            met_state=rec["met_state"], carried=carried,
+                            reads="a goal learned at a clear, kept as a ranked hypothesis (GQ1)")
+
     def _release_link(self, key: str) -> bool:
         """L1 / (b): release every want this link wrote that is still in place, and only those;
         a want the agent composed itself is never touched."""
@@ -5125,6 +5172,66 @@ class Agent:
         n, k = len(rows), sum(1 for _, hit in rows if hit)
         if not k or k == n:
             return
+        hists = [("after", rows)]
+        if _LEVEL_GOAL and len(rows) >= 2 and rows[-1][1]:
+            # GQ1: the clearing step's BEFORE state too (the cleared level's last board): the met
+            # flag one row back, the clearing row dropped -- the after-frame may already be the
+            # next level's board, which the code cannot settle (read on the first real clear)
+            hists.append(("before", rows[:-2] + [(rows[-2][0], True)]))
+        best, detail, other, tpl = None, None, None, {}
+        for which, hist in hists:
+            b, d = self._goal_candidates(hist)
+            if _M7_INV:
+                tpl.update(self._inv_tpl)
+            if _LEVEL_GOAL:
+                d["met_state"] = which
+            if detail is None or (b is not None and (best is None or b[0] < best[0])):
+                other, best, detail = detail, b, d
+            else:
+                other = d
+        if other is not None:
+            detail["other_state"] = {"met_state": other.get("met_state"),
+                                     "cheapest": other["cheapest"][:1]}
+        if best is None:
+            detail["pick"] = "none paid"
+        elif best[4] in self._goal_text.values():
+            detail["pick"] = f"already held: {best[4]}"
+        else:
+            _t, cost, left, e, text, c = best
+            lib = self._inv_library()
+            try:
+                # GQ1: numbered for the agent's life -- len(self._goal_conds) restarted after every
+                # close and the private library is never cleared, so the 2nd level's goal collided
+                self._goal_n += 1
+                _gi = self._goal_n if _LEVEL_GOAL else len(self._goal_conds) + 1
+                key = lib.invent_atom(f"{self.gamma.game}_goal_{_gi}",
+                                      text, game=self.gamma.game, cycle=self.cycle,
+                                      receipt={"completion": self.cycle, "steps": n,
+                                               "reached": k, "errors": e},
+                                      affects=self._affects(lib, "completed"))
+                self._goal_conds[key] = c
+                self._goal_text[key] = text
+                if _LEVEL_GOAL:
+                    # a pair's text is "A and B" (_goal_pairs); no TEMPLATE contains " and "
+                    parts = text.split(" and ") if isinstance(c, _Pair) else [text]
+                    self._goal_meta[key] = {
+                        "met_state": detail.get("met_state"), "level": self.level,
+                        "templates": [tpl.get(p) for p in parts], "parts": parts,
+                        "affects": list(self._affects(lib, "completed") or ())}
+                if _GOAL_LINK:
+                    detail["link"] = self._link_goal(key, c)
+                safe, why = sys.modules["library_runtime"].carry_check(text, lib.readings)
+                detail.update(pick=text, key=key, carry=("may carry when M7 opens" if safe
+                                                         else f"refused: {why}"))
+            except ValueError as err:
+                detail.update(pick="refused at creation", why=str(err), condition=text)
+        self.led.record(self.cycle, "IMPORT", "@completion", "goal_condition", **detail)
+
+    def _goal_candidates(self, rows: list) -> tuple:
+        """Build 2's pricing over one reach history (the met flag per row): (the cheapest
+        condition that pays, or None; the row's detail). Factored out for GQ1, which prices
+        the clearing step's after-state and before-state histories alike."""
+        n, k = len(rows), sum(1 for _, hit in rows if hit)
         base = k * math.log2(n)
         atoms = {a.name: a for a in self.gamma.atoms}
         refused: Counter = Counter()
@@ -5155,29 +5262,7 @@ class Agent:
                   "cheapest": [{"if": x[4], "cost": round(x[1], 3), "left": round(x[2], 3),
                                 "errors": x[3]} for x in cands[:5]]}
         best = cands[0] if cands and pays(cands[0][1], cands[0][2], base) else None
-        if best is None:
-            detail["pick"] = "none paid"
-        elif best[4] in self._goal_text.values():
-            detail["pick"] = f"already held: {best[4]}"
-        else:
-            _t, cost, left, e, text, c = best
-            lib = self._inv_library()
-            try:
-                key = lib.invent_atom(f"{self.gamma.game}_goal_{len(self._goal_conds) + 1}",
-                                      text, game=self.gamma.game, cycle=self.cycle,
-                                      receipt={"completion": self.cycle, "steps": n,
-                                               "reached": k, "errors": e},
-                                      affects=self._affects(lib, "completed"))
-                self._goal_conds[key] = c
-                self._goal_text[key] = text
-                if _GOAL_LINK:
-                    detail["link"] = self._link_goal(key, c)
-                safe, why = sys.modules["library_runtime"].carry_check(text, lib.readings)
-                detail.update(pick=text, key=key, carry=("may carry when M7 opens" if safe
-                                                         else f"refused: {why}"))
-            except ValueError as err:
-                detail.update(pick="refused at creation", why=str(err), condition=text)
-        self.led.record(self.cycle, "IMPORT", "@completion", "goal_condition", **detail)
+        return best, detail
 
     # ---------------------------------------------------------------- 7a(10) D1-D3
     def _process_bet(self, kind: str, slot: str, **what: Any) -> None:
@@ -5451,6 +5536,14 @@ class Agent:
                 made.append(rec["name"])
             except ValueError as e:
                 refused.append({"name": rec["name"], "why": str(e)[:120]})
+                continue
+            if _LEVEL_GOAL and rec.get("kind") == "goal":
+                # GQ1: a carried goal seeds the shelf, ON TRIAL, with its provenance
+                self._goal_shelf[rec["name"]] = {
+                    "name": rec["name"], "text": None, "template": rec["template"],
+                    "game": rec.get("game"), "level": rec.get("level"), "born": rec.get("born"),
+                    "met_state": rec.get("met_state"), "carried": True,
+                    "record": {"won": 0, "lost": 0}}
         self._inv_carried_in = list(carried)
         if carried:
             self.led.record(self.cycle, self._running_step, "@lineage", "invention_carried",

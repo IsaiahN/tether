@@ -935,6 +935,13 @@ ARMS: dict[str, str] = {
                       "(held, re-read; a routine guard HOLDs one step), MIN_REPEAT zeros "
                       "CONFIRMED; can() loses 'any zero ever'. OFF: each reader's own rule (the "
                       "selector two zeros, the gate / guard / rows one; 181ddd2). default ON",
+    "TETHER_LEVEL_GOAL": "GQ1, A LEVEL CLEAR COUNTS (the reviewer 2026-10-20 14:27; Isaiah "
+                         "14:11): the completion sweep fires on the step that RAISED the world's "
+                         "degree (any level clear; on ARC degree = levels / win, so 1.0 was the "
+                         "whole game), candidates from the clearing step's after AND before "
+                         "states, held conditions SHELVED at ADVANCE / WIN with (game, level) and "
+                         "carried as a template through M7-INV, goal atoms numbered for the life. "
+                         "OFF: degree >= 1.0 > prev, closed with the level (7091be4). default ON",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",
