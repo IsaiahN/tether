@@ -569,6 +569,10 @@ _A1_DOMAIN = armflag.arm("TETHER_A1_DOMAIN", default=True)          # site 9: th
 # looking for water does not taste every stone on the way. default ON (Isaiah 2026-10-15
 # 07:53); the switch is kept.
 _SLOT_FILTER = armflag.arm("TETHER_SLOT_FILTER", default=True)
+# S5 of the decay class (the reviewer 2026-10-15 16:18, 18:13): a reach verdict is filed with
+# whether the agent was alive when it was watched, so a dead board's verdict does not decide
+# a live one
+_SITUATED_REACH = armflag.arm("TETHER_SITUATED_REACH", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -1632,6 +1636,9 @@ class Agent:
         self._probe_n: collections.Counter = collections.Counter()     # A1: starved probes
         self._obj_pick: dict = {}                                     # A1: this cycle's
         self._attempt_actions = 0     # actions since this level, or its last restart, began
+        # the decay class: the situation (level, alive) and its epoch, set at the agent's own
+        # boundaries (retarget, restarted) and handed to the interface; never read from a frame
+        self._alive, self._epoch = True, 0
         self._mc3: list = []          # MC3: every ending, as the ground recorded it (append-only)
         self._invented: dict = {}     # M6: invented key -> its compiled condition (this run only)
         self._inv_lib = None          # M6: this agent's private library copy, made on first use
@@ -2315,6 +2322,9 @@ class Agent:
         self._d5_candidates = {}
         self._d5_rows, self._d5_said = {}, set()   # D5's scope is the level, a world event
         self._attempt_actions = 0
+        # a death is a boundary into a dead situation; any other ending into a live one
+        self._alive, self._epoch = how != "death", self._epoch + 1
+        self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts = 1
         self._trace_epoch += 1          # the tallies summarise a history that is gone
@@ -3667,9 +3677,9 @@ class Agent:
                 (self._step_ids(self.routine, self.routine_lib), why,
                  _verdict or "untested"))
         if _verdict and self.routine_for:
-            self._reach_tested[
+            self._reach_tested[self._reach_key(
                 self._reject_key(self.routine_for, self.routine,
-                                 self.routine_lib)] = _verdict
+                                 self.routine_lib))] = _verdict
             self.led.record(self.cycle, "SETTLE", self.routine_for, "reach_tested",
                             verdict=_verdict, ending=why, emitted=self._routine_acts,
                             routine=Rt.render(self.routine))
@@ -7480,8 +7490,11 @@ class Agent:
             def reach(k) -> int:
                 if k[0] == IFace.NO_EFFECT:
                     return 0
-                # leads back HERE: nothing thrown away, nothing reached (Design A's reaches)
-                if k[0] == IFace.RESTARTS and self._attempt_actions == 0:
+                # leads back HERE: nothing thrown away, nothing reached (Design A's reaches).
+                # S1: not on a dead board, where the restart is the way out and reads the
+                # interface's reach like any option
+                if (k[0] == IFace.RESTARTS and self._attempt_actions == 0
+                        and (self._alive or not IFace._DEAD_PRICE)):
                     return 0
                 return int(k[2]) if len(k) > 2 else 1
             i = self._choice("choose_known", None,
@@ -7508,6 +7521,8 @@ class Agent:
         """
         held, self._held_refutations = self._held_refutations, None
         self._attempt_actions = 0
+        self._alive, self._epoch = True, self._epoch + 1   # the same level, alive again
+        self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts += 1
         if _LINEAGE_HOLD:
@@ -7748,7 +7763,12 @@ class Agent:
         a plan differing only in its budget is the same hypothesis and inherits the verdict.
         """
         return self._reach_tested.get(
-            self._reject_key(slot, cand, self.routine_lib), Rt.reach_status(cand))
+            self._reach_key(self._reject_key(slot, cand, self.routine_lib)),
+            Rt.reach_status(cand))
+
+    def _reach_key(self, k: tuple) -> tuple:
+        """S5: a reach verdict's key, with whether it was watched alive."""
+        return (k, self._alive) if _SITUATED_REACH else k
 
     @staticmethod
     def _step_ids(r, lib: dict | None = None) -> tuple[str, ...]:
@@ -10969,7 +10989,11 @@ class Agent:
             action, by = self.choose(before)
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
         _prov = getattr(self.env, "provenance", lambda _a: None)(action)
-        self._attempt_actions = 0 if _prov == "platform-universal" else self._attempt_actions + 1
+        # S1: a press on a dead board throws nothing away, so it adds nothing to the restart's price
+        if _prov == "platform-universal":
+            self._attempt_actions = 0
+        elif self._alive or not IFace._DEAD_PRICE:
+            self._attempt_actions += 1
         if _MC34:
             self._run_actions += 1
         # THE PHASE IS READ OFF THE SITE THAT CHOSE, never asserted alongside it. It
