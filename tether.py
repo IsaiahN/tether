@@ -992,6 +992,10 @@ _GOAL_HYP = armflag.arm("TETHER_GOAL_HYPOTHESES", default=True)
 # shapes (the decoder is cached per cycle). OFF: every peer judged with the SUBJECT's context, whose
 # group contains that peer -- aligned / any_same / none_same constant -- and shapes off (8ef01f2)
 _GROUP_MEMBER = armflag.arm("TETHER_GROUP_MEMBER", default=True)
+# S0 (the reviewer 2026-10-20 18:18): at the goal-hypothesis site only, a tie group is drawn one
+# hash per candidate (frontier.draw_order) and route-checked in that order, stopping at the first
+# routable: the same pick as checking all under that draw. OFF: every tied member checked (6fe24e2)
+_HYP_DRAW = armflag.arm("TETHER_HYP_DRAW", default=True)
 
 
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
@@ -5260,6 +5264,7 @@ class Agent:
         a subject the agent can move, open now, untried this level. Ranked: a shelf win first,
         then description length (term_bits); an exact tie by _choice (A1), never by text. The
         first rank group with a ROUTE is the pick (CAN from the agent's own delta table)."""
+        t0 = time.perf_counter()
         atoms = {a.name: a for a in self.gamma.atoms}
         der = self.env.derived() if hasattr(self.env, "derived") else {}
         src = dict.fromkeys(self._inv_conditions(before), "library")
@@ -5308,9 +5313,32 @@ class Agent:
                               "source": x[4]} for x in cands[:5]]}
         pick = None
         checked = 0
+        group_n = None
         while cands and pick is None:
             group = [x for x in cands if x[0] == cands[0][0]]
             cands = cands[len(group):]
+            if _HYP_DRAW:
+                # S0: the draw first, one hash per candidate, then the routes in that order -- the
+                # first routable is the lowest-hash routable, so the rest need no check
+                dkey = f"{self.cycle}:goal_hypothesis:None"
+                order = FR.draw_order([x[1] for x in group], dkey, self.draw_seed)
+                by_text = {x[1]: x for x in group}
+                for n, text in enumerate(order, 1):
+                    x = by_text[text]
+                    checked += 1
+                    self._hyp_n += 1
+                    key = f"@hyp{self._hyp_n}"
+                    link, why = self._hyp_hold(key, x[2], before)
+                    if link is None:
+                        refused[f"no hold: {why}"] += 1
+                        continue
+                    pick, routable, group_n = (x, key, link), 1, len(group)
+                    self.led.record(self.cycle, "PLAN", "@choice", "choice",
+                                    site="goal_hypothesis", in_step=self._running_step,
+                                    options=len(group), checked=n, pick=repr(text),
+                                    by="draw_each")
+                    break
+                continue
             ok = []
             for x in group:
                 checked += 1
@@ -5338,6 +5366,8 @@ class Agent:
         if pick is None:
             pick = self._hyp_pair(before, detail)
         detail.update(checked=checked, refused=dict(refused))
+        if _HYP_DRAW:              # its wall time and the size of the group it stopped in
+            detail.update(wall_s=round(time.perf_counter() - t0, 4), group_n=group_n)
         if pick is None:
             self._hyp_exhausted = self._hyp_known
             self.led.record(self.cycle, "PLAN", "@goal", "goal_hypotheses", pick=None,

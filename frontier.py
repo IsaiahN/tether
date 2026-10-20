@@ -71,3 +71,13 @@ def frontier_pick(options: list, residual: dict | None, seen: dict | None, key: 
     s = SEED if seed is None else seed
     h = hashlib.blake2b(f"{s}:{key}:{pool!r}".encode(), digest_size=8).digest()
     return pool[int.from_bytes(h, "big") % len(pool)], "draw", front
+
+
+def draw_order(names: list, key: str, seed: str | None = None) -> list:
+    """S0 (the reviewer 2026-10-20 18:18): the recorded draw, one hash PER NAME, lowest first.
+    The first of these that qualifies is a uniform draw over the qualifying pool -- the same
+    distribution as frontier_pick's hash of the pool -- so a caller can stop at the first that
+    qualifies and read the same pick as checking all. Never a name, a text or a position."""
+    s = SEED if seed is None else seed
+    return sorted(names, key=lambda n: (hashlib.blake2b(f"{s}:{key}:{n!r}".encode(),
+                                                        digest_size=8).digest(), repr(n)))

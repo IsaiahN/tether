@@ -957,6 +957,13 @@ ARMS: dict[str, str] = {
                            "shapes (cached per cycle). OFF: each peer judged with the subject's "
                            "context (aligned / any_same / none_same constant), shapes off "
                            "(8ef01f2). default ON",
+    "TETHER_HYP_DRAW": "S0 (the reviewer 2026-10-20 18:18): at the goal-hypothesis site only, "
+                       "an exact tie's draw is one hash per candidate (frontier.draw_order) "
+                       "and routes are checked in that order, stopping at the first "
+                       "routable -- the same pick as checking all under that draw; the "
+                       "proposal row carries its wall time and its checks. OFF: every tied "
+                       "member route-checked, the draw a hash of the routable pool "
+                       "(6fe24e2). default ON",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",
