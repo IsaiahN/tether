@@ -2254,6 +2254,7 @@ class Agent:
         self._withheld = IFace.NO_WITHHELD               # 7a(5) C: set for choose() only
         self._split_term: dict | None = None    # 5b: the term the RETURNED goal split read
         self._routine_fed: list = []            # 5b: the routine exit's entries, this step
+        self._last_real = None                  # 5b: this step's realisation (set in choose)
         self._plan_seqs: dict[int, int] = {}    # 5b: plan_no -> the seq of its mint row
         self._fed_rows: dict[str, list] = {}    # 5b: term -> (REPEAT seq, role) naming it
         self._parts: dict[str, dict] = {}       # D5: slot -> {P, A (incumbent), B, ...}
@@ -11754,7 +11755,7 @@ class Agent:
             self._ruin_step, self._ending_counted = None, None
             # ONE reading of this board, before anything is chosen: B's key and C's lookup
             self._step_fp, self._step_before = self._fingerprint(before), before
-        if _RUIN:
+        if _RUIN and _RUIN_RECORD:     # C requires the record (conform/arms TETHER_RUIN): no key, no veto
             _fp = self._step_fp[0]
             self._withheld = IFace.Withheld(
                 _fp, frozenset((a, c) for f, a, c in self._vetoes if f == _fp))
