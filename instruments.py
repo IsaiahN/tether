@@ -21,7 +21,15 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
 
+import armflag
 import ledger
+
+# (i-e) THE STAMP NAMES THE CODE, NOT THE CHECKOUT (the reviewer 2026-10-14 10:19, 2026-10-15
+# 18:45): files_blob (the .py files on disk, Attribution.disk_files) and library_blob hash each
+# file's git blob id over its bytes with CRLF read as LF, so two checkouts of one commit carry one
+# stamp whatever their line endings or import order. New names, so an old stamp is never
+# compared with a new one; the old fields are kept. default ON (Isaiah 2026-10-15 07:53, 17:26)
+_BLOB_STAMP = armflag.arm("TETHER_BLOB_STAMP", default=True)
 
 # names a fixture declared through Attribution.declare_patch; read into the run header
 PATCHED: list[str] = []
@@ -424,8 +432,9 @@ class Clocks:
 # compile_term and gridworld were missing until 2026-10-11, so REALISE_CELL went unrecorded;
 # lineage until 2026-10-15, so no header since 7d1a689 recorded TETHER_LINEAGE_CARRY;
 # gamma from 2026-10-15, for TETHER_ATOMS_ONCE).
+# instruments from 2026-10-15, for TETHER_BLOB_STAMP.
 ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms", "compile_term", "gridworld",
-               "interface", "lineage", "gamma")
+               "interface", "lineage", "gamma", "instruments")
 
 
 class Attribution:
@@ -598,6 +607,49 @@ class Attribution:
                      "library/runtime.json", "library/learnings.json")
 
     @staticmethod
+    def blob_id(data: bytes) -> str:
+        """git's blob id of a text file's content, read with CRLF as LF (what git stores)."""
+        import hashlib
+        data = data.replace(b"\r\n", b"\n")
+        return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+
+    @staticmethod
+    def blob_sha(files: list[str], root: str) -> str:
+        """sha256 over (path relative to `root`, blob_id) of each file, in sorted path order."""
+        import hashlib
+        import os
+        h = hashlib.sha256()
+        for f in sorted(files, key=lambda p: os.path.relpath(p, root).replace(os.sep, "/")):
+            h.update(os.path.relpath(f, root).replace(os.sep, "/").encode() + b"\0")
+            with open(f, "rb") as fh:
+                h.update(Attribution.blob_id(fh.read()).encode() + b"\0")
+        return h.hexdigest()
+
+    # (i-e) THE DISK SET: what files_blob covers, independent of what has been imported (the
+    # reviewer 2026-10-15 18:45; 10-14 12:00, the imported set depends on lazy load order).
+    # Directory NAMES, never paths, so the table holds on any device. environment_files is the
+    # git-ignored local copy of the games' sources (.gitignore), not this code.
+    BLOB_EXCLUDE = (".git", ".venv", "__pycache__", "runs", "worktrees", "scratchpad",
+                    "environment_files")
+
+    @staticmethod
+    def disk_files(root: str) -> list[str]:
+        """Every .py file under `root`, minus the directories BLOB_EXCLUDE names."""
+        import os
+        out = []
+        for d, dirs, names in os.walk(root):
+            dirs[:] = [x for x in dirs if x not in Attribution.BLOB_EXCLUDE]
+            out += [os.path.join(d, n) for n in names if n.endswith(".py")]
+        return out
+
+    @staticmethod
+    def library_files(root: str) -> list[str]:
+        """The LIBRARY_FILES present on disk under `root`."""
+        import os
+        return [f for p in Attribution.LIBRARY_FILES
+                if os.path.isfile(f := os.path.join(root, *p.split("/")))]
+
+    @staticmethod
     def library_sha(root: str) -> tuple[str, int]:
         """files_sha over the LIBRARY_FILES present on disk under `root`, and how many there were.
         Read from disk whether or not the library has been imported: it loads lazily
@@ -727,6 +779,10 @@ class Attribution:
                      "pythonhashseed": os.environ.get("PYTHONHASHSEED")}
         # THE LIBRARY ON DISK, imported or not (the reviewer 2026-10-14 03:41)
         out["library_sha"], out["library_n_files"] = Attribution.library_sha(root)
+        if _BLOB_STAMP:
+            disk = Attribution.disk_files(root)
+            out["files_blob"], out["blob_n_files"] = Attribution.blob_sha(disk, root), len(disk)
+            out["library_blob"] = Attribution.blob_sha(Attribution.library_files(root), root)
 
         def git(*a: str) -> str:
             return subprocess.run(["git", "-C", root, *a], capture_output=True, text=True,
