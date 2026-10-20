@@ -30,7 +30,7 @@ from test_entry import FakeWrapper
 if {wrong}:
     real = tether._lands
     tether._lands = lambda role, a, b, slot, sub: real(role, a, b, slot + ".wrong", sub)
-calls, last = [], {}
+calls, last = [], {{}}
 orig = tether.Agent._index_reach
 def spy(self, lib, lit, slot, mine, others):
     last["lib"] = lib

@@ -35,12 +35,18 @@ import tether  # noqa: E402
 
 def s4() -> None:
     spent = {0: 2, 1: 2, 2: 2}
-    key = "7:o1.x:stream_share"
+    # a key whose draw over the tie is NOT the lower id, so the draw and the old tie-break
+    # disagree and the check can tell them apart (the reviewer 2026-10-16 08:20)
+    key = next((k for k in (f"s4:{i}" for i in range(256))
+                if min(spent, key=lambda s, k=k: FR.draw_key(k, s)) != 0), None)
+    assert key is not None, "precondition: no key in 256 draws other than the lower id"
     want = min(spent, key=lambda s: FR.draw_key(key, s))
     assert tether._next_stream([0, 1, 2], spent, True, key) == want
     assert tether._next_stream([2, 1, 0], spent, True, key) == want, "S4: the list order decided"
-    assert tether._next_stream([2, 1, 0], spent, True) == 2, "MF-S4 did not show the list order"
-    print(f"  S4 the tie goes to the draw ({want}), whatever the order; MF-S4: the list's first")
+    off = tether._next_stream([2, 1, 0], spent, True)
+    assert off == 0 and off != want, "MF-S4: the unkeyed pick is not the lower id"
+    print(f"  S4 key {key}: the tie goes to the draw ({want}), whatever the order; "
+          f"MF-S4: unkeyed, the lower id ({off})")
 
 
 def _c(name, depth):

@@ -715,7 +715,7 @@ def _next_stream(live: list, spent: dict, share: bool, key: str | None = None,
                  seed: str | None = None) -> int:
     """D2: the stream that takes the next candidate. OFF: the first live stream, which is the old
     sequence (each stream to exhaustion before the next). ON: the least rank spent this round,
-    ties to list order; under TETHER_A1_STREAM (site 4) an exact tie goes to the recorded draw,
+    ties to the lower stream id; under TETHER_A1_STREAM (site 4) an exact tie goes to the draw,
     never to the list order. No share, weight or quota."""
     if share and key is not None:
         return min(live, key=lambda s: (spent[s], FR.draw_key(key, s, seed)))
