@@ -10,6 +10,7 @@ root to tip, the kind store (one row per key), the delta-kind store, the held in
 entry per key, with its file's signature), the asked record CONDENSED (n_variants per entry, role
 and slot class) and its WHOLE pairs. A chain that is not linear, or anything the store cannot
 answer exactly, is refused with a reason, and the caller loads from the archive as before."""
+import codecs
 import hashlib
 import json
 import os
@@ -189,6 +190,81 @@ def _read_hashed(f: Path, prefix: str) -> dict:
     return json.loads(raw)
 
 
+# M (the reviewer 2026-10-19 17:53, 19:21): an ak_ file is READ STREAMED, never parsed whole. On
+# bp35's 216.5 MB ak_ the whole parse was 1,630 MiB of the save's 1,746 MiB in-merge rise; the
+# streamed read peaked at 62 MiB with the same sha and tally (m_parse2, 4 real files)
+AK_HEAD = '{"entries":['
+AK_READ = 8 << 20      # bytes per read
+AK_MARGIN = 1 << 20    # characters kept ahead of the decoder (an entry is far smaller)
+AK_BATCH = 10_000      # ak_whole rows per executemany, in file order
+
+
+class AkFile:
+    """One ak_ file for _merge_asked. verify() (pass 1, before BEGIN): its sha256, in AK_READ
+    reads, against its name. entries() (pass 2, inside the transaction): the entries decoded one
+    at a time from a bounded buffer, hashing the same bytes as they are read; then the body's tail
+    into .tail, and the digest must again equal the name's -- else Refused, and the merge rolls
+    back. A file not opening with AK_HEAD is parsed whole and says so (.whole)."""
+
+    def __init__(self, f: Path, prefix: str):
+        self.f, self.prefix, self.chunk = f, prefix, AK_READ
+        self.tail: dict = {}
+        self.whole = False
+
+    def verify(self) -> None:
+        h = hashlib.sha256()
+        with open(self.f, "rb") as fh:
+            for b in iter(lambda: fh.read(self.chunk), b""):
+                h.update(b)
+        if self.f.stem != f"{self.prefix}_{h.hexdigest()[:16]}":
+            raise Refused(f"{self.f.name} does not hash to its name")
+
+    def entries(self):
+        with open(self.f, "rb") as fh:
+            head = fh.read(len(AK_HEAD))
+        if head != AK_HEAD.encode():
+            self.whole = True
+            body = _read_hashed(self.f, self.prefix)
+            self.tail = {k: v for k, v in body.items() if k != "entries"}
+            yield from body["entries"]
+            return
+        sha, dec = hashlib.sha256(), json.JSONDecoder()
+        u8 = codecs.getincrementaldecoder("utf-8")()   # a read can split a character
+        with open(self.f, "rb") as fh:
+            buf, pos, done = "", 0, False
+
+            def fill(need: int) -> None:
+                nonlocal buf, pos, done
+                while not done and len(buf) - pos < need:
+                    b = fh.read(self.chunk)
+                    sha.update(b)
+                    done = not b
+                    buf = buf[pos:] + u8.decode(b, final=done)
+                    pos = 0
+            fill(len(AK_HEAD))
+            pos = len(AK_HEAD)
+            while True:
+                fill(AK_MARGIN)
+                while pos < len(buf) and buf[pos] in ", \n":
+                    pos += 1
+                    fill(AK_MARGIN)
+                if buf[pos] == "]":
+                    break
+                try:
+                    e, end = dec.raw_decode(buf, pos)
+                except ValueError:
+                    if done:
+                        raise
+                    fill(len(buf) - pos + self.chunk)   # an entry longer than the margin
+                    continue
+                pos = end
+                yield e
+            fill(1 << 62)                                 # the rest: the tail, hashed too
+            self.tail = json.loads("{" + buf[pos + 1:].lstrip(","))
+        if self.f.stem != f"{self.prefix}_{sha.hexdigest()[:16]}":
+            raise Refused(f"{self.f.name} changed between its check and its merge")
+
+
 # THE PAIR TABLE'S INVARIANT (the reviewer 10:13 item 3; the seat 10:26): pair.n is the sum over the
 # pair's kind rows of in_landed * (n if has_n else 1), and pair.last_seq the latest l_seq of those
 # rows -- what _pair_counts reads off the old load (every known key: its summed n, else 1). The
@@ -272,20 +348,35 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
 
 
 def _merge_asked(con: sqlite3.Connection, s: "Syms", k: int, h: str, bodies: list) -> None:
+    # bodies: AkFile objects, each read once, streamed (M)
     """The OLD form (each row a variant's first appearance over the life) adds to n_variants. The
     NEW form (form 2, S4: the rows asked since the last save, each with n = times asked) adds n to
     n_asked and 1 to n_saves_asked (the memory saves the class was asked in; not counts' n_saves,
     the saves merged), and leaves n_variants frozen (the reviewer 08:26 item 3): a new-form row
     cannot tell a new variant from a repeat without a per-variant table."""
-    for body in bodies:
-        new = body.get("form") == 2
-        tally: dict = {}
-        for e in body["entries"]:
+    for a in bodies:
+        # the form sits after the entries in the file, so both tallies are kept until the tail
+        tally_n: dict = {}
+        tally_1: dict = {}
+        no_n, batch = 0, []
+        for e in a.entries():
             if e["slot"] is None:
-                con.execute("INSERT OR IGNORE INTO ak_whole VALUES (?,?,?,?)",
-                            (e["key"], e["role"], e["o"], e["x"]))
+                batch.append((e["key"], e["role"], e["o"], e["x"]))
+                if len(batch) >= AK_BATCH:
+                    con.executemany("INSERT OR IGNORE INTO ak_whole VALUES (?,?,?,?)", batch)
+                    batch = []
             key = (e["key"], e["role"], (e["slot"] or "").split(".", 1)[-1])
-            tally[key] = tally.get(key, 0) + (e["n"] if new else 1)
+            tally_1[key] = tally_1.get(key, 0) + 1
+            if "n" in e:
+                tally_n[key] = tally_n.get(key, 0) + e["n"]
+            else:
+                no_n += 1
+        if batch:
+            con.executemany("INSERT OR IGNORE INTO ak_whole VALUES (?,?,?,?)", batch)
+        new = a.tail.get("form") == 2
+        if new and no_n:
+            raise KeyError(f"n: {no_n} form-2 rows without n in {a.f.name}")
+        tally = tally_n if new else tally_1
         if not new:
             con.executemany("INSERT INTO asked_tally VALUES (?,?,?,?,0,0,?,?,0) ON CONFLICT "
                             "DO UPDATE SET n_variants = n_variants + excluded.n_variants, "
@@ -317,11 +408,29 @@ def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict) -> 
     if (last[0] if last else None) != g.get("parent"):
         raise Refused(f"save {h}'s parent {g.get('parent')} is not last_merged {last}")
     k = (con.execute("SELECT max(k) FROM saves").fetchone()[0] or 0) + 1
-    aks = [_read_hashed(f, f"ak_{h}") for f in sorted(p.glob(f"ak_{h}_*.json"))]
+    aks = [AkFile(f, f"ak_{h}") for f in sorted(p.glob(f"ak_{h}_*.json"))]
+    for a in aks:
+        a.verify()      # pass 1: refused before any write
     files = sorted(p.glob(f"idx_{h}_*.json"))
     idx = _read_hashed(files[0], f"idx_{h}") if len(files) == 1 else None
     t1 = time.perf_counter()
     con.execute("BEGIN")
+    try:
+        out = _merge_body(con, h, k, g, aks, idx, files)
+    except BaseException:
+        if con.in_transaction:      # pass 2's re-hash, or any error: nothing of the save lands
+            con.execute("ROLLBACK")
+        raise
+    t2 = time.perf_counter()
+    con.execute("COMMIT")
+    t3 = time.perf_counter()
+    return {"save": h, "k": k, "s_read": round(t1 - t0, 3), "s_statements": round(t2 - t1, 3),
+            "s_commit": round(t3 - t2, 3), **out}
+
+
+def _merge_body(con: sqlite3.Connection, h: str, k: int, g: dict, aks: list, idx: dict | None,
+                files: list) -> dict:
+    """merge_save's statements, inside its transaction."""
     s = Syms(con)
     _merge_asked(con, s, k, h, aks)
     _merge_kinds(con, s, g)
@@ -345,11 +454,8 @@ def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict) -> 
     con.execute("INSERT OR REPLACE INTO blob VALUES ('counts', ?)", (json.dumps(c),))
     con.execute("INSERT INTO saves VALUES (?,?,?)", (h, k, g.get("parent")))
     con.execute("INSERT OR REPLACE INTO meta VALUES ('last_merged', ?)", (h,))
-    t2 = time.perf_counter()
-    con.execute("COMMIT")
-    t3 = time.perf_counter()
-    return {"save": h, "k": k, "s_read": round(t1 - t0, 3), "s_statements": round(t2 - t1, 3),
-            "s_commit": round(t3 - t2, 3)}
+    whole = [a.f.name for a in aks if a.whole]
+    return {"ak_whole_parse": whole} if whole else {}
 
 
 # THE WAL's SIZE BOUND (the reviewer 07:12 c, 07:19 3, 08:03 3b; ruled 10:08): a SIZE, never a time

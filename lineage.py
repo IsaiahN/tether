@@ -566,6 +566,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
         asked = {"failed": f"{type(e).__name__}: {e}"[:200]}
     store = None
+    counts = {"terms": len(terms), "status": len(status), "evidence": len(gen["evidence"]),
+              "dormant": len(dormant), "dormant_refused": len(refused)}
     if store_con is not None:
         # THE ORDER (the reviewer 07:12 item 4): the archive's files synced first, then the merge;
         # a crash between the two leaves the save unmerged, and the next open merges it
@@ -575,7 +577,14 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             for f in sorted(p.glob(f"*{h}*.json")):
                 _fsync(f)
             t_fsync = round(time.perf_counter() - t0, 3)
-            store = ls.merge_save(store_con, p, h, json.loads(raw))   # the bytes catch_up reads
+            # M2 (the reviewer 2026-10-19 19:21): the save is merged from its own bytes, as a
+            # catch_up rebuild reads them; the dict built for them, and then the bytes, are let go
+            # first, so they are not held through the merge
+            gen = terms = status = dormant = refused = None
+            g = json.loads(raw)
+            raw = None
+            store = ls.merge_save(store_con, p, h, g)
+            g = None
             store["s_fsync"] = t_fsync
             if sleep:
                 store["sleep"] = ls.sleep(store_con)
@@ -587,9 +596,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             store = {"refused": str(e)[:200]}
         finally:
             store_con.close()
-    return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, "terms": len(terms),
-            "status": len(status), "evidence": len(gen["evidence"]), "dormant": len(dormant),
-            "dormant_refused": len(refused), "index": idx, "memo": memo,
+    return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, **counts,
+            "index": idx, "memo": memo,
             "slot_memo": slot_memo, "asked": asked, **({"store": store} if store else {})}
 
 
