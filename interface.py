@@ -122,18 +122,21 @@ SELF, OTHER, NO_TARGET = "self", "other", "no_target"
 
 # THE CELL TIER (the reviewer 2026-10-11 09:53Z): a direction intent reads each action's effect
 # FROM THE CELL THE SLOT IS IN, keyed (ctx, slot, before) as `lands` and `signs` already are.
-# OFF; reason in conform/arms.py.
-_REALISE_CELL = armflag.arm("TETHER_REALISE_CELL")
+# ON; reason in conform/arms.py.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_REALISE_CELL = armflag.arm("TETHER_REALISE_CELL", default=True)
 
 # WHERE A PRESS LED (the reviewer 2026-10-12 13:04 CDT, stage 1a): the context read after the
-# press, kept beside the one it was taken in, and read by the chooser. OFF; reason in
+# press, kept beside the one it was taken in, and read by the chooser. ON; reason in
 # conform/arms.py.
-_DEST_GAP = armflag.arm("TETHER_DEST_GAP")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_DEST_GAP = armflag.arm("TETHER_DEST_GAP", default=True)
 
 # THE CLICK SITE'S VARIETY RULE (the reviewer 2026-10-12 15:26 CDT, stage 1b): what a press at a
 # coordinate did, per pre-press context, and an explore press aimed first at an object not yet
-# pressed here. OFF; reason in conform/arms.py.
-_AIM_GAP = armflag.arm("TETHER_AIM_GAP")
+# pressed here. ON; reason in conform/arms.py.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_AIM_GAP = armflag.arm("TETHER_AIM_GAP", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.

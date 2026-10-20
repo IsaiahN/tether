@@ -139,8 +139,12 @@ ARMS: dict[str, str] = {
     "TETHER_CELL_CHANGE": "WHERE a matched object's cells changed -- added/removed counts and "
                           "centroids, read only where identity is sure. OFF until measured: it "
                           "adds six slots per object and six atoms, so it prices every term "
-                          "(F492)",
-    "TETHER_DELTA_KEY": "route (b) re-keyed on this frame's delta",
+                          "(F492)"
+                          ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                          "the record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_DELTA_KEY": "route (b) re-keyed on this frame's delta"
+                        ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                        "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_LOOKUP_ORDER": "the residual's library look-up orders the mint's operand candidates "
                            "(after contact, before variance; never excludes). ON: the reviewer "
                            "2026-10-08 00:54Z; 0 is the one-flag A/B control",
@@ -152,10 +156,14 @@ ARMS: dict[str, str] = {
                        "predicting term is wrong (the default, reviewer 2026-10-07). The figures "
                        "leave the price OPEN; this arm keeps the alternative readable (F496)",
     "TETHER_DELTA_OPERANDS": "deltas offered as operands",
-    "TETHER_GUARD_AXIS": "the guard axis in the reject key",
+    "TETHER_GUARD_AXIS": "the guard axis in the reject key"
+                         ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                         "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_INSTRUMENTS": "the embedded instrument set -- Part 12 item 3, PAID BILLS from "
                           "frame 0. Off at a COSTED price: a new attribute widens the slot "
-                          "set and §12.12 prices that in EPISODES FORGONE",
+                          "set and §12.12 prices that in EPISODES FORGONE"
+                          ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                          "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_HOLD": "THE RANDOMISED HOLD -- MEASUREMENT ONLY, the reviewer 2026-10-03 "
                    "ruling 3. Withholds the ACTED_SELF offer on a seeded ~half of "
                    "ELIGIBLE (cycle, slot) occasions so a measurement run carries its "
@@ -172,7 +180,9 @@ ARMS: dict[str, str] = {
                       "**RULED ON by Isaiah 2026-09-24 and set in `arc_holdout.play` for the "
                       "ARC path, so the env census below reads OFF while the capability is "
                       "LIVE.** A ruling turned it on, not a measurement -- the house rule is "
-                      "his to override. The toy world is untouched: it has its own atoms",
+                      "his to override. The toy world is untouched: it has its own atoms"
+                      ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
+                      "record; the switch is kept for the checklist's culprit isolation",
     "TETHER_NO_RESUME": "**INVERTED POLARITY, the THIRD such row.** A DEFAULT-ON frontier in "
                         "`_mint`: under an unchanged scope key a chain already priced is not "
                         "priced again, and a search that stopped at the budget resumes past "
@@ -190,7 +200,9 @@ ARMS: dict[str, str] = {
                        "identity A/B -- one script, one flag -- because an exact optimisation has "
                        "to be provable against its own absence, and a default-off one is an "
                        "optimisation nobody runs",
-    "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted",
+    "TETHER_OBSERVER": "the corpus's cheap mutation set carried PER OBJECT, not counted"
+                       ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the"
+                       " record; the switch is kept for the checklist's culprit isolation",
     "TETHER_PREV_OFFER": "a term reading a slot's value one frame earlier (slot~1) offered "
                          "into a mint, at three sites: _bindings' slot~1 offer, compiled ~1 "
                          "views, and CAUSE then-sides (the reviewer 07:14Z, 07:23Z). OFF: under "
@@ -261,7 +273,9 @@ ARMS: dict[str, str] = {
                            "mean-delta tiers, so a wrap seen at an edge cannot set the direction "
                            "from column 2 "
                            "(run C, c98). expected_move keeps today's reading (cell=False). OFF: a "
-                           "default-path reader, it needs its own panel reading",
+                           "default-path reader, it needs its own panel reading"
+                           ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is"
+                           " the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_RELATION_SET": "the comparison set (the reviewer 2026-10-11 14:19Z-14:28Z, plan "
                            "accepted 14:33Z; Isaiah 09:15-09:26 CDT): ON, B1 -- arc_atoms "
                            "builds `below`, the own-slot converse of `above`, and "
@@ -276,20 +290,28 @@ ARMS: dict[str, str] = {
                            "(relate(), its Agency.contingent owners, one step behind). "
                            "Later items join this arm. OFF until "
                            "ALL-ON; build "
-                           "checks only (Isaiah 09:15)",
+                           "checks only (Isaiah 09:15)"
+                           ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is"
+                           " the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_ROUTINE_SUBJECT_BUDGET": "R-dir (c) (the reviewer 2026-10-11 10:39Z, 10:53Z): ON, a "
                                      "routine whose body is one BECOME intent takes its budget "
                                      "AND the count it claims (_expected) from that subject's "
                                      "own gap -- |target - now| signed, 1 on a value want -- "
                                      "not the group unsat; unreadable target keeps the group "
                                      "count. OFF: a default-path reader, joins the objective "
-                                     "arms for a switch-on reading",
+                                     "arms for a switch-on reading"
+                                     ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF "
+                                     "wording above is the record; the switch is kept for the "
+                                     "checklist's culprit isolation",
     "TETHER_ROUTINE_STALE": "R-dir (ii) (the reviewer 2026-10-11 10:39Z): ON, a held routine "
                             "whose step is a signed BECOME ends `stale` before pressing when the "
                             "live _goal_target reads the OPPOSITE sign to the minted one; an "
                             "unreadable or held comparison keeps today's path (A1). A non-trial: "
                             "no verdict, no refusal, not shelved. OFF: a default-path reader, "
-                            "joins the objective arms for a switch-on reading",
+                            "joins the objective arms for a switch-on reading"
+                            ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above "
+                            "is the record; the switch is kept for the checklist's culprit "
+                            "isolation",
     "TETHER_WANT_TARGET_SUBJECT": "F2's fallback (the reviewer 2026-10-11 07:20Z, option (i)): ON, "
                                   "_goal_target and _term_of read a retained want ONLY where "
                                   "_want_scope names it (a goal-condition want); every own want "
@@ -304,7 +326,9 @@ ARMS: dict[str, str] = {
                           "'step 8' above was a slip, corrected 06:01Z. A DEFAULT-"
                           "PATH change: the 42 masked refusals were the agent's own wants. 7.5: "
                           "OFF PENDING READING (A); habitat: the 7-member panel at 60; reader: "
-                          "_goal_target and the goal exit; gate: (A) read and ruled",
+                          "_goal_target and the goal exit; gate: (A) read and ruled"
+                          ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                          "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_GOAL_PAIR": "objective build 2a, the goal pair (the reviewer 2026-10-11 05:14Z): ON, "
                         "a held goal condition may be the AND of two different conditions, "
                         "priced once as one term (both parts plus the `both` joiner); a pair is "
@@ -315,7 +339,9 @@ ARMS: dict[str, str] = {
                         "(b) LANDED at 11adca0: a held pair links as one subject-scoped want per "
                         "conjunct, so the 'not linked' above is superseded. 7.5: OFF PENDING "
                         "READING (B); habitat: arc_s1 at 120; reader: TETHER_GOAL_LINK; gate: (B)"
-                        " read and ruled",
+                        " read and ruled"
+                        ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                        "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_GOAL_LINK": "objective build 3, the link to composition (the reviewer 2026-10-11 "
                         "02:19Z, 03:14Z): ON, a held goal condition is closed into the "
                         "objective stream with `all` and becomes its slot's want, so "
@@ -324,7 +350,9 @@ ARMS: dict[str, str] = {
                         "Needs TETHER_GOAL_CONDITION ON. OFF until the objective panel "
                         "7.5: OFF PENDING READING (B); habitat: arc_s1 at 120; reader: "
                         "_goal_choice and _goal_target (steers only with TETHER_WANT_TARGET); "
-                        "gate: (B) read and ruled",
+                        "gate: (B) read and ruled"
+                        ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                        "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_GOAL_CONDITION": "objective build 2, the goal condition (the reviewer 2026-10-11 "
                              "02:19Z): ON, at each completion the library's condition templates "
                              "over the readings are priced against WHEN the world's objective "
@@ -336,7 +364,10 @@ ARMS: dict[str, str] = {
                              "objective build's panel "
                              "7.5: OFF PENDING READING (B); habitat: arc_s1 at 120 (a pair pays "
                              "at c89, no single condition does); reader: TETHER_GOAL_LINK; gate: "
-                             "(B) read and ruled",
+                             "(B) read and ruled"
+                             ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above "
+                             "is the record; the switch is kept for the checklist's culprit "
+                             "isolation",
     "TETHER_COMPLETION_SWEEP": "objective build 1, the completion sweep (ARC_AGENT 21.3; the "
                                "reviewer 2026-10-11 02:19Z): ON, when the WORLD's objective "
                                "degree reaches 1.0 ('reached', not 'banked'), the segment since "
@@ -346,14 +377,19 @@ ARMS: dict[str, str] = {
                                "objective build's panel "
                                "7.5: OFF PENDING READING (B); habitat: a world whose objective "
                                "completes (arc_s1, 6 in 120); reader: TETHER_GOAL_CONDITION; "
-                               "gate: (B) read and ruled",
+                               "gate: (B) read and ruled"
+                               ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording "
+                               "above is the record; the switch is kept for the checklist's "
+                               "culprit isolation",
     "TETHER_MC6": "7a(10) MC6 muse (R3 part 2; the reviewer 2026-10-10 23:50Z): ON, on a step "
                   "that owes nothing (owed_import empty, under_floor included, and this "
                   "step's bets paying), the settled methods are re-tested as chains on an "
                   "earlier level's parked residuals, priced as the sweep prices them, and a "
                   "MUSE row records what would pay and the compute spent; nothing is "
                   "installed and no action is taken. OFF until 7-and-a-half: a reading with "
-                  "no consumer yet (D1-D3 are named to read it)",
+                  "no consumer yet (D1-D3 are named to read it)"
+                  ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
+                  "record; the switch is kept for the checklist's culprit isolation",
     "TETHER_M6_INVENT": "7c M6 invent (ISAIAH_RULINGS 'Mint, invent, import'; the reviewer "
                         "2026-10-10 23:14Z): ON, at a budget_spent or priced_out_at_depth park "
                         "where the change recurred and nothing lit, the agent names a condition "
@@ -374,14 +410,19 @@ ARMS: dict[str, str] = {
                    "reviewer 23:18Z) and level_cost_seen (what cleared levels cost), kept "
                    "apart; a world's cap is "
                    "never read. OFF because it is a reading with no decision consumer yet: "
-                   "item 9's per-plan factors are named to read it",
+                   "item 9's per-plan factors are named to read it"
+                   ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
+                   "record; the switch is kept for the checklist's culprit isolation",
     "TETHER_CASCADE_AGENCY": "7a(6) H2, the in-between frames (R3 part 2; the reviewer "
                              "2026-10-10 22:14Z): ON, the order objects change in inside one "
                              "action gives each non-controlled object a mode (self-moved, "
                              "moving with the controlled one, reacting) in Agency. OFF and "
                              "HELD because no test world has a cascade: only arc_world "
                              "publishes one, and ARC is closed until step 13; proven on a "
-                             "hand-built cascade fixture",
+                             "hand-built cascade fixture"
+                             ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above "
+                             "is the record; the switch is kept for the checklist's culprit "
+                             "isolation",
     "TETHER_GUARD_PRICE": "F408, every named guard priced (Fig 12 :99-102; the reviewer "
                           "2026-10-10 21:31Z): ON, an intent guard and 'no intent' cost "
                           "log2(G+1) over the G on offer, like ACTED_* (whose referent term "
@@ -403,21 +444,27 @@ ARMS: dict[str, str] = {
                  "until a witness row confirms or refutes it, on either side of P. "
                  "HELD until the candidate-cut "
                  "amendment (one witness before acting) lands and is read (the reviewer 18:46Z; "
-                 "F408 cannot bind at a 2-a-side cut, so it was the wrong unblocker)",
+                 "F408 cannot bind at a 2-a-side cut, so it was the wrong unblocker)"
+                 ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
+                 "record; the switch is kept for the checklist's culprit isolation",
     "TETHER_CONTACT": "7a(5b), the contact instrument (Isaiah 2026-10-10 06:46 CDT; the reviewer "
                       "11:46Z, 12:27Z): ON, the REPEAT row's gamma_read gains fed, one entry per "
                       "library term read by the exit whose action is RETURNED, {kind, name, slot, "
                       "seq, role: goal|route|body}, and MC2's resolution fed becomes [REPEAT seq, "
                       "role] after the bet. Record only; read by conform/contact.py per member, by "
                       "exit and role, never pooled. OFF because it is new and nothing reads the "
-                      "field yet; the per-step gamma_read reset beside it is NOT under this arm",
+                      "field yet; the per-step gamma_read reset beside it is NOT under this arm"
+                      ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
+                      "record; the switch is kept for the checklist's culprit isolation",
     "TETHER_RUIN": "7a(5) C, ruin ordered first (R3 Part 1; the reviewer 2026-10-10 10:41Z, "
                    "11:53Z): ON, a pair the veto floor holds for THIS board is withheld from "
                    "the one choose() call at the sites below the seam (offered, TOUCH route 1, "
                    "_made's spots, the bare routine step), unless every option is vetoed; one "
                    "PLAN '@ruin' 'withheld' row per step. REQUIRES TETHER_RUIN_RECORD (import "
                    "refuses without it). OFF because it is behaviour and new: the panel never "
-                   "dies, so its only evidence is the dying-world fixture until step 13",
+                   "dies, so its only evidence is the dying-world fixture until step 13"
+                   ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
+                   "record; the switch is kept for the checklist's culprit isolation",
     "TETHER_RUIN_RECORD": "7a(5) A + B (ARC_AGENT 19.3-19.4; the reviewer 2026-10-10 10:41Z): "
                           "ON, every ending reaches instruments.Termination exactly once "
                           "(retarget, or end_run unless retarget counted the same word; "
@@ -428,7 +475,9 @@ ARMS: dict[str, str] = {
                           "fingerprint is the world's board() where it gives one, else "
                           "observe(). OFF because it is record only and new: nothing reads the "
                           "vetoes until C (TETHER_RUIN, its own arm, which will require this "
-                          "one), and the panel has no deaths",
+                          "one), and the panel has no deaths"
+                          ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                          "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_MC_SIGNAL": "MC1 + MC2 (R3 item 4, 7a(4); the reviewer 2026-10-10 07:57Z): the signal "
                         "is the TRANSITION bet row the ground answered (ledger.signal_sign: paid "
                         "iff not vanished and mass 0); ON, each gets exactly one SETTLE "
@@ -436,7 +485,9 @@ ARMS: dict[str, str] = {
                         "ends at retarget or the run ends with it open (end_run). fed is None: no "
                         "row names the term an action was chosen through. OFF because it is "
                         "record only and new: nothing reads the rows, and its level half has never "
-                        "fired on a real level end (first real reading at step 13)",
+                        "fired on a real level end (first real reading at step 13)"
+                        ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                        "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_WINDOW": "the history window (R3 item 2; Isaiah's H1; the reviewer 14:52Z, 15:26Z, "
                      "18:10Z, 18:15Z): every lag slot~j the trace can reach is offered AFTER "
                      "every other binding (their order and position unchanged), evidence lags "
@@ -467,28 +518,39 @@ ARMS: dict[str, str] = {
                      "and item 5's stakes may not depend on the window's "
                      "order, until 2c is measured and ruled. OFF until "
                      "measured; under it ~1 is one lag of the block, not TETHER_PREV_OFFER's offer",
-    "TETHER_REBIND_HELD": "rebinding a slot whose term is already held",
-    "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance",
+    "TETHER_REBIND_HELD": "rebinding a slot whose term is already held"
+                          ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                          "the record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_RECIPE_DEDUP": "one candidate per recipe rather than per instance"
+                           ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is"
+                           " the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_DIRECTION_MOVABLE": "B (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable "
                                 "when, in one context (its object's signed offset from the "
                                 "controlled owners, from the agent's own pair slots), two "
                                 "actions change it with different PURE signs; mixed cells "
                                 "abstain. Adds movables only. Needs TETHER_RELATION_SET for "
                                 "the pair slots. OFF until its s0 probe and OFF identity are "
-                                "accepted",
+                                "accepted"
+                                ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording "
+                                "above is the record; the switch is kept for the checklist's "
+                                "culprit isolation",
     "TETHER_STREAM_SHARE": "D2 (the reviewer 2026-10-12 05:43, 06:19 CDT): within a round of "
                            "mint's search the stream that has spent the least rank takes the next "
                            "candidate (ties to list order), and a stream stops at its OWN kind's "
                            "floor. No share or quota; the shared cap is unchanged. Records "
                            "stream_share on the MINT row. OFF until R1 and OFF identity are "
-                           "accepted",
+                           "accepted"
+                           ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is"
+                           " the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_PARK_WANT": "The park return (the reviewer 2026-10-12 08:43, 08:52 CDT): when nothing"
                         " in a mint paid, the mint returned before its tail and the unpaid "
                         "objective want it ranked by recurrence (Isaiah 2026-09-25) was never "
                         "written. Under the arm the park branch writes it through the tail's own "
                         "writer, for budget_spent, not_novel and priced_out_at_depth, before the "
                         "park row, which also carries bound_at_park. Chains only. OFF until "
-                        "R-exec, R-lever and OFF identity are accepted",
+                        "R-exec, R-lever and OFF identity are accepted"
+                        ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                        "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_DEST_GAP": "Stage 1a (the reviewer 2026-10-12 12:41, 13:04 CDT): nothing recorded "
                        "where a press LEADS, so the chooser's own Fig 5 line ('a gap "
                        "elsewhere') could not be read and least-seen alternated between "
@@ -496,24 +558,37 @@ ARMS: dict[str, str] = {
                        "audit keeps the post-press context beside the pre-press key, and among "
                        "equal-price reaching options ELICIT prefers one seen to lead where an "
                        "offered action's effect is unknown (one step). OFF until fixture, OFF "
-                       "identity and R-exec are accepted; ground on the 25 in step 13",
+                       "identity and R-exec are accepted; ground on the 25 in step 13"
+                       ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the"
+                       " record; the switch is kept for the checklist's culprit isolation",
     "TETHER_AIM_GAP": "Stage 1b (the reviewer 2026-10-12 15:26 CDT): an explore press at a click "
                       "site went to a coordinate already known to move its subject (_aim_for) "
                       "ahead of an object never pressed. Under the arm audit keeps each press's "
                       "effect per (coordinate, pre-press context), and ELICIT aims first at an "
                       "object not yet pressed in this context; BECOME keeps the known knob. OFF "
                       "until fixture, OFF identity and R-exec are accepted; ground on the 25 in "
-                      "step 13",
+                      "step 13"
+                      ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
+                      "record; the switch is kept for the checklist's culprit isolation",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
                              "not-t is priced there (F496). The variable turns it OFF, so the A/B "
                              "is one script with one flag. Off on the shipped path it was the "
                              "switch-never-set genus (the reviewer, 2026-10-07)",
-    "TETHER_REL_GAP": "the relational gap reading",
-    "TETHER_SHAPE_DECODE": "arm I -- `_as_shape`, the decoder eight SHAPE atoms need",
+    "TETHER_REL_GAP": "the relational gap reading"
+                      ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
+                      "record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_SHAPE_DECODE": "arm I -- `_as_shape`, the decoder eight SHAPE atoms need"
+                           ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is"
+                           " the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_SHAPE_DELTA": "`dholes`/`dperimeter` across frames. PERCEPTION: no atom accepts "
-                          "OBJECT_BEFORE, so the agent cannot compose a cross-frame delta",
-    "TETHER_STARVED_CONTACT": "the starved-contact reading",
+                          "OBJECT_BEFORE, so the agent cannot compose a cross-frame delta"
+                          ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                          "the record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_STARVED_CONTACT": "the starved-contact reading"
+                              ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above"
+                              " is the record; the switch is kept for the checklist's culprit "
+                              "isolation",
     "TETHER_STREAM_WIDEN": "the widened candidate streams",
     "TETHER_TYPED_BIND": "binding filtered by type",
     "TETHER_VIEW_HOLD": "7e the view hold (Fig 12 :107-108; the reviewer 2026-10-14 00:49, "
@@ -541,7 +616,9 @@ ARMS: dict[str, str] = {
                          "(signature, entry, role, o, x), so a repeated question is a lookup, "
                          "as OFF's text-keyed compile cache is (the reviewer 2026-10-15 04:57: "
                          "unmemoised, each new key re-bound every candidate, 12.6 M rebinds on "
-                         "the fake)",
+                         "the fake)"
+                         ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                         "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_ATOMS_ONCE": "the code primitives built once per process (the reviewer 2026-10-15 "
                          "06:10, 06:13, 06:56, 07:00, 07:13, 07:18; Isaiah 06:01, 06:13): ON, "
                          "each builder's set is kept under a content token (every Atom field "
@@ -552,7 +629,9 @@ ARMS: dict[str, str] = {
                          "atom name beside each generation and resolved, checked whole, at first "
                          "ask. A set with no source is refused a token and counted. OFF until the "
                          "end-of-step-7 checklist (Isaiah 2026-10-15 05:25: each feature behind "
-                         "its own arm), not by doubt",
+                         "its own arm), not by doubt"
+                         ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
+                         "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_LINEAGE_BOUNDARY": "the boundary write (the reviewer 2026-10-15 06:46, 07:30, "
                                "07:32; Isaiah 06:20): ON with the carry and a lineage folder, "
                                "both runners write a generation after a terminal edge's "
@@ -562,7 +641,10 @@ ARMS: dict[str, str] = {
                                "and dormant items new since the last. Loss window: the current "
                                "level. A write point only: nothing reaches the agent. OFF until "
                                "the end-of-step-7 checklist (Isaiah 2026-10-15 05:25: each "
-                               "feature behind its own arm), not by doubt",
+                               "feature behind its own arm), not by doubt"
+                               ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording "
+                               "above is the record; the switch is kept for the checklist's "
+                               "culprit isolation",
     "TETHER_LEVEL_EDGE": "F1, the agent perceives a level clear (the reviewer 2026-10-15 07:32, "
                          "07:42, 07:55): ON, both runners deliver a levels_completed rise with no "
                          "terminal edge as retarget(how=ADVANCE), so the level's segment is "
@@ -580,7 +662,9 @@ ARMS: dict[str, str] = {
                            "refutation carry names both objects of a pair owner (o12~o3), and "
                            "play() calls restarted() as tether_agent.run does. Nothing dormant "
                            "is consulted by slot name. OFF until its panel (RL-0..RL-6, RL-2b, "
-                           "registered 2026-10-14 16:29; RL-5 restated 17:02)",
+                           "registered 2026-10-14 16:29; RL-5 restated 17:02)"
+                           ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is"
+                           " the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_LINEAGE_CARRY": "(b'-g) the lineage carry (Fig 12, Fig 10, Fig 4, Fig 6; the reviewer "
                             "2026-10-14 20:18, 20:22): ON, with a lineage folder given, every game "
                             "and run boundary writes a generation holding only what changed since "
@@ -588,7 +672,10 @@ ARMS: dict[str, str] = {
                             "record), and the next instance loads the chain folded; no deletion, "
                             "never overwritten, one tip or it raises. Evidence and the dormant "
                             "record are the record only, never read back. OFF until Isaiah's word "
-                            "after R-g1..R-g3 (registered 2026-10-14 20:18) and the OFF identity",
+                            "after R-g1..R-g3 (registered 2026-10-14 20:18) and the OFF identity"
+                            ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above "
+                            "is the record; the switch is kept for the checklist's culprit "
+                            "isolation",
 }
 
 # DECLARED AT THE SITE, NOT INVENTED HERE. `arc_percept`'s shape-delta comment: *pairs with arm

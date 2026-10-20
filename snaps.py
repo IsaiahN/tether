@@ -29,6 +29,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any
 
 from gamma import Atom, Ctx, Gamma, Term
+from ledger import ADVANCE
 
 # This module's OWN domain facts. Importing world's was a boundary crossing between two
 # domains, and it also meant the generated worlds inherited the vocabulary designed for
@@ -356,7 +357,7 @@ class Snap:
         if self.dead:
             return "death"
         if self.spec.obj != "AVOID" and self.held >= self.spec.hold:
-            return "advance"
+            return ADVANCE
         return None
 
     def observe(self) -> dict[str, int]:
@@ -544,7 +545,7 @@ def ladder(seed: int, levels: int = 5, ds: float = 0.4, steps: int = 60,
     """Play a DS-controlled sequence. Gamma and parked residuals carry across the
     boundary; the trace and the bindings do not."""
     from gamma import Gamma
-    from ledger import ADVANCE, Ledger
+    from ledger import Ledger
     from tether import Agent
     from world import bind
 
@@ -570,8 +571,8 @@ def ladder(seed: int, levels: int = 5, ds: float = 0.4, steps: int = 60,
                 ending, used = t, i + 1
                 break
         if ending == "exhausted" and spec.obj == "AVOID" and not snap.dead:
-            ending = "advance"          # surviving the budget IS the win for AVOID
-        last_end = ending if ending in ("advance", "death") else "run_end"
+            ending = ADVANCE            # surviving the budget IS the win for AVOID
+        last_end = ending if ending in (ADVANCE, "death") else "run_end"
         agent.chain.close(last_end)
         agent.phases.level_done()
         row = grade(agent, snap, k, lib_before)

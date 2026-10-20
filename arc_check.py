@@ -198,7 +198,7 @@ def main() -> None:
         bud.level_starts()
         for _ in range(4):                     # four spent of six: two carry forward
             bud.spend()
-        term.ending("cap" if bud.exhausted() else "advance")
+        term.ending("cap" if bud.exhausted() else ledger.ADVANCE)
     print(f"  budget (accruing)   : {bud.report()['left']} left after 2 levels x 6, 8 spent"
           f"   flat would leave {6 - 4}")
     t = term.report()

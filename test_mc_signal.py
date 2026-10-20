@@ -88,7 +88,7 @@ def _hand(extra_mints: int, sign) -> tuple[list, list]:
         ag.gamma._install(ag.gamma.build((at[k % len(at)].name, at[(k + 1) % len(at)].name),
                                          origin=gamma.IMPORTED), seq=-1, residual=None)
         ag.gamma.book["minted"] = ag.gamma.book.get("minted", 0) + 1
-    ag.retarget(env, ag.level + 1, how="advance")
+    ag.retarget(env, ag.level + 1, how="level_advance")
     rows = ag.led.rows()
     signs = [sign(r, ag) for r in rows]
     res = [r["detail"] for r in rows if r["event"] == "resolution"]

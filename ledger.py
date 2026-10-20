@@ -56,7 +56,10 @@ NO_CHANGE = "no_change"
 #   cap* and *the world killed me*. **In both cases a resource exhaustion was being reported
 #   as a verdict about the world**, which is Figure 9's rule broken in the loop's own
 #   reporting: never let a filter hand you a verdict.
-WIN, DEATH, RESET, ADVANCE, CAP = "win", "death", "reset", "advance", "cap"
+# THE TWO CLEARING WORDS NAME THEIR EVENT (Isaiah 2026-10-15 08:30; the reviewer 08:31): a game won
+# is "game_win", a level cleared "level_advance". Before F1b they were the bare words "win" and
+# "advance", and ARC wrote "advance" for a game WIN; old ledgers are read through legacy_ending.
+WIN, DEATH, RESET, ADVANCE, CAP = "game_win", "death", "reset", "level_advance", "cap"
 
 # §21.5: RESET and ADVANCE produce the SAME residual spike and mean OPPOSITE things, and the
 # frame carries `full_reset` and `levels_completed` so the discriminator survives even where
@@ -70,6 +73,26 @@ ENDING_READS = {
              "Demoting here punishes the terms that carried the last level",
     CAP: "the seat's budget ran out. NOT a verdict about the world -- §19's episode half",
 }
+
+# OLD RECORDS, NEVER REWRITTEN (Isaiah 2026-10-15 08:30; the reviewer 08:31): a ledger written
+# before F1b carries the bare words. "win" was always a game won. "advance" was a level step in
+# snaps and in tests calling retarget; on ARC it was the GAME WIN (arc_world terminal()), and
+# from 446e7f6 (F1, a level clear through retarget) until F1b it was ALSO the level clear, which no
+# word on the row separates. Readers of old ledgers (the recovery read, panel readers) map here.
+LEGACY_AMBIGUOUS = "level_advance or game_win"
+
+
+def legacy_ending(word: str, world: str | None, f1_era: bool = False) -> str:
+    """An old ledger's ending word, by PROVENANCE. `world` is the run header's world class
+    ("arc_world.ArcWorld" on ARC; from provenance where the header predates 0c841dd); `f1_era` is
+    True for an ARC run at or after 446e7f6 and before F1b. Never rewrites a file."""
+    if word == "win":
+        return WIN
+    if word != "advance":
+        return word
+    if world is not None and world.startswith("arc_world."):
+        return LEGACY_AMBIGUOUS if f1_era else WIN
+    return ADVANCE
 
 
 @dataclass(frozen=True)

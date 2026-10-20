@@ -24,6 +24,7 @@ import arc_atoms
 import arc_percept
 import arc_self
 import armflag
+import ledger
 import observer
 import relations
 import sensors
@@ -32,16 +33,18 @@ SENSORS = sensors.minimum_set()
 # The platform's own actions, accepted in every state whatever the game declares (`actions`).
 PLATFORM_UNIVERSAL = (GameAction.RESET.name,)
 
-# THE OBSERVER ARM, SEAT-SIDE SWITCH, DEFAULT OFF. Isaiah's mutation observer: the tracker
+# THE OBSERVER ARM, SEAT-SIDE SWITCH, DEFAULT ON. Isaiah's mutation observer: the tracker
 # carries a wider per-object set, publishes the SEQUENCE of changes rather than the set, and
 # writes relations onto the objects so the delta can key the lookup. Built in pieces behind
 # ONE switch so the route chart judges the whole thing rather than a fragment -- reviewer,
 # 2026-09-22. Item 4 (relations as per-pair slots) is here; it ships only with arm L, which
 # bounds the operand axis the wider slot set would otherwise multiply.
-_OBSERVER = armflag.arm("TETHER_OBSERVER")
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_OBSERVER = armflag.arm("TETHER_OBSERVER", default=True)
 # ARC B2 (the reviewer 2026-10-11 10:11, 10:20, 11:48 CDT): pair relations as slots over the contact
-# pairs and the agent's actor pairs. OFF; reason in conform/arms.py.
-_RELATION_SET = armflag.arm("TETHER_RELATION_SET")
+# pairs and the agent's actor pairs. ON; reason in conform/arms.py.
+# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
+_RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
 
 
 def _oldest(d: dict) -> int:
@@ -1018,7 +1021,7 @@ class ArcWorld:
     def terminal(self) -> str:
         f = self._frame
         if f.state == GameState.WIN:
-            return "advance"
+            return ledger.WIN    # the game won (F1b; Isaiah 08:30)
         if f.state == GameState.GAME_OVER:
             return "death"
         return ""

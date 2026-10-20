@@ -8,7 +8,8 @@ states bet on GROUND outcomes and each bet settles only at a level or game endin
      and changes no verdict (a park bet is graded by the world's grade of the slot's last bet);
   D3-c. a park bet is graded on the slot's last CHANGE after the park (the reviewer 00:14Z): a
      parked slot that never moves again settles None, where the last-bet rule read it right;
-  D1. a plan bet is about the ground: the same bet settles right on "advance", wrong on "death";
+  D1. a plan bet is about the ground: the same bet settles right on "level_advance", wrong on
+      "death";
   OFF/ON: every row but the process rows is identical (seq stripped), so nothing chooses from it.
 
     python test_d13.py
@@ -140,13 +141,13 @@ if __name__ == "__main__":
     print(f"  D3-c: {len(quiet)} parked slots never moved after the park; their last bet paid "
           f"(the old rule read right), and each settles None")
     out = []
-    for how in ("advance", "death"):
+    for how in ("level_advance", "death"):
         p = _agent()
         p._process_bet("plan_clears", slot, plan_no=1, need=3)
         p._settle_process("level", how)
         out.append([r["detail"]["right"] for r in p.led.rows()
                     if r["event"] == "process_settle"][0])
     assert out == [True, False], out
-    print("  D1: the same plan bet settles right on 'advance' and wrong on 'death'")
+    print("  D1: the same plan bet settles right on 'level_advance' and wrong on 'death'")
     tether._D13 = False
     print("ok")

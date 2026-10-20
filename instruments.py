@@ -21,6 +21,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
 
+import ledger
+
 # names a fixture declared through Attribution.declare_patch; read into the run header
 PATCHED: list[str] = []
 
@@ -141,7 +143,7 @@ class Chain:
         """
         stage = self.seg.stage()
         self.last_stage = stage
-        if how in ("advance", "win"):
+        if how in (ledger.ADVANCE, ledger.WIN):
             self.advances += 1
         elif how == "cap":
             self.capped += 1        # neither an advance nor a stall: the seat ended it
