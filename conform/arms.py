@@ -759,6 +759,23 @@ ARMS: dict[str, str] = {
                            "(lineage replays the evidence). OFF is the line before it exactly. "
                            "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
                            "the checklist's culprit isolation",
+    "TETHER_7H_TRIED": "7h (the reviewer 2026-10-15 17:32, 19:59): site 8's least-known reads the "
+                       "tries per (level, slot, operand) this level, fewer first, before the draw. "
+                       "OFF is the line before it exactly. "
+                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
+                        "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7H_SHOWN": "7h: site 9's least-known reads how often each value was shown before "
+                       "this frame (at least 1 for a value shown). "
+                       "OFF is the line before it exactly. "
+                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
+                        "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7H_ROOT": "7h: one intent_root row per live situation (what is shown, what is "
+                      "expected, what is open and owed; no button, coordinate or game name), "
+                      "every choice row carrying its id, an intent_verdict row at the next "
+                      "boundary with the ground's ending; a record read by no chooser. "
+                      "OFF is the line before it exactly. "
+                      "default ON (Isaiah 2026-10-15 07:53, 17:26); "
+                        "the switch is kept for the checklist's culprit isolation",
     "TETHER_CARRY_RECORD": "S1g, the asked record (Isaiah 2026-10-15 13:26, option B; the "
                            "reviewer 13:27): under the slot filter a generation carries which "
                            "questions were asked (ak_), never the bound answers; a pair recorded "

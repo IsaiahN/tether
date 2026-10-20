@@ -574,6 +574,14 @@ _SLOT_FILTER = armflag.arm("TETHER_SLOT_FILTER", default=True)
 # whether the agent was alive when it was watched, so a dead board's verdict does not decide
 # a live one
 _SITUATED_REACH = armflag.arm("TETHER_SITUATED_REACH", default=True)
+# 7h (the reviewer 2026-10-15 17:32, 19:59). TRIED: least-known at site 8 reads how often each
+# operand was tried on the slot THIS level (level, slot, operand; age only orders within a
+# level, Isaiah 10-09). SHOWN: least-known at site 9 reads how often each value was shown. ROOT:
+# one row per live situation answering what is shown, what is expected, what is still open,
+# graded at the next boundary by the ground's ending -- a record only, read by no chooser (A1)
+_7H_TRIED = armflag.arm("TETHER_7H_TRIED", default=True)
+_7H_SHOWN = armflag.arm("TETHER_7H_SHOWN", default=True)
+_7H_ROOT = armflag.arm("TETHER_7H_ROOT", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -724,11 +732,12 @@ def _lookup_order(names: list, comp: dict, dk: str, evidence=None, seed=None) ->
     residual GATE (in contact with the open slot's owner, 0 first), the ACTIONS walk (a derived
     slot is one more composition step), BITS inside it (more evidence first), the residual
     MAGNITUDE (more distinct values first), then the recorded draw. `evidence` replaces the
-    library count (site 7: this chain's offers). Least-known has no reading here (7h's)."""
+    library count (site 7: this chain's offers). LEAST-KNOWN is comp[s][4] when present (7h's
+    tried count this level, fewer first), before the draw."""
     def ev(s):
         return comp[s][2] if evidence is None else evidence(s)
     return sorted(names, key=lambda s: (comp[s][0], comp[s][1], -ev(s), -comp[s][3],
-                                        FR.draw_key(dk, s, seed)))
+                                        *comp[s][4:5], FR.draw_key(dk, s, seed)))
 
 
 class _PricedDomain(frozenset):
@@ -1651,6 +1660,12 @@ class Agent:
         # the decay class: the situation (level, alive) and its epoch, set at the agent's own
         # boundaries (retarget, restarted) and handed to the interface; never read from a frame
         self._alive, self._epoch = True, 0
+        # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
+        # last root's shown scene (for what was added or is gone)
+        self._tried: collections.Counter = collections.Counter()
+        self._root_id: str | None = None
+        self._root_held: list = []
+        self._root_shown: dict | None = None
         self._mc3: list = []          # MC3: every ending, as the ground recorded it (append-only)
         self._invented: dict = {}     # M6: invented key -> its compiled condition (this run only)
         self._inv_lib = None          # M6: this agent's private library copy, made on first use
@@ -2134,6 +2149,7 @@ class Agent:
     def end_run(self, how: str = "cap") -> None:
         """The run ends with this level still open: its signals resolve at the GAME (MC2). The loops
         call it after their last step; `retarget` never sees a cap or a timeout."""
+        self._intent_verdict(how)
         self._note_ending(how, "run")
         self._resolve_signals("game", how)
         if _D13:
@@ -2245,6 +2261,7 @@ class Agent:
         Everything still owed is parked WITH its history, which is the only way a term
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
+        self._intent_verdict(how)
         for slot in sorted(self.owed_import):
             rec = dict(self.abstained.get(slot, {}))
             rec.update(slot=slot, level=self.level, hist=self.history(slot),
@@ -4521,6 +4538,14 @@ class Agent:
                     if isinstance(v, int) and v not in first:
                         first[v] = at
             self._shown[slot] = first
+        # 7h SHOWN: the slot's value at each frame (frame i is trace[i]'s before, the last
+        # frame the last after), so a value's frequency before this frame can be read
+        seq = self._shown.get(("seq", slot)) if _7H_SHOWN else ()
+        if seq is None:
+            seq = [self.trace[i][0].get(slot) for i in range(len(self.trace))]
+            if self.trace:
+                seq.append(self.trace[-1][2].get(slot))
+            self._shown[("seq", slot)] = seq
         n = self._frame_at.get(id(state), len(self.trace))
         dom = {v for v, at in first.items() if at <= n}
         for o in ctx.operands:
@@ -4536,6 +4561,9 @@ class Agent:
         out.alpha, out.key = alpha, f"{self.cycle}:{slot}:objective_domain"
         out.seed = self.draw_seed
         out.counts = {v: 1 for v, at in first.items() if at <= n and 0 <= v < alpha}
+        if _7H_SHOWN:
+            for v in out.counts:
+                out.counts[v] = max(1, sum(1 for x in seq[:n + 1] if x == v))
         out.note = partial(self._domain_row, slot)
         return out
 
@@ -4544,7 +4572,48 @@ class Agent:
         self.led.record(self.cycle, "PLAN", slot, "choice", site="objective_domain",
                         options=len(opts), frontier=[[repr(v), b, a] for v, b, a in opts
                                                      if v in set(front)],
-                        residual=None, seen=None, pick=repr(pick), by=by)
+                        residual=None, seen=None, pick=repr(pick), by=by,
+                        **({"root": self._root_id} if _7H_ROOT else {}))
+
+    def _held_goal(self) -> list:
+        """7h: the goal hypotheses the agent holds now, in its own terms (the held goal
+        conditions, and each want as slot:term)."""
+        return sorted(str(k) for k in self._goal_conds) + sorted(
+            f"{s}:{t}" for s, t in self.wants.items())
+
+    def _intent_root(self) -> None:
+        """7h ROOT: what is shown (objects, and slots per attribute type, with what was added or
+        is gone since the last root), what is expected (the held goal hypothesis, else "none
+        held"), what is still open and owed. Interface-general: no button, coordinate or game
+        name (A3). A record: no chooser reads it (A1)."""
+        owners = {s.split(".")[0] for s in self.slots if "." in s}
+        types = dict(sorted(collections.Counter(
+            str(self.slot_types.get(s)) for s in self.slots).items()))
+        shown = {"objects": len(owners), "slot_types": types}
+        last = self._root_shown
+        changed = None if last is None else {
+            "objects": shown["objects"] - last["objects"],
+            "added": sorted(set(types) - set(last["slot_types"])),
+            "gone": sorted(set(last["slot_types"]) - set(types))}
+        self._root_id = f"L{self.level}:E{self._epoch}"
+        self._root_held = self._held_goal()
+        self._root_shown = shown
+        self.led.record(self.cycle, "PLAN", "@intent", "intent_root", root=self._root_id,
+                        level=self.level, alive=self._alive, shown=shown, changed=changed,
+                        expected=self._root_held or "none held",
+                        open=sorted(s for s in self.slots if self.outstanding(s) > 0),
+                        owed=sorted(self.owed_import),
+                        reads="what is shown, what is expected, what is still open")
+
+    def _intent_verdict(self, how: str) -> None:
+        """7h GRADED: at the boundary the ground's ending under the root, and whether the held
+        goal hypothesis was the one in force at the end. A record only."""
+        if not _7H_ROOT or self._root_id is None:
+            return
+        self.led.record(self.cycle, "SETTLE", "@intent", "intent_verdict", root=self._root_id,
+                        ending=how, held_in_force=self._held_goal() == self._root_held,
+                        held=self._root_held or "none held")
+        self._root_id = None
 
     def _value_of(self, term: Term, slot: str, state: dict[str, int], ctx: Ctx):
         """A term's PREDICTED SLOT VALUE -- the edge from a term to a number, in one place.
@@ -7472,7 +7541,8 @@ class Agent:
                         residual=(None if residual is None else
                                   {repr(n): residual.get(n, 0) for n, _b, _a in options}),
                         seen=None if seen is None else {repr(n): seen.get(n, 0) for n in front},
-                        pick=repr(pick), by=by)
+                        pick=repr(pick), by=by,
+                        **({"root": self._root_id} if _7H_ROOT else {}))
         return pick
 
     def _choose_known(self, known: list[tuple[str, int]]) -> tuple[int, str]:
@@ -9164,7 +9234,9 @@ class Agent:
             # MAGNITUDE (distinct values over the failing frames), then the recorded draw.
             # Least-known has no reading here (7h's tried count, named), so it passes through.
             dk = f"{self.cycle}:{slot}:lookup_order"
-            comp = {s: (rank(s)[0], s in _der, len(lib.get(s, ())), seen[s]) for s in others}
+            comp = {s: (rank(s)[0], s in _der, len(lib.get(s, ())), seen[s],
+                        *((self._tried[(self.level, slot, s)],) if _7H_TRIED else ()))
+                    for s in others}
             self._bind_key[slot] = (dk, comp)
             out = [None] + _lookup_order(others, comp, dk, seed=self.draw_seed)
         else:
@@ -9605,6 +9677,8 @@ class Agent:
                             if bind and "~" in bind and lag_of(bind):
                                 _win_reached.add(bind)
                         rank += 1
+                        if _7H_TRIED and bind is not None:
+                            self._tried[(self.level, slot, bind)] += 1
                         term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
                         if self.gamma.is_atom(term) or (_maybe_lib
                                                         and term.name in self.gamma.library):
@@ -10818,6 +10892,8 @@ class Agent:
 
     def step(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome."""
+        if _7H_ROOT and self._root_id is None and self._alive:
+            self._intent_root()   # 7h: the first step of every live situation
         self._touch_cache = None      # a new step is a new frame, so contact and owners go
         self._peer_cache = None
         self._decomp_cache = None
