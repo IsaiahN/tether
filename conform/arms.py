@@ -922,6 +922,13 @@ ARMS: dict[str, str] = {
                            "stated once -- its cost plus each member's binding and leftover -- "
                            "and admitted below the covered members' joint price; guarded chains "
                            "are not priced shared yet. OFF: gate-only. default ON",
+    "TETHER_LOOKUP_STREAM": "L (the reviewer 2026-10-19 20:34-20:40; P3: o6.add_n's lookup held "
+                            "1,315,061 pairs as lists, +2.1 GB for 50 s): _lookup's pairs in one "
+                            "pass in the lists' order (composer.lookup_iter), each READING PAIR's "
+                            "bond reading computed once (composer.read_iter's cache, keyed by the "
+                            "two readings, the only per-pair inputs read_pairs reads); the record "
+                            "and every decision are the same. The dedupe set still grows with the "
+                            "pairs, a named limit. OFF: the lists, as before. default ON",
     "TETHER_DELTA_KIND": "K1 (the reviewer 2026-10-17 20:25, 20:28, 20:43): the residual's delta "
                          "kind (cluster, sign, size class) is stored with every landing and every "
                          "offer; the lit list leads with T1a-c (offered before: this kind, any "

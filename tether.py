@@ -747,6 +747,13 @@ _OBJ_EVENT = armflag.arm("TETHER_OBJ_EVENT", default=True)
 # each covered member's binding and leftover -- and admitted when that is below the covered
 # members' joint price; each member keeps its own binding, bet and settle. OFF: gate-only
 _EVENT_SHARED = armflag.arm("TETHER_EVENT_SHARED", default=True)
+# L, THE LOOKUP STREAMED (the reviewer 2026-10-19 20:40): _lookup's pairs in one pass, in today's
+# order, each READING PAIR's bond reading computed once (composer.read_iter); nothing but the
+# dedupe set grows with the pair product (P3's o6.add_n: 1,315,061 pairs, +2.1 GB, 50 s).
+# The record and every decision are the same. OFF: the lists, as before
+_LOOKUP_STREAM = armflag.arm("TETHER_LOOKUP_STREAM", default=True)
+LOOKUP_HELD_KEYS = ("molecule", "left", "right", "left_reading", "right_reading", "held", "via",
+                    "occasions")
 # G1, RELATIONAL WANTS PER EVENT (the reviewer 2026-10-17 15:30, 23:04, 23:17): since E0b a derived
 # slot has no residual, so the mint never writes a want on it -- seen, never wanted. Per event, ONE
 # objective-only question over the derived slots it changed; the want is the library condition the
@@ -3519,7 +3526,11 @@ class Agent:
                 del described[s]
                 for d_ in desc_of.values():
                     d_.pop(s, None)
-        if ev is None:
+        if _LOOKUP_STREAM:
+            q_, offered, n_jun, held_n, dig, held, named_of = self._lookup_stream(
+                ev, members, described, desc_of, hist)
+            found = {"query": q_, "junctions": n_jun}
+        elif ev is None:
             found = composer.lookup(described)
         else:
             # (b1) (the reviewer 2026-10-18 02:28): an event's pairs are the union of each
@@ -3539,32 +3550,34 @@ class Agent:
                         pairs.append(p)
             found = {"query": sorted(query), "pairs": pairs,
                      "junctions": len({(p["molecule"], p["left"], p["right"]) for p in pairs})}
-        read = composer.read_pairs(found["pairs"], [b for b, _act, _val, _intent, _landed in hist])
-        held = [{k: r[k] for k in ("molecule", "left", "right", "left_reading", "right_reading",
-                                   "held", "via", "occasions")} for r in read if r["held"]]
-        # (b2) (the reviewer 2026-10-18 02:28): the row carries the held bonds' COUNT, a DIGEST and
-        # the first 50, never the whole list -- the pairs are derived, rebuilt from the
-        # description and the frames (Fig 6), and no reader needs more (test_obj_event:188 reads
-        # obj_event / shared); lf52's o59.shape row was 452 MB
-        dig = hashlib.sha256()
-        for h_ in held:
-            dig.update(json.dumps(h_, sort_keys=True, ensure_ascii=False).encode())
-            dig.update(b"\n")
-        named_of: dict = {}
-        for m in members:
-            named: dict[str, list] = {}
-            for p in found["pairs"]:
-                ends = (p["left_reading"], p["right_reading"])
-                if m in ends:
-                    other = ends[1] if ends[0] == m else ends[0]
-                    if p["molecule"] not in named.setdefault(other, []):
-                        named[other].append(p["molecule"])
-            named_of[m] = named
+        if not _LOOKUP_STREAM:
+            read = composer.read_pairs(found["pairs"],
+                                       [b for b, _act, _val, _intent, _landed in hist])
+            held = [{k: r[k] for k in LOOKUP_HELD_KEYS} for r in read if r["held"]]
+            # (b2) (the reviewer 2026-10-18 02:28): the row carries the held bonds' COUNT, a DIGEST
+            # and the first 50, never the whole list -- the pairs are derived, rebuilt from the
+            # description and the frames (Fig 6), and no reader needs more (test_obj_event:188
+            # reads obj_event / shared); lf52's o59.shape row was 452 MB
+            dig = hashlib.sha256()
+            for h_ in held:
+                dig.update(json.dumps(h_, sort_keys=True, ensure_ascii=False).encode())
+                dig.update(b"\n")
+            named_of: dict = {}
+            for m in members:
+                named: dict[str, list] = {}
+                for p in found["pairs"]:
+                    ends = (p["left_reading"], p["right_reading"])
+                    if m in ends:
+                        other = ends[1] if ends[0] == m else ends[0]
+                        if p["molecule"] not in named.setdefault(other, []):
+                            named[other].append(p["molecule"])
+                named_of[m] = named
+            offered, held_n = len(found["pairs"]), len(held)
         self._named[slot] = named_of[slot]
         self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
                         described=sorted(described), junctions=found["junctions"],
                         **({"own_clock_out": held_out} if held_out else {}),
-                        offered=len(found["pairs"]), held_n=len(held),
+                        offered=offered, held_n=held_n,
                         held_digest=dig.hexdigest()[:16], held_sample=held[:50],
                         named=sorted(named_of[slot]),
                         **({"obj_event": ev, "members": sorted(members)} if ev is not None else {}),
@@ -3582,6 +3595,55 @@ class Agent:
         self._library_reach(slot, mine, own, described, dk=dk, members=answer, dks=dks)
         self._ev_done[ev] = {"offers": {m: list(self._lib_offers.get(m, [])) for m in answer},
                              "named": named_of}
+
+    def _lookup_stream(self, ev: Any, members: tuple, described: dict, desc_of: dict,
+                       hist: list) -> tuple:
+        """L: _lookup's pairs in ONE pass, in the order the lists had them (each member's own
+        pairs in turn, an event's deduped by the same 5-tuple), each read by composer.read_iter
+        (one bond reading per reading pair). Returns what the lists gave the record: (query,
+        offered, junctions, held_n, digest, the first 50 held, named_of). The dedupe set is the
+        one structure that still grows with the pairs (a named limit); its size is left in
+        self._lookup_set for the gate's reading, and no decision reads it."""
+        srcs = [described] if ev is None else [desc_of[m] for m in members]
+        query: set = set()
+        jun: set = set()
+        seen_p: set = set()
+        named_of: dict = {m: {} for m in members}
+        n = [0]
+
+        def pairs():
+            for d_ in srcs:
+                query.update(composer.lookup_query(d_))
+                for p in composer.lookup_iter(d_):
+                    if ev is not None:
+                        k_ = (p["molecule"], p["left"], p["right"], p["left_reading"],
+                              p["right_reading"])
+                        if k_ in seen_p:
+                            continue
+                        seen_p.add(k_)
+                    n[0] += 1
+                    jun.add((p["molecule"], p["left"], p["right"]))
+                    ends = (p["left_reading"], p["right_reading"])
+                    for m in members:
+                        if m in ends:
+                            other = ends[1] if ends[0] == m else ends[0]
+                            got = named_of[m].setdefault(other, [])
+                            if p["molecule"] not in got:
+                                got.append(p["molecule"])
+                    yield p
+        dig, held_n, sample = hashlib.sha256(), 0, []
+        frames = [b for b, _act, _val, _intent, _landed in hist]
+        for r in composer.read_iter(pairs(), frames, {}):
+            if r["held"]:
+                h_ = {k: r[k] for k in LOOKUP_HELD_KEYS}
+                held_n += 1
+                dig.update(json.dumps(h_, sort_keys=True, ensure_ascii=False).encode())
+                dig.update(b"\n")
+                if len(sample) < 50:
+                    sample.append(h_)
+        self._lookup_set = (len(seen_p), sys.getsizeof(seen_p)
+                            + sum(sys.getsizeof(k_) for k_ in seen_p))
+        return sorted(query), n[0], len(jun), held_n, dig, sample, named_of
 
     def _delta_kind(self, slot: str, hist: list) -> tuple | None:
         """K1: HOW the residual's own slot changed -- (cluster, sign, size class), from its last
