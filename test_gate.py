@@ -755,6 +755,26 @@ def test_the_value_before_is_an_observation():
     _refuses(r, gate.ALIASED)
 
 
+def _predicted(predicted, code, alphabet, bound="t"):
+    r = valid()
+    r.insert(1, {"mode": "specified", "seq": 20, "cycle": 0, "step": "PERCEIVE",
+                 "slot": "o0.shape", "event": "bet",
+                 "detail": {"mass": 0.0, "actual": predicted % alphabet, "alphabet": alphabet,
+                            "predicted": predicted, "predicted_code": code, "bound": bound}})
+    return r
+
+
+def test_a_prediction_coded_under_another_alphabet_is_aliased():
+    """F2: 59 predicted, coded 0 (under the bet-time 59), priced under 61 (sp80 c11)."""
+    _refuses(_predicted(59, 0, 61), gate.ALIASED)
+
+
+def test_a_prediction_coded_under_its_own_alphabet_passes():
+    """F2: the same bet coded under 61; a wrap on purpose (4 under 4 is 0); an own-clock reading."""
+    for args in ((59, 59, 61), (4, 0, 4), (70, 70, 61, "own_clock")):
+        assert gate.check(_predicted(*args))["verdict"] == gate.PASS, args
+
+
 def test_observations_the_alphabet_separates_pass():
     """The same two labels once the count includes the new one; and a signed value is its own."""
     assert gate.check(_observed((0, 9), (8, 9), (-2, 9)))["verdict"] == gate.PASS

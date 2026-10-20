@@ -925,6 +925,11 @@ ARMS: dict[str, str] = {
                          "set keeps the alphabet it last had, so sweep can price a departed parked "
                          "slot; a present slot reads as before. OFF: the departed read raises "
                          "KeyError (38b2daa). default ON",
+    "TETHER_ALPHA_PRICE": "ALPHA-PRICE, F2 (the reviewer 2026-10-20 13:38): a bet's prediction "
+                          "is coded under the alphabet pricing uses (re-read after the "
+                          "observation), so a correct prediction of a never-seen value costs 0 "
+                          "bits. OFF: coded under the bet-time alphabet; it wraps and is charged "
+                          "a full miss (d5c1b12). default ON",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",

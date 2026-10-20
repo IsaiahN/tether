@@ -310,7 +310,11 @@ def _aliasing(rows: list[dict]) -> dict | None:
     """13. Two different things the world showed on one slot are never read as one (the
     reviewer 2026-10-07 23:24Z). Read from OBSERVATIONS only -- never the term's output, which
     may wrap on purpose -- under the alphabet each was priced with. Rows that do not record their
-    alphabet (ledgers older than this check) are not judged."""
+    alphabet (ledgers older than this check) are not judged.
+    AND THE TERM'S OUTPUT IS CODED UNDER THAT SAME ALPHABET (F2, the reviewer 2026-10-20 13:38):
+    `predicted_code` is the raw `predicted` taken under the row's alphabet. A wrap on purpose
+    passes (it is the same residue); a code taken under another alphabet does not. Own-clock bets
+    (a world reading, never coded) are not judged."""
     seen: dict[str, set] = {}
     for r in rows:
         d = r.get("detail", {})
@@ -319,6 +323,11 @@ def _aliasing(rows: list[dict]) -> dict | None:
         a, n, slot = d.get("actual"), int(d["alphabet"]), r.get("slot")
         if a is None or n <= 0:
             continue
+        p, code = d.get("predicted"), d.get("predicted_code")
+        if (isinstance(p, int) and isinstance(code, int) and d.get("bound") != "own_clock"
+                and code != p % n):
+            return _v("aliasing", ALIASED, r.get("seq"),
+                      f"{slot}: predicted {p} coded {code} under {n}")
         prior = seen.setdefault(slot, set())
         if d.get("from_value") is not None:     # the value before is an observation too
             prior.add(d["from_value"])

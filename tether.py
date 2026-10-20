@@ -804,6 +804,10 @@ def cue_attr(a: str | None, known) -> str | None:
 # departed slots by design, and the per-step alphabet held only current slots: KeyError (E4a g50t,
 # ka59). OFF: a plain dict, the departed read raises (38b2daa)
 _ALPHA_LAST = armflag.arm("TETHER_ALPHA_LAST", default=True)
+# ALPHA-PRICE (the reviewer 2026-10-20 13:38, F2): a bet's prediction is coded under the alphabet
+# pricing uses, the one re-read after the observation. OFF: coded under the bet-time alphabet, so a
+# correct prediction of a value the slot never showed wrapped and was charged a full miss (d5c1b12)
+_ALPHA_PRICE = armflag.arm("TETHER_ALPHA_PRICE", default=True)
 # R4, MEMO ADMISSION (the reviewer 2026-10-17 17:35 C, amended 23:52 (A)): the AGENT-level instance
 # memos -- keyed by this board's slot and object names -- store an answer only when its key is asked
 # a SECOND time (the first ask computes, uses and records the key; promote-on-reuse, S1c, is the
@@ -7025,6 +7029,13 @@ class Agent:
         # construction: `betting` is drawn from `before`, read in the frame this was built in.
         bet_alphabet = self.alphabet
         self.alphabet = self._with_last(self._alphabets(self.env))
+        if _ALPHA_PRICE:
+            # ONE ALPHABET PER COMPARISON (F2): the prediction is re-coded from its raw value under
+            # the alphabet it is priced with. Own-clock bets are world readings, vanished slots are
+            # priced under bet_alphabet, and an unreadable value is suspended: none is re-coded
+            for s in betting:
+                if s in after and s not in _own_clock and raw.get(s) is not None:
+                    pred[s] = raw[s] % self.alphabet[s]
         # JOB B's HALF THAT RUNS TODAY: this action does not have ONE fixed effect.
         # **I WROTE HERE THAT IT CANNOT FIRE ON GRIDWORLD AND THE RUN DISPROVED IT** -- four
         # times in eight steps, because `down` is sometimes BLOCKED. The rule is invariant and
