@@ -5151,6 +5151,19 @@ class Agent:
         sers = [self._res.get(sl) for sl in h["slots"]]
         if all(s and arrival(s) == CONFIRMED for s in sers):
             self._hyp_end("arrived_no_clear", loss=True)
+        elif _GOAL_HYP:
+            # THE TREND (the reviewer 2026-10-20 17:34): the selector's shrink test with the
+            # opposite sign -- MIN_REPEAT + 1 consecutive readings with no new low, on every
+            # subject -- ends it; the gap budget is only the ceiling
+            w = MIN_REPEAT + 1
+
+            def stuck(sl: str) -> bool:
+                r = h["reads"].get(sl, [])
+                return len(r) >= w and min(r[-w:]) >= min([h["r0s"].get(sl, 1.0)] + r[:-w])
+            if h["steps"] > h["budget"]:
+                self._hyp_end("stalled", by="ceiling")
+            elif all(stuck(sl) for sl in h["slots"]):
+                self._hyp_end("stalled", by="trend")
         elif h["steps"] > h["budget"]:
             now = [s[-1] for s in sers if s]
             if not now or min(now) >= h["r0"]:
@@ -5171,7 +5184,7 @@ class Agent:
                 self.gamma.book[k] = v
 
     def _hyp_end(self, why: str, loss: bool = False, won: bool = False,
-                 step: str = "PLAN") -> None:
+                 step: str = "PLAN", by: str | None = None) -> None:
         h, self._hyp = self._hyp, None
         kept = self._books_kept()
         released = self._release_link(h["key"])
@@ -5184,7 +5197,9 @@ class Agent:
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
         self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
                         text=h["text"], why=why, steps=h["steps"], released=released,
-                        source=h["source"],
+                        source=h["source"], by=by, held_unreadable=h["held_unreadable"],
+                        reads_n={sl: len(v) for sl, v in h["reads"].items()},
+                        acted=dict(h["acted"]),
                         reads="a goal hypothesis ended; the next must differ (Fig 7 :36)")
 
     def _hyp_route(self, slot: str, before: dict) -> str | None:
@@ -5272,6 +5287,9 @@ class Agent:
             if c.slot not in before or c.slot not in self.slots or c.slot in der:
                 refused["subject not a movable slot"] += 1
                 continue
+            if _GOAL_HYP and self._self_moving(c.slot):
+                refused["self-moving subject"] += 1     # a clock; it may still be an operand
+                continue
             if compile_term.run(c, before) is not False:
                 refused["holds now or unreadable"] += 1
                 continue
@@ -5334,13 +5352,35 @@ class Agent:
                      "shelf": x[4] if x[4] in self._goal_shelf else None,
                      "steps": 0, "r0": rg if rg is not None else 1.0,
                      "budget": (abs(gap) if isinstance(gap, int) else 1) + MIN_REPEAT + 1,
-                     "born": self.cycle, "displaced": link["_held"]}
+                     "born": self.cycle, "displaced": link["_held"],
+                     "r0s": {s: (v if v is not None else 1.0) for s in link["slots"]
+                             for v in (self.goal_residual(s, before),)},
+                     "reads": {}, "held_unreadable": 0, "acted": Counter()}
         detail.update(routable=routable, pick_bits=x[0][1],
                       pick_rank=next((i for i, y in enumerate(ranked_all) if y is x), None))
         self.led.record(self.cycle, "PLAN", sl, "goal_hypotheses", pick=x[1], key=key,
                         slots=link["slots"], route=link["route"],
                         displaced=link["displaced"], r_goal=rg, budget=self._hyp["budget"],
                         source=self._hyp["source"], **detail)
+
+    def _self_moving(self, slot: str) -> bool:
+        """(3) (the reviewer 2026-10-20 17:34): a slot that moved by the same mean delta under
+        EVERY surfaced action, on every press of each, does not depend on what the agent does --
+        a clock, not a subject to steer. Read from the agent's own delta table; an action never
+        taken, or one press that left it still, leaves the dependence open (False)."""
+        ds = set()
+        for a in self.actions:
+            e = self.iface.table.get(a)
+            if not e or not e.get("n"):
+                return False
+            n = tot = 0
+            for (_c, k, _r), (cn, ct) in e.get("delta", {}).items():
+                if k == slot:
+                    n, tot = n + cn, tot + ct
+            if n != e["n"]:
+                return False
+            ds.add(round(tot / n, 6))
+        return len(self.actions) > 1 and len(ds) == 1 and 0 not in ds
 
     def _hyp_pair(self, before: dict, detail: dict) -> tuple | None:
         """All singles refuted or routeless: the conjunction of two that each ARRIVED without a
@@ -9059,6 +9099,14 @@ class Agent:
         # answering. Returning `probe` is not a relabel: the flush writes one row per slot in
         # `_starved`, which IS *the parks that precede this probe*, so B5's `followed` is
         # satisfied by construction rather than by a second mechanism.
+        # (b) (the reviewer 2026-10-20 17:34): a held hypothesis the selector chose, with a route,
+        # acts BEFORE System 0's contact probe and exploration -- the agent pursues the end it
+        # holds; with no route System 0 acts as before
+        if (_GOAL_HYP and self._hyp is not None and self._goal_choice() in self._hyp["slots"]
+                and self._goal_split(before, commit=False) is not None):
+            goal = self._goal_split(before)
+            if goal is not None:
+                return goal, "discriminate:goal"
         take, s0_tw, dist_r = None, None, None
         if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
                 self.drive.bored() and not (_STARVED_CONTACT and self._starved)):
@@ -9856,6 +9904,7 @@ class Agent:
         popped: dict[str, int] = {}
         undone: list = []
         touch_lost: list = []
+        held: list = []
         for slot in self.slots:
             g = self._discrepancy(slot, state)
             if not isinstance(g, int):
@@ -9883,8 +9932,14 @@ class Agent:
                 # an exit where the quantity exists and could not be READ is a defect. The
                 # total cannot tell those apart and was being read as if it could.
                 _x = why.get("exit", "unknown")
-                popped[_x] = popped.get(_x, 0) + 1
-                self._res.pop(slot, None)
+                if _ARRIVAL and _x == "operand-unreadable" and slot in self._res:
+                    # (a) (the reviewer 2026-10-20 17:34): the operand is there and could not be
+                    # read THIS frame -- no reading, so the series is HELD (no append, no pop);
+                    # a one-frame flicker no longer breaks a trend the selector reads
+                    held.append(slot)
+                else:
+                    popped[_x] = popped.get(_x, 0) + 1
+                    self._res.pop(slot, None)
             else:
                 # **MET -> UN-MET IS AN OBSERVATION, NOT NOISE TO DROP.** Detected before the
                 # append, while the prior reading is still in hand.
@@ -9913,6 +9968,13 @@ class Agent:
         # when the vocabulary row was emitted from the same position. Carried to the first
         # point where a PERCEIVE row is already in order.
         self._popped = popped
+        h = self._hyp
+        if h is not None:          # GQ2: the held hypothesis's own readings, and its held cycles
+            for sl in h["slots"]:
+                if sl in held:
+                    h["held_unreadable"] += 1
+                elif sl in counts:
+                    h["reads"].setdefault(sl, []).append(self._res[sl][-1])
         # **WHICH INTENT UNDID WHICH GOAL -- the reviewer's row, 2026-09-29, from Isaiah's
         # ruling.** Recording only; what the agent DOES about it is his call and is not here.
         #
@@ -14320,7 +14382,10 @@ class Agent:
         self._last_landed = None
         self._press_seen = None
         if action is None:
+            _h = self._hyp
             action, by = self.choose(before)
+            if _h is not None:
+                _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
         _prov = getattr(self.env, "provenance", lambda _a: None)(action)
         # S1: a press on a dead board throws nothing away, so it adds nothing to the restart's price
