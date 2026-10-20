@@ -16,6 +16,7 @@ import json
 import os
 import sqlite3
 import time
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -183,8 +184,38 @@ def _counts_apply(c: dict, g: dict) -> dict:
     return c
 
 
-def _read_hashed(f: Path, prefix: str) -> dict:
+def file_bytes(f: Path) -> bytes:
+    """L2 (TETHER_COMPRESS, the reviewer 2026-10-20 11:06): a save file's own bytes. Every
+    lineage file is JSON and opens with '{', never 0x78, so a first byte 0x78 is a zlib stream;
+    anything else is read as written. Names and hashes are those of the uncompressed bytes."""
     raw = f.read_bytes()
+    return zlib.decompress(raw) if raw[:1] == b"\x78" else raw
+
+
+def file_chunks(f: Path, size: int):
+    """file_bytes as a stream of at most about `size`-byte reads, decompressed as they are read."""
+    with open(f, "rb") as fh:
+        b = fh.read(size)
+        if b[:1] != b"\x78":
+            while b:
+                yield b
+                b = fh.read(size)
+            return
+        d = zlib.decompressobj()
+        while b:
+            out = d.decompress(b)
+            if out:
+                yield out
+            b = fh.read(size)
+        tail = d.flush()
+        if tail:
+            yield tail
+        if not d.eof:
+            raise Refused(f"{f.name}: a truncated compressed file")
+
+
+def _read_hashed(f: Path, prefix: str) -> dict:
+    raw = file_bytes(f)
     if f.stem != f"{prefix}_{hashlib.sha256(raw).hexdigest()[:16]}":
         raise Refused(f"{f.name} does not hash to its name")
     return json.loads(raw)
@@ -213,15 +244,18 @@ class AkFile:
 
     def verify(self) -> None:
         h = hashlib.sha256()
-        with open(self.f, "rb") as fh:
-            for b in iter(lambda: fh.read(self.chunk), b""):
-                h.update(b)
+        for b in file_chunks(self.f, self.chunk):
+            h.update(b)
         if self.f.stem != f"{self.prefix}_{h.hexdigest()[:16]}":
             raise Refused(f"{self.f.name} does not hash to its name")
 
     def entries(self):
-        with open(self.f, "rb") as fh:
-            head = fh.read(len(AK_HEAD))
+        head = b""
+        for c in file_chunks(self.f, 1 << 16):
+            head += c
+            if len(head) >= len(AK_HEAD):
+                break
+        head = head[:len(AK_HEAD)]
         if head != AK_HEAD.encode():
             self.whole = True
             body = _read_hashed(self.f, self.prefix)
@@ -230,13 +264,14 @@ class AkFile:
             return
         sha, dec = hashlib.sha256(), json.JSONDecoder()
         u8 = codecs.getincrementaldecoder("utf-8")()   # a read can split a character
-        with open(self.f, "rb") as fh:
+        chunks = file_chunks(self.f, self.chunk)
+        if True:
             buf, pos, done = "", 0, False
 
             def fill(need: int) -> None:
                 nonlocal buf, pos, done
                 while not done and len(buf) - pos < need:
-                    b = fh.read(self.chunk)
+                    b = next(chunks, b"")
                     sha.update(b)
                     done = not b
                     buf = buf[pos:] + u8.decode(b, final=done)
@@ -360,6 +395,17 @@ def _merge_asked(con: sqlite3.Connection, s: "Syms", k: int, h: str, bodies: lis
         tally_1: dict = {}
         no_n, batch = 0, []
         for e in a.entries():
+            if "sc" in e:          # L1 form 3: a tally row, already summed by (key, role, class)
+                key = (e["key"], e["role"], e["sc"])
+                tally_1[key] = tally_1.get(key, 0) + e["v"]
+                tally_n[key] = tally_n.get(key, 0) + e["n"]
+                continue
+            if e.get("w"):         # L1 form 3: a whole row, read by ak_whole only
+                batch.append((e["key"], e["role"], e["o"], e["x"]))
+                if len(batch) >= AK_BATCH:
+                    con.executemany("INSERT OR IGNORE INTO ak_whole VALUES (?,?,?,?)", batch)
+                    batch = []
+                continue
             if e["slot"] is None:
                 batch.append((e["key"], e["role"], e["o"], e["x"]))
                 if len(batch) >= AK_BATCH:
@@ -373,7 +419,7 @@ def _merge_asked(con: sqlite3.Connection, s: "Syms", k: int, h: str, bodies: lis
                 no_n += 1
         if batch:
             con.executemany("INSERT OR IGNORE INTO ak_whole VALUES (?,?,?,?)", batch)
-        new = a.tail.get("form") == 2
+        new = a.tail.get("form") in (2, 3)    # "3-from-1" (a migrated old-form file) adds variants
         if new and no_n:
             raise KeyError(f"n: {no_n} form-2 rows without n in {a.f.name}")
         tally = tally_n if new else tally_1
@@ -502,7 +548,7 @@ def catch_up(con: sqlite3.Connection, folder: str | Path) -> list:
     name. ONE save's parse in memory at a time (the parents are read first, then each save is
     read again for its merge). The migration is this from an empty store."""
     def read(h: str) -> dict:
-        raw = (Path(folder) / f"gen_{h}.json").read_bytes()
+        raw = file_bytes(Path(folder) / f"gen_{h}.json")
         if hashlib.sha256(raw).hexdigest()[:16] != h:
             raise Refused(f"gen_{h}.json does not hash to its name")
         return json.loads(raw)

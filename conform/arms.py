@@ -912,6 +912,12 @@ ARMS: dict[str, str] = {
                               "rule), a new relational gap recorded as derived_new and never "
                               "binned, a want-only park neither owes nor invents. OFF: as at "
                               "59cd5b9. default ON",
+    "TETHER_COMPRESS": "COMPRESSION L1 + L6a + L2 (the reviewer 2026-10-20 11:06, 11:13): "
+                       "save files written zlib-6 under the hash of their uncompressed bytes (one "
+                       "reader, lineage_store.file_bytes, reads both); the asked record in form 3 "
+                       "(a tally per (key, role, slot class) + the whole pairs, all its readers "
+                       "read); the in-game asked counter folded at ask. OFF: raw files, form 2. "
+                       "default ON",
     "TETHER_CUE_NORM": "DS (5) (the reviewer 2026-10-20 08:36): the library lookup reads a pair "
                        "reading (dcol_o1) as its base when the base is a known reading, by the "
                        "one cue_attr G1-S uses. OFF: the attribute as named (59cd5b9). default ON",

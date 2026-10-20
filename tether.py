@@ -4556,10 +4556,18 @@ class Agent:
                 seen = _PAIRS_SEEN if self._atoms_token else self._pairs_seen
                 maps = _BOUND_SLOT_MAP if self._atoms_token else self._bound_slot_map
                 skey = (self._atoms_token, sig, key, role, o, x, slot)
-                if lineage._MEMORY_STORE:
-                    self._ak_asked[skey] += 1     # S4: times asked; only write_ak reads it
                 memo = _BOUND_MEMO if self._atoms_token else self._bound_cache
                 mkey = (self._atoms_token, sig, key, role, o, x)
+                if lineage._MEMORY_STORE and lineage._COMPRESS:
+                    # L6a (the reviewer 11:13, fold at ask): an ask is recorded by what was true
+                    # when it was asked -- a pair held whole counts on its whole row, any other
+                    # slot ask on its (key, role, slot class) alone, so the counter grows by class,
+                    # not by instance. Only write_ak reads it; ak_whole's whole rows are unchanged
+                    self._ak_asked[(*mkey, None) if mkey in memo else
+                                   (self._atoms_token, sig, key, role, None, None,
+                                    "#" + lineage._ak_class(slot))] += 1
+                elif lineage._MEMORY_STORE:
+                    self._ak_asked[skey] += 1     # S4: times asked; only write_ak reads it
                 if tally is not None:
                     # SPEED-2: the pair's counts, once; the slot's memo holds landing rows only
                     tally.update(self._pair_count(lib, key, role, o, x, atoms, sig, mkey)[0])

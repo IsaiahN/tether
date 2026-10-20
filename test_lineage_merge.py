@@ -27,6 +27,7 @@ import gamma  # noqa: E402
 import gridworld  # noqa: E402
 import ledger  # noqa: E402
 import lineage  # noqa: E402
+import lineage_store  # noqa: E402
 import tether  # noqa: E402
 import world  # noqa: E402
 
@@ -68,6 +69,10 @@ def _n3(d):
 
 
 def main():
+    # C-seed-X (the reviewer 2026-10-20 13:10): the fixture needs the two branches to share a
+    # term, so one temperament: the old constant seed. Unpinned it failed its own guard in 2 of
+    # 5 runs under a per-process birth seed
+    tether._AGENT_SEED = False
     tmp = Path(tempfile.mkdtemp(prefix="merge_"))
     d, side = tmp / "main", tmp / "side"
     d.mkdir()
@@ -102,7 +107,7 @@ def main():
     assert _n3(d), "fixture: two tips did not raise N3 before the merge"
 
     m = lineage.merge(d)
-    mg = json.loads((d / m["written"]).read_bytes())
+    mg = json.loads(lineage_store.file_bytes(d / m["written"]))
     assert sorted(mg["parents"]) == sorted([s1, s2]), ("R-m3 a branch was dropped", mg["parents"])
     h, f = lineage.head(d)
     assert h == m["hash"], ("R-m3 a branch was dropped", h, m)

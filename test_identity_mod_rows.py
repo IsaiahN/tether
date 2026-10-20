@@ -7,6 +7,9 @@ position moved by one:
   d. MUST-FAIL: a wrong segment_rows count is a difference;
   e. an added field fails unless it is named, and a named field that changes a base value
      still fails.
+  f. the arms row's birth seed is masked; g. MUST-FAIL: the effective @run seed differs;
+  h. MUST-FAIL: with no @run seed row the arms seed is the effective one (the reviewer
+     2026-10-20 12:23).
     python test_identity_mod_rows.py
 """
 from __future__ import annotations
@@ -76,3 +79,22 @@ if __name__ == "__main__":
     b[3]["detail"]["bet_seq"] = 2
     assert compare(BASE, b, drop, {"process_settle:offered"}), "e: naming a field hid a change"
     print("e. an added field passes only when named, and never hides a changed value: ok")
+
+    def _seeded(birth, eff):
+        def run(n, event, **d):
+            return {"seq": n, "cycle": 0, "step": "PLAN", "slot": "@run", "event": event,
+                    "mode": "specified", "detail": d}
+        r = [run(-2, "arms", seed=birth, seed_source="birth", generation=0)]
+        if eff:
+            r.append(run(-1, "seed", seed=eff, seed_source="lineage:t", generation=3))
+        return r + copy.deepcopy(BASE)
+
+    def _eff(x, y):
+        return any("effective seed" in s for s in compare(x, y, set()))
+
+    assert compare(_seeded("b1", "e"), _seeded("b2", "e"), set()) == [], "f: birth seed failed"
+    print("f. two ledgers differing only in the arms row's birth seed are identical: ok")
+    assert _eff(_seeded("b1", "e"), _seeded("b1", "e2")), "g: an effective seed difference passed"
+    print("g. MUST-FAIL: ledgers differing only in the effective @run seed are different: ok")
+    assert _eff(_seeded("b1", None), _seeded("b2", None)), "h: a lineage-less seed passed"
+    print("h. MUST-FAIL: with no @run seed row the arms seed is the effective one: ok")

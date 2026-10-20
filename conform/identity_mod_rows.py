@@ -32,6 +32,19 @@ POSITIONS = (
 # completion_sweep.segment_rows = len(led) - start at record time, so its span is
 # [own seq - value, own seq).
 COUNTS = (("completion_sweep", ("detail", "segment_rows")),)
+# The @run arms row's seed is the BIRTH seed, drawn per process; a lineage replaces it with a later
+# @run seed row (tether._seed_from_lineage). So the arms row's seed fields are masked and the
+# EFFECTIVE seed is compared instead (the reviewer 2026-10-20 12:23: one mask, every comparer
+# imports it).
+BIRTH = ("seed", "seed_source")
+
+
+def effective_seed(rows: list[dict]) -> tuple:
+    """(seed, generation, seed_source) of the last @run seed row, else of the @run arms row."""
+    s = [r["detail"] for r in rows if r.get("slot") == "@run" and r.get("event") == "seed"]
+    d = s[-1] if s else next((r["detail"] for r in rows
+                              if r.get("slot") == "@run" and r.get("event") == "arms"), {})
+    return d.get("seed"), d.get("generation"), d.get("seed_source")
 
 
 def _get(node, path):
@@ -60,9 +73,16 @@ def compare(a: list[dict], b: list[dict], drop: set[str],
     amap = {x["seq"]: y["seq"] for x, y in zip(a, kept, strict=True)}   # base seq -> new seq
     dropped = sorted(r["seq"] for r in b if r["event"] in drop)
     bad = []
+    ea, eb = effective_seed(a), effective_seed(kept)
+    if ea != eb:
+        bad.append(f"effective seed: base {ea}, new {eb}")
     for x, y in zip(a, kept, strict=True):
         x = json.loads(json.dumps(x))
         y = json.loads(json.dumps(y))
+        if x.get("slot") == "@run" and x["event"] == "arms" == y["event"]:
+            for k in BIRTH:
+                x["detail"].pop(k, None)
+                y["detail"].pop(k, None)
         for f in new_fields:
             ev, _, field = f.partition(":")
             if y["event"] == ev and field in y["detail"] and field not in x["detail"]:

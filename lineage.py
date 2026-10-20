@@ -58,6 +58,11 @@ _ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=True)
 # it on"): OFF, every load is the saves' fold (14.35 GiB on the E4 life, over B); ON, that fold is
 # reached only on a refusal. TETHER_MEMORY_STORE=0 is the old path.
 _MEMORY_STORE = armflag.arm("TETHER_MEMORY_STORE", default=True)
+# COMPRESSION L1 + L6a + L2 (the reviewer 2026-10-20 11:06, 11:13; Isaiah 05:02 "compression is
+# required on all levels when passing"): every save file written zlib-6 under the hash of its
+# UNCOMPRESSED bytes; the asked record written in its readers' own form (form 3: a tally per
+# (key, role, slot class) + the whole pairs); the in-game counter folded at ask. OFF: raw form 2.
+_COMPRESS = armflag.arm("TETHER_COMPRESS", default=True)
 # S6 H, THE STORE HEALS AT OPEN (the reviewer 2026-10-19; the K crash runs): (1) a store failing
 # its cheap check WITH a WAL is checkpointed (TRUNCATE) and checked again, size and quick_check --
 # committed pages still in the WAL make page_count exceed the file, so a correct store read as
@@ -153,12 +158,20 @@ def _dumps(x: Any) -> bytes:
     return json.dumps(x, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
+def _store_bytes(raw: bytes) -> bytes:
+    """L2: what a save file holds on disk -- zlib-6 of its bytes under TETHER_COMPRESS. The name
+    and every hash stay those of the uncompressed bytes (lineage_store.file_bytes reads both)."""
+    import zlib
+    return zlib.compress(raw, 6) if _COMPRESS else raw
+
+
 def _read(d: Path) -> dict[str, dict]:
     """Every generation in `d`, each verified against its own name; raises on a bad hash or a
     parent that is not in the folder."""
+    import lineage_store as ls
     gens: dict[str, dict] = {}
     for f in sorted(d.glob(f"{PREFIX}*.json")):
-        raw = f.read_bytes()
+        raw = ls.file_bytes(f)
         h = hashlib.sha256(raw).hexdigest()[:16]
         if f.stem != PREFIX + h:
             raise ValueError(f"lineage: {f.name} does not hash to its name ({h})")
@@ -513,7 +526,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
         with open(p / f"{PREFIX}{h}.json", "xb") as fh:
-            fh.write(raw)
+            fh.write(_store_bytes(raw))
     except FileExistsError:
         if store_con is not None:
             store_con.close()
@@ -1045,7 +1058,7 @@ def merge(d: str | Path, tips: list[str] | None = None) -> dict:
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
         with open(p / f"{PREFIX}{h}.json", "xb") as fh:
-            fh.write(raw)
+            fh.write(_store_bytes(raw))
     except FileExistsError:
         return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parents": tips}
@@ -1160,7 +1173,7 @@ def write_index(d: str | Path, ag: Any, h: str) -> dict | None:
     name = f"{IDX}{h}_{ih}.json"
     try:
         with open(p / name, "xb") as fh:
-            fh.write(raw)
+            fh.write(_store_bytes(raw))
     except FileExistsError:
         return {"refused": f"{name} exists; an index is never overwritten"}
     known.update((repr(sig), e["key"], e["role"]) for e in entries)
@@ -1194,7 +1207,8 @@ def load_index(d: str | Path, ag: Any, chain: list) -> dict | None:
         if len(files) != 1:
             reason = "missing" if not files else f"{len(files)} index files"
         else:
-            raw = files[0].read_bytes()
+            import lineage_store as ls
+            raw = ls.file_bytes(files[0])
             rep["bytes"] += len(raw)
             if files[0].stem != f"{IDX}{gh}_{hashlib.sha256(raw).hexdigest()[:16]}":
                 reason = "hash mismatch"
@@ -1314,7 +1328,7 @@ def _put_memo(p: Path, h: str, prefix: str, sig: tuple, entries: list, refused: 
     name = f"{prefix}{h}_{hashlib.sha256(raw).hexdigest()[:16]}.json"
     try:
         with open(p / name, "xb") as fh:
-            fh.write(raw)
+            fh.write(_store_bytes(raw))
     except FileExistsError:
         return {"refused": f"{name} exists; a memo file is never overwritten"}
     return {"written": name, "entries": len(entries), "refused": len(refused)}
@@ -1335,7 +1349,8 @@ def _memo_bodies(p: Path, prefix: str, sig: tuple, chain: list, rep: dict,
             rep["absent"] += 1      # a generation written before the memo carried, or with none
             continue
         for f in files:
-            raw = f.read_bytes()
+            import lineage_store as ls
+            raw = ls.file_bytes(f)
             rep["bytes"] += len(raw)
             try:
                 body = json.loads(raw)
@@ -1603,6 +1618,36 @@ def _ak_entries(ag: Any, tok: Any, sig: tuple) -> Any:
         yield {"key": r[0], "role": r[1], "o": r[2], "x": r[3], "slot": r[4], "n": n}
 
 
+def _ak_class(slot: Any) -> str:
+    """The slot class the store keys asked_tally by: "" for a whole ask, the attribute otherwise
+    ("o3.col" -> "col"; L6a's folded key "#col" -> "col")."""
+    if slot is None:
+        return ""
+    return slot[1:] if slot.startswith("#") else slot.split(".", 1)[-1]
+
+
+def _ak_entries3(ag: Any, tok: Any, sig: tuple) -> Any:
+    """L1 FORM 3 (the reviewer 2026-10-20 11:06, 11:13): the asked record in its readers' own form
+    -- one tally row per (key, role, slot class) with n (times asked) and v (counter rows), which is
+    all asked_tally reads, and one whole row per (key, role, o, x) asked whole ("w"), which is all
+    ak_whole (and so recorded_whole) reads. Sorted, so the file is a function of the counter."""
+    tally: dict = {}
+    whole: dict = {}
+    for k, n in ag._ak_asked.items():
+        if k[0] != tok or not (k[1] is sig or k[1] == sig):
+            continue
+        key, role, o, x, slot = k[2:]
+        t = tally.setdefault((key, role, _ak_class(slot)), [0, 0])
+        t[0] += n
+        t[1] += 1
+        if slot is None:
+            whole[(key, role, o, x)] = whole.get((key, role, o, x), 0) + n
+    for (key, role, sc), (n, v) in sorted(tally.items(), key=repr):
+        yield {"key": key, "role": role, "sc": sc, "n": n, "v": v}
+    for (key, role, o, x), n in sorted(whole.items(), key=repr):
+        yield {"key": key, "role": role, "o": o, "x": x, "slot": None, "n": n, "w": 1}
+
+
 def _put_memo_stream(p: Path, h: str, prefix: str, sig: tuple, entries: Any, extra: dict,
                      chunk: int = 20000) -> dict:
     """_put_memo's file, BYTE-IDENTICAL to _dumps of the same body, written as it is encoded (S5 c,
@@ -1617,11 +1662,13 @@ def _put_memo_stream(p: Path, h: str, prefix: str, sig: tuple, entries: Any, ext
     moved = []
     if tmp.exists():   # a crash's leftover: never a save (no hash name), and never deleted (09:45)
         moved.append(_set_aside(tmp))
+    import zlib
     sha, n, first = hashlib.sha256(), 0, True
+    z = zlib.compressobj(6) if _COMPRESS else None
     with open(tmp, "xb") as fh:
         def put(b: bytes) -> None:
-            sha.update(b)
-            fh.write(b)
+            sha.update(b)        # the name is the hash of the UNCOMPRESSED bytes (L2)
+            fh.write(z.compress(b) if z is not None else b)
         put(b'{"entries":[')
         buf: list = []
         for e in entries:
@@ -1633,6 +1680,8 @@ def _put_memo_stream(p: Path, h: str, prefix: str, sig: tuple, entries: Any, ext
         if buf:
             put(("" if first else ",").encode() + ",".join(buf).encode("utf-8"))
         put(b"]," + tail[1:])
+        if z is not None:
+            fh.write(z.flush())
     name = f"{prefix}{h}_{sha.hexdigest()[:16]}.json"
     try:
         os.rename(tmp, p / name)
@@ -1664,7 +1713,9 @@ def write_ak(d: str | Path, ag: Any, h: str) -> dict | None:
     sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
     if _MEMORY_STORE:
         tok = getattr(ag, "_atoms_token", None)
-        out = _put_memo_stream(p, h, AKMEMO, sig, _ak_entries(ag, tok, sig), {"form": 2})
+        out = (_put_memo_stream(p, h, AKMEMO, sig, _ak_entries3(ag, tok, sig), {"form": 3})
+               if _COMPRESS else
+               _put_memo_stream(p, h, AKMEMO, sig, _ak_entries(ag, tok, sig), {"form": 2}))
         for m in out.get("set_aside", ()):
             _c, _s, _lv = ag._boundary_key("@lineage")
             ag.led.record(_c, "SETTLE", _s, "set_aside", **_lv, **m,
@@ -1700,6 +1751,8 @@ def load_ak(d: str | Path, ag: Any, chain: list) -> dict | None:
     rep: dict = {"pending": 0, "absent": 0, "signature_differs": 0, "unreadable": 0, "bytes": 0}
     for gh, body in _memo_bodies(p, AKMEMO, sig, chain, rep, any_sig=True):
         for e in body["entries"]:
+            if "sc" in e:      # a form-3 tally row: no instance, no pending question (L1)
+                continue
             k = (sig, e["key"], e["role"], e["o"], e["x"])
             _AK_PENDING.setdefault(k, {"gen": gh, "slots": set(), "folder": folder})["slots"].add(
                 e["slot"])
