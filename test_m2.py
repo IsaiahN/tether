@@ -1296,6 +1296,10 @@ def check_the_goal_is_a_slot_the_agent_can_perceive():
     # was wrong. Left recorded because a cache makes a live mechanism look absent.
     w = arc_world.ArcWorld.__new__(arc_world.ArcWorld)
     w._read = None
+    # what __init__ sets and the observer's relation publish reads (TETHER_OBSERVER, ON since the
+    # 10-15 flip, 083c07b): no contacts on this two-object board
+    w._contacts, w._contact_pts, w._shape_codes, w._prev_contacts = {}, None, {}, None
+    w._actors, w._pair_read, w._pair_src, w._mode_streak, w._cue = frozenset(), None, {}, {}, None
     w.blind = False
     w._frame = _Frame()
     w._palette = 16

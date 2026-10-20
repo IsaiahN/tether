@@ -401,6 +401,64 @@ def lookup(described: dict, link: bool = True) -> dict:
             "junctions": len({(p["molecule"], p["left"], p["right"]) for p in pairs})}
 
 
+def lookup_query(described: dict, link: bool = True) -> list:
+    """lookup's "query": the encodings the description lights."""
+    as_enc: set = set()
+    for t in described.values():
+        as_enc.update((t,) + (NOTE_LINK.get(t, ()) if link else ()))
+    return sorted(as_enc)
+
+
+def lookup_iter(described: dict, link: bool = True):
+    """lookup's pairs, YIELDED one at a time in lookup's order (L: none held as a list)."""
+    as_enc: dict = {}
+    for reading, t in described.items():
+        for e in (t,) + (NOTE_LINK.get(t, ()) if link else ()):
+            as_enc.setdefault(e, set()).add(reading)
+    for mol, a, b, ea, eb in _lit(frozenset(as_enc)):
+        ra = sorted({r for e in ea for r in as_enc[e]})
+        rb = sorted({r for e in eb for r in as_enc[e]})
+        via = sorted(ea | eb)
+        for x, y in itertools.product(ra, rb):
+            if x != y:
+                yield {"molecule": mol, "left": a, "right": b, "left_reading": x,
+                       "right_reading": y, "via": via}
+
+
+def read_iter(pairs, frames: list, cache: dict):
+    """read_pairs' rows, YIELDED one at a time (L). A row's reading depends on its two readings
+    and the frames ONLY (read_pairs: left_reading, right_reading, frames, READ_ON_TWO, holds), so
+    it is computed once per (left_reading, right_reading) into `cache` and copied into each row."""
+    for p in pairs:
+        key = (p["left_reading"], p["right_reading"])
+        got = cache.get(key)
+        if got is None:
+            got = cache[key] = _read_two(key[0], key[1], frames)
+        occ, held = got
+        yield dict(p, occasions=dict(occ), held=list(held), undecided=dict(UNDECIDED_HERE))
+
+
+def _read_two(left: str, right: str, frames: list) -> tuple:
+    """read_pairs' per-pair body for one reading pair: (occasions, held)."""
+    va = [f.get(left) for f in frames]
+    vb = [f.get(right) for f in frames]
+
+    def moved(v):
+        return [None if v[t] is None or v[t - 1] is None else v[t] != v[t - 1]
+                for t in range(1, len(v))]
+    a, b = moved(va), moved(vb)
+    asked = {"+": [t for t in range(len(a)) if a[t] is True or b[t] is True],
+             "−": [t for t in range(len(a)) if a[t] is True]}
+    asked["→"] = asked["⇒"] = [t for t in range(len(b)) if b[t] is True]
+    held = []
+    for bond in READ_ON_TWO:
+        got = holds(bond, a, b)
+        seen = [got[t] for t in asked[bond]]
+        if True in seen and False not in seen:
+            held.append(bond)
+    return {k: len(v) for k, v in asked.items()}, tuple(held)
+
+
 def read_pairs(pairs: list, frames: list) -> list:
     """Each offered pair read by the bond tests over the residual's own frames. An operand's
     truth on a frame is THAT ITS READING CHANGED there. Each bond is asked only where its own
