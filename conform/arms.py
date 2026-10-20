@@ -796,6 +796,14 @@ ARMS: dict[str, str] = {
                       "OFF is the line before it exactly. "
                       "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                       "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7L_WHOLES": "3b, 7l wholes by use (the reviewer 2026-10-16 14:20; the 14:29 "
+                        "mapping): asks are counted per question, written per generation in "
+                        "the ak_ file (counts) and summed at load with the generations that "
+                        "asked; a question asked in two or more generations is a recorded "
+                        "whole, bound at its first ask from the live-checked held index. "
+                        "One wholes row at load (questions, by use, top by use, bytes). No "
+                        "fixed count. OFF: today exactly. default ON (Isaiah 2026-10-15 07:53, "
+                        "17:26)",
     "TETHER_7I_ROUTE": "3a, 7i ROUTED (the seat 2026-10-16 14:14): an innate term refuted on a "
                        "slot (at the refute site) and a settled term refused (refuse_term) are "
                        "queued per step; beside the indistinct row one PERCEIVE row "

@@ -617,6 +617,9 @@ _7H_RESCOPE = armflag.arm("TETHER_7H_RESCOPE", default=True)
 # 3a, 7i ROUTED (the seat 2026-10-16 14:14): a ground contradiction -- an innate term refuted, a
 # settled term refused -- is a perception trigger, beside the indistinct one
 _7I_ROUTE = armflag.arm("TETHER_7I_ROUTE", default=True)
+# 3b, 7l WHOLES BY USE (the reviewer 2026-10-16 14:20): asks counted per question and carried; a
+# question asked in two or more generations is a ready whole at its first ask
+_7L_WHOLES = armflag.arm("TETHER_7L_WHOLES", default=True)
 _OBJ_ID = re.compile(r"o\d+")
 # store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
 _LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
@@ -2868,6 +2871,8 @@ class Agent:
                 skey = (self._atoms_token, sig, key, role, o, x, slot)
                 memo = _BOUND_MEMO if self._atoms_token else self._bound_cache
                 mkey = (self._atoms_token, sig, key, role, o, x)
+                if _7L_WHOLES:
+                    lineage._ASK_N[mkey[1:]] += 1     # 3b: the question's use
                 if tally is not None:
                     # SPEED-2: the pair's counts, once; the slot's memo holds landing rows only
                     tally.update(self._pair_count(lib, key, role, o, x, atoms, sig, mkey)[0])

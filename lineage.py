@@ -22,6 +22,7 @@ evidence IS read back into standing at load (Gamma.replay), globally, never per 
 record itself is unchanged. The dormant record is still not read back."""
 from __future__ import annotations
 
+import collections
 import dataclasses
 import hashlib
 import heapq
@@ -721,11 +722,12 @@ def _memo_source(ag: Any) -> list:
     return [(k[1], k[2], k[3], k[4], k[5], v) for k, v in ag._bound_cache.items()]
 
 
-def _put_memo(p: Path, h: str, prefix: str, sig: tuple, entries: list, refused: list) -> dict:
+def _put_memo(p: Path, h: str, prefix: str, sig: tuple, entries: list, refused: list,
+              **extra: Any) -> dict:
     """One memo file beside generation `h`, opened "xb", named by its own hash."""
     arm, parts = _sig_parts(sig)
     raw = _dumps({"gen": h, "sig_arm": arm, "sig_atoms": parts, "entries": entries,
-                  "refused": refused})
+                  "refused": refused, **extra})
     name = f"{prefix}{h}_{hashlib.sha256(raw).hexdigest()[:16]}.json"
     try:
         with open(p / name, "xb") as fh:
@@ -962,7 +964,11 @@ def resolve_bs(ag: Any, lib: Any, skey: tuple, atoms: dict) -> tuple | None:
 AKMEMO = "ak_"
 _AK_CARRIED: dict[str, set] = {}   # folder -> (entry, role, o, x, slot): no signature (R1)
 _AK_PENDING: dict[tuple, dict] = {}   # (signature, entry, role, o, x) -> {gen, slots, folder}
-_AK_N: dict[str, int] = {"whole": 0, "slot": 0}   # recorded pairs met at their first ask
+_AK_N: dict[str, int] = {"whole": 0, "slot": 0, "whole_by_use": 0}   # recorded pairs met at
+# their first ask; whole_by_use: a whole because it was asked in two or more generations (3b)
+_ASK_N: collections.Counter = collections.Counter()   # 3b: (sig, entry, role, o, x) -> asks here
+_ASK_WRITTEN: dict = {}                               # 3b: the asks the last ak_ write took
+_ASK_GENS: dict[tuple, set] = {}                      # 3b: question -> generations that asked it
 
 
 def _ak_source(ag: Any) -> list:
@@ -990,7 +996,15 @@ def write_ak(d: str | Path, ag: Any, h: str) -> dict | None:
         if s != sig or (key, role, o, x, slot) in known:
             continue
         entries.append({"key": key, "role": role, "o": o, "x": x, "slot": slot})
-    out = _put_memo(p, h, AKMEMO, sig, entries, [])
+    counts = []
+    if tether._7L_WHOLES:
+        # 3b: each question's asks since the last write (a generation that asked it)
+        counts = [{"key": q[1], "role": q[2], "o": q[3], "x": q[4], "n": n - _ASK_WRITTEN.get(q, 0)}
+                  for q, n in sorted(_ASK_N.items(), key=lambda kv: repr(kv[0]))
+                  if q[0] == sig and n > _ASK_WRITTEN.get(q, 0)]
+    out = _put_memo(p, h, AKMEMO, sig, entries, [], **({"counts": counts} if counts else {}))
+    if "written" in out and counts:
+        _ASK_WRITTEN.update({q: n for q, n in _ASK_N.items() if q[0] == sig})
     if "written" in out:
         known.update((e["key"], e["role"], e["o"], e["x"], e["slot"]) for e in entries)
     return out
@@ -1010,13 +1024,31 @@ def load_ak(d: str | Path, ag: Any, chain: list) -> dict | None:
     folder = str(p.resolve())
     known = _AK_CARRIED.setdefault(folder, set())
     rep: dict = {"pending": 0, "absent": 0, "signature_differs": 0, "unreadable": 0, "bytes": 0}
+    use: collections.Counter = collections.Counter()
     for gh, body in _memo_bodies(p, AKMEMO, sig, chain, rep, any_sig=True):
         for e in body["entries"]:
             k = (sig, e["key"], e["role"], e["o"], e["x"])
             _AK_PENDING.setdefault(k, {"gen": gh, "slots": set(), "folder": folder})["slots"].add(
                 e["slot"])
             known.add((e["key"], e["role"], e["o"], e["x"], e["slot"]))
+        if tether._7L_WHOLES:
+            for c in body.get("counts", ()):
+                q = (sig, c["key"], c["role"], c["o"], c["x"])
+                _ASK_GENS.setdefault(q, set()).add(gh)
+                use[q] += c["n"]
     rep["pending"] = len(_AK_PENDING)
+    if tether._7L_WHOLES:
+        # 3b: the wholes by use -- every question asked in two or more generations is ready at
+        # its first ask (no fixed count); ranked by total use for the record
+        by_use = sorted((q for q, g in _ASK_GENS.items() if len(g) >= 2),
+                        key=lambda q: (-use[q], repr(q)))
+        rep["wholes"] = {"questions": len(use), "by_use": len(by_use),
+                         "recorded_whole": sum(1 for v in _AK_PENDING.values()
+                                               if None in v["slots"]),
+                         "top": [[q[1], q[2], q[3], q[4], use[q], len(_ASK_GENS[q])]
+                                 for q in by_use[:5]],
+                         "bytes": rep["bytes"]}
+        ag.led.record(0, ag._running_step, "@lineage", "wholes", **rep["wholes"])
     return rep
 
 
@@ -1029,6 +1061,10 @@ def recorded_whole(mkey: tuple) -> bool:
         return False
     if None in p["slots"]:
         _AK_N["whole"] += 1
+        return True
+    import tether
+    if tether._7L_WHOLES and len(_ASK_GENS.get((sig, key, role, o, x), ())) >= 2:
+        _AK_N["whole_by_use"] += 1    # 3b: asked in two or more generations
         return True
     _AK_N["slot"] += 1
     return False
