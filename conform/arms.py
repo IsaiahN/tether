@@ -789,6 +789,18 @@ ARMS: dict[str, str] = {
                        "OFF is the line before it exactly. "
                        "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                        "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7L_KIND": "7l (the reviewer 2026-10-15 17:32, 20:41): the library questions asked "
+                      "by kind (the sorted attribute types of an owner's slots) and one "
+                      "episode per ask (outcome, salience = outstanding surprise), written "
+                      "through the lineage; read by no chooser. "
+                      "OFF is the line before it exactly. "
+                      "default ON (Isaiah 2026-10-15 07:53, 17:26); "
+                      "the switch is kept for the checklist's culprit isolation",
+    "TETHER_7M_ANALOGY": "7m: at site 8 a pair whose kinds were asked before goes first, "
+                         "before the 7h tried count and the draw; an order, never a cut. "
+                         "OFF is the line before it exactly. "
+                         "default ON (Isaiah 2026-10-15 07:53, 17:26); "
+                         "the switch is kept for the checklist's culprit isolation",
     "TETHER_CARRY_RECORD": "S1g, the asked record (Isaiah 2026-10-15 13:26, option B; the "
                            "reviewer 13:27): under the slot filter a generation carries which "
                            "questions were asked (ak_), never the bound answers; a pair recorded "
