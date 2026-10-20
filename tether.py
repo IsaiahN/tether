@@ -527,6 +527,12 @@ _BOUND_SLOT_IDX: dict = {}   # S1b: the same key -> the HELD indices of its rows
 _PAIRS_SEEN: set = set()     # pairs whose first slot was answered (bound, or carried in bs_)
 _BOUND_SLOT_MAP: dict = {}   # whole-memo key -> (landing slot -> row indices, every-slot indices)
 _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
+# SPEED-2 (Isaiah 2026-10-15 17:24; the reviewer 17:31, 17:32): a pair's refusals are counted
+# ONCE, into the Counter _index_reach adds, and never re-iterated per slot, bound, or kept in
+# a slot's memo. The same views, causes and counts; OFF is today's line exactly
+_SPEED2_COUNT = armflag.arm("TETHER_SPEED2_COUNT", default=True)
+_PAIR_TALLY: dict = {}   # whole-memo key -> (the pair's refusal Counter, the held indices
+#                          of its uncounted every-slot rows)
 # (b'-l) THE LINEAGE HOLD, phase 1 (Fig 6, Fig 12, Fig 4; the reviewer 2026-10-14 16:29, 16:34,
 # 16:38, 17:02). ON; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
 # form, as the record, and never consulted by slot name on a later level; a same-level restart
@@ -851,6 +857,24 @@ def _slot_map(role: str, whole: tuple) -> tuple:
         else:
             by.setdefault((b if role == "CAUSE" else a).slot, []).append(i)
     return {k: tuple(v) for k, v in by.items()}, tuple(every)
+
+
+def _tally_key(role: str, a: Any, b: Any, sub: Any) -> str | None:
+    """SPEED-2: the key _index_reach counts a row under, or None for a row it reads. The
+    reason is the bound text: _bound's Refusal is Refusal(sub(c.reason))."""
+    if role == "CAUSE":
+        if isinstance(a, compile_term.Refusal):
+            return "if: " + sub(a.reason)
+        if isinstance(b, compile_term.Refusal):
+            return "then: " + sub(b.reason)
+        return None
+    if a is None:
+        return compile_term.QUANTIFIED
+    return sub(a.reason) if isinstance(a, compile_term.Refusal) else None
+
+
+def _pair_tally_of(ag: Any, mkey: tuple) -> tuple | None:
+    return (_PAIR_TALLY if ag._atoms_token else ag._pair_tally).get(mkey)
 
 
 def _whole_rows(role: str, whole: tuple, slot: str, maps: dict, mkey: tuple) -> tuple:
@@ -1795,6 +1819,8 @@ class Agent:
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
         self._bound_slot_cache: dict = {}  # S1: the same, filtered to one slot (+ slot in the key)
         self._bound_slot_idx: dict = {}    # S1b: the held indices of those rows
+        self._pair_tally: dict = {}        # SPEED-2: as _PAIR_TALLY, per Agent
+        self._named_split: dict = {}       # SPEED-2 (c): a named compile split once per pair
         self._pairs_seen: set = set()      # S1c: as _PAIRS_SEEN, for an Agent with its own memo
         self._bound_slot_map: dict = {}    # S1c: as _BOUND_SLOT_MAP, likewise
         self._atoms_token = shared_token(self.gamma.atoms)   # None: this Agent's own memo
@@ -2573,12 +2599,13 @@ class Agent:
         views: dict = {}
         causes: dict = {}
         refused: Counter = Counter()
+        tally = refused if _SPEED2_COUNT else None
         partner = others[0] if others else mine
         sig = compile_term.signature(atoms) if _INDEX_HOLD else None
         for key, _w in lit:
             for role in reach.SINGLE:
                 for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms, sig,
-                                                 slot=slot):
+                                                 slot=slot, tally=tally):
                     if c is None:
                         refused[compile_term.QUANTIFIED] += 1
                         continue
@@ -2594,7 +2621,7 @@ class Agent:
                             hit[1]["entries"] += 1
             for o_ in others:
                 for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp, atoms,
-                                                         sig, slot=slot):
+                                                         sig, slot=slot, tally=tally):
                     if isinstance(if_c, compile_term.Refusal):
                         refused["if: " + if_c.reason] += 1
                         continue
@@ -2613,7 +2640,8 @@ class Agent:
         return views, causes, refused
 
     def _compiled(self, lib: Any, key: str, role: str, o: str, x: str, comp: Any, atoms: dict,
-                  sig: tuple | None, slot: str | None = None) -> Any:
+                  sig: tuple | None, slot: str | None = None,
+                  tally: Counter | None = None) -> Any:
         """(cand, compiled, then-compiled) per candidate: a CAUSE's if and then, a view's condition
         with None for then, None for a quantified view. Under the index hold a held role whose
         names are plain ids binds the compile held for its entry; anything else, or the arm OFF,
@@ -2634,12 +2662,15 @@ class Agent:
                 seen = _PAIRS_SEEN if self._atoms_token else self._pairs_seen
                 maps = _BOUND_SLOT_MAP if self._atoms_token else self._bound_slot_map
                 skey = (self._atoms_token, sig, key, role, o, x, slot)
+                memo = _BOUND_MEMO if self._atoms_token else self._bound_cache
+                mkey = (self._atoms_token, sig, key, role, o, x)
+                if tally is not None:
+                    # SPEED-2: the pair's counts, once; the slot's memo holds landing rows only
+                    tally.update(self._pair_count(lib, key, role, o, x, atoms, sig, mkey)[0])
                 got = smemo.get(skey)
                 if got is not None:
                     _INDEX_N["bound_slot_hit"] += 1
                     return list(got)
-                memo = _BOUND_MEMO if self._atoms_token else self._bound_cache
-                mkey = (self._atoms_token, sig, key, role, o, x)
                 whole = memo.get(mkey)
                 carried = None if whole is not None else lineage.resolve_bs(self, lib, skey, atoms)
                 if carried is not None:
@@ -2675,13 +2706,17 @@ class Agent:
                 if whole is not None:
                     _INDEX_N["bound_slot_from_whole"] += 1
                     idx = _whole_rows(role, whole, slot, maps, mkey)
+                    if tally is not None:
+                        idx = tuple(heapq.merge(maps[mkey][0].get(slot, ()),
+                                                _pair_tally_of(self, mkey)[1]))
                     got = tuple(whole[i] for i in idx)
                 else:
                     seen.add(mkey)
                     held = self._held_index(lib, key, role, atoms, sig)
                     _INDEX_N["bound_slot_scanned"] += len(held)
                     idx = tuple(i for i, (_c, a, b) in enumerate(held)
-                                if _lands(role, a, b, slot, sub))
+                                if _lands(role, a, b, slot, sub)
+                                and (tally is None or _tally_key(role, a, b, sub) is None))
                     _INDEX_N["bound_slot_first_binds"] += 2 * len(idx)
                     got = tuple((held[i][0], _bound(held[i][1], sub, atoms),
                                  _bound(held[i][2], sub, atoms)) for i in idx)
@@ -2710,11 +2745,57 @@ class Agent:
             return list(got)
         if sig is not None:
             _INDEX_N["named"] += 1
+        if tally is not None and slot is not None:
+            # SPEED-2 (c): the named compile (a compound partner, a role not held) split ONCE
+            # per pair into landing rows by slot and one Counter. Valid for this Agent's life:
+            # its atoms are set once (gamma.py:849, tether.py:1590; a mint adds a Term, never
+            # an atom) and the route's library is fixed for the process (_lib_view)
+            nkey = (sig, key, role, o, x)
+            hit = self._named_split.get(nkey)
+            if hit is None:
+                _INDEX_N["named_split"] += 1
+                by: dict = {}
+                rest, cnt = [], Counter()
+                for cand in self._lib_view(lib, key, role, o, x):
+                    row = ((cand, comp(cand["if"]), comp(cand["then"])) if role == "CAUSE"
+                           else (cand, None if "quantifier" in cand
+                                 else comp(cand["condition"]), None))
+                    k = _tally_key(role, row[1], row[2], _same)
+                    if k is not None:
+                        cnt[k] += 1
+                    elif role == "CAUSE" and (row[1] is None or row[2] is None):
+                        rest.append(row)
+                    else:
+                        by.setdefault((row[2] if role == "CAUSE" else row[1]).slot,
+                                      []).append(row)
+                hit = self._named_split[nkey] = (by, cnt, tuple(rest))
+            tally.update(hit[1])
+            return list(hit[0].get(slot, ())) + list(hit[2])
         if role == "CAUSE":
             return ((cand, comp(cand["if"]), comp(cand["then"]))
                     for cand in self._lib_view(lib, key, role, o, x))
         return ((cand, None if "quantifier" in cand else comp(cand["condition"]), None)
                 for cand in self._lib_view(lib, key, role, o, x))
+
+    def _pair_count(self, lib: Any, key: str, role: str, o: str, x: str, atoms: dict,
+                    sig: tuple, mkey: tuple) -> tuple:
+        """SPEED-2: (the pair's refusal Counter, the held indices of its uncounted every-slot
+        rows), read from the held rows ONCE per pair under the pair's names. Keyed as the
+        whole memo is (C3: the atoms' token and signature, which a mint does not move)."""
+        got = _pair_tally_of(self, mkey)
+        if got is None:
+            _INDEX_N["pair_count"] += 1
+            sub = partial(_ph_sub, o=o, x=x)
+            cnt, rest = Counter(), []
+            for i, (_c, a, b) in enumerate(self._held_index(lib, key, role, atoms, sig)):
+                k = _tally_key(role, a, b, sub)
+                if k is not None:
+                    cnt[k] += 1
+                elif role == "CAUSE" and (a is None or b is None):
+                    rest.append(i)
+            got = (_PAIR_TALLY if self._atoms_token else self._pair_tally)[mkey] = (
+                cnt, tuple(rest))
+        return got
 
     def _held_index(self, lib: Any, key: str, role: str, atoms: dict, sig: tuple) -> list:
         """An entry's view in a held role, compiled ONCE under the placeholders and kept for the
