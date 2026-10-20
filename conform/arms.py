@@ -903,7 +903,18 @@ ARMS: dict[str, str] = {
     "TETHER_DERIVED_WANT": "E0-W (the reviewer 2026-10-18 11:03): a declared-derived slot that "
                            "moved and wants nothing is minted for the objective only; the want "
                            "is written, the slot never bound, bet or charged (E0 stands for "
-                           "pricing). OFF: no such want (433e689). default ON",
+                           "pricing). OFF: no such want (433e689). default ON. (DS 2026-10-20: "
+                           "'never bound' held only under TETHER_DERIVED_SUBJECT -- before it a "
+                           "want-only park invented and bound)",
+    "TETHER_DERIVED_SUBJECT": "DS (the reviewer 2026-10-20 08:36, 09:02, 09:06 alpha): a declared-"
+                              "derived slot is no subject -- no term bound to it at any bind site, "
+                              "an echo (a source missed) not searched (its want by G1's no-search "
+                              "rule), a new relational gap recorded as derived_new and never "
+                              "binned, a want-only park neither owes nor invents. OFF: as at "
+                              "59cd5b9. default ON",
+    "TETHER_CUE_NORM": "DS (5) (the reviewer 2026-10-20 08:36): the library lookup reads a pair "
+                       "reading (dcol_o1) as its base when the base is a known reading, by the "
+                       "one cue_attr G1-S uses. OFF: the attribute as named (59cd5b9). default ON",
     "TETHER_ALPHA_LAST": "ALPHA-LAST (the reviewer 2026-10-18 19:47): a slot that left the slot "
                          "set keeps the alphabet it last had, so sweep can price a departed parked "
                          "slot; a present slot reads as before. OFF: the departed read raises "

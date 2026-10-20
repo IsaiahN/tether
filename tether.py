@@ -784,6 +784,21 @@ _DERIVED_WANT = armflag.arm("TETHER_DERIVED_WANT", default=True)
 # ("dcol_o1"), which no reading is; G1 asks on the base when the base is a known reading. OFF: G1
 # asks on the attribute as named (1e8ccbe)
 _G1_SUFFIX = armflag.arm("TETHER_G1_SUFFIX", default=True)
+# DS, A DERIVED SLOT IS NO SUBJECT (the reviewer 2026-10-20 08:36 (1)-(4), 09:02, 09:06 (alpha)): a
+# declared-derived slot is never bet, settled or judged (B2b drops it from betting), so no term is
+# bound to it; an echo (a source missed this step) is not searched, its want formed by G1's
+# no-search rule; a relational surprise with every source held is recorded as derived_new and
+# enters no bin. OFF: as at 59cd5b9
+_DERIVED_SUBJECT = armflag.arm("TETHER_DERIVED_SUBJECT", default=True)
+# DS (5), THE CUE NORMALIZER (the reviewer 2026-10-20 08:36 (5)): the library lookup reads a pair
+# reading ("dcol_o1") as its base reading, as G1-S does. OFF: the attribute as named (59cd5b9)
+_CUE_NORM = armflag.arm("TETHER_CUE_NORM", default=True)
+
+
+def cue_attr(a: str | None, known) -> str | None:
+    """A "<reading>_oN" name whose base is a known reading reads as that base; else unchanged."""
+    base, _, who = (a or "").rpartition("_")
+    return base if a not in known and base in known and who[1:].isdigit() else a
 # ALPHA-LAST (the reviewer 2026-10-18 19:47): a slot that left the slot set keeps the alphabet it
 # last had, as bet_alphabet prices a slot that vanishes in a step. sweep prices parked records of
 # departed slots by design, and the per-step alphabet held only current slots: KeyError (E4a g50t,
@@ -3290,11 +3305,27 @@ class Agent:
     _G1_FREE = frozenset(("all", "any", "none", "all_same", "any_same", "none_same", "all_of",
                           "some_of", "one_of", "none_of"))
 
+    def _derived_subject(self, slot: str) -> bool:
+        """DS: the slot is declared derived by this step's world (env.derived()), never by name."""
+        if not _DERIVED_SUBJECT:
+            return False
+        key = (self.cycle, len(self.trace), id(self.env))
+        if self.__dict__.get("_ds_key") != key:
+            der = self.env.derived() if hasattr(self.env, "derived") else {}
+            self._ds_key, self._ds_set = key, frozenset(der)
+        return slot in self._ds_set
+
+    def _ds_unbound(self, slot: str, site: str) -> None:
+        """DS (1): a bind refused because the slot is derived; one row per refusal, by site."""
+        self.led.record(self.cycle, self._running_step, slot, "derived_unbound", site=site,
+                        reads="DS: a derived slot is no subject; no term is bound to it")
+
     def _derived_wants(self) -> None:
         """E0-W: each declared-derived slot that moved this step and wants nothing is minted for
         its objective alone, so it is wanted as before E0 and never bound, bet or charged."""
         der = self.env.derived() if hasattr(self.env, "derived") else {}
         before, after = self.trace[-1][0], self.trace[-1][2]
+        ctx = self._no_search_ctx() if _DERIVED_SUBJECT else None
         for d in sorted(der):
             if d in self.wants or before.get(d) is None or after.get(d) in (None, before[d]):
                 continue
@@ -3302,7 +3333,24 @@ class Agent:
             if t in self._dw_tried.setdefault(d, set()):
                 continue
             self._dw_tried[d].add(t)
-            self.led.record(self.cycle, "MINT", d, "derived_asked")     # E4 counts the asks
+            missed = self._ds_echo(d)
+            if missed:
+                formed, free = self._no_search_want(d, before, after, *ctx) if ctx else (None, 0)
+                self.led.record(self.cycle, "MINT", d, "derived_asked", echo=True, missed=missed,
+                                formed=formed is not None, refused_free=free,
+                                reads="DS (2): an echo (a source missed) is not searched; the "
+                                      "want, if any, by G1's no-search rule")
+                if formed is not None:
+                    self._register_no_search_want(formed)
+                    _d, term, prov, dk = formed
+                    self.led.record(self.cycle, "MINT", d, "echo_want", want=term.name,
+                                    origin="derived-echo", dk=list(dk) if dk else None,
+                                    entry=prov.get("library"),
+                                    reads="DS (alpha): the relational state this step reached, "
+                                          "kept as a want by G1's rule -- never bound, never bet")
+                continue
+            self.led.record(self.cycle, "MINT", d, "derived_asked",     # E4 counts the asks
+                            **({"echo": missed} if _DERIVED_SUBJECT else {}))
             self._want_only = True
             try:
                 self.mint(d)
@@ -3326,14 +3374,10 @@ class Agent:
             return
         before, after = self.trace[-1][0], self.trace[-1][2]
         der = self.env.derived() if hasattr(self.env, "derived") else {}
-        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
-        att = self.env.attribute_of() if hasattr(self.env, "attribute_of") else {}
-        lib = self._inv_lib if _M7_INV and self._inv_lib is not None else _library()
-        close = next((a for a in self.gamma.atoms if a.name == "all"), None)
-        if lib is None or close is None:
+        ctx = self._no_search_ctx()
+        if ctx is None:
             return
-        known = compile_term.readings()
-        k1 = _DELTA_KIND or _MOLECULES or _ATTR_INDEX
+        own = ctx[3]
         for p, mem in sorted(self._events.items()):
             srcs = set(mem)
             changed = [d for d, src in sorted(der.items())
@@ -3343,49 +3387,21 @@ class Agent:
                 continue
             formed, free, held = None, 0, None
             for d in changed:
-                o = own.get(d) or ""
-                parties = o.split("~") if "~" in o else [o]
-                a = att.get(d)
-                base, _, who = (a or "").rpartition("_")
-                if _G1_SUFFIX and a not in known and base in known and who[1:].isdigit():
-                    a = base            # "<reading>_oN": the reading, its partner named apart
-                lit = lib.light({a: 1}) if a in known else []
-                if not lit:
-                    continue
-                dk = self._delta_kind(d, self.history(d)) if _DELTA_KIND else None
-                if k1:
-                    lit, _n = self._tiers(lib, lit, dk, parties[0], {d: self.slot_types.get(d)},
-                                          att)
-                self._cur_dk, self._dk_this, self._dk_of = dk, set(), {d: dk}
-                views, _causes, _ref = self._index_reach(lib, lit, d, parties[0], (),
-                                                         partner=parties[-1], probe=True)
-                for c, prov in views.values():
-                    if all(x.name in self._G1_FREE for x in c.term.atoms):
-                        free += 1
-                        continue
-                    if (compile_term.run(c, after) is True
-                            and compile_term.run(c, before) is not True):
-                        term = Term(tuple(c.term.atoms) + (close,), operand=c.term.operand,
-                                    operand_term=c.term.operand_term)
-                        if term.out_type == OBJ_TYPE:
-                            formed = (d, term, prov, dk)
-                            break
-                if formed:
+                f_, n_ = self._no_search_want(d, before, after, *ctx)
+                free += n_
+                if f_ is not None:
+                    formed = f_
                     break
             if formed is not None:
                 d, term, prov, dk = formed
                 if d in self.wants:
                     held, formed = self.wants[d], None
                 else:
-                    self.wants[d] = term.name
-                    self._want_terms[d] = term
-                    self._want_scope[d] = term.name
+                    self._register_no_search_want(formed)
                     origin = {"origin": "derived-change", "obj_event": p,
                               "dk": list(dk) if dk else None, "entry": prov.get("library")}
                     self._g1[d] = {"want": term.name, **origin, "formed": self.cycle,
                                    "pursued": 0, "met": 0, "unmet": 0}
-                    if _ENTRY_USE:
-                        self._use(prov.get("library"), "wanted")
                     self.led.record(self.cycle, "MINT", d, "g1_want", want=term.name, **origin,
                                     reads="G1: the relational state this event just reached, "
                                           "kept as a want -- never bound, never bet")
@@ -3394,6 +3410,61 @@ class Agent:
                             no_new_state=formed is None and held is None,
                             **({"held_want": held} if held else {}),
                             reads="G1: the event's changed relations asked once for a want")
+
+    def _no_search_ctx(self) -> tuple | None:
+        """What G1's no-search rule reads, once per call site: lib, close, known, own, k1, att."""
+        lib = self._inv_lib if _M7_INV and self._inv_lib is not None else _library()
+        close = next((a for a in self.gamma.atoms if a.name == "all"), None)
+        if lib is None or close is None:
+            return None
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        att = self.env.attribute_of() if hasattr(self.env, "attribute_of") else {}
+        return (lib, close, compile_term.readings(), own, _DELTA_KIND or _MOLECULES or _ATTR_INDEX,
+                att)
+
+    def _no_search_want(self, d: str, before: dict, after: dict, lib: Any, close: Any, known: Any,
+                        own: dict, k1: bool, att: dict) -> tuple:
+        """G1's rule for one derived slot, no search (the reviewer 23:17; DS (alpha)): the library
+        condition on the slot that this change made TRUE, closed with "all" into an objective.
+        Returns ((d, term, prov, dk) or None, the quantifier-only conditions refused)."""
+        free = 0
+        o = own.get(d) or ""
+        parties = o.split("~") if "~" in o else [o]
+        a = cue_attr(att.get(d), known) if _G1_SUFFIX else att.get(d)
+        lit = lib.light({a: 1}) if a in known else []
+        if not lit:
+            return None, 0
+        dk = self._delta_kind(d, self.history(d)) if _DELTA_KIND else None
+        if k1:
+            lit, _n = self._tiers(lib, lit, dk, parties[0], {d: self.slot_types.get(d)}, att)
+        self._cur_dk, self._dk_this, self._dk_of = dk, set(), {d: dk}
+        views, _causes, _ref = self._index_reach(lib, lit, d, parties[0], (),
+                                                 partner=parties[-1], probe=True)
+        for c, prov in views.values():
+            if all(x.name in self._G1_FREE for x in c.term.atoms):
+                free += 1
+                continue
+            if compile_term.run(c, after) is True and compile_term.run(c, before) is not True:
+                term = Term(tuple(c.term.atoms) + (close,), operand=c.term.operand,
+                            operand_term=c.term.operand_term)
+                if term.out_type == OBJ_TYPE:
+                    return (d, term, prov, dk), free
+        return None, free
+
+    def _register_no_search_want(self, formed: tuple) -> None:
+        """The want the no-search rule formed: a subject-scoped objective, never bound or bet."""
+        d, term, prov, _dk = formed
+        self.wants[d] = term.name
+        self._want_terms[d] = term
+        self._want_scope[d] = term.name
+        if _ENTRY_USE:
+            self._use(prov.get("library"), "wanted")
+
+    def _ds_echo(self, d: str) -> list | None:
+        """DS (2): the sources of derived slot d that missed this step (read at the detector),
+        [] if every source held, None if this step has no reading of d."""
+        key, missed = self.__dict__.get("_ds_missed", (None, {}))
+        return missed.get(d) if _DERIVED_SUBJECT and key == len(self.trace) else None
 
     def _joint(self, bases: dict, att: dict) -> float:
         """E3's joint code over independent members: the sum, the cell-change group as its max."""
@@ -3474,6 +3545,9 @@ class Agent:
             return
         total, price, cost, each = best
         for m, (b, lf, t) in each.items():
+            if self._derived_subject(m):
+                self._ds_unbound(m, "event")
+                continue
             self.explain(m, self._ev_base[m] - lf)
             if t.name not in self.gamma.library:   # a held term is bound, as a rebind is
                 self.gamma.accept(t, seq=len(self.led), residual=f"{m}@{self.cycle}:event:{p}")
@@ -3819,8 +3893,11 @@ class Agent:
         att = att() if att else {}
         known = compile_term.readings()
         changed: dict = {}
+        normed: set = set()
         for s_ in described:
-            a = att.get(s_)
+            a = cue_attr(att.get(s_), known) if _CUE_NORM else att.get(s_)
+            if a != att.get(s_):
+                normed.add(att.get(s_))      # DS (5): a pair reading read through its base
             if a in known:
                 changed[a] = 1
             changed.update({r: 1 for r, base in compile_term.CHANGE_OF.items() if base == a})
@@ -3986,6 +4063,7 @@ class Agent:
                             withheld=dict(Counter(o_["why"] for o_ in offers
                                                   if not o_["offered"])),
                             refused=dict(refused),
+                            **({"cue_norm": sorted(normed)} if normed else {}),
                             **({"rank": rank} if rank is not None and m == slot else {}),
                             **({"obj_event": self._event_of.get(slot)} if members else {}),
                             reads=("the library lit by this residual's description; the distinct "
@@ -5455,6 +5533,10 @@ class Agent:
         """The invention named in this agent's library (in memory; save_runtime is never called)
         and bound to the slot through the accept path, a candidate with no head start. A
         condition naming no reading is refused at creation and recorded."""
+        if self._derived_subject(slot):
+            detail.update(pick="derived_subject", condition=text)
+            self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
+            return None
         lib = self._inv_library()
         name = f"{self.gamma.game}_inv_{len(self._invented) + 1}"
         if _M7_INV:     # the key's version: its content, so a process-level cache keyed by it
@@ -7311,17 +7393,32 @@ class Agent:
         the relation derived from the predicted sources WHILE every source prediction held --
         the genuinely relational residual (a blocked move: the mover was predicted to move,
         the gap to shrink, and it did not). One summary row per cycle keeps the rest legible."""
-        held = surprised = 0
+        held = surprised = gaps = echo = 0
+        if _DERIVED_SUBJECT:     # read by E0-W this step, keyed to the trace row appended below
+            self._ds_missed = (len(self.trace) + 1, {
+                k: [s for s in srcs if not (s in res and res[s].bits == 0)]
+                for k, srcs in derived.items()})
         for k, srcs in derived.items():
             if k not in dpred or k not in after:
                 continue
             if not all(s in res and res[s].bits == 0 for s in srcs):
+                if after[k] != dpred[k]:
+                    gaps, echo = gaps + 1, echo + 1
                 continue                      # a source missed: its own residual carries it
             if after[k] == dpred[k]:
                 held += 1
                 continue
             surprised += 1
+            gaps += 1
             bits = correction_bits(dpred[k] % self.alphabet[k], after[k], self.alphabet[k])
+            if _DERIVED_SUBJECT:
+                # DS (3): recorded once, never a residual -- route() never bins it
+                self.led.record(self.cycle, "PERCEIVE", k, "derived_new", of=tuple(srcs),
+                                inputs=list(srcs), from_value=before.get(k), derived=dpred[k],
+                                actual=after[k], mass=bits,
+                                reads="the relation derived from the held source predictions did "
+                                      "not hold; a derived slot is no subject, so it is recorded")
+                continue
             res[k] = SlotResidual(k, TRANSITION, dpred[k] % self.alphabet[k], after[k], bits)
             self.led.record(self.cycle, "PERCEIVE", k, "relational_surprise", of=tuple(srcs),
                             from_value=before.get(k), derived=dpred[k], actual=after[k],
@@ -7335,7 +7432,9 @@ class Agent:
         self._declared_rec = (id(self.led), now)
         self.led.record(self.cycle, "PERCEIVE", "@derived", "derived", slots=len(derived),
                         predicted=len(dpred), held=held, surprised=surprised,
-                        declared_add=sorted(now - was), declared_drop=sorted(was - now))
+                        declared_add=sorted(now - was), declared_drop=sorted(was - now),
+                        **({"gaps": gaps, "derived_echo": echo, "derived_new": surprised}
+                           if _DERIVED_SUBJECT else {}))
 
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
         """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.
@@ -11803,6 +11902,9 @@ class Agent:
             else:
                 store[slot] = val
         a, b = found.get("P"), found.get("!P")
+        if a and self._derived_subject(slot):
+            self._ds_unbound(slot, "recurse_parts")
+            a = None
         if a:
             self._parts[slot] = {"P": pred, "A": a, "B": b}
             self.bound[slot] = a
@@ -12764,8 +12866,10 @@ class Agent:
             # dropped five of six slots from the retro sweep's target list on a six-cycle run,
             # which is a capability loss wearing a speedup's clothes. The search is skipped;
             # the debt is not.
+            _ds_wo = _DERIVED_SUBJECT and getattr(self, "_want_only", False)
             if detail["verdict"] in ("budget_spent", "depth_exhausted", "under_floor"):
-                self.owed_import.add(slot)
+                if not _ds_wo:     # DS (4): a want-only ask owes no import; no sweep is sent
+                    self.owed_import.add(slot)
                 self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
                                         "priced": self._priced - _priced0,
                                         "coverage": detail["coverage"],
@@ -12788,6 +12892,8 @@ class Agent:
                 detail["bound_at_park"] = slot in self.bound
                 self._retain_unpaid_want(slot, wanted, detail)
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
+            if _ds_wo:
+                return              # DS (4): the want is written; the slot is never bound
             if _D13:
                 self._park_bet(slot, detail)
             if _M6_INVENT:
@@ -12850,6 +12956,10 @@ class Agent:
             # so a replacement may not leave more than the rule it replaces.
             self.gamma.book["unseal_leaves_more"] = self.gamma.book.get("unseal_leaves_more", 0) + 1
             detail["verdict"] = "unseal_leaves_more"
+            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
+            return
+        if self._derived_subject(slot):
+            detail["verdict"] = "derived_subject"
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
         detail["explained"], detail["overclaimed"] = self.explain(slot, base_held - left)
@@ -13010,7 +13120,12 @@ class Agent:
         """
         units_now = len(self.gamma.units())
         targets = [(s, s, self.history(s), self.abstained.get(s, {}), self.slots)
-                   for s in sorted(self.owed_import - {origin_slot})]
+                   for s in sorted(self.owed_import - {origin_slot})
+                   if not self._derived_subject(s)]
+        if _DERIVED_SUBJECT:
+            _n = sum(1 for s in self.owed_import - {origin_slot} if self._derived_subject(s))
+            if _n:
+                self.chain.reuse_branch["skipped:derived-subject"] += _n
         targets += [(k, r["slot"], r["hist"], r, r["slots"])
                     for k, r in sorted(self.parked.items())]
         if self._turn_ahead is not None:
@@ -13872,7 +13987,9 @@ class Agent:
                                                   "sees it again")
                     self._turn_ahead = None
                     return self._cap_end("mint", "ACCEPT")
-                if b == REBIND and fit:
+                if b in (REBIND, REFUTED) and fit and self._derived_subject(slot):
+                    self._ds_unbound(slot, "route")
+                elif b == REBIND and fit:
                     self.bound[slot] = fit
                     self._carry(fit)
                     self.rank.note(fit, self.cycle)

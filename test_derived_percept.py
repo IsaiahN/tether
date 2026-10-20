@@ -10,7 +10,7 @@
         dw / dcells, no relational surprise
   T     a mid-cascade change that reverts (two-frame responses, the object widens in the
         intermediate frame only): a relational_surprise row on a frame delta with its source
-        (shape) held
+        (shape) held (derived_new under TETHER_DERIVED_SUBJECT, the same fields, never a residual)
   OFF   TETHER_DERIVED_PERCEPT=0: dcol is bet on again (today's per-slot charge)
   E0b, the observer-item-4 pair slots a~b.contact / bbox / inside (the reviewer 14:12):
   X     derive() on each observed frame of a ring with a mover inside reproduces every published
@@ -38,6 +38,7 @@ import numpy as np
 from arcengine import FrameDataRaw, GameState
 import tether_agent
 mode, N = sys.argv[1], int(sys.argv[2])
+REL = ("relational_surprise", "derived_new")   # DS: derived_new carries the same fields
 
 class W:
     def __init__(self):
@@ -121,13 +122,13 @@ out = {"mover": mover,
        "bet_attrs": sorted({r["slot"].rsplit(".", 1)[1] for r in mine}),
        "rel": [(r["slot"], r.get("of"), r["detail"].get("derived"),
                 r["detail"].get("actual"))
-               for r in rows if r.get("event") == "relational_surprise"
+               for r in rows if r.get("event") in REL
                and r["slot"].rsplit(".", 1)[0] == mover]}
 mine_pair = [r for r in bets if mover in r["slot"].rsplit(".", 1)[0].split("~")
              and "~" in r["slot"].rsplit(".", 1)[0]]
 out["pair_bets"] = sorted({r["slot"].rsplit(".", 1)[1] for r in mine_pair})
 out["pair_rel"] = [(r["slot"], r["detail"].get("derived"), r["detail"].get("actual"))
-                   for r in rows if r.get("event") == "relational_surprise"
+                   for r in rows if r.get("event") in REL
                    and "~" in r["slot"].rsplit(".", 1)[0]]
 print(json.dumps(out))
 '''

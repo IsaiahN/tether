@@ -24,6 +24,13 @@ fluently over things it never reached for, invisibly. If a consumer ever makes a
 it must supply a CUE (narrow the search), never a TERM (an operand); Isaiah's schema is the cue
 reading, the delta infers what to SEARCH for.
 
+AND THE WIRING SENTENCE ABOVE IS STALE (DS, the reviewer 2026-10-20 08:36 (7)): `tether`
+imports this module, the relations are OPERANDS there (as the pair slots' sources), and the
+world publishes them as declared-derived SLOTS. What holds is the line
+itself: a relation is a cue and an operand, never a bound SUBJECT -- under TETHER_DERIVED_SUBJECT
+no term is bound to a derived slot, and the lookup reads a pair reading through its base
+(TETHER_CUE_NORM).
+
 An object is the `arc_percept.components` record: `row col h w colour shape cells`. `shape` is the
 normalised offset frozenset (the structural id). Dynamic relations take the before-state too.
 """
