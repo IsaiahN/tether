@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import dataclasses
 import hashlib
+import heapq
 import json
 from pathlib import Path
 from typing import Any
@@ -94,9 +95,17 @@ def dec(x: Any) -> Any:
     raise TypeError(f"lineage.dec: an untagged object {sorted(x)[:4]}")
 
 
-def _chain(d: Path) -> list[tuple[str, dict]]:
-    """Every generation in `d`, root to tip, each verified against its own name. Raises on a bad
-    hash, a missing parent, more than one root or more than one tip (N3)."""
+def _parents(g: dict) -> list[str]:
+    """A generation's parents: a MERGE generation names several ("parents"); every other names
+    one ("parent", unchanged since (b'-g), so its bytes and hash are what they were) or none."""
+    if "parents" in g:
+        return list(g["parents"])
+    return [g["parent"]] if g.get("parent") else []
+
+
+def _read(d: Path) -> dict[str, dict]:
+    """Every generation in `d`, each verified against its own name; raises on a bad hash or a
+    parent that is not in the folder."""
     gens: dict[str, dict] = {}
     for f in sorted(d.glob(f"{PREFIX}*.json")):
         raw = f.read_bytes()
@@ -104,24 +113,88 @@ def _chain(d: Path) -> list[tuple[str, dict]]:
         if f.stem != PREFIX + h:
             raise ValueError(f"lineage: {f.name} does not hash to its name ({h})")
         gens[h] = json.loads(raw)
-    if not gens:
-        return []
-    parents = {h: g["parent"] for h, g in gens.items()}
-    bad = {h: p for h, p in parents.items() if p is not None and p not in gens}
+    bad = {h: p for h, g in gens.items() for p in _parents(g) if p not in gens}
     if bad:
         raise ValueError(f"lineage: a parent that is not in the chain: {bad}")
-    roots = [h for h, p in parents.items() if p is None]
-    tips = sorted(set(gens) - {p for p in parents.values() if p is not None})
-    if len(roots) != 1 or len(tips) != 1:
-        raise ValueError(f"lineage: not one chain (roots {sorted(roots)}, tips {tips}); merging "
-                         "branches is not this item's")
-    order, h = [], tips[0]
-    while h is not None:
-        order.append((h, gens[h]))
-        h = parents[h]
-    if len(order) != len(gens):
-        raise ValueError(f"lineage: {len(gens) - len(order)} generation(s) off the chain")
-    return order[::-1]
+    return gens
+
+
+def _tips(gens: dict[str, dict]) -> list[str]:
+    named = {p for g in gens.values() for p in _parents(g)}
+    return sorted(set(gens) - named)
+
+
+def _topo(gens: dict[str, dict]) -> list[str]:
+    """Parents before children, ties broken by hash: one fixed order for a DAG, and for a linear
+    chain the root-to-tip order (b'-g) read."""
+    kids: dict[str, list[str]] = {h: [] for h in gens}
+    need = {h: len(_parents(g)) for h, g in gens.items()}
+    for h, g in gens.items():
+        for q in _parents(g):
+            kids[q].append(h)
+    ready = [h for h, n in need.items() if n == 0]
+    heapq.heapify(ready)
+    out = []
+    while ready:
+        h = heapq.heappop(ready)
+        out.append(h)
+        for k in kids[h]:
+            need[k] -= 1
+            if not need[k]:
+                heapq.heappush(ready, k)
+    return out
+
+
+def _ancestors(gens: dict[str, dict], h: str) -> set[str]:
+    """`h` and every generation it descends from."""
+    seen, todo = set(), [h]
+    while todo:
+        x = todo.pop()
+        if x not in seen:
+            seen.add(x)
+            todo.extend(_parents(gens[x]))
+    return seen
+
+
+def _chain(d: Path) -> list[tuple[str, dict]]:
+    """Every generation in `d`, parents before children, each verified against its own name.
+    Raises on a bad hash, a missing parent, more than one tip (N3), or a generation the tip does
+    not descend from. Branches join only through a MERGE generation (merge), never by a pick."""
+    gens = _read(d)
+    if not gens:
+        return []
+    tips = _tips(gens)
+    if len(tips) != 1:
+        roots = sorted(h for h, g in gens.items() if not _parents(g))
+        raise ValueError(f"lineage: not one chain (roots {roots}, tips {tips}); branches join "
+                         "only through a merge generation (lineage.merge)")
+    held = _ancestors(gens, tips[0])
+    if len(held) != len(gens):
+        raise ValueError(f"lineage: {len(gens) - len(held)} generation(s) off the chain")
+    return [(h, gens[h]) for h in _topo(gens)]
+
+
+def _keyed(out: dict, field: str, g: dict, h: str, anc: dict, hist: dict, heads: dict) -> None:
+    """A keyed field of the fold (book, invented) under the status rule: a value supersedes only
+    one its generation descends from. Branches that disagree keep the value from before the
+    split (absent if there was none) and record both under "contested_<field>"."""
+    for key, v in g[field].items():
+        k = (field, key)
+        hist.setdefault(k, []).append((h, v))
+        heads[k] = {q for q in heads.get(k, set()) if q not in anc[h]} | {h}
+        if len(heads[k]) == 1:
+            out[field][key] = v
+            continue
+        common = set.intersection(*(anc[q] for q in heads[k]))
+        pre = [x for q, x in hist[k] if q in common]
+        if pre:
+            out[field][key] = pre[-1]
+        else:
+            out[field].pop(key, None)
+        seen = out.setdefault(f"contested_{field}", {}).setdefault(key, [])
+        for q, x in hist[k]:
+            if q in heads[k] and {"gen": q, "value": x} not in seen:
+                seen.append({"gen": q, "value": x})
 
 
 def fold(chain: list[tuple[str, dict]]) -> dict:
@@ -130,15 +203,39 @@ def fold(chain: list[tuple[str, dict]]) -> dict:
     rows: dict[tuple, dict] = {}
     out = {"terms": [], "invented": {}, "vindication": [], "book": {}, "evidence": [],
            "dormant": []}
+    anc: dict[str, set] = {}
+    # per row: every (generation, admitted) set on it, in fold order, and the setters no later
+    # status descends from. One head is the linear case; two or more are branches that disagree
+    hist: dict[tuple, list] = {}
+    heads: dict[tuple, set] = {}
+    khist: dict[tuple, list] = {}     # the same, for book keys and invented names
+    kheads: dict[tuple, set] = {}
     for h, g in chain:
+        anc[h] = {h}.union(*(anc[q] for q in _parents(g)))
         for r in g["terms"]:
             row = {**r, "born": h}
             rows[_rid(row)] = row
+            hist[_rid(row)], heads[_rid(row)] = [(h, row.get("admitted"))], {h}
         for s in g["status"]:
-            rows[(s["born"], s["handle"])]["admitted"] = s["admitted"]
-        out["invented"].update(g["invented"])
+            k = (s["born"], s["handle"])
+            row = rows[k]
+            hist[k].append((h, s["admitted"]))
+            heads[k] = {q for q in heads[k] if q not in anc[h]} | {h}
+            if len(heads[k]) == 1:
+                row["admitted"] = s["admitted"]
+                continue
+            # CONTESTED (Fig 6, Open): branches set this row differently and neither descends from
+            # the other. Both are kept; the row reads its value from before the split, never the
+            # one fold order happened to put last. A later descendant of both supersedes as usual.
+            common = set.intersection(*(anc[q] for q in heads[k]))
+            row["admitted"] = next(a for q, a in reversed(hist[k]) if q in common)
+            seen = row.setdefault("contested", [])
+            for q, a in hist[k]:
+                if q in heads[k] and {"gen": q, "admitted": a} not in seen:
+                    seen.append({"gen": q, "admitted": a})
+        _keyed(out, "invented", g, h, anc, khist, kheads)
         out["vindication"].extend(g["vindication_tail"])
-        out["book"].update(g["book"])
+        _keyed(out, "book", g, h, anc, khist, kheads)
         out["evidence"].extend(g["evidence"])
         out["dormant"].extend(dec(g["dormant"]))
     out["terms"] = list(rows.values())
@@ -159,7 +256,9 @@ def write(d: str | Path, ag: Any, game: str) -> dict:
     p.mkdir(parents=True, exist_ok=True)
     parent = getattr(ag, "lineage_parent", None)
     chain = _chain(p)
-    upto = chain[:[h for h, _ in chain].index(parent) + 1] if parent else []
+    # the parent and what it descends from, in fold order (a DAG has no prefix to slice)
+    keep = _ancestors(dict(chain), parent) if parent else set()
+    upto = [(h, g) for h, g in chain if h in keep]
     base = fold(upto)
     prev = {_rid(r): r for r in base["terms"]}
     blob = ag.gamma.blob(with_names=True)
@@ -215,6 +314,31 @@ def load(d: str | Path, ag: Any) -> dict:
     rep = ag.gamma.load_blob({"terms": f["terms"], "invented": f["invented"],
                               "vindication": f["vindication"], "book": f["book"]}, parent=h)
     return {"parent": h, **rep, "index": load_index(d, ag, _chain(Path(d)))}
+
+
+def merge(d: str | Path, tips: list[str] | None = None) -> dict:
+    """Join branches: one MERGE generation naming every given tip (default: all of them) as its
+    parents and holding nothing else. No tip is picked and nothing is copied or removed; the fold
+    reads both branches (Fig 9). Named by its own hash, opened "xb", never overwritten."""
+    p = Path(d)
+    gens = _read(p)
+    now = _tips(gens)
+    tips = sorted(set(now if tips is None else tips))
+    if not set(tips) <= set(now):
+        raise ValueError(f"lineage.merge: not current tips: {sorted(set(tips) - set(now))}")
+    if len(tips) < 2:
+        return {"refused": "nothing to merge", "tips": tips}
+    gen = {"lineage": 1, "parents": tips, "merge": True, "game": None, "terms": [], "status": [],
+           "evidence": [], "vindication_tail": [], "book": {}, "invented": {}, "dormant": [],
+           "dormant_refused": []}
+    raw = json.dumps(gen, sort_keys=True, indent=1).encode("utf-8")
+    h = hashlib.sha256(raw).hexdigest()[:16]
+    try:
+        with open(p / f"{PREFIX}{h}.json", "xb") as fh:
+            fh.write(raw)
+    except FileExistsError:
+        return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
+    return {"written": f"{PREFIX}{h}.json", "hash": h, "parents": tips}
 
 
 # -- D3: THE HELD INDEX, CARRIED BESIDE THE GENERATION (the reviewer 2026-10-14 21:59) -------------
@@ -334,6 +458,8 @@ def load_index(d: str | Path, ag: Any, chain: list) -> dict | None:
     folder = str(p.resolve())
     counted: dict = {}   # key -> "installed" | "rekeyed", from the latest generation holding it
     for gh, _g in chain:
+        if _g.get("merge"):
+            continue      # a merge generation holds only the join: no compiles, so no index
         files = sorted(p.glob(f"{IDX}{gh}_*.json"))
         reason, body, same = None, None, False
         if len(files) != 1:
