@@ -930,6 +930,11 @@ ARMS: dict[str, str] = {
                           "observation), so a correct prediction of a never-seen value costs 0 "
                           "bits. OFF: coded under the bet-time alphabet; it wraps and is charged "
                           "a full miss (d5c1b12). default ON",
+    "TETHER_ARRIVAL": "GQ3, ONE ARRIVAL PREDICATE (the reviewer 2026-10-20 14:27; Isaiah 14:11): "
+                      "every reader of a goal series asks arrival() -- one zero is TOUCHED "
+                      "(held, re-read; a routine guard HOLDs one step), MIN_REPEAT zeros "
+                      "CONFIRMED; can() loses 'any zero ever'. OFF: each reader's own rule (the "
+                      "selector two zeros, the gate / guard / rows one; 181ddd2). default ON",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",

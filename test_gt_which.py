@@ -51,7 +51,9 @@ if __name__ == "__main__":
         assert _which(ag, "o0.col", {k: v for k, v in away.items() if k != "o3.col"}) \
             == "not_applies"
         assert _which(ag, "o0.col", dict(away, **{"o3.col": 10 ** 6})) == "not_resolved"
-        assert _which(ag, "o0.col", held) == "already_holds"
+        # GQ3 (TETHER_ARRIVAL): the subject at its target is a means read, renamed subject_met
+        assert _which(ag, "o0.col", held) == ("subject_met" if tether._ARRIVAL
+                                              else "already_holds")
         print("  3: no_obj_term (o5.col, no want), not_applies (o3.col absent), not_resolved "
               "(o3.col outside o0.col's domain: nothing satisfies), already_holds (o0 in o3's "
               "column) -- each reached and named")
@@ -67,7 +69,8 @@ if __name__ == "__main__":
         assert n1 == n0, (n0, n1)
         assert ag._goal_split(held, commit=True) is None
         rows = [r for r in ag.led.rows() if r["event"] == "split_refused"]
-        assert len(rows) == n0 + 1 and rows[-1]["detail"]["which"] == "already_holds", rows[-1]
+        assert len(rows) == n0 + 1 and rows[-1]["detail"]["which"] == (
+            "subject_met" if tether._ARRIVAL else "already_holds"), rows[-1]
         print(f"  1: dry call: _split_why {ag._split_why}, 0 split_refused rows; acting call: "
               f"1 row, which={rows[-1]['detail']['which']}")
     finally:

@@ -946,6 +946,22 @@ _ROUTINE_STALE = armflag.arm("TETHER_ROUTINE_STALE", default=True)
 # conform/arms.py.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _ROUTINE_SUBJECT_BUDGET = armflag.arm("TETHER_ROUTINE_SUBJECT_BUDGET", default=True)
+# GQ3, ONE ARRIVAL PREDICATE (the reviewer 2026-10-20 14:27; Isaiah 14:11): every reader of a
+# goal series asks arrival(), so one zero is a TOUCH (held and re-read, never refused, never
+# selected) and only MIN_REPEAT zeros CONFIRM. OFF: each reader's own rule (d5c1b12's R2 table)
+_ARRIVAL = armflag.arm("TETHER_ARRIVAL", default=True)
+OPEN, TOUCHED, CONFIRMED = "open", "touched", "confirmed"
+
+
+def arrival(series) -> str:
+    """A goal series' state (Fig 2 :29-30: an anchor that moves when pushed is not one yet):
+    CONFIRMED on MIN_REPEAT consecutive readings <= 0, TOUCHED on a last reading <= 0 short of
+    that, else OPEN."""
+    if series and len(series) >= MIN_REPEAT and all(v <= 0 for v in series[-MIN_REPEAT:]):
+        return CONFIRMED
+    return TOUCHED if series and series[-1] <= 0 else OPEN
+
+
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
 # context -- its object's signed offset from the controlled owners, read off the agent's own pair
 # slots -- two actions change it with different PURE signs. contingent()'s always/never, one level
@@ -3372,6 +3388,11 @@ class Agent:
         for d, rec in self._g1.items():
             if self.wants.get(d) != rec["want"]:
                 rec["replaced"] = True
+            elif self._res.get(d) and _ARRIVAL:
+                # GQ3: met is CONFIRMED; a single touch is counted apart
+                _arr = arrival(self._res[d])
+                _k = {CONFIRMED: "met", TOUCHED: "touched"}.get(_arr, "unmet")
+                rec[_k] = rec.get(_k, 0) + 1
             elif self._res.get(d):
                 rec["met" if self._res[d][-1] <= 0 else "unmet"] += 1
         if not self.trace:
@@ -8584,9 +8605,19 @@ class Agent:
                                 "routine_recovered", outcome=_why,
                                 routine=Rt.render(self.routine),
                                 note="a fallback ran; the body's ending is NOT a refutation")
+            # GQ3 HOLD: the guard was touched, not confirmed -- the routine keeps its place, makes
+            # no claim and acts nothing this step; the other branches below choose the action
+            _hold = emit == Rt.HOLD
+            if _hold:
+                self.routine_state.pop("expect", None)
+                self.routine = rest if rest is not None else self.routine
+                self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_hold",
+                                routine=Rt.render(self.routine),
+                                reads="the guard touched zero once; re-read before ending (GQ3)")
             _stale = (self._stale_sign(emit, before)
                       if _ROUTINE_STALE and isinstance(emit, IFace.Intent) else None)
-            _act = (None if _stale is not None or emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
+            _act = (None if _hold or _stale is not None
+                    or emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
                     else self._realise_step(emit, before))
             if _act is not None:
                 # THE CLAIM, MADE BEFORE THE ACTION LANDS. `advance` published which slots this
@@ -8632,7 +8663,8 @@ class Agent:
             # would be filed as a settled behaviour, callable at a name's price while claiming
             # its budget's reach. `exhausted` is a trial that failed; `blocked` and
             # `unadvertised` are NON-TRIALS and say nothing either way, so they are left alone.
-            self._end_routine(why, before, detail=_stale)
+            if not _hold:
+                self._end_routine(why, before, detail=_stale)
         # SYSTEM 2 RUNS BESIDE SYSTEM 1, NOT BEHIND IT -- Isaiah, 2026-09-09.
         # Formation used to sit ONLY at the fall-through, so `discriminate:learned` returning
         # first foreclosed it: `_mint_routine` was last called at cycle 11 on `ka59` and 7 on
@@ -9393,8 +9425,9 @@ class Agent:
             return UNKNOWN                 # could not read the objective here
         if gap is None:
             return NO                      # nothing satisfies it -- the only real negative
-        if gap == 0 or 0 in self._disc.get(slot, ()):
-            return YES                     # holds now, or has held: reached, so reachable
+        if gap == 0 or (not _ARRIVAL and 0 in self._disc.get(slot, ())):
+            # holds now (GQ3: "has held, ever" is not evidence -- one zero is a touch)
+            return YES
         name = self.bound.get(slot)
         term = self.gamma.library.get(name) if name else None
         if term is None:
@@ -9426,6 +9459,7 @@ class Agent:
         counts: dict[str, dict] = {}
         popped: dict[str, int] = {}
         undone: list = []
+        touch_lost: list = []
         for slot in self.slots:
             g = self._discrepancy(slot, state)
             if not isinstance(g, int):
@@ -9459,7 +9493,14 @@ class Agent:
                 # **MET -> UN-MET IS AN OBSERVATION, NOT NOISE TO DROP.** Detected before the
                 # append, while the prior reading is still in hand.
                 _was = self._res.get(slot)
-                if _was and _was[-1] <= 0 < rg:
+                if _ARRIVAL:
+                    # GQ3: undone is a CONFIRMED goal reopening; a touch that reopens is lost
+                    _arr = arrival(_was)
+                    if _arr == CONFIRMED and rg > 0:
+                        undone.append((slot, _was[-1], rg))
+                    elif _arr == TOUCHED and rg > 0:
+                        touch_lost.append((slot, _was[-1], rg))
+                elif _was and _was[-1] <= 0 < rg:
                     undone.append((slot, _was[-1], rg))
                 self._res.setdefault(slot, []).append(rg)
                 counts[slot] = cnt
@@ -9525,6 +9566,11 @@ class Agent:
                                 across_reads="seen this often across ALL contexts -- a hint "
                                              "about what to try, not a finding",
                                 reads="a goal I had met is no longer met; this is what I did")
+        for _slot, _was, _now in touch_lost:
+            self.led.record(self.cycle, self._running_step, _slot, "goal_touch_lost",
+                            was=round(float(_was), 4), now=round(float(_now), 4),
+                            value=state.get(_slot), action=self._last_action,
+                            reads="one reading at zero, not confirmed, then open again (GQ3)")
         if reach:
             self.led.record(self.cycle, self._running_step, "*", "can",
                             **{k: sum(1 for v in reach.values() if v == k)
@@ -9543,18 +9589,25 @@ class Agent:
             w = MIN_REPEAT + 1
             def _deltas(ser: list[float]) -> list[float]:
                 return [b - a for a, b in zip(ser[-w:], ser[-w + 1:], strict=False)]
+            # GQ3: qualifies excludes a touched or confirmed series, satisfied is CONFIRMED, and
+            # the touched ones are listed apart -- the same reading _goal_choice takes
+            _gq3 = ({"touched": sorted(k for k, ser in self._res.items()
+                                       if arrival(ser) == TOUCHED)} if _ARRIVAL else {})
             self.led.record(
                 self.cycle, self._running_step, "*", "goal_series",
                 series={k: [round(float(v), 4) for v in ser[-w:]]
                         for k, ser in sorted(self._res.items())},
                 qualifies=sorted(k for k, ser in self._res.items()
                                  if len(ser) >= w and all(d <= 0 for d in _deltas(ser))
-                                 and any(d < 0 for d in _deltas(ser))),
-                satisfied=sorted(k for k, ser in self._res.items() if ser and ser[-1] <= 0),
+                                 and any(d < 0 for d in _deltas(ser))
+                                 and (not _ARRIVAL or arrival(ser) == OPEN)),
+                satisfied=sorted(k for k, ser in self._res.items()
+                                 if (arrival(ser) == CONFIRMED if _ARRIVAL
+                                     else ser and ser[-1] <= 0)),
                 too_short=sorted(k for k, ser in self._res.items() if len(ser) < w),
                 # the numerator and the denominator, because the RATIO cannot separate
                 # never-recomputed from correctly-static from live-and-insensitive
-                counts=counts)
+                counts=counts, **_gq3)
 
     def _goal_choice(self, why: dict | None = None, book: bool = False) -> str | None:
         """M2 ITEM 3, THE SELECTOR. §13.4, quoted whole because the criterion is its wording:
@@ -9588,6 +9641,8 @@ class Agent:
         # rather than assumed: six cycles, `enumerate_routines` reached zero times, every exit
         # here. **The whole ACT space is downstream of this one string.**
         tally = {"too_short": 0, "flat": 0, "rose": 0, "qualified": 0, "arrived": 0}
+        if _ARRIVAL:
+            tally["touched"] = 0
         longest = 0
         refuted = self._refuted_slots() if _7H_RESCOPE and hasattr(self, "_rescoped") else {}
         plain: tuple[float, str] | None = None     # 7h (b): the pick without the rank
@@ -9617,7 +9672,13 @@ class Agent:
             # at execution is a MOMENTARY TOUCH on an oscillating relational attribute, not
             # arrival. `MIN_REPEAT` is reused rather than a second constant invented -- the
             # same rule, from the same line, that makes *confidently* mean what it means here.
-            if len(series) >= MIN_REPEAT and all(v <= 0 for v in series[-MIN_REPEAT:]):
+            if _ARRIVAL:
+                _arr = arrival(series)
+                if _arr != OPEN:
+                    # GQ3: a touch is neither open nor arrived -- held, re-read next step
+                    tally["arrived" if _arr == CONFIRMED else "touched"] += 1
+                    continue
+            elif len(series) >= MIN_REPEAT and all(v <= 0 for v in series[-MIN_REPEAT:]):
                 tally["arrived"] += 1
                 continue
             if len(series) < MIN_REPEAT + 1:
@@ -9719,6 +9780,12 @@ class Agent:
                                 exit=exit_,
                                 bound=self.bound.get(guard),
                                 note="BLOCKED is 'could not read', never 'does not hold'")
+            if _ARRIVAL and rg is not None and rg <= 0.0:
+                # GQ3: the guard holds when the series CONFIRMS; one zero is a TOUCH (HOLD). At
+                # SETTLE this reading is new; at PLAN it is the series' last (note_goals read it)
+                ser = list(self._res.get(guard) or ())
+                ser = ser + [rg] if step == "SETTLE" else ser[:-1] + [rg]
+                return True if arrival(ser) == CONFIRMED else Rt.TOUCH
             return None if rg is None else rg <= 0.0
 
         def read(name: str, args: tuple):
@@ -9734,7 +9801,8 @@ class Agent:
             BLOCKS the routine; raising would turn a gap here into a crash in the ACT space.
             """
             if name.startswith(_SAT):
-                return holds(name[len(_SAT):])
+                h = holds(name[len(_SAT):])
+                return False if h == Rt.TOUCH else h    # GQ3: inside a compound, a touch is not yet
             return None if args else state.get(name)
 
         def holds_any(guard):
@@ -10635,6 +10703,9 @@ class Agent:
             elif gwhy.get("longest", 0) < gwhy.get("needs", 0):
                 reason = ("every series is shorter than the bar needs -- the bar has not been "
                           "applied yet, so this is not a bar set too high")
+            elif gwhy.get("touched") and not (gwhy.get("flat") or gwhy.get("rose")):
+                reason = ("a held objective was TOUCHED (one reading at zero, not confirmed) -- "
+                          "held for re-check, not selected (GQ3)")
             elif gwhy.get("arrived") and not (gwhy.get("flat") or gwhy.get("rose")):
                 reason = ("every objective held has ARRIVED -- nothing is left to pursue, so "
                           "this is neither the bar nor supply")
@@ -10663,6 +10734,15 @@ class Agent:
         # the GAP stays the budget, because a step count is what bounds a loop and a fraction is
         # not. Two readings, two jobs, and neither doing the other's is the whole correction.
         rg = self.goal_residual(slot, before)
+        if _ARRIVAL and rg is not None and rg <= 0.0:
+            # GQ3: the series (note_goals read this same state) decides; one zero is a touch
+            if arrival(self._res.get(slot)) == CONFIRMED:
+                self.led.record(self.cycle, "PLAN", slot, "routine_refused", r_goal=rg,
+                                reason="the objective has ARRIVED (confirmed at zero)")
+            else:
+                self.led.record(self.cycle, "PLAN", slot, "routine_recheck", r_goal=rg,
+                                reads="touched at zero, not confirmed: re-read next step")
+            return
         if rg is None or rg <= 0.0:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason="no goal residual to close"
@@ -11077,7 +11157,8 @@ class Agent:
             self._gt_which = "not_int"
             return None
         if tgt == before[slot]:
-            self._gt_which = "already_holds"
+            # GQ3: the SUBJECT is at its target -- a means read, never an arrival verdict
+            self._gt_which = "subject_met" if _ARRIVAL else "already_holds"
             return None
         return tgt
 
@@ -11153,12 +11234,12 @@ class Agent:
         evidence is `_undone`, which the agent built from its own transitions. **A conflict the
         agent has no record of is not a decision it is in a position to make.**
 
-        `holds` reuses the selector's own arrived test -- last reading at or below zero -- so
-        the gate and this row cannot drift apart on what *satisfied* means.
+        `holds` is the shared arrival() (GQ3: CONFIRMED); OFF, the last reading at or below zero.
         """
         said = want.says()
         live = [(sl, n) for (_c, it, sl, _b), n in self._undone.items()
-                if it == said and (self._res.get(sl) or [1.0])[-1] <= 0]
+                if it == said and (arrival(self._res.get(sl)) == CONFIRMED if _ARRIVAL
+                                   else (self._res.get(sl) or [1.0])[-1] <= 0)]
         if not live:
             return
         _slot, _n = max(live, key=lambda kv: kv[1])

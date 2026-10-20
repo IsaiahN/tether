@@ -51,6 +51,10 @@ DONE, BLOCKED, EXHAUSTED = "done", "blocked", "exhausted"
 # has one word for it and `_ENDS` can recognise it when it comes back round.
 UNREALISABLE = "unrealisable"
 _ENDS = (DONE, BLOCKED, EXHAUSTED, UNREALISABLE)
+# GQ3 (the reviewer 2026-10-20 14:27): `holds` may answer TOUCH -- the guard read met once, not
+# confirmed. A guarded node then emits HOLD with itself as the rest: nothing acts this step, no
+# budget is spent, and the next read confirms (DONE) or reopens. HOLD is a step, not an ending.
+TOUCH, HOLD = "touch", "hold"
 
 
 @dataclass(frozen=True)
@@ -276,6 +280,8 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
         h = holds(r.guard)
         if h is None:
             return BLOCKED, None
+        if h == TOUCH:
+            return HOLD, r
         if not h:
             return DONE, None
         return advance(r.body, holds, lib, state, _depth)
@@ -285,6 +291,8 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
         h = holds(r.guard)
         if h is None:
             return BLOCKED, None
+        if h == TOUCH:
+            return HOLD, r
         return advance(r.body if h else r.otherwise, holds, lib, state, _depth)
 
     if isinstance(r, Try):
@@ -350,6 +358,8 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
             h = holds(guard)
             if h is None:
                 return BLOCKED, None
+            if h == TOUCH:
+                return HOLD, Until(guard, body, budget, r.expect)
             if h:
                 return DONE, None                  # the guard holds: this is what terminates
             if budget <= 0:
