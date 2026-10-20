@@ -942,6 +942,14 @@ ARMS: dict[str, str] = {
                          "states, held conditions SHELVED at ADVANCE / WIN with (game, level) and "
                          "carried as a template through M7-INV, goal atoms numbered for the life. "
                          "OFF: degree >= 1.0 > prev, closed with the level (7091be4). default ON",
+    "TETHER_GOAL_HYPOTHESES": "GQ2, GOAL HYPOTHESES (the reviewer 2026-10-20 14:27; Isaiah "
+                              "14:11): with no objective held, the library's own condition "
+                              "grammar over THIS board and the shelf's templates propose goals, "
+                              "each a subject-scoped want on a movable slot with a route in the "
+                              "agent's delta table (CAN), ranked (shelf win, term_bits; A1 ties), "
+                              "pursued through the selector -> routine path, ended on arrival "
+                              "without a clear or a stall; the next differs; then a pair; then "
+                              "System 0. OFF: no proposal (86c7998). default ON",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",

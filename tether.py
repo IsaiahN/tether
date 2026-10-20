@@ -970,6 +970,24 @@ def arrival(series) -> str:
 _LEVEL_GOAL = armflag.arm("TETHER_LEVEL_GOAL", default=True)
 
 
+def _canon_goal(text: str) -> str:
+    """One spelling per goal condition: a symmetric comparison (==, !=) with its two sides in
+    order, a pair's parts sorted -- so "already held" reads the condition, not its text."""
+    parts = []
+    for part in text.split(" and "):
+        m = re.fullmatch(r"(\S+) (==|!=) (\S+)", part.strip())
+        parts.append(f"{min(m[1], m[3])} {m[2]} {max(m[1], m[3])}" if m else part.strip())
+    return " and ".join(sorted(parts))
+
+
+# GQ2, GOAL HYPOTHESES (the reviewer 2026-10-20 14:27; Isaiah 14:11): when no objective is held,
+# the library's own condition grammar over THIS board (and the shelf's templates) proposes goals,
+# each held as a SUBJECT-scoped want on a slot the agent can move, ranked (record, bits), pursued
+# one at a time through the selector -> routine path, refuted on arrival without a clear or set
+# aside when stalled; the next must differ; all refuted -> a pair; then System 0. OFF: no proposal
+_GOAL_HYP = armflag.arm("TETHER_GOAL_HYPOTHESES", default=True)
+
+
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
 # context -- its object's signed offset from the controlled owners, read off the agent's own pair
 # slots -- two actions change it with different PURE signs. contingent()'s always/never, one level
@@ -2207,6 +2225,11 @@ class Agent:
         self._goal_n = 0              # GQ1: goal atoms are numbered for the agent's life
         self._goal_meta: dict = {}    # GQ1: key -> met_state, templates, affects (for the shelf)
         self._goal_shelf: dict = {}   # GQ1: shelved goal conditions, key -> provenance + record
+        self._hyp: dict | None = None  # GQ2: the goal hypothesis held now
+        self._hyp_tried: dict = {}    # GQ2: (template, subject, operand) -> how it ended (level)
+        self._hyp_n = 0               # GQ2: hypotheses held, for their link keys
+        self._hyp_exhausted = None    # GQ2: the delta-table size at which nothing was routable
+        self._hyp_known = 0
         self._goal_links: dict = {}   # build 3 L1: key -> (slot, want name) this link wrote
         self._want_scope: dict = {}   # b-0: slot -> the want name scored on its SUBJECT alone
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
@@ -2961,6 +2984,13 @@ class Agent:
         self._resolve_signals("level", how)
         if _D13:
             self._settle_process("level", how)
+        if _GOAL_HYP:
+            # GQ2: a hypothesis held through a clear WON (its shelf record counts it); any other
+            # boundary closes it; the new level's board is proposed afresh
+            if self._hyp is not None:
+                self._hyp_end("level_cleared" if how in (WIN, ADVANCE) else f"closed_{how}",
+                              won=how in (WIN, ADVANCE), step="IMPORT")
+            self._hyp_tried, self._hyp_exhausted = {}, None
         if self._goal_conds and _LEVEL_GOAL and how in (WIN, ADVANCE):
             self._shelve_goals(how)
         if self._goal_conds:
@@ -5088,6 +5118,245 @@ class Agent:
                             met_state=rec["met_state"], carried=carried,
                             reads="a goal learned at a clear, kept as a ranked hypothesis (GQ1)")
 
+    def _goal_hypothesis(self, before: dict) -> None:
+        """GQ2 (the reviewer 2026-10-20 14:27; Fig 5 :62-66, Fig 11 :43-48, Fig 9 :40-44): the
+        held hypothesis is checked first (a CONFIRMED arrival with no clear is a loss; a residual
+        that has not fallen within its gap-derived budget is set aside); with none held and
+        nothing selectable, one is proposed. Never "no goal": all refuted -> a pair -> System 0."""
+        if self._hyp is not None:
+            self._hyp_check()
+        # exhausted means "none routable AT THIS KNOWLEDGE": a route comes from the agent's own
+        # delta table, so a new effect learned (a new delta key) reopens the proposal
+        known = sum(len(v.get("delta", {})) for v in self.iface.table.values())
+        if (self._hyp is None and self._hyp_exhausted != known and self.routine is None
+                and self._goal_choice() is None):
+            self._hyp_known = known
+            kept = self._books_kept()
+            self._hyp_propose(before)
+            self._books_back(kept)
+
+    def _hyp_check(self) -> None:
+        h = self._hyp
+        if any(self.wants.get(sl) != nm for sl, nm in self._goal_links.get(h["key"], ())) \
+                or h["key"] not in self._goal_links:
+            self._hyp_end("lost")               # its want was released elsewhere
+            return
+        h["steps"] += 1
+        sers = [self._res.get(sl) for sl in h["slots"]]
+        if all(s and arrival(s) == CONFIRMED for s in sers):
+            self._hyp_end("arrived_no_clear", loss=True)
+        elif h["steps"] > h["budget"]:
+            now = [s[-1] for s in sers if s]
+            if not now or min(now) >= h["r0"]:
+                self._hyp_end("stalled")
+
+    _LINK_BOOKS = ("goal_link_made", "goal_link_refused_wants", "goal_unlinked")
+
+    def _books_kept(self) -> dict:
+        """The learned-goal link books (L2) as they stand: a hypothesis's links and route checks
+        are not learned-goal links, so GQ2 puts these back as it found them."""
+        return {k: self.gamma.book.get(k) for k in self._LINK_BOOKS}
+
+    def _books_back(self, kept: dict) -> None:
+        for k, v in kept.items():
+            if v is None:
+                self.gamma.book.pop(k, None)
+            else:
+                self.gamma.book[k] = v
+
+    def _hyp_end(self, why: str, loss: bool = False, won: bool = False,
+                 step: str = "PLAN") -> None:
+        h, self._hyp = self._hyp, None
+        kept = self._books_kept()
+        released = self._release_link(h["key"])
+        self._books_back(kept)
+        # the echo wants it displaced come back where their slot is free: a record, not an end
+        self._hyp_restore({sl: v for sl, v in h.get("displaced", {}).items()
+                           if sl not in self.wants})
+        self._hyp_tried[h["tkey"]] = (why, h.get("cond"), h["text"])
+        if h.get("shelf") in self._goal_shelf and (loss or won):
+            self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
+        self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
+                        text=h["text"], why=why, steps=h["steps"], released=released,
+                        source=h["source"],
+                        reads="a goal hypothesis ended; the next must differ (Fig 7 :36)")
+
+    def _hyp_route(self, slot: str, before: dict) -> str | None:
+        """The action the interface knows moves the subject toward its target (the route
+        _goal_split takes), or None: GQ2's CAN, from the agent's own delta table."""
+        tgt = self._goal_target(slot, before)
+        if tgt is None or slot not in before:
+            return None
+        want = (IFace.Intent(IFace.BECOME, slot, "+" if tgt > before[slot] else "-")
+                if self.slot_types.get(slot) in ORDERED_TYPES
+                else IFace.Intent(IFace.BECOME, slot, value=tgt))
+        r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env),
+                               before, self.env, withheld=self._withheld)
+        return None if r is None else r.action
+
+    def _hyp_hold(self, key: str, c: Any, before: dict) -> tuple:
+        """Link one candidate as its subject's want and read its route; kept only with a route.
+        A no-search (G1 / echo) want on the subject is displaced -- a state the agent passed
+        through is not an end while a hypothesis is held (the reviewer 14:27 (c)); a composed
+        or learned want is never displaced."""
+        parts = list(c.parts) if isinstance(c, _Pair) else [c]
+        linked = {sl for v in self._goal_links.values() for sl, _n in v}
+        displaced = {}
+        for p in parts:
+            sl = p.slot
+            if sl in self.wants:
+                if self._want_scope.get(sl) == self.wants[sl] and sl not in linked:
+                    displaced[sl] = (self.wants.pop(sl), self._want_terms.pop(sl, None),
+                                     self._want_scope.pop(sl, None))
+                else:
+                    self._hyp_restore(displaced)
+                    return None, "the subject holds a composed or learned want"
+        link = self._link_goal(key, c)
+        if not link.get("linked"):
+            self._hyp_restore(displaced)
+            return None, link.get("why")
+        route = next((a for a in (self._hyp_route(sl, before) for sl in link["slots"]) if a),
+                     None)
+        if route is None:
+            self._release_link(key)
+            self._hyp_restore(displaced)
+            return None, "no route"
+        return {**link, "route": route, "displaced": sorted(displaced), "_held": displaced}, None
+
+    def _hyp_restore(self, displaced: dict) -> None:
+        for sl, (w, t, sc) in displaced.items():
+            self.wants[sl] = w
+            if t is not None:
+                self._want_terms[sl] = t
+            if sc is not None:
+                self._want_scope[sl] = sc
+
+    @_in_step("PLAN")
+    def _hyp_propose(self, before: dict) -> None:
+        """The supply (Fig 11 :43-48, read off THIS board): the library's own condition grammar
+        (_inv_conditions, TEMPLATES by reading type) over this state, and the shelf's templates
+        instantiated over this board's objects. Each compiles through compile_term's vocabulary;
+        a subject the agent can move, open now, untried this level. Ranked: a shelf win first,
+        then description length (term_bits); an exact tie by _choice (A1), never by text. The
+        first rank group with a ROUTE is the pick (CAN from the agent's own delta table)."""
+        atoms = {a.name: a for a in self.gamma.atoms}
+        der = self.env.derived() if hasattr(self.env, "derived") else {}
+        src = dict.fromkeys(self._inv_conditions(before), "library")
+        tpl = dict(self._inv_tpl) if _M7_INV else {}
+        objs = sorted({k.split(".", 1)[0] for k in before
+                       if "." in k and "@" not in k and "~" not in k})
+        for skey, rec in sorted(self._goal_shelf.items()):
+            for t in (rec.get("templates") or [rec.get("template")]):
+                if not t:
+                    continue
+                for o in objs:
+                    for x in ([y for y in objs if y != o] if "{x}" in t else [None]):
+                        text = t.format(o=o, x=x)
+                        src[text], tpl[text] = skey, t
+        refused: Counter = Counter()
+        cands = []
+        for text, s in src.items():
+            c = self._compile_cache.get(text)
+            if c is None:
+                c = self._compile_cache[text] = compile_term.compile_candidate(
+                    {"condition": text}, atoms)
+            if isinstance(c, compile_term.Refusal):
+                refused[c.reason] += 1
+                continue
+            if c.slot not in before or c.slot not in self.slots or c.slot in der:
+                refused["subject not a movable slot"] += 1
+                continue
+            if compile_term.run(c, before) is not False:
+                refused["holds now or unreadable"] += 1
+                continue
+            tk = (tpl.get(text, text), c.slot, c.operand)
+            if tk in self._hyp_tried:
+                refused["tried this level"] += 1
+                continue
+            won = self._goal_shelf.get(s, {}).get("record", {}).get("won", 0) if s else 0
+            bits = term_bits(self.gamma.length(c.term), self.gamma.alphabet)
+            cands.append(((0 if won else 1, round(bits, 6)), text, c, tk, s))
+        cands.sort(key=lambda x: x[0])
+        ranked_all = list(cands)                # the pick's rank is read against this order
+        routable = 0
+        detail = {"candidates": len(src), "open": len(cands), "refused": dict(refused),
+                  "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][1],
+                              "source": x[4]} for x in cands[:5]]}
+        pick = None
+        checked = 0
+        while cands and pick is None:
+            group = [x for x in cands if x[0] == cands[0][0]]
+            cands = cands[len(group):]
+            ok = []
+            for x in group:
+                checked += 1
+                self._hyp_n += 1
+                key = f"@hyp{self._hyp_n}"
+                link, why = self._hyp_hold(key, x[2], before)
+                if link is None:
+                    refused[f"no hold: {why}"] += 1
+                    continue
+                ok.append((x, key, link))
+                self._release_link(key)                 # re-held below for the one picked
+                self._hyp_restore(link["_held"])
+            if not ok:
+                continue
+            if len(ok) > 1 and _A1_TIES:
+                k = self._choice("goal_hypothesis", None,
+                                 [(x[1], x[0][1], None) for x, _k, _l in ok])
+                x, key, _l = next(o for o in ok if o[0][1] == k)
+            else:
+                x, key, _l = ok[0]
+            link, _why = self._hyp_hold(key, x[2], before)
+            if link is not None:
+                pick = (x, key, link)
+                routable = len(ok)
+        if pick is None:
+            pick = self._hyp_pair(before, detail)
+        detail.update(checked=checked, refused=dict(refused))
+        if pick is None:
+            self._hyp_exhausted = self._hyp_known
+            self.led.record(self.cycle, "PLAN", "@goal", "goal_hypotheses", pick=None,
+                            why="nothing open with a route, no pair: System 0", **detail)
+            return
+        x, key, link = pick
+        sl = link["slots"][0]
+        gap = self._discrepancy(sl, before)
+        rg = self.goal_residual(sl, before)
+        self._hyp = {"key": key, "text": x[1], "slots": link["slots"], "tkey": x[3],
+                     "cond": x[2], "source": x[4] or "library",
+                     "shelf": x[4] if x[4] in self._goal_shelf else None,
+                     "steps": 0, "r0": rg if rg is not None else 1.0,
+                     "budget": (abs(gap) if isinstance(gap, int) else 1) + MIN_REPEAT + 1,
+                     "born": self.cycle, "displaced": link["_held"]}
+        detail.update(routable=routable, pick_bits=x[0][1],
+                      pick_rank=next((i for i, y in enumerate(ranked_all) if y is x), None))
+        self.led.record(self.cycle, "PLAN", sl, "goal_hypotheses", pick=x[1], key=key,
+                        slots=link["slots"], route=link["route"],
+                        displaced=link["displaced"], r_goal=rg, budget=self._hyp["budget"],
+                        source=self._hyp["source"], **detail)
+
+    def _hyp_pair(self, before: dict, detail: dict) -> tuple | None:
+        """All singles refuted or routeless: the conjunction of two that each ARRIVED without a
+        clear (the GOAL_PAIR precedent: one want per conjunct, all or none), the cheapest
+        untried pair of different subjects first."""
+        arrived = sorted(((v[2], v[1], tk) for tk, v in self._hyp_tried.items()
+                          if tk[0] != "pair" and v[0] == "arrived_no_clear"
+                          and v[1] is not None and not isinstance(v[1], _Pair)),
+                         key=lambda a: a[0])
+        for i, (ta, ca, ka) in enumerate(arrived):
+            for tb, cb, kb in arrived[i + 1:]:
+                if ca.slot == cb.slot or ("pair", ka, kb) in self._hyp_tried:
+                    continue
+                self._hyp_n += 1
+                key = f"@hyp{self._hyp_n}"
+                link, _why = self._hyp_hold(key, _Pair((ca, cb)), before)
+                if link is not None:
+                    detail["pair_of"] = [ta, tb]
+                    return ((None, None), f"{ta} and {tb}", _Pair((ca, cb)), ("pair", ka, kb),
+                            "pair"), key, link
+        return None
+
     def _release_link(self, key: str) -> bool:
         """L1 / (b): release every want this link wrote that is still in place, and only those;
         a want the agent composed itself is never touched."""
@@ -5194,7 +5463,10 @@ class Agent:
                                      "cheapest": other["cheapest"][:1]}
         if best is None:
             detail["pick"] = "none paid"
-        elif best[4] in self._goal_text.values():
+        elif (_canon_goal(best[4]) in {_canon_goal(t) for t in self._goal_text.values()}
+              if _LEVEL_GOAL else best[4] in self._goal_text.values()):
+            # GQ1: one condition, either spelling ("o0.col == o1.col" is "o1.col == o0.col"):
+            # under A1's tie both spellings are picks, and the text check held it twice
             detail["pick"] = f"already held: {best[4]}"
         else:
             _t, cost, left, e, text, c = best
@@ -9521,6 +9793,10 @@ class Agent:
         if gap == 0 or (not _ARRIVAL and 0 in self._disc.get(slot, ())):
             # holds now (GQ3: "has held, ever" is not evidence -- one zero is a touch)
             return YES
+        if _GOAL_HYP and self._hyp is not None and slot in self._hyp["slots"]:
+            # GQ2: a held hypothesis is reachable when the agent's own delta table knows an
+            # action that moves its subject toward the target (the route _goal_split takes)
+            return YES if self._hyp_route(slot, state) is not None else UNKNOWN
         name = self.bound.get(slot)
         term = self.gamma.library.get(name) if name else None
         if term is None:
@@ -9736,6 +10012,9 @@ class Agent:
         tally = {"too_short": 0, "flat": 0, "rose": 0, "qualified": 0, "arrived": 0}
         if _ARRIVAL:
             tally["touched"] = 0
+        # GQ2: while a hypothesis is held it is the one end selected (selectable while OPEN, the
+        # agent's own pursuit, no shrinking bar to earn first); echo wants are not ends meanwhile
+        hyp = self._hyp["slots"] if (_GOAL_HYP and self._hyp is not None) else None
         longest = 0
         refuted = self._refuted_slots() if _7H_RESCOPE and hasattr(self, "_rescoped") else {}
         plain: tuple[float, str] | None = None     # 7h (b): the pick without the rank
@@ -9765,6 +10044,11 @@ class Agent:
             # at execution is a MOMENTARY TOUCH on an oscillating relational attribute, not
             # arrival. `MIN_REPEAT` is reused rather than a second constant invented -- the
             # same rule, from the same line, that makes *confidently* mean what it means here.
+            if hyp is not None:
+                if slot in hyp and arrival(series) == OPEN and best is None:
+                    tally["hypothesis"] = tally.get("hypothesis", 0) + 1
+                    best = (0.0, slot)
+                continue
             if _ARRIVAL:
                 _arr = arrival(series)
                 if _arr != OPEN:
@@ -13864,6 +14148,8 @@ class Agent:
         # it inside the branch that consumes it would record only the steps that already
         # pursued something.
         self.note_goals(before)
+        if _GOAL_HYP and self.slots:
+            self._goal_hypothesis(before)        # GQ2: check the held one, else propose
         if not self.slots:
             # NO SLOTS IS A STATE OF THE WORLD, NOT AN IMPOSSIBILITY. `max()` on an empty
             # sequence made a legal state fatal: `ls20` reaches GAME_OVER at cycle 130,

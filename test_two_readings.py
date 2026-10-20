@@ -45,9 +45,11 @@ if __name__ == "__main__":
     pick = ag._two_readings("o0.row", [y, x], base=20.0)
     row = [r["detail"] for r in ag.led.rows() if r["event"] == "two_readings"][-1]
     summed = min([y, x], key=lambda p: p[0] + p[1] + tether._confirm_actions(p[2]))
-    assert pick is y and len(row["frontier"]) == 2 and summed is x, (row, summed)
-    print("  1: Y (5 bits, 10 actions) and X (6 bits, 2 actions) both on the frontier; the order "
-          "picks Y; the sum would pick X")
+    # both non-dominated: the member is A1's (TETHER_A1_TIES, Isaiah 10-15), so the PROPERTY is
+    # asserted -- both on the frontier, the pick one of them -- never which (2026-10-20)
+    assert pick in (y, x) and len(row["frontier"]) == 2 and summed is x, (row, summed)
+    print(f"  1: Y (5 bits, 10 actions) and X (6 bits, 2 actions) both on the frontier; the "
+          f"pick is {'Y' if pick is y else 'X'} (A1's); the sum would pick X")
     odd = (5.0, 0.0, Rt.Choose("o0.row", Rt.Act("ACTION1"), Rt.Act("ACTION2")))
     assert tether._confirm_actions(odd[2]) is None
     ag._two_readings("o0.row", [y, odd, z], base=20.0)

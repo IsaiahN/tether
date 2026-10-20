@@ -11,6 +11,10 @@ Nothing here is new vocabulary: every relation is composable from the frozen 8 +
 (`RELATIONS.md` Part 1-2), so this is GROUNDING what the set already expresses, not extending it.
 Provenance: sensor, 2026-09-15, Isaiah-authorised, composable-from-frozen-set.
 
+SUPERSEDED: Isaiah 10-14 innate atoms ("ALL atoms/concepts are innate"; Isaiah 09-19 dissolved
+the reaching circle); 10-20 GQ2 states goal hypotheses in the existing vocabulary and installs no
+atom (the reviewer 2026-10-20 14:27 (a)). The note below is kept as the record.
+
 §12.3 AND THE CUE/TERM LINE (reviewer, 2026-09-15) — DO NOT ERASE. §12.3 forbids INSTALLING
 `alignment`, `symmetry`, `containment`, `holes`, `counting-by-colour` as COMPOSABLE TERMS: the
 agent should have to REACH for them, and reaching is the only evidence the composition system

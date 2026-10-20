@@ -5,7 +5,8 @@ WHEN the world's objective held -- the flag is the then-side, never the subject.
 A hand history on the ARC atom set: 40 steps; the world's objective holds on 4 of them, exactly
 where o0.col == o1.col.
 
-  must-pass: that condition is the pick, held in-episode, and its carry verdict recorded;
+  must-pass: a zero-error member of the exact tie is the pick (A1_TIES decides the member; the
+     condition above is one of several), held in-episode, and its carry verdict recorded;
   1. the flag is never the minted subject: no condition reads a goal slot, none compiles onto one;
   2. nothing priced by a quantity the frame produces: emptying bound, owed and the book changes
      no price;
@@ -37,7 +38,10 @@ def _agent():
     env = world.bind(g)
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=f"gc_{seed}"), tether.Config(),
                       ledger.Ledger())
-    ag.step()
+    for _ in range(6):          # _hist reads the last transition; a first step may record none
+        ag.step()
+        if ag.trace:
+            break
     return ag
 
 
@@ -48,7 +52,11 @@ def _hist(ag, n=40):
         st = dict(base)
         for o in range(6):
             st[f"o{o}.col"] = o % 4
-        st["o0.col"], st["o1.col"] = (2, 2) if i in HIT else (0, 3)
+        # the off-goal pairs CYCLE so o0.col == o1.col is the one zero-error single: each column
+        # alone shows the goal's value off-goal too, and o0 never equals o1 off-goal (with a
+        # constant (0, 3) every comparison against a constant column tied it, 2026-10-20)
+        st["o0.col"], st["o1.col"] = ((2, 2) if i in HIT
+                                      else ((0, 3), (3, 0), (1, 2), (2, 1))[i % 4])
         rows.append((st, i in HIT))
     return rows
 
@@ -67,7 +75,13 @@ if __name__ == "__main__":
     ag._reach_hist = _hist(ag)
     ag._goal_condition()
     row = [r["detail"] for r in ag.led.rows() if r["event"] == "goal_condition"][-1]
-    assert row["pick"] in ("o0.col == o1.col", "o1.col == o0.col"), row
+    # the candidates TIE EXACTLY here and an exact tie is A1's (TETHER_A1_TIES, Isaiah 10-15: the
+    # least-known, then the recorded draw), so the PROPERTY is asserted, never one member: the
+    # pick is the cheapest row, it pays with zero errors, and it is true exactly on the met rows
+    assert row["cheapest"][0]["if"] == row["pick"] and row["cheapest"][0]["errors"] == 0, row
+    held = next(iter(ag._goal_conds.values()))
+    assert all((tether.compile_term.run(held, st) is True) == hit
+               for st, hit in ag._reach_hist), row["pick"]
     assert ag._goal_conds and "carry" in row
     print(f"  must-pass: '{row['pick']}' picked over {row['conditions']} conditions; base "
           f"{row['base_bits']} (4 steps named in 40), cheapest {row['cheapest'][0]}; carry: "
@@ -75,7 +89,7 @@ if __name__ == "__main__":
     for text in ag._inv_conditions(ag._reach_hist[-1][0]):
         assert "@" not in text and "goal" not in text
     assert all(not c.slot.startswith("@") for c in ag._goal_conds.values())
-    print("  1: no condition reads a goal slot, and the held one compiles onto o0.col/o1.col")
+    print("  1: no condition reads a goal slot; the held one is a zero-error member of the tie")
     c = _compiled(ag, "o0.col == o1.col")
     p0 = ag._goal_price([c], ag._reach_hist)
     ag.bound, ag.owed_import = {}, set()

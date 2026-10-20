@@ -29,7 +29,8 @@ import tether
 from test_goal_condition import _agent, _hist
 
 sys.dont_write_bytecode = True
-SLOT = "o0.col"
+SLOT = "o0.col"     # the docstring's spelling; either of PAIR is the subject
+PAIR = ("o0.col", "o1.col")
 
 
 def _held(link_on: bool, occupied: str | None = None):
@@ -37,10 +38,14 @@ def _held(link_on: bool, occupied: str | None = None):
     tether._GOAL_CONDITION, tether._GOAL_LINK = True, link_on
     try:
         ag = _agent()
-        ag.wants.pop(SLOT, None)
-        ag._want_terms.pop(SLOT, None)
-        if occupied:
-            ag.wants[SLOT] = occupied
+        # BOTH spellings of the pick tie ("o0.col == o1.col" / "o1.col == o0.col": A1_TIES decides
+        # the member), so both slots are cleared -- or both occupied -- and the subject is read
+        # from the link (2026-10-20)
+        for sl in PAIR:
+            ag.wants.pop(sl, None)
+            ag._want_terms.pop(sl, None)
+            if occupied:
+                ag.wants[sl] = occupied
         before = dict(ag.wants)
         ag._reach_hist = _hist(ag)
         ag._goal_condition()
@@ -53,14 +58,17 @@ def _held(link_on: bool, occupied: str | None = None):
 if __name__ == "__main__":
     ag, before, row = _held(True)
     link = row["link"]
-    assert link["linked"] and link["slots"] == [SLOT] and ag.wants[SLOT] == link["want"][0], row
+    assert link["linked"] and len(link["slots"]) == 1 and link["slots"][0] in PAIR, row
+    SLOT = link["slots"][0]
+    P = next(sl for sl in PAIR if sl != SLOT)
+    assert ag.wants[SLOT] == link["want"][0], row
     assert link["scope"] == "subject" and ag._want_scope[SLOT] == ag.wants[SLOT]
     # b-0: the number MEANS o0's own satisfaction -- 0 when o0.col == o1.col, 1 when not
     state = dict(ag.trace[-1][0])
-    on = dict(state, **{"o0.col": state["o1.col"]})
-    off_st = dict(state, **{"o0.col": (state["o1.col"] + 1) % 5})
+    on = dict(state, **{SLOT: state[P]})
+    off_st = dict(state, **{SLOT: (state[P] + 1) % 5})
     # b-0 amended (08:34Z, 08:48Z): off it reads o0's own distance, gap / (alphabet - 1)
-    off_r = abs(off_st["o0.col"] - off_st["o1.col"]) / (ag.alphabet[SLOT] - 1)
+    off_r = abs(off_st[SLOT] - off_st[P]) / (ag.alphabet[SLOT] - 1)
     assert ag.goal_residual(SLOT, on) == 0.0 and ag.goal_residual(SLOT, off_st) == off_r
     assert 0 < off_r <= 1
     print(f"  must-pass: '{row['pick']}' linked as {SLOT}'s want '{link['want'][0]}', scope "
@@ -73,7 +81,7 @@ if __name__ == "__main__":
     ag._want_terms[view] = ag._want_terms[SLOT]
     ag.wants[view] = ag.wants[SLOT]
     grp = ag._group(view, state)
-    expect = 1 - sum(1 for v in grp if v == state["o1.col"]) / len(grp)
+    expect = 1 - sum(1 for v in grp if v == state[P]) / len(grp)
     got = ag.goal_residual(view, state)
     assert abs(got - expect) < 1e-9, (got, expect)
     ag.wants.pop(view)
@@ -82,6 +90,12 @@ if __name__ == "__main__":
           f"as before ({round(expect, 3)}: DISCOVERY Q21 unchanged)")
     for _ in range(3):
         ag.step()
+    # the want may have MOVED: _respell_goals re-links it on the movable party (o0, the avatar)
+    # when the pick was spelled on o1 -- the subject is the link's own now (2026-10-20)
+    now = [sl for k, v in ag._goal_links.items() if k in ag._goal_conds   # not a GQ2 hypothesis
+           for sl, _n in v]
+    assert len(now) == 1 and now[0] in PAIR, ag._goal_links
+    SLOT = now[0]
     assert SLOT in ag._res, sorted(ag._res)
     print(f"  after 3 steps {SLOT} is in _goal_choice's population ({len(ag._res[SLOT])} "
           f"readings)")
@@ -89,7 +103,8 @@ if __name__ == "__main__":
     assert off.wants == before and "link" not in row
     print("  must-fail: arm OFF, the wants (the candidate source) are unchanged and no link row")
     occ, before, row = _held(True, occupied="some . other<want>")
-    assert occ.wants[SLOT] == "some . other<want>" and row["link"]["linked"] is False, row
+    assert all(occ.wants[sl] == "some . other<want>" for sl in PAIR), row
+    assert row["link"]["linked"] is False, row
     print(f"  no overwrite: {SLOT} already wanted 'some . other<want>'; kept, and the row says "
           f"'{row['link']['why']}'")
     assert ag.gamma.book.get("goal_link_made") == 1
@@ -117,7 +132,7 @@ if __name__ == "__main__":
               f"{un[-1]['base_bits']}; unheld, its want released, goal_unlinked 1")
         occ._reach_hist = _hist(occ) + bad
         occ._goal_recheck()
-        assert not occ._goal_conds and occ.wants[SLOT] == "some . other<want>"
+        assert not occ._goal_conds and all(occ.wants[sl] == "some . other<want>" for sl in PAIR)
         print("  L1, the agent's own want: the unlinked condition on the occupied slot is "
               "dropped and the agent's want 'some . other<want>' stays")
         e1, _b, _r = _held(True)

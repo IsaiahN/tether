@@ -83,10 +83,13 @@ if __name__ == "__main__":
     got = ag.goal_residual("o2.col", st)
     assert got == want, (got, want)
     print(f"  e: view want o2.col scored by its group fraction: {got} == {want}")
-    rows = [ag.goal_residual("o3.row", dict(base, **{"o0.row": r, "o3.row": 1}))
+    # g: "o0.row < o3.row" now binds on o0.row (`below`, ORDERED -> PRED; it bound reversed on
+    # o3.row before the atom existed), so the want, and its grade, sit on o0.row (2026-10-20)
+    rows = [ag.goal_residual("o0.row", dict(base, **{"o0.row": r, "o3.row": 1}))
             for r in (3, 2, 1, 0)]
-    assert rows == [0.75, 0.5, 0.25, 0.0], rows
-    print(f"  g: o3.row's want as o0.row goes 3 -> 0 (o3.row 1): {rows}")
+    span = ag.alphabet["o0.row"] - 1
+    assert rows == [min(1.0, r / span) for r in (3, 2, 1, 0)], (rows, span)
+    print(f"  g: o0.row's want as o0.row goes 3 -> 0 (o3.row 1): {rows}")
     st = dict(base, **{"o0.col": 1})
     r_before = ag.goal_residual("o0.col", st)
     b0, act, a0, intent, landed = ag.trace[-1]

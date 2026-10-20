@@ -16,7 +16,7 @@ from __future__ import annotations
 import sys
 
 import tether
-from test_goal_condition import _agent
+from test_goal_condition import _agent, _compiled
 from test_goal_pair import C89, ROWS
 
 sys.dont_write_bytecode = True
@@ -31,6 +31,23 @@ def _linked():
             ag._want_terms.pop(sl, None)
         ag._reach_hist = ROWS[:C89 + 1]
         ag._goal_condition()
+        # the recorded history's candidates TIE EXACTLY and the member is A1's (TETHER_A1_TIES,
+        # Isaiah 10-15): the PROPERTY is checked (the pick is the cheapest row, zero errors), then
+        # the pair the exits are built around is linked explicitly (2026-10-20)
+        row = [r["detail"] for r in ag.led.rows() if r["event"] == "goal_condition"][-1]
+        assert row["cheapest"][0]["if"] == row["pick"] and row["cheapest"][0]["errors"] == 0, row
+        for key in list(ag._goal_links):
+            ag._release_link(key)
+        ag._goal_conds.clear()
+        ag._goal_text.clear()
+        for sl in ("o0.col", "o0.row"):
+            ag.wants.pop(sl, None)
+            ag._want_terms.pop(sl, None)
+        pair = tether._Pair((_compiled(ag, "o0.col == o3.col"), _compiled(ag, "o0.row < o3.row")))
+        ag._goal_conds["test_pair"] = pair
+        ag._goal_text["test_pair"] = "o0.col == o3.col and o0.row < o3.row"
+        link = ag._link_goal("test_pair", pair)
+        assert link["linked"], link
     finally:
         tether._GOAL_CONDITION = tether._GOAL_PAIR = tether._GOAL_LINK = False
     return ag

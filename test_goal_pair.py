@@ -3,14 +3,16 @@ condition may be the AND of two conditions, priced once as one term (both parts 
 joiner). The data is the recorded objective-panel history of gridworld_arc_s1 (120 steps, the
 objective held at 2, 16, 18, 20, 21, 89; o0-o5 rows and columns), tests/fixtures.
 
-  must-pass: at its 6th completion (c89) the pair "o0.col == o3.col and o0.row < o3.row" is held;
-     re-priced on every later step to c119 (L1), it still pays and stays held;
+  must-pass: at its 6th completion (c89) a zero-error PAIR of the exact tie is the pick (A1_TIES
+     decides the member; "o0.col == o3.col and o0.row < o3.row" is one of them, 2026-10-20); that
+     named pair, re-priced on every later step to c119 (L1), still pays and stays held;
   1. a restating pair does not pay (one pair per reached step costs more than the base);
   2. a pair of identical parts is refused (never formed);
   3. the negation never pays;
   4. arm OFF changes nothing: no pair is priced and the pick is the single-condition one;
   (b) (the reviewer 05:14Z, 05:29Z): with the link ON, the held pair links as TWO subject-scoped
-     wants -- on o0.col and o3.row (the "<" conjunct compiles by the reversed binding) -- whose
+     wants -- on o0.col and o0.row (the "<" conjunct binds on o0.row through `below`; it bound
+     reversed on o3.row before that atom existed) -- linked explicitly (the member is A1's), whose
      R_goal the avatar's own move takes from 1 to 0; an occupied slot refuses the WHOLE pair,
      counted once; unholding releases both wants and only those.
 
@@ -47,8 +49,11 @@ def _run(pair_on: bool):
 
 if __name__ == "__main__":
     ag, row = _run(True)
-    want = {"o0.col == o3.col", "o0.row < o3.row"}
-    assert set(row["pick"].split(" and ")) == want, row
+    assert " and " in row["pick"] and row["cheapest"][0]["if"] == row["pick"], row
+    assert row["cheapest"][0]["errors"] == 0, row
+    named = tether._Pair((_compiled(ag, "o0.col == o3.col"), _compiled(ag, "o0.row < o3.row")))
+    ag._goal_conds = {"test_pair": named}
+    ag._goal_text = {"test_pair": "o0.col == o3.col and o0.row < o3.row"}
     print(f"  must-pass: at c89 '{row['pick']}' is held (cost {row['cheapest'][0]['cost']}, "
           f"left {row['cheapest'][0]['left']}, base {row['base_bits']})")
     tether._GOAL_CONDITION = tether._GOAL_PAIR = True
@@ -89,12 +94,12 @@ if __name__ == "__main__":
             lk._want_terms.pop(sl, None)
         bound_on = {sl: lk.bound.get(sl) for sl in ("o0.col", "o0.row")}
         lk._reach_hist = ROWS[:C89 + 1]
-        lk._goal_condition()
-        link = [r["detail"] for r in lk.led.rows() if r["event"] == "goal_condition"][-1]["link"]
-        # "o0.row < o3.row" compiles by the REVERSED binding (`above` run on o3.row with o0.row
-        # as operand): no atom says "below" on o0's own row. So the conjuncts' subjects are
-        # o0.col and o3.row -- recorded as found, for the reviewer's ruling.
-        assert link["linked"] and link["slots"] == ["o0.col", "o3.row"], link
+        named = tether._Pair((_compiled(lk, "o0.col == o3.col"), _compiled(lk, "o0.row < o3.row")))
+        lk._goal_conds["test_pair"] = named
+        link = lk._link_goal("test_pair", named)
+        # "o0.row < o3.row" binds on o0.row through `below` (ORDERED -> PRED), so both conjuncts'
+        # subjects are o0's own: o0.col and o0.row (2026-10-20; o3.row before `below` existed)
+        assert link["linked"] and link["slots"] == ["o0.col", "o0.row"], link
         assert all(lk._want_scope[sl] == lk.wants[sl] for sl in link["slots"])
         away = next(st for st, hit in ROWS if not hit and st["o0.col"] != st["o3.col"]
                     and st["o0.row"] >= st["o3.row"])
@@ -104,31 +109,32 @@ if __name__ == "__main__":
         unit = lk.alphabet["o0.col"] - 1
         assert lk.goal_residual("o0.col", away) == abs(away["o0.col"] - away["o3.col"]) / unit
         assert lk.goal_residual("o0.col", home) == 0.0
-        rr = lk.goal_residual("o3.row", away)
-        assert 0 < rr <= 1 and lk.goal_residual("o3.row", home) == 0.0, rr
+        rr = lk.goal_residual("o0.row", away)
+        assert 0 < rr <= 1 and lk.goal_residual("o0.row", home) == 0.0, rr
         tc = lk._goal_target("o0.col", away)
-        tr = lk._goal_target("o3.row", away)
+        tr = lk._goal_target("o0.row", away)
         assert tc == away["o3.col"], tc
         print(f"  (b) linked as two subject wants {link['want']} on {link['slots']}; bound "
               f"before: {bound_on}")
         print(f"      both R_goal read 1 with o0 at ({away['o0.row']},{away['o0.col']}) and 0 with "
               f"o0 moved to ({home['o0.row']},{home['o0.col']}): the avatar moves both")
-        print(f"      objective targets: o0.col -> {tc} (o3's column); o3.row -> {tr} (a target "
-              f"for o3's row, which the avatar does not control) -- FOR RULING")
+        print(f"      objective targets: o0.col -> {tc} (o3's column); o0.row -> {tr} (above "
+              f"o3's row, on the avatar's own row)")
         unlinked0 = lk.gamma.book.get("goal_unlinked", 0)
-        key = next(iter(lk._goal_conds))
-        assert lk._release_link(key) and not ({"o0.col", "o3.row"} & set(lk.wants))
+        key = "test_pair"
+        assert lk._release_link(key) and not ({"o0.col", "o0.row"} & set(lk.wants))
         assert lk.gamma.book.get("goal_unlinked") == unlinked0 + 1
         print("  (b) release: both wants released together, goal_unlinked +1")
         oc = _agent()
         oc.wants.pop("o0.col", None)
-        oc.wants["o3.row"] = "some . other<want>"
-        oc._reach_hist = ROWS[:C89 + 1]
-        oc._goal_condition()
-        ol = [r["detail"] for r in oc.led.rows() if r["event"] == "goal_condition"][-1]["link"]
+        oc.wants["o0.row"] = "some . other<want>"
+        refused0 = oc.gamma.book.get("goal_link_refused_wants", 0)
+        named_oc = tether._Pair((_compiled(oc, "o0.col == o3.col"),
+                                 _compiled(oc, "o0.row < o3.row")))
+        ol = oc._link_goal("test_pair", named_oc)
         assert ol["linked"] is False and "o0.col" not in oc.wants, ol
-        assert oc.gamma.book.get("goal_link_refused_wants") == 1
-        print("  (b) refusal: o3.row already wanted, so the WHOLE pair is refused (no half-link), "
+        assert oc.gamma.book.get("goal_link_refused_wants") == refused0 + 1
+        print("  (b) refusal: o0.row already wanted, so the WHOLE pair is refused (no half-link), "
               "counted once")
     finally:
         tether._GOAL_CONDITION = tether._GOAL_PAIR = tether._GOAL_LINK = False
