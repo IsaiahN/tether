@@ -37,8 +37,8 @@ if {plant}:
     tether.Agent._pair_count = planted
 calls, compound = [], []
 orig = tether.Agent._index_reach
-def spy(self, lib, lit, slot, mine, others):
-    views, causes, refused = orig(self, lib, lit, slot, mine, others)
+def spy(self, lib, lit, slot, mine, others, **kw):
+    views, causes, refused = orig(self, lib, lit, slot, mine, others, **kw)
     calls.append([slot, mine, list(others),
                   sorted([n, c.slot, i["library"], i["role"], i["entries"]]
                          for n, (c, i) in views.items()),

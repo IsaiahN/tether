@@ -60,11 +60,11 @@ first = {{}}
 real_compiled = tether.Agent._compiled
 
 
-def compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=None):
+def compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=None, **kw):
     if (slot is not None and sig is not None and role in tether._HELD_ROLES and o != x
             and all(tether._PLAIN.fullmatch(v) and "PH" not in v for v in (o, x))):
         first.setdefault((sig, key, role, o, x), (slot, self, lib, atoms))
-    return real_compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=slot)
+    return real_compiled(self, lib, key, role, o, x, comp, atoms, sig, slot=slot, **kw)
 
 
 tether.Agent._compiled = compiled
