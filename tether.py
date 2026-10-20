@@ -494,6 +494,22 @@ PH_O, PH_X = "PHo", "PHx"   # no id generator makes these (arc_percept 638, grid
 _INDEX_STORE: dict = {}     # (compile_term.signature, entry, role) -> held compiles
 _INDEX_N: Counter = Counter()   # "held", "bound", "named"; read by test_index_hold only
 _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
+# (b'-l) THE LINEAGE HOLD, phase 1 (Fig 6, Fig 12, Fig 4; the reviewer 2026-10-14 16:29, 16:34,
+# 16:38, 17:02). OFF; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
+# form, as the record, and never consulted by slot name on a later level; a same-level restart
+# carries it back per object where identity is sure. One attempt row per attempt.
+_LINEAGE_HOLD = armflag.arm("TETHER_LINEAGE_HOLD")
+_OBJ_ID = re.compile(r"o\d+")
+# store name -> the Agent attribute it is cleared from at retarget (tether 1998-2010, 2049)
+_LINEAGE_STORES = (("reach_tested", "_reach_tested"), ("wants", "wants"),
+                   ("want_terms", "_want_terms"), ("undone", "_undone"),
+                   ("undone_across", "_undone_across"), ("prev_gap", "_prev_gap"),
+                   ("gap_delta", "_gap_delta"), ("refuted_slot", "_refuted_slot"),
+                   ("d5_candidates", "_d5_candidates"), ("d5_pending", "_d5_pending"),
+                   ("d5_parts", "_parts"), ("refuted", "refuted"), ("refuted_at", "refuted_at"),
+                   ("trace", "trace"))   # every one a dict at __init__ but trace, a list (1513)
+# carried back on a same-level restart (the rest stay dormant, the record only): see _carry_lineage
+_LINEAGE_CARRY = ("reach_tested", "wants", "want_terms", "undone", "undone_across")
 # 7a(10) D1-D3, THE SAME LOOP ONE LEVEL UP (R3 part 2; the reviewer 2026-10-10 23:50Z). ON with
 # objective build 1 (02:19Z); reason in conform/arms.py. Process bets about GROUND outcomes,
 # settled only at a level or game ending.
@@ -1705,6 +1721,9 @@ class Agent:
         self.refuted_at: dict[tuple, float] = {}
         # HELD at a death's boundary, for `restarted` to carry back where identity is sure (F479).
         self._held_refutations: tuple[dict, dict] | None = None
+        # (b'-l) every boundary's cleared stores, instance form, in order; nothing is removed
+        self._dormant: list[dict] = []
+        self._attempt_cycle = 0
         # THE FAILED-PATH CATALOGUE, AND IT IS THE SAME KEY THE TERM PATH ALREADY USES.
         # Isaiah's BAR ruling: *catalogue and save the failed paths, the salient attributes and
         # the interactions, so each replay retrieves past information and cuts the problem down.*
@@ -1994,6 +2013,8 @@ class Agent:
         self.slot_types = self._slot_types(env)   # and may type them differently
         if _D5:
             self._d5_level_end()
+        if _LINEAGE_HOLD:
+            self._hold_lineage(how)
         self.bound, self.trace = {}, []
         self._parts, self._d5_pending, self._shadow = {}, {}, {}
         self._d5_candidates = {}
@@ -6964,13 +6985,18 @@ class Agent:
         self._attempt_actions = 0
         if _MC34:
             self._level_attempts += 1
+        if _LINEAGE_HOLD:
+            self._carry_lineage(env)
         if not held:
             return
         idn = getattr(env, "identity", None)
         carried, not_carried = [], {}
         for k, st in held[0].items():
-            objs = sorted({n.split(".", 1)[0] for n in (k[0], *k[2])
-                           if re.fullmatch(r"o\d+", n.split(".", 1)[0])})
+            # (b'-l) C3, under the arm only: a pair owner (o12~o3) names BOTH objects (the
+            # reviewer 2026-10-14 17:02); OFF keeps the old line, which names neither.
+            objs = (sorted(self._objs_named((k[0], *k[2]))) if _LINEAGE_HOLD else
+                    sorted({n.split(".", 1)[0] for n in (k[0], *k[2])
+                            if re.fullmatch(r"o\d+", n.split(".", 1)[0])}))
             how = {o: idn(o) if idn else None for o in objs}
             unsure = {o: w for o, w in how.items() if w not in ("overlap", "unique-shape")}
             if unsure:
@@ -6982,6 +7008,81 @@ class Agent:
         self.led.record(_c, "IMPORT", _s, "restart", **_lv,
                         carried=sorted(carried), not_carried=not_carried,
                         reads="refutations held at the death; carried only where identity is sure")
+
+    def _hold_lineage(self, how: str) -> None:
+        """(b'-l) D-c, D-a, D-selection at a boundary, BEFORE retarget clears. Every store it clears
+        is kept dormant in instance form, copied by its own type (Fig 6: a store that deletes cannot
+        tell never-held from held-and-given-up), a count row per store, and one attempt row: the
+        ending's sign and what THIS attempt tried in kind form -- the action names in its own trace
+        and the gap kinds filed (_gap_key, 7315) -- never a verdict on the items (Fig 7; the
+        death guard, RL-6)."""
+        stores = {nm: (list if isinstance(getattr(self, at), list) else dict)(getattr(self, at))
+                  for nm, at in _LINEAGE_STORES}
+        stores["drive_tried"] = {a: set(w) for a, w in self.drive.tried.items()}
+        self._dormant.append({"level": self.level, "how": how, "cycle": self.cycle,
+                              "stores": stores, "restarted": False})
+        _c, _s, _lv = self._boundary_key("@lineage")
+        for nm, st in stores.items():
+            self.led.record(_c, "SETTLE", _s, "dormant", **_lv, store=nm, count=len(st), how=how,
+                            reads="kept as the record; never consulted by slot name")
+        gaps = sorted({str(k[0]) for k, rec in self.paths.items()
+                       if rec.get("last_cycle", -1) >= self._attempt_cycle})
+        # what THIS attempt did, re-tries of carried pairs included: the trace holds every step
+        # since the last boundary (cleared only at retarget), each one
+        # (before, action, after, intent, landed)
+        tried = sorted({step[1] for step in self.trace})
+        _ac, _as, _alv = self._boundary_key("@attempt")
+        self.led.record(_ac, "SETTLE", _as, "attempt_end", **_alv, ending=how,
+                        attempt=self._level_attempts, actions_tried=tried,
+                        gap_kinds=gaps, reads="what was tried and how it ended; not a verdict")
+        self._attempt_cycle = self.cycle
+
+    @staticmethod
+    def _objs_named(x: Any) -> set:
+        """Every object id a key names: a slot's owner, a pair owner split on "~" (o12~o3)."""
+        if isinstance(x, str):
+            return {p for p in x.split(".", 1)[0].split("~") if _OBJ_ID.fullmatch(p)}
+        if isinstance(x, (tuple, list, set, frozenset)):
+            return set().union(*(Agent._objs_named(y) for y in x)) if x else set()
+        return set()
+
+    def _carry_lineage(self, env: Any) -> None:
+        """(b'-l) D-b: on a same-level restart after the game's "death" ending (a loss in the game,
+        not the agent's end: the agent, like a player, keeps everything), that boundary's stores in
+        _LINEAGE_CARRY come back per entry where EVERY object the key names is re-found as
+        "overlap" or "unique-shape" (restarted's rule, 6969-6978). The rest stay dormant. Gap
+        readings, the one-step refusal filing and D5's withdrawn cuts stay the record only."""
+        rec = self._dormant[-1] if self._dormant else None
+        if rec is None or rec["how"] != "death" or rec["restarted"]:
+            return
+        rec["restarted"] = True
+        idn = getattr(env, "identity", None)
+        why: dict = {}
+
+        def sure(objs: set) -> bool:
+            for o in objs:
+                if o not in why:
+                    why[o] = idn(o) if idn else None
+            return all(why[o] in ("overlap", "unique-shape") for o in objs)
+        carried, not_carried = Counter(), Counter()
+        attrs = dict(_LINEAGE_STORES)
+        for nm in _LINEAGE_CARRY:
+            live = getattr(self, attrs[nm])
+            for k, v in rec["stores"][nm].items():
+                if sure(self._objs_named(k)):
+                    live[k] = v
+                    carried[nm] += 1
+                else:
+                    not_carried[nm] += 1
+        for a, wheres in rec["stores"]["drive_tried"].items():
+            kept = {w for w in wheres if sure(self._objs_named(w))}
+            self.drive.tried.setdefault(a, set()).update(kept)
+            carried["drive_tried"] += len(kept)
+            not_carried["drive_tried"] += len(wheres) - len(kept)
+        _c, _s, _lv = self._boundary_key("@lineage")
+        self.led.record(_c, "IMPORT", _s, "restart_lineage", **_lv, carried=dict(carried),
+                        not_carried=dict(not_carried), identity=why,
+                        reads="dormant stores carried back only where identity is sure")
 
     def _refusal_scope(self) -> tuple:
         """What a plan is refused UNDER: the vocabulary it can be composed from."""
