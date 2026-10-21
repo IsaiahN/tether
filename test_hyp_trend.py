@@ -54,8 +54,7 @@ def trend(on, reads):
     ag = fresh()
     h, sl = ag._hyp, ag._hyp["slots"][0]
     n0 = len(ends(ag))
-    h.update(steps=0, budget=99, reads={s: list(reads) for s in h["slots"]},
-             r0s={s: reads[0] for s in h["slots"]})
+    h.update(steps=0, budget=99, reads={s: list(reads) for s in h["slots"]}, seg={})
     for s in h["slots"]:
         ag._res[s] = [reads[-1]]            # open: neither touched nor confirmed
     tether._GOAL_HYP = on

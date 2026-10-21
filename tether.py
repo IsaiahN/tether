@@ -296,6 +296,7 @@ OBJECT_TYPE = "OBJECT"
 PHASE_OF: dict[str, str] = {
     "routine": I.STRATEGY,
     "discriminate:goal": I.DIRECTED,
+    "hold": I.DIRECTED,        # a touched hypothesis held still (the reviewer 2026-10-20 18:40)
     "distinguish": I.DIRECTED,
     "system0": I.PROBE,
     "probe": I.PROBE,
@@ -960,6 +961,15 @@ def arrival(series) -> str:
     if series and len(series) >= MIN_REPEAT and all(v <= 0 for v in series[-MIN_REPEAT:]):
         return CONFIRMED
     return TOUCHED if series and series[-1] <= 0 else OPEN
+
+
+def shrinking(series) -> bool:
+    """THE selector's test (M2 item 3, Sec 13.4's *confidently shrinking*): the last MIN_REPEAT + 1
+    readings never rise and fall at least once. One definition, read by the selector, the
+    goal_series row and -- with the opposite sign -- a held hypothesis's stall (18:40, 19:11)."""
+    w = series[-(MIN_REPEAT + 1):] if series else []
+    d = [b - a for a, b in zip(w, w[1:], strict=False)]
+    return len(w) == MIN_REPEAT + 1 and all(x <= 0 for x in d) and any(x < 0 for x in d)
 
 
 # GQ1, A LEVEL CLEAR COUNTS (the reviewer 2026-10-20 14:27; Isaiah 14:11): the completion sweep
@@ -2240,6 +2250,8 @@ class Agent:
         self._hyp_n = 0               # GQ2: hypotheses held, for their link keys
         self._hyp_exhausted = None    # GQ2: the delta-table size at which nothing was routable
         self._hyp_known = 0
+        self._hyp_why: str | None = None  # 18:40 (iii): why a held hypothesis did not act
+        self._hyp_plat: list = []     # 18:40: the platform actions withheld while touched
         self._goal_links: dict = {}   # build 3 L1: key -> (slot, want name) this link wrote
         self._want_scope: dict = {}   # b-0: slot -> the want name scored on its SUBJECT alone
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
@@ -5156,14 +5168,13 @@ class Agent:
         if all(s and arrival(s) == CONFIRMED for s in sers):
             self._hyp_end("arrived_no_clear", loss=True)
         elif _GOAL_HYP:
-            # THE TREND (the reviewer 2026-10-20 17:34): the selector's shrink test with the
-            # opposite sign -- MIN_REPEAT + 1 consecutive readings with no new low, on every
-            # subject -- ends it; the gap budget is only the ceiling
-            w = MIN_REPEAT + 1
-
+            # THE TREND (the reviewer 2026-10-20 17:34, 19:11): the selector's own shrinking(),
+            # with the opposite sign, over the readings since the hold or the last touch-loss
+            # (a touch-loss starts a new approach); shorter than MIN_REPEAT + 1 is not yet
+            # judgeable; on every subject; the gap budget is only the ceiling
             def stuck(sl: str) -> bool:
-                r = h["reads"].get(sl, [])
-                return len(r) >= w and min(r[-w:]) >= min([h["r0s"].get(sl, 1.0)] + r[:-w])
+                seg = h["reads"].get(sl, [])[h["seg"].get(sl, 0):]
+                return len(seg) >= MIN_REPEAT + 1 and not shrinking(seg)
             if h["steps"] > h["budget"]:
                 self._hyp_end("stalled", by="ceiling")
             elif all(stuck(sl) for sl in h["slots"]):
@@ -5202,6 +5213,7 @@ class Agent:
         self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
                         text=h["text"], why=why, steps=h["steps"], released=released,
                         source=h["source"], by=by, held_unreadable=h["held_unreadable"],
+                        touches=h["touches"], losses=h["losses"],
                         reads_n={sl: len(v) for sl, v in h["reads"].items()},
                         acted=dict(h["acted"]),
                         reads="a goal hypothesis ended; the next must differ (Fig 7 :36)")
@@ -5383,15 +5395,47 @@ class Agent:
                      "steps": 0, "r0": rg if rg is not None else 1.0,
                      "budget": (abs(gap) if isinstance(gap, int) else 1) + MIN_REPEAT + 1,
                      "born": self.cycle, "displaced": link["_held"],
-                     "r0s": {s: (v if v is not None else 1.0) for s in link["slots"]
-                             for v in (self.goal_residual(s, before),)},
-                     "reads": {}, "held_unreadable": 0, "acted": Counter()}
+                     "reads": {}, "seg": {}, "touches": 0, "losses": 0,
+                     "held_unreadable": 0, "acted": Counter()}
         detail.update(routable=routable, pick_bits=x[0][1],
                       pick_rank=next((i for i, y in enumerate(ranked_all) if y is x), None))
         self.led.record(self.cycle, "PLAN", sl, "goal_hypotheses", pick=x[1], key=key,
                         slots=link["slots"], route=link["route"],
                         displaced=link["displaced"], r_goal=rg, budget=self._hyp["budget"],
                         source=self._hyp["source"], **detail)
+
+    def _withhold_platform(self) -> None:
+        """While a held hypothesis is touched the platform's own actions (RESET) are withheld on
+        this board, through the one Withheld every realisation already honours (18:40)."""
+        prov = getattr(self.env, "provenance", None)
+        plat = sorted(a for a in self.actions
+                      if prov is not None and prov(a) == "platform-universal")
+        self._hyp_plat = plat
+        if plat:
+            fp = self._withheld.fp or IFace.fingerprint(self.env, self.env.observe())[0]
+            self._withheld = IFace.Withheld(
+                fp, self._withheld.pairs | frozenset((a, None) for a in plat))
+
+    def _hyp_still(self) -> str | None:
+        """The action the agent's own delta table says leaves the held hypothesis's subjects and
+        operands as they are: taken, never seen to move one of them, not the platform's, not
+        positioned (a press that needs an aim is not known still); A1 among several."""
+        h = self._hyp
+        parts = list(h["cond"].parts) if isinstance(h["cond"], _Pair) else [h["cond"]]
+        keep = set(h["slots"]) | {s for p in parts for s in (p.slot, getattr(p, "operand", None))
+                                  if s}             # both parties, whichever holds the want
+        still = []
+        for a in self.actions:
+            e = self.iface.table.get(a)
+            if (a in self._hyp_plat or a in IFace.POSITIONED or not e or not e.get("n")
+                    or any(k[1] in keep for k in e.get("delta", {}))):
+                continue
+            still.append(a)
+        if not still:
+            return None
+        if len(still) == 1:
+            return still[0]
+        return self._choice("hyp_still", None, [(a, None, 1) for a in still])
 
     def _self_moving(self, slot: str) -> bool:
         """(3) (the reviewer 2026-10-20 17:34): a slot that moved by the same mean delta under
@@ -8994,6 +9038,13 @@ class Agent:
         # routine or probe exit carried the PREVIOUS cycle's value onto its REPEAT row.
         self._gamma_read = {}
         self._split_term, self._routine_fed, self._last_real = None, [], None
+        # why a held hypothesis did or did not act this cycle, for the repeat row (18:40 (iii))
+        self._hyp_why = (None if not _GOAL_HYP or self._hyp is None
+                         else "a held routine acted first")
+        _touched = (_GOAL_HYP and self._hyp is not None
+                    and any(arrival(self._res.get(sl)) == TOUCHED for sl in self._hyp["slots"]))
+        if _touched:
+            self._withhold_platform()
         # SUPPORT AT ZERO REFUSES THE MODEL THE WHEEL. `bored()` means no slot carried
         # live mass: the model explains everything it can currently see, and an action
         # IT selects can only confirm it. So boredom does not pick a different draw --
@@ -9132,11 +9183,33 @@ class Agent:
         # (b) (the reviewer 2026-10-20 17:34): a held hypothesis the selector chose, with a route,
         # acts BEFORE System 0's contact probe and exploration -- the agent pursues the end it
         # holds; with no route System 0 acts as before
-        if (_GOAL_HYP and self._hyp is not None and self._goal_choice() in self._hyp["slots"]
-                and self._goal_split(before, commit=False) is not None):
-            goal = self._goal_split(before)
-            if goal is not None:
-                return goal, "discriminate:goal"
+        if _touched:
+            # THE TOUCH HOLD (the reviewer 18:40; GQ3's rule for routines, applied here): a
+            # touched reading is confirmed only by a second one, so the act keeps the state --
+            # an action the delta table never saw move the subject or its operand; with none
+            # known, System 0 acts, the platform's actions withheld (above)
+            still = self._hyp_still()
+            if still is not None:
+                self._hyp_why = f"touched: held with {still}"
+                self.led.record(self.cycle, "PLAN", self._hyp["slots"][0], "hypothesis_hold",
+                                action=still, withheld=self._hyp_plat,
+                                reads="touched once; keep the state for the confirming reading")
+                return still, "hold"
+            self._hyp_why = ("touched: no holding action known; System 0 acts, platform actions "
+                             f"withheld {self._hyp_plat}")
+        elif _GOAL_HYP and self._hyp is not None:
+            _ch = self._goal_choice()
+            if _ch not in self._hyp["slots"]:
+                _s = self._hyp["slots"][0]
+                self._hyp_why = (f"not chosen: {arrival(self._res[_s])}" if _s in self._res
+                                 else "not chosen: no series")
+            elif self._goal_split(before, commit=False) is None:
+                self._hyp_why = "no route"
+            else:
+                goal = self._goal_split(before)
+                if goal is not None:
+                    self._hyp_why = "acted"
+                    return goal, "discriminate:goal"
         take, s0_tw, dist_r = None, None, None
         if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
                 self.drive.bored() and not (_STARVED_CONTACT and self._starved)):
@@ -10004,7 +10077,13 @@ class Agent:
                 if sl in held:
                     h["held_unreadable"] += 1
                 elif sl in counts:
-                    h["reads"].setdefault(sl, []).append(self._res[sl][-1])
+                    r = h["reads"].setdefault(sl, [])
+                    r.append(self._res[sl][-1])
+                    if r[-1] <= 0:
+                        h["touches"] += 1
+                    if any(t[0] == sl for t in touch_lost):
+                        h["losses"] += 1
+                        h["seg"][sl] = len(r) - 1      # the losing reading opens the approach
         # **WHICH INTENT UNDID WHICH GOAL -- the reviewer's row, 2026-09-29, from Isaiah's
         # ruling.** Recording only; what the agent DOES about it is his call and is not here.
         #
@@ -10075,8 +10154,6 @@ class Agent:
         # so a gate-1 refusal traces to the series that produced it instead of being inferred.
         if self._res:
             w = MIN_REPEAT + 1
-            def _deltas(ser: list[float]) -> list[float]:
-                return [b - a for a, b in zip(ser[-w:], ser[-w + 1:], strict=False)]
             # GQ3: qualifies excludes a touched or confirmed series, satisfied is CONFIRMED, and
             # the touched ones are listed apart -- the same reading _goal_choice takes
             _gq3 = ({"touched": sorted(k for k, ser in self._res.items()
@@ -10086,8 +10163,7 @@ class Agent:
                 series={k: [round(float(v), 4) for v in ser[-w:]]
                         for k, ser in sorted(self._res.items())},
                 qualifies=sorted(k for k, ser in self._res.items()
-                                 if len(ser) >= w and all(d <= 0 for d in _deltas(ser))
-                                 and any(d < 0 for d in _deltas(ser))
+                                 if shrinking(ser)
                                  and (not _ARRIVAL or arrival(ser) == OPEN)),
                 satisfied=sorted(k for k, ser in self._res.items()
                                  if (arrival(ser) == CONFIRMED if _ARRIVAL
@@ -10182,7 +10258,7 @@ class Agent:
                 continue
             window = series[-(MIN_REPEAT + 1):]
             deltas = [b - a for a, b in zip(window, window[1:], strict=False)]
-            if all(d <= 0 for d in deltas) and any(d < 0 for d in deltas):
+            if shrinking(window):
                 tally["qualified"] += 1
                 shrink = -sum(deltas)
                 if refuted:
@@ -14411,6 +14487,7 @@ class Agent:
         self._aimed = None
         self._last_landed = None
         self._press_seen = None
+        self._hyp_why = None          # per step: choose sets it when it runs
         if action is None:
             _h = self._hyp
             action, by = self.choose(before)
@@ -14725,6 +14802,7 @@ class Agent:
                             # state (RESET, F477). None where the world cannot say.
                             provenance=getattr(self.env, "provenance", lambda _a: None)(action),
                             phase=phase, by=by, stage=self.chain.seg.stage(),
+                            **({} if self._hyp_why is None else {"hyp_why": self._hyp_why}),
                             gamma_size=len(self.gamma.library), owed=sorted(self.owed_import),
                             # REACH BESIDE THE LIBRARY, because the pair is the reading and one
                             # of them was a RECONSTRUCTION. `F50` replayed `units()` from SETTLE
