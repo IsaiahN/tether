@@ -36,7 +36,7 @@ from typing import Any
 
 import armflag
 from arc_percept import _CELL_CHANGE, holes_of, perimeter_of
-from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx
+from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx, declare_turns
 from sensors import (
     BOOL,
     CELL,
@@ -1169,6 +1169,52 @@ def _iterate() -> list[Atom]:
             Atom("none_of", _quant(lambda n, _t: n == 0), CELLS, OBJ, elem_type=BOOL)]
 
 
+# THE INTERVAL BOUND'S TABLE (the reviewer 2026-10-21 17:46): how each atom's output depends on
+# the value it is handed, from its definition (gamma.TURN_KINDS names the kinds). three_spaces
+# registers every atom it builds and refuses one with no row; an attribute reading
+# (ATTRIBUTE_TYPE) reads an OBJECT and is walked. OFF (tether's TETHER_INTERVAL_BOUND): unread.
+_W_SHAPE = "reads a SHAPE, not the slot's value"
+_W_OBJ = "reads an OBJECT, not the slot's value"
+_W_CELL = "reads a cell collection, not the slot's value"
+VALUE_TURNS = {
+    "idn": ("identity", "returns its input"),
+    "translate": ("walk", "v plus an operand: a later comparison turns at a shifted value"),
+    "recolour": ("walk", "takes the operand's value, not decided by the input's pieces"),
+    "owner": ("walk", "reads ctx.obj and returns an object"),
+    "rotate": ("walk", _W_SHAPE), "reflect": ("walk", _W_SHAPE), "holes": ("walk", _W_SHAPE),
+    "parity": ("walk", "v % 2: turns at every value"),
+    "area": ("walk", _W_OBJ), "centroid": ("walk", _W_OBJ), "touching_n": ("walk", _W_OBJ),
+    "bbox_area": ("walk", _W_SHAPE), "perimeter": ("walk", _W_SHAPE),
+    "corners": ("walk", _W_SHAPE), "orbit_size": ("walk", _W_SHAPE),
+    "canonical": ("walk", _W_SHAPE), "symmetric": ("walk", _W_SHAPE),
+    "is_square": ("walk", _W_SHAPE), "touching": ("walk", _W_OBJ), "touches": ("walk", _W_OBJ),
+    "same": ("operand", "v == o"), "other": ("operand", "v != o"),
+    "above": ("operand", "v > o"), "below": ("operand", "v < o"),
+    "all_same": ("group", "all(x == v for x in g)"),
+    "any_same": ("group", "any(x == v for x in g)"),
+    "none_same": ("group", "not any(x == v for x in g)"),
+    "count": ("group", "#{x in g: x == v}"), "rank_in": ("group", "#{x in g: x < v}"),
+    "is_max": ("group", "v >= max(g)"), "is_min": ("group", "v <= min(g)"),
+    "is_mode": ("group", "v's count in g is the largest count"), "aligned": ("group", "v in g"),
+    "sum_group": ("constant", "sum(g): never reads v"),
+    "distinct": ("constant", "len(set(g)): never reads v"),
+    "abs_delta": ("walk", "abs(v): turns at every value"),
+    "sign": ("zero", "v > 0"), "holds": ("zero_one", "int(v) if v in (0, 1)"),
+    "negate": ("zero", "not v"),
+    "both": ("pass_or_zero", "bool(v) and bool(o); with no operand it returns v"),
+    "either": ("pass_or_zero", "bool(v) or bool(o); with no operand it returns v"),
+    "all": ("zero", "bool(v)"), "any": ("zero", "bool(v)"), "none": ("zero", "not v"),
+    "cells": ("walk", _W_SHAPE), "cell_row": ("walk", _W_CELL), "cell_col": ("walk", _W_CELL),
+    "count_true": ("walk", _W_CELL), "size": ("walk", _W_CELL), "all_of": ("walk", _W_CELL),
+    "some_of": ("walk", _W_CELL), "one_of": ("walk", _W_CELL), "none_of": ("walk", _W_CELL),
+}
+
+
+def value_turns() -> dict:
+    """VALUE_TURNS with a walk row for every attribute reading, whatever its arm."""
+    return {**dict.fromkeys(ATTRIBUTE_TYPE, ("walk", _W_OBJ)), **VALUE_TURNS}
+
+
 def three_spaces(predict: list[Atom]) -> list[Atom]:
     """EXTRACT + RELATE + QUANTIFY, joined to whatever PREDICT the domain supplies.
 
@@ -1238,4 +1284,13 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     # `_admitted`, NOT `ADMITTED` -- an arm-gated atom is HANDED too, and stamping from
     # the static table would leave the fold atoms `necessary`, which is the ablation's
     # BLIND category. The partition would be wrong for exactly the atoms a ruling let in.
+    # EVERY ATOM HAS A TURN ROW, refused at construction like a missing clause: an atom added
+    # with no row would be walked silently, and that is a row to write.
+    turns = value_turns()
+    missing = sorted(n for n in seen if n not in turns)
+    if missing:
+        raise ValueError(f"atoms with no VALUE_TURNS row: {missing}. Add one from the "
+                         f"atom's definition, or 'walk'.")
+    for a in out:
+        declare_turns(a, turns[a.name][0])
     return [replace(a, admitted=HANDED) if a.name in _admitted else a for a in out]

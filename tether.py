@@ -62,6 +62,7 @@ from gamma import (
     shared_token,
 )
 from gamma import SAME_AS_TARGET as G_SAME
+from gamma import VALUE_TURNS as G_VALUE_TURNS
 from ledger import (
     ADVANCE,
     CHANNEL_CLOSED,
@@ -573,6 +574,15 @@ _A1_STREAM = armflag.arm("TETHER_A1_STREAM", default=True)          # site 4: th
 _A1_LIBRARY = armflag.arm("TETHER_A1_LIBRARY", default=True)        # site 6: library chains merged
 _A1_LOOKUP = armflag.arm("TETHER_A1_LOOKUP", default=True)          # sites 7-8: the bind key
 _A1_DOMAIN = armflag.arm("TETHER_A1_DOMAIN", default=True)          # site 9: the unseen priced
+# THE INTERVAL BOUND (S3C; the reviewer 2026-10-21 17:46): an objective whose atoms are all declared
+# (gamma.VALUE_TURNS) is constant between its breakpoints, so _priced_hit's unseen walk -- 98.2% of
+# vc33's c3 contact mint, proving over 8,193 values that none satisfies -- is answered from one
+# evaluation per piece. OFF: the walk (c0d00a0)
+_INTERVAL_BOUND = armflag.arm("TETHER_INTERVAL_BOUND", default=True)
+# its check run: the walk beside the bound on every call, the walk's answer used. OFF: none
+_INTERVAL_BOUND_CHECK = armflag.arm("TETHER_INTERVAL_BOUND_CHECK")
+INTERVAL_N: dict = {"bound": 0, "walk": 0, "agree": 0, "disagree": 0}
+INTERVAL_DISAGREE: list = []      # the first disagreements, for the check run's reader
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -1232,17 +1242,26 @@ def _priced_hit(evaluate, current: int, ordered: bool, dom: _PricedDomain):
     shown = next((v for v in walk if v != current and evaluate(v)), None)
     if shown is not None and not ordered:
         return shown
-    unseen = None
-    if ordered:
-        for d in range(1, abs(shown - current) if shown is not None else dom.alpha):
-            ring = [v for v in (current - d, current + d)
-                    if 0 <= v < dom.alpha and v not in dom and evaluate(v)]
-            if ring:
-                unseen = min(ring, key=dk)
-                break
-    else:
-        ring = [v for v in range(dom.alpha) if v != current and v not in dom and evaluate(v)]
-        unseen = min(ring, key=dk) if ring else None
+    limit = (abs(shown - current) if shown is not None else dom.alpha) if ordered else None
+    brk = getattr(evaluate, "breaks", None) if _INTERVAL_BOUND else None
+    cuts = brk() if brk is not None else None
+    if cuts is not None and ordered and limit - 1 <= len(cuts) + 1:
+        cuts = None     # the rings evaluate no more values than the pieces would: walked
+    if cuts is not None:
+        INTERVAL_N["bound"] += 1
+        unseen = _bound_unseen(evaluate, current, ordered, dom, cuts, limit, dk)
+    if cuts is None or _INTERVAL_BOUND_CHECK:
+        walked = _walk_unseen(evaluate, current, ordered, dom, limit, dk)
+        if cuts is None:
+            INTERVAL_N["walk"] += 1
+        elif walked == unseen:
+            INTERVAL_N["agree"] += 1
+        else:
+            INTERVAL_N["disagree"] += 1
+            if len(INTERVAL_DISAGREE) < 20:
+                INTERVAL_DISAGREE.append({"current": current, "ordered": ordered,
+                                          "alpha": dom.alpha, "bound": unseen, "walk": walked})
+        unseen = walked
     if unseen is None or shown is None:
         return shown if unseen is None else unseen
     n = dom.alpha - len(dom)
@@ -1253,6 +1272,81 @@ def _priced_hit(evaluate, current: int, ordered: bool, dom: _PricedDomain):
     if dom.note is not None:
         dom.note(opts, pick, by, front)
     return pick
+
+
+def _walk_unseen(evaluate, current: int, ordered: bool, dom: _PricedDomain, limit, dk):
+    """_priced_hit's unseen walk: the nearest satisfying unseen value, ring by ring, tied by the
+    draw (comparable-only: every unseen value). OFF's path and the interval bound's check."""
+    if ordered:
+        for d in range(1, limit):
+            ring = [v for v in (current - d, current + d)
+                    if 0 <= v < dom.alpha and v not in dom and evaluate(v)]
+            if ring:
+                return min(ring, key=dk)
+        return None
+    ring = [v for v in range(dom.alpha) if v != current and v not in dom and evaluate(v)]
+    return min(ring, key=dk) if ring else None
+
+
+def _value_breaks(term: Term, ctx: Ctx) -> set | None:
+    """THE INTERVAL BOUND'S BREAKPOINTS (the reviewer 2026-10-21 17:46) for `term` on an int: {0}
+    (a failed guard returns the value, read as bool(v)) and those of the first atom that reads
+    the value -- an identity, or a pass_or_zero with no operand, hands it on; every later atom reads
+    that atom's output and ctx alone, so it keeps the pieces. None (the walk) if any atom has no
+    declared row or a breakpoint is not an int."""
+    out = {0}
+    first = True
+    for a in term.atoms:
+        k = G_VALUE_TURNS.get(a.fn)
+        if k is None or k == "walk":
+            return None
+        if not first or k == "identity" or (k == "pass_or_zero" and not ctx.operands):
+            continue
+        first = False
+        if k == "operand":
+            vals = tuple(ctx.operands[:1])
+        elif k == "group":
+            vals = tuple(getattr(ctx, "group", ()) or ())
+        else:
+            vals = (1,) if k == "zero_one" else ()
+        for x in vals:
+            if not isinstance(x, int):
+                return None
+            out.add(int(x))
+    return out
+
+
+def _bound_unseen(evaluate, current: int, ordered: bool, dom: _PricedDomain, cuts: set, limit, dk):
+    """_walk_unseen's answer from the pieces: the in-range breakpoints as singletons and the runs
+    between them, each read once. Ordered: the nearest satisfying unseen value's distance, then THAT
+    ring evaluated as the walk evaluates it and tied by the same draw; comparable-only: every value
+    of a satisfying piece, the same draw."""
+    alpha = dom.alpha
+    spans, lo = [], 0
+    for b in sorted(b for b in cuts if 0 <= b < alpha):
+        if lo < b:
+            spans.append((lo, b - 1))
+        spans.append((b, b))
+        lo = b + 1
+    if lo < alpha:
+        spans.append((lo, alpha - 1))
+    true = [(a, z) for a, z in spans if evaluate(a)]
+    if not ordered:
+        ring = [v for a, z in true for v in range(a, z + 1) if v != current and v not in dom]
+        return min(ring, key=dk) if ring else None
+    near = None
+    for a, z in true:
+        for v, step, end in ((min(z, current - 1), -1, a), (max(a, current + 1), 1, z)):
+            while (v >= end if step < 0 else v <= end) and v in dom:
+                v += step
+            if (v >= end if step < 0 else v <= end):
+                d = abs(v - current)
+                near = d if near is None else min(near, d)
+    if near is None or near >= limit:
+        return None
+    ring = [v for v in (current - near, current + near)
+            if 0 <= v < alpha and v not in dom and evaluate(v)]
+    return min(ring, key=dk) if ring else None
 
 
 def _recording(chains, into: list):
@@ -7713,6 +7807,8 @@ class Agent:
             def _sat(v: int) -> bool | None:
                 r = term.apply(v, ctx)
                 return None if r is NOT_RESOLVED else bool(r)
+            if _INTERVAL_BOUND:      # the breakpoints, read only if the unseen walk is reached
+                _sat.breaks = lambda: _value_breaks(term, ctx)
             return objective_step(_sat, state[slot], ordered, self._domain(slot, state, ctx))
         return term.apply(state[slot], ctx)
 

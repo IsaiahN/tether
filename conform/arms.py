@@ -1018,6 +1018,15 @@ ARMS: dict[str, str] = {
     "TETHER_LOAD_KEY_MEMO_CHECK": "W2's check run: every reuse also decodes fresh and "
                                   "compares; the fresh tuple is used. A measurement "
                                   "switch. default OFF",
+    "TETHER_INTERVAL_BOUND": "THE INTERVAL BOUND (S3C; the reviewer 2026-10-21 17:46): an "
+                             "objective whose atoms are all declared in gamma.VALUE_TURNS "
+                             "(arc_atoms.VALUE_TURNS, one row per atom) is constant between "
+                             "its breakpoints, so _priced_hit's unseen walk is answered from "
+                             "one evaluation per piece, the nearest ring evaluated as the walk "
+                             "does. Undeclared: the walk. OFF: the walk (c0d00a0). default ON",
+    "TETHER_INTERVAL_BOUND_CHECK": "the interval bound's check run: the walk beside the bound "
+                                   "on every call, the walk's answer used. A measurement "
+                                   "switch for check runs, never a play setting. default OFF",
     "TETHER_FIT_DEDUP": "(2a), ONE DEFINITION ONCE PER FIT (the S2L twin; the reviewer "
                         "2026-10-21 04:40): a library Term's candidates and each "
                         "candidate's bindability, leftover and cost are computed once "

@@ -344,6 +344,30 @@ class Atom:
         return h
 
 
+# THE INTERVAL BOUND'S DECLARATIONS (the reviewer 2026-10-21 17:46): how an atom's output depends on
+# the value it is handed, registered by the world that builds the atom, keyed by its FUNCTION (so
+# another world's same-named atom is never declared by it) and kept off the Atom, whose fields feed
+# the atoms token the lineage's memo store is keyed by. An atom with no row is walked.
+#   operand       turns only at ctx.operands[0] (no operand: constant)
+#   group         turns only at the values of ctx.group (none: constant)
+#   zero          turns only at 0;  zero_one: only at 0 and 1
+#   constant      never reads the value
+#   identity      returns the value itself
+#   pass_or_zero  with an operand turns only at 0; without one returns the value itself
+#   walk          none of these: the objective is walked
+TURN_KINDS = frozenset({"operand", "group", "zero", "zero_one", "constant", "identity",
+                        "pass_or_zero", "walk"})
+VALUE_TURNS: dict = {}
+
+
+def declare_turns(atom: Atom, kind: str) -> None:
+    if kind not in TURN_KINDS:
+        raise ValueError(f"{atom.name}: unknown turn kind {kind!r}")
+    was = VALUE_TURNS.setdefault(atom.fn, kind)
+    if was != kind:
+        raise ValueError(f"{atom.name}: declared {was!r} and {kind!r} on one function")
+
+
 # THE CODE PRIMITIVES, BUILT ONCE PER PROCESS (the reviewer 2026-10-15 06:10, 06:13, 06:56; Isaiah
 # 06:13 "the atoms that we have are built permanently"). These are the LETTERS the library's 4,048
 # atoms are compiled onto (52 on ARC at default arms, 63 under _ITERATE), not the library atoms.
