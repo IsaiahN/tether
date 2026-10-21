@@ -138,26 +138,43 @@ def main() -> int:
         del os.environ["TETHER_CONSOLIDATE_CEILING"]
 
     d = tempfile.mkdtemp()
-    ns, eps = [], 0
+    ns, dks, prs, eps = [], [], [], 0
     for _g in range(2):
         tether, env, ag = agent(lineage_dir=d)
         steps(env, ag, 6)
         ag.end_run("cap")
         ns.append(Counter(ag._kind_landed_n))
+        dks.append(Counter(ag._kind_landed_dk))
+        prs.append(Counter())
+        for e, n in ag._kind_landed_n.items():
+            prs[-1][(e[2], e[3])] += n
         eps += len(ag._kind_episodes)
         lineage.write(d, ag, "fake")
     tether, env, ag = agent(lineage_dir=d)
     both = [k for k in ns[0] if k in ns[1]]
-    assert both, "precondition: no 7l key landed in both games"
-    bad = [k for k in both if ag._kind_known_n[k] != ns[0][k] + ns[1][k]]
+    bd = [e for e in dks[0] if e in dks[1]]
+    assert both and bd, "precondition: no 7l key / dk row landed in both games"
+    # the sum WHERE THE RANKING READS IT (the reviewer 2026-10-21 00:27): the dk rows (_tiers'
+    # T1a-d) in both loads; under the memory store the 7l trio stays empty by design, so T2's
+    # t2 rows and _pair_counts' pairs, else the trio's _kind_known_n
+    bad = [e for e in bd if ag._kind_known_dk[e] != dks[0][e] + dks[1][e]]
+    if ag._kind_store is not None:
+        t2, pr = ag._kind_store["t2"], ag._kind_store["pairs"]
+        bad += [k for k in both if k in t2 and t2[k][0] != ns[0][k] + ns[1][k]]
+        bad += [p for p in prs[0] if p in prs[1] and pr.get(p, (None,))[0] != prs[0][p] + prs[1][p]]
+    else:
+        bad += [k for k in both if ag._kind_known_n[k] != ns[0][k] + ns[1][k]]
     chain_eps = sum(len(g.get("episodes", ())) for _h, g in lineage._chain(Path(d))) if hasattr(
         lineage, "_chain") else None
     assert not bad, bad[:3]                                                               # CON-6
-    over = [k for k in both if ns[1][k] != ns[0][k] + ns[1][k]]
+    over = [e for e in bd if dks[1][e] != dks[0][e] + dks[1][e]]
     assert over, "MF-CON-6: an overwrite would read the same as the sum"
-    print(f"CON-6 {len(both)} 7l keys landed in both games, each loaded with n_landed = the sum "
-          f"(e.g. {ns[0][both[0]]} + {ns[1][both[0]]} = {ag._kind_known_n[both[0]]}); episodes "
-          f"written {eps}, in the chain {chain_eps}; MF an overwrite differs on {len(over)}")
+    print(f"CON-6 {len(bd)} dk rows and {len(both)} 7l keys landed in both games; each dk row "
+          f"loads n = the sum (e.g. {dks[0][bd[0]]} + {dks[1][bd[0]]} = "
+          f"{ag._kind_known_dk[bd[0]]}), "
+          f"and {'the store pairs / t2' if ag._kind_store is not None else '_kind_known_n'} too; "
+          f"episodes written {eps}, in the chain {chain_eps}; MF an overwrite differs on "
+          f"{len(over)}")
     print("consolidate: OK")
     return 0
 
