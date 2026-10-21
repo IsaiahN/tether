@@ -974,6 +974,17 @@ ARMS: dict[str, str] = {
                               "full fit, records whether it agreed (None, the library unmoved) "
                               "and uses the full fit. A measurement switch for check runs, never "
                               "a play setting. default OFF",
+    "TETHER_WALK_MEMO": "(A) (the reviewer 2026-10-20 21:18, 21:28): _index_reach keeps each lit "
+                        "entry's walk keyed by what it reads (library, atoms token, compile "
+                        "signature -- the held index is a pure function of it --, entry, slot, "
+                        "mine, partner, others, targets); a hit merges the record as the walk "
+                        "would, charges _spent the same count, lands its kinds under this step's "
+                        "dk and replays its asks; _index_for's whole-walk store retires. OFF: "
+                        "walked every time (6fbdd5f). default ON",
+    "TETHER_WALK_MEMO_CHECK": "(A)'s check run: each hit is also walked fresh and compared "
+                              "(views, causes, refusals, charges, landings, asks); the fresh "
+                              "walk is used. A measurement switch for check runs, never a play "
+                              "setting. default OFF",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",
