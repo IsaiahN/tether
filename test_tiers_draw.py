@@ -82,6 +82,34 @@ def planted() -> None:
     assert got[False] == [pair[0], pair[1]], (got, pair)      # the name puts a first
     print(f"(1) a tied pair whose names sort opposite to their draw: ON {got[True]} (the draw), "
           f"OFF {got[False]} (the name)")
+    # T5 (the reviewer 2026-10-21 04:18): the by_cluster entries for a POSITION reading, ordered by
+    # (molecule, score) and then the draw ON / the name OFF; their score runs tie, so the two differ
+    import inherited
+    att = env.attribute_of()
+    slot = next(s for s, a in att.items() if a == "row")
+    bc, _why = inherited.by_cluster()
+    cls = set(inherited.READING_CLUSTER.get(att.get(slot), ()))
+    score = Counter(k for c in cls for k in bc.get(c, ()))
+    rows = [(k, m) for k, m in score.items() if lib.get(k) is not None]
+
+    def num(kv):
+        return (bool((lib.get(kv[0]) or {}).get("ingredients")), -kv[1])
+    key5 = f"{ag.cycle}:{mine}:None:tiers"
+    want = {True: [k for k, _m in sorted(rows, key=lambda kv: (
+                num(kv), FR.draw_key(key5, kv[0], ag.draw_seed), kv[0]))],
+            False: [k for k, _m in sorted(rows, key=lambda kv: (num(kv), kv[0]))]}
+    assert want[True] != want[False], "PRECONDITION: no T5 tie whose draw differs from its names"
+    got5 = {}
+    try:
+        for on in (True, False):
+            tether._TIERS_DRAW = on
+            out, n = ag._tiers(lib, [], None, mine, {slot: "POSITION"}, att)
+            got5[on] = [k for k, _w in out][-n["T5"]:]
+    finally:
+        tether._TIERS_DRAW = was
+    assert got5[True] == want[True] and got5[False] == want[False], (got5, want)
+    print(f"(1b) T5: {len(rows)} POSITION-filed entries; ON in (molecule, score, draw) order, "
+          f"OFF in (molecule, score, name) order, and the two differ")
 
 
 def main() -> None:
