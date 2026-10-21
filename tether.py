@@ -5438,23 +5438,28 @@ class Agent:
         return self._choice("hyp_still", None, [(a, None, 1) for a in still])
 
     def _self_moving(self, slot: str) -> bool:
-        """(3) (the reviewer 2026-10-20 17:34): a slot that moved by the same mean delta under
-        EVERY surfaced action, on every press of each, does not depend on what the agent does --
-        a clock, not a subject to steer. Read from the agent's own delta table; an action never
-        taken, or one press that left it still, leaves the dependence open (False)."""
-        ds = set()
-        for a in self.actions:
-            e = self.iface.table.get(a)
-            if not e or not e.get("n"):
+        """(3) (the reviewer 2026-10-20 17:34, 19:54 (c)): a clock -- on every press made while
+        the slot was present it moved by the same nonzero delta, under every discrete surfaced
+        action and, for a positioned action, wherever it landed, at two places or more (Fig 13
+        :36, adjacency is not duration). The platform's actions (RESET) are not steering acts and
+        are left out. Read from the agent's own transitions; a discrete action never pressed, or
+        a positioned one landed in one place only, leaves the dependence open (False)."""
+        prov = getattr(self.env, "provenance", None)
+        steer = [a for a in self.actions if prov is None or prov(a) != "platform-universal"]
+        seen: dict = {}
+        for b, a, af, _i, land in self.trace:
+            if a not in steer or slot not in b or slot not in af:
+                continue
+            try:
+                d = int(af[slot]) - int(b[slot])
+            except (TypeError, ValueError):
                 return False
-            n = tot = 0
-            for (_c, k, _r), (cn, ct) in e.get("delta", {}).items():
-                if k == slot:
-                    n, tot = n + cn, tot + ct
-            if n != e["n"]:
-                return False
-            ds.add(round(tot / n, 6))
-        return len(self.actions) > 1 and len(ds) == 1 and 0 not in ds
+            seen.setdefault((a, land if a in IFace.POSITIONED else None), set()).add(d)
+        deltas = set().union(*seen.values()) if seen else set()
+        if len(deltas) != 1 or 0 in deltas or len(seen) < 2:
+            return False
+        return all(len([k for k in seen if k[0] == a]) >= (2 if a in IFace.POSITIONED else 1)
+                   for a in steer)
 
     def _hyp_pair(self, before: dict, detail: dict) -> tuple | None:
         """All singles refuted or routeless: the conjunction of two that each ARRIVED without a
