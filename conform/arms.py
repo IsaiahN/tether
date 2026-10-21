@@ -985,6 +985,11 @@ ARMS: dict[str, str] = {
                               "(views, causes, refusals, charges, landings, asks); the fresh "
                               "walk is used. A measurement switch for check runs, never a play "
                               "setting. default OFF",
+    "TETHER_TIERS_DRAW": "THE _tiers NAME TIE (the reviewer 2026-10-20 23:55 (ii), 2026-10-21 "
+                         "03:05; "
+                         "Isaiah's 10-15 A1 rule): a tie on _tiers' numbers falls to the recorded "
+                         "draw (frontier.draw_key, keyed per lookup), never the entry's name, at "
+                         "T1a-c, T2, T1d and T5. OFF: the name (03b793e). default ON",
     "TETHER_TIERS_INDEX": "(C), THE TIERS INDEX (the reviewer 2026-10-21 03:05): _tiers reads its "
                           "rung sums from per-kind and per-type entry counts kept at the stores' "
                           "writers (a landing, a recency write; a lineage load rebuilds), not by "

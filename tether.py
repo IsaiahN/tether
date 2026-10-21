@@ -1050,6 +1050,11 @@ _TIERS_INDEX = armflag.arm("TETHER_TIERS_INDEX", default=True)
 # (C)'s check run: every call also scans and compares the rung sums and the recency map; the scan's
 # are used. A measurement switch, never a play setting. OFF: no check
 _TIERS_INDEX_CHECK = armflag.arm("TETHER_TIERS_INDEX_CHECK")
+# THE _tiers NAME TIE -> THE RECORDED DRAW (the reviewer 2026-10-20 23:55 (ii), 2026-10-21 03:05;
+# Isaiah's 10-15 A1 rule: never a name, a text or a position): every _tiers order whose numbers tie
+# fell to the entry's NAME; it falls to the recorded draw (frontier.draw_key, keyed per lookup).
+# OFF: the name (03b793e)
+_TIERS_DRAW = armflag.arm("TETHER_TIERS_DRAW", default=True)
 
 
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
@@ -1163,6 +1168,21 @@ def _test_outcome(before: Any, after: Any, target: Any, ordered: bool) -> str:
     if not ordered or not num:
         return "not reached"
     return "closer" if abs(after - target) < abs(before - target) else "farther"
+
+
+def _draw_ties(items, num, key: str, seed) -> list:
+    """(name, value) items ordered by num(item); a run equal on num is ordered by the recorded draw
+    of its names (A1: never a name). Only a tied run is hashed. Sorting by (num, draw) exactly."""
+    out = sorted(items, key=lambda kv: (num(kv), kv[0]))
+    i = 0
+    while i < len(out):
+        j, at = i + 1, num(out[i])
+        while j < len(out) and num(out[j]) == at:
+            j += 1
+        if j - i > 1:
+            out[i:j] = sorted(out[i:j], key=lambda kv: (FR.draw_key(key, kv[0], seed), kv[0]))
+        i = j
+    return out
 
 
 def _lookup_order(names: list, comp: dict, dk: str, evidence=None, seed=None) -> list:
@@ -3931,8 +3951,16 @@ class Agent:
                     c += 1
             n[tier] = c
 
+        # every order below ends in a tie-break: the recorded draw, keyed per lookup (OFF: the name)
+        tie_key = f"{self.cycle}:{mine}:{dk}:tiers"
+
+        def order(items, num) -> list:
+            if _TIERS_DRAW:
+                return _draw_ties(list(items), num, tie_key, self.draw_seed)
+            return sorted(items, key=lambda kv: (num(kv), kv[0]))
+
         def ranked(cnt: Counter) -> list:
-            return sorted(cnt.items(), key=lambda kv: (-kv[1], kv[0]))
+            return order(cnt.items(), lambda kv: (-kv[1],))
 
         if _DELTA_KIND and dk is not None:
             ko = self._kind(mine)
@@ -3991,9 +4019,9 @@ class Agent:
                 for (_d, k, _t), v in self._kdk_last.items():
                     last[k] = max(last.get(k, 0), v[3])
             for g_ in "abc":
-                put(f"T1{g_}", sorted(((k, float(m)) for k, m in off[g_].items()),
-                                      key=lambda kv, g_=g_: (-kv[1], -land[g_][kv[0]],
-                                                             -last.get(kv[0], 0), kv[0])))
+                put(f"T1{g_}", order(((k, float(m)) for k, m in off[g_].items()),
+                                     lambda kv, g_=g_: (-kv[1], -land[g_][kv[0]],
+                                                        -last.get(kv[0], 0))))
             offered_any = set().union(*off.values())
             landed_only = Counter()
             for g_ in "abc":
@@ -4029,7 +4057,7 @@ class Agent:
                         seq_ = self._kind_last.get(e_, (0, 0, 0, 0))[3]
                     n_[e_[0]] += kn
                     l_[e_[0]] = max(l_.get(e_[0], 0), seq_)
-                put("T2", sorted(n_.items(), key=lambda kv: (-kv[1], -l_[kv[0]], kv[0])))
+                put("T2", order(n_.items(), lambda kv: (-kv[1], -l_[kv[0]])))
             else:
                 put("T2", ranked(Counter(k for (k, r, o, x) in t2)))
         put("T3", lit)
@@ -4038,8 +4066,7 @@ class Agent:
             # the reviewer 21:03: T1d AFTER T3 -- the present description first, history that never
             # explained after it, and walked under the step's budget with T4 / T5
             if _CONSOLIDATE:
-                put("T1d", sorted(landed_only.items(),
-                                  key=lambda kv: (-kv[1], -last.get(kv[0], 0), kv[0])))
+                put("T1d", order(landed_only.items(), lambda kv: (-kv[1], -last.get(kv[0], 0))))
             else:
                 put("T1d", ranked(landed_only))
         if _MOLECULES:
@@ -4051,8 +4078,8 @@ class Agent:
 
             def molecule(k: str) -> bool:
                 return bool((lib.get(k) or {}).get("ingredients"))
-            put("T5", [(k, float(m)) for k, m in sorted(
-                score.items(), key=lambda kv: (molecule(kv[0]), -kv[1], kv[0]))])
+            put("T5", [(k, float(m)) for k, m in order(
+                score.items(), lambda kv: (molecule(kv[0]), -kv[1]))])
         return out, n
 
     def _library_reach(self, slot: str, mine: str, own: dict, described: dict,
