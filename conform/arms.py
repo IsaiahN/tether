@@ -1368,7 +1368,11 @@ _NO_ENV = type("armflag", (), {"arm": staticmethod(lambda _name, default=False: 
 # edit here rather than a quiet exemption in logic.
 VALUES = {"TETHER_SEED_FROM": "a REPLAY: the path of a record (a ledger or a lineage generation) "
                               "whose recorded seed and generation the agent reads; never a seed "
-                              "value (HOLD_SEED, the reviewer 2026-10-15 15:04)"}
+                              "value (HOLD_SEED, the reviewer 2026-10-15 15:04)",
+          "TETHER_CONSOLIDATE_CEILING": "a BYTE COUNT: a fixture's lowered per-process ceiling "
+                                        "for CONSOLIDATION's size trigger (tether._fold_ceiling, "
+                                        "test_consolidate CON-5); never on/off (the reviewer "
+                                        "2026-10-20 23:55, 2026-10-21 00:05)"}
 _RAW = re.compile(r'''os\.environ(?:\.get\(\s*|\[\s*)["'](TETHER_[A-Z0-9_]+)["']''')
 
 
