@@ -58,6 +58,13 @@ _ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=True)
 # it on"): OFF, every load is the saves' fold (14.35 GiB on the E4 life, over B); ON, that fold is
 # reached only on a refusal. TETHER_MEMORY_STORE=0 is the old path.
 _MEMORY_STORE = armflag.arm("TETHER_MEMORY_STORE", default=True)
+# W2 (S2V; the reviewer 2026-10-21 15:38): the store load decoded a kind field's JSON once per row
+# (885,038 json.loads at one sp80 load). One load decodes each sym id once and reuses the tuple when
+# it is hashable (immutable all the way down); otherwise it decodes fresh. OFF: per row (23a9077)
+_LOAD_KEY_MEMO = armflag.arm("TETHER_LOAD_KEY_MEMO", default=True)
+# W2's check run: every reuse also decodes fresh and compares; the fresh tuple is used. OFF: none
+_LOAD_KEY_MEMO_CHECK = armflag.arm("TETHER_LOAD_KEY_MEMO_CHECK")
+LOAD_KEY_MEMO_N: dict = {"hit": 0, "unhashable": 0, "agree": 0, "disagree": 0}
 # COMPRESSION L1 + L6a + L2 (the reviewer 2026-10-20 11:06, 11:13; Isaiah 05:02 "compression is
 # required on all levels when passing"): every save file written zlib-6 under the hash of its
 # UNCOMPRESSED bytes; the asked record written in its readers' own form (form 3: a tally per
@@ -732,9 +739,30 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         if any(a != arm or set(b) != set(parts) for a, b in sigs.values()):
             raise ls.Refused("a carried index was written under another signature")
 
+        km: dict = {}
+
+        def dec(x):
+            if not _LOAD_KEY_MEMO:
+                return tuple(json.loads(sym[x]))
+            v = km.get(x)
+            if v is None:
+                v = tuple(json.loads(sym[x]))
+                try:
+                    hash(v)
+                    km[x] = v
+                except TypeError:
+                    LOAD_KEY_MEMO_N["unhashable"] += 1
+                return v
+            LOAD_KEY_MEMO_N["hit"] += 1
+            if _LOAD_KEY_MEMO_CHECK:
+                fresh = tuple(json.loads(sym[x]))
+                LOAD_KEY_MEMO_N["agree" if fresh == v and repr(fresh) == repr(v)
+                                else "disagree"] += 1
+                v = fresh
+            return v
+
         def key(*xs):
-            return tuple(tuple(json.loads(sym[x])) if i in xs[0] else sym[x]
-                         for i, x in enumerate(xs[1:]))
+            return tuple(dec(x) if i in xs[0] else sym[x] for i, x in enumerate(xs[1:]))
         # THE KIND TRIO IS NOT READ (the reviewer 08:17 item 2, 10:45): the pair table, the
         # known-with-no-count keys and the T2 candidates (two partial indexes), and two counters
         pairs = con.execute("SELECT kind_o, kind_x, n, last_seq FROM pair").fetchall()

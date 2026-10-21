@@ -1005,6 +1005,19 @@ ARMS: dict[str, str] = {
     "TETHER_FIT_UNITS_CHECK": "(B)'s check run: every reuse also takes _units_for fresh and "
                               "compares; the fresh units are used. A measurement switch for "
                               "check runs, never a play setting. default OFF",
+    "TETHER_STORE_KEY_MEMO": "W1 (S2V; the reviewer 2026-10-21 15:38): lineage_store._merge_kinds "
+                             "keeps each kind value's JSON string for one merge, keyed on its "
+                             "repr (1, True and 1.0 encode apart); other types encoded fresh. "
+                             "OFF: json.dumps per row (23a9077). default ON",
+    "TETHER_STORE_KEY_MEMO_CHECK": "W1's check run: every reuse also encodes fresh and "
+                                   "compares; the fresh string is used. A measurement "
+                                   "switch. default OFF",
+    "TETHER_LOAD_KEY_MEMO": "W2 (S2V; the reviewer 2026-10-21 15:38): the store load decodes each "
+                            "kind sym id once per load, reusing the tuple when hashable. OFF: "
+                            "json.loads per row (23a9077). default ON",
+    "TETHER_LOAD_KEY_MEMO_CHECK": "W2's check run: every reuse also decodes fresh and "
+                                  "compares; the fresh tuple is used. A measurement "
+                                  "switch. default OFF",
     "TETHER_FIT_DEDUP": "(2a), ONE DEFINITION ONCE PER FIT (the S2L twin; the reviewer "
                         "2026-10-21 04:40): a library Term's candidates and each "
                         "candidate's bindability, leftover and cost are computed once "

@@ -20,6 +20,8 @@ import zlib
 from pathlib import Path
 from typing import Any
 
+import armflag
+
 DB = "memory.db"
 SCHEMA = 4
 SCHEMA_SQL = """
@@ -135,6 +137,41 @@ class Syms:
 
 def _j(x: Any) -> str:
     return json.dumps(x, sort_keys=True)
+
+
+# W1 (S2V; the reviewer 2026-10-21 15:38): _merge_kinds encoded the same few kind values with
+# json.dumps once per row (607,920 key builds at one sp80 boundary). One merge keeps each value's
+# string, keyed on repr(value): 1, True and 1.0 compare and hash alike and encode apart, and their
+# reprs differ; a value of another top-level type is encoded fresh. OFF: _j per row (23a9077)
+_KEY_MEMO = armflag.arm("TETHER_STORE_KEY_MEMO", default=True)
+# W1's check run: every reuse also encodes fresh and compares; the fresh string is used. OFF: none
+_KEY_MEMO_CHECK = armflag.arm("TETHER_STORE_KEY_MEMO_CHECK")
+KEY_MEMO_N: dict = {"hit": 0, "bypass": 0, "agree": 0, "disagree": 0}
+_MEMO_TYPES = (list, tuple, str, int, float, bool)
+
+
+def _key_memo():
+    """_j for one merge, remembering each value's string (W1)."""
+    if not _KEY_MEMO:
+        return _j
+    memo: dict = {}
+
+    def j(x: Any) -> str:
+        if type(x) not in _MEMO_TYPES:
+            KEY_MEMO_N["bypass"] += 1
+            return _j(x)
+        k = repr(x)
+        out = memo.get(k)
+        if out is None:
+            out = memo[k] = _j(x)
+            return out
+        KEY_MEMO_N["hit"] += 1
+        if _KEY_MEMO_CHECK:
+            fresh = _j(x)
+            KEY_MEMO_N["agree" if fresh == out else "disagree"] += 1
+            out = fresh
+        return out
+    return j
 
 
 def _get_blob(con: sqlite3.Connection, k: str, default: Any) -> Any:
@@ -324,6 +361,8 @@ def _meta_max(con: sqlite3.Connection, k: str, x: int) -> None:
 
 
 def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
+    _j = _key_memo()
+
     def kkey(e):
         return (s(e[0]), s(e[1]), s(_j(e[2])), s(_j(e[3])))
     kl = sorted({kkey(e) for e in g.get("kinds_landed", ())})
