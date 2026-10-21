@@ -11,7 +11,12 @@ gridworld_arc_s1, the agent and hash seeds pinned, each run its own process.
       ON picks the same name with the same carry, crediting "pa" and crediting "pb". BROKEN (the
       carry cached per definition, the defect the per-name rule forbids) crediting "pb" does not
       pick "pb" -- the plant can see a carry shared across names.
-  (3), OFF identity against 920dfc7, is run apart (the ledgers through ident_mask).
+  (3) THE ROWS PLANT ((i), the reviewer 2026-10-21 05:43; sp80's objective_domain choice rows are
+      written inside _left): a row recorded on every _left call and on every _units_for call, 15
+      steps. ON's rows are OFF's (a reused evaluation replays its rows; the once-per-fit units
+      call's rows are never replayed). BROKEN (the replay disabled) writes fewer planted_eval rows
+      -- the plant can see a missing replay.
+  (4), OFF identity against 920dfc7, is run apart (the ledgers through ident_mask).
 
     python test_fit_dedup.py
 """
@@ -33,10 +38,26 @@ sys.path = ([tree, tree + "/conform"]
             + [p for p in sys.path if "scratchpad" not in p.replace("\\", "/")])
 import gamma, ledger, panel, tether, world
 
+if mode == "rows":
+    # rows written INSIDE the cached evaluation (as _domain_row is on sp80) and inside the once-per-
+    # fit units call (which OFF writes once per fit and must never be replayed)
+    _left_, _units_ = tether.Agent._left, tether.Agent._units_for
+
+    def _left_w(self, term, slot, hist, *a, **k):
+        self.led.record(self.cycle, "ROUTE", slot, "planted_eval", term=term.name)
+        return _left_(self, term, slot, hist, *a, **k)
+
+    def _units_w(self, slot, *a, **k):
+        self.led.record(self.cycle, "ROUTE", slot, "planted_units")
+        return _units_(self, slot, *a, **k)
+
+    tether.Agent._left, tether.Agent._units_for = _left_w, _units_w
+    if broken:
+        tether.Agent._replay_rows = lambda self, rows: None
 env = world.bind(panel._gridworld("gridworld_arc_s1")[0])
 ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="dedup"), tether.Config(), ledger.Ledger())
 b = ag.gamma.book
-if mode == "game":
+if mode in ("game", "rows"):
     for _ in range(15):
         ag.step()
     print(json.dumps({"on": tether._FIT_DEDUP, "check": tether._FIT_DEDUP_CHECK,
@@ -127,11 +148,22 @@ def main() -> None:
         assert (y["held"], y["carry"]) == (x["held"], x["carry"]), (x, y)
     bk = _run("1", "0", "plant", "pb", "1")
     assert bk["held"] != "pb", f"the plant cannot see a carry shared per definition: {bk}"
+    # (3) rows written inside the evaluation are replayed on a reuse; the units call's are not
+    r_off, r_on, r_bk = _run("0", "0", "rows"), _run("1", "0", "rows"), _run("1", "0", "rows",
+                                                                             broken="1")
+    n_ev = sum(r["event"] == "planted_eval" for r in r_off["rows"])
+    n_un = sum(r["event"] == "planted_units" for r in r_off["rows"])
+    assert n_ev > 0 and n_un > 0, (n_ev, n_un)
+    bad = compare(_mask(r_off["rows"]), _mask(r_on["rows"]), set())
+    assert not bad, bad[:3]                                                                 # (3)
+    n_bk = sum(r["event"] == "planted_eval" for r in r_bk["rows"])
+    assert n_bk < n_ev, f"the plant cannot see a missing replay: {n_bk} vs {n_ev}"
     print(f"test_fit_dedup: pass ((1) CHECK {chk['agree']} reuses equal fresh, 0 disagree; ON's "
           f"{len(on['rows'])} rows are CHECK's and OFF's; (2) one definition "
           f"{got[('pa', '0')]['def']!r} under 'pa' and 'pb' on {got[('pa', '0')]['slot']}: the "
           f"credited name is picked ON as OFF, both ways; the carry shared per definition picks "
-          f"{bk['held']!r}, not 'pb')")
+          f"{bk['held']!r}, not 'pb'; (3) {n_ev} rows planted inside the evaluation and {n_un} in "
+          f"the units call: ON's rows are OFF's; without the replay ON writes {n_bk})")
 
 
 if __name__ == "__main__":

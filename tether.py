@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import bisect
 import collections
+import copy
 import hashlib
 import heapq
 import itertools
@@ -8291,6 +8292,13 @@ class Agent:
         return ((self.gamma.stamps.get(name) or {}).get("origin") == MINTED and left < base
                 and robs is not None and self.bears_on(cand, slot, robs, held))
 
+    def _replay_rows(self, rows: tuple) -> None:
+        """(2a)(i): a reused evaluation records the rows its first evaluation wrote, as OFF does."""
+        for r in rows:
+            self.led.record(r["cycle"], r["step"], r["slot"], r["event"],
+                            of=tuple(r["of"]) if r.get("of") is not None else None,
+                            **copy.deepcopy(r["detail"]))
+
     def _dedup_check(self, slot: str, n: str, what: str, same: bool) -> None:
         """(2a)'s check run: a reused definition against fresh; booked, a row when they differ."""
         _book_add(self.gamma.book, "fit_dedup_agree" if same else "fit_dedup_disagree")
@@ -8538,18 +8546,31 @@ class Agent:
         _carry_robs = (self._residual_obs(slot, _held_t, hist)
                        if _CARRY_PRICE and _BARGAIN_FIT else None)
         _h, _ref = self._carry_ref() if _CARRY_PRICE else (0, 0.0)
-        # (2a): the definition's own work, once per fit -- nothing in this loop writes its inputs
+        # (2a): the definition's own work, once per fit -- nothing in this loop writes its inputs.
+        # (i): with the ledger rows that work wrote, replayed on a reuse, so the record is OFF's
         _dd_reb: dict = {}
         _dd_cand: dict = {}
         _st = self.slot_types.get(slot)
 
+        def _since(n0, n1=None, n2=None):
+            if len(self.led) == n0:
+                return ()
+            rs = self.led.rows(n0)
+            if n1 is not None:
+                rs = rs[:n1 - n0] + rs[n2 - n0:]      # the once-per-fit units call's rows stay out
+            for r in rs:
+                r.pop("seq", None)
+                r.pop("mode", None)
+            return tuple(rs)
+
         def _judge(cand, price, n):
             nonlocal _uf
+            _n0 = len(self.led)
             # BEFORE `_explains`, and separately from it: may this BIND is a type question
             # and does it EXPLAIN is a behavioural one. Folding the first into the second
             # would put two quantities under one name at the site that decides both.
             if not _may_bind(cand, _st):
-                return False, None, None
+                return False, None, None, _since(_n0)
             # F127 EXPERIMENT, SEAT-SIDE SWITCH, DEFAULT OFF. The line above filters the OUT
             # type and nothing filters the IN type against the slot's, so `none` -- a
             # zero-test typed `PRED` -- binds to an EXTENT slot and reads `int(not width)`,
@@ -8561,10 +8582,11 @@ class Agent:
             # replacement is unmeasured -- those slots may simply lose their objective. An
             # env switch so the two arms are one build and the comparison is real.
             if _TYPED_BIND and not _head_accepts(cand, _st):
-                return False, None, None
+                return False, None, None, _since(_n0)
             if not price:
-                return True, None, None
+                return True, None, None, _since(_n0)
             _left = self._left(cand, slot, hist)
+            _n1 = len(self.led)
             if not _FIT_UNITS:
                 _units = self._units_for(slot)
             elif _uf is None:
@@ -8580,7 +8602,9 @@ class Agent:
                                     reads="the fit's reused units differed from fresh (B)")
             else:
                 _units = _uf
-            return True, _left, self._bits((cand, _units))
+            _n2 = len(self.led)
+            _cost = self._bits((cand, _units))
+            return True, _left, _cost, _since(_n0, _n1, _n2)
 
         for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
                                     youth=self.gamma.youth_of):
@@ -8615,9 +8639,11 @@ class Agent:
                         if _v is not None:
                             self._dedup_check(slot, n, "candidate", _fresh == _v)
                         _v = _dd_cand[cand] = _fresh
-                    _ok, _left, _cost = _v
+                    else:
+                        self._replay_rows(_v[3])
+                    _ok, _left, _cost, _ = _v
                 else:
-                    _ok, _left, _cost = _judge(cand, _BARGAIN_FIT, n)
+                    _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n)
                 if not _ok:
                     continue
                 # F32 ARM D, **ON BY DEFAULT SINCE 2026-09-30**. `_explains` is `_left(...) == 0.0`,
