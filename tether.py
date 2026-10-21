@@ -3982,15 +3982,17 @@ class Agent:
                 # n_landed (the lineage's summed counts) first, then the latest landing
                 n_, l_ = Counter(), {}
                 for e_ in t2:
+                    # its own name: "last" is the per-entry recency DICT that T1d reads below, and
+                    # re-binding it to a number here raised there whenever T2 and T1d both held one
                     if self._kind_store is not None:
                         kn, lv = self._kind_store["t2"][e_]
-                        last = (self._kind_last[e_][3] if e_ in self._kind_last
+                        seq_ = (self._kind_last[e_][3] if e_ in self._kind_last
                                 else lv[3] if lv[0] is not None else 0)
                     else:
                         kn = self._kind_known_n.get(e_, 1)
-                        last = self._kind_last.get(e_, (0, 0, 0, 0))[3]
+                        seq_ = self._kind_last.get(e_, (0, 0, 0, 0))[3]
                     n_[e_[0]] += kn
-                    l_[e_[0]] = max(l_.get(e_[0], 0), last)
+                    l_[e_[0]] = max(l_.get(e_[0], 0), seq_)
                 put("T2", sorted(n_.items(), key=lambda kv: (-kv[1], -l_[kv[0]], kv[0])))
             else:
                 put("T2", ranked(Counter(k for (k, r, o, x) in t2)))

@@ -146,8 +146,8 @@ def in_process() -> None:
     lib = tether._library()
     mine = sorted(set(env.slot_owner().values()))[0]
     ko = ag._kind(mine)
-    keys = [k for k in lib.seed if not lib.seed[k].get("ingredients")][:3]
-    k_mirror, k_t3, k_old = keys
+    keys = [k for k in lib.seed if not lib.seed[k].get("ingredients")][:5]
+    k_mirror, k_t3, k_old, k_lo1, k_lo2 = keys
     ag._kind_landed_dk = Counter({(("MOTION", "+", 1), k_mirror, ko): 2})
     ag._kind_offered_dk = Counter({(("MOTION", "+", 1), k_mirror, ko): 2})
     out, n = ag._tiers(lib, [(k_t3, 1.0)], ("MOTION", "-", 1), mine, {}, {})
@@ -162,6 +162,22 @@ def in_process() -> None:
     assert n["T2"] == 1 and order.index(k_mirror) < order.index(k_old) < order.index(k_t3), (
         n, order[:4])                                                                       # OLD
     print("OLD a carried landing with no delta kind sits in T2, after T1, before T3")
+    # OLD + T1d, the seam that crashed (the reviewer 2026-10-21 03:05): T2 held AND two landed-only
+    # entries, their recency opposite to their names, so T1d must order by the recency dict
+    lo_a, lo_b = sorted((k_lo1, k_lo2))
+    ag._kind_landed_dk[(("MOTION", "-", 1), lo_a, ko)] = 1
+    ag._kind_landed_dk[(("MOTION", "-", 1), lo_b, ko)] = 1
+    ag._kdk_last[(("MOTION", "-", 1), lo_a, ko)] = ("fake", 0, 0, 1)
+    ag._kdk_last[(("MOTION", "-", 1), lo_b, ko)] = ("fake", 0, 0, 2)
+    out, n = ag._tiers(lib, [(k_t3, 1.0)], ("MOTION", "-", 1), mine, {}, {})
+    order = [k for k, _w in out]
+    assert n["T2"] == 1 and n["T1d"] == 2, n                                               # OLD+T1d
+    if tether._CONSOLIDATE:
+        assert order.index(lo_b) < order.index(lo_a), (lo_a, lo_b, order)
+    print("OLD+T1d T2 and T1d both held: listed, T1d ordered by recency (the later landing first)")
+    for k_ in (lo_a, lo_b):
+        del ag._kind_landed_dk[(("MOTION", "-", 1), k_, ko)]
+        del ag._kdk_last[(("MOTION", "-", 1), k_, ko)]
     ag._kind_known = set()
     ag._kind_landed_dk[(("MOTION", "-", 1), k_old, ko)] = 3
     out, n = ag._tiers(lib, [(k_t3, 1.0)], ("MOTION", "-", 1), mine, {}, {})
