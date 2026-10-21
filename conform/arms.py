@@ -985,6 +985,14 @@ ARMS: dict[str, str] = {
                               "(views, causes, refusals, charges, landings, asks); the fresh "
                               "walk is used. A measurement switch for check runs, never a play "
                               "setting. default OFF",
+    "TETHER_TIERS_INDEX": "(C), THE TIERS INDEX (the reviewer 2026-10-21 03:05): _tiers reads its "
+                          "rung sums from per-kind and per-type entry counts kept at the stores' "
+                          "writers (a landing, a recency write; a lineage load rebuilds), not by "
+                          "scanning every carried row per call. OFF: the scan (78520a8). "
+                          "default ON",
+    "TETHER_TIERS_INDEX_CHECK": "(C)'s check run: every call also scans and compares the rung sums "
+                                "and the recency map; the scan's are used. A measurement switch "
+                                "for check runs, never a play setting. default OFF",
     "TETHER_FIT_UNITS": "(B), THE UNITS ONCE PER FIT (the S2I box; the reviewer 2026-10-21 02:02): "
                         "_library_fit takes the slot's units at the first candidate that needs "
                         "them and reuses them for the fit (nothing in the loop writes their "

@@ -815,6 +815,7 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
                 ag._kind_known_dk[k] += n
         for k, n in v["koff"]:
             ag._kind_known_off[k] += n
+        ag._kix_ver = getattr(ag, "_kix_ver", 0) + 1    # (C): the tiers index rebuilds
         rep["kinds_known_dk"] = len(ag._kind_known_dk)
         rep["kinds_known_off"] = len(ag._kind_known_off)
     if tether._7H_TRACE and hasattr(ag, "_line_grade_in"):
@@ -974,6 +975,7 @@ def load(d: str | Path, ag: Any) -> dict:
                 ag._kind_known_dk[(tuple(dk_), k, tuple(tg))] += n
             for dk_, k, ko, n in g.get("kinds_offered_dk", ()):
                 ag._kind_known_off[(tuple(dk_), k, tuple(ko))] += n
+        ag._kix_ver = getattr(ag, "_kix_ver", 0) + 1    # (C): the tiers index rebuilds
         rep["kinds_known_dk"] = len(ag._kind_known_dk)
         rep["kinds_known_off"] = len(ag._kind_known_off)
     if tether._7H_TRACE and hasattr(ag, "_line_grade_in"):
