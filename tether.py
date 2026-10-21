@@ -1032,6 +1032,15 @@ _KIND_HOIST = armflag.arm("TETHER_KIND_HOIST", default=True)
 # cycle's _kind_seq, and a recency tie falls to whatever the reader breaks ties with. OFF: one seq
 # per landing, numbered in set-iteration (hash) order (582a223)
 _CYCLE_SEQ = armflag.arm("TETHER_CYCLE_SEQ", default=True)
+# (B), THE UNITS ONCE PER FIT (the S2I box; the reviewer 2026-10-21 02:02): the fit priced every
+# candidate with _units_for(slot), whose refusal path rebuilds its memo key per call (~1 ms);
+# nothing in the candidate loop writes gamma's units, the slot's gkey, _not, the library or the
+# routines, so the units are taken at the first candidate that needs them and reused for the fit.
+# OFF: _units_for per candidate (35c283a)
+_FIT_UNITS = armflag.arm("TETHER_FIT_UNITS", default=True)
+# (B)'s check run: every reuse also takes _units_for fresh and compares; the fresh units are used.
+# A measurement switch, never a play setting. OFF: no check
+_FIT_UNITS_CHECK = armflag.arm("TETHER_FIT_UNITS_CHECK")
 
 
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
@@ -1623,6 +1632,8 @@ BOOKS: tuple[str, ...] = (
     "walk_memo_miss",                   # (A): a lit entry walked fresh and kept
     "walk_memo_agree",                  # (A) check run: the kept walk matched the fresh one
     "walk_memo_disagree",               # (A) check run: the kept walk did NOT match
+    "fit_units_agree",                  # (B) check run: the fit's reused units matched fresh
+    "fit_units_disagree",               # (B) check run: the reused units did NOT match
     "goal_link_refused_wants",          # build 3 L2: refused, the slot already wanted
     "goal_unlinked",                    # build 3 L1: a linked condition stopped paying
     # THE MUTATION OBSERVER, wired to the agent path 2026-09-26. `cue_seen` is the
@@ -8345,6 +8356,7 @@ class Agent:
         _gk = self._term_gkey(slot) if self._not else None
         _paying: list = []
         _today = None
+        _uf = None          # (B): the slot's units, taken at the first candidate that needs them
         _held_t = self.gamma.library[self.bound.get(slot, IDN)]
         _carry_robs = (self._residual_obs(slot, _held_t, hist)
                        if _CARRY_PRICE and _BARGAIN_FIT else None)
@@ -8394,7 +8406,22 @@ class Agent:
                 # bound term leaves.
                 if _BARGAIN_FIT:
                     _left = self._left(cand, slot, hist)
-                    _cost = self._bits((cand, self._units_for(slot)))
+                    if not _FIT_UNITS:
+                        _units = self._units_for(slot)
+                    elif _uf is None:
+                        _uf = _units = self._units_for(slot)
+                    elif _FIT_UNITS_CHECK:
+                        _units = self._units_for(slot)
+                        _same = _units == _uf
+                        _book_add(self.gamma.book,
+                                  "fit_units_agree" if _same else "fit_units_disagree")
+                        if not _same:
+                            self.led.record(self.cycle, "ROUTE", slot, "fit_units_check",
+                                            term=n, agree=False,
+                                            reads="the fit's reused units differed from fresh (B)")
+                    else:
+                        _units = _uf
+                    _cost = self._bits((cand, _units))
                     if _CARRY_PRICE:
                         # EVERY payer is collected and the lowest WHOLE price wins (H3: first is
                         # not best); `_today` is the one the arm-OFF walk would have returned.

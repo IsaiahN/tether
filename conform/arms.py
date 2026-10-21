@@ -985,6 +985,13 @@ ARMS: dict[str, str] = {
                               "(views, causes, refusals, charges, landings, asks); the fresh "
                               "walk is used. A measurement switch for check runs, never a play "
                               "setting. default OFF",
+    "TETHER_FIT_UNITS": "(B), THE UNITS ONCE PER FIT (the S2I box; the reviewer 2026-10-21 02:02): "
+                        "_library_fit takes the slot's units at the first candidate that needs "
+                        "them and reuses them for the fit (nothing in the loop writes their "
+                        "inputs). OFF: _units_for per candidate (35c283a). default ON",
+    "TETHER_FIT_UNITS_CHECK": "(B)'s check run: every reuse also takes _units_for fresh and "
+                              "compares; the fresh units are used. A measurement switch for "
+                              "check runs, never a play setting. default OFF",
     "TETHER_CYCLE_SEQ": "ONE SEQ PER CYCLE (the reviewer 2026-10-20 23:33): every landing in a "
                         "(game, level, cycle) carries that cycle's _kind_seq -- equally recent, "
                         "the ground gave them no order -- and _pair_counts' key gains a landing "
