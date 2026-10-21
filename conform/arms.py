@@ -985,6 +985,11 @@ ARMS: dict[str, str] = {
                               "(views, causes, refusals, charges, landings, asks); the fresh "
                               "walk is used. A measurement switch for check runs, never a play "
                               "setting. default OFF",
+    "TETHER_CYCLE_SEQ": "ONE SEQ PER CYCLE (the reviewer 2026-10-20 23:33): every landing in a "
+                        "(game, level, cycle) carries that cycle's _kind_seq -- equally recent, "
+                        "the ground gave them no order -- and _pair_counts' key gains a landing "
+                        "counter. OFF: one seq per landing, in set-iteration order (582a223). "
+                        "default ON",
     "TETHER_KIND_HOIST": "(D) (the S2E box, 2026-10-20 23:08): inside one _index_reach call the "
                          "slots never change, so the walk memo's landings read each owner's _kind "
                          "once per call. OFF: _kind per landing (a88909d). default ON",
