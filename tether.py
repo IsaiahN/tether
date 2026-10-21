@@ -1023,6 +1023,10 @@ _WALK_MEMO = armflag.arm("TETHER_WALK_MEMO", default=True)
 # (A)'s check run: each hit is also walked fresh and compared (contributions, refusals, charges,
 # landings, asks); the fresh walk is used. OFF: no check
 _WALK_MEMO_CHECK = armflag.arm("TETHER_WALK_MEMO_CHECK")
+# (D), THE KIND HOIST (the S2E box, 2026-10-20 23:08): inside one _index_reach call the slots never
+# change (only __init__, retarget and _present replace them), so an owner's _kind is constant there;
+# the walk memo's landings read it once per owner per call. OFF: _kind per landing (a88909d)
+_KIND_HOIST = armflag.arm("TETHER_KIND_HOIST", default=True)
 
 
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
@@ -4472,7 +4476,7 @@ class Agent:
     def _walk_memo_entry(self, lib: Any, key: str, slot: str, mine: str, partner: str,
                          others: tuple, targets: tuple, comp: Any, atoms: dict, sig: Any,
                          tallied: bool, pno: bool, views: dict, causes: dict,
-                         refused: Counter) -> None:
+                         refused: Counter, kinds: dict | None = None) -> None:
         """(A): one lit entry of _index_reach. Its key is everything the entry's walk reads; a hit
         merges the kept record as the walk would (_walk_apply), a miss walks it fresh
         (_walk_one) and keeps it. Under the check arm a hit is also walked fresh and compared."""
@@ -4481,7 +4485,7 @@ class Agent:
         rec = self._walk_memo.get(ek)
         if rec is not None and not _WALK_MEMO_CHECK:
             _book_add(self.gamma.book, "walk_memo_hit")
-            self._walk_apply(rec, key, sig, views, causes, refused, replay=True)
+            self._walk_apply(rec, key, sig, views, causes, refused, replay=True, kinds=kinds)
             return
         dry = None
         if rec is not None:                    # the check: what the replay would have asked
@@ -4506,7 +4510,7 @@ class Agent:
             _book_add(self.gamma.book, "walk_memo_miss")
             if self._admit("walk", ek):
                 self._walk_memo[ek] = fresh
-        self._walk_apply(fresh, key, sig, views, causes, refused, replay=False)
+        self._walk_apply(fresh, key, sig, views, causes, refused, replay=False, kinds=kinds)
 
     def _walk_one(self, lib: Any, key: str, slot: str, mine: str, partner: str, others: tuple,
                   targets: tuple, comp: Any, atoms: dict, sig: Any, tallied: bool,
@@ -4591,7 +4595,7 @@ class Agent:
                 "landed": landed, "calls": calls}
 
     def _walk_apply(self, rec: dict, key: str, sig: Any, views: dict, causes: dict,
-                    refused: Counter, replay: bool) -> None:
+                    refused: Counter, replay: bool, kinds: dict | None = None) -> None:
         """(A): merge one entry's record into the walk's views, causes and refusals exactly as
         the walk would have; charge its _spent; land its kinds under THIS step's dk; on a hit,
         replay its asked tally. One merge for a fresh entry and a kept one."""
@@ -4615,8 +4619,12 @@ class Agent:
         self._spent += rec["spent"]
         if _7L_KIND:
             for role, a, b, t_ in rec["landed"]:
-                self._land_kind((key, role, self._kind(a), self._kind(b)),
-                                dk=self._dk_of.get(t_), slot=t_)
+                if kinds is None:
+                    ka, kb = self._kind(a), self._kind(b)
+                else:          # (D): one _kind per owner per _index_reach call
+                    ka = kinds[a] if a in kinds else kinds.setdefault(a, self._kind(a))
+                    kb = kinds[b] if b in kinds else kinds.setdefault(b, self._kind(b))
+                self._land_kind((key, role, ka, kb), dk=self._dk_of.get(t_), slot=t_)
         if replay:
             for call in rec["calls"]:
                 self._ak_note(*call, sig)
@@ -4661,6 +4669,7 @@ class Agent:
             partner = others[0] if others else mine
         sig = compile_term.signature(atoms) if _INDEX_HOLD else None
         _pno = _PAIR_NOT_OBJECT and ("~" in mine or "~" in partner)
+        kinds: dict | None = {} if _KIND_HOIST else None
         for i_, (key, _w) in enumerate(lit):
             if key in late:
                 # K1's COST GUARD: T4 / T5 are asked only while the step's budget remains; the
@@ -4673,7 +4682,7 @@ class Agent:
                 self._late = (a_ + 1, na_)
             if _WALK_MEMO:
                 self._walk_memo_entry(lib, key, slot, mine, partner, others, targets, comp, atoms,
-                                      sig, tally is not None, _pno, views, causes, refused)
+                                      sig, tally is not None, _pno, views, causes, refused, kinds)
                 continue
             for role in reach.SINGLE:
                 if _pno:

@@ -985,6 +985,9 @@ ARMS: dict[str, str] = {
                               "(views, causes, refusals, charges, landings, asks); the fresh "
                               "walk is used. A measurement switch for check runs, never a play "
                               "setting. default OFF",
+    "TETHER_KIND_HOIST": "(D) (the S2E box, 2026-10-20 23:08): inside one _index_reach call the "
+                         "slots never change, so the walk memo's landings read each owner's _kind "
+                         "once per call. OFF: _kind per landing (a88909d). default ON",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",
