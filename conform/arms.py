@@ -964,6 +964,16 @@ ARMS: dict[str, str] = {
                        "proposal row carries its wall time and its checks. OFF: every tied "
                        "member route-checked, the draw a hash of the routable pool "
                        "(6fe24e2). default ON",
+    "TETHER_FIT_TIER0": "S2a (the reviewer 2026-10-20 19:54): route's Tier 0 -- an owed slot whose "
+                        "bet held is not re-fitted while the key of its last full _library_fit "
+                        "that found none stands (bound term, exclude, alphabet, type, library and "
+                        "units, refusals, carry, level, epoch, row filter); a budget-capped fit is "
+                        "never stored; a missed bet reopens it. OFF: re-fitted every step "
+                        "(e8a5454). default ON",
+    "TETHER_FIT_TIER0_CHECK": "S2a's check run (must-fail (b)): each Tier-0 skip also runs the "
+                              "full fit, records whether it agreed (None, the library unmoved) "
+                              "and uses the full fit. A measurement switch for check runs, never "
+                              "a play setting. default OFF",
     "TETHER_G1_SUFFIX": "G1-S (the reviewer 2026-10-18 11:19): G1 asks on a pair reading's base "
                         "(dcol for dcol_o1) when the base is a known reading; nothing else is "
                         "equated. OFF: the suffixed name, never known (1e8ccbe). default ON",

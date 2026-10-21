@@ -1006,6 +1006,13 @@ _GROUP_MEMBER = armflag.arm("TETHER_GROUP_MEMBER", default=True)
 # hash per candidate (frontier.draw_order) and route-checked in that order, stopping at the first
 # routable: the same pick as checking all under that draw. OFF: every tied member checked (6fe24e2)
 _HYP_DRAW = armflag.arm("TETHER_HYP_DRAW", default=True)
+# S2a, ROUTE TIER 0 (the reviewer 2026-10-20 19:54): an OWED slot whose bet held is not re-fitted
+# while the inputs of its last full _library_fit that found none stand (that fit's key); the
+# budget-capped fit is never stored. OFF: every owed slot is re-fitted each step (e8a5454)
+_FIT_TIER0 = armflag.arm("TETHER_FIT_TIER0", default=True)
+# S2a's check run (must-fail (b)): each Tier-0 skip also runs the full fit and records whether it
+# agreed (None, library unchanged); the full fit's result is used. OFF: no check
+_FIT_TIER0_CHECK = armflag.arm("TETHER_FIT_TIER0_CHECK")
 
 
 # B, DIRECTION MOVABLE (the reviewer 2026-10-12 05:43, 05:47 CDT): a slot is movable when, in one
@@ -1590,6 +1597,9 @@ BOOKS: tuple[str, ...] = (
     "plan_gate_no_hypothesis",          # gate 1: nothing to filter. SUPPLY, not the bar
     "want_recurred",                    # a retained want that a LATER attempt wanted again
     "goal_link_made",                   # build 3 L2: a goal condition became its slot's want
+    "fit_tier0_skip",                   # S2a: an owed slot's fit carried (no call)
+    "fit_tier0_agree",                  # S2a check run: the skipped fit, run, agreed
+    "fit_tier0_disagree",               # S2a check run: the skipped fit, run, did NOT agree
     "goal_link_refused_wants",          # build 3 L2: refused, the slot already wanted
     "goal_unlinked",                    # build 3 L1: a linked condition stopped paying
     # THE MUTATION OBSERVER, wired to the agent path 2026-09-26. `cue_seen` is the
@@ -2252,6 +2262,7 @@ class Agent:
         self._hyp_known = 0
         self._hyp_why: str | None = None  # 18:40 (iii): why a held hypothesis did not act
         self._hyp_plat: list = []     # 18:40: the platform actions withheld while touched
+        self._fit_none: dict = {}     # S2a: slot -> (key, cycle) of a full fit that found none
         self._goal_links: dict = {}   # build 3 L1: key -> (slot, want name) this link wrote
         self._want_scope: dict = {}   # b-0: slot -> the want name scored on its SUBJECT alone
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
@@ -7966,6 +7977,48 @@ class Agent:
                         **({"gaps": gaps, "derived_echo": echo, "derived_new": surprised}
                            if _DERIVED_SUBJECT else {}))
 
+    def _fit_key(self, slot: str, exclude: str | None) -> tuple:
+        """What a no-fit verdict rests on, beside the rows (S2a): the bound term (base_bits and the
+        residual rows are its walk), what it excludes, the slot's alphabet and type (every cost is
+        log2 of it), the library and its units (each candidate's cost), the refusals that apply to
+        this gap, the carry state, the level, the trace epoch and the slot's row filter."""
+        g = self.gamma
+        return (self._trace_epoch, id(self._row_filter.get(slot)), self.bound.get(slot), exclude,
+                self.alphabet.get(slot), self.slot_types.get(slot), tuple(sorted(g.library)),
+                g._units_key(), self.level, len(self._carry_log),
+                ((self._term_gkey(slot), sum(len(v) for v in self._not.values()))
+                 if self._not else None))
+
+    def _fit_tier0(self, slot: str, exclude: str | None) -> str | None:
+        """S2a (the reviewer 2026-10-20 19:54): an OWED slot whose bet held this step. A row the
+        bound term predicted adds 0 to base_bits and never less than 0 to any candidate's left
+        (_left is a per-row sum, pays is strict), so a full fit that found none finds none again
+        while its key stands; route reopens the slot on any row the bound term missed. Only a
+        full fit is stored: one whose _lookup was asked and left the step's budget unspent."""
+        key = self._fit_key(slot, exclude)
+        hit = self._fit_none.get(slot)
+        if hit is not None and hit[0] == key:
+            _book_add(self.gamma.book, "fit_tier0_skip")
+            self.led.record(self.cycle, "ROUTE", slot, "tier0", verdict=None, stored_at=hit[1],
+                            reads="the last full fit's inputs stand: no fit, carried (S2a)")
+            if not _FIT_TIER0_CHECK:
+                return None
+            lib0 = tuple(sorted(self.gamma.library))
+            real = self._library_fit(slot, exclude)
+            agree = real is None and tuple(sorted(self.gamma.library)) == lib0
+            _book_add(self.gamma.book, "fit_tier0_agree" if agree else "fit_tier0_disagree")
+            self.led.record(self.cycle, "ROUTE", slot, "tier0_check", agree=agree, fit=real,
+                            reads="the skipped fit, run anyway: the same None, the library unmoved")
+            return real
+        asked = self._asked
+        fit = self._library_fit(slot, exclude)
+        if (fit is None and self._asked > asked
+                and not (_STEP_BUDGET and self._spent >= STEP_BUDGET)):
+            self._fit_none[slot] = (self._fit_key(slot, exclude), self.cycle)
+        else:
+            self._fit_none.pop(slot, None)
+        return fit
+
     def _library_fit(self, slot: str, exclude: str | None) -> str | None:
         """3c / §15.3: ask for the term by DESCRIBING THE GAP, not by walking the registry.
 
@@ -8547,6 +8600,7 @@ class Agent:
                 # the mint operator (Fig 5's amendment), and the loop runs ROUTE then MINT, so
                 # route only files the slot; `_price_refusal` takes it from `_refuted_slot`.
                 self._refuted_slot[slot] = was_refused
+                self._fit_none.pop(slot, None)     # S2a: a refuted bet reopens it
                 fit = self._library_fit(slot, was_refused)
                 # AND ZERO SUPPORT FALLS THROUGH TO MINT -- ruled 2026-09-22 on B5.
                 # *Support at zero is an INSTRUCTION, not a stop: perturb.* A rebind changes
@@ -8572,12 +8626,14 @@ class Agent:
                 # of a slot that owes, and routing it here retires a debt on one step's
                 # evidence. It is why an unbound slot fell back to idn and was never
                 # revisited.
-                b, fit = MECHANISM, self._library_fit(slot, self.bound.get(slot))
+                b, fit = MECHANISM, (self._fit_tier0(slot, self.bound.get(slot)) if _FIT_TIER0
+                                     else self._library_fit(slot, self.bound.get(slot)))
                 if fit:
                     b = REBIND
             elif len(self.trace) < 2:
                 b, fit = NOVEL, None
             else:
+                self._fit_none.pop(slot, None)     # S2a: a row the bound term missed reopens it
                 fit = self._library_fit(slot, self.bound.get(slot))
                 b = REBIND if fit else MECHANISM
             why = OWES if (r.mass == 0.0 and slot in self.owed_import) else WHY_NOT[b]
