@@ -1041,6 +1041,16 @@ _FIT_UNITS = armflag.arm("TETHER_FIT_UNITS", default=True)
 # (B)'s check run: every reuse also takes _units_for fresh and compares; the fresh units are used.
 # A measurement switch, never a play setting. OFF: no check
 _FIT_UNITS_CHECK = armflag.arm("TETHER_FIT_UNITS_CHECK")
+# (2a), ONE DEFINITION ONCE PER FIT (the S2L twin; the reviewer 2026-10-21 04:40): names that hold
+# one definition walked the same candidates and priced each again. The work that reads only the
+# definition -- a library Term's candidates, and each candidate's bindability, leftover and cost --
+# is done once per fit; everything that reads the NAME (exclusion, refusal, carry credit and price,
+# the first payer, the paying order, the pull) stays per name, in the same order. OFF: per name
+# (920dfc7)
+_FIT_DEDUP = armflag.arm("TETHER_FIT_DEDUP", default=True)
+# (2a)'s check run: every reuse also computes fresh and compares; the fresh values are used. A
+# measurement switch, never a play setting. OFF: no check
+_FIT_DEDUP_CHECK = armflag.arm("TETHER_FIT_DEDUP_CHECK")
 # (C), THE TIERS INDEX (the reviewer 2026-10-21 03:05): _tiers ranked by walking every carried and
 # landed (delta kind, entry, target) row and every recency row on each call -- a cost that grew
 # with the agent's life. rung() only reads the asked kinds and their types, so the per-entry sums
@@ -1663,6 +1673,8 @@ BOOKS: tuple[str, ...] = (
     "walk_memo_disagree",               # (A) check run: the kept walk did NOT match
     "fit_units_agree",                  # (B) check run: the fit's reused units matched fresh
     "fit_units_disagree",               # (B) check run: the reused units did NOT match
+    "fit_dedup_agree",                  # (2a) check run: a reused definition matched fresh
+    "fit_dedup_disagree",               # (2a) check run: a reused definition did NOT match
     "tiers_index_agree",                # (C) check run: the index's rung sums matched the scan
     "tiers_index_disagree",             # (C) check run: they did NOT match
     "tiers_index_fallback",             # (C): a count <= 0 met; that call scanned
@@ -8279,6 +8291,14 @@ class Agent:
         return ((self.gamma.stamps.get(name) or {}).get("origin") == MINTED and left < base
                 and robs is not None and self.bears_on(cand, slot, robs, held))
 
+    def _dedup_check(self, slot: str, n: str, what: str, same: bool) -> None:
+        """(2a)'s check run: a reused definition against fresh; booked, a row when they differ."""
+        _book_add(self.gamma.book, "fit_dedup_agree" if same else "fit_dedup_disagree")
+        if not same:
+            self.led.record(self.cycle, "ROUTE", slot, "fit_dedup_check", term=n, what=what,
+                            agree=False,
+                            reads="the fit's reused definition differed from fresh (2a)")
+
     def _carry_ref(self) -> tuple[int, float]:
         """What naming one held term costs: log2(H+1), H the whole library as built (at least the
         fit's candidates), the +1 being none of them (mint instead). The form is `_guard_bits`'s,
@@ -8518,6 +8538,50 @@ class Agent:
         _carry_robs = (self._residual_obs(slot, _held_t, hist)
                        if _CARRY_PRICE and _BARGAIN_FIT else None)
         _h, _ref = self._carry_ref() if _CARRY_PRICE else (0, 0.0)
+        # (2a): the definition's own work, once per fit -- nothing in this loop writes its inputs
+        _dd_reb: dict = {}
+        _dd_cand: dict = {}
+        _st = self.slot_types.get(slot)
+
+        def _judge(cand, price, n):
+            nonlocal _uf
+            # BEFORE `_explains`, and separately from it: may this BIND is a type question
+            # and does it EXPLAIN is a behavioural one. Folding the first into the second
+            # would put two quantities under one name at the site that decides both.
+            if not _may_bind(cand, _st):
+                return False, None, None
+            # F127 EXPERIMENT, SEAT-SIDE SWITCH, DEFAULT OFF. The line above filters the OUT
+            # type and nothing filters the IN type against the slot's, so `none` -- a
+            # zero-test typed `PRED` -- binds to an EXTENT slot and reads `int(not width)`,
+            # unsatisfiable because a width is never 0. 354 of 424 measured mismatches are
+            # that one atom. The comment two lines up already says binding is a type
+            # question; it checks the wrong end.
+            #
+            # NOT ON BY DEFAULT because removing 354 bindings changes every board and the
+            # replacement is unmeasured -- those slots may simply lose their objective. An
+            # env switch so the two arms are one build and the comparison is real.
+            if _TYPED_BIND and not _head_accepts(cand, _st):
+                return False, None, None
+            if not price:
+                return True, None, None
+            _left = self._left(cand, slot, hist)
+            if not _FIT_UNITS:
+                _units = self._units_for(slot)
+            elif _uf is None:
+                _uf = _units = self._units_for(slot)
+            elif _FIT_UNITS_CHECK:
+                _units = self._units_for(slot)
+                _same = _units == _uf
+                _book_add(self.gamma.book,
+                          "fit_units_agree" if _same else "fit_units_disagree")
+                if not _same:
+                    self.led.record(self.cycle, "ROUTE", slot, "fit_units_check",
+                                    term=n, agree=False,
+                                    reads="the fit's reused units differed from fresh (B)")
+            else:
+                _units = _uf
+            return True, _left, self._bits((cand, _units))
+
         for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
                                     youth=self.gamma.youth_of):
             if n == exclude or (self._not and self._term_refused(n, _gk)):
@@ -8531,23 +8595,30 @@ class Agent:
             # ONLY IMPORTS PAY THIS. Every term made here carries its binding, so the candidates
             # are exactly the loaded ones, and a cold run adds nothing. Typed by
             # `_operand_fits`, which is the same filter the mint uses.
-            for cand in self._rebindings(self.gamma.library[n], slot, _guard_pool, _robs):
-                # BEFORE `_explains`, and separately from it: may this BIND is a type question
-                # and does it EXPLAIN is a behavioural one. Folding the first into the second
-                # would put two quantities under one name at the site that decides both.
-                if not _may_bind(cand, self.slot_types.get(slot)):
-                    continue
-                # F127 EXPERIMENT, SEAT-SIDE SWITCH, DEFAULT OFF. The line above filters the OUT
-                # type and nothing filters the IN type against the slot's, so `none` -- a
-                # zero-test typed `PRED` -- binds to an EXTENT slot and reads `int(not width)`,
-                # unsatisfiable because a width is never 0. 354 of 424 measured mismatches are
-                # that one atom. The comment two lines up already says binding is a type
-                # question; it checks the wrong end.
-                #
-                # NOT ON BY DEFAULT because removing 354 bindings changes every board and the
-                # replacement is unmeasured -- those slots may simply lose their objective. An
-                # env switch so the two arms are one build and the comparison is real.
-                if _TYPED_BIND and not _head_accepts(cand, self.slot_types.get(slot)):
+            _lt = self.gamma.library[n]
+            if _FIT_DEDUP:
+                _cands = _dd_reb.get(_lt)
+                if _cands is None or _FIT_DEDUP_CHECK:
+                    _fresh = list(self._rebindings(_lt, slot, _guard_pool, _robs))
+                    if _cands is not None:
+                        self._dedup_check(slot, n, "rebindings", _fresh == _cands)
+                    _cands = _dd_reb[_lt] = _fresh
+            else:
+                _cands = self._rebindings(_lt, slot, _guard_pool, _robs)
+            for _i, cand in enumerate(_cands):
+                if _i == 0:
+                    cand = _lt          # the name's own object, as _rebindings yields it first
+                if _FIT_DEDUP and _BARGAIN_FIT:
+                    _v = _dd_cand.get(cand)
+                    if _v is None or _FIT_DEDUP_CHECK:
+                        _fresh = _judge(cand, True, n)
+                        if _v is not None:
+                            self._dedup_check(slot, n, "candidate", _fresh == _v)
+                        _v = _dd_cand[cand] = _fresh
+                    _ok, _left, _cost = _v
+                else:
+                    _ok, _left, _cost = _judge(cand, _BARGAIN_FIT, n)
+                if not _ok:
                     continue
                 # F32 ARM D, **ON BY DEFAULT SINCE 2026-09-30**. `_explains` is `_left(...) == 0.0`,
                 # and ISAIAH RULED THAT OUT: *the residual NEVER fully closes -- the corpus would
@@ -8562,23 +8633,6 @@ class Agent:
                 # history rarely closing to zero. Same baseline as the sweep: what the currently
                 # bound term leaves.
                 if _BARGAIN_FIT:
-                    _left = self._left(cand, slot, hist)
-                    if not _FIT_UNITS:
-                        _units = self._units_for(slot)
-                    elif _uf is None:
-                        _uf = _units = self._units_for(slot)
-                    elif _FIT_UNITS_CHECK:
-                        _units = self._units_for(slot)
-                        _same = _units == _uf
-                        _book_add(self.gamma.book,
-                                  "fit_units_agree" if _same else "fit_units_disagree")
-                        if not _same:
-                            self.led.record(self.cycle, "ROUTE", slot, "fit_units_check",
-                                            term=n, agree=False,
-                                            reads="the fit's reused units differed from fresh (B)")
-                    else:
-                        _units = _uf
-                    _cost = self._bits((cand, _units))
                     if _CARRY_PRICE:
                         # EVERY payer is collected and the lowest WHOLE price wins (H3: first is
                         # not best); `_today` is the one the arm-OFF walk would have returned.
