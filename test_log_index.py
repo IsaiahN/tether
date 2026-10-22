@@ -8,6 +8,8 @@ real C:/TETHER_RUNS is only read (by the pins scan).
   MF2  an index row with one tally count changed -> verify refuses (tally).
   SUM  the same row with only its summariser stamp changed verifies (the stamp moves with any edit
        to log_index.py; at be741fd all 1,030 (B) rows failed on it alone).
+  MF8  that earlier-stamped row with a changed tally still FAILS (the reviewer 2026-10-22 04:25):
+       a must-fail crosses the version boundary it guards.
   MF3  a pinned ledger and a window ledger are never eligible; the third is.
   MF4  a torn last line is counted as bad, and the row still writes.
   MF5  retire refuses a list holding a ledger that fails verify, and renames nothing; the eligible
@@ -115,6 +117,13 @@ def main() -> None:
         assert d == [], d
         print("  SUM: a row stamped by an earlier summariser verifies on its content (the stamp is "
               "provenance)")
+        r["tally"]["PERCEIVE|bet"][0] += 1
+        lines[k] = json.dumps(r, sort_keys=True)
+        old_idx.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        d = li.verify_one(li.load_index(old_idx), b)
+        assert d == ["tally"], d
+        print("  MF8: the same earlier-stamped row with its content changed (tally) still FAILS: "
+              "the skip is the stamp only")
 
         pins.write_text(f"{li.norm(root / 'box_b')}\thand pin for the test\n", encoding="utf-8")
         real_w = li.WINDOW
