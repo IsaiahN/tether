@@ -17,6 +17,8 @@ import sys
 from collections import Counter
 from collections.abc import Callable
 
+import cap
+
 sys.dont_write_bytecode = True
 
 UNSEEN = "unseen"          # the hidden hand: a change with no candidate actor (Saxe et al. 2005)
@@ -71,6 +73,7 @@ def diagnose(rows: list, slot: str, owner: str, *, hazard: Hazard,
     return out
 
 
+@cap.held      # C1 (A): one diagnosis updates the hazard record the lineage carries, whole (15:34)
 def _diagnose(rows: list, slot: str, owner: str, *, persists: bool,
              predicts: Callable[[tuple], bool],
              predicts_with: Callable[[tuple, str], bool],

@@ -44,6 +44,7 @@ from __future__ import annotations
 import sys
 
 import armflag
+import cap
 
 sys.dont_write_bytecode = True
 
@@ -164,6 +165,7 @@ def pair_slots_over(objs: dict[str, dict], pairs: list) -> dict[str, int]:
     """`{"{a}.{rel}_{b}": value}` over the ordered pairs given (ARC B2: contact and actor pairs)."""
     out: dict[str, int] = {}
     for a, b in pairs:
+        cap.head()
         for rel, v in pair_values(objs[a], objs[b]).items():
             out[f"{a}.{rel}_{b}"] = v
     return out

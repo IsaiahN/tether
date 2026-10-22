@@ -39,6 +39,7 @@ import re
 import sys
 from dataclasses import dataclass
 
+import cap
 import inherited
 
 sys.dont_write_bytecode = True
@@ -190,6 +191,7 @@ def recipe_rows() -> dict:
     multi = {b for b, keys in inherited.bare_index("molecules").items() if len(keys) > 1}
     out: dict = {}
     for key, m in inherited.load()["molecules"].items():
+        cap.head()
         ings = tuple(i["ref"].split("|", 1)[-1] for i in m.get("ingredients") or ()
                      if i.get("ref"))
         if len(ings) < 2:
@@ -309,6 +311,7 @@ def holds(bond: str, a: list, b: list) -> tuple:
     """
     out, seen_a, b_before_a = [], False, False
     for t, (x, y) in enumerate(zip(a, b, strict=True)):
+        cap.head()
         if bond == "+":                              # both hold at once
             v = _and(x, y)
         elif bond == "∥":                      # either suffices; not both required
@@ -354,6 +357,7 @@ def _encodings() -> dict:
     lib = inherited.load()
     out: dict = {}
     for key, v in {**lib["molecules"], **lib["atoms"]}.items():
+        cap.head()
         out.setdefault(_norm(key.split("|", 1)[-1]), set()).update(v.get("encodings") or ())
     return {k: frozenset(v) for k, v in out.items()}
 
@@ -372,6 +376,7 @@ def _lit(types: frozenset) -> tuple:
     enc = _encodings()
     out = []
     for mol, a, b in _junction_list():
+        cap.head()
         ea, eb = enc.get(_norm(a), frozenset()) & types, enc.get(_norm(b), frozenset()) & types
         if ea and eb:
             out.append((mol, a, b, ea, eb))
@@ -386,14 +391,17 @@ def lookup(described: dict, link: bool = True) -> dict:
     type on the board. Offered, never adopted: `read_pairs` and the ground settle them."""
     as_enc: dict = {}
     for reading, t in described.items():
+        cap.head()
         for e in (t,) + (NOTE_LINK.get(t, ()) if link else ()):
             as_enc.setdefault(e, set()).add(reading)
     pairs = []
     for mol, a, b, ea, eb in _lit(frozenset(as_enc)):
+        cap.head()
         ra = sorted({r for e in ea for r in as_enc[e]})
         rb = sorted({r for e in eb for r in as_enc[e]})
         via = sorted(ea | eb)
         for x, y in itertools.product(ra, rb):
+            cap.head()
             if x != y:
                 pairs.append({"molecule": mol, "left": a, "right": b, "left_reading": x,
                               "right_reading": y, "via": via})
@@ -405,6 +413,7 @@ def lookup_query(described: dict, link: bool = True) -> list:
     """lookup's "query": the encodings the description lights."""
     as_enc: set = set()
     for t in described.values():
+        cap.head()
         as_enc.update((t,) + (NOTE_LINK.get(t, ()) if link else ()))
     return sorted(as_enc)
 
@@ -413,13 +422,16 @@ def lookup_iter(described: dict, link: bool = True):
     """lookup's pairs, YIELDED one at a time in lookup's order (L: none held as a list)."""
     as_enc: dict = {}
     for reading, t in described.items():
+        cap.head()
         for e in (t,) + (NOTE_LINK.get(t, ()) if link else ()):
             as_enc.setdefault(e, set()).add(reading)
     for mol, a, b, ea, eb in _lit(frozenset(as_enc)):
+        cap.head()
         ra = sorted({r for e in ea for r in as_enc[e]})
         rb = sorted({r for e in eb for r in as_enc[e]})
         via = sorted(ea | eb)
         for x, y in itertools.product(ra, rb):
+            cap.head()
             if x != y:
                 yield {"molecule": mol, "left": a, "right": b, "left_reading": x,
                        "right_reading": y, "via": via}
@@ -430,6 +442,7 @@ def read_iter(pairs, frames: list, cache: dict):
     and the frames ONLY (read_pairs: left_reading, right_reading, frames, READ_ON_TWO, holds), so
     it is computed once per (left_reading, right_reading) into `cache` and copied into each row."""
     for p in pairs:
+        cap.head()
         key = (p["left_reading"], p["right_reading"])
         got = cache.get(key)
         if got is None:
@@ -470,6 +483,7 @@ def read_pairs(pairs: list, frames: list) -> list:
     preferred."""
     out = []
     for p in pairs:
+        cap.head()
         va = [f.get(p["left_reading"]) for f in frames]
         vb = [f.get(p["right_reading"]) for f in frames]
         def moved(v):
@@ -559,6 +573,7 @@ def candidates(lit: set, partial: bool = False) -> list[dict]:
     lit = {_norm(x) for x in lit}
     hits = []
     for n, r in recipe_rows().items():
+        cap.head()
         ing = r["ingredients"]
         hit = sum(1 for i in ing if _norm(i) in lit)
         if hit == len(ing) or (partial and hit):

@@ -14,6 +14,7 @@ from typing import Any
 
 sys.dont_write_bytecode = True
 
+import cap  # noqa: E402
 import compile_term as C  # noqa: E402
 import composer  # noqa: E402
 
@@ -27,8 +28,10 @@ def frames(trace: list, records: Callable[[dict], dict]) -> list[dict]:
     each object's record under its own name, reassembled from that same state."""
     out, prev = [], None
     for before, _a, _af, _i, _l in trace:
+        cap.head()
         f = dict(before)
         for k in before:
+            cap.head()
             f[k + C.PREV] = prev.get(k) if prev is not None else None
         f.update(records(before))
         out.append(f)
@@ -63,6 +66,7 @@ def cause_fold(state: list | None, if_c: C.Compiled, then_c: C.Compiled,
     The caller restarts the fold (state None) whenever the frames themselves may differ."""
     n, seen_a, b_before_a, asked, held, refuted, if_now = state or (0, False, False, 0, 0, 0, None)
     for f in frs[n:]:
+        cap.head()
         x, y = C.run(if_c, f), C.run(then_c, f)
         if y is True:
             v = not (b_before_a or not seen_a)
@@ -108,6 +112,7 @@ def cause_tiers(mine: str, landed: str | None, age: dict, adj: dict, objects,
     tiers = [tier([*r0, *r1], pinned=r0)]
     ring = {mine}
     while True:
+        cap.head()
         nxt = sorted({n for o in ring for n in adj.get(o, ()) if n in pool and n not in seen})
         if not nxt:
             break
@@ -130,10 +135,12 @@ def trail(changed: list, effect: list, objects) -> tuple[dict, frozenset]:
     seen = set().union(*changed) if changed else set()
     dp: dict = {}
     for o in objects:
+        cap.head()
         if o not in seen:
             continue
         on = off = 0
         for t, e in enumerate(effect):
+            cap.head()
             c = o in changed[t] or (t > 0 and o in changed[t - 1])
             if c and e:
                 on += 1

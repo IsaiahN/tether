@@ -56,6 +56,12 @@ import re as _re
 from collections import defaultdict
 from pathlib import Path
 
+try:
+    from cap import head as _cap_head  # C1 (A): the agent's shared deadline, when the agent runs
+except ImportError:     # the library built or read alone
+    def _cap_head() -> None:
+        return None
+
 PRIOR, MINTED, IMPORTED, INVENTED = "prior", "minted", "imported", "invented"
 BONDS = ("+", "∥", "≡", "→", "⇒", "−", "⋛")
 UNKNOWN = "?"
@@ -340,7 +346,9 @@ class Library:
             raise ValueError(f"abduce must be one of {self.ABDUCE}, not {abduce!r}")
         score: dict[str, float] = defaultdict(float)
         for r, n in changed.items():
+            _cap_head()
             for k, w in self.by_reading.get(r, ()):
+                _cap_head()
                 score[k] += w * (1 if n else 0)
         fwd = sorted(score.items(), key=lambda kv: (-kv[1], kv[0]))
         if not abduce:
@@ -350,6 +358,7 @@ class Library:
             seen = set(score)
             return fwd + [(k, s) for k, s in prod if k not in seen]
         for k, s in prod:
+            _cap_head()
             score[k] += s
         return sorted(score.items(), key=lambda kv: (-kv[1], kv[0]))
 
@@ -363,9 +372,11 @@ class Library:
         EXCLUDE: every entry filed under a changed reading is returned."""
         hit: dict[str, float] = defaultdict(float)
         for r, n in changed.items():
+            _cap_head()
             if not n:
                 continue
             for k in self.by_affects.get(r, ()):
+                _cap_head()
                 hit[k] += 1.0
         held = set(context) | {r for r, n in changed.items() if n}
 
@@ -386,9 +397,12 @@ class Library:
         offered, frontier = set(), set(lit)
         out = []
         while frontier:
+            _cap_head()
             nxt = set()
             for k in frontier:
+                _cap_head()
                 for m in self.ingredient_of.get(k, ()):
+                    _cap_head()
                     if m in offered:
                         continue
                     e = self.get(m)

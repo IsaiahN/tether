@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any
 
 import armflag
+import cap
 import gamma
 import sensors
 
@@ -611,6 +612,13 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             store["s_fsync"] = t_fsync
             if sleep:
                 store["sleep"] = ls.sleep(store_con)
+                t0_end = getattr(ag, "_end_path_t0", None)
+                if t0_end is not None:
+                    # C1 (A)'s reserve: this end path's wall to here (end_run, the saves, the merge,
+                    # the sleep), kept for the next life's thinking deadline (14:27 (i))
+                    store["end_path"] = ls.note_end_path(
+                        store_con, time.perf_counter() - t0_end,
+                        store["sleep"]["s_checkpoint"] + store["sleep"]["s_quick_check"])
             elif ls.WAL_BOUND_BYTES is not None and ls.wal_bytes(p) > ls.WAL_BOUND_BYTES:
                 # the WAL's SIZE bound (07:12 c, 07:19 3, 08:03 3b): a checkpoint at this boundary,
                 # never mid-move; its time is a PLAY-PATH cost and is reported as one
@@ -866,10 +874,11 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         vindication = [json.loads(r) for (r,) in
                        con.execute("SELECT row FROM vindication ORDER BY k, i")]
         seeds = [json.loads(s_) for (s_,) in con.execute("SELECT seed FROM seeds ORDER BY k")]
+        end_path = ls.read_end_path(con)
     finally:
         con.close()
     return {"tip": tip and tip[0], "fold": f, "counts": c, "merged": merged, "healed": healed,
-            "sig": sig,
+            "sig": sig, "end_path": end_path,
             "atoms": atoms, "folder": str(p.resolve()),
             "evidence": evidence, "vindication": vindication, "seeds": seeds,
             "pairs": {(tuple(json.loads(sym[o])), tuple(json.loads(sym[x]))): (n, max(last, 0))
@@ -893,6 +902,10 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     v = _store_view(d, ag)
     h, f, c = v["tip"], v["fold"], v["counts"]
     ag.lineage_parent = h
+    if tether._END_RESERVE and v.get("end_path") is not None:
+        # C1 (A)'s reserve: the predecessor's measured end-path wall (the reviewer 2026-10-22 14:27)
+        ag._end_reserve = v["end_path"]["s"]
+        ag._end_sleep_s = v["end_path"]["sleep_s"]
     ag.gamma.keep_evidence = True
     if h is None:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
@@ -1432,6 +1445,7 @@ def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
             held = [(view[i], c, t) for i, _, c, t in items]
             tether._INDEX_STORE[k] = held
             for i, ch, _, _ in items:
+                cap.head()
                 _CH_HELD[(sig, key, role, i)] = (view[i], ch)
             _VERDICT_N["refetched"] += 1
             return held
@@ -1454,6 +1468,7 @@ def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
         held = [(view[i], c, t) for i, _, c, t in items]
         tether._INDEX_STORE[(sig, key, role)] = held
         for i, ch, _, _ in items:   # S1e: these candidates are now the held view, hash checked
+            cap.head()
             _CH_HELD[(sig, key, role, i)] = (view[i], ch)
         _RESOLVE["resolved"] += 1
         if tether._W_HELD_LAZY:
@@ -1765,6 +1780,7 @@ def _ak_rows(ag: Any) -> Counter:
     whole = tether._BOUND_MEMO if tok else ag._bound_cache
     out: Counter = Counter()
     for k, n in ag._ak_asked.items():
+        cap.head()
         out[k[:6] + (None,) if k[:6] in whole else k] += n
     return out
 

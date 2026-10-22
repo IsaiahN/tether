@@ -30,6 +30,7 @@ import json
 import logging
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -385,8 +386,10 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
             if lvl_edge and tether._LEVEL_EDGE:
                 ag.retarget(env, lv, how=ledger.ADVANCE)
             if lineage._BOUNDARY and (term_edge or lvl_edge):
+                t_b = time.perf_counter()
                 bounds.append(lineage.boundary(lineage_dir, ag, game,
                                                end if term_edge else "level"))
+                ag._note_boundary_wall(time.perf_counter() - t_b)
             lv_seen = lv
         was_terminal = end
         # `cycles` is a CAP, not the unit. play() otherwise runs the full count and every
@@ -394,7 +397,11 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         # the loop to stop where the game does. Default False leaves every caller as it was.
         if stop_on_end and end:
             break
+        if ag._cut:     # C1 (A): the agent stopped thinking (a cut, or its end-path reserve)
+            break
 
+    if tether._END_RESERVE:
+        ag._end_path_t0 = time.perf_counter()    # C1 (A)'s reserve: the end path is timed whole
     ag.end_run("cap")          # MC2: the open level resolves at the game
     rows = led.rows()
     g = ag.gamma
@@ -402,6 +409,13 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     saved_only = save_only(ag, save_only_dir, game, led_path)
     # (b'-g) the boundary's generation, beside the stop-loss (lineage.py)
     lineage_gen = lineage.write(lineage_dir, ag, game) if lineage._CARRY and lineage_dir else None
+    if tether._END_RESERVE:
+        led.record(ag.cycle, "SETTLE", "@run", "end_path",
+                   wall_s=round(time.perf_counter() - ag._end_path_t0, 3),
+                   reserve_s=ag._end_reserve, cut=ag._cut,
+                   stored=((lineage_gen or {}).get("store") or {}).get("end_path"),
+                   reads="C1 (A): the game's end path, timed whole; its stored wall is the next "
+                         "life's reserve")
     # R2 REOPEN (the reviewer 2026-10-18 01:18): the lineage write is the boundary's last writer
     # (_3a_settle's rows reopen the handle end_run closed), so the ledger closes again here
     close = getattr(ag.led, "close", None)

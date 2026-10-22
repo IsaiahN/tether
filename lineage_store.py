@@ -565,6 +565,21 @@ def checkpoint(con: sqlite3.Connection) -> dict:
     return {"s_checkpoint": round(time.perf_counter() - t0, 3)}
 
 
+def note_end_path(con: sqlite3.Connection, wall_s: float, sleep_s: float) -> dict:
+    """C1 (A)'s reserve (the reviewer 2026-10-22 14:27): the end path's measured wall and its
+    sleep part, written after the sleep so the next life's load reads its predecessor's."""
+    out = {"s": round(wall_s, 3), "sleep_s": round(sleep_s, 3)}
+    con.execute("INSERT OR REPLACE INTO meta VALUES ('end_path', ?)", (json.dumps(out),))
+    con.commit()
+    return out
+
+
+def read_end_path(con: sqlite3.Connection) -> dict | None:
+    """The last end path's measured wall (note_end_path), or None when never measured."""
+    v = con.execute("SELECT v FROM meta WHERE k='end_path'").fetchone()
+    return json.loads(v[0]) if v else None
+
+
 def sleep(con: sqlite3.Connection) -> dict:
     """The "sleep" (07:12 b): the checkpoint and the full quick_check, OFF the play path."""
     t0 = time.perf_counter()

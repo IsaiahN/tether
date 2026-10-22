@@ -32,6 +32,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+import cap
+
 sys.dont_write_bytecode = True
 
 # THE THREE TERMINATIONS, AND THEY ARE THREE BECAUSE THEY ARE THREE CLAIMS. Collapsing
@@ -355,6 +357,7 @@ def advance(r: Any, holds: Callable[[Any], bool | None],
         # hit its own bound -- a termination failure caused by the termination guard.
         guard, body, budget = r.guard, r.body, r.budget
         while True:
+            cap.head()
             h = holds(guard)
             if h is None:
                 return BLOCKED, None

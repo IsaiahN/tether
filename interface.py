@@ -35,6 +35,7 @@ from dataclasses import replace as _replace
 from typing import Any
 
 import armflag
+import cap
 import frontier as FR
 
 sys.dont_write_bytecode = True
@@ -607,6 +608,7 @@ class Interface:
             # CHANGES a choice is worse than no prediction that leaves the default.
             if best is None and not _is_relational(intent.subject, env):
                 for a in offered:
+                    cap.head()
                     lands = self.table.get(a, {}).get("lands", {})
                     seen = {v for (_c, k, b), vs in lands.items()
                             if k == intent.subject and b == _now for v in vs}
@@ -633,6 +635,7 @@ class Interface:
                 offered = tuple(a for a in offered if a not in against)
             best, score, how = None, 0.0, ""
             for a in offered:
+                cap.head()
                 d = self.table.get(a, {}).get("delta", {})
                 # **THIS CONTEXT FIRST, THEN ACROSS ALL OF THEM -- AND THE FALLBACK IS THE
                 # POINT.** Measured 2026-09-28: the interface learned `down -> o0.row +1.00`,
@@ -710,7 +713,9 @@ class Interface:
             for a in offered:
                 # `(ctx, slot, rel)` since layer 1. This scan reads the SLOT and ignores both
                 # the context and the relation, so it widens by index rather than aggregating.
+                cap.head()
                 for (_c, k, _rel), (n, tot) in self.table.get(a, {}).get("delta", {}).items():
+                    cap.head()
                     step = self._gap(k, intent.object, state)
                     if step is None or not n:
                         continue
@@ -897,6 +902,7 @@ class Interface:
         inherited. ONE STEP: a mapped destination that leads on to an unknown knob reads False;
         looking further would be planning over the map, and is not built."""
         for d in self.table.get(a, {}).get("to", {}).get(ctx, ()):
+            cap.head()
             if any(b != RESET and d not in self.table.get(b, {}).get("by_ctx", {})
                    for b in offered):
                 return True
@@ -1007,6 +1013,7 @@ class Interface:
             return None
         rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
         for obj in sorted(rows & {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}):
+            cap.head()
             if Interface._at(obj, state) == (int(coord[0]), int(coord[1])):
                 return obj
         return None
@@ -1109,6 +1116,7 @@ class Interface:
             return min(ats, key=lambda at: self.clicked_at.get((self.epoch, at), -1),
                        default=None)
         for obj in sorted(rows & cols):
+            cap.head()
             at = self._at(obj, state)
             if at is not None and at not in self.clicked and at not in avoid:
                 return at
@@ -1254,6 +1262,7 @@ class Interface:
         decided: set[str] = set()
         for how, same_ctx in tiers:
             for a in offered:
+                cap.head()
                 vals = {v for (c, k, b), vs in self.table.get(a, {}).get("lands", {}).items()
                         if k == slot and b == now and (c == ctx or not same_ctx) for v in vs}
                 if len(vals) == 1:
@@ -1427,6 +1436,7 @@ class Interface:
         # it puts the denominator AT THE SAME SITE AS THE NUMERATOR, which is this project's
         # rule for counts. It reads nothing and decides nothing -- the weighting is elsewhere.
         for _k in before:
+            cap.head()
             self.present[_k] = self.present.get(_k, 0) + 1
         changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
         signature = tuple(sorted(_eff(k) for k in changed
@@ -1451,6 +1461,7 @@ class Interface:
         # lived above the seam where the agent could reason about buttons. This is any slot,
         # no body required, and below the seam where knowing about buttons is the job.
         for k in changed:
+            cap.head()
             try:
                 d = int(after.get(k, 0)) - int(before.get(k, 0))
             except (TypeError, ValueError):
@@ -1499,6 +1510,7 @@ class Interface:
         # unreliable.
         flipped = False
         for k, sign in signature:
+            cap.head()
             cell = e.setdefault("signs", {}).setdefault((ctx, k, int(before.get(k, 0))), set())
             if sign and cell and sign not in cell:
                 flipped = True

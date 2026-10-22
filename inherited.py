@@ -50,6 +50,8 @@ from functools import cache, lru_cache
 from pathlib import Path
 from typing import Any
 
+import cap
+
 sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).parent / "library"
@@ -166,6 +168,7 @@ def load() -> dict[str, Any]:
         # of reach. The extension costs one pass over 62 entries at load.
         by_tag = out["tags"].setdefault("by_tag", {})
         for key, e in mine.items():
+            cap.head()
             for tag in (e.get("tags") or {}).get("primary") or ():
                 by_tag.setdefault(tag, {}).setdefault("atoms", []).append(key)
     return out
@@ -191,6 +194,7 @@ def bare_index(kind: str = "both") -> dict[str, tuple[str, ...]]:
     out: dict[str, list[str]] = {}
     for k in kinds:
         for key in lib[k]:
+            cap.head()
             out.setdefault(key.split("|", 1)[-1].lower(), []).append(key)
     return {b: tuple(keys) for b, keys in out.items()}
 

@@ -31,6 +31,7 @@ import sys
 from typing import Any
 
 import armflag
+import cap
 
 sys.dont_write_bytecode = True
 
@@ -314,6 +315,7 @@ def holes_of(cells) -> int:
     lo_r, hi_r, lo_c, hi_c = min(rs) - 1, max(rs) + 1, min(cs) - 1, max(cs) + 1
     seen, stack = set(), [(lo_r, lo_c)]
     while stack:
+        cap.head()
         r, c = stack.pop()
         if (r, c) in seen or (r, c) in v:
             continue
@@ -325,9 +327,11 @@ def holes_of(cells) -> int:
             if (r, c) not in v and (r, c) not in seen}
     regions = 0
     while left:
+        cap.head()
         regions += 1
         stack = [left.pop()]
         while stack:
+            cap.head()
             r, c = stack.pop()
             for nb in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)):
                 if nb in left:
@@ -351,6 +355,7 @@ def enclosed_of(cells) -> frozenset:
     lo_r, hi_r, lo_c, hi_c = min(rs) - 1, max(rs) + 1, min(cs) - 1, max(cs) + 1
     seen, stack = set(), [(lo_r, lo_c)]
     while stack:
+        cap.head()
         r, c = stack.pop()
         if (r, c) in seen or (r, c) in v:
             continue
