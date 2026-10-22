@@ -33,6 +33,9 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 HERE = _repo.ROOT
+sys.path.insert(0, os.path.join(HERE, "conform"))
+from identity_mod_rows import compare  # noqa: E402  the one identity reader
+
 K = 3
 CYCLES = 12
 
@@ -89,8 +92,22 @@ def digest(ag):
                           for k, v in lineage._PENDING.items()},
         "index_store": len(tether._INDEX_STORE),
     }
-    return {k: hashlib.sha256(json.dumps(canon(v), sort_keys=True, default=repr).encode())
-            .hexdigest()[:16] for k, v in S.items()}
+    out = {k: hashlib.sha256(json.dumps(canon(v), sort_keys=True, default=repr).encode())
+           .hexdigest()[:16] for k, v in S.items()}
+    out["_index_store_n"] = len(tether._INDEX_STORE)
+    return out
+
+
+def mask_fold(rows):
+    """the game-start fold's counts of what an EARLIER agent in the process left, which it clears
+    (tether._consolidate); "after" stays"""
+    kept = []
+    for x in rows:
+        if x["event"] == "consolidate" and x["detail"].get("trigger") == "game_start":
+            kept.append({f: x["detail"].pop(f, None)
+                         for f in ("before", "landed_cleared", "slot_rows_before")})
+            kept[-1]["after"] = x["detail"].get("after")
+    return kept
 '''
 
 CHILD = r'''
@@ -162,6 +179,10 @@ def wa(env, game, cfg, led_obj, library, lineage_dir, clock=None):
     hook["snap"] = d + "_snap"
     shutil.copytree(d, hook["snap"])                # (r2): the folder the fresh agent loads
     if mode == "once":                              # (r1): two fresh agents, same save, same board
+        import pickle
+        hook["board"], hook["clock"], hook["palette"] = d + "_board.pkl", list(clock), env._palette
+        with open(hook["board"], "wb") as fh:       # (r2b): the board at the fault, for a cold step
+            pickle.dump(copy.deepcopy(env.w.w), fh)
         outs = []
         for i in range(2):
             di = f"{d}_r1_{i}"
@@ -174,17 +195,12 @@ def wa(env, game, cfg, led_obj, library, lineage_dir, clock=None):
             real(ai)
             outs.append((li.rows(), list(wi.w.calls)))     # wi: the ResetGuard; .w the board
         # the game-start fold counts what the agent BEFORE left in the process's bound stores and
-        # clears it (tether._consolidate): those three counts differ by construction (r1_0 follows
-        # the faulted agent, r1_1 follows r1_0), so they are masked and kept; "after" is not
-        cleared = []
-        for rows_i, _c in outs:
-            for x in rows_i:
-                if x["event"] == "consolidate" and x["detail"].get("trigger") == "game_start":
-                    cleared.append({f: x["detail"].pop(f, None)
-                                    for f in ("before", "landed_cleared", "slot_rows_before")})
-                    cleared[-1]["after"] = x["detail"].get("after")
+        # clears it: those three counts differ by construction (r1_0 follows the faulted agent,
+        # r1_1 follows r1_0), so they are masked and kept; "after" is not
+        cleared = [c for rows_i, _c in outs for c in mask_fold(rows_i)]
         hook["r1"] = {"diff": compare(outs[0][0], outs[1][0], set()), "cleared": cleared,
-                      "calls": [o[1] for o in outs], "rows": len(outs[0][0])}
+                      "calls": [o[1] for o in outs], "rows": len(outs[0][0]),
+                      "rows0": outs[0][0]}
     if mode == "r4bad":                             # the old path: a new Ledger on the same file
         _e, a2, *_ = arc_holdout.wire(env.w, game, led_path=led, lineage_dir=lineage_dir)
         a2.cycle, a2.deadline = clock
@@ -229,7 +245,8 @@ out = {"raised": raised, "calls": calls[0], "ended": ended,
        "recovered": [r["detail"] for r in rows if r["event"] == "fault_recovered"],
        "tb": sorted(os.path.basename(p) for p in glob.glob(led + ".fault*.txt")),
        "gate": gate.check(rows), "marker_after": hook.get("marker_after"), "r1": hook.get("r1"),
-       "digest": hook.get("digest"), "snap": hook.get("snap"),
+       "digest": hook.get("digest"), "snap": hook.get("snap"), "board": hook.get("board"),
+       "clock": hook.get("clock"), "palette": hook.get("palette"),
        "prefix_ok": whole.startswith(hook["prefix"]) if "prefix" in hook else None,
        "prefix_len": len(hook.get("prefix", b""))}
 print(json.dumps(out, default=str))
@@ -240,14 +257,23 @@ import os, shutil, sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, sys.argv[1]); os.chdir(sys.argv[1])
 sys.path.insert(1, os.path.join(sys.argv[1], "tests"))
-import json, arc_holdout, tether
-from test_entry import FakeWrapper
+import json, pickle, arc_holdout, ledger, tether
 tether._AGENT_SEED = False
 ''' + DIGEST + r'''
 d = sys.argv[2] + "_cold"
 shutil.copytree(sys.argv[2], d)
-env, ag, *_ = arc_holdout.wire(FakeWrapper(script={}), "fake", lineage_dir=d)
-print(json.dumps(digest(ag)))
+with open(sys.argv[3], "rb") as fh:
+    board = pickle.load(fh)
+env = arc_holdout.world_on(arc_holdout.ResetGuard(board), "fake", int(sys.argv[4]), None)
+led = ledger.Ledger(None)
+ag, _l = arc_holdout.wire_agent(env, "fake", None, led, None, d,
+                                clock=(int(sys.argv[5]), json.loads(sys.argv[6])))
+dg = digest(ag)
+env.observe()
+ag.step()
+rows = led.rows()
+cleared = mask_fold(rows)
+print(json.dumps({"digest": dg, "rows": rows, "cleared": cleared}, default=str))
 '''
 
 
@@ -286,11 +312,21 @@ def main() -> int:
     print(f"  r1 two fresh agents from copies of the save on copies of the board: "
           f"{r1['rows']} rows equal, last calls {r1['calls'][0][-1:]} equal; the game-start fold "
           f"cleared an earlier agent's leftovers, every store empty after: {cl}")
-    cold = json.loads(run(COLD, r["snap"]))
-    diff = sorted(k for k in set(cold) | set(r["digest"]) if cold.get(k) != r["digest"].get(k))
+    c = json.loads(run(COLD, r["snap"], r["board"], str(r["palette"]), str(r["clock"][0]),
+                       json.dumps(r["clock"][1])))
+    cold, fresh = c["digest"], r["digest"]
+    proc = ("index_store", "_index_store_n")    # the process's compile cache, read separately
+    diff = sorted(k for k in set(cold) | set(fresh)
+                  if k not in proc and cold.get(k) != fresh.get(k))
     assert not diff, ("r2: the fresh agent's load differs from a cold load of the save", diff)
-    print(f"  r2 the fresh agent's state digest equals a cold process's load: {len(cold)} "
-          f"structures")
+    print(f"  r2 the fresh agent's load equals a cold process's load of the same save on "
+          f"{len([k for k in cold if k not in proc])} structures; the process's compile cache "
+          f"tether._INDEX_STORE: fresh {fresh['_index_store_n']} entries, cold "
+          f"{cold['_index_store_n']} (READ, NOT ASSERTED: for the reviewer's ruling)")
+    d2 = compare(r1["rows0"], c["rows"], set())
+    assert not d2, ("r2b: the fresh agent's step differs from a cold process's", d2)
+    print(f"  r2b the fresh agent's next step and a cold process's on the same board from the same "
+          f"save: {len(c['rows'])} rows equal (the cold fold cleared {c['cleared']})")
     assert r["marker_after"] is False, ("r3: the faulted agent's binding crossed", r)
     rk = game("r3keep")
     assert rk["marker_after"] is True, ("r3 MF: with the discard disabled the marker must survive",
