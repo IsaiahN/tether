@@ -117,6 +117,7 @@ def main() -> int:
           f"values before it; the rebuild took {ms:.0f} ms")
 
     os.environ["TETHER_CONSOLIDATE_CEILING"] = "2"
+    w_was, tether._W_BUDGET = tether._W_BUDGET, False   # the ceiling path is W-1 OFF (ON: test_w12)
     try:
         rows = rows_of(ag)
         steps(env, ag, 2)
@@ -136,6 +137,7 @@ def main() -> int:
         print("MF-CON-5 the arm OFF: no fold")
     finally:
         del os.environ["TETHER_CONSOLIDATE_CEILING"]
+        tether._W_BUDGET = w_was
 
     d = tempfile.mkdtemp()
     ns, dks, prs, eps = [], [], [], 0

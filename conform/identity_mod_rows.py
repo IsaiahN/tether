@@ -53,6 +53,26 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
            ("cap_mid_step", "overrun_s"))    # tether 2998, wall at the cap minus the deadline
 
 
+# The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One
+# machine gives one value; two machines (here and Kaggle) differ, and no decision reads the RAM
+# figure itself. Masked as BIRTH is.
+MACHINE = ("budget_bytes", "ram_bytes")
+# Fields that depend on WHEN a body fold evicted a cache (W-2, 2026-10-22): the memo sizes and
+# hit counts a memo_sizes row reports. Masked only by a comparer that runs a fold or an eviction on
+# one side (the W comparisons); every other comparer keeps them, so an unmasked difference there
+# still fails.
+FOLD_FIELDS = (("memo_sizes", "agent"), ("memo_sizes", "exempt"), ("memo_sizes", "hits"))
+
+
+def mask_folds(rows: list[dict]) -> list[dict]:
+    """Remove each FOLD_FIELDS field, in place; the rows are returned."""
+    for r in rows:
+        for event, field in FOLD_FIELDS:
+            if r.get("event") == event and isinstance(r.get("detail"), dict):
+                r["detail"].pop(field, None)
+    return rows
+
+
 def mask_timings(rows: list[dict]) -> list[dict]:
     """Remove each TIMINGS field, in place; the rows are returned."""
     for r in rows:
@@ -102,7 +122,7 @@ def compare(a: list[dict], b: list[dict], drop: set[str],
     for x, y in zip(a, kept, strict=True):
         x, y = mask_timings([json.loads(json.dumps(x)), json.loads(json.dumps(y))])
         if x.get("slot") == "@run" and x["event"] == "arms" == y["event"]:
-            for k in BIRTH:
+            for k in BIRTH + MACHINE:
                 x["detail"].pop(k, None)
                 y["detail"].pop(k, None)
         for f in new_fields:

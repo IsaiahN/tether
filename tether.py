@@ -264,6 +264,64 @@ _LIBRARY_EXPLAINS = armflag.arm("TETHER_LIBRARY_EXPLAINS", default=True)
 # integral (already counted on the slots they derive from), still BET by the own clock and
 # recorded. OFF: as at 116481a. ON by Isaiah 2026-10-22 03:50 / 04:01.
 _OWN_COUNTERS_DERIVED = armflag.arm("TETHER_OWN_COUNTERS_DERIVED", default=True)
+# W-1, THE BUDGET (Isaiah 2026-10-19 03:38 / 03:47; the reviewer 2026-10-22 05:14; Fig 6 :42 the
+# record only grows, the reach can fall): B = min(8 GiB, half the RAM -- the container's limit where
+# one is set), in the @run header. A fold fires at SOFT (0.75 B, a step's start) or HARD (0.90 B, a
+# between-lookup point) when commit is past the line AND above its value at the last fold: the
+# allocator keeps freed pages, so commit plateaus rather than falls. OFF: CONSOLIDATION's size
+# trigger at half the supervisor's ceiling (SUP_CEILING), as before.
+_W_BUDGET = armflag.arm("TETHER_W_BUDGET", default=True)
+# W-2, THE CACHES (E; Fig 12 :107-110 re-deriving is a lookup, nothing is re-earned): the memos
+# whose miss path was read to write no ledger row and move no state a decision reads (W_CACHES)
+# are evicted at a W-1 fold -- SOFT the entries not read since the last fold, HARD all -- and
+# recomputed at their next miss. Left out on that read: _walk_memo (its hit and miss write
+# different book counters, which reach the books rows and the record) and lineage._CH_HELD
+# (resolve's verdict, W-3). OFF: they grow for the life of the agent or the process.
+_W_CACHES = armflag.arm("TETHER_W_CACHES", default=True)
+# W-2's CHECK, a measurement switch: a HARD eviction at every step's start, so a run's decisions
+# can be compared with a run that never evicts (MF-W2). Default OFF.
+_W_EVICT_EVERY_STEP = armflag.arm("TETHER_W_EVICT_EVERY_STEP")
+
+
+class _Kept(dict):
+    """W-2: a cache that knows which keys were read or written since the last fold."""
+    __slots__ = ("seen",)
+
+    def __init__(self, *a: Any) -> None:
+        super().__init__(*a)
+        self.seen: set = set()
+
+    def get(self, k: Any, d: Any = None) -> Any:
+        self.seen.add(k)
+        return super().get(k, d)
+
+    def __getitem__(self, k: Any) -> Any:
+        self.seen.add(k)
+        return super().__getitem__(k)
+
+    def __setitem__(self, k: Any, v: Any) -> None:
+        self.seen.add(k)
+        super().__setitem__(k, v)
+
+    def clear(self) -> None:
+        super().clear()
+        self.seen = set()
+
+    def evict(self, hard: bool) -> int:
+        """Drop every entry (hard) or those not read since the last fold (soft); start a new
+        epoch. The count dropped."""
+        n = len(self)
+        if hard:
+            self.clear()
+        else:
+            for k in [k for k in self if k not in self.seen]:
+                del self[k]
+        self.seen = set()
+        return n - len(self)
+
+
+def _cache() -> dict:
+    return _Kept() if _W_CACHES else {}
 # WHAT A SEARCH HAS ALREADY PRICED -- reviewer 2026-10-07, plan item 7. Under an unchanged scope key
 # a chain prices the same way again, so a re-run of a search that stopped at the budget spends the
 # budget re-reading what it already refused. The cue reorders ties every cycle, so the frontier is
@@ -557,7 +615,7 @@ _PLAIN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 # ONCE, into the Counter _index_reach adds, and never re-iterated per slot, bound, or kept in
 # a slot's memo. The same views, causes and counts; OFF is today's line exactly
 _SPEED2_COUNT = armflag.arm("TETHER_SPEED2_COUNT", default=True)
-_PAIR_TALLY: dict = {}   # whole-memo key -> (the pair's refusal Counter, the held indices
+_PAIR_TALLY: dict = _cache()   # whole-memo key -> (the pair's refusal Counter, the held indices
 #                          of its uncounted every-slot rows)
 # (b'-l) THE LINEAGE HOLD, phase 1 (Fig 6, Fig 12, Fig 4; the reviewer 2026-10-14 16:29, 16:34,
 # 16:38, 17:02). ON; reason in conform/arms.py. What a boundary clears is kept DORMANT in instance
@@ -861,27 +919,85 @@ _MEMO_ADMIT = armflag.arm("TETHER_MEMO_ADMIT", default=False)
 _CONSOLIDATE = armflag.arm("TETHER_CONSOLIDATE", default=True)
 
 
-def _commit_bytes() -> int | None:
-    """The process's own commit (the body measure the supervisor caps), or None off Windows."""
-    if os.name != "nt":
-        return None
-    import ctypes
-    import ctypes.wintypes as wt
+_PMC_CALL: Any = None    # the Windows call, built once (W-1 reads commit between lookups)
 
-    class _PMC(ctypes.Structure):
-        _fields_ = [("cb", wt.DWORD), ("PageFaultCount", wt.DWORD),
-                    *((n, ctypes.c_size_t) for n in (
-                        "PeakWorkingSetSize", "WorkingSetSize", "QuotaPeakPagedPoolUsage",
-                        "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage",
-                        "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage"))]
-    k32, ps = ctypes.WinDLL("kernel32"), ctypes.WinDLL("psapi")
-    k32.GetCurrentProcess.restype = wt.HANDLE
-    ps.GetProcessMemoryInfo.argtypes = [wt.HANDLE, ctypes.POINTER(_PMC), wt.DWORD]
-    c = _PMC()
-    c.cb = ctypes.sizeof(_PMC)
-    if not ps.GetProcessMemoryInfo(k32.GetCurrentProcess(), ctypes.byref(c), c.cb):
+
+def _commit_bytes() -> int | None:
+    """The process's own commit (the body measure the supervisor caps); off Windows the resident
+    set (VmRSS, what a container's limit counts); None if neither can be read."""
+    global _PMC_CALL
+    if os.name != "nt":
+        try:
+            with open("/proc/self/status", encoding="ascii", errors="replace") as fh:
+                for ln in fh:
+                    if ln.startswith("VmRSS:"):
+                        return int(ln.split()[1]) * 1024
+        except (OSError, ValueError, IndexError):
+            return None
         return None
-    return int(c.PagefileUsage)
+    if _PMC_CALL is None:
+        import ctypes
+        import ctypes.wintypes as wt
+
+        class _PMC(ctypes.Structure):
+            _fields_ = [("cb", wt.DWORD), ("PageFaultCount", wt.DWORD),
+                        *((n, ctypes.c_size_t) for n in (
+                            "PeakWorkingSetSize", "WorkingSetSize", "QuotaPeakPagedPoolUsage",
+                            "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage",
+                            "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage"))]
+        k32, ps = ctypes.WinDLL("kernel32"), ctypes.WinDLL("psapi")
+        k32.GetCurrentProcess.restype = wt.HANDLE
+        ps.GetProcessMemoryInfo.argtypes = [wt.HANDLE, ctypes.POINTER(_PMC), wt.DWORD]
+        c = _PMC()
+        c.cb = ctypes.sizeof(_PMC)
+        h, ref = k32.GetCurrentProcess(), ctypes.byref(c)
+
+        def call() -> int | None:
+            return int(c.PagefileUsage) if ps.GetProcessMemoryInfo(h, ref, c.cb) else None
+        _PMC_CALL = call
+    return _PMC_CALL()
+
+
+_GIB = 2**30
+
+
+def _ram_bytes() -> int | None:
+    """The machine's RAM (a container's memory limit where one is set and lower); None if
+    unreadable. TETHER_W_RAM_BYTES plants a figure (a fixture's, MF-W5)."""
+    planted = os.environ.get("TETHER_W_RAM_BYTES")
+    if planted:
+        return int(planted)
+    if os.name == "nt":
+        import ctypes
+
+        class _MSX(ctypes.Structure):
+            _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                        *((n, ctypes.c_ulonglong) for n in (
+                            "ullTotalPhys", "ullAvailPhys", "ullTotalPageFile", "ullAvailPageFile",
+                            "ullTotalVirtual", "ullAvailVirtual", "ullAvailExtendedVirtual"))]
+        m = _MSX()
+        m.dwLength = ctypes.sizeof(_MSX)
+        ok = ctypes.WinDLL("kernel32").GlobalMemoryStatusEx(ctypes.byref(m))
+        return int(m.ullTotalPhys) if ok and m.ullTotalPhys > 0 else None
+    try:
+        ram = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
+    except (ValueError, OSError, AttributeError):
+        return None
+    for p in ("/sys/fs/cgroup/memory.max", "/sys/fs/cgroup/memory/memory.limit_in_bytes"):
+        try:
+            with open(p, encoding="ascii") as fh:
+                lim = fh.read().strip()
+        except OSError:
+            continue
+        if lim.isdigit() and 0 < int(lim) < ram:
+            ram = int(lim)
+    return ram
+
+
+def _w_budget() -> int | None:
+    """W-1: B = min(8 GiB, half the RAM) (Isaiah 2026-10-19); None if the RAM is unreadable."""
+    ram = _ram_bytes()
+    return None if ram is None else min(8 * _GIB, ram // 2)
 
 
 def _fold_ceiling() -> int | None:
@@ -1506,7 +1622,7 @@ def _slot_map(role: str, whole: tuple) -> tuple:
     return {k: tuple(v) for k, v in by.items()}, tuple(every)
 
 
-_LANDING: dict = {}    # C4: (sig, entry, role) -> (held list, landing groups, every-slot rows)
+_LANDING: dict = _cache()  # C4: (sig, entry, role) -> (held list, landing groups, every-slot rows)
 
 
 def _landing_rows(role: str, held: list, key: tuple, slot: str, sub: Any, tallied: bool) -> tuple:
@@ -2445,6 +2561,9 @@ class Agent:
         # held back; this cycle's derived / transient slots (Q1's hit class)
         self._fold_last_commit: int | None = None
         self._fold_suppressed = 0
+        self._w_budget = _w_budget()    # W-1: B, read once at birth
+        self._w_last: int | None = None    # W-1: the commit at the last HARD fold (its hysteresis)
+        self._w_fold_n = 0                 # W-2: evictions so far, the @body lines' join key
         self._ak_kept: set = set()     # the asked record's keys a fold cleared from the stores
         self._ak_asked: Counter = Counter()   # S4, under TETHER_MEMORY_STORE: times each asked
         self._kind_store: dict | None = None  # the store load's snapshots for the kind readers
@@ -2559,6 +2678,7 @@ class Agent:
                             seed=self.seed, generation=self.generation,
                             seed_source=self.seed_source, alphabet=gam.alphabet,  # L1b: A priced
                             library=library_state(),
+                            budget_bytes=self._w_budget, ram_bytes=_ram_bytes(),   # W-1
                             **I.Attribution.code(), **I.Attribution.run(env, gam))
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
@@ -2706,17 +2826,17 @@ class Agent:
         self._3a_written: dict = {}        # E2: the kind/actor counts already in a generation
         self._3a_in: dict = {}             # E2: those counts carried in by the lineage
         self._reach_fsig: tuple | None = None   # E1 X1: what the current frames were built from
-        self._compile_cache: dict = {}     # M4: compile_term is pure in the condition
+        self._compile_cache: dict = _cache()   # M4: compile_term is pure in the condition
         self._bound_cache: dict = {}       # the hold's bound answers, (sig, entry, role, o, x)
         self._bound_term_cache: dict = {}  # BIND ONCE: as _BOUND_TERM, for an Agent's own memo
         self._bound_slot_cache: dict = {}  # S1: the same, filtered to one slot (+ slot in the key)
         self._bound_slot_idx: dict = {}    # S1b: the held indices of those rows
-        self._pair_tally: dict = {}        # SPEED-2: as _PAIR_TALLY, per Agent
-        self._named_split: dict = {}       # SPEED-2 (c): a named compile split once per pair
+        self._pair_tally: dict = _cache()  # SPEED-2: as _PAIR_TALLY, per Agent
+        self._named_split: dict = _cache()  # SPEED-2 (c): a named compile split once per pair
         self._pairs_seen: set = set()      # S1c: as _PAIRS_SEEN, for an Agent with its own memo
         self._bound_slot_map: dict = {}    # S1c: as _BOUND_SLOT_MAP, likewise
         self._atoms_token = shared_token(self.gamma.atoms)   # None: this Agent's own memo
-        self._view_hold: dict = {}         # 7e: (entry, role) -> the view under "{o}"/"{x}"
+        self._view_hold: dict = _cache()   # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
         self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
         self._reach_frames: tuple | None = None
@@ -3000,7 +3120,10 @@ class Agent:
     def _cap_due(self) -> bool:
         """The runner's deadline has passed (TETHER_CAP_MIDSTEP). Read at every between-work point
         a step has -- before each lookup, each slot's route, each mint, and the step's tail -- so a
-        step whose budget left no lookup still meets the cap (the reviewer 2026-10-17 16:56)."""
+        step whose budget left no lookup still meets the cap (the reviewer 2026-10-17 16:56).
+        The same points are W-1's safe points for its HARD line."""
+        if _W_BUDGET and _W_CACHES and self._w_budget is not None:
+            self._w_hard()
         return _CAP_MIDSTEP and self.deadline is not None and time.time() >= self.deadline
 
     def _cap_end(self, at: str, step: str) -> bool:
@@ -3600,7 +3723,19 @@ class Agent:
         """CONSOLIDATION's size trigger, at a step's start: commit >= the ceiling / 2 folds (the
         step's transient memory was about the size of what is held: 3.37 of 6.35 GiB at the E1
         close). HYSTERESIS: after a size-fold, none again until commit exceeds its value then;
-        the ones held back are counted. No supervisor, no ceiling: no size trigger."""
+        the ones held back are counted. No supervisor, no ceiling: no size trigger.
+        Under W-1 the line is SOFT, 0.75 B, and the fold also evicts W-2's cold entries."""
+        if _W_BUDGET:
+            c = _commit_bytes() if self._w_budget is not None else None
+            if c is None or c < 3 * self._w_budget // 4:
+                return
+            if self._fold_last_commit is not None and c <= self._fold_last_commit:
+                self._fold_suppressed += 1
+                return
+            self._fold_last_commit = c
+            self._consolidate("size")
+            self._w_evict(hard=False, why="soft")
+            return
         ceil = _fold_ceiling()
         c = _commit_bytes() if ceil is not None else None
         if c is None or c < ceil // 2:
@@ -3610,6 +3745,45 @@ class Agent:
             return
         self._fold_last_commit = c
         self._consolidate("size")
+
+    def _w_caches(self) -> dict:
+        """W-2's caches, by name: the agent's own and the process's."""
+        return {"named_split": self._named_split, "view_hold": self._view_hold,
+                "compile": self._compile_cache, "pair_tally": self._pair_tally,
+                "PAIR_TALLY": _PAIR_TALLY, "LANDING": _LANDING}
+
+    def _w_evict(self, hard: bool, why: str) -> None:
+        """W-2: evict the caches (hard: all; soft: the entries not read since the last fold). A
+        body event like the fold's commit: its counts go to the @body side record, never a
+        ledger row, so a run's ledger does not depend on when the body crossed a line."""
+        if not _W_CACHES:
+            return
+        t0, c0 = time.perf_counter(), _commit_bytes()
+        held = {n: len(m) for n, m in self._w_caches().items()}
+        gone = {n: m.evict(hard) for n, m in self._w_caches().items() if isinstance(m, _Kept)}
+        self._w_fold_n += 1
+        body = {"slot": "@body", "event": "w_evict", "w_fold": self._w_fold_n,
+                "cycle": self.cycle, "game": self.gamma.game, "why": why, "hard": hard,
+                "budget": self._w_budget, "held": held, "evicted": gone, "commit_before": c0,
+                "commit_after": _commit_bytes(),
+                "ms": round(1000 * (time.perf_counter() - t0), 1)}
+        self._body_rows.append(body)
+        path = getattr(self.led, "_path", None)
+        if path is not None:
+            with open(f"{path}.body.jsonl", "a", encoding="utf-8") as fh:
+                fh.write(json.dumps(body) + "\n")
+
+    def _w_hard(self) -> None:
+        """W-1's HARD line, 0.90 B, read at a between-lookup point: past it and above the commit at
+        the last hard fold, every W-2 cache is evicted (the bound stores wait for the step's
+        start, where CONSOLIDATION clears them)."""
+        c = _commit_bytes()
+        if c is None or c < 9 * self._w_budget // 10:
+            return
+        if self._w_last is not None and c <= self._w_last:
+            return
+        self._w_last = c
+        self._w_evict(hard=True, why="hard")
 
     def _event_prices(self) -> None:
         """E3: each event's price -- the joint code over its NON-derived members (env.derived()),
@@ -15052,6 +15226,8 @@ class Agent:
         self._peer_cache = None
         self._decomp_cache = None
         self._frame_cache = {}
+        if _W_EVICT_EVERY_STEP:
+            self._w_evict(hard=True, why="every step (W-2's check)")
         if _CONSOLIDATE:
             self._size_fold()         # CONSOLIDATION's size trigger, at the step boundary
         if _RELATION_SET:

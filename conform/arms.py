@@ -1036,6 +1036,19 @@ ARMS: dict[str, str] = {
                                    "bound and their misses are not charged; still bet by the own "
                                    "clock and recorded. OFF: as at 116481a. ON by Isaiah "
                                    "2026-10-22 03:50 / 04:01. default ON",
+    "TETHER_W_BUDGET": "W-1, THE BUDGET (Isaiah 2026-10-19 03:38 / 03:47; the reviewer "
+                       "2026-10-22 05:14): B = min(8 GiB, half the RAM or the container's "
+                       "limit), in the @run header; a fold at 0.75 B (a step's start) and "
+                       "0.90 B (a between-lookup point) when commit is above its last fold's. "
+                       "OFF: the size trigger at half SUP_CEILING, as before. default ON",
+    "TETHER_W_CACHES": "W-2, THE CACHES (E) (the reviewer 2026-10-22 05:14): six memos whose "
+                       "miss writes no ledger row and moves no decision state are evicted at a "
+                       "W-1 fold (soft: the entries not read since the last fold; hard: all) "
+                       "and recomputed at their next miss; the counts go to @body. OFF: they "
+                       "grow for the life of the agent or the process. default ON",
+    "TETHER_W_EVICT_EVERY_STEP": "W-2's CHECK, a measurement switch: a hard eviction at every "
+                                 "step's start, for MF-W2 (decisions equal to a run that never "
+                                 "evicts). default OFF",
     "TETHER_LIBRARY_REQUIRED": "COLD START (ii), SHAPE A (the reviewer 2026-10-21 23:27): "
                                "wire() fails at startup naming each missing library file, or "
                                "the absent library/ folder. OFF only for the ablation clause: "
@@ -1460,6 +1473,8 @@ VALUES = {"TETHER_SEED_FROM": "a REPLAY: the path of a record (a ledger or a lin
                                   "(arc_holdout.ARC_WORK_BUDGET, default 5,000, Isaiah "
                                   "2026-10-21 18:58; 15000 restores the old pacing; the toy "
                                   "world's Config() keeps 15,000); never on/off",
+          "TETHER_W_RAM_BYTES": "a BYTE COUNT: a planted RAM figure for W-1's budget "
+                                "(tether._ram_bytes, test_w MF-W5); never on/off (2026-10-22)",
           "TETHER_CONSOLIDATE_CEILING": "a BYTE COUNT: a fixture's lowered per-process ceiling "
                                         "for CONSOLIDATION's size trigger (tether._fold_ceiling, "
                                         "test_consolidate CON-5); never on/off (the reviewer "
