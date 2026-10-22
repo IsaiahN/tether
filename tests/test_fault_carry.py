@@ -55,7 +55,7 @@ import glob, json, os, pathlib, sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, sys.argv[1]); os.chdir(sys.argv[1])
 sys.path.insert(1, os.path.join(sys.argv[1], "tests"))
-import arc_holdout, lineage, lineage_store as ls, tether
+import arc_holdout, compile_term, lineage, lineage_store as ls, tether
 from test_entry import FakeWrapper
 tether._AGENT_SEED = False
 d, led, k, mode = sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5]
@@ -85,9 +85,17 @@ def step(self, *a, **kw):
         self.gamma.accept(new[0], seq=len(self.led), residual=f"o1.x@{c}")
         self.gamma.accept(new[1], seq=len(self.led), residual=f"o1.x@{c - 1}")
         plants["terms"] = {"now": new[0].name, "before": new[1].name}
+        # the template as _inv_conditions writes one: a library template, the reading filled
+        lib, rd = self._inv_library(), compile_term.readings()
+        assert lib is not None, "C3: precondition: the private library"
+        tpls = sys.modules["library_runtime"].TEMPLATES
+        r, t = next((r, t) for r in sorted(rd) if r in lib.readings
+                    for _l, t in tpls.get(rd[r].get("type"), ()) if "{x}" not in t)
+        tpl = t.format(o="{o}", x="{x}", r=r)
+        plants["template"] = tpl
         for nm, b in (("planted_now", c), ("planted_before", c - 1)):
-            self._inv_carry.append({"name": nm, "template": "{o}.{r} > 0", "affects": [],
-                                    "reading": "x", "term": nm, "then": [], "game": "fake",
+            self._inv_carry.append({"name": nm, "template": tpl, "affects": [],
+                                    "reading": r, "term": nm, "then": [], "game": "fake",
                                     "born": b, "kind": "condition"})
     if calls[0] == k:
         raise KeyError("planted fault")
@@ -190,9 +198,13 @@ def main() -> int:
     pl = r["plants"]["terms"]
     assert r["head"] == r["gen_hash"], ("C3: the generation with real plants must load", r)
     assert r["lib_terms"] == [pl["before"]], ("C3: a fresh load holds the earlier term only", r)
+    ic = r["inv_carried"]
+    assert len(ic) == 1 and ic[0]["reinvented"] == ["planted_before"] and not ic[0]["refused"], (
+        "C3: the carried invention (a real template) must re-invent", ic, r["plants"])
     print(f"  C3 the faulted cycle's own entries left out (inventions {inv}; terms {terms}); a "
           f"fresh load reads it as the head and holds {pl['before']} and not {pl['now']}; "
-          f"re-invented {r['reinvented']}; the invention_carried row {r['inv_carried']}")
+          f"re-invented {r['reinvented']}; the template {r['plants']['template']!r}; the "
+          f"invention_carried row {ic}")
     d = fresh()
     led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
     r = json.loads(run(CHILD, d, led, str(K), "refuse"))
