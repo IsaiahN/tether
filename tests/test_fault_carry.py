@@ -8,6 +8,9 @@ through a stub Arcade), over a two-game fake lineage, with a step that raises Ke
   C3   the faulted cycle's own stamped entries are not in that generation: a term whose residual is
        stamped "@<faulted cycle>" and an invention born in it are left out; the ones stamped one
        cycle earlier are written (the planted pair is the precondition)
+  PE   (C3)'s load row: the next life's load writes ONE "parent_ended" row naming the faulted tip
+       and its error; the play's own load over normal parents writes none (the control), and one
+       normal game later the next load writes none; on the store path and on the chain path
   RB   a generation that does not read back (lineage._readback planted False) is not written
   OFF  TETHER_ERROR_CARRY off: the KeyError reaches the caller and no generation is written (the
        defect)
@@ -52,7 +55,7 @@ import glob, json, os, pathlib, sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, sys.argv[1]); os.chdir(sys.argv[1])
 sys.path.insert(1, os.path.join(sys.argv[1], "tests"))
-import arc_holdout, lineage, lineage_store as ls, tether
+import arc_holdout, compile_term, lineage, lineage_store as ls, tether
 from test_entry import FakeWrapper
 tether._AGENT_SEED = False
 d, led, k, mode = sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5]
@@ -82,9 +85,19 @@ def step(self, *a, **kw):
         self.gamma.accept(new[0], seq=len(self.led), residual=f"o1.x@{c}")
         self.gamma.accept(new[1], seq=len(self.led), residual=f"o1.x@{c - 1}")
         plants["terms"] = {"now": new[0].name, "before": new[1].name}
-        for nm, b in (("planted_now", c), ("planted_before", c - 1)):
-            self._inv_carry.append({"name": nm, "template": "{o}.{r} > 0", "affects": [],
-                                    "reading": "x", "term": nm, "then": [], "game": "fake",
+        # the template as _inv_conditions writes one: a library template, the reading filled
+        lib, rd = self._inv_library(), compile_term.readings()
+        assert lib is not None, "C3: precondition: the private library"
+        tpls = sys.modules["library_runtime"].TEMPLATES
+        r, t = next((r, t) for r in sorted(rd) if r in lib.readings
+                    for _l, t in tpls.get(rd[r].get("type"), ()) if "{x}" not in t)
+        tpl = t.format(o="{o}", x="{x}", r=r)
+        plants["template"] = tpl
+        # and a malformed record ({r} unfilled), refused WITH its why (the reviewer 17:27)
+        for nm, b, tp in (("planted_now", c, tpl), ("planted_before", c - 1, tpl),
+                          ("planted_bad", c - 1, "{o}.{r} > 0")):
+            self._inv_carry.append({"name": nm, "template": tp, "affects": [],
+                                    "reading": r, "term": nm, "then": [], "game": "fake",
                                     "born": b, "kind": "condition"})
     if calls[0] == k:
         raise KeyError("planted fault")
@@ -119,6 +132,18 @@ if gens:
     out["lib_terms"] = sorted(n for n in plants.get("terms", {}).values() if n in ag.gamma.library)
     out["reinvented"] = ((loaded or {}).get("lineage") or {}).get("inventions_in")
     out["gen_hash"] = gens[0][4:20]
+    out["inv_carried"] = [{k: e.detail.get(k) for k in ("reinvented", "refused")}
+                          for e in ag.led.by_event("invention_carried")]
+    out["pe_fresh"] = [e.detail for e in ag.led.by_event("parent_ended")]
+    out["pe_play"] = sum(r["event"] == "parent_ended" for r in rows)
+    if mode == "on":
+        # PE's must-fail: one more game, ended normally, on top; its next load names no fault
+        if getattr(ag, "_dk_snap", None) is not None:
+            ag._dk_snap.close()
+        arc_holdout.play("fake", 12, arc=Arc(), led_path=led + ".next", lineage_dir=d)
+        env, ag2, *_ = arc_holdout.wire(FakeWrapper(script={}), "fake", lineage_dir=d)
+        out["next_head"] = ag2.lineage_parent
+        out["pe_next"] = len(ag2.led.by_event("parent_ended"))
 print(json.dumps(out))
 '''
 
@@ -138,6 +163,17 @@ def fresh() -> str:
     return d
 
 
+def pe_check(r: dict, tag: str) -> None:
+    assert r["pe_play"] == 0, (f"{tag}: control: a load over normal parents wrote parent_ended", r)
+    pe = r["pe_fresh"]
+    assert len(pe) == 1 and pe[0]["parent"] == r["gen_hash"], (f"{tag}: the fresh load", r)
+    assert pe[0]["ended"] == "agent_fault" and "planted fault" in pe[0]["error"], (tag, pe)
+    assert r["next_head"] not in (None, r["gen_hash"]) and r["pe_next"] == 0, (f"{tag}: next", r)
+    print(f"  {tag} the play's load over normal parents: 0 parent_ended rows; the fresh load over "
+          f"the faulted one: 1, naming {pe[0]['parent']} and its error; one normal game later "
+          f"(head {r['next_head']}): 0")
+
+
 def main() -> int:
     d = fresh()
     led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
@@ -149,19 +185,33 @@ def main() -> int:
     assert r["head"] == r["gen_hash"], ("F1: a fresh load does not read it as head", r)
     print(f"  F1 the KeyError reached the caller; agent_fault row at {r['faults'][0]['site']}; "
           f"traceback kept; generation {r['gen_hash']} ended agent_fault, read as the head")
+    pe_check(r, "PE (store)")
+    d = fresh()
+    led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
+    r = json.loads(run(CHILD, d, led, str(K), "on", TETHER_MEMORY_STORE="0"))
+    pe_check(r, "PE (chain)")
     d = fresh()
     led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
     r = json.loads(run(CHILD, d, led, str(K), "c3"))
     assert r["gen"] is not None, ("C3: precondition: no generation written", r)
     inv, terms = r["gen"]["inv"], r["gen"]["terms"]
-    assert "planted_before" in inv and "planted_now" not in inv, ("C3 inventions", inv)
+    assert sorted(inv) == ["planted_bad", "planted_before"], ("C3 inventions", inv)
     assert len(terms) == 1, ("C3 terms: the earlier one written, the faulted one not", terms)
     pl = r["plants"]["terms"]
     assert r["head"] == r["gen_hash"], ("C3: the generation with real plants must load", r)
     assert r["lib_terms"] == [pl["before"]], ("C3: a fresh load holds the earlier term only", r)
+    ic = r["inv_carried"]
+    assert len(ic) == 1 and ic[0]["reinvented"] == ["planted_before"], (
+        "C3: the carried invention (a real template) must re-invent", ic, r["plants"])
+    bad = ic[0]["refused"]
+    assert [b["name"] for b in bad] == ["planted_bad"] and "names no reading" in bad[0]["why"], (
+        "C3-BAD: the malformed record must be refused WITH its why", ic)
     print(f"  C3 the faulted cycle's own entries left out (inventions {inv}; terms {terms}); a "
           f"fresh load reads it as the head and holds {pl['before']} and not {pl['now']}; "
-          f"re-invented {r['reinvented']}")
+          f"re-invented {r['reinvented']}; the template {r['plants']['template']!r}; the "
+          f"invention_carried row {ic}")
+    print(f"  C3-BAD the malformed record (template '{{o}}.{{r}} > 0') refused and recorded: "
+          f"why {bad[0]['why']!r}")
     d = fresh()
     led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
     r = json.loads(run(CHILD, d, led, str(K), "refuse"))

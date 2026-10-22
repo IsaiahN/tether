@@ -896,10 +896,11 @@ def _store_view(d: str | Path, ag: Any) -> dict:
                        con.execute("SELECT row FROM vindication ORDER BY k, i")]
         seeds = [json.loads(s_) for (s_,) in con.execute("SELECT seed FROM seeds ORDER BY k")]
         end_path = ls.read_end_path(con)
+        ended = con.execute("SELECT v FROM meta WHERE k='ended'").fetchone()
     finally:
         con.close()
     return {"tip": tip and tip[0], "fold": f, "counts": c, "merged": merged, "healed": healed,
-            "sig": sig, "end_path": end_path,
+            "sig": sig, "end_path": end_path, "ended": ended and json.loads(ended[0]),
             "atoms": atoms, "folder": str(p.resolve()),
             "evidence": evidence, "vindication": vindication, "seeds": seeds,
             "pairs": {(tuple(json.loads(sym[o])), tuple(json.loads(sym[x]))): (n, max(last, 0))
@@ -916,6 +917,19 @@ def _store_view(d: str | Path, ag: Any) -> dict:
             "wholes": wholes}
 
 
+def _note_parent_ended(ag: Any, h: str, ended: dict | None) -> None:
+    """Item 4 (C3), the reviewer 2026-10-22 15:17: the next life's load names that its parent's
+    game ended on an agent fault, so the inheritance is visible."""
+    import tether
+    if not ended or not tether._ERROR_CARRY:
+        return
+    _c, _s, _lv = ag._boundary_key("@lineage")
+    ag.led.record(_c, "IMPORT", _s, "parent_ended", **_lv, parent=h, ended=ended.get("ended"),
+                  error=ended.get("error"),
+                  reads="the parent's game ended on an agent fault; its faulted cycle's own "
+                        "stamped entries were not carried")
+
+
 def _load_from_store(d: str | Path, ag: Any) -> dict:
     """load() under TETHER_MEMORY_STORE: the same agent state, built from the store. Each step
     mirrors load() below, in its order."""
@@ -930,6 +944,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     ag.gamma.keep_evidence = True
     if h is None:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
+    e = v.get("ended")
+    _note_parent_ended(ag, h, e if e and e.get("h") == h else None)
     if (tether._W_DK_KEYED or tether._W_HELD_LAZY) and hasattr(ag, "_dk_snap"):
         # W-4 / W-3: the load-time snapshot, held for the game (closed at its write)
         if ag._dk_snap is not None:
@@ -1093,6 +1109,8 @@ def load(d: str | Path, ag: Any) -> dict:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
     if not _ONE_PASS:
         chain = _chain(Path(d))
+    tip = chain[-1][1] if chain and chain[-1][0] == h else {}
+    _note_parent_ended(ag, h, tip if tip.get("ended") else None)
     # the being's seed BEFORE anything is installed, so a handle the load mints is minted under
     # the seed a replay will read (F-a, the reviewer 2026-10-15 15:23)
     if hasattr(ag, "_seed_from_lineage"):
