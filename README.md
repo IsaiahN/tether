@@ -55,6 +55,33 @@ checkable in three places:
   the result survives, the agent composed it. If it disappears, the library was carrying the
   answer and the agent was retrieving rather than reasoning.
 
+## From a fresh clone
+
+Python 3.13.14 (tested). `requirements.lock` pins the whole runtime closure at the versions
+tested; install it with `--no-deps` so nothing else is resolved.
+
+    git clone https://github.com/IsaiahN/tether.git
+    cd tether
+    python -m venv .venv
+    .venv/Scripts/python.exe -m pip install --no-deps -r requirements.lock   # bin/python off Windows
+
+The games are not shipped with the code (`environment_files/` is gitignored). Fetch a game once
+with the `arc_agi` package's own anonymous fetch; every run after that is offline:
+
+    .venv/Scripts/python.exe -c "from arc_agi import Arcade; from arc_agi.base import OperationMode; Arcade(operation_mode=OperationMode.NORMAL).make('ls20')"
+
+Run one game, carrying a lineage:
+
+    .venv/Scripts/python.exe -B -c "import arc_holdout; print(arc_holdout.play('ls20', 40, lineage_dir='lineage')['persistence']['lineage'])"
+
+The lineage is written to the folder given as `lineage_dir` (here `./lineage`, created if it
+does not exist): one generation file per game played, plus the agent's memory store. It starts
+empty and fills as the agent plays; the next run given the same folder carries on from it.
+
+The library (`library/`) ships with the code and the agent will not start without it: a missing
+or partial `library/` fails at startup, naming each missing file. `TETHER_LIBRARY_REQUIRED=0` is
+for the ablation only (running the agent without its inheritance).
+
 ## Running it
 
     .venv/Scripts/python.exe demo.py              # the whole loop, end to end
