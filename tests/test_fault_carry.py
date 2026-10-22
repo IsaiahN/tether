@@ -93,8 +93,10 @@ def step(self, *a, **kw):
                     for _l, t in tpls.get(rd[r].get("type"), ()) if "{x}" not in t)
         tpl = t.format(o="{o}", x="{x}", r=r)
         plants["template"] = tpl
-        for nm, b in (("planted_now", c), ("planted_before", c - 1)):
-            self._inv_carry.append({"name": nm, "template": tpl, "affects": [],
+        # and a malformed record ({r} unfilled), refused WITH its why (the reviewer 17:27)
+        for nm, b, tp in (("planted_now", c, tpl), ("planted_before", c - 1, tpl),
+                          ("planted_bad", c - 1, "{o}.{r} > 0")):
+            self._inv_carry.append({"name": nm, "template": tp, "affects": [],
                                     "reading": r, "term": nm, "then": [], "game": "fake",
                                     "born": b, "kind": "condition"})
     if calls[0] == k:
@@ -193,18 +195,23 @@ def main() -> int:
     r = json.loads(run(CHILD, d, led, str(K), "c3"))
     assert r["gen"] is not None, ("C3: precondition: no generation written", r)
     inv, terms = r["gen"]["inv"], r["gen"]["terms"]
-    assert "planted_before" in inv and "planted_now" not in inv, ("C3 inventions", inv)
+    assert sorted(inv) == ["planted_bad", "planted_before"], ("C3 inventions", inv)
     assert len(terms) == 1, ("C3 terms: the earlier one written, the faulted one not", terms)
     pl = r["plants"]["terms"]
     assert r["head"] == r["gen_hash"], ("C3: the generation with real plants must load", r)
     assert r["lib_terms"] == [pl["before"]], ("C3: a fresh load holds the earlier term only", r)
     ic = r["inv_carried"]
-    assert len(ic) == 1 and ic[0]["reinvented"] == ["planted_before"] and not ic[0]["refused"], (
+    assert len(ic) == 1 and ic[0]["reinvented"] == ["planted_before"], (
         "C3: the carried invention (a real template) must re-invent", ic, r["plants"])
+    bad = ic[0]["refused"]
+    assert [b["name"] for b in bad] == ["planted_bad"] and "names no reading" in bad[0]["why"], (
+        "C3-BAD: the malformed record must be refused WITH its why", ic)
     print(f"  C3 the faulted cycle's own entries left out (inventions {inv}; terms {terms}); a "
           f"fresh load reads it as the head and holds {pl['before']} and not {pl['now']}; "
           f"re-invented {r['reinvented']}; the template {r['plants']['template']!r}; the "
           f"invention_carried row {ic}")
+    print(f"  C3-BAD the malformed record (template '{{o}}.{{r}} > 0') refused and recorded: "
+          f"why {bad[0]['why']!r}")
     d = fresh()
     led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
     r = json.loads(run(CHILD, d, led, str(K), "refuse"))
