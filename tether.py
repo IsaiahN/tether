@@ -837,6 +837,9 @@ _CAP_MIDSTEP = armflag.arm("TETHER_CAP_MIDSTEP", default=True)
 # latest measured end-path wall
 _CAP_INNER = cap._CAP_INNER
 _END_RESERVE = armflag.arm("TETHER_END_RESERVE", default=True)
+# item 4 (the design post 2026-10-22 15:14; the reviewer 15:17 (C3)): an agent fault in play
+# writes the game's learning only if it reads back, without the faulted cycle's own entries
+_ERROR_CARRY = armflag.arm("TETHER_ERROR_CARRY", default=True)
 # C1a, A PAIR OWNER IS NOT AN OBJECT NAME (the reviewer 2026-10-17 14:24; Fig 5 mis-attached): a
 # library lookup bound pair owners ("o0~o1") into an entry's object names; the condition grammar
 # has no "~" identifier, so every such candidate refused at parse -- 88% of lf52 cycle 2's
@@ -1282,7 +1285,8 @@ def _confirm_actions(r: Any) -> int | None:
     return None
 SELF_MOVED, REACTING, MOVES_WITH = "self-moved", "reacting", "controlled"
 # an ending's word -> Termination's kind; the seat's budgets are caps, every other word is its own
-_TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap"}
+_TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap",
+              "agent_fault": "cap"}    # item 4: a fault is no fact about the world
 # THE BOUNDARY ROWS' OWN CHAINS (the reviewer 2026-10-10 08:11Z, 09:40Z). retarget's boundary/ending
 # and the death restart go on "@boundary", the 21.3 credit on "@credit", at THE CYCLE with the level
 # as a field: at cycle = self.level on "@loop" they sat behind that cycle's REPEAT row, and credit
@@ -2504,6 +2508,8 @@ class Agent:
     _end_reserve = None        # the end-path reserve R, s (None: unmeasured, none taken)
     _end_sleep_s = None        # the carried end path's sleep part (checkpoint + quick_check), s
     _end_path_t0 = None        # set by the end block: the end path is timed whole
+    _fault_cycle = None        # item 4: the cycle an agent fault was raised in (None: none)
+    _fault_text = None         # item 4: the fault, type and message
 
     @contextmanager
     def _step_scope(self, step: str):

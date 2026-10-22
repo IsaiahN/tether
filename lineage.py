@@ -166,6 +166,17 @@ def _dumps(x: Any) -> bytes:
     return json.dumps(x, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
+def _readback(stored: bytes, raw: bytes, h: str) -> bool:
+    """Item 4: the bytes a fault's generation would be written as, read back as the loader reads
+    them (lineage_store.file_bytes, _read): the same bytes, the same name hash, parsing to the same
+    record. It shows the bytes decode to what was built, not that a step cut halfway left the
+    library consistent (the design post's own limit, 2026-10-22 15:14)."""
+    import zlib
+    back = zlib.decompress(stored) if stored[:1] == b"\x78" else stored
+    return (back == raw and hashlib.sha256(back).hexdigest()[:16] == h
+            and json.loads(back) == json.loads(raw))
+
+
 def _store_bytes(raw: bytes) -> bytes:
     """L2: what a save file holds on disk -- zlib-6 of its bytes under TETHER_COMPRESS. The name
     and every hash stay those of the uncompressed bytes (lineage_store.file_bytes reads both)."""
@@ -405,6 +416,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     written = getattr(ag, "_lineage_written", {}) if _BOUNDARY else {}
     marks = getattr(ag, "_lineage_marks", {}) if _BOUNDARY else {}
     new_names = []
+    fc = getattr(ag, "_fault_cycle", None)     # item 4: a write after an agent fault
     for r in blob["terms"]:
         # NEW = minted by this instance; a term it LOADED from the lineage carries its identity
         # in carried (born, handle), and only a non-marker change of its status is written (N1).
@@ -413,6 +425,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             r["was"] = name     # R7i: the replay finds the term load installs from this row
         c = ag.gamma.carried.get(name) or written.get(name) or {}
         rid = (c.get("born"), c.get("handle"))
+        if fc is not None and str(r.get("residual") or "").endswith(f"@{fc}"):
+            continue    # (C3): the faulted step's own term never met its next observation
         if rid not in prev:
             terms.append(r)
             new_names.append((name, r.get("handle")))
@@ -495,7 +509,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         # their term holds now (a record of it; the next game starts them on trial)
         gen["inventions"] = [{**r, "standing": ("settled" if ag.gamma.is_settled(r["term"])
                                                 else "candidate")}
-                             for r in ag._inv_carry[ag._inv_carry_written:]]
+                             for r in ag._inv_carry[ag._inv_carry_written:]
+                             if fc is None or r.get("born") != fc]     # (C3)
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade"):
         # 7h (a): the root shapes' outcome counts since the last write; the load sums the chain
         gen["root_grades"] = {s: {o: n - ag._root_grade_written.get(s, {}).get(o, 0)
@@ -533,8 +548,14 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                                   for k, n in sorted(c.items())
                                   if n > ag._3a_written.get(fam, {}).get(k, 0)}
                             for fam, c in _hazard_families(ag._3a_hazard).items()}
+    if fc is not None:
+        # item 4: the generation names how its game ended; the faulted cycle's stamped entries
+        # are not in it (above); its unstamped structures (kind episodes, counters) are as built
+        gen["ended"], gen["error"] = "agent_fault", str(ag._fault_text)[:500]
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
+    if fc is not None and not _readback(_store_bytes(raw), raw, h):
+        return {"refused": "item 4: the fault's generation did not read back; nothing written"}
     try:
         with open(p / f"{PREFIX}{h}.json", "xb") as fh:
             fh.write(_store_bytes(raw))

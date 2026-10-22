@@ -1058,6 +1058,14 @@ ARMS: dict[str, str] = {
                         "BaseException) once the thinking deadline passes; one catch in step; "
                         "no step after a cut; the end-path-read units held whole. OFF: the "
                         "heads inert, only _cap_due's four points cut. default ON",
+    "TETHER_ERROR_CARRY": "ITEM 4, THE LEARNING WRITTEN ON AN AGENT FAULT (the design post "
+                          "2026-10-22 15:14; the reviewer 15:17 (C3)): play's catch of an "
+                          "Exception from ag.step() (a frame in arc_agi/arcengine: re-raised at "
+                          "once): an agent_fault row and the traceback file, the end path guarded "
+                          "part by part, ending agent_fault, the library replaced only by a save "
+                          "that loads back, the generation without the faulted cycle's stamped "
+                          "entries and written only if it reads back; then re-raised. OFF: the "
+                          "fault leaves play at once and nothing is written. default ON",
     "TETHER_END_RESERVE": "C1 (A)'s END-PATH RESERVE (the reviewer 2026-10-22 14:27, 15:34): "
                           "thinking stops at the deadline less the agent's own latest measured "
                           "end-path wall (stored in the memory store's meta after the game's "
