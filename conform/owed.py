@@ -92,7 +92,8 @@ def collect() -> dict[str, list[tuple[str, str]]]:
     """Name every check whose status is not a reading. `{source: [(id, why), ...]}`."""
     out: dict[str, list[tuple[str, str]]] = {}
     import lint
-    res = lint.run([Path(p) for p in sorted(Path(".").glob("*.py"))])
+    res = lint.run([Path(p) for p in sorted([*Path(".").glob("*.py"),
+                                             *Path("tests").glob("*.py")])])
     # **NOT EVERY VALUE IS A `{status, why}` DICT** -- some entries are plain lists, so a bare
     # `.get` raises. Found by running it, not by reading a type hint. A non-dict cannot BE
     # vacuous, so it is skipped rather than guessed at.

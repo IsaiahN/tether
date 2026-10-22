@@ -61,11 +61,15 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RET", "ARG", "C4", "TID"]
 "world._atoms".msg = "private name across a module boundary; take the atom set as an argument"
 "world.TRUTH".msg = "the answer key is the harness's; only demo.py and the grader may read it"
 
+[tool.ruff.lint.isort]
+# 4d: the tests live in tests/ and import _repo and each other; first-party, as they were at the root
+known-first-party = ["_repo", "test_*"]
+
 [tool.ruff.lint.per-file-ignores]
 # the harness sits OUTSIDE the loop by office: keeping the anchor reachable is a seat's
 # job, and a ground maintainer that could not read the ground would be no maintainer
 "demo.py" = ["TID251"]
-"test_gate.py" = ["TID251"]
+"tests/test_gate.py" = ["TID251"]
 
 [tool.pytest.ini_options]
 testpaths = ["."]

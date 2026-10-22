@@ -19,7 +19,8 @@ approval. The row is lossy by design and says what it dropped (Fig 4 :27-31).
 Options: --index, --pins, --removals (defaults beside each other in C:/TETHER_RUNS). A ledger is a
 *.jsonl whose first row has "step" and "event" (the tombstone's rule, docs/TOMBSTONES). Nothing here
 deletes: the .dead files are removed as a separate, ruled step. The pins' sources are the record:
-docs/*.md, the repo's *.py less test_log_index.py (its planted S9Z), harness/*.py, conform/*.py;
+docs/*.md, the repo's *.py and tests/*.py less tests/test_log_index.py (its planted S9Z),
+harness/*.py, conform/*.py;
 hand rows (an alias, a whole root) are kept from the pins file, and a copy of the index, the pins
 and the removals is committed under docs/log_index/ after each indexing box (the reviewer 00:03 A).
 """

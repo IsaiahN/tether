@@ -188,7 +188,7 @@ to the levers; track record crosses games. (`docs/ISAIAH_RULINGS.md`, 2026-10-03
 | `click_only`, `buttons` | **acting with NO AVATAR** — the player is outside the board and presses things; pressing one object changes another. The agent must learn *what my action causes* with nothing it can identify as itself |
 | `remap_after` | the controls changing underneath a belief the agent has already formed |
 | `default` | the baseline, and **it cannot test `?ACTED` at all** — no press lands on an object there, so the guard is never offered |
-| **the mode-switch fixture** (the BODY SWAP) | **games that change how you control them** — the controls are swapped underneath the agent mid-run. **It is a TEST, not a `gridworld` family**: `test_gate.py:296`, and `gridworld.FAMILIES` is exactly four. **Agency's reset on belief withdrawal is OPEN** (paper; no `reset`/`withdraw` symbol in `instruments.py`) |
+| **the mode-switch fixture** (the BODY SWAP) | **games that change how you control them** — the controls are swapped underneath the agent mid-run. **It is a TEST, not a `gridworld` family**: `tests/test_gate.py, test_agency_cannot_see_a_mode_switch_and_inverts_the_reading`, and `gridworld.FAMILIES` is exactly four. **Agency's reset on belief withdrawal is OPEN** (paper; no `reset`/`withdraw` symbol in `instruments.py`) |
 
 **The point is never the family's number.** A capability that lifts one test world and
 transfers nowhere has done nothing; see §0.6.
@@ -484,7 +484,7 @@ built yet.
 | **session provenance** — the `carried` field | **BUILT (verified)** | `gamma.py:755`, `self.carried: dict[str, dict]`, *"SET AT LOAD, never at mint: a term that originated elsewhere says so without the reader having to parse a game name out of a handle."* A merge that forgets its members fails the provenance claim (reviewer, 2026-10-03) — surviving name → the birth handle of every instance absorbed into it. |
 | **session provenance** — the post-play transfer report | **PARTLY BUILT** (reviewer's label; I did not verify the report end) | pairs with the `carried` field above |
 | **operand transfer** | **OPEN** | no `operand_transfer` symbol anywhere in the tree (verified absent) |
-| **the mode-switch fixture** | **PARTLY BUILT (verified)** — a TEST exists, not a world | `test_gate.py:296`, `test_agency_cannot_see_a_mode_switch_and_inverts_the_reading`. **It is NOT a `gridworld` family** — `FAMILIES` has four and this is not one of them. |
+| **the mode-switch fixture** | **PARTLY BUILT (verified)** — a TEST exists, not a world | `tests/test_gate.py`, `test_agency_cannot_see_a_mode_switch_and_inverts_the_reading`. **It is NOT a `gridworld` family** — `FAMILIES` has four and this is not one of them. |
 | **the Agency reset on belief withdrawal** | **PAPER** (reviewer's label; no `reset`/`withdraw` symbol found in `instruments.py`) | pairs with the mode-switch fixture |
 | **the pairwise-distance atom (Change B)** | **PAPER** (verified absent from `arc_atoms.py`) | — |
 | **set-aside goals** | **PAPER** (verified: no symbol in the tree) | — |
@@ -502,7 +502,7 @@ stop.**
 | `click_only` | clicking recolours the object clicked | SELF-caused rules; the true rule binds as `inc ?ACTED_ON<the slot's own owner>`, `left 0.0` -- **NOT `ACTED_SELF`, which was collapsed into it** (section 4) | remote causes — there are none |
 | `buttons` | **Fixture C** — a button advances its PARTNER and leaves itself alone, so the effect is unambiguously remote | remote causes, the four-way cause split, everything in handover items 2–4 | — |
 | `remap_after` | the action mapping swaps mid-run | re-learning after a rule change | needs `cycles` — it raises without one |
-| the mode-switch fixture | a test, not a world (`test_gate.py:296`) | that Agency cannot see a mode switch and inverts the reading | it is not a habitat; you cannot run a panel on it |
+| the mode-switch fixture | a test, not a world (`tests/test_gate.py, test_agency_cannot_see_a_mode_switch_and_inverts_the_reading`) | that Agency cannot see a mode switch and inverts the reading | it is not a habitat; you cannot run a panel on it |
 
 **THE DRIVE HANDOVER'S ITEM-1 PRE-REGISTRATION IS SUPERSEDED HERE (reviewer, 2026-10-05).** It
 predicts the `click_only` true rule binds `inc ?ACTED_SELF<o0>`. **It binds `inc ?ACTED_ON<the
@@ -777,7 +777,7 @@ day's list.** Everything the handover-plan doc carried and section 7e did not is
         the reader is being built to reach.
     10  THE AGENCY RESET ON BELIEF WITHDRAWAL (the mode switch). Section 7b has it as
         PAPER -- no `reset`/`withdraw` symbol in `instruments.py` -- and **its fixture
-        already exists**, `test_gate.py:296`. No dependency.
+        already exists**, `tests/test_gate.py, test_agency_cannot_see_a_mode_switch_and_inverts_the_reading`. No dependency.
     11  THE `CUE_BOUNDARY` RE-SCOPE (section 7d), then THE VOCABULARY BRIDGE to the
         ~2,700 atoms. **The bridge needs the re-scope; the re-scope needs nothing.**
         `KEY_BOUNDARY` does not move, and `mapping` stays blocked.

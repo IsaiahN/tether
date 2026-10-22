@@ -86,7 +86,7 @@ for the ablation only (running the agent without its inheritance).
 
     .venv/Scripts/python.exe demo.py              # the whole loop, end to end
     .venv/Scripts/python.exe gate.py runs/demo.jsonl
-    .venv/Scripts/python.exe test_gate.py         # the gate's checks, one defect each
+    .venv/Scripts/python.exe tests/test_gate.py   # the gate's checks, one defect each
     .venv/Scripts/python.exe -m ruff check .
 
 `demo.py` prints what it learned, what it refused to claim, and where it stopped — including

@@ -149,28 +149,29 @@ STAGES = (
     # THE COMPILER MEANS WHAT THE LIBRARY SAYS (M2, the reviewer 2026-10-08 21:08Z): every
     # compiled candidate agrees with condition.evaluate, every refusal carries its reason, and a
     # swapped binding is caught.
-    ("compile", [str(PY), "test_compile.py"],
+    ("compile", [str(PY), "tests/test_compile.py"],
      "a compiled library term disagrees with condition.evaluate, or a planted swap went uncaught",
-     ROOT / "test_compile.py"),
+     ROOT / "tests" / "test_compile.py"),
     ("figures", [str(PY), str(HERE / "figures.py")],
      "an INDEX entry from F506 on carries no FIGURE CENSUS", HERE / "figures.py"),
-    ("tests", [str(PY), "test_gate.py"],
-     "the gate's own defect suite regressed", ROOT / "test_gate.py"),
+    ("tests", [str(PY), "tests/test_gate.py"],
+     "the gate's own defect suite regressed", ROOT / "tests" / "test_gate.py"),
     # A SUITE THAT NO SEAT RUNS IS A SUITE THAT ROTS, and this one sat outside the gate for
     # six commits while every one of them reported `8/8 seats clean`. The M2 checks each
     # CONSTRUCT the defect they guard against and each has been shown to fail when its
     # mechanism is removed -- which is worth exactly nothing if nothing runs them.
-    ("m2", [str(PY), "test_m2.py"],
-     "an M2_STANDARD mechanism regressed, or its tripwire fired", ROOT / "test_m2.py"),
+    ("m2", [str(PY), "tests/test_m2.py"],
+     "an M2_STANDARD mechanism regressed, or its tripwire fired", ROOT / "tests" / "test_m2.py"),
     # THE ENTRY SEAT -- the reviewer, 2026-10-06. Every ARC path goes through `wire()`, and
     # every one of them opened with two or three consecutive RESETs until F452/F454 (Isaiah,
     # 2026-09-29: never RESET,RESET). It runs the Kaggle path offline on a FAKE wrapper and
     # plants the pair, so the guard's failure path is exercised, not assumed.
-    ("entry", [str(PY), "test_entry.py"],
-     "an ARC path sent RESET,RESET, or the guard stopped refusing it", ROOT / "test_entry.py"),
-    ("percept", [str(PY), "test_perception.py"],
+    ("entry", [str(PY), "tests/test_entry.py"],
+     "an ARC path sent RESET,RESET, or the guard stopped refusing it",
+     ROOT / "tests" / "test_entry.py"),
+    ("percept", [str(PY), "tests/test_perception.py"],
      "a perception detector regressed (Contain/Topology/perimeter/background)",
-     ROOT / "test_perception.py"),
+     ROOT / "tests" / "test_perception.py"),
 )
 
 # stderr from an interpreter that never reached the program. A backstop for the cases a
