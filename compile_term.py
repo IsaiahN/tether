@@ -162,6 +162,10 @@ class Refusal:
 @cache
 def readings() -> dict[str, dict]:
     p = Path(__file__).parent / "library" / "readings.json"
+    # an absent library is the ablation (tether._LIBRARY_REQUIRED OFF; wire() refuses it ON): no
+    # readings, as inherited.load reads no vocabulary; before, the first lookup raised here
+    if not p.exists():
+        return {}
     return json.loads(p.read_text(encoding="utf-8"))["readings"]
 
 

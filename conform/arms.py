@@ -1024,6 +1024,12 @@ ARMS: dict[str, str] = {
                                "generates no instance and is not charged to work_budget. A "
                                "reach change; the default is set by the measurement. OFF: "
                                "charged, as before (7d5fcf9). default OFF",
+    "TETHER_LIBRARY_REQUIRED": "COLD START (ii), SHAPE A (the reviewer 2026-10-21 23:27): "
+                               "wire() fails at startup naming each missing library file, or "
+                               "the absent library/ folder. OFF only for the ablation clause: "
+                               "run without the inheritance (an absent library/ runs with no "
+                               "vocabulary and the @run header says absent (ablation)). "
+                               "default ON",
     "TETHER_INTERVAL_BOUND": "THE INTERVAL BOUND (S3C; the reviewer 2026-10-21 17:46): an "
                              "objective whose atoms are all declared in gamma.VALUE_TURNS "
                              "(arc_atoms.VALUE_TURNS, one row per atom) is constant between "

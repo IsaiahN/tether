@@ -154,6 +154,7 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
         raise ValueError(f"wire: library={library} and lineage_dir={lineage_dir} under "
                          "TETHER_LINEAGE_CARRY: one history read twice, and vindication cannot "
                          "be deduped; pass one")
+    tether.library_check()   # COLD START (ii): a partial or absent library/ fails here, named
     w = w if isinstance(w, ResetGuard) else ResetGuard(w)
     # THE WRAPPER HAS ALREADY RESET (F452, F453). `arc.make()`'s wrapper resets in its own
     # `__init__`; a reset here was the second of two consecutive RESETs. Take its frame.

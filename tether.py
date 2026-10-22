@@ -1366,10 +1366,45 @@ def _recording(chains, into: list):
         yield c
 
 
+# COLD START (ii), SHAPE A (the reviewer 2026-10-21 23:27): a clone whose library/ is partial or
+# absent fails at wire(), naming each missing file, before any step; before, a missing file raised
+# deep in the first lookup and an absent library/ ran with no vocabulary, silently. OFF only for the
+# ablation clause (run without the inheritance): an absent library/ then runs as before, and the
+# @run header says "absent (ablation)". A partial library/ is a broken clone either way.
+_LIBRARY_REQUIRED = armflag.arm("TETHER_LIBRARY_REQUIRED", default=True)
+# the two layers Library.load reads only if present (library_runtime 311-314); neither ships today
+LIBRARY_OPTIONAL = ("library/runtime.json", "library/learnings.json")
+LIBRARY_HOME = os.path.dirname(os.path.abspath(__file__))
+
+
+def library_state() -> str:
+    """"present", "absent" ("absent (ablation)" with the arm OFF) or "partial: <missing files>",
+    read from disk against the loaders' own list (instruments.Attribution.LIBRARY_FILES, pinned by
+    test_gate) less the optional two."""
+    if not os.path.isdir(os.path.join(LIBRARY_HOME, "library")):
+        return "absent" if _LIBRARY_REQUIRED else "absent (ablation)"
+    gone = [p for p in I.Attribution.LIBRARY_FILES if p not in LIBRARY_OPTIONAL
+            and not os.path.isfile(os.path.join(LIBRARY_HOME, *p.split("/")))]
+    return f"partial: {', '.join(gone)}" if gone else "present"
+
+
+def library_check() -> str:
+    """wire()'s startup check: raises naming what is missing, else the state the header records."""
+    s = library_state()
+    if s.startswith("partial"):
+        raise FileNotFoundError(f"{LIBRARY_HOME}: the library is {s}. The clone is incomplete: "
+                                "restore library/ from the repository")
+    if s == "absent":
+        raise FileNotFoundError(f"{os.path.join(LIBRARY_HOME, 'library')} is absent: the agent's "
+                                "inheritance ships with the code; restore library/ from the "
+                                "repository (TETHER_LIBRARY_REQUIRED=0 only for the ablation)")
+    return s
+
+
 @cache
 def _library():
     """The library runtime, loaded once per process (M4). None if the library is absent."""
-    root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library")
+    root = os.path.join(LIBRARY_HOME, "library")
     if not os.path.isdir(root):
         return None
     if root not in sys.path:
@@ -2508,6 +2543,7 @@ class Agent:
                             modules=arms["modules"], not_loaded=arms["not_loaded"],
                             seed=self.seed, generation=self.generation,
                             seed_source=self.seed_source, alphabet=gam.alphabet,  # L1b: A priced
+                            library=library_state(),
                             **I.Attribution.code(), **I.Attribution.run(env, gam))
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
