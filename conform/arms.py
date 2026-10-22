@@ -1019,6 +1019,11 @@ ARMS: dict[str, str] = {
     "TETHER_LOAD_KEY_MEMO_CHECK": "W2's check run: every reuse also decodes fresh and "
                                   "compares; the fresh tuple is used. A measurement "
                                   "switch. default OFF",
+    "TETHER_BUDGET_GENERATED": "Q3, THE WORK BUDGET CHARGES WORK DONE (Isaiah 2026-10-21 "
+                               "18:58; the reviewer 19:02 (B)): a chain bounded out on cost "
+                               "generates no instance and is not charged to work_budget. A "
+                               "reach change; the default is set by the measurement. OFF: "
+                               "charged, as before (7d5fcf9). default OFF",
     "TETHER_INTERVAL_BOUND": "THE INTERVAL BOUND (S3C; the reviewer 2026-10-21 17:46): an "
                              "objective whose atoms are all declared in gamma.VALUE_TURNS "
                              "(arc_atoms.VALUE_TURNS, one row per atom) is constant between "

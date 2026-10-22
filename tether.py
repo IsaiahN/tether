@@ -583,6 +583,11 @@ _INTERVAL_BOUND = armflag.arm("TETHER_INTERVAL_BOUND", default=True)
 _INTERVAL_BOUND_CHECK = armflag.arm("TETHER_INTERVAL_BOUND_CHECK")
 INTERVAL_N: dict = {"bound": 0, "walk": 0, "agree": 0, "disagree": 0}
 INTERVAL_DISAGREE: list = []      # the first disagreements, for the check run's reader
+# Q3, THE WORK BUDGET CHARGES WORK DONE (Isaiah 2026-10-21 18:58 "3-agreed"; the reviewer 19:02 (B),
+# 19:13 B3): a chain bounded out on cost generates no instance, so its instances are not charged
+# to work_budget (sp80 669,981 / vc33 276,057 such in 8 cycles at 15k). A REACH change: the same
+# budget walks further. OFF: they are charged, as before (7d5fcf9)
+_BUDGET_GENERATED = armflag.arm("TETHER_BUDGET_GENERATED")
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -13693,7 +13698,8 @@ class Agent:
                                         _maybe_lib and t.name in self.gamma.library)):
                                     guards["novelty"] = True
                                     break
-                        rank += _n
+                        if not _BUDGET_GENERATED:
+                            rank += _n
                         cut_n["chain bounded out on cost: instances not generated"] += _n
                         if _WINDOW:
                             _win_reached.update(b for b in binds if lag_of(b))
