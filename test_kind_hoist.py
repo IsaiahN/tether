@@ -76,8 +76,6 @@ def main() -> None:
             if r["event"] == "arms" and r["slot"] == "@run":
                 r["detail"].pop("on", None)
                 r["detail"].pop("off", None)
-            elif r["event"] == "goal_hypotheses":
-                r["detail"].pop("wall_s", None)
     bad = compare(off["rows"], on["rows"], set())
     assert not bad, bad[:3]
     assert on["stores"] == off["stores"], [n for n in on["stores"]

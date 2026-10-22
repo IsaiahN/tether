@@ -10,6 +10,8 @@ position moved by one:
   f. the arms row's birth seed is masked; g. MUST-FAIL: the effective @run seed differs;
   h. MUST-FAIL: with no @run seed row the arms seed is the effective one (the reviewer
      2026-10-20 12:23).
+  i. a field in TIMINGS (goal_hypotheses' wall_s) is masked; j. MUST-FAIL: a non-timing field
+     beside it still differs (the reviewer 2026-10-21 23:16: one list, every comparer imports it).
     python test_identity_mod_rows.py
 """
 from __future__ import annotations
@@ -98,3 +100,11 @@ if __name__ == "__main__":
     print("g. MUST-FAIL: ledgers differing only in the effective @run seed are different: ok")
     assert _eff(_seeded("b1", None), _seeded("b2", None)), "h: a lineage-less seed passed"
     print("h. MUST-FAIL: with no @run seed row the arms seed is the effective one: ok")
+    hyp = [_row(0, "goal_hypotheses", checked=3, group_n=2, wall_s=0.0123)]
+    other = copy.deepcopy(hyp)
+    other[0]["detail"]["wall_s"] = 0.9876
+    assert compare(hyp, other, set()) == [], "i: a TIMINGS field alone failed"
+    print("i. ledgers differing only in goal_hypotheses' wall_s (TIMINGS) are identical: ok")
+    other[0]["detail"]["group_n"] = 3
+    assert compare(hyp, other, set()), "j: a non-timing field beside a timing passed"
+    print("j. MUST-FAIL: a non-timing field (group_n) beside the masked wall_s is a difference: ok")

@@ -87,8 +87,6 @@ def main() -> None:
             elif r["event"] == "arms" and r["slot"] == "@run":
                 r["detail"].pop("on", None)
                 r["detail"].pop("off", None)
-            elif r["event"] == "goal_hypotheses":
-                r["detail"].pop("wall_s", None)
     bad = compare(chk["rows"], on["rows"], set())
     assert not bad, bad[:3]
     assert pl["planted"] and pl["disagree"] > 0, (pl["planted"], pl["disagree"])          # (2)

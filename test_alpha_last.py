@@ -6,7 +6,10 @@ fake ARC game, C-seed-X.
        value equals the one computed before the drop. A slot never seen still raises with the
        arm ON
   ID   a short same-seed run, arm ON vs OFF: every ledger row but the arm-state header is
-       identical in sequence (no departed-slot read occurs in it, so nothing may differ)
+       identical in sequence (no departed-slot read occurs in it, so nothing may differ), with
+       the timings masked by the shared list (conform/identity_mod_rows.TIMINGS, imported)
+  MF-ID a non-timing field changed in one row (goal_hypotheses' checked, beside wall_s) is still
+       a difference after the mask
 
     python test_alpha_last.py
 """
@@ -20,6 +23,8 @@ import sys
 sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(HERE, "conform"))
+from identity_mod_rows import mask_timings  # noqa: E402
 
 CHILD = r'''
 import os, sys, tempfile
@@ -32,7 +37,7 @@ print(led)
 '''
 
 
-def child(on: bool) -> list:
+def child(on: bool) -> list[dict]:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update({"PYTHONDONTWRITEBYTECODE": "1", "TETHER_AGENT_SEED": "0",
                 "TETHER_ALPHA_LAST": "1" if on else "0"})
@@ -42,7 +47,15 @@ def child(on: bool) -> list:
     led = p.stdout.strip().splitlines()[-1]
     with open(led, encoding="utf-8") as fh:
         rows = [json.loads(x) for x in fh if x.strip()]
-    return [json.dumps(r, sort_keys=True) for r in rows if r.get("event") not in ("header", "arms")]
+    return [r for r in rows if r.get("event") not in ("header", "arms")]
+
+
+def same(a: list[dict], b: list[dict]) -> tuple[bool, object]:
+    """Equal row for row once the shared timings are masked, else the first difference."""
+    a, b = (mask_timings(json.loads(json.dumps(x))) for x in (a, b))
+    da, db = ([json.dumps(r, sort_keys=True) for r in x] for x in (a, b))
+    return da == db, next(((i, x, y) for i, (x, y) in enumerate(zip(da, db, strict=False))
+                           if x != y), (len(da), len(db)))
 
 
 def main() -> int:
@@ -82,9 +95,16 @@ def main() -> int:
     else:
         raise AssertionError("MF did not fail: the arm OFF priced a departed slot")
     on, off = child(True), child(False)
-    assert on == off, next(((i, a, b) for i, (a, b) in enumerate(zip(on, off, strict=False))
-                            if a != b), (len(on), len(off)))
-    print(f"  ID: {len(on)} ledger rows identical, arm ON vs OFF (same seed)")
+    ok, diff = same(on, off)
+    assert ok, diff
+    print(f"  ID: {len(on)} ledger rows identical, arm ON vs OFF (same seed; timings masked)")
+    hyp = [i for i, r in enumerate(off) if r["event"] == "goal_hypotheses"]
+    assert hyp, "PRECONDITION: no goal_hypotheses row to plant in"
+    planted = json.loads(json.dumps(off))
+    planted[hyp[0]]["detail"]["checked"] = planted[hyp[0]]["detail"].get("checked", 0) + 1
+    assert not same(on, planted)[0], "MF-ID: a non-timing change passed the mask"
+    print(f"  MF-ID: goal_hypotheses' checked changed in one of {len(hyp)} such rows -> a "
+          "difference after the mask")
     print("alpha_last: OK")
     return 0
 

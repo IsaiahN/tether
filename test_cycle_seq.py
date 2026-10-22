@@ -92,8 +92,6 @@ def main() -> None:
         for r in rs:
             if r["event"] == "arms" and r["slot"] == "@run":
                 r["detail"].pop("pythonhashseed", None)
-            elif r["event"] == "goal_hypotheses":
-                r["detail"].pop("wall_s", None)
     bad = compare(a["rows"], b["rows"], set())
     assert not bad, bad[:3]
     print(f"(1) ON under hash seeds 1 and 2: _kdk_last ({len(a['stores']['_kdk_last'])}) and "

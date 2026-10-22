@@ -118,11 +118,9 @@ def main() -> None:
     assert on["arm"] is True and off["arm"] is False and chk["check"] is True
     assert on["tier0"] > 0 and on["stored"], f"PRECONDITION: nothing stored or skipped: {on}"
     assert chk["checks"] and all(chk["checks"]), chk["checks"]
-    for rs in (off["rows"], chk["rows"]):    # a timing, and the arm lists, differ by design
+    for rs in (off["rows"], chk["rows"]):    # the arm lists differ by design (timings: compare)
         for r in rs:
-            if r["event"] == "goal_hypotheses":
-                r["detail"].pop("wall_s", None)
-            elif r["event"] == "books":
+            if r["event"] == "books":
                 for k in ("fit_tier0_skip", "fit_tier0_agree", "fit_tier0_disagree"):
                     r["detail"].pop(k, None)
             elif r["event"] == "arms" and r["slot"] == "@run":

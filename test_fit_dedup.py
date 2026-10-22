@@ -123,8 +123,6 @@ def _mask(rows: list) -> list:
         elif r["event"] == "arms" and r["slot"] == "@run":
             r["detail"].pop("on", None)
             r["detail"].pop("off", None)
-        elif r["event"] == "goal_hypotheses":
-            r["detail"].pop("wall_s", None)
     return rows
 
 

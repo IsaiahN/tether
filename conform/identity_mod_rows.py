@@ -12,6 +12,11 @@ fails the check, which is the point: a new position field must be added to the l
 
 The optional last argument names fields the instrument ADDS to existing rows on purpose; each is
 removed from the new row only where the base row lacks it, so a changed value still fails.
+
+BIRTH and TIMINGS are the one mask: every reader that compares ledgers for identity imports them,
+never a copy (the reviewer 2026-10-22 00:45). A NEW timing field written into any ledger row is
+added to TIMINGS in the SAME commit, or the freeze identity check fails on it -- that failure is
+the signal.
 """
 from __future__ import annotations
 
@@ -37,6 +42,19 @@ COUNTS = (("completion_sweep", ("detail", "segment_rows")),)
 # EFFECTIVE seed is compared instead (the reviewer 2026-10-20 12:23: one mask, every comparer
 # imports it).
 BIRTH = ("seed", "seed_source")
+# Fields that record WALL TIME, which no two runs share: (event, field). The same one list for every
+# comparer, imported and never copied (the reviewer 2026-10-21 23:16, 23:27; as BIRTH). A field is
+# added here only if it is a timing; any other difference still fails.
+TIMINGS = (("goal_hypotheses", "wall_s"),)   # tether 5955, under TETHER_HYP_DRAW
+
+
+def mask_timings(rows: list[dict]) -> list[dict]:
+    """Remove each TIMINGS field, in place; the rows are returned."""
+    for r in rows:
+        for event, field in TIMINGS:
+            if r.get("event") == event and isinstance(r.get("detail"), dict):
+                r["detail"].pop(field, None)
+    return rows
 
 
 def effective_seed(rows: list[dict]) -> tuple:
@@ -77,8 +95,7 @@ def compare(a: list[dict], b: list[dict], drop: set[str],
     if ea != eb:
         bad.append(f"effective seed: base {ea}, new {eb}")
     for x, y in zip(a, kept, strict=True):
-        x = json.loads(json.dumps(x))
-        y = json.loads(json.dumps(y))
+        x, y = mask_timings([json.loads(json.dumps(x)), json.loads(json.dumps(y))])
         if x.get("slot") == "@run" and x["event"] == "arms" == y["event"]:
             for k in BIRTH:
                 x["detail"].pop(k, None)
