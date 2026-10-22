@@ -8,6 +8,9 @@ through a stub Arcade), over a two-game fake lineage, with a step that raises Ke
   C3   the faulted cycle's own stamped entries are not in that generation: a term whose residual is
        stamped "@<faulted cycle>" and an invention born in it are left out; the ones stamped one
        cycle earlier are written (the planted pair is the precondition)
+  PE   (C3)'s load row: the next life's load writes ONE "parent_ended" row naming the faulted tip
+       and its error; the play's own load over normal parents writes none (the control), and one
+       normal game later the next load writes none; on the store path and on the chain path
   RB   a generation that does not read back (lineage._readback planted False) is not written
   OFF  TETHER_ERROR_CARRY off: the KeyError reaches the caller and no generation is written (the
        defect)
@@ -119,6 +122,18 @@ if gens:
     out["lib_terms"] = sorted(n for n in plants.get("terms", {}).values() if n in ag.gamma.library)
     out["reinvented"] = ((loaded or {}).get("lineage") or {}).get("inventions_in")
     out["gen_hash"] = gens[0][4:20]
+    out["inv_carried"] = [{k: e.detail.get(k) for k in ("reinvented", "refused")}
+                          for e in ag.led.by_event("invention_carried")]
+    out["pe_fresh"] = [e.detail for e in ag.led.by_event("parent_ended")]
+    out["pe_play"] = sum(r["event"] == "parent_ended" for r in rows)
+    if mode == "on":
+        # PE's must-fail: one more game, ended normally, on top; its next load names no fault
+        if getattr(ag, "_dk_snap", None) is not None:
+            ag._dk_snap.close()
+        arc_holdout.play("fake", 12, arc=Arc(), led_path=led + ".next", lineage_dir=d)
+        env, ag2, *_ = arc_holdout.wire(FakeWrapper(script={}), "fake", lineage_dir=d)
+        out["next_head"] = ag2.lineage_parent
+        out["pe_next"] = len(ag2.led.by_event("parent_ended"))
 print(json.dumps(out))
 '''
 
@@ -138,6 +153,17 @@ def fresh() -> str:
     return d
 
 
+def pe_check(r: dict, tag: str) -> None:
+    assert r["pe_play"] == 0, (f"{tag}: control: a load over normal parents wrote parent_ended", r)
+    pe = r["pe_fresh"]
+    assert len(pe) == 1 and pe[0]["parent"] == r["gen_hash"], (f"{tag}: the fresh load", r)
+    assert pe[0]["ended"] == "agent_fault" and "planted fault" in pe[0]["error"], (tag, pe)
+    assert r["next_head"] not in (None, r["gen_hash"]) and r["pe_next"] == 0, (f"{tag}: next", r)
+    print(f"  {tag} the play's load over normal parents: 0 parent_ended rows; the fresh load over "
+          f"the faulted one: 1, naming {pe[0]['parent']} and its error; one normal game later "
+          f"(head {r['next_head']}): 0")
+
+
 def main() -> int:
     d = fresh()
     led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
@@ -149,6 +175,11 @@ def main() -> int:
     assert r["head"] == r["gen_hash"], ("F1: a fresh load does not read it as head", r)
     print(f"  F1 the KeyError reached the caller; agent_fault row at {r['faults'][0]['site']}; "
           f"traceback kept; generation {r['gen_hash']} ended agent_fault, read as the head")
+    pe_check(r, "PE (store)")
+    d = fresh()
+    led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
+    r = json.loads(run(CHILD, d, led, str(K), "on", TETHER_MEMORY_STORE="0"))
+    pe_check(r, "PE (chain)")
     d = fresh()
     led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
     r = json.loads(run(CHILD, d, led, str(K), "c3"))
@@ -161,7 +192,7 @@ def main() -> int:
     assert r["lib_terms"] == [pl["before"]], ("C3: a fresh load holds the earlier term only", r)
     print(f"  C3 the faulted cycle's own entries left out (inventions {inv}; terms {terms}); a "
           f"fresh load reads it as the head and holds {pl['before']} and not {pl['now']}; "
-          f"re-invented {r['reinvented']}")
+          f"re-invented {r['reinvented']}; the invention_carried row {r['inv_carried']}")
     d = fresh()
     led = os.path.join(tempfile.mkdtemp(), "f.jsonl")
     r = json.loads(run(CHILD, d, led, str(K), "refuse"))

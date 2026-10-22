@@ -539,6 +539,9 @@ def _merge_body(con: sqlite3.Connection, h: str, k: int, g: dict, aks: list, idx
     con.execute("INSERT OR REPLACE INTO blob VALUES ('counts', ?)", (json.dumps(c),))
     con.execute("INSERT INTO saves VALUES (?,?,?)", (h, k, g.get("parent")))
     con.execute("INSERT OR REPLACE INTO meta VALUES ('last_merged', ?)", (h,))
+    if g.get("ended"):  # item 4 (C3): read by the next load only while h is the tip
+        con.execute("INSERT OR REPLACE INTO meta VALUES ('ended', ?)",
+                    (json.dumps({"h": h, "ended": g["ended"], "error": g.get("error")}),))
     whole = [a.f.name for a in aks if a.whole]
     return {"ak_whole_parse": whole} if whole else {}
 
