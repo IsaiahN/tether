@@ -34,6 +34,7 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 
 import arc_holdout  # noqa: E402
+import lineage_store  # noqa: E402  item 6: a lineage file read as the lineage reads it
 import gamma  # noqa: E402
 import gridworld  # noqa: E402
 import ledger  # noqa: E402
@@ -62,7 +63,7 @@ def _held(ag):
 
 
 def _gen(d, w):
-    return json.loads((Path(d) / w["written"]).read_text(encoding="utf-8"))
+    return json.loads(lineage_store.file_bytes(Path(d) / w["written"]))
 
 
 def _carries(rows, ag, rep, label):

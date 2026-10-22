@@ -34,6 +34,7 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 
 import compile_term  # noqa: E402
+import lineage_store  # noqa: E402  item 6: a lineage file read as the lineage reads it
 import gamma  # noqa: E402
 import gridworld  # noqa: E402
 import ledger  # noqa: E402
@@ -100,7 +101,7 @@ def _carried(d, refusals):
     """(entry, role) pairs in d's index files; refusals=False drops entries holding a Refusal."""
     out = set()
     for f in Path(d).glob(f"{lineage.IDX}*.json"):
-        for e in json.loads(f.read_bytes())["entries"]:
+        for e in json.loads(lineage_store.file_bytes(f))["entries"]:
             if refusals or not any(z and "refusal" in z for x in e["items"]
                                    for z in (x["c"], x["t"])):
                 out.add((e["key"], e["role"]))
