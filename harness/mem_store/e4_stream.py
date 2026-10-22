@@ -127,6 +127,8 @@ proxy = Stream(arc, order[0])
 led_path = os.path.join(A.out, "stream.jsonl")
 env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path=led_path,
                                                          lineage_dir=A.lineage)
+ctx = {"game": "stream", "cfg": None, "library": None, "lineage_dir": A.lineage,
+       "led_path": led_path, "save_only_dir": None, "palette": _pal}   # (B)
 log(f"# stream start {time.strftime('%Y-%m-%d %H:%M:%S')} seed {seed} slice_s {A.slice_s} mf {A.mf} "
     f"order {','.join(order)}")
 log("# idx\tgame\twall_start_s\tcycle_start\twall_s\tsteps\tlevels_in_slice\tending\tendings\tcommit_mb_end\t"
@@ -148,7 +150,9 @@ for i, g in enumerate(order):
     lv_start, ending, endings = None, "slice", collections.Counter()
     n_steps = STEPS[min(i, len(STEPS) - 1)] if STEPS else None
     while (steps < n_steps) if n_steps else (time.time() - t_start < A.slice_s):
-        ag.step()
+        env, ag, _acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
+        if fault is not None:
+            raise fault
         steps += 1
         seq1 = len(ag.led) if seq1 is None else seq1     # ... and closes after the first step
         lv = env.levels()[0]

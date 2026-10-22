@@ -198,6 +198,17 @@ def test_irreversible_cut():
     _refuses(r, gate.IRREVERSIBLE_CUT)
 
 
+def test_agent_fault():
+    """(B): a fault stays a defect whatever came after it -- a recovered game still refuses."""
+    r = valid()
+    r += [{"mode": "specified", "seq": 5, "cycle": 1, "step": "SETTLE", "slot": "@run",
+           "event": "agent_fault", "detail": {"type": "KeyError", "site": "tether.py:1"}},
+          {"mode": "specified", "seq": 6, "cycle": 2, "step": "SETTLE", "slot": "@run",
+           "event": "fault_recovered", "detail": {"fault": 1}}]
+    _refuses(r, gate.AGENT_FAULT)
+    assert gate.check(r[:5] + r[6:])["verdict"] == gate.PASS   # the recovery row alone passes
+
+
 def test_unreached_unmeasured():
     """A park with no coverage is `unreachable` smuggled in wearing `unreached`'s word."""
     r = valid()
