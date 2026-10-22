@@ -27,7 +27,7 @@ EXEMPT = {
     "ledger.py": "legacy_ending reads the old words, never writes them",
     "contest_read.py": "a cell field named win, not an ending word",
     "contest_table.py": "a cell field named win, not an ending word",
-    "test_ending_words.py": "this check names the words it forbids",
+    "tests/test_ending_words.py": "this check names the words it forbids",
 }
 BARE = re.compile(r"""["'](advance|win)["']""")
 

@@ -1,7 +1,6 @@
 """C-level-1, F1: THE AGENT PERCEIVES A LEVEL CLEAR (the reviewer 2026-10-15 07:32, 07:42, 07:55).
 WRITTEN, NOT RUN: it runs in the end-of-step-7 checklist. Each case is its own process, its arms set
 in the environment at start. The world is test_entry's FakeWrapper with levels_completed raised
-import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 from 0 to 1 at step CLEAR and no WIN: a level clear the terminal edge never reports.
 
   E1   tether_agent.run, TETHER_LEVEL_EDGE ON: exactly one "ending" row with
@@ -24,6 +23,8 @@ import os
 import subprocess
 import sys
 import tempfile
+
+import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 
