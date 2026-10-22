@@ -173,7 +173,17 @@ def wa(env, game, cfg, led_obj, library, lineage_dir, clock=None):
             ei.observe()
             real(ai)
             outs.append((li.rows(), list(wi.w.calls)))     # wi: the ResetGuard; .w the board
-        hook["r1"] = {"diff": compare(outs[0][0], outs[1][0], set()),
+        # the game-start fold counts what the agent BEFORE left in the process's bound stores and
+        # clears it (tether._consolidate): those three counts differ by construction (r1_0 follows
+        # the faulted agent, r1_1 follows r1_0), so they are masked and kept; "after" is not
+        cleared = []
+        for rows_i, _c in outs:
+            for x in rows_i:
+                if x["event"] == "consolidate" and x["detail"].get("trigger") == "game_start":
+                    cleared.append({f: x["detail"].pop(f, None)
+                                    for f in ("before", "landed_cleared", "slot_rows_before")})
+                    cleared[-1]["after"] = x["detail"].get("after")
+        hook["r1"] = {"diff": compare(outs[0][0], outs[1][0], set()), "cleared": cleared,
                       "calls": [o[1] for o in outs], "rows": len(outs[0][0])}
     if mode == "r4bad":                             # the old path: a new Ledger on the same file
         _e, a2, *_ = arc_holdout.wire(env.w, game, led_path=led, lineage_dir=lineage_dir)
@@ -270,8 +280,12 @@ def main() -> int:
           f"traceback {r['tb']}; gate {r['gate']['verdict']} at {r['gate']['check']}")
     r1 = r["r1"]
     assert r1 and not r1["diff"] and r1["calls"][0] == r1["calls"][1] and r1["rows"], ("r1", r1)
+    cl = r1["cleared"]
+    assert len(cl) == 2 and cl[0]["after"] == cl[1]["after"], ("r1: the fold's after", cl)
+    assert all(not any(v for v in c["after"].values()) for c in cl), ("r1: left after", cl)
     print(f"  r1 two fresh agents from copies of the save on copies of the board: "
-          f"{r1['rows']} rows equal, last calls {r1['calls'][0][-1:]} equal")
+          f"{r1['rows']} rows equal, last calls {r1['calls'][0][-1:]} equal; the game-start fold "
+          f"cleared an earlier agent's leftovers, every store empty after: {cl}")
     cold = json.loads(run(COLD, r["snap"]))
     diff = sorted(k for k in set(cold) | set(r["digest"]) if cold.get(k) != r["digest"].get(k))
     assert not diff, ("r2: the fresh agent's load differs from a cold load of the save", diff)
