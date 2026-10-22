@@ -133,9 +133,12 @@ def load_index(path: Path) -> dict[str, dict]:
 
 
 def same(row: dict, fresh: dict) -> list[str]:
-    """The fields that differ between a stored row and one recomputed now (indexed_at aside)."""
-    a = {k: v for k, v in row.items() if k not in ("indexed_at", "_line")}
-    b = json.loads(json.dumps(fresh))
+    """The fields that differ between a stored row and one recomputed now. indexed_at and the
+    summariser stamp aside: the stamp is the sha of this whole file, so it names the provenance of
+    the row and moves with any edit here; the round trip is the content."""
+    skip = ("indexed_at", "_line", "summariser")
+    a = {k: v for k, v in row.items() if k not in skip}
+    b = {k: v for k, v in json.loads(json.dumps(fresh)).items() if k not in skip}
     return sorted(k for k in set(a) | set(b) if a.get(k) != b.get(k))
 
 

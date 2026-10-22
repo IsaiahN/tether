@@ -6,6 +6,8 @@ real C:/TETHER_RUNS is only read (by the pins scan).
   ADD  three ledgers indexed, one row each; verify OK on all three.
   MF1  a byte flipped in a ledger -> verify refuses (sha256).
   MF2  an index row with one tally count changed -> verify refuses (tally).
+  SUM  the same row with only its summariser stamp changed verifies (the stamp moves with any edit
+       to log_index.py; at be741fd all 1,030 (B) rows failed on it alone).
   MF3  a pinned ledger and a window ledger are never eligible; the third is.
   MF4  a torn last line is counted as bad, and the row still writes.
   MF5  retire refuses a list holding a ledger that fails verify, and renames nothing; the eligible
@@ -102,6 +104,17 @@ def main() -> None:
         d = li.verify_one(li.load_index(bad_idx), b)
         assert d == ["tally"], d
         print("  MF2: one tally count changed in the index -> verify refuses (tally)")
+
+        lines = idx.read_text(encoding="utf-8").splitlines()
+        r = json.loads(lines[k])
+        r["summariser"] = "0" * 16
+        lines[k] = json.dumps(r, sort_keys=True)
+        old_idx = tmp / "OLD_SUMMARISER.jsonl"
+        old_idx.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        d = li.verify_one(li.load_index(old_idx), b)
+        assert d == [], d
+        print("  SUM: a row stamped by an earlier summariser verifies on its content (the stamp is "
+              "provenance)")
 
         pins.write_text(f"{li.norm(root / 'box_b')}\thand pin for the test\n", encoding="utf-8")
         real_w = li.WINDOW
