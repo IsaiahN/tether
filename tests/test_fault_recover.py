@@ -257,7 +257,9 @@ import os, shutil, sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, sys.argv[1]); os.chdir(sys.argv[1])
 sys.path.insert(1, os.path.join(sys.argv[1], "tests"))
-import json, arc_holdout, ledger, tether
+sys.path.insert(2, os.path.join(sys.argv[1], "conform"))
+import json, arc_holdout, gate, ledger, lineage, tether     # the CHILD's set: its arms row equal
+from identity_mod_rows import compare
 from test_entry import FakeWrapper, GameState
 tether._AGENT_SEED = False
 ''' + DIGEST + r'''
