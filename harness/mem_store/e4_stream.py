@@ -166,8 +166,8 @@ for i, g in enumerate(order):
         if lineage._BOUNDARY and A.lineage and (term_edge or lvl_edge):      # as play()
             lineage.boundary(A.lineage, ag, "stream", end if term_edge else "level")
         lv_seen, was_terminal = lv, end
-        if end == "win":
-            ending = "win"
+        if end == ledger.WIN:
+            ending = ledger.WIN
             break
         if CH and n_steps and steps < n_steps:       # between steps; the last step's point is the switch below
             CH.point(f"after_step{steps}", ag, A.out)

@@ -49,6 +49,7 @@ faulthandler.enable(_dumpfh, all_threads=True)
 faulthandler.dump_traceback_later(A.cap_s + 840, file=_dumpfh)   # before the cap+15 stop
 
 import arc_holdout  # noqa: E402
+import ledger  # noqa: E402
 import tether  # noqa: E402
 
 T0 = time.time()
@@ -109,7 +110,7 @@ def _capped(self, *a, **k):
             st["levels"].append((round(time.time() - T0, 1), lv, st["actions"]))
     except Exception:  # noqa: BLE001 -- a world without levels(): no level reading
         pass
-    if self.env.terminal() == "game_win":
+    if self.env.terminal() == ledger.WIN:
         st["won"] = True
     return out
 
