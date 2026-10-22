@@ -166,7 +166,7 @@ def wa(env, game, cfg, led_obj, library, lineage_dir, clock=None):
         for i in range(2):
             di = f"{d}_r1_{i}"
             shutil.copytree(d, di)
-            wi = copy.deepcopy(env.w)
+            wi = arc_holdout.ResetGuard(copy.deepcopy(env.w.w))   # a guard does not deep-copy
             ei = arc_holdout.world_on(wi, game, env._palette, None)
             li = ledger.Ledger(None)
             ai, _l = real_wa(ei, game, cfg, li, library, di, clock=clock)
