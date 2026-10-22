@@ -12,6 +12,8 @@ real C:/TETHER_RUNS is only read (by the pins scan).
        one alone retires to .dead-<UTC> with a LOG_REMOVALS line.
   MF6  the pins generated from docs/LEDGER.md pass --check; a planted LEDGER citation of a box
        with no folder and no pin makes --check FAIL.
+  MF7  the same for a planted worktree citation (wt_..., the reviewer 2026-10-22 00:30 (c)).
+  The planted tokens are built at run time, so no source the pins read can ever cite them.
 
     python test_log_index.py
 """
@@ -137,11 +139,13 @@ def main() -> None:
                    "--check") == 0
         n = len(li.read_pins(real_pins))
         planted = tmp / "LEDGER_planted.md"
-        planted.write_text((HERE / "docs" / "LEDGER.md").read_text(encoding="utf-8")
-                           + "\n- planted: the S9Z box measured nothing.\n", encoding="utf-8")
-        assert run("--pins", str(real_pins), "pins", str(planted), "--check") == 1
-        print(f"  MF6: {n} pins generated from docs/LEDGER.md pass --check; a planted S9Z "
-              "citation with no folder or pin FAILS it")
+        for mf, tok in (("MF6", "S9" + "ZQ"), ("MF7", "wt_" + "zz9")):
+            planted.write_text((HERE / "docs" / "LEDGER.md").read_text(encoding="utf-8")
+                               + f"\n- planted: the {tok} box measured nothing.\n",
+                               encoding="utf-8")
+            assert run("--pins", str(real_pins), "pins", str(planted), "--check") == 1, mf
+            print(f"  {mf}: {n} pins from docs/LEDGER.md pass --check; a planted {tok} "
+                  "citation with no folder or pin FAILS it")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("test_log_index: pass")

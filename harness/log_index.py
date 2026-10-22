@@ -34,8 +34,9 @@ from pathlib import Path
 HOME = Path("C:/TETHER_RUNS")
 WINDOW = 25   # the newest ledgers kept full (the reviewer 2026-10-22 00:03 (a): globally, by mtime)
 # a box is cited by its folder's name: the folders directly under a dated run root (BOX_PARENTS'
-# children), and any token of the box pattern, which must then resolve to a pin (MF6)
-BOX_RE = re.compile(r"\bS[0-9][A-Z]{1,2}\b")
+# children), and any token of a citation pattern -- an S box, or a worktree (wt_..., tether-wt...;
+# the reviewer 2026-10-22 00:30 (c)) -- which must then resolve to a folder or a hand row (MF6)
+BOX_RE = re.compile(r"\bS[0-9][A-Z]{1,2}\b|\bwt_[A-Za-z0-9_]+|\btether-wt[-A-Za-z0-9]*")
 BOX_PARENTS = ("C:/TETHER_RUNS/*", "C:/TETHER_HOLDING/2026-10-16_step7_runs")
 KEPT_SLOTS = ("@run", "@boundary", "@loop")
 DROPPED = "every other row's detail (each kind's count and first/last cycle are in tally)"
@@ -214,6 +215,8 @@ def gen_pins(sources: list[Path], folders: dict[str, list[str]], hand) -> tuple[
     words = set(re.findall(r"[A-Za-z0-9_.\-]+", text))
     gen = [(f, f"cited: {name}") for name, fs in sorted(folders.items()) if name in words
            for f in fs]
+    # a hand row resolves the citation tokens its reason names before " ran " (an alias names
+    # the folder it ran in after it); a row for a token with no folder resolves it as absent
     hand_names = {b for _pre, why in hand for b in BOX_RE.findall(why.split(" ran ")[0])}
     unresolved = sorted(b for b in set(BOX_RE.findall(text))
                         if b not in folders and b not in hand_names)
