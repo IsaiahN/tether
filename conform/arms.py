@@ -1024,6 +1024,12 @@ ARMS: dict[str, str] = {
                                "generates no instance and is not charged to work_budget. A "
                                "reach change; the default is set by the measurement. OFF: "
                                "charged, as before (7d5fcf9). default OFF",
+    "TETHER_LIBRARY_EXPLAINS": "(iv), RECOGNITION EXPLAINS (the reviewer 2026-10-21 21:52, "
+                               "2026-10-22 01:55): a library-served term (route REBIND or "
+                               "compete) that makes the slot's bet and settles credits "
+                               "explain() as a mint's winner does. OFF: a served slot keeps its "
+                               "whole past surprise as outstanding (116481a). On a side branch "
+                               "until Isaiah rules. default OFF",
     "TETHER_LIBRARY_REQUIRED": "COLD START (ii), SHAPE A (the reviewer 2026-10-21 23:27): "
                                "wire() fails at startup naming each missing library file, or "
                                "the absent library/ folder. OFF only for the ablation clause: "

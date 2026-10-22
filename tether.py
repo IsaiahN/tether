@@ -251,6 +251,13 @@ _TALLY = not armflag.arm("TETHER_NO_TALLY")
 # carried schema could not leave the unsettled state on any board. INVERTED POLARITY like
 # `_TALLY`: the fix is ON and the env var turns it OFF, so the A/B is one script.
 _CARRY_CANDIDATE = not armflag.arm("TETHER_NO_CARRY_CANDIDATE")
+# (iv), RECOGNITION EXPLAINS (the reviewer 2026-10-21 21:52, 2026-10-22 01:55; Fig 5 :12 "held: the
+# model was right, nothing owed"; Fig 9 :45): a library-served term bound by the route (REBIND or
+# compete) that makes the slot's bet and SETTLES credits explain() as a mint's bound winner does --
+# base under the holder it replaced minus its own leftover, over the history at the bind. OFF: a
+# served slot keeps its whole past surprise as outstanding, as before (116481a). Off until
+# Isaiah rules.
+_LIBRARY_EXPLAINS = armflag.arm("TETHER_LIBRARY_EXPLAINS")
 # WHAT A SEARCH HAS ALREADY PRICED -- reviewer 2026-10-07, plan item 7. Under an unchanged scope key
 # a chain prices the same way again, so a re-run of a search that stopped at the budget spends the
 # budget re-reading what it already refused. The cue reorders ties every cycle, so the frontier is
@@ -2487,6 +2494,7 @@ class Agent:
         self._goal_links: dict = {}   # build 3 L1: key -> (slot, want name) this link wrote
         self._want_scope: dict = {}   # b-0: slot -> the want name scored on its SUBJECT alone
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
+        self._served: dict[str, tuple[str, float]] = {}   # (iv): slot -> (served term, bits)
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
         # SET HERE AND NOT ONLY IN `retarget`. `_advertised` reads it at the top of every
@@ -3271,6 +3279,7 @@ class Agent:
         if _LINEAGE_HOLD:
             self._hold_lineage(how)
         self.bound, self.trace = {}, []
+        self._served = {}          # (iv): a served binding does not cross the boundary either
         self._parts, self._d5_pending, self._shadow = {}, {}, {}
         self._d5_candidates = {}
         self._d5_rows, self._d5_said = {}, set()   # D5's scope is the level, a world event
@@ -9145,6 +9154,17 @@ class Agent:
         self._outstanding[slot] = have - took
         return round(took, 3), round(max(0.0, bits - have), 3)
 
+    def _serve(self, slot: str, fit: str) -> None:
+        """(iv): before the route binds a library term, what it would explain -- the base under
+        the holder it replaces minus its own leftover, over the history now (a mint's base_held -
+        left) -- kept until that term makes the bet and settles. OFF: nothing."""
+        if not _LIBRARY_EXPLAINS or fit not in self.gamma.library:
+            return
+        hist = self.history(slot)
+        base = self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
+        left = self._left(self.gamma.library[fit], slot, hist)
+        self._served[slot] = (fit, max(0.0, base - left))
+
     def _left(self, term: Term, slot: str, hist, ceiling: float | None = None,
               offset: float = 0.0) -> float:
         """What the term leaves unexplained across the slot's history, in bits.
@@ -14867,6 +14887,13 @@ class Agent:
             if self._cand_level.get(name) != self.level:
                 continue
             self.gamma.settle(name, where=self._scope, slot=slot)
+            if _LIBRARY_EXPLAINS and self._served.get(slot, ("",))[0] == name:
+                bits = self._served.pop(slot)[1]
+                ex, over = self.explain(slot, bits)
+                self.led.record(self.cycle, "SETTLE", slot, "library_explained", term=name,
+                                bits=round(bits, 3), explained=ex, overclaimed=over,
+                                reads="(iv): a served term made the bet and settled; recognition "
+                                      "explains as a mint's winner does")
             # NO `self.settled.add` -- the line above IS the record. Adding to a second set
             # here is what made the two disagree: gamma unsettles on refusal and the set
             # never heard.
@@ -15377,6 +15404,7 @@ class Agent:
                 if b in (REBIND, REFUTED) and fit and self._derived_subject(slot):
                     self._ds_unbound(slot, "route")
                 elif b == REBIND and fit:
+                    self._serve(slot, fit)
                     self.bound[slot] = fit
                     self._carry(fit)
                     self.rank.note(fit, self.cycle)
@@ -15389,6 +15417,7 @@ class Agent:
                     # a competitor where the library holds one; otherwise the gap is genuinely
                     # new and MECHANISM's answer is the right one.
                     if fit:
+                        self._serve(slot, fit)
                         self.bound[slot] = fit
                         self._carry(fit)
                         self.rank.note(fit, self.cycle)
