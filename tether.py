@@ -288,6 +288,13 @@ _W_EVICT_EVERY_STEP = armflag.arm("TETHER_W_EVICT_EVERY_STEP")
 # per-entry latest seq from the snapshot's aggregates; this life's landings stay in RAM as before.
 # OFF: _kind_known_dk and _kdk_last hold every key from load.
 _W_DK_KEYED = armflag.arm("TETHER_W_DK_KEYED", default=True)
+# W-3, THE HELD INDEX LAZY (the reviewer 2026-10-22 05:14 a, b): the store load reads the held
+# entries' KEYS (the load report's count is the same); each one's items are read from the load-time
+# snapshot at its first ask (lineage.resolve); and _INDEX_STORE joins W-2's eviction for the
+# entries that can come back exactly -- resolved from the snapshot, their verdict kept, so a re-ask
+# re-reads the row and skips the hashing. This life's own compiles are never evicted. OFF: every
+# held entry decoded at load, and _INDEX_STORE grows for the process.
+_W_HELD_LAZY = armflag.arm("TETHER_W_HELD_LAZY", default=True)
 
 
 class _Kept(dict):
@@ -314,14 +321,16 @@ class _Kept(dict):
         super().clear()
         self.seen = set()
 
-    def evict(self, hard: bool) -> int:
+    def evict(self, hard: bool, only: Any = None) -> int:
         """Drop every entry (hard) or those not read since the last fold (soft); start a new
-        epoch. The count dropped."""
+        epoch. `only`: drop nothing outside it (W-3: the entries that can come back exactly). The
+        count dropped."""
         n = len(self)
-        if hard:
+        if hard and only is None:
             self.clear()
         else:
-            for k in [k for k in self if k not in self.seen]:
+            for k in [k for k in self if (only is None or k in only)
+                      and (hard or k not in self.seen)]:
                 del self[k]
         self.seen = set()
         return n - len(self)
@@ -602,7 +611,8 @@ _HELD_ROLES = ("STATE", "TEST", "PROCESS", "CAUSE")   # RELATION/MEASURE filter 
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _INDEX_HOLD = armflag.arm("TETHER_INDEX_HOLD", default=True)
 PH_O, PH_X = "PHo", "PHx"   # no id generator makes these (arc_percept 638, gridworld 225)
-_INDEX_STORE: dict = {}     # (compile_term.signature, entry, role) -> held compiles
+_INDEX_STORE: dict = (_Kept() if _W_HELD_LAZY and _W_CACHES   # (compile_term.signature, entry,
+                      else {})                                  # role) -> held compiles
 _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent never reads it
 # THE BOUND ANSWERS OUTLIVE THE GAME (Isaiah 2026-10-15 06:01; the reviewer 06:10, 06:56): one
 # memo per PROCESS, keyed by the code primitives' content token, used only by an Agent whose
@@ -3769,6 +3779,12 @@ class Agent:
         t0, c0 = time.perf_counter(), _commit_bytes()
         held = {n: len(m) for n, m in self._w_caches().items()}
         gone = {n: m.evict(hard) for n, m in self._w_caches().items() if isinstance(m, _Kept)}
+        if isinstance(_INDEX_STORE, _Kept):
+            # W-3's valve: only what comes back exactly -- a verdict, and the snapshot still open
+            snap = self._dk_snap
+            ok = (set(lineage._VERDICT) if snap is not None and not snap.closed else set())
+            held["INDEX_STORE"] = len(_INDEX_STORE)
+            gone["INDEX_STORE"] = _INDEX_STORE.evict(hard, only=ok)
         self._w_fold_n += 1
         body = {"slot": "@body", "event": "w_evict", "w_fold": self._w_fold_n,
                 "cycle": self.cycle, "game": self.gamma.game, "why": why, "hard": hard,

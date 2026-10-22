@@ -1052,6 +1052,12 @@ ARMS: dict[str, str] = {
                          "asked kind's rows at its first ask, the per-type sums and latest "
                          "seqs from its aggregates; closed before the game's checkpoint. OFF: "
                          "every carried dk key and its last seq in RAM from load. default ON",
+    "TETHER_W_HELD_LAZY": "W-3, THE HELD INDEX LAZY (the reviewer 2026-10-22 05:14 a, b, 06:37): "
+                          "the store load reads the held keys only; each entry's items from the "
+                          "load-time snapshot at its first ask; _INDEX_STORE evictable by W-2 for "
+                          "entries with resolve's verdict (re-read without hashing), never this "
+                          "life's own compiles. OFF: every held entry decoded at load and kept "
+                          "for the process. default ON",
     "TETHER_W_EVICT_EVERY_STEP": "W-2's CHECK, a measurement switch: a hard eviction at every "
                                  "step's start, for MF-W2 (decisions equal to a run that never "
                                  "evicts). default OFF",

@@ -770,6 +770,17 @@ class DkSnapshot:
                                             "ORDER BY dk, entry, tgt"):
             yield (self.kind[dk], self.ent[e], self.kind[t]), n
 
+    def held(self, key: str, role: str) -> tuple | None:
+        """W-3: one held entry's (generation, items JSON) as it stood at load; None if absent."""
+        if self.closed:
+            raise RuntimeError("W-3: the load-time snapshot is closed")
+        q = self.con.execute
+        ids = [q("SELECT id FROM sym WHERE s = ?", (s,)).fetchone() for s in (key, role)]
+        if None in ids:
+            return None
+        return q("SELECT gen, items FROM held WHERE key = ? AND role = ?",
+                 (ids[0][0], ids[1][0])).fetchone()
+
     def close(self) -> None:
         if not self.closed:
             self.closed = True
@@ -844,7 +855,10 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         kdk = [] if tether._W_DK_KEYED else con.execute(
             "SELECT dk, entry, tgt, n, l_game, l_level, l_cycle, l_seq FROM kind_dk").fetchall()
         koff = con.execute("SELECT dk, entry, ko, n FROM kind_off").fetchall()
-        held = con.execute("SELECT key, role, gen, items FROM held").fetchall()
+        # W-3: the held entries' KEYS only; each one's items are read at its first ask
+        held = (con.execute("SELECT key, role, gen, NULL FROM held").fetchall()
+                if tether._W_HELD_LAZY else
+                con.execute("SELECT key, role, gen, items FROM held").fetchall())
         wholes = con.execute("SELECT entry, role, o, x FROM ak_whole").fetchall()
         # the O(life) parts from their append-only tables, in fold()'s chain order (schema 4)
         evidence = [json.loads(r) for (r,) in
@@ -867,7 +881,8 @@ def _store_view(d: str | Path, ag: Any) -> dict:
             "kind_seq_max": int(meta.get("kind_seq_max", 0)),
             "kdk": [(key((0, 2), dk, e, t), n, lv) for dk, e, t, n, *lv in kdk],
             "koff": [(key((0, 2), dk, e, ko), n) for dk, e, ko, n in koff],
-            "held": [(sym[k], sym[r], g, json.loads(it)) for k, r, g, it in held],
+            "held": [(sym[k], sym[r], g, None if it is None else json.loads(it))
+                     for k, r, g, it in held],
             "wholes": wholes}
 
 
@@ -881,6 +896,11 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     ag.gamma.keep_evidence = True
     if h is None:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
+    if (tether._W_DK_KEYED or tether._W_HELD_LAZY) and hasattr(ag, "_dk_snap"):
+        # W-4 / W-3: the load-time snapshot, held for the game (closed at its write)
+        if ag._dk_snap is not None:
+            ag._dk_snap.close()
+        ag._dk_snap = DkSnapshot(d)
     if hasattr(ag, "_seed_from_lineage"):
         ag._seed_from_lineage(set(v["seeds"]), c["n_saves"], h)
     rep = ag.gamma.load_blob({"terms": list(f.get("rows", {}).values()),
@@ -914,10 +934,7 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
             ag._kind_known_off[k] += n
         ag._kix_ver = getattr(ag, "_kix_ver", 0) + 1    # (C): the tiers index rebuilds
         if tether._W_DK_KEYED:
-            # W-4: kind_dk stays on disk, read through the load-time snapshot
-            if getattr(ag, "_dk_snap", None) is not None:
-                ag._dk_snap.close()
-            ag._dk_snap = DkSnapshot(d)
+            # W-4: kind_dk stays on disk, read through the load-time snapshot (opened above)
             rep["kinds_known_dk"] = ag._dk_snap.count
         else:
             rep["kinds_known_dk"] = len(ag._kind_known_dk)
@@ -968,9 +985,13 @@ def _store_index(v: dict) -> dict | None:
     for key, role, gh, items in v["held"]:
         k = (v["sig"], key, role)
         if k not in tether._INDEX_STORE:
-            _PENDING[k] = {"gen": gh, "items": [(x["i"], x["ch"], _dec_c(x["c"], v["atoms"]),
-                                                 _dec_c(x["t"], v["atoms"])) for x in items],
-                           "folder": v["folder"]}
+            if items is None:     # W-3: held by key; decoded at the first ask (resolve)
+                _PENDING.pop(k, None)
+                _LAZY[k] = {"gen": gh, "folder": v["folder"]}
+            else:
+                _PENDING[k] = {"gen": gh, "items": [(x["i"], x["ch"], _dec_c(x["c"], v["atoms"]),
+                                                     _dec_c(x["t"], v["atoms"])) for x in items],
+                               "folder": v["folder"]}
             n += 1
         known.add((repr(v["sig"]), key, role))
     return {"installed": n, "rekeyed": 0, "refusals_recompile": 0, "rebuild": [],
@@ -1192,6 +1213,13 @@ _CARRIED: dict[str, set] = {}   # lineage folder -> (signature repr, entry, role
 _PENDING: dict[tuple, dict] = {}
 _RESOLVE: dict[str, int] = {"resolved": 0, "unresolved": 0}
 _ROWED: set = set()   # generations that already wrote their one unresolved row
+# W-3 (the reviewer 2026-10-22 05:14 a, b): a held entry known by key at load, its items read from
+# the load-time snapshot at its first ask; and resolve's VERDICT, kept per key and never evicted
+# (the ch of each position that matched), so a re-ask after W-2 evicts the entry re-reads its row
+# and skips the hashing -- exact because the library cannot change within a process
+_LAZY: dict[tuple, dict] = {}       # (signature, entry, role) -> {gen, folder}
+_VERDICT: dict[tuple, tuple] = {}   # (signature, entry, role) -> each position's ch, as matched
+_VERDICT_N: dict[str, int] = {"refetched": 0}
 
 
 def _ch(cand: dict) -> str:
@@ -1373,6 +1401,19 @@ def load_index(d: str | Path, ag: Any, chain: list) -> dict | None:
     return rep
 
 
+def _snap_items(ag: Any, snap: Any, key: str, role: str) -> list | None:
+    """W-3: one held entry's items from the load-time snapshot, decoded as the load decodes them
+    (this Gamma's atoms by name)."""
+    row = snap.held(key, role)
+    if row is None:
+        return None
+    atoms = getattr(snap, "atoms", None)
+    if atoms is None:
+        atoms = snap.atoms = {a.name: a for a in ag.gamma.atoms}
+    return [(x["i"], x["ch"], _dec_c(x["c"], atoms), _dec_c(x["t"], atoms))
+            for x in json.loads(row[1])]
+
+
 def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
     """A carried reference at its FIRST ask (tether._held_index, both arms): the library's own view
     under the placeholders, checked WHOLE -- the same length and every position's hash. All match:
@@ -1380,9 +1421,28 @@ def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
     instance and compiled fresh, counted, and its generation writes one index_rebuild row; the
     fresh compile is written by this generation's index, so the key heals."""
     import tether
-    p = _PENDING.pop((sig, key, role), None)
+    k = (sig, key, role)
+    p = _PENDING.pop(k, None)
+    snap = getattr(ag, "_dk_snap", None)
+    if p is None and k in _VERDICT and snap is not None and not snap.closed:
+        # W-3's valve: evicted after its verdict; the same row again, no hashing
+        items = _snap_items(ag, snap, key, role)
+        if items is not None and tuple(ch for _, ch, _, _ in items) == _VERDICT[k]:
+            view = lib.view(key, role, tether.PH_O, tether.PH_X)
+            held = [(view[i], c, t) for i, _, c, t in items]
+            tether._INDEX_STORE[k] = held
+            for i, ch, _, _ in items:
+                _CH_HELD[(sig, key, role, i)] = (view[i], ch)
+            _VERDICT_N["refetched"] += 1
+            return held
     if p is None:
-        return None
+        lz = _LAZY.pop(k, None)
+        if lz is None or snap is None or snap.closed:
+            return None
+        items = _snap_items(ag, snap, key, role)
+        if items is None:
+            return None
+        p = {"gen": lz["gen"], "folder": lz["folder"], "items": items}
     view = lib.view(key, role, tether.PH_O, tether.PH_X)
     items = p["items"]
     try:
@@ -1396,6 +1456,8 @@ def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
         for i, ch, _, _ in items:   # S1e: these candidates are now the held view, hash checked
             _CH_HELD[(sig, key, role, i)] = (view[i], ch)
         _RESOLVE["resolved"] += 1
+        if tether._W_HELD_LAZY:
+            _VERDICT[k] = tuple(ch for _, ch, _, _ in items)
         return held
     _RESOLVE["unresolved"] += 1
     # HEALS (the reviewer 23:23): the key leaves this folder's known set, so this generation's

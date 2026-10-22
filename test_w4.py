@@ -90,9 +90,9 @@ def main() -> int:
         steps(env, ag, 6)
         ag.end_run("cap")
         lineage.write(d, ag, "fake")
-    tether._W_DK_KEYED = False
+    tether._W_DK_KEYED = tether._W_HELD_LAZY = False   # A: the old load, no snapshot at all
     env_a, a = agent(d)
-    tether._W_DK_KEYED = True
+    tether._W_DK_KEYED = tether._W_HELD_LAZY = True
     env_b, b = agent(d)
     assert a._dk_snap is None and b._dk_snap is not None
     assert len(a._kind_known_dk) > 0 and len(b._kind_known_dk) == 0, "PRECONDITION: carried rows"
