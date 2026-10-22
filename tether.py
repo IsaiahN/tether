@@ -281,6 +281,13 @@ _W_CACHES = armflag.arm("TETHER_W_CACHES", default=True)
 # W-2's CHECK, a measurement switch: a HARD eviction at every step's start, so a run's decisions
 # can be compared with a run that never evicts (MF-W2). Default OFF.
 _W_EVICT_EVERY_STEP = armflag.arm("TETHER_W_EVICT_EVERY_STEP")
+# W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14, 05:52; W1: 434,602 keys, 127 MB at
+# load, ~10% read in a game): the life's kind_dk stays on disk and is read through a snapshot held
+# from load (lineage.DkSnapshot, one read transaction), so it equals the in-RAM copy load() made.
+# The tiers index takes each asked kind's rows at its first ask, and the per-type sums and the
+# per-entry latest seq from the snapshot's aggregates; this life's landings stay in RAM as before.
+# OFF: _kind_known_dk and _kdk_last hold every key from load.
+_W_DK_KEYED = armflag.arm("TETHER_W_DK_KEYED", default=True)
 
 
 class _Kept(dict):
@@ -2545,6 +2552,7 @@ class Agent:
         self._kind_landed_dk: Counter = Counter()
         self._kind_known_dk: Counter = Counter()
         self._kix: dict | None = None   # (C): the tiers index, rebuilt when _kix_ver moves
+        self._dk_snap: Any = None       # W-4: the load-time kind_dk snapshot (lineage.DkSnapshot)
         self._kix_ver = 0               # bumped by each lineage load of the dk stores
         self._dk_index: dict = {}
         self._cur_dk: tuple | None = None
@@ -4325,14 +4333,12 @@ class Agent:
                 ix_land = land
                 land = {r_: Counter() for r_ in "abc"}
                 for (d, k, tgt), m in itertools.chain(self._kind_landed_dk.items(),
-                                                      self._kind_known_dk.items()):
+                                                      self._known_dk_items()):
                     g_ = rung(d, tgt)
                     if g_:
                         land[g_][k] += m
                 if ix_land is not None:            # the check: the scan's sums are used
-                    last_scan = {}
-                    for (_d, k, _t), v in self._kdk_last.items():
-                        last_scan[k] = max(last_scan.get(k, 0), v[3])
+                    last_scan = self._dk_last_k()
                     same = (all(+land[g] == +ix_land[g] for g in "abc")
                             and (not _CONSOLIDATE or last_scan == last_ix))
                     _book_add(self.gamma.book, "tiers_index_agree" if same else
@@ -4358,8 +4364,7 @@ class Agent:
             elif _CONSOLIDATE:
                 # CONSOLIDATION's recency (the reviewer 04:43 2d, 04:55 3): an entry's latest
                 # landing over its K1 keys; it breaks ties only, so the 20:43 order stands
-                for (_d, k, _t), v in self._kdk_last.items():
-                    last[k] = max(last.get(k, 0), v[3])
+                last = self._dk_last_k()
             for g_ in "abc":
                 put(f"T1{g_}", order(((k, float(m)) for k, m in off[g_].items()),
                                      lambda kv, g_=g_: (-kv[1], -land[g_][kv[0]],
@@ -5244,7 +5249,22 @@ class Agent:
         """(C): the tiers index from the stores -- per kind and per type, each entry's summed count
         over the landed and carried rows (one combined count per (kind, entry, target), as the old
         chained scan sums them); each kind's rows by reference; each entry's latest recency. None
-        if a count <= 0 is met (the scan keeps such a key with 0; the index cannot), counted."""
+        if a count <= 0 is met (the scan keeps such a key with 0; the index cannot), counted.
+        Under W-4 the carried rows stay on disk: the per-type sums and the latest seqs come from
+        the snapshot's aggregates, and each kind's rows at its first need (_kix_kind)."""
+        snap = self._dk_snap if _W_DK_KEYED else None
+        if snap is not None:
+            if snap.nonpos:
+                return None
+            tot_t = {t: Counter(c) for t, c in snap.tot_t.items()}
+            by_d: dict = {}
+            for key, m in self._kind_landed_dk.items():
+                if m <= 0:
+                    return None
+                tot_t.setdefault(key[0][0], Counter())[key[1]] += m
+                by_d.setdefault(key[0], []).append(key)
+            return {"sig": self._kix_sig(), "rows_d": {}, "tot_d": {}, "tot_t": tot_t, "at": {},
+                    "last_k": self._dk_last_k(), "known": {}, "landed_by_d": by_d}
         rows_d: dict = {}
         tot_d: dict = {}
         tot_t: dict = {}
@@ -5267,15 +5287,57 @@ class Agent:
         """(C): what the index was built from -- the lineage loads' version and each store's
         identity and size. A write past the writers that adds a key or replaces a store moves it,
         and the index rebuilds; one that only changes an existing count does not (the CHECK)."""
-        return (self._kix_ver, id(self._kind_known_dk), len(self._kind_known_dk),
-                id(self._kind_landed_dk), len(self._kind_landed_dk), id(self._kdk_last),
-                len(self._kdk_last))
+        snap = self._dk_snap if _W_DK_KEYED else None
+        known = (id(snap), snap.count) if snap is not None else (
+            id(self._kind_known_dk), len(self._kind_known_dk))
+        return (self._kix_ver, *known, id(self._kind_landed_dk), len(self._kind_landed_dk),
+                id(self._kdk_last), len(self._kdk_last))
+
+    def _known_dk_items(self) -> Any:
+        """The carried dk rows, every one: the in-RAM copy, or under W-4 the snapshot read whole
+        (the full-scan paths only: the index's fallback and its check)."""
+        snap = self._dk_snap if _W_DK_KEYED else None
+        return snap.items() if snap is not None else self._kind_known_dk.items()
+
+    def _dk_last_k(self) -> dict:
+        """Each entry's latest landing seq over the carried rows and this life's (CONSOLIDATION's
+        recency): under W-4 the snapshot's per-entry maximum, then the landings in RAM."""
+        snap = self._dk_snap if _W_DK_KEYED else None
+        last = dict(snap.last_k) if snap is not None and _CONSOLIDATE else {}
+        for (_d, k, _t), v in self._kdk_last.items():
+            last[k] = max(last.get(k, 0), v[3])
+        return last
+
+    def _kix_kind(self, ix: dict, d: tuple) -> dict:
+        """W-4: kind d's carried rows at its first need, with this life's landings of d so far in
+        the order the full build keeps (carried, then landed); its carried counts returned."""
+        known = ix["known"].get(d)
+        if known is None:
+            known = ix["known"][d] = self._dk_snap.rows(d)
+            rows, tot = list(known), Counter()
+            for key, m in known.items():
+                tot[key[1]] += m
+            for key in ix["landed_by_d"].get(d, ()):
+                if key not in known:
+                    rows.append(key)
+                tot[key[1]] += self._kind_landed_dk[key]
+            if rows:
+                ix["rows_d"][d] = rows
+            if tot:
+                ix["tot_d"][d] = tot
+        return known
 
     def _kix_add(self, e: tuple, m: int) -> None:
         """(C): one landing added to the index exactly as the scan would count it."""
         ix = self._kix
         d, k, tgt = e
-        if e not in self._kind_landed_dk and e not in self._kind_known_dk:
+        if "known" in ix:       # W-4: d's carried rows first, then this landing on them
+            in_known = e in self._kix_kind(ix, d)
+            if e not in self._kind_landed_dk:
+                ix["landed_by_d"].setdefault(d, []).append(e)
+        else:
+            in_known = e in self._kind_known_dk
+        if e not in self._kind_landed_dk and not in_known:
             ix["rows_d"].setdefault(d, []).append(e)
         ix["tot_d"].setdefault(d, Counter())[k] += m
         ix["tot_t"].setdefault(d[0], Counter())[k] += m
@@ -5296,6 +5358,7 @@ class Agent:
         qs = set(kinds)
         land = {r_: Counter() for r_ in "abc"}
         for q in qs:
+            known = self._kix_kind(ix, q) if "known" in ix else self._kind_known_dk
             tot = ix["tot_d"].get(q)
             if not tot:
                 continue
@@ -5304,8 +5367,7 @@ class Agent:
                 at = Counter()
                 for key in ix["rows_d"].get(q, ()):
                     if key[2] == ko:
-                        at[key[1]] += self._kind_landed_dk.get(key, 0) + \
-                            self._kind_known_dk.get(key, 0)
+                        at[key[1]] += self._kind_landed_dk.get(key, 0) + known.get(key, 0)
                 ix["at"][(q, ko)] = at
             land["a"].update(at)
             for k, m in tot.items():

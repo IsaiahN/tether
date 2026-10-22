@@ -1046,6 +1046,12 @@ ARMS: dict[str, str] = {
                        "W-1 fold (soft: the entries not read since the last fold; hard: all) "
                        "and recomputed at their next miss; the counts go to @body. OFF: they "
                        "grow for the life of the agent or the process. default ON",
+    "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
+                         "05:52): the life's kind_dk stays on disk, read through a snapshot "
+                         "held from load (one read transaction, lineage.DkSnapshot) -- each "
+                         "asked kind's rows at its first ask, the per-type sums and latest "
+                         "seqs from its aggregates; closed before the game's checkpoint. OFF: "
+                         "every carried dk key and its last seq in RAM from load. default ON",
     "TETHER_W_EVICT_EVERY_STEP": "W-2's CHECK, a measurement switch: a hard eviction at every "
                                  "step's start, for MF-W2 (decisions equal to a run that never "
                                  "evicts). default OFF",

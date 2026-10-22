@@ -159,7 +159,9 @@ def main() -> int:
     # the sum WHERE THE RANKING READS IT (the reviewer 2026-10-21 00:27): the dk rows (_tiers'
     # T1a-d) in both loads; under the memory store the 7l trio stays empty by design, so T2's
     # t2 rows and _pair_counts' pairs, else the trio's _kind_known_n
-    bad = [e for e in bd if ag._kind_known_dk[e] != dks[0][e] + dks[1][e]]
+    def known(e):   # the carried count: the in-RAM copy, or under W-4 the load-time snapshot
+        return ag._dk_snap.rows(e[0]).get(e, 0) if ag._dk_snap is not None else ag._kind_known_dk[e]
+    bad = [e for e in bd if known(e) != dks[0][e] + dks[1][e]]
     if ag._kind_store is not None:
         t2, pr = ag._kind_store["t2"], ag._kind_store["pairs"]
         bad += [k for k in both if k in t2 and t2[k][0] != ns[0][k] + ns[1][k]]
@@ -173,7 +175,7 @@ def main() -> int:
     assert over, "MF-CON-6: an overwrite would read the same as the sum"
     print(f"CON-6 {len(bd)} dk rows and {len(both)} 7l keys landed in both games; each dk row "
           f"loads n = the sum (e.g. {dks[0][bd[0]]} + {dks[1][bd[0]]} = "
-          f"{ag._kind_known_dk[bd[0]]}), "
+          f"{known(bd[0])}), "
           f"and {'the store pairs / t2' if ag._kind_store is not None else '_kind_known_n'} too; "
           f"episodes written {eps}, in the chain {chain_eps}; MF an overwrite differs on "
           f"{len(over)}")

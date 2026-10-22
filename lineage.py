@@ -365,6 +365,9 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
     store after its archive files are written and synced; `sleep` (a game's end, never a boundary
     inside a game) also runs the store's checkpoint."""
     held: list = []
+    snap = getattr(ag, "_dk_snap", None)
+    if sleep and snap is not None:
+        snap.close()    # W-4: the snapshot's reader ends before the game's checkpoint
     try:
         return _write(d, ag, game, sleep, held)
     finally:    # the store's connection is closed on every path, an error's included
@@ -708,6 +711,71 @@ def _rename_retry(src: Path, dst: Path, tries: dict, n: str) -> str | None:
     return err
 
 
+class DkSnapshot:
+    """W-4 (the reviewer 2026-10-22 05:14, 05:52): the store's kind_dk AS IT STOOD AT LOAD, read
+    through one held read transaction -- in WAL mode every read on it sees that moment, whatever a
+    boundary merge commits later on its own connection. So it equals the in-RAM copy load() made
+    (which nothing updates after load) by construction. At load: the per-(type, entry) sums, the
+    per-entry latest seq, the row count; at an ask, one kind's rows. Closed before the game's
+    checkpoint (write(sleep=True)); a read after that raises."""
+
+    def __init__(self, folder: str | Path) -> None:
+        import sqlite3
+
+        import lineage_store as ls
+        uri = "file:" + ls.path(folder).resolve().as_posix() + "?mode=ro"
+        # isolation_level=None: Python never begins or commits on this connection; the one
+        # transaction is the explicit BEGIN below, held until close (never committed in play)
+        self.con = sqlite3.connect(uri, uri=True, check_same_thread=False, isolation_level=None)
+        self.con.execute("PRAGMA query_only = 1")
+        self.con.execute("BEGIN")
+        q = self.con.execute
+        self.count = q("SELECT COUNT(*) FROM kind_dk WHERE n != 0").fetchone()[0]
+        self.nonpos = q("SELECT COUNT(*) FROM kind_dk WHERE n < 0").fetchone()[0]
+
+        def dec(s: str) -> tuple:
+            return tuple(json.loads(s))
+        self.kind = {i: dec(s) for i, s in q(
+            "SELECT id, s FROM sym WHERE id IN "
+            "(SELECT dk FROM kind_dk UNION SELECT tgt FROM kind_dk)")}
+        self.kind_id = {v: i for i, v in self.kind.items()}
+        self.ent = dict(q("SELECT id, s FROM sym WHERE id IN (SELECT entry FROM kind_dk)"))
+        # load()'s two derived readings, in load order (the table's key order, dk then entry)
+        self.tot_t: dict = {}
+        for dk, e, n in q("SELECT dk, entry, SUM(n) FROM kind_dk WHERE n != 0 "
+                          "GROUP BY dk, entry ORDER BY dk, entry"):
+            self.tot_t.setdefault(self.kind[dk][0], Counter())[self.ent[e]] += n
+        self.last_k: dict = {}
+        for e, s in q("SELECT entry, MAX(l_seq) FROM kind_dk WHERE l_game IS NOT NULL "
+                      "GROUP BY entry ORDER BY MIN(dk), entry"):
+            self.last_k[self.ent[e]] = s
+        self.closed = False
+
+    def rows(self, d: tuple) -> dict:
+        """One kind's rows, (dk, entry, target) -> n, n != 0, in the table's key order."""
+        if self.closed:
+            raise RuntimeError("W-4: the load-time dk snapshot is closed")
+        i = self.kind_id.get(d)
+        if i is None:
+            return {}
+        return {(d, self.ent[e], self.kind[t]): n for e, t, n in self.con.execute(
+            "SELECT entry, tgt, n FROM kind_dk WHERE dk = ? AND n != 0 ORDER BY entry, tgt",
+            (i,))}
+
+    def items(self):
+        """Every row, as load() read them -- the full-scan paths only (a fallback, a check)."""
+        if self.closed:
+            raise RuntimeError("W-4: the load-time dk snapshot is closed")
+        for dk, e, t, n in self.con.execute("SELECT dk, entry, tgt, n FROM kind_dk WHERE n != 0 "
+                                            "ORDER BY dk, entry, tgt"):
+            yield (self.kind[dk], self.ent[e], self.kind[t]), n
+
+    def close(self) -> None:
+        if not self.closed:
+            self.closed = True
+            self.con.close()
+
+
 def _store_view(d: str | Path, ag: Any) -> dict:
     """Everything load() takes from the chain, read from the memory folder's store after merging
     any save it lacks. Reads only, so a refusal leaves the agent untouched."""
@@ -772,8 +840,9 @@ def _store_view(d: str | Path, ag: Any) -> dict:
                          "l_cycle, l_seq FROM kind WHERE no_dk = 1 AND in_landed = 1").fetchall()
         meta = dict(con.execute("SELECT k, v FROM meta WHERE k IN "
                                 "('kinds_known', 'kind_seq_max')"))
-        kdk = con.execute("SELECT dk, entry, tgt, n, l_game, l_level, l_cycle, l_seq "
-                          "FROM kind_dk").fetchall()
+        import tether
+        kdk = [] if tether._W_DK_KEYED else con.execute(
+            "SELECT dk, entry, tgt, n, l_game, l_level, l_cycle, l_seq FROM kind_dk").fetchall()
         koff = con.execute("SELECT dk, entry, ko, n FROM kind_off").fetchall()
         held = con.execute("SELECT key, role, gen, items FROM held").fetchall()
         wholes = con.execute("SELECT entry, role, o, x FROM ak_whole").fetchall()
@@ -844,7 +913,14 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         for k, n in v["koff"]:
             ag._kind_known_off[k] += n
         ag._kix_ver = getattr(ag, "_kix_ver", 0) + 1    # (C): the tiers index rebuilds
-        rep["kinds_known_dk"] = len(ag._kind_known_dk)
+        if tether._W_DK_KEYED:
+            # W-4: kind_dk stays on disk, read through the load-time snapshot
+            if getattr(ag, "_dk_snap", None) is not None:
+                ag._dk_snap.close()
+            ag._dk_snap = DkSnapshot(d)
+            rep["kinds_known_dk"] = ag._dk_snap.count
+        else:
+            rep["kinds_known_dk"] = len(ag._kind_known_dk)
         rep["kinds_known_off"] = len(ag._kind_known_off)
     if tether._7H_TRACE and hasattr(ag, "_line_grade_in"):
         for k, d_ in c.get("line_grades", {}).items():
