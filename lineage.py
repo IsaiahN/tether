@@ -930,9 +930,18 @@ def _store_asked(v: dict) -> dict | None:
     return {"pending": len(_AK_PENDING), "from_store": True}
 
 
+def _ensure_dir(d: str | Path) -> None:
+    """COLD START (Isaiah 2026-10-21 19:26; the reviewer 19:47 (i)): a lineage folder that does not
+    exist yet is created before the store opens (sqlite3 cannot create a missing folder), so a fresh
+    clone starts empty and fills as it plays. An existing folder is untouched."""
+    Path(d).mkdir(parents=True, exist_ok=True)
+
+
 def load(d: str | Path, ag: Any) -> dict:
     """The next instance's start: the chain folded into its Gamma as IMPORTED terms naming the tip,
     and the evidence record turned on. The fold's evidence and dormant record are not read back."""
+    if d:
+        _ensure_dir(d)
     if _MEMORY_STORE and d:
         import lineage_store
         try:

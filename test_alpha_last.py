@@ -1,11 +1,12 @@
-"""ALPHA-LAST (TETHER_ALPHA_LAST; the reviewer 2026-10-18 19:47, 20:02; E4a g50t, ka59). The fake ARC game,
-C-seed-X.
+"""ALPHA-LAST (TETHER_ALPHA_LAST; the reviewer 2026-10-18 19:47, 20:02; E4a g50t, ka59). The
+fake ARC game, C-seed-X.
 
-  MF   a slot with history is dropped from the CURRENT alphabet (a departure) and priced as sweep prices it
-       (_left over its history). Arm OFF: KeyError. Arm ON: no raise, and the value equals the one computed
-       before the drop. A slot never seen still raises with the arm ON
-  ID   a short same-seed run, arm ON vs OFF: every ledger row but the arm-state header is identical in
-       sequence (no departed-slot read occurs in it, so nothing may differ)
+  MF   a slot with history is dropped from the CURRENT alphabet (a departure) and priced as
+       sweep prices it (_left over its history). Arm OFF: KeyError. Arm ON: no raise, and the
+       value equals the one computed before the drop. A slot never seen still raises with the
+       arm ON
+  ID   a short same-seed run, arm ON vs OFF: every ledger row but the arm-state header is
+       identical in sequence (no departed-slot read occurs in it, so nothing may differ)
 
     python test_alpha_last.py
 """
@@ -70,8 +71,8 @@ def main() -> int:
         pass
     else:
         raise AssertionError("a slot never seen did not raise with the arm ON")
-    print(f"  MF ON: {s} departed, _left over {len(hist)} history rows = {v1} (before the drop {v0}); "
-          f"a never-seen slot still raises")
+    print(f"  MF ON: {s} departed, _left over {len(hist)} history rows = {v1} "
+          f"(before the drop {v0}); a never-seen slot still raises")
     tether._ALPHA_LAST = False
     ag.alphabet = ag._with_last(cur)
     try:
@@ -81,8 +82,8 @@ def main() -> int:
     else:
         raise AssertionError("MF did not fail: the arm OFF priced a departed slot")
     on, off = child(True), child(False)
-    assert on == off, next(((i, a, b) for i, (a, b) in enumerate(zip(on, off, strict=False)) if a != b),
-                           (len(on), len(off)))
+    assert on == off, next(((i, a, b) for i, (a, b) in enumerate(zip(on, off, strict=False))
+                            if a != b), (len(on), len(off)))
     print(f"  ID: {len(on)} ledger rows identical, arm ON vs OFF (same seed)")
     print("alpha_last: OK")
     return 0
