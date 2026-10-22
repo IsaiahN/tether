@@ -45,7 +45,9 @@ BIRTH = ("seed", "seed_source")
 # Fields that record WALL TIME, which no two runs share: (event, field). The same one list for every
 # comparer, imported and never copied (the reviewer 2026-10-21 23:16, 23:27; as BIRTH). A field is
 # added here only if it is a timing; any other difference still fails.
-TIMINGS = (("goal_hypotheses", "wall_s"),)   # tether 5955, under TETHER_HYP_DRAW
+TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRAW
+           ("muse", "compute_ms"),           # tether 6328, 6358
+           ("cap_mid_step", "overrun_s"))    # tether 2998, wall at the cap minus the deadline
 
 
 def mask_timings(rows: list[dict]) -> list[dict]:

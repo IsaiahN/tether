@@ -10,7 +10,11 @@ states bet on GROUND outcomes and each bet settles only at a level or game endin
      parked slot that never moves again settles None, where the last-bet rule read it right;
   D1. a plan bet is about the ground: the same bet settles right on "level_advance", wrong on
       "death";
-  OFF/ON: every row but the process rows is identical (seq stripped), so nothing chooses from it.
+  OFF/ON: every row but the process rows is identical, so nothing chooses from it -- read by
+     conform/identity_mod_rows.compare, which maps every position field through the inserted
+     rows' shift and applies the shared BIRTH and TIMINGS masks (the reviewer 2026-10-22 00:45).
+     The test's own strip dropped only seq and shadow.recorded_before, so resolution's
+     signal_seq (shifted by the process rows) failed it (83 vs 80 on seed 5).
 
     python test_d13.py
 """
@@ -28,6 +32,8 @@ import tether
 import world
 
 sys.dont_write_bytecode = True
+sys.path.insert(0, "conform")
+from identity_mod_rows import compare  # noqa: E402  the one identity reader, imported
 
 made: list = []
 real_init, real_settle = tether.Agent.__init__, tether.Agent._settle_process
@@ -58,18 +64,20 @@ def _ladder(seed: int, on: bool) -> list:
     return made[0].led.rows()
 
 
-def _strip(rows):
-    out = []
-    for r in rows:
-        if r["event"] in ("process_bet", "process_settle", "arms"):
-            continue
-        r = {k: v for k, v in r.items() if k != "seq"}
-        r["detail"] = {k: v for k, v in r["detail"].items() if k != "seq"}
-        if isinstance(r["detail"].get("shadow"), dict):          # a row index, shifted too
-            r["detail"]["shadow"] = {k: v for k, v in r["detail"]["shadow"].items()
-                                     if k != "recorded_before"}
-        out.append(json.dumps(r, sort_keys=True, default=str))
-    return out
+PROCESS = {"process_bet", "process_settle"}
+
+
+def _same(off: list, on: list) -> list[str]:
+    """compare() over OFF and ON with the process rows dropped. The arm lists differ by design, and
+    so do files_sha / n_files: the two agents run in one process, which imports more modules by
+    the second (the hash covers the imported set)."""
+    off, on = (json.loads(json.dumps(rs, default=str)) for rs in (off, on))
+    for rs in (off, on):
+        for r in rs:
+            if r["event"] == "arms" and r["slot"] == "@run":
+                for k in ("on", "off", "files_sha", "n_files"):
+                    r["detail"].pop(k, None)
+    return compare(off, on, PROCESS)
 
 
 def _agent():
@@ -96,8 +104,10 @@ if __name__ == "__main__":
         print(f"  must-pass seed {seed}: bets {dict(kinds)}, stalls {dict(stalls)}; settled "
               f"{dict(verdict)}")
         off = _ladder(seed, False)
-        assert _strip(on) == _strip(off)
-        print(f"  OFF/ON seed {seed}: {len(_strip(on))} rows identical but for the process rows")
+        bad = _same(off, on)
+        assert not bad, bad[:3]
+        print(f"  OFF/ON seed {seed}: {len(off)} rows identical but for the {len(on) - len(off)} "
+              "process rows (positions mapped, timings masked)")
     print(f"  D3-a: {len(inside)} settles, every one from {sorted(set(inside))}")
     tether.Agent.__init__ = real_init
     tether.Agent._settle_process = real_settle
