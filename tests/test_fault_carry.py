@@ -150,7 +150,10 @@ print(json.dumps(out))
 
 def run(code: str, *args: str, **arms) -> object:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-    env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0", **arms)
+    # item 4 alone: a game that ENDS on its fault; (B)'s recovered path is test_fault_recover's
+    env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0",
+               TETHER_FAULT_RECOVER="0")
+    env.update(arms)
     p = subprocess.run([sys.executable, "-B", "-c", code, HERE, *args], capture_output=True,
                        text=True, env=env, cwd=HERE, stdin=subprocess.DEVNULL, timeout=900)
     assert p.returncode == 0, p.stderr[-3000:]

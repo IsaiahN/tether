@@ -175,12 +175,30 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     # C-cleanup-1 (the reviewer 2026-10-15 08:07): arc_atoms._ITERATE, tether._SHAPE_DECODE and
     # arc_percept._SHAPE_DELTA were forced ON here for the ARC path; since the flip (Isaiah
     # 2026-10-15 07:53) their module defaults are ON, so the forced sets only hid an OFF switch.
+    env = world_on(w, game, palette, on_frame)
+    led = ledger.Ledger(led_path)  # a path streams every row to jsonl as it is recorded
+    ag, loaded = wire_agent(env, game, cfg, led, library, lineage_dir)
+    return env, ag, led, board, palette, loaded
+
+
+def world_on(w, game: str, palette: int, on_frame=None):
+    """wire()'s world half. (B) builds a fresh one on the SAME ResetGuard-wrapped wrapper:
+    ArcWorld's constructor takes the wrapper's observation_space, so a live wrapper is never
+    reset by it."""
     # the code primitives, the SAME objects for every game in the process under TETHER_ATOMS_ONCE
     env = ArcWorld(w, arc_percept.Objects(),
                    gamma.primitives_once(arc_atoms.three_spaces(arc_predict.predict())),
                    palette=palette, name=game)
     env.on_frame = on_frame     # seat-side tap for §13 step 4's verifier; None on a normal run
-    led = ledger.Ledger(led_path)  # a path streams every row to jsonl as it is recorded
+    return env
+
+
+def wire_agent(env, game: str, cfg: Any, led, library: str | None, lineage_dir: str | None,
+               clock: tuple | None = None):
+    """wire()'s agent half: the agent on a world and a ledger, its library or lineage load and the
+    game-start consolidation. (B)'s fresh agent is built here on the SAME ledger object (wire()
+    opens a new Ledger, which truncates its file), with the harness's clock (cycle, deadline) set
+    before its load writes a row."""
     # **THE CONFIG IS THE CALLER'S TO SUPPLY, AND THE REASON IS `max_depth`.** This hardcoded
     # one, so the only way to change a search bound on the ARC path was to edit the DEFAULT --
     # which both harnesses share. And `Config.max_depth`'s own anchor says what that costs:
@@ -213,6 +231,8 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     if cfg is None:
         cfg = tether.Config(max_depth=4, work_budget=ARC_WORK_BUDGET)
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)
+    if clock is not None:
+        ag.cycle, ag.deadline = clock
     # under the carry a library= row whose content was its operand is HELD unbound, as the
     # lineage holds it, never destroyed onto its atom (F420); OFF, as it was
     loaded = (ag.gamma.load(library, hold_unbound=lineage._CARRY)
@@ -228,7 +248,7 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
         # CONSOLIDATION's backstop: a game's start folds whatever an earlier game in this process
         # left in the bound stores, after the record has loaded
         ag._consolidate("game_start")
-    return env, ag, led, board, palette, loaded
+    return ag, loaded
 
 
 LOSSY = ("no standing: settled_on and settled_at are not written (gamma.save keeps only a stamp's "
@@ -240,20 +260,39 @@ LOSSY = ("no standing: settled_on and settled_at are not written (gamma.save kee
 GAME_PACKAGES = ("arc_agi", "arcengine")    # a fault raised inside these is the game's, not ours
 
 
-def note_fault(ag: Any, e: BaseException, led_path: str | None) -> bool:
-    """Item 4: an Exception from ag.step(). False when a frame lies inside the game's own packages
-    (not the agent's fault: re-raised as before). Else one "@run" "agent_fault" row (type,
-    message, the innermost repo frame, the cycle), the whole traceback beside the ledger, and the
-    agent marked with the faulted cycle, which its generation leaves out ((C3), lineage._write)."""
+def fault_site(e: BaseException) -> tuple[bool, str | None]:
+    """(in the game's own packages, the innermost repo frame as file:line) of an exception."""
     import traceback
     frames = traceback.extract_tb(e.__traceback__)
     if any(any(f"{os.sep}{pk}{os.sep}" in f.filename or f"/{pk}/" in f.filename
                for pk in GAME_PACKAGES) for f in frames):
-        return False
+        return True, None
     root = os.path.dirname(os.path.abspath(__file__))
     mine = [f for f in frames if os.path.abspath(f.filename).startswith(root)]
     site = f"{os.path.relpath(mine[-1].filename, root)}:{mine[-1].lineno}" if mine else None
-    k = len(getattr(ag, "_faults", ())) + 1
+    return False, site
+
+
+def fault_key(e: BaseException) -> tuple:
+    """(B)'s repeat key: the type and the innermost repo frame; a MemoryError by its type alone,
+    since its frame moves with whatever allocated last (the reviewer 2026-10-22 15:17, (C4))."""
+    if isinstance(e, MemoryError):
+        return (type(e).__name__,)
+    return (type(e).__name__, fault_site(e)[1])
+
+
+def note_fault(ag: Any, e: BaseException, led_path: str | None, k: int | None = None,
+               repeat: bool | None = None) -> bool:
+    """Item 4: an Exception from ag.step(). False when a frame lies inside the game's own packages
+    (not the agent's fault: re-raised as before). Else one "@run" "agent_fault" row (type,
+    message, the innermost repo frame, the cycle), the whole traceback beside the ledger, and the
+    agent marked with the faulted cycle, which its generation leaves out ((C3), lineage._write).
+    (B) passes k, the fault's number in this game, and repeat."""
+    import traceback
+    in_game, site = fault_site(e)
+    if in_game:
+        return False
+    k = k if k is not None else len(getattr(ag, "_faults", ())) + 1
     tb_path = f"{led_path}.fault{k}.txt" if led_path else None
     if tb_path:
         with open(tb_path, "w", encoding="utf-8", newline="\n") as fh:
@@ -262,8 +301,73 @@ def note_fault(ag: Any, e: BaseException, led_path: str | None) -> bool:
     ag._fault_cycle, ag._fault_text = ag.cycle, f"{type(e).__name__}: {e}"
     ag.led.record(ag.cycle, "SETTLE", "@run", "agent_fault", type=type(e).__name__,
                   message=str(e)[:300], site=site, traceback=tb_path,
+                  **({} if repeat is None else {"repeat": repeat}),
                   reads="the agent's own code raised: a defect, recorded and never silent")
     return True
+
+
+def end_path(ag: Any, env: Any, game: str, library: str | None, save_only_dir: str | None,
+             led_path: str | None, lineage_dir: str | None, fault: bool) -> tuple:
+    """play()'s end path: end_run, the library save, the stop-loss and the lineage generation.
+    After an agent fault (item 4) each part runs guarded (a failure is a row, never a second
+    raise), the ending is agent_fault, and the library is replaced only by a save that loads back.
+    (B) runs it on the faulted agent before the fresh one loads what it wrote."""
+    part = (lambda f, *a: guarded(ag, f, *a)) if fault else (lambda f, *a: f(*a))
+    part(ag.end_run, ledger.AGENT_FAULT if fault else "cap")   # MC2
+    rows = ag.led.rows()        # play's report reads the ledger as it stood here
+    saved = None
+    if library:
+        saved = (part(checked_save, ag.gamma, library, env, game) if fault
+                 else ag.gamma.save(library))
+    saved_only = part(save_only, ag, save_only_dir, game, led_path)
+    # (b'-g) the boundary's generation, beside the stop-loss (lineage.py)
+    lineage_gen = (part(lineage.write, lineage_dir, ag, game)
+                   if lineage._CARRY and lineage_dir else None)
+    return rows, saved, saved_only, lineage_gen
+
+
+def step_or_recover(env: Any, ag: Any, ctx: dict) -> tuple:
+    """(B), IN-GAME RECOVERY AFTER AN AGENT FAULT (Isaiah 2026-10-22 12:36-12:37; the design post
+    15:13, approved 15:17 with (C3), (C4)). One ag.step(). An Exception from the agent's own code
+    (never a BaseException, so a deadline cut is never a fault; never one with a frame inside the
+    game's packages, re-raised as before) is recorded (note_fault). Then:
+      - the same fault (fault_key) a second time in this game, or TETHER_FAULT_RECOVER off: the
+        fault is returned and the game ends into item 4's end path, as without (B);
+      - else the faulted agent's end path runs (item 4's checked save), a fresh world is built on
+        the SAME wrapper (no RESET: the board as the game holds it) and a fresh agent on the SAME
+        ledger loads what was written; only the harness's clock crosses (the cycle after the
+        faulted one, the deadline); the faulted agent is dropped.
+    ctx: game, cfg, library, lineage_dir, led_path, save_only_dir, palette; "faults" is kept in it.
+    Returns (env, ag, acted, fault): fault is None unless the game is to end on it."""
+    try:
+        return env, ag, ag.step(), None
+    except Exception as e:
+        if not tether._ERROR_CARRY:
+            raise
+        seen = ctx.setdefault("faults", [])
+        key = fault_key(e)
+        repeat = key in seen
+        if not note_fault(ag, e, ctx.get("led_path"), k=len(seen) + 1, repeat=repeat):
+            raise
+        seen.append(key)
+        if repeat or not tether._FAULT_RECOVER:
+            return env, ag, False, e
+    end_path(ag, env, ctx["game"], ctx.get("library"), ctx.get("save_only_dir"),
+             ctx.get("led_path"), ctx.get("lineage_dir"), True)
+    cycle, deadline, led = ag._fault_cycle + 1, ag.deadline, ag.led
+    if ctx.get("keep_faulted") is not None:     # a test's hook: the discard step disabled (r3)
+        fresh_env, fresh = env, ctx["keep_faulted"](ag)
+        fresh.cycle, fresh.deadline = cycle, deadline
+    else:
+        fresh_env = world_on(env.w, ctx["game"], ctx["palette"], env.on_frame)
+        fresh, _loaded = wire_agent(fresh_env, ctx["game"], ctx.get("cfg"), led,
+                                    ctx.get("library"), ctx.get("lineage_dir"),
+                                    clock=(cycle, deadline))
+    led.record(cycle, "SETTLE", "@run", "fault_recovered", fault=len(seen),
+               parent=getattr(fresh, "lineage_parent", None),
+               reads="(B): a fresh agent loaded from the checked save goes on in the same game, on "
+                     "the board as the game holds it; nothing of the faulted agent's state crossed")
+    return fresh_env, fresh, False, None
 
 
 def guarded(ag: Any, fn, *a):
@@ -381,6 +485,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     lv_seen = env.levels()[0] if (lineage._BOUNDARY or tether._LEVEL_EDGE) else 0
     bounds = []
     fault = None           # item 4: an agent fault ends the loop into a guarded end path
+    ctx = {"game": game, "cfg": cfg, "library": library, "lineage_dir": lineage_dir,
+           "led_path": led_path, "save_only_dir": save_only_dir, "palette": palette}
     for _ in range(cycles):
         state = env.observe()
         # THE UNIT. `step` returns False when no action was proposed, and after the first
@@ -393,13 +499,10 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         # question -- `Budget.exhausted()` and `Termination`'s `cap` ending exist for it and
         # neither is wired here. Deciding that would change what a run IS; this only makes
         # the unit readable.
-        try:
-            acted = ag.step()  # the world notes contact inside `step`, on its own before/after
-        except Exception as e:
-            if not tether._ERROR_CARRY or not note_fault(ag, e, led_path):
-                raise
-            fault = e          # item 4: the agent's own code raised; the end path below
-            break
+        # the world notes contact inside `step`, on its own before/after; (B) recovers a fault
+        env, ag, acted, fault = step_or_recover(env, ag, ctx)
+        if fault is not None:
+            break              # item 4: a repeat (or (B) off): the end path below
         if acted:
             bud.spend()
         # §21.1's control: the state BEFORE the action, the action, and what it cost. A
@@ -460,20 +563,9 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
 
     if tether._END_RESERVE:
         ag._end_path_t0 = time.perf_counter()    # C1 (A)'s reserve: the end path is timed whole
-    # item 4: after an agent fault each part of the end path runs guarded (a failure is a row,
-    # never a second raise), the game ends as agent_fault, and the library is replaced only by a
-    # save that loads back; with no fault every part runs as before
-    part = (lambda f, *a: guarded(ag, f, *a)) if fault is not None else (lambda f, *a: f(*a))
-    part(ag.end_run, ledger.AGENT_FAULT if fault is not None else "cap")   # MC2
-    rows = led.rows()
+    rows, saved, saved_only, lineage_gen = end_path(ag, env, game, library, save_only_dir,
+                                                    led_path, lineage_dir, fault is not None)
     g = ag.gamma
-    saved = None
-    if library:
-        saved = part(checked_save, g, library, env, game) if fault is not None else g.save(library)
-    saved_only = part(save_only, ag, save_only_dir, game, led_path)
-    # (b'-g) the boundary's generation, beside the stop-loss (lineage.py)
-    lineage_gen = (part(lineage.write, lineage_dir, ag, game)
-                   if lineage._CARRY and lineage_dir else None)
     if tether._END_RESERVE:
         led.record(ag.cycle, "SETTLE", "@run", "end_path",
                    wall_s=round(time.perf_counter() - ag._end_path_t0, 3),

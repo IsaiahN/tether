@@ -38,6 +38,7 @@ JUDGED_ON_ANOTHER_ACT = "judged-on-another-act"
 ALIASED = "aliased"
 RESOLVED_NON_SIGNAL = "resolved-non-signal"
 RESOLVED_TWICE = "resolved-twice"
+AGENT_FAULT = "agent-fault"
 
 # KEPT IN STEP WITH `ledger.STEPS`, WHICH IS THE DUPLICATION AND NOT A CHOICE MADE HERE.
 # The gate is meant to be readable without importing the thing it checks, so the constant is
@@ -66,7 +67,8 @@ def _v(check: str, token: str, seq: int | None = None, note: str = "") -> dict:
 def check(rows: list[dict]) -> dict:
     """Returns {"verdict": pass|refuse, ...}. The FIRST refusal is the named one."""
     for fn in (_mode, _steps, _inputs, _routing, _guards, _settlement, _filters, _cuts,
-               _unreached, _experiment, _refusals, _abandonments, _aliasing, _resolutions):
+               _unreached, _experiment, _refusals, _abandonments, _aliasing, _resolutions,
+               _faults):
         out = fn(rows)
         if out is not None:
             return out
@@ -210,6 +212,15 @@ def _filters(rows: list[dict]) -> dict | None:
             v = str(d.get("verdict", "")).lower()
             if v in ABSOLUTE or v == "":
                 return _v("filters", FILTER_VERDICT, r.get("seq"), v or "(none)")
+    return None
+
+
+def _faults(rows: list[dict]) -> dict | None:
+    """(B). An agent fault is a defect, whatever came after it: a recovered game still FAILS
+    here, so a fault is never read as a quiet recovery (10-14's R5)."""
+    for r in rows:
+        if r.get("event") == "agent_fault":
+            return _v("faults", AGENT_FAULT, r.get("seq"), str(r.get("detail", {}).get("site")))
     return None
 
 

@@ -1066,6 +1066,16 @@ ARMS: dict[str, str] = {
                           "that loads back, the generation without the faulted cycle's stamped "
                           "entries and written only if it reads back; then re-raised. OFF: the "
                           "fault leaves play at once and nothing is written. default ON",
+    "TETHER_FAULT_RECOVER": "(B), IN-GAME RECOVERY AFTER AN AGENT FAULT (the design post "
+                            "2026-10-22 15:13; the reviewer 15:17 (C3), (C4)): "
+                            "arc_holdout.step_or_recover, at play's and e4_stream's step: "
+                            "after an agent fault (item 4's row and checked save) a fresh "
+                            "world on the same wrapper (no RESET) and a fresh agent on the "
+                            "same ledger load the checked "
+                            "save; only the cycle and the deadline cross; the same fault "
+                            "again (type + innermost repo frame; a MemoryError by type) ends "
+                            "the game. OFF: the first fault ends the game, as item 4 alone. "
+                            "default ON",
     "TETHER_END_RESERVE": "C1 (A)'s END-PATH RESERVE (the reviewer 2026-10-22 14:27, 15:34): "
                           "thinking stops at the deadline less the agent's own latest measured "
                           "end-path wall (stored in the memory store's meta after the game's "

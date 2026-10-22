@@ -840,6 +840,9 @@ _END_RESERVE = armflag.arm("TETHER_END_RESERVE", default=True)
 # item 4 (the design post 2026-10-22 15:14; the reviewer 15:17 (C3)): an agent fault in play
 # writes the game's learning only if it reads back, without the faulted cycle's own entries
 _ERROR_CARRY = armflag.arm("TETHER_ERROR_CARRY", default=True)
+# (B): after an agent fault the same game goes on with a fresh agent loaded from the checked
+# save (arc_holdout.step_or_recover); OFF, the fault ends the game as item 4 alone does
+_FAULT_RECOVER = armflag.arm("TETHER_FAULT_RECOVER", default=True)
 # C1a, A PAIR OWNER IS NOT AN OBJECT NAME (the reviewer 2026-10-17 14:24; Fig 5 mis-attached): a
 # library lookup bound pair owners ("o0~o1") into an entry's object names; the condition grammar
 # has no "~" identifier, so every such candidate refused at parse -- 88% of lf52 cycle 2's
