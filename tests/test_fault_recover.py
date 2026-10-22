@@ -260,7 +260,8 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, sys.argv[1]); os.chdir(sys.argv[1])
 sys.path.insert(1, os.path.join(sys.argv[1], "tests"))
 sys.path.insert(2, os.path.join(sys.argv[1], "conform"))
-import json, arc_holdout, gate, ledger, lineage, tether     # the CHILD's set: its arms row equal
+import json, arc_holdout, gate, ledger, lineage, lineage_store, tether  # the CHILD's set at its
+#                                                    fault (its arms row lists the loaded modules)
 from identity_mod_rows import compare
 from test_entry import FakeWrapper, GameState
 tether._AGENT_SEED = False
