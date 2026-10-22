@@ -751,8 +751,11 @@ _PAIR_NOT_OBJECT = armflag.arm("TETHER_PAIR_NOT_OBJECT", default=True)
 # object), and owed slots are asked first next step. OFF: no bound (3a8238c)
 _STEP_BUDGET = armflag.arm("TETHER_STEP_BUDGET", default=True)
 # a DECLARED convention (Fig 10), visible and movable, never tuned to a board: the median step's
-# whole lookup work on lf52 (4666226, 12 steps: 13.1 s at ~14 us), so half the steps run as today
-STEP_BUDGET = 1_000_000
+# whole lookup work on lf52 (4666226, 12 steps: 13.1 s at ~14 us), so half the steps run as today.
+# K-W, 1,000,000 -> 50,000 (Isaiah 2026-10-21 18:58, via the reviewer 19:02; measured S2W, S3G: a
+# step's lookups past it are OWED and asked first next step). A VALUE: TETHER_STEP_BUDGET_N
+# overrides it, 1000000 restores the old pacing (317879c)
+STEP_BUDGET = int(os.environ.get("TETHER_STEP_BUDGET_N", "50000"))
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
 # is stored with every landing, and the lit list is TIERS, an order, never a cut: T1a-c what landed

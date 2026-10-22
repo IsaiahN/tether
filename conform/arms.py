@@ -864,7 +864,8 @@ ARMS: dict[str, str] = {
                           "OFF: the step runs to its end whatever the clock (e77a982). "
                           "default ON",
     "TETHER_STEP_BUDGET": "C1 (the reviewer 2026-10-17 14:12, 15:36): each step spends at most "
-                          "STEP_BUDGET = 1,000,000 evaluations (an entry x role x pairing call or "
+                          "STEP_BUDGET evaluations (50,000 since Isaiah 10-21 18:58; "
+                          "TETHER_STEP_BUDGET_N; an entry x role x pairing call or "
                           "a row it yields), checked between lookups as the cap is; a lookup "
                           "not run is recorded (budget_owed) under its question's id and its "
                           "slot owes, asked first next step; one @budget row per step with the "
@@ -1425,6 +1426,13 @@ _NO_ENV = type("armflag", (), {"arm": staticmethod(lambda _name, default=False: 
 VALUES = {"TETHER_SEED_FROM": "a REPLAY: the path of a record (a ledger or a lineage generation) "
                               "whose recorded seed and generation the agent reads; never a seed "
                               "value (HOLD_SEED, the reviewer 2026-10-15 15:04)",
+          "TETHER_STEP_BUDGET_N": "a COUNT: K-W, the per-step lookup budget tether.STEP_BUDGET "
+                                  "(default 50,000, Isaiah 2026-10-21 18:58; 1000000 restores "
+                                  "the old pacing); never on/off",
+          "TETHER_WORK_BUDGET_N": "a COUNT: K-M, the ARC path's mint work budget "
+                                  "(arc_holdout.ARC_WORK_BUDGET, default 5,000, Isaiah "
+                                  "2026-10-21 18:58; 15000 restores the old pacing; the toy "
+                                  "world's Config() keeps 15,000); never on/off",
           "TETHER_CONSOLIDATE_CEILING": "a BYTE COUNT: a fixture's lowered per-process ceiling "
                                         "for CONSOLIDATION's size trigger (tether._fold_ceiling, "
                                         "test_consolidate CON-5); never on/off (the reviewer "

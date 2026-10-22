@@ -28,6 +28,7 @@ import collections
 import hashlib
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -194,7 +195,7 @@ def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
     # 4 widens the whole ARC search, not only the folds, and the run that would price it is
     # still prohibited.
     if cfg is None:
-        cfg = tether.Config(max_depth=4)
+        cfg = tether.Config(max_depth=4, work_budget=ARC_WORK_BUDGET)
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)
     # under the carry a library= row whose content was its operand is HELD unbound, as the
     # lineage holds it, never destroyed onto its atom (F420); OFF, as it was
@@ -246,6 +247,14 @@ def save_only(ag: Any, out_dir: str | None, game: str, led_path: str | None) -> 
         "saved_by": "arc_holdout.save_only", "lossy": LOSSY, "world": world, "game": game,
         "head": hdr.get("head"), "tree": hdr.get("tree"), "dirty": hdr.get("dirty"),
         "files_sha": hdr.get("files_sha"), "arms_sha": arms, "ledger": str(led_path)})
+
+
+# K-M, A MINT'S WORK BUDGET ON THE ARC PATH, 15,000 -> 5,000 (Isaiah 2026-10-21 18:58, via the
+# reviewer 19:02; measured S2W, S2X, S3G: a mint walks a third as far, the finds lost named). Set
+# here, as max_depth=4 is, so the toy world's Config() keeps 15,000 and its falsifier (~13,298
+# candidates to dbl.neg.inc.wrap) is never truncated. A VALUE: TETHER_WORK_BUDGET_N overrides it,
+# 15000 restores the old pacing (317879c)
+ARC_WORK_BUDGET = int(os.environ.get("TETHER_WORK_BUDGET_N", "5000"))
 
 
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
