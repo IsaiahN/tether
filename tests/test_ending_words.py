@@ -28,6 +28,7 @@ EXEMPT = {
     "contest_read.py": "a cell field named win, not an ending word",
     "contest_table.py": "a cell field named win, not an ending word",
     "tests/test_ending_words.py": "this check names the words it forbids",
+    "tests/test_stream_win.py": "quotes the pre-F1b line as its must-fail target",
 }
 BARE = re.compile(r"""["'](advance|win)["']""")
 
