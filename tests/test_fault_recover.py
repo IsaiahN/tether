@@ -287,6 +287,7 @@ board.pos, board.n, board.calls = b["pos"], b["n"], b["calls"]
 board._frame(GameState[b["state"]])
 env = arc_holdout.world_on(arc_holdout.ResetGuard(board), "fake", int(sys.argv[4]), None)
 led = ledger.Ledger(None)
+tether._library()   # the library module, loaded once per process: the child's was, at its fault
 files = repo_files()
 ag, _l = arc_holdout.wire_agent(env, "fake", None, led, None, d,
                                 clock=(int(sys.argv[5]), json.loads(sys.argv[6])))
