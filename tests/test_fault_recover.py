@@ -98,6 +98,17 @@ def digest(ag):
     return out
 
 
+def repo_files():
+    """the project .py files imported now, as instruments.Attribution.code() takes them"""
+    import os
+    import sys
+    root = os.path.normcase(os.getcwd()) + os.sep
+    return sorted({os.path.relpath(os.path.abspath(f)) for m in list(sys.modules.values())
+                   if isinstance(f := getattr(m, "__file__", None), str) and f.endswith(".py")
+                   and os.path.normcase(os.path.abspath(f)).startswith(root)
+                   and ".venv" not in os.path.relpath(f).split(os.sep)})
+
+
 def mask_fold(rows):
     """the game-start fold's counts of what an EARLIER agent in the process left, which it clears
     (tether._consolidate); "after" stays"""
@@ -190,6 +201,7 @@ def wa(env, game, cfg, led_obj, library, lineage_dir, clock=None):
             wi = arc_holdout.ResetGuard(copy.deepcopy(env.w.w))   # a guard does not deep-copy
             ei = arc_holdout.world_on(wi, game, env._palette, None)
             li = ledger.Ledger(None)
+            hook.setdefault("files0", repo_files())
             ai, _l = real_wa(ei, game, cfg, li, library, di, clock=clock)
             ei.observe()
             real(ai)
@@ -250,7 +262,8 @@ out = {"raised": raised, "calls": calls[0], "ended": ended,
        "digest": hook.get("digest"), "snap": hook.get("snap"), "board": hook.get("board"),
        "clock": hook.get("clock"), "palette": hook.get("palette"),
        "prefix_ok": whole.startswith(hook["prefix"]) if "prefix" in hook else None,
-       "prefix_len": len(hook.get("prefix", b"")), "resets": hook.get("resets")}
+       "prefix_len": len(hook.get("prefix", b"")), "resets": hook.get("resets"),
+       "files0": hook.get("files0")}
 print(json.dumps(out, default=str))
 '''
 
@@ -274,6 +287,7 @@ board.pos, board.n, board.calls = b["pos"], b["n"], b["calls"]
 board._frame(GameState[b["state"]])
 env = arc_holdout.world_on(arc_holdout.ResetGuard(board), "fake", int(sys.argv[4]), None)
 led = ledger.Ledger(None)
+files = repo_files()
 ag, _l = arc_holdout.wire_agent(env, "fake", None, led, None, d,
                                 clock=(int(sys.argv[5]), json.loads(sys.argv[6])))
 dg = digest(ag)
@@ -281,7 +295,7 @@ env.observe()
 ag.step()
 rows = led.rows()
 cleared = mask_fold(rows)
-print(json.dumps({"digest": dg, "rows": rows, "cleared": cleared}, default=str))
+print(json.dumps({"digest": dg, "rows": rows, "cleared": cleared, "files": files}, default=str))
 '''
 
 
@@ -341,7 +355,9 @@ def main() -> int:
     assert not d2, ("r2b: the fresh agent's step differs from a cold process's", d2,
                     {k: (sorted(set(a0[k]) - set(a1[k])), sorted(set(a1[k]) - set(a0[k])))
                      for k in ("modules", "not_loaded", "on", "off")
-                     if isinstance(a0.get(k), list)})
+                     if isinstance(a0.get(k), list)},
+                    {"files": (sorted(set(r["files0"]) - set(c["files"])),
+                               sorted(set(c["files"]) - set(r["files0"])))})
     print(f"  r2b the fresh agent's next step and a cold process's on the same board from the same "
           f"save: {len(c['rows'])} rows equal (the cold fold cleared {c['cleared']})")
     assert r["marker_after"] is False, ("r3: the faulted agent's binding crossed", r)
