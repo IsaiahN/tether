@@ -255,15 +255,15 @@ _CARRY_CANDIDATE = not armflag.arm("TETHER_NO_CARRY_CANDIDATE")
 # model was right, nothing owed"; Fig 9 :45): a library-served term bound by the route (REBIND or
 # compete) that makes the slot's bet and SETTLES credits explain() as a mint's bound winner does --
 # base under the holder it replaced minus its own leftover, over the history at the bind. OFF: a
-# served slot keeps its whole past surprise as outstanding, as before (116481a). Off until
-# Isaiah rules.
-_LIBRARY_EXPLAINS = armflag.arm("TETHER_LIBRARY_EXPLAINS")
+# served slot keeps its whole past surprise as outstanding, as before (116481a). ON by Isaiah
+# 2026-10-22 03:50 / 04:01.
+_LIBRARY_EXPLAINS = armflag.arm("TETHER_LIBRARY_EXPLAINS", default=True)
 # STABILITY / AGE, THE NARROW ARM (B) (the reviewer 2026-10-21 21:52, 2026-10-22 02:13): the slots
 # the world's own clock writes (env.own_counted(): age, stability) are counters of our own
 # bookkeeping. ON: never minted for or bound, their misses never charged to outstanding or the
 # integral (already counted on the slots they derive from), still BET by the own clock and
-# recorded. OFF: as at 116481a. Off until Isaiah rules.
-_OWN_COUNTERS_DERIVED = armflag.arm("TETHER_OWN_COUNTERS_DERIVED")
+# recorded. OFF: as at 116481a. ON by Isaiah 2026-10-22 03:50 / 04:01.
+_OWN_COUNTERS_DERIVED = armflag.arm("TETHER_OWN_COUNTERS_DERIVED", default=True)
 # WHAT A SEARCH HAS ALREADY PRICED -- reviewer 2026-10-07, plan item 7. Under an unchanged scope key
 # a chain prices the same way again, so a re-run of a search that stopped at the budget spends the
 # budget re-reading what it already refused. The cue reorders ties every cycle, so the frontier is

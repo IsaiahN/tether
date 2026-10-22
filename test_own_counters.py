@@ -8,8 +8,9 @@ own bookkeeping: never minted for or bound, their misses never charged, still be
        these steps) gets an "own_counter_unminted" row and no MINT row; OFF mints for it.
   OC3  ON: the fake ARC game's own-clock bet rows on age / stability are still written, the
        same rows as OFF.
-  ID   OFF: the fake ARC game's ledger on this tree equals the one at 116481a (the main checkout),
-       read by conform/identity_mod_rows.compare past the @run header.
+  ID   OFF (both arms of the merge off): the fake ARC game's ledger on this tree equals the main
+       checkout's, read by conform/identity_mod_rows.compare past the @run header. Read against
+       116481a at the merge, before the main checkout moved; after it, a determinism check.
 
     python test_own_counters.py
 """
@@ -28,7 +29,7 @@ import world
 
 sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
-MAIN = os.environ.get("TETHER_MAIN_CHECKOUT", "C:/Users/Admin/Documents/GitHub/tether")
+MAIN = "C:/Users/Admin/Documents/GitHub/tether"
 sys.path.insert(0, os.path.join(HERE, "conform"))
 from identity_mod_rows import compare  # noqa: E402  the one identity reader, imported
 
@@ -39,8 +40,9 @@ sys.path.insert(0, sys.argv[1]); os.chdir(sys.argv[1])
 import tether, tether_agent
 from test_entry import FakeWrapper
 tether._AGENT_SEED = False
-if hasattr(tether, "_OWN_COUNTERS_DERIVED"):
-    tether._OWN_COUNTERS_DERIVED = sys.argv[2] == "on"
+for _a in ("_OWN_COUNTERS_DERIVED", "_LIBRARY_EXPLAINS"):
+    if hasattr(tether, _a):
+        setattr(tether, _a, sys.argv[2] == "on")
 led = os.path.join(tempfile.mkdtemp(), "r.jsonl")
 tether_agent.run(FakeWrapper(script={}), "fake", max_actions=12, led_path=led)
 print(led)
