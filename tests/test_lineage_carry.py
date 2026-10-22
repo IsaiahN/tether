@@ -34,11 +34,11 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 
 import arc_holdout  # noqa: E402
-import lineage_store  # noqa: E402  item 6: a lineage file read as the lineage reads it
 import gamma  # noqa: E402
 import gridworld  # noqa: E402
 import ledger  # noqa: E402
 import lineage  # noqa: E402
+import lineage_store  # noqa: E402  item 6: a lineage file read as the lineage reads it
 import tether  # noqa: E402
 import world  # noqa: E402
 from test_entry import FakeWrapper  # noqa: E402
