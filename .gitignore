@@ -32,3 +32,17 @@ replays/
 out/
 # packages handed over by Isaiah/the reviewer (cohesion_*.zip): unpacked, placed and committed as files, never as the archive.
 *.zip
+
+# THE LINEAGE NEVER GOES TO GITHUB (Isaiah 2026-10-21 19:23, the reviewer 19:26 (a)): the agent's
+# learning is written at run time into the lineage folder and starts empty on a fresh clone.
+lineage/
+memory.db
+memory.db-wal
+memory.db-shm
+gen_*.json
+idx_*.json
+ak_*.json
+RESTORE_LOG*.tsv
+*.dead-*
+# the editor's own settings (the reviewer 2026-10-21 19:38)
+.vscode/
