@@ -31,6 +31,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import armflag
+import cap
 from sensors import CELL, CELLS, NOT_RESOLVED, Cells
 
 sys.dont_write_bytecode = True
@@ -1764,6 +1765,7 @@ class Gamma:
         p_out: dict[str, int] = {}
         stated = 0
         for n, t in self.library.items():
+            cap.head()
             st = self.standing.get(n)
             p = sum(st.paid.values()) if st is not None else 0
             stated += p
@@ -1785,6 +1787,7 @@ class Gamma:
         cu = self.carried_used if _USED_CARRY else {}
         w = {}
         for u in units:
+            cap.head()
             k = unit_key(u.atoms)
             w[u.atoms] = mine.get(k, 0) + paid.get(k, 0) + cu.get(k, 0)
         rl = inherited.recipe_length()
@@ -1842,6 +1845,7 @@ class Gamma:
         seen = {a.name for a in self.atoms}
         out = [Term((a,), origin=PRIOR) for a in self.atoms]
         for t in self.settled_terms:
+            cap.head()
             if len(t) <= 1:
                 continue
             unit = Term(t.atoms, origin=t.origin)
@@ -1956,6 +1960,7 @@ class Gamma:
                 # AN UNCLOSED ITERATION IS NOT A TERM. Its value is a `Cells`, whatever the
                 # last atom's `out_type` says -- so it may only be emitted once a reducer has
                 # closed it, which is exactly `elem is None`.
+                cap.head()
                 if elem is None and cur == out_type:
                     if emitted >= budget:
                         spent = True
@@ -1983,6 +1988,7 @@ class Gamma:
                     # So the cut is on COMPOSITION, not on membership, and `_predict`'s fallback
                     # reads `library["idn"]` directly and is untouched.
                     for u in units:
+                        cap.head()
                         if any(a.name == IDN_NAME for a in (*chain, *u.atoms)):
                             continue
                         step = Gamma._iter_step(cur, elem, u)
@@ -2024,6 +2030,7 @@ class Gamma:
         # the chain and as each extension -- the closure's rule, not a separate policy
         live: dict[tuple, int] = {}
         for u in units:
+            cap.head()
             if not accepts_type(u, in_type) or (st := Gamma._iter_step(in_type, None, u)) is None:
                 continue
             total += st[1] is None and st[0] == out_type
@@ -2034,6 +2041,7 @@ class Gamma:
             nxt: dict[tuple, int] = {}
             for (cur, elem), n in live.items():
                 for u in free:
+                    cap.head()
                     if (st := Gamma._iter_step(cur, elem, u)) is not None:
                         nxt[st] = nxt.get(st, 0) + n
             live = nxt

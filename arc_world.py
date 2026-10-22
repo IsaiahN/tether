@@ -25,6 +25,7 @@ import arc_atoms
 import arc_percept
 import arc_self
 import armflag
+import cap
 import ledger
 import observer
 import relations
@@ -273,6 +274,7 @@ class ArcWorld:
         if fr is None or len(fr) < 2:
             return
         for g in fr[:-1]:
+            cap.head()
             if g is not None and len(g) and len(g[0]):
                 self._decompose(g)
 
@@ -302,7 +304,9 @@ class ArcWorld:
         tr = getattr(self._decompose, "tracked", None) or {}
         out: dict[str, int] = {}
         for a, partners in self.contacts().items():
+            cap.head()
             for b in partners:
+                cap.head()
                 if a < b and a in tr and b in tr:
                     out[f"{a}~{b}.contact"] = arc_percept.contact_faces(tr[a], tr[b])
         # THE BOUNDING-BOX OVERLAP SENSOR. `RELATIONS.md` Part 6 names it as the FIRST of three
@@ -330,8 +334,10 @@ class ArcWorld:
         # overlap -- so this is not the n^2 the pair space allows.
         names = sorted(tr)
         for i, a in enumerate(names):
+            cap.head()
             A = tr[a]
             for b in names[i + 1:]:
+                cap.head()
                 B = tr[b]
                 r = min(A["row"] + A["h"], B["row"] + B["h"]) - max(A["row"], B["row"])
                 c = min(A["col"] + A["w"], B["col"] + B["w"]) - max(A["col"], B["col"])
@@ -349,10 +355,12 @@ class ArcWorld:
         # DIRECTED, so both orders are asked: `a~b` means B IS INSIDE A. Containment is not
         # symmetric and a single unordered row would have made it so.
         for a in names:
+            cap.head()
             hole = arc_percept.enclosed_of(tr[a]["cells"])
             if not hole:
                 continue
             for b in names:
+                cap.head()
                 if b == a:
                     continue
                 cb = {tuple(c) for c in tr[b]["cells"]}
@@ -472,7 +480,9 @@ class ArcWorld:
             names = sorted(tr)
             out: dict[str, list[str]] = {n: [] for n in names}
             for i, a in enumerate(names):
+                cap.head()
                 for b in names[i + 1:]:
+                    cap.head()
                     if arc_percept.touching(tr[a], tr[b]):
                         out[a].append(b)
                         out[b].append(a)
@@ -512,7 +522,9 @@ class ArcWorld:
             names = sorted(tr)
             out = []
             for i, a in enumerate(names):
+                cap.head()
                 for b in names[i + 1:]:
+                    cap.head()
                     k = arc_percept.contact_kind(tr[a], tr[b])
                     if k is not None:
                         out.append((a, b, k))
@@ -802,6 +814,7 @@ class ArcWorld:
         """Each object's box read from SLOT values, so a predicted state derives as a seen one."""
         out = {}
         for o in objs:
+            cap.head()
             vals = [state.get(f"{o}.{k}") for k in ("row", "col", "h", "w")]
             if all(isinstance(v, int) for v in vals):
                 out[o] = dict(zip(("row", "col", "h", "w"), vals, strict=True))
@@ -854,6 +867,7 @@ class ArcWorld:
             return tuple(got)
         out = {k: through(v) for k, v in out.items()}
         for k in d:
+            cap.head()
             o, a = k.rsplit(".", 1)
             if a in _OBJ_DERIVED and f"{o}.shape" in d:
                 out[k] = tuple(f"{o}.{x}" for x in _OBJ_DERIVED[a])
@@ -878,6 +892,7 @@ class ArcWorld:
             return cells[o]
         out: dict[str, int] = {}
         for k in getattr(self, "_read", None) or {}:
+            cap.head()
             own, a = k.rsplit(".", 1)
             if a not in _OBS_PAIR or "~" not in own:
                 continue
@@ -913,6 +928,7 @@ class ArcWorld:
         colour compared."""
         out: dict[str, int] = {}
         for k, lab in state.items():
+            cap.head()
             o, a = k.rsplit(".", 1)
             if a != "shape":
                 continue

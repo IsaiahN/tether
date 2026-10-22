@@ -1052,6 +1052,17 @@ ARMS: dict[str, str] = {
                          "asked kind's rows at its first ask, the per-type sums and latest "
                          "seqs from its aggregates; closed before the game's checkpoint. OFF: "
                          "every carried dk key and its last seq in RAM from load. default ON",
+    "TETHER_CAP_INNER": "C1 (A), THE OVERRUN SAFETY NET (Isaiah 2026-10-22 12:36-12:37; the "
+                        "reviewer 15:17, 15:34, 15:40): cap.head() at every growing loop on the "
+                        "step path (278, tether.py and 12 modules), raising cap.CapReached (a "
+                        "BaseException) once the thinking deadline passes; one catch in step; "
+                        "no step after a cut; the end-path-read units held whole. OFF: the "
+                        "heads inert, only _cap_due's four points cut. default ON",
+    "TETHER_END_RESERVE": "C1 (A)'s END-PATH RESERVE (the reviewer 2026-10-22 14:27, 15:34): "
+                          "thinking stops at the deadline less the agent's own latest measured "
+                          "end-path wall (stored in the memory store's meta after the game's "
+                          "sleep, read at load; a boundary write never lowers it). OFF: no "
+                          "reserve, no end_path row or store write. default ON",
     "TETHER_W_HELD_LAZY": "W-3, THE HELD INDEX LAZY (the reviewer 2026-10-22 05:14 a, b, 06:37): "
                           "the store load reads the held keys only; each entry's items from the "
                           "load-time snapshot at its first ask; _INDEX_STORE evictable by W-2 for "

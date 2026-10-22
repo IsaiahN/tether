@@ -30,6 +30,7 @@ from functools import cache, partial, wraps
 from typing import Any
 
 import armflag
+import cap
 import compile_term
 import composer
 import condition
@@ -831,6 +832,11 @@ _CLOCK_DESC = armflag.arm("TETHER_CLOCK_DESC", default=True)
 # "cap reached mid-step" row; the runner's own end path then writes the record and the lineage.
 # OFF: the step runs to its end whatever the clock (e77a982)
 _CAP_MIDSTEP = armflag.arm("TETHER_CAP_MIDSTEP", default=True)
+# C1 (A) (Isaiah 2026-10-22 12:36-12:37; the reviewer 15:17, 15:34): a head at every growing
+# loop (cap.py), and the end-path reserve: thinking stops at the deadline less the agent's own
+# latest measured end-path wall
+_CAP_INNER = cap._CAP_INNER
+_END_RESERVE = armflag.arm("TETHER_END_RESERVE", default=True)
 # C1a, A PAIR OWNER IS NOT AN OBJECT NAME (the reviewer 2026-10-17 14:24; Fig 5 mis-attached): a
 # library lookup bound pair owners ("o0~o1") into an entry's object names; the condition grammar
 # has no "~" identifier, so every such candidate refused at parse -- 88% of lf52 cycle 2's
@@ -1048,8 +1054,10 @@ class _Alphabet(dict):
         return self.last[slot]
 
 
-class _CapReached(Exception):
-    """The runner's deadline passed between two lookups; caught at step's route call only."""
+# The runner's deadline passed between two lookups or at a growing loop's head: cap.CapReached
+# (a BaseException), caught at step's route call for the route's own rows and at step for every
+# other cut
+_CapReached = cap.CapReached
 _BOUND_TERM: dict = {}     # (atoms_token, held Term, o, x) -> the Term bound, with _BOUND_MEMO
 # 7h RECURSE-PARTS (Isaiah 2026-10-14 06:23; Fig 9 :54 "unbundle before you search again"): at 7f's
 # leave, a union a held predicate splits into lawful parts is not left -- each part is searched
@@ -1320,7 +1328,9 @@ def _merge_by_depth(lib_chains: list, closure, evidence: dict, key: str, seed: s
                                              FR.draw_key(key, c.name, seed)))
     i = 0
     for c in closure:
+        cap.head()
         while i < len(pend) and len(pend[i].atoms) <= len(c.atoms):
+            cap.head()
             yield pend[i]
             i += 1
         yield c
@@ -1352,8 +1362,10 @@ def _draw_ties(items, num, key: str, seed) -> list:
     out = sorted(items, key=lambda kv: (num(kv), kv[0]))
     i = 0
     while i < len(out):
+        cap.head()
         j, at = i + 1, num(out[i])
         while j < len(out) and num(out[j]) == at:
+            cap.head()
             j += 1
         if j - i > 1:
             out[i:j] = sorted(out[i:j], key=lambda kv: (FR.draw_key(key, kv[0], seed), kv[0]))
@@ -1434,6 +1446,7 @@ def _walk_unseen(evaluate, current: int, ordered: bool, dom: _PricedDomain, limi
     draw (comparable-only: every unseen value). OFF's path and the interval bound's check."""
     if ordered:
         for d in range(1, limit):
+            cap.head()
             ring = [v for v in (current - d, current + d)
                     if 0 <= v < dom.alpha and v not in dom and evaluate(v)]
             if ring:
@@ -1465,6 +1478,7 @@ def _value_breaks(term: Term, ctx: Ctx) -> set | None:
         else:
             vals = (1,) if k == "zero_one" else ()
         for x in vals:
+            cap.head()
             if not isinstance(x, int):
                 return None
             out.add(int(x))
@@ -1479,6 +1493,7 @@ def _bound_unseen(evaluate, current: int, ordered: bool, dom: _PricedDomain, cut
     alpha = dom.alpha
     spans, lo = [], 0
     for b in sorted(b for b in cuts if 0 <= b < alpha):
+        cap.head()
         if lo < b:
             spans.append((lo, b - 1))
         spans.append((b, b))
@@ -1491,8 +1506,10 @@ def _bound_unseen(evaluate, current: int, ordered: bool, dom: _PricedDomain, cut
         return min(ring, key=dk) if ring else None
     near = None
     for a, z in true:
+        cap.head()
         for v, step, end in ((min(z, current - 1), -1, a), (max(a, current + 1), 1, z)):
             while (v >= end if step < 0 else v <= end) and v in dom:
+                cap.head()
                 v += step
             if (v >= end if step < 0 else v <= end):
                 d = abs(v - current)
@@ -1508,6 +1525,7 @@ def _recording(chains, into: list):
     """Yield each chain, recording it into `into`: pass 2 walks that record, a LOOKUP of what pass 1
     reached and never a second enumeration (the reviewer 19:45Z; Fig 12: nothing is re-earned)."""
     for c in chains:
+        cap.head()
         into.append(c)
         yield c
 
@@ -1631,6 +1649,7 @@ def _slot_map(role: str, whole: tuple) -> tuple:
     by: dict = {}
     every = []
     for i, (_c, a, b) in enumerate(whole):
+        cap.head()
         if (a is None or isinstance(a, compile_term.Refusal)
                 or (role == "CAUSE" and (b is None or isinstance(b, compile_term.Refusal)))):
             every.append(i)
@@ -1653,6 +1672,7 @@ def _landing_rows(role: str, held: list, key: tuple, slot: str, sub: Any, tallie
         groups: dict = {}
         counted, uncounted = [], []
         for i, (_c, a, b) in enumerate(held):
+            cap.head()
             if role == "CAUSE":
                 if isinstance(a, compile_term.Refusal) or isinstance(b, compile_term.Refusal):
                     counted.append(i)
@@ -1720,6 +1740,7 @@ def _restore(held: list, o: str, x: str) -> list:
     candidates: "condition"; CAUSE "if"/"then") are substituted; every other field is copied."""
     out = []
     for c in held:
+        cap.head()
         c = dict(c)
         for f in ("condition", "if", "then"):
             if f in c:
@@ -2063,6 +2084,7 @@ def round_trip_gap(t_a, state: dict[str, int], alphabet: dict[str, int]) -> floa
     back = t_a(state)
     total = 0.0
     for slot, v in state.items():
+        cap.head()
         if slot in back:
             total += correction_bits(back[slot], v, alphabet[slot])
         else:
@@ -2212,12 +2234,14 @@ def objective_step(evaluate, current: int, ordered: bool, domain) -> Any:
     # `current` outside the alphabet reduces to the one-sided walk the key already gave it.
     if not ordered:
         for v in sorted(domain):
+            cap.head()
             if v != current and evaluate(v):
                 return v
         return NOT_RESOLVED
     # ONE STEP TOWARD THE NEAREST, WHICH IS THE ARM'S WHOLE CONTENT -- `lo < current` and
     # `hi > current` by construction, so the step is the sign and nothing is recomputed.
     for v in sorted(domain, key=lambda v: (abs(v - current), v)):
+        cap.head()
         if v != current and evaluate(v):
             return current - 1 if v < current else current + 1
     return NOT_RESOLVED
@@ -2474,6 +2498,12 @@ def _in_step(step: str):
 
 class Agent:
     _running_step = "PLAN"     # the step running now; _in_step and _step_scope set it
+    _cut = False               # C1 (A): a cut ended thinking; no step runs after it (15:34 (a))
+    _cut_scope = None          # the step scope a cut was raised in
+    _pressed = False           # this step's action went out in perceive
+    _end_reserve = None        # the end-path reserve R, s (None: unmeasured, none taken)
+    _end_sleep_s = None        # the carried end path's sleep part (checkpoint + quick_check), s
+    _end_path_t0 = None        # set by the end block: the end path is timed whole
 
     @contextmanager
     def _step_scope(self, step: str):
@@ -2482,6 +2512,9 @@ class Agent:
         prev, self._running_step = self._running_step, step
         try:
             yield
+        except cap.CapReached:
+            self._cut_scope = self._cut_scope or step     # the innermost scope a cut left
+            raise
         finally:
             self._running_step = prev
 
@@ -3142,12 +3175,13 @@ class Agent:
         The same points are W-1's safe points for its HARD line."""
         if _W_BUDGET and _W_CACHES and self._w_budget is not None:
             self._w_hard()
-        return _CAP_MIDSTEP and self.deadline is not None and time.time() >= self.deadline
+        until = self._think_until()
+        return _CAP_MIDSTEP and until is not None and time.time() >= until
 
     def _cap_end(self, at: str, step: str) -> bool:
         """The step stops at a passed deadline: one "@cap" row naming where (route / mint / tail);
         the turn happened (the press went out in perceive), so the cycle advances."""
-        overrun = time.time() - self.deadline
+        overrun = time.time() - (self._think_until() or time.time())
         # WHAT THE SKIPPED REST OWES (the reviewer 17:15 (b)), read at each part's write site: the
         # carried parts read stores that persist; the lost ones read only this step's state
         self.led.record(self.cycle, step, "@cap", "cap_mid_step", acted=True, at=at,
@@ -3160,6 +3194,7 @@ class Agent:
                         reads="cap reached mid-step: the agent stopped between units of work and "
                               "ran none of the rest of this step")
         self.cycle += 1
+        self._cut = True
         return True
 
     def _close_owed(self, how: str) -> None:
@@ -3598,6 +3633,7 @@ class Agent:
         own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
         groups: dict = {}
         for s, r in res.items():     # res's order: C1 asks the slots a budget left unasked first
+            cap.head()
             if r.gone or not (r.mass > 0.0 or s in self.owed_import) or s in self._own_now:
                 continue
             o = own.get(s)
@@ -3606,10 +3642,13 @@ class Agent:
         self._events = {p: tuple(m) for p, m in groups.items() if len(m) >= 2}
         self._event_of = {}
         for p, m in self._events.items():
+            cap.head()
             for s in m:
+                cap.head()
                 self._event_of.setdefault(s, p)     # a pair slot looks up with its first party
         self._ev_done, self._ev_base = {}, {}
         for p, m in sorted(self._events.items()):
+            cap.head()
             self.led.record(self.cycle, "ROUTE", "@event", "event", owner=p, members=sorted(m),
                             reads="E1: one object's change read on several slots -- one question")
 
@@ -3669,6 +3708,7 @@ class Agent:
         """Q2: the slot memo's entries that LANDED (a non-empty answer), by the slot's class."""
         der, out = self._derived_now(), Counter()
         for k, v in itertools.chain(_BOUND_SLOT_MEMO.items(), self._bound_slot_cache.items()):
+            cap.head()
             if v:
                 out["derived" if k[-1] in der else "ordinary"] += 1
         return dict(out)
@@ -3817,6 +3857,7 @@ class Agent:
         att = self.env.attribute_of() if hasattr(self.env, "attribute_of") else {}
         floor = self._floor_bits()
         for p, mem in sorted(self._events.items()):
+            cap.head()
             got = {m: self._ev_base[m] for m in mem if m in self._ev_base}
             if not got:
                 continue
@@ -3863,6 +3904,7 @@ class Agent:
         before, after = self.trace[-1][0], self.trace[-1][2]
         ctx = self._no_search_ctx() if _DERIVED_SUBJECT else None
         for d in sorted(der):
+            cap.head()
             if d in self.wants or before.get(d) is None or after.get(d) in (None, before[d]):
                 continue
             t = (before[d], self.trace[-1][1], after[d])   # 7f: asked again on new evidence only
@@ -3902,6 +3944,7 @@ class Agent:
         a slot that already wants keeps its want; one want per event per step; never bound or bet.
         The wants already held are followed first: met / unmet from goal_residual, or replaced."""
         for d, rec in self._g1.items():
+            cap.head()
             if self.wants.get(d) != rec["want"]:
                 rec["replaced"] = True
             elif self._res.get(d) and _ARRIVAL:
@@ -3920,6 +3963,7 @@ class Agent:
             return
         own = ctx[3]
         for p, mem in sorted(self._events.items()):
+            cap.head()
             srcs = set(mem)
             changed = [d for d, src in sorted(der.items())
                        if d in after and d in before and after[d] != before[d]
@@ -3928,6 +3972,7 @@ class Agent:
                 continue
             formed, free, held = None, 0, None
             for d in changed:
+                cap.head()
                 f_, n_ = self._no_search_want(d, before, after, *ctx)
                 free += n_
                 if f_ is not None:
@@ -3982,6 +4027,7 @@ class Agent:
         views, _causes, _ref = self._index_reach(lib, lit, d, parties[0], (),
                                                  partner=parties[-1], probe=True)
         for c, prov in views.values():
+            cap.head()
             if all(x.name in self._G1_FREE for x in c.term.atoms):
                 free += 1
                 continue
@@ -4044,9 +4090,11 @@ class Agent:
         old: dict = {}       # the 21:53 build's key (with the operand tree), counted for the record
         offered_members = 0
         for m in open_:
+            cap.head()
             seen: set = set()
             offered_members += bool(self._lib_offers.get(m))
             for o_ in self._lib_offers.get(m, ()):
+                cap.head()
                 t = o_["term"]
                 # THE CHAIN'S IDENTITY (the reviewer 22:10; R7i's unit identity): the atom sequence
                 # and the guard kind; the operand and its tree are the member's binding
@@ -4058,6 +4106,7 @@ class Agent:
                     groups.setdefault(ident, []).append((m, t))
         best, guarded, cheapest = None, 0, None
         for ident, cov in sorted(groups.items(), key=lambda kv: str(kv[0])):
+            cap.head()
             if len(cov) < 2:
                 continue
             if ident[1] is not None:
@@ -4086,6 +4135,7 @@ class Agent:
             return
         total, price, cost, each = best
         for m, (b, lf, t) in each.items():
+            cap.head()
             if self._derived_subject(m):
                 self._ds_unbound(m, "event")
                 continue
@@ -4143,6 +4193,7 @@ class Agent:
         for m in members:
             # each member described by its own residual, scoped to its own object; the event's
             # description is their union (E2: one question per event)
+            cap.head()
             hm = hist if m == slot else self.history(m)
             sc = {s for s, o in own.items() if o == own.get(m)}
             gap = retrieval.characterise(hm, m, list(self.alphabet), self.slot_types, scope=sc)
@@ -4152,8 +4203,10 @@ class Agent:
         if _CLOCK_DESC:
             held_out = sorted(s for s in described if s not in members and s in self._own_quiet)
             for s in held_out:
+                cap.head()
                 del described[s]
                 for d_ in desc_of.values():
+                    cap.head()
                     d_.pop(s, None)
         if _LOOKUP_STREAM:
             q_, offered, n_jun, held_n, dig, held, named_of = self._lookup_stream(
@@ -4169,9 +4222,11 @@ class Agent:
             seen_p: set = set()
             pairs, query = [], set()
             for m in members:
+                cap.head()
                 fm = composer.lookup(desc_of[m])
                 query.update(fm["query"])
                 for p in fm["pairs"]:
+                    cap.head()
                     k_ = (p["molecule"], p["left"], p["right"], p["left_reading"],
                           p["right_reading"])
                     if k_ not in seen_p:
@@ -4189,12 +4244,15 @@ class Agent:
             # reads obj_event / shared); lf52's o59.shape row was 452 MB
             dig = hashlib.sha256()
             for h_ in held:
+                cap.head()
                 dig.update(json.dumps(h_, sort_keys=True, ensure_ascii=False).encode())
                 dig.update(b"\n")
             named_of: dict = {}
             for m in members:
+                cap.head()
                 named: dict[str, list] = {}
                 for p in found["pairs"]:
+                    cap.head()
                     ends = (p["left_reading"], p["right_reading"])
                     if m in ends:
                         other = ends[1] if ends[0] == m else ends[0]
@@ -4242,8 +4300,10 @@ class Agent:
 
         def pairs():
             for d_ in srcs:
+                cap.head()
                 query.update(composer.lookup_query(d_))
                 for p in composer.lookup_iter(d_):
+                    cap.head()
                     if ev is not None:
                         k_ = (p["molecule"], p["left"], p["right"], p["left_reading"],
                               p["right_reading"])
@@ -4254,6 +4314,7 @@ class Agent:
                     jun.add((p["molecule"], p["left"], p["right"]))
                     ends = (p["left_reading"], p["right_reading"])
                     for m in members:
+                        cap.head()
                         if m in ends:
                             other = ends[1] if ends[0] == m else ends[0]
                             got = named_of[m].setdefault(other, [])
@@ -4263,6 +4324,7 @@ class Agent:
         dig, held_n, sample = hashlib.sha256(), 0, []
         frames = [b for b, _act, _val, _intent, _landed in hist]
         for r in composer.read_iter(pairs(), frames, {}):
+            cap.head()
             if r["held"]:
                 h_ = {k: r[k] for k in LOOKUP_HELD_KEYS}
                 held_n += 1
@@ -4311,6 +4373,7 @@ class Agent:
         def put(tier: str, keys: list) -> None:
             c = 0
             for k, w in keys:
+                cap.head()
                 if k not in seen and lib.get(k) is not None:
                     seen.add(k)
                     out.append((k, w))
@@ -4338,6 +4401,7 @@ class Agent:
                 # the nearest rung over the asked kinds ("a" before "b" before "c")
                 best = None
                 for q in kinds:
+                    cap.head()
                     g = ("a" if tgt == ko else "b") if d == q else "c" if d[0] == q[0] else None
                     if g and (best is None or g < best):
                         best = g
@@ -4350,6 +4414,7 @@ class Agent:
                 land = {r_: Counter() for r_ in "abc"}
                 for (d, k, tgt), m in itertools.chain(self._kind_landed_dk.items(),
                                                       self._known_dk_items()):
+                    cap.head()
                     g_ = rung(d, tgt)
                     if g_:
                         land[g_][k] += m
@@ -4369,6 +4434,7 @@ class Agent:
             off = {r_: Counter() for r_ in "abc"}
             for (d, k, tgt), m in itertools.chain(self._kind_offered_dk.items(),
                                                   self._kind_known_off.items()):
+                cap.head()
                 g_ = rung(d, tgt)
                 if g_:
                     off[g_][k] += m
@@ -4389,6 +4455,7 @@ class Agent:
             landed_only = Counter()
             for g_ in "abc":
                 for k, m in land[g_].items():
+                    cap.head()
                     if k not in offered_any:
                         landed_only[k] += m
             if self._kind_store is not None:
@@ -4411,6 +4478,7 @@ class Agent:
                 for e_ in t2:
                     # its own name: "last" is the per-entry recency DICT that T1d reads below, and
                     # re-binding it to a number here raised there whenever T2 and T1d both held one
+                    cap.head()
                     if self._kind_store is not None:
                         kn, lv = self._kind_store["t2"][e_]
                         seq_ = (self._kind_last[e_][3] if e_ in self._kind_last
@@ -4464,6 +4532,7 @@ class Agent:
         changed: dict = {}
         normed: set = set()
         for s_ in described:
+            cap.head()
             a = cue_attr(att.get(s_), known) if _CUE_NORM else att.get(s_)
             if a != att.get(s_):
                 normed.add(att.get(s_))      # DS (5): a pair reading read through its base
@@ -4492,6 +4561,7 @@ class Agent:
         tg = tuple(members) or (slot,)
         self._dk_of = dict(dks) if (members and k1 and dks) else {slot: self._cur_dk}
         for m in tg:
+            cap.head()
             self._lib_offers[m] = []
         if k1:
             lit, tiers = self._tiers(lib, lit, dk, mine, described, att,
@@ -4501,6 +4571,7 @@ class Agent:
             return
         if _ENTRY_USE:
             for k, _w in lit:
+                cap.head()
                 self._use(k, "lit")
         if _RELATION_SET:
             # C (c): a lit entry from the settled table says so -- provenance, nothing priced
@@ -4511,6 +4582,7 @@ class Agent:
                                 reads="settled core knowledge lit by this residual")
         rep_slot: dict = {}
         for s_, o_ in sorted(own.items()):
+            cap.head()
             rep_slot.setdefault(o_, s_)
         touching = set(self._touching(slot))
         others = tuple(sorted((o_ for o_ in rep_slot if o_ != mine),
@@ -4601,6 +4673,7 @@ class Agent:
         for m in tg:
             # E2: each member's own bucket, its own offers, its own row (Fig 1: per slot); one slot
             # is the whole index, as before
+            cap.head()
             if members:
                 idx_m = ({k: v for k, v in views.items() if v[0].slot == m},
                          {k: v for k, v in causes.items() if v[1].slot == m}, refused)
@@ -4613,9 +4686,11 @@ class Agent:
                 # test in this ask, once each, under the residual's delta kind and its object's kind
                 _ko = self._kind(mine_m)
                 for k_ in {o_["prov"].get("library") for o_ in offers if o_["offered"]} - {None}:
+                    cap.head()
                     self._kind_offered_dk[(dk_m, k_, _ko)] += 1
             rows = []
             for prov, if_c, then_c, v, off in sup:
+                cap.head()
                 rows.append({**prov, "then": then_c.term.name, **v,
                              "offered": off["offered"], "why": off["why"]})
                 if rank is not None and m == slot and own.get(if_c.slot) is not None:
@@ -4631,6 +4706,7 @@ class Agent:
             self._lib_offers[m] = [o_ for o_ in offers if o_["offered"]]
             if _ENTRY_USE:
                 for o_ in offers:
+                    cap.head()
                     self._use(o_["prov"].get("library"),
                               "offered" if o_["offered"] else "refused")
             self.led.record(self.cycle, "ROUTE", m, "library", changed=sorted(changed),
@@ -4669,8 +4745,10 @@ class Agent:
         units = self._units_for(slot)
         offers, sup = [], []
         for c, prov in views.values():
+            cap.head()
             offers.append(self._lib_offer(c, prov))
         for if_c, then_c, prov in causes.values():
+            cap.head()
             if _REACH_EXACT:
                 fkey = (if_c.term.name, if_c.slot, then_c.term.name, then_c.slot)
                 held = self._reach_fold.get(fkey)
@@ -4712,10 +4790,12 @@ class Agent:
             age: dict = {}
             changed_t: list = []
             for t in range(n):
+                cap.head()
                 before, _a, after, _i, _l = self.trace[t]
                 ch = {own[s_] for s_ in after.keys() | before.keys()
                       if s_ in own and before.get(s_) != after.get(s_)}
                 for o_ in ch:
+                    cap.head()
                     age[o_] = n - 1 - t                     # the latest change wins
                 changed_t.append(ch)
             self._rank_age = (self._trace_epoch, n, age, changed_t)
@@ -4757,6 +4837,7 @@ class Agent:
         dv = getattr(self.env, "derived", None)
         derived = dv() if dv is not None else {}
         for key, got in list(self._3a_unseen.items()):
+            cap.head()
             if got is None or key[0] != self._trace_epoch or not 0 <= got[1] < len(self.trace):
                 continue
             slot, (kind, i) = key[1], got
@@ -4832,6 +4913,7 @@ class Agent:
             out_ = {own[s_] for s_ in mine}
             per: dict = {}
             for s_ in moved - mine:
+                cap.head()
                 if s_ in own:
                     per.setdefault(own[s_], []).append(s_)
             # moved with the body: a declared source on it, or relational with the reference
@@ -4855,6 +4937,7 @@ class Agent:
             if v is None or code is None:
                 return None
             for s2, o2 in sorted(own.items()):
+                cap.head()
                 if o2 != owner and att.get(s2) == attr and now.get(s2) == v and shape(o2) == code:
                     return o2
             return None
@@ -4937,6 +5020,7 @@ class Agent:
         if rec is not None:                    # the check: what the replay would have asked
             dry = Counter()
             for call in rec["calls"]:
+                cap.head()
                 self._ak_note(*call, sig, dry=dry)
             self._ak_rec = Counter()
         try:
@@ -4984,9 +5068,11 @@ class Agent:
             _landed: set = set()
             spent += 1
             for t_ in (targets or (slot,)):
+                cap.head()
                 ask(role, mine, partner, t_)
                 for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms,
                                                  sig, slot=t_, tally=tally):
+                    cap.head()
                     spent += 1
                     if c is None:
                         rd[compile_term.QUANTIFIED] += 1
@@ -5004,17 +5090,21 @@ class Agent:
                             hit[2] += 1
                         _landed.add(t_)
             for t_ in sorted(_landed):
+                cap.head()
                 landed.append((role, mine, partner, t_))
         for o_ in others:
+            cap.head()
             if _PAIR_NOT_OBJECT and ("~" in o_ or "~" in mine):
                 rd[PAIR_NOT_OBJECT] += 1
                 continue
             _landed = set()
             spent += 1
             for t_ in (targets or (slot,)):
+                cap.head()
                 ask("CAUSE", o_, mine, t_)
                 for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp,
                                                          atoms, sig, slot=t_, tally=tally):
+                    cap.head()
                     spent += 1
                     if isinstance(if_c, compile_term.Refusal):
                         rd["if: " + if_c.reason] += 1
@@ -5036,6 +5126,7 @@ class Agent:
                         hit[3] += 1
                     _landed.add(t_)
             for t_ in sorted(_landed):
+                cap.head()
                 landed.append(("CAUSE", o_, mine, t_))
         return {"views": views, "causes": causes, "refused": rd, "spent": spent,
                 "landed": landed, "calls": calls}
@@ -5046,6 +5137,7 @@ class Agent:
         the walk would have; charge its _spent; land its kinds under THIS step's dk; on a hit,
         replay its asked tally. One merge for a fresh entry and a kept one."""
         for vk, (c, meta, n) in rec["views"].items():
+            cap.head()
             hit = views.get(vk)
             if hit is None:
                 m = dict(meta)
@@ -5054,6 +5146,7 @@ class Agent:
             else:
                 hit[1]["entries"] += n
         for pk, (if_c, then_c, meta, n) in rec["causes"].items():
+            cap.head()
             hit = causes.get(pk)
             if hit is None:
                 m = dict(meta)
@@ -5065,6 +5158,7 @@ class Agent:
         self._spent += rec["spent"]
         if _7L_KIND:
             for role, a, b, t_ in rec["landed"]:
+                cap.head()
                 if kinds is None:
                     ka, kb = self._kind(a), self._kind(b)
                 else:          # (D): one _kind per owner per _index_reach call
@@ -5073,6 +5167,7 @@ class Agent:
                 self._land_kind((key, role, ka, kb), dk=self._dk_of.get(t_), slot=t_)
         if replay:
             for call in rec["calls"]:
+                cap.head()
                 self._ak_note(*call, sig)
 
     @staticmethod
@@ -5117,6 +5212,7 @@ class Agent:
         _pno = _PAIR_NOT_OBJECT and ("~" in mine or "~" in partner)
         kinds: dict | None = {} if _KIND_HOIST else None
         for i_, (key, _w) in enumerate(lit):
+            cap.head()
             if key in late:
                 # K1's COST GUARD: T4 / T5 are asked only while the step's budget remains; the
                 # rest is counted not asked, and the truncated index is not memoised
@@ -5138,8 +5234,10 @@ class Agent:
                 self._spent += 1     # C1: one evaluation per call, one per row it yields
                 for t_ in (targets or (slot,)):
                     # E2: an event's members, each through its own slot memo (S1); one slot else
+                    cap.head()
                     for cand, c, _ in self._compiled(lib, key, role, mine, partner, comp, atoms,
                                                      sig, slot=t_, tally=tally):
+                        cap.head()
                         self._spent += 1
                         if c is None:
                             refused[compile_term.QUANTIFIED] += 1
@@ -5161,17 +5259,21 @@ class Agent:
                     # G1 (the reviewer 2026-10-15 20:54): the KIND entry records what LANDED,
                     # never only what was asked (Fig 12: the group fixes the outcome)
                     for t_ in sorted(_landed):
+                        cap.head()
                         self._land_kind((key, role, self._kind(mine), self._kind(partner)),
                                         dk=self._dk_of.get(t_), slot=t_)
             for o_ in others:
+                cap.head()
                 if _PAIR_NOT_OBJECT and ("~" in o_ or "~" in mine):
                     refused[PAIR_NOT_OBJECT] += 1
                     continue
                 _landed = set()
                 self._spent += 1
                 for t_ in (targets or (slot,)):
+                    cap.head()
                     for cand, if_c, then_c in self._compiled(lib, key, "CAUSE", o_, mine, comp,
                                                              atoms, sig, slot=t_, tally=tally):
+                        cap.head()
                         self._spent += 1
                         if isinstance(if_c, compile_term.Refusal):
                             refused["if: " + if_c.reason] += 1
@@ -5194,6 +5296,7 @@ class Agent:
                         _landed.add(t_)
                 if _7L_KIND and _landed:
                     for t_ in sorted(_landed):
+                        cap.head()
                         self._land_kind((key, "CAUSE", self._kind(o_), self._kind(mine)),
                                         dk=self._dk_of.get(t_), slot=t_)
         if _7L_KIND and not probe:      # K1: a T1 probe is not a second episode of this lookup
@@ -5207,6 +5310,7 @@ class Agent:
                                       if _DELTA_KIND and self._cur_dk is not None else {})})
         return views, causes, refused
 
+    @cap.held      # C1 (A): one landing writes several kind stores the lineage carries (15:34 2)
     def _land_kind(self, entry: tuple, dk: tuple | None = None, slot: str | None = None) -> None:
         """7l: a landed (entry, role, kind_o, kind_x); 7m's pair set kept with it."""
         self._kind_landed.add(entry)
@@ -5275,6 +5379,7 @@ class Agent:
             tot_t = {t: Counter(c) for t, c in snap.tot_t.items()}
             by_d: dict = {}
             for key, m in self._kind_landed_dk.items():
+                cap.head()
                 if m <= 0:
                     return None
                 tot_t.setdefault(key[0][0], Counter())[key[1]] += m
@@ -5286,6 +5391,7 @@ class Agent:
         tot_t: dict = {}
         for store in (self._kind_known_dk, self._kind_landed_dk):
             for key, m in store.items():
+                cap.head()
                 if m <= 0:
                     return None
                 d, k, _t = key
@@ -5295,6 +5401,7 @@ class Agent:
                 tot_t.setdefault(d[0], Counter())[k] += m
         last_k: dict = {}
         for (_d, k, _t), v in self._kdk_last.items():
+            cap.head()
             last_k[k] = max(last_k.get(k, 0), v[3])
         return {"sig": self._kix_sig(), "rows_d": rows_d, "tot_d": tot_d, "tot_t": tot_t,
                 "at": {}, "last_k": last_k}
@@ -5321,6 +5428,7 @@ class Agent:
         snap = self._dk_snap if _W_DK_KEYED else None
         last = dict(snap.last_k) if snap is not None and _CONSOLIDATE else {}
         for (_d, k, _t), v in self._kdk_last.items():
+            cap.head()
             last[k] = max(last.get(k, 0), v[3])
         return last
 
@@ -5332,8 +5440,10 @@ class Agent:
             known = ix["known"][d] = self._dk_snap.rows(d)
             rows, tot = list(known), Counter()
             for key, m in known.items():
+                cap.head()
                 tot[key[1]] += m
             for key in ix["landed_by_d"].get(d, ()):
+                cap.head()
                 if key not in known:
                     rows.append(key)
                 tot[key[1]] += self._kind_landed_dk[key]
@@ -5374,6 +5484,7 @@ class Agent:
         qs = set(kinds)
         land = {r_: Counter() for r_ in "abc"}
         for q in qs:
+            cap.head()
             known = self._kix_kind(ix, q) if "known" in ix else self._kind_known_dk
             tot = ix["tot_d"].get(q)
             if not tot:
@@ -5382,20 +5493,24 @@ class Agent:
             if at is None:
                 at = Counter()
                 for key in ix["rows_d"].get(q, ()):
+                    cap.head()
                     if key[2] == ko:
                         at[key[1]] += self._kind_landed_dk.get(key, 0) + known.get(key, 0)
                 ix["at"][(q, ko)] = at
             land["a"].update(at)
             for k, m in tot.items():
+                cap.head()
                 b = m - at.get(k, 0)
                 if b > 0:
                     land["b"][k] += b
         for t in {q[0] for q in qs}:
+            cap.head()
             tot_t = ix["tot_t"].get(t)
             if not tot_t:
                 continue
             asked = [ix["tot_d"].get(q) or {} for q in qs if q[0] == t]
             for k, m in tot_t.items():
+                cap.head()
                 c = m - sum(a.get(k, 0) for a in asked)
                 if c > 0:
                     land["c"][k] += c
@@ -5416,6 +5531,7 @@ class Agent:
             out = dict(self._kind_store["pairs"])
             nocount = self._kind_store["nocount"]
             for e_ in self._kind_landed:
+                cap.head()
                 n = self._kind_landed_n.get(e_, 0) - (1 if e_ in nocount else 0)
                 p = (e_[2], e_[3])
                 v = out.get(p, (0, 0))
@@ -5423,6 +5539,7 @@ class Agent:
             self._pair_cache = (sig, out)
             return out
         for e_ in self._kind_known | self._kind_landed:
+            cap.head()
             n = self._kind_known_n.get(e_, 0 if e_ in self._kind_landed_n else 1) + \
                 self._kind_landed_n.get(e_, 0)
             p = (e_[2], e_[3])
@@ -5619,6 +5736,7 @@ class Agent:
                 by: dict = {}
                 rest, cnt = [], Counter()
                 for cand in self._lib_view(lib, key, role, o, x):
+                    cap.head()
                     row = ((cand, comp(cand["if"], o), comp(cand["then"], x))
                            if role == "CAUSE"
                            else (cand, None if "quantifier" in cand
@@ -5651,6 +5769,7 @@ class Agent:
             sub = partial(_ph_sub, o=o, x=x)
             cnt, rest = Counter(), []
             for i, (_c, a, b) in enumerate(self._held_index(lib, key, role, atoms, sig)):
+                cap.head()
                 k = _tally_key(role, a, b, sub)
                 if k is not None:
                     cnt[k] += 1
@@ -5673,6 +5792,7 @@ class Agent:
                     {"condition": cond}, atoms, subject=subject if _LIBRARY_ABDUCE else None)
             held = []
             for cand in lib.view(key, role, PH_O, PH_X):
+                cap.head()
                 if role == "CAUSE":
                     held.append((cand, comp(cand["if"], PH_O), comp(cand["then"], PH_X)))
                 else:
@@ -5714,6 +5834,7 @@ class Agent:
         out, seen = [], set()
         close = next((a for a in self.gamma.atoms if a.name == "all"), None)
         for o_ in self._lib_offers.get(slot, ()):
+            cap.head()
             atoms = tuple(o_["term"].atoms)
             if out_t == OBJ_TYPE and atoms and atoms[-1].out_type != OBJ_TYPE and close:
                 atoms = atoms + (close,)
@@ -5876,6 +5997,7 @@ class Agent:
             self._dir_scope_noted = True
             kinds: dict = {}
             for _s, _ty in self.slot_types.items():
+                cap.head()
                 kinds[str(_ty)] = kinds.get(str(_ty), 0) + 1
             self.led.record(self.cycle, "PERCEIVE", "@direction", "direction_scope",
                             ordered=list(ORDERED_TYPES), slot_types=kinds,
@@ -5884,6 +6006,7 @@ class Agent:
                                    "nothing (a perception item, steps 5/6)"))
         sg = lambda v: (v > 0) - (v < 0)              # noqa: E731
         for s in slots:
+            cap.head()
             if "." not in s or self.slot_types.get(s) not in ORDERED_TYPES:
                 continue
             b, a = before.get(s), after.get(s)
@@ -5892,6 +6015,7 @@ class Agent:
             x = s.rsplit(".", 1)[0]
             ctx = []
             for c in ctrl:
+                cap.head()
                 if c == x:
                     ctx.append((c, 0, 0))
                     continue
@@ -5923,6 +6047,7 @@ class Agent:
         if not _RELATION_SET:
             return
         for key in sorted(self._goal_links):
+            cap.head()
             c = self._goal_conds.get(key)
             if c is None:
                 continue
@@ -6111,6 +6236,23 @@ class Agent:
 
     @_in_step("PLAN")
     def _hyp_propose(self, before: dict) -> None:
+        """_hyp_propose_body, and C1 item 1's record (the reviewer 10-22, scope A): a cut in the
+        proposal writes the goal_hypotheses row it would have written, with pick None and capped
+        {at, checked, unreached}, "unreached at this budget"; never _hyp_exhausted, never System 0's
+        why. Then the cut goes on to step."""
+        n0, self._hyp_open = self._hyp_n, None
+        try:
+            return self._hyp_propose_body(before)
+        except cap.CapReached:
+            checked = self._hyp_n - n0
+            opened = self._hyp_open
+            self.led.record(self.cycle, "PLAN", "@goal", "goal_hypotheses", pick=None,
+                            why="unreached at this budget",
+                            capped={"at": "goal_hypothesis", "checked": checked,
+                                    "unreached": None if opened is None else opened - checked})
+            raise
+
+    def _hyp_propose_body(self, before: dict) -> None:
         """The supply (Fig 11 :43-48, read off THIS board): the library's own condition grammar
         (_inv_conditions, TEMPLATES by reading type) over this state, and the shelf's templates
         instantiated over this board's objects. Each compiles through compile_term's vocabulary;
@@ -6125,16 +6267,21 @@ class Agent:
         objs = sorted({k.split(".", 1)[0] for k in before
                        if "." in k and "@" not in k and "~" not in k})
         for skey, rec in sorted(self._goal_shelf.items()):
+            cap.head()
             for t in (rec.get("templates") or [rec.get("template")]):
+                cap.head()
                 if not t:
                     continue
                 for o in objs:
+                    cap.head()
                     for x in ([y for y in objs if y != o] if "{x}" in t else [None]):
+                        cap.head()
                         text = t.format(o=o, x=x)
                         src[text], tpl[text] = skey, t
         refused: Counter = Counter()
         cands = []
         for text, s in src.items():
+            cap.head()
             c = self._compile_cache.get(text)
             if c is None:
                 c = self._compile_cache[text] = compile_term.compile_candidate(
@@ -6160,6 +6307,7 @@ class Agent:
             cands.append(((0 if won else 1, round(bits, 6)), text, c, tk, s))
         cands.sort(key=lambda x: x[0])
         ranked_all = list(cands)                # the pick's rank is read against this order
+        self._hyp_open = len(cands)              # C1 item 1: a cut's record counts against it
         routable = 0
         detail = {"candidates": len(src), "open": len(cands), "refused": dict(refused),
                   "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][1],
@@ -6168,6 +6316,7 @@ class Agent:
         checked = 0
         group_n = None
         while cands and pick is None:
+            cap.head()
             group = [x for x in cands if x[0] == cands[0][0]]
             cands = cands[len(group):]
             if _HYP_DRAW:
@@ -6177,6 +6326,7 @@ class Agent:
                 order = FR.draw_order([x[1] for x in group], dkey, self.draw_seed)
                 by_text = {x[1]: x for x in group}
                 for n, text in enumerate(order, 1):
+                    cap.head()
                     x = by_text[text]
                     checked += 1
                     self._hyp_n += 1
@@ -6194,6 +6344,7 @@ class Agent:
                 continue
             ok = []
             for x in group:
+                cap.head()
                 checked += 1
                 self._hyp_n += 1
                 key = f"@hyp{self._hyp_n}"
@@ -6289,6 +6440,7 @@ class Agent:
         steer = [a for a in self.actions if prov is None or prov(a) != "platform-universal"]
         seen: dict = {}
         for b, a, af, _i, land in self.trace:
+            cap.head()
             if a not in steer or slot not in b or slot not in af:
                 continue
             try:
@@ -6311,7 +6463,9 @@ class Agent:
                           and v[1] is not None and not isinstance(v[1], _Pair)),
                          key=lambda a: a[0])
         for i, (ta, ca, ka) in enumerate(arrived):
+            cap.head()
             for tb, cb, kb in arrived[i + 1:]:
+                cap.head()
                 if ca.slot == cb.slot or ("pair", ka, kb) in self._hyp_tried:
                     continue
                 self._hyp_n += 1
@@ -6349,6 +6503,7 @@ class Agent:
         n, k = len(rows), sum(1 for _, hit in rows if hit)
         base = k * math.log2(n) if n else 0.0
         for key, c in list(self._goal_conds.items()):
+            cap.head()
             cost, left, e = self._goal_price([c], rows)
             if pays(cost, left, base):
                 continue
@@ -6388,7 +6543,9 @@ class Agent:
                      key=lambda x: x[4])
         out = []
         for i, a in enumerate(nec):
+            cap.head()
             for b in nec[i + 1:]:
+                cap.head()
                 if a[4] == b[4]:
                     continue                    # identical parts are not a pair
                 pair = _Pair((a[5], b[5]))
@@ -6475,6 +6632,7 @@ class Agent:
         refused: Counter = Counter()
         cands = []
         for text in self._inv_conditions(rows[-1][0]):
+            cap.head()
             c = self._compile_cache.get(text)
             if c is None:
                 c = self._compile_cache[text] = compile_term.compile_candidate(
@@ -6600,15 +6758,18 @@ class Agent:
         self._muse_last = (key, self.cycle)
         tried, paying, skipped = 0, [], Counter()
         for key, rec in sorted(targets.items()):
+            cap.head()
             slot, hist = rec["slot"], rec["hist"]
             if slot not in self.alphabet:
                 skipped["slot has no alphabet this level"] += 1
                 continue
             base = self._left(self.gamma.library[IDN], slot, hist)
             for name in methods:
+                cap.head()
                 chain = self.gamma.library[name].atoms
                 best = None
                 for bind in [None] + [x for x in rec.get("slots", ()) if x != slot]:
+                    cap.head()
                     cand = Term(chain, operand=bind)
                     tried += 1
                     left = self._left(cand, slot, hist)
@@ -6659,6 +6820,7 @@ class Agent:
 
         pre = []
         for f, _fb in fs:
+            cap.head()
             b, vs = 0.0, vals(f, units)
             for v in vs:
                 b += v
@@ -6667,8 +6829,10 @@ class Agent:
         # left's inputs: fb (the then-term's, fixed: fi), truth (the condition's: tk), idb and n
         # (fixed for the firing). So (fi, tk) is the whole key.
         for ci, (_text, c, truth) in enumerate(conds):
+            cap.head()
             vc, tk = vals(c.term, ()), self._inv_truth_key(truth)
             for fi, (_f, fb) in enumerate(fs):
+                cap.head()
                 left = lefts.get((fi, tk))
                 if left is None:
                     left = lefts[(fi, tk)] = sum(fb[i] if truth[i] else idb[i] for i in range(n))
@@ -6693,6 +6857,7 @@ class Agent:
         slicing."""
         priced, top, keys, tied, tmin = 0, [], [], [], None
         for ci, fi, total, cost, left in self._inv_pairs(conds, fs, idb, units, hist):
+            cap.head()
             priced += 1
             if len(top) == 5 and total > keys[-1][0]:
                 continue
@@ -6804,9 +6969,11 @@ class Agent:
         if _M7_INV:     # this call's texts only, never accumulated (read by _hold_invention)
             self._inv_tpl = {}
         for k in keys:
+            cap.head()
             o, r = k.split(".", 1)
             for _label, t in templates.get((rd.get(r) or {}).get("type"), ()):
                 for x in ([x for x in objs if x != o] if "{x}" in t else [None]):
+                    cap.head()
                     text = t.format(o=o, x=x, r=r)
                     out.append(text)
                     if _M7_INV:     # the method behind the text, objects as placeholders
@@ -6829,6 +6996,7 @@ class Agent:
         refused: Counter = Counter()
         conds, never_false = [], 0
         for text in self._inv_conditions(hist[-1][0]):
+            cap.head()
             c = self._compile_cache.get(text)
             if c is None:
                 c = self._compile_cache[text] = compile_term.compile_candidate(
@@ -6850,7 +7018,9 @@ class Agent:
         fs = []
         if conds:
             for ch in self.gamma.enumerate_closure("val", "val", 1, self.cfg.budget, {}):
+                cap.head()
                 for b in (self._bindings(slot, robs) if ch.reads_operand else [None]):
+                    cap.head()
                     f = Term(ch.atoms, operand=b)
                     fb = [self._left(f, slot, [r]) for r in hist]
                     if any(fb[i] == 0.0 for i in moved):
@@ -6860,7 +7030,9 @@ class Agent:
         else:
             cands = []
             for text, c, truth in conds:
+                cap.head()
                 for f, fb in fs:
+                    cap.head()
                     left = sum(fb[i] if truth[i] else idb[i] for i in range(len(hist)))
                     cost = self._inv_cost(f, [c], units)
                     cands.append((cost + left, cost, left, text, c, f))
@@ -7042,6 +7214,7 @@ class Agent:
             return None                       # names nothing this agent holds
         hit = []
         for slot, tname in self.bound.items():
+            cap.head()
             term = self.gamma.library.get(tname)
             if term is None:
                 continue
@@ -7338,6 +7511,7 @@ class Agent:
         # would have said next. Evaluated against the actual, then released -- one frame of
         # hindsight per demotion, which is all the ground offers before the slot moves on.
         for name, (slot, since) in list(self._demoted_watch.items()):
+            cap.head()
             term = self.gamma.library.get(name)
             actual = before.get(slot)
             if term is None or actual is None:
@@ -7471,6 +7645,7 @@ class Agent:
                    for a in self.gamma.atoms}
         out = []
         for m in composer.candidates({a.name for a in self.gamma.atoms}):
+            cap.head()
             parts = [by_norm.get(_norm_name(i))
                      for i in m["recipe"]]
             # EXPRESSIBLE means a type-valid CHAIN exists over exactly these atoms, in some
@@ -7634,6 +7809,7 @@ class Agent:
         frames = casc()
         steps = []
         for a, b in zip(frames, frames[1:], strict=False):
+            cap.head()
             try:
                 steps.append(sum(1 for r, row in enumerate(a)
                                  for c, v in enumerate(row) if b[r][c] != v))
@@ -7731,15 +7907,20 @@ class Agent:
         for state in (before, after):
             pos: dict = {}
             for s_, v in state.items():
+                cap.head()
                 if s_ in owners and attrs.get(s_) in ("row", "col"):
                     pos.setdefault(owners[s_], {})[attrs[s_]] = v
             for o_, p in pos.items():
+                cap.head()
                 if "row" in p and "col" in p:
                     at.setdefault((p["row"], p["col"]), set()).add(o_)
         first: dict = {}
         for k, (a, b) in enumerate(zip(frames, frames[1:], strict=False)):
+            cap.head()
             for r, row in enumerate(a):
+                cap.head()
                 for c, v in enumerate(row):
+                    cap.head()
                     if b[r][c] != v and len(at.get((r, c), ())) == 1:
                         first.setdefault(next(iter(at[(r, c)])), k)
         controlled = {owners[s_] for s_ in self.agency.contingent() if s_ in owners}
@@ -7749,6 +7930,7 @@ class Agent:
         near = touch() if touch else {}
         modes: dict = {}
         for o_, k in sorted(first.items()):
+            cap.head()
             if o_ in controlled:
                 continue
             if kc is None or k < kc:
@@ -7908,6 +8090,7 @@ class Agent:
         pairs = recurred = 0
         functional = True
         for st, _a, actual, _i, _l in robs:
+            cap.head()
             v = self._operand_value(f"{slot}~{j}", st)
             if v is NOT_RESOLVED:
                 continue
@@ -7939,12 +8122,14 @@ class Agent:
         if self._shown_key != key:
             self._shown_key, self._shown, self._frame_at = key, {}, {}
             for i in range(len(self.trace)):
+                cap.head()
                 b, _act, _a, _intent, _landed = self.trace[i]
                 self._frame_at[id(b)] = i
         first = self._shown.get(slot)
         if first is None:
             first = {}
             for i in range(len(self.trace)):
+                cap.head()
                 b, _act, a, _intent, _landed = self.trace[i]
                 for v, at in ((b.get(slot), i), (a.get(slot), i + 1)):
                     if isinstance(v, int) and v not in first:
@@ -7975,6 +8160,7 @@ class Agent:
         out.counts = {v: 1 for v, at in first.items() if at <= n and 0 <= v < alpha}
         if _7H_SHOWN:
             for v in out.counts:
+                cap.head()
                 out.counts[v] = max(1, sum(1 for x in seq[:n + 1] if x == v))
         out.note = partial(self._domain_row, slot)
         return out
@@ -8015,6 +8201,7 @@ class Agent:
         as each of its parts, since a pair has no single term (B, 2026-10-16 night: _goal_choice
         raised on c.term whenever a pair was held)."""
         for c in self._goal_conds.values():
+            cap.head()
             for p in getattr(c, "parts", (c,)):
                 if getattr(p, "slot", None) and getattr(p, "term", None) is not None:
                     yield p.slot, p.term.name
@@ -8039,6 +8226,7 @@ class Agent:
         out = {}
         held = list(self._cond_parts()) + [(s, str(t)) for s, t in self.wants.items()]
         for slot, term in held:
+            cap.head()
             g = self._shape_grade(repr((self._kind_key(slot), term)))
             if g["label"] == "refuted by level outcomes":
                 out[slot] = g
@@ -8170,6 +8358,7 @@ class Agent:
         keep, out = dict(self._pred_raw), {}
         try:
             for s in betting:
+                cap.head()
                 name = self.bound.get(s)
                 if not name or name not in self.gamma.library or not self.gamma.is_settled(name, s):
                     continue
@@ -8196,6 +8385,7 @@ class Agent:
         a second residual. Then this step's rehearsals are held for the next."""
         held, compared, missed, links = self._rehearse_held, 0, 0, 0
         for s, (v2, act, cyc, lvl, name, state1, right1) in sorted(held.items()):
+            cap.head()
             if (act != (action, coord) or cyc != self.cycle - 1 or lvl != self.level
                     or s not in after or s not in res or not self.alphabet.get(s)):
                 continue
@@ -8245,6 +8435,7 @@ class Agent:
         """Step 6: what step 1 stood on, and what the sweep earned."""
         wait = []
         for name, shadow, echo in self._promotions:
+            cap.head()
             if self.gamma.is_primitive(name):
                 continue
             # A PROMOTION IS TRUST, SO THE GROUND SPEAKS FIRST: a sweep's close waits until the term
@@ -8260,6 +8451,7 @@ class Agent:
         self._promotions[:] = wait
 
         for slot, name, settled in self._stood:
+            cap.head()
             if settled:
                 self.led.record(self.cycle, "PROMOTE", slot, "cite", term=name,
                                 allowed=True, via="bound: it drove this step's bet")
@@ -8297,6 +8489,8 @@ class Agent:
             return CHANNEL_CLOSED
         return GENUINE
 
+    @cap.holding   # C1 (A): the press and its transition are one unit the end path reads; no
+    # entry head, so no cut lands between step's _ruin_step key and the press (15:40)
     @_in_step("PERCEIVE")
     def perceive(self, action: str,
                  coord: tuple[int, int] | None = None,
@@ -8363,6 +8557,7 @@ class Agent:
             self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
         else:
             self.env.step(action)
+        self._pressed = True
         after = self.env.observe()
         _own_clock: set = set()
         if _OWN_CLOCK:
@@ -8620,6 +8815,7 @@ class Agent:
         after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
         moved: set = set()
         for st, _a, _v, _intent, _landed in robs:
+            cap.head()
             aft = after_of.get(id(st))
             if aft is None:
                 continue
@@ -8633,6 +8829,7 @@ class Agent:
             adj_of = tch()
             nearby: set = set()
             for m in moved:
+                cap.head()
                 nearby |= set(adj_of.get(own.get(m), ()))
             grown |= {x for x in others if own.get(x) in nearby}
         keep = [x for x in others if x in grown]
@@ -8651,6 +8848,7 @@ class Agent:
             # `[None]` there and the guard loop runs anyway. Without this the axis would reach
             # only operand-readers, which is not the population F238 measured.
             for g in gs:
+                cap.head()
                 if g != term.guard:
                     yield Term(term.atoms, operand=term.operand, guard=g,
                                operand_term=term.operand_term)
@@ -8661,8 +8859,10 @@ class Agent:
         if _DELTA_OPERANDS and robs:
             cands = self._delta_narrowed(cands, robs)
         for b in cands:
+            cap.head()
             if self._operand_fits(term, slot, b):
                 for g in gs:
+                    cap.head()
                     yield Term(term.atoms, operand=b, guard=g,
                                operand_term=term.operand_term)
 
@@ -8702,6 +8902,7 @@ class Agent:
     def _replay_rows(self, rows: tuple) -> None:
         """(2a)(i): a reused evaluation records the rows its first evaluation wrote, as OFF does."""
         for r in rows:
+            cap.head()
             self.led.record(r["cycle"], r["step"], r["slot"], r["event"],
                             of=tuple(r["of"]) if r.get("of") is not None else None,
                             **copy.deepcopy(r["detail"]))
@@ -8739,6 +8940,7 @@ class Agent:
         pb, bb = boxes(pred), boxes(before)
         hit: dict = {}                                    # subject -> (partners, meant slots)
         for k, srcs in derived.items():
+            cap.head()
             subj, attr = k.split(".", 1)
             if relations.pair_attr(attr) != "touches" or before.get(k) != 1:
                 continue
@@ -8757,8 +8959,10 @@ class Agent:
         # EVERY PARTNER (the reviewer 13:07 CDT): one row per subject, the partners sorted, and the
         # slots map to the set -- never the first found.
         for subj in sorted(hit):
+            cap.head()
             ps, ms = hit[subj]
             for s in ms:
+                cap.head()
                 self._blocked_now[s] = tuple(sorted(ps))
             self.led.record(self.cycle, "PERCEIVE", subj, "blocked", partners=sorted(ps),
                             action=action, predicted={s: pred.get(s) for s in sorted(ms)},
@@ -8785,6 +8989,7 @@ class Agent:
                 k: [s for s in srcs if not (s in res and res[s].bits == 0)]
                 for k, srcs in derived.items()})
         for k, srcs in derived.items():
+            cap.head()
             if k not in dpred or k not in after:
                 continue
             if not all(s in res and res[s].bits == 0 for s in srcs):
@@ -8966,6 +9171,7 @@ class Agent:
             if n1 is not None:
                 rs = rs[:n1 - n0] + rs[n2 - n0:]      # the once-per-fit units call's rows stay out
             for r in rs:
+                cap.head()
                 r.pop("seq", None)
                 r.pop("mode", None)
             return tuple(rs)
@@ -9015,6 +9221,7 @@ class Agent:
 
         for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
                                     youth=self.gamma.youth_of):
+            cap.head()
             if n == exclude or (self._not and self._term_refused(n, _gk)):
                 continue
             # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
@@ -9037,6 +9244,7 @@ class Agent:
             else:
                 _cands = self._rebindings(_lt, slot, _guard_pool, _robs)
             for _i, cand in enumerate(_cands):
+                cap.head()
                 if _i == 0:
                     cand = _lt          # the name's own object, as _rebindings yields it first
                 if _FIT_DEDUP and _BARGAIN_FIT:
@@ -9154,9 +9362,11 @@ class Agent:
         groups: dict[tuple, list[str]] = {}
         owned: dict[str, list[str]] = {}
         for s in self.slots:
+            cap.head()
             if s in owners:
                 owned.setdefault(owners[s], []).append(s)
         for owner, ss in owned.items():
+            cap.head()
             feat = [x for x in ss if self.slot_types.get(x) not in (POSITION, DELTA)]
             # A PARTIAL VECTOR IS NOT A WEAKER MATCH, IT IS A DIFFERENT CLAIM. `self.slots` is
             # a snapshot and objects vanish, so a missing attribute silently SHRANK the vector
@@ -9169,10 +9379,12 @@ class Agent:
                                            for x in feat)), []).append(owner)
         out = []
         for vec, members in groups.items():
+            cap.head()
             if len(members) < 2:
                 continue
             rs = {}
             for o in members:
+                cap.head()
                 rs[o] = round(sum(self._left(self.gamma.library[self.bound.get(x, IDN)],
                                              x, self.history(x))
                                   for x in owned[o] if self.history(x)), 3)
@@ -9314,6 +9526,7 @@ class Agent:
             # a different trajectory -- to produce one. **INAPPLICABLE IS UNEXPLAINED**, which
             # is what `ops is None` already means three lines down, so the frame is charged
             # rather than skipped and the fix changes no verdict it could already reach.
+            cap.head()
             if not self._applies(term, state) or (
                     held is not None and not self._applies(held, state)):
                 ops = hops = None
@@ -9419,6 +9632,7 @@ class Agent:
         self._own_now = _oc() if _oc is not None else frozenset()
         self._integral += sum(r.mass for s, r in res.items() if s not in self._own_now)
         for _s, _r in res.items():
+            cap.head()
             if _s in self._own_now:
                 continue
             self._outstanding[_s] = self._outstanding.get(_s, 0.0) + _r.mass
@@ -9454,6 +9668,7 @@ class Agent:
         """
         total = 0.0
         for state, action, actual, intent, landed in hist:
+            cap.head()
             if ceiling is not None and offset + total >= ceiling:
                 return total
             if not self._applies(term, state):
@@ -9496,6 +9711,7 @@ class Agent:
         if _OBJ_EVENT:
             self._events_now(res)
         for slot, r in res.items():
+            cap.head()
             self._route_at += 1
             if self._cap_due():
                 raise _CapReached       # before this slot's turn (the reviewer 2026-10-17 16:56)
@@ -9718,6 +9934,7 @@ class Agent:
         if _ACTED_GUARD:
             preds.append(ACTED_SELF)
         for pred in preds:
+            cap.head()
             on = [self._d5_holds(pred, slot, r) for r in hist]
             right_p = sum(1 for o, w in zip(on, wrong, strict=True) if o and not w)
             wrong_np = sum(1 for o, w in zip(on, wrong, strict=True) if not o and w)
@@ -9749,6 +9966,7 @@ class Agent:
         late = sorted(s for s in self._starved if s in turned)
         due = [s for s in sorted(self._starved) if s not in turned] or ([] if late else ["@probe"])
         for slot in due:
+            cap.head()
             self.led.record(self.cycle, "MINT", slot, "probe",
                             **self.drive.report(),
                             guards={"support": False, "reachability": False,
@@ -9772,6 +9990,7 @@ class Agent:
         done: set = set()
         if _D5 and self._d5_pending:
             for _slot in sorted(self._d5_pending):
+                cap.head()
                 if _slot in gone:
                     self.led.record(self.cycle, "MINT", _slot, "d5_split_not_run",
                                     reason="pending split not run: left the board")
@@ -9823,6 +10042,7 @@ class Agent:
         parts = {**{s: {"P": c[0], "A": c[2], "B": None} for s, c in self._d5_pending.items()},
                  **self._parts}
         for slot, part in parts.items():
+            cap.head()
             if slot not in betting:
                 continue
             if self._d5_holds(part["P"], slot):
@@ -9905,6 +10125,7 @@ class Agent:
         instead of being recomputed as a scalar."""
         out = []
         for state, action, actual, intent, landed in hist:
+            cap.head()
             if not self._applies(term, state):
                 out.append((state, action, actual, intent, landed))   # inapplicable is unexplained
                 continue
@@ -9961,6 +10182,7 @@ class Agent:
                 elif cost + unit * wrong >= base:
                     return True             # the stored prefix already proves it
         for i in range(start, len(robs)):
+            cap.head()
             state, action, actual, intent, landed = robs[i]
             # `_ops` was called TWICE per row here -- once to test for None and again to
             # build the Ctx -- while `_left` next door hoists it. Pure function of
@@ -10452,6 +10674,7 @@ class Agent:
             return {}
         out = {}
         for a, b, kind in fn():
+            cap.head()
             sa, sb = before.get(a + ".shape"), before.get(b + ".shape")
             if sa is None or sb is None:
                 continue        # an unreadable participant is not a contact point to try
@@ -10509,6 +10732,7 @@ class Agent:
         best, top = None, 0.0
         vals = {slot: self._understanding(slot) for slot in sorted(before)}
         for slot, v in vals.items():
+            cap.head()
             if v > top:
                 best, top = slot, v
         if _A1_TIES and best is not None:      # A1: an exact tie goes to the less-aimed, not a name
@@ -10664,6 +10888,7 @@ class Agent:
         the judgement can be expressed, leave the figure to Isaiah.
         """
         for slot in self.slots:
+            cap.head()
             g = self._discrepancy(slot, state)
             # **NOT_RESOLVED IS THE COMMON CASE AND IT IS NOT A DISTANCE.** Its own docstring
             # says so -- *no objective here is NOT_RESOLVED, never None* -- and the SIGNATURE
@@ -10978,6 +11203,7 @@ class Agent:
             return UNKNOWN
         ordered = self.slot_types.get(slot) in ORDERED_TYPES
         for a in self.actions:
+            cap.head()
             moves = [aft[slot] - bef[slot] for bef, act, aft, _intent, _landed in self.trace
                      if act == a and slot in bef and slot in aft]
             if not moves:
@@ -11006,6 +11232,7 @@ class Agent:
         touch_lost: list = []
         held: list = []
         for slot in self.slots:
+            cap.head()
             g = self._discrepancy(slot, state)
             if not isinstance(g, int):
                 # BOTH non-integer outcomes break the trend, and for the SAME reason here --
@@ -11099,6 +11326,7 @@ class Agent:
             _ctx = IFace.Interface.context(self.env)
             _said = self._intent_now.says() if self._intent_now is not None else None
             for _slot, _was, _now in undone:
+                cap.head()
                 _key = (_ctx, _said, _slot, round(float(_was), 3))
                 _n = self._undone[_key] = self._undone.get(_key, 0) + 1
                 _ak = (_said, _slot)
@@ -11131,6 +11359,7 @@ class Agent:
                                              "about what to try, not a finding",
                                 reads="a goal I had met is no longer met; this is what I did")
         for _slot, _was, _now in touch_lost:
+            cap.head()
             self.led.record(self.cycle, self._running_step, _slot, "goal_touch_lost",
                             was=round(float(_was), 4), now=round(float(_now), 4),
                             value=state.get(_slot), action=self._last_action,
@@ -11211,6 +11440,7 @@ class Agent:
         refuted = self._refuted_slots() if _7H_RESCOPE and hasattr(self, "_rescoped") else {}
         plain: tuple[float, str] | None = None     # 7h (b): the pick without the rank
         for slot, series in sorted(self._res.items()):
+            cap.head()
             longest = max(longest, len(series))
             # **AN OBJECTIVE THAT HAS ARRIVED IS NOT ONE TO PURSUE, AND ARRIVING LOOKS EXACTLY
             # LIKE SHRINKING ON THE LAST READING.** §13.4 defines the series as *a scalar
@@ -11413,6 +11643,7 @@ class Agent:
 
         out = [Nt(sat(subject))]
         for other in names:
+            cap.head()
             if other == subject:
                 continue
             out.append(Bl("and", sat(subject), sat(other)))
@@ -12166,6 +12397,7 @@ class Agent:
         h = self.gamma.halflife or REJECTION_HALFLIFE
         ws = [(t, ok, 0.5 ** ((self.cycle - c) / h)) for t, ok, c in self._overrides]
         for lv in sorted({float(MIN_REPEAT), *(t for t, _ok, _w in ws)}):
+            cap.head()
             won = sum(w for t, ok, w in ws if ok and t >= lv)
             lost = sum(w for t, ok, w in ws if not ok and t >= lv)
             if won > lost:
@@ -12340,6 +12572,7 @@ class Agent:
         # Until the agent has a vindication, `halflife` is None and the seed applies, marked.
         for key, was in [(k, w) for k, w in self.refuted_at.items()
                          if k[0] == slot and (rg or 0.0) > w]:
+            cap.head()
             self.refuted.pop(key, None)
             del self.refuted_at[key]
             self.led.record(self.cycle, "PLAN", slot, "refutation_dropped",
@@ -13113,6 +13346,7 @@ class Agent:
         # took 88 slots the agent had bound* are the same row. Counted BEFORE the pops.
         bound_lost = sum(1 for g in gone if g in self.bound)
         for g in gone:
+            cap.head()
             self.bound.pop(g, None)
             self.owed_import.discard(g)
             self.abstained.pop(g, None)
@@ -13137,6 +13371,7 @@ class Agent:
         orphaned = sorted(k for k, n in self.bound.items()
                           if self.gamma.library[n].operand in gone)
         for k in orphaned:
+            cap.head()
             self.bound.pop(k, None)
             self.owed_import.add(k)
         self.led.record(self.cycle, self._running_step, "@instrument", "present",
@@ -13613,6 +13848,7 @@ class Agent:
         if lawful(rows):
             return {"verdict": "not a union", "rows": len(rows)}
         for pred in sorted({p for *_r, p in rows if p is not None}, key=repr):
+            cap.head()
             on = [r for r in rows if r[2] == pred]
             off = [r for r in rows if r[2] != pred]
             if len(on) >= 2 and len(off) >= 2 and lawful(on) and lawful(off):
@@ -13626,6 +13862,7 @@ class Agent:
         against). Incremental, so the trace is read once."""
         new = []
         for before, action, after, *_ in self.trace[lf["upto"]:]:
+            cap.head()
             t = (before.get(slot), action, after.get(slot))
             if t not in lf["seen"]:
                 lf["seen"].add(t)
@@ -13836,6 +14073,7 @@ class Agent:
                 # THE SKIPPED CHAINS' SIDE EFFECT IS REPLAYED: re-pricing them would count these
                 # wants again, and the lean reads the count.
                 for _ws in _hit[1].values():
+                    cap.head()
                     for _w in _ws:
                         self._want_seen[_w] = self._want_seen.get(_w, 0) + 1
                 guards["novelty"] = guards["novelty"] or _hit[2]
@@ -13909,6 +14147,7 @@ class Agent:
                 _spent = dict.fromkeys(_live, 0)
                 _cur, _r0 = None, rank
                 while True:
+                    cap.head()
                     if _cur is not None:
                         _spent[_cur] += rank - _r0
                         _share[_cur]["rank"] += rank - _r0
@@ -14018,6 +14257,7 @@ class Agent:
                                >= base):
                         if not guards["novelty"]:
                             for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
+                                cap.head()
                                 t = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
                                 if not (self.gamma.is_atom(t) or (
                                         _maybe_lib and t.name in self.gamma.library)):
@@ -14030,6 +14270,7 @@ class Agent:
                             _win_reached.update(b for b in binds if lag_of(b))
                         continue
                     for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
+                        cap.head()
                         if _WINDOW:
                             # THE BUDGET CHECKED INSIDE THE CHAIN (the reviewer 18:15Z), so the
                             # cut can fall between two lags and the low-ranked ones go first.
@@ -14633,118 +14874,124 @@ class Agent:
             self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
             return
         detail["explained"], detail["overclaimed"] = self.explain(slot, base_held - left)
-        self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
-        self.bound[slot] = term.name
-        self.rank.note(term.name, self.cycle)
-        closes = left == 0.0
-        if not closes and lag_of(term.operand) is not None:
-            _miss = self._residual_obs(slot, term, robs)
-            _k = sum(self._no_earlier_frame(term, r[0]) for r in _miss)
-            if _k:
-                detail["inapplicable"] = {"why": "no earlier frame", "k": _k, "n": len(robs)}
-        # Q7: THE MINT MAKES A CANDIDATE; THE GROUND SETTLES IT BY HELD-OUT PAYMENT. *A
-        # candidate becomes accepted once it predicts transitions it was never fitted to.*
-        # Candidacy was gated on `closes` and NOTHING EVER CLOSED -- 13 of 13 and 7 of 7 paid
-        # without closing -- so `candidates` stayed empty, `settle()` never fired, `units()`
-        # was 17 atoms at step 1 and 17 at step 20, and the composite system had ONE LEVEL
-        # structurally. Chunk reuse read zero as a TAUTOLOGY, not as a finding.
-        #
-        # THE SLOT STILL OWES, AND THAT IS UNCHANGED. *The slot keeps owing until something
-        # closes R* is true and is a fact about the SLOT -- `owed_import` keeps it. Whether
-        # the TERM is a real regularity is Q7's separate question and the ground answers it on
-        # a later step. §14.2 is the guard that makes this safe: an unsettled term is *usable
-        # as a slot's binding, NOT as a building block*, and `units()` admits settled only --
-        # which is Q7's *held but not cited*, already built.
-        self.candidates[term.name] = self.cycle
-        self._cand_level[term.name] = self.level
-        if closes:
-            self.owed_import.discard(slot)
-            self.abstained.pop(slot, None)
-        else:
-            self.owed_import.add(slot)
-        # THE CONTACT CLAUSE, RECORDED HERE BECAUSE IT CANNOT BE RECOVERED LATER. Contact is a
-        # fact about THIS frame and `summary` reads after the run, so *bound to a slot that was
-        # in contact* has to be written when the binding is chosen. Same shape as `level` on the
-        # repeat row: the reader forces a field the ledger did not carry.
-        detail["operand_in_contact"] = None
-        if term.operand:
-            owners = self._slot_owners(self.env)
-            touch = getattr(self.env, "contacts", None)
-            if owners and touch is not None:
-                adj = set(touch().get(owners.get(slot), ()))
-                detail["operand_in_contact"] = owners.get(term.operand) in adj
-        _lib = self._named.get(slot, {})
-        detail["operand_from_lookup"] = _lib.get(term.operand) if term.operand else None
-        detail["verdict"] = "pays"
-        detail["closes"] = closes
-        if not closes:
-            detail["note"] = "pays but does not close R; the slot still owes"
-        detail.update(term=term.name, term_depth=len(term), operand=term.operand,
-                      term_bits=round(cost, 3), left_bits=round(left, 3))
-        if _GUARD_PRICE and term.guard is not None:
-            _g = getattr(self, "_offered_now", None)
-            detail.update(guard=str(term.guard), guards_offered=_g, guard_bits=(
-                round(_guard_bits(term.guard, _g or 0), 3)
-                if term.guard not in (ACTED_SELF, ACTED_ON) else None))
-        # **§14.7's CHUNK REUSE COUNT, SPECIFIED IN THE CORPUS AND COMPUTED NOWHERE.**
-        # *How often a term appears as a CONSTITUENT of a later mint* -- a composition event,
-        # not a reading of R, which is why `behaviour.py` separates it from the per-slot rule.
-        # `chain.reuse_branch` is the RETRIEVAL path and a different quantity entirely.
-        #
-        # **IT IS THE ONLY EVIDENCE THE CHUNKING CLAIM HAS LEFT.** `F349`: the falsifier does
-        # not falsify -- `ladder` is declared unreachable in atoms and `dbl . dec . neg` reaches
-        # it at depth 3 -- and the winning NAME is identical whether the chain was found through
-        # a settled unit or through atoms. **So the claim is unproven in both directions, and
-        # nothing recorded which route was taken.** This records it.
-        #
-        # **A RECORD, NOT A DIAL, AND NOT A CALIBRATION CHANGE.** It touches neither the toy
-        # world, nor `max_depth`, nor the atom set -- the three repairs `F341`'s third category
-        # says are not the seat's to take. Nothing reads it.
-        #
-        # TWO ATOMS MINIMUM: a one-atom unit is in every chain that uses that atom, so counting
-        # it would measure the alphabet rather than reuse. And SETTLED EARLIER than this cycle,
-        # because a term cannot have been a constituent of the mint that produced it.
-        for _nm, _u in self.gamma.library.items():
-            if (_nm != term.name and len(getattr(_u, "atoms", ())) >= 2
-                    and self.gamma.is_settled(_nm)
-                    and _contains(term.atoms, _u.atoms)):
-                self.gamma.book["chunk_reuse"] = self.gamma.book.get("chunk_reuse", 0) + 1
-        if _LIBRARY_FIRST:
-            detail["library_first"] = dict(_lf_stats)
-            prov = next((o_["prov"] for o_ in self._lib_offers.get(slot, ())
-                         if o_["operand"] == term.operand
-                         and tuple(a.name for a in o_["term"].atoms)
-                         == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
-            if prov is not None:
-                detail["library"] = prov
-                if _ENTRY_USE:
-                    self._use(prov.get("library"), "explained", last=True)
-                _core = _core_kind(self._lib_offers.get(slot, ()), term) if G_SETTLED_CORE else None
-                if _core is not None:
-                    detail["core"] = (self.gamma.inherit if _core == "inherit"
-                                      else self.gamma.learn)(term.name)
-            # HOW the library moved this winner (the reviewer 11:00Z): `described` -- chain and
-            # operand both offered (the stamp); `chain_only` -- the chain arrived by the library's
-            # order with an operand it did not offer; `none` -- not by this mint's offers. A
-            # knock-on through another slot's library win is visible only against the OFF arm.
-            names = tuple(a.name for a in term.atoms)
-            detail["library_route"] = (
-                "described" if prov is not None
-                else "chain_only" if any(names[:len(ch)] == ch for ch in _lf_seen) else "none")
-            if _7H_ROUTE_GRADE and detail["library_route"] != "none":
-                self._lib_won.add(term.name)
-        self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
-        # THE PART RIDES ON THE ACCEPT TOO (the reviewer 2026-10-11 23:03 CDT): a D5 part-B accept
-        # names the slot while the slot is restored to its incumbent; untagged, a count of
-        # accepts per slot reads it as the slot's own.
-        # (c) ACCEPT by design: this row records the ACCEPT this method itself performs, a later
-        # step carried out inside MINT (the reviewer 2026-10-16 09:23)
-        self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
-                        origin=term.origin, seq=len(self.led),
-                        status=detail.get("core", "candidate"),
-                        cited="no: candidate may be held, not cited",
-                        **({"part": self._mint_part} if self._mint_part else {}))
-        self.chain.note_mint()
+        with cap.hold():   # C1 (A): the accepted term and what is written with it
+            # cross whole (the reviewer 2026-10-22 15:34 (b))
+            self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
+            self.bound[slot] = term.name
+            self.rank.note(term.name, self.cycle)
+            closes = left == 0.0
+            if not closes and lag_of(term.operand) is not None:
+                _miss = self._residual_obs(slot, term, robs)
+                _k = sum(self._no_earlier_frame(term, r[0]) for r in _miss)
+                if _k:
+                    detail["inapplicable"] = {"why": "no earlier frame", "k": _k, "n": len(robs)}
+            # Q7: THE MINT MAKES A CANDIDATE; THE GROUND SETTLES IT BY HELD-OUT PAYMENT. *A
+            # candidate becomes accepted once it predicts transitions it was never fitted to.*
+            # Candidacy was gated on `closes` and NOTHING EVER CLOSED -- 13 of 13 and 7 of 7 paid
+            # without closing -- so `candidates` stayed empty, `settle()` never fired, `units()`
+            # was 17 atoms at step 1 and 17 at step 20, and the composite system had ONE LEVEL
+            # structurally. Chunk reuse read zero as a TAUTOLOGY, not as a finding.
+            #
+            # THE SLOT STILL OWES, AND THAT IS UNCHANGED. *The slot keeps owing until something
+            # closes R* is true and is a fact about the SLOT -- `owed_import` keeps it. Whether
+            # the TERM is a real regularity is Q7's separate question and the ground answers it on
+            # a later step. §14.2 is the guard that makes this safe: an unsettled term is *usable
+            # as a slot's binding, NOT as a building block*, and `units()` admits settled only --
+            # which is Q7's *held but not cited*, already built.
+            self.candidates[term.name] = self.cycle
+            self._cand_level[term.name] = self.level
+            if closes:
+                self.owed_import.discard(slot)
+                self.abstained.pop(slot, None)
+            else:
+                self.owed_import.add(slot)
+            # THE CONTACT CLAUSE, RECORDED HERE BECAUSE IT CANNOT BE RECOVERED LATER. Contact is a
+            # fact about THIS frame and `summary` reads after the run, so *bound to a slot that was
+            # in contact* has to be written when the binding is chosen. Same shape as `level` on the
+            # repeat row: the reader forces a field the ledger did not carry.
+            detail["operand_in_contact"] = None
+            if term.operand:
+                owners = self._slot_owners(self.env)
+                touch = getattr(self.env, "contacts", None)
+                if owners and touch is not None:
+                    adj = set(touch().get(owners.get(slot), ()))
+                    detail["operand_in_contact"] = owners.get(term.operand) in adj
+            _lib = self._named.get(slot, {})
+            detail["operand_from_lookup"] = _lib.get(term.operand) if term.operand else None
+            detail["verdict"] = "pays"
+            detail["closes"] = closes
+            if not closes:
+                detail["note"] = "pays but does not close R; the slot still owes"
+            detail.update(term=term.name, term_depth=len(term), operand=term.operand,
+                          term_bits=round(cost, 3), left_bits=round(left, 3))
+            if _GUARD_PRICE and term.guard is not None:
+                _g = getattr(self, "_offered_now", None)
+                detail.update(guard=str(term.guard), guards_offered=_g, guard_bits=(
+                    round(_guard_bits(term.guard, _g or 0), 3)
+                    if term.guard not in (ACTED_SELF, ACTED_ON) else None))
+            # **§14.7's CHUNK REUSE COUNT, SPECIFIED IN THE CORPUS AND COMPUTED NOWHERE.**
+            # *How often a term appears as a CONSTITUENT of a later mint* -- a composition event,
+            # not a reading of R, which is why `behaviour.py` separates it from the per-slot rule.
+            # `chain.reuse_branch` is the RETRIEVAL path and a different quantity entirely.
+            #
+            # **IT IS THE ONLY EVIDENCE THE CHUNKING CLAIM HAS LEFT.** `F349`: the falsifier does
+            # not falsify -- `ladder` is declared unreachable in atoms and `dbl . dec . neg` reaches
+            # it at depth 3 -- and the winning NAME is identical whether the chain was found through
+            # a settled unit or through atoms. **So the claim is unproven in both directions, and
+            # nothing recorded which route was taken.** This records it.
+            #
+            # **A RECORD, NOT A DIAL, AND NOT A CALIBRATION CHANGE.** It touches neither the toy
+            # world, nor `max_depth`, nor the atom set -- the three repairs `F341`'s third category
+            # says are not the seat's to take. Nothing reads it.
+            #
+            # TWO ATOMS MINIMUM: a one-atom unit is in every chain that uses that atom, so counting
+            # it would measure the alphabet rather than reuse. And SETTLED EARLIER than this cycle,
+            # because a term cannot have been a constituent of the mint that produced it.
+            for _nm, _u in self.gamma.library.items():
+                cap.head()
+                if (_nm != term.name and len(getattr(_u, "atoms", ())) >= 2
+                        and self.gamma.is_settled(_nm)
+                        and _contains(term.atoms, _u.atoms)):
+                    self.gamma.book["chunk_reuse"] = self.gamma.book.get("chunk_reuse", 0) + 1
+            if _LIBRARY_FIRST:
+                detail["library_first"] = dict(_lf_stats)
+                prov = next((o_["prov"] for o_ in self._lib_offers.get(slot, ())
+                             if o_["operand"] == term.operand
+                             and tuple(a.name for a in o_["term"].atoms)
+                             == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
+                if prov is not None:
+                    detail["library"] = prov
+                    if _ENTRY_USE:
+                        self._use(prov.get("library"), "explained", last=True)
+                    _core = (_core_kind(self._lib_offers.get(slot, ()), term)
+                             if G_SETTLED_CORE else None)
+                    if _core is not None:
+                        detail["core"] = (self.gamma.inherit if _core == "inherit"
+                                          else self.gamma.learn)(term.name)
+                # HOW the library moved this winner (the reviewer 11:00Z): `described` -- chain
+                # and operand both offered (the stamp); `chain_only` -- the chain arrived by the
+                # library's
+                # order with an operand it did not offer; `none` -- not by this mint's offers. A
+                # knock-on through another slot's library win is visible only against the OFF arm.
+                names = tuple(a.name for a in term.atoms)
+                detail["library_route"] = (
+                    "described" if prov is not None
+                    else "chain_only" if any(names[:len(ch)] == ch for ch in _lf_seen) else "none")
+                if _7H_ROUTE_GRADE and detail["library_route"] != "none":
+                    self._lib_won.add(term.name)
+            self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
+            # THE PART RIDES ON THE ACCEPT TOO (the reviewer 2026-10-11 23:03 CDT): a D5 part-B
+            # accept
+            # names the slot while the slot is restored to its incumbent; untagged, a count of
+            # accepts per slot reads it as the slot's own.
+            # (c) ACCEPT by design: this row records the ACCEPT this method itself performs, a later
+            # step carried out inside MINT (the reviewer 2026-10-16 09:23)
+            self.led.record(self.cycle, "ACCEPT", slot, "accept", term=term.name,
+                            origin=term.origin, seq=len(self.led),
+                            status=detail.get("core", "candidate"),
+                            cited="no: candidate may be held, not cited",
+                            **({"part": self._mint_part} if self._mint_part else {}))
+            self.chain.note_mint()
         self.sweep(term, slot)
 
     def _reach(self, slot: str, hist: list, slots: list) -> tuple[float, Term] | None:
@@ -14758,6 +15005,7 @@ class Agent:
         best = None
         for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
                                                  self.cfg.budget):
+            cap.head()
             for bind in [None] + [s2 for s2 in slots if s2 != slot]:
                 # `_operand_fits` IS ALREADY RULED AND THIS SITE NEVER CALLED IT. Its own
                 # docstring: *a NECESSARY CONDITION, NOT A PREFERENCE -- it refuses a
@@ -14765,6 +15013,7 @@ class Agent:
                 # narrowing costs no capability*. `mint` applies it; `_reach` scored those
                 # bindings and picks by `left` ALONE, so one could win here. This is the
                 # existing ruling applied at the site that lacked it, not a new decision.
+                cap.head()
                 if not self._operand_fits(cand, slot, bind):
                     continue
                 t = Term(cand.atoms, operand=bind)
@@ -14849,10 +15098,12 @@ class Agent:
             self.chain.reuse_branch[why] += 1
             return
         for tkey, slot, hist, rec, slots in eligible:
+            cap.head()
             how = "direct"
             base = self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
             best = None
             for bind in [None] + [s for s in slots if s != slot]:
+                cap.head()
                 cand = Term(term.atoms, operand=bind)
                 left = self._left(cand, slot, hist)
                 if best is None or left < best[0]:
@@ -14880,78 +15131,80 @@ class Agent:
             floor_only = (_CARRY_PRICE and rec.get("verdict") == "under_floor"
                           and units_now <= rec.get("units_then", 0))
             if pays(ref_ if cred else cost, left, base) and (cred or not floor_only):
-                self.explain(slot, base - left)
-                if cred:
-                    self.gamma.book["carry_sweep_credited"] = (
-                        self.gamma.book.get("carry_sweep_credited", 0) + 1)
-                # THE SWEEP IS A PULL AND EMITTED NO PULL ROW. `reused()` counts `pull` rows
-                # and this is the only path that RE-BINDS, so every reuse it found was
-                # invisible to the bench-pull and transfer columns both.
-                self.led.record(self.cycle, self._running_step, slot, "pull", term=cand.name,
-                                held=tkey, chain=" . ".join(a.name for a in cand.atoms),
-                                rebound=True, via="sweep",
-                                **({"carry_credited": cred, "held_terms": h_,
-                                    "ref_bits": round(ref_, 4)} if _CARRY_PRICE else {}),
-                                origin=(self.gamma.stamps.get(tkey) or {}).get("origin"),
-                                reads="a library entry reached for BY THE SWEEP")
-                self.chain.note_reuse_attempt(f"{'partial' if left > 0.0 else 'closed'}:{how}")
-                self.chain.note_reused()
-                self.chain.note_cleared()
-                name = (cand.name if cand.name in self.gamma.library
-                        else self._install_reuse(cand, slot, partial=left > 0.0))
-                # 3d: COUNT REUSE WHERE THE FUNNEL ALREADY DETECTS IT. The bind sites are
-                # once-per-term by construction -- a rebind picks a DIFFERENT term, since
-                # `_library_fit` excludes the incumbent -- so counting there reads 1 forever.
-                # And the `cross` case never touches `bound` at all, which is precisely the
-                # reuse §17.7 means.
-                self.rank.note(name, self.cycle)
-                if cross:
-                    self.parked.pop(tkey, None)
-                else:
-                    self.bound[slot] = name
-                    self._carry(name)
-                    self.owed_import.discard(slot)
-                    self.abstained.pop(slot, None)
-                out = {"term": name, "slot": slot, "cycle": self.cycle,
-                       "was": rec.get("verdict"), "via": how,
-                       "cross_level": cross, "parked_on": rec.get("level")}
-                # MF-D3 (R-D2): a pre-boundary record closed here is STALE -- evidence, not a
-                # settle in this level, so its promotion waits for the term to settle here.
-                stale = _CARRY_PRICE and cross
-                if stale:
-                    out["stale"] = True
-                    self.gamma.book["carry_stale_close"] = (
-                        self.gamma.book.get("carry_stale_close", 0) + 1)
-                elif cred:
-                    self._carry_log[(name, slot)] = {
-                        "term": name, "slot": slot, "level": self.level, "cycle": self.cycle,
-                        "frames": len(hist), "left": round(left, 4), "base": round(base, 4),
-                        "carried": False, "via": "sweep", "settled": 0, "demoted": 0}
-                self.retro.append(out)
-                # SHADOW AND ECHO, and the sweep was throwing the verdict away. The
-                # target's residual is on the record before this term was accepted --
-                # `hist` is evidence already paid for -- and the term closes it on a slot
-                # it was not minted for. That is the pair, and it queues for step 6.
-                if slot != origin_slot or cross:
-                    self._promotions.append((name, {
-                        "target": tkey, "parked_on": rec.get("level"),
-                        "observations": len(hist),
-                        "recorded_before": self.gamma.stamps[name]["seq"],
-                    }, {"closed": True, "slot": slot, "minted_for": origin_slot,
-                        "cross_level": cross, "via": how,
-                        **({"stale": True} if stale else {})}))
-                # charged to the ORIGIN's chain, not the target's: the sweep is not the
-                # target slot's per-step loop running a second time, it is part of what
-                # happened when the origin minted. The target is named, not impersonated.
-                # (c) ACCEPT by design: this row records the ACCEPT this method itself performs, a
-                # later step carried out inside MINT (the reviewer 2026-10-16 09:23)
-                self.led.record(self.cycle, "ACCEPT", origin_slot, "retro", term=name,
-                                verdict="retroactive resolution", target=tkey,
-                                guards={"support": True, "reachability": True,
-                                        "novelty": False},
-                                note="minted here; it explains a residual parked elsewhere",
-                                was=out["was"], via=how, cross_level=cross,
-                                **({"stale": True} if stale else {}))
+                with cap.hold():   # C1 (A): the re-bind (pull row, install, bind), one unit
+                    self.explain(slot, base - left)
+                    if cred:
+                        self.gamma.book["carry_sweep_credited"] = (
+                            self.gamma.book.get("carry_sweep_credited", 0) + 1)
+                    # THE SWEEP IS A PULL AND EMITTED NO PULL ROW. `reused()` counts `pull` rows
+                    # and this is the only path that RE-BINDS, so every reuse it found was
+                    # invisible to the bench-pull and transfer columns both.
+                    self.led.record(self.cycle, self._running_step, slot, "pull", term=cand.name,
+                                    held=tkey, chain=" . ".join(a.name for a in cand.atoms),
+                                    rebound=True, via="sweep",
+                                    **({"carry_credited": cred, "held_terms": h_,
+                                        "ref_bits": round(ref_, 4)} if _CARRY_PRICE else {}),
+                                    origin=(self.gamma.stamps.get(tkey) or {}).get("origin"),
+                                    reads="a library entry reached for BY THE SWEEP")
+                    self.chain.note_reuse_attempt(f"{'partial' if left > 0.0 else 'closed'}:{how}")
+                    self.chain.note_reused()
+                    self.chain.note_cleared()
+                    name = (cand.name if cand.name in self.gamma.library
+                            else self._install_reuse(cand, slot, partial=left > 0.0))
+                    # 3d: COUNT REUSE WHERE THE FUNNEL ALREADY DETECTS IT. The bind sites are
+                    # once-per-term by construction -- a rebind picks a DIFFERENT term, since
+                    # `_library_fit` excludes the incumbent -- so counting there reads 1 forever.
+                    # And the `cross` case never touches `bound` at all, which is precisely the
+                    # reuse §17.7 means.
+                    self.rank.note(name, self.cycle)
+                    if cross:
+                        self.parked.pop(tkey, None)
+                    else:
+                        self.bound[slot] = name
+                        self._carry(name)
+                        self.owed_import.discard(slot)
+                        self.abstained.pop(slot, None)
+                    out = {"term": name, "slot": slot, "cycle": self.cycle,
+                           "was": rec.get("verdict"), "via": how,
+                           "cross_level": cross, "parked_on": rec.get("level")}
+                    # MF-D3 (R-D2): a pre-boundary record closed here is STALE -- evidence, not a
+                    # settle in this level, so its promotion waits for the term to settle here.
+                    stale = _CARRY_PRICE and cross
+                    if stale:
+                        out["stale"] = True
+                        self.gamma.book["carry_stale_close"] = (
+                            self.gamma.book.get("carry_stale_close", 0) + 1)
+                    elif cred:
+                        self._carry_log[(name, slot)] = {
+                            "term": name, "slot": slot, "level": self.level, "cycle": self.cycle,
+                            "frames": len(hist), "left": round(left, 4), "base": round(base, 4),
+                            "carried": False, "via": "sweep", "settled": 0, "demoted": 0}
+                    self.retro.append(out)
+                    # SHADOW AND ECHO, and the sweep was throwing the verdict away. The
+                    # target's residual is on the record before this term was accepted --
+                    # `hist` is evidence already paid for -- and the term closes it on a slot
+                    # it was not minted for. That is the pair, and it queues for step 6.
+                    if slot != origin_slot or cross:
+                        self._promotions.append((name, {
+                            "target": tkey, "parked_on": rec.get("level"),
+                            "observations": len(hist),
+                            "recorded_before": self.gamma.stamps[name]["seq"],
+                        }, {"closed": True, "slot": slot, "minted_for": origin_slot,
+                            "cross_level": cross, "via": how,
+                            **({"stale": True} if stale else {})}))
+                    # charged to the ORIGIN's chain, not the target's: the sweep is not the
+                    # target slot's per-step loop running a second time, it is part of what
+                    # happened when the origin minted. The target is named, not impersonated.
+                    # (c) ACCEPT by design: this row records the ACCEPT this method itself
+                    # performs, a
+                    # later step carried out inside MINT (the reviewer 2026-10-16 09:23)
+                    self.led.record(self.cycle, "ACCEPT", origin_slot, "retro", term=name,
+                                    verdict="retroactive resolution", target=tkey,
+                                    guards={"support": True, "reachability": True,
+                                            "novelty": False},
+                                    note="minted here; it explains a residual parked elsewhere",
+                                    was=out["was"], via=how, cross_level=cross,
+                                    **({"stale": True} if stale else {}))
             else:
                 # THE TWO REJECT ARMS WROTE NO ROW, AND THAT IS WHY THE ACCEPTANCE RULING
                 # CANNOT BE TAKEN YET. `F40` filed it as owed: `note_reuse_attempt` bumps a
@@ -15045,6 +15298,7 @@ class Agent:
             # holder would reintroduce the defect wherever the maker is missing, so a
             # slot with no recorded maker is SKIPPED: an unattributed prediction is not
             # evidence against anybody.
+            cap.head()
             name = self._pred_by.get(slot)
             if r.gone:
                 # a departure is not evidence against the term that predicted the slot's value
@@ -15296,6 +15550,68 @@ class Agent:
     # -- driving ---------------------------------------------------------------------------
 
     def step(self, action: str | None = None) -> bool:
+        """One turn (_step_body). C1 (A), the overrun safety net (Isaiah 2026-10-22 12:36; the
+        reviewer 12:37, 15:17, 15:34): the thinking deadline (_think_until) is cap.AT for the step
+        and cleared after it, so the end path is never cut. A cut at any growing loop's head ends
+        the step with one row naming where. After a cut, or once the thinking deadline has passed,
+        no step runs again: only the end path reads what a cut left (the reviewer 15:34 (a))."""
+        until = self._think_until()
+        if not self._cut and until is not None and _CAP_INNER and time.time() >= until:
+            self._cut = True       # the reserve: the agent stops thinking, the end path is kept
+            self.led.record(self.cycle, "SETTLE", "@cap", "stopped_for_end_path", acted=False,
+                            reserve_s=self._end_reserve, reads="the thinking deadline passed "
+                            "before the step: the reserve is kept for the game's end path")
+            return False
+        if self._cut:
+            self.led.record(self.cycle, "SETTLE", "@cap", "after_cut", acted=False,
+                            reads="a cut ended thinking; no step runs after it")
+            return False
+        self._pressed, self._cut_scope = False, None
+        cap.AT = until if _CAP_INNER else None
+        try:
+            return self._step_body(action)
+        except cap.CapReached as cut:
+            return self._cut_step(cut)
+        finally:
+            cap.AT = None
+
+    def _note_boundary_wall(self, wall_s: float) -> None:
+        """A level boundary's write, timed by the loop: this life's own measurement of its write at
+        its current size, plus the carried sleep part; the reserve never falls below the carried
+        whole (a boundary write has no end_run, save or sleep in it)."""
+        if not _END_RESERVE:
+            return
+        own = wall_s + (self._end_sleep_s or 0.0)
+        self._end_reserve = max(own, self._end_reserve or 0.0)
+
+    def _think_until(self) -> float | None:
+        """The thinking deadline: the runner's deadline less the end-path reserve (the agent's own
+        latest measured end-path wall, _end_reserve; None when unmeasured: no reserve taken)."""
+        if self.deadline is None:
+            return None
+        return self.deadline - (self._end_reserve or 0.0) if _END_RESERVE else self.deadline
+
+    def _cut_step(self, cut: BaseException) -> bool:
+        """A cut at a growing loop's head (cap.head): one "@cap" row naming the step scope, the
+        site and whether the press had gone out; "unreached at this budget", never a verdict
+        (Fig 9 :60, Fig 13 :134)."""
+        site = None
+        tb = cut.__traceback__
+        while tb is not None:
+            f = tb.tb_frame.f_code
+            if os.path.basename(f.co_filename) != "cap.py":
+                site = f"{os.path.basename(f.co_filename)}:{tb.tb_lineno} {f.co_name}"
+            tb = tb.tb_next
+        self.led.record(self.cycle, "SETTLE", "@cap", "cap_mid_step", acted=self._pressed,
+                        at=self._cut_scope or self._running_step, site=site,
+                        overrun_s=round(time.time() - (self._think_until() or time.time()), 1),
+                        reads="unreached at this budget: the agent stopped at a loop's head, "
+                              "between whole units of work, and ran none of the rest of this step")
+        self.cycle += 1
+        self._cut = True
+        return self._pressed
+
+    def _step_body(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome. Under
         TETHER_CAP_MIDSTEP a deadline passed between two lookups ends the turn at the route."""
         if _7H_ROOT and self._root_id is None and self._alive:
