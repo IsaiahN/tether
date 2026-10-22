@@ -1059,6 +1059,14 @@ class ArcWorld:
                 out[f"{o}.stability"] = p["stability"] + f if same else 0
         return out
 
+    def own_counted(self) -> frozenset[str]:
+        """The slots this perception writes by its own rule (own_expected's age and stability), on
+        every tracked object whether or not the rule can predict them this step: counters of our own
+        bookkeeping, whose change is a change already read on the object's other slots."""
+        tracked = getattr(getattr(self, "_decompose", None), "tracked", None) or {}
+        return frozenset(f"{o}.{a}" for o, obj in tracked.items() for a in ("age", "stability")
+                         if a in obj)
+
     def identity(self, obj: str) -> str | None:
         """How `obj` was re-found on the latest frame: "overlap", "unique-shape", "look-alike",
         "birth", or None when it is not tracked. F479 reads it at a restart.

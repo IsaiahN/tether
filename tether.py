@@ -258,6 +258,12 @@ _CARRY_CANDIDATE = not armflag.arm("TETHER_NO_CARRY_CANDIDATE")
 # served slot keeps its whole past surprise as outstanding, as before (116481a). Off until
 # Isaiah rules.
 _LIBRARY_EXPLAINS = armflag.arm("TETHER_LIBRARY_EXPLAINS")
+# STABILITY / AGE, THE NARROW ARM (B) (the reviewer 2026-10-21 21:52, 2026-10-22 02:13): the slots
+# the world's own clock writes (env.own_counted(): age, stability) are counters of our own
+# bookkeeping. ON: never minted for or bound, their misses never charged to outstanding or the
+# integral (already counted on the slots they derive from), still BET by the own clock and
+# recorded. OFF: as at 116481a. Off until Isaiah rules.
+_OWN_COUNTERS_DERIVED = armflag.arm("TETHER_OWN_COUNTERS_DERIVED")
 # WHAT A SEARCH HAS ALREADY PRICED -- reviewer 2026-10-07, plan item 7. Under an unchanged scope key
 # a chain prices the same way again, so a re-run of a search that stopped at the budget spends the
 # budget re-reading what it already refused. The cue reorders ties every cycle, so the frontier is
@@ -2495,6 +2501,7 @@ class Agent:
         self._want_scope: dict = {}   # b-0: slot -> the want name scored on its SUBJECT alone
         self._process_bets: list = []  # D1: open process bets, settled only at an ending (D3)
         self._served: dict[str, tuple[str, float]] = {}   # (iv): slot -> (served term, bits)
+        self._own_now: frozenset = frozenset()   # (B): this step's own-counted slots, ON only
         self._run_actions = 0         # MC3: actions this run
         self._level_attempts = 1      # MC3: attempts at this level (1 + restarts)
         # SET HERE AND NOT ONLY IN `retarget`. `_advertised` reads it at the top of every
@@ -3450,7 +3457,7 @@ class Agent:
         own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
         groups: dict = {}
         for s, r in res.items():     # res's order: C1 asks the slots a budget left unasked first
-            if r.gone or not (r.mass > 0.0 or s in self.owed_import):
+            if r.gone or not (r.mass > 0.0 or s in self.owed_import) or s in self._own_now:
                 continue
             o = own.get(s)
             for p in (o.split("~") if o and "~" in o else [o] if o else []):
@@ -8277,9 +8284,7 @@ class Agent:
         if _DIRECTION_MOVABLE:          # before Agency.note: the controlled set as it stood
             self._note_direction(action, before, after, sorted(res))
         self.agency.note(action, self._moved(res, before, after), sorted(res))
-        self._integral += sum(r.mass for r in res.values())
-        for _s, _r in res.items():
-            self._outstanding[_s] = self._outstanding.get(_s, 0.0) + _r.mass
+        self._charge(res)
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
         self.chain.note_diff(live)
@@ -9153,6 +9158,18 @@ class Agent:
         took = max(0.0, min(bits, have))
         self._outstanding[slot] = have - took
         return round(took, 3), round(max(0.0, bits - have), 3)
+
+    def _charge(self, res: dict) -> None:
+        """This step's misses into the integral and each slot's outstanding. (B) ON: a slot the
+        world's own clock writes (env.own_counted()) is not charged -- its change is already
+        counted on the slots it derives from -- and is remembered for route and accept."""
+        _oc = getattr(self.env, "own_counted", None) if _OWN_COUNTERS_DERIVED else None
+        self._own_now = _oc() if _oc is not None else frozenset()
+        self._integral += sum(r.mass for s, r in res.items() if s not in self._own_now)
+        for _s, _r in res.items():
+            if _s in self._own_now:
+                continue
+            self._outstanding[_s] = self._outstanding.get(_s, 0.0) + _r.mass
 
     def _serve(self, slot: str, fit: str) -> None:
         """(iv): before the route binds a library term, what it would explain -- the base under
@@ -15386,9 +15403,18 @@ class Agent:
             for _i, (slot, b, fit, _why) in enumerate(routed):
                 if slot in _split_now:
                     continue
+                if slot in self._own_now and b in (MECHANISM, REBIND, REFUTED):
+                    # (B): a counter of our own bookkeeping is never minted for nor bound
+                    self.led.record(self.cycle, "ACCEPT", slot, "own_counter_unminted", bin=b,
+                                    reads="(B): written by the world's own clock; its change "
+                                          "is read on the slots it derives from")
+                    self._turn_ahead.discard(slot)
+                    continue
                 if b in (MECHANISM, REFUTED) and self._cap_due():
                     # before this mint: the slots whose mint was not run say so, then the step ends
                     for s_, b_, f_, _w in routed[_i:]:
+                        if s_ in self._own_now:
+                            continue
                         if s_ not in _split_now and (b_ == MECHANISM or (b_ == REFUTED
                                                                           and not f_)):
                             # it OWES (the reviewer 17:15 (a)): its residual was never closed, so

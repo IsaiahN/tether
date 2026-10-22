@@ -1030,6 +1030,12 @@ ARMS: dict[str, str] = {
                                "explain() as a mint's winner does. OFF: a served slot keeps its "
                                "whole past surprise as outstanding (116481a). On a side branch "
                                "until Isaiah rules. default OFF",
+    "TETHER_OWN_COUNTERS_DERIVED": "STABILITY / AGE, THE NARROW ARM (B) (the reviewer "
+                                   "2026-10-21 21:52, 2026-10-22 02:13): the slots the world's own "
+                                   "clock writes (env.own_counted()) are never minted for or "
+                                   "bound and their misses are not charged; still bet by the own "
+                                   "clock and recorded. OFF: as at 116481a. On a side branch "
+                                   "until Isaiah rules. default OFF",
     "TETHER_LIBRARY_REQUIRED": "COLD START (ii), SHAPE A (the reviewer 2026-10-21 23:27): "
                                "wire() fails at startup naming each missing library file, or "
                                "the absent library/ folder. OFF only for the ablation clause: "
