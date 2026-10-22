@@ -179,10 +179,10 @@ def wa(env, game, cfg, led_obj, library, lineage_dir, clock=None):
     hook["snap"] = d + "_snap"
     shutil.copytree(d, hook["snap"])                # (r2): the folder the fresh agent loads
     if mode == "once":                              # (r1): two fresh agents, same save, same board
-        import pickle
-        hook["board"], hook["clock"], hook["palette"] = d + "_board.pkl", list(clock), env._palette
-        with open(hook["board"], "wb") as fh:       # (r2b): the board at the fault, for a cold step
-            pickle.dump(copy.deepcopy(env.w.w), fh)
+        b = env.w.w                                 # (r2b): the board at the fault, as fields
+        hook["board"] = json.dumps({"pos": list(b.pos), "n": b.n, "calls": list(b.calls),
+                                    "state": b._last.state.name})
+        hook["clock"], hook["palette"] = list(clock), env._palette
         outs = []
         for i in range(2):
             di = f"{d}_r1_{i}"
@@ -257,13 +257,16 @@ import os, shutil, sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, sys.argv[1]); os.chdir(sys.argv[1])
 sys.path.insert(1, os.path.join(sys.argv[1], "tests"))
-import json, pickle, arc_holdout, ledger, tether
+import json, arc_holdout, ledger, tether
+from test_entry import FakeWrapper, GameState
 tether._AGENT_SEED = False
 ''' + DIGEST + r'''
 d = sys.argv[2] + "_cold"
 shutil.copytree(sys.argv[2], d)
-with open(sys.argv[3], "rb") as fh:
-    board = pickle.load(fh)
+b = json.loads(sys.argv[3])
+board = FakeWrapper(script={})
+board.pos, board.n, board.calls = b["pos"], b["n"], b["calls"]
+board._frame(GameState[b["state"]])
 env = arc_holdout.world_on(arc_holdout.ResetGuard(board), "fake", int(sys.argv[4]), None)
 led = ledger.Ledger(None)
 ag, _l = arc_holdout.wire_agent(env, "fake", None, led, None, d,
