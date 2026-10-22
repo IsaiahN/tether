@@ -247,14 +247,14 @@ def run(code: str, *args: str, **arms) -> object:
     p = subprocess.run([sys.executable, "-B", "-c", code, HERE, *args], capture_output=True,
                        text=True, env=env, cwd=HERE, stdin=subprocess.DEVNULL, timeout=900)
     assert p.returncode == 0, p.stderr[-3000:]
-    return json.loads(p.stdout.strip().splitlines()[-1])
+    return p.stdout.strip().splitlines()[-1]
 
 
 def game(mode: str, **arms) -> dict:
     d = tempfile.mkdtemp(prefix="recover_")
     assert run(SEED, d) == "seeded"
     led = os.path.join(tempfile.mkdtemp(), "r.jsonl")
-    return run(CHILD, d, led, str(K), mode, str(CYCLES), **arms)
+    return json.loads(run(CHILD, d, led, str(K), mode, str(CYCLES), **arms))
 
 
 def main() -> int:
@@ -272,7 +272,7 @@ def main() -> int:
     assert r1 and not r1["diff"] and r1["calls"][0] == r1["calls"][1] and r1["rows"], ("r1", r1)
     print(f"  r1 two fresh agents from copies of the save on copies of the board: "
           f"{r1['rows']} rows equal, last calls {r1['calls'][0][-1:]} equal")
-    cold = run(COLD, r["snap"])
+    cold = json.loads(run(COLD, r["snap"]))
     diff = sorted(k for k in set(cold) | set(r["digest"]) if cold.get(k) != r["digest"].get(k))
     assert not diff, ("r2: the fresh agent's load differs from a cold load of the save", diff)
     print(f"  r2 the fresh agent's state digest equals a cold process's load: {len(cold)} "
