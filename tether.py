@@ -754,7 +754,8 @@ _STEP_BUDGET = armflag.arm("TETHER_STEP_BUDGET", default=True)
 # whole lookup work on lf52 (4666226, 12 steps: 13.1 s at ~14 us), so half the steps run as today.
 # K-W, 1,000,000 -> 50,000 (Isaiah 2026-10-21 18:58, via the reviewer 19:02; measured S2W, S3G: a
 # step's lookups past it are OWED and asked first next step). A VALUE: TETHER_STEP_BUDGET_N
-# overrides it, 1000000 restores the old pacing (317879c)
+# overrides it, 1000000 restores the old pacing (317879c). MAGIC: a seat-authored constant
+# (Fig 10 :48), replaced post-Kaggle by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 STEP_BUDGET = int(os.environ.get("TETHER_STEP_BUDGET_N", "50000"))
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --

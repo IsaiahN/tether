@@ -253,7 +253,8 @@ def save_only(ag: Any, out_dir: str | None, game: str, led_path: str | None) -> 
 # reviewer 19:02; measured S2W, S2X, S3G: a mint walks a third as far, the finds lost named). Set
 # here, as max_depth=4 is, so the toy world's Config() keeps 15,000 and its falsifier (~13,298
 # candidates to dbl.neg.inc.wrap) is never truncated. A VALUE: TETHER_WORK_BUDGET_N overrides it,
-# 15000 restores the old pacing (317879c)
+# 15000 restores the old pacing (317879c). MAGIC: a seat-authored constant (Fig 10 :48),
+# replaced post-Kaggle by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 ARC_WORK_BUDGET = int(os.environ.get("TETHER_WORK_BUDGET_N", "5000"))
 
 

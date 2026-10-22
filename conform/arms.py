@@ -1426,10 +1426,14 @@ _NO_ENV = type("armflag", (), {"arm": staticmethod(lambda _name, default=False: 
 VALUES = {"TETHER_SEED_FROM": "a REPLAY: the path of a record (a ledger or a lineage generation) "
                               "whose recorded seed and generation the agent reads; never a seed "
                               "value (HOLD_SEED, the reviewer 2026-10-15 15:04)",
-          "TETHER_STEP_BUDGET_N": "a COUNT: K-W, the per-step lookup budget tether.STEP_BUDGET "
+          "TETHER_STEP_BUDGET_N": "a COUNT, MAGIC (an interim constant authored by the seats, Fig "
+                                  "10 :48; B1-B5 replaces it post-Kaggle): K-W, the per-step "
+                                  "lookup budget tether.STEP_BUDGET "
                                   "(default 50,000, Isaiah 2026-10-21 18:58; 1000000 restores "
                                   "the old pacing); never on/off",
-          "TETHER_WORK_BUDGET_N": "a COUNT: K-M, the ARC path's mint work budget "
+          "TETHER_WORK_BUDGET_N": "a COUNT, MAGIC (an interim constant authored by the seats, Fig "
+                                  "10 :48; B1-B5 replaces it post-Kaggle): K-M, the ARC path's "
+                                  "mint work budget "
                                   "(arc_holdout.ARC_WORK_BUDGET, default 5,000, Isaiah "
                                   "2026-10-21 18:58; 15000 restores the old pacing; the toy "
                                   "world's Config() keeps 15,000); never on/off",
