@@ -5,7 +5,8 @@ the past and it steps again.
   P1 the step ends between lookups: no exception escapes, one ROUTE "@cap" cap_mid_step row with
      its overrun_s (wall at the cap minus the deadline, >= 0), and no library row after the deadline
   P2 the record still flushes: lineage.write after the cap writes a generation carrying entry_use,
-     and a fresh agent loads equal counts
+     and a fresh agent loads equal counts. The generation is read through lineage._read (the
+     files are zlib under TETHER_COMPRESS); MF-P2: the old raw text read of the same file fails
   P3 the capped ledger passes gate.py: every live slot the cap left unsorted has its route row
      (CAP_UNREACHED), so the routing check still accounts for every residual
   MF-P1 TETHER_CAP_MIDSTEP=0: the same deadline is ignored inside the step (no cap row, library
@@ -62,8 +63,15 @@ out = {"warm_steps": n, "cap_rows": len(cap), "lib_after": len(libs), "acted": a
 if tether._ENTRY_USE and tether._CAP_MIDSTEP:
     ld = os.path.join(d, "lin")
     lineage.write(ld, ag, "gw")
-    gens = [f for f in os.listdir(ld) if f.startswith("gen_")]
-    eu = json.loads(open(os.path.join(ld, gens[0]), encoding="utf-8").read()).get("entry_use", {})
+    from pathlib import Path
+    gens = lineage._read(Path(ld))      # the lineage's own reader: decompressed, hash-checked
+    eu = next(iter(gens.values())).get("entry_use", {})
+    raw = os.path.join(ld, next(f for f in os.listdir(ld) if f.startswith("gen_")))
+    try:                                # MF-P2: the old raw text read of the same file
+        json.loads(open(raw, encoding="utf-8").read())
+        out["raw_read"] = "ok"
+    except (UnicodeDecodeError, ValueError) as e:
+        out["raw_read"] = type(e).__name__
     ag2 = tether.Agent(world.bind(panel._gridworld("gridworld_s2")[0]),
                        gamma.Gamma(env.atoms(), game=f"gate_{seed}"), tether.Config(),
                        ledger.Ledger(path=os.devnull))
@@ -158,8 +166,10 @@ def main() -> int:
     assert on["cap_rows"] >= 1 and on["lib_after"] == 0 and on["cap_slot"] == "@cap", on   # P1
     assert all(isinstance(x, float) and x >= 0 for x in on["overrun"]), on["overrun"]
     assert on["written"] > 0 and on["loaded"] == on["written"] and on["equal"], on       # P2
+    assert on["raw_read"] != "ok", on                                                     # MF-P2
     print("P1 cap row", on["cap_rows"], "library rows after the deadline", on["lib_after"],
-          "; P2 entry_use written", on["written"], "loaded", on["loaded"], "equal", on["equal"])
+          "; P2 entry_use written", on["written"], "loaded", on["loaded"], "equal", on["equal"],
+          "; MF-P2 the raw text read of the generation fails:", on["raw_read"])
     g = subprocess.run([sys.executable, "-B", "gate.py", on["led"]], capture_output=True, text=True,
                        cwd=os.path.dirname(os.path.abspath(__file__)), stdin=subprocess.DEVNULL,
                        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
