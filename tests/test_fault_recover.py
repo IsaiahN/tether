@@ -205,7 +205,9 @@ def wa(env, game, cfg, led_obj, library, lineage_dir, clock=None):
         _e, a2, *_ = arc_holdout.wire(env.w, game, led_path=led, lineage_dir=lineage_dir)
         a2.cycle, a2.deadline = clock
         return a2, None
+    resets = (env.w.w.calls.count("RESET"), env.w.refused)     # (a): no RESET by the recovery
     ag2, loaded = real_wa(env, game, cfg, led_obj, library, lineage_dir, clock=clock)
+    hook["resets"] = [resets, (env.w.w.calls.count("RESET"), env.w.refused)]
     hook["digest"] = digest(ag2)
     return ag2, loaded
 
@@ -248,7 +250,7 @@ out = {"raised": raised, "calls": calls[0], "ended": ended,
        "digest": hook.get("digest"), "snap": hook.get("snap"), "board": hook.get("board"),
        "clock": hook.get("clock"), "palette": hook.get("palette"),
        "prefix_ok": whole.startswith(hook["prefix"]) if "prefix" in hook else None,
-       "prefix_len": len(hook.get("prefix", b""))}
+       "prefix_len": len(hook.get("prefix", b"")), "resets": hook.get("resets")}
 print(json.dumps(out, default=str))
 '''
 
@@ -309,6 +311,10 @@ def main() -> int:
     print(f"  a  one fault at step {K}: the game went on to cycle {r['calls']}; agent_fault 1 "
           f"(repeat False); fault_recovered 1, parent {fault_gen[0]} (ended agent_fault); "
           f"traceback {r['tb']}; gate {r['gate']['verdict']} at {r['gate']['check']}")
+    rs = r["resets"]
+    assert rs and rs[0] == rs[1], ("a: the recovery issued or refused a RESET", rs)
+    print(f"  a  no RESET by the recovery: (board RESETs, guard refusals) before {rs[0]}, after "
+          f"the fresh agent was built {rs[1]}")
     r1 = r["r1"]
     assert r1 and not r1["diff"] and r1["calls"][0] == r1["calls"][1] and r1["rows"], ("r1", r1)
     cl = r1["cleared"]
@@ -329,7 +335,12 @@ def main() -> int:
           f"tether._INDEX_STORE: fresh {fresh['_index_store_n']} entries, cold "
           f"{cold['_index_store_n']} (READ, NOT ASSERTED: for the reviewer's ruling)")
     d2 = compare(r1["rows0"], c["rows"], set())
-    assert not d2, ("r2b: the fresh agent's step differs from a cold process's", d2)
+    a0, a1 = (next(x["detail"] for x in rs if x["event"] == "arms") for rs in (r1["rows0"],
+                                                                               c["rows"]))
+    assert not d2, ("r2b: the fresh agent's step differs from a cold process's", d2,
+                    {k: (sorted(set(a0[k]) - set(a1[k])), sorted(set(a1[k]) - set(a0[k])))
+                     for k in ("modules", "not_loaded", "on", "off")
+                     if isinstance(a0.get(k), list)})
     print(f"  r2b the fresh agent's next step and a cold process's on the same board from the same "
           f"save: {len(c['rows'])} rows equal (the cold fold cleared {c['cleared']})")
     assert r["marker_after"] is False, ("r3: the faulted agent's binding crossed", r)
