@@ -44,7 +44,10 @@ COUNTS = (("completion_sweep", ("detail", "segment_rows")),)
 BIRTH = ("seed", "seed_source")
 # Fields that record WALL TIME, which no two runs share: (event, field). The same one list for every
 # comparer, imported and never copied (the reviewer 2026-10-21 23:16, 23:27; as BIRTH). A field is
-# added here only if it is a timing; any other difference still fails.
+# added here only if it is a timing; any other difference still fails. FOUND BY (2026-10-22; rerun
+# it when a module gains a clock): grep -n "perf_counter() -\|time.time() -\|monotonic() -\|_ms=\|
+# _s=round" over the agent's modules, keeping each result that lands in a led.record row (the body
+# side file's "ms" and lineage's write-report seconds do not).
 TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRAW
            ("muse", "compute_ms"),           # tether 6328, 6358
            ("cap_mid_step", "overrun_s"))    # tether 2998, wall at the cap minus the deadline
