@@ -289,11 +289,14 @@ def cmd_retire(a) -> int:
     idx, pins = load_index(a.index), read_pins(a.pins)
     paths = [Path(x.strip()) for x in Path(a.list).read_text(encoding="utf-8").splitlines()
              if x.strip()]
-    # the window is the newest 25 of EVERY ledger under the roots, never of the list alone
-    ok, held = eligible(idx, ledgers(a.roots), pins, verify=True)
+    # the window is the newest 25 of EVERY ledger under the roots, never of the list alone;
+    # the round trip is read for the list's members only (the roots hold ~32 GiB)
+    ok, held = eligible(idx, ledgers(a.roots), pins, verify=False)
     ok_set = {norm(p).lower() for p, _ in ok}
     refused = [(p, dict(held).get(p, "not eligible")) for p in paths
                if norm(p).lower() not in ok_set]
+    refused += [(p, "verify: " + ",".join(d)) for p in paths
+                if norm(p).lower() in ok_set and (d := verify_one(idx, p))]
     if refused:
         for p, why in refused:
             print(f"REFUSED {why}  {norm(p)}")
