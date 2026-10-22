@@ -71,6 +71,8 @@ NO_CHANGE = "no_change"
 # is "game_win", a level cleared "level_advance". Before F1b they were the bare words "win" and
 # "advance", and ARC wrote "advance" for a game WIN; old ledgers are read through legacy_ending.
 WIN, DEATH, RESET, ADVANCE, CAP = "game_win", "death", "reset", "level_advance", "cap"
+# item 4 (2026-10-22): the game ended because the agent's own code raised, never the world
+AGENT_FAULT = "agent_fault"
 
 # §21.5: RESET and ADVANCE produce the SAME residual spike and mean OPPOSITE things, and the
 # frame carries `full_reset` and `levels_completed` so the discriminator survives even where
