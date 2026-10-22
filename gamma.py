@@ -2012,23 +2012,33 @@ class Gamma:
         smaller fraction.* `lambda` is the spectral radius of the ATOM table and never moves
         when a term settles, so under it a loaded library would show no fall in coverage
         whatever happened. `units` grows as the ground pays for chunks.
+
+        **COUNTED BY THE WALK'S OWN STATE, (type, element type), THROUGH `_iter_step`** (the
+        reviewer 2026-10-21 22:10, S3M). It counted by out-type alone, so it held chains
+        `_iter_step` refuses (owner . shape . cells . {quantifier}: estimate 4 above seen on
+        every exhausted mint) and missed the maps an element type opens: at depth 4 over the ARC
+        atoms it disagreed with the enumeration on 56 of 121 type pairs. test_space_exact.
         """
-        free = [u for u in units if not any(a.name == IDN_NAME for a in u.atoms)]
-        total = sum(1 for u in units if accepts_type(u, in_type) and u.out_type == out_type)
+        total = 0
         # length 1 counts every unit; length > 1 only the idn-free ones, both as the head of
         # the chain and as each extension -- the closure's rule, not a separate policy
-        live: dict[str, int] = {}
-        for u in free:
-            if accepts_type(u, in_type):
-                live[u.out_type] = live.get(u.out_type, 0) + 1
+        live: dict[tuple, int] = {}
+        for u in units:
+            if not accepts_type(u, in_type) or (st := Gamma._iter_step(in_type, None, u)) is None:
+                continue
+            total += st[1] is None and st[0] == out_type
+            if not any(a.name == IDN_NAME for a in u.atoms):
+                live[st] = live.get(st, 0) + 1
+        free = [u for u in units if not any(a.name == IDN_NAME for a in u.atoms)]
         for _ in range(2, max_depth + 1):
-            nxt: dict[str, int] = {}
-            for t, n in live.items():
+            nxt: dict[tuple, int] = {}
+            for (cur, elem), n in live.items():
                 for u in free:
-                    if accepts_type(u, t):
-                        nxt[u.out_type] = nxt.get(u.out_type, 0) + n
+                    if (st := Gamma._iter_step(cur, elem, u)) is not None:
+                        nxt[st] = nxt.get(st, 0) + n
             live = nxt
-            total += live.get(out_type, 0)
+            # an unclosed iteration is not a term (the emission rule in enumerate_closure)
+            total += sum(n for (c, e), n in live.items() if e is None and c == out_type)
         return total
 
     # -- typing beats size, as a number -----------------------------------------------
