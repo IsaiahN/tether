@@ -37,6 +37,7 @@ import sys
 
 from arcengine import GameAction
 
+import arc_holdout
 import arc_self
 
 sys.dont_write_bytecode = True
@@ -59,7 +60,7 @@ NO_SURFACED_ACTION = ("ft09", "lp85", "r11l", "s5i5", "tn36", "vc33")
 def _run(arc, game: str, cycles: int) -> dict:
     w = arc.make(game)
     if w is None:
-        return {"error": "did not resolve"}
+        return {"error": arc_holdout.missing_game(game)}
     fr = w.reset()
     acts = [GameAction.from_id(a).name for a in (fr.available_actions or ())
             if GameAction.from_id(a).is_simple() and GameAction.from_id(a) is not GameAction.RESET]

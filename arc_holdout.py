@@ -125,6 +125,20 @@ class ResetGuard:
         return getattr(self.w, name)
 
 
+def missing_game(game: str) -> str:
+    """COLD START (the reviewer 2026-10-21 19:47): the one plain message for a game arc_agi cannot
+    make, printed and returned. The games are not shipped with the code (environment_files/ is
+    gitignored: not ours to redistribute); one NORMAL-mode make() fetches a game once with the
+    arc_agi package's own anonymous fetch, and every run after it stays offline."""
+    msg = (f"{game} is not in environment_files/: the games are not shipped with the code. Fetch "
+           f"it once with the arc_agi package's own anonymous fetch: python -c \"from arc_agi "
+           f"import Arcade; from arc_agi.base import OperationMode; "
+           f"Arcade(operation_mode=OperationMode.NORMAL).make('{game}')\". Every run after that "
+           f"is offline.")
+    print(msg, file=sys.stderr)
+    return msg
+
+
 def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
          library: str | None = None, on_frame=None, lineage_dir: str | None = None):
     """THE ONE WIRING OF AN ARC WRAPPER TO THE AGENT -- `play` and the Kaggle entry point both.
@@ -292,7 +306,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     arc = arc or Arcade(operation_mode=_mode())
     w = arc.make(game)
     if w is None:
-        return {"error": f"{game} did not resolve"}
+        return {"error": missing_game(game)}
 
     env, ag, led, board, palette, loaded = wire(w, game, cfg=cfg, led_path=led_path,
                                                 library=library, on_frame=on_frame,
@@ -531,7 +545,7 @@ def controlled(game: str = "ls20", trials: int = 4) -> dict:
     arc = Arcade(operation_mode=_mode())
     w = arc.make(game)
     if w is None:
-        return {"error": f"{game} did not resolve"}
+        return {"error": missing_game(game)}
     ctrl = experiment.Controlled()
     acts: list[str] = []
     for i in range(trials):

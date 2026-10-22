@@ -8,6 +8,9 @@ lineage and fills it by itself; the reviewer 19:47 (i), 22:59). The fake ARC gam
        sqlite3.OperationalError at the store's open.
   CS2  an EXISTING lineage loads identically with and without the fix: two fresh processes,
        each a wire() on the folder CS1 wrote, report the same load and hold the same library.
+  CS3  a game arc_agi cannot make (make() returns None) gives the one plain message: the game
+       named, the games not shipped with the code, the ONE fetch (a NORMAL-mode make()), and
+       offline after it; nothing plays (wire() is never reached: its lineage folder is not made).
 
     python test_cold_start.py
 """
@@ -50,6 +53,11 @@ class Arc:
         return FakeWrapper()
 
 
+class NoGame:
+    def make(self, _game):
+        return None
+
+
 def child(d: Path, mode: str) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0")
@@ -86,6 +94,14 @@ def main() -> None:
         assert a == b, ("CS2", {k: (a[k] == b[k]) for k in a})
         print(f"  CS2: an existing lineage loads identically with and without the fix "
               f"(parent {a['lineage'].get('parent')}, {len(a['library'])} library entries)")
+        g = tmp / "g" / "lineage"
+        out = arc_holdout.play("zz99", 3, arc=NoGame(), lineage_dir=str(g))
+        msg = out.get("error") or ""
+        need = ("zz99", "environment_files/", "not shipped", "OperationMode.NORMAL",
+                "make('zz99')", "offline")
+        assert all(n in msg for n in need) and set(out) == {"error"}, ("CS3", out)
+        assert not g.exists(), ("CS3: a missing game reached wire()", g)
+        print(f"  CS3: a missing game gives the plain message and plays nothing: {msg[:72]}...")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("test_cold_start: pass")
