@@ -71,7 +71,7 @@ sys.dont_write_bytecode = True
 import arc_holdout
 from test_entry import FakeWrapper
 env, ag, led, *rest = arc_holdout.wire(FakeWrapper(), "fake", lineage_dir=sys.argv[1])
-print("OUT " + json.dumps({"kinds_known": len(ag._kind_known)}))
+print("OUT " + json.dumps({"kinds_known": rest[-1]["lineage"]["kinds_known"]}))
 """
 
 
