@@ -279,6 +279,10 @@ _W_BUDGET = armflag.arm("TETHER_W_BUDGET", default=True)
 # different book counters, which reach the books rows and the record) and lineage._CH_HELD
 # (resolve's verdict, W-3). OFF: they grow for the life of the agent or the process.
 _W_CACHES = armflag.arm("TETHER_W_CACHES", default=True)
+# M2, SOFT READS ONLY (the reviewer 2026-10-23 09:18, 09:25): a WRITE no longer marks an entry seen,
+# so SOFT drops the entries not READ since the last fold (written and used once) and the first SOFT
+# fold is no longer inert by construction (E4b: three SOFT folds, 0 evicted). OFF: a write marks seen.
+_W_SOFT_READS = armflag.arm("TETHER_W_SOFT_READS", default=True)
 # W-2's CHECK, a measurement switch: a HARD eviction at every step's start, so a run's decisions
 # can be compared with a run that never evicts (MF-W2). Default OFF.
 _W_EVICT_EVERY_STEP = armflag.arm("TETHER_W_EVICT_EVERY_STEP")
@@ -315,7 +319,8 @@ class _Kept(dict):
         return super().__getitem__(k)
 
     def __setitem__(self, k: Any, v: Any) -> None:
-        self.seen.add(k)
+        if not _W_SOFT_READS:
+            self.seen.add(k)
         super().__setitem__(k, v)
 
     def clear(self) -> None:

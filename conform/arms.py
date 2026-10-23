@@ -1061,6 +1061,12 @@ ARMS: dict[str, str] = {
                        "W-1 fold (soft: the entries not read since the last fold; hard: all) "
                        "and recomputed at their next miss; the counts go to @body. OFF: they "
                        "grow for the life of the agent or the process. default ON",
+    "TETHER_W_SOFT_READS": "M2 (the reviewer 2026-10-23 09:18, 09:25): a write to a W-2 cache no "
+                           "longer marks the entry seen, so a SOFT fold drops the entries not READ "
+                           "since the last fold (used once); the first SOFT fold was inert by "
+                           "construction (E4b: three SOFT folds, 0 evicted). W-2-exact: a dropped "
+                           "entry is recomputed at its next miss. OFF: a write marks seen, as "
+                           "before. default ON",
     "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
                          "05:52): the life's kind_dk stays on disk, read through a snapshot "
                          "held from load (one read transaction, lineage.DkSnapshot) -- each "
