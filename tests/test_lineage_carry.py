@@ -250,7 +250,7 @@ def on_checks():
     real = gamma.Term.handle
     count = [0]
 
-    def counted(_self, game, seed=None):    # term.handle takes the draw seed (HOLD_SEED)
+    def counted(_self, game, _seed=None):   # term.handle takes the draw seed (HOLD_SEED)
         count[0] += 1
         return f"{game}_X_term_{count[0]:08x}"
     gamma.Term.handle = counted
