@@ -1,94 +1,99 @@
-# tether
+# tether -- the general agent
 
-An agent-level decision architecture. The deliverable is **an agent that can say when an
-answer is out of reach instead of confabulating one** — and that can show why, in its own
-record, in terms a reader can check.
+Branch `general-agent`. The agent itself, with no domain attached. The same code, applied to
+ARC-AGI-3, is the branch `arc-solver-agent`.
 
-**The agent is the prize. Winning is not.** A black box that wins teaches nothing.
+## What the agent is
 
-## The loop
+One agent running one loop: it perceives a world, predicts what it will see next, acts, and
+measures what its prediction missed. The miss (the **residual**) is kept per object slot and is
+never averaged across slots. A new term enters the agent's model only when it pays for itself in
+a compression bargain (`|phi| + |R|phi| < |R|`): the term plus what it still fails to explain
+must cost less than the miss it explains.
 
-One uniform per-step loop, no branching on problem type:
+    PERCEIVE -> ROUTE -> MINT -> ACCEPT -> SETTLE -> PROMOTE -> IMPORT -> REPEAT
 
-    PERCEIVE → ROUTE → MINT → ACCEPT → SETTLE → PROMOTE → IMPORT → REPEAT
+The loop has no branch on problem type. Every stage writes to a ledger, and a separate checker
+(`gate.py`) reads that ledger and can fail the run. The checker imports nothing from the loop, so
+the thing it checks cannot talk it round.
 
-The agent predicts, measures what its prediction missed (the **residual**, indexed per object
-slot and never averaged across them), and mints a new term only when the term pays for itself
-under a declared code — `|φ| + |R|φ| < |R|`. Three guards gate the mint (support,
-reachability, novelty); the compression bargain settles it afterwards.
+**The agent is the prize. Winning is not.** The deliverable is an agent that reasons through
+problems it was never told about and can say how and why, in its own record, in terms a reader
+can check. A change that makes it better and its reasoning unreadable is a loss.
 
-Every stage writes to a ledger. A separate checker reads that ledger and can fail the run.
-**The checker imports nothing from the loop**, so it cannot be talked round by the thing it
-is checking.
+## The agent decides intent; the interface carries it out
 
-## Why it is whitebox
+The agent reasons in what it wants to be true, never in buttons. Its intents are said in the
+grammar's own primes (`ELICIT`, `TOUCH`, `BE_AT`, `BECOME`, `DISTINGUISH`).
 
-Legibility is not a presentation choice here, it is the instrument. Because the model
-predicts explicitly, it is readable. Because the residual is an object, the cause-and-effect
-the agent perceived is readable. Because minting is an inspectable event, the moment of
-discovery — or its absence — is a diagnosis rather than a mystery.
+- **The action side is `interface.py`.** It translates an intent into whatever actions the world
+  offers (`Interface.realise`), and reports what each press did back up as capability
+  (`Interface.audit`). It may translate and report. It may not choose between goals, rank
+  intents, or withhold a capability the world offers. Its table of what each action does starts
+  empty and is filled only by acting.
+- **The input side is `world.py`'s `Env` contract.** A world is an adapter that fills it:
+  substrate, environment, actors, currency, ground, slots, atoms, transform, actions, alphabet. An
+  adapter that cannot fill it fails at construction.
 
-**A change that makes the agent better but makes its reasoning unreadable is a loss, not a
-win.**
+These two layers are the swappable parts. The agent decides what it intends; the layers decide how
+that is carried out, depending on the inputs and actions a world provides. The reasoning above them
+does not change with the world: a different world brings a different adapter and a different set of
+actions, and the agent's intents are carried out with whatever it provides. The tree carries a
+symbolic world (`world.py`), a grid world (`gridworld.py`), and the ARC-AGI-3 adapter and harness,
+which are identical on both branches (see `arc-solver-agent`'s README).
 
-## The objection to pre-empt
+## What ships, and what does not
 
-**A hand-authored library of composable knowledge predicates is Cyc.**
-
-The answer is that **Cyc's ontology was graded by its authors, and these are graded by a
-ground that does not update.** Cyc's predicates were correct when the people who wrote them
-agreed they were; there was no external arbiter that could return a verdict they had not
-anticipated. Here the arbiter is the environment, it is fixed before the agent starts, and it
-returns the same verdict regardless of what the library says it should.
-
-That distinction is load-bearing rather than rhetorical, and the repository makes it
-checkable in three places:
-
-- **Nothing scores itself.** A frame cannot be scored with a quantity it produces. Coverage,
-  terms minted and compression achieved are frame-internal and are explicitly disqualified as
-  evidence.
-- **Priors enter under a stated rule, or not at all.** A prior is admitted only if the loop
-  cannot run without it, or the agent minted a crude version first and it is being promoted.
-  **Never because it would help on a particular problem** — that is the one move that encodes
-  an answer, and once made, no amount of testing can detect it afterwards.
-- **The ablation is runnable.** Back up the library, verify the backup, wipe it, re-run. If
-  the result survives, the agent composed it. If it disappears, the library was carrying the
-  answer and the agent was retrieving rather than reasoning.
+- **Ships:** the code, and the library (`library/`): atoms, molecules, relations and grammar.
+  The library is the agent's inheritance: what it can say. It holds no answer to any problem. A
+  missing or partial `library/` stops the agent at startup and names each missing file.
+- **Does not ship:** anything learned. The agent starts with its inherited library and no
+  experience of its own. What it learns is written to a lineage folder outside the repository (one
+  generation file per run, plus its memory store), which starts empty. No lineage, learned library
+  or run output is ever committed.
 
 ## From a fresh clone
 
-Python 3.13.14 (tested). `requirements.lock` pins the whole runtime closure at the versions
-tested; install it with `--no-deps` so nothing else is resolved.
+Python 3.13 (`pyproject.toml`: `>=3.13,<3.14`). `requirements.lock` pins the whole runtime; install
+it with `--no-deps` so nothing else is resolved.
 
-    git clone https://github.com/IsaiahN/tether.git
+    git clone -b general-agent https://github.com/IsaiahN/tether.git
     cd tether
     python -m venv .venv
     .venv/Scripts/python.exe -m pip install --no-deps -r requirements.lock   # bin/python off Windows
 
-The games are not shipped with the code (`environment_files/` is gitignored). Fetch a game once
-with the `arc_agi` package's own anonymous fetch; every run after that is offline:
+## The checks
 
-    .venv/Scripts/python.exe -c "from arc_agi import Arcade; from arc_agi.base import OperationMode; Arcade(operation_mode=OperationMode.NORMAL).make('ls20')"
+Run from the repository root, one at a time, without writing bytecode:
 
-Run one game, carrying a lineage:
-
-    .venv/Scripts/python.exe -B -c "import arc_holdout; print(arc_holdout.play('ls20', 40, lineage_dir='lineage')['persistence']['lineage'])"
-
-The lineage is written to the folder given as `lineage_dir` (here `./lineage`, created if it
-does not exist): one generation file per game played, plus the agent's memory store. It starts
-empty and fills as the agent plays; the next run given the same folder carries on from it.
-
-The library (`library/`) ships with the code and the agent will not start without it: a missing
-or partial `library/` fails at startup, naming each missing file. `TETHER_LIBRARY_REQUIRED=0` is
-for the ablation only (running the agent without its inheritance).
-
-## Running it
-
-    .venv/Scripts/python.exe demo.py              # the whole loop, end to end
-    .venv/Scripts/python.exe gate.py runs/demo.jsonl
-    .venv/Scripts/python.exe tests/test_gate.py   # the gate's checks, one defect each
+    export PYTHONDONTWRITEBYTECODE=1                    # a POSIX shell; Git Bash on Windows
     .venv/Scripts/python.exe -m ruff check .
+    .venv/Scripts/python.exe -B tests/test_gate.py
+    .venv/Scripts/python.exe -B tests/test_entry.py
+    .venv/Scripts/python.exe -B tests/test_gate_ledger.py
+    .venv/Scripts/python.exe -B tests/test_arm_modules.py
+    .venv/Scripts/python.exe -B conform/arms.py
 
-`demo.py` prints what it learned, what it refused to claim, and where it stopped — including
-the difference between *I ran out of budget* and *this is not reachable at this depth*, which
-are different statements and only one of them is strong.
+Each prints its own result line and exits 0 when it passes. `tests/test_gate.py` checks the
+checker itself: one planted defect per check, and every defect must be caught.
+
+## Why it is whitebox
+
+Because the agent predicts explicitly, its model is readable. Because the residual is an object,
+the cause and effect it perceived is readable. Because minting is an inspectable event, the moment
+of discovery, or its absence, is a diagnosis rather than a mystery.
+
+## The objection to pre-empt
+
+**A hand-authored library of composable predicates is Cyc.** The difference is the arbiter: Cyc's
+predicates were graded by their authors; here every term is graded by a ground the library cannot
+move. That is checkable in three places:
+
+- **Nothing scores itself.** Coverage, terms minted and compression achieved are internal to the
+  frame and are not evidence.
+- **Priors are inheritance, not answers.** The library holds human priors (atoms and
+  recipes) the agent starts with, the way an animal starts with its instincts; none is
+  written for a particular problem.
+- **The ablation is a procedure.** Back up the library, verify the backup, wipe it, and re-run
+  (`TETHER_LIBRARY_REQUIRED=0` lets the agent start without it). If a result survives, the agent
+  composed it; if it disappears, the library was carrying it.
