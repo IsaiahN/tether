@@ -362,7 +362,7 @@ def off_identity() -> None:
     try:
         cur = child_env("plain", {"TETHER_FRAME_BREAK": "0"})
     finally:
-        del os.environ["TETHER_FRAME_BREAK"]
+        os.environ.pop("TETHER_FRAME_BREAK", None)
 
     def norm(rows):
         out = []
