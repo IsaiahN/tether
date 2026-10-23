@@ -1176,6 +1176,13 @@ def _canon_goal(text: str) -> str:
 # one at a time through the selector -> routine path, refuted on arrival without a clear or set
 # aside when stalled; the next must differ; all refuted -> a pair; then System 0. OFF: no proposal
 _GOAL_HYP = armflag.arm("TETHER_GOAL_HYPOTHESES", default=True)
+# (C), the exact speed build (the reviewer 2026-10-23 05:00, 05:25; Isaiah "i like c and then
+# a"): one _goal_hypothesis call reads agency.contingent() and env.derived() ONCE, for every
+# _movable_by inside it; neither can change there (agency.note and the frame move only in
+# perceive, which runs later). Nothing outlives the call; _movable_by's other callers read per
+# call as before. CHECK also reads per call and asserts equal at every lookup. OFF: per call.
+_HYP_MOVABLE_ONCE = armflag.arm("TETHER_HYP_MOVABLE_ONCE", default=True)
+_HYP_MOVABLE_CHECK = armflag.arm("TETHER_HYP_MOVABLE_CHECK", default=False)
 # GQ2b, F-a + F-b (the reviewer 2026-10-20 14:27 (b)): a group-scoped objective is judged MEMBER by
 # MEMBER, each in its own context (its peers as the group, its own record), the subject included,
 # so the residual is a real fraction that moves when a member moves; and the goal sites read
@@ -5983,9 +5990,23 @@ class Agent:
     def _movable_by(self, slot: str) -> str | None:
         """Which reading says the slot moves: "contingent" (by sources), "direction" (B, arm only;
         it can only ADD movables), or None."""
-        moving = set(self.agency.contingent())
-        dv = getattr(self.env, "derived", None)
-        derived = dv() if dv is not None else {}
+        once = getattr(self, "_mv_once", None)
+        if once is None:
+            moving = set(self.agency.contingent())
+            dv = getattr(self.env, "derived", None)
+            derived = dv() if dv is not None else {}
+        else:
+            if not once:
+                dv = getattr(self.env, "derived", None)
+                once["moving"] = set(self.agency.contingent())
+                once["derived"] = dv() if dv is not None else {}
+            moving, derived = once["moving"], once["derived"]
+            if _HYP_MOVABLE_CHECK:
+                dv = getattr(self.env, "derived", None)
+                if set(self.agency.contingent()) != moving:
+                    raise AssertionError(("HYP_MOVABLE_ONCE stale: contingent", slot))
+                if (dv() if dv is not None else {}) != derived:
+                    raise AssertionError(("HYP_MOVABLE_ONCE stale: derived", slot))
         srcs = derived.get(slot, (slot,))
         if any(s in moving for s in srcs):
             return "contingent"
@@ -6120,6 +6141,13 @@ class Agent:
         held hypothesis is checked first (a CONFIRMED arrival with no clear is a loss; a residual
         that has not fallen within its gap-derived budget is set aside); with none held and
         nothing selectable, one is proposed. Never "no goal": all refuted -> a pair -> System 0."""
+        self._mv_once = {} if _HYP_MOVABLE_ONCE else None   # (C): read once, inside this call only
+        try:
+            self._goal_hypothesis_run(before)
+        finally:
+            self._mv_once = None
+
+    def _goal_hypothesis_run(self, before: dict) -> None:
         if self._hyp is not None:
             self._hyp_check()
         # exhausted means "none routable AT THIS KNOWLEDGE": a route comes from the agent's own

@@ -636,6 +636,15 @@ ARMS: dict[str, str] = {
                          "its own arm), not by doubt"
                          ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
                          "the record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_HYP_MOVABLE_ONCE": "(C), THE EXACT SPEED BUILD (the reviewer 2026-10-23 05:00, "
+                               "05:25; Isaiah 'i like c and then a'): one _goal_hypothesis call "
+                               "reads agency.contingent() and env.derived() once for every "
+                               "_movable_by inside it, scoped to that call; neither can change "
+                               "there (they move only in perceive). OFF: per-call reads, as "
+                               "before. default ON",
+    "TETHER_HYP_MOVABLE_CHECK": "(C)'s CHECK: inside the scope, every _movable_by also reads "
+                                "both per call and raises if either differs from the scoped "
+                                "read (a verification switch, never a play setting). default OFF",
     "TETHER_DORMANT_TERM_FORM": "(c) THE DORMANT ITEM WRITTEN WHOLE (the reviewer 2026-10-22 "
                                 "20:57): a boundary item's live Terms (its want_terms copy) are "
                                 "written by lineage.write in their term-row form "
