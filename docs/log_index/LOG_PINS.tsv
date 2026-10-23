@@ -68,7 +68,9 @@ C:/TETHER_RUNS/E4_2026-10-18/snapshots	cited: snapshots
 C:/TETHER_RUNS/L4/dbinv	cited: dbinv
 C:/TETHER_RUNS/L4/deathread	cited: deathread
 C:/TETHER_RUNS/S6_2026-10-19	S6_2026-10-19: this week's speed + cold-start boxes, cited throughout the posts (the reviewer 2026-10-22 00:30 (a))
+C:/TETHER_RUNS/S6_2026-10-19/A4	cited: A4
 C:/TETHER_RUNS/S6_2026-10-19/C2	cited: C2
+C:/TETHER_RUNS/S6_2026-10-19/CV	cited: CV
 C:/TETHER_RUNS/S6_2026-10-19/DS	cited: DS
 C:/TETHER_RUNS/S6_2026-10-19/FRESH	FRESH: the fresh-venv install verified for (iii)
 C:/TETHER_RUNS/S6_2026-10-19/FRESH	cited: FRESH
@@ -121,6 +123,7 @@ C:/TETHER_RUNS/S6_2026-10-19/SPEED	cited: SPEED
 C:/TETHER_RUNS/S6_2026-10-19/T4D	cited: T4D
 C:/TETHER_RUNS/S6_2026-10-19/W1	cited: W1
 C:/TETHER_RUNS/S6_2026-10-19/WM	cited: WM
+C:/TETHER_RUNS/S6_2026-10-19/wt_c	cited: wt_c
 C:/TETHER_RUNS/S6_2026-10-19/wt_ivv	cited: wt_ivv
 C:/TETHER_RUNS/tools/spyenv	cited: spyenv
 C:/Users/Admin/Documents/GitHub/tether/runs	runs: the repo's own runs/ (demo.jsonl is the gate's input)
