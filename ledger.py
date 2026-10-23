@@ -7,6 +7,7 @@ checker can read it without reading the machine, and why the checker can be doma
 from __future__ import annotations
 
 import atexit
+import bisect
 import json
 import sys
 import weakref
@@ -24,6 +25,28 @@ sys.dont_write_bytecode = True
 # exit; a write after a close reopens it. OFF: opened per row (011c8c8)
 _LEDGER_HANDLE = armflag.arm("TETHER_LEDGER_HANDLE", default=True)
 _OPEN: weakref.WeakSet = weakref.WeakSet()   # ledgers holding a handle, closed at exit
+# THE CHOICE TALLY (Isaiah 2026-10-23 09:12 "these should be deduped and tallied"; the reviewer
+# 09:13, 10:40): an objective_domain "choice" row whose KEY was already written in this life is
+# not appended; it adds to a per-step count, flushed as one "choice_tally" row per key at the
+# step's end (flush_tally). E4b: 636,386 such rows, 3,001 keys. The key is every decision field;
+# only cycle, seq and mode are out. `written` counts appended rows AND tallied repeats, and
+# since_written() returns both in call order, so a reader that captures and replays rows
+# (_library_fit's dedup) replays the repeats too. CHECK: each repeat's FULL key is counted beside
+# its tally key, and a flush asserts one full key per tally key and equal counts. OFF: every row
+# appended, as before.
+_CHOICE_TALLY = armflag.arm("TETHER_CHOICE_TALLY", default=True)
+_CHOICE_TALLY_CHECK = armflag.arm("TETHER_CHOICE_TALLY_CHECK")
+TALLY_SITE = "objective_domain"
+TALLY_FIELDS = ("site", "options", "frontier", "pick", "by", "root", "residual", "seen")
+
+
+def _tally_key(slot: str, step: str, detail: dict, fields: tuple) -> str:
+    return json.dumps([slot, step, [detail.get(f) for f in fields]], sort_keys=True, default=str)
+
+
+def _full_key(slot: str, step: str, detail: dict) -> str:
+    """CHECK's key: the WHOLE detail, so a tally key that drops a field is caught."""
+    return json.dumps([slot, step, detail], sort_keys=True, default=str)
 
 # the eight loop steps. An entry that cannot name one is a defect, not a log line.
 # `PLAN` IS FIRST, AND THE WRITE ORDER DECIDED IT RATHER THAN A VIEW ABOUT COGNITION. The
@@ -130,6 +153,14 @@ class Ledger:
             raise ValueError(f"unknown mode: {mode}")
         self.mode = mode
         self._entries: list[Entry] = []
+        self.written = 0                      # appended rows + tallied repeats, in call order
+        self._wat: list[int] = []             # each appended entry's `written` index
+        self._tkeys: dict[str, int] = {}      # tally key -> the seq of its full row
+        self._tstep: dict[str, list] = {}     # this step: key -> [ref, n, first_cycle, last_cycle]
+        self._tev: list[tuple[int, dict]] = []   # this step's tallied repeats, (written, row)
+        self._tchk: dict[str, set] = {}       # CHECK: tally key -> its full keys (first + repeats)
+        self._tfull: dict[str, str] = {}      # CHECK: tally key -> the full key of its first row
+        self._tchk_n: dict[str, int] = {}     # CHECK: full key -> repeats this step
         self._path = Path(path) if path else None
         self._fh = None
         if self._path is not None:
@@ -143,8 +174,31 @@ class Ledger:
                of: tuple[str, ...] | None = None, **detail: Any) -> Entry:
         if step not in STEPS:
             raise ValueError(f"entry names no loop step: {step!r}")
+        if _CHOICE_TALLY and event == "choice" and detail.get("site") == TALLY_SITE:
+            k = _tally_key(slot, step, detail, TALLY_FIELDS)
+            ref = self._tkeys.get(k)
+            if ref is not None:
+                t = self._tstep.setdefault(k, [ref, 0, cycle, cycle])
+                t[1] += 1
+                t[3] = cycle
+                row = {"mode": self.mode, "cycle": cycle, "step": step, "slot": slot,
+                       "event": event, "detail": detail}
+                if of is not None:
+                    row["of"] = of
+                self._tev.append((self.written, row))
+                self.written += 1
+                if _CHOICE_TALLY_CHECK:
+                    fk = _full_key(slot, step, detail)
+                    self._tchk.setdefault(k, {self._tfull[k]}).add(fk)
+                    self._tchk_n[fk] = self._tchk_n.get(fk, 0) + 1
+                return self._entries[ref]
+            self._tkeys[k] = len(self._entries)
+            if _CHOICE_TALLY_CHECK:
+                self._tfull[k] = _full_key(slot, step, detail)
         e = Entry(len(self._entries), cycle, step, slot, event, detail, of)
         self._entries.append(e)
+        self._wat.append(self.written)
+        self.written += 1
         if self._path is not None:
             line = json.dumps(self._row(e), sort_keys=True, default=str) + "\n"
             if _LEDGER_HANDLE:
@@ -182,6 +236,36 @@ class Ledger:
 
     def by_event(self, event: str) -> list[Entry]:
         return [e for e in self._entries if e.event == event]
+
+    def since_written(self, w0: int) -> list[dict[str, Any]]:
+        """Every record() call from `written` index w0 on, in call order: the appended rows and this
+        step's tallied repeats. OFF (no repeats): exactly rows(i) where i is w0's entry."""
+        i = bisect.bisect_left(self._wat, w0)
+        out = [(self._wat[j], self._row(self._entries[j])) for j in range(i, len(self._entries))]
+        if self._tev:
+            out += [(w, dict(r)) for w, r in self._tev if w >= w0]
+            out.sort(key=lambda p: p[0])
+        return [r for _w, r in out]
+
+    def flush_tally(self, cycle: int) -> None:
+        """The step's end: one "choice_tally" row per key repeated in it (ref, n, first and last
+        cycle), then the per-step state clears. CHECK: one full key per tally key, equal counts."""
+        if not self._tstep:
+            self._tev.clear()
+            return
+        if _CHOICE_TALLY_CHECK:
+            for k, (_ref, n, _f, _l) in self._tstep.items():
+                fks = self._tchk.get(k, set())
+                if len(fks) != 1 or self._tchk_n.get(next(iter(fks)), 0) != n:
+                    raise AssertionError(("CHOICE_TALLY CHECK", k[:200], n,
+                                          {f[:120]: self._tchk_n.get(f) for f in fks}))
+            self._tchk.clear()
+            self._tchk_n.clear()
+        pend, self._tstep = self._tstep, {}
+        self._tev.clear()
+        for ref, n, first, last in pend.values():
+            self.record(cycle, "SETTLE", "@tally", "choice_tally", ref=ref, n=n,
+                        first_cycle=first, last_cycle=last)
 
 
 @atexit.register

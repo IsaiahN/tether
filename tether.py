@@ -3255,6 +3255,9 @@ class Agent:
             self._close_goals(how)
         if _MEMO_CLEAR or _MEMO_ADMIT:
             self._memo_sizes(f"end:{how}")      # R4: the memos' sizes at the run's end
+        flush = getattr(self.led, "flush_tally", None)
+        if flush is not None:
+            flush(self.cycle)        # the choice tally: repeats written outside a step
         close = getattr(self.led, "close", None)
         if close is not None:
             close()                  # R2: the run's rows are written; a later row reopens it
@@ -9208,9 +9211,11 @@ class Agent:
         _st = self.slot_types.get(slot)
 
         def _since(n0, n1=None, n2=None):
-            if len(self.led) == n0:
+            # positions are the ledger's `written` count (appended rows + tallied repeats), so a
+            # tallied choice repeat is captured and replayed like a row (the choice tally)
+            if self.led.written == n0:
                 return ()
-            rs = self.led.rows(n0)
+            rs = self.led.since_written(n0)
             if n1 is not None:
                 rs = rs[:n1 - n0] + rs[n2 - n0:]      # the once-per-fit units call's rows stay out
             for r in rs:
@@ -9221,7 +9226,7 @@ class Agent:
 
         def _judge(cand, price, n):
             nonlocal _uf
-            _n0 = len(self.led)
+            _n0 = self.led.written
             # BEFORE `_explains`, and separately from it: may this BIND is a type question
             # and does it EXPLAIN is a behavioural one. Folding the first into the second
             # would put two quantities under one name at the site that decides both.
@@ -9242,7 +9247,7 @@ class Agent:
             if not price:
                 return True, None, None, _since(_n0)
             _left = self._left(cand, slot, hist)
-            _n1 = len(self.led)
+            _n1 = self.led.written
             if not _FIT_UNITS:
                 _units = self._units_for(slot)
             elif _uf is None:
@@ -9258,7 +9263,7 @@ class Agent:
                                     reads="the fit's reused units differed from fresh (B)")
             else:
                 _units = _uf
-            _n2 = len(self.led)
+            _n2 = self.led.written
             _cost = self._bits((cand, _units))
             return True, _left, _cost, _since(_n0, _n1, _n2)
 
@@ -15611,12 +15616,14 @@ class Agent:
             return False
         self._pressed, self._cut_scope = False, None
         cap.AT = until if _CAP_INNER else None
+        c0 = self.cycle
         try:
             return self._step_body(action)
         except cap.CapReached as cut:
             return self._cut_step(cut)
         finally:
             cap.AT = None
+            self.led.flush_tally(c0)    # the choice tally's per-step rows, at the step's end
 
     def _note_boundary_wall(self, wall_s: float) -> None:
         """A level boundary's write, timed by the loop: this life's own measurement of its write at
