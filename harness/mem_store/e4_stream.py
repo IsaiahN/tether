@@ -32,7 +32,13 @@ ap.add_argument("--mf", action="store_true")
 ap.add_argument("--n-games", type=int, default=25)   # the MF test plays the first 2 of the order
 ap.add_argument("--slice-steps", default=None)       # per position, e.g. "3,1": a slice ends after N agent steps
 ap.add_argument("--census", action="store_true")     # census_heap.point between steps (the reviewer 2026-10-19 03:00)
+# E4b's slice rule (A) (Isaiah 2026-10-23 "i like c and then a"; the reviewer 06:29 B1, 06:54 (a)): a slice ends at
+# the first step boundary at or after max(MIN, its first completed action), and no step starts past MAX. A step under
+# way finishes (a cut would end the one life's thinking, tether.Agent.step's _cut), so a slice can overrun MAX.
+ap.add_argument("--slice-min-s", type=float, default=None)
+ap.add_argument("--slice-max-s", type=float, default=None)
 A = ap.parse_args()
+assert (A.slice_min_s is None) == (A.slice_max_s is None), "--slice-min-s and --slice-max-s go together"
 STEPS = [int(x) for x in A.slice_steps.split(",")] if A.slice_steps else None
 CH = None
 if A.census:                                         # loaded by path: scratchpad dirs are stripped from sys.path below
@@ -130,9 +136,19 @@ env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path
 ctx = {"game": "stream", "cfg": None, "library": None, "lineage_dir": A.lineage,
        "led_path": led_path, "save_only_dir": None, "palette": _pal}   # (B)
 log(f"# stream start {time.strftime('%Y-%m-%d %H:%M:%S')} seed {seed} slice_s {A.slice_s} mf {A.mf} "
-    f"order {','.join(order)}")
+    f"slice_min_s {A.slice_min_s} slice_max_s {A.slice_max_s} order {','.join(order)}")
 log("# idx\tgame\twall_start_s\tcycle_start\twall_s\tsteps\tlevels_in_slice\tending\tendings\tcommit_mb_end\t"
-    "seq0\tseqP\tseq1")
+    "seq0\tseqP\tseq1\tacts\tfirst_act_s\textended\tunreached\toverrun_s")
+
+
+def going(steps: int, n_steps, t_start: float, acts: int) -> bool:
+    """Whether the slice takes another step: N steps (--slice-steps), else the rule (A), else --slice-s."""
+    if n_steps:
+        return steps < n_steps
+    el = time.time() - t_start
+    if A.slice_min_s is None:
+        return el < A.slice_s
+    return el < A.slice_max_s and (el < A.slice_min_s or acts == 0)
 T0 = time.time()
 if CH:
     CH.point("after_load", ag, A.out)
@@ -149,11 +165,15 @@ for i, g in enumerate(order):
     lv_seen = 0
     lv_start, ending, endings = None, "slice", collections.Counter()
     n_steps = STEPS[min(i, len(STEPS) - 1)] if STEPS else None
-    while (steps < n_steps) if n_steps else (time.time() - t_start < A.slice_s):
-        env, ag, _acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
+    acts, first_act_s = 0, None
+    while going(steps, n_steps, t_start, acts):
+        env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
         if fault is not None:
             raise fault
         steps += 1
+        if acted:
+            acts += 1
+            first_act_s = first_act_s if first_act_s is not None else round(time.time() - t_start, 1)
         seq1 = len(ag.led) if seq1 is None else seq1     # ... and closes after the first step
         lv = env.levels()[0]
         lv_start = lv if lv_start is None else lv_start
@@ -179,8 +199,13 @@ for i, g in enumerate(order):
     wall_end, commit_end = round(time.time() - t_start, 1), commit_mb()   # read BEFORE the switch's census
     if CH:
         CH.point("switch", ag, A.out)
+    mn, mx = A.slice_min_s, A.slice_max_s
+    extended = mn is not None and (first_act_s is None or first_act_s > mn)
+    unreached = mx is not None and acts == 0
+    overrun = round(max(0.0, wall_end - mx), 1) if mx is not None else None
     log(f"{i}\t{g}\t{round(t_start - T0, 1)}\t{c_start}\t{wall_end}\t{steps}\t"
-        f"{(lv_seen - (lv_start or 0))}\t{ending}\t{dict(endings)}\t{commit_end}\t{seq0}\t{seqP}\t{seq1}")
+        f"{(lv_seen - (lv_start or 0))}\t{ending}\t{dict(endings)}\t{commit_end}\t{seq0}\t{seqP}\t{seq1}\t"
+        f"{acts}\t{first_act_s}\t{extended}\t{unreached}\t{overrun}")
 ag.end_run("cap")
 gen = lineage.write(A.lineage, ag, "stream") if lineage._CARRY and A.lineage else None
 close = getattr(ag.led, "close", None)
