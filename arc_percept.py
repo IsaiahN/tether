@@ -83,6 +83,17 @@ _CHANGE_ATTRS = ("add_n", "add_row", "add_col", "rem_n", "rem_row", "rem_col")
 # defaulted on -- 26s an action buys 4-9 episodes in the whole competition window.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _INSTRUMENTS = armflag.arm("TETHER_INSTRUMENTS", default=True)
+# B, THE FRAME BREAK (the reviewer 2026-10-23 13:04; derivation posted 13:00): on a decomposition
+# whose board differs from the previous call's, the claims are read with TWO instruments (Fig 2
+# :31): the median claim score and the share of claims whose colour changed. Both agreeing is a
+# break (Fig 10 :13, "two frames, one field, no shared reading"): every claim that is not an
+# exact match (score 1.0, same colour, same cell count) is issued as a birth, so nothing keyed by
+# an old name reaches a new piece. The bars are DECLARED CONVENTIONS (Fig 10 :45), set at the
+# midpoint of the measured gap (D6b-D6e: switches median <= 0.4844, colour >= 0.70; insides
+# median >= 0.9273, colour <= 0.143; 7 switches, 5 games' insides, no level boundary seen, one
+# toggle game) and moved only by ruling. 0 claims: no test (recorded). OFF: today's tracker.
+_FRAME_BREAK = armflag.arm("TETHER_FRAME_BREAK", default=True)
+BREAK_MEDIAN, BREAK_COLOUR = 0.71, 0.42
 
 
 def as_index_grid(frame: Any) -> list[list[int]] | None:
@@ -576,12 +587,50 @@ class Objects:
         # deciding whether a new object joins an existing class needs the value, not the label.
         self.placements: dict[int, int] = {}
         self.changes: dict[str, list[int]] = {}
+        self._last_key = None               # B: the previous call's board, as a hashable key
+        self.call_log: list[dict] = []      # B: each board-changed call, read and cleared
+        self.breaks: list[dict] = []        # B: each break, read and cleared by the world
 
     def boundary(self) -> None:
         """Drop what was bound to THIS play. **`_shapes` is NOT dropped** -- it is the
         structure table and is run-stable by design; placements are per play by Seam 10."""
         self.placements = {}
         self.changes = {}
+
+    def _break(self, board: Any, found: list, assign: dict) -> None:
+        """B: on a board-changed call, read the claims and, on a break, turn every non-exact claim
+        into a birth (assign[i] = (None, 0.0)). Records each board-changed call and each break."""
+        if not _FRAME_BREAK:
+            return
+        g = as_index_grid(board)
+        key = tuple(map(tuple, g)) if g is not None else None
+        prev, self._last_key = self._last_key, key
+        if prev is None or key == prev or not self.tracked:
+            return
+        claims = [(i, n, s) for i, (n, s) in assign.items() if n is not None]
+        rec = {"found": len(found), "claimed": len(claims), "tested": bool(claims)}
+        if claims:
+            sc = sorted(s for _i, _n, s in claims)
+            med = sc[(len(sc) - 1) // 2]
+            changed = [n for i, n, _s in claims
+                       if found[i].get("colour") != self.tracked[n].get("colour")]
+            share = len(changed) / len(claims)
+            brk = med < BREAK_MEDIAN and share > BREAK_COLOUR
+            rec.update(median=round(med, 4), colour_share=round(share, 4), broke=brk,
+                       bars=[BREAK_MEDIAN, BREAK_COLOUR])
+            if brk:
+                kept, retired = [], []
+                for i, n, s in claims:
+                    old = self.tracked[n]
+                    if (s == 1.0 and found[i].get("colour") == old.get("colour")
+                            and len(found[i]["cells"]) == len(old["cells"])):
+                        kept.append(n)
+                    else:
+                        retired.append(n)
+                        assign[i] = (None, 0.0)
+                rec.update(kept=sorted(kept), retired=sorted(retired))
+                self.breaks.append(rec)
+        self.call_log.append(rec)
 
     def __call__(self, board: Any) -> dict[str, int]:
         # AT CALL TIME, NOT AT IMPORT: `sensors` imports THIS module, so a module-level
@@ -640,6 +689,7 @@ class Objects:
             if best is not None:
                 claimed.add(best)
             assign[i] = (best, 0.0)
+        self._break(board, found, assign)
 
         for i, obj in enumerate(found):
             best, score = assign[i]

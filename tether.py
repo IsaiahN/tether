@@ -2892,6 +2892,7 @@ class Agent:
         self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
+        self._seam_now = False             # B: this step's outcome was a frame break (a seam)
         self._3a_hazard = diagnose.Hazard()   # E2: world/own counts per spot, kind, actor
         self._3a_stale: dict = {}          # E2: slot -> the cycle it was marked stale
         self._3a_unseen: dict = {}         # E2: (epoch, slot) -> (kind, trace row) handed over as
@@ -3925,6 +3926,8 @@ class Agent:
     def _derived_wants(self) -> None:
         """E0-W: each declared-derived slot that moved this step and wants nothing is minted for
         its objective alone, so it is wanted as before E0 and never bound, bet or charged."""
+        if self._seam_now:          # B: nothing is minted from a seam's change
+            return
         der = self.env.derived() if hasattr(self.env, "derived") else {}
         before, after = self.trace[-1][0], self.trace[-1][2]
         ctx = self._no_search_ctx() if _DERIVED_SUBJECT else None
@@ -3979,7 +3982,7 @@ class Agent:
                 rec[_k] = rec.get(_k, 0) + 1
             elif self._res.get(d):
                 rec["met" if self._res[d][-1] <= 0 else "unmet"] += 1
-        if not self.trace:
+        if not self.trace or self._seam_now:      # B: no want is minted from a seam's change
             return
         before, after = self.trace[-1][0], self.trace[-1][2]
         der = self.env.derived() if hasattr(self.env, "derived") else {}
@@ -7832,9 +7835,14 @@ class Agent:
             return
         by = Counter(r for r, _ in m.values())
         scores = [s for r, s in m.values() if r == "overlap"]
+        # B's record (the reviewer 2026-10-23 12:17): every board-changed decomposition since the
+        # last row, so a later self-match (the lf52 k1) cannot hide the first new-frame call
+        dl = getattr(self.env, "decomp_log", None)
+        calls = dl() if dl is not None else []
         self.led.record(self.cycle, self._running_step, "*", "matches",
                         routes=dict(sorted(by.items())), n=len(m),
-                        min_overlap=round(min(scores), 4) if scores else None)
+                        min_overlap=round(min(scores), 4) if scores else None,
+                        **({"calls": calls} if calls else {}))
 
     def _narrate_cascade(self) -> None:
         """The cascade's shape, per step. **A one-frame response is a READING, not silence.**
@@ -8605,6 +8613,18 @@ class Agent:
             self.env.step(action)
         self._pressed = True
         after = self.env.observe()
+        # B, THE SEAM (the reviewer 2026-10-23 12:35, 13:04): a frame break read on this action's
+        # OUTCOME makes the action-outcome pair a seam (Fig 10 :13). Every bet of the step is
+        # suspended (reason "seam") and nothing from the pair is credited to the action: no
+        # audit, no surprise, no reward route, no contingency, no goal-choice or progress note, no
+        # step-local mint. The trace row is kept (trace[-1] stays this step's) and marked, and no
+        # trace reader takes a marked row as evidence.
+        _fb = getattr(self.env, "frame_breaks", None)
+        _brk = _fb() if _fb is not None else []
+        self._seam_now = bool(_brk)
+        for _b in _brk:
+            self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
+                            action=action, **_b)
         _own_clock: set = set()
         if _OWN_CLOCK:
             # the instrument's own expectation, formed now that the frames are in (a corollary
@@ -8639,8 +8659,9 @@ class Agent:
         # not exist yet, so this claims the smaller thing and says so.
         # THE CONTEXT KEY IS READ BEFORE THE STEP, because it is the contact present WHEN THE
         # ACTION WAS TAKEN -- reading it after would key an effect by the world the effect made.
-        if self.iface.audit(_real, before, after, _ctx,
-                            IFace.Interface.context(self.env) if IFace._DEST_GAP else None):
+        if not self._seam_now and self.iface.audit(
+                _real, before, after, _ctx,
+                IFace.Interface.context(self.env) if IFace._DEST_GAP else None):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
@@ -8666,6 +8687,13 @@ class Agent:
         # `after` alone cannot tell an object gone from a reading the channel could not take.
         listed = set(self.env.slots()) if any(s not in after for s in betting) else ()
         for s in betting:
+            if self._seam_now:          # B: a seam step scores no bet (the F493 path, reason seam)
+                self.led.record(self.cycle, "PERCEIVE", s, "bet", channel=TRANSITION,
+                                of=(s,), from_value=before[s], predicted=raw.get(s),
+                                predicted_code=pred[s], suspended=True, mass=0.0, seam=True,
+                                bound=self.bound.get(s, NO_CHANGE),
+                                meant=(intent.says() if intent is not None else None))
+                continue
             # A READING THE CHANNEL COULD NOT TAKE IS SUSPENDED, NOT CHARGED -- Fig 10, the
             # reviewer 2026-10-07 (F493). The key is still listed, so the object is here and only
             # its value is unreadable: no bet is scored and no residual claimed, and the row says
@@ -8715,10 +8743,10 @@ class Agent:
             self._standing(s)
         # the own-clock slots that moved exactly as our bookkeeping said (residual 0) this step
         self._own_quiet = {s for s in _own_clock if s in res and res[s].bits == 0}
-        if _derived:
+        if _derived and not self._seam_now:
             self._relational_surprise(_derived, _dpred, res, after, before)
             self._blocked_reading(_derived, _ps, before, after, action)
-        if _7H_REHEARSE:
+        if _7H_REHEARSE and not self._seam_now:
             self._rehearse_read(res, before, after, action, coord, _rehearsed)
 
         # the reward channel: on the figures, and reported here. Its remedy is the
@@ -8739,8 +8767,12 @@ class Agent:
                         objective=name, degree=round(deg_after, 4),
                         from_value=round(deg_before, 4), actual=round(deg_after, 4),
                         shortfall=shortfall,
-                        moved=round(deg_after - deg_before, 4))
-        self._route_reward(deg_after, deg_after - deg_before)
+                        moved=round(deg_after - deg_before, 4),
+                        # B: on a seam the degree's move is not this action's: no live reading
+                        **({"mass": 0.0, "suspended": True, "seam": True}
+                           if self._seam_now else {}))
+        if not self._seam_now:
+            self._route_reward(deg_after, deg_after - deg_before)
         # the bracket channel: this env defines no coarse view, so it is inert. The
         # cause was already here and it was in prose -- `inert=...` says CHANNEL_CLOSED
         # in a sentence, on a row that then reported cause=None. The taxonomy is the
@@ -8774,9 +8806,10 @@ class Agent:
         # §16.8 SENSOR 3. Which slots moved under THIS action, so the control mode is a
         # contingency read rather than a label -- §16.2: it blends mid-game, so it is
         # detected per step and never used to name the game.
-        if _DIRECTION_MOVABLE:          # before Agency.note: the controlled set as it stood
+        if _DIRECTION_MOVABLE and not self._seam_now:   # before Agency.note: the controlled set
             self._note_direction(action, before, after, sorted(res))
-        self.agency.note(action, self._moved(res, before, after), sorted(res))
+        if not self._seam_now:          # B: a seam's moved slots are no contingency of the action
+            self.agency.note(action, self._moved(res, before, after), sorted(res))
         self._charge(res)
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
@@ -8794,11 +8827,14 @@ class Agent:
         # Deliberately NOT the intent's subject: `_aimed` is the coordinate the press was
         # REALISED at. **Reading the SUBJECT is what `a561fb2` did and was reverted for** --
         # the agent aims at one slot and the interface presses another to reach it.
-        self.trace.append((before, action, after,
-                           self._intent_now.kind if self._intent_now is not None
-                           else NO_INTENT,
-                           self._last_landed))
-        if _3A_DIAGNOSE:
+        # B: a seam row is not appended (the reviewer 13:12): no reader needs it, and every
+        # in-step reader of trace[-1] (_derived_wants, _g1_wants) returns on a seam
+        if not self._seam_now:
+            self.trace.append((before, action, after,
+                               self._intent_now.kind if self._intent_now is not None
+                               else NO_INTENT,
+                               self._last_landed))
+        if _3A_DIAGNOSE and not self._seam_now:
             # D2's aim: the object the act was MEANT for (the intent's subject), beside where the
             # press landed; None where no intent named one (D2 is then skipped, never guessed)
             subj = self._intent_now.subject if self._intent_now is not None else None
@@ -8810,8 +8846,9 @@ class Agent:
         self.gamma.tick = self.cycle
         self._prev_pred = pred
         self._last_mass = {s: r.mass for s, r in res.items()}
-        self._note_progress(after)
-        self._note_goal_choice(action, before, after)
+        if not self._seam_now:          # B: no progress or goal-choice note across a seam
+            self._note_progress(after)
+            self._note_goal_choice(action, before, after)
         self._note_gap_shape(res)
         return res
 
@@ -15667,6 +15704,7 @@ class Agent:
         if _7H_ROOT and self._root_id is None and self._alive:
             self._intent_root()   # 7h: the first step of every live situation
         self._touch_cache = None      # a new step is a new frame, so contact and owners go
+        self._seam_now = False        # B: set again by perceive only if this step's outcome breaks
         self._peer_cache = None
         self._decomp_cache = None
         self._frame_cache = {}

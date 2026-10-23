@@ -734,6 +734,22 @@ class ArcWorld:
         """
         return dict(getattr(self._decompose, "matches", {}) or {})
 
+    def frame_breaks(self) -> list[dict]:
+        """B: the frame breaks the tracker read since the last call, then cleared. The agent reads
+        them after its action's outcome is perceived; nothing tells it a game changed (E4b)."""
+        out = list(getattr(self._decompose, "breaks", ()) or ())
+        if out:
+            self._decompose.breaks = []
+        return out
+
+    def decomp_log(self) -> list[dict]:
+        """B's record: every board-changed decomposition since the last call (or none), then
+        cleared, so the matches row can report the first new-frame call, not only the last."""
+        out = list(getattr(self._decompose, "call_log", ()) or ())
+        if out:
+            self._decompose.call_log = []
+        return out
+
     def cascade(self) -> tuple:
         """THE WITHIN-STEP STACK -- every frame this action returned, oldest to newest.
 
