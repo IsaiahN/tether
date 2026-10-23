@@ -1,9 +1,10 @@
-"""M2, SOFT READS ONLY (TETHER_W_SOFT_READS, default ON; the reviewer 2026-10-23 09:18, 09:25): a write
-to a W-2 cache (_Kept) no longer marks the entry seen, so a SOFT fold drops the entries not READ since
-the last fold. Each arm state in its own process (arms resolve at import).
-  ON   first fold: a written-and-read entry stays, a written-only entry goes (1 evicted); second fold:
-       an entry neither read since nor written goes, a fresh write-only one goes too (2 evicted)
-  MF   OFF (the old rule): the first fold evicts 0 (every written entry is "seen") and the second 1
+"""M2, SOFT READS ONLY (TETHER_W_SOFT_READS, default ON; the reviewer 2026-10-23 09:18,
+09:25): a write to a W-2 cache (_Kept) no longer marks the entry seen, so a SOFT fold drops the
+entries not READ since the last fold. Each arm state in its own process (arms resolve at import).
+  ON   first fold: a written-and-read entry stays, a written-only entry goes (1 evicted); second
+       fold: the kept entry, not read since, goes, and a fresh write-only one goes too (2)
+  MF   OFF (the old rule): the first fold evicts 0 (every written entry is "seen"); the second
+       drops the two not touched since and keeps the fresh write (2, keeps c)
   HARD both states: a hard fold drops everything
     python tests/test_w_soft_reads.py
 """
@@ -56,11 +57,12 @@ def main() -> None:
     assert on["on"] and not off["on"], (on, off)
     assert (on["first"], on["keys1"]) == (1, ["a"]), ("ON first fold", on)
     assert (on["second"], on["keys2"]) == (2, []), ("ON second fold", on)
-    print(f"  ON: first SOFT fold evicts {on['first']} (keeps {on['keys1']}), second {on['second']}")
+    print(f"  ON: first SOFT fold evicts {on['first']} (keeps {on['keys1']}), "
+          f"second {on['second']}")
     assert (off["first"], off["keys1"]) == (0, ["a", "b"]), ("MF OFF first fold", off)
-    assert (off["second"], off["keys2"]) == (1, ["c"]), ("MF OFF second fold", off)
-    print(f"  MF OFF: the first SOFT fold evicts {off['first']} (inert, as E4b read), second "
-          f"{off['second']} (keeps {off['keys2']}: a write marked it seen)")
+    assert (off["second"], off["keys2"]) == (2, ["c"]), ("MF OFF second fold", off)
+    print(f"  MF OFF: the first SOFT fold evicts {off['first']} (inert, as E4b read), the "
+          f"second {off['second']} (keeps {off['keys2']}: its write marked it seen)")
     for s in (on, off):
         assert (s["hard"], s["hard_left"]) == (1, 0), ("HARD", s)
     print("  HARD: drops everything in both states")
