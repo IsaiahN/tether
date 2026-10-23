@@ -205,6 +205,16 @@ def main() -> int:
             # AND WITH TETHER_PRIOR_CODE OFF (L1, 2026-10-17): under the normalized code the mint
             # takes another path and gridworld_s2 reaches no sweep in 15 steps (first at step 11
             # with the code off); the label does not depend on the code either
+            # MF4's OCCASIONS, from G2's healthy writes (the sweep, 2026-10-23): cycles where the
+            # "cues" write on "*" is followed in its cycle by a "*" write running PLAN; only
+            # there can a PERCEIVE-labelled cues row make LADDER refuse
+            cue_c, occ4 = set(), set()
+            for w in writes:
+                if w[6] == "*" and w[1] == "cues":
+                    cue_c.add(w[5])
+                elif w[6] == "*" and w[3] == "PLAN" and w[5] in cue_c:
+                    occ4.add(w[5])
+            assert occ4, "MF4 precondition: no cues row is followed by a PLAN write on '*'"
             writes.clear()
             arm_was, relations._DERIVED_PERCEPT = relations._DERIVED_PERCEPT, False
             code_was, tether.G_PRIOR_CODE = tether.G_PRIOR_CODE, False
@@ -232,7 +242,10 @@ def main() -> int:
                 tether.Agent._narrate_cues = cues
             assert ladder(writes, ledger.STEPS), ("MF4: a top-of-step helper in PERCEIVE was not "
                                                   "flagged")
-            print(f"  MF4 _narrate_cues back in PERCEIVE: LADDER flags "
+            # the flag is the PLAN write on "*" that follows the misplaced cues row, not any break
+            assert any(f[5] == "*" and f[3] == "PLAN" for f in ladder(writes, ledger.STEPS)), (
+                "MF4: LADDER flagged something other than the '*' PLAN write after the cues row")
+            print(f"  MF4 _narrate_cues back in PERCEIVE ({len(occ4)} occasions): LADDER flags "
                   f"{len(ladder(writes, ledger.STEPS))} in {MF4_STEPS} steps")
     finally:
         ledger.Ledger.record = real

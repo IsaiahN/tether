@@ -277,6 +277,12 @@ def main() -> None:
     assert acting(lo["rows"]) == acting(lf["rows"]) and rest(lo["rows"]) == rest(lf["rows"]), "L"
     gl = [gate.check(x["rows"]) for x in (lo, lf)]
     assert [v["verdict"] for v in gl] == ["pass", "pass"], ("L: the gate's accepting path", gl)
+    # MF-LIFE's occasion (the sweep, 2026-10-23): in the guarded life the o9.z key has ONE row
+    # and a choice_tally row referring to it with n == 2, so two repeats were pending at end_run
+    oz = [r for r in lo["rows"] if r["event"] == "choice" and r["slot"] == "o9.z"]
+    tz = [r for r in lo["rows"] if r["event"] == "choice_tally" and oz
+          and r["detail"]["ref"] == oz[0]["seq"]]
+    assert len(oz) == 1 and len(tz) == 1 and tz[0]["detail"]["n"] == 2, ("MF-LIFE occasion", oz, tz)
     assert per_key(mf["rows"])[kz[0]] == 1, ("MF-LIFE: end_run without its flush kept the total",
                                               per_key(mf["rows"])[kz[0]])
     print(f"  L: a cut at cycle {cut_c} mid-tally, {ev.count('after_cut')} after_cut steps, "

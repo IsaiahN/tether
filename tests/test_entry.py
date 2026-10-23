@@ -194,10 +194,12 @@ def check_a_restart_carries_refutations_only_where_identity_is_sure():
     unambiguously. Twins re-found by shape may have swapped: never carried, and named."""
     env, ag, keys, row = _held_then_restarted(
         FakeWrapper(), ["ACTION2", "ACTION2", "ACTION4", "ACTION4", "ACTION4"])
+    assert keys, "precondition: the tracker held no object, so no refutation was planted"
     assert all(k in ag.refuted for k in keys), f"a sure identity was not carried: {row}"
     assert row and sorted(row["carried"]) == sorted(k[0] for k in keys) and not row["not_carried"]
     # ACROSS AN ADVANCE NOTHING IS HELD: section 18.2's autoimmunity, unchanged.
-    _e, ag2, _k, row2 = _held_then_restarted(FakeWrapper(), ["ACTION2"], how="level_advance")
+    _e, ag2, k2, row2 = _held_then_restarted(FakeWrapper(), ["ACTION2"], how="level_advance")
+    assert k2, "precondition: no refutation was planted before the ADVANCE"
     assert not ag2.refuted and row2 is None, "a refutation crossed an ADVANCE"
     # THE TWINS: both moved off their start, both re-found by shape -> neither carried, both named.
     env, ag, keys, row = _held_then_restarted(TwinWrapper(), ["ACTION4"] * 4)
@@ -246,6 +248,7 @@ def check_shape_readings_are_keyed_on_the_cells():
     assert [atoms[n].fn(ell, ctx) for n in ("corners", "orbit_size", "perimeter")] == b
     env = arc_holdout.wire(FakeWrapper(), "fake")[0]
     atoms["corners"].fn(line, ctx)
+    assert arc_atoms._SHAPE_MEMO, "precondition: the corners reading left nothing to clear"
     env.step("ACTION1")
     assert not arc_atoms._SHAPE_MEMO, "a new frame kept the last frame's shape readings"
 
@@ -279,6 +282,8 @@ def check_run_saves_after_a_death_a_win_and_the_cap():
             path = str(pathlib.Path(d) / f"lib{i}.json")
             out = tether_agent.run(FakeWrapper(script=script), "fake", max_actions=4,
                                    library=path)
+            # the planted ending happened (the save itself does not depend on it)
+            assert (out["deaths"] >= 1, out["end"] == "game_win", out["end"] == "cap")[i], (i, out)
             assert out["saved"] and pathlib.Path(path).exists(), f"not kept after {out['end']}"
         out = tether_agent.run(FakeWrapper(), "fake", max_actions=2)
         assert out["saved"] is None, "a run with no library path saved something"
@@ -299,8 +304,10 @@ def check_a_save_killed_midway_leaves_the_previous_library_whole():
         g.save(path)
         before = pathlib.Path(path).read_text(encoding="utf-8")
         real = pathlib.Path.write_text
+        fired = []
 
         def dies(self, data, *a, **k):
+            fired.append(1)
             real(self, data[: len(data) // 2], *a, **k)
             raise KeyboardInterrupt("killed mid-save")
         pathlib.Path.write_text = dies
@@ -310,6 +317,7 @@ def check_a_save_killed_midway_leaves_the_previous_library_whole():
             pass
         finally:
             pathlib.Path.write_text = real
+        assert fired, "precondition: the save never called the killed write"
         assert pathlib.Path(path).read_text(encoding="utf-8") == before, "a kill tore the library"
         rep = gamma.Gamma([inc], game="B").load(path)
         assert rep.get("loaded") == 1 and not rep.get("cold"), rep
@@ -415,13 +423,17 @@ def check_serve_opens_one_card_and_always_closes_it():
         print(f"    one-card reuse NOT exercised: only {len(played)} game(s) played "
               "(wall: C-SPEED)")
 
+    broke = []
+
     def broken(_game, _card):
+        broke.append(1)
         raise RuntimeError("a worker failed")
     log.clear()
     with tempfile.TemporaryDirectory() as d, contextlib.suppress(RuntimeError):
         tether_runner.serve(lambda: ["g0"], lambda: log.append("open") or "C2",
                             lambda c: log.append(("close", c)), broken, d, k=1,
                             processes=False, ceiling_s=20, margin_s=1)
+    assert broke, "precondition: the broken worker was never called"
     assert log == ["open", ("close", "C2")], f"a failed run left the card open: {log}"
 
 
