@@ -261,7 +261,9 @@ def second(d):
 
 def main():
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-    env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_HOLD="1")
+    # both seeds pinned (the reviewer 2026-10-22 19:39): R-g1's precondition rode the birth seed
+    env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_HOLD="1", TETHER_AGENT_SEED="0",
+               PYTHONHASHSEED="0")
     r = subprocess.run([sys.executable, "-B", __file__, "--on"], env=env, stdin=subprocess.DEVNULL,
                        capture_output=True, text=True, check=False)
     sys.stdout.write(r.stdout)
