@@ -33,6 +33,8 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 
 import gate  # noqa: E402
+from ledger import GENERAL as GEN  # noqa: E402
+from ledger import SPECIFIED as SPEC  # noqa: E402
 
 PROBE = r'''
 import json, sys
@@ -69,6 +71,33 @@ if mode in ("unit", "mf1", "mf2"):
                       "rows": [(r["slot"], r["event"], r["detail"]) for r in led.rows()]}))
     raise SystemExit
 
+if mode == "order":
+    import gate
+    out = {}
+    for case in ("earlier", "later", "mode"):
+        led = ledger.Ledger()
+        if case == "earlier":           # PERCEIVE, ROUTE, then a repeat at PERCEIVE
+            row(led, 0, "o1.x", [["'2'", 0.0, 2]])
+            led.record(0, "ROUTE", "o1.x", "other", a=1)
+            row(led, 0, "o1.x", [["'2'", 0.0, 2]])
+        elif case == "later":           # a repeat at MINT between PERCEIVE and ROUTE
+            row(led, 0, "o2.y", [["'3'", 0.0, 3]], step="MINT")
+            led.record(1, "PERCEIVE", "o2.y", "other", a=1)
+            row(led, 1, "o2.y", [["'3'", 0.0, 3]], step="MINT")
+            led.record(1, "ROUTE", "o2.y", "other", a=2)
+        else:                           # the same key under another mode
+            row(led, 0, "o3.z", [["'4'", 0.0, 4]])
+            led.mode = ledger.GENERAL
+            row(led, 0, "o3.z", [["'4'", 0.0, 4]])
+        led.flush_tally(1)
+        rows = led.rows()
+        v = gate.check(rows)
+        out[case] = {"gate": [v["verdict"], v["check"], v["token"], v.get("note")],
+                     "choice_modes": [r["mode"] for r in rows if r["event"] == "choice"],
+                     "full": getattr(led, "tally_full", None)}
+    print(json.dumps({"order": ledger._CHOICE_TALLY_ORDER, "out": out}))
+    raise SystemExit
+
 import cap
 _left_ = tether.Agent._left
 _calls = {}
@@ -91,7 +120,8 @@ if mode.startswith("life"):
         ag.led.flush_tally = lambda cycle: None             # end_run's flush removed
     ag.end_run("cap")
 print(json.dumps({"on": ledger._CHOICE_TALLY, "check": ledger._CHOICE_TALLY_CHECK,
-                  "calls": _calls, "rows": ag.led.rows()}, default=str))
+                  "calls": _calls, "full": getattr(ag.led, "tally_full", None),
+                  "rows": ag.led.rows()}, default=str))
 '''
 
 
@@ -172,23 +202,46 @@ def acting(rows: list) -> list:
 
 def main() -> None:
     u = child("unit", TETHER_CHOICE_TALLY="1")
-    assert u["on"] and (u["entries"], u["written"]) == (4, 6), ("U counts", u)
+    # the guard: cycle 1's o1.x is the first row of (1, "o1.x"), so it goes in full ("step")
+    assert u["on"] and (u["entries"], u["written"]) == (5, 6), ("U counts", u)
     tal = [d for s, e, d in u["rows"] if e == "choice_tally"]
-    assert len(tal) == 1 and tal[0]["n"] == 2 and tal[0]["ref"] == 0, ("U tally", tal)
+    assert len(tal) == 1 and tal[0]["n"] == 1 and tal[0]["ref"] == 0, ("U tally", tal)
     assert u["since"] == [["o1.x", "choice"], ["o2.y", "choice"], ["o1.x", "other"]], u["since"]
+    un = child("unit", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_ORDER="0")
+    assert (un["entries"], un["written"]) == (4, 6), ("U without the guard", un)
     o = child("unit", TETHER_CHOICE_TALLY="0")
     assert not o["on"] and (o["entries"], o["written"]) == (5, 5), ("U OFF", o)
-    print(f"  U: ON 3 rows + 1 tally row of 6 writes, the tally n 2; since_written in call order; "
-          f"OFF {o['entries']} entries")
+    print(f"  U: ON 4 rows + 1 tally row (n 1) of 6 writes; without the guard 3 + 1 (n 2); "
+          f"since_written in call order; OFF {o['entries']} entries")
     m1 = child("mf1", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
     assert m1["err"] and "CHOICE_TALLY CHECK" in m1["err"], ("MF1", m1)
-    m2 = child("mf2", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
+    # MF2 isolates CHECK, so the guard is off: with it on, a row with a field outside the key is
+    # never tallied ("field"), and the merge cannot happen at all
+    m2 = child("mf2", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1",
+               TETHER_CHOICE_TALLY_ORDER="0")
     assert m2["err"] and "CHOICE_TALLY CHECK" in m2["err"], ("MF2", m2)
+    m2g = child("mf2", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
+    assert m2g["err"] is None and m2g["entries"] == 5, ("MF2 under the guard: in full", m2g)
     c0 = child("unit", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
     assert c0["err"] is None, ("CHECK clean", c0)
-    print("  MF1 (n + 1) and MF2 (a key without frontier) raise under CHECK; the clean case does "
-          "not")
+    print("  MF1 (n + 1) and MF2 (a key without frontier, guard off) raise under CHECK; under the "
+          "guard MF2's rows go in full; the clean case does not raise")
+    og = child("order", TETHER_CHOICE_TALLY="1")
+    on_ = child("order", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_ORDER="0")
+    e, la, mo = og["out"]["earlier"], og["out"]["later"], og["out"]["mode"]
+    assert og["order"] and e["gate"][:3] == ["refuse", "steps", "step-order"] \
+        and e["gate"][3] == "o1.x: PERCEIVE after ROUTE" and e["full"]["step"] == 1, e
+    assert la["gate"][:3] == ["refuse", "steps", "step-order"] \
+        and la["gate"][3] == "o2.y: ROUTE after MINT" and la["full"]["step"] == 1, la
+    assert mo["choice_modes"] == [SPEC, GEN] and mo["full"]["mode"] == 1, mo
+    assert not on_["order"] and [on_["out"][c]["gate"][0] for c in ("earlier", "later")] == [
+        "pass", "pass"] and on_["out"]["mode"]["choice_modes"] == [SPEC], on_
+    print("  MF-ORDER-1 (a repeat at an EARLIER step), -2 (at a LATER step, before a ROUTE row), "
+          "-3 (another mode): the guard writes each in full and the file gate refuses 1 and 2 "
+          "(step-order) and holds 3's row; without the guard each is tallied away and the gate "
+          "passes")
     on = child("plant", TETHER_CHOICE_TALLY="1")
+    ong = child("plant", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_ORDER="0")
     off = child("plant", TETHER_CHOICE_TALLY="0")
     ck = child("plant", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
     n_off = sum(1 for r in off["rows"] if r["event"] == "choice"
@@ -199,9 +252,11 @@ def main() -> None:
     assert rest(on["rows"]) == rest(off["rows"]) == rest(ck["rows"]), "P: the other rows"
     g = [gate.check(x["rows"]) for x in (on, off, ck)]
     assert [v["verdict"] for v in g] == ["pass"] * 3, ("P: the gate's accepting path", g)
-    print(f"  P: {n_off} planted rows OFF -> {len(on['rows'])} rows ON of {len(off['rows'])}; "
+    assert per_key(ong["rows"]) == per_key(off["rows"]), "P: per-key counts without the guard"
+    print(f"  P: {n_off} planted rows OFF -> {len(on['rows'])} rows ON (guard; in full by it: "
+          f"{on['full']}) and {len(ong['rows'])} without the guard, of {len(off['rows'])} OFF; "
           f"{len(per_key(off['rows']))} keys, the same count per key; acting rows equal; other "
-          f"rows equal (wall_s dropped, cited seqs ranked); gate {g[0]['verdict']} on both; "
+          f"rows equal (wall_s dropped, cited seqs ranked); gate {g[0]['verdict']} on all three; "
           "CHECK clean")
     lo = child("life", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
     lf = child("life", TETHER_CHOICE_TALLY="0")

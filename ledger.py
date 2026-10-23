@@ -36,6 +36,12 @@ _OPEN: weakref.WeakSet = weakref.WeakSet()   # ledgers holding a handle, closed 
 # appended, as before.
 _CHOICE_TALLY = armflag.arm("TETHER_CHOICE_TALLY", default=True)
 _CHOICE_TALLY_CHECK = armflag.arm("TETHER_CHOICE_TALLY_CHECK")
+# THE ORDER GUARD (the reviewer 2026-10-23 11:21, 11:25, 11:32): a repeat is tallied only where
+# writing it in full could change no check gate.py makes on the file: the latest row appended in its
+# (cycle, slot) carries the same step (so gate._steps, gate.py:86-103, would neither refuse it nor
+# move its "last"); its detail has no field outside the key; its mode equals its first row's (_mode).
+# Otherwise it is appended in full, counted per condition. OFF: tally ignores order (c2ddc5a).
+_CHOICE_TALLY_ORDER = armflag.arm("TETHER_CHOICE_TALLY_ORDER", default=True)
 TALLY_SITE = "objective_domain"
 TALLY_FIELDS = ("site", "options", "frontier", "pick", "by", "root", "residual", "seen")
 
@@ -161,6 +167,10 @@ class Ledger:
         self._tchk: dict[str, set] = {}       # CHECK: tally key -> its full keys (first + repeats)
         self._tfull: dict[str, str] = {}      # CHECK: tally key -> the full key of its first row
         self._tchk_n: dict[str, int] = {}     # CHECK: full key -> repeats this step
+        self._tmode: dict[str, str] = {}      # ORDER: tally key -> its first row's mode
+        self._last_step: dict[tuple, str] = {}   # ORDER: (cycle, slot) -> its latest appended step
+        self._last_cyc: int | None = None     # ORDER: the highest cycle appended (prunes the above)
+        self.tally_full = {"step": 0, "field": 0, "mode": 0}   # ORDER: repeats appended in full
         self._path = Path(path) if path else None
         self._fh = None
         if self._path is not None:
@@ -177,6 +187,13 @@ class Ledger:
         if _CHOICE_TALLY and event == "choice" and detail.get("site") == TALLY_SITE:
             k = _tally_key(slot, step, detail, TALLY_FIELDS)
             ref = self._tkeys.get(k)
+            if ref is not None and _CHOICE_TALLY_ORDER:
+                why = ("step" if self._last_step.get((cycle, slot)) != step
+                       else "field" if any(f not in TALLY_FIELDS for f in detail)
+                       else "mode" if self._tmode.get(k) != self.mode else None)
+                if why is not None:
+                    ref = None
+                    self.tally_full[why] += 1
             if ref is not None:
                 t = self._tstep.setdefault(k, [ref, 0, cycle, cycle])
                 t[1] += 1
@@ -192,11 +209,20 @@ class Ledger:
                     self._tchk.setdefault(k, {self._tfull[k]}).add(fk)
                     self._tchk_n[fk] = self._tchk_n.get(fk, 0) + 1
                 return self._entries[ref]
-            self._tkeys[k] = len(self._entries)
-            if _CHOICE_TALLY_CHECK:
-                self._tfull[k] = _full_key(slot, step, detail)
+            if k not in self._tkeys:
+                self._tkeys[k] = len(self._entries)
+                self._tmode[k] = self.mode
+                if _CHOICE_TALLY_CHECK:
+                    self._tfull[k] = _full_key(slot, step, detail)
         e = Entry(len(self._entries), cycle, step, slot, event, detail, of)
         self._entries.append(e)
+        if _CHOICE_TALLY and _CHOICE_TALLY_ORDER:
+            if self._last_cyc is None or cycle > self._last_cyc:
+                if self._last_cyc is not None:     # a missing key appends in full: pruning is safe
+                    self._last_step = {kk: v for kk, v in self._last_step.items()
+                                       if kk[0] >= cycle - 1}
+                self._last_cyc = cycle
+            self._last_step[(cycle, slot)] = step
         self._wat.append(self.written)
         self.written += 1
         if self._path is not None:

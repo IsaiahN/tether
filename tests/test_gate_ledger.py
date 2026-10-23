@@ -16,7 +16,12 @@ only when it follows a later step of the same slot, so both halves are checked d
           and TETHER_PRIOR_CODE off, where the MINT-site sweep is reached (step 11):
           precondition, at least one sweep row under MINT; LABEL holds.
   MF1     G1's stream rows put back at PLAN: gate.py refuses step-order.
-  MF2     G1's slot-bound choice rows put back at PLAN: gate.py refuses step-order.
+  MF2     G1's slot-bound choice rows put forward to REPEAT: gate.py refuses step-order. Until
+          2026-10-23 they were put back at PLAN, and on G1 that move had NO OCCASION (no moved
+          row followed a later step of its (cycle, slot)), on 5fae5fa as on the tally's tree, so
+          MF2 failed with nothing to refuse (the reviewer 11:25, (b2)). REPEAT is the last step,
+          so every moved row FOLLOWED by a row of its (cycle, slot) is an occasion.
+          Each must-fail asserts its occasions > 0 first (gate._steps' own comparison, counted).
   MF3     G2's arm-off sweep rows (pull, reuse_install written in MINT) put back at ROUTE:
           LABEL flags them.
   MF4     _narrate_cues decorated PERCEIVE again (f4a48c4's error: the top-of-step block runs
@@ -58,9 +63,20 @@ def gate(path: Path) -> tuple[int, str]:
     return p.returncode, p.stdout + p.stderr
 
 
-def put_back(rows: list, out: Path, pick) -> None:
-    out.write_text("".join(json.dumps({**r, "step": "PLAN"} if pick(r) else r) + "\n"
+def put_back(rows: list, out: Path, pick, step: str = "PLAN") -> None:
+    out.write_text("".join(json.dumps({**r, "step": step} if pick(r) else r) + "\n"
                            for r in rows), encoding="utf-8")
+
+
+def occasions(rows: list, pick, step: str, steps: tuple) -> int:
+    """How many rows gate._steps (gate.py:86-103) would refuse once the picked rows are relabelled
+    `step`: each row compared with the previous row of its (cycle, slot)."""
+    last, n = {}, 0
+    for r in rows:
+        k, i = (r.get("cycle", 0), r.get("slot")), steps.index(step if pick(r) else r["step"])
+        n += k in last and i < last[k]
+        last[k] = i
+    return n
 
 
 def bad(writes: list) -> list:
@@ -141,23 +157,31 @@ def main() -> int:
             rows = [json.loads(ln) for ln in led.read_text(encoding="utf-8").splitlines()
                     if ln.strip()]
             stream = [r for r in rows if r.get("event") == "stream"]
-            chosen = [r for r in rows if r.get("event") == "choice" and r["slot"] != "@choice"
-                      and r["step"] != "PLAN"]
+            def is_stream(r):
+                return r.get("event") == "stream"
+
+            def is_choice(r):
+                return r.get("event") == "choice" and r["slot"] != "@choice"
+
             assert stream, "precondition: no stream row on the fake game"
-            assert chosen, "precondition: no slot-bound choice row outside PLAN on the fake game"
+            occ1 = occasions(rows, is_stream, "PLAN", ledger.STEPS)
+            occ2 = occasions(rows, is_choice, "REPEAT", ledger.STEPS)
+            assert occ1 > 0, "MF1 precondition: moving the stream rows to PLAN has no occasion"
+            assert occ2 > 0, "MF2 precondition: moving the choice rows to REPEAT has no occasion"
             code, out = gate(led)
             assert code == 0, out[-600:]
             print(f"  G1 {len(rows)} rows, {len(writes)} guarded writes, 0 mislabelled, "
                   "0 ladder breaks; gate exit 0")
             badf = Path(d) / "bad.jsonl"
-            put_back(rows, badf, lambda r: r.get("event") == "stream")
+            put_back(rows, badf, is_stream)
             code, out = gate(badf)
             assert code != 0 and "step-order" in out, "MF1: stream rows at PLAN were not refused"
-            print("  MF1 stream rows put back at PLAN: gate refuses step-order")
-            put_back(rows, badf, lambda r: r.get("event") == "choice" and r["slot"] != "@choice")
+            print(f"  MF1 stream rows put back at PLAN ({occ1} occasions): gate refuses step-order")
+            put_back(rows, badf, is_choice, "REPEAT")
             code, out = gate(badf)
-            assert code != 0 and "step-order" in out, "MF2: choice rows at PLAN were not refused"
-            print("  MF2 slot choice rows put back at PLAN: gate refuses step-order")
+            assert code != 0 and "step-order" in out, "MF2: choice rows at REPEAT were not refused"
+            print(f"  MF2 slot choice rows put forward to REPEAT ({occ2} occasions): gate refuses "
+                  "step-order")
 
             writes.clear()
             gled = Path(d) / "gw.jsonl"

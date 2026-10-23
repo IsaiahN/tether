@@ -1079,6 +1079,14 @@ ARMS: dict[str, str] = {
                                  "the flush asserts one full key per tally key with an equal "
                                  "count (two rows that differ in any field were never merged). "
                                  "Costs a set per key; for tests. default OFF",
+    "TETHER_CHOICE_TALLY_ORDER": "the tally's order guard (the reviewer 2026-10-23 11:21, 11:25, "
+                                 "11:32): a repeat is tallied only if the latest row appended in "
+                                 "its (cycle, slot) carries the same step, its detail has no field "
+                                 "outside the key, and its mode equals its first row's; otherwise "
+                                 "it is appended in full, so no check gate.py makes on the file "
+                                 "can change (gate._steps compares each row with the previous row "
+                                 "of its (cycle, slot)). OFF: the tally ignores order (c2ddc5a), "
+                                 "for MF-ORDER. default ON",
     "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
                          "05:52): the life's kind_dk stays on disk, read through a snapshot "
                          "held from load (one read transaction, lineage.DkSnapshot) -- each "
