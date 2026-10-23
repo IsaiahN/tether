@@ -1067,6 +1067,18 @@ ARMS: dict[str, str] = {
                            "construction (E4b: three SOFT folds, 0 evicted). W-2-exact: a dropped "
                            "entry is recomputed at its next miss. OFF: a write marks seen, as "
                            "before. default ON",
+    "TETHER_CHOICE_TALLY": "THE CHOICE TALLY (Isaiah 2026-10-23 09:12 \"these should be deduped "
+                           "and tallied\"; the reviewer 10:40, 10:52, 11:06): an objective_domain "
+                           "choice row whose every decision field repeats an earlier row is not "
+                           "appended; at the step's end (and at end_run) one choice_tally row per "
+                           "repeated key carries ref, n, first and last cycle (E4b: 636,386 rows, "
+                           "3,001 keys). `written` counts every record() call and since_written "
+                           "returns both in call order, so the fit's dedup capture and replay are "
+                           "unchanged. OFF: every row appended, as before. default ON",
+    "TETHER_CHOICE_TALLY_CHECK": "the tally's check: every row's FULL detail is kept per key, and "
+                                 "the flush asserts one full key per tally key with an equal "
+                                 "count (two rows that differ in any field were never merged). "
+                                 "Costs a set per key; for tests. default OFF",
     "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
                          "05:52): the life's kind_dk stays on disk, read through a snapshot "
                          "held from load (one read transaction, lineage.DkSnapshot) -- each "

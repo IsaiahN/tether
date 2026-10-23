@@ -7,14 +7,21 @@ process (arms resolve at import).
   P    THE PLANT (as test_fit_dedup's rows plant): gridworld_arc_s1, 15 steps, an objective_domain
        choice row recorded inside every _left call (so the fit's dedup captures and replays them):
        ON, OFF and CHECK give the same acting rows, and the same count per key (OFF: its rows; ON:
-       1 + the tally rows' n); every other row equal (seq masked); CHECK never fires
+       1 + the tally rows' n); every other row equal (rest(): wall_s dropped, cited seqs ranked);
+       the gate's verdict equal; CHECK never fires
+  L    THE LIFE (the reviewer 10:52): the plant cut mid-step at cycle 7, call 80 of 164
+       (CapReached from inside _left, so the step's finally flushes after the cut row), the
+       after_cut steps, three
+       repeated rows written outside any step, end_run: ON (CHECK) and OFF equal as in P
   MF1  CHECK with a deliberately wrong n (+1 before the flush) raises
   MF2  CHECK with a tally key that drops "frontier" (a decision field) raises: two rows that differ
        in it were merged
+  MF-LIFE  L with end_run's flush removed: the end repeats are lost (1 of 3)
     python tests/test_choice_tally.py
 """
 from __future__ import annotations
 
+import bisect
 import collections
 import json
 import os
@@ -25,6 +32,8 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 
+import gate  # noqa: E402
+
 PROBE = r'''
 import json, sys
 sys.dont_write_bytecode = True
@@ -33,8 +42,8 @@ sys.path = ([tree, tree + "/conform"]
             + [p for p in sys.path if "scratchpad" not in p.replace("\\", "/")])
 import gamma, ledger, panel, tether, world
 
-def row(led, cyc, slot, fr, pick="1"):
-    led.record(cyc, "PERCEIVE", slot, "choice", site="objective_domain", options=2,
+def row(led, cyc, slot, fr, pick="1", step="PERCEIVE"):
+    led.record(cyc, step, slot, "choice", site="objective_domain", options=2,
                frontier=fr, residual=None, seen=None, pick=pick, by="learning")
 
 if mode in ("unit", "mf1", "mf2"):
@@ -60,17 +69,29 @@ if mode in ("unit", "mf1", "mf2"):
                       "rows": [(r["slot"], r["event"], r["detail"]) for r in led.rows()]}))
     raise SystemExit
 
+import cap
 _left_ = tether.Agent._left
+_calls = {}
 def _left_w(self, term, slot, hist, *a, **k):
-    row(self.led, self.cycle, slot, [[repr(len(hist) % 3), 0.0, 1]])
+    row(self.led, self.cycle, slot, [[repr(len(hist) % 3), 0.0, 1]],
+        step=self._running_step)          # labelled as the real writer labels (tether.py:8216)
+    _calls[self.cycle] = _calls.get(self.cycle, 0) + 1
+    if mode.startswith("life") and self.cycle == 7 and _calls[7] == 80:
+        raise cap.CapReached()       # a cut mid-step, after this step's repeats began
     return _left_(self, term, slot, hist, *a, **k)
 tether.Agent._left = _left_w
 env = world.bind(panel._gridworld("gridworld_arc_s1")[0])
 ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="tally"), tether.Config(), ledger.Ledger())
-for _ in range(15):
+for _ in range(15 if mode == "plant" else 9):
     ag.step()
+if mode.startswith("life"):
+    for _ in range(3):
+        row(ag.led, ag.cycle, "o9.z", [["'7'", 0.0, 7]])    # repeats written outside any step
+    if mode == "life_mf":
+        ag.led.flush_tally = lambda cycle: None             # end_run's flush removed
+    ag.end_run("cap")
 print(json.dumps({"on": ledger._CHOICE_TALLY, "check": ledger._CHOICE_TALLY_CHECK,
-                  "rows": ag.led.rows()}, default=str))
+                  "calls": _calls, "rows": ag.led.rows()}, default=str))
 '''
 
 
@@ -100,10 +121,48 @@ def per_key(rows: list) -> collections.Counter:
     return c
 
 
+def tallied(r: dict) -> bool:
+    return r["event"] == "choice_tally" or (r["event"] == "choice"
+                                            and r["detail"].get("site") == "objective_domain")
+
+
 def rest(rows: list) -> list:
-    return [(r["cycle"], r["step"], r["slot"], r["event"], json.dumps(r["detail"], sort_keys=True))
-            for r in rows if r["event"] not in ("choice_tally", "arms")
-            and not (r["event"] == "choice" and r["detail"].get("site") == "objective_domain")]
+    """Every other row, with two changes, each named (the reviewer 2026-10-23 10:52 (b), (d)):
+    WALL_S  goal_hypotheses' wall_s (tether.py:6420) is a wall-clock timing: two OFF runs differ
+            in it, and nothing in the agent reads it (only conform/identity_mod_rows.py's TIMINGS
+            list), so it is dropped.
+    SEQ     a field that cites a row by ledger seq is replaced by the number of non-tallied rows
+            before it, so ON and OFF must cite the SAME place among the other rows; the tally
+            appends fewer rows by design, so the raw seq shifts. Fields: process_bet's plan_seq
+            (tether.py:6713, value from :12896), repeat's gamma_read.fed[].seq (:12913, :12921,
+            :15994), process_settle's bet_seq (:6763), resolution's signal_seq and fed[][0]
+            (:3356). The agent reads seqs only as an ORDER (:3354 x > seq, :6750 r["seq"] >
+            b["seq"], :9355 stamp seq < _seq_at_level), each between appended rows, which the
+            rank keeps."""
+    kept = sorted(r["seq"] for r in rows if not tallied(r))
+
+    def rank(v):
+        return ["rank", bisect.bisect_left(kept, v)] if isinstance(v, int) else v
+
+    out = []
+    for r in rows:
+        if tallied(r) or r["event"] == "arms":
+            continue
+        d = json.loads(json.dumps(r["detail"]))
+        if r["event"] == "goal_hypotheses":
+            d.pop("wall_s", None)                                            # WALL_S
+        if r["event"] == "process_bet" and "plan_seq" in d:
+            d["plan_seq"] = rank(d["plan_seq"])                              # SEQ
+        if r["event"] == "process_settle" and "bet_seq" in d:
+            d["bet_seq"] = rank(d["bet_seq"])                                # SEQ
+        if r["event"] == "resolution":
+            d["signal_seq"] = rank(d.get("signal_seq"))                      # SEQ
+            d["fed"] = [[rank(x), ro] for x, ro in d["fed"]] if d.get("fed") else d.get("fed")
+        if r["event"] == "repeat" and isinstance(d.get("gamma_read"), dict):
+            for e in d["gamma_read"].get("fed", ()):
+                e["seq"] = rank(e.get("seq"))                                # SEQ
+        out.append((r["cycle"], r["step"], r["slot"], r["event"], json.dumps(d, sort_keys=True)))
+    return out
 
 
 def acting(rows: list) -> list:
@@ -113,13 +172,13 @@ def acting(rows: list) -> list:
 
 def main() -> None:
     u = child("unit", TETHER_CHOICE_TALLY="1")
-    assert u["on"] and (u["entries"], u["written"]) == (5, 6), ("U counts", u)
+    assert u["on"] and (u["entries"], u["written"]) == (4, 6), ("U counts", u)
     tal = [d for s, e, d in u["rows"] if e == "choice_tally"]
     assert len(tal) == 1 and tal[0]["n"] == 2 and tal[0]["ref"] == 0, ("U tally", tal)
     assert u["since"] == [["o1.x", "choice"], ["o2.y", "choice"], ["o1.x", "other"]], u["since"]
     o = child("unit", TETHER_CHOICE_TALLY="0")
     assert not o["on"] and (o["entries"], o["written"]) == (5, 5), ("U OFF", o)
-    print(f"  U: ON 5 entries of 6 calls, one tally row n 2; since_written in call order; "
+    print(f"  U: ON 3 rows + 1 tally row of 6 writes, the tally n 2; since_written in call order; "
           f"OFF {o['entries']} entries")
     m1 = child("mf1", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
     assert m1["err"] and "CHOICE_TALLY CHECK" in m1["err"], ("MF1", m1)
@@ -138,9 +197,34 @@ def main() -> None:
     assert acting(on["rows"]) == acting(off["rows"]) == acting(ck["rows"]), "P: acting rows"
     assert per_key(on["rows"]) == per_key(off["rows"]) == per_key(ck["rows"]), "P: per-key counts"
     assert rest(on["rows"]) == rest(off["rows"]) == rest(ck["rows"]), "P: the other rows"
+    g = [gate.check(x["rows"]) for x in (on, off, ck)]
+    assert [v["verdict"] for v in g] == ["pass"] * 3, ("P: the gate's accepting path", g)
     print(f"  P: {n_off} planted rows OFF -> {len(on['rows'])} rows ON of {len(off['rows'])}; "
-          f"{len(per_key(off['rows']))} keys, the same count per key; acting rows equal; CHECK "
-          "clean")
+          f"{len(per_key(off['rows']))} keys, the same count per key; acting rows equal; other "
+          f"rows equal (wall_s dropped, cited seqs ranked); gate {g[0]['verdict']} on both; "
+          "CHECK clean")
+    lo = child("life", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
+    lf = child("life", TETHER_CHOICE_TALLY="0")
+    mf = child("life_mf", TETHER_CHOICE_TALLY="1")
+    ev = [r["event"] for r in lo["rows"]]
+    cut_c = next(r["cycle"] for r in lo["rows"] if r["event"] == "cap_mid_step")
+    # the cut at cycle 7 (of 9 steps, from the measured per-cycle _left counts) leaves one step
+    assert ev.count("cap_mid_step") == 1 and ev.count("after_cut") == 1, (
+        "L: precondition, the cut", ev.count("cap_mid_step"), ev.count("after_cut"), lo["calls"])
+    assert any(r["event"] == "choice_tally" and r["detail"]["last_cycle"] >= cut_c - 1
+               for r in lo["rows"]), "L: treatment, no tally row for the cut step"
+    kz = [k for k in per_key(lf["rows"]) if '"o9.z"' in k]
+    assert len(kz) == 1 and per_key(lf["rows"])[kz[0]] == 3, ("L: OFF's end rows", kz)
+    assert per_key(lo["rows"]) == per_key(lf["rows"]), "L: per-key counts after a cut and life end"
+    assert acting(lo["rows"]) == acting(lf["rows"]) and rest(lo["rows"]) == rest(lf["rows"]), "L"
+    gl = [gate.check(x["rows"]) for x in (lo, lf)]
+    assert [v["verdict"] for v in gl] == ["pass", "pass"], ("L: the gate's accepting path", gl)
+    assert per_key(mf["rows"])[kz[0]] == 1, ("MF-LIFE: end_run without its flush kept the total",
+                                              per_key(mf["rows"])[kz[0]])
+    print(f"  L: a cut at cycle {cut_c} mid-tally, {ev.count('after_cut')} after_cut steps, "
+          f"3 repeats outside a step, end_run: per-key counts, acting and other rows equal ON "
+          f"(CHECK) and OFF; gate {gl[0]['verdict']} on both. MF-LIFE: end_run without its "
+          "flush shows 1 of 3")
     print("choice_tally: OK")
 
 
