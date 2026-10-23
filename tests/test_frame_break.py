@@ -160,6 +160,7 @@ class Swap(FakeWrapper):
             g = np.zeros((64, 64), dtype=int)
             for i, col in enumerate((1, 2, 5, 6)):
                 g[:, i * 16:(i + 1) * 16] = col
+            g[5:9, 5:9] = 7     # one piece identical across the swap: B keeps it (C's case)
             f.frame = [g]
             self.swapped = True
         return f
@@ -239,7 +240,7 @@ wa = getattr(ag, "_window_at", 0)
 cross = {}
 if ag.trace and wa:
     last = ag.trace[-1]
-    for s in [s for s in last[0] if s in last[2]][:40]:
+    for s in [s for s in last[0] if s in last[2]]:
         pre = sum(1 for x in ag.trace[:wa] if s in x[0] and s in x[2])
         post = sum(1 for x in ag.trace[wa:] if s in x[0] and s in x[2])
         if pre and post:
