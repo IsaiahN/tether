@@ -1101,8 +1101,8 @@ ARMS: dict[str, str] = {
                           "recorded; and the step whose outcome broke is a SEAM: every bet "
                           "suspended (seam), no audit, surprise, reward route, contingency, "
                           "progress or goal-choice note, no step-local mint, and no trace row "
-                          "appended (the reviewer 13:12). The matches row reports every board-changed "
-                          "call. OFF: today's tracker and record. default ON",
+                          "appended (the reviewer 13:12). The matches row reports every "
+                          "board-changed call. OFF: today's tracker and record. default ON",
     "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
                          "05:52): the life's kind_dk stays on disk, read through a snapshot "
                          "held from load (one read transaction, lineage.DkSnapshot) -- each "

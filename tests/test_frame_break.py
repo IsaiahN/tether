@@ -175,7 +175,17 @@ class Cascade(FakeWrapper):
         f.frame = [g, g.copy()]
         return f
 
-w = {"plain": FakeWrapper, "cascade": Cascade}.get(mode, lambda: Swap(3))()
+class SwapCascade(Swap):
+    """The swap's new board answered as TWO equal frames: the switch arrives through :279 (k0)
+    and is then decomposed again at :198 (k1), the lf52 shape."""
+    def _frame(self, state):
+        f = super()._frame(state)
+        if self.swapped:
+            f.frame = [f.frame[0], f.frame[0].copy()]
+        return f
+
+w = {"plain": FakeWrapper, "cascade": Cascade,
+     "swapcascade": lambda: SwapCascade(3)}.get(mode, lambda: Swap(3))()
 if mode == "off":
     arc_percept._FRAME_BREAK = False
 IN = [False]
@@ -261,10 +271,27 @@ def agent_cases() -> None:
         "mint", "accept", "park", "pull", "reuse_install", "derived_asked", "g1_want", "stream")]
     assert not mint, ("SEAM: a mint-type row at the seam cycle", mint)
     assert on["gate"][0] == "pass", ("SEAM: the gate refused", on["gate"])
+    site = [flag for flag, r in on["tested"] if r.get("broke")]
     print(f"  SEAM ON: frame_break at cycle {c} ({brk[0]['detail'].get('claimed')} claims, "
-          f"median {brk[0]['detail'].get('median')}); {len(bets)} bets suspended (seam); no "
-          f"Agency.note, _route_reward or _note_goal_choice at {c}; no trace row; no mint-type "
-          "row; gate pass")
+          f"median {brk[0]['detail'].get('median')}) via "
+          f"{':279 (cascade)' if site and site[0] else ':198 (settled read)'}; {len(bets)} of "
+          f"{len(bets)} bets of that step suspended (seam), 0 scored; no Agency.note, "
+          f"_route_reward or _note_goal_choice at {c}; no trace row; no mint-type row; gate pass")
+    sc = child("swapcascade")
+    cs = sc["swap_cycle"]
+    via = [r for flag, r in sc["tested"] if flag and r.get("broke")]
+    assert via, ("CASCADE SWITCH occasion: no break through :279", sc["tested"])
+    after = [r for flag, r in sc["tested"] if not flag]
+    sbrk = [r for r in sc["rows"] if r["event"] == "frame_break"]
+    sbets = obj_bets(sc["rows"], cs)
+    assert sbrk and sbrk[0]["cycle"] == cs and len(sbrk) == 1, ("CASCADE SWITCH: frame_break",
+                                                                sbrk, cs)
+    assert sbets and all(r["detail"].get("seam") for r in sbets), ("CASCADE SWITCH: seam", sbets[:2])
+    assert sc["grew"][str(cs)] == 0, ("CASCADE SWITCH: trace grew", sc["grew"])
+    print(f"  CASCADE SWITCH: the break is read at :279 (median {via[0]['median']}, colour "
+          f"{via[0]['colour_share']}); the settled :198 call on the same frame is untested "
+          f"({len(after)} later :198 tests, none undoing it); one frame_break row at cycle {cs}; "
+          f"{len(sbets)} of {len(sbets)} bets suspended (seam); no trace row")
     off = child("off")
     co = off["swap_cycle"]
     assert co is not None and not any(r["event"] == "frame_break" for r in off["rows"]), "SEAM OFF"
@@ -323,11 +350,18 @@ def off_identity() -> None:
                                                                                   default=str)))
         return out
     nb, nc = norm(base["rows"]), norm(cur["rows"])
-    assert len(nb) > 50 and nb == nc, ("OFF identity", len(nb), len(nc),
-                                      next((i for i, (x, y) in enumerate(zip(nb, nc, strict=False))
-                                            if x != y), None))
-    print(f"  OFF identity: {len(nb)} rows equal to the tree before B (arms rows aside, wall "
-          "timings masked)")
+    diff = sum(1 for x, y in zip(nb, nc, strict=False) if x != y) + abs(len(nb) - len(nc))
+    assert len(nb) > 50 and diff == 0, ("OFF identity", len(nb), len(nc),
+                                       next((i for i, (x, y) in enumerate(zip(nb, nc, strict=False))
+                                             if x != y), None))
+    assert not any("calls" in r["detail"] for r in cur["rows"] if r["event"] == "matches"), (
+        "OFF identity: a matches row carries calls")
+    assert not any(r["event"] == "frame_break" for r in cur["rows"]), "OFF: a frame_break row"
+    assert cur["calls"] == base["calls"] and cur["grew"] == base["grew"], (
+        "OFF identity: the agent's outputs differ", cur["calls"], base["calls"])
+    print(f"  OFF identity: {len(nb)} rows compared, {diff} differences (the arms row excluded: it "
+          "lists the new arm and the tree's own file shas; wall timings masked); no calls field, "
+          "no frame_break row; the spied credit calls and the trace growth per step equal")
 
 
 def child_env(mode: str, extra: dict) -> dict:
