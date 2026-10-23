@@ -38,6 +38,7 @@ import gamma  # noqa: E402
 import gridworld  # noqa: E402
 import ledger  # noqa: E402
 import lineage  # noqa: E402
+import lineage_store  # noqa: E402  item 6: a lineage file read as the lineage reads it
 import tether  # noqa: E402
 import world  # noqa: E402
 
@@ -100,7 +101,7 @@ def _carried(d, refusals):
     """(entry, role) pairs in d's index files; refusals=False drops entries holding a Refusal."""
     out = set()
     for f in Path(d).glob(f"{lineage.IDX}*.json"):
-        for e in json.loads(f.read_bytes())["entries"]:
+        for e in json.loads(lineage_store.file_bytes(f))["entries"]:
             if refusals or not any(z and "refusal" in z for x in e["items"]
                                    for z in (x["c"], x["t"])):
                 out.add((e["key"], e["role"]))
@@ -111,11 +112,12 @@ def _fresh(ag, sig, pairs, label):
     """(iii): each pair's held compile equals the compile made fresh, as _held_index makes it."""
     lib, atoms = tether._library(), {a.name: a for a in ag.gamma.atoms}
 
-    def comp(cond):
-        return compile_term.compile_candidate({"condition": cond}, atoms)
+    def comp(cond, subject):     # as _held_index compiles: the subject under the abduction arm
+        return compile_term.compile_candidate(
+            {"condition": cond}, atoms, subject=subject if tether._LIBRARY_ABDUCE else None)
     for key, role in pairs:
-        fresh = [(c, comp(c["if"]), comp(c["then"])) if role == "CAUSE"
-                 else (c, None if "quantifier" in c else comp(c["condition"]), None)
+        fresh = [(c, comp(c["if"], tether.PH_O), comp(c["then"], tether.PH_X)) if role == "CAUSE"
+                 else (c, None if "quantifier" in c else comp(c["condition"], tether.PH_O), None)
                  for c in lib.view(key, role, tether.PH_O, tether.PH_X)]
         assert tether._INDEX_STORE[(sig, key, role)] == fresh, ("R-d3 carried differs", label, key,
                                                                 role)

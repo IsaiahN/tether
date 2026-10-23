@@ -9,6 +9,9 @@ next play() loads it.
 
   R-g1  CARRY: game 2 starts holding every non-PRIOR term game 1 ended with (atom chain + guard),
         as IMPORTED naming game 1's generation; a second process given the chain starts the same.
+        THE PLANT (the reviewer 2026-10-22 19:47): one real 2-atom chain accepted into game 1's
+        Gamma before its write must cross as a COMPOSITION. It tests the CARRY's wiring (written,
+        read back by a fresh agent, kept a composition), never that game 1 composes (Fig 11 :70)
   R-g2  ROUND TRIP: terms, evidence, vindication, book, inventions and the dormant record read back
         equal from the fold; the gap on load is exactly the named set (operand bindings, per-slot
         standing values, inventions skipped and counted).
@@ -17,10 +20,15 @@ next play() loads it.
 
 The OFF identity is a lane in RL-0's form, not this fixture.
 
+DETERMINISTIC IN VERDICTS AND CONTENTS, NOT IN BYTES (the reviewer 2026-10-22 20:14): both seeds are
+pinned, but with TETHER_AGENT_SEED off a term's handle takes the process's unseeded random suffix
+(gamma.Term.handle), so handles, and with them the generation hashes, vary run to run (E8 Q24).
+
     python tests/test_lineage_carry.py
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -38,6 +46,7 @@ import gamma  # noqa: E402
 import gridworld  # noqa: E402
 import ledger  # noqa: E402
 import lineage  # noqa: E402
+import lineage_store  # noqa: E402  item 6: a lineage file read as the lineage reads it
 import tether  # noqa: E402
 import world  # noqa: E402
 from test_entry import FakeWrapper  # noqa: E402
@@ -62,7 +71,7 @@ def _held(ag):
 
 
 def _gen(d, w):
-    return json.loads((Path(d) / w["written"]).read_text(encoding="utf-8"))
+    return json.loads(lineage_store.file_bytes(Path(d) / w["written"]))
 
 
 def _carries(rows, ag, rep, label):
@@ -106,6 +115,10 @@ def on_checks():
     assert rep["parent"] is None, rep
     for _ in range(N):
         ag1.step()
+    plant = next((t for t in ag1.gamma.enumerate_closure("val", "val", 2, 4000, {})
+                  if len(t.atoms) == 2 and t.name not in ag1.gamma.library), None)
+    assert plant is not None, "fixture: no new 2-atom chain to plant"
+    ag1.gamma.accept(plant, seq=len(ag1.led), residual=f"o1.x@{ag1.cycle}")
     ag1.end_run("cap")
     w1 = lineage.write(d, ag1, "default")
     rows1 = ag1.gamma.blob()["terms"]
@@ -114,6 +127,13 @@ def on_checks():
     assert rep2["parent"] == w1["hash"], ("R-g1 parent", rep2.get("parent"), w1)
     composed, unbound = _carries(rows1, ag2, rep2, "R-g1 carry")
     assert composed, ("fixture: nothing crossed as a composition", composed, unbound)
+    tp = _held(ag2).get(_key(plant))
+    cp = ag2.gamma.carried.get(tp.name, {}) if tp is not None else {}
+    assert tp is not None and tp.origin == gamma.IMPORTED and "unbound" not in cp, (
+        "R-g1 the planted chain did not cross as a composition", plant.name, cp)
+    assert cp.get("parent") == w1["hash"], ("R-g1 the plant's parent", cp, w1["hash"])
+    print(f"  R-g1 plant: {plant.name} crossed as a composition, IMPORTED, parent "
+          f"{cp['parent']} (w1 {w1['hash']})", flush=True)
     print(f"  R-g1: game 1 wrote {w1['written']} with {len(rows1)} term rows; game 2 holds "
           f"{composed} as IMPORTED compositions from {rep2['parent']} and {unbound} as "
           f"unbound entries; destroyed on carry 0", flush=True)
@@ -130,11 +150,32 @@ def on_checks():
     g3 = _gen(d, w3)
     assert not g3["terms"] and not g3["status"], ("R-g3 a full copy", len(g3["terms"]),
                                                   len(g3["status"]))
+    # a second write by the same agent EXTENDS its first under TETHER_LINEAGE_BOUNDARY
+    # (lineage.py, F2): a child of w3, measured, never assumed (the reviewer 19:12 a, b)
     again = lineage.write(d, ag3, "default")
-    assert "refused" in again, ("R-g3 overwrite", again)
-    assert lineage.head(d)[0] == w3["hash"], "R-g3 one chain"
+    assert "written" in again and again["parent"] == w3["hash"], ("R-g3 child of w3", again, w3)
+    assert lineage.head(d)[0] == again["hash"], "R-g3 one chain"
+    # NEVER OVERWRITE, direct (19:12 c): a write whose bytes are w3's aims at w3's own name through
+    # the "xb" open; it is refused, naming w3's file, and w3's bytes are unchanged
+    p3 = Path(d) / w3["written"]
+    before = hashlib.sha256(p3.read_bytes()).hexdigest()
+    raw3, real_dumps, used = lineage_store.file_bytes(p3), lineage._dumps, []
+
+    def once(x):
+        if used:
+            return real_dumps(x)
+        used.append(1)
+        return raw3
+    lineage._dumps = once
+    try:
+        same = lineage.write(d, ag3, "default")
+    finally:
+        lineage._dumps = real_dumps
+    assert used and w3["written"] in str(same.get("refused")), ("R-g3 never overwrite", same)
+    assert hashlib.sha256(p3.read_bytes()).hexdigest() == before, "R-g3 w3's bytes changed"
     print(f"  R-g3: {w2['hash']} -> parent {w1['hash']}; unchanged {w3['hash']} holds 0 term "
-          f"rows; rewrite refused", flush=True)
+          f"rows; a second write is its child {again['hash']} (parent {again['parent']}); a write "
+          f"aimed at {w3['written']} refused ({same['refused']}), its bytes unchanged", flush=True)
     # N3: a second tip is loud.
     e = tmp / "branch"
     shutil.copytree(d, e)
@@ -160,14 +201,37 @@ def on_checks():
         ag.step()
     ag.end_run("cap")
     blob = ag.gamma.blob()
+    names = [r["name"] for r in ag.gamma.blob(with_names=True)["terms"]]
     assert ag.gamma.evidence and ag._dormant, ("fixture: no evidence or no dormant record",
                                                len(ag.gamma.evidence), len(ag._dormant))
     lineage.write(rr, ag, "default")
     _h, f = lineage.head(rr)
-    folded = [{k: v for k, v in r.items() if k != "born"} for r in f["terms"]]
+    folded = [{k: v for k, v in r.items() if k not in ("born", "was")} for r in f["terms"]]
     assert folded == blob["terms"], "R-g2 terms"
+    # "was" is R7i's field, which the generation ADDS (lineage.write, TETHER_REPLAY_UNIT): each
+    # row's must be that term's own name, checked rather than ignored (the reviewer 20:14 b)
+    assert [r.get("was") for r in f["terms"]] == names, ("R-g2 was", names)
     assert f["evidence"] == ag.gamma.evidence, "R-g2 evidence"
-    assert f["dormant"] == ag._dormant, "R-g2 dormant"
+    # (c), the reviewer 20:57: the boundary item is written WHOLE, each Term in its term-row form
+    gen_rr = json.loads(lineage_store.file_bytes(Path(rr) / f"gen_{_h}.json"))
+    assert gen_rr["dormant_refused"] == [], ("R-g2 dormant refused", gen_rr["dormant_refused"])
+    assert f["dormant"] == [lineage.term_form(x) for x in ag._dormant], "R-g2 dormant"
+    live = {(i, k): t for i, x in enumerate(ag._dormant)
+            for k, t in x["stores"]["want_terms"].items()}
+    assert live, "fixture: no Term in the dormant record"
+    assert all(f["dormant"][i]["stores"]["want_terms"][k]["__term__"] == t.name
+               and f["dormant"][i]["stores"]["want_terms"][k]["atoms"] == [a.name for a in t.atoms]
+               for (i, k), t in live.items()), "R-g2 dormant: the record is not the live Term's"
+    # MUST-FAIL: OFF, the write's own encoder refuses the item, named (the check above would fire)
+    arm = lineage._DORMANT_TERM_FORM
+    lineage._DORMANT_TERM_FORM = False
+    try:
+        off, off_refused = lineage.dormant_items(ag._dormant)
+    finally:
+        lineage._DORMANT_TERM_FORM = arm
+    assert not off and off_refused and off_refused[0]["type"] == "Term", ("R-g2 MF", off_refused)
+    print(f"  R-g2 dormant: {len(ag._dormant)} boundary item(s) written whole, {len(live)} Term(s) "
+          f"in their term-row form; OFF the write refuses {off_refused}", flush=True)
     for k in ("vindication", "book", "invented"):
         assert f[k] == blob[k], ("R-g2", k)
     env, agb, repb = _agent(rr, 4)
@@ -186,7 +250,7 @@ def on_checks():
     real = gamma.Term.handle
     count = [0]
 
-    def counted(_self, game):
+    def counted(_self, game, _seed=None):   # term.handle takes the draw seed (HOLD_SEED)
         count[0] += 1
         return f"{game}_X_term_{count[0]:08x}"
     gamma.Term.handle = counted
@@ -238,7 +302,9 @@ def second(d):
 
 def main():
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-    env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_HOLD="1")
+    # both seeds pinned (the reviewer 2026-10-22 19:39): R-g1's precondition rode the birth seed
+    env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_HOLD="1", TETHER_AGENT_SEED="0",
+               PYTHONHASHSEED="0")
     r = subprocess.run([sys.executable, "-B", __file__, "--on"], env=env, stdin=subprocess.DEVNULL,
                        capture_output=True, text=True, check=False)
     sys.stdout.write(r.stdout)

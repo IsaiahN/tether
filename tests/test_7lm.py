@@ -24,6 +24,7 @@ import tempfile
 from pathlib import Path
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
+import lineage_store  # item 6: a lineage file read as the lineage reads it
 
 sys.dont_write_bytecode = True
 
@@ -70,7 +71,7 @@ sys.dont_write_bytecode = True
 import arc_holdout
 from test_entry import FakeWrapper
 env, ag, led, *rest = arc_holdout.wire(FakeWrapper(), "fake", lineage_dir=sys.argv[1])
-print("OUT " + json.dumps({"kinds_known": len(ag._kind_known)}))
+print("OUT " + json.dumps({"kinds_known": rest[-1]["lineage"]["kinds_known"]}))
 """
 
 
@@ -86,7 +87,7 @@ def _run(code: str, *args: str) -> dict:
 def main() -> None:
     d = os.path.join(tempfile.mkdtemp(prefix="t7lm_"), "lin")
     run = _run(RUN, d, "6")
-    gens = [json.loads(Path(d, f).read_text(encoding="utf-8"))
+    gens = [json.loads(lineage_store.file_bytes(Path(d, f)))
             for f in os.listdir(d) if f.startswith("gen_")]
     kinds = [k for g in gens for k in g.get("kinds_landed", [])]
     assert not any("kinds" in g for g in gens), "the old key was written"
