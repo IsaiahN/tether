@@ -286,7 +286,8 @@ def agent_cases() -> None:
     sbets = obj_bets(sc["rows"], cs)
     assert sbrk and sbrk[0]["cycle"] == cs and len(sbrk) == 1, ("CASCADE SWITCH: frame_break",
                                                                 sbrk, cs)
-    assert sbets and all(r["detail"].get("seam") for r in sbets), ("CASCADE SWITCH: seam", sbets[:2])
+    assert sbets and all(r["detail"].get("seam") for r in sbets), ("CASCADE SWITCH: seam",
+                                                                   sbets[:2])
     assert sc["grew"][str(cs)] == 0, ("CASCADE SWITCH: trace grew", sc["grew"])
     print(f"  CASCADE SWITCH: the break is read at :279 (median {via[0]['median']}, colour "
           f"{via[0]['colour_share']}); the settled :198 call on the same frame is untested "
