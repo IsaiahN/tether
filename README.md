@@ -1,94 +1,64 @@
-# tether
+# tether -- the ARC solver agent
 
-An agent-level decision architecture. The deliverable is **an agent that can say when an
-answer is out of reach instead of confabulating one** — and that can show why, in its own
-record, in terms a reader can check.
+Branch `arc-solver-agent`. This branch is the general agent applied to ARC-AGI-3. The agent's
+code is the same as on `general-agent`; what is particular to ARC is the world adapter and the
+harness that plays games. For what the agent is and how it reasons, read the README on
+`general-agent`:
 
-**The agent is the prize. Winning is not.** A black box that wins teaches nothing.
+    git clone -b general-agent https://github.com/IsaiahN/tether.git
 
-## The loop
+## How the agent meets ARC
 
-One uniform per-step loop, no branching on problem type:
+- **The input side** is `arc_world.py` (`ArcWorld`), an adapter filling `world.py`'s `Env`
+  contract over the `arc_agi` package. It reads the frame and the wrapper's own surface, and
+  nothing that knows what a board means. Objects are found and tracked by `arc_percept.py`.
+- **The action side** is `interface.py`, unchanged from `general-agent`: the agent decides an
+  intent, and the interface realises it as one of the actions the game offers. The platform's
+  RESET is offered like any other action, with one hard rule: never two RESETs in a row.
+- **The harness** is `arc_holdout.py` (`play`, `wire`) and the entry point `tether_agent.py`
+  (`run`). A game ends on a WIN, the step cap or the time allowance. A game over does not end
+  the run: the boundary is marked, play goes on, and the agent may choose to RESET. The entry
+  point never presses RESET for it.
+- **The agent is told nothing about a game** beyond what it perceives: no goal and no rules. By
+  the project's standing rule, no decision may read a game's identity.
 
-    PERCEIVE → ROUTE → MINT → ACCEPT → SETTLE → PROMOTE → IMPORT → REPEAT
+## What ships, and what does not
 
-The agent predicts, measures what its prediction missed (the **residual**, indexed per object
-slot and never averaged across them), and mints a new term only when the term pays for itself
-under a declared code — `|φ| + |R|φ| < |R|`. Three guards gate the mint (support,
-reachability, novelty); the compression bargain settles it afterwards.
-
-Every stage writes to a ledger. A separate checker reads that ledger and can fail the run.
-**The checker imports nothing from the loop**, so it cannot be talked round by the thing it
-is checking.
-
-## Why it is whitebox
-
-Legibility is not a presentation choice here, it is the instrument. Because the model
-predicts explicitly, it is readable. Because the residual is an object, the cause-and-effect
-the agent perceived is readable. Because minting is an inspectable event, the moment of
-discovery — or its absence — is a diagnosis rather than a mystery.
-
-**A change that makes the agent better but makes its reasoning unreadable is a loss, not a
-win.**
-
-## The objection to pre-empt
-
-**A hand-authored library of composable knowledge predicates is Cyc.**
-
-The answer is that **Cyc's ontology was graded by its authors, and these are graded by a
-ground that does not update.** Cyc's predicates were correct when the people who wrote them
-agreed they were; there was no external arbiter that could return a verdict they had not
-anticipated. Here the arbiter is the environment, it is fixed before the agent starts, and it
-returns the same verdict regardless of what the library says it should.
-
-That distinction is load-bearing rather than rhetorical, and the repository makes it
-checkable in three places:
-
-- **Nothing scores itself.** A frame cannot be scored with a quantity it produces. Coverage,
-  terms minted and compression achieved are frame-internal and are explicitly disqualified as
-  evidence.
-- **Priors enter under a stated rule, or not at all.** A prior is admitted only if the loop
-  cannot run without it, or the agent minted a crude version first and it is being promoted.
-  **Never because it would help on a particular problem** — that is the one move that encodes
-  an answer, and once made, no amount of testing can detect it afterwards.
-- **The ablation is runnable.** Back up the library, verify the backup, wipe it, re-run. If
-  the result survives, the agent composed it. If it disappears, the library was carrying the
-  answer and the agent was retrieving rather than reasoning.
+- **Ships:** the code and the library (`library/`), as on `general-agent`.
+- **Does not ship:** the learned library. What the agent learns while playing (its lineage: one
+  generation file per game, plus its memory store) is written to the `lineage_dir` you give it,
+  outside the repository, and is never committed.
+- **Not ours to ship:** the games (`environment_files/`), recordings and human replays. All are
+  gitignored.
 
 ## From a fresh clone
 
-Python 3.13.14 (tested). `requirements.lock` pins the whole runtime closure at the versions
-tested; install it with `--no-deps` so nothing else is resolved.
+Python 3.13 (`pyproject.toml`: `>=3.13,<3.14`).
 
-    git clone https://github.com/IsaiahN/tether.git
+    git clone -b arc-solver-agent https://github.com/IsaiahN/tether.git
     cd tether
     python -m venv .venv
     .venv/Scripts/python.exe -m pip install --no-deps -r requirements.lock   # bin/python off Windows
 
-The games are not shipped with the code (`environment_files/` is gitignored). Fetch a game once
-with the `arc_agi` package's own anonymous fetch; every run after that is offline:
+Fetch a game once with the `arc_agi` package's own anonymous fetch (every run after that is
+offline), then play it, carrying a lineage folder (created if absent; give the same folder again
+to carry on from it):
 
-    .venv/Scripts/python.exe -c "from arc_agi import Arcade; from arc_agi.base import OperationMode; Arcade(operation_mode=OperationMode.NORMAL).make('ls20')"
+    .venv/Scripts/python.exe -c "from arc_agi import Arcade; from arc_agi.base import OperationMode; Arcade(operation_mode=OperationMode.NORMAL).make('<game_id>')"
+    .venv/Scripts/python.exe -B -c "import arc_holdout; print(arc_holdout.play('<game_id>', 40, lineage_dir='lineage')['persistence']['lineage'])"
 
-Run one game, carrying a lineage:
+The checks are the same six as on `general-agent`.
 
-    .venv/Scripts/python.exe -B -c "import arc_holdout; print(arc_holdout.play('ls20', 40, lineage_dir='lineage')['persistence']['lineage'])"
+## Kaggle notes
 
-The lineage is written to the folder given as `lineage_dir` (here `./lineage`, created if it
-does not exist): one generation file per game played, plus the agent's memory store. It starts
-empty and fills as the agent plays; the next run given the same folder carries on from it.
+- `kaggle_bundle.py` builds the submission from what the agent actually imports, offline: a
+  package directory and one equivalent single file. `arcengine` is never bundled; it comes from
+  the competition's wheels.
+- `kaggle_agent.py` is the agent class the notebook loads. It drives `tether_agent.run` one step
+  at a time through the same wiring `play` uses. Its actions-per-game bound
+  (`MAX_ACTIONS_PER_GAME`) is a placeholder termination bound, not a tuned value.
+- Runner items designed and held for the Kaggle step are in `docs/kaggle_export/E9_RUNNER_HELD.txt`.
+- The API key is never committed: `.env` is gitignored, and it appears in no commit.
 
-The library (`library/`) ships with the code and the agent will not start without it: a missing
-or partial `library/` fails at startup, naming each missing file. `TETHER_LIBRARY_REQUIRED=0` is
-for the ablation only (running the agent without its inheritance).
-
-## Running it
-
-    .venv/Scripts/python.exe demo.py              # the whole loop, end to end
-    .venv/Scripts/python.exe gate.py runs/demo.jsonl
-    .venv/Scripts/python.exe tests/test_gate.py   # the gate's checks, one defect each
-    .venv/Scripts/python.exe -m ruff check .
-
-`demo.py` prints what it learned, what it refused to claim, and where it stopped — including
-the difference between *I ran out of budget* and *this is not reachable at this depth*, which
-are different statements and only one of them is strong.
+No result is claimed here. Results are reported where they are measured, with the world, the
+population and the arm state they ran under.
