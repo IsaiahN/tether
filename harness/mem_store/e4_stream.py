@@ -37,6 +37,11 @@ ap.add_argument("--census", action="store_true")     # census_heap.point between
 # way finishes (a cut would end the one life's thinking, tether.Agent.step's _cut), so a slice can overrun MAX.
 ap.add_argument("--slice-min-s", type=float, default=None)
 ap.add_argument("--slice-max-s", type=float, default=None)
+# (b), THE ONE WHOLE-RUN NET (the reviewer 2026-10-23 06:54, 07:08 (i), superseding 2026-10-22 15:24 for this only): an
+# epoch the launcher computes (its clock before the supervisor starts + the supervisor's wall - a chosen margin), set
+# ONCE on the agent before the first game and never at a switch. Past it the agent's own cut ends thinking for the rest
+# of the life; the end path still writes, and the games not started are "unreached at this budget".
+ap.add_argument("--deadline-at", type=float, default=None)
 A = ap.parse_args()
 assert (A.slice_min_s is None) == (A.slice_max_s is None), "--slice-min-s and --slice-max-s go together"
 STEPS = [int(x) for x in A.slice_steps.split(",")] if A.slice_steps else None
@@ -149,11 +154,20 @@ def going(steps: int, n_steps, t_start: float, acts: int) -> bool:
     if A.slice_min_s is None:
         return el < A.slice_s
     return el < A.slice_max_s and (el < A.slice_min_s or acts == 0)
+
+
+if A.deadline_at is not None:
+    ag.deadline = A.deadline_at
 T0 = time.time()
 if CH:
     CH.point("after_load", ag, A.out)
 endings_all = collections.Counter()
+budget_unreached = []
 for i, g in enumerate(order):
+    if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the life
+        budget_unreached.append(g)
+        log(f"# {i}\t{g}\tunreached at this budget (the whole-run deadline passed; no switch)")
+        continue
     seq0 = len(ag.led)           # the check's window opens before the switch (and the plant) ...
     if i:
         proxy.switch_to(g)
@@ -193,6 +207,9 @@ for i, g in enumerate(order):
         if end == ledger.WIN:
             ending = ledger.WIN
             break
+        if getattr(ag, "_cut", False):
+            ending = "cut"
+            break
         if CH and n_steps and steps < n_steps:       # between steps; the last step's point is the switch below
             CH.point(f"after_step{steps}", ag, A.out)
     endings_all.update(endings)
@@ -206,13 +223,17 @@ for i, g in enumerate(order):
     log(f"{i}\t{g}\t{round(t_start - T0, 1)}\t{c_start}\t{wall_end}\t{steps}\t"
         f"{(lv_seen - (lv_start or 0))}\t{ending}\t{dict(endings)}\t{commit_end}\t{seq0}\t{seqP}\t{seq1}\t"
         f"{acts}\t{first_act_s}\t{extended}\t{unreached}\t{overrun}")
+t_end = time.time()
 ag.end_run("cap")
 gen = lineage.write(A.lineage, ag, "stream") if lineage._CARRY and A.lineage else None
+end_path_s = round(time.time() - t_end, 1)
 close = getattr(ag.led, "close", None)
 if close:
     close()
 out = {"seed": seed, "order": order, "cycles": ag.cycle, "wall_s": round(time.time() - T0, 1),
-       "endings": dict(endings_all), "lineage": str(gen)[:300], "mf": A.mf}
+       "endings": dict(endings_all), "lineage": str(gen)[:300], "mf": A.mf, "deadline_at": A.deadline_at,
+       "deadline_fired": bool(getattr(ag, "_cut", False)), "budget_unreached": budget_unreached,
+       "end_path_s": end_path_s}
 with open(os.path.join(A.out, "stream.result.json"), "w", encoding="utf-8") as fh:
     json.dump(out, fh, default=str)
 log(f"# stream end {time.strftime('%Y-%m-%d %H:%M:%S')} {json.dumps(out, default=str)[:400]}")

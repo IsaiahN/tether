@@ -20,7 +20,9 @@ the reviewer 12:37, 15:17, 15:24, 15:34, 15:40). The fake ARC game (test_entry.F
        deadline less its reserve has passed stops before thinking, one "stopped_for_end_path" row;
        a boundary write never lowers the reserve (MF: TETHER_END_RESERVE off, the agent steps)
   ID   identity: no deadline, ON vs OFF (both arms off): the ledgers equal (the heads are inert)
-  ES   e4_stream sets no deadline (the reviewer 15:24: none to be added), so no head fires there
+  ES   e4_stream sets ONE deadline, the whole-run net, before the first game and never at a switch
+       (the reviewer 2026-10-23 06:54 (b), 07:08 (i), superseding 2026-10-22 15:24 "none to be
+       added" for that net only; MF: a deadline set inside the per-game loop fails)
 
     python tests/test_cap_inner.py
 """
@@ -313,11 +315,45 @@ def identity() -> None:
     print(f"  ID no deadline: ON and OFF ledgers equal ({len(out[0])} rows)")
 
 
+def _es_check(src: str) -> int:
+    """ES's rule: exactly one assignment to a .deadline attribute, outside every loop (so before the
+    first game, never at a switch). Returns its line."""
+    import ast
+    hits = []
+
+    def walk(node, in_loop):
+        loop = in_loop or isinstance(node, (ast.For, ast.While))
+        for ch in ast.iter_child_nodes(node):
+            if isinstance(ch, (ast.Assign, ast.AugAssign, ast.AnnAssign)):
+                tg = ch.targets if isinstance(ch, ast.Assign) else [ch.target]
+                hits.extend((ch.lineno, loop) for t in tg
+                            if isinstance(t, ast.Attribute) and t.attr == "deadline")
+            walk(ch, loop)
+    walk(ast.parse(src), False)
+    assert len(hits) == 1, ("ES: e4_stream's deadline assignments", hits)
+    assert not hits[0][1], ("ES: e4_stream sets the deadline inside a loop", hits)
+    return hits[0][0]
+
+
 def e4_stream() -> None:
     with open(os.path.join(HERE, "harness", "mem_store", "e4_stream.py"), encoding="utf-8") as fh:
         src = fh.read()
-    assert "deadline" not in src, "ES: e4_stream now sets a deadline (15:24: none to be added)"
-    print("  ES e4_stream sets no deadline: no head fires across its slices")
+    line = _es_check(src)
+    anchor = "    seq0 = len(ag.led)"
+    assert src.count(anchor) == 1, "ES must-fail: its anchor is not in the source once"
+    one = "    ag.deadline = A.deadline_at\n"
+    assert src.count(one) == 1, "ES must-fail: the one assignment is not in the source once"
+    second = src.replace(anchor, "    ag.deadline = None\n" + anchor)
+    moved = src.replace(one, "    pass\n").replace(anchor, one + anchor)
+    for name, bad in (("a second one inside the per-game loop", second),
+                      ("the one moved inside the per-game loop", moved)):
+        try:
+            _es_check(bad)
+        except AssertionError:
+            continue
+        raise AssertionError(f"ES must-fail: {name} passed")
+    print(f"  ES e4_stream sets ONE deadline, outside every loop (line {line}); MF: a second "
+          "one, or the one moved, inside the per-game loop fails")
 
 
 def main() -> int:
