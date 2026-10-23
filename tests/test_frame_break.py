@@ -349,8 +349,8 @@ def off_identity() -> None:
     with tempfile.TemporaryDirectory() as d:
         # the tree before B: the last commit without arc_percept.BREAK_MEDIAN, archived whole
         rev = next(h for h in subprocess.run(
-            ["git", "-C", root, "log", "--format=%H", "-n", "6"], capture_output=True, text=True,
-            check=True).stdout.split()
+            ["git", "-C", root, "log", "--first-parent", "--format=%H"], capture_output=True,
+            text=True, check=True).stdout.split()
             if "BREAK_MEDIAN" not in subprocess.run(
                 ["git", "-C", root, "show", f"{h}:arc_percept.py"], capture_output=True,
                 text=True, check=True).stdout)
