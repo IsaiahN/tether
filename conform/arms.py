@@ -636,6 +636,12 @@ ARMS: dict[str, str] = {
                          "its own arm), not by doubt"
                          ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
                          "the record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_DORMANT_TERM_FORM": "(c) THE DORMANT ITEM WRITTEN WHOLE (the reviewer 2026-10-22 "
+                                "20:57): a boundary item's live Terms (its want_terms copy) are "
+                                "written by lineage.write in their term-row form "
+                                "(lineage.term_form), a record nothing rebuilds a Term from; the "
+                                "live and in-memory record untouched. OFF: one Term refuses the "
+                                "whole boundary item, named in dormant_refused. default ON",
     "TETHER_LINEAGE_BOUNDARY": "the boundary write (the reviewer 2026-10-15 06:46, 07:30, "
                                "07:32; Isaiah 06:20): ON with the carry and a lineage folder, "
                                "both runners write a generation after a terminal edge's "

@@ -212,7 +212,26 @@ def on_checks():
     # row's must be that term's own name, checked rather than ignored (the reviewer 20:14 b)
     assert [r.get("was") for r in f["terms"]] == names, ("R-g2 was", names)
     assert f["evidence"] == ag.gamma.evidence, "R-g2 evidence"
-    assert f["dormant"] == ag._dormant, "R-g2 dormant"
+    # (c), the reviewer 20:57: the boundary item is written WHOLE, each Term in its term-row form
+    gen_rr = json.loads(lineage_store.file_bytes(Path(rr) / f"gen_{_h}.json"))
+    assert gen_rr["dormant_refused"] == [], ("R-g2 dormant refused", gen_rr["dormant_refused"])
+    assert f["dormant"] == [lineage.term_form(x) for x in ag._dormant], "R-g2 dormant"
+    live = {(i, k): t for i, x in enumerate(ag._dormant)
+            for k, t in x["stores"]["want_terms"].items()}
+    assert live, "fixture: no Term in the dormant record"
+    assert all(f["dormant"][i]["stores"]["want_terms"][k]["__term__"] == t.name
+               and f["dormant"][i]["stores"]["want_terms"][k]["atoms"] == [a.name for a in t.atoms]
+               for (i, k), t in live.items()), "R-g2 dormant: the record is not the live Term's"
+    # MUST-FAIL: OFF, the write's own encoder refuses the item, named (the check above would fire)
+    arm = lineage._DORMANT_TERM_FORM
+    lineage._DORMANT_TERM_FORM = False
+    try:
+        off, off_refused = lineage.dormant_items(ag._dormant)
+    finally:
+        lineage._DORMANT_TERM_FORM = arm
+    assert not off and off_refused and off_refused[0]["type"] == "Term", ("R-g2 MF", off_refused)
+    print(f"  R-g2 dormant: {len(ag._dormant)} boundary item(s) written whole, {len(live)} Term(s) "
+          f"in their term-row form; OFF the write refuses {off_refused}", flush=True)
     for k in ("vindication", "book", "invented"):
         assert f[k] == blob[k], ("R-g2", k)
     env, agb, repb = _agent(rr, 4)
@@ -231,7 +250,7 @@ def on_checks():
     real = gamma.Term.handle
     count = [0]
 
-    def counted(_self, game):
+    def counted(_self, game, seed=None):    # term.handle takes the draw seed (HOLD_SEED)
         count[0] += 1
         return f"{game}_X_term_{count[0]:08x}"
     gamma.Term.handle = counted

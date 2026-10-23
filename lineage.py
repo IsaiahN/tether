@@ -43,6 +43,11 @@ _CARRY = armflag.arm("TETHER_LINEAGE_CARRY", default=True)   # _UPPER, so the @r
 # a generation at every level clear and death too, so a stop loses at most the current level.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
+# (c) THE DORMANT ITEM WRITTEN WHOLE (the reviewer 2026-10-22 20:57): a boundary item holds live
+# Terms (its want_terms copy), which enc has no form for, so one Term cost the generation the WHOLE
+# boundary record. ON: each Term in it is written as its term-row record (dormant_items), the live
+# and in-memory record untouched. OFF: the item refused and named, as before.
+_DORMANT_TERM_FORM = armflag.arm("TETHER_DORMANT_TERM_FORM", default=True)
 # S1g, THE ASKED RECORD (Isaiah 2026-10-15 13:26, option B; the reviewer 13:27, 13:28): under the
 # slot filter a generation carries WHICH QUESTIONS WERE ASKED, never the bound answers; the next
 # process rebuilds each answer from the carried index by the existing binds. A5: an animal keeps
@@ -112,6 +117,39 @@ def enc(x: Any) -> Any:
     if x is None or isinstance(x, (bool, int, float, str)):
         return x
     raise Unencodable(type(x).__name__)
+
+
+def term_form(x: Any) -> Any:
+    """x with each gamma.Term in it replaced by its term-row record, {"__term__": name, "atoms",
+    "guard", "guard_ref", "operand", "operand_term"} (Fig 13 :130: a term carries the atoms it was
+    built from). A RECORD, written by lineage.write only; nothing rebuilds a live Term from it."""
+    if isinstance(x, gamma.Term):
+        return {"__term__": x.name, "atoms": [a.name for a in x.atoms], "guard": x.guard,
+                "guard_ref": x.guard_ref, "operand": x.operand,
+                "operand_term": ([a.name for a in x.operand_term.atoms]
+                                 if x.operand_term is not None else None)}
+    if isinstance(x, dict):
+        return {k: term_form(v) for k, v in x.items()}
+    if isinstance(x, tuple):
+        return tuple(term_form(v) for v in x)
+    if isinstance(x, list):
+        return [term_form(v) for v in x]
+    if isinstance(x, (set, frozenset)) and any(isinstance(v, gamma.Term) for v in x):
+        return {"__terms_of_set__": sorted((term_form(v) for v in x), key=repr)}
+    return x
+
+
+def dormant_items(items: list, start: int = 0) -> tuple[list, list]:
+    """The write's dormant encoding: (encoded items, refused [{i, type}]). Under (c) a Term inside
+    an item is written in its term-row form; anything else enc has no form for refuses the item,
+    named."""
+    out, refused = [], []
+    for i, item in enumerate(items, start):
+        try:
+            out.append(enc(term_form(item) if _DORMANT_TERM_FORM else item))
+        except Unencodable as e:
+            refused.append({"i": i, "type": e.type})
+    return out, refused
 
 
 class Unencodable(TypeError):
@@ -434,14 +472,9 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             status.append({"born": rid[0], "handle": rid[1], "admitted": r["admitted"]})
     # THE DORMANT RECORD ITEM BY ITEM (the reviewer 21:14, I3): an item enc has no form for is
     # not written, and is named; it never costs the generation its terms, status or evidence.
-    dormant, refused = [], []
     d0, e0 = marks.get("dormant", 0), marks.get("evidence", 0)
     dormant_all = getattr(ag, "_dormant", [])
-    for i, item in enumerate(dormant_all[d0:], d0):
-        try:
-            dormant.append(enc(item))
-        except Unencodable as e:
-            refused.append({"i": i, "type": e.type})
+    dormant, refused = dormant_items(dormant_all[d0:], d0)
     gen = {"lineage": 1, "parent": parent, "game": game, "terms": terms, "status": status,
            "evidence": list(ag.gamma.evidence)[e0:],
            "vindication_tail": list(blob["vindication"])[base["n_vindication"]:],
