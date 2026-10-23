@@ -72,10 +72,13 @@ if mode in ("unit", "mf1", "mf2"):
     raise SystemExit
 
 if mode == "order":
-    import gate
+    import gate, tempfile, pathlib
     out = {}
+    tmp = tempfile.mkdtemp()
     for case in ("earlier", "later", "mode"):
-        led = ledger.Ledger()
+        path = pathlib.Path(tmp) / (case + ".jsonl")     # the FILE the gate reads: a row's mode
+        led = ledger.Ledger(path=str(path))                # is stamped there at record time
+        ledger._LEDGER_HANDLE = False                      # opened per row, so nothing is held
         if case == "earlier":           # PERCEIVE, ROUTE, then a repeat at PERCEIVE
             row(led, 0, "o1.x", [["'2'", 0.0, 2]])
             led.record(0, "ROUTE", "o1.x", "other", a=1)
@@ -90,7 +93,7 @@ if mode == "order":
             led.mode = ledger.GENERAL
             row(led, 0, "o3.z", [["'4'", 0.0, 4]])
         led.flush_tally(1)
-        rows = led.rows()
+        rows = [json.loads(ln) for ln in path.read_text(encoding="utf-8").splitlines() if ln]
         v = gate.check(rows)
         out[case] = {"gate": [v["verdict"], v["check"], v["token"], v.get("note")],
                      "choice_modes": [r["mode"] for r in rows if r["event"] == "choice"],

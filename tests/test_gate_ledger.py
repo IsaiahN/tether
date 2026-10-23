@@ -186,7 +186,8 @@ def main() -> int:
             writes.clear()
             gled = Path(d) / "gw.jsonl"
             gridworld(GW_STEPS, gled)
-            inline = [w for w in writes if w[0] == "step" and w[3] != "PLAN"]
+            # since 1d4c4c8 (C1, 2026-10-22) step() wraps _step_body, where the phases run
+            inline = [w for w in writes if w[0] in ("step", "_step_body") and w[3] != "PLAN"]
             assert inline, "precondition: no row from step()'s inline phases"
             assert not bad(writes), ("G2 LABEL: rows labelled with a step not running",
                                      bad(writes)[:5])

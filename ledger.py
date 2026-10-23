@@ -37,10 +37,11 @@ _OPEN: weakref.WeakSet = weakref.WeakSet()   # ledgers holding a handle, closed 
 _CHOICE_TALLY = armflag.arm("TETHER_CHOICE_TALLY", default=True)
 _CHOICE_TALLY_CHECK = armflag.arm("TETHER_CHOICE_TALLY_CHECK")
 # THE ORDER GUARD (the reviewer 2026-10-23 11:21, 11:25, 11:32): a repeat is tallied only where
-# writing it in full could change no check gate.py makes on the file: the latest row appended in its
-# (cycle, slot) carries the same step (so gate._steps, gate.py:86-103, would neither refuse it nor
-# move its "last"); its detail has no field outside the key; its mode equals its first row's (_mode).
-# Otherwise it is appended in full, counted per condition. OFF: tally ignores order (c2ddc5a).
+# writing it in full could change no check gate.py makes on the file: the latest row appended in
+# its (cycle, slot) carries the same step (so gate._steps, gate.py:86-103, would neither refuse it
+# nor move its "last"); its detail has no field outside the key; its mode equals its first row's
+# (gate._mode). Otherwise it is appended in full, counted per condition. OFF: the tally ignores
+# order (c2ddc5a).
 _CHOICE_TALLY_ORDER = armflag.arm("TETHER_CHOICE_TALLY_ORDER", default=True)
 TALLY_SITE = "objective_domain"
 TALLY_FIELDS = ("site", "options", "frontier", "pick", "by", "root", "residual", "seen")
