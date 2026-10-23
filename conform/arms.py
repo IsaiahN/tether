@@ -1103,6 +1103,14 @@ ARMS: dict[str, str] = {
                           "progress or goal-choice note, no step-local mint, and no trace row "
                           "appended (the reviewer 13:12). The matches row reports every "
                           "board-changed call. OFF: today's tracker and record. default ON",
+    "TETHER_BREAK_WINDOW": "C, THE BREAK WINDOW (the reviewer 2026-10-23 13:04, 13:12, 13:43): "
+                           "after a frame break (TETHER_FRAME_BREAK), history(slot) -- what the "
+                           "fits read -- starts at the trace row after the break "
+                           "(Agent._window_at, set in perceive; reset to 0 with the trace at a "
+                           "level boundary), so no slot's fit reads across a world swap (Fig 12 "
+                           ":109). The library, standings and atoms are untouched (Fig 4 "
+                           ":22-23). Other whole-trace readers are listed in C's build post with "
+                           "a decision each. OFF: history to the level's start. default ON",
     "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
                          "05:52): the life's kind_dk stays on disk, read through a snapshot "
                          "held from load (one read transaction, lineage.DkSnapshot) -- each "

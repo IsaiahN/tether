@@ -235,7 +235,17 @@ for _ in range(8):
     ag.step()
 rows = ag.led.rows()
 v = gate.check(rows)
+wa = getattr(ag, "_window_at", 0)
+cross = {}
+if ag.trace and wa:
+    last = ag.trace[-1]
+    for s in [s for s in last[0] if s in last[2]][:40]:
+        pre = sum(1 for x in ag.trace[:wa] if s in x[0] and s in x[2])
+        post = sum(1 for x in ag.trace[wa:] if s in x[0] and s in x[2])
+        if pre and post:
+            cross[s] = [len(ag.history(s)), pre, post]
 print(json.dumps({"swap_cycle": swap_cycle[0], "grew": grew, "calls": calls, "tested": tested,
+                  "window_at": wa, "cross": cross,
                   "gate": [v["verdict"], v.get("check"), v.get("token")],
                   "rows": rows}, default=str))
 '''
@@ -277,6 +287,20 @@ def agent_cases() -> None:
           f"{':279 (cascade)' if site and site[0] else ':198 (settled read)'}; {len(bets)} of "
           f"{len(bets)} bets of that step suspended (seam), 0 scored; no Agency.note, "
           f"_route_reward or _note_goal_choice at {c}; no trace row; no mint-type row; gate pass")
+    # C: after the break, a slot present on both sides reads only the rows after it
+    assert on["window_at"] and on["cross"], ("C occasion: no slot on both sides of the break",
+                                             on["window_at"], on["cross"])
+    assert all(h == post for h, _pre, post in on["cross"].values()), ("C: history crossed the "
+                                                                       "break", on["cross"])
+    coff = child_env("on", {"TETHER_BREAK_WINDOW": "0"})
+    assert coff["window_at"] and coff["cross"], ("C OFF occasion", coff["window_at"])
+    assert all(h == pre + post for h, pre, post in coff["cross"].values()), ("C OFF: history "
+                                                                              "was windowed",
+                                                                              coff["cross"])
+    k = sorted(on["cross"])[0]
+    print(f"  C: window at trace row {on['window_at']}; {len(on['cross'])} slots on both sides "
+          f"(e.g. {k}: history {on['cross'][k][0]} = the {on['cross'][k][2]} rows after the "
+          f"break, not {on['cross'][k][1]} + {on['cross'][k][2]}). C OFF: history = all rows")
     sc = child("swapcascade")
     cs = sc["swap_cycle"]
     via = [r for flag, r in sc["tested"] if flag and r.get("broke")]

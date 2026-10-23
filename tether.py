@@ -577,6 +577,12 @@ if _RUIN and not _RUIN_RECORD:
 # prediction chose the press; body: a routine's step). Nothing decides from it (Fig 1).
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _FED = armflag.arm("TETHER_CONTACT", default=True)
+# C, THE BREAK WINDOW (the reviewer 2026-10-23 13:04, 13:12, 13:43): after a frame break (B), a
+# slot's history -- what the fits read -- starts at the break, not at the level's start (Fig 12
+# :109, "Which boundary matters is the one the record does not cross"). The library, standings
+# and atoms are untouched (Fig 4 :22-23: methods cross, recordings do not). OFF: history to the
+# level's start, as before.
+_BREAK_WINDOW = armflag.arm("TETHER_BREAK_WINDOW", default=True)
 # 7a D5, SPLIT A SLOT'S RESIDUAL ON STRAIN (Fig 9 :4-5, :54-58; the reviewer 2026-10-10 15:58Z).
 # ON; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term
 # gets right from the rows it gets wrong (at least 2 each side), the slot gets two PARTS: the
@@ -2893,6 +2899,7 @@ class Agent:
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
         self._seam_now = False             # B: this step's outcome was a frame break (a seam)
+        self._window_at = 0                # C: history() reads the trace from here (the last break)
         self._3a_hazard = diagnose.Hazard()   # E2: world/own counts per spot, kind, actor
         self._3a_stale: dict = {}          # E2: slot -> the cycle it was marked stale
         self._3a_unseen: dict = {}         # E2: (epoch, slot) -> (kind, trace row) handed over as
@@ -3488,6 +3495,7 @@ class Agent:
         if _LINEAGE_HOLD:
             self._hold_lineage(how)
         self.bound, self.trace = {}, []
+        self._window_at = 0        # C: the trace restarts, so does its window
         self._served = {}          # (iv): a served binding does not cross the boundary either
         self._parts, self._d5_pending, self._shadow = {}, {}, {}
         self._d5_candidates = {}
@@ -3647,7 +3655,9 @@ class Agent:
         # **AND THE INTENT RIDES WITH IT.** A guard is tested inside `Term.apply`, which
         # runs over THESE rows during replay -- so a guard keyed on an intent is
         # unevaluable unless the row carries the intent that produced it.
-        rows = [(b, a, af[slot], i, land) for b, a, af, i, land in self.trace
+        w = self._window_at if _BREAK_WINDOW else 0            # C: from the last break on
+        rows = [(b, a, af[slot], i, land) for b, a, af, i, land in (self.trace[w:] if w
+                                                                   else self.trace)
                 if slot in af and slot in b]
         keep = self._row_filter.get(slot)       # D5: part B's search prices its own rows only
         return [r for r in rows if keep(r)] if keep is not None else rows
@@ -8622,6 +8632,8 @@ class Agent:
         _fb = getattr(self.env, "frame_breaks", None)
         _brk = _fb() if _fb is not None else []
         self._seam_now = bool(_brk)
+        if _brk:
+            self._window_at = len(self.trace)   # C: the seam row is not appended, so it starts here
         for _b in _brk:
             self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
                             action=action, **_b)
