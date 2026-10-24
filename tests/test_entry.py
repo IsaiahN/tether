@@ -115,6 +115,7 @@ def check_reset_after_an_action_is_sent_and_rearms():
     raise AssertionError("the guard did not re-arm after a sent RESET")
 
 
+
 def check_a_death_is_survived_by_the_agents_own_reset():
     """GAME_OVER (F478; Isaiah 2026-09-29): a death no longer ends the run. The ENTRY POINT
     never presses RESET -- every RESET past its one at construction is the AGENT's -- the agent
