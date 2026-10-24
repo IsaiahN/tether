@@ -588,6 +588,15 @@ _BREAK_WINDOW = armflag.arm("TETHER_BREAK_WINDOW", default=True)
 # pick, the clock verdict per subject, the span beside R_goal, a hypothesis's test outcomes.
 # Read by nothing that decides. OFF: today's ledger.
 _R4_RECORD = armflag.arm("TETHER_R4_RECORD", default=True)
+# R-A + R-B, PROGRESS AND THE ROUTE (WATSON, Isaiah 2026-10-23 19:21 "Approved"; the build design
+# accepted by the reviewer 22:12). R-A: the trend readers read the RAW gap (Fig 12 :112, "Progress
+# is a subtraction"), never gap/(alphabet-1), whose unit grows with the vocabulary; R_goal's value
+# is unchanged for every other reader. R-B: a ROUTE -- (intent, realised action and coord, contact
+# context) at the goal exit -- is refused after MIN_REPEAT non-closing readings or one "farther",
+# kept for the level (Fig 6 :42-46), and withheld from that intent in that context; the intention
+# stays and asks for another route (Fig 13 :121). DEFAULT OFF tonight (the 20:55 away rules); ON is
+# Isaiah's word. OFF: today's trend and today's goal exit.
+_ROUTE_REFUSE = armflag.arm("TETHER_ROUTE_REFUSE", default=False)
 # 7a D5, SPLIT A SLOT'S RESIDUAL ON STRAIN (Fig 9 :4-5, :54-58; the reviewer 2026-10-10 15:58Z).
 # ON; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term
 # gets right from the rows it gets wrong (at least 2 each side), the slot gets two PARTS: the
@@ -1167,6 +1176,17 @@ def shrinking(series) -> bool:
     w = series[-(MIN_REPEAT + 1):] if series else []
     d = [b - a for a, b in zip(w, w[1:], strict=False)]
     return len(w) == MIN_REPEAT + 1 and all(x <= 0 for x in d) and any(x < 0 for x in d)
+
+
+def trend_of(series, gaps):
+    """R-A (TETHER_ROUTE_REFUSE): the series a trend reader tests -- the raw gaps, where the last
+    MIN_REPEAT + 1 readings all carried one (Fig 12 :112, a subtraction in the gap's own unit), else
+    the R_goal series. OFF: the R_goal series."""
+    w = MIN_REPEAT + 1
+    if (_ROUTE_REFUSE and gaps and len(gaps) == len(series) and len(gaps) >= w
+            and all(g is not None for g in gaps[-w:])):
+        return gaps
+    return series
 
 
 # GQ1, A LEVEL CLEAR COUNTS (the reviewer 2026-10-20 14:27; Isaiah 14:11): the completion sweep
@@ -2998,6 +3018,11 @@ class Agent:
         # only qualifying window ends at 0, which is exactly where there is nothing left to
         # pursue. Two quantities, two dicts, for the reason `refuted` and `refuted_at` are two.
         self._res: dict[str, list[float]] = {}
+        # R-A (TETHER_ROUTE_REFUSE): the raw gap beside each R_goal reading, None where it had none
+        self._gap: dict[str, list[int | None]] = {}
+        # R-B: a refused route -> (why, cycle); a route's run of non-closing readings (the level's)
+        self._route_refused: dict[tuple, tuple[str, int]] = {}
+        self._route_run: dict[tuple, list[str]] = {}
         # WHICH CYCLE FORMATION WAS LAST ATTEMPTED ON. System 2 now deliberates beside System 1
         # as well as at the fall-through, so without this a cycle reaching both sites would
         # refuse twice and write the gate's reason twice.
@@ -3514,6 +3539,10 @@ class Agent:
         self._trace_epoch += 1          # the tallies summarise a history that is gone
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
+        # R-A/R-B: nor their raw gaps, nor the routes keyed by their names -- a scope end, the
+        # route_refused rows stay in the ledger (Fig 6 :45). retarget fires on a level edge AND a
+        # death, so a carry across tries is R-D's, open (the reviewer 2026-10-23 22:12)
+        self._gap, self._route_refused, self._route_run = {}, {}, {}
         self._dw_tried = {}
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
         # last reading or step, an undone count, each read on the next level's same NAME.
@@ -6203,7 +6232,9 @@ class Agent:
             # (a touch-loss starts a new approach); shorter than MIN_REPEAT + 1 is not yet
             # judgeable; on every subject; the gap budget is only the ceiling
             def stuck(sl: str) -> bool:
-                seg = h["reads"].get(sl, [])[h["seg"].get(sl, 0):]
+                at = h["seg"].get(sl, 0)
+                seg = h["reads"].get(sl, [])[at:]
+                seg = trend_of(seg, h.get("gaps", {}).get(sl, [])[at:])      # R-A
                 return len(seg) >= MIN_REPEAT + 1 and not shrinking(seg)
             if h["steps"] > h["budget"]:
                 self._hyp_end("stalled", by="ceiling")
@@ -8279,6 +8310,53 @@ class Agent:
                         outcome=_oc,
                         intent=t["intent"], root=self._root_id,
                         in_root=held is not None and held in self._root_held)
+        if _ROUTE_REFUSE and t.get("route") is not None:
+            self._route_read(t["route"], _oc, slot)
+
+    def _route_read(self, route: tuple, outcome: str, slot: str) -> None:
+        """R-B: one goal-exit outcome read against the route that produced it. closer / reached
+        clear its run; no change / not reached extend it, and MIN_REPEAT of them refuse it (the
+        selector's own count, Fig 5 :59); one farther refuses it at once (F3, case 7); slot gone is
+        no reading. A refusal is kept for the level and rowed (Fig 6 :42-46)."""
+        if outcome == "slot gone" or route in self._route_refused:
+            return
+        run = self._route_run.setdefault(route, [])
+        if outcome in ("closer", "reached"):
+            run.clear()
+            return
+        run.append(outcome)
+        why = ("farther" if outcome == "farther"
+               else "no_shrink" if len(run) >= MIN_REPEAT else None)
+        if why is None:
+            return
+        self._route_refused[route] = (why, self.cycle)
+        said, action, coord, ctx = route
+        self.led.record(self.cycle, "SETTLE", slot, "route_refused", intent=said, action=action,
+                        coord=list(coord) if coord else None, context=[list(c) for c in ctx],
+                        why=why, outcomes=list(run),
+                        reads="this way does not serve this intent here; the intent stays and "
+                              "asks for another route (Fig 6 :42-46, Fig 13 :121)")
+
+    @staticmethod
+    def _route_of(want: Any, r: Any, ctx: tuple) -> tuple:
+        """R-B's route: (the intent in the agent's words, the realised action, its coordinate,
+        the contact context at press time)."""
+        return (want.says(), r.action, tuple(r.coord) if r.coord else None, ctx)
+
+    def _route_offer(self, said: str, ctx: tuple, offered: tuple,
+                     wh: Any) -> tuple[tuple, Any]:
+        """R-B: the offers left for this intent in this context. A refused bare route leaves
+        `offered`; a refused positioned route's coordinate joins the withheld pairs on this board,
+        so it goes through the interface's one withhold door."""
+        ref = [k for k in self._route_refused if k[0] == said and k[3] == ctx]
+        if not ref:
+            return offered, wh
+        bare = {k[1] for k in ref if k[2] is None}
+        cells = frozenset((k[1], k[2]) for k in ref if k[2] is not None)
+        if cells:
+            fp = wh.fp if wh else IFace.fingerprint(self.env, self.env.observe())[0]
+            wh = IFace.Withheld(fp, frozenset(wh.pairs) | cells)
+        return tuple(a for a in offered if a not in bare), wh
 
     def _goal_shapes(self) -> list:
         """7h (a): each held goal hypothesis as its SHAPE -- the slot's kind (7h (h)'s key: owner
@@ -11228,6 +11306,8 @@ class Agent:
             if isinstance(gap, int) and not isinstance(gap, bool) and span > 0:
                 if _R4_RECORD and why is not None:
                     why.update(gap=gap, span=span)     # R4 record: the ratio's two halves (F2)
+                if _ROUTE_REFUSE and why is not None:
+                    why["raw_gap"] = gap               # R-A: what the trend subtracts
                 return min(1.0, gap / span)
         return 1.0 - deg
 
@@ -11399,6 +11479,7 @@ class Agent:
                 else:
                     popped[_x] = popped.get(_x, 0) + 1
                     self._res.pop(slot, None)
+                    self._gap.pop(slot, None)
             else:
                 # **MET -> UN-MET IS AN OBSERVATION, NOT NOISE TO DROP.** Detected before the
                 # append, while the prior reading is still in hand.
@@ -11413,6 +11494,8 @@ class Agent:
                 elif _was and _was[-1] <= 0 < rg:
                     undone.append((slot, _was[-1], rg))
                 self._res.setdefault(slot, []).append(rg)
+                if _ROUTE_REFUSE:          # R-A: parallel to _res, None where no raw gap was read
+                    self._gap.setdefault(slot, []).append(why.get("raw_gap"))
                 counts[slot] = cnt
                 if "span" in why:
                     spans[slot] = [why["gap"], why["span"]]
@@ -11437,6 +11520,8 @@ class Agent:
                 elif sl in counts:
                     r = h["reads"].setdefault(sl, [])
                     r.append(self._res[sl][-1])
+                    if _ROUTE_REFUSE:      # R-A: the raw gaps beside the readings, index for index
+                        h.setdefault("gaps", {}).setdefault(sl, []).append(self._gap[sl][-1])
                     if r[-1] <= 0:
                         h["touches"] += 1
                     if any(t[0] == sl for t in touch_lost):
@@ -11523,7 +11608,7 @@ class Agent:
                 series={k: [round(float(v), 4) for v in ser[-w:]]
                         for k, ser in sorted(self._res.items())},
                 qualifies=sorted(k for k, ser in self._res.items()
-                                 if shrinking(ser)
+                                 if shrinking(trend_of(ser, self._gap.get(k)))
                                  and (not _ARRIVAL or arrival(ser) == OPEN)),
                 satisfied=sorted(k for k, ser in self._res.items()
                                  if (arrival(ser) == CONFIRMED if _ARRIVAL
@@ -11617,11 +11702,17 @@ class Agent:
             if len(series) < MIN_REPEAT + 1:
                 tally["too_short"] += 1
                 continue
-            window = series[-(MIN_REPEAT + 1):]
+            window = trend_of(series, self._gap.get(slot))[-(MIN_REPEAT + 1):]     # R-A
             deltas = [b - a for a, b in zip(window, window[1:], strict=False)]
             if shrinking(window):
                 tally["qualified"] += 1
                 shrink = -sum(deltas)
+                if _ROUTE_REFUSE:
+                    # R-A's rank (the reviewer 2026-10-23 22:12): the share of the window's own
+                    # opening reading closed -- a ratio of two readings of one quantity -- with
+                    # today's R_goal shrink as the tie-break. A shrinking window opens above 0
+                    _rw = series[-(MIN_REPEAT + 1):]
+                    shrink = ((window[0] - window[-1]) / window[0], _rw[0] - _rw[-1])
                 if refuted:
                     if plain is None or shrink > plain[0]:
                         plain = (shrink, slot)
@@ -13334,9 +13425,30 @@ class Agent:
         # one fact, which is harmless exactly until one side changes.
         self._goal_want = _want
         self._intent_kinds.add(_want.kind)
-        _r = self.iface.realise(_want, tuple(self.actions),
-                                IFace.Interface.context(self.env), before, self.env,
-                                withheld=self._withheld)
+        _ctx = IFace.Interface.context(self.env)
+        _offer, _wh = tuple(self.actions), self._withheld
+        if _ROUTE_REFUSE:          # R-B: this intent's refused routes here are not offered
+            _offer, _wh = self._route_offer(_want.says(), _ctx, _offer, _wh)
+        _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh)
+              if _offer or not _ROUTE_REFUSE else None)
+        if _ROUTE_REFUSE and self._route_refused and (
+                not _offer or (_r is not None
+                               and self._route_of(_want, _r, _ctx) in self._route_refused)):
+            # R-B: every route this intent has here is refused -- the interface had nothing else
+            # to offer. No route here at this budget (Fig 9 :44), never "impossible"; the
+            # refusals stay, and a held hypothesis on this slot ends by="routes" (R-D's first half)
+            self._split_why = "route_exhausted"
+            if commit:
+                said = _want.says()
+                self.led.record(self.cycle, "PLAN", chosen, "route_exhausted", intent=said,
+                                context=[list(c) for c in _ctx],
+                                refused=sorted(([k[1], list(k[2]) if k[2] else None, v[0]]
+                                                for k, v in self._route_refused.items()
+                                                if k[0] == said and k[3] == _ctx), key=repr),
+                                reads="no route for this intent here at this budget")
+                if self._hyp is not None and chosen in self._hyp["slots"]:
+                    self._hyp_end("stalled", by="routes")
+            return None
         if _r is not None:
             # FORMED IS NOT TAKEN (the reviewer 2026-10-10 12:27Z, 12:36Z). The routine mint asks
             # which press would serve this intent and does not press it this turn, so it writes no
@@ -13348,6 +13460,8 @@ class Agent:
                 _tt = self._split_term or self._term_of(chosen) or {}
                 self._test = {"slot": chosen, "term": _tt.get("name"), "target": _tgt,
                               "before": before.get(chosen), "intent": _want.says()}
+                if _ROUTE_REFUSE:          # R-B: the route this outcome will be read against
+                    self._test["route"] = self._route_of(_want, _r, _ctx)
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))
             return self._took(_r, _want)
@@ -13506,6 +13620,7 @@ class Agent:
             # *the slots did not survive, nor do their trends*. Per-frame departure is the same
             # event and was not covered. This extends a stated rule to the site that misses it.
             self._res.pop(g, None)
+            self._gap.pop(g, None)
             self._disc.pop(g, None)
             # AND THE WANTS, WHICH THIS LOOP ALSO MISSED -- the same omission as the trends
             # one line up, found the day `_want_terms` gave the wants a second home. A want
