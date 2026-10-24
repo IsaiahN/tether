@@ -12,13 +12,21 @@ from a copy. A field that differs by construction is PRINTED WHOLE and fails: a 
 by name, on a ruling (c3). Every lineage_dir / library= / led_path is a fresh path under the temp
 root, asserted and printed (c1). The whole run stops itself at CAP seconds with OVER-CAP (d1).
 --self compares BASE against itself: the determinism control (d4), run before anything else.
+THE SEED (WATSON ruling 4, 12:47): every play reads its seed from ONE record the test writes under
+the temp root, {"slot": "@run", "event": "seed", "detail": {"seed": "0000000000000000",
+"generation": 0, "seed_source": "birth"}}, through TETHER_SEED_FROM (the replay path, the seed arm
+at its default ON). TETHER_AGENT_SEED=0 is the constant seed, under which gamma.draw_seed is None
+and every minted handle's suffix is random; the replay's handles are blake2b(seed:name).
+A differing ledger field prints its two values whole (P2).
     python tests/test_identity_store.py BASE_REV MODE N [--self]   # lineage | library | absent
 Must-fails (in scratch clones; plant lines in the commit that carries them): MF-2a
 store.lineage_write passes game + "_mf"; MF-2b store.library_save writes to path + ".mf"; MF-3
 store.read_json reads an absent file from another repo's library/."""
+import ast
 import io
 import json
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -38,6 +46,9 @@ from test_identity_short import DROP  # noqa: E402
 
 CAP, T0 = 600, time.time()
 TMP = os.path.realpath(tempfile.gettempdir())
+SEED: list = []          # the fixed seed record's path, written under the temp root in main()
+SEED_ROW = {"slot": "@run", "event": "seed",
+            "detail": {"seed": "0000000000000000", "generation": 0, "seed_source": "birth"}}
 PLAY = r'''
 import json, os, sys
 sys.dont_write_bytecode = True
@@ -67,7 +78,9 @@ def _under_tmp(p: str) -> str:
 
 def _child(tree: str, out: str, mode: str, n: int, which: str) -> None:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-    env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0")
+    # THE SEED FROM A FIXED RECORD (P1): TETHER_AGENT_SEED=0 is the constant seed, under which
+    # gamma.draw_seed is None and every handle suffix is random; the replay path is reproducible
+    env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_SEED_FROM=SEED[0])
     if mode == "absent":
         env["TETHER_LIBRARY_REQUIRED"] = "0"
     left = CAP - (time.time() - T0)
@@ -154,6 +167,10 @@ def main() -> None:
         print(f"base {rev} at {base}\ncurrent {'(self) ' if self_check else ''}{cur}\n"
               f"MODE {mode}, N {n}, plays {plays}, temp root {TMP}", flush=True)
         # ONE output path for both trees, run in turn, so no temp path differs by construction
+        SEED.append(_under_tmp(os.path.join(d, "seed.jsonl")))
+        with open(SEED[0], "w", encoding="utf-8") as fh:
+            fh.write(json.dumps(SEED_ROW) + "\n")
+        print(f"seed record {SEED[0]}: {json.dumps(SEED_ROW)}", flush=True)
         out = _under_tmp(os.path.join(d, "out"))
         seen: dict = {}
         for side, tree in (("base", base), ("current", cur)):
@@ -172,6 +189,13 @@ def main() -> None:
         for which in plays:
             b, c = seen["base"][which], seen["current"][which]
             rbad = compare(b["rows"], c["rows"], set())
+            for x in rbad:              # P2: each differing field's two values, whole (D)
+                m = re.match(r"seq (\d+) .*\['detail'\] (\[.*\])$", x)
+                if m and int(m.group(1)) < min(len(b["rows"]), len(c["rows"])):
+                    i, fields = int(m.group(1)), ast.literal_eval(m.group(2))
+                    for f in fields:
+                        print(f"    seq {i} {f}: {b['rows'][i]['detail'].get(f)!r} -> "
+                              f"{c['rows'][i]['detail'].get(f)!r}")
             print(f"{which}: rows {len(b['rows'])} / {len(c['rows'])}, {len(rbad)} differing"
                   + "".join(f"\n    {x}" for x in rbad[:20]))
             bad += [f"{which} rows: {x}" for x in rbad]
