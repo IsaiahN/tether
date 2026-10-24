@@ -583,6 +583,11 @@ _FED = armflag.arm("TETHER_CONTACT", default=True)
 # and atoms are untouched (Fig 4 :22-23: methods cross, recordings do not). OFF: history to the
 # level's start, as before.
 _BREAK_WINDOW = armflag.arm("TETHER_BREAK_WINDOW", default=True)
+# THE R4 RECORD (the reviewer 2026-10-23 18:19, 18:28, 18:37, 19:39): rows and fields that make
+# F1-F5 readable from the ledger -- what a press was credited with, what was offered and why the
+# pick, the clock verdict per subject, the span beside R_goal, a hypothesis's test outcomes.
+# Read by nothing that decides. OFF: today's ledger.
+_R4_RECORD = armflag.arm("TETHER_R4_RECORD", default=True)
 # 7a D5, SPLIT A SLOT'S RESIDUAL ON STRAIN (Fig 9 :4-5, :54-58; the reviewer 2026-10-10 15:58Z).
 # ON; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term
 # gets right from the rows it gets wrong (at least 2 each side), the slot gets two PARTS: the
@@ -6241,7 +6246,9 @@ class Agent:
                         touches=h["touches"], losses=h["losses"],
                         reads_n={sl: len(v) for sl, v in h["reads"].items()},
                         acted=dict(h["acted"]),
-                        reads="a goal hypothesis ended; the next must differ (Fig 7 :36)")
+                        reads="a goal hypothesis ended; the next must differ (Fig 7 :36)",
+                        **({"tests": dict(h.get("tests", {})),
+                            "tests_read_by": None} if _R4_RECORD else {}))
 
     def _hyp_route(self, slot: str, before: dict) -> str | None:
         """The action the interface knows moves the subject toward its target (the route
@@ -6339,6 +6346,7 @@ class Agent:
                         src[text], tpl[text] = skey, t
         refused: Counter = Counter()
         cands = []
+        _smw: dict = {}                         # R4 record: the clock verdict per subject
         for text, s in src.items():
             cap.head()
             c = self._compile_cache.get(text)
@@ -6351,7 +6359,8 @@ class Agent:
             if c.slot not in before or c.slot not in self.slots or c.slot in der:
                 refused["subject not a movable slot"] += 1
                 continue
-            if _GOAL_HYP and self._self_moving(c.slot):
+            if _GOAL_HYP and self._self_moving(
+                    c.slot, _smw.setdefault(c.slot, {}) if _R4_RECORD else None):
                 refused["self-moving subject"] += 1     # a clock; it may still be an operand
                 continue
             if compile_term.run(c, before) is not False:
@@ -6371,6 +6380,8 @@ class Agent:
         detail = {"candidates": len(src), "open": len(cands), "refused": dict(refused),
                   "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][1],
                               "source": x[4]} for x in cands[:5]]}
+        if _R4_RECORD:
+            detail["self_moving"] = dict(sorted(_smw.items()))
         pick = None
         checked = 0
         group_n = None
@@ -6488,13 +6499,14 @@ class Agent:
             return still[0]
         return self._choice("hyp_still", None, [(a, None, 1) for a in still])
 
-    def _self_moving(self, slot: str) -> bool:
+    def _self_moving(self, slot: str, why: dict | None = None) -> bool:
         """(3) (the reviewer 2026-10-20 17:34, 19:54 (c)): a clock -- on every press made while
         the slot was present it moved by the same nonzero delta, under every discrete surfaced
         action and, for a positioned action, wherever it landed, at two places or more (Fig 13
         :36, adjacency is not duration). The platform's actions (RESET) are not steering acts and
         are left out. Read from the agent's own transitions; a discrete action never pressed, or
-        a positioned one landed in one place only, leaves the dependence open (False)."""
+        a positioned one landed in one place only, leaves the dependence open (False). `why`
+        (the R4 record): filled with the verdict, its exit and the deltas it read."""
         prov = getattr(self.env, "provenance", None)
         steer = [a for a in self.actions if prov is None or prov(a) != "platform-universal"]
         seen: dict = {}
@@ -6505,13 +6517,22 @@ class Agent:
             try:
                 d = int(af[slot]) - int(b[slot])
             except (TypeError, ValueError):
+                if why is not None:
+                    why.update(verdict=False, exit="unreadable")
                 return False
             seen.setdefault((a, land if a in IFace.POSITIONED else None), set()).add(d)
         deltas = set().union(*seen.values()) if seen else set()
         if len(deltas) != 1 or 0 in deltas or len(seen) < 2:
+            if why is not None:
+                why.update(verdict=False, deltas=sorted(deltas), keys=len(seen),
+                           exit="deltas" if len(deltas) != 1 or 0 in deltas else "keys")
             return False
-        return all(len([k for k in seen if k[0] == a]) >= (2 if a in IFace.POSITIONED else 1)
-                   for a in steer)
+        out = all(len([k for k in seen if k[0] == a]) >= (2 if a in IFace.POSITIONED else 1)
+                  for a in steer)
+        if why is not None:
+            why.update(verdict=out, deltas=sorted(deltas), keys=len(seen),
+                       exit="all" if out else "unpressed")
+        return out
 
     def _hyp_pair(self, before: dict, detail: dict) -> tuple | None:
         """All singles refuted or routeless: the conjunction of two that each ARRIVED without a
@@ -7860,8 +7881,10 @@ class Agent:
         §16.3's stack is the mechanism evidence the endpoint erases, and *how many frames came
         back* is the first thing it says. **One frame means this board has no cascade** -- which
         is a per-game capability fact, measured rather than assumed, and the reason Seam 9
-        conditions the animation claim: `g50t` carries 7 or 9 on 39% of responses and `ls20`
-        carries one, always.
+        conditions the animation claim: `g50t` carries 7 or 9 on 39% of responses. `ls20` was
+        recorded here as carrying one, always -- FALSE on 2026-10-23 (LS20/run): 16 of 48
+        responses carried 6, each a press that left the settled board unchanged, within_step
+        [0, 0, 0, 0, 76]. The earlier reading was of runs that never pressed into a wall.
 
         THE ORDERING IS THE PAYLOAD WHEN THERE IS ONE. Consecutive sub-frames give *what
         changed between them*, which is the within-step order -- and the causality tracker that
@@ -8247,9 +8270,13 @@ class Agent:
         after = (self.trace[-1][2] if self.trace else {}).get(slot)
         ordered = self.slot_types.get(slot) in ORDERED_TYPES
         held = f"{slot}:{t['term']}" if t["term"] is not None else None
+        _oc = _test_outcome(t["before"], after, t["target"], ordered)
+        if _R4_RECORD and self._hyp is not None and slot in self._hyp["slots"]:
+            # R4 record (F3): the held hypothesis's own test outcomes, shown on its end row
+            self._hyp.setdefault("tests", Counter())[_oc] += 1
         self.led.record(self.cycle, "SETTLE", slot, "hypothesis_test", term=t["term"],
                         target=t["target"], before=t["before"], after=after, ordered=ordered,
-                        outcome=_test_outcome(t["before"], after, t["target"], ordered),
+                        outcome=_oc,
                         intent=t["intent"], root=self._root_id,
                         in_root=held is not None and held in self._root_held)
 
@@ -8677,6 +8704,11 @@ class Agent:
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
+        if _R4_RECORD and not self._seam_now:
+            _cr = getattr(self.iface, "last_changed", ())
+            self.led.record(self.cycle, "PERCEIVE", "@interface", "audit", of=(action,),
+                            credited=len(_cr), own_clock=sorted(set(_cr) & _own_clock),
+                            reads="every slot that changed is credited to this press (F1)")
         # AND WHAT THE BOARD NOW AFFORDS, **named as capability and never as a button** --
         # Isaiah: *"the board has enabled us to move to the left or right after doing xyz"*.
         # F28's line held: availability is legitimate to read, directional semantics never.
@@ -11194,6 +11226,8 @@ class Agent:
             gap = objective_gap(_sat, state[slot], True, dom)
             span = self.alphabet[slot] - 1
             if isinstance(gap, int) and not isinstance(gap, bool) and span > 0:
+                if _R4_RECORD and why is not None:
+                    why.update(gap=gap, span=span)     # R4 record: the ratio's two halves (F2)
                 return min(1.0, gap / span)
         return 1.0 - deg
 
@@ -11328,6 +11362,7 @@ class Agent:
         undone: list = []
         touch_lost: list = []
         held: list = []
+        spans: dict = {}                   # R4 record: [gap, span] where R_goal is their ratio
         for slot in self.slots:
             cap.head()
             g = self._discrepancy(slot, state)
@@ -11379,6 +11414,8 @@ class Agent:
                     undone.append((slot, _was[-1], rg))
                 self._res.setdefault(slot, []).append(rg)
                 counts[slot] = cnt
+                if "span" in why:
+                    spans[slot] = [why["gap"], why["span"]]
             if g is not NOT_RESOLVED:      # an OBJ term is bound and readable here
                 reach[slot] = self.can(slot, state)
         # PUBLISHED EVERY STEP, BECAUSE P1 SHIPS BEFORE ITS CONSUMER. `Until` is what GATES on
@@ -11494,7 +11531,7 @@ class Agent:
                 too_short=sorted(k for k, ser in self._res.items() if len(ser) < w),
                 # the numerator and the denominator, because the RATIO cannot separate
                 # never-recomputed from correctly-static from live-and-insensitive
-                counts=counts, **_gq3)
+                counts=counts, **_gq3, **({"span": spans} if _R4_RECORD else {}))
 
     def _goal_choice(self, why: dict | None = None, book: bool = False) -> str | None:
         """M2 ITEM 3, THE SELECTOR. §13.4, quoted whole because the criterion is its wording:
@@ -13096,6 +13133,9 @@ class Agent:
         """
         self._aimed = r.coord
         self._last_real = r                 # 5b: the realisation the taken press came from
+        if _R4_RECORD:                      # withheld is reset after choose: read it here
+            self._r4_withheld = sorted(([a, None if c is None else list(c)]
+                                        for a, c in self._withheld.pairs), key=str)
         self._intent_now = want
         # The alphabet census was filled at `_realise_step` and `_mint_routine` and NOT here,
         # so it read 0 on 24 cycles where every exit named an intent. LOWER BOUND: an intent
@@ -13104,6 +13144,15 @@ class Agent:
             self._intent_kinds.add(want.kind)
             self._note_decision(want)
         return r.action
+
+    def _r4_repeat(self) -> dict:
+        """The R4 record's REPEAT fields (F5): the actions on offer, those withheld, and the
+        realisation the press came from with the table evidence it read (None where no exit
+        went through _took this cycle)."""
+        r = self._last_real
+        return {"offered": list(self.actions),
+                "withheld": None if r is None else getattr(self, "_r4_withheld", None),
+                "realised": None if r is None else {"why": r.why, **dict(r.evidence)}}
 
     def _note_decision(self, want: Any) -> None:
         """**A CONFLICT THE AGENT WAS IN -- NOT YET A DECISION IT MADE.**
@@ -16255,7 +16304,8 @@ class Agent:
                             # instrument placed where it can only ever confirm.** Here it is on a
                             # row that exists every cycle regardless of which branch ran.
                             any_live=self.drive.live,
-                            admissions=self.gamma.admissions())
+                            admissions=self.gamma.admissions(),
+                            **(self._r4_repeat() if _R4_RECORD else {}))
         return True
 
     def run(self, cycles: int) -> Report:

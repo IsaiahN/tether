@@ -360,7 +360,8 @@ def off_identity() -> None:
         base = child("plain", d)
     os.environ["TETHER_FRAME_BREAK"] = "0"
     try:
-        cur = child_env("plain", {"TETHER_FRAME_BREAK": "0"})
+        # the R4 record arm OFF too: its rows postdate the base tree (the reviewer 18:43)
+        cur = child_env("plain", {"TETHER_FRAME_BREAK": "0", "TETHER_R4_RECORD": "0"})
     finally:
         os.environ.pop("TETHER_FRAME_BREAK", None)
 

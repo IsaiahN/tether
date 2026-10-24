@@ -32,6 +32,7 @@ POSITIONS = (
     ("detail", "shadow", "recorded_before"),
     ("detail", "fed", "*", 0),                    # resolution: [[seq, role], ...]
     ("detail", "gamma_read", "fed", "*", "seq"),  # may be None
+    ("detail", "ref"),                            # choice_tally (ledger.py:294), its only writer
 )
 # Fields whose value is a COUNT of rows: (event, path, how the counted span starts).
 # completion_sweep.segment_rows = len(led) - start at record time, so its span is

@@ -12,6 +12,8 @@ position moved by one:
      2026-10-20 12:23).
   i. a field in TIMINGS (goal_hypotheses' wall_s) is masked; j. MUST-FAIL: a non-timing field
      beside it still differs (the reviewer 2026-10-21 23:16: one list, every comparer imports it).
+  k. choice_tally's ref is a position (the reviewer 2026-10-23 19:10): shifted, it is identical;
+     MUST-FAIL: a ref left unshifted is a difference.
     python tests/test_identity_mod_rows.py
 """
 from __future__ import annotations
@@ -110,3 +112,11 @@ if __name__ == "__main__":
     other[0]["detail"]["group_n"] = 3
     assert compare(hyp, other, set()), "j: a non-timing field beside a timing passed"
     print("j. MUST-FAIL: a non-timing field (group_n) beside the masked wall_s is a difference: ok")
+    tb = [_row(0, "choice", site="objective_domain"), _row(1, "choice_tally", ref=0)]
+    tn = [_row(0, "audit", credited=1), _row(1, "choice", site="objective_domain"),
+          _row(2, "choice_tally", ref=1)]
+    bad = compare(tb, tn, {"audit"})
+    assert bad == [], f"k: a shifted ref failed: {bad}"
+    tn[2]["detail"]["ref"] = 0
+    assert compare(tb, tn, {"audit"}), "k: an unshifted ref passed"
+    print("k. choice_tally's ref is mapped as a position, and an unshifted ref fails: ok")

@@ -293,6 +293,9 @@ class Realisation:
     # 5b: the library term whose prediction supplied the press, when one did. No path sets it
     # today (the press comes from the observed table), so every realisation says None.
     term: str | None = None
+    # R4 record (the reviewer 2026-10-23 18:28 F5, 18:37): the table evidence the pick read --
+    # (name, value) pairs, so the frozen class stays hashable. Recorded, read by nothing.
+    evidence: tuple = ()
 
 
 def fingerprint(env: Any, state: dict) -> tuple[str, str]:
@@ -684,10 +687,12 @@ class Interface:
                     continue
                 mean = tot / n
                 if mean * want_sign > score:
-                    best, score, how = a, mean * want_sign, where
+                    best, score, how, best_n = a, mean * want_sign, where, n
             if best is None:
                 return None
-            return Realisation(best, why=f"observed to move {intent.subject} that way {how}")
+            return Realisation(best, why=f"observed to move {intent.subject} that way {how}",
+                               evidence=(("tier", "delta"), ("score", round(score, 4)),
+                                         ("n", best_n), ("where", how)))
         if intent.kind == TOUCH and intent.object:
             # **BRING ME INTO CONTACT WITH `object`. The agent does not say how, and that
             # indifference IS the seam -- the plan's 19.** Two routes and an abstention; the
@@ -725,8 +730,11 @@ class Interface:
                     got = min(abs(mean), abs(step))
                     if got > gain:
                         best, gain, why = a, got, f"{k} toward {intent.object} by {mean:+.2f}"
+                        best_n, best_k = n, k
             if best is not None:
-                return Realisation(best, why=f"observed to move {why}")
+                return Realisation(best, why=f"observed to move {why}",
+                                   evidence=(("tier", "touch"), ("score", round(gain, 4)),
+                                             ("n", best_n), ("slot", best_k)))
             # NEITHER ROUTE. **An unreachable contact is a reading the agent is entitled to**,
             # and substituting a draw here would be the interface deciding to explore on the
             # agent's behalf while wearing the word contact.
@@ -1268,7 +1276,9 @@ class Interface:
                 if len(vals) == 1:
                     (after,) = vals
                     if (after > now) - (after < now) == want_sign:
-                        return (Realisation(a, why=f"observed to move {slot} that way {how}"),
+                        return (Realisation(a, why=f"observed to move {slot} that way {how}",
+                                            evidence=(("tier", "cell"), ("from", now),
+                                                      ("to", after), ("where", how))),
                                 against)
                     if a not in decided:
                         against.add(a)
@@ -1439,6 +1449,7 @@ class Interface:
             cap.head()
             self.present[_k] = self.present.get(_k, 0) + 1
         changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
+        self.last_changed = changed      # R4 record: what this press was credited with (F1)
         signature = tuple(sorted(_eff(k) for k in changed
                                  if k.rsplit(".", 1)[-1] not in RELATIONAL))
         e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0, "delta": {}})
