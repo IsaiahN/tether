@@ -12,8 +12,9 @@ the reviewer 09:30 RC1-RC5, 09:37 alpha). Run with TETHER_ROUTE_REFUSE ON. They 
   RC1  a SPECIFIC target, a press that passes it: graded "overshot", never "farther"; not refused
   RC2  then the next goal exit issues the CORRECTION: the same target, the reversed sign, its
        action from the record, a route_corrected row; with no reverse action recorded, a
-       route_uncorrected row ("no correction known"), nothing pressed, the route kept -- ONCE:
-       the pending correction is cleared, so the next exit is no abstention for it (09:46)
+       route_uncorrected row ("no correction known"), nothing pressed -- ONCE per overshoot (the
+       correction is cleared), and each counts one non-closing outcome on the overshooting
+       route, so the second refuses it "no_shrink" (the reviewer 09:46, no deadlock)
   RC3  a GENERAL intent ("+"), a right-way move of 3: "reached" (the pre-registered overshoot
        must-fail of 496dadc, under alpha)
   RC4  a GENERAL intent, the wrong way: "farther", refused at once -- a PRESERVATION check: it
@@ -66,7 +67,8 @@ else:
     ag._goal_target = lambda s, bf: bf[s] + 1          # today's nominal target: before + 1
 ag._route_refused, ag._route_run, ag._test = {}, {}, None
 k0 = len(ag.led.rows())
-MOVES = {"RC1": [(43, 85)], "RC2a": [(43, 85), (85, 40)], "RC2b": [(43, 85), (85, 85), (85, 85)],
+MOVES = {"RC1": [(43, 85)], "RC2a": [(43, 85), (85, 40)],
+         "RC2b": [(43, 85), (85, 85), (43, 85), (85, 85)],
          "RC3": [(43, 46)], "RC4": [(43, 38)], "RC5": [(43, 50), (50, 38), (38, 50), (50, 38)]}
 presses = []
 for value, after in MOVES[case]:
@@ -134,17 +136,20 @@ def check(case: str, r: dict) -> list[str]:
             if not str(p[1]["intent"]).startswith("BECOME") or " - " not in f" {p[1]['intent']} ":
                 bad.append(f"the correction intent is {p[1]['intent']!r}, not the reversed sign")
         else:
-            if not unk or unk[0].get("why") != "no correction known":
-                bad.append(f"no route_uncorrected 'no correction known' row: {unk}")
-            if p[1]["action"] is not None:
-                bad.append(f"something was pressed with no correction known: {p[1]['action']!r}")
-            if why:
-                bad.append(f"the route was refused: {why}")
-            # the reviewer 09:46 (no deadlock): it abstains ONCE, then the pending correction is
-            # cleared -- the exit after it is no abstention for that same correction
-            if "route_uncorrected" in p[2]["events"] or len(unk) != 1:
-                bad.append(f"the pending correction was not cleared: {len(unk)} route_uncorrected "
-                           f"rows, press 3 events {p[2]['events']}")
+            assert passed(44, p[2]["before"], p[2]["after"]), "occasion: press 3 did not pass 44"
+            if [x.get("why") for x in unk] != ["no correction known"] * 2:
+                bad.append(f"not one route_uncorrected 'no correction known' per overshoot: {unk}")
+            if p[1]["action"] is not None or p[3]["action"] is not None:
+                bad.append(f"something was pressed with no correction known: "
+                           f"{p[1]['action']!r}, {p[3]['action']!r}")
+            # the reviewer 09:46 (no deadlock): each abstains ONCE -- the pending correction is
+            # cleared, so the overshoot press between them is no abstention for it -- and each
+            # counts one non-closing outcome on the overshooting route: MIN_REPEAT of them refuse
+            # it the existing way, "no_shrink"
+            if "route_uncorrected" in p[2]["events"]:
+                bad.append(f"the pending correction was not cleared: press 3 {p[2]['events']}")
+            if why != ["no_shrink"]:
+                bad.append(f"the uncorrected exits were not counted non-closing: refusals {why}")
     elif case == "RC3":
         assert p[0]["after"] - p[0]["before"] == 3 and p[0]["intent"], "occasion: no +3 press"
         if p[0]["outcome"] != "reached":
