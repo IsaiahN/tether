@@ -47,7 +47,6 @@ from __future__ import annotations
 import collections
 import json
 import random
-import shutil
 import sys
 import tempfile
 import time
@@ -62,6 +61,7 @@ import gamma
 import ledger
 import reverse_engineer
 import rlvr
+import store as door  # the one door; `store` is a parameter name here
 import summary
 import tether
 from arc_world import ArcWorld
@@ -255,7 +255,7 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
         ag.step()
         if snap_every and store and (i + 1) % snap_every == 0:
             path = f"{store}.snap{i + 1:06d}.json"
-            g.save(path)
+            door.library_save(g, path)
             row = {"cycle": i + 1, "path": path, "library": len(g.library),
                    "compositions": summary.branching(g, set())["final"],
                    "settled": len(g.settled_terms), **ag.binding_stats()}
@@ -272,7 +272,7 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
     ground = {}
     if on:
         path = store or str(Path(tempfile.gettempdir()) / "pooled_lib.json")
-        g.save(path)
+        door.library_save(g, path)
         ground = probe(on, path)
     mints = collections.Counter(h.split("_", 1)[0] for h in g.handles.values())
     return {"games": len(games), "spacing": spacing, "offset": offset,
@@ -319,7 +319,7 @@ def watch(game: str = "dc22", cycles: int | None = None, offset: int = 0, spacin
     g = gamma.Gamma(env.atoms(), game=game)
     base = len(g.library)
     if library and Path(library).exists():
-        g.load(library)
+        door.library_load(g, library)
     carried = len(g.library)
     # WHAT CROSSES IS THE CHAIN, AND `library` DOES NOT COUNT IT. `Term.name` carries
     # chain+operand+guard, so a run reports 401 where 20 compositions survive a save/load.
@@ -329,7 +329,7 @@ def watch(game: str = "dc22", cycles: int | None = None, offset: int = 0, spacin
     for _ in range(cycles if cycles is not None else len(seq)):
         ag.step()
     if library:
-        g.save(library)
+        door.library_save(g, library)
 
     return {"game": game, "offset": offset, "spacing": spacing,
             "chunks": n_chunks, "blocks": -(-n_chunks // spacing),
@@ -351,7 +351,7 @@ def _atoms_only(game: str, cycles: int) -> dict:
     k = (game, cycles)
     if k not in _CONTROL:
         p = str(Path(tempfile.gettempdir()) / f"_atoms_only_{game}.json")
-        Path(p).write_text("[]", encoding="utf-8")
+        door.write_text(p, "[]")
         _CONTROL[k] = probe(game, p, cycles, control=False)
     return _CONTROL[k]
 
@@ -363,7 +363,7 @@ def probe(game: str, library: str, cycles: int = 25, control: bool = True) -> di
     experience back into training and the next rung would inherit it.
     """
     tmp = f"{library}.probe"
-    shutil.copyfile(library, tmp)
+    door.copy(library, tmp)
     seen: list = []
 
     def tap(was, _action, now):
@@ -395,7 +395,7 @@ def probe(game: str, library: str, cycles: int = 25, control: bool = True) -> di
         h2, t2, _ = rlvr._rate(objs, json.loads(kp2.read_text(encoding="utf-8")))
         nulls[g2] = h2 / t2 if t2 else 0.0
     ceiling = max([rlvr.POOLED_NULL_CEILING, *nulls.values()])
-    Path(tmp).unlink(missing_ok=True)
+    door.remove(tmp)
 
     # DISTINCT EFFECTS, because hit/tot is quantised in lumps and hides what moved. dc22's 150
     # non-trivial chunks carry 120 DISTINCT signatures and the agent matches exactly ONE -- the

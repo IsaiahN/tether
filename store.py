@@ -45,6 +45,22 @@ def read_bytes(path: str | Path) -> bytes:
     return Path(path).read_bytes()
 
 
+def write_text(path: str | Path, text: str) -> None:
+    """A knowledge file written whole (feeder's atoms-only control library)."""
+    Path(path).write_text(text, encoding="utf-8")
+
+
+def copy(src: str | Path, dst: str | Path) -> None:
+    """A library= save copied (feeder's probe works on a copy, never the training path)."""
+    import shutil
+    shutil.copyfile(src, dst)
+
+
+def remove(path: str | Path) -> None:
+    """A copy made by copy() removed (absent is fine)."""
+    Path(path).unlink(missing_ok=True)
+
+
 # ---------------------------------------------------------------- the learned store
 def lineage_load(d: str | Path, ag: Any) -> dict:
     return _lineage().load(d, ag)
