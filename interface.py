@@ -258,9 +258,11 @@ class Intent:
     value: int | None = None
     # R-C (Isaiah 2026-10-24 09:29; the reviewer 09:37, alpha): GENERAL unless the agent STATED a
     # magnitude -- "unless the agent is specific like '5 pixels' it will be general". `to` is a
-    # specific ordered intent's stated target; set only under TETHER_ROUTE_REFUSE.
-    aim: str = "general"
-    to: int | None = None
+    # specific ordered intent's stated target; set only under TETHER_ROUTE_REFUSE. Out of repr:
+    # routine rows render an Intent by repr (routine_cut), and OFF must stay byte-identical;
+    # says() carries `to` when it is set.
+    aim: str = field(default="general", repr=False)
+    to: int | None = field(default=None, repr=False)
 
     def says(self) -> str:
         core = " ".join(x for x in (self.kind, self.subject, self.object) if x)
