@@ -140,6 +140,21 @@ for _ in range(MR + 1):
 out["seam"] = stale
 out["seam_refused"] = len(rows("route_refused")) - k1
 out["seam_runs"] = {repr(k): v for k, v in ag._route_run.items()}
+# CUT: a test set in one cycle and graded in a later one (a cut ended its step before SETTLE) is no
+# reading, even when that later cycle's own press was audited (the reviewer 02:21)
+fresh()
+carried, k2, c0 = [], len(rows("route_refused")), ag.cycle
+for _ in range(MR + 1):
+    act = ag._goal_split({sl: 10})
+    ag.cycle += 1                               # the step was cut; SETTLE runs a cycle later
+    ag.trace.append((act, {sl: 10}, {sl: 10}))
+    ag._audit_at = ag.cycle                     # the later cycle's press WAS audited
+    ag._test_row()
+    carried.append(act)
+ag.cycle = c0
+out["cut"] = carried
+out["cut_refused"] = len(rows("route_refused")) - k2
+out["cut_runs"] = {repr(k): v for k, v in ag._route_run.items()}
 out["n_actions"] = n_act
 print(json.dumps(out, default=str))
 '''
@@ -253,8 +268,12 @@ def cases() -> None:
                                                             on["seam_refused"], on["seam_runs"])
     assert len(set(on["seam"])) == 1, ("SEAM ON: the route was withheld on stale outcomes",
                                        on["seam"])
-    print(f"  cases: R-A own, RANK, 2, 7, 4, 3, SEAM -- ON and OFF as required (MIN_REPEAT {mr}, "
-          f"{n} actions)")
+    # CUT: a test carried into a later cycle is no reading either
+    assert len(on["cut"]) == mr + 1 and None not in on["cut"], ("CUT: occasions", on["cut"])
+    assert on["cut_refused"] == 0 and not on["cut_runs"], ("CUT ON: a carried outcome counted",
+                                                          on["cut_refused"], on["cut_runs"])
+    print(f"  cases: R-A own, RANK, 2, 7, 4, 3, SEAM, CUT -- ON and OFF as required "
+          f"(MIN_REPEAT {mr}, {n} actions)")
 
 
 def longest_dead_run(log: list) -> int:
