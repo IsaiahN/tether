@@ -47,6 +47,7 @@ import gate
 import habitat
 import ledger
 import lineage
+import store as door  # the one door; `store` is play()'s parameter name
 import summary
 import tether
 from arc_world import ArcWorld
@@ -235,12 +236,12 @@ def wire_agent(env, game: str, cfg: Any, led, library: str | None, lineage_dir: 
         ag.cycle, ag.deadline = clock
     # under the carry a library= row whose content was its operand is HELD unbound, as the
     # lineage holds it, never destroyed onto its atom (F420); OFF, as it was
-    loaded = (ag.gamma.load(library, hold_unbound=lineage._CARRY)
+    loaded = (door.library_load(ag.gamma, library, hold_unbound=lineage._CARRY)
               if library and Path(library).exists() else None)
     # (b'-g) ONE PATH: under the carry every instance starts from the lineage's chain, folded
     # (lineage.py); OFF, or with no folder, nothing here runs.
     if lineage._CARRY and lineage_dir:
-        rep = lineage.load(lineage_dir, ag)
+        rep = door.lineage_load(lineage_dir, ag)
         # a ROOT with no library is a cold start, said so in the key play's Q25 set reads (279)
         loaded = {"library": loaded, "lineage": rep,
                   **({} if rep["parent"] or loaded else {"cold": "lineage root"})}
@@ -318,10 +319,10 @@ def end_path(ag: Any, env: Any, game: str, library: str | None, save_only_dir: s
     saved = None
     if library:
         saved = (part(checked_save, ag.gamma, library, env, game) if fault
-                 else ag.gamma.save(library))
+                 else door.library_save(ag.gamma, library))
     saved_only = part(save_only, ag, save_only_dir, game, led_path)
     # (b'-g) the boundary's generation, beside the stop-loss (lineage.py)
-    lineage_gen = (part(lineage.write, lineage_dir, ag, game)
+    lineage_gen = (part(door.lineage_write, lineage_dir, ag, game)
                    if lineage._CARRY and lineage_dir else None)
     return rows, saved, saved_only, lineage_gen
 
@@ -386,9 +387,9 @@ def checked_save(g: Any, library: str, env: Any, game: str) -> Any:
     """Item 4: the library saved to a temporary file and loaded back into a fresh Gamma before it
     replaces the library; a save that does not load back leaves the previous one in place."""
     tmp = library + ".tmp"
-    out = g.save(tmp)
-    gamma.Gamma(env.atoms(), game=game).load(tmp, hold_unbound=lineage._CARRY)
-    os.replace(tmp, library)
+    out = door.library_save(g, tmp)
+    door.library_load(gamma.Gamma(env.atoms(), game=game), tmp, hold_unbound=lineage._CARRY)
+    door.replace(tmp, library)
     return out
 
 
@@ -414,7 +415,7 @@ def save_only(ag: Any, out_dir: str | None, game: str, led_path: str | None) -> 
     if path.exists():
         return {"refused": f"{path.name} exists; a save never overwrites"}
     path.parent.mkdir(parents=True, exist_ok=True)
-    return ag.gamma.save(str(path), header={
+    return door.library_save(ag.gamma, str(path), header={
         "saved_by": "arc_holdout.save_only", "lossy": LOSSY, "world": world, "game": game,
         "head": hdr.get("head"), "tree": hdr.get("tree"), "dirty": hdr.get("dirty"),
         "files_sha": hdr.get("files_sha"), "arms_sha": arms, "ledger": str(led_path)})
@@ -548,8 +549,8 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
                 ag.retarget(env, lv, how=ledger.ADVANCE)
             if lineage._BOUNDARY and (term_edge or lvl_edge):
                 t_b = time.perf_counter()
-                bounds.append(lineage.boundary(lineage_dir, ag, game,
-                                               end if term_edge else "level"))
+                bounds.append(door.lineage_boundary(lineage_dir, ag, game,
+                                                    end if term_edge else "level"))
                 ag._note_boundary_wall(time.perf_counter() - t_b)
             lv_seen = lv
         was_terminal = end
@@ -592,7 +593,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
         digest = ag.store_key(1, lvl).split("_")[0]
         episode = 1 + len(list(d.glob(f"{digest}_*_{lvl}.json")))
         key = ag.store_key(episode, lvl)
-        g.save(str(d / f"{key}.json"))
+        door.library_save(g, str(d / f"{key}.json"))
         filed = key
 
     # §16.5. SEEDED FROM THE RESIDUAL, which is what Figure 11 says: *everything in contact
