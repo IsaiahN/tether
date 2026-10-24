@@ -8343,7 +8343,7 @@ class Agent:
                               "asks for another route (Fig 6 :42-46, Fig 13 :121)")
 
     @staticmethod
-    def _route_of(want: Any, r: Any, ctx: tuple) -> tuple:
+    def _route_key(want: Any, r: Any, ctx: tuple) -> tuple:
         """R-B's route: (the intent in the agent's words, the realised action, its coordinate,
         the contact context at press time)."""
         return (want.says(), r.action, tuple(r.coord) if r.coord else None, ctx)
@@ -13440,7 +13440,7 @@ class Agent:
               if _offer or not _ROUTE_REFUSE else None)
         if _ROUTE_REFUSE and self._route_refused and (
                 not _offer or (_r is not None
-                               and self._route_of(_want, _r, _ctx) in self._route_refused)):
+                               and self._route_key(_want, _r, _ctx) in self._route_refused)):
             # R-B: every route this intent has here is refused -- the interface had nothing else
             # to offer. No route here at this budget (Fig 9 :44), never "impossible"; the
             # refusals stay, and a held hypothesis on this slot ends by="routes" (R-D's first half)
@@ -13468,7 +13468,7 @@ class Agent:
                 self._test = {"slot": chosen, "term": _tt.get("name"), "target": _tgt,
                               "before": before.get(chosen), "intent": _want.says()}
                 if _ROUTE_REFUSE:          # R-B: the route this outcome will be read against
-                    self._test["route"] = self._route_of(_want, _r, _ctx)
+                    self._test["route"] = self._route_key(_want, _r, _ctx)
                     self._test["at"] = self.cycle
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))

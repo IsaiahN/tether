@@ -329,11 +329,16 @@ def off_identity() -> None:
             tf.extractall(d, filter="data")
         base = child(PLAIN, d, None, 30)["rows"]
     cur = child(PLAIN, root, None, 30)["rows"]
-    for rows in (base, cur):        # the arm lists differ by the switch itself
+    # the arm lists differ by the switch itself, and the arms row's TREE PROVENANCE differs between
+    # any two trees by construction (the slot's first run, 2026-10-24 06:05): both dropped, named
+    tree_ids = ("on", "off", "blob_n_files", "dirty", "files_blob", "files_sha", "git_unknown",
+                "head", "tree")
+    for rows in (base, cur):
         for r in rows:
             if r["slot"] == "@run" and r["event"] == "arms":
-                r["detail"].pop("on", None)
-                r["detail"].pop("off", None)
+                for k in tree_ids:
+                    r["detail"].pop(k, None)
+    print(f"  arms row: dropped {list(tree_ids)} from both sides (the switch and tree identity)")
     bad = compare(base, cur, set())
     print(f"  OFF identity against {rev[:12]}: {len(base)} base rows, {len(cur)} current, "
           f"{len(bad)} difference(s)" + "".join(f"\n    {x}" for x in bad))
