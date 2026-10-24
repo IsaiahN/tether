@@ -145,12 +145,14 @@ INDEXES = {
                       "WHERE section = 'kind_dk'"),
     **{f"kind_{f}": (f"CREATE INDEX kind_{f} ON perception(key, body) "   # covering
                      f"WHERE section = 'kind' AND {w}") for f, w in KIND_FILTERS.items()}}
+# INDEXED BY (the reviewer 17:48): a forced index fails loudly ("no such index") where a planner's
+# choice would slow silently when the statistics change (empty partial indexes read as unknown).
 SEARCHES = {        # name -> (query, the index that must answer it)
-    "S-1": (f"SELECT key, body FROM perception WHERE section = 'kind_dk' AND {DK} = ? "
-            "AND json_extract(body, '$.n') != 0 ORDER BY key", "perception_dk"),
+    "S-1": ("SELECT key, body FROM perception INDEXED BY perception_dk WHERE section = 'kind_dk' "
+            f"AND {DK} = ? AND json_extract(body, '$.n') != 0 ORDER BY key", "perception_dk"),
     "S-2": ("SELECT body FROM learned WHERE section = 'held' AND key = ?", "PRIMARY KEY"),
-    **{f"C-{f}": (f"SELECT key, body FROM perception WHERE section = 'kind' AND {w} ORDER BY key",
-                  f"kind_{f}") for f, w in KIND_FILTERS.items()}}
+    **{f"C-{f}": (f"SELECT key, body FROM perception INDEXED BY kind_{f} WHERE section = 'kind' "
+                  f"AND {w} ORDER BY key", f"kind_{f}") for f, w in KIND_FILTERS.items()}}
 
 
 def db_search(d: str | Path, name: str, *args: Any) -> list:

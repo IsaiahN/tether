@@ -350,7 +350,13 @@ def idx(out: Path, dbdir: Path | None = None) -> int:
     args = {"S-1": (dk,), "S-2": (hk,)}
     bad = []
     for name, (q, ix) in store.SEARCHES.items():
-        plan = " / ".join(r[3] for r in con.execute("EXPLAIN QUERY PLAN " + q, args.get(name, ())))
+        try:    # a forced index that is gone fails at prepare: a named red, not a crash
+            plan = " / ".join(r[3] for r in con.execute("EXPLAIN QUERY PLAN " + q,
+                                                        args.get(name, ())))
+        except sqlite3.OperationalError as e:
+            bad.append(name)
+            print(f"IDX {name}: RED {e}")
+            continue
         used = ("USING PRIMARY KEY (section=? AND key=?)" in plan if ix == "PRIMARY KEY"
                 else f"INDEX {ix} " in plan + " ")
         expr = (True if ix == "PRIMARY KEY" else
