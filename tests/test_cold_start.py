@@ -3,7 +3,8 @@ lineage and fills it by itself; the reviewer 19:47 (i), 22:59). The fake ARC gam
 (test_entry.FakeWrapper), in temp folders; the agent's own lineage is never read.
 
   CS1  a lineage path that does not exist (three levels deep) is created at load, the game
-       plays, and a generation is written.
+       plays with 0 agent_fault and 0 fault_recovered rows (as LR3; the reviewer 2026-10-24
+       16:05), and a generation is written.
   MF1  MUST-FAIL: with lineage._ensure_dir made a no-op (the old code), the same play raises
        sqlite3.OperationalError at the store's open.
   CS2  an EXISTING lineage loads identically with and without the fix: two fresh processes,
@@ -130,11 +131,21 @@ def main() -> None:
     try:
         d = tmp / "a" / "b" / "lineage"
         assert not d.exists()
-        r = arc_holdout.play("fake", 3, arc=Arc(), lineage_dir=str(d))["persistence"]
+        led1 = tmp / "cs1.jsonl"
+        r = arc_holdout.play("fake", 3, arc=Arc(), lineage_dir=str(d),
+                             led_path=str(led1))["persistence"]
+        import gate
+        rows1 = [json.loads(x) for x in led1.read_text(encoding="utf-8").splitlines()]
+        f1 = [x for x in rows1 if x.get("slot") == "@run" and x.get("event") == "agent_fault"]
+        n1 = sum(1 for x in rows1 if x.get("event") == "fault_recovered")
+        assert not f1 and not n1 and gate._faults(rows1) is None, (
+            f"CS1: agent_fault rows: {len(f1)}, fault_recovered rows: {n1} -- the game played "
+            f"through a fault: {[x['detail'].get('message') for x in f1]}")
         gens = sorted(p.name for p in d.glob("gen_*.json"))
         assert d.is_dir() and r["lineage"]["written"] and gens, ("CS1", r["lineage"], gens)
-        print(f"  CS1: {d.relative_to(tmp)} did not exist; created at load; played; wrote "
-              f"{r['lineage']['hash']} ({len(gens)} generation file)")
+        print(f"  CS1: {d.relative_to(tmp)} did not exist; created at load; played ({len(rows1)} "
+              f"rows, 0 agent_fault, 0 recovered); wrote {r['lineage']['hash']} ({len(gens)} "
+              f"generation file)")
         real = lineage._ensure_dir
         lineage._ensure_dir = lambda _d: None
         try:
