@@ -5,16 +5,26 @@ compared by conform/identity_mod_rows.compare. STEPS 3 is the quick set (about 3
 is the landing's full identity (about 4787 rows).
 The arms row's code provenance moves by construction when code changes, so it is dropped by name,
 and each dropped field has a witness that can fail:
-  (ii) per file of instruments.Attribution.LIBRARY_FILES, the blob id is equal in both trees
-       (absent in both is equal, absent in one is different), library/library_runtime.py excepted
-       (code, covered by its own diff). Must-fail: one byte of library/domains.json -> RED naming
-       that file, no child run.
+  (ii) every non-code file under library/, in both trees, has the same git blob id (absent in both
+       is equal, absent in one is different); library.db (a build output, ignored) is not a tree
+       file. Must-fail: one byte of library/grammar.json -> RED naming that file, no child run.
   (iii) the project modules imported inside the child differ by EXACTLY the set the step states.
        Must-fail: `import cue_bridge` added to store.py -> RED, added ['cue_bridge.py', 'store.py'].
 The switch lists are asserted equal, never dropped.
-    python tests/test_identity_short.py BASE_REV STEPS NEW_MODULES   # comma-separated, or ""
+--moved FILE (store step 3's landing only; WATSON ruling 9 A6): FILE names the moved and added
+library files. (ii) skips exactly those, by name, printed with the count (a moved file's .dead-<UTC>
+tombstone with it); a moved file must be on the base and gone from this tree (index.json, REPLACED,
+is on both), an added one absent on the base. In the same process the run then holds the step's
+two gates, and is RED unless both are green:
+  I2 (A4) every moved file rebuilt from this tree's layout (library_runtime.old_files) equals the
+     base's file read by `git show BASE_REV:library/<f>`, by VALUE and by git BLOB; a bytes-only
+     difference is allowed only for a file named in BYTES_ONLY, with its reason printed.
+  I4 each GIVEN loader's in-memory result (inherited.load, compile_term.readings, the
+     library_runtime.Library's tables) equals the base tree's, including every dict's KEY ORDER.
+    python tests/test_identity_short.py BASE_REV STEPS NEW_MODULES [--moved FILE]
 """
 import io
+import json
 import os
 import subprocess
 import sys
@@ -30,7 +40,9 @@ from identity_mod_rows import compare  # noqa: E402
 import instruments  # noqa: E402
 import test_route_refuse as t  # noqa: E402
 
-CODE_IN_LIBRARY = {"library/library_runtime.py"}    # code, covered by its own diff
+NOT_TREE = {"library/library.db", "library/library.db.part"}   # build outputs, .gitignore'd
+# a file whose rebuild may differ from the base in bytes only, with the reason (A4)
+BYTES_ONLY = {"orientation_draft.json": "a hand-written draft, not in the build's indent-1 form"}
 DROP = ("blob_n_files", "dirty", "files_blob", "files_sha", "git_unknown", "head",  # tree ids
         "tree",
         "n_files",          # imported project modules: a new module moves it; witness (iii)
@@ -41,6 +53,21 @@ MODS = ('\nimport os as _o, json as _j\n_r = _o.path.normcase(_o.path.abspath(tr
         'print(_j.dumps(sorted(_o.path.relpath(f, tree) for m in list(sys.modules.values()) '
         'if isinstance(f := getattr(m, "__file__", None), str) and f.endswith(".py") '
         'and _o.path.normcase(_o.path.abspath(f)).startswith(_r) and ".venv" not in f)))\n')
+LOADERS = r'''
+import json, os, sys
+sys.dont_write_bytecode = True
+tree, out = sys.argv[1], sys.argv[2]
+sys.path[:0] = [tree, os.path.join(tree, "library")]
+os.chdir(tree)
+import compile_term, inherited, library_runtime
+lib = library_runtime.Library(os.path.join(tree, "library")).load()
+got = {"inherited": inherited.load(), "readings": compile_term.readings(),
+       "library": {a: getattr(lib, a) for a in ("seed", "readings", "by_reading", "by_affects",
+                                                "ingredient_of", "runtime", "learnings")}}
+with open(out, "w", encoding="utf-8") as fh:
+    json.dump(got, fh, ensure_ascii=False, default=list)
+print("loaded")
+'''
 
 
 def _blob(path: str) -> str | None:
@@ -50,12 +77,27 @@ def _blob(path: str) -> str | None:
         return instruments.Attribution.blob_id(fh.read())
 
 
-def library(base: str, cur: str) -> None:
+def _data_files(tree: str) -> set:
+    lib = os.path.join(tree, "library")
+    if not os.path.isdir(lib):
+        return set()
+    return {f"library/{f}" for f in os.listdir(lib)
+            if os.path.isfile(os.path.join(lib, f)) and not f.endswith(".py")} - NOT_TREE
+
+
+def library(base: str, cur: str, moved: dict | None = None) -> None:
+    moved = moved or {"moved": [], "added": []}
+    skip = {f"library/{f}" for f in moved["moved"] + moved["added"]}
+    tomb = {f for f in _data_files(cur)
+            if any(f.startswith(f"library/{m}.dead-") for m in moved["moved"])}
+    if skip:
+        print(f"(ii) skips {len(skip)} moved/added file(s) by name: {sorted(skip)}"
+              + (f"; and {len(tomb)} tombstone(s): {sorted(tomb)}" if tomb else ""))
     bad = []
-    for f in instruments.Attribution.LIBRARY_FILES:
+    for f in sorted((_data_files(base) | _data_files(cur)) - skip - tomb):
         ids = [_blob(os.path.join(tr, f)) for tr in (base, cur)]
         print(f"library {f}: {ids[0]} / {ids[1]}")
-        if f not in CODE_IN_LIBRARY and ids[0] != ids[1]:
+        if ids[0] != ids[1]:
             bad.append(f)
     assert not bad, ("a library data file differs", bad)
 
@@ -86,15 +128,109 @@ def identity(base: str, cur: str, steps: int) -> None:
     assert len(rows[0]) > 50 and not bad, ("OFF identity", len(bad))
 
 
+def read_moved(path: str) -> dict:
+    out: dict = {"moved": [], "added": []}
+    with open(path, encoding="utf-8") as fh:
+        for ln in fh:
+            ln = ln.split("#", 1)[0].strip()
+            if ln:
+                kind, name = ln.split()
+                out[kind].append(name)
+    return out
+
+
+def moved_present(base: str, cur: str, moved: dict) -> None:
+    lib = [os.path.join(tr, "library") for tr in (base, cur)]
+    for m in moved["moved"]:
+        on_base, on_cur = (os.path.exists(os.path.join(x, m)) for x in lib)
+        replaced = m == "index.json"
+        assert on_base and (on_cur if replaced else not on_cur), (
+            "a moved file is not on the base and gone from this tree", m, on_base, on_cur)
+    for a in moved["added"]:
+        assert not os.path.exists(os.path.join(lib[0], a)), ("an added file is on the base", a)
+        assert os.path.exists(os.path.join(lib[1], a)), ("an added file is absent here", a)
+    print(f"--moved: {len(moved['moved'])} moved (index.json replaced in place), "
+          f"{len(moved['added'])} added")
+
+
+def i2(rev: str, moved: dict) -> list:
+    """Every moved file rebuilt from this tree's layout against `git show REV:library/<f>`."""
+    sys.path.insert(0, os.path.join(ROOT, "library"))
+    import library_runtime as lr
+    new = lr.old_files(os.path.join(ROOT, "library"), moved["moved"])
+    bad = []
+    for m in moved["moved"]:
+        raw = subprocess.run(["git", "-C", ROOT, "show", f"{rev}:library/{m}"],
+                             capture_output=True, check=True).stdout
+        base_v = raw.decode("utf-8") if m.endswith(".txt") else json.loads(raw)
+        nv = new.get(m)
+        value = nv == base_v
+        nb = b"" if nv is None else (nv if m.endswith(".txt") else lr.dumps(nv)).encode("utf-8")
+        blob = instruments.Attribution.blob_id(nb) == instruments.Attribution.blob_id(raw)
+        why = "" if blob or not value else f"  (bytes only: {BYTES_ONLY.get(m, 'NO REASON')})"
+        print(f"I2 {m}: value {'EQUAL' if value else 'DIFFERS'}, blob "
+              f"{'EQUAL' if blob else 'differs'}{why}")
+        if not value or (not blob and m not in BYTES_ONLY):
+            bad.append(m)
+    return bad
+
+
+def _first_diff(a, b, path="") -> str:
+    if type(a) is not type(b):
+        return f"{path}: type {type(a).__name__} -> {type(b).__name__}"
+    if isinstance(a, dict):
+        if list(a) != list(b):
+            i = next((i for i, (x, y) in enumerate(zip(a, b, strict=False)) if x != y),
+                     min(len(a), len(b)))
+            return f"{path}: key order/set differs at position {i} ({len(a)} vs {len(b)} keys)"
+        for k in a:
+            if a[k] != b[k]:
+                return _first_diff(a[k], b[k], f"{path}.{k}")
+    if isinstance(a, list) and a != b:
+        if len(a) != len(b):
+            return f"{path}: length {len(a)} -> {len(b)}"
+        i = next(i for i, (x, y) in enumerate(zip(a, b, strict=True)) if x != y)
+        return _first_diff(a[i], b[i], f"{path}[{i}]")
+    return f"{path}: {str(a)[:120]} -> {str(b)[:120]}"
+
+
+def i4(base: str, cur: str, scratch: str) -> list:
+    """The GIVEN loaders' results, base tree against this one, compared WITH key order."""
+    got = []
+    for name, tree in (("base", base), ("current", cur)):
+        out = os.path.join(scratch, f"loaders_{name}.json")
+        r = subprocess.run([sys.executable, "-B", "-c", LOADERS, tree, out], capture_output=True,
+                           text=True, cwd=tree, env={**os.environ, "PYTHONHASHSEED": "0"},
+                           check=False)
+        assert r.returncode == 0, r.stderr[-2000:]
+        with open(out, encoding="utf-8") as fh:
+            got.append(json.load(fh))
+    bad = []
+    for part in ("inherited", "readings", "library"):
+        same = got[0][part] == got[1][part] and json.dumps(got[0][part]) == json.dumps(got[1][part])
+        print(f"I4 {part}: {'EQUAL (values and key order)' if same else 'DIFFERS'}"
+              + ("" if same else f" -- first: {_first_diff(got[0][part], got[1][part], part)}"))
+        if not same:
+            bad.append(part)
+    return bad
+
+
 if __name__ == "__main__":
     rev, steps = sys.argv[1], int(sys.argv[2])
     new = set(sys.argv[3].split(",")) if sys.argv[3] else set()
+    moved = read_moved(sys.argv[sys.argv.index("--moved") + 1]) if "--moved" in sys.argv else None
     with tempfile.TemporaryDirectory() as d:
+        base = os.path.join(d, "base")
+        os.makedirs(base)
         tar = subprocess.run(["git", "-C", ROOT, "archive", rev], capture_output=True, check=True)
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
-            tf.extractall(d, filter="data")
+            tf.extractall(base, filter="data")
         print(f"base {rev}, current {ROOT}, STEPS {steps}, expected new modules {sorted(new)}")
-        library(d, ROOT)
-        modules(d, ROOT, new)
-        identity(d, ROOT, steps)
+        if moved:
+            moved_present(base, ROOT, moved)
+            gates = {"I2": i2(rev, moved), "I4": i4(base, ROOT, d)}
+            assert not any(gates.values()), ("step (3)'s gates", gates)
+        library(base, ROOT, moved)
+        modules(base, ROOT, new)
+        identity(base, ROOT, steps)
     print("identity_short: OK")

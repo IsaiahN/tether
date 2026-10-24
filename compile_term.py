@@ -20,7 +20,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, replace
 from functools import cache
-from pathlib import Path
 from typing import Any
 
 import armflag
@@ -163,7 +162,7 @@ class Refusal:
 def readings() -> dict[str, dict]:
     # an absent library is the ablation (tether._LIBRARY_REQUIRED OFF; wire() refuses it ON): no
     # readings, as inherited.load reads no vocabulary; before, the first lookup raised here
-    raw = store.read_json(Path(__file__).parent / "library" / "readings.json")   # the one door
+    raw = store.library_files(("readings.json",)).get("readings.json")   # the one door (step 3)
     return {} if raw is None else raw["readings"]
 
 

@@ -27,6 +27,19 @@ def _lineage():
 
 
 # ---------------------------------------------------------------- the library's files
+def library_files(names) -> dict:
+    """The GIVEN library's old file shapes, by old name (store step 3): served from given.json /
+    frame.json / index.json by library_runtime.old_files, fresh per call. {} when library/ is
+    absent (the ablation: library_runtime itself lives there)."""
+    if not LIBRARY.is_dir():
+        return {}
+    import sys
+    if str(LIBRARY) not in sys.path:
+        sys.path.insert(0, str(LIBRARY))
+    import library_runtime
+    return library_runtime.old_files(LIBRARY, names)
+
+
 def read_json(path: str | Path) -> Any:
     """A knowledge file's parsed JSON, or None when it is absent (the library ablation)."""
     p = Path(path)

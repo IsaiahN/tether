@@ -1,6 +1,6 @@
 # RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
 # git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
-# RELATIONS.md's live successor: library/relations.json + LIBRARY_SPEC section 3.
+# RELATIONS.md's live successor: library/given.json (kind RELATION) + LIBRARY_SPEC section 3.
 """The mutation-observer (Isaiah, 2026-09-15): each object carries the full attribute+relation set;
 it is filled from frame 0 and updated in real time as frames arrive, and every frame COMPOUNDS the
 cue + relational vector. A MUTATION — an attribute or relation that CHANGED between frames — is the

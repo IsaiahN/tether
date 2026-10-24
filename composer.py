@@ -1,7 +1,7 @@
 # ATOMS.md, OPERATORS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11;
 # git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 """Lit atoms -> candidate molecules via the RECIPES (F162: the recipes, not the domain adjacency
-graph, are the atom->molecule composition). Reads the library's recipes (library/molecules.json
+graph, are the atom->molecule composition). Reads the recipes (library/given.json, COMPOSITE
 since step 2, 2026-10-11; ATOMS.md's tables before that) into {molecule ->
 ingredients} and, given the atoms a mutation lit (detectors.py), returns the molecules whose recipe
 those atoms COVER -- the composition the lit cues map to. Nothing invented: every molecule and its
@@ -184,7 +184,7 @@ def recipe_rows() -> dict:
     what made `Translate` a single composition instead of a family. The ground settles each
     junction, independently, via `Standing`; `n` ingredients have `n-1` of them.
 
-    READ FROM library/molecules.json SINCE STEP 2: the library has already resolved each written
+    READ FROM the COMPOSITE entries SINCE STEP 2: the library has already resolved each written
     ingredient to an entry, so an ingredient is that entry's bare name, in the recipe's order. A
     molecule name several domains carry is keyed `DOMAIN|Name`, so none of them is dropped.
     """

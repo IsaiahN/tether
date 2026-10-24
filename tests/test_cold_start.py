@@ -12,7 +12,7 @@ lineage and fills it by itself; the reviewer 19:47 (i), 22:59). The fake ARC gam
        named, the games not shipped with the code, the ONE fetch (a NORMAL-mode make()), and
        offline after it; nothing plays (wire() is never reached: its lineage folder is not made).
   LR1  MUST-FAIL (ii): a temp library copy with one required file removed (Library.load's
-       index.json; inherited.load's domains.json) fails at wire(), naming the file, before the
+       given.json; the frame's frame.json, step 3) fails at wire(), naming the file, before the
        wrapper is touched (no lineage folder made).
   LR2  MUST-FAIL (ii): in a copy of the code with no library/, wire() fails naming the folder.
   LR3  the same copy with TETHER_LIBRARY_REQUIRED=0 (the ablation) plays, and its @run header
@@ -155,7 +155,7 @@ def main() -> None:
         real_home = tether.LIBRARY_HOME
         tether.LIBRARY_HOME = str(home)
         try:
-            for f in ("index.json", "domains.json"):
+            for f in ("given.json", "frame.json"):
                 (home / "library" / f).rename(home / "library" / (f + ".gone"))
                 lr = tmp / f"lr1_{f}" / "lineage"
                 try:

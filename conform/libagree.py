@@ -79,8 +79,11 @@ def arm_of(entry_arm: str | None) -> tuple[str, str] | None:
 
 
 def load() -> dict:
-    def read(name: str) -> dict:
-        return json.loads((LIB / name).read_text(encoding="utf-8"))
+    sys.path.insert(0, str(LIB))
+    from library_runtime import old_files  # the GIVEN layout (store step 3)
+    files = old_files(LIB, ("agent_atoms.json", "readings.json", "tag_index.json", "atoms.json",
+                            "molecules.json"))
+    read = files.__getitem__
     return {"agent": read("agent_atoms.json")["atoms"],
             "readings": read("readings.json")["readings"],
             "tags": read("tag_index.json"), "held": set(read("atoms.json")["atoms"])
