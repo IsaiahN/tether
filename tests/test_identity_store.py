@@ -175,6 +175,16 @@ def _leaves(b, c, path: str) -> list:
     return [(path, b, c)]
 
 
+def _library_state(path: str) -> str | None:
+    """The @run arms row's library state ("present", "absent (ablation)", ...) as written."""
+    with open(path, encoding="utf-8") as fh:
+        for ln in fh:
+            r = json.loads(ln)
+            if r.get("slot") == "@run" and r.get("event") == "arms":
+                return (r.get("detail") or {}).get("library")
+    return None
+
+
 def _rows(path: str) -> list:
     with open(path, encoding="utf-8") as fh:
         rows = [json.loads(x) for x in fh]
@@ -237,6 +247,10 @@ def main() -> None:
                 with open(os.path.join(out, which + ".result.json"), encoding="utf-8") as fh:
                     res = json.load(fh)
                 _witness(res, f"{side} {which}")      # before any mask applies (ruling 5)
+                state = _library_state(os.path.join(out, which + ".jsonl"))
+                print(f"  {side} {which} @run library: {state!r}", flush=True)
+                if mode == "absent":                  # the ablation, read from each tree's header
+                    assert state == "absent (ablation)", (side, which, state)
                 seen[side][which] = {"rows": _rows(os.path.join(out, which + ".jsonl")),
                                      "files": _files(out, d), "result": _mask_result(res)}
                 print(f"  {side} {which}: {len(seen[side][which]['rows'])} rows, files "
