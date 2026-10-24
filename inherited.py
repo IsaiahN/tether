@@ -141,8 +141,9 @@ RAW_TAGS: dict[str, tuple[str, ...]] = {
 
 @lru_cache(maxsize=1)
 def load() -> dict[str, Any]:
-    """The four files, read ONCE. Missing files are an empty vocabulary and never an exception:
-    the agent must run without the inheritance, or the ablation clause has nothing to wipe."""
+    """The four files, read ONCE. No library/ is an empty vocabulary and never an exception:
+    the agent must run without the inheritance, or the ablation clause has nothing to wipe.
+    A partial library (given.json or frame.json absent) raises, naming the file (store step 3)."""
     out: dict[str, Any] = {"atoms": {}, "molecules": {}, "tags": {}, "domains": {}}
     # the one door: the old shapes from given / frame / index (store step 3); absent -> missing
     files = store.library_files(("atoms.json", "molecules.json", "tag_index.json", "domains.json",
