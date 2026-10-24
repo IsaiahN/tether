@@ -92,11 +92,11 @@ def main() -> None:
     print(f"  occasions: 1 overshoot press (before {first['before']}, after {first['after']}, "
           f"target {first['target']}, outcome {first['outcome']})")
     assert not off["refused"], "OFF: a route was refused"
-    # THE RULE: the overshoot must NOT refuse the route at once; the next press keeps the action
+    # THE RULE: the overshoot must NOT refuse the route at once. What the next press does is
+    # PRINTED, not asserted: asserting it would presume option A (the reviewer 07:28)
+    print(f"  next press ON: {json.dumps(on['presses'][1], default=str)}")
     assert not [r for r in on["refused"] if r.get("why") == "farther"], (
         "ON: a right-way overshoot refused the route at once", on["refused"])
-    assert on["presses"][1]["action"] == first["action"], (
-        "ON: the route was withheld after the overshoot", on["presses"])
     print("route_overshoot: OK")
 
 
