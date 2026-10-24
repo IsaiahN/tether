@@ -16,9 +16,12 @@ lineage and fills it by itself; the reviewer 19:47 (i), 22:59). The fake ARC gam
        wrapper is touched (no lineage folder made).
   LR2  MUST-FAIL (ii): in a copy of the code with no library/, wire() fails naming the folder.
   LR3  the same copy with TETHER_LIBRARY_REQUIRED=0 (the ablation) plays, and its @run header
-       records the arm OFF and library "absent (ablation)".
-  MF3  MUST-FAIL: the same ablation with compile_term.readings's old reader (no absence rule)
-       raises FileNotFoundError on library/readings.json at the first lookup.
+       records the arm OFF and library "absent (ablation)", with 0 agent_fault and 0
+       fault_recovered rows: since (B) (fe6ee21) a fault is recovered and play() returns, so
+       "it played" alone cannot see one (the reviewer 2026-10-24 15:51, WATSON ruling 11).
+  MF3  MUST-FAIL: the same ablation with compile_term.readings's old reader (no absence rule):
+       its FileNotFoundError on library/readings.json is CARRIED, at least 1 agent_fault row
+       naming it, a fault_recovered row, and play() returns (LR3's plant; LR3 is its control).
   LR4  with the library present nothing changes: CS1/CS2 as above, header library "present".
 
 Run from a venv OUTSIDE the scratchpad: the children drop every sys.path entry containing
@@ -89,10 +92,17 @@ try:
 except FileNotFoundError as e:
     print(json.dumps({"raised": str(e)}))
 else:
+    import gate
     rows = [json.loads(x) for x in open(led, encoding="utf-8")]
     h = next(x["detail"] for x in rows if x.get("slot") == "@run" and x.get("event") == "arms")
+    faults = [x["detail"] for x in rows
+              if x.get("slot") == "@run" and x.get("event") == "agent_fault"]
     print(json.dumps({"state": h["library"], "off": "tether._LIBRARY_REQUIRED" in h["off"],
-                      "rows": len(rows), "error": r.get("error")}))
+                      "rows": len(rows), "error": r.get("error"),
+                      "faults": [{"type": f.get("type"), "message": f.get("message")}
+                                 for f in faults],
+                      "recovered": sum(1 for x in rows if x.get("event") == "fault_recovered"),
+                      "gate_faults": gate._faults(rows) is not None}))
 '''
 
 
@@ -183,13 +193,23 @@ def main() -> None:
               f"{r2['raised'][len(str(code)):][:70]}...")
         r3 = child(tmp / "lr3", "-", ABLATE, str(code), TETHER_LIBRARY_REQUIRED="0")
         assert r3.get("state") == "absent (ablation)" and r3["off"] and not r3["error"], r3
+        assert not r3["faults"] and not r3["recovered"] and not r3["gate_faults"], (
+            f"LR3: agent_fault rows: {len(r3['faults'])}, fault_recovered rows: "
+            f"{r3['recovered']} -- the ablation played through a fault: {r3['faults']}")
         print(f"  LR3: TETHER_LIBRARY_REQUIRED=0 (the ablation) plays with no library/: header "
-              f"library {r3['state']!r}, arm OFF, {r3['rows']} rows")
+              f"library {r3['state']!r}, arm OFF, {r3['rows']} rows, 0 agent_fault, 0 recovered")
         (tmp / "mf3").mkdir()
         m3 = child(tmp / "mf3", "old", ABLATE, str(code), TETHER_LIBRARY_REQUIRED="0")
-        assert "readings.json" in m3.get("raised", ""), ("MF3 did not fail", m3)
-        print("  MF3: with the old reader the ablation raises FileNotFoundError on "
-              "library/readings.json")
+        assert "raised" not in m3, ("MF3: the fault was raised, not carried", m3)
+        fnf = [f for f in m3["faults"] if f["type"] == "FileNotFoundError"
+               and "readings.json" in (f["message"] or "")]
+        assert fnf and m3["recovered"] and m3["gate_faults"], (
+            f"MF3 did not fail: agent_fault rows: {len(m3['faults'])} ({len(fnf)} "
+            f"FileNotFoundError naming readings.json), fault_recovered rows: {m3['recovered']}", m3)
+        print(f"  MF3: with the old reader the ablation's FileNotFoundError on "
+              f"library/readings.json is carried: {len(fnf)} agent_fault row(s), "
+              f"{m3['recovered']} fault_recovered, "
+              f"play() returned ({m3['rows']} rows)")
         print(f"  LR4: with the library present, CS1/CS2 unchanged; header library {a['state']!r}")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
