@@ -272,6 +272,20 @@ class Intent:
 
 
 @dataclass(frozen=True)
+class Specific(Intent):
+    """R-C (Isaiah 2026-10-24 09:29; the reviewer 09:37, alpha): an ordered intent that STATES its
+    target -- "unless the agent is specific like '5 pixels' or something it will be general". A
+    plain Intent with a sign is GENERAL. A subclass, never a field on Intent: the ledger writes a
+    row's nested dataclasses by asdict (routine_cut's routine is an Intent), so a new Intent field
+    would change every such row with the switch OFF. Made only under TETHER_ROUTE_REFUSE."""
+
+    to: int | None = None
+
+    def says(self) -> str:
+        return f"{super().says()} -> {self.to}"
+
+
+@dataclass(frozen=True)
 class Realisation:
     """What the interface actually did, recorded BESIDE the intent and never inside it.
 
