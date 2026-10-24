@@ -95,6 +95,7 @@ def press(after_of, n):
             ag._test = None
             continue
         ag.trace.append((act, before, {sl: after_of(10)}))
+        ag._audit_at = ag.cycle             # the press was audited, as perceive marks it
         ag._test_row()
     return taken
 
@@ -126,6 +127,19 @@ fresh()
 first = press(lambda v: v, MR)                  # refused here, in the door's contact context
 CTX[0] = (("probe", 2),)                        # the door is gone: a new contact configuration
 out["case3"] = [first, press(lambda v: v + 1, 1)]
+# SEAM / STALE: a goal-exit outcome whose press was not audited this cycle (a seam skips the audit,
+# a cut ends the step before SETTLE) is no reading of the route (the reviewer 2026-10-24 02:12)
+fresh()
+stale, k1 = [], len(rows("route_refused"))
+for _ in range(MR + 1):
+    act = ag._goal_split({sl: 10})
+    ag.trace.append((act, {sl: 10}, {sl: 10}))
+    ag._audit_at = ag.cycle - 1                 # this cycle's press was NOT audited
+    ag._test_row()
+    stale.append(act)
+out["seam"] = stale
+out["seam_refused"] = len(rows("route_refused")) - k1
+out["seam_runs"] = {repr(k): v for k, v in ag._route_run.items()}
 out["n_actions"] = n_act
 print(json.dumps(out, default=str))
 '''
@@ -233,7 +247,13 @@ def cases() -> None:
         first, second = arm["case3"]
         assert second[0] == first[0], ("CASE 3: the direct route was not offered again once the "
                                        "context changed", arm["arm"], arm["case3"])
-    print(f"  cases: R-A own, RANK, 2, 7, 4, 3 -- ON and OFF as required (MIN_REPEAT {mr}, "
+    # SEAM / STALE: an unaudited press's outcome is no reading -- the route is never refused on it
+    assert len(on["seam"]) == mr + 1 and None not in on["seam"], ("SEAM: occasions", on["seam"])
+    assert on["seam_refused"] == 0 and not on["seam_runs"], ("SEAM ON: a stale outcome counted",
+                                                            on["seam_refused"], on["seam_runs"])
+    assert len(set(on["seam"])) == 1, ("SEAM ON: the route was withheld on stale outcomes",
+                                       on["seam"])
+    print(f"  cases: R-A own, RANK, 2, 7, 4, 3, SEAM -- ON and OFF as required (MIN_REPEAT {mr}, "
           f"{n} actions)")
 
 

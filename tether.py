@@ -3023,6 +3023,7 @@ class Agent:
         # R-B: a refused route -> (why, cycle); a route's run of non-closing readings (the level's)
         self._route_refused: dict[tuple, tuple[str, int]] = {}
         self._route_run: dict[tuple, list[str]] = {}
+        self._audit_at: int | None = None   # R-B: the cycle whose press was last audited
         # WHICH CYCLE FORMATION WAS LAST ATTEMPTED ON. System 2 now deliberates beside System 1
         # as well as at the fall-through, so without this a cycle reaching both sites would
         # refuse twice and write the gate's reason twice.
@@ -8310,7 +8311,11 @@ class Agent:
                         outcome=_oc,
                         intent=t["intent"], root=self._root_id,
                         in_root=held is not None and held in self._root_held)
-        if _ROUTE_REFUSE and t.get("route") is not None:
+        # R-B: only an outcome this step's own audited press produced: a seam (B skips the audit
+        # and the trace append), a cut before SETTLE, or a test carried from an earlier cycle
+        # grades a stale frame, and is no reading of the route (the reviewer 2026-10-24 02:12)
+        if (_ROUTE_REFUSE and t.get("route") is not None
+                and t.get("at") == self.cycle == self._audit_at):
             self._route_read(t["route"], _oc, slot)
 
     def _route_read(self, route: tuple, outcome: str, slot: str) -> None:
@@ -8782,6 +8787,8 @@ class Agent:
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
+        if _ROUTE_REFUSE and not self._seam_now:
+            self._audit_at = self.cycle    # R-B: this step's press was audited (no seam, no cut)
         if _R4_RECORD and not self._seam_now:
             _cr = getattr(self.iface, "last_changed", ())
             self.led.record(self.cycle, "PERCEIVE", "@interface", "audit", of=(action,),
@@ -13462,6 +13469,7 @@ class Agent:
                               "before": before.get(chosen), "intent": _want.says()}
                 if _ROUTE_REFUSE:          # R-B: the route this outcome will be read against
                     self._test["route"] = self._route_of(_want, _r, _ctx)
+                    self._test["at"] = self.cycle
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))
             return self._took(_r, _want)
