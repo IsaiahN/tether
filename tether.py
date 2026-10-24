@@ -1388,10 +1388,16 @@ def _merge_by_depth(lib_chains: list, closure, evidence: dict, key: str, seed: s
     yield from pend[i:]
 
 
-def _test_outcome(before: Any, after: Any, target: Any, ordered: bool) -> str:
+def _test_outcome(before: Any, after: Any, target: Any, ordered: bool,
+                  aim: str | None = None) -> str:
     """7j: what the ground showed against what the term predicted. Closer and farther need an
     ORDERED value (the slot's own type, ORDERED_TYPES); a categorical value is reached or not
-    (J-a, the reviewer 2026-10-15 20:27)."""
+    (J-a, the reviewer 2026-10-15 20:27).
+    R-C (`aim` given only under TETHER_ROUTE_REFUSE; the reviewer 2026-10-24 09:30, 09:37): the gap
+    is SIGNED (Fig 12 :120, Fig 5 :59). A GENERAL intent states a direction only, so any move that
+    way is reached, whatever its size, and only the wrong way is farther. A SPECIFIC intent states
+    its target, so a press past it -- the gap changing sign -- is "overshot": information, not
+    failure."""
     if after is None:
         return "slot gone"
     if after == target:
@@ -1404,6 +1410,10 @@ def _test_outcome(before: Any, after: Any, target: Any, ordered: bool) -> str:
               for v in (before, after, target))
     if not ordered or not num:
         return "not reached"
+    if aim == "general":
+        return "reached" if (after - before) * (target - before) > 0 else "farther"
+    if aim == "specific" and (before - target) * (after - target) < 0:
+        return "overshot"
     return "closer" if abs(after - target) < abs(before - target) else "farther"
 
 
@@ -3024,6 +3034,10 @@ class Agent:
         self._route_refused: dict[tuple, tuple[str, int]] = {}
         self._route_run: dict[tuple, list[str]] = {}
         self._audit_at: int | None = None   # R-B: the cycle whose press was last audited
+        # R-C: slot -> the correction its last overshoot owes; (slot, target) -> the oscillation
+        # guard's last |gap| and its count of overshoots that did not shrink it
+        self._correct: dict[str, dict] = {}
+        self._overshoot: dict[tuple, dict] = {}
         # WHICH CYCLE FORMATION WAS LAST ATTEMPTED ON. System 2 now deliberates beside System 1
         # as well as at the fall-through, so without this a cycle reaching both sites would
         # refuse twice and write the gate's reason twice.
@@ -3544,6 +3558,7 @@ class Agent:
         # route_refused rows stay in the ledger (Fig 6 :45). retarget fires on a level edge AND a
         # death, so a carry across tries is R-D's, open (the reviewer 2026-10-23 22:12)
         self._gap, self._route_refused, self._route_run = {}, {}, {}
+        self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
         self._dw_tried = {}
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
         # last reading or step, an undone count, each read on the next level's same NAME.
@@ -8302,7 +8317,7 @@ class Agent:
         after = (self.trace[-1][2] if self.trace else {}).get(slot)
         ordered = self.slot_types.get(slot) in ORDERED_TYPES
         held = f"{slot}:{t['term']}" if t["term"] is not None else None
-        _oc = _test_outcome(t["before"], after, t["target"], ordered)
+        _oc = _test_outcome(t["before"], after, t["target"], ordered, t.get("aim"))
         if _R4_RECORD and self._hyp is not None and slot in self._hyp["slots"]:
             # R4 record (F3): the held hypothesis's own test outcomes, shown on its end row
             self._hyp.setdefault("tests", Counter())[_oc] += 1
@@ -8310,28 +8325,48 @@ class Agent:
                         target=t["target"], before=t["before"], after=after, ordered=ordered,
                         outcome=_oc,
                         intent=t["intent"], root=self._root_id,
-                        in_root=held is not None and held in self._root_held)
+                        in_root=held is not None and held in self._root_held,
+                        **({"aim": t["aim"]} if t.get("aim") else {}))
         # R-B: only an outcome this step's own audited press produced: a seam (B skips the audit
         # and the trace append), a cut before SETTLE, or a test carried from an earlier cycle
         # grades a stale frame, and is no reading of the route (the reviewer 2026-10-24 02:12)
         if (_ROUTE_REFUSE and t.get("route") is not None
                 and t.get("at") == self.cycle == self._audit_at):
-            self._route_read(t["route"], _oc, slot)
+            self._route_read(t["route"], _oc, slot, t, after)
 
-    def _route_read(self, route: tuple, outcome: str, slot: str) -> None:
+    def _route_read(self, route: tuple, outcome: str, slot: str, t: dict | None = None,
+                    after: Any = None) -> None:
         """R-B: one goal-exit outcome read against the route that produced it. closer / reached
         clear its run; no change / not reached extend it, and MIN_REPEAT of them refuse it (the
         selector's own count, Fig 5 :59); one farther refuses it at once (F3, case 7); slot gone is
-        no reading. A refusal is kept for the level and rowed (Fig 6 :42-46)."""
+        no reading. A refusal is kept for the level and rowed (Fig 6 :42-46).
+        R-C: "overshot" (a specific target passed) is no refusal. The next goal exit on this slot
+        corrects toward the same target, the sign the NEW gap gives; the oscillation guard counts
+        an overshoot whose |gap| did not shrink since this target's last one, and MIN_REPEAT of
+        them refuse the route, "overshoots_without_closing" (the step is coarser than the
+        target)."""
         if outcome == "slot gone" or route in self._route_refused:
             return
         run = self._route_run.setdefault(route, [])
         if outcome in ("closer", "reached"):
             run.clear()
             return
-        run.append(outcome)
-        why = ("farther" if outcome == "farther"
-               else "no_shrink" if len(run) >= MIN_REPEAT else None)
+        if outcome == "overshot" and t is not None:
+            tgt, gap = t["target"], abs(after - t["target"])
+            o = self._overshoot.setdefault((slot, tgt), {"gap": None, "n": 0})
+            o["n"] = o["n"] + 1 if o["gap"] is not None and gap >= o["gap"] else 0
+            o["gap"] = gap
+            if o["n"] < MIN_REPEAT:
+                self._correct[slot] = {"target": tgt, "sign": "+" if tgt > after else "-",
+                                       "before": t["before"], "after": after}
+                return
+            self._correct.pop(slot, None)
+            run.append(outcome)
+            why = "overshoots_without_closing"
+        else:
+            run.append(outcome)
+            why = ("farther" if outcome == "farther"
+                   else "no_shrink" if len(run) >= MIN_REPEAT else None)
         if why is None:
             return
         self._route_refused[route] = (why, self.cycle)
@@ -8341,6 +8376,13 @@ class Agent:
                         why=why, outcomes=list(run),
                         reads="this way does not serve this intent here; the intent stays and "
                               "asks for another route (Fig 6 :42-46, Fig 13 :121)")
+
+    def _intent_aim(self, slot: str, target: Any) -> str:  # noqa: ARG002 -- the seam's inputs
+        """R-C (alpha, the reviewer 2026-10-24 09:37): does this ordered intent STATE its target?
+        "general" today -- the ordered arm states a sign only (Isaiah 09:29: "unless the agent is
+        specific like '5 pixels' or something it will be general"). The one place a stated
+        magnitude would make it "specific"."""
+        return "general"
 
     @staticmethod
     def _route_key(want: Any, r: Any, ctx: tuple) -> tuple:
@@ -13427,6 +13469,25 @@ class Agent:
         _want = (IFace.Intent(IFace.BECOME, chosen, "+" if _tgt > before[chosen] else "-")
                  if _ordered else
                  IFace.Intent(IFace.BECOME, chosen, value=_tgt))
+        _aim, _corr = None, None
+        if _ROUTE_REFUSE:
+            # R-C (the reviewer 2026-10-24 09:30, 09:37 alpha): the intent's AIM is its own form --
+            # a sign alone is GENERAL; a stated value or target is SPECIFIC. An overshot specific
+            # target owes a CORRECTION: the same target, the sign its new gap gives ("additional
+            # intention goes out to the interface", Isaiah 09:29)
+            _corr = self._correct.get(chosen)
+            if _corr is not None and _ordered:
+                _tgt, _aim = _corr["target"], "specific"
+                _want = IFace.Intent(IFace.BECOME, chosen, _corr["sign"], aim="specific", to=_tgt)
+            elif _ordered:
+                _corr = None
+                _aim = self._intent_aim(chosen, _tgt)
+                if _aim == "specific":
+                    _want = IFace.Intent(IFace.BECOME, chosen, _want.object, aim="specific",
+                                         to=_tgt)
+            else:
+                _corr, _aim = None, "specific"
+                _want = IFace.Intent(IFace.BECOME, chosen, value=_tgt, aim="specific")
         # **KEPT, NOT THROWN AWAY -- the plan's 16.** `_mint_routine` plans in INTENTS and this
         # is the one place the intent is formed. Re-forming it there would be two producers of
         # one fact, which is harmless exactly until one side changes.
@@ -13438,6 +13499,21 @@ class Agent:
             _offer, _wh = self._route_offer(_want.says(), _ctx, _offer, _wh)
         _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh)
               if _offer or not _ROUTE_REFUSE else None)
+        if _corr is not None and commit:
+            # R-C: the correction is looked up in the agent's OWN record (the interface's delta
+            # table, via realise) and never assumed; none known is recorded, the route is kept
+            self._correct.pop(chosen, None)
+            self.led.record(self.cycle, "PLAN", chosen,
+                            "route_corrected" if _r is not None else "route_uncorrected",
+                            before=_corr["before"], after=_corr["after"], target=_tgt,
+                            direction=_corr["sign"], intent=_want.says(),
+                            action=_r.action if _r is not None else None,
+                            **({} if _r is not None else {"why": "no correction known"}),
+                            reads="an overshoot corrected toward the same target, the way the "
+                                  "new gap points (Fig 12 :120)")
+            if _r is None:
+                self._split_why = "route_uncorrected"
+                return None
         if _ROUTE_REFUSE and self._route_refused and (
                 not _offer or (_r is not None
                                and self._route_key(_want, _r, _ctx) in self._route_refused)):
@@ -13470,6 +13546,7 @@ class Agent:
                 if _ROUTE_REFUSE:          # R-B: the route this outcome will be read against
                     self._test["route"] = self._route_key(_want, _r, _ctx)
                     self._test["at"] = self.cycle
+                    self._test["aim"] = _aim       # R-C: how the outcome is graded
             self.led.record(self.cycle, "PLAN", chosen, "intent",
                             reads=(_want.says(), _r.why))
             return self._took(_r, _want)

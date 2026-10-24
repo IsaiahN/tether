@@ -256,11 +256,18 @@ class Intent:
     # direction in. `A6i` is one name carrying two quantities, and it is free to avoid here and
     # expensive once anything reads the field. `docs/ACTION_INTERFACE_PLAN.md` §15.
     value: int | None = None
+    # R-C (Isaiah 2026-10-24 09:29; the reviewer 09:37, alpha): GENERAL unless the agent STATED a
+    # magnitude -- "unless the agent is specific like '5 pixels' it will be general". `to` is a
+    # specific ordered intent's stated target; set only under TETHER_ROUTE_REFUSE.
+    aim: str = "general"
+    to: int | None = None
 
     def says(self) -> str:
         core = " ".join(x for x in (self.kind, self.subject, self.object) if x)
         if self.value is not None:
             core = f"{core} = {self.value}"
+        if self.to is not None:
+            core = f"{core} -> {self.to}"
         if self.repeat is None:
             return core
         bits = []
