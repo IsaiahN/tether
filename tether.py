@@ -13478,16 +13478,14 @@ class Agent:
             _corr = self._correct.get(chosen)
             if _corr is not None and _ordered:
                 _tgt, _aim = _corr["target"], "specific"
-                _want = IFace.Intent(IFace.BECOME, chosen, _corr["sign"], aim="specific", to=_tgt)
+                _want = IFace.Specific(IFace.BECOME, chosen, _corr["sign"], to=_tgt)
             elif _ordered:
                 _corr = None
                 _aim = self._intent_aim(chosen, _tgt)
                 if _aim == "specific":
-                    _want = IFace.Intent(IFace.BECOME, chosen, _want.object, aim="specific",
-                                         to=_tgt)
+                    _want = IFace.Specific(IFace.BECOME, chosen, _want.object, to=_tgt)
             else:
-                _corr, _aim = None, "specific"
-                _want = IFace.Intent(IFace.BECOME, chosen, value=_tgt, aim="specific")
+                _corr, _aim = None, "specific"     # the value arm states its value: specific
         # **KEPT, NOT THROWN AWAY -- the plan's 16.** `_mint_routine` plans in INTENTS and this
         # is the one place the intent is formed. Re-forming it there would be two producers of
         # one fact, which is harmless exactly until one side changes.
