@@ -17,7 +17,6 @@ library wrote even where a label reads otherwise.
 """
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, replace
 from functools import cache

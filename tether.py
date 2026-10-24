@@ -45,6 +45,7 @@ import reach
 import relations
 import retrieval
 import routine as Rt
+import store as door  # the one door; `store` is a local name in three methods
 from gamma import _PRIOR_CODE as G_PRIOR_CODE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import _UNITS_MEMO as G_UNITS_MEMO
@@ -5722,7 +5723,7 @@ class Agent:
                     _INDEX_N["bound_whole_hit"] += 1
                     if mkey in _BM_CARRIED:
                         _INDEX_N["bound_whole_hit_carried"] += 1
-                carried = None if whole is not None else lineage.resolve_bs(self, lib, skey, atoms)
+                carried = None if whole is not None else door.resolve_bs(self, lib, skey, atoms)
                 if carried is not None:
                     _INDEX_N["bound_slot_from_carry"] += 1
                     seen.add(mkey)
@@ -5731,7 +5732,7 @@ class Agent:
                     _BS_CARRIED.add(skey)
                     return list(got)
                 if whole is None:
-                    whole = lineage.resolve_memo(self, lib, mkey, atoms)
+                    whole = door.resolve_memo(self, lib, mkey, atoms)
                     if whole is not None:
                         _BM_CARRIED.add(mkey)
                         # resolve_memo hands a carried view over once: kept as the WHOLE answer
@@ -5740,7 +5741,7 @@ class Agent:
                         memo[mkey] = whole
                 sub = partial(_ph_sub, o=o, x=x)
                 bt = self._bind_terms(o, x)
-                if whole is None and lineage._RECORD and lineage.recorded_whole(mkey):
+                if whole is None and lineage._RECORD and door.recorded_whole(mkey):
                     # S1g: recorded as a WHOLE (reused) in an earlier process: bound at once, as
                     # promotion would, from the carried and live-checked index (S3)
                     _INDEX_N["bound_slot_from_record"] += 1
@@ -5802,7 +5803,7 @@ class Agent:
                 return list(got)
             # a carried answer (lineage, under CARRY), checked whole at its first ask; counted
             # apart from hits, so memo entries == bound - bound_memo_hit holds (S3)
-            got = lineage.resolve_memo(self, lib, mkey, atoms)
+            got = door.resolve_memo(self, lib, mkey, atoms)
             if got is None:
                 sub = partial(_ph_sub, o=o, x=x)
                 bt = self._bind_terms(o, x)
@@ -5873,7 +5874,7 @@ class Agent:
         held = _INDEX_STORE.get((sig, key, role))
         if held is None and lineage._CARRY:
             # (b'-g) D3, BOTH ARMS: a carried reference resolves at its first ask, or fails whole
-            held = lineage.resolve(self, lib, key, role, sig)
+            held = door.resolve(self, lib, key, role, sig)
         if held is None:
             def comp(cond: str, subject: str | None = None) -> Any:
                 return compile_term.compile_candidate(
