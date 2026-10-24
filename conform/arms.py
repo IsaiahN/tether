@@ -1111,6 +1111,14 @@ ARMS: dict[str, str] = {
                            ":109). The library, standings and atoms are untouched (Fig 4 "
                            ":22-23). Other whole-trace readers are listed in C's build post with "
                            "a decision each. OFF: history to the level's start. default ON",
+    "TETHER_R4_RECORD": "THE R4 RECORD (the reviewer 2026-10-23 18:19, 18:28, 18:37, 18:43, "
+                        "19:39): record-only rows and fields making F1-F5 readable -- the "
+                        "per-press audit row (credited count, own_clock slots credited), REPEAT's "
+                        "offered / withheld / realised (the pick's table evidence), the clock "
+                        "verdict per subject on goal_hypotheses, [gap, span] beside goal_series, "
+                        "a hypothesis's test outcomes on its end row. Read by nothing that "
+                        "decides; the ON/OFF must-fail shows identical decisions. OFF: today's "
+                        "ledger. default ON",
     "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
                          "05:52): the life's kind_dk stays on disk, read through a snapshot "
                          "held from load (one read transaction, lineage.DkSnapshot) -- each "

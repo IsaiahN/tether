@@ -42,7 +42,7 @@ sys.path.insert(1, os.path.join(sys.argv[1], "tests"))
 import tether, tether_agent
 from test_entry import FakeWrapper
 tether._AGENT_SEED = False
-for _a in ("_OWN_COUNTERS_DERIVED", "_LIBRARY_EXPLAINS"):
+for _a in ("_OWN_COUNTERS_DERIVED", "_LIBRARY_EXPLAINS", "_R4_RECORD"):
     if hasattr(tether, _a):
         setattr(tether, _a, sys.argv[2] == "on")
 led = os.path.join(tempfile.mkdtemp(), "r.jsonl")
