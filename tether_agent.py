@@ -18,6 +18,7 @@ import time
 import arc_holdout
 import ledger
 import lineage
+import store
 import tether
 
 sys.dont_write_bytecode = True
@@ -69,8 +70,8 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
             if lvl_edge and tether._LEVEL_EDGE:
                 ag.retarget(env, lv, how=ledger.ADVANCE)
             if lineage._BOUNDARY and (term_edge or lvl_edge):
-                bounds.append(lineage.boundary(lineage_dir, ag, game,
-                                               end if term_edge else "level"))
+                bounds.append(store.lineage_boundary(lineage_dir, ag, game,
+                                                     end if term_edge else "level"))
             lv_seen = lv
         was = end
         if end == ledger.WIN:   # the game is over and won. A death is not an end.
@@ -80,11 +81,12 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     ag.end_run(end if end in ("time", ledger.WIN) else "cap")
     # THE GAME'S LIBRARY IS KEPT for the next game in this worker's sequence -- after WIN,
     # death or cap alike. No path, no save: a run with no sequence stays cold (F471).
-    saved = ag.gamma.save(library) if library else None
+    saved = store.library_save(ag.gamma, library) if library else None
     # THE STOP-LOSS, the same rule as play: written, never read here (arc_holdout.save_only).
     saved_only = arc_holdout.save_only(ag, save_only_dir, game, led_path)
     # (b'-g) the boundary's generation, the same call as play (lineage.py)
-    lineage_gen = lineage.write(lineage_dir, ag, game) if lineage._CARRY and lineage_dir else None
+    lineage_gen = (store.lineage_write(lineage_dir, ag, game)
+                   if lineage._CARRY and lineage_dir else None)
     # R2 REOPEN (the reviewer 2026-10-18 01:18): the lineage write is the boundary's last writer
     # (_3a_settle's rows reopen the handle end_run closed), so the ledger closes again here
     close = getattr(ag.led, "close", None)

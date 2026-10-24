@@ -28,6 +28,7 @@ import armflag
 import condition
 import gamma
 import relations
+import store
 
 SAME = gamma.SAME_AS_TARGET
 # B3 (the reviewer 2026-10-11 12:25 CDT): under the arm a pair reading (`dist_o3`) is typed by its
@@ -161,12 +162,10 @@ class Refusal:
 
 @cache
 def readings() -> dict[str, dict]:
-    p = Path(__file__).parent / "library" / "readings.json"
     # an absent library is the ablation (tether._LIBRARY_REQUIRED OFF; wire() refuses it ON): no
     # readings, as inherited.load reads no vocabulary; before, the first lookup raised here
-    if not p.exists():
-        return {}
-    return json.loads(p.read_text(encoding="utf-8"))["readings"]
+    raw = store.read_json(Path(__file__).parent / "library" / "readings.json")   # the one door
+    return {} if raw is None else raw["readings"]
 
 
 def _split(slot: str) -> tuple[str, str]:
