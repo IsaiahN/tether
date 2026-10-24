@@ -272,9 +272,9 @@ RELATION_READS = [
 
 
 def _load(name):
-    got = old_files(LIB, (name,))
+    got = old_files(LIB, (name,))      # raises naming given / frame / index if one is absent
     if name not in got:
-        raise FileNotFoundError(f"{LIB}: {name} is in neither the given layout nor the old files")
+        raise KeyError(f"{LIB}: {name} is not part of the given layout")
     return got[name]
 
 

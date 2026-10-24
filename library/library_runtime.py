@@ -183,22 +183,20 @@ def _unpack(given: dict | None, frame: dict | None, index: dict | None, names) -
 
 def old_files(root: str | Path, names) -> dict:
     """The old files' contents, FRESH on every call (each reader gets its own objects, as each
-    parsed its own file before), from given / frame / index when given.json exists, else from the
-    old files themselves (the migration's first build). A name present in neither is absent."""
+    parsed its own file before), from given / frame / index ONLY. A file a call needs that is
+    absent raises, naming it: there is no second source, so an old file left beside the new ones
+    is never read (WATSON ruling 9, the reviewer 14:57)."""
     root = Path(root)
-    if (root / GIVEN_FILE).exists():
-        def rd(n):
-            return json.loads(_read_text(root / n)) if (root / n).exists() else None
-        g = rd(GIVEN_FILE) if any(n not in _FRAME_NAMES + _INDEX_NAMES for n in names) else None
-        f = rd(FRAME_FILE) if any(n in _FRAME_NAMES for n in names) else None
-        i = rd(INDEX_FILE) if any(n in _INDEX_NAMES for n in names) else None
-        return _unpack(g, f, i, names)
-    out = {}
-    for n in names:
-        p = root / n
-        if p.exists():
-            out[n] = _read_text(p) if n.endswith(".txt") else json.loads(_read_text(p))
-    return out
+
+    def rd(n):
+        if not (root / n).exists():
+            raise FileNotFoundError(f"{root / n} is absent: the GIVEN library is read from "
+                                    "given.json, frame.json and index.json only")
+        return json.loads(_read_text(root / n))
+    g = rd(GIVEN_FILE) if any(n not in _FRAME_NAMES + _INDEX_NAMES for n in names) else None
+    f = rd(FRAME_FILE) if any(n in _FRAME_NAMES for n in names) else None
+    i = rd(INDEX_FILE) if any(n in _INDEX_NAMES for n in names) else None
+    return _unpack(g, f, i, names)
 
 
 def write_packed(root: str | Path, old: dict) -> None:
