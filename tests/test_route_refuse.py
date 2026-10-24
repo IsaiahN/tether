@@ -15,7 +15,10 @@ agent's and the pick is fixed.
   CASE 3    detour (must not break): a route refused in one contact context is offered again
             once the context changes, ON and OFF
   OFF ID    the current tree with the switch OFF against the last commit without it, through
-            conform/identity_mod_rows.compare: 0 differences
+            conform/identity_mod_rows.compare: 0 differences (run FIRST, the reviewer 22:28)
+  WALL      case 2 in a world: the real agent on gridworld, seeds 0-2, 40 steps, ON against OFF.
+            Where OFF pushes one route past MIN_REPEAT with no closing outcome (the occasion; at
+            least one seed must give one), ON never does and rows a route_refused
   NOT HERE  R-E's delayed effects (a stub, later); R-D's carry across a death (open)
     python tests/test_route_refuse.py
 """
@@ -127,6 +130,41 @@ out["n_actions"] = n_act
 print(json.dumps(out, default=str))
 '''
 
+WALL = r'''
+import json, sys
+sys.dont_write_bytecode = True
+tree, steps, seed = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+sys.path = [tree] + [p for p in sys.path if "scratchpad" not in p.replace("\\", "/")]
+import gamma, gridworld, ledger, tether, world
+import interface as IFace
+env = world.bind(gridworld.family("default", seed))
+ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="wall"), tether.Config(), ledger.Ledger())
+log, split0, row0 = [], ag._goal_split, ag._test_row
+
+
+def split(before, commit=True):
+    a = split0(before, commit)
+    if commit and a is not None and ag._test is not None:
+        log.append([ag._test["intent"], a, repr(IFace.Interface.context(env)), None])
+    return a
+
+
+def row():
+    n = len(ag.led)
+    row0()
+    oc = [r["detail"]["outcome"] for r in ag.led.rows(n) if r["event"] == "hypothesis_test"]
+    if log and log[-1][3] is None and oc:
+        log[-1][3] = oc[-1]
+
+
+ag._goal_split, ag._test_row = split, row
+for _ in range(steps):
+    ag.step()
+print(json.dumps({"arm": tether._ROUTE_REFUSE, "log": log,
+                  "refused": [r["detail"]["why"] for r in ag.led.rows()
+                              if r["event"] == "route_refused"]}))
+'''
+
 PLAIN = r'''
 import json, sys
 sys.dont_write_bytecode = True
@@ -142,12 +180,12 @@ print(json.dumps({"rows": ag.led.rows()}, default=str))
 '''
 
 
-def child(script: str, tree: str, arm: str | None, steps: int) -> dict:
+def child(script: str, tree: str, arm: str | None, steps: int, *more: str) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0")
     if arm is not None:
         env["TETHER_ROUTE_REFUSE"] = arm
-    out = subprocess.run([sys.executable, "-B", "-c", script, tree, str(steps)], env=env,
+    out = subprocess.run([sys.executable, "-B", "-c", script, tree, str(steps), *more], env=env,
                          capture_output=True, text=True, timeout=1800, cwd=tree,
                          stdin=subprocess.DEVNULL)
     assert out.returncode == 0, out.stderr[-3000:]
@@ -199,6 +237,37 @@ def cases() -> None:
           f"{n} actions)")
 
 
+def longest_dead_run(log: list) -> int:
+    """The longest run of consecutive goal-exit presses on one route (intent, action, context)
+    whose outcome did not close the gap."""
+    best = cur = 0
+    prev = None
+    for intent, act, ctx, oc in log:
+        key = (intent, act, ctx)
+        dead = oc in ("no change", "not reached", "farther")
+        cur = cur + 1 if dead and key == prev else (1 if dead else 0)
+        prev = key if dead else None
+        best = max(best, cur)
+    return best
+
+
+def world_wall() -> None:
+    """CASE 2 IN A WORLD (the reviewer 2026-10-23 22:28, owed before switch-on): the real agent on
+    gridworld (the wall o2), ON against OFF, per seed, never pooled."""
+    root, mr = str(_repo.ROOT), 2
+    seen = 0
+    for seed in (0, 1, 2):
+        on, off = (child(WALL, root, a, 40, str(seed)) for a in ("1", "0"))
+        lo, lf = longest_dead_run(on["log"]), longest_dead_run(off["log"])
+        print(f"  WALL seed {seed}: goal-exit presses ON {len(on['log'])} OFF {len(off['log'])}; "
+              f"longest dead run ON {lo} OFF {lf}; refused ON {on['refused']}")
+        assert not off["refused"], "WALL OFF: a route_refused row"
+        if lf > mr:                     # an occasion: today's code pushed a dead route past MR
+            seen += 1
+            assert lo <= mr and on["refused"], ("WALL ON: the dead route was retaken", seed, lo)
+    assert seen, "WALL: no seed gave today's code a dead route past MIN_REPEAT (occasions 0)"
+
+
 def off_identity() -> None:
     root = str(_repo.ROOT)
     with tempfile.TemporaryDirectory() as d:
@@ -227,6 +296,7 @@ def off_identity() -> None:
 
 
 if __name__ == "__main__":
+    off_identity()          # the reviewer 22:28: OFF identity before the cases
     cases()
-    off_identity()
+    world_wall()
     print("route_refuse: OK")
