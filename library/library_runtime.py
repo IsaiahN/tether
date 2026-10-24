@@ -61,6 +61,11 @@ try:
 except ImportError:     # the library built or read alone
     def _cap_head() -> None:
         return None
+try:
+    from store import read_text as _read_text  # the one door (store.py), when the agent runs
+except ImportError:     # the library built or read alone (build_library: the builder, by role)
+    def _read_text(p: Path) -> str:
+        return Path(p).read_text(encoding="utf-8")
 
 PRIOR, MINTED, IMPORTED, INVENTED = "prior", "minted", "imported", "invented"
 BONDS = ("+", "∥", "≡", "→", "⇒", "−", "⋛")
@@ -297,7 +302,7 @@ class Library:
 
     # ---------------------------------------------------------------- loading
     def load(self) -> Library:
-        j = lambda n: json.loads((self.root / n).read_text(encoding="utf-8"))  # noqa: E731
+        j = lambda n: json.loads(_read_text(self.root / n))  # noqa: E731
         self.readings = j("readings.json")["readings"]
         for k, e in j("atoms.json")["atoms"].items():
             self.seed[k] = {**e, "origin": PRIOR}
@@ -317,7 +322,7 @@ class Library:
         for layer, name in ((self.runtime, "runtime.json"), (self.learnings, "learnings.json")):
             p = self.root / name
             if p.exists():
-                layer.update(json.loads(p.read_text(encoding="utf-8"))["entries"])
+                layer.update(json.loads(_read_text(p))["entries"])
                 for k, e in layer.items():
                     self._index(k, e)
         return self
