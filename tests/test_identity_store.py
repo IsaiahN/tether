@@ -122,6 +122,14 @@ def _files(out: str, scratch: str) -> dict:
     return got
 
 
+def _leaves(b, c, path: str) -> list:
+    """The differing leaves of two JSON values, each with its key path (P2: values whole)."""
+    if isinstance(b, dict) and isinstance(c, dict):
+        return [x for k in sorted(set(b) | set(c), key=str) if b.get(k) != c.get(k)
+                for x in _leaves(b.get(k), c.get(k), f"{path}.{k}")]
+    return [(path, b, c)]
+
+
 def _rows(path: str) -> list:
     with open(path, encoding="utf-8") as fh:
         rows = [json.loads(x) for x in fh]
@@ -201,9 +209,9 @@ def main() -> None:
             bad += [f"{which} rows: {x}" for x in rbad]
             for k in sorted(set(b["result"]) | set(c["result"])):
                 if b["result"].get(k) != c["result"].get(k):
-                    bv = json.dumps(b["result"].get(k), default=str)[:600]
-                    cv = json.dumps(c["result"].get(k), default=str)[:600]
-                    print(f"  {which} result[{k!r}]: {bv}\n      -> {cv}")
+                    for path, bv, cv in _leaves(b["result"].get(k), c["result"].get(k), k):
+                        print(f"  {which} result {path}: {json.dumps(bv, default=str)[:600]}"
+                              f"\n      -> {json.dumps(cv, default=str)[:600]}")
                     bad.append(f"{which} result {k}")
             for f in sorted(set(b["files"]) | set(c["files"])):
                 if b["files"].get(f) != c["files"].get(f):
@@ -211,6 +219,13 @@ def main() -> None:
                     if isinstance(bv, dict) and isinstance(cv, dict):
                         diff = sorted(t for t in set(bv) | set(cv) if bv.get(t) != cv.get(t))
                         print(f"  {which} file {f}: tables differing {diff}")
+                        for tb in diff:         # the rows themselves, each side's own (D)
+                            only_b = sorted(set(bv.get(tb, ())) - set(cv.get(tb, ())))
+                            only_c = sorted(set(cv.get(tb, ())) - set(bv.get(tb, ())))
+                            for r in only_b[:10]:
+                                print(f"      {tb} base only:    {r[:300]}")
+                            for r in only_c[:10]:
+                                print(f"      {tb} current only: {r[:300]}")
                     else:
                         print(f"  {which} file {f}: {bv} -> {cv}")
                     bad.append(f"{which} file {f}")
