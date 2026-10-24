@@ -51,6 +51,7 @@ from pathlib import Path
 from typing import Any
 
 import cap
+import store
 
 sys.dont_write_bytecode = True
 
@@ -92,7 +93,7 @@ def by_cluster() -> tuple[dict[str, tuple[str, ...]], str | None]:
     """K1: ({cluster: the entries it files}, None), read once; ({}, why) when the corpus file is
     absent or not Isaiah's (its hash moved) -- never an exception."""
     try:
-        raw = CORPUS_INDEX.read_bytes()
+        raw = store.read_bytes(CORPUS_INDEX)
     except OSError as e:
         return {}, f"absent: {type(e).__name__}"
     if hashlib.sha256(raw).hexdigest() != INDEX_SHA:
@@ -147,10 +148,9 @@ def load() -> dict[str, Any]:
                              ("molecules", "molecules.json", "molecules"),
                              ("tags", "tag_index.json", None),
                              ("domains", "domains.json", None)):
-        path = ROOT / name
-        if not path.exists():
+        raw = store.read_json(ROOT / name)    # the one door; None when absent
+        if raw is None:
             continue
-        raw = json.loads(path.read_text(encoding="utf-8"))
         out[key] = raw.get(inner, raw) if inner else raw
 
     # THE AGENT'S OWN ATOMS JOIN THE VOCABULARY, IN THEIR OWN FILE -- Isaiah: *add your few
@@ -158,9 +158,9 @@ def load() -> dict[str, Any]:
     # GIVEN and BUILT must stay separable: the ablation partition is by WHICH CLAUSE ADMITTED A
     # THING and *cannot be reconstructed from a `prior` stamp afterwards*. A file boundary and
     # the `AGENT|` prefix are both cheap and neither can drift.
-    agent = ROOT / "agent_atoms.json"
-    if agent.exists():
-        mine = json.loads(agent.read_text(encoding="utf-8")).get("atoms", {})
+    agent = store.read_json(ROOT / "agent_atoms.json")
+    if agent is not None:
+        mine = agent.get("atoms", {})
         out["atoms"] = {**out["atoms"], **mine}
         # AND THEY ARE INDEXED IN MEMORY, NEVER WRITTEN BACK. `tag_index.json` is the
         # reviewer's artefact; regenerating it here would make this module a second producer
