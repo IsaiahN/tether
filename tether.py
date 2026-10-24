@@ -8358,7 +8358,7 @@ class Agent:
             o["gap"] = gap
             if o["n"] < MIN_REPEAT:
                 self._correct[slot] = {"target": tgt, "sign": "+" if tgt > after else "-",
-                                       "before": t["before"], "after": after}
+                                       "before": t["before"], "after": after, "route": route}
                 return
             self._correct.pop(slot, None)
             run.append(outcome)
@@ -13512,6 +13512,9 @@ class Agent:
                             reads="an overshoot corrected toward the same target, the way the "
                                   "new gap points (Fig 12 :120)")
             if _r is None:
+                # no deadlock (the reviewer 09:46): abstain this ONE exit, the correction is
+                # cleared above, and the overshooting route counts one non-closing outcome
+                self._route_read(_corr["route"], "uncorrected", chosen)
                 self._split_why = "route_uncorrected"
                 return None
         if _ROUTE_REFUSE and self._route_refused and (
