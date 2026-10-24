@@ -187,7 +187,10 @@ def _json_read(d: Path, verify: bool, suffix: str = "") -> dict:
             head = z.readline()
             if not head:
                 raise StoreError(f"{p} is empty")
-            man.update(json.loads(head)["manifest"])
+            m = json.loads(head)["manifest"]
+            man.update(m)
+            for s in m:     # a section with 0 rows has no row line
+                store.setdefault(s, {})
             for line in z:
                 s, k, b = json.loads(line)
                 store.setdefault(s, {})[k] = b
@@ -226,7 +229,7 @@ def _db_read(p: Path, verify: bool) -> dict:
         if not {*PARTS, "manifest"} <= names:
             raise StoreError(f"{p}: tables {sorted({*PARTS, 'manifest'} - names)} are absent")
         man = {s: [n, h] for s, n, h in con.execute("SELECT section, n, sha FROM manifest")}
-        store: dict = {}
+        store: dict = {s: {} for s in man}
         for part in PARTS:
             for s, k, b in con.execute(f"SELECT section, key, body FROM {part} "
                                        "ORDER BY section, key"):
