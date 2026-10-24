@@ -227,6 +227,11 @@ def cases() -> None:
     print("  ON :", json.dumps(on, default=str)[:900])
     print("  OFF:", json.dumps(off, default=str)[:900])
     mr, n = on["min_repeat"], on["n_actions"]
+    occ = {k: len(on[k]) for k in ("case2", "case7", "case4", "seam", "cut")}
+    occ.update(case3=len(on["case3"][0]) + len(on["case3"][1]), rank_slots=on["ordered_slots"],
+               actions=n)
+    print("  occasions (ON presses per case; 0 is red):", json.dumps(occ, sort_keys=True))
+    assert all(occ.values()), ("occasions: a case had no presses", occ)
     assert on["arm"] is True and off["arm"] is False, "the switch did not reach the module"
     assert on["ordered_slots"] >= 2 and n >= 2, ("occasions: ordered slots / actions", on)
     # R-A OWN
@@ -304,6 +309,8 @@ def world_wall() -> None:
         if lf > mr:                     # an occasion: today's code pushed a dead route past MR
             seen += 1
             assert lo <= mr and on["refused"], ("WALL ON: the dead route was retaken", seed, lo)
+    print(f"  WALL occasions: {seen} of 3 seeds gave today's code (OFF) a dead route past "
+          f"MIN_REPEAT (0 is red)")
     assert seen, "WALL: no seed gave today's code a dead route past MIN_REPEAT (occasions 0)"
 
 
