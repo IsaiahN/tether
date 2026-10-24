@@ -111,16 +111,21 @@ def fresh():
 
 n_act = len(ag.actions)
 fresh()
+# each case counts only its OWN rows: the agent's warm-up steps run ON too and can refuse routes
+# (the slot's second run, 06:23: two "farther" refusals from the warm-up)
+out["warmup_refused"] = [r["why"] for r in rows("route_refused")]
+kw = len(rows("route_refused"))
 out["case2"] = press(lambda v: v, MR + 3)
-out["case2_refused"] = [r["why"] for r in rows("route_refused")]
+out["case2_refused"] = [r["why"] for r in rows("route_refused")[kw:]]
 fresh()
 k0 = len(rows("route_refused"))
 out["case7"] = press(lambda v: v - 1, 3)
 out["case7_refused"] = [r["why"] for r in rows("route_refused")[k0:]]
 fresh()
 ag._hyp = {"slots": [sl], "acted": collections.Counter()}
+ke = len(rows("route_exhausted"))
 out["case4"] = press(lambda v: v, MR * n_act + 2)
-out["case4_exhausted"] = len(rows("route_exhausted"))
+out["case4_exhausted"] = len(rows("route_exhausted")) - ke
 out["case4_ended"] = list(ended)
 ag._hyp = None
 fresh()
@@ -341,7 +346,8 @@ def off_identity() -> None:
           f"{sorted(off_c - off_b)}, removed {sorted(off_b - off_c)}; dropped by name "
           f"{list(tree_ids)}")
     assert on_b == on_c, ("arms: the ON lists differ", sorted(on_b ^ on_c))
-    assert off_c - off_b == {"TETHER_ROUTE_REFUSE"} and not off_b - off_c, (
+    # the arms row names a switch by its module variable (tether._ROUTE_REFUSE), not its env name
+    assert off_c - off_b == {"tether._ROUTE_REFUSE"} and not off_b - off_c, (
         "arms: the OFF lists differ by more than the switch", sorted(off_b ^ off_c))
     for a in arms:
         for k in tree_ids + ("on", "off"):
