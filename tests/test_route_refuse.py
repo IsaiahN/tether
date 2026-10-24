@@ -113,19 +113,25 @@ n_act = len(ag.actions)
 fresh()
 # each case counts only its OWN rows: the agent's warm-up steps run ON too and can refuse routes
 # (the slot's second run, 06:23: two "farther" refusals from the warm-up)
-out["warmup_refused"] = [r["why"] for r in rows("route_refused")]
+def key(r):
+    return [r["intent"], r["action"], r["coord"], r["context"]]
+
+
+out["warmup_refused"] = [[r["why"]] + key(r) for r in rows("route_refused")]
 kw = len(rows("route_refused"))
 out["case2"] = press(lambda v: v, MR + 3)
 out["case2_refused"] = [r["why"] for r in rows("route_refused")[kw:]]
+out["case2_keys"] = [key(r) for r in rows("route_refused")[kw:]]
 fresh()
 k0 = len(rows("route_refused"))
 out["case7"] = press(lambda v: v - 1, 3)
 out["case7_refused"] = [r["why"] for r in rows("route_refused")[k0:]]
 fresh()
 ag._hyp = {"slots": [sl], "acted": collections.Counter()}
-ke = len(rows("route_exhausted"))
+ke, kr = len(rows("route_exhausted")), len(rows("route_refused"))
 out["case4"] = press(lambda v: v, MR * n_act + 2)
 out["case4_exhausted"] = len(rows("route_exhausted")) - ke
+out["case4_keys"] = [key(r) for r in rows("route_refused")[kr:]]
 out["case4_ended"] = list(ended)
 ag._hyp = None
 fresh()
@@ -251,20 +257,27 @@ def cases() -> None:
     assert len(set(off["case2"])) == 1 and len(off["case2"]) > mr, ("CASE 2: today repeats",
                                                                    off["case2"])
     assert not off["case2_refused"], "CASE 2 OFF: a route_refused row"
-    assert on["case2_refused"][:1] == ["no_shrink"], ("CASE 2 ON: no no_shrink refusal",
-                                                     on["case2_refused"])
+    # each case's OWN rows: non-empty, and every one carrying the case's expected reason (06:28)
+    assert on["case2_refused"] and set(on["case2_refused"]) == {"no_shrink"}, (
+        "CASE 2 ON: its own refusals are not all no_shrink", on["case2_refused"])
+    warm = [w[1:] for w in on["warmup_refused"]]
+    print(f"  warm-up refusals ON ({len(warm)}): " + json.dumps(on["warmup_refused"])[:600])
+    assert not [k for k in warm if k in on["case2_keys"] or k in on["case4_keys"]], (
+        "a warm-up refusal shares a route key with case 2 or case 4", warm)
     assert len(set(on["case2"][:mr])) == 1 and on["case2"][mr] != on["case2"][0], (
         "CASE 2 ON: the refused route was retaken", on["case2"])
     # CASE 7, farther
     assert len(set(off["case7"])) == 1, ("CASE 7: today retakes after farther", off["case7"])
-    assert on["case7_refused"][:1] == ["farther"], ("CASE 7 ON: no farther refusal",
-                                                   on["case7_refused"])
+    assert on["case7_refused"] and set(on["case7_refused"]) == {"farther"}, (
+        "CASE 7 ON: its own refusals are not all farther", on["case7_refused"])
     assert on["case7"][1] != on["case7"][0], ("CASE 7 ON: retaken after farther", on["case7"])
     # CASE 4, no route here
     assert None not in off["case4"] and not off["case4_ended"], ("CASE 4: today holds on",
                                                                  off["case4"])
     assert on["case4_exhausted"] >= 1 and None in on["case4"], ("CASE 4 ON: no exhaustion",
                                                                 on["case4"])
+    assert on["case4_keys"] and len(on["case4_keys"]) == n, (
+        "CASE 4 ON: not one own refusal per action", len(on["case4_keys"]), n)
     assert on["case4_ended"][:1] == [["stalled", "routes"]], ("CASE 4 ON: the hypothesis did not "
                                                               "end by routes", on["case4_ended"])
     # CASE 3, detour: the refusal binds only in its own context
@@ -347,14 +360,15 @@ def off_identity() -> None:
           f"{list(tree_ids)}")
     assert on_b == on_c, ("arms: the ON lists differ", sorted(on_b ^ on_c))
     # the arms row names a switch by its module variable (tether._ROUTE_REFUSE), not its env name
-    assert off_c - off_b == {"tether._ROUTE_REFUSE"} and not off_b - off_c, (
-        "arms: the OFF lists differ by more than the switch", sorted(off_b ^ off_c))
+    assert off_c == off_b | {"tether._ROUTE_REFUSE"} and "tether._ROUTE_REFUSE" not in off_b, (
+        "arms: the OFF lists are not exactly the base's plus the switch", sorted(off_b ^ off_c))
     for a in arms:
         for k in tree_ids + ("on", "off"):
             a.pop(k, None)
     bad = compare(base, cur, set())
     print(f"  OFF identity against {rev[:12]}: {len(base)} base rows, {len(cur)} current, "
-          f"{len(bad)} difference(s)" + "".join(f"\n    {x}" for x in bad))
+          f"{min(len(base), len(cur))} compared, {len(bad)} differing"
+          + "".join(f"\n    {x}" for x in bad))
     assert len(base) > 50 and not bad, ("OFF identity", len(bad))
     assert not any(r["event"] in ("route_refused", "route_exhausted") for r in cur), "OFF rows"
 
