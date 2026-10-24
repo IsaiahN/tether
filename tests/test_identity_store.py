@@ -56,18 +56,61 @@ tree, out, mode, n, which = sys.argv[1:6]
 sys.path = ([tree, tree + "/tests"]
             + [p for p in sys.path if "scratchpad" not in p.replace("\\", "/")])
 os.chdir(tree)
-import arc_holdout
+import arc_holdout, cap
 from test_entry import FakeWrapper
 class Arc:
     def make(self, _game):
         return FakeWrapper()
+agents, wire0 = [], arc_holdout.wire
+def wire(*a, **k):                      # read-only: keeps each agent so its deadline is read
+    got = wire0(*a, **k)
+    agents.append(got[1])
+    return got
+arc_holdout.wire = wire
 kw = {"lineage": {"lineage_dir": os.path.join(out, "lineage")},
       "library": {"library": os.path.join(out, "lib.json")}, "absent": {}}[mode]
 r = arc_holdout.play("fake", int(n), arc=Arc(), led_path=os.path.join(out, which + ".jsonl"), **kw)
+r["_witness"] = {"deadline": [a.deadline for a in agents], "cap_AT": cap.AT, "agents": len(agents)}
 with open(os.path.join(out, which + ".result.json"), "w", encoding="utf-8") as fh:
     json.dump(r, fh, default=str, sort_keys=True)
 print("played")
 '''
+
+
+# THE TIMING MASK, BY NAME (WATSON ruling 5, the reviewer 2026-10-24 13:00): wall seconds the store
+# measures around its own writes. Applied ONLY when the play's witness reads deadline None and
+# cap.AT None, because reserve_s IS read under a deadline.
+ROW_MASK = (("end_path", "stored"),     # {s, sleep_s}: wall seconds of the end-path store
+            ("end_path", "wall_s"),     # wall seconds of the end path
+            ("end_path", "reserve_s"))  # the carried end_path.s; read by _think_until UNDER A
+#                                         DEADLINE (lineage.py 973-976, tether.py 15939-15944)
+STORE = ("persistence", "lineage", "store")
+RESULT_MASK = (STORE + ("end_path",),            # {s, sleep_s}, the same wall seconds
+               STORE + ("s_commit",),            # wall seconds of the commit
+               STORE + ("s_fsync",),             # wall seconds of the fsync
+               STORE + ("s_read",),              # wall seconds of the reads
+               STORE + ("s_statements",),        # wall seconds of the statements
+               STORE + ("sleep", "s_checkpoint"),   # wall seconds of the checkpoint
+               STORE + ("sleep", "s_quick_check"))  # wall seconds of the quick check
+DB_MASK = (("meta", "end_path"),)   # the meta row keyed 'end_path': the same {s, sleep_s}
+
+
+def _witness(res: dict, label: str) -> None:
+    w = res.get("_witness") or {}
+    print(f"  {label} deadline: {w.get('deadline')}, cap.AT: {w.get('cap_AT')}, "
+          f"agents {w.get('agents')}", flush=True)
+    assert w.get("agents") and all(x is None for x in w["deadline"]) and w.get("cap_AT") is None, (
+        "a deadline is set: the timing mask must not apply (WATSON ruling 5)", label, w)
+
+
+def _mask_result(res: dict) -> dict:
+    for path in RESULT_MASK:
+        d = res
+        for k in path[:-1]:
+            d = d.get(k) if isinstance(d, dict) else None
+        if isinstance(d, dict):
+            d.pop(path[-1], None)
+    return res
 
 
 def _under_tmp(p: str) -> str:
@@ -101,7 +144,9 @@ def _db_rows(path: str, scratch: str) -> dict:
     try:
         names = [r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table' "
                                            "ORDER BY name")]
-        return {t: sorted(map(repr, con.execute(f'SELECT * FROM "{t}"'))) for t in names}
+        masked = {t: {k for tt, k in DB_MASK if tt == t} for t in names}
+        return {t: sorted(repr(r) for r in con.execute(f'SELECT * FROM "{t}"')
+                          if not (r and r[0] in masked[t])) for t in names}
     finally:
         con.close()
 
@@ -137,6 +182,9 @@ def _rows(path: str) -> list:
         if r.get("slot") == "@run" and r.get("event") == "arms":
             for k in DROP:
                 r["detail"].pop(k, None)
+        for ev, f in ROW_MASK:
+            if r.get("event") == ev and isinstance(r.get("detail"), dict):
+                r["detail"].pop(f, None)
     return rows
 
 
@@ -186,10 +234,11 @@ def main() -> None:
             seen[side] = {}
             for which in plays:
                 _child(tree, out, mode, n, which)
-                seen[side][which] = {"rows": _rows(os.path.join(out, which + ".jsonl")),
-                                     "files": _files(out, d)}
                 with open(os.path.join(out, which + ".result.json"), encoding="utf-8") as fh:
-                    seen[side][which]["result"] = json.load(fh)
+                    res = json.load(fh)
+                _witness(res, f"{side} {which}")      # before any mask applies (ruling 5)
+                seen[side][which] = {"rows": _rows(os.path.join(out, which + ".jsonl")),
+                                     "files": _files(out, d), "result": _mask_result(res)}
                 print(f"  {side} {which}: {len(seen[side][which]['rows'])} rows, files "
                       f"{sorted(seen[side][which]['files'])}, {time.time() - T0:.0f} s", flush=True)
             shutil.move(out, os.path.join(d, f"out_{side}"))
