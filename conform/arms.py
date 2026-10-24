@@ -1131,8 +1131,14 @@ ARMS: dict[str, str] = {
                            "on a level edge and on a death), withheld from that intent in that "
                            "context; none left: route_exhausted, a held hypothesis ends "
                            "by=routes. Known limits: delayed effects (R-E) can be refused early; "
-                           "no carry across a death (R-D, open). OFF: today's trend and goal "
-                           "exit. default OFF (the 20:55 away rules; ON is Isaiah's word)",
+                           "no carry across a death (R-D, open). R-C (the reviewer 2026-10-24 "
+                           "09:30, 09:37): a general intent's right-way move is reached; a "
+                           "specific one's (interface.Specific) overshoot is corrected toward "
+                           "its target (route_corrected / route_uncorrected), never refused, "
+                           "and refused after MIN_REPEAT non-shrinking overshoots. OFF: today's "
+                           "trend and goal exit. default ON (WATSON ruling, the reviewer "
+                           "2026-10-24 11:18, Isaiah's behalf; ONCMP2 held; the reversal is the "
+                           "first ARC game run after the merge)",
     "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
                          "05:52): the life's kind_dk stays on disk, read through a snapshot "
                          "held from load (one read transaction, lineage.DkSnapshot) -- each "

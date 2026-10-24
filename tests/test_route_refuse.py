@@ -1,4 +1,4 @@
-"""R-A + R-B, PROGRESS AND THE ROUTE (TETHER_ROUTE_REFUSE, default OFF; WATSON, Isaiah 2026-10-23
+"""R-A + R-B, PROGRESS AND THE ROUTE (TETHER_ROUTE_REFUSE, default ON; WATSON, Isaiah 2026-10-23
 19:21 "Approved"; the build design accepted by the reviewer 22:12). Each case runs at the real
 sites -- trend_of / shrinking, _goal_choice, _goal_split, _test_row -- on the wired fake agent, ON
 and OFF, in its own process; each asserts its occasions and that OFF (today's code) shows the
@@ -346,7 +346,7 @@ def off_identity() -> None:
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
             tf.extractall(d, filter="data")
         base = child(PLAIN, d, None, 30)["rows"]
-    cur = child(PLAIN, root, None, 30)["rows"]
+    cur = child(PLAIN, root, "0", 30)["rows"]     # forced OFF: the default is ON since the flip
     # the arms row's TREE PROVENANCE differs between any two trees by construction (the slot's first
     # run, 2026-10-24 06:05): its seven keys are dropped BY NAME. The switch lists are ASSERTED, not
     # dropped (the reviewer 06:08): ON identical, OFF differing by TETHER_ROUTE_REFUSE alone

@@ -594,9 +594,11 @@ _R4_RECORD = armflag.arm("TETHER_R4_RECORD", default=True)
 # is unchanged for every other reader. R-B: a ROUTE -- (intent, realised action and coord, contact
 # context) at the goal exit -- is refused after MIN_REPEAT non-closing readings or one "farther",
 # kept for the level (Fig 6 :42-46), and withheld from that intent in that context; the intention
-# stays and asks for another route (Fig 13 :121). DEFAULT OFF tonight (the 20:55 away rules); ON is
-# Isaiah's word. OFF: today's trend and today's goal exit.
-_ROUTE_REFUSE = armflag.arm("TETHER_ROUTE_REFUSE", default=False)
+# stays and asks for another route (Fig 13 :121). R-C: course correction (a general intent's
+# right-way move reaches; a specific one's overshoot is corrected, never refused). DEFAULT ON (the
+# reviewer's WATSON ruling 2026-10-24 11:18, Isaiah's behalf; ONCMP2 held); reverted if the
+# first ARC game run after the merge reads worse. OFF: today's trend and today's goal exit.
+_ROUTE_REFUSE = armflag.arm("TETHER_ROUTE_REFUSE", default=True)
 # 7a D5, SPLIT A SLOT'S RESIDUAL ON STRAIN (Fig 9 :4-5, :54-58; the reviewer 2026-10-10 15:58Z).
 # ON; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term
 # gets right from the rows it gets wrong (at least 2 each side), the slot gets two PARTS: the
