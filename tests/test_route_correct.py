@@ -12,7 +12,8 @@ the reviewer 09:30 RC1-RC5, 09:37 alpha). Run with TETHER_ROUTE_REFUSE ON. They 
   RC1  a SPECIFIC target, a press that passes it: graded "overshot", never "farther"; not refused
   RC2  then the next goal exit issues the CORRECTION: the same target, the reversed sign, its
        action from the record, a route_corrected row; with no reverse action recorded, a
-       route_uncorrected row ("no correction known"), nothing pressed, the route kept
+       route_uncorrected row ("no correction known"), nothing pressed, the route kept -- ONCE:
+       the pending correction is cleared, so the next exit is no abstention for it (09:46)
   RC3  a GENERAL intent ("+"), a right-way move of 3: "reached" (the pre-registered overshoot
        must-fail of 496dadc, under alpha)
   RC4  a GENERAL intent, the wrong way: "farther", refused at once -- a PRESERVATION check: it
@@ -65,7 +66,7 @@ else:
     ag._goal_target = lambda s, bf: bf[s] + 1          # today's nominal target: before + 1
 ag._route_refused, ag._route_run, ag._test = {}, {}, None
 k0 = len(ag.led.rows())
-MOVES = {"RC1": [(43, 85)], "RC2a": [(43, 85), (85, 40)], "RC2b": [(43, 85), (85, 85)],
+MOVES = {"RC1": [(43, 85)], "RC2a": [(43, 85), (85, 40)], "RC2b": [(43, 85), (85, 85), (85, 85)],
          "RC3": [(43, 46)], "RC4": [(43, 38)], "RC5": [(43, 50), (50, 38), (38, 50), (50, 38)]}
 presses = []
 for value, after in MOVES[case]:
@@ -139,6 +140,11 @@ def check(case: str, r: dict) -> list[str]:
                 bad.append(f"something was pressed with no correction known: {p[1]['action']!r}")
             if why:
                 bad.append(f"the route was refused: {why}")
+            # the reviewer 09:46 (no deadlock): it abstains ONCE, then the pending correction is
+            # cleared -- the exit after it is no abstention for that same correction
+            if "route_uncorrected" in p[2]["events"] or len(unk) != 1:
+                bad.append(f"the pending correction was not cleared: {len(unk)} route_uncorrected "
+                           f"rows, press 3 events {p[2]['events']}")
     elif case == "RC3":
         assert p[0]["after"] - p[0]["before"] == 3 and p[0]["intent"], "occasion: no +3 press"
         if p[0]["outcome"] != "reached":
