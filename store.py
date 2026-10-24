@@ -134,6 +134,38 @@ class StoreError(Exception):
     """A learned store that is missing, empty or fails a digest: named, never read as empty."""
 
 
+# THE DB'S SEARCHES (the census Q-s; the reviewer 2026-10-24 16:57): each expression is written
+# once, here, and both its index and its query are built from it, so the two cannot drift.
+DK = "json_extract(key, '$[0]')"
+LANDED = "json_extract(body, '$.in_landed') = 1"
+KIND_FILTERS = {"nocount": f"json_extract(body, '$.has_n') = 0 AND {LANDED}",
+                "t2": f"json_extract(body, '$.no_dk') = 1 AND {LANDED}"}
+INDEXES = {
+    "perception_dk": (f"CREATE INDEX perception_dk ON perception({DK}, key) "
+                      "WHERE section = 'kind_dk'"),
+    **{f"kind_{f}": (f"CREATE INDEX kind_{f} ON perception(key, body) "   # covering
+                     f"WHERE section = 'kind' AND {w}") for f, w in KIND_FILTERS.items()}}
+SEARCHES = {        # name -> (query, the index that must answer it)
+    "S-1": (f"SELECT key, body FROM perception WHERE section = 'kind_dk' AND {DK} = ? "
+            "AND json_extract(body, '$.n') != 0 ORDER BY key", "perception_dk"),
+    "S-2": ("SELECT body FROM learned WHERE section = 'held' AND key = ?", "PRIMARY KEY"),
+    **{f"C-{f}": (f"SELECT key, body FROM perception WHERE section = 'kind' AND {w} ORDER BY key",
+                  f"kind_{f}") for f, w in KIND_FILTERS.items()}}
+
+
+def db_search(d: str | Path, name: str, *args: Any) -> list:
+    """One of the census's searches on the db form: [(key, body)] or [(body,)], as SQLite gives."""
+    import sqlite3
+    p = Path(d) / DB_FILE
+    if not p.exists():
+        raise StoreError(f"{p} is absent")
+    con = sqlite3.connect(f"file:{p.as_posix()}?mode=ro", uri=True)
+    try:
+        return con.execute(SEARCHES[name][0], args).fetchall()
+    finally:
+        con.close()
+
+
 def part_of(section: str) -> str:
     return "perception" if section in PERCEPTION else "learned"
 
@@ -212,6 +244,9 @@ def _db_write(p: Path, man: dict, store: dict) -> None:
                             ((s, k, store[s][k]) for k in sorted(store[s])))
         con.executemany("INSERT INTO manifest VALUES (?, ?, ?)",
                         ((s, n, h) for s, (n, h) in sorted(man.items())))
+        for sql in INDEXES.values():
+            con.execute(sql)
+        con.execute("ANALYZE")     # the planner's statistics: without them it prefers the PK
         con.commit()
     finally:
         con.close()

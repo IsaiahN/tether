@@ -305,6 +305,68 @@ def m2c(live: Path, out: Path, scratch: Path, drop_meta: str | None = None) -> i
     return 1 if bad else 0
 
 
+def m2c_raw(live: Path, rebuilt: Path) -> int:
+    """M2c-raw (17:24): every table's RAW rows, ids as stored and in primary-key order, rebuilt vs
+    live by a streamed sha256, with no decode: encode_rows must reproduce the exact ids."""
+    a, b = ro(live), ro(rebuilt)
+    bad = []
+    for tb in sorted(set(tables(a)) | set(tables(b))):
+        out = []
+        for con in (a, b):
+            cols, keys = columns(con, tb)
+            h, n = hashlib.sha256(), 0
+            for r in con.execute(f"SELECT {', '.join(cols)} FROM {tb} ORDER BY {', '.join(keys)}"):
+                h.update(repr(r).encode())
+                n += 1
+            out.append((n, h.hexdigest()))
+        ok = out[0] == out[1]
+        bad += [] if ok else [tb]
+        print(f"M2c-raw {tb}: {'EQUAL' if ok else 'DIFFERS'} live {out[0][0]:,} {out[0][1][:16]} | "
+              f"rebuilt {out[1][0]:,} {out[1][1][:16]}")
+    a.close()
+    b.close()
+    print(f"M2c-raw: {len(bad)} tables differing {bad}")
+    return 1 if bad else 0
+
+
+def idx(out: Path, dbdir: Path | None = None) -> int:
+    """The census's searches on the db form (the reviewer 16:57): the plan names the search's index;
+    the index's stored SQL holds the very expression its query uses; and the db's answer equals the
+    same filter applied in Python to the json form."""
+    dbdir = dbdir or out / "db"
+    con = sqlite3.connect(f"file:{(dbdir / store.DB_FILE).as_posix()}?mode=ro", uri=True)
+    sql = dict(con.execute("SELECT name, sql FROM sqlite_master WHERE type = 'index'"))
+    js = store.learned_load("json", out / "json")
+    dk = json.loads(min(js["kind_dk"]))[0]
+    hk = min(js["held"])
+    want = {"S-1": sorted((k, b) for k, b in js["kind_dk"].items()
+                          if json.loads(k)[0] == dk and json.loads(b)["n"] != 0),
+            "S-2": [(js["held"][hk],)]}
+    for f in store.KIND_FILTERS:
+        col = "has_n" if f == "nocount" else "no_dk"
+        val = 0 if f == "nocount" else 1
+        want[f"C-{f}"] = sorted((k, b) for k, b in js["kind"].items()
+                                if json.loads(b)[col] == val and json.loads(b)["in_landed"] == 1)
+    args = {"S-1": (dk,), "S-2": (hk,)}
+    bad = []
+    for name, (q, ix) in store.SEARCHES.items():
+        plan = " / ".join(r[3] for r in con.execute("EXPLAIN QUERY PLAN " + q, args.get(name, ())))
+        used = ("USING PRIMARY KEY (section=? AND key=?)" in plan if ix == "PRIMARY KEY"
+                else f"INDEX {ix} " in plan + " ")
+        expr = (True if ix == "PRIMARY KEY" else
+                store.DK in (sql.get(ix) or "") if name == "S-1" else
+                store.KIND_FILTERS[name[2:]] in (sql.get(ix) or ""))
+        got = con.execute(q, args.get(name, ())).fetchall()
+        ok = used and expr and got == want[name]
+        bad += [] if ok else [name]
+        print(f"IDX {name}: {'OK' if ok else 'RED'} plan [{plan}]; index {ix} "
+              f"{'holds' if expr else 'LACKS'} the query's expression; {len(got)} rows, "
+              f"{'==' if got == want[name] else '!='} json's {len(want[name])}")
+    con.close()
+    print(f"IDX: {len(bad)} searches red {bad}")
+    return 1 if bad else 0
+
+
 def m2d(live: Path, scratch: Path) -> int:
     import lineage_store as ls
 
@@ -353,9 +415,11 @@ def s1(out: Path) -> int:
     return 1 if bad else 0
 
 
-def s2(out: Path, scratch: Path) -> int:
+def s2(out: Path, scratch: Path, only: str | None = None) -> int:
     bad = 0
     for first, second in (("json", "db"), ("db", "json")):
+        if only and first != only:      # one direction per run, under the cap
+            continue
         a = store.learned_load(first, out / first)
         for i in range(100):
             a.setdefault("evidence", {})[j(["s2", i])] = j({"row": f"probe {i}"})
@@ -499,9 +563,13 @@ def main(argv: list) -> int:
     if cmd == "m2c":
         drop = next((a.split("=", 1)[1] for a in argv if a.startswith("--drop-meta=")), None)
         return m2c(rest[0], rest[1], rest[2], drop)
-    fn = {"m2a": m2a, "m2b": m2b, "m2d": m2d, "s1": s1, "s2": s2, "s3": s3, "b6": b6}.get(cmd)
+    fn = {"m2a": m2a, "m2b": m2b, "m2c_raw": m2c_raw, "m2d": m2d, "s1": s1, "s2": s2,
+          "s3": s3, "b6": b6, "idx": idx}.get(cmd)
     if cmd == "b1":
         return b1(rest[0], argv[2])
+    if cmd == "s2":
+        first = next((a.split("=", 1)[1] for a in argv if a.startswith("--first=")), None)
+        return s2(rest[0], rest[1], first)
     return fn(*[p for p in rest if isinstance(p, Path)])
 
 
