@@ -5,6 +5,9 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 runs/
+# the DB form of the GIVEN library: a build output, never committed (WATSON ruling 9 A5)
+library/library.db
+library/library.db.part
 docs/deps.svg
 .env
 

@@ -1,0 +1,19 @@
+# store step (3)'s landing (WATSON ruling 9 A6): the GIVEN files that moved into given / frame / index
+moved atoms.json
+moved molecules.json
+moved agent_atoms.json
+moved relations.json
+moved readings.json
+moved domains.json
+moved clusters.json
+moved index.json        # REPLACED in place: the same name, the new shape (index + tag)
+moved tag_index.json
+moved grid_groundings.json
+moved reads_explicit.json
+moved DEDUP_LOG.json
+moved ROLES_LOG.json
+moved orientation_draft.json
+moved sharpened_2026_10_08.txt
+added given.json
+added frame.json
+added MANIFEST.md

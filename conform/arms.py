@@ -1136,9 +1136,8 @@ ARMS: dict[str, str] = {
                            "specific one's (interface.Specific) overshoot is corrected toward "
                            "its target (route_corrected / route_uncorrected), never refused, "
                            "and refused after MIN_REPEAT non-shrinking overshoots. OFF: today's "
-                           "trend and goal exit. default ON (WATSON ruling, the reviewer "
-                           "2026-10-24 11:18, Isaiah's behalf; ONCMP2 held; the reversal is the "
-                           "first ARC game run after the merge)",
+                           "trend and goal exit. default ON (Isaiah 2026-10-24 14:16: 'just "
+                           "keep the switch on period')",
     "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
                          "05:52): the life's kind_dk stays on disk, read through a snapshot "
                          "held from load (one read transaction, lineage.DkSnapshot) -- each "

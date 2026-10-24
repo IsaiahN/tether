@@ -1,6 +1,6 @@
 # RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
 # git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
-# RELATIONS.md's live successor: library/relations.json + LIBRARY_SPEC section 3.
+# RELATIONS.md's live successor: library/given.json (kind RELATION) + LIBRARY_SPEC section 3.
 """The loop. Steps 1 to 5.
 
 One track: an action is proposed by an utterance that type-checks and passes the gate, or
@@ -596,9 +596,8 @@ _R4_RECORD = armflag.arm("TETHER_R4_RECORD", default=True)
 # context) at the goal exit -- is refused after MIN_REPEAT non-closing readings or one "farther",
 # kept for the level (Fig 6 :42-46), and withheld from that intent in that context; the intention
 # stays and asks for another route (Fig 13 :121). R-C: course correction (a general intent's
-# right-way move reaches; a specific one's overshoot is corrected, never refused). DEFAULT ON (the
-# reviewer's WATSON ruling 2026-10-24 11:18, Isaiah's behalf; ONCMP2 held); reverted if the
-# first ARC game run after the merge reads worse. OFF: today's trend and today's goal exit.
+# right-way move reaches; a specific one's overshoot is corrected, never refused). default ON
+# (Isaiah 2026-10-24 14:16: 'just keep the switch on period'). OFF: today's trend and goal exit.
 _ROUTE_REFUSE = armflag.arm("TETHER_ROUTE_REFUSE", default=True)
 # 7a D5, SPLIT A SLOT'S RESIDUAL ON STRAIN (Fig 9 :4-5, :54-58; the reviewer 2026-10-10 15:58Z).
 # ON; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term

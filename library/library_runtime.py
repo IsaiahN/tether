@@ -4,7 +4,7 @@ REFERENCE IMPLEMENTATION by the reviewer seat (2026-10-08) at Isaiah's order, fo
 adopt, adapt and own. It touches nothing in tether.py; the wiring points are listed in
 LIBRARY_SPEC.md. Pure Python, no imports from the agent, self-test at the bottom.
 
-    SEED      library/*.json + index.json   GIVEN, read-only forever (Isaiah 2026-09-22, 2.4)
+    SEED      given/frame/index.json        GIVEN, read-only forever (Isaiah 2026-09-22, 2.4)
     RUNTIME   library/runtime.json          what the agent made or carried THIS run, all games
     LEARNINGS library/learnings.json        promoted when proven by the ground, saved apart
     lookup order: learnings -> runtime -> seed; first hit wins. Ablation: wipe learnings, rerun.
@@ -66,6 +66,147 @@ try:
 except ImportError:     # the library built or read alone (build_library: the builder, by role)
     def _read_text(p: Path) -> str:
         return Path(p).read_text(encoding="utf-8")
+
+# ---------------------------------------------------------------- the GIVEN layout (store step 3)
+# THE 15 OLD FILES LIVE IN THREE (Isaiah 2026-10-24 08:22-08:39; the reviewer 08:49 C6/C7, 14:34
+# WATSON ruling 9): given.json (the 4,048 entries with their existing kind, the build's folded
+# inputs, the frozen records, the pending list), frame.json (readings, domains, clusters as rows)
+# and index.json (index + tag_index). grammar.json stays as it is. old_files() serves every reader
+# the OLD shape, in the OLD key order, so nothing below a read changes.
+GIVEN_FILE, FRAME_FILE, INDEX_FILE = "given.json", "frame.json", "index.json"
+ENTRY_FILES = (("atoms.json", "atoms", "PERCEPT"), ("molecules.json", "molecules", "COMPOSITE"),
+               ("agent_atoms.json", "atoms", "PRIMITIVE"),
+               ("relations.json", "relations", "RELATION"))
+FRAME_FILES = (("readings.json", "readings", "READING"), ("domains.json", "domains", "DOMAIN"),
+               ("clusters.json", "clusters", "CLUSTER"))
+FOLDED = (("grid_groundings.json", "@grounding"), ("reads_explicit.json", "@reads_explicit"))
+RECORDS = (("DEDUP_LOG.json", "dedup_log"), ("ROLES_LOG.json", "roles_log"),
+           ("sharpened_2026_10_08.txt", "sharpened"))
+MOVED = tuple(f for f, *_ in ENTRY_FILES + FRAME_FILES) + ("index.json", "tag_index.json") + tuple(
+    f for f, _ in FOLDED) + ("DEDUP_LOG.json", "ROLES_LOG.json", "orientation_draft.json",
+                             "sharpened_2026_10_08.txt")
+# the build's DERIVED entry fields (build_library.py docstring, OUTPUTS); the rest are SOURCE
+DERIVED_FIELDS = ("kind", "grid", "reads", "affects", "substrate", "run", "roles")
+_FRAME_NAMES = tuple(f for f, *_ in FRAME_FILES)
+_INDEX_NAMES = ("index.json", "tag_index.json")
+
+
+def dumps(obj) -> str:
+    """The build's one JSON form (indent 1, UTF-8 kept, no trailing newline): every file here."""
+    return json.dumps(obj, ensure_ascii=False, indent=1)
+
+
+def pack(old: dict) -> tuple[dict, dict, dict]:
+    """The 15 old files' contents (name -> parsed JSON, or text for the .txt) -> (given, frame,
+    index). Each old file's top-level keys keep their order in `sources`; its entries map is a
+    marker there, filled back by old_files()."""
+    given: dict = {"meta": {"what": "the GIVEN library: every entry with its kind, the build's "
+                            "folded inputs, the frozen records and the open items",
+                            "written_by": "library/build_library.py; never at runtime"},
+                   "sources": {}, "entries": {}, "records": {}, "pending": {}, "fields": {}}
+    for fname, inner, kind in ENTRY_FILES:
+        obj = old[fname]
+        given["sources"][fname] = {k: ("@entries" if k == inner else v) for k, v in obj.items()}
+        for key, e in obj[inner].items():
+            assert key not in given["entries"], ("a key held twice", key)
+            assert e.get("kind") == kind, ("an entry's kind is not its file's", key, e.get("kind"))
+            given["entries"][key] = dict(e)
+    for fname, field in FOLDED:
+        obj = old[fname]
+        whole = fname == "grid_groundings.json"       # its top level IS the key -> value map
+        mapping = obj if whole else obj["reads"]
+        given["sources"][fname] = ({"@order": list(mapping)} if whole else
+                                   {k: ({"@order": list(mapping)} if k == "reads" else v)
+                                    for k, v in obj.items()})
+        for key, v in mapping.items():
+            given["entries"][key][field] = v
+    for fname, name in RECORDS:
+        given["records"][name] = old[fname]
+    given["pending"] = {
+        "dedup_held_for_ruling": "records.dedup_log.held_for_ruling",
+        "dedup_unresolved_pairs": "records.dedup_log.unresolved_pairs",
+        "roles_unclassified": "records.roles_log.unclassified",
+        "recipes_unparsed": "BUILD_REPORT.md: ### recipe junctions unparsed",
+        "orientation_draft": old["orientation_draft.json"]}
+    given["fields"] = {"derived": list(DERIVED_FIELDS), "folded_source": [f for _, f in FOLDED],
+                       "source": "every other entry field"}
+    rows: dict = {}
+    for fname, inner, prefix in FRAME_FILES:
+        obj = old[fname]
+        rows[f"SOURCE|{fname}|@keys"] = list(obj)
+        for k, v in obj.items():
+            if k == inner:
+                for key, e in v.items():
+                    rows[f"{prefix}|{key}"] = e
+            else:
+                rows[f"SOURCE|{fname}|{k}"] = v
+    frame = {"meta": {"what": "the vocabulary the entries are written in: readings, domains and "
+                      "clusters, one row each; SOURCE| rows hold each old file's other parts",
+                      "written_by": "library/build_library.py; never at runtime"}, "rows": rows}
+    index = {"index": old["index.json"], "tag": old["tag_index.json"]}
+    return given, frame, index
+
+
+def _unpack(given: dict | None, frame: dict | None, index: dict | None, names) -> dict:
+    out: dict = {}
+    folded, records = dict(FOLDED), dict(RECORDS)
+    for name in names:
+        hit = next(((inner, kind) for f, inner, kind in ENTRY_FILES if f == name), None)
+        if hit and given is not None:
+            inner, kind = hit
+            ents = {k: {f: v for f, v in e.items() if not f.startswith("@")}
+                    for k, e in given["entries"].items() if e.get("kind") == kind}
+            out[name] = {k: (ents if v == "@entries" else v)
+                         for k, v in given["sources"][name].items()}
+        elif name in folded and given is not None:
+            field, src = folded[name], given["sources"][name]
+            if name == "grid_groundings.json":
+                out[name] = {k: given["entries"][k][field] for k in src["@order"]}
+            else:
+                out[name] = {k: ({x: given["entries"][x][field] for x in v["@order"]}
+                                 if isinstance(v, dict) and "@order" in v else v)
+                             for k, v in src.items()}
+        elif name in records and given is not None:
+            out[name] = given["records"][records[name]]
+        elif name == "orientation_draft.json" and given is not None:
+            out[name] = given["pending"]["orientation_draft"]
+        elif name in _FRAME_NAMES and frame is not None:
+            _, inner, prefix = next(x for x in FRAME_FILES if x[0] == name)
+            rows, p = frame["rows"], prefix + "|"
+            out[name] = {k: ({r[len(p):]: e for r, e in rows.items() if r.startswith(p)}
+                             if k == inner else rows[f"SOURCE|{name}|{k}"])
+                         for k in rows[f"SOURCE|{name}|@keys"]}
+        elif name in _INDEX_NAMES and index is not None:
+            out[name] = index["index" if name == "index.json" else "tag"]
+    return out
+
+
+def old_files(root: str | Path, names) -> dict:
+    """The old files' contents, FRESH on every call (each reader gets its own objects, as each
+    parsed its own file before), from given / frame / index when given.json exists, else from the
+    old files themselves (the migration's first build). A name present in neither is absent."""
+    root = Path(root)
+    if (root / GIVEN_FILE).exists():
+        def rd(n):
+            return json.loads(_read_text(root / n)) if (root / n).exists() else None
+        g = rd(GIVEN_FILE) if any(n not in _FRAME_NAMES + _INDEX_NAMES for n in names) else None
+        f = rd(FRAME_FILE) if any(n in _FRAME_NAMES for n in names) else None
+        i = rd(INDEX_FILE) if any(n in _INDEX_NAMES for n in names) else None
+        return _unpack(g, f, i, names)
+    out = {}
+    for n in names:
+        p = root / n
+        if p.exists():
+            out[n] = _read_text(p) if n.endswith(".txt") else json.loads(_read_text(p))
+    return out
+
+
+def write_packed(root: str | Path, old: dict) -> None:
+    """given / frame / index written from the 15 old contents, in the build's one form."""
+    root = Path(root)
+    for name, obj in zip((GIVEN_FILE, FRAME_FILE, INDEX_FILE), pack(old), strict=True):
+        (root / name).write_text(dumps(obj), encoding="utf-8", newline="\n")
+
 
 PRIOR, MINTED, IMPORTED, INVENTED = "prior", "minted", "imported", "invented"
 BONDS = ("+", "∥", "≡", "→", "⇒", "−", "⋛")
@@ -302,7 +443,9 @@ class Library:
 
     # ---------------------------------------------------------------- loading
     def load(self) -> Library:
-        j = lambda n: json.loads(_read_text(self.root / n))  # noqa: E731
+        old = old_files(self.root, ("readings.json", "atoms.json", "molecules.json",
+                                    "agent_atoms.json", "relations.json", "index.json"))
+        j = old.__getitem__     # the old shapes, served from given / frame / index (step 3)
         self.readings = j("readings.json")["readings"]
         for k, e in j("atoms.json")["atoms"].items():
             self.seed[k] = {**e, "origin": PRIOR}
@@ -872,14 +1015,7 @@ def _selftest(root: str) -> int:
     import tempfile  # noqa: E401
 
     tmp = Path(tempfile.mkdtemp())
-    for n in (
-        "atoms.json",
-        "molecules.json",
-        "agent_atoms.json",
-        "relations.json",
-        "readings.json",
-        "index.json",
-    ):
+    for n in (GIVEN_FILE, FRAME_FILE, INDEX_FILE):
         shutil.copy(Path(root) / n, tmp / n)
     lib = Library(tmp).load()
     fails = 0
@@ -1070,13 +1206,13 @@ def _selftest(root: str) -> int:
         all(c["if"].startswith("action(agent,") for c in lib.view("MEDICAL|Contagion", "AGENT")),
         "AGENT's condition is the agent's own action",
     )
-    # v5: THE AGENT'S OWN REACH (inherited.py reads agent_atoms.json + tag_index.json, nothing else)
-    R = json.loads((Path(root) / "readings.json").read_text(encoding="utf-8"))["readings"]
-    AG = json.loads((Path(root) / "agent_atoms.json").read_text(encoding="utf-8"))["atoms"]
-    held = set(json.loads((Path(root) / "atoms.json").read_text(encoding="utf-8"))["atoms"]) | set(
-        json.loads((Path(root) / "molecules.json").read_text(encoding="utf-8"))["molecules"]
-    )
-    TI = json.loads((Path(root) / "tag_index.json").read_text(encoding="utf-8"))
+    # v5: THE AGENT'S OWN REACH (inherited.py reads the agent atoms + the tag index, nothing else)
+    v5 = old_files(root, ("readings.json", "agent_atoms.json", "atoms.json", "molecules.json",
+                          "tag_index.json"))
+    R = v5["readings.json"]["readings"]
+    AG = v5["agent_atoms.json"]["atoms"]
+    held = set(v5["atoms.json"]["atoms"]) | set(v5["molecules.json"]["molecules"])
+    TI = v5["tag_index.json"]
     named = (
         {k for d in TI["by_tag"].values() for v in d.values() for k in v}
         | {k for d in TI["by_pair"].values() for v in d.values() for k in v}

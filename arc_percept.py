@@ -1,6 +1,6 @@
 # RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
 # git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
-# RELATIONS.md's live successor: library/relations.json + LIBRARY_SPEC section 3.
+# RELATIONS.md's live successor: library/given.json (kind RELATION) + LIBRARY_SPEC section 3.
 """2b. Segmented objects as slots, tracked by overlap, dying only on evidence.
 
 `DISCOVERY` Q6, SETTLED: classical segmentation, no downsampling, permanence by overlap,

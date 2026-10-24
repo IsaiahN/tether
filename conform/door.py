@@ -46,7 +46,7 @@ IO = {"open", "read_text", "read_bytes", "write_text", "write_bytes", "load", "d
 # what names a knowledge file in an expression's own source text
 TOKENS = ("library", "lineage", "memory.db", "atoms.json", "molecules.json", "readings.json",
           "index.json", "domains.json", "relations.json", "gen_", "ak_", "idx_", "bm_", "bs_",
-          "LIB", "CORPUS_INDEX")
+          "LIB", "CORPUS_INDEX", "given.json", "frame.json", "grammar.json")
 # a call THROUGH the door is the point: its receiver's root name is the door
 DOOR_NAMES = {"store", "door", "library_runtime"}
 # today's learned backends: ANY call into them from outside the door is a violation

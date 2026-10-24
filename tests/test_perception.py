@@ -94,8 +94,6 @@ def test_cue_bridge_reads_which_reading_changed():
     """M1 (the reviewer 2026-10-08 20:45Z, path B): the bridge reads the observer's DELTAS, so a
     one-row move lights drow and not dcol; the recolour is the library's colour_changed; velocity
     is seen and counted as unmapped; a blind frame and a first frame read nothing. Value-free."""
-    import json
-    import pathlib
 
     import cue_bridge
     first, second = _two_frames()
@@ -106,7 +104,7 @@ def test_cue_bridge_reads_which_reading_changed():
     assert unmapped == {"velocity": 1}, unmapped
     assert cue_bridge.changed_readings(None) == {}, "a blind frame is an abstention"
     assert cue_bridge.changed_readings(first) == {}, "a first frame has nothing to compare"
-    readings = json.loads(pathlib.Path("library/readings.json").read_text(encoding="utf-8"))
+    readings = __import__("store").library_files(("readings.json",))["readings.json"]
     assert set(got) <= set(readings["readings"]), "a key that is not a library reading"
     assert all(isinstance(n, int) and 0 < n <= second["n_objects"] for n in got.values()), (
         "the output must be counts of objects that changed, never a value a frame held")
@@ -158,8 +156,6 @@ def test_every_observer_delta_has_a_place_in_the_bridge():
     """The seat side: every delta the observer can emit is in READING or UNMAPPED, and every
     reading the table names exists in the library -- so a new observer delta fails this seat,
     not the bridge at run time. Planted: one extra observer delta must be reported."""
-    import json
-    import pathlib
 
     import cue_bridge
 
@@ -171,7 +167,7 @@ def test_every_observer_delta_has_a_place_in_the_bridge():
     rel_unplaced = sorted(set(observer.REL_KEYS) - set(cue_bridge.RELATION))
     assert not rel_unplaced, f"observer relations with no bridge row: {rel_unplaced}"
     assert unplaced(emittable + ["dWobble"]) == ["dWobble"], "a planted new delta was not seen"
-    readings = json.loads(pathlib.Path("library/readings.json").read_text(encoding="utf-8"))
+    readings = __import__("store").library_files(("readings.json",))["readings.json"]
     missing = sorted((set(cue_bridge.READING.values()) | set(cue_bridge.RELATION.values()))
                      - set(readings["readings"]))
     assert not missing, f"the bridge maps to readings the library does not hold: {missing}"

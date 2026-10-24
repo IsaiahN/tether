@@ -607,10 +607,9 @@ class Attribution:
 
     # The library as its three agent-path loaders read it: library_runtime.Library.load,
     # inherited.load and compile_term.readings. test_gate checks this list against their reads.
-    LIBRARY_FILES = ("library/library_runtime.py", "library/readings.json", "library/atoms.json",
-                     "library/molecules.json", "library/agent_atoms.json", "library/relations.json",
-                     "library/index.json", "library/tag_index.json", "library/domains.json",
-                     "library/runtime.json", "library/learnings.json")
+    # Store step (3): the three files the GIVEN layout reads (grammar.json is opened by no code).
+    LIBRARY_FILES = ("library/library_runtime.py", "library/given.json", "library/frame.json",
+                     "library/index.json", "library/runtime.json", "library/learnings.json")
 
     @staticmethod
     def blob_id(data: bytes) -> str:

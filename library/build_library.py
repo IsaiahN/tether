@@ -60,6 +60,20 @@ import sys
 from pathlib import Path
 
 LIB = Path(os.environ.get("LIBRARY_DIR") or Path(__file__).parent)
+sys.path.insert(0, str(LIB))
+# the GIVEN layout (store step 3): the build reads and writes the 15 old shapes through it
+from library_runtime import (  # noqa: E402
+    DERIVED_FIELDS,
+    FOLDED,
+    GIVEN_FILE,
+    dumps,
+    old_files,
+    write_packed,
+)
+
+PASSTHROUGH = ("readings.json", "domains.json", "clusters.json", "grid_groundings.json",
+               "reads_explicit.json", "DEDUP_LOG.json", "ROLES_LOG.json", "orientation_draft.json",
+               "sharpened_2026_10_08.txt")
 
 # --- the derivation tables (data, pinned and movable) ------------------------------------------
 GRID_TERM_READS = {
@@ -258,7 +272,20 @@ RELATION_READS = [
 
 
 def _load(name):
-    return json.loads((LIB / name).read_text(encoding="utf-8"))
+    got = old_files(LIB, (name,))
+    if name not in got:
+        raise FileNotFoundError(f"{LIB}: {name} is in neither the given layout nor the old files")
+    return got[name]
+
+
+def _write(atoms, mols, agent, rels, index, tag_index=None) -> None:
+    """given / frame / index from the build's own outputs plus the inputs it leaves unchanged."""
+    old = old_files(LIB, PASSTHROUGH + (("tag_index.json",) if tag_index is None else ()))
+    old.update({"atoms.json": atoms, "molecules.json": mols, "agent_atoms.json": agent,
+                "relations.json": rels, "index.json": index})
+    if tag_index is not None:
+        old["tag_index.json"] = tag_index
+    write_packed(LIB, old)
 
 
 def _dedup(xs):
@@ -318,7 +345,7 @@ def build(check_only: bool = False) -> dict:
     readings = _load("readings.json")["readings"]
     rels = _load("relations.json")
     explicit = (
-        _load("reads_explicit.json")["reads"] if (LIB / "reads_explicit.json").exists() else {}
+        old_files(LIB, ("reads_explicit.json",)).get("reads_explicit.json", {}).get("reads", {})
     )
     report = collections.defaultdict(list)
 
@@ -657,20 +684,8 @@ def build(check_only: bool = False) -> dict:
     )
     counts["tag_index_tags"] = len(tag_index["by_tag"])
     if not check_only:
-        (LIB / "tag_index.json").write_text(
-            json.dumps(tag_index, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n"
-        )
-        for name, obj in (
-            ("atoms.json", atoms),
-            ("molecules.json", mols),
-            ("agent_atoms.json", agent),
-            ("relations.json", rels),
-            ("index.json", index),
-        ):
-            (LIB / name).write_text(
-                json.dumps(obj, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n"
-            )
-        lines = ["# BUILD REPORT -- derived by build_library.py", "", "## Counts", ""]
+        _write(atoms, mols, agent, rels, index, tag_index)
+        lines =["# BUILD REPORT -- derived by build_library.py", "", "## Counts", ""]
         lines += [f"- {k}: {v}" for k, v in counts.items()]
         lines += ["", "## Every unresolved item, named", ""]
         for key, items in report.items():
@@ -735,16 +750,9 @@ def _write_roles(atoms, mols, agent, rels, index) -> None:
             )  # the SAME generic step a new entry goes through
             by_role[table["default"]].append(key)
     index["by_default_role"] = {r: sorted(v) for r, v in by_role.items()}
-    for name, obj in (
-        ("atoms.json", atoms),
-        ("molecules.json", mols),
-        ("agent_atoms.json", agent),
-        ("relations.json", rels),
-        ("index.json", index),
-    ):
-        (LIB / name).write_text(
-            json.dumps(obj, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n"
-        )
+    _write(atoms, mols, agent, rels, index)
+    _write_manifest()
+    _write_db(LIB / "library.db")
 
 
 _TERMS = {  # the grid-term tagger, used only where an atom carries no `grid.terms` yet
@@ -784,16 +792,116 @@ _TERMS = {  # the grid-term tagger, used only where an atom carries no `grid.ter
 }
 
 
+TABLES = ("given", "frame", "index", "grammar")   # the GIVEN side of the six (Isaiah 08:39)
+
+
+def _rows(root: Path) -> dict:
+    """The DB form's rows, from the JSON files: one table per file, (key, body). given: one row per
+    entry plus '@<section>' rows for its other parts; frame: its rows plus '@meta'; index: its two
+    sections; grammar: its top-level keys. The DB is built from these and S1 reads them back."""
+    out = {}
+    for t in TABLES:
+        obj = json.loads((root / f"{t}.json").read_text(encoding="utf-8"))
+        if t == "given":
+            rows = {**{f"@{k}": v for k, v in obj.items() if k != "entries"}, **obj["entries"]}
+        elif t == "frame":
+            rows = {"@meta": obj["meta"], **obj["rows"]}
+        else:
+            rows = dict(obj)
+        out[t] = {k: dumps(v) for k, v in rows.items()}
+    return out
+
+
+def _write_db(path: Path) -> None:
+    """library.db: the same rows as the JSON, a BUILD OUTPUT, never committed (WATSON ruling 9 A5);
+    nothing reads it until step (5)'s switch."""
+    import sqlite3
+
+    tmp = path.with_suffix(".db.part")
+    if tmp.exists():
+        tmp.unlink()
+    con = sqlite3.connect(tmp)
+    try:
+        for t, rows in _rows(LIB).items():
+            con.execute(f'CREATE TABLE "{t}" (key TEXT PRIMARY KEY, body TEXT NOT NULL)')
+            con.executemany(f'INSERT INTO "{t}" VALUES (?, ?)', rows.items())
+        con.commit()
+    finally:
+        con.close()
+    os.replace(tmp, path)
+
+
+def _s1(db: Path, root: Path) -> list:
+    """S1: per table, the DB's rows equal the JSON rows (keys and bodies), counts printed."""
+    import sqlite3
+
+    want = _rows(root)
+    con = sqlite3.connect(f"file:{db}?immutable=1", uri=True)
+    bad = []
+    try:
+        for t, rows in want.items():
+            got = dict(con.execute(f'SELECT key, body FROM "{t}"'))
+            print(f"  S1 {t}: json {len(rows)} rows, db {len(got)} rows")
+            if got != rows:
+                bad.append((t, sorted(set(got) ^ set(rows))[:5],
+                            [k for k in rows if got.get(k) != rows[k]][:5]))
+    finally:
+        con.close()
+    return bad
+
+
+def _write_manifest() -> None:
+    """MANIFEST.md: every library/ file, its role, readers and writers, and every given entry
+    field named SOURCE or DERIVED (WATSON ruling 9 A3); written by the build, compared by
+    --check."""
+    given = json.loads((LIB / GIVEN_FILE).read_text(encoding="utf-8"))
+    frame = json.loads((LIB / "frame.json").read_text(encoding="utf-8"))
+    by_kind: dict = collections.defaultdict(dict)
+    for e in given["entries"].values():
+        for f in e:
+            by_kind[e.get("kind")][f] = None
+    lines = ["# MANIFEST -- derived by build_library.py, never edited by hand", "",
+             "## Files", "",
+             "| file | role | written by | read by |", "|---|---|---|---|",
+             f"| given.json | GIVEN: {len(given['entries'])} entries + sources, records, pending"
+             " | build_library | library_runtime.old_files (Library.load, inherited.load, "
+             "libagree) |",
+             f"| frame.json | GIVEN vocabulary: {len(frame['rows'])} rows (READING, DOMAIN, "
+             "CLUSTER, SOURCE)"
+             " | build_library | old_files (Library.load, inherited.load, compile_term.readings) |",
+             "| index.json | DERIVED: index + tag | build_library | old_files (Library.load, "
+             "inherited.load) |",
+             "| grammar.json | GIVEN, verbatim | nobody | nobody (no code opens it) |",
+             "| BUILD_REPORT.md | DERIVED report | build_library | people |",
+             "| MANIFEST.md | DERIVED: this file | build_library | people |",
+             "| library.db | DERIVED: the same rows as the four JSON, NOT committed | build_library"
+             " | nothing until store step (5) |",
+             "| runtime.json, learnings.json | BUILT, absent | -- | Library.load if present |",
+             "", "## Entry fields, per kind", ""]
+    for kind, fields in by_kind.items():
+        src = [f for f in fields if f not in DERIVED_FIELDS]
+        der = [f for f in fields if f in DERIVED_FIELDS]
+        lines += [f"- {kind}: SOURCE {src}; DERIVED {der}"]
+    lines += ["", f"- folded build inputs (SOURCE): {[f for _, f in FOLDED]}", ""]
+    (LIB / "MANIFEST.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
+
+
+def _source_fields(given: dict) -> dict:
+    return {k: {f: v for f, v in e.items() if f not in DERIVED_FIELDS}
+            for k, e in given["entries"].items()}
+
+
 def check() -> int:
     """The seat check: rebuild a COPY of the library and confirm every derived file is reproduced
-    byte for byte. Derived means checkable (Figure 10)."""
+    byte for byte. Derived means checkable (Figure 10). Plus (A3) the build never computes a SOURCE
+    field: each one in its output equals its input; and (S1) the DB form holds the same rows."""
     import shutil  # noqa: E401
     import subprocess
     import tempfile
 
     tmp = Path(tempfile.mkdtemp())
     for f in LIB.iterdir():
-        if f.is_file():
+        if f.is_file() and f.suffix != ".db":
             shutil.copy(f, tmp / f.name)
     subprocess.run(
         [sys.executable, str(tmp / "build_library.py")],
@@ -801,24 +909,22 @@ def check() -> int:
         check=True,
         capture_output=True,
     )
-    bad = [
-        n
-        for n in (
-            "atoms.json",
-            "molecules.json",
-            "agent_atoms.json",
-            "relations.json",
-            "index.json",
-            "tag_index.json",
-        )
-        if (tmp / n).read_bytes() != (LIB / n).read_bytes()
-    ]
+    outs = (GIVEN_FILE, "frame.json", "index.json", "BUILD_REPORT.md", "MANIFEST.md")
+    bad = [n for n in outs if (tmp / n).read_bytes() != (LIB / n).read_bytes()]
+    gin = json.loads((LIB / GIVEN_FILE).read_text(encoding="utf-8"))
+    gout = json.loads((tmp / GIVEN_FILE).read_text(encoding="utf-8"))
+    src_in, src_out = _source_fields(gin), _source_fields(gout)
+    a3 = [(k, f) for k in src_in for f in set(src_in[k]) | set(src_out.get(k, {}))
+          if src_in[k].get(f) != src_out.get(k, {}).get(f)]
+    a3 += [(s, "*") for s in ("sources", "records", "pending") if gin[s] != gout[s]]
+    s1 = _s1(tmp / "library.db", tmp)
     shutil.rmtree(tmp)
-    print(
-        "library check:",
-        "OK -- every derived file reproduced" if not bad else f"FAIL -- not reproduced: {bad}",
-    )
-    return 1 if bad else 0
+    print("library check:",
+          "OK -- every derived file reproduced" if not bad else f"FAIL -- not reproduced: {bad}")
+    print("  A3 source fields:", "OK -- the build computes none" if not a3
+          else f"FAIL -- a SOURCE field was rewritten: {a3[:10]}")
+    print("  S1 db rows:", "OK -- the DB holds the JSON's rows" if not s1 else f"FAIL -- {s1}")
+    return 1 if bad or a3 or s1 else 0
 
 
 if __name__ == "__main__":
