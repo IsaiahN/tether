@@ -64,6 +64,28 @@ _ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=True)
 # it on"): OFF, every load is the saves' fold (14.35 GiB on the E4 life, over B); ON, that fold is
 # reached only on a refusal. TETHER_MEMORY_STORE=0 is the old path.
 _MEMORY_STORE = armflag.arm("TETHER_MEMORY_STORE", default=True)
+# STEP (5a), THE STORE AS THE TARGET (Isaiah 2026-10-24 16:48 "SQLite as the default"; the reviewer
+# 2026-10-24 19:52, 2026-10-25 00:20): under TETHER_MEMORY_STORE the store is learned.db, the
+# step (4) db form, read and merged by store_fold under lineage_store's own names, the same views
+# and the same orders. OFF: memory.db (lineage_store), as before. json is an EXPORT form only
+# (migrate_learned build), never written in play (00:20 Q3 (b)).
+_STORE_DB = armflag.arm("TETHER_STORE_DB", default=True)
+
+
+def _store_mod() -> Any:
+    """The store's module: store_fold (learned.db) under TETHER_STORE_DB, else lineage_store."""
+    if _STORE_DB:
+        import store_fold
+        return store_fold
+    import lineage_store
+    return lineage_store
+
+
+def _wal_bound() -> int | None:
+    """The WAL's size bound, one constant for both forms (lineage_store.WAL_BOUND_BYTES, the 10-19
+    ruling), read at each use so a change to it is seen."""
+    import lineage_store
+    return lineage_store.WAL_BOUND_BYTES
 # W2 (S2V; the reviewer 2026-10-21 15:38): the store load decoded a kind field's JSON once per row
 # (885,038 json.loads at one sp80 load). One load decodes each sym id once and reuses the tuple when
 # it is hashable (immutable all the way down); otherwise it decodes fresh. OFF: per row (23a9077)
@@ -378,19 +400,28 @@ def _ksorted(rows) -> list:
 def _store_base(p: Path, parent: str | None) -> tuple[Any, dict] | str:
     """Under TETHER_MEMORY_STORE: the parent's fold read from the store (a lookup), when the store's
     tip IS the parent; otherwise the reason the archive's O(life) re-fold is used instead."""
-    import lineage_store as ls
+    ls = _store_mod()
     try:
         con = ls.open_store(p)
     except ls.Refused as e:
         return f"open refused: {e}"[:300]
     try:
         ls.catch_up(con, p)
-        tip = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
+        if _STORE_DB:       # the same three reads, on the db form's rows
+            tip = (lambda v: v and (v,))(ls._meta_v(con, "last_merged"))
+            fb = con.execute("SELECT body FROM learned WHERE section = 'blob' AND key = ?",
+                             (ls.j(["fold"]),)).fetchone()
+            f = json.loads(json.loads(fb[0])["v"]) if fb else {}
+            nv = (lambda v: v and (v,))(ls._meta_v(con, "n_vindication"))
+        else:
+            tip = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
         if (tip[0] if tip else None) != parent:
             con.close()
             return f"the store's tip {tip[0] if tip else None} is not the parent {parent}"
-        f = json.loads((con.execute("SELECT v FROM blob WHERE k='fold'").fetchone() or ["{}"])[0])
-        nv = con.execute("SELECT v FROM meta WHERE k='n_vindication'").fetchone()
+        if not _STORE_DB:
+            f = json.loads((con.execute("SELECT v FROM blob WHERE k='fold'").fetchone()
+                            or ["{}"])[0])
+            nv = con.execute("SELECT v FROM meta WHERE k='n_vindication'").fetchone()
     except ls.Refused as e:
         con.close()
         return f"catch_up refused: {e}"[:300]
@@ -649,7 +680,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     if store_con is not None:
         # THE ORDER (the reviewer 07:12 item 4): the archive's files synced first, then the merge;
         # a crash between the two leaves the save unmerged, and the next open merges it
-        import lineage_store as ls
+        ls = _store_mod()
         try:
             t0 = time.perf_counter()
             for f in sorted(p.glob(f"*{h}*.json")):
@@ -661,7 +692,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             gen = terms = status = dormant = refused = None
             g = json.loads(raw)
             raw = None
-            store = ls.merge_save(store_con, p, h, g)
+            store = (ls.merge_folder_save if _STORE_DB else ls.merge_save)(store_con, p, h, g)
             g = None
             store["s_fsync"] = t_fsync
             if sleep:
@@ -673,7 +704,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                     store["end_path"] = ls.note_end_path(
                         store_con, time.perf_counter() - t0_end,
                         store["sleep"]["s_checkpoint"] + store["sleep"]["s_quick_check"])
-            elif ls.WAL_BOUND_BYTES is not None and ls.wal_bytes(p) > ls.WAL_BOUND_BYTES:
+            elif (_wal_bound() is not None and ls.wal_bytes(p) > _wal_bound()):
                 # the WAL's SIZE bound (07:12 c, 07:19 3, 08:03 3b): a checkpoint at this boundary,
                 # never mid-move; its time is a PLAY-PATH cost and is reported as one
                 store["wal_bound"] = {"wal_bytes": ls.wal_bytes(p), **ls.checkpoint(store_con)}
@@ -732,6 +763,10 @@ def _heal(p: Path, ok: bool, why: str, ls: Any = None) -> tuple[bool, str, dict]
         if ok and qc != "ok":
             ok, why = False, f"quick_check {qc}"[:200]
     if not ok and why != "no store":
+        # every connection to the store is closed before its files are set aside: a held
+        # snapshot would block the rename on Windows (h_chain f2; the reviewer 2026-10-25 00:20)
+        held = [s for s in _OPEN_DB_SNAPS if not s.closed and s.folder == p.resolve()]
+        assert not held, f"a snapshot on {p} is still open at the set-aside"
         stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
         moved, tries = [], {}
         for n in (ls.DB, f"{ls.DB}-wal", f"{ls.DB}-shm"):
@@ -851,6 +886,9 @@ class DkSnapshot:
             self.con.close()
 
 
+_OPEN_DB_SNAPS: set = set()     # the open DkSnapshotDb's: a set-aside asserts none holds the file
+
+
 class DkSnapshotDb(DkSnapshot):
     """DkSnapshot on the db form (step (5a)): the same attributes, values and ORDERS, read from
     learned.db's kind_dk rows through one held read transaction. The old SQL orders by integer sym
@@ -860,6 +898,7 @@ class DkSnapshotDb(DkSnapshot):
         import sqlite3
 
         import store_fold as sf
+        self.folder = Path(folder).resolve()
         uri = "file:" + sf.path(folder).resolve().as_posix() + "?mode=ro"
         self.con = sqlite3.connect(uri, uri=True, check_same_thread=False, isolation_level=None)
         self.con.execute("PRAGMA query_only = 1")
@@ -888,6 +927,11 @@ class DkSnapshotDb(DkSnapshot):
         self.last_k = {e: hi for e, (lo, hi) in sorted(per.items(),
                                                         key=lambda x: (x[1][0], self.sid[x[0]]))}
         self.closed = False
+        _OPEN_DB_SNAPS.add(self)
+
+    def close(self) -> None:
+        _OPEN_DB_SNAPS.discard(self)
+        super().close()
 
     def _rows_of(self, s: str) -> list:
         import store
@@ -1146,7 +1190,14 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     """load() under TETHER_MEMORY_STORE: the same agent state, built from the store. Each step
     mirrors load() below, in its order."""
     import tether
-    v = _store_view(d, ag)
+    if _STORE_DB:
+        # the db form's heal may set learned.db aside, and a held snapshot on it would block the
+        # rename (h_chain f2; the reviewer 2026-10-25 00:20, Q5): it closes BEFORE the view
+        if getattr(ag, "_dk_snap", None) is not None:
+            ag._dk_snap.close()
+        v = _store_view_db(d, ag)
+    else:
+        v = _store_view(d, ag)
     h, f, c = v["tip"], v["fold"], v["counts"]
     ag.lineage_parent = h
     if tether._END_RESERVE and v.get("end_path") is not None:
@@ -1162,7 +1213,7 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         # W-4 / W-3: the load-time snapshot, held for the game (closed at its write)
         if ag._dk_snap is not None:
             ag._dk_snap.close()
-        ag._dk_snap = DkSnapshot(d)
+        ag._dk_snap = (DkSnapshotDb if _STORE_DB else DkSnapshot)(d)
     if hasattr(ag, "_seed_from_lineage"):
         ag._seed_from_lineage(set(v["seeds"]), c["n_saves"], h)
     rep = ag.gamma.load_blob({"terms": list(f.get("rows", {}).values()),

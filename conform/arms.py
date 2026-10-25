@@ -1470,7 +1470,15 @@ ARMS: dict[str, str] = {
                            "store_refused row. default ON (Isaiah 2026-10-19 17:03 'turn it "
                            "on'; OFF every load is the saves' fold, 14.35 GiB on the E4 life). "
                            "OFF (=0): the saves' fold, as before",
-    "TETHER_ONE_PASS": "the one-pass load (the reviewer 2026-10-19 06:09 d, 06:13): lineage.load "
+    "TETHER_STORE_DB": "step (5a), the store as the target (Isaiah 2026-10-24 16:48 'SQLite as the "
+                       "default'; the reviewer 2026-10-24 19:52, 2026-10-25 00:20): under "
+                       "TETHER_MEMORY_STORE the store is learned.db, the step (4) db form of "
+                       "(section, key, body) rows, merged by store_fold.merge_folder_save and read "
+                       "by lineage._store_view_db / DkSnapshotDb, the same views in the same "
+                       "orders; the folder's save files stay the record (route (i)); json is an "
+                       "export form only. default ON. OFF (=0): memory.db (lineage_store), as "
+                       "before",
+    "TETHER_ONE_PASS":"the one-pass load (the reviewer 2026-10-19 06:09 d, 06:13): lineage.load "
                        "reads and folds the memory saves' chain once; head()'s pass was the same "
                        "chain and the same fold, read twice (a 4.95 GiB transient measured at 1 s, "
                        "06:04). The values are the same; OFF reads twice as before. default ON "

@@ -348,6 +348,7 @@ def merge_save(con: sqlite3.Connection, h: str, g: dict, aks: list, idx: dict | 
     t0 = time.perf_counter()
     for a in aks:
         a.verify()
+    t1 = time.perf_counter()
     con.execute("BEGIN")
     try:
         rows = Rows(con)
@@ -388,14 +389,18 @@ def merge_save(con: sqlite3.Connection, h: str, g: dict, aks: list, idx: dict | 
                      json.dumps({"h": h, "ended": g["ended"], "error": g.get("error")}))
         rows.flush()
         update_manifest(con, rows.manifest())
+        t2 = time.perf_counter()
         con.execute("COMMIT")
     except BaseException:
         if con.in_transaction:
             con.execute("ROLLBACK")
         raise
+    t3 = time.perf_counter()
     # no checkpoint here: the caller's, as lineage.py's (the sleep; a boundary past WAL_BOUND_BYTES)
-    return {"save": h, "k": k, "touched": len(rows.dirty), "s": round(time.perf_counter() - t0, 3),
-            "keys": sorted(rows.dirty), "q": rows.__dict__.get("q", {})}
+    return {"save": h, "k": k, "touched": len(rows.dirty), "s": round(t3 - t0, 3),
+            "s_read": round(t1 - t0, 3), "s_statements": round(t2 - t1, 3),
+            "s_commit": round(t3 - t2, 3), "keys": sorted(rows.dirty),
+            "q": rows.__dict__.get("q", {})}
 
 
 def update_manifest(con: sqlite3.Connection, delta: dict) -> None:
@@ -536,11 +541,20 @@ def unmerged(con: sqlite3.Connection, folder) -> list:
 
 
 def merge_folder_save(con: sqlite3.Connection, folder, h: str, g: dict) -> dict:
-    """merge_save with the save's ak_ and idx_ files read from the folder, as the old merge does."""
+    """lineage_store.merge_save(con, folder, h, g) on the db form: the save's ak_ and idx_ files
+    read from the folder, and its REPORT in the old shape (save, k, s_read, s_statements, s_commit,
+    and ak_whole_parse when an ak_ file was parsed whole), never the touched-key list."""
+    t0 = time.perf_counter()
     aks = [ls.AkFile(f, f"ak_{h}") for f in sorted(Path(folder).glob(f"ak_{h}_*.json"))]
     files = sorted(Path(folder).glob(f"idx_{h}_*.json"))
     idx = ls._read_hashed(files[0], f"idx_{h}") if len(files) == 1 else None
-    return merge_save(con, h, g, aks, idx, len(files))
+    t_files = time.perf_counter() - t0
+    m = merge_save(con, h, g, aks, idx, len(files))
+    whole = [a.f.name for a in aks if a.whole]
+    # s_read as the old merge's: the files opened and read, and the ak_ files verified
+    return {"save": h, "k": m["k"], "s_read": round(t_files + m["s_read"], 3),
+            "s_statements": m["s_statements"], "s_commit": m["s_commit"],
+            **({"ak_whole_parse": whole} if whole else {})}
 
 
 def catch_up(con: sqlite3.Connection, folder) -> list:
