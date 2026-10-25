@@ -582,6 +582,14 @@ ARMS: dict[str, str] = {
                          "dropped); a routine's bare-string positioned step is refused. A bare "
                          "click is a scored action that lands nowhere (bare_click.out). OFF: "
                          "today's routes, no coordinate. default ON",
+    "TETHER_OWN_CLOCK_SUBJECT": "THE OWN CLOCK DECIDES WHAT MOVES ON ITS OWN (Isaiah 2026-10-09; "
+                                "the reviewer 2026-10-25 12:17, 12:35, 12:48): a slot the agent's "
+                                "own clock writes (env.own_expected) changes with time, so a goal "
+                                "hypothesis naming ANY such slot is not proposed, a test on one is "
+                                "graded \"own clock\" (no credit, no route reading), and a press "
+                                "is not credited with one in the aim record. The instrument's keys "
+                                "decide, never a slot name; an empty own clock refuses nothing "
+                                "(counted). OFF: today's proposer, grading and record. default ON",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
                              "not-t is priced there (F496). The variable turns it OFF, so the A/B "

@@ -1489,7 +1489,7 @@ class Interface:
         return n
 
     def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = (),
-              ctx_after: tuple | None = None) -> bool:
+              ctx_after: tuple | None = None, own: frozenset = frozenset()) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 
         **RETURNS `True` FOR *CONDITIONAL*, NOT FOR *CHANGED*, AND THE DIFFERENCE IS ISAIAH'S
@@ -1532,10 +1532,10 @@ class Interface:
             if _AIM_GAP:
                 self.aimed_by_ctx.setdefault((tuple(r.coord), ctx), set()).add(
                     tuple(sorted(k for k in before if before.get(k) != after.get(k))))
-            if _AIM_ROUTED:
+            if _AIM_ROUTED:             # `own`: the agent's own clock's slots, not the press's
                 self.aimed_era.setdefault((self.epoch, self.breaks), {}).setdefault(
                     tuple(r.coord), set()).update(
-                        k for k in before if before.get(k) != after.get(k))
+                        k for k in before if before.get(k) != after.get(k) and k not in own)
         # **THE EFFECT IS WHAT THE ACTION DID TO OWN ATTRIBUTES, NOT EVERY SLOT THAT MOVED --
         # 2026-09-28, and it is the `actor_of` defect one level along.** Measured on gridworld
         # with no remap, `left` was flagged CHANGED because one context held these two:
