@@ -200,6 +200,7 @@ def wire_agent(env, game: str, cfg: Any, led, library: str | None, lineage_dir: 
     game-start consolidation. (B)'s fresh agent is built here on the SAME ledger object (wire()
     opens a new Ledger, which truncates its file), with the harness's clock (cycle, deadline) set
     before its load writes a row."""
+    del game   # the harness's name; Gamma gets AGENT_GAME
     # **THE CONFIG IS THE CALLER'S TO SUPPLY, AND THE REASON IS `max_depth`.** This hardcoded
     # one, so the only way to change a search bound on the ARC path was to edit the DEFAULT --
     # which both harnesses share. And `Config.max_depth`'s own anchor says what that costs:
@@ -231,7 +232,10 @@ def wire_agent(env, game: str, cfg: Any, led, library: str | None, lineage_dir: 
     # still prohibited.
     if cfg is None:
         cfg = tether.Config(max_depth=4, work_budget=ARC_WORK_BUDGET)
-    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=game), cfg, led)
+    # THE AGENT IS NEVER TOLD A GAME'S NAME, in any mode (Isaiah 2026-10-25 07:16: "it might try to
+    # match the learning to the game and i need the learning to transfer across games"); one
+    # constant, the stream's, so every mode writes the same scope. `game` stays the harness's.
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=AGENT_GAME), cfg, led)
     if clock is not None:
         ag.cycle, ag.deadline = clock
     # under the carry a library= row whose content was its operand is HELD unbound, as the
@@ -386,9 +390,10 @@ def guarded(ag: Any, fn, *a):
 def checked_save(g: Any, library: str, env: Any, game: str) -> Any:
     """Item 4: the library saved to a temporary file and loaded back into a fresh Gamma before it
     replaces the library; a save that does not load back leaves the previous one in place."""
+    del game   # the harness's name; Gamma gets AGENT_GAME
     tmp = library + ".tmp"
     out = door.library_save(g, tmp)
-    door.library_load(gamma.Gamma(env.atoms(), game=game), tmp, hold_unbound=lineage._CARRY)
+    door.library_load(gamma.Gamma(env.atoms(), game=AGENT_GAME), tmp, hold_unbound=lineage._CARRY)
     door.replace(tmp, library)
     return out
 
@@ -428,6 +433,9 @@ def save_only(ag: Any, out_dir: str | None, game: str, led_path: str | None) -> 
 # 15000 restores the old pacing (317879c). MAGIC: a seat-authored constant (Fig 10 :48),
 # replaced post-Kaggle by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 ARC_WORK_BUDGET = int(os.environ.get("TETHER_WORK_BUDGET_N", "5000"))
+# What Gamma is told the game is, for every game and every mode: the stream's constant
+# (harness/mem_store/e4_stream.py wires under "stream"). Isaiah 2026-10-25 07:16.
+AGENT_GAME = "stream"
 
 
 def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
