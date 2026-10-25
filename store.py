@@ -172,12 +172,19 @@ def part_of(section: str) -> str:
     return "perception" if section in PERCEPTION else "learned"
 
 
-def section_digest(rows: dict) -> list:
+MOD = 1 << 256
+
+
+def row_hash(key: str, body: str) -> int:
     import hashlib
-    h = hashlib.sha256()
-    for k in sorted(rows):
-        h.update(f"{k}\t{rows[k]}\n".encode())
-    return [len(rows), h.hexdigest()]
+    return int.from_bytes(hashlib.sha256(f"{key}\t{body}\n".encode()).digest(), "big")
+
+
+def section_digest(rows: dict) -> list:
+    """ADDITIVE (the reviewer 2026-10-24 20:18): the sum mod 2^256 of each row's sha256, so a save
+    updates it from the rows it changed (store_fold.update_manifest), never by re-reading the
+    section."""
+    return [len(rows), format(sum(row_hash(k, b) for k, b in rows.items()) % MOD, "064x")]
 
 
 def _checked(where: str, man: dict, store: dict, verify: bool) -> dict:

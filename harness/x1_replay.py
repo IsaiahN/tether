@@ -24,6 +24,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / "harness")]
 import migrate_learned as ml  # noqa: E402
 
 import lineage_store as ls  # noqa: E402
+import store  # noqa: E402
 import store_fold as sf  # noqa: E402
 
 FULL = {1, 8, 16, 24, 33}
@@ -90,7 +91,8 @@ def main() -> int:
         # both sides under lineage.py's boundary rule: a checkpoint only past WAL_BOUND_BYTES
         wal = [wal_bound(co, old_dir / f"{ls.DB}-wal"),
                wal_bound(cn, new_db.with_name(new_db.name + "-wal"))]
-        inv ={s: i for i, s in co.execute("SELECT id, s FROM sym")}
+        t_cmp = time.perf_counter()
+        inv = {s: i for i, s in co.execute("SELECT id, s FROM sym")}
         diff = []
         for sec, key in m["keys"]:
             new = cn.execute(f"SELECT body FROM {sf.Rows(cn).part(sec)} WHERE section = ? AND "
@@ -104,7 +106,9 @@ def main() -> int:
             r = cn.execute("SELECT n FROM manifest WHERE section = ?", (tb,)).fetchone()
             if n_old != (r[0] if r else 0):
                 counts[tb] = (n_old, r[0] if r else 0)
+        t_cmp = time.perf_counter() - t_cmp
         line = (f"save {k:2} {h}: touched {m['touched']:,}, port {m['s']:.1f} s, "
+                f"compare {t_cmp:.1f} s, "
                 f"old {t_old:.1f} s, wal old {wal[0][0]:,} B ckpt {wal[0][1]} s, "
                 f"wal new {wal[1][0]:,} B ckpt {wal[1][1]} s, "
                 f"store rows before {rows_before:,}; q {m.get('q')}; "
@@ -116,7 +120,7 @@ def main() -> int:
                 want = ml.table_rows(co, tb, sym)
                 part = "perception" if tb in sf.PERCEPTION else "learned"
                 have = dict(cn.execute(f"SELECT key, body FROM {part} WHERE section = ?", (tb,)))
-                if sf.additive_digest(want) != sf.additive_digest(have):
+                if store.section_digest(want) != store.section_digest(have):
                     first = next((x for x in sorted(set(want) | set(have))
                                   if want.get(x) != have.get(x)), None)
                     whole.append((tb, first, want.get(first), have.get(first)))

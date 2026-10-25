@@ -11,15 +11,14 @@ Each section's manifest digest is ADDITIVE: the sum mod 2^256 of sha256(key \\t 
 a save updates it in O(touched) (B2), never by re-reading the section."""
 from __future__ import annotations
 
-import hashlib
 import json
 import sqlite3
 import time
 from typing import Any
 
 import lineage_store as ls
+from store import MOD, row_hash  # the one digest: store.section_digest is the same sum
 
-MOD = 1 << 256
 PERCEPTION = frozenset({"kind", "kind_dk", "kind_off", "pair"})
 CHUNK = 500
 # the kind rows a kind_dk row bears on (no_dk's EXISTS, B1): by entry and the target column
@@ -34,14 +33,6 @@ DEP_INDEXES = (
 
 def j(x: Any) -> str:
     return json.dumps(x, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-
-
-def row_hash(key: str, body: str) -> int:
-    return int.from_bytes(hashlib.sha256(f"{key}\t{body}\n".encode()).digest(), "big")
-
-
-def additive_digest(rows: dict) -> list:
-    return [len(rows), format(sum(row_hash(k, b) for k, b in rows.items()) % MOD, "064x")]
 
 
 class Rows:
