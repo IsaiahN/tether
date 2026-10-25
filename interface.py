@@ -171,6 +171,12 @@ _7K_LEARN = armflag.arm("TETHER_7K_LEARN", default=True)
 # it stays everywhere, as the decay class needs. Isaiah 09-29: RESET ungated, "the one requirement
 # is that the interface knows what each does"
 _RESET_KNOWN = armflag.arm("TETHER_RESET_KNOWN", default=True)
+# (ii) A CARRIED KIND ENTRY IS A TEST, NOT A ROUTE (the reviewer 2026-10-25 17:26, 17:55, 18:11;
+# Fig 9 :60 "Never let a filter hand you a verdict"): a kind cell (action, kind key) not borne out
+# in this (epoch, breaks) era may rank a press as a TEST on a BECOME (mode "kind_test") and never
+# routes it; a cell borne out here routes as before; RESET is never a carried test (its delta is
+# state-relative, Fig 4 :25). OFF: today's realise
+_KIND_TEST = armflag.arm("TETHER_KIND_TEST", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -450,6 +456,8 @@ class Interface:
         # under TETHER_KIND_CARRY. None here: no kind tables, today's reading.
         self.kind_of: Any = None
         self.own_slots: set = set()            # K3: slots with an entry of their own (any action)
+        # (ii): ((epoch, breaks), the (action, kind key) cells a press of that action bore out)
+        self.era_cells: tuple = (None, set())
         # `probe.Drive`'s seed, which is `crc32(b"") & 0xFFFF == 0` at both construction sites
         # in `tether`. Held here so the moved sweep is byte-identical rather than merely alike.
         self._draw_seed = 0
@@ -657,6 +665,7 @@ class Interface:
                         best, how = a, "in every context seen"
                         break
             ks = self._kind_fallback(intent.subject, env) if best is None else None
+            test = None                         # (ii): a carried cell's press, as a test
             if ks is not None:                  # K3: only a slot with no entry of its own
                 for a in offered:
                     cap.head()
@@ -664,9 +673,18 @@ class Interface:
                     seen = {v for (_c, k, b), vs in lands.items()
                             if k == ks and b == _now for v in vs}
                     if seen == {intent.value}:
+                        if _KIND_TEST and not self._era_cell(a, ks):
+                            if test is None and a != "RESET":
+                                test = a
+                            continue
                         best, how = a, "on its kind (no entry of its own)"
                         KIND_FALLBACK_N["lands"] += 1
                         break
+            if best is None and test is not None:
+                KIND_FALLBACK_N["test"] += 1
+                why = (f"a TEST of a carried kind entry, not borne out here: its kind was taken "
+                       f"from {_now} to {intent.value}")
+                return self._aimed(Realisation(test, why=why, mode="kind_test"), aims)
             if best is None:
                 return None
             return self._aimed(Realisation(best, why=f"observed to take {intent.subject} from "
@@ -689,6 +707,7 @@ class Interface:
                 offered = tuple(a for a in offered if a not in against)
             best, score, how = None, 0.0, ""
             ks = self._kind_fallback(intent.subject, env)
+            test, t_score, t_how, t_n = None, 0.0, "", 0     # (ii): a carried cell, as a test
             for a in offered:
                 cap.head()
                 d = self.table.get(a, {}).get("delta", {})
@@ -744,11 +763,23 @@ class Interface:
                         kt = sum(v[1] for key, v in dk.items() if key[1] == ks)
                         where = "on its kind, in every context seen (no entry of its own)"
                     n, tot = kn, kt
+                    if _KIND_TEST and kn and not self._era_cell(a, ks):
+                        if a != "RESET" and kt / kn * want_sign > t_score:
+                            test, t_score, t_how, t_n = a, kt / kn * want_sign, where, kn
+                        continue
                 if not n:
                     continue
                 mean = tot / n
                 if mean * want_sign > score:
                     best, score, how, best_n = a, mean * want_sign, where, n
+            if best is None and test is not None:
+                KIND_FALLBACK_N["test"] += 1
+                why = (f"a TEST of a carried kind entry, not borne out here: observed to move "
+                       f"{intent.subject} that way {t_how}")
+                return self._aimed(Realisation(test, why=why, mode="kind_test",
+                                               evidence=(("tier", "delta"),
+                                                         ("score", round(t_score, 4)),
+                                                         ("n", t_n), ("where", t_how))), aims)
             if best is None:
                 return None
             if how.startswith("on its kind"):
@@ -1384,6 +1415,17 @@ class Interface:
             return None
         return self.kind_of(slot)
 
+    def _era_cell_add(self, action: str, ks: Any) -> None:
+        """(ii): a press of `action` bore out the kind cell (action, ks) in this era."""
+        era = (self.epoch, self.breaks)
+        if self.era_cells[0] != era:
+            self.era_cells = (era, set())
+        self.era_cells[1].add((action, ks))
+
+    def _era_cell(self, action: str, ks: Any) -> bool:
+        """(ii): is the kind cell (action, ks) borne out in the CURRENT (epoch, breaks) era?"""
+        return self.era_cells[0] == (self.epoch, self.breaks) and (action, ks) in self.era_cells[1]
+
     def _by_cell(self, slot: str, now: int, want_sign: int, offered: tuple[str, ...],
                  ctx: tuple, env: Any) -> tuple[Realisation | None, set[str]]:
         """The cell tier (the reviewer 2026-10-11 09:53Z): an action's direction FROM THE CELL
@@ -1647,9 +1689,12 @@ class Interface:
             self.own_slots.add(k)
             if ks is not None:
                 kn, kt = e.setdefault("delta_kind", {}).get((ctx, ks, rel), (0, 0))
+                lk = e.setdefault("lands_kind", {}).setdefault(
+                    (ctx, ks, int(before.get(k, 0))), set())
+                if _KIND_TEST and ((kn and kt * d > 0) or int(after.get(k, 0)) in lk):
+                    self._era_cell_add(r.action, ks)    # (ii): this press bore the cell out here
                 e["delta_kind"][(ctx, ks, rel)] = (kn + 1, kt + d)
-                e.setdefault("lands_kind", {}).setdefault(
-                    (ctx, ks, int(before.get(k, 0))), set()).add(int(after.get(k, 0)))
+                lk.add(int(after.get(k, 0)))
         # **THE SIGN IS JUDGED PER CELL, KEYED BY THE VALUE BEFORE THE PRESS -- the reviewer,
         # 2026-09-28, and it is the fix already built for the value table applied here.**
         #

@@ -8435,7 +8435,14 @@ class Agent:
         if _OWN_CLOCK_SUBJECT and slot in self._own_clock_keys():
             OWN_CLOCK_N["graded"] += 1
             _oc = "own clock"           # time moved it; no credit, and no reading of the route
-        if _R4_RECORD and self._hyp is not None and slot in self._hyp["slots"]:
+        # (ii): a press a carried kind entry ranked is a test of the ENTRY, not progress toward the
+        # goal (the reviewer 2026-10-25 17:55, reading (A)); R-B still reads the base outcome
+        _base = _oc
+        _kt = bool(t.get("kind_test")) and _oc not in ("own clock", "slot gone")
+        if _kt:
+            _oc = ("kind test: borne out" if _base in ("closer", "reached", "overshot")
+                   else "kind test: not borne out")
+        if _R4_RECORD and self._hyp is not None and slot in self._hyp["slots"] and not _kt:
             # R4 record (F3): the held hypothesis's own test outcomes, shown on its end row
             self._hyp.setdefault("tests", Counter())[_oc] += 1
         self.led.record(self.cycle, "SETTLE", slot, "hypothesis_test", term=t["term"],
@@ -8443,13 +8450,14 @@ class Agent:
                         outcome=_oc,
                         intent=t["intent"], root=self._root_id,
                         in_root=held is not None and held in self._root_held,
-                        **({"aim": t["aim"]} if t.get("aim") else {}))
+                        **({"aim": t["aim"]} if t.get("aim") else {}),
+                        **({"base": _base} if _kt else {}))
         # R-B: only an outcome this step's own audited press produced: a seam (B skips the audit
         # and the trace append), a cut before SETTLE, or a test carried from an earlier cycle
         # grades a stale frame, and is no reading of the route (the reviewer 2026-10-24 02:12)
-        if (_ROUTE_REFUSE and t.get("route") is not None and _oc != "own clock"
+        if (_ROUTE_REFUSE and t.get("route") is not None and _base != "own clock"
                 and t.get("at") == self.cycle == self._audit_at):
-            self._route_read(t["route"], _oc, slot, t, after)
+            self._route_read(t["route"], _base, slot, t, after)
 
     def _route_read(self, route: tuple, outcome: str, slot: str, t: dict | None = None,
                     after: Any = None) -> None:
@@ -13672,6 +13680,8 @@ class Agent:
                 _tt = self._split_term or self._term_of(chosen) or {}
                 self._test = {"slot": chosen, "term": _tt.get("name"), "target": _tgt,
                               "before": before.get(chosen), "intent": _want.says()}
+                if getattr(_r, "mode", "") == "kind_test":
+                    self._test["kind_test"] = True     # (ii): graded as a test of the entry
                 if _ROUTE_REFUSE:          # R-B: the route this outcome will be read against
                     self._test["route"] = self._route_key(_want, _r, _ctx)
                     self._test["at"] = self.cycle
