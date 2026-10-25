@@ -6466,7 +6466,13 @@ class Agent:
         slot_set = set(self.slots) if _HYP_SLOTSET else None
         routable_slots = self._route_first_set(before) if _HYP_ROUTE_FIRST else None
         would_drop: set = set()
-        clock = self._own_clock_keys() if _OWN_CLOCK_SUBJECT else None
+        # a track's first step has no own_expected key (no settled reading before it): one newborn,
+        # or a whole new board after a game switch, so the refusal also reads own_counted, every
+        # tracked object's age / stability (the reviewer 2026-10-25 16:23 (4), 16:37; o884). An
+        # empty clock refuses nothing only when own_counted is ALSO empty
+        _oc = getattr(self.env, "own_counted", None)
+        clock = (self._own_clock_keys() | (frozenset(_oc()) if _oc is not None else frozenset())
+                 if _OWN_CLOCK_SUBJECT else None)
         if clock is not None and not clock:
             OWN_CLOCK_N["empty"] += 1
         for text, s in src.items():
