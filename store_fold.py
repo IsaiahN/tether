@@ -14,9 +14,11 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
+from pathlib import Path
 from typing import Any
 
 import lineage_store as ls
+import store
 from store import MOD, row_hash  # the one digest: store.section_digest is the same sum
 
 PERCEPTION = frozenset({"kind", "kind_dk", "kind_off", "pair"})
@@ -424,7 +426,6 @@ def note_end_path(con: sqlite3.Connection, wall_s: float, sleep_s: float) -> dic
 def open_new(path) -> sqlite3.Connection:
     """An empty db-form store with the step (4) tables, its indexes and the dependent-key
     indexes."""
-    import store
     con = sqlite3.connect(path, isolation_level=None)
     con.execute("PRAGMA journal_mode=WAL")       # lineage_store.open_store's settings
     con.execute("PRAGMA synchronous=NORMAL")
@@ -452,3 +453,90 @@ def open_new(path) -> sqlite3.Connection:
         update_manifest(con, rows.manifest())
         con.execute("COMMIT")
     return con
+
+
+# ---------------------------------------------------------------- the folder-level calls (5a)
+# lineage.py's names for the old store (lineage_store.path / open_store / header_ok / unmerged /
+# catch_up / read_end_path), on the db form, so the wiring swaps the module and not the logic.
+def path(folder) -> Path:
+    return Path(folder) / store.DB_FILE
+
+
+def open_store(folder) -> sqlite3.Connection:
+    return open_new(path(folder))
+
+
+def _meta_v(con: sqlite3.Connection, k: str) -> str | None:
+    r = con.execute("SELECT body FROM learned WHERE section = 'meta' AND key = ?",
+                    (j([k]),)).fetchone()
+    return json.loads(r[0])["v"] if r else None
+
+
+def header_ok(folder) -> tuple[bool, str]:
+    """lineage_store.header_ok on the db form: the file covers page_count x page_size, the schema
+    is this one, and last_merged names a memory save in the folder. The full check is the
+    sleep's."""
+    p = path(folder)
+    if not p.exists():
+        return False, "no store"
+    try:
+        con = sqlite3.connect(f"file:{p.as_posix()}?mode=ro", uri=True)
+    except sqlite3.DatabaseError as e:
+        return False, f"unreadable: {e}"
+    try:            # closed on every path (the old store's h_chain f2)
+        pc = con.execute("PRAGMA page_count").fetchone()[0]
+        ps = con.execute("PRAGMA page_size").fetchone()[0]
+        schema, last = _meta_v(con, "schema"), _meta_v(con, "last_merged")
+    except sqlite3.DatabaseError as e:
+        return False, f"unreadable: {e}"
+    finally:
+        con.close()
+    if p.stat().st_size < pc * ps:
+        return False, f"size {p.stat().st_size} < page_count x page_size {pc * ps}"
+    if schema != str(ls.SCHEMA):
+        return False, f"schema {schema}"
+    if last is not None and not (Path(folder) / f"gen_{last}.json").exists():
+        return False, f"last_merged {last} is not in the archive"
+    return True, "ok"
+
+
+def read_end_path(con: sqlite3.Connection) -> dict | None:
+    v = _meta_v(con, "end_path")
+    return json.loads(v) if v is not None else None
+
+
+def unmerged(con: sqlite3.Connection, folder) -> list:
+    """The memory saves in the folder the store has not merged, by file name alone."""
+    have = {json.loads(k)[0] for (k,) in
+            con.execute("SELECT key FROM learned WHERE section = 'saves'")}
+    return sorted(f.stem[4:] for f in Path(folder).glob("gen_*.json") if f.stem[4:] not in have)
+
+
+def merge_folder_save(con: sqlite3.Connection, folder, h: str, g: dict) -> dict:
+    """merge_save with the save's ak_ and idx_ files read from the folder, as the old merge does."""
+    aks = [ls.AkFile(f, f"ak_{h}") for f in sorted(Path(folder).glob(f"ak_{h}_*.json"))]
+    files = sorted(Path(folder).glob(f"idx_{h}_*.json"))
+    idx = ls._read_hashed(files[0], f"idx_{h}") if len(files) == 1 else None
+    return merge_save(con, h, g, aks, idx, len(files))
+
+
+def catch_up(con: sqlite3.Connection, folder) -> list:
+    """lineage_store.catch_up on the db form: every unmerged save, parent before child, each
+    hash-checked against its name; one save's parse in memory at a time."""
+    import hashlib
+
+    def read(h: str) -> dict:
+        raw = ls.file_bytes(Path(folder) / f"gen_{h}.json")
+        if hashlib.sha256(raw).hexdigest()[:16] != h:
+            raise ls.Refused(f"gen_{h}.json does not hash to its name")
+        return json.loads(raw)
+    parent = {h: read(h).get("parent") for h in unmerged(con, folder)}
+    out = []
+    while parent:
+        last = _meta_v(con, "last_merged")
+        nxt = [h for h, q in parent.items() if q == last]
+        if len(nxt) != 1:
+            raise ls.Refused(f"{len(nxt)} saves continue the store's chain; {len(parent)} unmerged")
+        del parent[nxt[0]]
+        out.append(merge_folder_save(con, folder, nxt[0], read(nxt[0])))
+    return out
