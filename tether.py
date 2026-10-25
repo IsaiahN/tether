@@ -3806,20 +3806,25 @@ class Agent:
         seen.add(key)
         return False
 
-    @_in_step("SETTLE")
     def _memo_clear_at_break(self) -> None:
         """TETHER_MEMO_AT_BREAK: at the agent's own frame break, the instance memos the retarget
         sweep clears (their keys hold this board's names, which the break re-issues), after the
-        same memo_sizes row; nothing else of the sweep. A miss recomputes."""
+        same memo_sizes row -- labelled with the step running at the break, never SETTLE by fiat;
+        nothing else of the sweep. A miss recomputes."""
         if not (_MEMO_AT_BREAK and _MEMO_CLEAR):
             return
-        self._memo_sizes("frame_break", step="PERCEIVE")
+        self._memo_sizes_row("frame_break", self._running_step)
         for m in (self._reach_index, self._reach_verdicts, self._reach_fold, self._compile_cache,
                   self._units_for_memo, self._frontiers, self._walk_memo):
             m.clear()
 
-    def _memo_sizes(self, at: str, step: str = "SETTLE") -> None:
+    @_in_step("SETTLE")
+    def _memo_sizes(self, at: str) -> None:
         """R4: each memo's entries, the asked keys, and the bound memos' hit counter, one row."""
+        self._memo_sizes_row(at, "SETTLE")
+
+    def _memo_sizes_row(self, at: str, step: str) -> None:
+        """_memo_sizes' row, written under the step the caller runs in."""
         agent = {"reach_index": len(self._reach_index), "reach_verdicts": len(self._reach_verdicts),
                  "reach_fold": len(self._reach_fold), "compile": len(self._compile_cache),
                  "units_for": len(self._units_for_memo), "frontiers": len(self._frontiers),
