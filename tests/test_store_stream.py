@@ -1,5 +1,6 @@
 """M, THE STREAMED ak_ READ (the reviewer 2026-10-19 19:21 item 4, G4). Each case runs the real
-merge_save on a small memory folder holding one save's ak_ file.
+merge_save on a small memory folder holding one save's ak_ file, in both store forms (step (5a)):
+memory.db (lineage_store.merge_save) and learned.db (store_fold.merge_folder_save).
 
   S1   a non-ASCII entry straddling the read boundaries (reads of 1..13 bytes, a 3-character
        margin, so the decoder's retry runs) gives the SAME store (asked_tally and ak_whole) as the
@@ -50,19 +51,29 @@ def folder(form2: bool, lead: str = "") -> tuple[Path, Path]:
     return d, f
 
 
+FORM: dict = {"m": ls}      # the store form under test (step (5a)): lineage_store or store_fold
+
+
 def merged(d: Path):
     """merge_save on a fresh store in d; returns (its report, the store's rows) or the exception."""
-    con = ls.open_store(d)
+    m = FORM["m"]
+    con = m.open_store(d)
     try:
         try:
-            rep = ls.merge_save(con, d, H, dict(G))
+            rep = (ls.merge_save if m is ls else m.merge_folder_save)(con, d, H, dict(G))
         except (ls.Refused, UnicodeDecodeError, KeyError, ValueError) as e:
             rep = e
-        sym = dict(con.execute("SELECT id, s FROM sym"))
-        rows = (sorted((sym[a], sym[b], sym[c], *rest) for a, b, c, *rest
-                       in con.execute("SELECT * FROM asked_tally")),
-                sorted(con.execute("SELECT * FROM ak_whole")),
-                con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone())
+        if m is ls:
+            sym = dict(con.execute("SELECT id, s FROM sym"))
+            rows = (sorted((sym[a], sym[b], sym[c], *rest) for a, b, c, *rest
+                           in con.execute("SELECT * FROM asked_tally")),
+                    sorted(con.execute("SELECT * FROM ak_whole")),
+                    con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone())
+        else:
+            sec = "SELECT key, body FROM learned WHERE section = ?"
+            last = m._meta_v(con, "last_merged")
+            rows = (sorted(con.execute(sec, ("asked_tally",))),
+                    sorted(con.execute(sec, ("ak_whole",))), None if last is None else (last,))
     finally:
         con.close()
     return rep, rows
@@ -83,6 +94,16 @@ class patched:
 
 
 def main() -> int:
+    import store_fold
+    for m in (ls, store_fold):      # the streamed reader is ls.AkFile in both forms (5a)
+        FORM["m"] = m
+        print(f"-- the store form: {m.__name__}")
+        cases()
+    print("store_stream: OK")
+    return 0
+
+
+def cases() -> None:
     for form2 in (True, False):
         want_rep, want = merged(folder(form2, lead=" ")[0])           # the whole parse
         assert want_rep["ak_whole_parse"] and want[0] and want[2] == (H,), (want_rep, want)
@@ -146,8 +167,6 @@ def main() -> int:
             broke.append(chunk)
     assert broke, "MFc: decoding each read on its own never broke"
     print(f"MFc decoding each read on its own breaks on a split character at read sizes {broke}")
-    print("store_stream: OK")
-    return 0
 
 
 if __name__ == "__main__":

@@ -16,6 +16,9 @@
   (4) W2's memo is per load: a second load in one process (a one-game lineage first, then the
       two-game one) equals the two-game lineage loaded alone.
 
+  Step (5a): the probes write the form the parent's TETHER_STORE_DB names (passed explicitly; they
+  strip TETHER_*), so the test is run once per arm value; W1's memo serves both (store_fold:139).
+
     python tests/test_store_key_memo.py
 """
 from __future__ import annotations
@@ -32,6 +35,7 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 HERE = _repo.ROOT
+STORES = ("learned.db", "memory.db")    # store.DB_FILE (TETHER_STORE_DB=1), lineage_store.DB (=0)
 
 PROBE = r'''
 import hashlib, json, random, sys
@@ -76,10 +80,18 @@ else:
 '''
 
 
+def _form() -> str:
+    """The store form this run tests (step (5a)): the parent's TETHER_STORE_DB, read through the
+    arm and passed to every probe, which otherwise strips TETHER_* and so ran the db default."""
+    sys.path.insert(0, HERE)
+    import lineage
+    return "1" if lineage._STORE_DB else "0"
+
+
 def _run(mode: str, *args: str, env_extra: dict | None = None) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0",
-               **(env_extra or {}))
+               TETHER_STORE_DB=_form(), **(env_extra or {}))
     out = subprocess.run([sys.executable, "-B", "-c", PROBE, HERE, mode, *args], env=env,
                          capture_output=True, text=True, timeout=1800, cwd=HERE)
     assert out.returncode == 0, out.stderr[-3000:]
@@ -90,12 +102,15 @@ def _files(d: str) -> dict:
     out = {}
     for f in sorted(os.listdir(d)):
         p = os.path.join(d, f)
-        if os.path.isfile(p) and not f.startswith("memory.db"):
+        if os.path.isfile(p) and not f.startswith(STORES):
             with open(p, "rb") as fh:
                 out[f] = hashlib.sha256(fh.read()).hexdigest()
-    con = sqlite3.connect(f"file:{os.path.join(d, 'memory.db')}?mode=ro", uri=True)
+    db = STORES[0] if _form() == "1" else STORES[1]
+    assert os.path.isfile(os.path.join(d, db)), ("PRECONDITION: the store this run writes", db)
+    assert not os.path.exists(os.path.join(d, STORES[1 - STORES.index(db)])), "the other store"
+    con = sqlite3.connect(f"file:{os.path.join(d, db)}?mode=ro", uri=True)
     try:
-        out["memory.db:iterdump"] = hashlib.sha256("\n".join(con.iterdump()).encode()).hexdigest()
+        out[f"{db}:iterdump"] = hashlib.sha256("\n".join(con.iterdump()).encode()).hexdigest()
     finally:
         con.close()
     return out
@@ -141,8 +156,9 @@ def main() -> None:
     assert on["n"]["hit"] > 0, f"PRECONDITION: the ON writes reused nothing: {on['n']}"
     fa, fb = _files(a), _files(b)
     assert fa == fb, [k for k in set(fa) | set(fb) if fa.get(k) != fb.get(k)][:5]        # (2)
-    print(f"(2) two games written ON and OFF: {len(fa) - 1} files byte-identical and "
-          f"memory.db's dump identical; the ON writes reused {on['n']['hit']} encodings "
+    print(f"(2) two games written ON and OFF ({[k for k in fa if k.endswith(':iterdump')][0]}): "
+          f"{len(fa) - 1} files byte-identical and the store's dump identical; the ON writes "
+          f"reused {on['n']['hit']} encodings "
           f"({on['n']['bypass']} bypassed)")
     l_on = _run("load", a, env_extra={"TETHER_LOAD_KEY_MEMO": "1"})
     l_off = _run("load", a, env_extra={"TETHER_LOAD_KEY_MEMO": "0"})

@@ -266,14 +266,16 @@ print(json.dumps({"acted": acted, "cut": ag._cut, "caps": ev, "low": low, "high"
 
 
 def reserve() -> None:
-    import lineage_store as ls
-    con = ls.open_store(tempfile.mkdtemp())
-    try:
-        assert ls.read_end_path(con) is None
-        ls.note_end_path(con, 34.6, 9.5)
-        assert ls.read_end_path(con) == {"s": 34.6, "sleep_s": 9.5}
-    finally:
-        con.close()
+    import lineage_store
+    import store_fold
+    for ls in (lineage_store, store_fold):      # both store forms keep and return the wall (5a)
+        con = ls.open_store(tempfile.mkdtemp())
+        try:
+            assert ls.read_end_path(con) is None, ls.__name__
+            ls.note_end_path(con, 34.6, 9.5)
+            assert ls.read_end_path(con) == {"s": 34.6, "sleep_s": 9.5}, ls.__name__
+        finally:
+            con.close()
     r = run_child(RS_CHILD)
     assert r["acted"] is False and r["cut"] and r["caps"] == ["stopped_for_end_path"], r
     assert r["low"] == 200.0 and r["high"] == 305.0, r

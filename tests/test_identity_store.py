@@ -42,9 +42,14 @@ sys.path[:0] = [ROOT, HERE, os.path.join(ROOT, "conform")]
 from identity_mod_rows import compare  # noqa: E402
 
 import instruments  # noqa: E402
+import lineage  # noqa: E402
 from test_identity_short import DROP  # noqa: E402
 
 CAP, T0 = 600, time.time()
+# STEP (5a), the reviewer 2026-10-25 01:06: the store form is the parent's TETHER_STORE_DB, read
+# through the arm and passed to every child (everything else TETHER_* still cleared). Under =1 the
+# store file differs by construction (BASE memory.db, the tree learned.db): PRINTED WHOLE, no mask
+STORE_DB = "1" if lineage._STORE_DB else "0"
 TMP = os.path.realpath(tempfile.gettempdir())
 SEED: list = []          # the fixed seed record's path, written under the temp root in main()
 SEED_ROW = {"slot": "@run", "event": "seed",
@@ -124,6 +129,7 @@ def _child(tree: str, out: str, mode: str, n: int, which: str) -> None:
     # THE SEED FROM A FIXED RECORD (P1): TETHER_AGENT_SEED=0 is the constant seed, under which
     # gamma.draw_seed is None and every handle suffix is random; the replay path is reproducible
     env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_SEED_FROM=SEED[0])
+    env["TETHER_STORE_DB"] = STORE_DB    # step (5a): the store form, passed; BASE has no such arm
     if mode == "absent":
         env["TETHER_LIBRARY_REQUIRED"] = "0"
     left = CAP - (time.time() - T0)
@@ -138,7 +144,7 @@ def _child(tree: str, out: str, mode: str, n: int, which: str) -> None:
 
 
 def _db_rows(path: str, scratch: str) -> dict:
-    copy = os.path.join(scratch, "memory.copy.db")
+    copy = os.path.join(scratch, os.path.basename(path) + ".copy")
     shutil.copyfile(path, copy)
     con = sqlite3.connect(f"file:{copy}?immutable=1", uri=True)
     try:
@@ -159,7 +165,7 @@ def _files(out: str, scratch: str) -> dict:
             rel = os.path.relpath(p, out).replace("\\", "/")
             if rel.endswith(".jsonl") or rel.endswith(".result.json"):
                 continue                       # the ledger and result, compared on their own
-            if f == "memory.db":
+            if f in ("memory.db", "learned.db"):     # either store form, by its rows (5a)
                 got[rel] = _db_rows(p, scratch)
             elif not f.endswith(("-shm", "-wal")):
                 with open(p, "rb") as fh:
@@ -289,6 +295,14 @@ def main() -> None:
                                 print(f"      {tb} base only:    {r[:300]}")
                             for r in only_c[:10]:
                                 print(f"      {tb} current only: {r[:300]}")
+                    elif isinstance(bv, dict) or isinstance(cv, dict):   # a store on one side
+                        side, tabs = ("base", bv) if isinstance(bv, dict) else ("current", cv)
+                        print(f"  {which} file {f}: only in {side} (the other side: "
+                              f"{cv if side == 'base' else bv}); {len(tabs)} tables, printed whole")
+                        for tb in sorted(tabs):
+                            print(f"      {tb}: {len(tabs[tb])} rows")
+                            for r in tabs[tb]:
+                                print(f"        {r}")
                     else:
                         print(f"  {which} file {f}: {bv} -> {cv}")
                     bad.append(f"{which} file {f}")

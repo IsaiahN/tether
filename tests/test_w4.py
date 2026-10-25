@@ -81,10 +81,56 @@ def same(a, b, where: str) -> int:
     return asks
 
 
+def plant(ls, d, q0, db: bool):
+    """MF's planted merge: n + 1 on one kind's rows with n > 0, COMMITTED on a connection of its
+    own; returns the undo. Under the db form the rows are kind_dk (section, key, body) rows and the
+    undo writes their bodies back verbatim (a plant does not maintain the digest, as before)."""
+    con = ls.open_store(d)
+    if not db:
+        dk_id = con.execute("SELECT id FROM sym WHERE s = ?", (ls._j(list(q0)),)).fetchone()[0]
+        con.execute("UPDATE kind_dk SET n = n + 1 WHERE dk = ? AND n > 0", (dk_id,))
+
+        def undo():
+            con.execute("UPDATE kind_dk SET n = n - 1 WHERE dk = ? AND n > 1", (dk_id,))
+            con.close()
+        return undo
+    where = ("section = 'kind_dk' AND json_extract(key, '$[0]') = ? "
+             "AND json_extract(body, '$.n') > 0")
+    import lineage_store  # the key text: the kind as the merge encodes it (W1's memo)
+    import store
+
+    def man():   # kind_dk's manifest row and its rows' recomputed digest (the reviewer 01:06)
+        m = con.execute("SELECT n, sha FROM manifest WHERE section = 'kind_dk'").fetchone()
+        rows = dict(con.execute("SELECT key, body FROM perception WHERE section = 'kind_dk'"))
+        return list(m), store.section_digest(rows)
+    before = man()
+    assert before[0] == before[1] and before[0][0] > 0, ("MF precondition: the manifest", before)
+    s = lineage_store._key_memo()(list(q0))
+    was = con.execute(f"SELECT key, body FROM perception WHERE {where}", (s,)).fetchall()
+    assert was, "MF precondition: the planted kind has no kind_dk row with n > 0"
+    con.execute("UPDATE perception SET body = json_set(body, '$.n', json_extract(body, '$.n') + 1) "
+                f"WHERE {where}", (s,))
+    assert man()[1] != before[1], "MF: the plant changed no kind_dk body"
+
+    def undo():
+        con.executemany("UPDATE perception SET body = ? WHERE section = 'kind_dk' AND key = ?",
+                        [(b, k) for k, b in was])
+        after = man()
+        con.close()
+        assert after == before, ("the undo was not verbatim: kind_dk's manifest / digest", before,
+                                 after)
+        print(f"  undo verbatim: kind_dk's manifest {before[0]} equal before the plant and after "
+              f"the undo, and equal to its rows' recomputed digest")
+    return undo
+
+
 def main() -> int:
     import lineage
-    import lineage_store as ls
     import tether
+    ls = lineage._store_mod()          # the store this run writes (step (5a): either form)
+    db = lineage._STORE_DB
+    Snap = lineage.DkSnapshotDb if db else lineage.DkSnapshot
+    print(f"  the store: {'learned.db (store_fold)' if db else 'memory.db (lineage_store)'}")
     d = tempfile.mkdtemp(prefix="w4_")
     for _g in range(2):
         env, ag = agent(d)
@@ -101,21 +147,19 @@ def main() -> int:
     assert b._dk_snap.count == len(a._kind_known_dk)
     # MF right after load: a planted merge (one row's n + 1, committed on another connection) is
     # seen by a fresh read and not by B's held snapshot; then undone
+    assert ls.path(d).exists(), ("PRECONDITION: the store file this test is about", ls.path(d))
     q0 = next(iter(a._kind_known_dk))[0]
     r0 = b._dk_snap.rows(q0)
-    con = ls.open_store(d)
+    undo = plant(ls, d, q0, db)
     try:
-        dk_id = con.execute("SELECT id FROM sym WHERE s = ?", (ls._j(list(q0)),)).fetchone()[0]
-        con.execute("UPDATE kind_dk SET n = n + 1 WHERE dk = ? AND n > 0", (dk_id,))
-        fresh = lineage.DkSnapshot(d)
+        fresh = Snap(d)
         try:
             seen = fresh.rows(q0) != r0
         finally:
             fresh.close()
         held0 = b._dk_snap.rows(q0) == r0
-        con.execute("UPDATE kind_dk SET n = n - 1 WHERE dk = ? AND n > 1", (dk_id,))
     finally:
-        con.close()
+        undo()
     assert seen and held0, ("MF at load: planted merge", seen, held0)
     print("  MF at load: a planted merge on kind_dk (n + 1 on one kind's rows, committed) is seen "
           "by a fresh read, not by B's held snapshot; undone")
@@ -132,7 +176,7 @@ def main() -> int:
     before = {q: b._dk_snap.rows(q) for q in {k[0] for k in b._kind_landed_dk}}
     rep = lineage.boundary(d, b, "fake", "level")
     assert rep and "refused" not in rep, rep
-    fresh = lineage.DkSnapshot(d)
+    fresh = Snap(d)
     try:
         moved = [q for q, r in before.items() if fresh.rows(q) != r]
         held = [q for q, r in before.items() if b._dk_snap.rows(q) != r]
@@ -145,6 +189,7 @@ def main() -> int:
           f"held snapshot 0; K0 after the merge: {n2} asks equal")
     b.end_run("cap")
     lineage.write(d, b, "fake")
+    assert ls.path(d).exists(), ("PRECONDITION: the store whose WAL is read", ls.path(d))
     assert b._dk_snap.closed and ls.wal_bytes(d) == 0, ls.wal_bytes(d)
     env_c, c = agent(d)                     # a third life: its snapshot is the planted reader
     steps(env_c, c, 6)
