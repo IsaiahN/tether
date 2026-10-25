@@ -16211,6 +16211,20 @@ class Agent:
         self._peer_cache = None
         self._decomp_cache = None
         self._frame_cache = {}
+        # G5 (the reviewer 2026-10-25 11:03, 11:12): a break read on a frame that ARRIVED with no
+        # action (ArcWorld.arrive, between steps) is taken here, before anything reads the board:
+        # its row with no action, K2's successors for this step's _present, C's window. Not a
+        # seam: no action produced it, so this step's own outcome is scored. In a step that
+        # follows env.step nothing is pending (perceive drained it), so this reads [].
+        _fb = getattr(self.env, "frame_breaks", None)
+        for _b in (_fb() if _fb is not None else []):
+            self._window_at = len(self.trace)
+            self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
+                            action=None, **_b)
+            if _KIND_CARRY and _b.get("successor"):
+                self._succ_in = {**getattr(self, "_succ_in", {}), **_b["successor"]}
+                self._succ_form = {**getattr(self, "_succ_form", {}), **_b["successor_form"]}
+                self._old_form = {**getattr(self, "_old_form", {}), **_b.get("old_form", {})}
         if _W_EVICT_EVERY_STEP:
             self._w_evict(hard=True, why="every step (W-2's check)")
         if _CONSOLIDATE:

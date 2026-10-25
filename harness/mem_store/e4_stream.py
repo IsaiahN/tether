@@ -5,8 +5,11 @@ game changed -- no retarget, no restarted, no game_start, no game id, nothing pa
 
 THE SWAP: ArcWorld touches its wrapper only at construction (observation_space / reset) and in step(); the driver
 builds ONE ArcWorld (through arc_holdout.wire) over a proxy that delegates to the CURRENT game. At a switch the next
-game is made, and the agent's next step() gets that game's fresh frame back as its outcome (its action is not
-forwarded). In-game events keep play()'s own handling: a GAME_OVER is that game's death, a clear its level edge.
+game is made current and its first frame handed to the world BETWEEN steps (ArcWorld.arrive, no action paired with
+it), so the agent's next step decides on that game's own first frame and its action reaches that game (--switch
+between, the default; the reviewer 2026-10-25 10:47, 11:03). --switch step keeps the old swap: the agent's next
+step() got the new frame back as its action's outcome and the action was not forwarded. In-game events keep play()'s
+own handling: a GAME_OVER is that game's death, a clear its level edge.
 
 The order, the seed and each switch (wall time, the agent's cycle) go to the HARNESS's switch.tsv, never to the
 agent's ledger. --mf plants ag.restarted(env) at every switch, so e4_stream_check.py can be shown to catch it.
@@ -29,6 +32,7 @@ ap.add_argument("--seed", default=None)
 ap.add_argument("--slice-s", type=float, default=600.0)
 ap.add_argument("--lineage", default=None)
 ap.add_argument("--mf", action="store_true")
+ap.add_argument("--switch", choices=("between", "step"), default="between")   # see THE SWAP above
 ap.add_argument("--n-games", type=int, default=25)   # the MF test plays the first 2 of the order
 ap.add_argument("--slice-steps", default=None)       # per position, e.g. "3,1": a slice ends after N agent steps
 ap.add_argument("--census", action="store_true")     # census_heap.point between steps (the reviewer 2026-10-19 03:00)
@@ -130,7 +134,10 @@ class Stream:
         return self.cur.step(act, data=data) if data is not None else self.cur.step(act)
 
     def switch_to(self, game: str) -> None:
-        self.pending = self.arc.make(game)
+        if A.switch == "between":         # current at once; the driver hands its frame over (arrive)
+            self.cur = self.arc.make(game)
+        else:                             # "step": today's swap at the next step, its action lost
+            self.pending = self.arc.make(game)
 
 
 arc = Arcade(operation_mode=arc_holdout._mode())
@@ -140,7 +147,7 @@ env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path
                                                          lineage_dir=A.lineage)
 ctx = {"game": "stream", "cfg": None, "library": None, "lineage_dir": A.lineage,
        "led_path": led_path, "save_only_dir": None, "palette": _pal}   # (B)
-log(f"# stream start {time.strftime('%Y-%m-%d %H:%M:%S')} seed {seed} slice_s {A.slice_s} mf {A.mf} "
+log(f"# stream start {time.strftime('%Y-%m-%d %H:%M:%S')} seed {seed} slice_s {A.slice_s} mf {A.mf} switch {A.switch} "
     f"slice_min_s {A.slice_min_s} slice_max_s {A.slice_max_s} order {','.join(order)}")
 log("# idx\tgame\twall_start_s\tcycle_start\twall_s\tsteps\tlevels_in_slice\tending\tendings\tcommit_mb_end\t"
     "seq0\tseqP\tseq1\tacts\tfirst_act_s\textended\tunreached\toverrun_s")
@@ -171,6 +178,8 @@ for i, g in enumerate(order):
     seq0 = len(ag.led)           # the check's window opens before the switch (and the plant) ...
     if i:
         proxy.switch_to(g)
+        if A.switch == "between" and not env.arrive():   # the new game's first frame, before the next step
+            log(f"# {i}\t{g}\tarrive: the wrapper held no frame; nothing taken, no reset issued")
         if A.mf:
             ag.restarted(env)      # THE PLANT: a boundary hook at the switch, for the check to catch
     seqP = len(ag.led)           # rows in [seq0, seqP) were written AT the switch: by design none

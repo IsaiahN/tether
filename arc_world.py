@@ -757,7 +757,8 @@ class ArcWorld:
 
     def frame_breaks(self) -> list[dict]:
         """B: the frame breaks the tracker read since the last call, then cleared. The agent reads
-        them after its action's outcome is perceived; nothing tells it a game changed (E4b)."""
+        them after its action's outcome is perceived, and at its step's head for a frame that
+        arrived with no action (arrive()); nothing tells it a game changed (E4b)."""
         out = list(getattr(self._decompose, "breaks", ()) or ())
         if out:
             self._decompose.breaks = []
@@ -1033,6 +1034,36 @@ class ArcWorld:
             self._cue = self._obs.see(b)
         return self._cue
 
+    def _take_frame(self, nxt: Any) -> None:
+        """The per-frame intake, shared by step() and arrive()."""
+        if nxt is not None:
+            self._frame = nxt
+        self._read = None          # a new frame is a new decomposition
+        arc_atoms.new_frame()      # and its shape readings are perceived afresh (F481)
+        self._cue = None           # and a new set of mutations to read off it
+        self._prev_contacts = self._contacts
+        self._contacts = None      # and a new set of contacts
+        self._contact_pts = None   # and a new set of typed contact points
+        self._pair_read = None     # and a new set of pair relations (ARC B2)
+
+    def arrive(self) -> bool:
+        """THE HARNESS SWITCH (the reviewer 2026-10-25 10:47, 11:03, 11:25; Fig 11 :66, :70): a
+        frame that came with no action of the agent's -- a new game's first frame, the one its
+        wrapper already holds (both ARC wrappers reset in their own __init__). The same intake and
+        re-track as step(), and nothing that pairs an action with it: no on_frame, no
+        selves.observe, no aff.note, and the own clock reads no action took it. A break the
+        tracker reads here waits in frame_breaks() for the agent's next step's head. NEVER a
+        reset: a reset here would be the second of two (Isaiah 2026-09-29), so a wrapper holding
+        no frame takes nothing and returns False for the harness to record. Only the stream
+        harness calls it; nothing names a game."""
+        frame = getattr(self.w, "observation_space", None)
+        if frame is None:
+            return False
+        self._take_frame(frame)
+        self._decomposed()
+        self._own = ({}, 0)
+        return True
+
     def step(self, action: str, x: int | None = None, y: int | None = None) -> None:
         act = GameAction[action]
         # F28: a positioned (complex) action carries a coordinate the agent chose from perception.
@@ -1059,15 +1090,7 @@ class ArcWorld:
             keep = self._frame.model_copy()
             keep.state = nxt.state
             nxt = keep
-        if nxt is not None:
-            self._frame = nxt
-        self._read = None          # a new frame is a new decomposition
-        arc_atoms.new_frame()      # and its shape readings are perceived afresh (F481)
-        self._cue = None           # and a new set of mutations to read off it
-        self._prev_contacts = self._contacts
-        self._contacts = None      # and a new set of contacts
-        self._contact_pts = None   # and a new set of typed contact points
-        self._pair_read = None     # and a new set of pair relations (ARC B2)
+        self._take_frame(nxt)
         now = self.board()
         if self.on_frame is not None:
             self.on_frame(was, action, now)
