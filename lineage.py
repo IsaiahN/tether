@@ -790,6 +790,9 @@ class DkSnapshot:
         # transaction is the explicit BEGIN below, held until close (never committed in play)
         self.con = sqlite3.connect(uri, uri=True, check_same_thread=False, isolation_level=None)
         self.con.execute("PRAGMA query_only = 1")
+        # the 20 MB cap: 2 MiB of pages, none mapped (was SQLite's default 2,000 KiB)
+        self.con.execute("PRAGMA cache_size = -2048")
+        self.con.execute("PRAGMA mmap_size = 0")
         self.con.execute("BEGIN")
         q = self.con.execute
         self.count = q("SELECT COUNT(*) FROM kind_dk WHERE n != 0").fetchone()[0]
@@ -1053,16 +1056,35 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         rep["hazard_3a_in"] = {fm: sum(x.values()) for fm, x in ag._3a_in.items()}
     if gamma._SETTLED_CORE:
         rep["replayed"] = ag.gamma.replay(v["evidence"])
-    return {"parent": h, **rep, "index": _store_index(v), "memo": _store_none(v, "memo"),
+    return {"parent": h, **rep, "index": _store_index(v, ag), "memo": _store_none(v, "memo"),
             "slot_memo": _store_none(v, "bs"), "asked": _store_asked(v)}
 
 
-def _store_index(v: dict) -> dict | None:
+def _store_index(v: dict, ag: Any = None) -> dict | None:
     """load_index's result from the store's held table (the tip's entry per key), one signature
     (anything else was refused in _store_view)."""
     import tether
     if not tether._INDEX_HOLD:
         return None
+    if _LAZY_BASE or any(isinstance(x, _HeldKnown) for x in _CARRIED.values()):
+        _cap_copy()
+    snap = getattr(ag, "_dk_snap", None)
+    if (tether._CAP_HELD and tether._W_HELD_LAZY and snap is not None and not snap.closed
+            and not _CAP_SPENT and not _CARRIED.get(v["folder"]) and not _LAZY):
+        # part (ii): answered from the held table; only the keys in _INDEX_STORE now are kept
+        _CARRIED[v["folder"]] = _HeldKnown(v["folder"], repr(v["sig"]), ag)
+        skip, gens = set(), set()
+        for key, role, gh, _it in v["held"]:
+            k = (v["sig"], key, role)
+            gens.add(gh)
+            if k in tether._INDEX_STORE:
+                skip.add(k)
+            else:
+                _PENDING.pop(k, None)
+        _LAZY_BASE.update(sig=v["sig"], folder=v["folder"], skip=skip, taken=set(), gens=gens,
+                          kept={})
+        return {"installed": len(v["held"]) - len(skip), "rekeyed": 0, "refusals_recompile": 0,
+                "rebuild": [], "from_store": True}
     known = _CARRIED.setdefault(v["folder"], set())
     n = 0
     for key, role, gh, items in v["held"]:
@@ -1307,6 +1329,134 @@ _VERDICT: dict[tuple, tuple] = {}   # (signature, entry, role) -> each position'
 _VERDICT_N: dict[str, int] = {"refetched": 0}
 
 
+def _held_in_store(folder: str, key: str, role: str, snap: Any,
+                   con: Any = None) -> tuple | None:
+    """One held row (gen, items) by key: through the load-time snapshot while it is open (the same
+    rows as at load), else a read-only connection (the rows now: at load, plus this life's own
+    merged entries, which the asker already holds locally)."""
+    if snap is not None and not snap.closed:
+        return snap.held(key, role)
+    own = con is None
+    con = _ro(folder) if own else con
+    try:
+        ids = [con.execute("SELECT id FROM sym WHERE s = ?", (s,)).fetchone() for s in (key, role)]
+        if None in ids:
+            return None
+        return con.execute("SELECT gen, items FROM held WHERE key = ? AND role = ?",
+                           (ids[0][0], ids[1][0])).fetchone()
+    finally:
+        if own:
+            con.close()
+
+
+def _ro(folder: str) -> Any:
+    import sqlite3
+
+    import lineage_store as ls
+    con = sqlite3.connect("file:" + ls.path(folder).resolve().as_posix() + "?mode=ro", uri=True)
+    con.execute("PRAGMA cache_size = -2048")
+    return con
+
+
+class _HeldKnown(set):
+    """THE 20 MB CAP, part (ii) (TETHER_CAP_HELD): _CARRIED[folder] under the store load, answered
+    from the held table instead of copied (11.8 MB at 33 saves). In = held under the load's
+    signature, or added this life (write_index), and not discarded since (resolve's heal): the
+    copied set's answers, which were the held rows at load plus the additions minus the discards.
+    Holds only this life's additions (the set) and discards (gone)."""
+
+    def __init__(self, folder: str, sig_repr: str, ag: Any) -> None:
+        super().__init__()
+        self.folder, self.sig_repr, self.ag, self.gone, self.con = folder, sig_repr, ag, set(), None
+
+    def __contains__(self, k) -> bool:
+        if k in self.gone:
+            return False
+        if set.__contains__(self, k):
+            return True
+        s, key, role = k
+        return s == self.sig_repr and _held_in_store(
+            self.folder, key, role, getattr(self.ag, "_dk_snap", None), self.con) is not None
+
+    def add(self, k) -> None:
+        self.gone.discard(k)
+        set.add(self, k)
+
+    def update(self, *its) -> None:
+        for it in its:
+            for k in it:
+                self.add(k)
+
+    def discard(self, k) -> None:
+        set.discard(self, k)
+        self.gone.add(k)
+        b = _LAZY_BASE      # a lazy key's load-time gen, kept for _cap_copy if its row is rewritten
+        if b and b["folder"] == self.folder and k[0] == self.sig_repr:
+            lk = (b["sig"], k[1], k[2])
+            if lk not in b["skip"] and lk not in b["taken"] and lk not in b["kept"]:
+                row = _held_in_store(self.folder, k[1], k[2], getattr(self.ag, "_dk_snap", None))
+                if row is not None:
+                    b["kept"][lk] = row[0]
+
+    def reader(self, on: bool) -> None:
+        """write_index's asks after the snapshot closed (a game's end): one connection for the
+        loop, closed before the merge so no reader holds the checkpoint."""
+        if on and self.con is None:
+            self.con = _ro(self.folder)
+        elif not on and self.con is not None:
+            self.con.close()
+            self.con = None
+
+
+# part (ii)'s _LAZY under the store load: each held key is asked at its first resolve, not copied
+# (4.6 MB, 13,034 keys at 33 saves). The load's folder and signature, the held keys already in
+# tether._INDEX_STORE at load (never lazy, as before), and the keys taken (popped) since.
+_LAZY_BASE: dict = {}
+_CAP_SPENT: list = []     # a second store load in this process: copied from then on
+
+
+def _lazy_take(k: tuple, key: str, role: str, snap: Any) -> dict | None:
+    """_LAZY.pop(k) under part (ii): {gen, folder} for a key held at load and not in _INDEX_STORE
+    then, at its first ask; None for any other key, and for every later ask."""
+    lz = _LAZY.pop(k, None)
+    b = _LAZY_BASE
+    if lz is not None or not b or k[0] != b["sig"] or k in b["skip"] or k in b["taken"]:
+        return lz
+    row = _held_in_store(b["folder"], key, role, snap)
+    if row is None:
+        return None
+    b["taken"].add(k)
+    return {"gen": row[0], "folder": b["folder"]}
+
+
+def _cap_copy() -> None:
+    """A second store load in one process: the first load's answers are copied into the old sets
+    (rows never leave held; a row this life rewrote has a gen not in the load's, and a lazy key's
+    load gen was kept at its discard), and every later load copies, as before."""
+    b = _LAZY_BASE
+    for folder, kn in list(_CARRIED.items()):
+        if not isinstance(kn, _HeldKnown):
+            continue
+        kn.reader(False)
+        con = _ro(folder)
+        try:
+            rows = con.execute("SELECT s1.s, s2.s, held.gen FROM held JOIN sym s1 ON "
+                               "s1.id = held.key JOIN sym s2 ON s2.id = held.role").fetchall()
+        finally:
+            con.close()
+        old = {(kn.sig_repr, key, role) for key, role, _g in rows} - kn.gone
+        old.update(set.__iter__(kn))
+        if b and b["folder"] == folder:
+            for key, role, gh in rows:   # a row rewritten this life has a gen not in the load's
+                k = (b["sig"], key, role)
+                g = b["kept"].get(k, gh if gh in b["gens"] else None)
+                if g is not None and k not in b["skip"] and k not in b["taken"]:
+                    _LAZY[k] = {"gen": g, "folder": folder}
+        _CARRIED[folder] = old
+    _LAZY_BASE.clear()
+    _CAP_SPENT.append(1)
+
+
 def _ch(cand: dict) -> str:
     """A candidate's content hash: the reference checks the library's own view against it."""
     return hashlib.sha256(json.dumps(enc(cand), sort_keys=True).encode("utf-8")).hexdigest()[:16]
@@ -1381,9 +1531,15 @@ def write_index(d: str | Path, ag: Any, h: str) -> dict | None:
     sig = compile_term.signature({a.name: a for a in ag.gamma.atoms})
     known = _CARRIED.setdefault(str(p.resolve()), set())
     entries, refused = [], []
-    for (s, key, role), held in tether._INDEX_STORE.items():
-        if s != sig or (repr(s), key, role) in known:
-            continue
+    if isinstance(known, _HeldKnown):
+        known.reader(True)
+    try:
+        new = [k for k in tether._INDEX_STORE.items()
+               if k[0][0] == sig and (repr(sig), k[0][1], k[0][2]) not in known]
+    finally:
+        if isinstance(known, _HeldKnown):
+            known.reader(False)
+    for (s, key, role), held in new:
         try:
             # BY REFERENCE (the reviewer 22:22): the candidate is its position in the view and its
             # hash, never a copy of the library; the compile is the derived part, kept whole
@@ -1522,7 +1678,7 @@ def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
             _VERDICT_N["refetched"] += 1
             return held
     if p is None:
-        lz = _LAZY.pop(k, None)
+        lz = _lazy_take(k, key, role, snap)
         if lz is None or snap is None or snap.closed:
             return None
         items = _snap_items(ag, snap, key, role)

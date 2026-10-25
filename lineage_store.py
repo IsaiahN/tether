@@ -70,12 +70,15 @@ def path(folder: str | Path) -> Path:
     return Path(folder) / DB
 
 
-# THE 20 MB CAP, part (i) (Isaiah 2026-10-25 05:31 "cap agent at 20mb memory cache of what it can
-# store"; the reviewer 05:49): the store connection's page cache at 20 MiB and NO mmap, so its pages
-# come only through the capped cache and every miss is read from memory.db. Was 256 MiB + 1 GiB
-# mapped (the load's +116.5 MB working set, about 100 MB of it this connection). The same rows come
-# back from cache or disk, so no answer changes; only speed can.
-def open_store(folder: str | Path, cache_kib: int = 20480,
+# THE 20 MB CAP (Isaiah 2026-10-25 05:31 "cap agent at 20mb memory cache of what it can store"; the
+# reviewer 05:49, 06:06): ONE budget for all held from the store, every connection's page cache plus
+# the store-derived structures. This connection: 8 MiB of pages and NO mmap, so every miss is read
+# from memory.db (was 256 MiB + 1 GiB mapped); the load-time snapshot 2 MiB (lineage.DkSnapshot);
+# _CARRIED and _LAZY answered from the held table (TETHER_CAP_HELD). Measured on the 33-save store:
+# the load's working set was +116.5 MB before part (i) and +119.3 MB after it, so this connection
+# was NOT most of it. The same rows come back from cache or disk, so no answer changes; only speed
+# can.
+def open_store(folder: str | Path, cache_kib: int = 8192,
                mmap_bytes: int = 0) -> sqlite3.Connection:
     con = sqlite3.connect(path(folder), isolation_level=None)
     try:        # on any failure the connection is closed before the error leaves (no handle held)
