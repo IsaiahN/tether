@@ -11,6 +11,7 @@ Each section's manifest digest is ADDITIVE: the sum mod 2^256 of sha256(key \\t 
 a save updates it in O(touched) (B2), never by re-reading the section."""
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 import time
@@ -425,8 +426,17 @@ def note_end_path(con: sqlite3.Connection, wall_s: float, sleep_s: float) -> dic
 
 def open_new(path) -> sqlite3.Connection:
     """An empty db-form store with the step (4) tables, its indexes and the dependent-key
-    indexes."""
+    indexes. The connection is closed if any step fails (h_chain f2)."""
     con = sqlite3.connect(path, isolation_level=None)
+    try:
+        _init(con)
+    except BaseException:
+        con.close()
+        raise
+    return con
+
+
+def _init(con: sqlite3.Connection) -> None:
     con.execute("PRAGMA journal_mode=WAL")       # lineage_store.open_store's settings
     con.execute("PRAGMA synchronous=NORMAL")
     con.execute("PRAGMA wal_autocheckpoint=0")    # never a checkpoint inside a merge's commit
@@ -452,7 +462,6 @@ def open_new(path) -> sqlite3.Connection:
         rows.flush()
         update_manifest(con, rows.manifest())
         con.execute("COMMIT")
-    return con
 
 
 # ---------------------------------------------------------------- the folder-level calls (5a)
@@ -463,7 +472,21 @@ def path(folder) -> Path:
 
 
 def open_store(folder) -> sqlite3.Connection:
-    return open_new(path(folder))
+    """lineage_store.open_store's contract: a store written under another schema is REFUSED (the
+    caller then loads from the archive), and the connection is closed on any failure (a handle
+    left open on Windows blocks the set-aside rename; h_chain f2)."""
+    p = path(folder)
+    if p.exists():      # read the schema BEFORE open_new, which would write a missing one
+        ro = sqlite3.connect(f"file:{p.as_posix()}?mode=ro", uri=True)
+        try:
+            got = _meta_v(ro, "schema")
+        except sqlite3.OperationalError:
+            got = None       # no learned table yet: open_new creates the schema
+        finally:
+            ro.close()
+        if got is not None and got != str(ls.SCHEMA):
+            raise ls.Refused(f"store schema {got}, this code writes {ls.SCHEMA}")
+    return open_new(p)       # closes its own connection on any failure
 
 
 def _meta_v(con: sqlite3.Connection, k: str) -> str | None:
@@ -523,7 +546,6 @@ def merge_folder_save(con: sqlite3.Connection, folder, h: str, g: dict) -> dict:
 def catch_up(con: sqlite3.Connection, folder) -> list:
     """lineage_store.catch_up on the db form: every unmerged save, parent before child, each
     hash-checked against its name; one save's parse in memory at a time."""
-    import hashlib
 
     def read(h: str) -> dict:
         raw = ls.file_bytes(Path(folder) / f"gen_{h}.json")
