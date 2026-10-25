@@ -47,7 +47,7 @@ class Rows:
     save's transaction. Remembers each row's body as it was, for the manifest's additive update."""
 
     def __init__(self, con: sqlite3.Connection):
-        self.con, self.cur, self.orig, self.dirty = con, {}, {}, set()
+        self.con, self.cur, self.orig, self.dirty, self.pending = con, {}, {}, set(), set()
 
     def part(self, s: str) -> str:
         return "perception" if s in PERCEPTION else "learned"
@@ -74,18 +74,27 @@ class Rows:
             self.fetch(s, [k])
         self.cur[(s, k)] = body
         self.dirty.add((s, k))
+        self.pending.add((s, k))
 
     def flush(self) -> None:
+        """Writes the rows changed since the last flush, in key order (B-tree locality)."""
+        enc = self.__dict__.setdefault("enc", {})
+        for sk in self.pending:
+            enc[sk] = j(self.cur[sk])
         for p in ("learned", "perception"):
-            rows = [(s, k, j(self.cur[(s, k)])) for (s, k) in self.dirty if self.part(s) == p]
-            self.con.executemany(f"INSERT OR REPLACE INTO {p} VALUES (?, ?, ?)", rows)
-        self.flushed = set(self.dirty)
+            rows = sorted((s, k, enc[(s, k)]) for (s, k) in self.pending if self.part(s) == p)
+            # an UPSERT changes only body, so the indexes on key expressions are left alone
+            self.con.executemany(f"INSERT INTO {p} VALUES (?, ?, ?) ON CONFLICT(section, key) "
+                                 "DO UPDATE SET body = excluded.body", rows)
+        self.pending = set()
 
     def manifest(self) -> dict:
-        """(section -> (rows added, digest delta)) over every row this save changed."""
+        """(section -> (rows added, digest delta)) over every row this save changed (after the
+        final flush, so each body's text is the one written)."""
+        assert not self.pending, "manifest before the final flush"
         out: dict = {}
         for (s, k) in self.dirty:
-            new, old = j(self.cur[(s, k)]), self.orig[(s, k)]
+            new, old = self.enc[(s, k)], self.orig[(s, k)]
             n, d = out.get(s, (0, 0))
             d += row_hash(k, new) - (row_hash(k, old) if old is not None else 0)
             out[s] = (n + (old is None), d)
@@ -127,18 +136,23 @@ def meta_max(rows: Rows, k: str, x: int) -> None:
     meta_set(rows, k, str(max(int(v) if v is not None else x, x)))
 
 
-def _kind_key(e) -> str:
-    return j([e[0], e[1], ls._j(e[2]), ls._j(e[3])])
-
-
 def merge_kinds(rows: Rows, s: Syms, g: dict) -> None:
-    """lineage_store._merge_kinds, ported: kind, pair, kind_dk, kind_off and the two kind metas."""
+    """lineage_store._merge_kinds, ported: kind, pair, kind_dk, kind_off and the two kind metas.
+    The kind values are encoded once per merge (lineage_store._key_memo, the old code's own memo)."""
+    jj = ls._key_memo()
     kl, kn, klast = g.get("kinds_landed", ()), g.get("kinds_landed_n", ()), g.get("kinds_last", ())
-    for e in kl:                       # the sym calls, in the old code's order
-        s(e[0]), s(e[1]), s(ls._j(e[2])), s(ls._j(e[3]))
-    for e in (*kn, *klast):
-        s(e[0]), s(e[1]), s(ls._j(e[2])), s(ls._j(e[3]))
-    touched = list(dict.fromkeys(_kind_key(e) for e in (*kl, *kn, *klast)))
+    parts: dict = {}               # key -> (entry, role, kind_o, kind_x), decoded once
+
+    def kkey(e) -> str:
+        p = (e[0], e[1], jj(e[2]), jj(e[3]))
+        s(p[0]), s(p[1]), s(p[2]), s(p[3])       # the sym calls, in the old code's order
+        k = j(list(p))
+        parts[k] = p
+        return k
+    kl_k = [kkey(e) for e in kl]
+    kn_k = [kkey(e) for e in kn]
+    klast_k = [kkey(e) for e in klast]
+    touched = list(dict.fromkeys((*kl_k, *kn_k, *klast_k)))
     rows.fetch("kind", touched)
 
     def contrib() -> dict:      # _PAIR_CONTRIB over the touched rows
@@ -146,7 +160,7 @@ def merge_kinds(rows: Rows, s: Syms, g: dict) -> None:
         for k in touched:
             b = rows.get("kind", k)
             if b and b["in_landed"] == 1:
-                key = tuple(json.loads(k)[2:4])
+                key = parts[k][2:4]
                 n, last = out.get(key, (0, None))
                 v = b["l_seq"]
                 out[key] = (n + (b["n"] if b["has_n"] else 1), v if last is None else max(last, v))
@@ -158,20 +172,18 @@ def merge_kinds(rows: Rows, s: Syms, g: dict) -> None:
     before, known0 = contrib(), known()
     blank = {"in_landed": 0, "n": 0, "has_n": 0, "l_game": None, "l_level": None, "l_cycle": None,
              "l_seq": -1, "no_dk": 0}
-    for k in dict.fromkeys(_kind_key(e) for e in kl):
+    for k in dict.fromkeys(kl_k):
         b = rows.get("kind", k)
         rows.put("kind", k, {**blank, "in_landed": 1} if b is None else {**b, "in_landed": 1})
-    for e in kn:
-        k = _kind_key(e)
+    for e, k in zip(kn, kn_k, strict=True):
         b = rows.get("kind", k)
         rows.put("kind", k, {**blank, "n": e[4], "has_n": 1} if b is None
                  else {**b, "n": b["n"] + e[4], "has_n": 1})
     if "kinds_landed_n" not in g:
-        for k in dict.fromkeys(_kind_key(e) for e in kl):
+        for k in dict.fromkeys(kl_k):
             b = rows.get("kind", k)
             rows.put("kind", k, {**b, "n": b["n"] + 1, "has_n": 1})
-    for e in klast:                    # UPSERT_LAST: the save's order, a tie goes to the later row
-        k = _kind_key(e)
+    for e, k in zip(klast, klast_k, strict=True):   # UPSERT_LAST: the save's order; a tie: later
         b = rows.get("kind", k)
         lv = dict(zip(("l_game", "l_level", "l_cycle", "l_seq"), e[4:8], strict=True))
         if b is None:
@@ -190,16 +202,20 @@ def merge_kinds(rows: Rows, s: Syms, g: dict) -> None:
     if seqs:
         meta_max(rows, "kind_seq_max", max(seqs))
     dk_new, dk_last = g.get("kinds_landed_dk", ()), g.get("kinds_dk_last", ())
-    for e in dk_new:
-        s(ls._j(e[0])), s(e[1]), s(ls._j(e[2]))
-    for e in dk_new:
-        k = j([ls._j(e[0]), e[1], ls._j(e[2])])
+
+    def dkey(e) -> str:
+        p = (jj(e[0]), e[1], jj(e[2]))
+        s(p[0]), s(p[1]), s(p[2])
+        return j(list(p))
+    dk_new_k = [dkey(e) for e in dk_new]
+    rows.fetch("kind_dk", dk_new_k)
+    for e, k in zip(dk_new, dk_new_k, strict=True):
         b = rows.get("kind_dk", k)
         rows.put("kind_dk", k, {"n": e[3], "l_game": None, "l_level": None, "l_cycle": None,
                                 "l_seq": -1} if b is None else {**b, "n": b["n"] + e[3]})
-    for e in dk_last:
-        s(ls._j(e[0])), s(e[1]), s(ls._j(e[2]))
-        k = j([ls._j(e[0]), e[1], ls._j(e[2])])
+    dk_last_k = [dkey(e) for e in dk_last]
+    rows.fetch("kind_dk", dk_last_k)
+    for e, k in zip(dk_last, dk_last_k, strict=True):
         b = rows.get("kind_dk", k)
         lv = dict(zip(("l_game", "l_level", "l_cycle", "l_seq"), e[3:7], strict=True))
         if b is None:
@@ -208,32 +224,43 @@ def merge_kinds(rows: Rows, s: Syms, g: dict) -> None:
             rows.put("kind_dk", k, {**b, **lv})
     s("CAUSE")
     rows.flush()     # the EXISTS below reads kind_dk as this save leaves it
-    for k in touched:                  # no_dk on the touched kind rows
-        e, role, ko, kx = json.loads(k)
-        tgt = kx if role == "CAUSE" else ko
-        has = rows.con.execute(
-            "SELECT 1 FROM perception INDEXED BY kind_dk_et WHERE section = 'kind_dk' AND "
-            "json_extract(key, '$[1]') = ? AND json_extract(key, '$[2]') = ? AND "
-            "json_extract(body, '$.n') > 0 LIMIT 1", (e, tgt)).fetchone()
+    # no_dk on the touched kind rows: EXISTS once per DISTINCT (entry, target), each a parameterised
+    # indexed SEARCH (a correlated or joined form over a temp table plans as a SCAN of the
+    # expression index: measured 2026-10-24, 5x slower)
+    tgt_of = {k: (p[0], p[3] if p[1] == "CAUSE" else p[2]) for k, p in parts.items()}
+    con = rows.con
+    # one indexed query per DISTINCT ENTRY (the index leads with entry), targets filtered here
+    q_has = ("SELECT json_extract(key, '$[2]') FROM perception INDEXED BY kind_dk_et WHERE "
+             "section = 'kind_dk' AND json_extract(key, '$[1]') = ? AND json_extract(body, '$.n') > 0")
+    has = set()
+    for ent in sorted({p[0] for p in tgt_of.values()}):
+        has.update((ent, t) for (t,) in con.execute(q_has, (ent,)))
+    for k in touched:
         b = rows.get("kind", k)
-        if b is not None and b["no_dk"] != (0 if has else 1):
-            rows.put("kind", k, {**b, "no_dk": 0 if has else 1})
-    for ent, tgt in sorted({(e[1], ls._j(e[2])) for e in dk_new if e[3] > 0}):
-        s(ent), s(tgt)                 # B1: kind rows NOT in this save, moved by a new kind_dk row
-        for col, ix, cause in (("$[2]", "kind_entry_o", False), ("$[3]", "kind_entry_x", True)):
-            for (k,) in rows.con.execute(
-                    f"SELECT key FROM perception INDEXED BY {ix} WHERE section = 'kind' AND "
-                    f"json_extract(key, '$[0]') = ? AND json_extract(key, '{col}') = ?",
-                    (ent, tgt)).fetchall():
-                if (json.loads(k)[1] == "CAUSE") != cause:
-                    continue
-                b = rows.get("kind", k)
-                if b["no_dk"] == 1:
-                    rows.put("kind", k, {**b, "no_dk": 0})
-    for e in g.get("kinds_offered_dk", ()):
-        s(ls._j(e[0])), s(e[1]), s(ls._j(e[2]))
-    for e in g.get("kinds_offered_dk", ()):
-        k = j([ls._j(e[0]), e[1], ls._j(e[2])])
+        want = 0 if tgt_of[k] in has else 1
+        if b is not None and b["no_dk"] != want:
+            rows.put("kind", k, {**b, "no_dk": want})
+    # B1: kind rows NOT in this save, whose (entry, target) a new kind_dk row (n > 0) now covers
+    # (the old second UPDATE), per distinct pair and target column
+    dep = []
+    pairs: dict = {}
+    for ent, tgt in {(e[1], jj(e[2])) for e in dk_new if e[3] > 0}:
+        pairs.setdefault(ent, set()).add(tgt)
+    for ent in sorted(pairs):          # one indexed query per distinct entry
+        for (k,) in con.execute("SELECT key FROM perception INDEXED BY kind_entry_o WHERE "
+                                "section = 'kind' AND json_extract(key, '$[0]') = ?", (ent,)):
+            _e, role, ko, kx = json.loads(k)
+            if (kx if role == "CAUSE" else ko) in pairs[ent]:
+                dep.append(k)
+    rows.fetch("kind", dep)
+    for k in dep:
+        b = rows.get("kind", k)
+        if b["no_dk"] == 1:
+            rows.put("kind", k, {**b, "no_dk": 0})
+    off = g.get("kinds_offered_dk", ())
+    off_k = [dkey(e) for e in off]
+    rows.fetch("kind_off", off_k)
+    for e, k in zip(off, off_k, strict=True):
         b = rows.get("kind_off", k)
         rows.put("kind_off", k, {"n": e[3]} if b is None else {"n": b["n"] + e[3]})
 
@@ -271,6 +298,7 @@ def merge_asked(rows: Rows, s: Syms, k: int, h: str, bodies: list) -> None:
         tally = tally_n if new else tally_1
         for (x, y, z) in tally:        # the old generator's order: insertion, sorted only afterwards
             s(x), s(y), s(z)
+        rows.fetch("asked_tally", [j(list(t)) for t in tally])
         if not new:
             for (x, y, z), n in sorted(tally.items()):
                 tk = j([x, y, z])
@@ -305,6 +333,8 @@ def merge_held(rows: Rows, s: Syms, h: str, idx: dict) -> None:
         rows.put("sig", j([sid]), {"arm": sig[0], "atoms": sig[1], "names": sig[2]})
     for e in idx["entries"]:
         s(e["key"]), s(e["role"])
+    rows.fetch("held", [j([e["key"], e["role"]]) for e in idx["entries"]])
+    for e in idx["entries"]:
         rows.put("held", j([e["key"], e["role"]]), {"gen": h, "sig": sid, "items": ls._j(e["items"])})
 
 
@@ -330,8 +360,10 @@ def merge_save(con: sqlite3.Connection, h: str, g: dict, aks: list, idx: dict | 
             merge_held(rows, s, h, idx)
         else:
             meta_set(rows, "idx_gap", ls._j([h, f"{n_idx_files} index files"]))
+        rows.fetch("evidence", [j([k, i]) for i in range(len(g["evidence"]))])
         for i, e in enumerate(g["evidence"]):
             rows.put("evidence", j([k, i]), {"row": json.dumps(e)})
+        rows.fetch("vindication", [j([k, i]) for i in range(len(g["vindication_tail"]))])
         for i, e in enumerate(g["vindication_tail"]):
             rows.put("vindication", j([k, i]), {"row": json.dumps(e)})
         meta_add(rows, "n_vindication", len(g["vindication_tail"]))
@@ -373,6 +405,9 @@ def open_new(path) -> sqlite3.Connection:
     """An empty db-form store with the step (4) tables, its indexes and the dependent-key indexes."""
     import store
     con = sqlite3.connect(path, isolation_level=None)
+    con.execute("PRAGMA journal_mode=WAL")       # lineage_store.open_store's settings
+    con.execute("PRAGMA synchronous=NORMAL")
+    con.execute("PRAGMA cache_size=-262144")
     for part in store.PARTS:
         con.execute(f"CREATE TABLE IF NOT EXISTS {part}(section TEXT, key TEXT, body TEXT, "
                     "PRIMARY KEY(section, key)) WITHOUT ROWID")
