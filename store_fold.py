@@ -226,15 +226,19 @@ def merge_kinds(rows: Rows, s: Syms, g: dict) -> None:
     rows.flush()     # the EXISTS below reads kind_dk as this save leaves it
     # no_dk on the touched kind rows: EXISTS once per DISTINCT (entry, target), each a parameterised
     # indexed SEARCH (a correlated or joined form over a temp table plans as a SCAN of the
-    # expression index: measured 2026-10-24, 5x slower)
+    # expression index: measured 2026-10-24, 5x slower). Both columns bound, so a read is bounded by
+    # its matches; one query per entry read all the entry's rows, a per-save cost growing with the
+    # store (X1 B2, 2026-10-24)
     tgt_of = {k: (p[0], p[3] if p[1] == "CAUSE" else p[2]) for k, p in parts.items()}
     con = rows.con
-    # one indexed query per DISTINCT ENTRY (the index leads with entry), targets filtered here
-    q_has = ("SELECT json_extract(key, '$[2]') FROM perception INDEXED BY kind_dk_et WHERE "
-             "section = 'kind_dk' AND json_extract(key, '$[1]') = ? AND json_extract(body, '$.n') > 0")
-    has = set()
-    for ent in sorted({p[0] for p in tgt_of.values()}):
-        has.update((ent, t) for (t,) in con.execute(q_has, (ent,)))
+    q = rows.__dict__.setdefault("q", {})
+    q_has = ("SELECT 1 FROM perception INDEXED BY kind_dk_et WHERE section = 'kind_dk' AND "
+             "json_extract(key, '$[1]') = ? AND json_extract(key, '$[2]') = ? AND "
+             "json_extract(body, '$.n') > 0 LIMIT 1")
+    want_pairs = sorted(set(tgt_of.values()))
+    has = {p for p in want_pairs if con.execute(q_has, p).fetchone() is not None}
+    q["entries"], q["nodk_pairs"], q["kind_touched"] = (len({p[0] for p in want_pairs}),
+                                                        len(want_pairs), len(touched))
     for k in touched:
         b = rows.get("kind", k)
         want = 0 if tgt_of[k] in has else 1
@@ -243,15 +247,15 @@ def merge_kinds(rows: Rows, s: Syms, g: dict) -> None:
     # B1: kind rows NOT in this save, whose (entry, target) a new kind_dk row (n > 0) now covers
     # (the old second UPDATE), per distinct pair and target column
     dep = []
-    pairs: dict = {}
-    for ent, tgt in {(e[1], jj(e[2])) for e in dk_new if e[3] > 0}:
-        pairs.setdefault(ent, set()).add(tgt)
-    for ent in sorted(pairs):          # one indexed query per distinct entry
-        for (k,) in con.execute("SELECT key FROM perception INDEXED BY kind_entry_o WHERE "
-                                "section = 'kind' AND json_extract(key, '$[0]') = ?", (ent,)):
-            _e, role, ko, kx = json.loads(k)
-            if (kx if role == "CAUSE" else ko) in pairs[ent]:
-                dep.append(k)
+    pairs = sorted({(e[1], jj(e[2])) for e in dk_new if e[3] > 0})
+    q["b1_pairs"] = len(pairs)
+    for ent, tgt in pairs:
+        for col, ix, cause in (("$[2]", "kind_entry_o", False), ("$[3]", "kind_entry_x", True)):
+            for (k,) in con.execute(f"SELECT key FROM perception INDEXED BY {ix} WHERE section = 'kind' "
+                                    f"AND json_extract(key, '$[0]') = ? AND json_extract(key, '{col}') = ?",
+                                    (ent, tgt)):
+                if (json.loads(k)[1] == "CAUSE") == cause:
+                    dep.append(k)
     rows.fetch("kind", dep)
     for k in dep:
         b = rows.get("kind", k)
@@ -390,7 +394,7 @@ def merge_save(con: sqlite3.Connection, h: str, g: dict, aks: list, idx: dict | 
             con.execute("ROLLBACK")
         raise
     return {"save": h, "k": k, "touched": len(rows.dirty), "s": round(time.perf_counter() - t0, 3),
-            "keys": sorted(rows.dirty)}
+            "keys": sorted(rows.dirty), "q": rows.__dict__.get("q", {})}
 
 
 def update_manifest(con: sqlite3.Connection, delta: dict) -> None:

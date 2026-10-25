@@ -89,7 +89,8 @@ def main() -> int:
             if n_old != (r[0] if r else 0):
                 counts[tb] = (n_old, r[0] if r else 0)
         line = (f"save {k:2} {h}: touched {m['touched']:,}, port {m['s']:.1f} s, old {t_old:.1f} s, "
-                f"store rows before {rows_before:,}; touched-key diffs {len(diff)}; count diffs {counts}")
+                f"store rows before {rows_before:,}; q {m.get('q')}; touched-key diffs {len(diff)}; "
+                f"count diffs {counts}")
         if k in FULL:
             sym = dict(co.execute("SELECT id, s FROM sym"))
             whole = []
