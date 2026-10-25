@@ -16281,7 +16281,7 @@ class Agent:
         # follows env.step nothing is pending (perceive drained it), so this reads [].
         _fb = getattr(self.env, "frame_breaks", None)
         _head_brk = _fb() if _fb is not None else []
-        if _head_brk:                           # read as PERCEIVE, so its rows carry the step running
+        if _head_brk:                   # read as PERCEIVE, so its rows carry the step running
             with self._step_scope("PERCEIVE"):
                 for _b in _head_brk:
                     self._window_at = len(self.trace)
