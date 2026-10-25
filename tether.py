@@ -302,6 +302,10 @@ _W_DK_KEYED = armflag.arm("TETHER_W_DK_KEYED", default=True)
 # re-reads the row and skips the hashing. This life's own compiles are never evicted. OFF: every
 # held entry decoded at load, and _INDEX_STORE grows for the process.
 _W_HELD_LAZY = armflag.arm("TETHER_W_HELD_LAZY", default=True)
+# THE 20 MB CAP, part (ii) (Isaiah 2026-10-25 05:31; the reviewer 05:49, 06:06): under the store
+# load with W-3, lineage's _CARRIED and _LAZY are answered from the held table instead of copied at
+# load, with the same answers. OFF: both copied at load, as before.
+_CAP_HELD = armflag.arm("TETHER_CAP_HELD", default=True)
 
 
 class _Kept(dict):

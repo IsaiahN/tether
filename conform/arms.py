@@ -1179,7 +1179,14 @@ ARMS: dict[str, str] = {
                           "entries with resolve's verdict (re-read without hashing), never this "
                           "life's own compiles. OFF: every held entry decoded at load and kept "
                           "for the process. default ON",
-    "TETHER_W_EVICT_EVERY_STEP": "W-2's CHECK, a measurement switch: a hard eviction at every "
+    "TETHER_CAP_HELD": "THE 20 MB CAP, part (ii) (Isaiah 2026-10-25 05:31; the reviewer 05:49, "
+                       "06:06): under the store load with W-3, lineage's _CARRIED and _LAZY are "
+                       "answered from the held table (the load-time snapshot, else a read-only "
+                       "connection) plus this life's own adds, discards and first resolves, "
+                       "instead of copied at load (16.4 MB at 33 saves); the same answers. A "
+                       "second store load in one process copies the first load's answers back "
+                       "into the old sets. OFF: both copied at load. default ON",
+    "TETHER_W_EVICT_EVERY_STEP":"W-2's CHECK, a measurement switch: a hard eviction at every "
                                  "step's start, for MF-W2 (decisions equal to a run that never "
                                  "evicts). default OFF",
     "TETHER_LIBRARY_REQUIRED": "COLD START (ii), SHAPE A (the reviewer 2026-10-21 23:27): "
