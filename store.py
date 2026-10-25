@@ -122,9 +122,15 @@ def recorded_whole(mkey: tuple) -> bool:
 # ---------------------------------------------------------------- the learned store (step 4)
 # Rows are (section, key, body), key and body JSON text (C4; the reviewer 2026-10-24 08:49, 16:19).
 # Two forms, one schema: json (learned.jsonl.gz + perception.jsonl.gz, gzip mtime 0, level 6) and
-# db (learned.db). Each section carries its row count and the sha256 of its rows in key order,
+# db (learned.db). Each section carries its row count and its additive digest (section_digest),
 # checked at load. Step 4 builds and checks it; nothing in play reads it until step 5.
 PERCEPTION = frozenset({"kind", "kind_dk", "kind_off", "pair"})
+# THE SCHEMA'S SECTIONS (the reviewer 2026-10-25 00:00, Q2): lineage_store's 15 tables plus save.
+# Every one has a manifest row, an empty one (0, 64 zeros) included; a section with no row is a
+# StoreError at load, never read as empty (step (4)'s 0-row drop, made a check).
+SECTIONS = ("ak_whole", "asked_tally", "blob", "evidence", "held", "kind", "kind_dk", "kind_off",
+            "meta", "pair", "save", "saves", "seeds", "sig", "sym", "vindication")
+EMPTY_DIGEST = "0" * 64
 PARTS = ("learned", "perception")
 JSON_FILES = {"learned": "learned.jsonl.gz", "perception": "perception.jsonl.gz"}
 DB_FILE = "learned.db"
@@ -190,6 +196,9 @@ def section_digest(rows: dict) -> list:
 def _checked(where: str, man: dict, store: dict, verify: bool) -> dict:
     if not man or not any(n for n, _ in man.values()):
         raise StoreError(f"{where}: the learned store is empty")
+    missing = [s for s in SECTIONS if s not in man]
+    if missing:
+        raise StoreError(f"{where}: sections {missing} have no manifest row")
     if set(man) != set(store):
         raise StoreError(f"{where}: sections {sorted(set(man) ^ set(store))} are in only one of "
                          "the manifest and the rows")

@@ -403,6 +403,24 @@ def update_manifest(con: sqlite3.Connection, delta: dict) -> None:
                     (sec, n + dn, format((d + dd) % MOD, "064x")))
 
 
+def note_end_path(con: sqlite3.Connection, wall_s: float, sleep_s: float) -> dict:
+    """lineage_store.note_end_path on the store's rows (C1 (A)'s reserve; the reviewer 2026-10-25
+    00:00, Q1): meta end_path, the same value and rounding, written after the sleep."""
+    out = {"s": round(wall_s, 3), "sleep_s": round(sleep_s, 3)}
+    con.execute("BEGIN")
+    try:
+        rows = Rows(con)
+        meta_set(rows, "end_path", json.dumps(out))
+        rows.flush()
+        update_manifest(con, rows.manifest())
+        con.execute("COMMIT")
+    except BaseException:
+        if con.in_transaction:
+            con.execute("ROLLBACK")
+        raise
+    return out
+
+
 def open_new(path) -> sqlite3.Connection:
     """An empty db-form store with the step (4) tables, its indexes and the dependent-key
     indexes."""
@@ -418,6 +436,10 @@ def open_new(path) -> sqlite3.Connection:
                     "PRIMARY KEY(section, key)) WITHOUT ROWID")
     con.execute("CREATE TABLE IF NOT EXISTS manifest(section TEXT PRIMARY KEY, n INTEGER, "
                 "sha TEXT)")
+    # every schema section has a manifest row from the start, so an untouched one loads as empty
+    # (store.SECTIONS; the reviewer 2026-10-25 00:00, Q2)
+    con.executemany("INSERT OR IGNORE INTO manifest VALUES (?, 0, ?)",
+                    [(s, store.EMPTY_DIGEST) for s in store.SECTIONS])
     for sql in (*store.INDEXES.values(), *DEP_INDEXES):
         con.execute(sql.replace("CREATE INDEX ", "CREATE INDEX IF NOT EXISTS ", 1)
                     if "IF NOT EXISTS" not in sql else sql)
