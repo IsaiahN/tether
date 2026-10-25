@@ -970,6 +970,11 @@ _ALPHA_PRICE = armflag.arm("TETHER_ALPHA_PRICE", default=True)
 # this board's names); admission saved ~17 entries and cost recomputation the budget pays for, so
 # it stays built and OFF. Both OFF: stored on the first ask, never cleared (e945a7f)
 _MEMO_CLEAR = armflag.arm("TETHER_MEMO_CLEAR", default=True)
+# P3 (the reviewer 2026-10-25 13:11): the same instance-memo clear at the agent's OWN frame break,
+# since a break re-issues the names those keys hold (the walk memo grew 1.18M -> 1.73M entries over
+# rounds 2-4 in 0-level streams, where retarget almost never runs). Fig 6 :42: what is derived can
+# fall. OFF: cleared at retarget only, as before.
+_MEMO_AT_BREAK = armflag.arm("TETHER_MEMO_AT_BREAK", default=True)
 _MEMO_ADMIT = armflag.arm("TETHER_MEMO_ADMIT", default=False)
 # CONSOLIDATION (Isaiah 2026-10-18 04:10, 04:20, 04:26; the reviewer 04:21, 04:25, 04:27, 04:43):
 # at every boundary the agent can see -- a level end, its own restart, a game's start -- and when
@@ -3801,9 +3806,25 @@ class Agent:
         seen.add(key)
         return False
 
+    def _memo_clear_at_break(self) -> None:
+        """TETHER_MEMO_AT_BREAK: at the agent's own frame break, the instance memos the retarget
+        sweep clears (their keys hold this board's names, which the break re-issues), after the
+        same memo_sizes row -- labelled with the step running at the break, never SETTLE by fiat;
+        nothing else of the sweep. A miss recomputes."""
+        if not (_MEMO_AT_BREAK and _MEMO_CLEAR):
+            return
+        self._memo_sizes_row("frame_break", self._running_step)
+        for m in (self._reach_index, self._reach_verdicts, self._reach_fold, self._compile_cache,
+                  self._units_for_memo, self._frontiers, self._walk_memo):
+            m.clear()
+
     @_in_step("SETTLE")
     def _memo_sizes(self, at: str) -> None:
         """R4: each memo's entries, the asked keys, and the bound memos' hit counter, one row."""
+        self._memo_sizes_row(at, "SETTLE")
+
+    def _memo_sizes_row(self, at: str, step: str) -> None:
+        """_memo_sizes' row, written under the step the caller runs in."""
         agent = {"reach_index": len(self._reach_index), "reach_verdicts": len(self._reach_verdicts),
                  "reach_fold": len(self._reach_fold), "compile": len(self._compile_cache),
                  "units_for": len(self._units_for_memo), "frontiers": len(self._frontiers),
@@ -3820,7 +3841,7 @@ class Agent:
             *(("bound_slot_hit_derived",) if _CONSOLIDATE else ()))}
         if _CONSOLIDATE:
             exempt["bound_slot_landed"] = self._landed_by_class()     # Q2
-        self.led.record(self.cycle, "SETTLE", "@memo", "memo_sizes", at=at, agent=agent,
+        self.led.record(self.cycle, step, "@memo", "memo_sizes", at=at, agent=agent,
                         exempt=exempt, asked={m: len(v) for m, v in self._seen_keys.items()},
                         carried={"bs": len(_BS_CARRIED), "bm": len(_BM_CARRIED)}, hits=hits,
                         reads="R4: the memos' entries at this boundary (agent-level, cleared "
@@ -8877,6 +8898,7 @@ class Agent:
         if _brk:
             self._window_at = len(self.trace)   # C: the seam row is not appended, so it starts here
             self.iface.note_break()             # TETHER_AIM_ROUTED: aims read only what follows
+            self._memo_clear_at_break()         # P3: this board's instance memos
         for _b in _brk:
             self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
                             action=action, **_b)
@@ -16258,15 +16280,21 @@ class Agent:
         # seam: no action produced it, so this step's own outcome is scored. In a step that
         # follows env.step nothing is pending (perceive drained it), so this reads [].
         _fb = getattr(self.env, "frame_breaks", None)
-        for _b in (_fb() if _fb is not None else []):
-            self._window_at = len(self.trace)
-            self.iface.note_break()             # TETHER_AIM_ROUTED: aims read only what follows
-            self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
-                            action=None, **_b)
-            if _KIND_CARRY and _b.get("successor"):
-                self._succ_in = {**getattr(self, "_succ_in", {}), **_b["successor"]}
-                self._succ_form = {**getattr(self, "_succ_form", {}), **_b["successor_form"]}
-                self._old_form = {**getattr(self, "_old_form", {}), **_b.get("old_form", {})}
+        _head_brk = _fb() if _fb is not None else []
+        if _head_brk:                   # read as PERCEIVE, so its rows carry the step running
+            with self._step_scope("PERCEIVE"):
+                for _b in _head_brk:
+                    self._window_at = len(self.trace)
+                    self.iface.note_break()     # TETHER_AIM_ROUTED: aims read only what follows
+                    self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break",
+                                    of=("@frame",), action=None, **_b)
+                    if _KIND_CARRY and _b.get("successor"):
+                        self._succ_in = {**getattr(self, "_succ_in", {}), **_b["successor"]}
+                        self._succ_form = {**getattr(self, "_succ_form", {}),
+                                           **_b["successor_form"]}
+                        self._old_form = {**getattr(self, "_old_form", {}),
+                                          **_b.get("old_form", {})}
+                self._memo_clear_at_break()     # P3: this board's instance memos
         if _W_EVICT_EVERY_STEP:
             self._w_evict(hard=True, why="every step (W-2's check)")
         if _CONSOLIDATE:

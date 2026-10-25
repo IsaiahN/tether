@@ -909,6 +909,12 @@ ARMS: dict[str, str] = {
                          "counter; their keys hold this board's names; Isaiah's carried bound "
                          "memos are exempt (10-15 06:01). OFF: never cleared (e945a7f). "
                          "default ON",
+    "TETHER_MEMO_AT_BREAK": "P3 (the reviewer 2026-10-25 13:11): the same seven instance memos "
+                            "(with _walk_memo) are also cleared at the agent's own frame break, "
+                            "after a memo_sizes row (at frame_break, step PERCEIVE), since a break "
+                            "re-issues the names their keys hold; nothing else of the sweep. The "
+                            "walk memo grew 1.18M -> 1.73M entries over rounds 2-4 in 0-level "
+                            "streams. A miss recomputes. OFF: cleared at retarget only. default ON",
     "TETHER_MEMO_ADMIT": "R4 (the reviewer 2026-10-17 23:52 (A), split 2026-10-18 00:10): the "
                          "agent-level memos store an answer only on its key's SECOND ask; the "
                          "asked keys are kept. OFF because RK-3 fired: it saved 17 entries on "
