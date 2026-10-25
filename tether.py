@@ -6346,7 +6346,7 @@ class Agent:
                 if self.slot_types.get(slot) in ORDERED_TYPES
                 else IFace.Intent(IFace.BECOME, slot, value=tgt))
         r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env),
-                               before, self.env, withheld=self._withheld)
+                               before, self.env, withheld=self._withheld, asker="hyp_route")
         return None if r is None else r.action
 
     def _hyp_hold(self, key: str, c: Any, before: dict) -> tuple:
@@ -8857,6 +8857,7 @@ class Agent:
         self._seam_now = bool(_brk)
         if _brk:
             self._window_at = len(self.trace)   # C: the seam row is not appended, so it starts here
+            self.iface.note_break()             # TETHER_AIM_ROUTED: aims read only what follows
         for _b in _brk:
             self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
                             action=action, **_b)
@@ -13438,7 +13439,7 @@ class Agent:
             self._intent_kinds.add(emit.kind)
             r = self.iface.realise(emit, tuple(self.actions),
                                    IFace.Interface.context(self.env), before, self.env,
-                                   withheld=self._withheld)
+                                   withheld=self._withheld, asker="routine")
             if r is None:
                 return None
             self.led.record(self.cycle, "PLAN", emit.subject or "@board", "intent",
@@ -13447,6 +13448,9 @@ class Agent:
         # 7a(5) C: a bare step the floor vetoes here is unrealisable, unless every action is
         _w = self._withheld
         if _w.action(emit) and not all(_w.action(a) for a in self.actions):
+            return None
+        if IFace._AIM_ROUTED and emit in IFace.POSITIONED:   # a name has no slot to aim from
+            IFace.AIM_ROUTED_N["routine:bare_step_refused"] += 1
             return None
         return emit if emit in self.actions else None
 
@@ -13570,7 +13574,8 @@ class Agent:
         _offer, _wh = tuple(self.actions), self._withheld
         if _ROUTE_REFUSE:          # R-B: this intent's refused routes here are not offered
             _offer, _wh = self._route_offer(_want.says(), _ctx, _offer, _wh)
-        _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh)
+        _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
+                                 asker="goal")
               if _offer or not _ROUTE_REFUSE else None)
         if _corr is not None and commit:
             # R-C: the correction is looked up in the agent's OWN record (the interface's delta
@@ -16219,6 +16224,7 @@ class Agent:
         _fb = getattr(self.env, "frame_breaks", None)
         for _b in (_fb() if _fb is not None else []):
             self._window_at = len(self.trace)
+            self.iface.note_break()             # TETHER_AIM_ROUTED: aims read only what follows
             self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
                             action=None, **_b)
             if _KIND_CARRY and _b.get("successor"):
