@@ -360,8 +360,13 @@ def off_identity() -> None:
         base = child("plain", d)
     os.environ["TETHER_FRAME_BREAK"] = "0"
     try:
-        # the R4 record arm OFF too: its rows postdate the base tree (the reviewer 18:43)
-        cur = child_env("plain", {"TETHER_FRAME_BREAK": "0", "TETHER_R4_RECORD": "0"})
+        # the R4 record arm OFF too: its rows postdate the base tree (the reviewer 18:43); and
+        # TETHER_KIND_CARRY, an arm downstream of B, so "before B, B off" includes its OFF
+        # (the reviewer 2026-10-25 09:01); and TETHER_ROUTE_REFUSE (R-C, 429f36e 2026-10-24),
+        # which postdates this test's base and changes hypothesis_test rows; it stays ON in every
+        # run of the agent (Isaiah 2026-10-24 14:16), OFF only here (the reviewer 2026-10-25 09:31)
+        cur = child_env("plain", {"TETHER_FRAME_BREAK": "0", "TETHER_R4_RECORD": "0",
+                                  "TETHER_KIND_CARRY": "0", "TETHER_ROUTE_REFUSE": "0"})
     finally:
         os.environ.pop("TETHER_FRAME_BREAK", None)
 

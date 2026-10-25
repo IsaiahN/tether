@@ -93,6 +93,21 @@ _INSTRUMENTS = armflag.arm("TETHER_INSTRUMENTS", default=True)
 # median >= 0.9273, colour <= 0.143; 7 switches, 5 games' insides, no level boundary seen, one
 # toggle game) and moved only by ruling. 0 claims: no test (recorded). OFF: today's tracker.
 _FRAME_BREAK = armflag.arm("TETHER_FRAME_BREAK", default=True)
+# K1 (Isaiah 2026-10-25 08:40 "fix"; the reviewer 08:43): at a break, each retired name's refused
+# claim is its SUCCESSOR, one-to-one (a name claiming two pieces keeps the higher score), published
+# beside the break with both pieces' form codes, so the agent can carry what it held by kind. The
+# renaming itself (B) is unchanged. OFF: no successor published.
+_KIND_CARRY = armflag.arm("TETHER_KIND_CARRY", default=True)
+
+
+def form_code(cells: Any) -> int | None:
+    """A form's stable number: a hash of its cells normalised to the bounding box's corner, the
+    code arc_world.shape_code publishes (3c-CANON). None for no cells."""
+    if not cells:
+        return None
+    import hashlib
+    raw = repr(sorted(tuple(c) for c in cells)).encode()
+    return int.from_bytes(hashlib.blake2b(raw, digest_size=6).digest(), "big")
 BREAK_MEDIAN, BREAK_COLOUR = 0.71, 0.42
 
 
@@ -605,6 +620,7 @@ class Objects:
         g = as_index_grid(board)
         key = tuple(map(tuple, g)) if g is not None else None
         prev, self._last_key = self._last_key, key
+        self._succ = None
         if prev is None or key == prev or not self.tracked:
             return
         claims = [(i, n, s) for i, (n, s) in assign.items() if n is not None]
@@ -620,6 +636,7 @@ class Objects:
                        bars=[BREAK_MEDIAN, BREAK_COLOUR])
             if brk:
                 kept, retired = [], []
+                best: dict = {}                 # K1: retired name -> (piece, score), one-to-one
                 for i, n, s in claims:
                     old = self.tracked[n]
                     if (s == 1.0 and found[i].get("colour") == old.get("colour")
@@ -628,8 +645,13 @@ class Objects:
                     else:
                         retired.append(n)
                         assign[i] = (None, 0.0)
+                        if n not in best or s > best[n][1]:
+                            best[n] = (i, s)
                 rec.update(kept=sorted(kept), retired=sorted(retired))
                 self.breaks.append(rec)
+                if _KIND_CARRY:
+                    self._succ = (rec, {i: n for n, (i, _s) in best.items()},
+                                  {n: form_code(o.get("shape")) for n, o in self.tracked.items()})
         self.call_log.append(rec)
 
     def __call__(self, board: Any) -> dict[str, int]:
@@ -690,6 +712,7 @@ class Objects:
                 claimed.add(best)
             assign[i] = (best, 0.0)
         self._break(board, found, assign)
+        issued: dict = {}                       # K1: piece -> the name it is issued
 
         for i, obj in enumerate(found):
             best, score = assign[i]
@@ -699,6 +722,7 @@ class Objects:
                 self._next += 1
                 route = "birth"
             claimed.add(best)
+            issued[i] = best
             self.matches[best] = (route, round(score, 4))
             # IDENTITY IS THE POINTER AND PLACEMENT IS THE VALUE, so a colour change APPENDS
             # rather than renames: `best` is the object for the rest of the play whatever it
@@ -808,6 +832,14 @@ class Objects:
 
         # DEATH ONLY ON EVIDENCE. An unmatched tracked object keeps its slots unless another
         # live object now holds its cells. Not found is occluded, not gone.
+        succ = getattr(self, "_succ", None)
+        if succ is not None:                    # K1: the successors, named, with both forms
+            rec, by_piece, old_form = succ
+            rec["successor"] = {n: issued[i] for i, n in sorted(by_piece.items())}
+            rec["successor_form"] = {n: [old_form[n], form_code(found[i].get("shape"))]
+                                     for i, n in sorted(by_piece.items())}
+            rec["old_form"] = dict(sorted(old_form.items()))   # every old piece's form
+            self._succ = None
         live = frozenset().union(*(o["cells"] for o in fresh.values())) if fresh else frozenset()
         for name, old in self.tracked.items():
             if name in fresh:

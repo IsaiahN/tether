@@ -193,6 +193,9 @@ def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     return n, tot
 
 
+KIND_FALLBACK_N: Counter = Counter()     # K3: realisations a kind answered ("lands" / "delta")
+
+
 def _is_relational(slot: str | None, env: object) -> bool:
     """Is this slot's attribute a RELATION TO ANOTHER OBJECT? **Asked of the world.**
 
@@ -435,6 +438,10 @@ class Interface:
         # residual, learning, draw); the interface's own record of how it realised intents.
         self.pick_by: Counter = Counter()
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
+        # K3: slot -> its KIND key (the agent's _kind and the attribute), or None; set by the agent
+        # under TETHER_KIND_CARRY. None here: no kind tables, today's reading.
+        self.kind_of: Any = None
+        self.own_slots: set = set()            # K3: slots with an entry of their own (any action)
         # `probe.Drive`'s seed, which is `crc32(b"") & 0xFFFF == 0` at both construction sites
         # in `tether`. Held here so the moved sweep is byte-identical rather than merely alike.
         self._draw_seed = 0
@@ -632,6 +639,17 @@ class Interface:
                     if seen == {intent.value}:
                         best, how = a, "in every context seen"
                         break
+            ks = self._kind_fallback(intent.subject, env) if best is None else None
+            if ks is not None:                  # K3: only a slot with no entry of its own
+                for a in offered:
+                    cap.head()
+                    lands = self.table.get(a, {}).get("lands_kind", {})
+                    seen = {v for (_c, k, b), vs in lands.items()
+                            if k == ks and b == _now for v in vs}
+                    if seen == {intent.value}:
+                        best, how = a, "on its kind (no entry of its own)"
+                        KIND_FALLBACK_N["lands"] += 1
+                        break
             if best is None:
                 return None
             return Realisation(best, why=f"observed to take {intent.subject} from {_now} to "
@@ -651,6 +669,7 @@ class Interface:
                 # contradicts the want is excluded; a silent cell keeps the prior
                 offered = tuple(a for a in offered if a not in against)
             best, score, how = None, 0.0, ""
+            ks = self._kind_fallback(intent.subject, env)
             for a in offered:
                 cap.head()
                 d = self.table.get(a, {}).get("delta", {})
@@ -697,6 +716,15 @@ class Interface:
                     n = sum(v[0] for key, v in d.items() if key[1] == intent.subject)
                     tot = sum(v[1] for key, v in d.items() if key[1] == intent.subject)
                     where = "in every context seen"
+                if not n and ks is not None:    # K3: only a slot with no entry of its own
+                    dk = self.table.get(a, {}).get("delta_kind", {})
+                    kn, kt = _summed(dk, ctx, ks)
+                    where = "on its kind, here (no entry of its own)"
+                    if not kn:
+                        kn = sum(v[0] for key, v in dk.items() if key[1] == ks)
+                        kt = sum(v[1] for key, v in dk.items() if key[1] == ks)
+                        where = "on its kind, in every context seen (no entry of its own)"
+                    n, tot = kn, kt
                 if not n:
                     continue
                 mean = tot / n
@@ -704,6 +732,8 @@ class Interface:
                     best, score, how, best_n = a, mean * want_sign, where, n
             if best is None:
                 return None
+            if how.startswith("on its kind"):
+                KIND_FALLBACK_N["delta"] += 1
             return Realisation(best, why=f"observed to move {intent.subject} that way {how}",
                                evidence=(("tier", "delta"), ("score", round(score, 4)),
                                          ("n", best_n), ("where", how)))
@@ -1267,6 +1297,14 @@ class Interface:
             kinds[kind] = kinds.get(kind, 0) + 1
         return tuple(sorted(kinds.items()))
 
+    def _kind_fallback(self, slot: str | None, env: object) -> Any:
+        """K3: the slot's kind key when its kind may answer for it, else None: a slot with ANY
+        entry of its own reads only its own (never a blend), and a relational slot never pools."""
+        if (self.kind_of is None or not slot or slot in self.own_slots
+                or _is_relational(slot, env)):
+            return None
+        return self.kind_of(slot)
+
     def _by_cell(self, slot: str, now: int, want_sign: int, offered: tuple[str, ...],
                  ctx: tuple, env: Any) -> tuple[Realisation | None, set[str]]:
         """The cell tier (the reviewer 2026-10-11 09:53Z): an action's direction FROM THE CELL
@@ -1520,6 +1558,15 @@ class Interface:
             vals.add(int(after.get(k, 0)))
             if len(vals) > 1:
                 self.unreliable.add(r.action)
+            # K3: the same reading filed under the object's KIND too, in tables of their own (so
+            # every reader of "delta" and "lands" is unchanged); read only as a fallback.
+            ks = self.kind_of(k) if self.kind_of is not None else None
+            self.own_slots.add(k)
+            if ks is not None:
+                kn, kt = e.setdefault("delta_kind", {}).get((ctx, ks, rel), (0, 0))
+                e["delta_kind"][(ctx, ks, rel)] = (kn + 1, kt + d)
+                e.setdefault("lands_kind", {}).setdefault(
+                    (ctx, ks, int(before.get(k, 0))), set()).add(int(after.get(k, 0)))
         # **THE SIGN IS JUDGED PER CELL, KEYED BY THE VALUE BEFORE THE PRESS -- the reviewer,
         # 2026-09-28, and it is the fix already built for the value table applied here.**
         #

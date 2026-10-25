@@ -1233,6 +1233,17 @@ _HYP_MOVABLE_CHECK = armflag.arm("TETHER_HYP_MOVABLE_CHECK", default=False)
 _HYP_SLOTSET = armflag.arm("TETHER_HYP_SLOTSET", default=True)
 _HYP_SLOTSET_CHECK = armflag.arm("TETHER_HYP_SLOTSET_CHECK", default=False)
 HYP_SLOTSET_N = {"asked": 0, "checked": 0}
+# K2 (Isaiah 2026-10-25 08:40 "fix", 08:19 "thats dementia"; the reviewer 08:43; Fig 10 :68, Fig 12
+# :123): at the turnover after a frame break, what was held on a retired object MOVES to its
+# successor (the world's claim, arc_world.frame_breaks) when the two are of the same KIND (the
+# agent's own _kind: slot types and form code): bindings without a gone operand, wants, held
+# goals and the open hypothesis (rewritten, re-linked, then tested by the board), settled slots.
+# No same-kind successor: today's drop, and the hypothesis ends as an absence. OFF: today's drop.
+_KIND_CARRY = armflag.arm("TETHER_KIND_CARRY", default=True)
+# K3 alone, a measurement switch (the aimed check runs K2 without it, so the first hypothesis is
+# the one OFF picks): effects also filed and read by kind. Under TETHER_KIND_CARRY only.
+_KIND_EFFECTS = armflag.arm("TETHER_KIND_EFFECTS", default=True)
+_OID_TOKEN = re.compile(r"(?<![A-Za-z0-9_])(o\d+)(?![0-9])")    # an object's name in a slot
 # GQ2b, F-a + F-b (the reviewer 2026-10-20 14:27 (b)): a group-scoped objective is judged MEMBER by
 # MEMBER, each in its own context (its peers as the group, its own record), the subject included,
 # so the residual is a real fraction that moves when a member moves; and the goal sites read
@@ -2613,6 +2624,8 @@ class Agent:
         # that moves CHOOSING through it is step 2 and is not done.
         self.iface = IFace.Interface()
         self.iface.chooser = self._choose_known      # F480: the agent prices the known
+        if _KIND_CARRY and _KIND_EFFECTS:
+            self.iface.kind_of = self._slot_kind_key  # K3: effects also filed by kind
         self._subject_n: collections.Counter = collections.Counter()   # A1: curiosity aimed
         self._probe_n: collections.Counter = collections.Counter()     # A1: starved probes
         # 7h (h): the same counts by kind: this instance's, the lineage's (read, never added to),
@@ -8814,6 +8827,10 @@ class Agent:
         for _b in _brk:
             self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
                             action=action, **_b)
+            if _KIND_CARRY and _b.get("successor"):     # K2: carried at the next turnover
+                self._succ_in = {**getattr(self, "_succ_in", {}), **_b["successor"]}
+                self._succ_form = {**getattr(self, "_succ_form", {}), **_b["successor_form"]}
+                self._old_form = {**getattr(self, "_old_form", {}), **_b.get("old_form", {})}
         _own_clock: set = set()
         if _OWN_CLOCK:
             # the instrument's own expectation, formed now that the frames are in (a corollary
@@ -13683,6 +13700,150 @@ class Agent:
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
 
+    def _carry_end_reason(self, text: str, same: dict, now: tuple, types_new: dict,
+                          old_form: dict, kind: Any) -> tuple:
+        """Why a held hypothesis could not be carried (the reviewer 2026-10-25 09:19): "no object of
+        its kind" ONLY when the new board holds ZERO objects of a lost object's kind; else "member
+        not identified" (no claimed same-kind successor, N of its kind present); else, every object
+        carried but the rewrite did not compile or link, "carry not linked"."""
+        now_own = {t for s in now for t in _OID_TOKEN.findall(s)}
+        lost = sorted(t for t in set(_OID_TOKEN.findall(text))
+                      if t not in now_own and t not in same)
+        if not lost:
+            return "carry not linked", None
+        code = getattr(self.env, "shape_code", None)
+        forms_now = {o: (code(o) if code is not None else None) for o in now_own}
+        new_kinds = Counter(kind(o, now, types_new, forms_now[o]) for o in now_own)
+        counts = [new_kinds.get(kind(g, self.slots, self.slot_types, old_form.get(g)), 0)
+                  for g in lost]
+        self._carry_kinds_read = {"new_owners": len(now_own), "with_form": sum(
+            v is not None for v in forms_now.values()), "kinds": len(new_kinds),
+            "per_lost": dict(zip(lost, counts, strict=True))}   # the count's own denominators
+        if min(counts) == 0:
+            return "no object of its kind", 0
+        return "member not identified", min(counts)
+
+    def _slot_kind_key(self, slot: str) -> tuple | None:
+        """K3: the key a slot's effects are also filed under -- its object's kind (_kind) and the
+        attribute. None for what is not one object's own attribute (a pair, a relation, '@')."""
+        owner, _sep, attr = slot.partition(".")
+        if not attr or not _OID_TOKEN.fullmatch(owner) or relations.pair_attr(attr):
+            return None
+        return ("kind", self._kind(owner), attr)
+
+    def _kind_carry(self, gone: list, now: tuple, succ: dict, forms: dict,
+                    old_form: dict | None = None) -> None:
+        """K2: the turnover after a frame break MOVES what was held on a retired object to its
+        successor when both are of the same kind (_kind's rule, read on the old and the new slot
+        sets, each with the world's form code). A binding moves unless its operand left with the
+        object; held goals and the open hypothesis are rewritten, recompiled and re-linked, and the
+        board tests them from the next step. What finds no same-kind successor is left to the drop,
+        and the open hypothesis then ends as an absence. One "carried" row."""
+        now_set, gone_set = set(now), set(gone)
+        now_owners = {t for s in now for t in _OID_TOKEN.findall(s)}
+        types_new = self._slot_types(self.env)
+
+        def kind(owner: str, slots: Any, types: dict, form: Any) -> tuple:
+            got = tuple(sorted({str(types.get(s)) for s in slots if s.split(".")[0] == owner}))
+            return (*got, f"form={form}") if _3C_CANON and form is not None else got
+
+        gone_owners = {s.split(".")[0] for s in gone}
+        same, other = {}, {}
+        for g, c in sorted(succ.items()):
+            cap.head()
+            if g in gone_owners:
+                f_old, f_new = forms.get(g) or (None, None)
+                same_kind = (kind(g, self.slots, self.slot_types, f_old)
+                             == kind(c, now, types_new, f_new))
+                (same if same_kind else other)[g] = c
+
+        def rw(s: str) -> str:
+            return _OID_TOKEN.sub(lambda m: same.get(m.group(1), m.group(1)), s)
+
+        moved: Counter = Counter()
+        linked = {sl for v in self._goal_links.values() for sl, _n in v}
+        for g in gone:
+            cap.head()
+            c = rw(g)
+            if c == g or c not in now_set:
+                continue
+            n = self.bound.get(g)
+            op = getattr(self.gamma.library.get(n), "operand", None) if n is not None else None
+            if n is not None and c not in self.bound and op not in gone_set:
+                self.bound[c] = self.bound.pop(g)
+                moved["bound"] += 1
+            elif n is not None and op in gone_set and rw(op) != op and rw(op) in now_set:
+                moved["orphaned_but_operand_carried"] += 1   # the reviewer 09:01: counted
+            t = self._want_terms.get(g)
+            if (g in self.wants and g not in linked and c not in self.wants
+                    and getattr(t, "operand", None) not in gone_set):
+                self.wants[c] = self.wants.pop(g)
+                if t is not None:
+                    self._want_terms[c] = self._want_terms.pop(g)
+                if g in self._want_scope:
+                    self._want_scope[c] = self._want_scope.pop(g)
+                moved["wants"] += 1
+            if g in self.abstained and c not in self.abstained:
+                self.abstained[c] = self.abstained.pop(g)
+                moved["abstained"] += 1
+            if g in self.owed_import:
+                self.owed_import.discard(g)
+                self.owed_import.add(c)
+                moved["owed_import"] += 1
+        for st in self.gamma.standing.values():
+            cap.head()
+            for g in st.settled_on & gone_set:
+                c = rw(g)
+                if c != g and c in now_set:
+                    st.settled_on.discard(g)
+                    st.settled_on.add(c)
+                    moved["settled_on"] += 1
+        atoms = {a.name: a for a in self.gamma.atoms}
+        hk = self._hyp["key"] if self._hyp else None
+        relinked, ended = [], []
+        for key in sorted(self._goal_links):
+            cap.head()
+            if not any(sl in gone_set for sl, _n in self._goal_links.get(key, ())):
+                continue
+            text = self._hyp["text"] if key == hk else self._goal_text.get(key)
+            if text is None:
+                continue
+            text2, c2, link = rw(text), None, {}
+            if text2 != text:
+                c2 = self._compile_cache.get(text2)
+                if c2 is None:
+                    c2 = self._compile_cache[text2] = compile_term.compile_candidate(
+                        {"condition": text2}, atoms)
+            parts = ([] if c2 is None or isinstance(c2, compile_term.Refusal) else
+                     list(c2.parts) if isinstance(c2, _Pair) else [c2])
+            # every object the rewritten text names must exist now (a comparison names two)
+            if (parts and all(p.slot in now_set for p in parts)
+                    and set(_OID_TOKEN.findall(text2)) <= now_owners):
+                self._release_link(key)
+                link = self._link_goal(key, c2)
+            if link.get("linked"):
+                relinked.append({"key": key, "was": text, "now": text2})
+                if key == hk:
+                    h = self._hyp
+                    h.update(text=text2, cond=c2, slots=link["slots"])
+                    for f in ("reads", "seg"):
+                        h[f] = {rw(k): v for k, v in h.get(f, {}).items()}
+                    if h.get("displaced"):
+                        h["displaced"] = {rw(k): v for k, v in h["displaced"].items()}
+                else:
+                    self._goal_conds[key], self._goal_text[key] = c2, text2
+            elif key == hk:
+                why, n_kind = self._carry_end_reason(text, same, now, types_new, old_form or {},
+                                                     kind)
+                ended.append({"key": key, "text": text, "why": why, "n_of_kind": n_kind,
+                              "kinds_read": getattr(self, "_carry_kinds_read", None)})
+                moved[f"ended: {why}"] += 1
+                self._hyp_end(why)
+        self.led.record(self.cycle, self._running_step, "@instrument", "carried",
+                        successor=same, other_kind=other, moved=dict(moved), relinked=relinked,
+                        ended=ended, reads="a frame break remakes what was held on the "
+                        "same-kind successor; nothing of its kind left is an absence (Fig 10 :68)")
+
     def _present(self) -> None:
         """The slot set is re-read every step, and a CHANGE is recorded.
 
@@ -13706,11 +13867,16 @@ class Agent:
         # cycle's events standing and every reader would see a change that already happened.
         # A stale event is worse than a missing one: it is indistinguishable from a real one.
         self._came, self._gone = (), ()
+        succ, forms = getattr(self, "_succ_in", None), getattr(self, "_succ_form", None)
+        old_form = getattr(self, "_old_form", None) or {}
+        self._succ_in, self._succ_form, self._old_form = {}, {}, {}   # K2: never stale
         if now == tuple(self.slots):
             return
         gone = sorted(set(self.slots) - set(now))
         came = sorted(set(now) - set(self.slots))
         self._came, self._gone = tuple(came), tuple(gone)
+        if _KIND_CARRY and succ:
+            self._kind_carry(gone, now, succ, forms or {}, old_form)
         # WHAT A DEPARTURE COSTS IS HOW MANY OF THEM WERE BOUND, AND THAT WAS NOT PUBLISHED.
         # `gone` counts slots; the loop pops bindings three lines down and no row says how
         # many there were, so *the board shed 88 slots the agent never used* and *the board
