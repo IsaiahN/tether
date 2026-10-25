@@ -10,7 +10,11 @@ and each dropped field has a witness that can fail:
        file. Must-fail: one byte of library/grammar.json -> RED naming that file, no child run.
   (iii) the project modules imported inside the child differ by EXACTLY the set the step states.
        Must-fail: `import cue_bridge` added to store.py -> RED, added ['cue_bridge.py', 'store.py'].
-The switch lists are asserted equal, never dropped.
+The switch lists are asserted equal, never dropped -- except by EXACTLY the arms this tree adds:
+  (iv) --new-arms A,B (NEW_ARMS; the reviewer 2026-10-25 02:24, ruling (c)): no NEW_ARMS entry in
+       the base's on/off; each named exactly once in this tree's; and the on/off differences ARE
+       set(NEW_ARMS). Every failed clause is collected and named in one failure. Must-fails:
+       NEW_ARMS empty -> RED on (3) alone; ['lineage._NOT_AN_ARM'] -> RED on (2) and (3).
 --moved FILE (store step 3's landing only; WATSON ruling 9 A6): FILE names the moved and added
 library files. (ii) skips exactly those, by name, printed with the count (a moved file's .dead-<UTC>
 tombstone with it); a moved file must be on the base and gone from this tree (index.json, REPLACED,
@@ -21,7 +25,7 @@ two gates, and is RED unless both are green:
      difference is allowed only for a file named in BYTES_ONLY, with its reason printed.
   I4 each GIVEN loader's in-memory result (inherited.load, compile_term.readings, the
      library_runtime.Library's tables) equals the base tree's, including every dict's KEY ORDER.
-    python tests/test_identity_short.py BASE_REV STEPS NEW_MODULES [--moved FILE]
+    python tests/test_identity_short.py BASE_REV STEPS NEW_MODULES [--moved FILE] [--new-arms A,B]
 """
 import io
 import json
@@ -109,15 +113,39 @@ def modules(base: str, cur: str, new: set) -> None:
     assert len(got[0]) > 20 and got[1] - got[0] == new and not got[0] - got[1], "module set"
 
 
-def identity(base: str, cur: str, steps: int) -> None:
+def new_arms_arg(argv: list) -> list:
+    """--new-arms A,B: the module-qualified arms this tree adds (NEW_ARMS); empty if absent."""
+    if "--new-arms" not in argv:
+        return []
+    return [x for x in argv[argv.index("--new-arms") + 1].split(",") if x]
+
+
+def arms_witness(b: dict, c: dict, new: list, label: str = "") -> None:
+    """(iv) The switch lists differ by EXACTLY NEW_ARMS: never in the base, each once here."""
+    on = [set(b.get("on") or ()), set(c.get("on") or ())]
+    off = [set(b.get("off") or ()), set(c.get("off") or ())]
+    where = {a: [x for x in ("on", "off") if a in (c.get(x) or ())] for a in new}
+    print(f"arms{label}: ON {len(on[0])} / {len(on[1])}, OFF {len(off[0])} / {len(off[1])}, ON "
+          f"diff {sorted(on[0] ^ on[1])}, OFF diff {sorted(off[0] ^ off[1])}; NEW_ARMS "
+          f"{new}: {where}")
+    failed = []                 # every clause checked; one failure naming all (the reviewer 02:42)
+    if (on[0] | off[0]) & set(new):
+        failed.append(f"(1) a NEW_ARMS entry is in the base: {sorted((on[0] | off[0]) & set(new))}")
+    if not all(list(c.get("on") or ()).count(a) + list(c.get("off") or ()).count(a) == 1
+               for a in new):
+        failed.append(f"(2) a NEW_ARMS entry is not named exactly once here: {where}")
+    diff = (on[0] ^ on[1]) | (off[0] ^ off[1])
+    if diff != set(new):
+        failed.append(f"(3) the switch lists differ by other than NEW_ARMS: {sorted(diff)} vs "
+                      f"{new}")
+    assert not failed, (f"arms witness{label}", failed)
+
+
+def identity(base: str, cur: str, steps: int, new_arms: list) -> None:
     rows = [t.child(t.PLAIN, tr, None, steps)["rows"] for tr in (base, cur)]
     arms = [next(r["detail"] for r in rs if r["slot"] == "@run" and r["event"] == "arms")
             for rs in rows]
-    on = [set(a.get("on") or ()) for a in arms]
-    off = [set(a.get("off") or ()) for a in arms]
-    print(f"arms: ON {len(on[0])} / {len(on[1])}, OFF {len(off[0])} / {len(off[1])}, ON diff "
-          f"{sorted(on[0] ^ on[1])}, OFF diff {sorted(off[0] ^ off[1])}")
-    assert on[0] == on[1] and off[0] == off[1], "the switch lists differ"
+    arms_witness(arms[0], arms[1], new_arms)
     for a in arms:
         for k in DROP + ("on", "off"):
             a.pop(k, None)
@@ -232,5 +260,5 @@ if __name__ == "__main__":
             assert not any(gates.values()), ("step (3)'s gates", gates)
         library(base, ROOT, moved)
         modules(base, ROOT, new)
-        identity(base, ROOT, steps)
+        identity(base, ROOT, steps, new_arms_arg(sys.argv))
     print("identity_short: OK")

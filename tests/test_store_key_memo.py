@@ -13,6 +13,10 @@
   (3) W2: that lineage loaded ON, OFF and ON+CHECK: the carried stores equal (_kind_known_dk,
       _kdk_last, the offered/known stores, the store's t2 and pairs); CHECK 0 disagree.
       PRECONDITION: hit > 0.
+  (3b) the same three loads with W-4 off (TETHER_W_DK_KEYED=0, TETHER_W_HELD_LAZY=0; the reviewer
+      2026-10-25 02:00): under W-4's default the kdk and held items stay in the snapshot and never
+      pass through the load's decode, so (3) is thin on both store forms. OCCASIONS: carried
+      _kind_known_dk > 0 and reused decodes > 0; CHECK 0 disagree.
   (4) W2's memo is per load: a second load in one process (a one-game lineage first, then the
       two-game one) equals the two-game lineage loaded alone.
 
@@ -169,6 +173,18 @@ def main() -> None:
     assert l_chk["n"]["disagree"] == 0 and l_chk["n"]["agree"] > 0, l_chk["n"]
     print(f"(3) the lineage loaded ON, OFF and ON+CHECK: carried stores equal {l_on['sizes']}; ON "
           f"reused {l_on['n']['hit']} decodes; CHECK {l_chk['n']['agree']} agree, 0 disagree")
+    full = {"TETHER_W_DK_KEYED": "0", "TETHER_W_HELD_LAZY": "0"}     # (3b): W-4 off, the full load
+    f_on = _run("load", a, env_extra={**full, "TETHER_LOAD_KEY_MEMO": "1"})
+    f_off = _run("load", a, env_extra={**full, "TETHER_LOAD_KEY_MEMO": "0"})
+    f_chk = _run("load", a, env_extra={**full, "TETHER_LOAD_KEY_MEMO": "1",
+                                       "TETHER_LOAD_KEY_MEMO_CHECK": "1"})
+    assert f_on["sizes"].get("_kind_known_dk", 0) > 0, f"OCCASIONS (3b): no carried dk: {f_on}"
+    assert f_on["n"]["hit"] > 0, f"OCCASIONS (3b): the ON load reused nothing: {f_on['n']}"
+    assert f_on["sha"] == f_off["sha"] == f_chk["sha"], (f_on, f_off, f_chk)             # (3b)
+    assert f_chk["n"]["disagree"] == 0 and f_chk["n"]["agree"] > 0, f_chk["n"]
+    print(f"(3b) the same three loads with W-4 off (TETHER_W_DK_KEYED=0, TETHER_W_HELD_LAZY=0): "
+          f"carried stores equal {f_on['sizes']}; ON reused {f_on['n']['hit']} decodes; CHECK "
+          f"{f_chk['n']['agree']} agree, 0 disagree")
     _run("write", c, "1", env_extra={"TETHER_STORE_KEY_MEMO": "1"})
     two = _run("load", c, a, env_extra={"TETHER_LOAD_KEY_MEMO": "1"})
     assert two["sha"] == l_on["sha"], (two, l_on)                                        # (4)

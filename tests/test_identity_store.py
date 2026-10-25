@@ -9,8 +9,12 @@ Per play: the ledger rows (led_path) by identity_mod_rows.compare, the arms row'
 code provenance dropped by name as in test_identity_short (DROP); the play's returned dict; and
 every file it wrote, by name and git blob id -- memory.db by its tables' rows, read immutable=1
 from a copy. A field that differs by construction is PRINTED WHOLE and fails: a mask is added only
-by name, on a ruling (c3). Every lineage_dir / library= / led_path is a fresh path under the temp
-root, asserted and printed (c1). The whole run stops itself at CAP seconds with OVER-CAP (d1).
+by name, on a ruling (c3). A store file on ONE side only (step (5a) under TETHER_STORE_DB=1: BASE
+memory.db, this tree learned.db) still fails, unmasked; the log prints each table's row count and
+its digest (_digest: the sum mod 2^256 of sha256(repr(row) + "\\n"), order-free), and every row
+goes to a sidecar file, one per play per store, under --sidecar DIR (the reviewer 2026-10-25 02:42).
+Every lineage_dir / library= / led_path is a fresh path under the temp root, asserted and printed
+(c1). The whole run stops itself at CAP seconds with OVER-CAP (d1).
 --self compares BASE against itself: the determinism control (d4), run before anything else.
 THE SEED (WATSON ruling 4, 12:47): every play reads its seed from ONE record the test writes under
 the temp root, {"slot": "@run", "event": "seed", "detail": {"seed": "0000000000000000",
@@ -18,7 +22,10 @@ the temp root, {"slot": "@run", "event": "seed", "detail": {"seed": "00000000000
 at its default ON). TETHER_AGENT_SEED=0 is the constant seed, under which gamma.draw_seed is None
 and every minted handle's suffix is random; the replay's handles are blake2b(seed:name).
 A differing ledger field prints its two values whole (P2).
-    python tests/test_identity_store.py BASE_REV MODE N [--self]   # lineage | library | absent
+The @run arms row's on/off lists: test_identity_short's witness (iv) -- they differ by EXACTLY
+--new-arms A,B (none in the base, each once here), then are popped (the reviewer 2026-10-25 02:24).
+    python tests/test_identity_store.py BASE_REV MODE N [--self] [--new-arms A,B] [--sidecar DIR]
+    # MODE: lineage | library | absent
 Must-fails (in scratch clones; plant lines in the commit that carries them): MF-2a
 store.lineage_write passes game + "_mf"; MF-2b store.library_save writes to path + ".mf"; MF-3
 store.read_json reads an absent file from another repo's library/."""
@@ -43,13 +50,15 @@ from identity_mod_rows import compare  # noqa: E402
 
 import instruments  # noqa: E402
 import lineage  # noqa: E402
-from test_identity_short import DROP  # noqa: E402
+from test_identity_short import DROP, arms_witness, new_arms_arg  # noqa: E402
 
 CAP, T0 = 600, time.time()
 # STEP (5a), the reviewer 2026-10-25 01:06: the store form is the parent's TETHER_STORE_DB, read
 # through the arm and passed to every child (everything else TETHER_* still cleared). Under =1 the
 # store file differs by construction (BASE memory.db, the tree learned.db): PRINTED WHOLE, no mask
 STORE_DB = "1" if lineage._STORE_DB else "0"
+NEW_ARMS: list = []      # --new-arms A,B: test_identity_short's witness (iv), the reviewer 02:24
+SIDECAR: list = []       # --sidecar DIR: a one-sided store's rows, one file per play per store
 TMP = os.path.realpath(tempfile.gettempdir())
 SEED: list = []          # the fixed seed record's path, written under the temp root in main()
 SEED_ROW = {"slot": "@run", "event": "seed",
@@ -143,6 +152,29 @@ def _child(tree: str, out: str, mode: str, n: int, which: str) -> None:
     assert r.returncode == 0, r.stderr[-3000:]
 
 
+def _digest(rows: list) -> str:
+    """A one-sided store table's digest: the sum mod 2^256 of sha256(repr(row) + "\\n") over its
+    rows (each row as _db_rows gives it, already its repr), so it is order-free like
+    store.section_digest (the reviewer 2026-10-25 02:42)."""
+    import hashlib
+    return format(sum(int.from_bytes(hashlib.sha256((r + "\n").encode()).digest(), "big")
+                      for r in rows) % (1 << 256), "064x")
+
+
+def _sidecar(which: str, f: str, side: str, tabs: dict) -> str:
+    """Every row of a one-sided store, one file per play per store, under --sidecar DIR (C:/
+    TETHER_RUNS beside the log); without --sidecar the rows are not kept, and the log says so."""
+    if not SIDECAR:
+        return "(no --sidecar: rows not kept)"
+    os.makedirs(SIDECAR[0], exist_ok=True)
+    p = os.path.join(SIDECAR[0], f"{which}.{side}.{f.replace('/', '_')}.rows.txt")
+    with open(p, "w", encoding="utf-8") as fh:
+        for tb in sorted(tabs):
+            fh.write(f"# {tb}: {len(tabs[tb])} rows, digest {_digest(tabs[tb])}\n")
+            fh.writelines(r + "\n" for r in tabs[tb])
+    return p
+
+
 def _db_rows(path: str, scratch: str) -> dict:
     copy = os.path.join(scratch, os.path.basename(path) + ".copy")
     shutil.copyfile(path, copy)
@@ -222,6 +254,9 @@ def _tree_copy(src_rev: str | None, src_dir: str | None, dst: str, mode: str) ->
 def main() -> None:
     rev, mode, n = sys.argv[1], sys.argv[2], int(sys.argv[3])
     self_check = "--self" in sys.argv
+    NEW_ARMS[:] = new_arms_arg(sys.argv)
+    if "--sidecar" in sys.argv:
+        SIDECAR[:] = [os.path.realpath(sys.argv[sys.argv.index("--sidecar") + 1])]
     assert mode in ("lineage", "library", "absent"), mode
     plays = ("cold", "warm") if mode != "absent" else ("one",)
     with tempfile.TemporaryDirectory() as d:
@@ -237,7 +272,8 @@ def main() -> None:
             assert not os.path.exists(os.path.join(base, "library"))
             assert not os.path.exists(os.path.join(cur, "library"))
         print(f"base {rev} at {base}\ncurrent {'(self) ' if self_check else ''}{cur}\n"
-              f"MODE {mode}, N {n}, plays {plays}, temp root {TMP}", flush=True)
+              f"MODE {mode}, N {n}, plays {plays}, temp root {TMP}, store form TETHER_STORE_DB="
+              f"{STORE_DB}, NEW_ARMS {NEW_ARMS}", flush=True)
         # ONE output path for both trees, run in turn, so no temp path differs by construction
         SEED.append(_under_tmp(os.path.join(d, "seed.jsonl")))
         with open(SEED[0], "w", encoding="utf-8") as fh:
@@ -265,6 +301,16 @@ def main() -> None:
         bad = []
         for which in plays:
             b, c = seen["base"][which], seen["current"][which]
+            ab, ac = (next(r["detail"] for r in x["rows"]
+                           if r.get("slot") == "@run" and r.get("event") == "arms") for x in (b, c))
+            try:                        # (iv) the switch lists differ by EXACTLY NEW_ARMS
+                arms_witness(ab, ac, NEW_ARMS, f" {which}")
+            except AssertionError as e:
+                print(f"  {which} arms witness RED: {e}", flush=True)
+                bad.append(f"{which} arms witness: {e}")
+            for a in (ab, ac):          # then popped, as test_identity_short does
+                a.pop("on", None)
+                a.pop("off", None)
             rbad = compare(b["rows"], c["rows"], set())
             for x in rbad:              # P2: each differing field's two values, whole (D)
                 m = re.match(r"seq (\d+) .*\['detail'\] (\[.*\])$", x)
@@ -297,12 +343,12 @@ def main() -> None:
                                 print(f"      {tb} current only: {r[:300]}")
                     elif isinstance(bv, dict) or isinstance(cv, dict):   # a store on one side
                         side, tabs = ("base", bv) if isinstance(bv, dict) else ("current", cv)
+                        car = _sidecar(which, f, side, tabs)
                         print(f"  {which} file {f}: only in {side} (the other side: "
-                              f"{cv if side == 'base' else bv}); {len(tabs)} tables, printed whole")
+                              f"{cv if side == 'base' else bv}); {len(tabs)} tables; every row in "
+                              f"{car}")
                         for tb in sorted(tabs):
-                            print(f"      {tb}: {len(tabs[tb])} rows")
-                            for r in tabs[tb]:
-                                print(f"        {r}")
+                            print(f"      {tb}: {len(tabs[tb])} rows, digest {_digest(tabs[tb])}")
                     else:
                         print(f"  {which} file {f}: {bv} -> {cv}")
                     bad.append(f"{which} file {f}")
