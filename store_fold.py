@@ -540,3 +540,14 @@ def catch_up(con: sqlite3.Connection, folder) -> list:
         del parent[nxt[0]]
         out.append(merge_folder_save(con, folder, nxt[0], read(nxt[0])))
     return out
+
+
+DB = store.DB_FILE
+Refused = ls.Refused
+checkpoint = ls.checkpoint     # its SQL is form-free (a TRUNCATE checkpoint, timed)
+sleep = ls.sleep               # the same: the checkpoint and a quick_check
+
+
+def wal_bytes(folder) -> int:
+    w = Path(folder) / f"{DB}-wal"
+    return w.stat().st_size if w.exists() else 0

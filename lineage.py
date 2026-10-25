@@ -697,14 +697,16 @@ def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
     return {"how": how, "agent_level": ag.level, **write(d, ag, game, sleep=False)}
 
 
-def _heal(p: Path, ok: bool, why: str) -> tuple[bool, str, dict]:
+def _heal(p: Path, ok: bool, why: str, ls: Any = None) -> tuple[bool, str, dict]:
     """H: a store failing its cheap check is checkpointed if it has a WAL and checked again, the
     size check AND a quick_check (a checkpoint can extend a short file over a page it lost); if it
     still fails, its files are renamed .dead-<UTC> (kept, never deleted) and the folder reads as one
-    with no store, which open_store creates and catch_up rebuilds from the saves."""
+    with no store, which open_store creates and catch_up rebuilds from the saves. `ls`: the store's
+    module (lineage_store, or store_fold for the db form; its names are the same)."""
     import sqlite3
 
-    import lineage_store as ls
+    if ls is None:
+        import lineage_store as ls
     rep: dict = {}
     if not ok and why != "no store" and ls.wal_bytes(p) > 0:
         rep["wal_bytes"] = ls.wal_bytes(p)
@@ -849,6 +851,76 @@ class DkSnapshot:
             self.con.close()
 
 
+class DkSnapshotDb(DkSnapshot):
+    """DkSnapshot on the db form (step (5a)): the same attributes, values and ORDERS, read from
+    learned.db's kind_dk rows through one held read transaction. The old SQL orders by integer sym
+    ids, so every aggregate here is sorted by the ids in the db's own sym section."""
+
+    def __init__(self, folder: str | Path) -> None:
+        import sqlite3
+
+        import store_fold as sf
+        uri = "file:" + sf.path(folder).resolve().as_posix() + "?mode=ro"
+        self.con = sqlite3.connect(uri, uri=True, check_same_thread=False, isolation_level=None)
+        self.con.execute("PRAGMA query_only = 1")
+        self.con.execute("BEGIN")
+        q = self.con.execute
+        K = "FROM perception WHERE section = 'kind_dk'"
+        N, D, E, T = ("json_extract(body, '$.n')", "json_extract(key, '$[0]')",
+                      "json_extract(key, '$[1]')", "json_extract(key, '$[2]')")
+        self.sid = {json.loads(b)["s"]: json.loads(k)[0] for k, b in
+                    q("SELECT key, body FROM learned WHERE section = 'sym'")}
+        self.count = q(f"SELECT COUNT(*) {K} AND {N} != 0").fetchone()[0]
+        self.nonpos = q(f"SELECT COUNT(*) {K} AND {N} < 0").fetchone()[0]
+        kinds = {s for (s,) in q(f"SELECT DISTINCT {D} {K} UNION SELECT DISTINCT {T} {K}")}
+        self.kind = {s: tuple(json.loads(s)) for s in kinds}
+        self.kind_s = {v: s for s, v in self.kind.items()}
+        self.tot_t: dict = {}
+        for dk, e, n in sorted(q(f"SELECT {D}, {E}, SUM({N}) {K} AND {N} != 0 GROUP BY 1, 2"),
+                               key=lambda r: (self.sid[r[0]], self.sid[r[1]])):
+            self.tot_t.setdefault(self.kind[dk][0], Counter())[e] += n
+        per: dict = {}      # entry -> (the least dk id, the greatest l_seq), over l_game NOT NULL
+        for dk, e, s in q(f"SELECT {D}, {E}, MAX(json_extract(body, '$.l_seq')) {K} "
+                          "AND json_extract(body, '$.l_game') IS NOT NULL GROUP BY 1, 2"):
+            lo, hi = per.get(e, (None, None))
+            per[e] = (self.sid[dk] if lo is None else min(lo, self.sid[dk]),
+                      s if hi is None else max(hi, s))
+        self.last_k = {e: hi for e, (lo, hi) in sorted(per.items(),
+                                                        key=lambda x: (x[1][0], self.sid[x[0]]))}
+        self.closed = False
+
+    def _rows_of(self, s: str) -> list:
+        import store
+        out = [(json.loads(k), json.loads(b)["n"]) for k, b in
+               self.con.execute(store.SEARCHES["S-1"][0], (s,))]
+        return sorted(out, key=lambda r: (self.sid[r[0][1]], self.sid[r[0][2]]))
+
+    def rows(self, d: tuple) -> dict:
+        if self.closed:
+            raise RuntimeError("W-4: the load-time dk snapshot is closed")
+        s = self.kind_s.get(d)
+        if s is None:
+            return {}
+        return {(d, e, self.kind[t]): n for (_dk, e, t), n in self._rows_of(s)}
+
+    def items(self):
+        if self.closed:
+            raise RuntimeError("W-4: the load-time dk snapshot is closed")
+        for s in sorted(self.kind_s.values(), key=lambda x: self.sid[x]):
+            for (dk, e, t), n in self._rows_of(s):
+                yield (self.kind[dk], e, self.kind[t]), n
+
+    def held(self, key: str, role: str) -> tuple | None:
+        if self.closed:
+            raise RuntimeError("W-3: the load-time snapshot is closed")
+        if key not in self.sid or role not in self.sid:
+            return None
+        r = self.con.execute("SELECT body FROM learned WHERE section = 'held' AND key = ?",
+                             (json.dumps([key, role], ensure_ascii=False, separators=(",", ":"),
+                                         sort_keys=True),)).fetchone()
+        return None if r is None else (lambda b: (b["gen"], b["items"]))(json.loads(r[0]))
+
+
 def _store_view(d: str | Path, ag: Any) -> dict:
     """Everything load() takes from the chain, read from the memory folder's store after merging
     any save it lacks. Reads only, so a refusal leaves the agent untouched."""
@@ -947,6 +1019,113 @@ def _store_view(d: str | Path, ag: Any) -> dict:
             "koff": [(key((0, 2), dk, e, ko), n) for dk, e, ko, n in koff],
             "held": [(sym[k], sym[r], g, None if it is None else json.loads(it))
                      for k, r, g, it in held],
+            "wholes": wholes}
+
+
+def _store_view_db(d: str | Path, ag: Any) -> dict:
+    """_store_view on the db form (TETHER_STORE_FORMAT=db, step (5a); the reviewer 2026-10-24
+    19:52 design): the SAME dict, read from learned.db's (section, key, body) rows. Every list in
+    the old SQL's order: the old tables' primary keys are integer sym ids, so rows sort by the ids
+    in the db's own sym section; ak_whole by its text key; evidence / vindication / seeds by
+    (k, i)."""
+    import compile_term
+    import store
+    import store_fold as sf
+    p = Path(d)
+    if any(p.glob(f"{BMEMO}*.json")) or any(p.glob(f"{BSMEMO}*.json")):
+        raise sf.Refused("bm_/bs_ files are in the archive; the store does not hold them")
+    ok, why = sf.header_ok(p)
+    healed: dict = {}
+    if _STORE_HEAL:
+        ok, why, healed = _heal(p, ok, why, sf)
+    if not ok and why != "no store":
+        raise sf.Refused(f"the store failed its check at open: {why}")
+    con = sf.open_store(p)
+    try:
+        merged = sf.catch_up(con, p)
+
+        def sec(s: str) -> list:
+            return [(json.loads(k), json.loads(b)) for k, b in con.execute(
+                f"SELECT key, body FROM {store.part_of(s)} WHERE section = ?", (s,))]
+        tip = sf._meta_v(con, "last_merged")
+        if tip is None:     # a first-ever load: no save merged, no blob yet (the root view)
+            return {"tip": None, "fold": None, "counts": None, "merged": merged, "healed": healed}
+        sid = {b["s"]: k[0] for k, b in sec("sym")}       # the old store's id per string
+
+        def ids(*xs) -> tuple:
+            return tuple(sid[x] for x in xs)
+        blob = {k[0]: b["v"] for k, b in sec("blob")}
+        f, c = json.loads(blob["fold"]), json.loads(blob["counts"])
+        atoms = {a.name: a for a in ag.gamma.atoms}
+        sig = compile_term.signature(atoms)
+        arm, parts = _sig_parts(sig)
+        sigs = {k[0]: (json.loads(b["arm"]), json.loads(b["atoms"])) for k, b in sec("sig")}
+        if any(a != arm or set(b) != set(parts) for a, b in sigs.values()):
+            raise sf.Refused("a carried index was written under another signature")
+        km: dict = {}
+
+        def dec(s: str):
+            if not _LOAD_KEY_MEMO:
+                return tuple(json.loads(s))
+            v = km.get(s)
+            if v is None:
+                v = tuple(json.loads(s))
+                try:
+                    hash(v)
+                    km[s] = v
+                except TypeError:
+                    LOAD_KEY_MEMO_N["unhashable"] += 1
+                return v
+            LOAD_KEY_MEMO_N["hit"] += 1
+            if _LOAD_KEY_MEMO_CHECK:
+                fresh = tuple(json.loads(s))
+                LOAD_KEY_MEMO_N["agree" if fresh == v and repr(fresh) == repr(v)
+                                else "disagree"] += 1
+                v = fresh
+            return v
+
+        def key(*xs):
+            return tuple(dec(x) if i in xs[0] else x for i, x in enumerate(xs[1:]))
+        pairs = sorted(sec("pair"), key=lambda r: ids(*r[0]))
+
+        def search(name: str) -> list:    # the census's indexed searches (store.SEARCHES)
+            return [(json.loads(k), json.loads(b)) for k, b in
+                    con.execute(store.SEARCHES[name][0])]
+        nocount = sorted((k for k, _b in search("C-nocount")), key=lambda k: ids(*k))
+        t2 = sorted(search("C-t2"), key=lambda r: ids(*r[0]))
+        import tether
+        kdk = [] if tether._W_DK_KEYED else sorted(sec("kind_dk"), key=lambda r: ids(*r[0]))
+        koff = sorted(sec("kind_off"), key=lambda r: ids(*r[0]))
+        held = sorted(sec("held"), key=lambda r: ids(*r[0]))
+        # ak_whole's columns are TEXT (no sym ids): its primary-key order, NULLs first as SQLite's
+        wholes = sorted((tuple(k) for k, _b in sec("ak_whole")),
+                        key=lambda t: tuple((v is not None, v) for v in t))
+        evidence = [json.loads(b["row"]) for _k, b in sorted(sec("evidence"), key=lambda r: r[0])]
+        vindication = [json.loads(b["row"]) for _k, b in
+                       sorted(sec("vindication"), key=lambda r: r[0])]
+        seeds = [json.loads(b["seed"]) for _k, b in sorted(sec("seeds"), key=lambda r: r[0])]
+        end_path = sf.read_end_path(con)
+        ended = sf._meta_v(con, "ended")
+        kinds_known, kind_seq_max = sf._meta_v(con, "kinds_known"), sf._meta_v(con, "kind_seq_max")
+    finally:
+        con.close()
+    return {"tip": tip, "fold": f, "counts": c, "merged": merged, "healed": healed,
+            "sig": sig, "end_path": end_path, "ended": ended and json.loads(ended),
+            "atoms": atoms, "folder": str(p.resolve()),
+            "evidence": evidence, "vindication": vindication, "seeds": seeds,
+            "pairs": {(tuple(json.loads(o)), tuple(json.loads(x))): (b["n"], max(b["last_seq"], 0))
+                      for (o, x), b in pairs},
+            "nocount": {key((2, 3), *k) for k in nocount},
+            "t2": {key((2, 3), *k): (b["n"] if b["has_n"] else 1,
+                                     (b["l_game"], b["l_level"], b["l_cycle"], b["l_seq"]))
+                   for k, b in t2},
+            "kinds_known": int(kinds_known or 0),
+            "kind_seq_max": int(kind_seq_max or 0),
+            "kdk": [(key((0, 2), *k), b["n"], [b["l_game"], b["l_level"], b["l_cycle"], b["l_seq"]])
+                    for k, b in kdk],
+            "koff": [(key((0, 2), *k), b["n"]) for k, b in koff],
+            "held": [(k[0], k[1], b["gen"], None if tether._W_HELD_LAZY else json.loads(b["items"]))
+                     for k, b in held],
             "wholes": wholes}
 
 
