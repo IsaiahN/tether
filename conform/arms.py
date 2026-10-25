@@ -1190,11 +1190,19 @@ ARMS: dict[str, str] = {
                               "2026-10-25 06:25, 06:31): ArcWorld.relational_slots keeps its tuple "
                               "while the frame's read and pair read are the same objects (its only "
                               "inputs, never written in place once built); 3 of 3 py-spy dumps of "
-                              "bp35's first move sat in its rebuild. OFF: rebuilt on every ask. "
-                              "default ON",
+                              "bp35's slow (second) step sat in its rebuild. OFF: rebuilt on every "
+                              "ask. default ON",
     "TETHER_REL_SLOTS_CHECK": "TETHER_REL_SLOTS_CACHE's CHECK, a measurement switch: rebuilds on "
                               "every ask and asserts the kept tuple equal (REL_SLOTS_N counts). "
                               "default OFF",
+    "TETHER_HYP_SLOTSET": "bp35's next hot line (the reviewer 2026-10-25 08:05; 30.9% of the "
+                          "record's samples at _hyp_propose_body's slot test): the slot test "
+                          "asks one set built at the top of the call instead of scanning the "
+                          "slot LIST per candidate; nothing in the call writes self.slots. OFF: "
+                          "the list. default ON",
+    "TETHER_HYP_SLOTSET_CHECK": "TETHER_HYP_SLOTSET's CHECK, a measurement switch: also asks the "
+                                "list on every candidate and asserts equal (HYP_SLOTSET_N counts). "
+                                "default OFF",
     "TETHER_W_EVICT_EVERY_STEP": "W-2's CHECK, a measurement switch: a hard eviction at every "
                                  "step's start, for MF-W2 (decisions equal to a run that never "
                                  "evicts). default OFF",

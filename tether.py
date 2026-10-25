@@ -1226,6 +1226,13 @@ _GOAL_HYP = armflag.arm("TETHER_GOAL_HYPOTHESES", default=True)
 # call as before. CHECK also reads per call and asserts equal at every lookup. OFF: per call.
 _HYP_MOVABLE_ONCE = armflag.arm("TETHER_HYP_MOVABLE_ONCE", default=True)
 _HYP_MOVABLE_CHECK = armflag.arm("TETHER_HYP_MOVABLE_CHECK", default=False)
+# bp35's next hot line (the reviewer 2026-10-25 08:05): _hyp_propose_body's "c.slot not in
+# self.slots" scanned the slot LIST once per candidate; one set built at the top of the call
+# answers the same (nothing in the call writes self.slots, whose order stays the list's). CHECK
+# also asks the list on every candidate and asserts equal (HYP_SLOTSET_N counts). OFF: the list.
+_HYP_SLOTSET = armflag.arm("TETHER_HYP_SLOTSET", default=True)
+_HYP_SLOTSET_CHECK = armflag.arm("TETHER_HYP_SLOTSET_CHECK", default=False)
+HYP_SLOTSET_N = {"asked": 0, "checked": 0}
 # GQ2b, F-a + F-b (the reviewer 2026-10-20 14:27 (b)): a group-scoped objective is judged MEMBER by
 # MEMBER, each in its own context (its peers as the group, its own record), the subject included,
 # so the residual is a real fraction that moves when a member moves; and the goal sites read
@@ -6400,6 +6407,7 @@ class Agent:
         refused: Counter = Counter()
         cands = []
         _smw: dict = {}                         # R4 record: the clock verdict per subject
+        slot_set = set(self.slots) if _HYP_SLOTSET else None
         for text, s in src.items():
             cap.head()
             c = self._compile_cache.get(text)
@@ -6409,7 +6417,18 @@ class Agent:
             if isinstance(c, compile_term.Refusal):
                 refused[c.reason] += 1
                 continue
-            if c.slot not in before or c.slot not in self.slots or c.slot in der:
+            if c.slot not in before:
+                in_slots = True                 # unread: "not in before" refuses first
+            elif slot_set is None:
+                in_slots = c.slot in self.slots
+            else:
+                in_slots = c.slot in slot_set
+                HYP_SLOTSET_N["asked"] += 1
+                if _HYP_SLOTSET_CHECK:
+                    assert in_slots == (c.slot in self.slots), \
+                        "TETHER_HYP_SLOTSET_CHECK: the set and the list differ"
+                    HYP_SLOTSET_N["checked"] += 1
+            if c.slot not in before or not in_slots or c.slot in der:
                 refused["subject not a movable slot"] += 1
                 continue
             if _GOAL_HYP and self._self_moving(
