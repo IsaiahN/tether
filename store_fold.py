@@ -1,12 +1,14 @@
-"""STEP (5a), THE SAVE MERGE ON THE LEARNED STORE'S ROWS (the reviewer 2026-10-24 20:00, option (B)): one save -- its
-gen_ body, its ak_ files' entries, its idx_ -- merged into the db form's (section, key, body) rows, the arithmetic of
-lineage_store.merge_save ported table by table, over the TOUCHED keys only (and the kind rows whose no_dk flag a new
-kind_dk row moves, B1). Keys and bodies are written exactly as harness/migrate_learned.table_rows decodes the old
-tables, so a merged store equals a migrated one (X1). Shared with the old merge, unchanged: lineage_store._fold_apply,
-_counts_apply (pure arithmetic on the two blobs), AkFile (reading an ak_ file) and _j.
+"""STEP (5a), THE SAVE MERGE ON THE LEARNED STORE'S ROWS (the reviewer 2026-10-24 20:00, option
+(B)): one save -- its gen_ body, its ak_ files' entries, its idx_ -- merged into the db form's
+(section, key, body) rows, the arithmetic of lineage_store.merge_save ported table by table, over
+the TOUCHED keys only (and the kind rows whose no_dk flag a new kind_dk row moves, B1). Keys and
+bodies are written exactly as harness/migrate_learned.table_rows decodes the old tables, so a
+merged store equals a migrated one (X1). Shared with the old merge, unchanged:
+lineage_store._fold_apply, _counts_apply (pure arithmetic on the two blobs), AkFile (reading an
+ak_ file) and _j.
 
-Each section's manifest digest is ADDITIVE: the sum mod 2^256 of sha256(key \\t body) per row, so a save updates it in
-O(touched) (B2), never by re-reading the section."""
+Each section's manifest digest is ADDITIVE: the sum mod 2^256 of sha256(key \\t body) per row, so
+a save updates it in O(touched) (B2), never by re-reading the section."""
 from __future__ import annotations
 
 import hashlib
@@ -138,7 +140,8 @@ def meta_max(rows: Rows, k: str, x: int) -> None:
 
 def merge_kinds(rows: Rows, s: Syms, g: dict) -> None:
     """lineage_store._merge_kinds, ported: kind, pair, kind_dk, kind_off and the two kind metas.
-    The kind values are encoded once per merge (lineage_store._key_memo, the old code's own memo)."""
+    The kind values are encoded once per merge (lineage_store._key_memo, the old code's own
+    memo)."""
     jj = ls._key_memo()
     kl, kn, klast = g.get("kinds_landed", ()), g.get("kinds_landed_n", ()), g.get("kinds_last", ())
     parts: dict = {}               # key -> (entry, role, kind_o, kind_x), decoded once
@@ -251,9 +254,9 @@ def merge_kinds(rows: Rows, s: Syms, g: dict) -> None:
     q["b1_pairs"] = len(pairs)
     for ent, tgt in pairs:
         for col, ix, cause in (("$[2]", "kind_entry_o", False), ("$[3]", "kind_entry_x", True)):
-            for (k,) in con.execute(f"SELECT key FROM perception INDEXED BY {ix} WHERE section = 'kind' "
-                                    f"AND json_extract(key, '$[0]') = ? AND json_extract(key, '{col}') = ?",
-                                    (ent, tgt)):
+            for (k,) in con.execute(f"SELECT key FROM perception INDEXED BY {ix} WHERE "
+                                    "section = 'kind' AND json_extract(key, '$[0]') = ? AND "
+                                    f"json_extract(key, '{col}') = ?", (ent, tgt)):
                 if (json.loads(k)[1] == "CAUSE") == cause:
                     dep.append(k)
     rows.fetch("kind", dep)
@@ -300,7 +303,7 @@ def merge_asked(rows: Rows, s: Syms, k: int, h: str, bodies: list) -> None:
         if new and no_n:
             raise KeyError(f"n: {no_n} form-2 rows without n in {a.f.name}")
         tally = tally_n if new else tally_1
-        for (x, y, z) in tally:        # the old generator's order: insertion, sorted only afterwards
+        for (x, y, z) in tally:   # the old generator's order: insertion, sorted only afterwards
             s(x), s(y), s(z)
         rows.fetch("asked_tally", [j(list(t)) for t in tally])
         if not new:
@@ -316,21 +319,22 @@ def merge_asked(rows: Rows, s: Syms, k: int, h: str, bodies: list) -> None:
         for (x, y, z), n in sorted(tally.items()):
             tk = j([x, y, z])
             b = rows.get("asked_tally", tk)
-            rows.put("asked_tally", tk, {"n_variants": 0, "n_asked": n, "n_landed": 0, "first_save": k,
-                                         "last_save": k, "n_saves_asked": 1} if b is None else
+            rows.put("asked_tally", tk, {"n_variants": 0, "n_asked": n, "n_landed": 0,
+                                         "first_save": k, "last_save": k, "n_saves_asked": 1}
+                     if b is None else
                      {**b, "n_asked": b["n_asked"] + n, "n_saves_asked": b["n_saves_asked"] + 1,
                       "last_save": k})
 
 
 def merge_held(rows: Rows, s: Syms, h: str, idx: dict) -> None:
-    """lineage_store._merge_held, ported: the signature row (INSERT OR IGNORE; id = max + 1), then each
-    entry's held row replaced whole."""
+    """lineage_store._merge_held, ported: the signature row (INSERT OR IGNORE; id = max + 1), then
+    each entry's held row replaced whole."""
     sig = (ls._j(idx["sig_arm"]), ls._j(sorted(idx["sig_atoms"])),
            ls._j(sorted(idx.get("sig_names", []))))
     sigs = {(json.loads(b)["arm"], json.loads(b)["atoms"], json.loads(b)["names"]): json.loads(k)[0]
             for k, b in rows.con.execute("SELECT key, body FROM learned WHERE section = 'sig'")}
-    sigs.update({(b["arm"], b["atoms"], b["names"]): json.loads(k)[0] for (sec, k), b in rows.cur.items()
-                 if sec == "sig" and b is not None})
+    sigs.update({(b["arm"], b["atoms"], b["names"]): json.loads(k)[0]
+                 for (sec, k), b in rows.cur.items() if sec == "sig" and b is not None})
     sid = sigs.get(sig)
     if sid is None:
         sid = max(sigs.values(), default=0) + 1
@@ -339,13 +343,14 @@ def merge_held(rows: Rows, s: Syms, h: str, idx: dict) -> None:
         s(e["key"]), s(e["role"])
     rows.fetch("held", [j([e["key"], e["role"]]) for e in idx["entries"]])
     for e in idx["entries"]:
-        rows.put("held", j([e["key"], e["role"]]), {"gen": h, "sig": sid, "items": ls._j(e["items"])})
+        rows.put("held", j([e["key"], e["role"]]),
+                 {"gen": h, "sig": sid, "items": ls._j(e["items"])})
 
 
 def merge_save(con: sqlite3.Connection, h: str, g: dict, aks: list, idx: dict | None,
                n_idx_files: int) -> dict:
-    """lineage_store.merge_save on the store's rows, in ONE transaction: refused unless the save's parent
-    is the store's last_merged. Returns the phase times and the touched-key count (B2)."""
+    """lineage_store.merge_save on the store's rows, in ONE transaction: refused unless the save's
+    parent is the store's last_merged. Returns the phase times and the touched-key count (B2)."""
     t0 = time.perf_counter()
     for a in aks:
         a.verify()
@@ -385,7 +390,8 @@ def merge_save(con: sqlite3.Connection, h: str, g: dict, aks: list, idx: dict | 
         rows.put("saves", j([h]), {"k": k, "parent": g.get("parent")})
         meta_set(rows, "last_merged", h)
         if g.get("ended"):
-            meta_set(rows, "ended", json.dumps({"h": h, "ended": g["ended"], "error": g.get("error")}))
+            meta_set(rows, "ended",
+                     json.dumps({"h": h, "ended": g["ended"], "error": g.get("error")}))
         rows.flush()
         update_manifest(con, rows.manifest())
         con.execute("COMMIT")
@@ -406,7 +412,8 @@ def update_manifest(con: sqlite3.Connection, delta: dict) -> None:
 
 
 def open_new(path) -> sqlite3.Connection:
-    """An empty db-form store with the step (4) tables, its indexes and the dependent-key indexes."""
+    """An empty db-form store with the step (4) tables, its indexes and the dependent-key
+    indexes."""
     import store
     con = sqlite3.connect(path, isolation_level=None)
     con.execute("PRAGMA journal_mode=WAL")       # lineage_store.open_store's settings
@@ -415,7 +422,8 @@ def open_new(path) -> sqlite3.Connection:
     for part in store.PARTS:
         con.execute(f"CREATE TABLE IF NOT EXISTS {part}(section TEXT, key TEXT, body TEXT, "
                     "PRIMARY KEY(section, key)) WITHOUT ROWID")
-    con.execute("CREATE TABLE IF NOT EXISTS manifest(section TEXT PRIMARY KEY, n INTEGER, sha TEXT)")
+    con.execute("CREATE TABLE IF NOT EXISTS manifest(section TEXT PRIMARY KEY, n INTEGER, "
+                "sha TEXT)")
     for sql in (*store.INDEXES.values(), *DEP_INDEXES):
         con.execute(sql.replace("CREATE INDEX ", "CREATE INDEX IF NOT EXISTS ", 1)
                     if "IF NOT EXISTS" not in sql else sql)
