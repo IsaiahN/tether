@@ -366,10 +366,13 @@ def off_identity() -> None:
         # which postdates this test's base and changes hypothesis_test rows; it stays ON in every
         # run of the agent (Isaiah 2026-10-24 14:16), OFF only here (the reviewer 2026-10-25 09:31);
         # and TETHER_HYP_ROUTE_FIRST (P1, 2026-10-25), which postdates the base: ON it leaves the
-        # picks unchanged and moves the search rows' counts (3 rows: checked, refused, open, ranked)
+        # picks unchanged and moves the search rows' counts (3 rows: checked, refused, open,
+        # ranked); and TETHER_OWN_CLOCK_SUBJECT (D2, 2026-10-25), likewise later than the base:
+        # ON it refuses 42 clock-naming candidates here, the pick unchanged (2 rows' counts move)
         cur = child_env("plain", {"TETHER_FRAME_BREAK": "0", "TETHER_R4_RECORD": "0",
                                   "TETHER_KIND_CARRY": "0", "TETHER_ROUTE_REFUSE": "0",
-                                  "TETHER_HYP_ROUTE_FIRST": "0"})
+                                  "TETHER_HYP_ROUTE_FIRST": "0",
+                                  "TETHER_OWN_CLOCK_SUBJECT": "0"})
     finally:
         os.environ.pop("TETHER_FRAME_BREAK", None)
 
