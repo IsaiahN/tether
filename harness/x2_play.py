@@ -70,7 +70,7 @@ CHILD = r'''
 import json, os, sys, time
 sys.dont_write_bytecode = True
 tree, mode, folder, out, led, n, plant = sys.argv[1:8]
-sys.path = ([tree, tree + "/tests"]
+sys.path = ([tree, tree + "/tests", tree + "/conform"]
             + [p for p in sys.path if "scratchpad" not in p.replace("\\", "/")])
 os.chdir(tree)
 hits = {"plant": 0}
@@ -190,7 +190,19 @@ elif mode == "noload":
         env.observe()
         ag.step()
     ag.end_run("cap")
-    res.update(result=lineage.write(folder, ag, "fake"))
+    res.update(result=lineage.write(folder, ag, "fake"),
+               refold=[r.get("detail") for r in ag.led.rows() if r.get("event") == "store_refold"])
+elif mode == "base":
+    # the next life's _store_base on this folder, with the store's own tip as the parent (the
+    # reviewer 04:56 item 2): a printed property line, no verdict
+    from pathlib import Path
+    ls = lineage._store_mod()
+    tip = led
+    got = lineage._store_base(Path(folder), tip)
+    if isinstance(got, tuple):
+        got[0].close()
+        got = "a (connection, base) tuple: the store was used"
+    res.update(tip=tip, base=got)
 elif mode == "gw":
     import gamma, ledger, panel, tether, world
     g, seed = panel._gridworld(0)
@@ -204,6 +216,11 @@ elif mode == "view":
     ag = arc_holdout.wire(FakeWrapper(), "fake")[1]
     v = (lineage._store_view_db if lineage._STORE_DB else lineage._store_view)(folder, ag)
     res["merged"] = len(v.get("merged", ()))
+    ep = v.get("end_path")      # its SHAPE compared, its seconds masked (the reviewer 04:48)
+    if isinstance(ep, dict):
+        v["end_path"] = {"keys": sorted(ep),
+                         "floats": all(isinstance(x, (int, float)) for x in ep.values())}
+    res["end_path"] = ep
     res["fields"] = {k: [h16(v[k]), len(v[k]) if hasattr(v[k], "__len__") else repr(v[k])[:60]]
                      for k in sorted(v) if k not in ("folder", "atoms", "merged", "healed")}
     lists = [k for k in ("pairs", "koff", "held", "kdk", "t2", "nocount", "wholes")
@@ -370,11 +387,20 @@ def shape_ok(e) -> bool:
             and all(isinstance(e[k], (int, float)) for k in e))
 
 
-def store_state(d: str) -> dict:
-    """learned.db read right after a write and before any load: unmerged, the 'saves' count, the
-    folder's gen_ count, and the sections whose digest is off their manifest row."""
+def store_state(d: str, form: str = "1") -> dict:
+    """The store read right after a write and before any load: unmerged, the 'saves' count, the
+    folder's gen_ count, and (learned.db) the sections whose digest is off their manifest row."""
     import store
     import store_fold as sf
+    gens = sum(1 for f in os.listdir(d) if f.startswith("gen_") and f.endswith(".json"))
+    if form == "0":
+        import lineage_store as ls
+        con = sqlite3.connect(f"file:{os.path.join(d, ls.DB)}?mode=ro", uri=True)
+        try:
+            return {"unmerged": ls.unmerged(con, d), "gens": gens,
+                    "saves": con.execute("SELECT count(*) FROM saves").fetchone()[0]}
+        finally:
+            con.close()
     con = sqlite3.connect(f"file:{os.path.join(d, sf.DB)}?mode=ro", uri=True)
     try:
         unm = sf.unmerged(con, d)
@@ -386,7 +412,6 @@ def store_state(d: str) -> dict:
                 rows.setdefault(s, {})[k] = b
     finally:
         con.close()
-    gens = sum(1 for f in os.listdir(d) if f.startswith("gen_") and f.endswith(".json"))
     off = sorted(s for s in man if store.section_digest(rows.get(s, {})) != man[s])
     return {"unmerged": unm, "saves": saves, "gens": gens, "digest_off": off}
 
@@ -492,6 +517,10 @@ def part_b(out: str, old: str, db: str) -> None:
         result_compare(load(a + ".res.json")["result"], load(b + ".res.json")["result"],
                        f"B1 {life}")
         files_compare(old, db, f"B2 {life}")
+        ea, eb = end_path(old, "0"), end_path(db, "1")
+        print(f"    end path {life} at 33 saves: old {ea} | db {eb} (the real-scale sleep; "
+              f"the next life's thinking reserve)", flush=True)
+        check(shape_ok(ea) and shape_ok(eb), f"B {life} end_path on both, {{s, sleep_s}}")
         content_compare(old, db, w, f"B3 after {life}")
 
 
@@ -525,41 +554,67 @@ def part_m(out: str) -> None:
     st = store_state(d)
     print(f"    M5a2: plant hits {r['plant_hits']}; store report "
           f"{json.dumps(walk_store(r), default=str)[:300]}; {st}", flush=True)
-    check(r["plant_hits"] == 1 and st["saves"] != st["gens"],
-          "M5a2 MUST-FAIL red: the replaced store's saves differ from the folder's gen_ count")
-    d = os.path.join(out, "M5b", "lineage")
-    os.makedirs(d)
-    child("1", "play", d, os.path.join(out, "M5b", "cold.res.json"),
-          os.path.join(out, "M5b", "cold.jsonl"))
-    r = child("1", "noload", d, os.path.join(out, "M5b", "noload.res.json"), n=6)
-    st = store_state(d)
-    rep = json.dumps(r["result"], default=str)
-    print(f"    M5b: the write's report {rep[:400]}; {st}", flush=True)
-    check("refused" in rep and "parent" in rep and len(st["unmerged"]) == 1 and st["saves"] == 1,
-          "M5b MUST-FAIL red: the merge Refused on the parent; no row of the save (1 occasion)")
+    refused = [s["refused"] for s in walk_store(r) if isinstance(s.get("refused"), str)]
+    check(r["plant_hits"] == 1 and st["saves"] == 0 and st["gens"] == 2 and len(refused) == 1
+          and "parent" in refused[0] and "last_merged None" in refused[0],
+          "M5a2 MUST-FAIL red: the warm merge into the replaced store Refused on its parent "
+          "(last_merged None): saves 0 vs gen_ 2")
+    m5b = {}
+    for form in ("0", "1"):         # both forms, side by side (the reviewer 04:56 item 1)
+        w = os.path.join(out, f"M5b_{form}")
+        d = os.path.join(w, "lineage")
+        os.makedirs(d)
+        cold = child(form, "play", d, os.path.join(w, "cold.res.json"),
+                     os.path.join(w, "cold.jsonl"))
+        tip = cold["result"]["persistence"]["lineage"]["hash"]
+        r = child(form, "noload", d, os.path.join(w, "noload.res.json"), n=6)
+        st = store_state(d, form)
+        nxt = child(form, "base", d, os.path.join(w, "base.json"), led=tip)
+        m5b[form] = (r, st, nxt)
+    for form, (r, st, _nxt) in m5b.items():
+        print(f"    M5b form {form}: report keys {sorted(r['result'])}; store_refold rows "
+              f"{r['refold']}; {st}", flush=True)
+    for form, (r, st, _nxt) in m5b.items():
+        h = r["result"].get("hash")
+        check("store" not in r["result"] and len(r["refold"]) == 1
+              and "is not the parent None" in str(r["refold"][0].get("reason"))
+              and st["unmerged"] == [h] and st["saves"] == 1,
+              f"M5b MUST-FAIL red (form {form}): the write declined the store (its tip is not the "
+              f"parent None), re-folded from the archive, the save unmerged (1 occasion)")
+    for form, (_r, _st, nxt) in m5b.items():
+        print(f"    M5b PROPERTY (no verdict) form {form}: the next _store_base with the tip "
+              f"{nxt['tip']} as parent returns: {nxt['base']}", flush=True)
     d, r = two(out, "D", "nomanifest")
     st = store_state(d)
     print(f"    D: plant hits {r['plant_hits']}; sections off their manifest {st['digest_off']}",
           flush=True)
     check(r["plant_hits"] >= 1 and len(st["digest_off"]) > 0,
           "D MUST-FAIL red: the touched sections' digests disagree with the manifest, named")
-    for tag, form in (("M6_old", "0"), ("M6_db", "1")):
-        w = os.path.join(out, tag)
+    # M6 as a PAIR per form (the reviewer 04:56 item 3): the play result's persistence.lineage
+    # is a report (the save written, its store merge) with a lineage, and null with none
+    for form, store in (("0", STORES[0]), ("1", STORES[1])):
+        w = os.path.join(out, f"M6_none_{form}")
         os.makedirs(w)
-        child(form, "play", "-", os.path.join(w, "res.json"), os.path.join(w, "g1.jsonl"))
+        r0 = child(form, "play", "-", os.path.join(w, "res.json"), os.path.join(w, "g1.jsonl"))
         made = [f for _dp, _ds, fs in os.walk(w) for f in fs if f in STORES]
-        print(f"    M6 {tag}: no lineage_dir; store files made {made}; lineage rows "
-              f"{lineage_rows(os.path.join(w, 'g1.jsonl'))}", flush=True)
-        check(not made, f"M6 {tag}: no store file is made with no lineage")
-    w = os.path.join(out, "M6_empty")
-    d = os.path.join(w, "lineage")
-    os.makedirs(d)
-    child("1", "play", d, os.path.join(w, "res.json"), os.path.join(w, "g1.jsonl"))
-    have = [f for f in STORES if os.path.exists(os.path.join(d, f))]
-    st = store_state(d)
-    print(f"    M6 an empty lineage_dir under =1: {have}; {st}", flush=True)
-    check(have == ["learned.db"] and st["saves"] == st["gens"] == 1,
-          "M6: a first-ever play builds learned.db (1 save), no memory.db")
+        absent = r0["result"]["persistence"].get("lineage")
+        w = os.path.join(out, f"M6_empty_{form}")
+        d = os.path.join(w, "lineage")
+        os.makedirs(d)
+        r1 = child(form, "play", d, os.path.join(w, "res.json"), os.path.join(w, "g1.jsonl"))
+        present = r1["result"]["persistence"].get("lineage")
+        have = [f for f in STORES if os.path.exists(os.path.join(d, f))]
+        st = store_state(d, form)
+        print(f"    M6 form {form}: no lineage_dir -> persistence.lineage {absent}, store files "
+              f"{made}; an empty lineage_dir -> persistence.lineage written "
+              f"{(present or {}).get('written')}, store {(present or {}).get('store')}; files "
+              f"{have}; {st}", flush=True)
+        check(absent is None and not made
+              and isinstance(present, dict) and str(present.get("written")).startswith("gen_")
+              and isinstance(present.get("store"), dict) and "save" in present["store"]
+              and have == [store] and st["saves"] == st["gens"] == 1,
+              f"M6 PAIR form {form}: with no lineage the report is null and no store is made; "
+              f"with an empty one the report names the save and its merge, {store} only, 1 save")
 
 
 def main() -> int:
