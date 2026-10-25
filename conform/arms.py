@@ -1203,6 +1203,19 @@ ARMS: dict[str, str] = {
     "TETHER_HYP_SLOTSET_CHECK": "TETHER_HYP_SLOTSET's CHECK, a measurement switch: also asks the "
                                 "list on every candidate and asserts equal (HYP_SLOTSET_N counts). "
                                 "default OFF",
+    "TETHER_KIND_CARRY": "LEARNING FILED BY KIND, NOT BY NAME TAG (Isaiah 2026-10-25 08:02, 08:19 "
+                         "\"thats dementia\", 08:40 \"fix\"; the reviewer 08:43). K1 arc_percept: "
+                         "at a frame break each retired name's refused claim is published as its "
+                         "successor, one-to-one, with both form codes. K2 tether: at the next "
+                         "turnover what was held on it (bindings without a gone operand, wants, "
+                         "held goals and the open hypothesis, settled slots) moves to a same-kind "
+                         "successor (_kind; colour not in it); none: the drop, and the hypothesis "
+                         "ends as an absence; a carried row. K3 interface: effects also filed "
+                         "under the kind, read only for a slot with no entry of its own, never "
+                         "blended. OFF: today's filing. default ON",
+    "TETHER_KIND_EFFECTS": "TETHER_KIND_CARRY's K3 alone, a measurement switch: OFF keeps K1 and "
+                           "K2 and files no effect by kind, so the aimed check can carry the very "
+                           "hypothesis the arm-OFF run picks. default ON",
     "TETHER_W_EVICT_EVERY_STEP": "W-2's CHECK, a measurement switch: a hard eviction at every "
                                  "step's start, for MF-W2 (decisions equal to a run that never "
                                  "evicts). default OFF",
