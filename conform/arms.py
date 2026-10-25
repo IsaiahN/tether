@@ -573,6 +573,15 @@ ARMS: dict[str, str] = {
                       "step 13"
                       ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
                       "record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_AIM_ROUTED": "THE AIMED ROUTE (the reviewer 2026-10-25 12:02, 12:17): a positioned "
+                         "action realised by a route (BECOME's lands / delta / cell tier, TOUCH's "
+                         "route 2) carries a coordinate from the agent's own record -- where its "
+                         "presses moved this slot, this situation, since its last frame break -- "
+                         "else the slot's own object (never a pair or relation slot); with "
+                         "neither it is not a candidate (chosen among, never picked then "
+                         "dropped); a routine's bare-string positioned step is refused. A bare "
+                         "click is a scored action that lands nowhere (bare_click.out). OFF: "
+                         "today's routes, no coordinate. default ON",
     "TETHER_NO_REFUTED_BIN": "**INVERTED POLARITY.** The fifth bin (Fig 5's amendment), DEFAULT ON "
                              "since F497: a refuted slot is offered a same-type competitor and "
                              "not-t is priced there (F496). The variable turns it OFF, so the A/B "

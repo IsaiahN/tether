@@ -194,6 +194,14 @@ def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
 
 
 KIND_FALLBACK_N: Counter = Counter()     # K3: realisations a kind answered ("lands" / "delta")
+# THE AIMED ROUTE (the reviewer 2026-10-25 12:02, 12:17): a positioned action realised by a route
+# (BECOME's lands / delta / cell tier, TOUCH's route 2) carries a coordinate from the agent's own
+# record -- where its presses moved this slot in THIS situation and since its own last frame break
+# -- else the slot's own object (never for a pair or relation slot); with neither it is not a
+# candidate for the intent, so a route never sends a bare click (the game counts one as a scored
+# action and it lands nowhere). OFF: today's routes, no coordinate.
+_AIM_ROUTED = armflag.arm("TETHER_AIM_ROUTED", default=True)
+AIM_ROUTED_N: Counter = Counter()   # "<asker>:record" / ":object" / ":pair_no_record" / ":no_aim"
 
 
 def _is_relational(slot: str | None, env: object) -> bool:
@@ -479,6 +487,11 @@ class Interface:
         # TETHER_AIM_GAP: the same recording per (coordinate, pre-press context) -- 1a's grain
         # carried to coordinates. Same lifetime and the same limit as `aimed_effect`.
         self.aimed_by_ctx: dict[tuple, set[tuple[str, ...]]] = {}
+        # TETHER_AIM_ROUTED: the same recording keyed by the situation it was made in -- (epoch,
+        # the agent's frame breaks so far) -> {coordinate: slots it moved}. Grows (D1); a route
+        # reads only the current key, so a coordinate never aims at where something WAS.
+        self.aimed_era: dict[tuple, dict[tuple[int, int], set[str]]] = {}
+        self.breaks = 0
         # **EVERY ATTRIBUTE THE ACTOR CODE HAS EVER JUDGED, so `RELATIONAL` cannot silently
         # miss one -- the reviewer, 2026-09-28.** That list is short, so anything not on it
         # counts as the object's OWN by default, and a new relational attribute (`contact`,
@@ -496,7 +509,8 @@ class Interface:
 
     def realise(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
                 state: dict | None = None, env: Any = None,
-                withheld: Withheld = NO_WITHHELD, cell: bool = True) -> Realisation | None:
+                withheld: Withheld = NO_WITHHELD, cell: bool = True,
+                asker: str | None = None) -> Realisation | None:
         """**THE ONE DOOR, SO NO EXIT CAN SEND A SECOND CONSECUTIVE `RESET`.**
 
         **ISAIAH, 2026-09-29, AND IT IS A HARD CONSTRAINT RATHER THAN A PREFERENCE:** *fully
@@ -534,10 +548,11 @@ class Interface:
         # 7a(5) C: RUIN IS ORDERED FIRST. A pair the floor vetoes on this board is never offered,
         # unless every option is vetoed; then all are offered and `why` says so.
         offered, w, every = self._withhold(withheld, offered, state, env)
-        r = self._choose(intent, offered, ctx, state, env, w, cell=cell)
+        r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker)
         if r is not None and r.action == RESET and self._last_was_reset:
             _alt = tuple(a for a in offered if a != RESET)
-            r = self._choose(intent, _alt, ctx, state, env, w, cell=cell) if _alt else None
+            r = (self._choose(intent, _alt, ctx, state, env, w, cell=cell, asker=asker)
+                 if _alt else None)
         if r is not None and every:
             r = _replace(r, why=f"{r.why}; {ALL_VETOED}")
         return r
@@ -557,7 +572,8 @@ class Interface:
 
     def _choose(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
                 state: dict | None = None, env: Any = None,
-                w: Withheld = NO_WITHHELD, cell: bool = True) -> Realisation | None:
+                w: Withheld = NO_WITHHELD, cell: bool = True,
+                asker: str | None = None) -> Realisation | None:
         """Pick an action that serves this intent, or abstain.
 
         **ABSTENTION IS A READING** -- §12.2. `None` means *this board's vocabulary cannot
@@ -599,6 +615,7 @@ class Interface:
             if state is None or intent.subject not in state:
                 return None
             _now = int(state[intent.subject])
+            offered, aims = self._aims(offered, intent.subject, state, env, w, asker)
             # TWO PASSES, NOT ONE WITH A TIEBREAK -- same shape as the signed half below: this
             # context's evidence wherever it exists, and only then the across-context prior.
             # Written as two loops because one loop with a `best is None` guard makes the
@@ -652,19 +669,21 @@ class Interface:
                         break
             if best is None:
                 return None
-            return Realisation(best, why=f"observed to take {intent.subject} from {_now} to "
-                                         f"{intent.value}, and to nothing else, {how}")
+            return self._aimed(Realisation(best, why=f"observed to take {intent.subject} from "
+                                                     f"{_now} to {intent.value}, and to nothing "
+                                                     f"else, {how}"), aims)
         if intent.kind == BECOME and intent.subject:
             # **THE AGENT SAID WHICH SLOT AND WHICH WAY. The interface knows which action did
             # that here, because it watched.** `intent.object` is the desired sign: +1 up,
             # -1 down. Abstain when nothing observed moves it -- an unrealisable intent is a
             # reading the agent is entitled to, not a substitution.
             want_sign = 1 if (intent.object or "+") == "+" else -1
+            offered, aims = self._aims(offered, intent.subject, state, env, w, asker)
             if (_REALISE_CELL and cell and state is not None and intent.subject in state):
                 r, against = self._by_cell(intent.subject, int(state[intent.subject]),
                                            want_sign, offered, ctx, env)
                 if r is not None:
-                    return r
+                    return self._aimed(r, aims)
                 # the guard (the reviewer 10:07Z): falling through, an action whose OWN cell
                 # contradicts the want is excluded; a silent cell keeps the prior
                 offered = tuple(a for a in offered if a not in against)
@@ -734,9 +753,10 @@ class Interface:
                 return None
             if how.startswith("on its kind"):
                 KIND_FALLBACK_N["delta"] += 1
-            return Realisation(best, why=f"observed to move {intent.subject} that way {how}",
-                               evidence=(("tier", "delta"), ("score", round(score, 4)),
-                                         ("n", best_n), ("where", how)))
+            return self._aimed(Realisation(best, why=f"observed to move {intent.subject} that "
+                                                     f"way {how}",
+                                           evidence=(("tier", "delta"), ("score", round(score, 4)),
+                                                     ("n", best_n), ("where", how))), aims)
         if intent.kind == TOUCH and intent.object:
             # **BRING ME INTO CONTACT WITH `object`. The agent does not say how, and that
             # indifference IS the seam -- the plan's 19.** Two routes and an abstention; the
@@ -758,7 +778,7 @@ class Interface:
             # `_toward` above the seam asked *which way does the AVATAR go*; this asks *which
             # action have I seen move ANY position slot the way the gap points*, which is the
             # delta table answering a question it already holds.
-            best, gain, why = None, 0.0, ""
+            best, gain, why, best_aim = None, 0.0, "", None
             for a in offered:
                 # `(ctx, slot, rel)` since layer 1. This scan reads the SLOT and ignores both
                 # the context and the relation, so it widens by index rather than aggregating.
@@ -773,12 +793,18 @@ class Interface:
                         continue            # this action moves it the wrong way, or not at all
                     got = min(abs(mean), abs(step))
                     if got > gain:
+                        aim = None
+                        if _AIM_ROUTED and a in POSITIONED:     # aimed at what it moved, or not
+                            aim = self._aim_positioned(a, k, state, env, w, asker)
+                            if aim is None:
+                                continue
                         best, gain, why = a, got, f"{k} toward {intent.object} by {mean:+.2f}"
-                        best_n, best_k = n, k
+                        best_n, best_k, best_aim = n, k, aim
             if best is not None:
-                return Realisation(best, why=f"observed to move {why}",
-                                   evidence=(("tier", "touch"), ("score", round(gain, 4)),
-                                             ("n", best_n), ("slot", best_k)))
+                r = Realisation(best, why=f"observed to move {why}",
+                                evidence=(("tier", "touch"), ("score", round(gain, 4)),
+                                          ("n", best_n), ("slot", best_k)))
+                return self._aimed(r, {best: best_aim} if best_aim else {})
             # NEITHER ROUTE. **An unreachable contact is a reading the agent is entitled to**,
             # and substituting a draw here would be the interface deciding to explore on the
             # agent's behalf while wearing the word contact.
@@ -925,6 +951,59 @@ class Interface:
     def situate(self, epoch: int, alive: bool) -> None:
         """The agent's situation, at each of its boundaries. Nothing recorded is dropped."""
         self.epoch, self.alive = epoch, alive
+
+    def note_break(self) -> None:
+        """TETHER_AIM_ROUTED: the agent read a frame break (its own boundary reading); a route's
+        aim reads only what was recorded since. Nothing recorded is dropped."""
+        if _AIM_ROUTED:
+            self.breaks += 1
+
+    def _aim_positioned(self, a: str, slot: str | None, state: dict | None, env: Any,
+                        w: Withheld, asker: str | None) -> tuple | None:
+        """TETHER_AIM_ROUTED: the coordinate a route sends positioned action `a` to for `slot`,
+        or None (then `a` is not a candidate). (1) where the agent's own presses moved this slot,
+        this situation, since its last frame break -- fewest side effects first, as _aim_for;
+        (2) else the slot's own object, never for a pair or relation slot (no single owner to
+        aim at); a withheld coordinate is skipped. Counted per asker."""
+        cur = self.aimed_era.get((self.epoch, self.breaks), {})
+        recs = [c for c, moved in cur.items() if slot in moved and not w.at(a, c)]
+        if recs:
+            AIM_ROUTED_N[f"{asker or 'other'}:record"] += 1
+            return min(recs, key=lambda c: (len(cur[c]), c)), "where its presses moved it"
+        owner = slot.rsplit(".", 1)[0] if slot else None
+        if not owner or "~" in owner or _is_relational(slot, env):
+            AIM_ROUTED_N[f"{asker or 'other'}:pair_no_record"] += 1
+            return None
+        at = self._at(owner, state)
+        if at is None or w.at(a, at):
+            AIM_ROUTED_N[f"{asker or 'other'}:no_aim"] += 1
+            return None
+        AIM_ROUTED_N[f"{asker or 'other'}:object"] += 1
+        return at, f"at {owner}"
+
+    def _aims(self, offered: tuple[str, ...], slot: str | None, state: dict | None, env: Any,
+              w: Withheld, asker: str | None) -> tuple[tuple[str, ...], dict]:
+        """The offered actions a route may choose for `slot` (a positioned one only with an aim),
+        and the aims. Chosen among, never picked and then dropped."""
+        if not _AIM_ROUTED:
+            return offered, {}
+        aims, keep = {}, []
+        for a in offered:
+            if a in POSITIONED:
+                got = self._aim_positioned(a, slot, state, env, w, asker)
+                if got is None:
+                    continue
+                aims[a] = got
+            keep.append(a)
+        return tuple(keep), aims
+
+    @staticmethod
+    def _aimed(r: Realisation | None, aims: dict) -> Realisation | None:
+        """The route's realisation with its aim attached (a positioned action), else unchanged."""
+        if r is None or r.action not in aims:
+            return r
+        c, how = aims[r.action]
+        return _replace(r, coord=c, why=f"{r.why}; aimed {how}")
 
     def _known_now(self, a: str, ctx: tuple) -> str | None:
         """S2: what `a` is known to do in `ctx` NOW: CHANGES, NO_EFFECT, or None (unknown).
@@ -1453,6 +1532,10 @@ class Interface:
             if _AIM_GAP:
                 self.aimed_by_ctx.setdefault((tuple(r.coord), ctx), set()).add(
                     tuple(sorted(k for k in before if before.get(k) != after.get(k))))
+            if _AIM_ROUTED:
+                self.aimed_era.setdefault((self.epoch, self.breaks), {}).setdefault(
+                    tuple(r.coord), set()).update(
+                        k for k in before if before.get(k) != after.get(k))
         # **THE EFFECT IS WHAT THE ACTION DID TO OWN ATTRIBUTES, NOT EVERY SLOT THAT MOVED --
         # 2026-09-28, and it is the `actor_of` defect one level along.** Measured on gridworld
         # with no remap, `left` was flagged CHANGED because one context held these two:
