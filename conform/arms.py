@@ -1476,9 +1476,10 @@ ARMS: dict[str, str] = {
                        "(section, key, body) rows, merged by store_fold.merge_folder_save and read "
                        "by lineage._store_view_db / DkSnapshotDb, the same views in the same "
                        "orders; the folder's save files stay the record (route (i)); json is an "
-                       "export form only. default ON. OFF (=0): memory.db (lineage_store), as "
-                       "before",
-    "TETHER_ONE_PASS":"the one-pass load (the reviewer 2026-10-19 06:09 d, 06:13): lineage.load "
+                       "export form only. TETHER_STORE_FORMAT (the 19:52 plan's name, "
+                       "memory|db|json) was never built; json is export only. default ON. OFF "
+                       "(=0): memory.db (lineage_store), as before",
+    "TETHER_ONE_PASS": "the one-pass load (the reviewer 2026-10-19 06:09 d, 06:13): lineage.load "
                        "reads and folds the memory saves' chain once; head()'s pass was the same "
                        "chain and the same fold, read twice (a 4.95 GiB transient measured at 1 s, "
                        "06:04). The values are the same; OFF reads twice as before. default ON "

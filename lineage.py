@@ -766,7 +766,8 @@ def _heal(p: Path, ok: bool, why: str, ls: Any = None) -> tuple[bool, str, dict]
         # every connection to the store is closed before its files are set aside: a held
         # snapshot would block the rename on Windows (h_chain f2; the reviewer 2026-10-25 00:20)
         held = [s for s in _OPEN_DB_SNAPS if not s.closed and s.folder == p.resolve()]
-        assert not held, f"a snapshot on {p} is still open at the set-aside"
+        if held:        # a raise, not an assert: python -O strips asserts (the reviewer 00:43 G1)
+            raise RuntimeError(f"a snapshot on {p} is still open at the set-aside")
         stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
         moved, tries = [], {}
         for n in (ls.DB, f"{ls.DB}-wal", f"{ls.DB}-shm"):
