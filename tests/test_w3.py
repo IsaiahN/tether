@@ -102,11 +102,13 @@ def main() -> int:
     assert isinstance(tether._INDEX_STORE, tether._Kept)
     # a fresh process, as the children are: building the lineage here filled the process stores
     for m in (tether._INDEX_STORE, lineage._PENDING, lineage._LAZY, lineage._VERDICT,
-              lineage._CH_HELD):
+              lineage._CH_HELD, lineage._LAZY_BASE, lineage._CAP_SPENT):
         m.clear()
     lineage._CARRIED.clear()
     env, ag = agent(copies["inproc"])
-    assert ag._dk_snap is not None and lineage._LAZY, "PRECONDITION: held keys lazily at load"
+    # under TETHER_CAP_HELD the lazy keys are answered from the held table (_LAZY_BASE), not copied
+    assert ag._dk_snap is not None and (lineage._LAZY or lineage._LAZY_BASE), \
+        "PRECONDITION: held keys lazily at load"
     for _ in range(6):
         env.observe()
         ag.step()

@@ -47,6 +47,13 @@ _OBSERVER = armflag.arm("TETHER_OBSERVER", default=True)
 # pairs and the agent's actor pairs. ON; reason in conform/arms.py.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
+# bp35's crowded-board search (Isaiah 2026-10-23; the reviewer 2026-10-25 06:25, 06:31):
+# relational_slots kept while the frame's read and pair read are the same objects (its only
+# inputs, never written in place after they are built). _CHECK rebuilds on every call and asserts
+# the kept tuple equal.
+_REL_SLOTS_CACHE = armflag.arm("TETHER_REL_SLOTS_CACHE", default=True)
+_REL_SLOTS_CHECK = armflag.arm("TETHER_REL_SLOTS_CHECK", default=False)
+REL_SLOTS_N = {"kept": 0, "built": 0, "checked": 0}
 # E0: each object attribute the percept derives, and the readings it derives it from (the frame
 # deltas from the before-state's readings too). The cell-change attributes (add_* / rem_*) are NOT
 # here: they also depend on how the tracker established identity (identity_of), not only on readings
@@ -142,6 +149,7 @@ class ArcWorld:
         self._prev_contacts: dict[str, list[str]] | None = None
         self._actors: frozenset = frozenset()          # ARC B2: set by the agent's `relate`
         self._pair_read: dict[str, int] | None = None  # ARC B2: this frame's pair slots
+        self._rel_kept: tuple | None = None   # (read, pair read, relational_slots' tuple)
         self._pair_src: dict[str, tuple] = {}          # ARC B2: each pair slot's sources
         # 18.3's family lives HERE because the members read BOARDS and the agent may not.
         # What it holds that is episode-scoped is dropped by `boundary()`, which the loop
@@ -542,8 +550,21 @@ class ArcWorld:
         will pick it up with no further change.
         """
         # ARC B2: the pair attributes ARE relations published as slots, declared here.
-        return tuple(sorted({k.rsplit(".", 1)[1] for k in self._all()
-                             if relations.pair_attr(k.rsplit(".", 1)[1])}))
+        kept = self._rel_kept
+        if (_REL_SLOTS_CACHE and not _REL_SLOTS_CHECK and kept is not None
+                and kept[0] is self._read and kept[1] is self._pair_read):
+            REL_SLOTS_N["kept"] += 1
+            return kept[2]
+        out = tuple(sorted({k.rsplit(".", 1)[1] for k in self._all()
+                            if relations.pair_attr(k.rsplit(".", 1)[1])}))
+        REL_SLOTS_N["built"] += 1
+        if _REL_SLOTS_CHECK and kept is not None and kept[0] is self._read \
+                and kept[1] is self._pair_read:
+            assert kept[2] == out, "TETHER_REL_SLOTS_CHECK: the kept relational_slots differ"
+            REL_SLOTS_N["checked"] += 1
+        if _REL_SLOTS_CACHE:
+            self._rel_kept = (self._read, self._pair_read, out)
+        return out
 
     def slot_owner(self) -> dict[str, str]:
         """Which SUBJECT each slot is an attribute of. **The loop may not derive this.**
