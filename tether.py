@@ -1233,6 +1233,19 @@ _HYP_MOVABLE_CHECK = armflag.arm("TETHER_HYP_MOVABLE_CHECK", default=False)
 _HYP_SLOTSET = armflag.arm("TETHER_HYP_SLOTSET", default=True)
 _HYP_SLOTSET_CHECK = armflag.arm("TETHER_HYP_SLOTSET_CHECK", default=False)
 HYP_SLOTSET_N = {"asked": 0, "checked": 0}
+# ROUTE FIRST (Isaiah 2026-10-25 09:48 "audit why its taking so long to decide"; the reviewer
+# 09:54, Fig 9 :60 "Use filters for the budget"): a goal hypothesis is held only with a route, and
+# the realiser finds one only from the action table's entries for the slot (its own, or K3's
+# kind entry for a slot with none). The hold routes a linked slot, and a link is on a slot the
+# text names (either party, _movable_spelling), so a text is dropped, never compiled, only when
+# it has no call (inside / bbox / contact / pair compile to a slot the text does not spell), every
+# slot it names is a live slot and no change reading (colour_changed compiles to colour), and
+# none is routable. Anything else is kept. The draw is a hash per candidate, so the kept ones keep
+# their order and the pick is the same. CHECK keeps every text and asserts no dropped one holds.
+_HYP_ROUTE_FIRST = armflag.arm("TETHER_HYP_ROUTE_FIRST", default=True)
+_HYP_ROUTE_FIRST_CHECK = armflag.arm("TETHER_HYP_ROUTE_FIRST_CHECK", default=False)
+HYP_ROUTE_FIRST_N = {"kept": 0, "dropped": 0, "dropped_holds": 0}
+_SLOT_IN_TEXT = re.compile(r"(?<![A-Za-z0-9_.~])(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-z0-9_~]*)")
 # K2 (Isaiah 2026-10-25 08:40 "fix", 08:19 "thats dementia"; the reviewer 08:43; Fig 10 :68, Fig 12
 # :123): at the turnover after a frame break, what was held on a retired object MOVES to its
 # successor (the world's claim, arc_world.frame_breaks) when the two are of the same KIND (the
@@ -6421,8 +6434,22 @@ class Agent:
         cands = []
         _smw: dict = {}                         # R4 record: the clock verdict per subject
         slot_set = set(self.slots) if _HYP_SLOTSET else None
+        routable_slots = self._route_first_set(before) if _HYP_ROUTE_FIRST else None
+        would_drop: set = set()
         for text, s in src.items():
             cap.head()
+            if routable_slots is not None:
+                named = _SLOT_IN_TEXT.findall(text) if "(" not in text else ()
+                if (named and all(n in before and n.rsplit(".", 1)[1]
+                                  not in compile_term.CHANGE_OF for n in named)
+                        and not any(n in routable_slots for n in named)):
+                    HYP_ROUTE_FIRST_N["dropped"] += 1
+                    if not _HYP_ROUTE_FIRST_CHECK:
+                        refused["route first: no slot of it has an entry"] += 1
+                        continue
+                    would_drop.add(text)
+                else:
+                    HYP_ROUTE_FIRST_N["kept"] += 1
             c = self._compile_cache.get(text)
             if c is None:
                 c = self._compile_cache[text] = compile_term.compile_candidate(
@@ -6490,6 +6517,9 @@ class Agent:
                     if link is None:
                         refused[f"no hold: {why}"] += 1
                         continue
+                    if text in would_drop:              # ROUTE FIRST's CHECK
+                        HYP_ROUTE_FIRST_N["dropped_holds"] += 1
+                        raise AssertionError(f"TETHER_HYP_ROUTE_FIRST_CHECK: {text!r} holds")
                     pick, routable, group_n = (x, key, link), 1, len(group)
                     self.led.record(self.cycle, "PLAN", "@choice", "choice",
                                     site="goal_hypothesis", in_step=self._running_step,
@@ -6507,6 +6537,9 @@ class Agent:
                 if link is None:
                     refused[f"no hold: {why}"] += 1
                     continue
+                if x[1] in would_drop:                  # ROUTE FIRST's CHECK
+                    HYP_ROUTE_FIRST_N["dropped_holds"] += 1
+                    raise AssertionError(f"TETHER_HYP_ROUTE_FIRST_CHECK: {x[1]!r} holds")
                 ok.append((x, key, link))
                 self._release_link(key)                 # re-held below for the one picked
                 self._hyp_restore(link["_held"])
@@ -13699,6 +13732,23 @@ class Agent:
                         after=self._last_action,
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
+
+    def _route_first_set(self, before: dict) -> set:
+        """ROUTE FIRST: every slot the realiser could route -- one with an entry of its own in the
+        action table (any action), or, under K3, one with none whose kind has an entry and that is
+        not relational (_kind_fallback's rule). A superset of the slots that route."""
+        iface = self.iface
+        out = set(iface.own_slots)
+        if iface.kind_of is not None:
+            kinds = {k[1] for e in iface.table.values()
+                     for t in ("delta_kind", "lands_kind") for k in e.get(t, {})}
+            if kinds:
+                for s in before:
+                    cap.head()
+                    if (s not in out and iface.kind_of(s) in kinds
+                            and not IFace._is_relational(s, self.env)):
+                        out.add(s)
+        return out
 
     def _carry_end_reason(self, text: str, same: dict, now: tuple, types_new: dict,
                           old_form: dict, kind: Any) -> tuple:
