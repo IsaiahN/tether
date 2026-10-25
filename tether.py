@@ -1246,6 +1246,15 @@ _HYP_ROUTE_FIRST = armflag.arm("TETHER_HYP_ROUTE_FIRST", default=True)
 _HYP_ROUTE_FIRST_CHECK = armflag.arm("TETHER_HYP_ROUTE_FIRST_CHECK", default=False)
 HYP_ROUTE_FIRST_N = {"kept": 0, "dropped": 0, "dropped_holds": 0}
 _SLOT_IN_TEXT = re.compile(r"(?<![A-Za-z0-9_.~])(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-z0-9_~]*)")
+# THE OWN CLOCK DECIDES WHAT MOVES ON ITS OWN (Isaiah 2026-10-09; the reviewer 2026-10-25 12:17
+# 5(d), 12:35 item 3, 12:48): a slot the agent's own clock writes (env.own_expected: the tracker's
+# rule, formed when the frames are in) changes with time, not with the action. So a goal hypothesis
+# naming ANY such slot is not proposed, a test on one is graded "own clock" (never "reached"), and
+# a press is not credited with one in the aim record. The instrument's keys decide, never a slot
+# name. When the own clock states nothing (the first step, after arrive) nothing is refused, and
+# that is counted. OFF: today's proposer, grading and record.
+_OWN_CLOCK_SUBJECT = armflag.arm("TETHER_OWN_CLOCK_SUBJECT", default=True)
+OWN_CLOCK_N: Counter = Counter()        # "refused" / "empty" (proposals); "graded" (tests)
 # K2 (Isaiah 2026-10-25 08:40 "fix", 08:19 "thats dementia"; the reviewer 08:43; Fig 10 :68, Fig 12
 # :123): at the turnover after a frame break, what was held on a retired object MOVES to its
 # successor (the world's claim, arc_world.frame_breaks) when the two are of the same KIND (the
@@ -6436,6 +6445,9 @@ class Agent:
         slot_set = set(self.slots) if _HYP_SLOTSET else None
         routable_slots = self._route_first_set(before) if _HYP_ROUTE_FIRST else None
         would_drop: set = set()
+        clock = self._own_clock_keys() if _OWN_CLOCK_SUBJECT else None
+        if clock is not None and not clock:
+            OWN_CLOCK_N["empty"] += 1
         for text, s in src.items():
             cap.head()
             if routable_slots is not None:
@@ -6470,6 +6482,10 @@ class Agent:
                     HYP_SLOTSET_N["checked"] += 1
             if c.slot not in before or not in_slots or c.slot in der:
                 refused["subject not a movable slot"] += 1
+                continue
+            if clock and clock & self._named_slots(text, c):
+                OWN_CLOCK_N["refused"] += 1
+                refused["the own clock moves it"] += 1     # time can make it hold, either side
                 continue
             if _GOAL_HYP and self._self_moving(
                     c.slot, _smw.setdefault(c.slot, {}) if _R4_RECORD else None):
@@ -8389,6 +8405,9 @@ class Agent:
         ordered = self.slot_types.get(slot) in ORDERED_TYPES
         held = f"{slot}:{t['term']}" if t["term"] is not None else None
         _oc = _test_outcome(t["before"], after, t["target"], ordered, t.get("aim"))
+        if _OWN_CLOCK_SUBJECT and slot in self._own_clock_keys():
+            OWN_CLOCK_N["graded"] += 1
+            _oc = "own clock"           # time moved it; no credit, and no reading of the route
         if _R4_RECORD and self._hyp is not None and slot in self._hyp["slots"]:
             # R4 record (F3): the held hypothesis's own test outcomes, shown on its end row
             self._hyp.setdefault("tests", Counter())[_oc] += 1
@@ -8401,7 +8420,7 @@ class Agent:
         # R-B: only an outcome this step's own audited press produced: a seam (B skips the audit
         # and the trace append), a cut before SETTLE, or a test carried from an earlier cycle
         # grades a stale frame, and is no reading of the route (the reviewer 2026-10-24 02:12)
-        if (_ROUTE_REFUSE and t.get("route") is not None
+        if (_ROUTE_REFUSE and t.get("route") is not None and _oc != "own clock"
                 and t.get("at") == self.cycle == self._audit_at):
             self._route_read(t["route"], _oc, slot, t, after)
 
@@ -8901,7 +8920,8 @@ class Agent:
         # ACTION WAS TAKEN -- reading it after would key an effect by the world the effect made.
         if not self._seam_now and self.iface.audit(
                 _real, before, after, _ctx,
-                IFace.Interface.context(self.env) if IFace._DEST_GAP else None):
+                IFace.Interface.context(self.env) if IFace._DEST_GAP else None,
+                own=self._own_clock_keys() if _OWN_CLOCK_SUBJECT else frozenset()):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
@@ -13737,6 +13757,22 @@ class Agent:
                         after=self._last_action,
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
+
+    def _own_clock_keys(self) -> frozenset:
+        """TETHER_OWN_CLOCK_SUBJECT: the slots the agent's own clock writes this step (empty when
+        it states nothing, or the world has no own clock)."""
+        oe = getattr(self.env, "own_expected", None)
+        return frozenset(oe()) if oe is not None else frozenset()
+
+    @staticmethod
+    def _named_slots(text: str, c: Any) -> set:
+        """Every slot a goal-hypothesis candidate names: the text's slot tokens, its compiled
+        subject, and its operand (an earlier reading's PREV suffix taken off)."""
+        out = set(_SLOT_IN_TEXT.findall(text)) | {c.slot}
+        op = getattr(c, "operand", None)
+        if isinstance(op, str):
+            out.add(op[:-len(PREV)] if op.endswith(PREV) else op)
+        return out
 
     def _route_first_set(self, before: dict) -> set:
         """ROUTE FIRST: every slot the realiser could route -- one with an entry of its own in the
