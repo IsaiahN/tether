@@ -16281,17 +16281,20 @@ class Agent:
         # follows env.step nothing is pending (perceive drained it), so this reads [].
         _fb = getattr(self.env, "frame_breaks", None)
         _head_brk = _fb() if _fb is not None else []
-        for _b in _head_brk:
-            self._window_at = len(self.trace)
-            self.iface.note_break()             # TETHER_AIM_ROUTED: aims read only what follows
-            self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
-                            action=None, **_b)
-            if _KIND_CARRY and _b.get("successor"):
-                self._succ_in = {**getattr(self, "_succ_in", {}), **_b["successor"]}
-                self._succ_form = {**getattr(self, "_succ_form", {}), **_b["successor_form"]}
-                self._old_form = {**getattr(self, "_old_form", {}), **_b.get("old_form", {})}
-        if _head_brk:
-            self._memo_clear_at_break()         # P3: this board's instance memos
+        if _head_brk:                           # read as PERCEIVE, so its rows carry the step running
+            with self._step_scope("PERCEIVE"):
+                for _b in _head_brk:
+                    self._window_at = len(self.trace)
+                    self.iface.note_break()     # TETHER_AIM_ROUTED: aims read only what follows
+                    self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break",
+                                    of=("@frame",), action=None, **_b)
+                    if _KIND_CARRY and _b.get("successor"):
+                        self._succ_in = {**getattr(self, "_succ_in", {}), **_b["successor"]}
+                        self._succ_form = {**getattr(self, "_succ_form", {}),
+                                           **_b["successor_form"]}
+                        self._old_form = {**getattr(self, "_old_form", {}),
+                                          **_b.get("old_form", {})}
+                self._memo_clear_at_break()     # P3: this board's instance memos
         if _W_EVICT_EVERY_STEP:
             self._w_evict(hard=True, why="every step (W-2's check)")
         if _CONSOLIDATE:
