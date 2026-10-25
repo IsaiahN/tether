@@ -94,6 +94,7 @@ def main() -> int:
             if n_old != (r[0] if r else 0):
                 counts[tb] = (n_old, r[0] if r else 0)
         line = (f"save {k:2} {h}: touched {m['touched']:,}, port {m['s']:.1f} s, "
+                f"checkpoint {m['s_checkpoint']:.1f} s (wal {m['wal_bytes']:,} B), "
                 f"old {t_old:.1f} s, store rows before {rows_before:,}; q {m.get('q')}; "
                 f"touched-key diffs {len(diff)}; count diffs {counts}")
         if k in FULL:
