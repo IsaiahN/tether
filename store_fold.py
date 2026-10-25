@@ -15,7 +15,6 @@ import hashlib
 import json
 import sqlite3
 import time
-from pathlib import Path
 from typing import Any
 
 import lineage_store as ls
@@ -400,15 +399,8 @@ def merge_save(con: sqlite3.Connection, h: str, g: dict, aks: list, idx: dict | 
         if con.in_transaction:
             con.execute("ROLLBACK")
         raise
-    s_merge = round(time.perf_counter() - t0, 3)
-    # the checkpoint at the save boundary, never inside the commit and never deferred across saves
-    # (the reviewer 2026-10-24 21:24): the WAL holds one save; its cost is its own number
-    wal = Path(con.execute("PRAGMA database_list").fetchone()[2] + "-wal")
-    wal_bytes = wal.stat().st_size if wal.exists() else 0
-    t1 = time.perf_counter()
-    con.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-    return {"save": h, "k": k, "touched": len(rows.dirty), "s": s_merge,
-            "s_checkpoint": round(time.perf_counter() - t1, 3), "wal_bytes": wal_bytes,
+    # no checkpoint here: the caller's, as lineage.py's (the sleep; a boundary past WAL_BOUND_BYTES)
+    return {"save": h, "k": k, "touched": len(rows.dirty), "s": round(time.perf_counter() - t0, 3),
             "keys": sorted(rows.dirty), "q": rows.__dict__.get("q", {})}
 
 
@@ -427,8 +419,9 @@ def open_new(path) -> sqlite3.Connection:
     con = sqlite3.connect(path, isolation_level=None)
     con.execute("PRAGMA journal_mode=WAL")       # lineage_store.open_store's settings
     con.execute("PRAGMA synchronous=NORMAL")
-    con.execute("PRAGMA wal_autocheckpoint=0")    # merge_save checkpoints at the save boundary
+    con.execute("PRAGMA wal_autocheckpoint=0")    # never a checkpoint inside a merge's commit
     con.execute("PRAGMA cache_size=-262144")
+    con.execute(f"PRAGMA mmap_size={1 << 30}")
     for part in store.PARTS:
         con.execute(f"CREATE TABLE IF NOT EXISTS {part}(section TEXT, key TEXT, body TEXT, "
                     "PRIMARY KEY(section, key)) WITHOUT ROWID")

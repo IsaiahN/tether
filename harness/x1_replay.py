@@ -51,6 +51,14 @@ def old_row(con, tb, key_vals, inv) -> str | None:
     return ml.j({c: d[c] for c in cols if c not in keys})
 
 
+def wal_bound(con, wal: Path) -> tuple:
+    """(the WAL's bytes after the save, the checkpoint's seconds or None): lineage.py:676-679."""
+    b = wal.stat().st_size if wal.exists() else 0
+    if ls.WAL_BOUND_BYTES is not None and b > ls.WAL_BOUND_BYTES:
+        return b, ls.checkpoint(con)["s_checkpoint"]
+    return b, None
+
+
 def main() -> int:
     live, scr = Path(sys.argv[1]), Path(sys.argv[2])
     start, end = int(sys.argv[3]), int(sys.argv[4])
@@ -79,7 +87,10 @@ def main() -> int:
         files = sorted(old_dir.glob(f"idx_{h}_*.json"))
         idx = ls._read_hashed(files[0], f"idx_{h}") if len(files) == 1 else None
         m = sf.merge_save(cn, h, g, aks, idx, len(files))
-        inv = {s: i for i, s in co.execute("SELECT id, s FROM sym")}
+        # both sides under lineage.py's boundary rule: a checkpoint only past WAL_BOUND_BYTES
+        wal = [wal_bound(co, old_dir / f"{ls.DB}-wal"),
+               wal_bound(cn, new_db.with_name(new_db.name + "-wal"))]
+        inv ={s: i for i, s in co.execute("SELECT id, s FROM sym")}
         diff = []
         for sec, key in m["keys"]:
             new = cn.execute(f"SELECT body FROM {sf.Rows(cn).part(sec)} WHERE section = ? AND "
@@ -94,8 +105,9 @@ def main() -> int:
             if n_old != (r[0] if r else 0):
                 counts[tb] = (n_old, r[0] if r else 0)
         line = (f"save {k:2} {h}: touched {m['touched']:,}, port {m['s']:.1f} s, "
-                f"checkpoint {m['s_checkpoint']:.1f} s (wal {m['wal_bytes']:,} B), "
-                f"old {t_old:.1f} s, store rows before {rows_before:,}; q {m.get('q')}; "
+                f"old {t_old:.1f} s, wal old {wal[0][0]:,} B ckpt {wal[0][1]} s, "
+                f"wal new {wal[1][0]:,} B ckpt {wal[1][1]} s, "
+                f"store rows before {rows_before:,}; q {m.get('q')}; "
                 f"touched-key diffs {len(diff)}; count diffs {counts}")
         if k in FULL:
             sym = dict(co.execute("SELECT id, s FROM sym"))
