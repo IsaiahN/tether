@@ -1186,7 +1186,16 @@ ARMS: dict[str, str] = {
                        "instead of copied at load (16.4 MB at 33 saves); the same answers. A "
                        "second store load in one process copies the first load's answers back "
                        "into the old sets. OFF: both copied at load. default ON",
-    "TETHER_W_EVICT_EVERY_STEP":"W-2's CHECK, a measurement switch: a hard eviction at every "
+    "TETHER_REL_SLOTS_CACHE": "bp35's crowded-board search (Isaiah 2026-10-23; the reviewer "
+                              "2026-10-25 06:25, 06:31): ArcWorld.relational_slots keeps its tuple "
+                              "while the frame's read and pair read are the same objects (its only "
+                              "inputs, never written in place once built); 3 of 3 py-spy dumps of "
+                              "bp35's first move sat in its rebuild. OFF: rebuilt on every ask. "
+                              "default ON",
+    "TETHER_REL_SLOTS_CHECK": "TETHER_REL_SLOTS_CACHE's CHECK, a measurement switch: rebuilds on "
+                              "every ask and asserts the kept tuple equal (REL_SLOTS_N counts). "
+                              "default OFF",
+    "TETHER_W_EVICT_EVERY_STEP": "W-2's CHECK, a measurement switch: a hard eviction at every "
                                  "step's start, for MF-W2 (decisions equal to a run that never "
                                  "evicts). default OFF",
     "TETHER_LIBRARY_REQUIRED": "COLD START (ii), SHAPE A (the reviewer 2026-10-21 23:27): "
