@@ -1203,6 +1203,16 @@ ARMS: dict[str, str] = {
     "TETHER_HYP_SLOTSET_CHECK": "TETHER_HYP_SLOTSET's CHECK, a measurement switch: also asks the "
                                 "list on every candidate and asserts equal (HYP_SLOTSET_N counts). "
                                 "default OFF",
+    "TETHER_HYP_ROUTE_FIRST": "ROUTE FIRST (Isaiah 2026-10-25 09:48 \"audit why its taking so "
+                              "long to decide\"; the reviewer 09:54, final plan 10:29 P1; Fig 9 "
+                              ":60): a goal-hypothesis text is dropped before it is compiled when "
+                              "it has no call, every slot it names is live and no change reading, "
+                              "and none has a route source (an action-table entry of its own, or "
+                              "K3's kind entry); a hold needs a route on a slot the text names. "
+                              "Exact: the pick is unchanged. OFF: every text. default ON",
+    "TETHER_HYP_ROUTE_FIRST_CHECK": "TETHER_HYP_ROUTE_FIRST's CHECK, a measurement switch: keeps "
+                                    "every text and asserts no text the filter would drop ever "
+                                    "holds (HYP_ROUTE_FIRST_N counts). default OFF",
     "TETHER_KIND_CARRY": "LEARNING FILED BY KIND, NOT BY NAME TAG (Isaiah 2026-10-25 08:02, 08:19 "
                          "\"thats dementia\", 08:40 \"fix\"; the reviewer 08:43). K1 arc_percept: "
                          "at a frame break each retired name's refused claim is published as its "
