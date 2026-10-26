@@ -179,6 +179,11 @@ _UNREALISED_WHY = armflag.arm("TETHER_UNREALISED_WHY", default=True)
 # verdict(); a BECOME realisation it says served this intent in this context is offered first
 # (_served); the audit receives what the press meant. OFF: none of it, as before
 _IA_SERVED = armflag.arm("TETHER_IA_SERVED", default=True)
+# (3b) SYSTEM 0's ACTION KINDS (Isaiah 09-28; AUD link 2, Fig 3 :7 "terms for what things afford";
+# the 04:51 build order): per action, per contact context, read off this table's ordered effects
+# and value cells, with wall / crossing read from the world's affordance recorder (3a's blocks /
+# passes). OFF: not computed
+_ACTION_KINDS = armflag.arm("TETHER_ACTION_KINDS", default=True)
 # 7k (the reviewer 2026-10-15 17:32, 20:27): ELICIT's fresh pick reads LEARNING VALUE before the
 # draw -- the residual is the unknowns an action reaches (reach, more first), the learning
 # reading its presses over every context (table n, fewer first). The interface informs; the
@@ -365,6 +370,11 @@ ALL_VETOED = "every option vetoed"
 # was ruled out; no table cell knows a way; or offered actions were seen to act on the subject and
 # none does what is asked here
 BLOCKED, NO_WAY, TRIED = "blocked", "no way known", "tried and failed"
+# (3b) the action kinds, System 0's terms (09-28). NO_EFFECT_HERE: nothing here though it acts
+# elsewhere, with no blocks reading to call it a wall; VARIES: acts every time, not the same way
+REPEATABLE, CYCLIC, LIMITED, SWITCH = "repeatable", "cyclic", "count-limited", "one-time switch"
+WALL, CROSSING, INERT = "wall", "crossing", "inert"
+NO_EFFECT_HERE, VARIES = "no effect here", "varies"
 
 
 @dataclass(frozen=True)
@@ -1875,6 +1885,63 @@ class Interface:
         if changed_here:
             self.changed.add(r.action)
         return changed_here
+
+    def action_kinds(self, profiles: dict | None = None) -> dict:
+        """(3b) WHAT EACH ACTION IS, PER CONTACT CONTEXT -- System 0's job (Isaiah 09-28):
+        repeatable, cyclic, count-limited, one-time switch, wall, crossing. Read off the table:
+        `ep` (this epoch's effects in order, else all) and `lands` (the value cells). A context
+        with fewer than MIN_REPEAT presses is unread. `profiles` is the world's affordance
+        recorder by kind (arc_percept.Affordances.seen): a do-nothing here that acts elsewhere is
+        a WALL only when something was read to block, and an effect here that is nothing
+        elsewhere is a CROSSING only when something was read to pass; else NO_EFFECT_HERE / the
+        effect's own kind. Returns {action: {ctx: kind}}."""
+        from self_family import MIN_REPEAT
+        prof = (profiles or {}).values()
+        blocks = any(p.get("blocks") for p in prof)
+        passes = any(p.get("passes") for p in prof)
+        out: dict = {}
+        for a, e in self.table.items():
+            if a == RESET:
+                continue
+            eps = e.get("ep", {})
+            acts_in = {c for c, seq in eps.items() if any(s for _, s in seq)}
+            for ctx, seq in eps.items():
+                cap.head()
+                eff = [s for ep, s in seq if ep == self.epoch] or [s for _, s in seq]
+                if len(eff) < MIN_REPEAT:
+                    continue
+                k = next((i for i, s in enumerate(eff) if not s), len(eff))
+                if k == 0 and not any(eff):
+                    kind = ((WALL if blocks else NO_EFFECT_HERE) if acts_in - {ctx}
+                            else INERT)
+                elif 0 < k < len(eff) and not any(eff[k:]) and len(eff) - k >= MIN_REPEAT:
+                    kind = SWITCH if k == 1 else LIMITED
+                elif all(eff):
+                    kind = (CYCLIC if self._cycles(e.get("lands", {}), ctx)
+                            else REPEATABLE if len(set(eff)) == 1 else VARIES)
+                    if passes and len(acts_in) < len(eps):
+                        kind = CROSSING
+                else:
+                    kind = VARIES
+                out.setdefault(a, {})[ctx] = kind
+        return out
+
+    @staticmethod
+    def _cycles(lands: dict, ctx: tuple) -> bool:
+        """A slot whose one-valued cells in `ctx` chain back to where they started in two or more
+        presses (colour 3 -> 4 -> 5 -> 3): reproducible, and not one fixed result."""
+        step: dict = {}
+        for (c, k, b), vals in lands.items():
+            if c == ctx and len(vals) == 1:
+                step.setdefault(k, {})[b] = next(iter(vals))
+        for m in step.values():
+            for v0 in m:
+                v, n = m[v0], 1
+                while v != v0 and v in m and n <= len(m):
+                    v, n = m[v], n + 1
+                if v == v0 and n >= 2:
+                    return True
+        return False
 
     def report(self) -> dict:
         cells = sum(len(e.get("lands", {})) for e in self.table.values())

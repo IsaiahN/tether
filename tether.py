@@ -748,6 +748,12 @@ _CAN_PROBE = armflag.arm("TETHER_CAN_PROBE", default=True)
 # opened "w" at each AGENT's first fold, so (B)'s fresh agent truncated the faulted one's rows
 # (PLAY11 r9: c0-c96 lost). Now "w" once per ledger object, "a" after. OFF: per agent, as before
 _BODY_APPEND = armflag.arm("TETHER_BODY_APPEND", default=True)
+# (3c) "YOU CAN NOW ..." REACHES THE MODES (Isaiah 09-28; AUD link 2; Fig 11 :40, Fig 10 :24-25;
+# the 04:51 build order): System 0's action kinds (3b, wall / crossing from 3a's blocks / passes)
+# are rowed when they change, and when a way to act opens or a switch is read as used, the route
+# refusals earned under the old affordance are set aside (kept, rowed) and the routes re-engaged.
+# OFF: the capability report is recorded and read by nothing, as before
+_CAP_READ = armflag.arm("TETHER_CAP_READ", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3127,6 +3133,10 @@ class Agent:
         # R-B: a refused route -> (why, cycle); a route's run of non-closing readings (the level's)
         self._route_refused: dict[tuple, tuple[str, int]] = {}
         self._route_run: dict[tuple, list[str]] = {}
+        # (3c): refusals set aside when the board's affordance changed (kept, never removed), and
+        # the last (action, context) -> kind reading, so a change is what gets rowed
+        self._route_stale: dict[tuple, tuple[str, int]] = {}
+        self._kinds_was: dict[tuple, str] = {}
         self._audit_at: int | None = None   # R-B: the cycle whose press was last audited
         # R-C: slot -> the correction its last overshoot owes; (slot, target) -> the oscillation
         # guard's last |gap| and its count of overshoots that did not shrink it
@@ -3672,6 +3682,7 @@ class Agent:
         # route_refused rows stay in the ledger (Fig 6 :45). retarget fires on a level edge AND a
         # death, so a carry across tries is R-D's, open (the reviewer 2026-10-23 22:12)
         self._gap, self._route_refused, self._route_run = {}, {}, {}
+        self._route_stale = {}                       # (3c): this level's, like the refusals
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
         self._dw_tried = {}
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
@@ -9115,6 +9126,7 @@ class Agent:
         # checks for a CALLER and not for a CONSUMER, so a report written to the record and
         # read by no mode passes it. **Nothing in systems 0, 1 or 2 reads this yet**, which is
         # why the commit that added it claims a RECORDED fact and not a changed decision.
+        # **READ SINCE (3c), under TETHER_CAP_READ: _cap_read below, with System 0's kinds.**
         _cap = self.iface.capability(tuple(self.env.actions()), after=action)
         self._last_cap = _cap
         if _cap.moved():
@@ -9122,6 +9134,8 @@ class Agent:
                             of=tuple(_cap.opened + _cap.closed),
                             reads=("what the board affords has changed, stated as what became "
                                    "possible rather than as which action it is"))
+        if _CAP_READ and not self._seam_now:
+            self._cap_read(_cap)       # (3c): the report and System 0's kinds, read above the seam
         name, deg_after = self.env.objective()
 
         res: dict[str, SlotResidual] = {}
@@ -14020,6 +14034,42 @@ class Agent:
                         after=self._last_action,
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
+
+    def _cap_read(self, cap_: Any) -> None:
+        """(3c) THE CAPABILITY REPORT, READ ABOVE THE SEAM (Isaiah 09-28: System 0 tells the modes
+        "you can now ..."). System 0's action kinds (iface.action_kinds, 3b; wall / crossing need
+        the world's blocks / passes readings, 3a) are rowed when one changes (action_kinds). When
+        a way to act OPENED, or a switch is newly read as used, the board's affordance moved: the
+        route refusals earned before it were read through a channel that has since gone stale
+        (Fig 10 :24-25), so they are set aside -- kept in _route_stale and rowed, never removed --
+        and the routes are tried again (R-B counts afresh). A refusal for undoing a met goal is a
+        reading about the goal, not the affordance, and stays."""
+        aff = getattr(self.env, "aff", None)
+        kinds = (self.iface.action_kinds(getattr(aff, "seen", None))
+                 if IFace._ACTION_KINDS else {})
+        now = {(a, c): k for a, m in kinds.items() for c, k in m.items()}
+        moved = {ak: k for ak, k in now.items() if self._kinds_was.get(ak) != k}
+        if moved:
+            self.led.record(self.cycle, "PERCEIVE", "@interface", "action_kinds",
+                            changed=sorted(([a, [list(x) for x in c], self._kinds_was.get((a, c)),
+                                             k] for (a, c), k in moved.items()), key=repr),
+                            held=dict(collections.Counter(now.values())),
+                            reads="what each way to act is, here: System 0's terms")
+        self._kinds_was = now
+        switched = sum(1 for k in moved.values() if k == IFace.SWITCH)
+        if not (cap_.opened or switched):
+            return
+        stale = {r: v for r, v in self._route_refused.items() if v[0] != "undoes_met_goal"}
+        if not stale:
+            return
+        self._route_stale.update(stale)
+        for r in stale:
+            self._route_refused.pop(r)
+            self._route_run.pop(r, None)
+        self.led.record(self.cycle, "PERCEIVE", "@interface", "capability_read",
+                        opened=len(cap_.opened), switched=switched, reengaged=len(stale),
+                        reads="you can now act in a way you could not: the refusals earned "
+                              "before stay recorded, and those routes are tried again")
 
     def _contact_felt(self) -> None:
         """(2b) TOUCH IS FELT (UMW A2; Johansson & Flanagan 2009, contact events): after the press

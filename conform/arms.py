@@ -894,6 +894,22 @@ ARMS: dict[str, str] = {
                           "'a' after, so (B)'s fresh agent on the same ledger appends instead of "
                           "truncating the faulted agent's rows. No ledger row changes. OFF: 'w' "
                           "at each agent's first fold, as before. default ON",
+    "TETHER_ACTION_KINDS": "(3b) SYSTEM 0's ACTION KINDS (Isaiah 09-28; AUD link 2, Fig 3 :7; the "
+                           "04:51 build order): Interface.action_kinds reads, per action per "
+                           "contact context (MIN_REPEAT presses or unread), repeatable / cyclic "
+                           "(a value chain back to its start, Interface._cycles) / count-limited / "
+                           "one-time switch / inert / varies off the table's ep and lands; a "
+                           "do-nothing that acts elsewhere is a WALL only where the world's "
+                           "affordance recorder read something to block (3a), else 'no effect "
+                           "here'; an effect here that is nothing elsewhere is a CROSSING only "
+                           "where it read something to pass. OFF: not computed. default ON",
+    "TETHER_CAP_READ": "(3c) 'YOU CAN NOW ...' REACHES THE MODES (Isaiah 09-28; AUD link 2; Fig 11 "
+                       ":40, Fig 10 :24-25; the 04:51 build order): Agent._cap_read rows each "
+                       "change of the kinds (action_kinds); when a way to act opened or a switch "
+                       "is newly read as used, the route refusals earned before (but "
+                       "undoes_met_goal) are set aside into _route_stale, kept, and the routes "
+                       "re-engaged (capability_read). OFF: the report is recorded and read by "
+                       "nothing, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
