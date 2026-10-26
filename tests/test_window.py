@@ -18,6 +18,7 @@ Checked on a synthetic trace (so each law is exactly the one named), through the
 """
 from __future__ import annotations
 
+import contextlib
 import sys
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
@@ -44,6 +45,18 @@ def _with_trace(ag: tether.Agent, seq: list[int]) -> list:
     ag.trace = [(states[i], "A", states[i + 1], None, None) for i in range(len(seq) - 1)]
     ag._trace_pos = None
     return [(states[i], "A", seq[i + 1], None, None) for i in range(len(seq) - 1)]
+
+
+@contextlib.contextmanager
+def _prev_offer(on: bool):
+    """The window's own order is checked with PREV_OFFER OFF, where the window also owns ~1; with
+    it ON, ~1 is PREV_OFFER's and the window offers j >= 2 (the reviewer 2026-10-26 09:43)."""
+    keep = tether._PREV_OFFER
+    tether._PREV_OFFER = on
+    try:
+        yield
+    finally:
+        tether._PREV_OFFER = keep
 
 
 def _evidence(ag: tether.Agent, rows: list) -> dict[int, bool]:
@@ -78,7 +91,8 @@ def check_l1_offers_evidence_lags_only() -> None:
     ag = _agent()
     rows = _with_trace(ag, [4, 4, 7] * 5)
     ev = _evidence(ag, rows)
-    got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
+    with _prev_offer(False):
+        got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
     assert sorted(got) == [j for j in sorted(ev) if ev[j]], (got, ev)
     info = ag._window_info[SLOT]
     assert info["offered"] == len(got)
@@ -94,11 +108,12 @@ def check_the_window_reaches_only_what_the_trace_holds() -> None:
     ag = _agent()
     rows = _with_trace(ag, [1, 2, 1])
     _given_evidence(ag, set(range(1, 10)))
-    got = ag._window_lags(SLOT, rows)
-    assert got == [f"{SLOT}~1"], got
-    ag.trace = []
-    ag._trace_pos = None
-    assert ag._window_lags(SLOT, []) == []
+    with _prev_offer(False):
+        got = ag._window_lags(SLOT, rows)
+        assert got == [f"{SLOT}~1"], got
+        ag.trace = []
+        ag._trace_pos = None
+        assert ag._window_lags(SLOT, []) == []
 
 
 def check_l1_fix_the_lag_reading_the_changed_frame_is_first() -> None:
@@ -113,8 +128,12 @@ def check_l1_fix_the_lag_reading_the_changed_frame_is_first() -> None:
     live = ag.trace[-1][2]                     # the live frame, not a before-state in the trace
     assert ag._prev_of(live, j) is ag.trace[k][0], "(ii) ~j reads step k's before-state"
     _given_evidence(ag, {1, 2, 3})
-    got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
+    with _prev_offer(False):
+        got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
     assert got == [j, 1, 2], got
+    with _prev_offer(True):                    # ~1 is PREV_OFFER's: the window never offers it
+        got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
+    assert got == [j, 2], got
 
 
 def check_l1_fix_an_own_press_change_ranks_before_a_reafferent_one() -> None:
@@ -125,7 +144,8 @@ def check_l1_fix_an_own_press_change_ranks_before_a_reafferent_one() -> None:
     rows = _with_trace(ag, seq)
     ag._reaff_at = {3: frozenset({SLOT})}      # step 3's change happened anyway
     _given_evidence(ag, {1, 2, 3, 4})
-    got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
+    with _prev_offer(False):
+        got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
     assert got == [4, 2, 1, 3], got            # step 1 (j 4) own; step 3 (j 2) anyway; rest
 
 
@@ -152,6 +172,33 @@ def check_non_lag_bindings_keep_order_and_position() -> None:
         assert seen, "no slot was offered a lag: the guard checked nothing"
     finally:
         tether._WINDOW, tether._PREV_OFFER = keep
+
+
+def check_prev_offer_keeps_its_1_under_the_window() -> None:
+    """The reviewer 2026-10-26 09:43: turning the window ON must not cut PREV_OFFER's ~1. On a
+    stepped agent, every slot's binding list with the window ON is the OFF list (which holds the
+    slot's ~1 once, in its own place) with only lags j >= 2 after it."""
+    ag = _agent()
+    for _ in range(12):
+        ag.step()
+    keep = tether._WINDOW
+    try:
+        with _prev_offer(True):
+            seen = 0
+            for slot in ag.slots:
+                robs = ag._residual_obs(slot, ag.gamma.library[ag.bound.get(slot, tether.IDN)],
+                                        ag.history(slot))
+                tether._WINDOW = False
+                off = ag._bindings(slot, robs)
+                tether._WINDOW = True
+                on = ag._bindings(slot, robs)
+                assert on[:len(off)] == off, (slot, off, on)
+                assert on.count(slot + tether.PREV) == 1, (slot, on)
+                assert all((tether.lag_of(b) or ("", 0))[1] >= 2 for b in on[len(off):]), on
+                seen += (slot + tether.PREV) in off
+            assert seen, "no slot held its ~1: the guard checked nothing"
+    finally:
+        tether._WINDOW = keep
 
 
 def _mint_window(seq: list[int], budget: int) -> tuple[dict, str]:
