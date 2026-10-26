@@ -6,7 +6,10 @@ A2 TETHER_WALK_BUDGET, on a stepped gridworld agent.
   (b) A1 MUST-FAIL: with the arm OFF the lookup runs at once;
   (c) A2: with STEP_BUDGET forced to 1 the index walk stops at an entry boundary (walk_cut), the
       truncated index is not memoised, the slot is owed, and the next route asks it first;
-  (d) A2 MUST-HOLD: with the budget never reached the lookup offers the same as with the arm OFF.
+  (d) A2 MUST-HOLD: with the budget never reached the lookup offers the same as with the arm OFF;
+  (e) A1 under urgency: deferred "urgent" at cycle c, walked at c+1 (urgent_declined), deferred
+      again at c+2 -- the library every other step, never zero (the reviewer 11:52 item 3);
+  (f) route runs in the ROUTE step scope; its MUST-FAIL calls route without the decorator.
 
     python tests/test_act.py [check names]
 """
@@ -131,6 +134,49 @@ def check_d_must_hold_budget_never_reached_equals_off() -> None:
     on, off = offers(True), offers(False)
     assert on == off, [s for s in on if on[s] != off.get(s)]
     assert any(v[0] or v[1] for v in on.values()), "no slot was offered anything: vacuous"
+
+
+def check_e_urgent_defers_then_urgent_declined_walks() -> None:
+    ag = _agent()
+    slot = sorted(ag.slots)[0]
+    ag._last_progress = ag._last_commit = 0
+    ag._relief_rate = lambda: (1.0, 0)             # idle / 1 >= _QUORUM_HALF: urgent
+    calls: list = []
+    ag._library_fit = lambda s, _ex: calls.append((ag.cycle, s)) or None
+    keep = tether._STEP_ACT, tether._THINK_OR_ACT
+    try:
+        tether._STEP_ACT = tether._THINK_OR_ACT = True
+        c = ag.cycle = 100
+        whys = []
+        for k in range(3):
+            ag.cycle = c + k
+            n0 = len(ag.led.rows())
+            ag.route(_res(slot))
+            whys.append([r["detail"]["why"] for r in _rows(ag, n0, "lookup_deferred")])
+        assert whys == [["urgent"], [], ["urgent"]], whys            # every other step
+        assert calls == [(c + 1, slot)], calls                       # walked at c+1 only
+        ag.cycle = c + 1
+        ag._urgent_wait[slot] = (c + 1, "urgent_declined")
+        assert ag._think_or_act(slot, closer=False) == (True, "urgent_declined")  # same cycle
+    finally:
+        tether._STEP_ACT, tether._THINK_OR_ACT = keep
+
+
+def check_f_route_runs_in_the_route_step() -> None:
+    ag = _agent()
+    slot = sorted(ag.slots)[0]
+    seen: list = []
+    ag._library_fit = lambda _s, _ex: seen.append(ag._running_step) or None
+    keep = tether._STEP_ACT
+    try:
+        tether._STEP_ACT = False                   # the lookup runs, so the spy is reached
+        ag.route(_res(slot))
+        assert seen == ["ROUTE"], seen
+        seen.clear()
+        tether.Agent.route.__wrapped__(ag, _res(slot))   # MUST-FAIL: route without its scope
+        assert seen and seen != ["ROUTE"], seen
+    finally:
+        tether._STEP_ACT = keep
 
 
 def main() -> int:
