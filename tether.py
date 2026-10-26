@@ -767,6 +767,11 @@ _PRED_FIRST = armflag.arm("TETHER_PRED_FIRST", default=True)
 # WATSON case 6; the 04:51 build order): R-B's no-change count waits the largest lag the slot's
 # bound term reads (row route_waiting); "farther" still refuses at once. OFF: MIN_REPEAT, as before
 _DELAY_WINDOW = armflag.arm("TETHER_DELAY_WINDOW", default=True)
+# (5a) A4, SURPRISE SAYS WHERE TO LOOK (Isaiah 2026-10-25 20:21 "do what the tether says"; Fig 1
+# :28, Fig 9 :53): in _goal_choice a shrinking want on an object carrying unexplained surprise
+# ranks before one that carries none; the shrinking bar still selects, surprise is never scored
+# or maximised (Fig 1 :23-27). Row nominated when it changed the pick. OFF: as before
+_SURPRISE_NOMINATES = armflag.arm("TETHER_SURPRISE_NOMINATES", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -12088,6 +12093,11 @@ class Agent:
         longest = 0
         refuted = self._refuted_slots() if _7H_RESCOPE and hasattr(self, "_rescoped") else {}
         plain: tuple[float, str] | None = None     # 7h (b): the pick without the rank
+        # (5a) A4: the objects carrying unexplained surprise nominate where to look; the
+        # shrinking bar below still selects, and an un-nominated want still qualifies
+        hot = ({o for s, v in self._outstanding.items() if v > 0 for o in self._objs_named(s)}
+               if _SURPRISE_NOMINATES else None)
+        unnom: tuple | None = None                 # (5a): the pick nomination would not make
         for slot, series in sorted(self._res.items()):
             cap.head()
             longest = max(longest, len(series))
@@ -12143,6 +12153,10 @@ class Agent:
                     # today's R_goal shrink as the tie-break. A shrinking window opens above 0
                     _rw = series[-(MIN_REPEAT + 1):]
                     shrink = ((window[0] - window[-1]) / window[0], _rw[0] - _rw[-1])
+                if hot is not None:
+                    if unnom is None or shrink > unnom[0]:
+                        unnom = (shrink, slot)
+                    shrink = (bool(self._objs_named(slot) & hot), shrink)
                 if refuted:
                     if plain is None or shrink > plain[0]:
                         plain = (shrink, slot)
@@ -12155,6 +12169,11 @@ class Agent:
                 tally["rose"] += 1
             else:
                 tally["flat"] += 1
+        if hot is not None and best and unnom and best[1] != unnom[1] and book:
+            self.led.record(self.cycle, self._running_step, best[1], "nominated",
+                            taken=best[1], passed=unnom[1],
+                            reads="unexplained surprise says where to look (A4); the "
+                                  "shrinking bar chose among those it named")
         if refuted and best and plain and best[1] != plain[1]:
             k = (self.cycle, best[1], plain[1])
             if k not in self._rescoped:

@@ -934,6 +934,15 @@ ARMS: dict[str, str] = {
                            "refuses at MIN_REPEAT + window, a refusal held back by the window "
                            "rowed route_waiting; 'farther' still refuses at once; no lag, window "
                            "0, unchanged. OFF: MIN_REPEAT, as before. default ON",
+    "TETHER_SURPRISE_NOMINATES": "(5a) A4, SURPRISE SAYS WHERE TO LOOK (Isaiah 2026-10-25 20:21 "
+                                 "'do what the tether says'; Fig 1 :28, Fig 9 :53): in "
+                                 "_goal_choice the objects carrying unexplained surprise "
+                                 "(outstanding > 0) nominate; among wants that pass the "
+                                 "shrinking bar, a nominated one ranks first (a lexicographic "
+                                 "prefix, never a filter, so an un-nominated want still "
+                                 "qualifies); surprise is never scored or maximised (Fig 1 "
+                                 ":23-27); row nominated (gate 1 only) when it changed the "
+                                 "pick. OFF: as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
