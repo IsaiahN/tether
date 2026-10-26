@@ -714,6 +714,12 @@ _BUDGET_GENERATED = armflag.arm("TETHER_BUDGET_GENERATED", default=True)   # C-H
 # (_note_progress, R-A's subtraction), not since the last commitment, so effort spent without
 # progress keeps lowering the bar. OFF: since the last commitment, as before
 _URGENCY_PROGRESS = armflag.arm("TETHER_URGENCY_PROGRESS", default=True)
+# (6b) A DEATH KEEPS THE LEVEL'S BINDINGS AND REFUSALS (Q12 "a death is a game event; the agent
+# persists", Q18 A5 animal filter, R-D carry; Isaiah 2026-10-26 04:51 build order, the reviewer
+# 04:53; AUD link 5): at a death retarget HOLDS self.bound and the refused routes, and restarted()
+# carries back each entry whose objects were all re-found unambiguously (the refutations' rule).
+# OFF: cleared at every boundary, as before
+_DEATH_KEEPS = armflag.arm("TETHER_DEATH_KEEPS", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3215,6 +3221,8 @@ class Agent:
         self.refuted_at: dict[tuple, float] = {}
         # HELD at a death's boundary, for `restarted` to carry back where identity is sure (F479).
         self._held_refutations: tuple[dict, dict] | None = None
+        # (6b): the level's bindings and refused routes, HELD at a death the same way
+        self._held_level: dict | None = None
         # (b'-l) every boundary's cleared stores, instance form, in order; nothing is removed
         self._dormant: list[dict] = []
         self._attempt_cycle = 0
@@ -3602,6 +3610,10 @@ class Agent:
             self._d5_level_end()
         if _LINEAGE_HOLD:
             self._hold_lineage(how)
+        # (6b) A DEATH KEEPS THE LEVEL'S BINDINGS AND REFUSED ROUTES: held, for `restarted` to carry
+        # back where identity is sure, as the refutations below are (Q12, Q18, R-D carry)
+        self._held_level = ({"bound": dict(self.bound), "route_refused": dict(self._route_refused)}
+                            if how == "death" and _DEATH_KEEPS else None)
         self.bound, self.trace = {}, []
         self._window_at = 0        # C: the trace restarts, so does its window
         self._served = {}          # (iv): a served binding does not cross the boundary either
@@ -12372,6 +12384,7 @@ class Agent:
         travelling changed and silent (the reviewer, 2026-10-06). The rest are NAMED, not carried.
         """
         held, self._held_refutations = self._held_refutations, None
+        held_level, self._held_level = self._held_level, None
         if _STEP_BUDGET:
             self._close_owed("restart")
         if _CONSOLIDATE:
@@ -12383,6 +12396,8 @@ class Agent:
             self._level_attempts += 1
         if _LINEAGE_HOLD:
             self._carry_lineage(env)
+        if held_level:
+            self._restore_level(env, held_level)
         if not held:
             return
         idn = getattr(env, "identity", None)
@@ -12404,6 +12419,30 @@ class Agent:
         self.led.record(_c, "IMPORT", _s, "restart", **_lv,
                         carried=sorted(carried), not_carried=not_carried,
                         reads="refutations held at the death; carried only where identity is sure")
+
+    def _restore_level(self, env: Any, held: dict) -> None:
+        """(6b): carry the bindings and refused routes held at the death back into the restarted
+        level, each only where every object its key names (by _objs_named and by any o<n> in the
+        key's text, so an intent string's subject counts) was re-found as overlap or a unique
+        shape. The rest are counted, never carried silently."""
+        idn = getattr(env, "identity", None)
+        kept: dict[str, int] = {}
+        dropped: dict[str, int] = {}
+        for store, items in held.items():
+            dest = self.bound if store == "bound" else self._route_refused
+            for k, v in items.items():
+                objs = self._objs_named(k) | set(re.findall(r"(?<![\w])o\d+(?![\w])", str(k)))
+                sure = all((idn(o) if idn else None) in ("overlap", "unique-shape")
+                           for o in objs)
+                if not sure:
+                    dropped[store] = dropped.get(store, 0) + 1
+                    continue
+                dest[k] = v
+                kept[store] = kept.get(store, 0) + 1
+        _c, _s, _lv = self._boundary_key("@boundary")
+        self.led.record(_c, "IMPORT", _s, "death_kept", **_lv, kept=kept, dropped=dropped,
+                        reads="the level's bindings and refused routes held at the death; "
+                              "carried only where identity is sure")
 
     @_in_step("SETTLE")
     def _hold_lineage(self, how: str) -> None:

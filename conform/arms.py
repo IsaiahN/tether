@@ -827,6 +827,14 @@ ARMS: dict[str, str] = {
                                "since any objective gap last shrank (_last_progress, stamped in "
                                "_note_progress where g < prev), not since the last commitment. "
                                "OFF: since the last commitment, as before. default ON",
+    "TETHER_DEATH_KEEPS": "(6b) A DEATH KEEPS THE LEVEL'S BINDINGS AND REFUSALS (Q12, Q18, R-D "
+                          "carry; Isaiah 2026-10-26 04:51 build order, the reviewer 04:53; AUD "
+                          "link 5): at a death retarget holds self.bound and _route_refused "
+                          "(_held_level), and restarted() carries back (_restore_level) each "
+                          "entry whose objects (_objs_named plus every o<n> in the key's text) "
+                          "were re-found as overlap or unique-shape, the held refutations' rule; "
+                          "row death_kept with kept / dropped per store. OFF: both cleared at "
+                          "every boundary, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
