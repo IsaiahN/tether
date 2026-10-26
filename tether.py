@@ -16199,9 +16199,14 @@ class Agent:
         if _win is not None:
             # WHAT THE WINDOW OFFERED AND WHAT THE BUDGET REACHED, by kind (Fig 13: counted).
             _ev = {f"{slot}~{r['j']}" for r in _win["evidence"]}
-            _lags = [b for b in operand_binds if b and lag_of(b)]
-            _out = [b for b in _lags if b not in _win_reached]
-            _win.update(reached=len(_win_reached), chains_reached=len(priced),
+            # the look-back counts its OWN lags; PREV_OFFER's ~1 is recorded beside them
+            # (the reviewer 2026-10-26 r259)
+            _p1 = slot + PREV if _PREV_OFFER else None
+            _own = _win_reached - {_p1}
+            _lags = [b for b in operand_binds if b and lag_of(b) and b != _p1]
+            _out = [b for b in _lags if b not in _own]
+            _win.update(reached=len(_own), prev1_reached=int(_p1 in _win_reached),
+                        chains_reached=len(priced),
                         pass2_chains=_pass2_chains,
                         beyond_bound={"evidence": sum(b in _ev for b in _out),
                                       "no_evidence": sum(b not in _ev for b in _out)})
