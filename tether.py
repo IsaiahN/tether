@@ -809,7 +809,8 @@ _REENGAGE = armflag.arm("TETHER_REENGAGE", default=True)
 _ROUTINE_CARRY = armflag.arm("TETHER_ROUTINE_CARRY", default=True)
 # THE GOVERNOR, THINK OR ACT (Isaiah 2026-10-26 08:24; the reviewer 08:30): one function,
 # Agent._think_or_act, read by the look-back (L1), the typed-late round (L3) and the widened streams
-# (L4) before each walks: closer_found / urgent / probe_first / ok. OFF: they walk without the gate
+# (L4) before each walks: closer_found / urgent / urgent_declined / probe_first / probe_declined /
+# ok. OFF: they walk without the gate
 _THINK_OR_ACT = armflag.arm("TETHER_THINK_OR_ACT", default=True)
 # A1, THE GOVERNOR AT THE STEP (Isaiah 2026-10-26 11:25; the reviewer 11:33): route asks
 # Agent._think_or_act before a slot's library lookup; "urgent" or "probe_first" defers it, OWED
@@ -3281,6 +3282,7 @@ class Agent:
         self._last_commit = 0
         self._last_progress = 0   # (6d): the cycle an objective gap last shrank
         self._probe_wait: dict = {}   # the governor: slot -> (cycle, what could be probed then)
+        self._urgent_wait: dict = {}  # the governor: slot -> (cycle, urgent / urgent_declined)
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
         self._overrides: list[tuple[float, bool, int]] = []
@@ -13481,6 +13483,10 @@ class Agent:
           closer_found  a present-frame binding already closed in this mint;
           urgent        steps since progress (6d) have already lowered the commit bar to its
                         floor (idle / relief rate >= _QUORUM_HALF, the accumulator's own relief);
+          urgent_declined  urgent, but this slot was deferred "urgent" at an earlier cycle: it
+                        walks this cycle, then may be deferred again at the next, so under
+                        urgency the library is consulted every other step, never zero (the
+                        reviewer 2026-10-26 11:52 item 3);
           probe_first   an action could test the slot's object first: 3d's held probe names it,
                         or an advertised action has never been tried (the table holds no entry);
           probe_declined  the same probes were open at an earlier cycle's ask for this slot and
@@ -13494,6 +13500,12 @@ class Agent:
         idle = self.cycle - (self._last_progress if _URGENCY_PROGRESS else self._last_commit)
         rate, _earned = self._relief_rate()
         if idle / rate >= _QUORUM_HALF:
+            was = self._urgent_wait.get(slot)
+            if was is not None and (was == (self.cycle, "urgent_declined")
+                                    or (was[1] == "urgent" and was[0] < self.cycle)):
+                self._urgent_wait[slot] = (self.cycle, "urgent_declined")
+                return True, "urgent_declined"
+            self._urgent_wait[slot] = (self.cycle, "urgent")
             return False, "urgent"
         probe = getattr(self, "_can_probe", None)
         held = (probe if _CAN_PROBE and probe is not None and probe in self._objs_named(slot)
