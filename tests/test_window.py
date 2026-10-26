@@ -251,14 +251,16 @@ def _mint_record(ag: tether.Agent, slot: str, window: bool) -> dict:
 
 
 def check_2b_a_pass_1_is_the_off_walk_when_no_lag_has_evidence() -> None:
-    """Must-fail (a), the reviewer 19:45Z: on a record where no lag has evidence and the budget is
-    not reached, the two-pass walk begins with exactly the window-OFF walk, then only lags."""
+    """Must-fail (a), the reviewer 19:45Z, under L1 (the reviewer 2026-10-26 09:27): on a record
+    where no lag has evidence and the budget is not reached, the look-back adds nothing -- the
+    window-ON walk is exactly the window-OFF walk, and the no-evidence lags are counted."""
     seq = [1, 2, 3, 5, 6, 8, 9, 0]                      # no earlier value recurs at any lag
     off, _ = _walk(seq, window=False, two_pass=True)
     on, rec = _walk(seq, window=True, two_pass=True)
-    assert not rec["detail"]["window"]["evidence"], rec["detail"]["window"]
-    assert off and on[:len(off)] == off, (len(off), len(on))
-    assert all(tether.lag_of(x) for _c, x in on[len(off):]), on[len(off):][:5]
+    win = rec["detail"]["window"]
+    assert not win["evidence"], win
+    assert win["no_evidence_not_walked"] >= 1, win
+    assert off and on == off, (len(off), len(on))
 
 
 def check_2b_d_one_and_two_pass_price_the_same_set_ties_counted() -> None:
