@@ -740,6 +740,10 @@ _TOUCH_FELT = armflag.arm("TETHER_TOUCH_FELT", default=True)
 # here; a wrong thing, or an exhausted offer whose interface reason is "no way known", re-states
 # the intent with its target named. OFF: R-B alone, as before
 _STEER = armflag.arm("TETHER_STEER", default=True)
+# (3d) Q23, A CAN-UNKNOWN AFFORDANCE GETS A CHEAP PROBE (Isaiah 2026-10-26 04:51 build order, the
+# reviewer 04:53; AUD link 2): where the routine mint refuses because CAN is unknown, the slot's
+# object becomes System 0's next exploratory target, once (row can_probe). OFF: refusal only
+_CAN_PROBE = armflag.arm("TETHER_CAN_PROBE", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3251,6 +3255,7 @@ class Agent:
         self._rf_stall: dict = {}
         self._rf_differ: dict = {}
         self._rf_restate: set = set()
+        self._can_probe: str | None = None    # (3d): the object a CAN-unknown slot asks to probe
         self._contact_pair: tuple = ()
         self._contact_tries: collections.Counter = collections.Counter()
         # (b'-l) every boundary's cleared stores, instance form, in order; nothing is removed
@@ -3669,6 +3674,7 @@ class Agent:
         # last reading or step, an undone count, each read on the next level's same NAME.
         self.wants, self._want_terms, self._reach_tested = {}, {}, {}
         self._rf_stall, self._rf_differ, self._rf_restate = {}, {}, set()   # (4c): slot-keyed
+        self._can_probe = None                                               # (3d): an object id
         self._prev_gap, self._gap_delta, self._undone, self._undone_across = {}, {}, {}, {}
         # AND NEITHER DO THE REFUTATIONS, FOR THE REASON THIS METHOD'S OWN DOCSTRING GIVES:
         # *slot names mean nothing across a boundary.* The reject key is
@@ -11050,6 +11056,8 @@ class Agent:
                 # construction, so the nameable denominator is the TRANSITION rows alone.
                 act = self._took(_untried, IFace.Intent(IFace.ELICIT))
             elif target is not None:
+                if why == "can-unknown probe":
+                    self._can_probe = None      # (3d): the one probe, pressed or abstained
                 _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=target),
                                         tuple(self.actions),
                                         IFace.Interface.context(self.env), before, self.env,
@@ -11200,6 +11208,12 @@ class Agent:
         """The object to aim at, and why. Isaiah's ordering: an untried contact is the main
         mode; an object touching NOTHING is the next thing to go and make contact with; the
         uniform draw is last."""
+        probe = self._can_probe     # (3d) Q23: read, not spent; spent where TOUCH reaches it
+        if _CAN_PROBE and probe is not None:
+            if any(k.startswith(probe + ".") for k in before):
+                self._contact_pick = None
+                return probe, "can-unknown probe"
+            self._can_probe = None      # its object is gone: nothing left to probe
         keys = self._contact_keys(before)
         unexplored = [k for k in keys if k not in self._contact_seen]
         if unexplored:
@@ -13146,6 +13160,13 @@ class Agent:
         if verdict != YES:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason=f"CAN is {verdict}, and only yes commits")
+            # (3d) Q23: an UNKNOWN affordance gets a cheap probe, never a refusal alone -- System
+            # 0's next exploratory press aims at the slot's object (_contact_target); NO stays no
+            objs = sorted(self._objs_named(slot)) if _CAN_PROBE and verdict == UNKNOWN else []
+            if objs and self._can_probe is None:
+                self._can_probe = objs[0]
+                self.led.record(self.cycle, "PLAN", slot, "can_probe", target=objs[0],
+                                reads="CAN unknown: one press aimed at it will say")
             return
         self._split_why = None
         self._goal_want = None

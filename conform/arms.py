@@ -881,6 +881,13 @@ ARMS: dict[str, str] = {
                         "not (not withheld); and the audit receives what the press meant "
                         "(Agent._meant: intent, why, mode; iface.last_meant; the R4 audit row's "
                         "meant). OFF: none of it, as before. default ON",
+    "TETHER_CAN_PROBE": "(3d) Q23, A CAN-UNKNOWN AFFORDANCE GETS A CHEAP PROBE (AUD link 2; "
+                        "Isaiah 2026-10-26 04:51 build order, the reviewer 04:53): where the "
+                        "routine mint refuses because CAN is unknown (never no), the slot's "
+                        "object is held as one probe (row can_probe); _contact_target offers it "
+                        "first to System 0's TOUCH while the object exists, and it is spent when "
+                        "TOUCH reaches it, pressed or abstained. OFF: the refusal alone, as "
+                        "before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
