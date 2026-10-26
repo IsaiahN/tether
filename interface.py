@@ -1610,7 +1610,8 @@ class Interface:
         return n
 
     def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = (),
-              ctx_after: tuple | None = None, own: frozenset = frozenset()) -> bool:
+              ctx_after: tuple | None = None, own: frozenset = frozenset(),
+              reaff: frozenset = frozenset()) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 
         **RETURNS `True` FOR *CONDITIONAL*, NOT FOR *CHANGED*, AND THE DIFFERENCE IS ISAIAH'S
@@ -1706,7 +1707,11 @@ class Interface:
         for _k in before:
             cap.head()
             self.present[_k] = self.present.get(_k, 0) + 1
-        changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
+        # (2a) I-B: what changed ANYWAY (`reaff`, the agent's reafference reading) is subtracted
+        # before the press is credited; it is kept as last_reaff for the record
+        moved = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
+        changed = tuple(k for k in moved if k not in reaff)
+        self.last_reaff = tuple(k for k in moved if k in reaff)
         self.last_changed = changed      # R4 record: what this press was credited with (F1)
         signature = tuple(sorted(_eff(k) for k in changed
                                  if k.rsplit(".", 1)[-1] not in RELATIONAL))

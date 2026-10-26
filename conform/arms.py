@@ -844,6 +844,15 @@ ARMS: dict[str, str] = {
                            "choosing path reads; the decision row reads 'weighed'. Below the bar, "
                            "or OFF: the conflict row only, 'not yet weighed', as before. "
                            "default ON",
+    "TETHER_REAFFERENCE": "(2a) I-B REAFFERENCE (the 10-23 design; UMW A1; Isaiah 2026-10-26 "
+                          "04:51 build order, the reviewer 04:53): Agent._reafferent(after) "
+                          "names the slots that changed anyway -- an own-clock slot on its own "
+                          "rule's value (env.own_expected) and every slot of an object the last "
+                          "cascade read SELF_MOVED (_self_moved_now, set in _cascade_agency) -- "
+                          "and Interface.audit(reaff=) drops them before crediting the press "
+                          "(changed, delta, lands, signs), keeping them as last_reaff; the R4 "
+                          "audit row adds reafferent. OFF: every changed slot credited, as "
+                          "before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "

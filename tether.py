@@ -725,6 +725,11 @@ _DEATH_KEEPS = armflag.arm("TETHER_DEATH_KEEPS", default=True)
 # more, the route this press took is refused in this context through R-B's store, so the next
 # choice here asks for another route. OFF: the conflict row only, "not yet weighed", as before
 _UNDO_WEIGHED = armflag.arm("TETHER_UNDO_WEIGHED", default=True)
+# (2a) I-B REAFFERENCE (the 10-23 design, approved; UMW A1; Isaiah 2026-10-26 04:51 build order,
+# the reviewer 04:53): before the interface credits a press with the slots that changed, it
+# subtracts what changed anyway: own-clock slots on their own rule's value, and the slots of
+# objects the last cascade read as self-moved. OFF: every changed slot credited, as before
+_REAFFERENCE = armflag.arm("TETHER_REAFFERENCE", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3228,6 +3233,7 @@ class Agent:
         self._held_refutations: tuple[dict, dict] | None = None
         # (6b): the level's bindings and refused routes, HELD at a death the same way
         self._held_level: dict | None = None
+        self._self_moved_now: frozenset = frozenset()   # (2a): the last cascade's self-movers
         # (b'-l) every boundary's cleared stores, instance form, in order; nothing is removed
         self._dormant: list[dict] = []
         self._attempt_cycle = 0
@@ -8215,6 +8221,9 @@ class Agent:
             elif any(x in controlled for x in near.get(o_, ())):
                 modes[o_] = REACTING
         self.agency.note_order(modes)
+        # (2a) I-B: the objects this cascade read as moving on their own, the in-between-frame
+        # baseline the next audit subtracts (refreshed only by a reading with an order)
+        self._self_moved_now = frozenset(o for o, m in modes.items() if m == SELF_MOVED)
         self.led.record(self.cycle, self._running_step, "*", "cascade_modes", frames=len(frames),
                         modes=modes, first=first, controlled=sorted(controlled))
 
@@ -8986,7 +8995,8 @@ class Agent:
         if not self._seam_now and self.iface.audit(
                 _real, before, after, _ctx,
                 IFace.Interface.context(self.env) if IFace._DEST_GAP else None,
-                own=self._own_clock_keys() if _OWN_CLOCK_SUBJECT else frozenset()):
+                own=self._own_clock_keys() if _OWN_CLOCK_SUBJECT else frozenset(),
+                reaff=self._reafferent(after) if _REAFFERENCE else frozenset()):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
@@ -8994,9 +9004,13 @@ class Agent:
             self._audit_at = self.cycle    # R-B: this step's press was audited (no seam, no cut)
         if _R4_RECORD and not self._seam_now:
             _cr = getattr(self.iface, "last_changed", ())
+            _ra = getattr(self.iface, "last_reaff", ()) if _REAFFERENCE else ()
             self.led.record(self.cycle, "PERCEIVE", "@interface", "audit", of=(action,),
                             credited=len(_cr), own_clock=sorted(set(_cr) & _own_clock),
-                            reads="every slot that changed is credited to this press (F1)")
+                            **({"reafferent": len(_ra)} if _REAFFERENCE else {}),
+                            reads=("every slot that changed is credited to this press, less "
+                                   "what changed anyway (I-B)" if _REAFFERENCE else
+                                   "every slot that changed is credited to this press (F1)"))
         # AND WHAT THE BOARD NOW AFFORDS, **named as capability and never as a button** --
         # Isaiah: *"the board has enabled us to move to the left or right after doing xyz"*.
         # F28's line held: availability is legitimate to read, directional semantics never.
@@ -13875,6 +13889,19 @@ class Agent:
                         after=self._last_action,
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
+
+    def _reafferent(self, after: dict) -> frozenset:
+        """(2a) I-B, REAFFERENCE (von Holst & Mittelstaedt 1950; the 10-23 design): the slots whose
+        change this step happened anyway, subtracted before the press is credited. Two readings
+        the agent already has: an own-clock slot that landed exactly on its own rule's value
+        (own_expected), and every slot of an object the last cascade read as moving on its own
+        (SELF_MOVED, _self_moved_now)."""
+        oe = getattr(self.env, "own_expected", None)
+        out = {s for s, v in (oe() if oe is not None else {}).items() if after.get(s) == v}
+        if self._self_moved_now:
+            out |= {k for k in after
+                    if (objs := self._objs_named(k)) and objs <= self._self_moved_now}
+        return frozenset(out)
 
     def _own_clock_keys(self) -> frozenset:
         """TETHER_OWN_CLOCK_SUBJECT: the slots the agent's own clock writes this step (empty when
