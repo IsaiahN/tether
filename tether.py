@@ -809,8 +809,18 @@ _REENGAGE = armflag.arm("TETHER_REENGAGE", default=True)
 _ROUTINE_CARRY = armflag.arm("TETHER_ROUTINE_CARRY", default=True)
 # THE GOVERNOR, THINK OR ACT (Isaiah 2026-10-26 08:24; the reviewer 08:30): one function,
 # Agent._think_or_act, read by the look-back (L1), the typed-late round (L3) and the widened streams
-# (L4) before each walks: closer_found / urgent / probe_first / ok. OFF: they walk without the gate
+# (L4) before each walks: closer_found / urgent / urgent_declined / probe_first / probe_declined /
+# ok. OFF: they walk without the gate
 _THINK_OR_ACT = armflag.arm("TETHER_THINK_OR_ACT", default=True)
+# A1, THE GOVERNOR AT THE STEP (Isaiah 2026-10-26 11:25; the reviewer 11:33): route asks
+# Agent._think_or_act before a slot's library lookup; "urgent" or "probe_first" defers it, OWED
+# through C1's queue and asked first next step, recorded as deferred and never as not found. The
+# refuted-bin lookup is not gated. ON; conform/arms.py
+_STEP_ACT = armflag.arm("TETHER_STEP_ACT", default=True)
+# A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
+# boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
+# lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
+_WALK_BUDGET = armflag.arm("TETHER_WALK_BUDGET", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -2852,6 +2862,8 @@ class Agent:
                                                     "units_for", "walk")}
         self._late = (0, 0)                # K1: this step's T4 / T5 entries (asked, not asked)
         self._k1_trunc = False             # K1: the last index walk was cut by the budget
+        self._walk_cut = 0                 # A2: entries this lookup's index walks left unreached
+        self._step_act: Counter = Counter()   # A1: this step's lookups run / deferred by why
         self._deferred: set = set()        # K1: (slot, delta kind) a T1 hit deferred, to re-ask
         # K1 (the reviewer 20:43): (delta kind, entry, target kind) -> asks where it was OFFERED
         self._kind_offered_dk: Counter = Counter()
@@ -3270,6 +3282,7 @@ class Agent:
         self._last_commit = 0
         self._last_progress = 0   # (6d): the cycle an objective gap last shrank
         self._probe_wait: dict = {}   # the governor: slot -> (cycle, what could be probed then)
+        self._urgent_wait: dict = {}  # the governor: slot -> (cycle, urgent / urgent_declined)
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
         self._overrides: list[tuple[float, bool, int]] = []
@@ -5538,6 +5551,15 @@ class Agent:
         kinds: dict | None = {} if _KIND_HOIST else None
         for i_, (key, _w) in enumerate(lit):
             cap.head()
+            if _WALK_BUDGET and _STEP_BUDGET and self._spent >= STEP_BUDGET:
+                # A2: K1's guard on EVERY key, at the entry boundary (a memo-walked entry's charge
+                # has landed by here); the rest is unreached at this budget, the index is not
+                # memoised, and _library_fit owes the slot
+                a_, na_ = self._late
+                self._late = (a_, na_ + sum(1 for k_, _x in lit[i_:] if k_ in late))
+                self._walk_cut += len(lit) - i_
+                self._k1_trunc = True
+                break
             if key in late:
                 # K1's COST GUARD: T4 / T5 are asked only while the step's budget remains; the
                 # rest is counted not asked, and the truncated index is not memoised
@@ -10019,7 +10041,18 @@ class Agent:
             self._asked += 1
             if slot in self._route_cls:
                 self._class_n[self._route_cls[slot]][0] += 1
+            self._walk_cut = 0
             self._lookup(slot, hist)
+            if _WALK_BUDGET and self._walk_cut:
+                # A2: the walk stopped at the step's budget; the slot is owed, asked first next step
+                own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+                qid = (self.cycle, own.get(slot, slot))
+                self._owed_q[slot] = qid
+                self.owed_import.add(slot)
+                self.led.record(self.cycle, "ROUTE", slot, "walk_cut", question=list(qid),
+                                unreached=self._walk_cut, spent=self._spent, budget=STEP_BUDGET,
+                                reads="unreached at this budget, never absent: the index walk "
+                                      "stopped between entries; owed, asked first next step")
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
         # `rejection_of`, so the order reads evidence of the current age rather than a total
         # frozen at whatever tick it was last touched.
@@ -10595,11 +10628,33 @@ class Agent:
             total += correction_bits(got, actual, self.alphabet[slot])
         return total
 
+    def _defer_lookup(self, slot: str) -> str | None:
+        """A1 (TETHER_STEP_ACT; Isaiah 2026-10-26 11:25, the reviewer 11:33): the governor at the
+        step. The why when the slot's library lookup is deferred this step -- owed through C1's
+        queue, asked first next step -- else None, and the lookup runs as today."""
+        if not _STEP_ACT:
+            return None
+        walk, why = self._think_or_act(slot, closer=False)
+        if walk:
+            self._step_act["walked"] += 1
+            return None
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        qid = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
+        self._owed_q[slot] = qid
+        self.owed_import.add(slot)
+        self._step_act[why] += 1
+        self.led.record(self.cycle, "ROUTE", slot, "lookup_deferred", why=why,
+                        question=list(qid),
+                        reads="deferred by the governor, never not found: owed, asked first next "
+                              "step")
+        return why
+
     @_in_step("ROUTE")
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         pos = {s: i for i, s in enumerate(res)}       # today's order, handed back to the mints
         self._route_cls = {}
+        self._step_act = Counter()
         if _STEP_BUDGET:
             # C1: this step's budget starts at zero; the slots a budget left unasked go first,
             # the rest keep today's order (so a budget that never binds changes nothing)
@@ -10684,7 +10739,8 @@ class Agent:
                 # of a slot that owes, and routing it here retires a debt on one step's
                 # evidence. It is why an unbound slot fell back to idn and was never
                 # revisited.
-                b, fit = MECHANISM, (self._fit_tier0(slot, self.bound.get(slot)) if _FIT_TIER0
+                b, fit = MECHANISM, (None if self._defer_lookup(slot)
+                                     else self._fit_tier0(slot, self.bound.get(slot)) if _FIT_TIER0
                                      else self._library_fit(slot, self.bound.get(slot)))
                 if fit:
                     b = REBIND
@@ -10692,7 +10748,8 @@ class Agent:
                 b, fit = NOVEL, None
             else:
                 self._fit_none.pop(slot, None)     # S2a: a row the bound term missed reopens it
-                fit = self._library_fit(slot, self.bound.get(slot))
+                fit = (None if self._defer_lookup(slot)
+                       else self._library_fit(slot, self.bound.get(slot)))
                 b = REBIND if fit else MECHANISM
             why = OWES if (r.mass == 0.0 and slot in self.owed_import) else WHY_NOT[b]
             out.append((slot, b, fit, why))
@@ -10712,6 +10769,13 @@ class Agent:
                                if (_MOLECULES or _ATTR_INDEX) else {}),
                             reads="this step's lookup evaluations against the budget, and the "
                                   "owed queue carried to the next step")
+        if _STEP_ACT and self._step_act:
+            self.led.record(self.cycle, "ROUTE", "@step_act", "step_act",
+                            lookups_walked=self._step_act["walked"],
+                            lookups_deferred={k: v for k, v in self._step_act.items()
+                                              if k != "walked"},
+                            reads="A1: this step's lookups the governor let run, and those it "
+                                  "deferred by why")
         if _STEP_RANK:
             out.sort(key=lambda t: pos[t[0]])           # the mints run in today's order
         return out
@@ -13419,6 +13483,10 @@ class Agent:
           closer_found  a present-frame binding already closed in this mint;
           urgent        steps since progress (6d) have already lowered the commit bar to its
                         floor (idle / relief rate >= _QUORUM_HALF, the accumulator's own relief);
+          urgent_declined  urgent, but this slot was deferred "urgent" at an earlier cycle: it
+                        walks this cycle, then may be deferred again at the next, so under
+                        urgency the library is consulted every other step, never zero (the
+                        reviewer 2026-10-26 11:52 item 3);
           probe_first   an action could test the slot's object first: 3d's held probe names it,
                         or an advertised action has never been tried (the table holds no entry);
           probe_declined  the same probes were open at an earlier cycle's ask for this slot and
@@ -13432,6 +13500,12 @@ class Agent:
         idle = self.cycle - (self._last_progress if _URGENCY_PROGRESS else self._last_commit)
         rate, _earned = self._relief_rate()
         if idle / rate >= _QUORUM_HALF:
+            was = self._urgent_wait.get(slot)
+            if was is not None and (was == (self.cycle, "urgent_declined")
+                                    or (was[1] == "urgent" and was[0] < self.cycle)):
+                self._urgent_wait[slot] = (self.cycle, "urgent_declined")
+                return True, "urgent_declined"
+            self._urgent_wait[slot] = (self.cycle, "urgent")
             return False, "urgent"
         probe = getattr(self, "_can_probe", None)
         held = (probe if _CAN_PROBE and probe is not None and probe in self._objs_named(slot)
