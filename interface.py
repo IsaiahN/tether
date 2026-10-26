@@ -174,6 +174,11 @@ _AIM_INSIDE = armflag.arm("TETHER_AIM_INSIDE", default=True)
 # and failed), why and asker, in Interface.unrealised and a bounded log the agent's REPEAT row
 # drains each step. OFF: a bare None, as before
 _UNREALISED_WHY = armflag.arm("TETHER_UNREALISED_WHY", default=True)
+# (4a) I-A, THE LIMB LEARNS FROM THE PROGRESS VERDICT (the 10-23 design; UMW A5; Isaiah 2026-10-26
+# 04:51 build order, the reviewer 04:53): the agent's R-F reading of each graded press comes down as
+# verdict(); a BECOME realisation it says served this intent in this context is offered first
+# (_served); the audit receives what the press meant. OFF: none of it, as before
+_IA_SERVED = armflag.arm("TETHER_IA_SERVED", default=True)
 # 7k (the reviewer 2026-10-15 17:32, 20:27): ELICIT's fresh pick reads LEARNING VALUE before the
 # draw -- the residual is the unknowns an action reaches (reach, more first), the learning
 # reading its presses over every context (table n, fewer first). The interface informs; the
@@ -480,6 +485,10 @@ class Interface:
         # (4b): the last None realise's reason, and every one since the agent last drained them
         self.unrealised: dict | None = None
         self.unrealised_log: list = []
+        # (4a) I-A: (intent said, ctx) -> {(action, coord): [on course, off course]}, the agent's
+        # verdicts; and what the last audited press MEANT (intent, why, mode)
+        self.served: dict = {}
+        self.last_meant: tuple | None = None
         self.own_slots: set = set()            # K3: slots with an entry of their own (any action)
         # (ii): ((epoch, breaks), the (action, kind key) cells a press of that action bore out)
         self.era_cells: tuple = (None, set())
@@ -625,6 +634,31 @@ class Interface:
                 return TRIED
         return NO_WAY
 
+    def verdict(self, said: str, ctx: tuple, action: str, coord: Any, on_course: bool) -> None:
+        """(4a) I-A: the ONE signal that comes down from the reasoning layer -- did this
+        realisation serve this intent, here? Kept per (intent in the agent's words, context), per
+        (action, coord): [on course, off course]. The interface learns its mechanics from it."""
+        cell = self.served.setdefault((said, ctx), {}).setdefault(
+            (action, tuple(coord) if coord else None), [0, 0])
+        cell[0 if on_course else 1] += 1
+
+    def _served(self, intent: Intent, offered: tuple[str, ...], ctx: tuple, w: Withheld,
+                aims: dict) -> Realisation | None:
+        """(4a) I-A, read FIRST: a realisation the agent's own verdicts say served this intent in
+        this context (more on course than off), among what is offered and not withheld; the most
+        net-served, then the action, then the coordinate. None: the table tiers decide."""
+        sv = self.served.get((intent.says(), ctx))
+        if not sv:
+            return None
+        good = [((a, c), n) for (a, c), n in sv.items()
+                if a in offered and n[0] > n[1] and (c is None or (a, c) not in w.pairs)]
+        if not good:
+            return None
+        (a, c), n = min(good, key=lambda g: (-(g[1][0] - g[1][1]), g[0][0], g[0][1] or ()))
+        r = Realisation(a, coord=c, why=f"served this intent here {n[0]} of {n[0] + n[1]} (I-A)",
+                        evidence=(("tier", "served"), ("on", n[0]), ("off", n[1])))
+        return r if c is not None else self._aimed(r, aims)
+
     def take_unrealised(self) -> list:
         """(4b): the reasons recorded since the last call; the agent's REPEAT row drains them."""
         out, self.unrealised_log = self.unrealised_log, []
@@ -689,6 +723,8 @@ class Interface:
                 return self._none(NO_WAY, "no reading of the subject in this state", asker)
             _now = int(state[intent.subject])
             offered, aims = self._aims(offered, intent.subject, state, env, w, asker)
+            if _IA_SERVED and (sv := self._served(intent, offered, ctx, w, aims)) is not None:
+                return sv
             # TWO PASSES, NOT ONE WITH A TIEBREAK -- same shape as the signed half below: this
             # context's evidence wherever it exists, and only then the across-context prior.
             # Written as two loops because one loop with a `best is None` guard makes the
@@ -763,6 +799,8 @@ class Interface:
             # reading the agent is entitled to, not a substitution.
             want_sign = 1 if (intent.object or "+") == "+" else -1
             offered, aims = self._aims(offered, intent.subject, state, env, w, asker)
+            if _IA_SERVED and (sv := self._served(intent, offered, ctx, w, aims)) is not None:
+                return sv
             if (_REALISE_CELL and cell and state is not None and intent.subject in state):
                 r, against = self._by_cell(intent.subject, int(state[intent.subject]),
                                            want_sign, offered, ctx, env)
@@ -1611,7 +1649,7 @@ class Interface:
 
     def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = (),
               ctx_after: tuple | None = None, own: frozenset = frozenset(),
-              reaff: frozenset = frozenset()) -> bool:
+              reaff: frozenset = frozenset(), meant: tuple | None = None) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 
         **RETURNS `True` FOR *CONDITIONAL*, NOT FOR *CHANGED*, AND THE DIFFERENCE IS ISAIAH'S
@@ -1713,6 +1751,7 @@ class Interface:
         changed = tuple(k for k in moved if k not in reaff)
         self.last_reaff = tuple(k for k in moved if k in reaff)
         self.last_changed = changed      # R4 record: what this press was credited with (F1)
+        self.last_meant = meant          # (4a): the intent, why and mode this press came from
         signature = tuple(sorted(_eff(k) for k in changed
                                  if k.rsplit(".", 1)[-1] not in RELATIONAL))
         e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0, "delta": {}})

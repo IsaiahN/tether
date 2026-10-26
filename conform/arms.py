@@ -872,6 +872,15 @@ ARMS: dict[str, str] = {
                     "route_exhausted carries the interface's reason (iface.unrealised) and its "
                     "next move, 'no way known' -> re-state the intent, else another subject. "
                     "OFF: R-B alone, as before. default ON",
+    "TETHER_IA_SERVED": "(4a) I-A, THE LIMB LEARNS FROM THE PROGRESS VERDICT (the 10-23 design; "
+                        "UMW A5; Isaiah 2026-10-26 04:51 build order, the reviewer 04:53): "
+                        "Agent._steer sends each R-F reading down as Interface.verdict(intent, "
+                        "context, action, coord, on course), kept in iface.served; "
+                        "Interface._served offers FIRST, in both BECOME branches of _choose, the "
+                        "realisation that served this intent in this context more often than "
+                        "not (not withheld); and the audit receives what the press meant "
+                        "(Agent._meant: intent, why, mode; iface.last_meant; the R4 audit row's "
+                        "meant). OFF: none of it, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "

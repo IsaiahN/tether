@@ -8517,6 +8517,15 @@ class Agent:
             if _STEER:
                 self._steer(t["route"], _base, slot)
 
+    def _meant(self, action: str) -> tuple | None:
+        """(4a) UMW A5: what the press MEANT, handed to the audit beside what it did -- the intent
+        in the agent's words, and the realisation's why and mode -- when the realisation the press
+        came from is this action's; None when no exit recorded one."""
+        r, want = self._last_real, getattr(self, "_intent_now", None)
+        if r is None or r.action != action:
+            return None
+        return (want.says() if want is not None else None, r.why, getattr(r, "mode", None))
+
     def _steer(self, route: tuple, outcome: str, slot: str) -> None:
         """(4c) R-F, STEERING (Isaiah 2026-10-23 19:19; the 10-23 design; A11 2026-10-25 "the next
         try must DIFFER"): the press is read against the intent's own expectation, never against
@@ -8535,6 +8544,8 @@ class Agent:
             reading = "wrong thing" if other else "nothing happened"
         if reading is None:
             return
+        if IFace._IA_SERVED:            # (4a) I-A: the verdict comes down to the limb
+            self.iface.verdict(said, ctx, route[1], route[2], reading == "on course")
         if reading == "on course":
             self._rf_stall.pop(slot, None)
             self._rf_restate.discard(slot)
@@ -9062,7 +9073,8 @@ class Agent:
                 _real, before, after, _ctx,
                 IFace.Interface.context(self.env) if IFace._DEST_GAP else None,
                 own=self._own_clock_keys() if _OWN_CLOCK_SUBJECT else frozenset(),
-                reaff=self._reafferent(after) if _REAFFERENCE else frozenset()):
+                reaff=self._reafferent(after) if _REAFFERENCE else frozenset(),
+                meant=self._meant(action) if IFace._IA_SERVED else None):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
@@ -9074,6 +9086,7 @@ class Agent:
             self.led.record(self.cycle, "PERCEIVE", "@interface", "audit", of=(action,),
                             credited=len(_cr), own_clock=sorted(set(_cr) & _own_clock),
                             **({"reafferent": len(_ra)} if _REAFFERENCE else {}),
+                            **({"meant": self.iface.last_meant} if IFace._IA_SERVED else {}),
                             reads=("every slot that changed is credited to this press, less "
                                    "what changed anyway (I-B)" if _REAFFERENCE else
                                    "every slot that changed is credited to this press (F1)"))
