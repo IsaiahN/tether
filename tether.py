@@ -1981,7 +1981,9 @@ def _replace_lib(lib: Any) -> Any:
 # ABORT CRITERIA, declared before the first run and unchanged: candidates tried rises while
 # arrivals do not -> OFF; calls-per-cycle growth steepens against the control -> OFF; binds
 # per candidate rises -> OFF. Each is a RESULT, not a failure.
-_STREAM_WIDEN = armflag.arm("TETHER_STREAM_WIDEN")
+# L4, ON UNDER THE SHARE (Isaiah 2026-10-26 08:24; the reviewer 08:30): the widened streams draw
+# only after every base stream has stopped in the round, and only if the governor says think.
+_STREAM_WIDEN = armflag.arm("TETHER_STREAM_WIDEN", default=True)
 # D2, STREAM SHARE (the reviewer 2026-10-12 05:43, 06:19 CDT): within a round, the stream that has
 # spent the least rank takes the next candidate (Fig 6: distribute the search, keep the searchers
 # independent), and a stream stops at its OWN kind's floor. ON; reason in conform/arms.py.
@@ -15430,6 +15432,7 @@ class Agent:
         wanted: tuple[float, Term, int] | None = None
         rank = 0
         _share: dict = {}        # D2: per-stream rank/pays/turns, recorded under the arm
+        _widen: dict = {}        # L4: the widened streams' kinds and the governor's gate per round
         _skey = _hit = None
         priced, _skipped = {}, 0
 
@@ -15481,7 +15484,7 @@ class Agent:
             stype = self.slot_types.get(slot)
             if stype:
                 streams.append((stype, OBJ_TYPE))
-            # THE out_type WIDENING -- Isaiah's 3A, arm `TETHER_STREAM_WIDEN`, default OFF.
+            # THE out_type WIDENING -- Isaiah's 3A, arm `TETHER_STREAM_WIDEN`, default ON (L4).
             #
             # THESE TWO STREAMS ARE THE COMPOSITION CEILING, measured rather than argued: the
             # agent mints 74 multi-atom terms on `ar25` and gets FOUR distinct compositions --
@@ -15495,12 +15498,17 @@ class Agent:
             # involves -- the graph says which pairs are LEGAL, the delta says which are
             # RELEVANT NOW. Widening to the graph's capacity would rebuild the enumeration
             # explosion deliberately.
+            # L4: streams from _nbase on are the widened ones; each round holds them back until
+            # every base stream has stopped, then the governor decides whether they draw.
+            _nbase = len(streams)
             if _STREAM_WIDEN and stype:
                 seen_out = {o for _i, o in streams}
                 for t in (gap.get("varies_types") or ()):
                     if t and t not in seen_out:
                         streams.append((stype, t))
                         seen_out.add(t)
+            if len(streams) > _nbase:
+                _widen.update(streams=[_kind_of(s[1]) for s in streams[_nbase:]], gate={})
             # THE THIRD STREAM IS WITHDRAWN, AND THE REASON IS A DEFECT IT INTRODUCED.
             # `OBJECT -> OBJ` was legitimate once `Ctx.obj` stopped the extract atoms
             # abstaining -- and it is NOT type-coherent, which the reachability check missed.
@@ -15620,6 +15628,8 @@ class Agent:
                 _open: dict = {}
                 _live = [k for k in range(len(streams)) if k not in _floored]
                 _spent = dict.fromkeys(_live, 0)
+                _held = [k for k in _live if k >= _nbase]
+                _live = [k for k in _live if k < _nbase]
                 _cur, _r0 = None, rank
                 while True:
                     cap.head()
@@ -15627,6 +15637,14 @@ class Agent:
                         _spent[_cur] += rank - _r0
                         _share[_cur]["rank"] += rank - _r0
                         _cur = None
+                    if not _live and _held:
+                        # L4: every base stream has stopped this round; the widened draw next
+                        if rank >= self.cfg.work_budget:
+                            _walk, _why = False, "budget"
+                        else:
+                            _walk, _why = self._think_or_act(slot, closer=best is not None)
+                        _widen["gate"][_round] = _why
+                        _live, _held = (_held if _walk else []), []
                     if not _live:
                         break
                     _ns_calls += 1
@@ -16140,6 +16158,8 @@ class Agent:
                 **{_kind_of(streams[k][1]): v for k, v in _share.items()},
                 "unasked": [_kind_of(streams[k][1]) for k, v in _share.items()
                             if v["first_rank"] is None]}
+        if _widen:
+            detail["widen"] = _widen
         if _hit:
             detail["chains_already_priced"] = _skipped
         if unseal is not None:

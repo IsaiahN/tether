@@ -639,7 +639,19 @@ ARMS: dict[str, str] = {
                               ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above"
                               " is the record; the switch is kept for the checklist's culprit "
                               "isolation",
-    "TETHER_STREAM_WIDEN": "the widened candidate streams",
+    "TETHER_STREAM_WIDEN": "L4, ON UNDER THE SHARE (Isaiah 2026-10-26 08:24; the reviewer 08:30; "
+                           "Fig 6 :49-50 'Distribute the search, and keep the searchers "
+                           "independent'). WHAT CHANGED: in Agent.mint's stream rounds the "
+                           "widened streams (slot type -> each type the delta lights) are HELD "
+                           "until every base stream (val, objective) has stopped in that round "
+                           "(its own floor, exhausted, or the work budget); then "
+                           "Agent._think_or_act decides whether they draw, sharing least-spent "
+                           "among themselves. The mint row's widen record: the widened kinds "
+                           "and the gate per round; their turns, rank and pays are in "
+                           "stream_share. WHY ON: the 09-23 refutation was under ONE shared "
+                           "budget, before D2's share; held back, a widened stream cannot take "
+                           "rank from a base one. Its pre-registered abort criteria are read per "
+                           "round. WAS (OFF): the widened candidate streams",
     "TETHER_TYPED_BIND": "L3, ON AS AN ORDERING (Isaiah 2026-10-26 08:24; the reviewer 08:30; "
                          "Fig 9 :60 'Use filters for the budget and witnesses for the "
                          "verdict'). WHAT CHANGED: in Agent._library_fit a candidate whose head "
