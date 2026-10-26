@@ -789,6 +789,11 @@ _DEATH_VOTE = armflag.arm("TETHER_DEATH_VOTE", default=True)
 # it is held as the parent's subgoal (row subgoal_adopted, naming the operand read) and selected
 # while open; ends on arrival, on its own exhausted routes, or at the level. OFF: as before
 _SUBGOAL = armflag.arm("TETHER_SUBGOAL", default=True)
+# (6a) R-D, UNREACHABLE AT BUDGET, THEN RE-ENGAGE (the 10-23 design; A11; Fig 8 :40-41): an
+# exhausted intent is kept as the verdict "unreachable at budget" with the situation it was read
+# in; when a route is offered for it again (its situation moved -- 4d -- or its refusals were set
+# aside -- 3c), a re_engaged row says so. Refusals are untouched. OFF: as before
+_REENGAGE = armflag.arm("TETHER_REENGAGE", default=True)
 # (6c) ROUTINES CARRIED BY KIND (the reviewer 2026-10-26 06:32, ruled; Fig 4 :22-24 "Only methods
 # cross up. Only head starts come down."): each settled routine is written in KIND FORM (every
 # slot by its kind key, a TOUCH object by its kind; a Call or Let is not carried) in the optional
@@ -3186,10 +3191,11 @@ class Agent:
         self._last_press_key: tuple | None = None
         self._press_situ: tuple | None = None
         self._subgoal: dict | None = None   # (4g) R-C: {"parent", "sub"} while a detour is held
+        self._unreachable: dict = {}        # (6a) R-D: intent -> {"at", "situation"} at budget
         # (6c): kind forms loaded (key -> row), the keys this instance has written, and this
         # level's bound candidates (None until first asked)
         self._routines_in: dict = {}
-        self._rk_written: set = set()
+        self._rk_written: dict = {}         # (6c): key -> the standing last written
         self._rk_bound: list | None = None
         self._audit_at: int | None = None   # R-B: the cycle whose press was last audited
         # R-C: slot -> the correction its last overshoot owes; (slot, target) -> the oscillation
@@ -3749,6 +3755,7 @@ class Agent:
         self._gap, self._route_refused, self._route_run = {}, {}, {}
         self._route_stale = {}                       # (3c): this level's, like the refusals
         self._subgoal = None                         # (4g): slot names do not cross
+        self._unreachable = {}                       # (6a): nor intents that name them
         self._rk_bound = None                        # (6c): bound again on the new board
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
         self._dw_tried = {}
@@ -8782,7 +8789,8 @@ class Agent:
     def _carry_routines_in(self, rows: list) -> int:
         """(6c) at load: the kind forms the lineage holds, one per key; bound per level later."""
         self._routines_in.update({r["key"]: r for r in rows if r.get("key") and r.get("form")})
-        self._rk_written |= set(self._routines_in)      # already in the lineage: never rewritten
+        # already in the lineage at this standing: rewritten only when the standing changes
+        self._rk_written.update({k: r.get("standing") for k, r in self._routines_in.items()})
         self._rk_bound = None
         return len(self._routines_in)
 
@@ -14265,7 +14273,12 @@ class Agent:
                                 **({"unrealised": _why,
                                     "next": "re-state the intent" if _restate
                                     else "another subject"} if _STEER else {}),
+                                **({"verdict": "unreachable at budget"} if _REENGAGE else {}),
                                 reads="no route for this intent here at this budget")
+                if _REENGAGE:
+                    # (6a) R-D: kept as a verdict with its scope, so a route found later is read
+                    # as a re-engagement and what changed is said (Fig 8 :40-41)
+                    self._unreachable.setdefault(said, {"at": self.cycle, "situation": _rctx})
                 if _SUBGOAL and self._subgoal is not None and chosen == self._subgoal["sub"]:
                     self._subgoal_end("routes")      # (4g): the detour, too, ran out of routes
                 elif _SUBGOAL and not _restate and self._subgoal is None:
@@ -14285,6 +14298,13 @@ class Agent:
                 elif self._hyp is not None and chosen in self._hyp["slots"]:
                     self._hyp_end("stalled", by="routes")
             return None
+        if _REENGAGE and commit and _r is not None and _want.says() in self._unreachable:
+            _was = self._unreachable.pop(_want.says())
+            self.led.record(self.cycle, "PLAN", chosen, "re_engaged", intent=_want.says(),
+                            since=_was["at"], situation_changed=_was["situation"] != _rctx,
+                            action=_r.action,
+                            reads="unreachable at budget was a reading of then, not a verdict "
+                                  "for ever: a route is offered again (R-D)")
         if _r is not None:
             # FORMED IS NOT TAKEN (the reviewer 2026-10-10 12:27Z, 12:36Z). The routine mint asks
             # which press would serve this intent and does not press it this turn, so it writes no

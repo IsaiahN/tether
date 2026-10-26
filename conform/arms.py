@@ -970,6 +970,13 @@ ARMS: dict[str, str] = {
                       "reads routes on its gap and the parent's growth refuses nothing; ends on "
                       "arrival, its own exhausted routes, or the level (row subgoal_end). OFF: "
                       "as before. default ON",
+    "TETHER_REENGAGE": "(6a) R-D, UNREACHABLE AT BUDGET, THEN RE-ENGAGE (the 10-23 design; A11; "
+                       "Fig 8 :40-41): route_exhausted carries verdict 'unreachable at budget' "
+                       "and the intent is kept in Agent._unreachable with the situation it was "
+                       "read in; when a route is offered for it again (its situation moved, 4d, "
+                       "or its refusals were set aside, 3c), row re_engaged (since, "
+                       "situation_changed, action). Refusals untouched; cleared at the level. "
+                       "OFF: as before. default ON",
     "TETHER_ROUTINE_CARRY": "(6c) ROUTINES CARRIED BY KIND (the reviewer 2026-10-26 06:32, ruled; "
                             "Fig 4 :22-24): Agent._routine_form writes each settled routine with "
                             "every slot as its kind key and a TOUCH object as its kind (a Call, "

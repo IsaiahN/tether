@@ -605,7 +605,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     if tether._ROUTINE_CARRY and hasattr(ag, "routines_by_kind"):
         # (6c): the settled routines in kind form not yet in the lineage; absent when none, so a
         # generation with nothing to carry is written exactly as before
-        rk = [r for r in ag.routines_by_kind() if r["key"] not in ag._rk_written]
+        rk = [r for r in ag.routines_by_kind()
+              if ag._rk_written.get(r["key"]) != r["standing"]]   # new, or its standing moved
         if rk:
             gen["routines_by_kind"] = rk
     if fc is not None:
@@ -655,7 +656,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         if "entry_use" in gen:
             ag._entry_use_written = {k: dict(c) for k, c in ag._entry_use.items()}
         if "routines_by_kind" in gen:
-            ag._rk_written |= {r["key"] for r in gen["routines_by_kind"]}
+            ag._rk_written.update({r["key"]: r["standing"] for r in gen["routines_by_kind"]})
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
