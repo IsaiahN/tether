@@ -817,6 +817,11 @@ _THINK_OR_ACT = armflag.arm("TETHER_THINK_OR_ACT", default=True)
 # through C1's queue and asked first next step, recorded as deferred and never as not found. The
 # refuted-bin lookup is not gated. ON; conform/arms.py
 _STEP_ACT = armflag.arm("TETHER_STEP_ACT", default=True)
+# B1, WHOLE MINTS PER STEP (the reviewer 2026-10-26 14:20, (b')): a mint runs as today, but once one
+# mint this step ends with its search stopped at a bound, the step's remaining MECHANISM / REFUTED
+# mints are OWED (mint_deferred) and minted first next step. The unit is the mint's own stop; no
+# constant. ON; conform/arms.py
+_STEP_MINT = armflag.arm("TETHER_STEP_MINT", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -2727,6 +2732,7 @@ class Agent:
     _cut = False               # C1 (A): a cut ended thinking; no step runs after it (15:34 (a))
     _cut_scope = None          # the step scope a cut was raised in
     _pressed = False           # this step's action went out in perceive
+    _sm = None                 # B1: this step's mint tally while the ACCEPT loop runs
     _end_reserve = None        # the end-path reserve R, s (None: unmeasured, none taken)
     _end_sleep_s = None        # the carried end path's sleep part (checkpoint + quick_check), s
     _end_path_t0 = None        # set by the end block: the end path is timed whole
@@ -3282,6 +3288,8 @@ class Agent:
         self._last_commit = 0
         self._last_progress = 0   # (6d): the cycle an objective gap last shrank
         self._probe_wait: dict = {}   # the governor: slot -> (cycle, what could be probed then)
+        self._mint_owed: dict = {}    # B1: slot -> the cycle its mint was deferred; minted first
+        self._mint_exhausted = False  # B1: the last mint parked with its search stopped at a bound
         self._urgent_wait: dict = {}  # the governor: slot -> (cycle, urgent / urgent_declined)
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
@@ -15238,6 +15246,27 @@ class Agent:
         return [f"{slot}~{j}" for j in order]
 
     @_in_step("MINT")
+    def _mint_in_step(self, slot: str, b: str) -> None:
+        """B1 (TETHER_STEP_MINT; the reviewer 2026-10-26 14:20, (b')): the step's mint for `slot`;
+        or, once a mint this step has parked with its search stopped at a bound, the slot OWED --
+        a mint_deferred row, minted first next step. Unreached at this budget, never a verdict."""
+        sm = self._sm
+        if _STEP_MINT and sm is not None and sm["stop"] is not None:
+            self.owed_import.add(slot)
+            sm["deferred"].append(slot)
+            self.led.record(self.cycle, "ACCEPT", slot, "mint_deferred", bin=b, owes=True,
+                            after=sm["stop"],
+                            reads="not minted this step: a mint this step already stopped at its "
+                                  "bound; it owes and is minted first next step -- unreached at "
+                                  "this budget, never a verdict")
+            return
+        self._mint_exhausted = False
+        self.mint(slot)
+        if sm is not None:
+            sm["run"] += 1
+            if self._mint_exhausted and sm["stop"] is None:
+                sm["stop"] = slot
+
     def mint(self, slot: str) -> None:
         """ONE MINT WITH ITS EVALUATION MEMO. A Ctx and an operand read are pure functions of
         their inputs, and inside one mint they repeat ~1,281x and ~740x (counted, default seed 0,
@@ -16332,6 +16361,7 @@ class Agent:
                     winner=_wk, winner_rank=_best_rank, stop=_stop_why,
                     work_budget=self.cfg.work_budget)
 
+        self._mint_exhausted = best is None and bool(stats["budget_spent"])   # B1 reads it
         if best is None:
             # THE VERDICT IS NOT ONE WORD. "I stopped early" and "the whole space at this
             # depth does not contain one" are different claims and only one is strong.
@@ -17625,6 +17655,10 @@ class Agent:
         # THE SLOTS WHOSE OWN TURN RUNS THIS CYCLE, for the probe flush below: a slot past its
         # turn takes no MINT row after its ACCEPT (F500's rule; the probe flush, 2026-10-14).
         _turned = set(self._turn_ahead) | set(_split_now)
+        if _STEP_MINT and getattr(self, "_mint_owed", None):
+            # B1: the mints owed from an earlier step first, then today's order (stable)
+            routed = sorted(routed, key=lambda t: t[0] not in self._mint_owed)
+        self._sm = {"run": 0, "deferred": [], "stop": None}
         with self._step_scope("ACCEPT"):
             for _i, (slot, b, fit, _why) in enumerate(routed):
                 if slot in _split_now:
@@ -17683,10 +17717,19 @@ class Agent:
                                         note=("the bound term was refused here; this is its "
                                               "competitor"))
                     else:
-                        self.mint(slot)
+                        self._mint_in_step(slot, b)
                 elif b == MECHANISM:
-                    self.mint(slot)
+                    self._mint_in_step(slot, b)
                 self._turn_ahead.discard(slot)
+            if _STEP_MINT:
+                sm = self._sm
+                was = getattr(self, "_mint_owed", None) or {}
+                self._mint_owed = {s: was.get(s, self.cycle) for s in sm["deferred"]}
+                if sm["run"] or sm["deferred"]:
+                    self.led.record(self.cycle, "ACCEPT", "@step_mint", "step_mint",
+                                    mints_run=sm["run"], mints_deferred=len(sm["deferred"]),
+                                    stop=sm["stop"])
+        self._sm = None
         self._turn_ahead = None
         if _OBJ_EVENT and self._events:
             with self._step_scope("MINT"):
