@@ -15058,7 +15058,9 @@ class Agent:
         # repo-wide search. The pattern, not the file, is what has to be searched.
         seen = {s: len({st[s] for st, _a, _v, _i, _l in robs if s in st}) for s in others}
         # ITS OWN PREVIOUS VALUE, ONE CANDIDATE, ordered like the rest by how much it varies.
-        if _PREV_OFFER and not _WINDOW:      # under the window ~1 is one lag of the block below
+        # ~1 belongs to PREV_OFFER, window or not; the look-back offers j >= 2 (the reviewer
+        # 2026-10-26 09:43: under L1 the window offers evidence lags only, so ~1 was cut)
+        if _PREV_OFFER:
             mine = slot + PREV
             seen[mine] = len({v for v in (self._operand_value(mine, st)
                                           for st, _a, _v, _i, _l in robs)
@@ -15134,7 +15136,8 @@ class Agent:
         filter (Fig 9): the budget decides how far down it is walked, and what it does not reach
         is counted in the mint's record."""
         reach = len(self.trace) - 1
-        recs = [self._lag_evidence(slot, robs, j) for j in range(1, reach + 1)]
+        lo = 2 if _PREV_OFFER else 1           # ~1 is PREV_OFFER's, offered in its own place
+        recs = [self._lag_evidence(slot, robs, j) for j in range(lo, reach + 1)]
         no_ev = [r for r in recs if not r["evidence"]]
         # L1 THE LOOK-BACK: only lags the residual's own record names (evidence), at most the
         # deepest such lag and at most 4f's effect window where a bound term reads a lag. Order:
@@ -15475,8 +15478,10 @@ class Agent:
             _no_ev: set = set()                  # item 2b: the lags pass 2 walks
             if _WINDOW and slot in self._window_info:
                 # L1: the look-back offers evidence lags only, and they take a round of their own
-                # after the present frame's, so a lag never takes rank from a present binding
-                _no_ev = {b for b in operand_binds if b and lag_of(b)}
+                # after the present frame's, so a lag never takes rank from a present binding.
+                # PREV_OFFER's ~1 stays in round 1, ungated, as with the window OFF.
+                _no_ev = {b for b in operand_binds if b and lag_of(b)
+                          and not (_PREV_OFFER and b == slot + PREV)}
             # B2b TWO ROUNDS (the reviewer 2026-10-11 10:57 CDT): derivation order across the
             # whole chain x bind enumeration, where the budget is charged. A DERIVED bind (a pair
             # relation, or a lag of one) is walked in a LAST round over the chains round 1
