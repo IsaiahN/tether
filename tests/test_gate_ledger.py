@@ -220,8 +220,11 @@ def main() -> int:
             code_was, tether.G_PRIOR_CODE = tether.G_PRIOR_CODE, False
             # AND THE THREE C-HELD-5 ARMS AS THIS PRECONDITION WAS WRITTEN UNDER (OFF; default ON
             # since 2026-10-26, the reviewer 05:13): with all three ON this gridworld reaches no
-            # sweep in 11 steps; any one alone OFF does not restore it, the three OFF do
-            c5 = ("_PREV_OFFER", "_CARRY_PRICE", "_BUDGET_GENERATED")
+            # sweep in 11 steps; any one alone OFF does not restore it, the three OFF do. B1
+            # (TETHER_STEP_MINT, default ON since 2026-10-26) owes the later mints of a step, so
+            # the sweep this check reads falls outside the 11 steps; the label does not depend on
+            # B1, and B1's labels are checked by G2 with B1 ON (the reviewer 2026-10-26 r250)
+            c5 = ("_PREV_OFFER", "_CARRY_PRICE", "_BUDGET_GENERATED", "_STEP_MINT")
             c5_was = {f: getattr(tether, f) for f in c5}
             for f in c5:
                 setattr(tether, f, False)

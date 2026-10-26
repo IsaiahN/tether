@@ -1070,6 +1070,17 @@ ARMS: dict[str, str] = {
                        "lookup runs as today. The refuted-bin lookup is NOT gated: it answers a "
                        "refutation in hand. Per step the ROUTE row step_act: lookups_walked and "
                        "lookups_deferred by why. OFF: every lookup runs as before. default ON",
+    "TETHER_STEP_MINT": "B1, WHOLE MINTS PER STEP (the reviewer 2026-10-26 14:20, (b'); Fig 12 "
+                        ":127 'the budget is what decides how much of the space is reached', "
+                        "read as the mint's own stop; Fig 6 :49-50 distribute the search across "
+                        "steps; Fig 9 :60 owed, never a verdict): a mint runs as before, with all "
+                        "its bounds. Once one mint this step parks with its search stopped at a "
+                        "bound (budget_exhausted), the step's remaining MECHANISM / REFUTED mints "
+                        "are OWED: an ACCEPT row mint_deferred (owed_import), minted first next "
+                        "step. A mint ending under its bounds does not end the step's minting. "
+                        "Per step the ACCEPT row step_mint: mints_run, mints_deferred, stop. No "
+                        "constant: the unit is the mint's own stop. The derived-want and D5 mints "
+                        "are not touched. OFF: every mint runs in its step, as before. default ON",
     "TETHER_WALK_BUDGET": "A2, THE STEP BUDGET INSIDE THE WALK (Isaiah 2026-10-26 11:25 'still "
                           "sounds like that think act fix isnt in place yet'; the reviewer 11:33; "
                           "Fig 9 :40-41 'keep every cut ranked and reversible'): "
