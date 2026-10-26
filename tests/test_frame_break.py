@@ -376,12 +376,14 @@ def off_identity() -> None:
     finally:
         os.environ.pop("TETHER_FRAME_BREAK", None)
 
+    # the one shared timing list, imported (the reviewer 2026-10-25 21:52)
+    sys.path.insert(0, os.path.join(_repo.ROOT, "conform"))
+    from identity_mod_rows import mask_timings
+
     def norm(rows):
         out = []
-        for r in rows:
+        for r in mask_timings(json.loads(json.dumps(rows))):
             d = dict(r["detail"])
-            for k in ("wall_s", "overrun_s"):
-                d.pop(k, None)
             if r["event"] == "arms":
                 continue
             out.append((r["cycle"], r["step"], r["slot"], r["event"], json.dumps(d, sort_keys=True,

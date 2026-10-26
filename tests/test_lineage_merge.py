@@ -93,10 +93,22 @@ def main():
     touched = {(s["born"], s["handle"]) for g in gens.values() for s in g["status"]}
     root = [r for r in rows[wa["hash"]]
             if r.get("handle") and (wa["hash"], r["handle"]) not in touched]
-    k1 = {lineage._key(r) for r in rows[w1["hash"]]}
-    both = k1 & {lineage._key(r) for r in rows[w2["hash"]]}
+    # keyed by gamma.Gamma.row_key, what load installs by (the reviewer 2026-10-26 03:11, R2): finer
+    # than lineage._key on a bound row, so it only narrows the shared set; both counts printed
+    old = ({lineage._key(r) for r in rows[w1["hash"]]}
+           & {lineage._key(r) for r in rows[w2["hash"]]})
+    k1 = {gamma.Gamma.row_key(r) for r in rows[w1["hash"]]}
+    both = k1 & {gamma.Gamma.row_key(r) for r in rows[w2["hash"]]}
     assert root and both and w1["hash"] != w2["hash"], ("fixture: the branches give R-m1/R-m3 "
                                                         "nothing to test", len(root), len(both))
+    # MUST-FAIL: w2's operands with their attribute changed; `both` shrinks by exactly those keys
+    opk = {k for k in both if json.loads(k)[3] is not None}
+    assert opk, "R-m1 MF: no shared row has an operand, so the MF has no occasion"
+    mut = [{**r, "operand": r["operand"] + "_mf"} if r.get("operand") else r
+           for r in rows[w2["hash"]]]
+    both_mf = k1 & {gamma.Gamma.row_key(r) for r in mut}
+    assert both_mf == both - opk, ("R-m1 MF: changed operands did not leave the shared set",
+                                   len(both), len(both_mf), len(opk))
     # a contested status and a contested book key: each branch sets them differently. The key is
     # one the root set and no branch touched, so its pre-split value is the root's
     r0 = root[0]
@@ -118,7 +130,7 @@ def main():
     assert rows_in == rows_out and len(f["terms"]) == len(rows_in), (
         "R-m1 a row was lost", len(rows_in), len(rows_out), len(f["terms"]))
     for k in both:
-        held = [r for r in f["terms"] if lineage._key(r) == k]
+        held = [r for r in f["terms"] if gamma.Gamma.row_key(r) == k]
         assert {r["born"] for r in held} >= {w1["hash"], w2["hash"]}, ("R-m1 a row was lost", k)
     row = next(r for r in f["terms"] if (r["born"], r.get("handle")) == (wa["hash"],
                                                                        r0["handle"]))
@@ -135,7 +147,8 @@ def main():
     (d / m["written"]).unlink()
     assert _n3(d), "R-m3: with the merge generation removed, N3 did not raise"
     print(f"  branches: root {wa['hash']}, tips {s1} / {s2}; same composition in both: "
-          f"{len(both)}", flush=True)
+          f"{len(both)} by row_key ({len(old)} by lineage._key); MF {len(opk)} operand key(s) "
+          f"changed -> {len(both_mf)} shared", flush=True)
     print(f"  R-m3: merge {m['hash']} names both tips; load parent {rep['parent']}; contested "
           f"{sorted(vals)}, admitted kept {row['admitted']!r}; book {bk!r} contested "
           f"{sorted(got)}, kept {pre!r}; N3 again without it", flush=True)

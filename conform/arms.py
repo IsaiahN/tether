@@ -1537,6 +1537,13 @@ ARMS: dict[str, str] = {
                          "OFF is the line before it exactly. "
                          "default ON (Isaiah 2026-10-15 07:53, 17:26); "
                          "the switch is kept for the checklist's culprit isolation",
+    "TETHER_SAVE_DEDUP": "(d), DEDUP AT SAVE (Isaiah 2026-10-25 05:33; the reviewer 19:57, the "
+                         "alias form): a term row whose load key (gamma.row_key: atoms, guard, "
+                         "operand tree, operand with ids blanked) the parent fold or this save "
+                         "already holds as a row is written as an alias {was, key}; load_blob "
+                         "resolves each alias to what that row installed (renamed / onto an atom "
+                         "/ refused), so the replay maps the evidence as before. An alias naming "
+                         "no row raises. OFF: every row written, as before. default ON",
     "TETHER_STORE_HEAL": "S6 H (the reviewer 2026-10-19; the K crash runs): under "
                          "TETHER_MEMORY_STORE, a store failing its cheap check at load WITH a WAL "
                          "is checkpointed "
