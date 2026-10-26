@@ -853,6 +853,14 @@ ARMS: dict[str, str] = {
                           "(changed, delta, lands, signs), keeping them as last_reaff; the R4 "
                           "audit row adds reafferent. OFF: every changed slot credited, as "
                           "before. default ON",
+    "TETHER_TOUCH_FELT": "(2b) TOUCH IS FELT (UMW A2; Isaiah 2026-10-26 04:51 build order, the "
+                         "reviewer 04:53): System 0's contact pick is held as _contact_pending "
+                         "(with its pair) instead of being marked explored before the press; "
+                         "after the audit, _contact_felt reads contact made (the press landed on "
+                         "the pair, or a slot of either changed in the credited set) in a "
+                         "contact row, and marks the key explored when made or after MIN_REPEAT "
+                         "tries without contact. OFF: marked before the press, as before. "
+                         "default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "

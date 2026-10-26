@@ -730,6 +730,10 @@ _UNDO_WEIGHED = armflag.arm("TETHER_UNDO_WEIGHED", default=True)
 # subtracts what changed anyway: own-clock slots on their own rule's value, and the slots of
 # objects the last cascade read as self-moved. OFF: every changed slot credited, as before
 _REAFFERENCE = armflag.arm("TETHER_REAFFERENCE", default=True)
+# (2b) TOUCH IS FELT (UMW A2; Isaiah 2026-10-26 04:51 build order, the reviewer 04:53): System 0's
+# contact pick is marked explored only after its outcome is read (contact made, or MIN_REPEAT
+# tries that made none), with a contact row per press. OFF: marked before the press, as before
+_TOUCH_FELT = armflag.arm("TETHER_TOUCH_FELT", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3234,6 +3238,10 @@ class Agent:
         # (6b): the level's bindings and refused routes, HELD at a death the same way
         self._held_level: dict | None = None
         self._self_moved_now: frozenset = frozenset()   # (2a): the last cascade's self-movers
+        # (2b): the contact pick awaiting its felt outcome, its pair, and the tries per contact key
+        self._contact_pending: tuple | None = None
+        self._contact_pair: tuple = ()
+        self._contact_tries: collections.Counter = collections.Counter()
         # (b'-l) every boundary's cleared stores, instance form, in order; nothing is removed
         self._dormant: list[dict] = []
         self._attempt_cycle = 0
@@ -9011,6 +9019,8 @@ class Agent:
                             reads=("every slot that changed is credited to this press, less "
                                    "what changed anyway (I-B)" if _REAFFERENCE else
                                    "every slot that changed is credited to this press (F1)"))
+        if _TOUCH_FELT and self._contact_pending is not None:
+            self._contact_felt()
         # AND WHAT THE BOARD NOW AFFORDS, **named as capability and never as a button** --
         # Isaiah: *"the board has enabled us to move to the left or right after doing xyz"*.
         # F28's line held: availability is legitimate to read, directional semantics never.
@@ -10995,7 +11005,10 @@ class Agent:
                 # Simpler, not an extra mechanism: the same call, its result no longer discarded
                 # when the action happens to be mapped.
                 act = self._took(_untried, IFace.Intent(IFace.ELICIT))
-            if self._contact_pick is not None:
+            if self._contact_pick is not None and _TOUCH_FELT:
+                # (2b): marked only after the outcome is felt (_contact_felt, in perceive)
+                self._contact_pending = (self._contact_pick, self._contact_pair)
+            elif self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
             # target is an OBJECT id (_contact_target), never a slot. The row is labelled with the
             # step running (PLAN, choose), first on the ladder, so F500's order holds without the
@@ -11121,6 +11134,7 @@ class Agent:
         if unexplored:
             k = min(unexplored)          # deterministic, so a run is reproducible
             self._contact_pick = k
+            self._contact_pair = keys[k]  # (2b): the pair whose contact the press should feel
             return keys[k][0], "untried-contact"
         touching = {n for pair in keys.values() for n in pair}
         owners = sorted({x.rsplit(".", 1)[0] for x in before if "." in x} - touching)
@@ -13889,6 +13903,30 @@ class Agent:
                         after=self._last_action,
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
+
+    def _contact_felt(self) -> None:
+        """(2b) TOUCH IS FELT (UMW A2; Johansson & Flanagan 2009, contact events): after the press
+        the pending contact pick reads whether contact was MADE -- the press landed on either object
+        of the pair, or a slot of either changed in the credited (net of I-B) set -- in a contact
+        row. The key is marked explored only when contact is made, or after MIN_REPEAT tries that
+        made none (then 'unmade'). A seam step reads nothing and drops the pick."""
+        k, pair = self._contact_pending
+        self._contact_pending = None
+        if self._seam_now:
+            return
+        changed = getattr(self.iface, "last_changed", ())
+        landed = self._last_landed in pair
+        moved = sorted(s for s in changed if self._objs_named(s) & set(pair))
+        made = landed or bool(moved)
+        self._contact_tries[k] += 1
+        if made or self._contact_tries[k] >= MIN_REPEAT:
+            self._contact_seen.add(k)
+        self.led.record(self.cycle, "PERCEIVE", pair[0], "contact", pair=list(pair),
+                        kind=k[0], made=made, landed=landed, moved=moved[:8],
+                        tries=self._contact_tries[k],
+                        explored=k in self._contact_seen,
+                        reads=("contact made: the press reached the pair" if made else
+                               "no contact felt: the pair did not respond to the press"))
 
     def _reafferent(self, after: dict) -> frozenset:
         """(2a) I-B, REAFFERENCE (von Holst & Mittelstaedt 1950; the 10-23 design): the slots whose
