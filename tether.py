@@ -3268,6 +3268,7 @@ class Agent:
         # spent its whole life not acting.
         self._last_commit = 0
         self._last_progress = 0   # (6d): the cycle an objective gap last shrank
+        self._probe_wait: dict = {}   # the governor: slot -> (cycle, what could be probed then)
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
         self._overrides: list[tuple[float, bool, int]] = []
@@ -13414,6 +13415,9 @@ class Agent:
                         floor (idle / relief rate >= _QUORUM_HALF, the accumulator's own relief);
           probe_first   an action could test the slot's object first: 3d's held probe names it,
                         or an advertised action has never been tried (the table holds no entry);
+          probe_declined  the same probes were open at an earlier cycle's ask for this slot and
+                        none was taken since: the agent chose not to act, so it may think (the
+                        reviewer 2026-10-26 08:47, so an untaken probe cannot starve the walk);
           ok            none of these: walk."""
         if not _THINK_OR_ACT:
             return True, "ok"
@@ -13424,8 +13428,17 @@ class Agent:
         if idle / rate >= _QUORUM_HALF:
             return False, "urgent"
         probe = getattr(self, "_can_probe", None)
-        if ((_CAN_PROBE and probe is not None and probe in self._objs_named(slot))
-                or any(a != IFace.RESET and a not in self.iface.table for a in self.actions)):
+        held = (probe if _CAN_PROBE and probe is not None and probe in self._objs_named(slot)
+                else None)
+        untried = frozenset(a for a in self.actions
+                            if a != IFace.RESET and a not in self.iface.table)
+        if held is not None or untried:
+            open_ = (held, untried)
+            was = self._probe_wait.get(slot)
+            if was is not None and was[1] == open_ and was[0] < self.cycle:
+                return True, "probe_declined"
+            if was is None or was[1] != open_:
+                self._probe_wait[slot] = (self.cycle, open_)
             return False, "probe_first"
         return True, "ok"
 

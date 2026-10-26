@@ -1039,7 +1039,10 @@ ARMS: dict[str, str] = {
                            "closer_found (a present-frame binding closed in this mint) / urgent "
                            "(steps since progress, 6d, have lowered the commit bar to its floor: "
                            "idle / relief rate >= _QUORUM_HALF) / probe_first (3d's probe names "
-                           "the slot's object, or an advertised action was never tried) / ok. "
+                           "the slot's object, or an advertised action was never tried) / "
+                           "probe_declined (the same probes were open at an earlier cycle's ask "
+                           "for this slot and none was taken since: the agent chose not to act, "
+                           "so it may think; the reviewer 08:47, no constant) / ok. "
                            "Agent units only, no wall clock. OFF: the three walk ungated. "
                            "default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
