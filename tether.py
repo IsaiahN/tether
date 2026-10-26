@@ -7048,7 +7048,7 @@ class Agent:
         """(v): every (condition, then-term) pair as (ci, fi, total, cost, left), in _invent's order
         (conditions outer). Each part's symbols are walked once and every float operation runs in
         Code.bits' order, so each cost is bit-equal to _inv_cost(f, [c], units)."""
-        code = self.gamma.code()
+        code, ver = self.gamma.code(), self.gamma.code_ver()
         bond = math.log2(max(BONDS, 1))
 
         def vals(t: Term, u: tuple) -> list:
@@ -7082,7 +7082,7 @@ class Agent:
                     b += v
                 cost = (b + code.end) + (kf + len(vc) - 1) * bond
                 yield ci, fi, cost + left, cost, left
-        if self.gamma.code() is not code:     # the code the pairs were priced under never moved
+        if self.gamma.code_ver() != ver:      # what the pairs were priced under never moved ((p))
             raise RuntimeError("_inv_pairs: the code moved while the pairs were priced")
 
     @staticmethod
@@ -8898,6 +8898,7 @@ class Agent:
             self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
         else:
             self.env.step(action)
+        self.iface.note_sent(action)   # TETHER_RESET_ADJACENT: the flag from the press as sent
         self._pressed = True
         after = self.env.observe()
         # B, THE SEAM (the reviewer 2026-10-23 12:35, 13:04): a frame break read on this action's
@@ -11155,6 +11156,8 @@ class Agent:
                                before, self.env, withheld=self._withheld)
         self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
                         reads=(want.says(), r.why if r else "unrealisable"))
+        if r is None and self.actions and not self.iface.adjacent(tuple(self.actions)):
+            return None   # TETHER_RESET_ADJACENT: RESET alone is offered and the last press was one
         if r is None:
             # **AN EXPLICIT FAILURE, NOT A FALLBACK THAT CANNOT WORK -- the reviewer,
             # 2026-09-28.** This used to draw uniformly. Measured: 0 abstentions in 56 `ELICIT`
@@ -13507,6 +13510,8 @@ class Agent:
             return None
         if IFace._AIM_ROUTED and emit in IFace.POSITIONED:   # a name has no slot to aim from
             IFace.AIM_ROUTED_N["routine:bare_step_refused"] += 1
+            return None
+        if not self.iface.adjacent((emit,)):   # TETHER_RESET_ADJACENT: a bare RESET after a RESET
             return None
         return emit if emit in self.actions else None
 
@@ -16283,6 +16288,9 @@ class Agent:
     def _step_body(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome. Under
         TETHER_CAP_MIDSTEP a deadline passed between two lookups ends the turn at the route."""
+        # PER STEP (the reviewer 2026-10-25 22:46): choose() resets these too, but a GIVEN action
+        # never reaches choose, so its rows read the last chosen step's -- or, never set, raised.
+        self._split_term, self._routine_fed, self._last_real = None, [], None
         if _7H_ROOT and self._root_id is None and self._alive:
             self._intent_root()   # 7h: the first step of every live situation
         self._touch_cache = None      # a new step is a new frame, so contact and owners go
@@ -16507,6 +16515,32 @@ class Agent:
             action, by = self.choose(before)
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
+        if IFace._RESET_ADJACENT:
+            # (C) THE BACKSTOP AT THE SEND: any path that still emits RESET right after a RESET
+            # (a given action, or an exit that calls neither helper) is not sent. Expected never.
+            # (i) the one rule, through the one helper (the reviewer 2026-10-25 23:10)
+            refused = action == IFace.RESET and not self.iface.adjacent((action,))
+            if refused:
+                with self._step_scope("ROUTE"):
+                    self.led.record(self.cycle, "ROUTE", "@loop", "reset_adjacent_refused", by=by,
+                                    reads="RESET right after a RESET is not sent (Isaiah: never "
+                                          "RESET,RESET)")
+                action = None
+            # (f) nothing proposed. The step is a legal no-action; the runner's loop advances and
+            # ends by its own cap. (ii) the cause is adjacency only when the rule dropped a RESET
+            if action is None:
+                adj = refused or len(self.iface.adjacent(tuple(self.actions))) < len(self.actions)
+                self._reset_idle = getattr(self, "_reset_idle", 0) + 1
+                with self._step_scope("ROUTE"):
+                    self.led.record(self.cycle, "ROUTE", "@loop", "no_action", by=by,
+                                    actions=len(self.actions), idle_n=self._reset_idle,
+                                    cause=("reset adjacency: the last press was RESET" if adj
+                                           else "the chooser returned nothing"),
+                                    reads=("nothing is pressed; RESET twice in a row would "
+                                           "restart the game" if adj else "nothing is pressed"))
+                self._last_action = None
+                self.cycle += 1
+                return False
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
         _prov = getattr(self.env, "provenance", lambda _a: None)(action)
         # S1: a press on a dead board throws nothing away, so it adds nothing to the restart's price

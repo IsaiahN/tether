@@ -45,6 +45,7 @@ import experiment
 import gamma
 import gate
 import habitat
+import interface as IFace
 import ledger
 import lineage
 import store as door  # the one door; `store` is play()'s parameter name
@@ -236,6 +237,12 @@ def wire_agent(env, game: str, cfg: Any, led, library: str | None, lineage_dir: 
     # match the learning to the game and i need the learning to transfer across games"); one
     # constant, the stream's, so every mode writes the same scope. `game` stays the harness's.
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=AGENT_GAME), cfg, led)
+    # (h) THE FLAG'S START (TETHER_RESET_ADJACENT; the reviewer 2026-10-25 23:04): the last command
+    # the PLATFORM received, read from the guard below the seam -- True after the wrapper's own
+    # construction reset or wire's, and on (B)'s fresh agent whatever the game last got.
+    # note_sent is a no-op under OFF
+    if getattr(getattr(env, "w", None), "last_was_reset", False):
+        ag.iface.note_sent(IFace.RESET)
     if clock is not None:
         ag.cycle, ag.deadline = clock
     # under the carry a library= row whose content was its operand is HELD unbound, as the

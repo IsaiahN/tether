@@ -783,6 +783,16 @@ ARMS: dict[str, str] = {
                              "before it exactly. "
                              "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
                              "the checklist's culprit isolation",
+    "TETHER_RESET_ADJACENT": "RESET ADJACENCY (Isaiah 2026-09-29 'no consecutive resets'; "
+                             "the reviewer 2026-10-25 22:21, 22:46; PLAY11 round 2's c12-c13 "
+                             "RESET,RESET chosen by Interface.undirected): the flag is set where "
+                             "the press is SENT (Interface.note_sent after env.step), not in "
+                             "audit; one helper (Interface.adjacent) drops RESET from the offer "
+                             "right after a RESET in realise, undirected and a bare routine "
+                             "step; an agent-side backstop refuses a RESET,RESET at the send "
+                             "(row reset_adjacent_refused); a RESET-only offer after a RESET "
+                             "proposes nothing (row no_action). OFF: the flag from audit and "
+                             "realise's re-choose only, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "

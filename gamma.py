@@ -1787,6 +1787,20 @@ class Gamma:
         self._code_memo = (units, self._paid_ver, c)
         return c
 
+    def code_ver(self) -> tuple:
+        """(p) WHAT code() IS BUILT FROM, AS A VERSION (the reviewer 2026-10-25 22:46, 23:46): only
+        counts already bumped where those inputs are written -- the library and standing containers
+        and every settled flip (_WRITES: _Watched, Standing.__setattr__), the rank's order and used
+        (Rank.ver, Rank.note), the rank's install, the atoms, and paid / carried (_paid_ver). Equal
+        across a window iff nothing it reads was written, in every arm state: object identity is
+        not (under TETHER_UNITS_MEMO=0 every call builds a new Code). Where the containers are
+        plain dicts (TETHER_UNITS_VER=0) nothing counts a settle, so the settled set is scanned."""
+        rk = getattr(self.unit_rank, "__self__", None)
+        watched = (_UNITS_VER and type(self.library) is _Watched
+                   and type(self.standing) is _Watched)
+        return (_WRITES[0] if watched else self._units_key(), len(self.atoms),
+                self.unit_rank is not None, getattr(rk, "ver", None), self._paid_ver)
+
     def unit_weights(self) -> tuple[dict[str, int], dict[str, int], int]:
         """L1: the learned weight per unit, keyed by its atom sequence (unit_key) and summed over
         the library terms that state it, so no binding is in the key: (Rank.used by unit -- this
