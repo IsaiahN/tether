@@ -54,6 +54,11 @@ _RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
 _REL_SLOTS_CACHE = armflag.arm("TETHER_REL_SLOTS_CACHE", default=True)
 _REL_SLOTS_CHECK = armflag.arm("TETHER_REL_SLOTS_CHECK", default=False)
 REL_SLOTS_N = {"kept": 0, "built": 0, "checked": 0}
+# (3a) THE AFFORDANCE RECORDER FED ITS MOVER (Isaiah 2026-10-26 04:51 build order, the reviewer
+# 04:53; UMW A3): Affordances.note gets the one locus the control mode holds embodied (read off
+# the current streaks, never advanced here), so blocks / passes are written. None when no locus
+# or more than one is held: those readings stay unread. OFF: mover=None, as before
+_AFF_MOVER = armflag.arm("TETHER_AFF_MOVER", default=True)
 # E0: each object attribute the percept derives, and the readings it derives it from (the frame
 # deltas from the before-state's readings too). The cell-change attributes (add_* / rem_*) are NOT
 # here: they also depend on how the tracker established identity (identity_of), not only on readings
@@ -1109,7 +1114,8 @@ class ArcWorld:
         else:
             if was is not None and now is not None:
                 self.selves.observe(was, action, now)
-            self.aff.note(was_objs, dict(self._decompose.tracked), mover=None)
+            self.aff.note(was_objs, dict(self._decompose.tracked),
+                          mover=self._mover(was_objs) if _AFF_MOVER else None)
 
     def own_expected(self) -> dict[str, int]:
         """OWN CLOCK (the reviewer 2026-10-17 10:05; the reafference principle, von Holst &
@@ -1211,15 +1217,7 @@ class ArcWorld:
         masks = self.locus_masks()
         tracked = getattr(self._decompose, "tracked", {}) or {}
         by_member = {m.name: m for m in self.selves.members}
-
-        def key(member: str, locus: str):
-            """PER MEMBER, ON THAT MEMBER'S OWN INVARIANT. The tracker's name churns and no
-            single invariant is neutral -- picking one would privilege one member's claim,
-            which is what the non-simulable family exists to prevent. Falls back to the name
-            where a member declares none."""
-            m, obj = by_member.get(member), tracked.get(locus)
-            k = m.identity_key(obj) if m is not None and isinstance(obj, dict) else None
-            return (member, k if k is not None else locus)
+        key = self._streak_key(by_member, tracked)
 
         per = self.selves.per_locus(masks)
         for locus, scored in per.items():
@@ -1232,11 +1230,38 @@ class ArcWorld:
         # about the BOARD -- *no slot correlates but the board changes* -- so writing it onto
         # each locus was a board fact overwriting per-locus readings, and it made `hybrid`
         # unreachable: nothing could then disagree.
-        by = {locus: [n for n in by_member
-                      if self._mode_streak.get(key(n, locus), 0) >= arc_self.MIN_REPEAT]
-              for locus in masks}
+        by = self._held_by(masks, by_member, key)
         per_locus = {locus: ("embodied" if b else "unknown") for locus, b in by.items()}
+        return self._mode_board(masks, by, per_locus)
 
+    def _streak_key(self, by_member: dict, tracked: dict):
+        def key(member: str, locus: str):
+            """PER MEMBER, ON THAT MEMBER'S OWN INVARIANT. The tracker's name churns and no
+            single invariant is neutral -- picking one would privilege one member's claim,
+            which is what the non-simulable family exists to prevent. Falls back to the name
+            where a member declares none."""
+            m, obj = by_member.get(member), tracked.get(locus)
+            k = m.identity_key(obj) if m is not None and isinstance(obj, dict) else None
+            return (member, k if k is not None else locus)
+        return key
+
+    def _held_by(self, masks: dict, by_member: dict, key) -> dict:
+        """Per locus, the members whose streak on it has held MIN_REPEAT. Reads the streaks,
+        never advances them, so mode() and _mover() share one rule and one count."""
+        return {locus: [n for n in by_member
+                        if self._mode_streak.get(key(n, locus), 0) >= arc_self.MIN_REPEAT]
+                for locus in masks}
+
+    def _mover(self, objs: dict) -> str | None:
+        """(3a): the one locus among `objs` the control mode holds embodied now, or None (none,
+        or more than one: blocks / passes then stay unread rather than guessed)."""
+        tracked = getattr(self._decompose, "tracked", {}) or {}
+        by_member = {m.name: m for m in self.selves.members}
+        by = self._held_by(self.locus_masks(), by_member, self._streak_key(by_member, tracked))
+        held = [locus for locus, b in by.items() if b and locus in objs]
+        return held[0] if len(held) == 1 else None
+
+    def _mode_board(self, masks: dict, by: dict, per_locus: dict) -> dict[str, Any]:
         moved: set = set()
         for m in self.selves.members:
             moved |= m.changed
