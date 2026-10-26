@@ -15245,7 +15245,6 @@ class Agent:
                                    "gate": None}
         return [f"{slot}~{j}" for j in order]
 
-    @_in_step("MINT")
     def _mint_in_step(self, slot: str, b: str) -> None:
         """B1 (TETHER_STEP_MINT; the reviewer 2026-10-26 14:20, (b')): the step's mint for `slot`;
         or, once a mint this step has parked with its search stopped at a bound, the slot OWED --
@@ -15267,6 +15266,7 @@ class Agent:
             if self._mint_exhausted and sm["stop"] is None:
                 sm["stop"] = slot
 
+    @_in_step("MINT")
     def mint(self, slot: str) -> None:
         """ONE MINT WITH ITS EVALUATION MEMO. A Ctx and an operand read are pure functions of
         their inputs, and inside one mint they repeat ~1,281x and ~740x (counted, default seed 0,
