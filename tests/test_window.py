@@ -363,13 +363,20 @@ def _resume_walk(seq: list[int], budgets: tuple[int, ...]) -> list:
 def check_2b_e_a_resumed_mint_walks_no_no_evidence_lag() -> None:
     """The reviewer 2026-10-11 11:34 CDT, under L1 (the reviewer 2026-10-26 09:05, 09:27): a mint
     whose budget runs out in pass 1 records its chains as priced, and the next mint on the slot
-    resumes. Neither the fresh nor the resumed mint walks a no-evidence lag; both count them."""
+    resumes. Neither the fresh nor the resumed mint walks a look-back lag (j >= 2); both count
+    them; and the resumed mint walks the same PREV_OFFER ~1 pairs as the fresh one (the resume
+    guarantee, kept; the reviewer r259)."""
     seq = [1, 2, 3, 5, 6, 8, 9, 0]                      # no lag has evidence
+
+    def by_j(w, one):
+        return {p for p in w if (tether.lag_of(p[1])[1] == 1) == one}
+
     [(fresh, df)] = _resume_walk(seq, (10 ** 6,))
     [(w1, _), (w2, d2)] = _resume_walk(seq, (100, 10 ** 6))
     assert not w1, len(w1)                              # the first mint ran out in pass 1
     assert d2.get("chains_already_priced", 0) > 0, d2   # the second one RESUMED
-    assert not fresh and not w2, (len(fresh), len(w2))
+    assert not by_j(fresh, False) and not by_j(w2, False), (len(fresh), len(w2))
+    assert by_j(fresh, True) and by_j(w2, True) == by_j(fresh, True), (len(fresh), len(w2))
     assert df["window"]["no_evidence_not_walked"] >= 1, df["window"]
     assert d2["window"]["no_evidence_not_walked"] >= 1, d2["window"]
 
