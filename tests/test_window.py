@@ -328,7 +328,12 @@ def check_2b_e_a_resumed_mint_walks_no_no_evidence_lag() -> None:
 
 
 def main() -> int:
-    checks = [v for k, v in globals().items() if k.startswith("check_")]
+    # names on the command line run only those checks, so a slow machine can split the file
+    # under the 5-minute cap without cutting any (the reviewer 2026-10-26 09:27)
+    want = set(sys.argv[1:])
+    checks = [v for k, v in globals().items() if k.startswith("check_")
+              and (not want or k in want)]
+    assert not want or len(checks) == len(want), ("unknown check name", sorted(want))
     for c in checks:
         c()
         print("ok  ", c.__name__)
