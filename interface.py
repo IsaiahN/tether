@@ -169,6 +169,11 @@ _RESET_ADJACENT = armflag.arm("TETHER_RESET_ADJACENT", default=True)
 # its bounding-box corner, which a hollow or slanted shape need not occupy. OFF, or a world with
 # no cell_of: the corner, as before
 _AIM_INSIDE = armflag.arm("TETHER_AIM_INSIDE", default=True)
+# (4b) A FAILED REALISE RETURNS A REASON (Isaiah 2026-10-26 04:51 build order, the reviewer 04:53;
+# UMW A6): every None realise hands back is recorded with its kind (blocked / no way known / tried
+# and failed), why and asker, in Interface.unrealised and a bounded log the agent's REPEAT row
+# drains each step. OFF: a bare None, as before
+_UNREALISED_WHY = armflag.arm("TETHER_UNREALISED_WHY", default=True)
 # 7k (the reviewer 2026-10-15 17:32, 20:27): ELICIT's fresh pick reads LEARNING VALUE before the
 # draw -- the residual is the unknowns an action reaches (reach, more first), the learning
 # reading its presses over every context (table n, fewer first). The interface informs; the
@@ -351,6 +356,10 @@ def fingerprint(env: Any, state: dict) -> tuple[str, str]:
 
 
 ALL_VETOED = "every option vetoed"
+# (4b) WHY A REALISATION FAILED, three kinds (UMW A6): nothing could be offered or the one option
+# was ruled out; no table cell knows a way; or offered actions were seen to act on the subject and
+# none does what is asked here
+BLOCKED, NO_WAY, TRIED = "blocked", "no way known", "tried and failed"
 
 
 @dataclass(frozen=True)
@@ -468,6 +477,9 @@ class Interface:
         # (2c): (object, state) -> (x, y) of a cell the object occupies, or None; set by the agent
         # from the world under TETHER_AIM_INSIDE. None here: _at aims at the corner, as before.
         self.cell_of: Any = None
+        # (4b): the last None realise's reason, and every one since the agent last drained them
+        self.unrealised: dict | None = None
+        self.unrealised_log: list = []
         self.own_slots: set = set()            # K3: slots with an entry of their own (any action)
         # (ii): ((epoch, breaks), the (action, kind key) cells a press of that action bore out)
         self.era_cells: tuple = (None, set())
@@ -580,19 +592,43 @@ class Interface:
         """
         # 7a(5) C: RUIN IS ORDERED FIRST. A pair the floor vetoes on this board is never offered,
         # unless every option is vetoed; then all are offered and `why` says so.
+        self.unrealised = None
         if _RESET_ADJACENT:
             offered = self.adjacent(offered)   # before the floor, so RESET is never even ranked
             if not offered:
-                return None
+                return self._none(BLOCKED, "reset adjacency: RESET was the only offer", asker)
         offered, w, every = self._withhold(withheld, offered, state, env)
         r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker)
         if r is not None and r.action == RESET and self._last_was_reset:
             _alt = tuple(a for a in offered if a != RESET)
             r = (self._choose(intent, _alt, ctx, state, env, w, cell=cell, asker=asker)
-                 if _alt else None)
+                 if _alt else self._none(BLOCKED, "reset adjacency: no alternative to RESET",
+                                         asker))
         if r is not None and every:
             r = _replace(r, why=f"{r.why}; {ALL_VETOED}")
         return r
+
+    def _none(self, kind: str, why: str, asker: str | None) -> None:
+        """(4b): record why a realisation failed, then return the None the callers read."""
+        if _UNREALISED_WHY:
+            self.unrealised = {"kind": kind, "why": why, "asker": asker}
+            if len(self.unrealised_log) < 256:
+                self.unrealised_log.append(self.unrealised)
+
+    def _tried(self, offered: tuple[str, ...], subject: str | None) -> str:
+        """(4b): TRIED when an offered action's table already holds a cell on `subject` (it was
+        seen to act on it, and no cell fits what is asked here), else NO_WAY."""
+        for a in offered:
+            e = self.table.get(a, {})
+            if any(k[1] == subject for k in e.get("delta", {})) or \
+                    any(k[1] == subject for k in e.get("lands", {})):
+                return TRIED
+        return NO_WAY
+
+    def take_unrealised(self) -> list:
+        """(4b): the reasons recorded since the last call; the agent's REPEAT row drains them."""
+        out, self.unrealised_log = self.unrealised_log, []
+        return out
 
     def _withhold(self, w: Withheld, offered: tuple[str, ...], state: dict | None,
                   env: Any) -> tuple[tuple[str, ...], Withheld, bool]:
@@ -631,7 +667,7 @@ class Interface:
         anything whose effect here is not yet known, and only then a repeat.
         """
         if not offered:
-            return None
+            return self._none(BLOCKED, "nothing offered", asker)
 
         if intent.kind == BECOME and intent.subject and intent.value is not None:
             # **THE UNORDERED HALF -- `objective_step`'s COMPARABLE arm, which had no home below
@@ -650,7 +686,7 @@ class Interface:
             # current state there is no cell to look in, and guessing one would be the interface
             # choosing.
             if state is None or intent.subject not in state:
-                return None
+                return self._none(NO_WAY, "no reading of the subject in this state", asker)
             _now = int(state[intent.subject])
             offered, aims = self._aims(offered, intent.subject, state, env, w, asker)
             # TWO PASSES, NOT ONE WITH A TIEBREAK -- same shape as the signed half below: this
@@ -715,7 +751,8 @@ class Interface:
                        f"from {_now} to {intent.value}")
                 return self._aimed(Realisation(test, why=why, mode="kind_test"), aims)
             if best is None:
-                return None
+                return self._none(self._tried(offered, intent.subject),
+                                  "no cell lands the subject on the value (BECOME)", asker)
             return self._aimed(Realisation(best, why=f"observed to take {intent.subject} from "
                                                      f"{_now} to {intent.value}, and to nothing "
                                                      f"else, {how}"), aims)
@@ -810,7 +847,8 @@ class Interface:
                                                          ("score", round(t_score, 4)),
                                                          ("n", t_n), ("where", t_how))), aims)
             if best is None:
-                return None
+                return self._none(self._tried(offered, intent.subject),
+                                  "no cell moves the subject that way (BECOME, signed)", asker)
             if how.startswith("on its kind"):
                 KIND_FALLBACK_N["delta"] += 1
             return self._aimed(Realisation(best, why=f"observed to move {intent.subject} that "
@@ -868,11 +906,12 @@ class Interface:
             # NEITHER ROUTE. **An unreachable contact is a reading the agent is entitled to**,
             # and substituting a draw here would be the interface deciding to explore on the
             # agent's behalf while wearing the word contact.
-            return None
+            return self._none(self._tried(offered, intent.object or intent.subject),
+                              "no route to contact (TOUCH)", asker)
         if intent.kind not in (ELICIT, DISTINGUISH):
             # WITHOUT A TABLE ENTRY THERE IS NOTHING HONEST TO PICK, and guessing would be the
             # interface deciding. It abstains and the agent learns the intent was unrealisable.
-            return None
+            return self._none(NO_WAY, "no table entry for this intent kind", asker)
         rank: dict[str, int] = {}
         if intent.kind == DISTINGUISH:
             rank = self.separability(env, offered)
@@ -881,7 +920,8 @@ class Interface:
             # turn *tell my alternatives apart* into *press a button*, which is the downgrade
             # from discrimination to exploration the reviewer refused for `spread`.
             if not rank or max(rank.values()) == min(rank.values()):
-                return None
+                return self._none(NO_WAY, "no member separates anything here (DISTINGUISH)",
+                                  asker)
         unmapped = [a for a in offered if a not in self.table]
         # **VARIETY IS THE CONSTRAINT AND SEPARABILITY IS A RANKING INSIDE IT -- 17c.** The
         # bands below are unchanged and still decide WHICH SET may be drawn from; `rank` only

@@ -808,6 +808,14 @@ ARMS: dict[str, str] = {
                         "written on contact with the self. No held locus, or more than one: "
                         "mover None, those readings unread. OFF: mover=None, as before. "
                         "default ON",
+    "TETHER_UNREALISED_WHY": "(4b) A FAILED REALISE RETURNS A REASON (Isaiah 2026-10-26 04:51 "
+                             "build order, the reviewer 04:53; UMW A6): every None "
+                             "Interface.realise returns goes through _none(kind, why, asker): "
+                             "blocked / no way known / tried and failed (_tried: an offered "
+                             "action's table holds a cell on the subject), kept in "
+                             "iface.unrealised and a bounded log the agent's REPEAT row drains "
+                             "each step (unrealised). The None itself is unchanged. OFF: a bare "
+                             "None, nothing recorded, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "

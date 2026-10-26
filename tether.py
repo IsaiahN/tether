@@ -13432,7 +13432,10 @@ class Agent:
         r = self._last_real
         return {"offered": list(self.actions),
                 "withheld": None if r is None else getattr(self, "_r4_withheld", None),
-                "realised": None if r is None else {"why": r.why, **dict(r.evidence)}}
+                "realised": None if r is None else {"why": r.why, **dict(r.evidence)},
+                # (4b): every realisation that failed this step, with its kind and why
+                **({"unrealised": self.iface.take_unrealised()} if IFace._UNREALISED_WHY
+                   else {})}
 
     def _note_decision(self, want: Any) -> None:
         """**A CONFLICT THE AGENT WAS IN -- NOT YET A DECISION IT MADE.**
