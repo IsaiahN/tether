@@ -1253,6 +1253,18 @@ ARMS: dict[str, str] = {
     "TETHER_KIND_EFFECTS": "TETHER_KIND_CARRY's K3 alone, a measurement switch: OFF keeps K1 and "
                            "K2 and files no effect by kind, so the aimed check can carry the very "
                            "hypothesis the arm-OFF run picks. default ON",
+    "TETHER_KIND_TEST": "(ii) A CARRIED KIND ENTRY IS A TEST, NOT A ROUTE (the reviewer "
+                        "2026-10-25 17:26, 17:55, 18:11; Fig 9 :60 \"Never let a filter hand you a "
+                        "verdict\"): on a BECOME whose slot has no entry of its own, a kind cell "
+                        "(action, kind key) not borne out in this (epoch, breaks) era -- no "
+                        "press of THAT action has moved the kind's slot the way the cell's "
+                        "prior said, here -- does not route; the best such cell is offered as a "
+                        "TEST (Realisation mode kind_test), only when no borne-out cell routes, "
+                        "and never RESET (its delta is state-relative, Fig 4 :25). The test is "
+                        "graded \"kind test: borne out / not borne out\", not into the "
+                        "hypothesis's progress tally; R-B reads the base outcome unchanged. "
+                        "Order: cell tier > own delta > a borne-out kind cell > a carried cell, "
+                        "as a test only. OFF: today's realise. default ON",
     "TETHER_W_EVICT_EVERY_STEP": "W-2's CHECK, a measurement switch: a hard eviction at every "
                                  "step's start, for MF-W2 (decisions equal to a run that never "
                                  "evicts). default OFF",
