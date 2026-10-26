@@ -640,7 +640,15 @@ ARMS: dict[str, str] = {
                               " is the record; the switch is kept for the checklist's culprit "
                               "isolation",
     "TETHER_STREAM_WIDEN": "the widened candidate streams",
-    "TETHER_TYPED_BIND": "binding filtered by type. HELD OFF on its named defect, the tn36 "
+    "TETHER_TYPED_BIND": "L3, ON AS AN ORDERING (Isaiah 2026-10-26 08:24; the reviewer 08:30; "
+                         "Fig 9 :60 'Use filters for the budget and witnesses for the "
+                         "verdict'). WHAT CHANGED: in Agent._library_fit a candidate whose head "
+                         "does not accept the slot type is DEFERRED by _judge, never refused, "
+                         "and walked once in a late round after every typed candidate, gated "
+                         "by Agent._think_or_act; the ROUTE row typed_late records deferred, "
+                         "walked, the gate and closed. WHY ON: the named defect, the tn36 "
+                         "loss, was the REFUSAL; a late round cannot lose a term. WAS (OFF): "
+                         "binding filtered by type. HELD OFF on its named defect, the tn36 "
                          "loss (the reviewer 2026-10-15 17:32; 3e census 2026-10-16)",
     "TETHER_VIEW_HOLD": "7e the view hold (Fig 12 :107-108; the reviewer 2026-10-14 00:49, "
                         "00:57): ON, an entry's STATE/TEST/PROCESS/CAUSE view is derived once "

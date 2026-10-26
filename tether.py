@@ -140,8 +140,9 @@ def _may_bind(cand: Any, slot_type: str | None) -> bool:
         return True
     return out == slot_type and out in REPR_AGREES and _head_accepts(cand, slot_type)
 
-# F127's arm B. Seat-side and off unless asked for, so the default build is byte-identical.
-_TYPED_BIND = armflag.arm("TETHER_TYPED_BIND")
+# L3, ON AS AN ORDERING (Isaiah 2026-10-26 08:24; the reviewer 08:30): a binding whose head
+# does not accept the slot type is walked LAST, in its own late round -- never refused.
+_TYPED_BIND = armflag.arm("TETHER_TYPED_BIND", default=True)
 # F130 arm C: supply `_library_fit`'s retrieval the relation channel its two
 # sibling call sites already pass. Seat-side, off by default.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -10041,7 +10042,7 @@ class Agent:
                 r.pop("mode", None)
             return tuple(rs)
 
-        def _judge(cand, price, n):
+        def _judge(cand, price, n, late=False):
             nonlocal _uf
             _n0 = self.led.written
             # BEFORE `_explains`, and separately from it: may this BIND is a type question
@@ -10049,18 +10050,11 @@ class Agent:
             # would put two quantities under one name at the site that decides both.
             if not _may_bind(cand, _st):
                 return False, None, None, _since(_n0)
-            # F127 EXPERIMENT, SEAT-SIDE SWITCH, DEFAULT OFF. The line above filters the OUT
-            # type and nothing filters the IN type against the slot's, so `none` -- a
-            # zero-test typed `PRED` -- binds to an EXTENT slot and reads `int(not width)`,
-            # unsatisfiable because a width is never 0. 354 of 424 measured mismatches are
-            # that one atom. The comment two lines up already says binding is a type
-            # question; it checks the wrong end.
-            #
-            # NOT ON BY DEFAULT because removing 354 bindings changes every board and the
-            # replacement is unmeasured -- those slots may simply lose their objective. An
-            # env switch so the two arms are one build and the comparison is real.
-            if _TYPED_BIND and not _head_accepts(cand, _st):
-                return False, None, None, _since(_n0)
+            # F127: the line above filters the OUT type and nothing filtered the IN type, so
+            # `none` bound an EXTENT slot and read `int(not width)`. L3: such a head is DEFERRED
+            # (None) to the late round, never refused; `late` is that round's own judging.
+            if _TYPED_BIND and not late and not _head_accepts(cand, _st):
+                return None, None, None, _since(_n0)
             if not price:
                 return True, None, None, _since(_n0)
             _left = self._left(cand, slot, hist)
@@ -10084,77 +10078,113 @@ class Agent:
             _cost = self._bits((cand, _units))
             return True, _left, _cost, _since(_n0, _n1, _n2)
 
-        for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
-                                    youth=self.gamma.youth_of):
-            cap.head()
-            if n == exclude or (self._not and self._term_refused(n, _gk)):
-                continue
-            # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
-            # name is an instance, so an IMPORTED operand-reading term is `idn` here -- both
-            # `translate` and `recolour` return `v` on empty operands -- and `_explains` tests
-            # behaviour, so it could never explain a slot that moves. Binding is re-decided at
-            # the destination for every locally minted term; the import path never did it.
-            #
-            # ONLY IMPORTS PAY THIS. Every term made here carries its binding, so the candidates
-            # are exactly the loaded ones, and a cold run adds nothing. Typed by
-            # `_operand_fits`, which is the same filter the mint uses.
-            _lt = self.gamma.library[n]
-            if _FIT_DEDUP:
-                _cands = _dd_reb.get(_lt)
-                if _cands is None or _FIT_DEDUP_CHECK:
-                    _fresh = list(self._rebindings(_lt, slot, _guard_pool, _robs))
-                    if _cands is not None:
-                        self._dedup_check(slot, n, "rebindings", _fresh == _cands)
-                    _cands = _dd_reb[_lt] = _fresh
-            else:
-                _cands = self._rebindings(_lt, slot, _guard_pool, _robs)
-            for _i, cand in enumerate(_cands):
+        # L3's late round: what `_judge` deferred is walked after every typed candidate, once
+        # per candidate, if the governor says think; `typed_late` records walked and closed.
+        _late: dict = {}
+        _late_keys: set = set()
+        _lw: dict = {}
+
+        def _late_row(took):
+            if _lw:
+                self.led.record(self.cycle, "ROUTE", slot, "typed_late",
+                                deferred=_lw["deferred"], walked=_lw["walked"],
+                                gate=_lw["gate"], closed=int(took in _late_keys),
+                                reads="heads not accepting the slot type, walked last")
+                _lw.clear()
+
+        def _pairs():
+            for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
+                                        youth=self.gamma.youth_of):
                 cap.head()
-                if _i == 0:
-                    cand = _lt          # the name's own object, as _rebindings yields it first
-                if _FIT_DEDUP and _BARGAIN_FIT:
-                    _v = _dd_cand.get(cand)
-                    if _v is None or _FIT_DEDUP_CHECK:
-                        _fresh = _judge(cand, True, n)
-                        if _v is not None:
-                            self._dedup_check(slot, n, "candidate", _fresh == _v)
-                        _v = _dd_cand[cand] = _fresh
-                    else:
-                        self._replay_rows(_v[3])
-                    _ok, _left, _cost, _ = _v
-                else:
-                    _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n)
-                if not _ok:
+                if n == exclude or (self._not and self._term_refused(n, _gk)):
                     continue
-                # F32 ARM D, **ON BY DEFAULT SINCE 2026-09-30**. `_explains` is `_left(...) == 0.0`,
-                # and ISAIAH RULED THAT OUT: *the residual NEVER fully closes -- the corpus would
-                # have told you that. That kills `left == 0.0` outright.* Figure 5's "stating it,
-                # PLUS WHAT REMAINS UNEXPLAINED AFTER IT" is vacuous under a zero-remainder rule,
-                # and Figure 13 lists "no remainder left after each step" as a FAILURE condition.
+                # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
+                # name is an instance, so an IMPORTED operand-reading term is `idn` here -- both
+                # `translate` and `recolour` return `v` on empty operands -- and `_explains` tests
+                # behaviour, so it could never explain a slot that moves. Binding is re-decided at
+                # the destination for every locally minted term; the import path never did it.
                 #
-                # THE REPAIR EXISTED AND DID NOT REACH HERE, AND NOW IT DOES. The reuse sweep
-                # cited F32 at its own site and accepted on the ONE BARGAIN while this path kept
-                # the old test, so retrieval refused every partial improvement -- which is what
-                # 200 `reach_failed` rows were, and the arity-2 split followed, a multi-slot
-                # history rarely closing to zero. Same baseline as the sweep: what the currently
-                # bound term leaves.
-                if _BARGAIN_FIT:
-                    if _CARRY_PRICE:
-                        # EVERY payer is collected and the lowest WHOLE price wins (H3: first is
-                        # not best); `_today` is the one the arm-OFF walk would have returned.
-                        if _today is None and pays(_cost, _left, _base):
-                            _today = (n, cand.name)
-                        _cred = self._carry_credit(n, cand, slot, _left, _base, _held_t,
-                                                   _carry_robs)
-                        _price = _ref + _left if _cred else _cost + _left
-                        if _price < _base:
-                            _paying.append((_price, len(_paying), n, cand, _cred, _left, _cost))
-                        continue
-                    if not pays(_cost, _left, _base):
-                        continue
-                elif not self._explains(cand, slot, hist):
+                # ONLY IMPORTS PAY THIS. Every term made here carries its binding, so the candidates
+                # are exactly the loaded ones, and a cold run adds nothing. Typed by
+                # `_operand_fits`, which is the same filter the mint uses.
+                _lt = self.gamma.library[n]
+                if _FIT_DEDUP:
+                    _cands = _dd_reb.get(_lt)
+                    if _cands is None or _FIT_DEDUP_CHECK:
+                        _fresh = list(self._rebindings(_lt, slot, _guard_pool, _robs))
+                        if _cands is not None:
+                            self._dedup_check(slot, n, "rebindings", _fresh == _cands)
+                        _cands = _dd_reb[_lt] = _fresh
+                else:
+                    _cands = self._rebindings(_lt, slot, _guard_pool, _robs)
+                for _i, cand in enumerate(_cands):
+                    cap.head()
+                    if _i == 0:
+                        cand = _lt      # the name's own object, as _rebindings yields it first
+                    yield n, cand, False
+            if not _late:
+                return
+            _walk, _why = self._think_or_act(slot, closer=bool(_paying))
+            _lw.update(deferred=len(_late), gate=_why, walked=0)
+            if not _walk:
+                _late_row(None)
+                return
+            for cand, n in _late.items():
+                cap.head()
+                _lw["walked"] += 1
+                _late_keys.add((n, cand.name))
+                yield n, cand, True
+
+        for n, cand, _is_late in _pairs():
+            if _is_late:
+                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n, late=True)
+            elif _FIT_DEDUP and _BARGAIN_FIT:
+                _v = _dd_cand.get(cand)
+                if _v is None or _FIT_DEDUP_CHECK:
+                    _fresh = _judge(cand, True, n)
+                    if _v is not None:
+                        self._dedup_check(slot, n, "candidate", _fresh == _v)
+                    _v = _dd_cand[cand] = _fresh
+                else:
+                    self._replay_rows(_v[3])
+                _ok, _left, _cost, _ = _v
+            else:
+                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n)
+            if _ok is None:
+                _late.setdefault(cand, n)
+                continue
+            if not _ok:
+                continue
+            # F32 ARM D, **ON BY DEFAULT SINCE 2026-09-30**. `_explains` is `_left(...) == 0.0`,
+            # and ISAIAH RULED THAT OUT: *the residual NEVER fully closes -- the corpus would
+            # have told you that. That kills `left == 0.0` outright.* Figure 5's "stating it,
+            # PLUS WHAT REMAINS UNEXPLAINED AFTER IT" is vacuous under a zero-remainder rule,
+            # and Figure 13 lists "no remainder left after each step" as a FAILURE condition.
+            #
+            # THE REPAIR EXISTED AND DID NOT REACH HERE, AND NOW IT DOES. The reuse sweep
+            # cited F32 at its own site and accepted on the ONE BARGAIN while this path kept
+            # the old test, so retrieval refused every partial improvement -- which is what
+            # 200 `reach_failed` rows were, and the arity-2 split followed, a multi-slot
+            # history rarely closing to zero. Same baseline as the sweep: what the currently
+            # bound term leaves.
+            if _BARGAIN_FIT:
+                if _CARRY_PRICE:
+                    # EVERY payer is collected and the lowest WHOLE price wins (H3: first is
+                    # not best); `_today` is the one the arm-OFF walk would have returned.
+                    if _today is None and pays(_cost, _left, _base):
+                        _today = (n, cand.name)
+                    _cred = self._carry_credit(n, cand, slot, _left, _base, _held_t,
+                                               _carry_robs)
+                    _price = _ref + _left if _cred else _cost + _left
+                    if _price < _base:
+                        _paying.append((_price, len(_paying), n, cand, _cred, _left, _cost))
                     continue
-                return self._take_pull(n, cand, slot)
+                if not pays(_cost, _left, _base):
+                    continue
+            elif not self._explains(cand, slot, hist):
+                continue
+            _late_row((n, cand.name))
+            return self._take_pull(n, cand, slot)
         if _paying:
             price, _o, n, cand, cred, left_, cost_ = min(_paying, key=lambda x: (x[0], x[1]))
             book = self.gamma.book
@@ -10170,6 +10200,7 @@ class Agent:
                      "first_in_order": None if _today is None else _today[1],
                      "carried": (cred and (self.gamma.stamps.get(n) or {}).get("seq", 0)
                                  < self._seq_at_level)}
+            _late_row((n, cand.name))
             out = self._take_pull(n, cand, slot, carry=carry)
             if cred:
                 self._carry_log[(out, slot)] = {
@@ -10180,6 +10211,7 @@ class Agent:
         # REACHED AND FAILED, WHICH IS THE HALF NOTHING COULD SEE. *I looked for something with
         # this shape and found nothing* is an UNREACHED with a subject, and a retrieval that
         # returns nothing leaves no other trace at all.
+        _late_row(None)
         self.led.record(self.cycle, "ROUTE", slot, "reach_failed",
                         reads="described the gap and the library held nothing that explains it")
         return None
