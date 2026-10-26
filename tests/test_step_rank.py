@@ -18,6 +18,7 @@ import sys
 from collections import Counter
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
+from conform.identity_mod_rows import TIMINGS
 
 sys.dont_write_bytecode = True
 
@@ -46,7 +47,8 @@ def child(budget: int, extra: dict | None = None) -> list:
 
 
 def clean(r: dict) -> str:
-    d = {k: v for k, v in (r.get("detail") or {}).items() if not k.endswith("seq")}
+    d = {k: v for k, v in (r.get("detail") or {}).items()
+         if not k.endswith("seq") and (r.get("event"), k) not in TIMINGS}
     return json.dumps({**{k: v for k, v in r.items() if k != "seq"}, "detail": d}, sort_keys=True)
 
 

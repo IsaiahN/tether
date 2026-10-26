@@ -26,6 +26,7 @@ import ledger
 import snaps
 import tether
 import world
+from conform.identity_mod_rows import mask_timings
 
 sys.dont_write_bytecode = True
 
@@ -94,7 +95,7 @@ if __name__ == "__main__":
     def strip(rows):
         # the arms header names the arm, and `seq` is a row's index, shifted by each MUSE row
         out = []
-        for r in rows:
+        for r in mask_timings(json.loads(json.dumps(rows, default=str))):   # the step clock
             if r["event"] in ("muse", "arms"):
                 continue
             r = {k: v for k, v in r.items() if k != "seq"}

@@ -33,6 +33,7 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 
 import gate  # noqa: E402
+from conform.identity_mod_rows import TIMINGS  # noqa: E402
 from ledger import GENERAL as GEN  # noqa: E402
 from ledger import SPECIFIED as SPEC  # noqa: E402
 
@@ -182,8 +183,9 @@ def rest(rows: list) -> list:
         if tallied(r) or r["event"] == "arms":
             continue
         d = json.loads(json.dumps(r["detail"]))
-        if r["event"] == "goal_hypotheses":
-            d.pop("wall_s", None)                                            # WALL_S
+        for ev, field in TIMINGS:                     # WALL_S: the one list, imported (step clock)
+            if r["event"] == ev:
+                d.pop(field, None)
         if r["event"] == "process_bet" and "plan_seq" in d:
             d["plan_seq"] = rank(d["plan_seq"])                              # SEQ
         if r["event"] == "process_settle" and "bet_seq" in d:

@@ -1070,6 +1070,18 @@ ARMS: dict[str, str] = {
                        "lookup runs as today. The refuted-bin lookup is NOT gated: it answers a "
                        "refutation in hand. Per step the ROUTE row step_act: lookups_walked and "
                        "lookups_deferred by why. OFF: every lookup runs as before. default ON",
+    "TETHER_STEP_CLOCK": "THE STEP CLOCK, A LEDGER INSTRUMENT (the reviewer 2026-10-26 r263 (b); "
+                         "Fig 1, every claim names its instrument): never read by the agent. "
+                         "Agent.step opens a clock; Agent._step_scope times each step scope "
+                         "EXCLUSIVELY (a nested scope's time is its own, never its parent's). Each "
+                         "REPEAT row carries wall_s per scope that ran (PERCEIVE, ROUTE, ACCEPT, "
+                         "MINT, PLAN, SETTLE, ...), other and total, plus trace_len, wants_n, "
+                         "owed_import_n, gamma_reuse_live (live Gamma terms whose stamp residual "
+                         "starts reuse:) and gamma_reuse_on_board (of those, the ones whose "
+                         "object ids are all on the current slots; r264); the ACCEPT row "
+                         "step_mint and each MINT park row carry "
+                         "wall_s. Nothing the agent decides reads them (tests/test_step_clock.py "
+                         "guards it). OFF: none of these keys is written. default ON",
     "TETHER_STEP_MINT": "B1, WHOLE MINTS PER STEP (the reviewer 2026-10-26 14:20, (b'); Fig 12 "
                         ":127 'the budget is what decides how much of the space is reached', "
                         "read as the mint's own stop; Fig 6 :49-50 distribute the search across "
