@@ -758,6 +758,11 @@ _CAP_READ = armflag.arm("TETHER_CAP_READ", default=True)
 # 4h's) is keyed by the subject's own contacts and the alive flag, never the whole board's contact
 # multiset, which the table keeps for its pooled presses. OFF: the whole-board key, as before
 _SITUATED_REFUSAL = armflag.arm("TETHER_SITUATED_REFUSAL", default=True)
+# (4e) I-C, THE CURRENT PREDICTION BEFORE THE POOLED TABLE (the 10-23 design, approved; WATSON P5;
+# the 04:51 build order): the goal exit first realises among the actions the settled bound term
+# predicts serve the intent here (row predicted_route); the table's pick when it names none.
+# OFF: the table alone, as before
+_PRED_FIRST = armflag.arm("TETHER_PRED_FIRST", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -8644,6 +8649,36 @@ class Agent:
         magnitude would make it "specific"."""
         return "general"
 
+    def _predicted_serves(self, slot: str, want: Any, offered: tuple, before: dict) -> tuple:
+        """(4e) I-C (the 10-23 design, approved; WATSON P5): the offered actions the SETTLED term
+        bound on `slot` predicts, for this press from this state, move the slot the way the
+        intent asks -- nearer its stated target, else in its sign. A term still on trial, an
+        unreadable prediction or a no-change prediction names nothing. `_pred_raw` is restored,
+        as rehearsal does, so asking leaves no trace on the step's bets."""
+        name = self.bound.get(slot)
+        v = before.get(slot)
+        if (not name or name not in self.gamma.library or v is None
+                or not self.gamma.is_settled(name, slot)):
+            return ()
+        tgt = getattr(want, "to", None)
+        tgt = want.value if tgt is None else tgt
+        sign = want.object if want.object in ("+", "-") else None
+        keep, out = dict(self._pred_raw), []
+        try:
+            for a in offered:
+                cap.head()
+                if a == IFace.RESET:
+                    continue
+                p = self._predict(slot, before, a)
+                if p is None or p == v:
+                    continue
+                if (abs(p - tgt) < abs(v - tgt) if tgt is not None
+                        else sign is not None and (p > v) == (sign == "+")):
+                    out.append(a)
+        finally:
+            self._pred_raw = keep
+        return tuple(out)
+
     def _situation(self, slot: str, ctx: tuple) -> tuple:
         """(4d) S4, THE REFUSAL'S SITUATION (Q16; UMW A9; Fig 1 :19, Fig 10 :24-25): the contact
         kinds of the slot's OWN objects (Interface.context's actor filter, merged over a compound
@@ -13876,9 +13911,23 @@ class Agent:
         _offer, _wh = tuple(self.actions), self._withheld
         if _ROUTE_REFUSE:          # R-B: this intent's refused routes here are not offered
             _offer, _wh = self._route_offer(_want.says(), _rctx, _offer, _wh)
-        _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
-                                 asker="goal")
-              if _offer or not _ROUTE_REFUSE else None)
+        _r = None
+        if _PRED_FIRST and _offer:
+            # (4e) I-C: what the settled model predicts THIS press does HERE is asked first; the
+            # pooled table only when it names nothing (or the interface cannot realise it)
+            _pf = self._predicted_serves(chosen, _want, _offer, before)
+            if _pf:
+                _r = self.iface.realise(_want, _pf, _ctx, before, self.env, withheld=_wh,
+                                        asker="goal")
+                if commit:
+                    self.led.record(self.cycle, "PLAN", chosen, "predicted_route",
+                                    intent=_want.says(), predicted=list(_pf),
+                                    taken=_r.action if _r is not None else None,
+                                    reads="the current prediction before the pooled table")
+        if _r is None:
+            _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
+                                     asker="goal")
+                  if _offer or not _ROUTE_REFUSE else None)
         if _corr is not None and commit:
             # R-C: the correction is looked up in the agent's OWN record (the interface's delta
             # table, via realise) and never assumed; none known is recorded, the route is kept

@@ -918,6 +918,15 @@ ARMS: dict[str, str] = {
                                "key for pooled presses; no epoch, since R-D carries refusals "
                                "across a death; a slot with no object keeps the board key. OFF: "
                                "the whole-board key, as before. default ON",
+    "TETHER_PRED_FIRST": "(4e) I-C, THE CURRENT PREDICTION BEFORE THE POOLED TABLE (the 10-23 "
+                         "design, approved; WATSON P5; the 04:51 build order): the goal exit "
+                         "asks Agent._predicted_serves which offered actions the SETTLED term "
+                         "bound on the subject slot predicts move it nearer the stated target, "
+                         "else in the intent's sign, from this state; realise is asked over "
+                         "those first (row predicted_route), and the table's pick when it names "
+                         "none or cannot realise them. A term on trial, an unreadable or "
+                         "no-change prediction names nothing; _pred_raw restored. OFF: the "
+                         "table alone, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
