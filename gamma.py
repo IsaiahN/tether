@@ -1534,6 +1534,15 @@ class Gamma:
         return "".join("?" if re.fullmatch(r"o\d+", tok) else tok
                        for tok in re.split(r"([._~@])", operand))
 
+    @staticmethod
+    def row_key(r: dict) -> str:
+        """(d): what decides the term load_blob installs from a saved row -- its atoms, guard and
+        operand tree, and its operand with the object ids blanked (the unbound form). Two rows
+        with one key install the same term, so the later one can be saved as an alias."""
+        op = r.get("operand")
+        return json.dumps([r["atoms"], r.get("guard"), r.get("operand_term"),
+                           Gamma.unbound_form(op) if op else None])
+
     def load_blob(self, blob: Any, parent: str | None = None,
                   hold_unbound: bool = False) -> dict:
         """`load`'s body, from data (b'-g): the lineage folds its chain and hands the fold
@@ -1574,7 +1583,14 @@ class Gamma:
                          if n not in self._by_name)
         built_on_skipped = []
         guard_object_lost = []
+        # (d): an alias goes where the ROW with its key went -- renamed to the term it installed or
+        # deduped onto, lost onto a prior atom, or nowhere (refused / skipped) -- as it would have
+        aliases = (blob.get("aliases") or []) if isinstance(blob, dict) else []
+        went: dict[str, tuple] = {}
+        seen_keys: set = set()
         for r in rows:
+            rk = Gamma.row_key(r) if aliases else None
+            seen_keys.add(rk)
             names = tuple(r["atoms"])
             tree = r.get("operand_term")
             if tree and not all(n in self._by_name for n in tree):
@@ -1636,9 +1652,13 @@ class Gamma:
                     self.renamed[r["was"]] = t.name
                 elif r.get("was"):
                     self.lost_onto_atom.add(r["was"])  # R7i: F420's loss, counted at replay
+                if aliases:
+                    went.setdefault(rk, ("lost",) if onto_atom else ("name", t.name))
                 continue          # dedup on the COMPOSITION -- it keeps the handle it has
             if r.get("was"):
                 self.renamed[r["was"]] = t.name        # R7i: what load installed from this row
+            if aliases:
+                went.setdefault(rk, ("name", t.name))
             self._install(t, seq=-2, residual=r.get("residual"),
                           admitted=IMPORTED if t.origin == IMPORTED else r.get("admitted"))
             if _SETTLED_CORE and r.get("admitted") in (INHERITED, LEARNED):
@@ -1655,6 +1675,19 @@ class Gamma:
             took.append({"handle": r.get("handle"), "already_held": False,
                          "onto_atom": False, "name": t.name, "lost": None,
                          "unbound": bool(r.get("operand"))})
+        alias_rep: dict[str, int] = {}
+        for a in aliases:
+            if a["key"] not in seen_keys:
+                raise ValueError(f"gamma.load_blob: alias {a['was']!r} names a key no saved row "
+                                 "holds (a save wrote an alias without its row)")
+            w = went.get(a["key"])
+            kind = "row refused or skipped" if w is None else "onto_atom" if w[0] == "lost" \
+                else "renamed"
+            if kind == "renamed":
+                self.renamed[a["was"]] = w[1]
+            elif kind == "onto_atom":
+                self.lost_onto_atom.add(a["was"])
+            alias_rep[kind] = alias_rep.get(kind, 0) + 1
         # THE SKIPPED INVENTIONS AND WHAT THEY TOOK DOWN ARE REPORTED, because a silent count
         # is how an old library's dependence on them would be invisible.
         onto_atom = [x for x in took if x["already_held"] and x["onto_atom"]]
@@ -1678,6 +1711,7 @@ class Gamma:
                 # THE MERGE IS VISIBLE IN THE REPORT, not only in the object: a reader who
                 # sees `loaded 1` from a 14-row blob can ask what the 1 absorbed.
                 "merged_into": {k: len(v) for k, v in self.merged.items() if len(v) > 1},
+                **({"aliases": alias_rep} if aliases else {}),
                 "refused": refused,
                 "reads": ("composition crosses, binding does not. A refused row is an "
                           "INCOMPATIBLE registry, not a small library. "

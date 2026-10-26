@@ -106,6 +106,29 @@ def _carries(rows, ag, rep, label):
     return composed, unbound
 
 
+def _partition(f, blob, names):
+    """R-g2's terms under (d), TETHER_SAVE_DEDUP (amends registered refuter R-g2, the reviewer
+    2026-10-14 20:18, ruled 2026-10-25 21:03): a term whose load key a written row already holds is
+    saved as an alias {was, key}, so the rows and the aliases are the blob's terms. None, or the
+    first of (a)-(e) that fails. OFF there are no aliases and it is the old check exactly."""
+    folded = [{k: v for k, v in r.items() if k not in ("born", "was")} for r in f["terms"]]
+    al = {a["was"]: a["key"] for a in f.get("aliases", [])}
+    terms = list(zip(blob["terms"], names, strict=True))
+    if not set(al) <= set(names):
+        return "(a) an alias names no term"
+    if folded != [t for t, n in terms if n not in al]:
+        return "(b) the rows are not the blob's terms less the aliased ones"
+    if not all(gamma.Gamma.row_key(t) == al[n] for t, n in terms if n in al):
+        return "(c) an alias's key is not its own term's"
+    if not set(al.values()) <= {gamma.Gamma.row_key(r) for r in f["terms"]}:
+        return "(d) an alias's key is no written row's"
+    # "was" is R7i's field, which the generation ADDS (lineage.write, TETHER_REPLAY_UNIT): each
+    # row's must be that term's own name, checked rather than ignored (the reviewer 20:14 b)
+    if [r.get("was") for r in f["terms"]] != [n for n in names if n not in al]:
+        return "(e) the rows' was are not the non-aliased names"
+    return None
+
+
 def on_checks():
     assert lineage._CARRY and tether._LINEAGE_HOLD, "the child must be started with both arms"
     tmp = Path(tempfile.mkdtemp(prefix="lineage_"))
@@ -206,11 +229,18 @@ def on_checks():
                                                len(ag.gamma.evidence), len(ag._dormant))
     lineage.write(rr, ag, "default")
     _h, f = lineage.head(rr)
-    folded = [{k: v for k, v in r.items() if k not in ("born", "was")} for r in f["terms"]]
-    assert folded == blob["terms"], "R-g2 terms"
-    # "was" is R7i's field, which the generation ADDS (lineage.write, TETHER_REPLAY_UNIT): each
-    # row's must be that term's own name, checked rather than ignored (the reviewer 20:14 b)
-    assert [r.get("was") for r in f["terms"]] == names, ("R-g2 was", names)
+    bad = _partition(f, blob, names)
+    assert bad is None, ("R-g2 terms", bad)
+    al = f.get("aliases", [])
+    assert al, "fixture: the save wrote no alias, so the must-fail below has no occasion"
+    # MUST-FAIL (the reviewer 2026-10-25 21:03): one alias dropped, and one pointed at a key no row
+    # holds; each must go RED, naming the clause
+    drop = _partition({**f, "aliases": al[1:]}, blob, names)
+    stray = _partition({**f, "aliases": [{**al[0], "key": json.dumps(["no such"])}] + al[1:]},
+                       blob, names)
+    assert drop and stray, ("R-g2 MF: a broken save passed", drop, stray)
+    print(f"  R-g2 terms: {len(blob['terms'])} = {len(f['terms'])} rows + {len(al)} aliases; "
+          f"MF one alias dropped -> {drop}; one alias's key stray -> {stray}", flush=True)
     assert f["evidence"] == ag.gamma.evidence, "R-g2 evidence"
     # (c), the reviewer 20:57: the boundary item is written WHOLE, each Term in its term-row form
     gen_rr = json.loads(lineage_store.file_bytes(Path(rr) / f"gen_{_h}.json"))
@@ -254,6 +284,10 @@ def on_checks():
         count[0] += 1
         return f"{game}_X_term_{count[0]:08x}"
     gamma.Term.handle = counted
+    # (d) OFF here: the repeated texts come from game 2 re-minting game 1's compositions, which (d)
+    # writes as aliases; the (born, handle) keying under test is the same either way
+    dedup = lineage._SAVE_DEDUP
+    lineage._SAVE_DEDUP = False
     try:
         written = []
         for _ in range(2):
@@ -265,6 +299,7 @@ def on_checks():
             written.append(lineage.write(cd, agc, "default"))
     finally:
         gamma.Term.handle = real
+        lineage._SAVE_DEDUP = dedup
     _h, fc = lineage.head(cd)
     texts = [r["handle"] for r in fc["terms"]]
     same = len(texts) - len(set(texts))
@@ -274,6 +309,45 @@ def on_checks():
     print(f"  identity: two same-name games wrote {[w['terms'] for w in written]} rows, "
           f"{same} handle text(s) repeated across them, all {len(fc['terms'])} folded",
           flush=True)
+    # (b), (d) ON, the shipped default (the reviewer 2026-10-25 21:15): two DIFFERENT compositions
+    # under one handle text. Game 2 gives a term it minted itself the text of a game 1 row
+    assert lineage._SAVE_DEDUP, "(b) runs with (d) ON"
+    cb = tmp / "same_text_on"
+    env, agx, _r = _agent(cb, 0)
+    for _ in range(N):
+        agx.step()
+    agx.end_run("cap")
+    wx = lineage.write(cb, agx, "default")
+    row1 = next(r for r in _gen(cb, wx)["terms"] if r.get("handle"))
+    env, agy, _r = _agent(cb, 1)
+    for _ in range(N):
+        agy.step()
+    agy.end_run("cap")
+    own = next((r for r in agy.gamma.blob(with_names=True)["terms"]
+                if r["name"] not in agy.gamma.carried
+                and gamma.Gamma.row_key(r) != gamma.Gamma.row_key(row1)), None)
+    assert own, "(b) fixture: game 2 minted no composition of its own"
+    agy.gamma.handles[own["name"]] = row1["handle"]
+    wy = lineage.write(cb, agy, "default")
+    gy = _gen(cb, wy)
+    row2 = next((r for r in gy["terms"] if r.get("was") == own["name"]), None)
+    assert row2 and row2["handle"] == row1["handle"], ("(b) OCCASION: no same-text row", row2)
+    assert gamma.Gamma.row_key(row2) != gamma.Gamma.row_key(row1), "(b) OCCASION: one composition"
+    assert own["name"] not in {a["was"] for a in gy.get("aliases", [])}, "(b) the row was aliased"
+    _h, fb = lineage.head(cb)
+    pair = [r for r in fb["terms"] if r["handle"] == row1["handle"]]
+    assert {r["born"] for r in pair} == {wx["hash"], wy["hash"]}, ("(b) both rows fold", pair)
+    env, agz, _r = _agent(cb, 2)
+    got = {agz.gamma.renamed.get(r["was"]) for r in pair}
+    assert None not in got and len(got) == 2, ("(b) each loads to its own term", got)
+    # MUST-FAIL: the fold re-keyed by handle text alone (a stand-in here, never the shipped code)
+    by_text = {r["handle"]: r for r in fb["terms"]}
+    kept = sum(r in by_text.values() for r in pair)
+    assert len(by_text) < len(fb["terms"]) and kept == 1, (
+        "(b) MF: keyed by text, the pair did not collapse", kept)
+    print(f"  identity ON: {row1['handle']} names two compositions ({row1['was']}, {row2['was']}), "
+          f"born {wx['hash']} and {wy['hash']}, 0 aliases for them; both fold and load to "
+          f"{sorted(got)}; MF keyed by text: {len(fb['terms'])} rows -> {len(by_text)}", flush=True)
     # ONE PATH, the plumbing: play() writes a generation and the next play() loads it.
     pd = tmp / "play"
 

@@ -204,6 +204,8 @@ def _fold_apply(f: dict, h: str, g: dict) -> dict:
         rows[k]["admitted"] = st["admitted"]
     for fld in ("invented", "book"):
         f.setdefault(fld, {}).update(g[fld])
+    if g.get("aliases"):
+        f.setdefault("aliases", []).extend(g["aliases"])     # (d), in chain order
     return f      # vindication and evidence are appended to their own tables (merge_save)
 
 
