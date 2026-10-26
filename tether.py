@@ -3092,6 +3092,7 @@ class Agent:
         self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
+        self._reaff_at: dict = {}          # L1: trace index -> that step's (2a) reafferent slots
         self._seam_now = False             # B: this step's outcome was a frame break (a seam)
         self._window_at = 0                # C: history() reads the trace from here (the last break)
         self._3a_hazard = diagnose.Hazard()   # E2: world/own counts per spot, kind, actor
@@ -3748,6 +3749,7 @@ class Agent:
         self._held_level = ({"bound": dict(self.bound), "route_refused": dict(self._route_refused)}
                             if how == "death" and _DEATH_KEEPS else None)
         self.bound, self.trace = {}, []
+        self._reaff_at = {}        # L1: keyed by trace index, so it restarts with the trace
         self._window_at = 0        # C: the trace restarts, so does its window
         self._served = {}          # (iv): a served binding does not cross the boundary either
         self._parts, self._d5_pending, self._shadow = {}, {}, {}
@@ -9408,11 +9410,13 @@ class Agent:
         # not exist yet, so this claims the smaller thing and says so.
         # THE CONTEXT KEY IS READ BEFORE THE STEP, because it is the contact present WHEN THE
         # ACTION WAS TAKEN -- reading it after would key an effect by the world the effect made.
+        _reaff = (self._reafferent(after) if _REAFFERENCE and not self._seam_now
+                  else frozenset())
         if not self._seam_now and self.iface.audit(
                 _real, before, after, _ctx,
                 IFace.Interface.context(self.env) if IFace._DEST_GAP else None,
                 own=self._own_clock_keys() if _OWN_CLOCK_SUBJECT else frozenset(),
-                reaff=self._reafferent(after) if _REAFFERENCE else frozenset(),
+                reaff=_reaff,
                 meant=self._meant(action) if IFace._IA_SERVED else None):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
@@ -9608,6 +9612,8 @@ class Agent:
                                self._intent_now.kind if self._intent_now is not None
                                else NO_INTENT,
                                self._last_landed))
+            if _WINDOW:
+                self._reaff_at[len(self.trace) - 1] = _reaff   # L1 orders own-press frames by it
         if _3A_DIAGNOSE and not self._seam_now:
             # D2's aim: the object the act was MEANT for (the intent's subject), beside where the
             # press landed; None where no intent named one (D2 is then skipped, never guessed)
@@ -15131,16 +15137,21 @@ class Agent:
         recs = [self._lag_evidence(slot, robs, j) for j in range(1, reach + 1)]
         no_ev = [r for r in recs if not r["evidence"]]
         # L1 THE LOOK-BACK: only lags the residual's own record names (evidence), at most the
-        # deepest such lag and at most 4f's effect window where a bound term reads a lag; the
-        # frames the agent's own press moved the slot first, then nearest. No new constant.
+        # deepest such lag and at most 4f's effect window where a bound term reads a lag. Order:
+        # the frames the agent's own press moved the slot (changed, and not in that step's 2a
+        # reafferent set), then the frames it changed anyway, then nearest. No new constant.
+        # ALIGNED: from the live frame `slot~j` reads trace[-j]'s BEFORE (`_prev_of`), the value
+        # step -j then acted on, so step -j is the step whose change ranks lag j.
         ev = [r for r in recs if r["evidence"]]
         top = max((r["j"] for r in ev), default=0)
         win = self._effect_window(slot)
         top = min(top, win) if win else top
         keep = [r for r in ev if r["j"] <= top]
-        own = {j for j in range(1, len(self.trace) + 1)
-               if self.trace[-j][0].get(slot) != self.trace[-j][2].get(slot)}
-        order = [r["j"] for r in sorted(keep, key=lambda r: (r["j"] not in own, r["j"]))]
+        n = len(self.trace)
+        reaff = getattr(self, "_reaff_at", {})
+        moved = {j: (1 if slot in reaff.get(n - j, ()) else 0) for j in range(1, n + 1)
+                 if self.trace[-j][0].get(slot) != self.trace[-j][2].get(slot)}
+        order = [r["j"] for r in sorted(keep, key=lambda r: (moved.get(r["j"], 2), r["j"]))]
         self._window_info[slot] = {"offered": len(order), "evidence": keep,
                                    "beyond_depth": len(ev) - len(keep),
                                    "no_evidence_not_walked": len(no_ev),

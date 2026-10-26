@@ -9,7 +9,9 @@ Checked on a synthetic trace (so each law is exactly the one named), through the
   - the rota of 3 has evidence at ~2 and not at ~1;
   - x_t = x_(t-2)+1 (mod 3) has evidence at ~1 once a value has recurred;
   - MUST-FAIL: a lag at which no earlier value recurs gets NO evidence (the test could not fail);
-  - the offer ranks evidence lags first, nearest first, then the rest, nearest first;
+  - L1 (2026-10-26): only evidence lags are offered, the rest counted; the lag reading the step
+    the agent's own press changed comes first, then a changed-anyway (2a reafferent) step, then
+    nearest; ~j from the live frame reads trace[-j]'s before-state;
   - GUARD-D3: the window reaches only as far back as the trace holds.
 
     python tests/test_window.py
@@ -70,24 +72,61 @@ def check_no_recurrence_no_evidence() -> None:
     assert all(r["recurred"] == 0 and not r["evidence"] for r in recs), recs
 
 
-def check_the_offer_ranks_evidence_first_then_nearest() -> None:
+def check_l1_offers_evidence_lags_only() -> None:
+    """L1 (the reviewer 2026-10-26 08:30 (b)): only evidence lags are offered; the rest are
+    counted, never walked."""
     ag = _agent()
     rows = _with_trace(ag, [4, 4, 7] * 5)
     ev = _evidence(ag, rows)
     got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
-    want = [j for j in sorted(ev) if ev[j]] + [j for j in sorted(ev) if not ev[j]]
-    assert got == want, (got, want)
-    assert ag._window_info[SLOT]["offered"] == len(got)
+    assert sorted(got) == [j for j in sorted(ev) if ev[j]], (got, ev)
+    info = ag._window_info[SLOT]
+    assert info["offered"] == len(got)
+    assert info["no_evidence_not_walked"] == sum(1 for j in ev if not ev[j]) > 0, info
+
+
+def _given_evidence(ag: tether.Agent, js: set) -> None:
+    ag._lag_evidence = lambda _slot, _robs, j: {"j": j, "pairs": 1, "recurred": 1,
+                                                "evidence": j in js}
 
 
 def check_the_window_reaches_only_what_the_trace_holds() -> None:
     ag = _agent()
     rows = _with_trace(ag, [1, 2, 1])
+    _given_evidence(ag, set(range(1, 10)))
     got = ag._window_lags(SLOT, rows)
     assert got == [f"{SLOT}~1"], got
     ag.trace = []
     ag._trace_pos = None
     assert ag._window_lags(SLOT, []) == []
+
+
+def check_l1_fix_the_lag_reading_the_changed_frame_is_first() -> None:
+    """The reviewer 08:47 (i)+(ii): a slot changed only at step k; the lag that reads step k's
+    before-state from the live frame is ordered first, the rest nearest first. MUST-FAIL: a
+    nearest-only order gives [1, 2, 3]."""
+    ag = _agent()
+    seq = [5, 5, 5, 9, 9, 9]                   # step k = 2 is the only change (5 -> 9)
+    rows = _with_trace(ag, seq)
+    k = 2
+    j = len(ag.trace) - k                      # 3
+    live = ag.trace[-1][2]                     # the live frame, not a before-state in the trace
+    assert ag._prev_of(live, j) is ag.trace[k][0], "(ii) ~j reads step k's before-state"
+    _given_evidence(ag, {1, 2, 3})
+    got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
+    assert got == [j, 1, 2], got
+
+
+def check_l1_fix_an_own_press_change_ranks_before_a_reafferent_one() -> None:
+    """(i): a change in the step's (2a) reafferent set happened anyway; one outside it was the
+    press. Own first, then the changed-anyway, then the unchanged, each nearest first."""
+    ag = _agent()
+    seq = [1, 1, 2, 2, 3, 3]                   # changes at steps 1 and 3; n = 5, reach 4
+    rows = _with_trace(ag, seq)
+    ag._reaff_at = {3: frozenset({SLOT})}      # step 3's change happened anyway
+    _given_evidence(ag, {1, 2, 3, 4})
+    got = [int(b.rsplit("~", 1)[1]) for b in ag._window_lags(SLOT, rows)]
+    assert got == [4, 2, 1, 3], got            # step 1 (j 4) own; step 3 (j 2) anyway; rest
 
 
 def check_non_lag_bindings_keep_order_and_position() -> None:
