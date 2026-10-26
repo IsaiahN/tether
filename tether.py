@@ -16288,6 +16288,9 @@ class Agent:
     def _step_body(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome. Under
         TETHER_CAP_MIDSTEP a deadline passed between two lookups ends the turn at the route."""
+        # PER STEP (the reviewer 2026-10-25 22:46): choose() resets these too, but a GIVEN action
+        # never reaches choose, so its rows read the last chosen step's -- or, never set, raised.
+        self._split_term, self._routine_fed, self._last_real = None, [], None
         if _7H_ROOT and self._root_id is None and self._alive:
             self._intent_root()   # 7h: the first step of every live situation
         self._touch_cache = None      # a new step is a new frame, so contact and owners go

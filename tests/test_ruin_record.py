@@ -11,13 +11,19 @@ snaps worlds that die (AVOID: s0 must never read 3). Record only; arm TETHER_RUI
      must-fail, the same action at another coordinate on the same board is another key;
      the fingerprint reads board() where the world gives one -- two boards that observe() alike
      get two fingerprints -- else observe(), and the row says which;
-  4. OFF: the same ladder writes the same rows less the termination/veto rows (the run's arms
-     row aside, which states the arm), and no vetoes.
+  4. OFF: the same ladder writes the same rows less the arm's own termination/veto rows (their
+     writers named at ARM_ROWS, the count printed; the run's arms row aside, which states the
+     arm), and no vetoes; must-fail (MF-ID), one non-excluded field changed reads red.
+  5. PER STEP (the reviewer 2026-10-25 22:46): a given step right after a chosen one reads its
+     own realisation, None, on the repeat row; must-fail, before the reset at the top of
+     _step_body it read the chosen step's (and with no chosen step ever, it raised).
 
     python tests/test_ruin_record.py
 """
 from __future__ import annotations
 
+import json
+import os
 import sys
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
@@ -29,6 +35,8 @@ import tether
 from world import bind
 
 sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.join(_repo.ROOT, "conform"))
+from identity_mod_rows import compare  # noqa: E402  the one identity reader
 
 
 def _spec(s0: int) -> snaps.WorldSpec:
@@ -72,7 +80,9 @@ def _play(ag: tether.Agent, snap: snaps.Snap, actions: str) -> str | None:
 def _ladder(on: bool) -> tether.Agent:
     """(start of s0, actions): A from 2 dies; the retry of the same board dies the same way;
     B from 1 dies on another board; B then A from 2 survives (s0 4, 5)."""
+    # TETHER_RUIN requires this arm (tether refuses the pair at import), so OFF turns off both
     was, tether._RUIN_RECORD = tether._RUIN_RECORD, on
+    was_ruin, tether._RUIN = tether._RUIN, tether._RUIN and on
     plan = [(2, "A"), (2, "A"), (1, "B"), (2, "BA")]
     snap = snaps.Snap(_spec(plan[0][0]))
     ag, last = _agent(snap), "run_end"
@@ -82,7 +92,7 @@ def _ladder(on: bool) -> tether.Agent:
             ag.retarget(bind(snap), lv, last)
         last = _play(ag, snap, acts) or "run_end"
     ag.end_run("cap")
-    tether._RUIN_RECORD = was
+    tether._RUIN_RECORD, tether._RUIN = was, was_ruin
     return ag
 
 
@@ -90,10 +100,15 @@ def _ev(ag: tether.Agent, event: str) -> list[dict]:
     return [r["detail"] for r in ag.led.rows() if r["event"] == event]
 
 
-def _bare(rows: list[dict]) -> list[tuple]:
+def _bare(rows: list[dict]) -> list[dict]:
     """Every row but the run's `arms` row, which states the arm and so must differ."""
-    return [(r["cycle"], r["step"], r["slot"], r["event"], repr(r["detail"])) for r in rows
-            if r["event"] != "arms"]
+    return [r for r in rows if r["event"] != "arms"]
+
+
+# THE ARM'S OWN ROWS, the only events the OFF comparison drops (the reviewer 2026-10-25 23:21):
+# written only in tether.py Agent._note_ending, "termination" at :3433 and "veto" at :3438 and
+# :3445, all behind :3426's `if not _RUIN_RECORD ...: return`; nothing else writes either event
+ARM_ROWS = {"veto", "termination"}
 
 
 if __name__ == "__main__":
@@ -169,13 +184,32 @@ if __name__ == "__main__":
     assert v0["fingerprint"] != v1["fingerprint"], fps
     print("  board(): two boards that observe() alike get two fingerprints "
           f"({v0['fingerprint']} vs {v1['fingerprint']}), fingerprint_of 'board'")
+    # PER STEP
+    ps = _agent(snaps.Snap(_spec(6)))
+    ps.step()
+    ps.step("A")
+    rr = [r["detail"].get("realised") for r in ps.led.rows() if r["event"] == "repeat"]
+    assert len(rr) == 2 and rr[0] is not None and rr[1] is None, rr
+    print(f"  per step: chosen then given, realised {rr[0]['why']!r} then {rr[1]}")
     # OFF
     off = _ladder(False)
     assert not off._vetoes and not _ev(off, "veto") and not _ev(off, "termination")
-    on_rows = [r for r in rows if r["event"] not in ("veto", "termination")]
-    assert _bare(on_rows) == _bare(off.led.rows()), "the OFF arm's rows differ"
+    on_rows = [r for r in rows if r["event"] not in ARM_ROWS]
+    dropped = len(rows) - len(on_rows)
+    assert dropped > 0 and len(off.led.rows()) == len(rows) - dropped, (len(rows), dropped)
+    # the shared reader: ON's own rows (ARM_ROWS) dropped, the seqs that name rows remapped
+    # across them, wall timings masked
+    bad = compare(_bare(off.led.rows()), _bare(rows), ARM_ROWS)
+    assert not bad, ("the OFF arm's rows differ", bad[:6])
     arms = [r["detail"]["on"] for r in (rows[0], off.led.rows()[0])]
     assert ("tether._RUIN_RECORD" in arms[0]) and ("tether._RUIN_RECORD" not in arms[1]), arms
-    print(f"  OFF: {len(off.led.rows())} rows, identical to ON (the arms row aside) less its "
-          f"{len(rows) - len(on_rows)} termination/veto rows; no vetoes")
+    print(f"  OFF: {len(off.led.rows())} rows = ON {len(rows)} less its {dropped} own rows "
+          f"({sorted(ARM_ROWS)}); identical otherwise (the arms row aside); no vetoes")
+    # MF-ID: one field of one non-excluded row changed, and the same comparison goes red
+    mf = json.loads(json.dumps(_bare(off.led.rows())))
+    row, key = next((r, k) for r in mf for k, v in r["detail"].items() if isinstance(v, str))
+    row["detail"][key] += " (changed)"
+    red = compare(mf, _bare(rows), ARM_ROWS)
+    assert red, "MF-ID: a changed field read as identical"
+    print(f"  MF-ID: {row['event']}.{key} changed on the OFF side -> {red[0][:80]}")
     print("ok")

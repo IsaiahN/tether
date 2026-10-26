@@ -135,12 +135,8 @@ class NoReset(FakeWrapper):
 
 
 def _plant(ag, pick):
-    """A planted exit in choose's place, doing what choose does before any exit: its per-step
-    reset of the three fields the step's rows read (tether.py, choose)."""
-    def _choose(_before):
-        ag._split_term, ag._routine_fed, ag._last_real = None, [], None
-        return pick, "planted"
-    ag.choose = _choose
+    """A planted exit in choose's place (the step's per-step fields are reset by _step_body)."""
+    ag.choose = lambda _before: (pick, "planted")
 
 
 def _planted(w, on, pick=RESET):
