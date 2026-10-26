@@ -497,7 +497,9 @@ _NOT_ATOM = armflag.arm("TETHER_NOT_ATOM")
 # AND DEFAULT OFF BECAUSE THE FILE RECORDS THIS FAILING BEFORE: *the version that DROPPED
 # operand-reading terms when R showed no dependence on another slot LOST A CLOSING TERM.*
 # Different rule, same family. `distinct compositions must not fall` is the falsifier.
-_DELTA_OPERANDS = armflag.arm("TETHER_DELTA_OPERANDS")
+# L2 (Isaiah 2026-10-26 08:24; the reviewer 08:30): NOW AN ORDERING, so ON -- world-moved, then
+# self-moved, then contact partners, then every other slot, at both sites; nothing is dropped.
+_DELTA_OPERANDS = armflag.arm("TETHER_DELTA_OPERANDS", default=True)
 # ITEM 6, THE RE-KEY. Was default OFF. `F303` measured the key BEFORE this was built: a GLOBAL frame
 # delta is saturated at every granularity that crosses boards -- types 100% of cycles, attribute
 # names 91% -- because *did ANY slot of this type move ANYWHERE* is always yes across 1,688
@@ -9658,11 +9660,18 @@ class Agent:
         the lookup's. So re-keying route (b) without this MOVES the cost rather than removing
         it. Reviewer's ruling, 2026-09-22: conflict 4 applies at both sites.
 
-        IT EXCLUDES (corrected 2026-10-09): a NON-EMPTY kept set drops every slot outside it
-        (`return keep or others`); only an EMPTY one falls back to the full list. So it is a
-        cut, not an ordering, and arming it ON owes the must-hold the ~1 narrowing carries:
-        no closer the unarmed run finds may be lost.
+        IT EXCLUDED (corrected 2026-10-09): a NON-EMPTY kept set dropped every slot outside it,
+        a cut. L2 (Isaiah 2026-10-26 08:24; the reviewer 08:30; Fig 9 :60 "Use filters for the
+        budget and witnesses for the verdict"): it is now an ORDER over ALL candidates -- the
+        slots the world moved (moved, less 2a's self-movers) first, then the self-moved, then
+        their contact partners, then every other slot; the budget cuts. See _delta_tier.
         """
+        tier = self._delta_tier(others, robs)
+        return sorted(others, key=lambda x: tier.get(x, 3))
+
+    def _delta_tier(self, others: list, robs: list) -> dict:
+        """L2's tiers: 0 world-moved on the residual frames, 1 self-moved (2a: every owner of the
+        slot is a self-mover now), 2 a contact partner of a moved slot, 3 the rest (absent)."""
         after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
         moved: set = set()
         for st, _a, _v, _intent, _landed in robs:
@@ -9672,19 +9681,22 @@ class Agent:
                 continue
             moved |= {k for k, v in st.items() if k in aft and aft[k] != v}
         if not moved:
-            return others
+            return {}
+        selfm = self._self_moved_now
+        tier = {k: (1 if selfm and (o := self._objs_named(k)) and o <= selfm else 0)
+                for k in moved}
         own = self._slot_owners(self.env)
         tch = getattr(self.env, "contacts", None)
-        grown = set(moved)
         if tch is not None and own:
             adj_of = tch()
             nearby: set = set()
             for m in moved:
                 cap.head()
                 nearby |= set(adj_of.get(own.get(m), ()))
-            grown |= {x for x in others if own.get(x) in nearby}
-        keep = [x for x in others if x in grown]
-        return keep or others
+            for x in others:
+                if x not in tier and own.get(x) in nearby:
+                    tier[x] = 2
+        return tier
 
     def _rebindings(self, term: Term, slot: str, guards=None, robs: list | None = None):
         """The term as held, then -- only if it arrived unbound and reads an operand -- the
@@ -14987,9 +14999,7 @@ class Agent:
         another slot LOST A CLOSING TERM -- `_cannot_pay` records it. Ranking cannot:
         every binding is still reached, and since the mint breaks on the first closer,
         order decides WHICH closer is found and never WHETHER one exists."""
-        others = [s for s in self.slots if s != slot]
-        if _DELTA_OPERANDS and robs:
-            others = self._delta_narrowed(others, robs)
+        others = [s for s in self.slots if s != slot]   # L2 orders them at the end, never cuts
         # `*_` -- this row gained the INTENT on 2026-09-29 and this site was missed twice:
         # once by scoping the search to one file, once by EXCLUDING that file from the
         # repo-wide search. The pattern, not the file, is what has to be searched.
@@ -15055,6 +15065,11 @@ class Agent:
         else:
             out = [None] + sorted(others, key=lambda s: (s in _der, *rank(s), s not in lib,
                                                          -seen[s], s))
+        if _DELTA_OPERANDS and robs:
+            # L2: the delta's tier is the first key, the order above breaks its ties (a stable
+            # sort); every slot is still offered, the budget cuts (Fig 9 :60)
+            _tier = self._delta_tier(others, robs)
+            out = [None] + sorted(out[1:], key=lambda s: _tier.get(s, 3))
         if _WINDOW:
             out += self._window_lags(slot, robs)
         return out

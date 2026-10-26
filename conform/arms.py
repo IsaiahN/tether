@@ -155,7 +155,16 @@ ARMS: dict[str, str] = {
     "TETHER_NOT_ATOM": "not-t priced as one atom slot instead of the bits to name which "
                        "predicting term is wrong (the default, reviewer 2026-10-07). The figures "
                        "leave the price OPEN; this arm keeps the alternative readable (F496)",
-    "TETHER_DELTA_OPERANDS": "deltas offered as operands. HELD OFF on its named defect, the "
+    "TETHER_DELTA_OPERANDS": "L2, ON AS AN ORDERING (Isaiah 2026-10-26 08:24; the reviewer "
+                             "08:30; Fig 9 :60 'Use filters for the budget and witnesses for "
+                             "the verdict'). WHAT CHANGED: Agent._delta_narrowed no longer drops "
+                             "slots; Agent._delta_tier ranks ALL candidates -- world-moved on "
+                             "the residual frames (0), self-moved by 2a (1), contact partners "
+                             "of a moved slot (2), the rest (3) -- the first key at both sites "
+                             "(_rebindings' lookup walk; _bindings' final order, a stable sort "
+                             "over today's order). WHY ON: the named defect, the lost closing "
+                             "term, was the CUT; an order cannot lose one. WAS (OFF): deltas "
+                             "offered as operands. HELD OFF on its named defect, the "
                              "lost closing term (the reviewer 2026-10-15 17:32; 3e census "
                              "2026-10-16)",
     "TETHER_GUARD_AXIS": "the guard axis in the reject key"
