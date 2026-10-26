@@ -763,6 +763,10 @@ _SITUATED_REFUSAL = armflag.arm("TETHER_SITUATED_REFUSAL", default=True)
 # predicts serve the intent here (row predicted_route); the table's pick when it names none.
 # OFF: the table alone, as before
 _PRED_FIRST = armflag.arm("TETHER_PRED_FIRST", default=True)
+# (4f) R-E, A DELAYED EFFECT IS REFUSED ONLY AFTER ITS PREDICTED WINDOW (the 10-23 design, approved;
+# WATSON case 6; the 04:51 build order): R-B's no-change count waits the largest lag the slot's
+# bound term reads (row route_waiting); "farther" still refuses at once. OFF: MIN_REPEAT, as before
+_DELAY_WINDOW = armflag.arm("TETHER_DELAY_WINDOW", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -8630,8 +8634,17 @@ class Agent:
             why = "overshoots_without_closing"
         else:
             run.append(outcome)
+            # (4f) R-E: a no-change is not a refusal while the effect the model predicts is still
+            # inside its window (the largest lag the slot's bound term reads); "farther" is a
+            # reading and refuses at once
+            win = self._effect_window(slot) if _DELAY_WINDOW and outcome != "farther" else 0
             why = ("farther" if outcome == "farther"
-                   else "no_shrink" if len(run) >= MIN_REPEAT else None)
+                   else "no_shrink" if len(run) >= MIN_REPEAT + win else None)
+            if why is None and win and len(run) >= MIN_REPEAT:
+                self.led.record(self.cycle, "SETTLE", slot, "route_waiting", window=win,
+                                outcomes=list(run), action=route[1],
+                                reads="the predicted effect is delayed: not refused inside "
+                                      "its window (R-E)")
         if why is None:
             return
         self._route_refused[route] = (why, self.cycle)
@@ -8648,6 +8661,19 @@ class Agent:
         specific like '5 pixels' or something it will be general"). The one place a stated
         magnitude would make it "specific"."""
         return "general"
+
+    def _effect_window(self, slot: str) -> int:
+        """(4f) R-E: how many frames late the agent's own model says an effect on `slot` lands --
+        the largest lag j its bound term reads (operand `x~j`, through operand_term). 0 with no
+        bound term or no lag: R-B's count unchanged."""
+        term = self.gamma.library.get(self.bound.get(slot, IDN))
+        w = 0
+        while term is not None:
+            cap.head()
+            lag = lag_of(getattr(term, "operand", None))
+            w = max(w, lag[1] if lag else 0)
+            term = getattr(term, "operand_term", None)
+        return w
 
     def _predicted_serves(self, slot: str, want: Any, offered: tuple, before: dict) -> tuple:
         """(4e) I-C (the 10-23 design, approved; WATSON P5): the offered actions the SETTLED term
