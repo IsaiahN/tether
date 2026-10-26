@@ -26,6 +26,7 @@ import gridworld
 import ledger
 import tether
 import world
+from conform.identity_mod_rows import TIMINGS
 
 sys.dont_write_bytecode = True
 
@@ -57,7 +58,8 @@ def _bare(rows: list[dict]) -> list[tuple]:
     here and checked separately to equal the row's own seq."""
     return [(r["cycle"], r["step"], r["slot"], r["event"],
              repr({k: v for k, v in r["detail"].items()
-                   if not (r["event"] == "accept" and k == "seq")})) for r in rows]
+                   if not (r["event"] == "accept" and k == "seq")
+                   and (r["event"], k) not in TIMINGS})) for r in rows]
 
 
 if __name__ == "__main__":

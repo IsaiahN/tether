@@ -51,7 +51,10 @@ BIRTH = ("seed", "seed_source")
 # side file's "ms" and lineage's write-report seconds do not).
 TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRAW
            ("muse", "compute_ms"),           # tether 6328, 6358
-           ("cap_mid_step", "overrun_s"))    # tether 2998, wall at the cap minus the deadline
+           ("cap_mid_step", "overrun_s"),    # tether 2998, wall at the cap minus the deadline
+           ("repeat", "wall_s"),             # the step clock (TETHER_STEP_CLOCK): per scope
+           ("step_mint", "wall_s"),          # the step clock: the step's mints
+           ("park", "wall_s"))               # the step clock: the parked mint
 
 
 # The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One

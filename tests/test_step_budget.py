@@ -35,6 +35,7 @@ import subprocess
 import sys
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
+from conform.identity_mod_rows import TIMINGS
 
 sys.dont_write_bytecode = True
 
@@ -85,7 +86,7 @@ def strip(rows: list) -> list:
     keep = ("header", "arms")
     return [{**{k: v for k, v in r.items() if k != "seq"},
              "detail": {k: v for k, v in (r.get("detail") or {}).items()
-                        if not k.endswith("seq")}}
+                        if not k.endswith("seq") and (r.get("event"), k) not in TIMINGS}}
             for r in rows if r.get("slot") != "@budget" and r.get("event") not in keep
             and r.get("slot") != "@run"]
 
