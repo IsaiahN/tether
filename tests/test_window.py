@@ -239,8 +239,15 @@ def _walk(seq: list[int], window: bool, two_pass: bool, budget: int = 10 ** 6):
         ag.mint(slot)
     finally:
         tether._WINDOW, tether._TWO_PASS = keep
-    rows = [r for r in ag.led.rows() if r.get("step") == "MINT" and r.get("slot") == slot]
-    return walked, (rows[-1] if rows else {})
+    return walked, _mint_record(ag, slot, window)
+
+
+def _mint_record(ag: tether.Agent, slot: str, window: bool) -> dict:
+    """The mint's own record: the last MINT row for the slot carrying "window" when the window is
+    ON, else the last MINT row that is not 7f's "leave" row (written after it)."""
+    rows = [r for r in ag.led.rows() if r.get("step") == "MINT" and r.get("slot") == slot
+            and ("window" in (r.get("detail") or {}) if window else r.get("event") != "leave")]
+    return rows[-1] if rows else {}
 
 
 def check_2b_a_pass_1_is_the_off_walk_when_no_lag_has_evidence() -> None:
@@ -300,8 +307,7 @@ def _resume_walk(seq: list[int], budgets: tuple[int, ...]) -> list:
             ag.mint(slot)
         finally:
             tether._WINDOW = keep
-        rows = [r for r in ag.led.rows() if r.get("step") == "MINT" and r.get("slot") == slot]
-        out.append((walked, rows[-1]["detail"]))
+        out.append((walked, _mint_record(ag, slot, True)["detail"]))
     return out
 
 
