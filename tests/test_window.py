@@ -18,6 +18,7 @@ Checked on a synthetic trace (so each law is exactly the one named), through the
 """
 from __future__ import annotations
 
+import collections
 import contextlib
 import sys
 
@@ -300,14 +301,17 @@ def _mint_record(ag: tether.Agent, slot: str, window: bool) -> dict:
 def check_2b_a_pass_1_is_the_off_walk_when_no_lag_has_evidence() -> None:
     """Must-fail (a), the reviewer 19:45Z, under L1 (the reviewer 2026-10-26 09:27): on a record
     where no lag has evidence and the budget is not reached, the look-back adds nothing -- the
-    window-ON walk is exactly the window-OFF walk, and the no-evidence lags are counted."""
+    window-ON walk holds exactly the window-OFF walk's pairs, and the no-evidence lags are counted.
+    As MULTISETS: two fresh agents in one process walk OFF itself in different orders (the
+    reviewer r259, filed as a finding), so an order assertion cannot hold."""
     seq = [1, 2, 3, 5, 6, 8, 9, 0]                      # no earlier value recurs at any lag
     off, _ = _walk(seq, window=False, two_pass=True)
     on, rec = _walk(seq, window=True, two_pass=True)
     win = rec["detail"]["window"]
     assert not win["evidence"], win
     assert win["no_evidence_not_walked"] >= 1, win
-    assert off and on == off, (len(off), len(on))
+    assert off and len(on) == len(off), (len(off), len(on))
+    assert collections.Counter(on) == collections.Counter(off), (len(off), len(on))
 
 
 def check_2b_d_one_and_two_pass_price_the_same_set_ties_counted() -> None:
