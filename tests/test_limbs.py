@@ -145,7 +145,9 @@ def check_l4_base_streams_stop_before_a_widened_stream_draws() -> None:
     slot = max(sorted(ag.slots), key=lambda s: ag.alphabet.get(s, 0))
     stype = ag.slot_types.get(slot)
     assert stype, slot
-    wide_t = next(t for t in sorted(set(ag.slot_types.values()), key=str)
+    # the atoms' own types, since a world may hold one slot type (the reviewer 09:15)
+    types = {t for a in ag.env.atoms() for t in (a.in_type, a.out_type)}
+    wide_t = next(t for t in sorted(types, key=str)
                   if t and t not in ("val", tether.OBJ_TYPE, stype))
     base = dict(ag.trace[-1][0])
     seq = [1, 2, 3, 5, 6] + [4, 4, 7] * 4
