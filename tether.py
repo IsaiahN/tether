@@ -754,6 +754,10 @@ _BODY_APPEND = armflag.arm("TETHER_BODY_APPEND", default=True)
 # refusals earned under the old affordance are set aside (kept, rowed) and the routes re-engaged.
 # OFF: the capability report is recorded and read by nothing, as before
 _CAP_READ = armflag.arm("TETHER_CAP_READ", default=True)
+# (4d) S4, A REFUSAL IS SITUATED (Q16; UMW A9; the 04:51 build order): R-B's route refusal (and
+# 4h's) is keyed by the subject's own contacts and the alive flag, never the whole board's contact
+# multiset, which the table keeps for its pooled presses. OFF: the whole-board key, as before
+_SITUATED_REFUSAL = armflag.arm("TETHER_SITUATED_REFUSAL", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -8640,6 +8644,22 @@ class Agent:
         magnitude would make it "specific"."""
         return "general"
 
+    def _situation(self, slot: str, ctx: tuple) -> tuple:
+        """(4d) S4, THE REFUSAL'S SITUATION (Q16; UMW A9; Fig 1 :19, Fig 10 :24-25): the contact
+        kinds of the slot's OWN objects (Interface.context's actor filter, merged over a compound
+        owner) and whether the board is alive -- not the whole board's multiset, which moves with
+        any object anywhere, so a refusal held about one press. The table keeps the pooled key.
+        No epoch: R-D carries the refusals across a death (6b). A slot with no object: `ctx`."""
+        if not _SITUATED_REFUSAL:
+            return ctx
+        owners = sorted(self._objs_named(slot))
+        if not owners:
+            return ctx
+        kinds: Counter = Counter()
+        for o in owners:
+            kinds.update(dict(IFace.Interface.context(self.env, actor=o)))
+        return (*sorted(kinds.items()), ("@alive", int(bool(self.iface.alive))))
+
     @staticmethod
     def _route_key(want: Any, r: Any, ctx: tuple) -> tuple:
         """R-B's route: (the intent in the agent's words, the realised action, its coordinate,
@@ -13668,7 +13688,7 @@ class Agent:
         if not live:
             return
         _slot, _n = max(live, key=lambda kv: kv[1])
-        _ctx = IFace.Interface.context(self.env)
+        _ctx = self._situation(_slot, IFace.Interface.context(self.env))   # (4d) as R-B's key
         # (4h) WEIGHED: a repeated undo of a met objective is the ground's vote against this route
         # here (WATSON case 7; R-B "any farther reading refuses that route in that context"). The
         # route is refused through R-B's own store, which choosing reads; the intent stays and
@@ -13852,9 +13872,10 @@ class Agent:
         self._goal_want = _want
         self._intent_kinds.add(_want.kind)
         _ctx = IFace.Interface.context(self.env)
+        _rctx = self._situation(chosen, _ctx)   # (4d) S4: the refusal's situation, not the table's
         _offer, _wh = tuple(self.actions), self._withheld
         if _ROUTE_REFUSE:          # R-B: this intent's refused routes here are not offered
-            _offer, _wh = self._route_offer(_want.says(), _ctx, _offer, _wh)
+            _offer, _wh = self._route_offer(_want.says(), _rctx, _offer, _wh)
         _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
                                  asker="goal")
               if _offer or not _ROUTE_REFUSE else None)
@@ -13878,7 +13899,7 @@ class Agent:
                 return None
         if _ROUTE_REFUSE and self._route_refused and (
                 not _offer or (_r is not None
-                               and self._route_key(_want, _r, _ctx) in self._route_refused)):
+                               and self._route_key(_want, _r, _rctx) in self._route_refused)):
             # R-B: every route this intent has here is refused -- the interface had nothing else
             # to offer. No route here at this budget (Fig 9 :44), never "impossible"; the
             # refusals stay, and a held hypothesis on this slot ends by="routes" (R-D's first half)
@@ -13895,10 +13916,10 @@ class Agent:
                 _restate = (_STEER and _why["kind"] == IFace.NO_WAY and _ordered
                             and chosen not in self._rf_restate)
                 self.led.record(self.cycle, "PLAN", chosen, "route_exhausted", intent=said,
-                                context=[list(c) for c in _ctx],
+                                context=[list(c) for c in _rctx],
                                 refused=sorted(([k[1], list(k[2]) if k[2] else None, v[0]]
                                                 for k, v in self._route_refused.items()
-                                                if k[0] == said and k[3] == _ctx), key=repr),
+                                                if k[0] == said and k[3] == _rctx), key=repr),
                                 **({"unrealised": _why,
                                     "next": "re-state the intent" if _restate
                                     else "another subject"} if _STEER else {}),
@@ -13922,7 +13943,7 @@ class Agent:
                 if getattr(_r, "mode", "") == "kind_test":
                     self._test["kind_test"] = True     # (ii): graded as a test of the entry
                 if _ROUTE_REFUSE:          # R-B: the route this outcome will be read against
-                    self._test["route"] = self._route_key(_want, _r, _ctx)
+                    self._test["route"] = self._route_key(_want, _r, _rctx)
                     self._test["at"] = self.cycle
                     self._test["aim"] = _aim       # R-C: how the outcome is graded
             self.led.record(self.cycle, "PLAN", chosen, "intent",

@@ -910,6 +910,14 @@ ARMS: dict[str, str] = {
                        "undoes_met_goal) are set aside into _route_stale, kept, and the routes "
                        "re-engaged (capability_read). OFF: the report is recorded and read by "
                        "nothing, as before. default ON",
+    "TETHER_SITUATED_REFUSAL": "(4d) S4, A REFUSAL IS SITUATED (Q16; UMW A9; the 04:51 build "
+                               "order): Agent._situation keys R-B's route refusal (and 4h's) by "
+                               "the subject slot's own objects' contact kinds "
+                               "(Interface.context's actor filter, merged over a compound owner) "
+                               "plus ('@alive', 0|1); the table and realise keep the whole-board "
+                               "key for pooled presses; no epoch, since R-D carries refusals "
+                               "across a death; a slot with no object keeps the board key. OFF: "
+                               "the whole-board key, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
