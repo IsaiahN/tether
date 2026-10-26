@@ -772,6 +772,10 @@ _DELAY_WINDOW = armflag.arm("TETHER_DELAY_WINDOW", default=True)
 # ranks before one that carries none; the shrinking bar still selects, surprise is never scored
 # or maximised (Fig 1 :23-27). Row nominated when it changed the pick. OFF: as before
 _SURPRISE_NOMINATES = armflag.arm("TETHER_SURPRISE_NOMINATES", default=True)
+# (5b) SYSTEM 0 NEVER HOLDS THE WHEEL (Isaiah 09-28; AUD link 3; the 04:51 build order): while it
+# is active, distinguish and goal still enter _exit_choice's contest beside it, weighed by A1's
+# readings, instead of deferring. OFF: the goal-directed exits defer to it, as before
+_S0_CONTEST = armflag.arm("TETHER_S0_CONTEST", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -12519,7 +12523,10 @@ class Agent:
             opts.append("system0")
             res["system0"] = max((self.outstanding(s) for s in self.slots
                                   if s.split(".")[0] == s0_tw[0]), default=0)
-        else:
+        # (5b): System 0 hands over by a WEIGHED contest, never by holding the wheel -- the goal-
+        # directed exits stand beside it, read by the same A1 readings (what is unexplained where
+        # each aims, then turns taken, then the draw). OFF: they defer while it is active
+        if not s0 or _S0_CONTEST:
             dist_r = self.iface.realise(IFace.Intent(IFace.DISTINGUISH), tuple(self.actions),
                                         IFace.Interface.context(self.env), before, self.env,
                                         withheld=self._withheld)
@@ -12536,7 +12543,8 @@ class Agent:
                  else "goal")
         pick = self._choice("exit", None, [(e, None, 1) for e in opts], res,
                             {e: self._exit_n[(self.level, e)] for e in opts},
-                            extra={"s0_defer": s0, "fixed_would": fixed})
+                            extra={"s0_defer": s0, "fixed_would": fixed,
+                                   **({"s0_contest": True} if s0 and _S0_CONTEST else {})})
         self._exit_n[(self.level, pick)] += 1
         return pick, s0_tw, dist_r
 

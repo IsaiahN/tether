@@ -943,6 +943,13 @@ ARMS: dict[str, str] = {
                                  "qualifies); surprise is never scored or maximised (Fig 1 "
                                  ":23-27); row nominated (gate 1 only) when it changed the "
                                  "pick. OFF: as before. default ON",
+    "TETHER_S0_CONTEST": "(5b) SYSTEM 0 NEVER HOLDS THE WHEEL (Isaiah 09-28; AUD link 3, PLAY11 "
+                         "r1: 44 of 72 presses System 0's; the 04:51 build order): while System "
+                         "0 is active, distinguish and goal still enter Agent._exit_choice's "
+                         "contest beside it, weighed by A1's readings (outstanding where each "
+                         "aims, turns taken this level, the draw); the exit row carries "
+                         "s0_contest. OFF: the goal-directed exits defer to it, as before. "
+                         "default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
