@@ -16515,22 +16515,26 @@ class Agent:
         if IFace._RESET_ADJACENT:
             # (C) THE BACKSTOP AT THE SEND: any path that still emits RESET right after a RESET
             # (a given action, or an exit that calls neither helper) is not sent. Expected never.
-            if action == IFace.RESET and self.iface._last_was_reset:
+            # (i) the one rule, through the one helper (the reviewer 2026-10-25 23:10)
+            refused = action == IFace.RESET and not self.iface.adjacent((action,))
+            if refused:
                 with self._step_scope("ROUTE"):
                     self.led.record(self.cycle, "ROUTE", "@loop", "reset_adjacent_refused", by=by,
                                     reads="RESET right after a RESET is not sent (Isaiah: never "
                                           "RESET,RESET)")
                 action = None
-            # (f) nothing proposed: RESET alone was offered and the last press was RESET. The step
-            # is a legal no-action; the runner's loop advances and ends by its own cap
+            # (f) nothing proposed. The step is a legal no-action; the runner's loop advances and
+            # ends by its own cap. (ii) the cause is adjacency only when the rule dropped a RESET
             if action is None:
+                adj = refused or len(self.iface.adjacent(tuple(self.actions))) < len(self.actions)
                 self._reset_idle = getattr(self, "_reset_idle", 0) + 1
                 with self._step_scope("ROUTE"):
                     self.led.record(self.cycle, "ROUTE", "@loop", "no_action", by=by,
                                     actions=len(self.actions), idle_n=self._reset_idle,
-                                    cause="reset adjacency: the last press was RESET",
-                                    reads="nothing is pressed; RESET twice in a row would "
-                                          "restart the game")
+                                    cause=("reset adjacency: the last press was RESET" if adj
+                                           else "the chooser returned nothing"),
+                                    reads=("nothing is pressed; RESET twice in a row would "
+                                           "restart the game" if adj else "nothing is pressed"))
                 self._last_action = None
                 self.cycle += 1
                 return False

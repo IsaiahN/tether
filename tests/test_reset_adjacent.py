@@ -13,6 +13,12 @@ refused only by the platform's ResetGuard). The fake ARC game; each case ON and 
       the first RESET proposes nothing, counted in the no_action rows. Under OFF (today's code) the
       same board RAISES in _explore ("the board advertises no actions"), because realise's old
       re-choose empties the offer: the occasion this arm closes.
+  (h) the flag's start, seeded at wire_agent from the guard (the platform's last command): (h1) a
+      fresh wrapper (its own reset done), a planted first RESET: ON not sent, an adjacency
+      no_action; OFF the guard refuses it (refused_step 1); (h2) a wrapper with no construction
+      reset: wire resets it, the flag starts set, a first RESET not sent; (h3) a guard passed in
+      after ACTION1: the flag starts clear and a first RESET is sent.
+  (ii) a planted exit returning None with the flag clear: the cause "the chooser returned nothing".
   ResetGuard's own strict RESET,RESET must-fail is tests/test_entry.py's, which drives the wrapper
   directly, so this arm cannot pre-empt it.
 
@@ -28,6 +34,8 @@ import tempfile
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
+
+from arcengine import GameAction  # noqa: E402
 
 import arc_holdout  # noqa: E402
 import interface as IFace  # noqa: E402
@@ -118,6 +126,37 @@ def case_f(on, n=8):
     return rep, len(idle), w.calls
 
 
+class NoReset(FakeWrapper):
+    """A wrapper that does NOT reset in its own __init__ (wire resets it, through the guard)."""
+
+    def __init__(self):
+        self.calls, self._last, self.script = [], None, {}
+        self.actions, self.pos, self.n = [1, 2, 3, 4, 6], [30, 30], 0
+
+
+def _plant(ag, pick):
+    """A planted exit in choose's place, doing what choose does before any exit: its per-step
+    reset of the three fields the step's rows read (tether.py, choose)."""
+    def _choose(_before):
+        ag._split_term, ag._routine_fed, ag._last_real = None, [], None
+        return pick, "planted"
+    ag.choose = _choose
+
+
+def _planted(w, on, pick=RESET):
+    """(h): wire w, the agent's first choice planted; (sent to the wrapper, the guard's refused
+    step(RESET) count, the step's no_action causes, the flag right after wire)."""
+    _arm(on)
+    env, ag, *_ = arc_holdout.wire(w, "fake")
+    flag = ag.iface._last_was_reset
+    env.observe()
+    n0, c0 = len(ag.led.rows()), len(env.w.w.calls)
+    _plant(ag, pick)
+    ag.step()
+    causes = [r["detail"].get("cause") for r in ag.led.rows()[n0:] if r["event"] == "no_action"]
+    return env.w.w.calls[c0:], env.w.refused_step, causes, flag
+
+
 def main():
     tether._AGENT_SEED = False
     on_a, off_a = case_a(True), case_a(False)
@@ -146,6 +185,35 @@ def main():
     rep, idle, calls = case_f(False)
     assert isinstance(rep, str) and "no actions" in rep, ("(f) OFF: no raise", rep)
     print(f"  (f) the same board OFF (today's code): {rep}")
+    # (h) the flag's start, read from the guard at wire_agent (the reviewer 2026-10-25 23:04)
+    sent, ref, causes, flag = _planted(FakeWrapper(script={}), True)
+    assert flag and "RESET" not in sent and ref == 0, ("(h1) ON", sent, ref, flag)
+    assert causes == ["reset adjacency: the last press was RESET"], ("(h1) ON cause", causes)
+    print(f"  (h1) a fresh wrapper (its own reset done), first choice RESET, ON: flag {flag}, "
+          f"sent {sent}, guard refused {ref}, cause {causes}")
+    sent, ref, causes, flag = _planted(FakeWrapper(script={}), False)
+    assert not flag and ref == 1 and not causes, ("(h1) OFF", sent, ref, flag)
+    print(f"  (h1) the same OFF: flag {flag}, the guard refused {ref} (not sent: {sent})")
+    w = NoReset()
+    sent, ref, causes, flag = _planted(w, True)
+    assert w.calls[0] == "RESET" and flag and "RESET" not in sent and ref == 0, ("(h2)", w.calls)
+    print(f"  (h2) a wrapper with no construction reset: wire's reset {w.calls[:1]}, flag {flag}, "
+          f"first RESET not sent")
+    g = arc_holdout.ResetGuard(FakeWrapper(script={}))
+    g.step(GameAction.ACTION1)
+    sent, ref, causes, flag = _planted(g, True)
+    assert not flag and sent == ["RESET"] and ref == 0 and not causes, ("(h3)", sent, ref, flag)
+    print(f"  (h3) a guard passed in after ACTION1: flag {flag}, first RESET sent {sent}")
+    # (ii) a true cause: a None from a planted non-RESET exit, the flag clear
+    _arm(True)
+    _env, ag = _agent()
+    ag.iface.note_sent("ACTION1")
+    _plant(ag, None)
+    n0 = len(ag.led.rows())
+    ag.step()
+    causes = [r["detail"].get("cause") for r in ag.led.rows()[n0:] if r["event"] == "no_action"]
+    assert causes == ["the chooser returned nothing"], ("(ii)", causes)
+    print(f"  (ii) a planted exit returning None, the last press ACTION1: cause {causes}")
     _arm(True)
     print("reset_adjacent: OK")
 
