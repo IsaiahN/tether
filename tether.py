@@ -776,6 +776,13 @@ _SURPRISE_NOMINATES = armflag.arm("TETHER_SURPRISE_NOMINATES", default=True)
 # is active, distinguish and goal still enter _exit_choice's contest beside it, weighed by A1's
 # readings, instead of deferring. OFF: the goal-directed exits defer to it, as before
 _S0_CONTEST = armflag.arm("TETHER_S0_CONTEST", default=True)
+# (5c) A12, A DEATH VOTES ON THE ROUTE TOWARD THE GOAL (Isaiah 2026-10-25 20:21; Fig 11 :49, :51;
+# Fig 7 :35): presses counted by kind (goal slot kind, action, situation kinds); a death adds a vote
+# to the last press's kind (row death_vote); read as deaths / presses, so it decays as such presses
+# survive. The goal exit asks realise over the never-voted offers first; a want's kind with deaths
+# ranks after in _goal_choice, after A4's nomination. No action is ever removed, RESET included.
+# OFF: deaths are not read, as before
+_DEATH_VOTE = armflag.arm("TETHER_DEATH_VOTE", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3159,6 +3166,12 @@ class Agent:
         # the last (action, context) -> kind reading, so a change is what gets rowed
         self._route_stale: dict[tuple, tuple[str, int]] = {}
         self._kinds_was: dict[tuple, str] = {}
+        # (5c) A12: presses and deaths by (goal slot kind, action, situation kinds) -- kinds, so
+        # they cross levels; the press last counted, and the goal exit's situation for it
+        self._press_n: Counter = Counter()
+        self._death_n: Counter = Counter()
+        self._last_press_key: tuple | None = None
+        self._press_situ: tuple | None = None
         self._audit_at: int | None = None   # R-B: the cycle whose press was last audited
         # R-C: slot -> the correction its last overshoot owes; (slot, target) -> the oscillation
         # guard's last |gap| and its count of overshoots that did not shrink it
@@ -3573,6 +3586,17 @@ class Agent:
                 m.clear()
         if _CONSOLIDATE:
             self._consolidate(how)
+        if _DEATH_VOTE and how == "death" and self._last_press_key is not None:
+            # (5c) A12: the ground's vote on the press last taken toward the goal held then
+            k = self._last_press_key
+            self._death_n[k] += 1
+            self.led.record(self.cycle, "SETTLE", "@death", "death_vote", goal_kind=k[0],
+                            action=k[1], situation=[list(p) for p in k[2]],
+                            deaths=self._death_n[k], presses=self._press_n[k],
+                            reads="a death votes against this press, toward this goal, in this "
+                                  "kind of situation; read as a share, so it decays as such "
+                                  "presses survive, and it removes no action (A12)")
+        self._last_press_key = None
         if _G1_WANT and self._g1:
             # G1: the ending is the ground's vote on each relational want held through it
             self.led.record(self.cycle, "SETTLE", "@g1_end", "g1_outcomes", how=how,
@@ -8671,6 +8695,35 @@ class Agent:
         magnitude would make it "specific"."""
         return "general"
 
+    def _press_kind(self, action: str, situ: tuple, slot: str | None = None) -> tuple:
+        """(5c) A12: a press as a KIND -- the held goal's slot kind (Fig 11 :49: valence is relative
+        to the residual), the action, the situation's contact kinds (never names, never alive)."""
+        if slot is None:
+            gw = self._goal_want
+            slot = getattr(gw, "subject", None) if gw is not None else None
+        gk = self._kind_key(slot) if slot else None
+        return (gk, action, tuple(p for p in situ if p[0] != "@alive"))
+
+    def _danger(self, key: tuple) -> float:
+        """(5c): the share of this kind's presses that ended in a death; 0 with none recorded."""
+        return self._death_n[key] / self._press_n[key] if self._press_n[key] else 0.0
+
+    def _danger_safe(self, slot: str, offered: tuple, rctx: tuple) -> tuple:
+        """(5c): the offered actions no death has voted against here, toward this goal, when
+        some have such a vote and some do not; else () -- an order, never a removal."""
+        if not self._death_n:
+            return ()
+        safe = tuple(a for a in offered
+                     if not self._danger(self._press_kind(a, rctx, slot)))
+        return safe if 0 < len(safe) < len(offered) else ()
+
+    def _subject_danger(self, slot: str) -> float:
+        """(5c): deaths over presses for every press made toward a goal of this slot's kind."""
+        gk = self._kind_key(slot)
+        d = sum(n for k, n in self._death_n.items() if k[0] == gk)
+        p = sum(n for k, n in self._press_n.items() if k[0] == gk)
+        return d / p if p else 0.0
+
     def _effect_window(self, slot: str) -> int:
         """(4f) R-E: how many frames late the agent's own model says an effect on `slot` lands --
         the largest lag j its bound term reads (operand `x~j`, through operand_term). 0 with no
@@ -9208,6 +9261,11 @@ class Agent:
                                    "every slot that changed is credited to this press (F1)"))
         if _TOUCH_FELT and self._contact_pending is not None:
             self._contact_felt()
+        if _DEATH_VOTE and not self._seam_now:
+            # (5c) A12: every press counted under its kind, so a death's vote is a share of them
+            self._last_press_key = self._press_kind(action, self._press_situ or _ctx)
+            self._press_n[self._last_press_key] += 1
+        self._press_situ = None
         # AND WHAT THE BOARD NOW AFFORDS, **named as capability and never as a button** --
         # Isaiah: *"the board has enabled us to move to the left or right after doing xyz"*.
         # F28's line held: availability is legitimate to read, directional semantics never.
@@ -12157,6 +12215,8 @@ class Agent:
                     # today's R_goal shrink as the tie-break. A shrinking window opens above 0
                     _rw = series[-(MIN_REPEAT + 1):]
                     shrink = ((window[0] - window[-1]) / window[0], _rw[0] - _rw[-1])
+                if _DEATH_VOTE and self._death_n:
+                    shrink = (-self._subject_danger(slot), shrink)    # (5c) A12, weighed
                 if hot is not None:
                     if unnom is None or shrink > unnom[0]:
                         unnom = (shrink, slot)
@@ -13969,6 +14029,8 @@ class Agent:
             # (4e) I-C: what the settled model predicts THIS press does HERE is asked first; the
             # pooled table only when it names nothing (or the interface cannot realise it)
             _pf = self._predicted_serves(chosen, _want, _offer, before)
+            if _pf and _DEATH_VOTE:
+                _pf = self._danger_safe(chosen, _pf, _rctx) or _pf     # (5c): an order
             if _pf:
                 _r = self.iface.realise(_want, _pf, _ctx, before, self.env, withheld=_wh,
                                         asker="goal")
@@ -13977,10 +14039,24 @@ class Agent:
                                     intent=_want.says(), predicted=list(_pf),
                                     taken=_r.action if _r is not None else None,
                                     reads="the current prediction before the pooled table")
+        if _r is None and _DEATH_VOTE and _offer:
+            # (5c) A12: the offers no death has voted against, toward this goal here, first
+            _sf = self._danger_safe(chosen, _offer, _rctx)
+            if _sf:
+                _r = self.iface.realise(_want, _sf, _ctx, before, self.env, withheld=_wh,
+                                        asker="goal")
+                if commit:
+                    self.led.record(self.cycle, "PLAN", chosen, "danger_order",
+                                    intent=_want.says(), safe=list(_sf),
+                                    taken=_r.action if _r is not None else None,
+                                    reads="a death voted against the rest here; they stay "
+                                          "offered after these (A12)")
         if _r is None:
             _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
                                      asker="goal")
                   if _offer or not _ROUTE_REFUSE else None)
+        if commit and _r is not None:
+            self._press_situ = _rctx      # (5c): the situation this goal press is counted under
         if _corr is not None and commit:
             # R-C: the correction is looked up in the agent's OWN record (the interface's delta
             # table, via realise) and never assumed; none known is recorded, the route is kept

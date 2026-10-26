@@ -950,6 +950,16 @@ ARMS: dict[str, str] = {
                          "aims, turns taken this level, the draw); the exit row carries "
                          "s0_contest. OFF: the goal-directed exits defer to it, as before. "
                          "default ON",
+    "TETHER_DEATH_VOTE": "(5c) A12, A DEATH VOTES ON THE ROUTE TOWARD THE GOAL (Isaiah 2026-10-25 "
+                         "20:21; Fig 11 :49, :51; Fig 7 :35): every audited press is counted "
+                         "under Agent._press_kind (the held goal's slot kind, the action, the "
+                         "situation's contact kinds; never names, never alive); a death adds a "
+                         "vote to the last press's kind (retarget, row death_vote); the reading "
+                         "is deaths / presses, so it decays as such presses survive; the goal "
+                         "exit realises over the never-voted offers first (row danger_order, "
+                         "also within I-C's predicted set) and _goal_choice ranks a want whose "
+                         "kind carries deaths after, below A4's nomination. No action is "
+                         "removed, RESET included. OFF: deaths are not read. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
