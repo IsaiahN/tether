@@ -212,7 +212,9 @@ ARMS: dict[str, str] = {
                          "A3 a ~1 term cannot close, and its binding seals the slot against later "
                          "closers (demo swing: dec . neg never reached after c3; trace "
                          "2026-10-09). 16 of 18 ~1 terms settled held-out on the panel when ON. "
-                         "Re-ON pending the ruling on pricing a law that needs an earlier frame",
+                         "C-HELD-5, the reviewer 2026-10-26 05:13: default ON. The seal is "
+                         "repaired by TETHER_UNSEAL_START; a ~1 term pays its own statement like "
+                         "any term (Fig 5 :231), and it unblocks closer (Q25)",
     "TETHER_UNSEAL_START": "the seal repair (R3 item 1; Isaiah's H1 and H3(i)): when the HELD "
                            "term reads an earlier frame, a challenger is priced against the held "
                            "rule's whole two-part length (its cost plus its leftover, whose unseen "
@@ -250,7 +252,10 @@ ARMS: dict[str, str] = {
                           "on 4 of 6 with PREV_OFFER+UNSEAL (batch 2: s0 76 vs 33; s1 and arc_s1 "
                           "the exceptions, their credited bindings held on one settle outnumbered "
                           "by misses): recorded as 3(b) evidence that log2(H+1) is too cheap, "
-                          "not ruled",
+                          "not ruled. C-HELD-5, the reviewer 2026-10-26 05:13: default ON; the "
+                          "gate's measurement is replaced by the 25-game rounds (Isaiah 04:51), "
+                          "promotion stays held by _PROMOTE_AFTER_SETTLE, Fig 12 :807; reverses "
+                          "on settles per round falling or demotes rising against r1-r9",
     "TETHER_TWO_READINGS": "7a(7)+(9) plan readings (R3(a); the reviewer 2026-10-10 22:30Z, "
                            "22:33Z, 22:47Z): ON, at plan adoption a plan reads bits and "
                            "confirm-actions, never their sum; MC4's reader drops a plan that "
@@ -1098,7 +1103,10 @@ ARMS: dict[str, str] = {
                                "18:58; the reviewer 19:02 (B)): a chain bounded out on cost "
                                "generates no instance and is not charged to work_budget. A "
                                "reach change; the default is set by the measurement. OFF: "
-                               "charged, as before (7d5fcf9). default OFF",
+                               "charged, as before (7d5fcf9). C-HELD-5, the reviewer 2026-10-26 "
+                               "05:13: default ON (Isaiah agreed 10-21; his 04:51 order makes the "
+                               "25-game rounds the measurement; back OFF if wall rises with no "
+                               "reach gain)",
     "TETHER_LIBRARY_EXPLAINS": "(iv), RECOGNITION EXPLAINS (the reviewer 2026-10-21 21:52, "
                                "2026-10-22 01:55): a library-served term (route REBIND or "
                                "compete) that makes the slot's bet and settles credits "

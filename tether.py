@@ -523,7 +523,7 @@ def lag_of(name: str | None) -> tuple[str, int] | None:
     m = _LAG.match(name)
     return (m.group(1), int(m.group(2))) if m and int(m.group(2)) > 0 else None
 # THE ~1 OFFER IN `_bindings` (the reviewer 2026-10-09 06:39Z): OFF, reason in conform/arms.py.
-_PREV_OFFER = armflag.arm("TETHER_PREV_OFFER")
+_PREV_OFFER = armflag.arm("TETHER_PREV_OFFER", default=True)   # C-HELD-5, 2026-10-26
 # M4: the library's offered chains yielded BEFORE the closure stream, priced by the one body
 # (the reviewer 2026-10-09 08:30Z). DEFAULT ON by the registered rule (10:02Z, re-measured after
 # the operand fix 10:19Z). OFF: the offers are recorded and not read.
@@ -555,7 +555,7 @@ _PROMOTE_AFTER_SETTLE = True
 # CARRY CREDIT (R3 item 3; DISCOVERY 503; H3(ii); R-D4; the reviewer 16:31Z, 21:18Z). OFF; reason in
 # conform/arms.py. A minted term's cost is paid once: reused where it RE-GROUNDS (left < base on the
 # slot's own record) it is priced on its leftover, and the library fit takes the lowest whole price.
-_CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE")
+_CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE", default=True)   # C-HELD-5, 2026-10-26
 # MC1 + MC2 (7a(4); R3; the reviewer 2026-10-10 07:57Z). ON; reason in conform/arms.py. The signal
 # is the TRANSITION bet row itself (ledger.signal_sign); ON, each gets exactly one resolution row
 # when its level ends (retarget) or the run ends with the level open (end_run). Record only.
@@ -708,7 +708,7 @@ INTERVAL_DISAGREE: list = []      # the first disagreements, for the check run's
 # 19:13 B3): a chain bounded out on cost generates no instance, so its instances are not charged
 # to work_budget (sp80 669,981 / vc33 276,057 such in 8 cycles at 15k). A REACH change: the same
 # budget walks further. OFF: they are charged, as before (7d5fcf9)
-_BUDGET_GENERATED = armflag.arm("TETHER_BUDGET_GENERATED")
+_BUDGET_GENERATED = armflag.arm("TETHER_BUDGET_GENERATED", default=True)   # C-HELD-5
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
