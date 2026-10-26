@@ -54,11 +54,25 @@ from test_entry import FakeWrapper  # noqa: E402
 N = 20
 
 
+_LOADS = []   # each load_blob call lineage.load makes: what R-g1's oracle repeats, guard (a)
+
+
 def _agent(d, seed):
     env = world.bind(gridworld.family("default", seed))
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=f"fam_default_{seed}"), tether.Config(),
                       ledger.Ledger())
-    return env, ag, lineage.load(d, ag)
+    real = gamma.Gamma.load_blob
+
+    def spy(self, blob, parent=None, hold_unbound=False):
+        _LOADS.append({"gamma": self, "env": env, "blob": blob, "parent": parent,
+                       "hold_unbound": hold_unbound,
+                       "prior": {n for n, t in self.library.items() if t.origin == gamma.PRIOR}})
+        return real(self, blob, parent=parent, hold_unbound=hold_unbound)
+    gamma.Gamma.load_blob = spy
+    try:
+        return env, ag, lineage.load(d, ag)
+    finally:
+        gamma.Gamma.load_blob = real
 
 
 def _key(t):
@@ -74,35 +88,111 @@ def _gen(d, w):
     return json.loads(lineage_store.file_bytes(Path(d) / w["written"]))
 
 
-def _carries(rows, ag, rep, label):
-    """R-g1 as registered: every row is held as an IMPORTED term naming the parent, by atom chain
-    and guard. A row whose binding was its whole content is held as its UNBOUND entry (carried
+def _installed(rows, ag, label):
+    """R-g1's oracle (the reviewer 2026-10-26 03:11, R1): each row loaded ALONE into a fresh Gamma
+    by the call game 2's load made (its parent, hold_unbound, invented; aliases dropped, since they
+    name other rows), and the name it adds. Guard (a): the oracle's PRIOR atoms are game 2's, and a
+    row that adds no name must be in the oracle's own skipped or destroyed report. Returns
+    [(row, name or None, the oracle's carried record)]."""
+    call = next((c for c in reversed(_LOADS) if c["gamma"] is ag.gamma), None)
+    assert call is not None, (label, "(a) game 2's load_blob call was not seen")
+    ctx = {k: v for k, v in call["blob"].items() if k not in ("terms", "aliases")}
+    out = []
+    for r in rows:
+        o = gamma.Gamma(call["env"].atoms(), game=ag.gamma.game)
+        assert {n for n, t in o.library.items() if t.origin == gamma.PRIOR} == call["prior"], (
+            label, "(a) the oracle's PRIOR atoms are not game 2's")
+        before = set(o.library)
+        rep_o = o.load_blob({**ctx, "terms": [r]}, parent=call["parent"],
+                            hold_unbound=call["hold_unbound"])
+        new = sorted(set(o.library) - before)
+        if not new:
+            assert rep_o["built_on_skipped_invention"] or rep_o["destroyed_on_carry"], (
+                label, "(a) row installs nothing alone", r["atoms"], r.get("handle"),
+                rep_o["refused"])
+            out.append((r, None, None))
+            continue
+        assert len(new) == 1, (label, "(a) one row installed several names", new)
+        out.append((r, new[0], o.carried.get(new[0], {})))
+    return out
+
+
+def _one_name(named):
+    """Guard (b), the 21:38 reverser as a check: over the rows, row_key -> installed name is a
+    function. None, or the message naming the colliding rows."""
+    by = {}
+    for r, n, _c in named:
+        if n is not None:
+            by.setdefault(gamma.Gamma.row_key(r), set()).add(n)
+    bad = {k: sorted(ns) for k, ns in by.items() if len(ns) > 1}
+    return (f"row_key coarser than load: (d) can alias two installed terms: {bad}"
+            if bad else None)
+
+
+def _not_held(named, lib, carried, parent):
+    """R-g1 by installed name: each named row's term is in game 2's library, IMPORTED, naming the
+    parent, unbound exactly when the oracle's is. The problems, empty when held."""
+    bad = []
+    for r, n, oc in named:
+        if n is None:
+            continue
+        t, c = lib.get(n), carried.get(n, {})
+        if t is None:
+            bad.append(("not held", n))
+        elif t.origin != gamma.IMPORTED:
+            bad.append(("not IMPORTED", n))
+        elif c.get("parent") != parent:
+            bad.append(("parent", n, c.get("parent")))
+        elif ("unbound" in c) != ("unbound" in oc):
+            bad.append(("(a) the oracle names it unlike game 2", n, r.get("operand")))
+    return bad
+
+
+def _carries(rows, ag, rep, label, mf=False):
+    """R-g1 as registered: every row is held as an IMPORTED term naming the parent, matched by the
+    NAME load installs from it (_installed, the reviewer 2026-10-26 03:11), so no two rows share a
+    lookup key. A row whose binding was its whole content is held as its UNBOUND entry (carried
     records what it lost). A row that lands on a PRIOR atom was destroyed on carry: R-g1 FAILS.
-    Returns (held as compositions, held as unbound entries)."""
+    Prints the gap (b) and asserts row_key -> name is a function. Returns (held as compositions,
+    held as unbound entries)."""
     assert not rep["destroyed_on_carry"], (label, "R-g1 FAILED: terms destroyed on carry",
                                            rep["destroyed_on_carry"])
-    held = _held(ag)
-    skipped = {json.dumps([r["atoms"], None, None]) for r in rep["built_on_skipped_invention"]}
+    named = _installed(rows, ag, label)
+    one = _one_name(named)
+    assert one is None, (label, one)
+    bad = _not_held(named, ag.gamma.library, ag.gamma.carried, rep["parent"])
+    assert not bad, (label, "R-g1 FAILED", len(bad), len(rows), bad[:3])
     composed, unbound = 0, 0
-    missing = []
-    for r in rows:
-        k = lineage._key(r)
-        if k in held:
-            t = held[k]
-            c = ag.gamma.carried[t.name]
-            assert t.origin == gamma.IMPORTED, (label, "not IMPORTED", r["atoms"])
-            assert c.get("parent") == rep["parent"], (label, "parent")
-            if "unbound" in c:
-                assert "?" in t.operand and not any(p.startswith("o") and p[1:].isdigit()
-                                                    for p in t.operand.replace("~", ".")
-                                                    .replace("_", ".").split(".")), (
-                    label, "an unbound entry still names an object", t.name)
-                unbound += 1
-            else:
-                composed += 1
-        elif k not in skipped:
-            missing.append(r)
-    assert not missing, (label, "R-g1 FAILED: not held", len(missing), len(rows), missing[:2])
+    for _r, n, _oc in named:
+        if n is None:
+            continue
+        t = ag.gamma.library[n]
+        if "unbound" in ag.gamma.carried[n]:
+            assert "?" in t.operand and not any(p.startswith("o") and p[1:].isdigit()
+                                                for p in t.operand.replace("~", ".")
+                                                .replace("_", ".").split(".")), (
+                label, "an unbound entry still names an object", t.name)
+            unbound += 1
+        else:
+            composed += 1
+    names = {n for _r, n, _c in named if n is not None}
+    print(f"  {label} gap (b): rows {len(rows)}, installed names {len(names)}, row_keys "
+          f"{len({gamma.Gamma.row_key(r) for r in rows})}, lineage._keys "
+          f"{len({lineage._key(r) for r in rows})}; installing nothing alone "
+          f"{sum(1 for _r, n, _c in named if n is None)}", flush=True)
+    if mf:
+        # MUST-FAILS (03:11): one row's installed name dropped from game 2's library; and the
+        # function check fed one row_key with two installed names
+        victim = next(n for _r, n, _c in named if n is not None)
+        lib = {k: v for k, v in ag.gamma.library.items() if k != victim}
+        gone = _not_held(named, lib, ag.gamma.carried, rep["parent"])
+        assert ("not held", victim) in gone, ("MF: a dropped name was not caught", gone)
+        r0 = next(r for r, n, _c in named if n is not None)
+        two = _one_name([(r0, "a", {}), (dict(r0), "b", {})])
+        assert two and two.startswith("row_key coarser than load"), ("MF: the function check "
+                                                                     "passed a collision", two)
+        print(f"  {label} MF: {victim} dropped -> not held; one row_key, two names -> red",
+              flush=True)
     return composed, unbound
 
 
@@ -148,7 +238,7 @@ def on_checks():
     assert rows1, "fixture: game 1 minted nothing"
     env, ag2, rep2 = _agent(d, 1)
     assert rep2["parent"] == w1["hash"], ("R-g1 parent", rep2.get("parent"), w1)
-    composed, unbound = _carries(rows1, ag2, rep2, "R-g1 carry")
+    composed, unbound = _carries(rows1, ag2, rep2, "R-g1 carry", mf=True)
     assert composed, ("fixture: nothing crossed as a composition", composed, unbound)
     tp = _held(ag2).get(_key(plant))
     cp = ag2.gamma.carried.get(tp.name, {}) if tp is not None else {}
