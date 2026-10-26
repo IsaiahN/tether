@@ -744,6 +744,10 @@ _STEER = armflag.arm("TETHER_STEER", default=True)
 # reviewer 04:53; AUD link 2): where the routine mint refuses because CAN is unknown, the slot's
 # object becomes System 0's next exploratory target, once (row can_probe). OFF: refusal only
 _CAN_PROBE = armflag.arm("TETHER_CAN_PROBE", default=True)
+# THE BODY RECORD STARTS WITH ITS LEDGER (the reviewer 2026-10-26 06:02): the @body side file was
+# opened "w" at each AGENT's first fold, so (B)'s fresh agent truncated the faulted one's rows
+# (PLAY11 r9: c0-c96 lost). Now "w" once per ledger object, "a" after. OFF: per agent, as before
+_BODY_APPEND = armflag.arm("TETHER_BODY_APPEND", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3987,8 +3991,13 @@ class Agent:
         self._body_rows.append(body)
         path = getattr(self.led, "_path", None)
         if path is not None:
-            with open(f"{path}.body.jsonl", "a" if self._fold_n > 1 else "w",
-                      encoding="utf-8") as fh:     # a fresh side file with each agent
+            # TETHER_BODY_APPEND: the side file starts with its LEDGER, not with each agent, so a
+            # fresh agent on the same ledger ((B)'s recovery) appends rather than truncating
+            fresh = (not getattr(self.led, "_body_opened", False) if _BODY_APPEND
+                     else self._fold_n <= 1)
+            if _BODY_APPEND:
+                self.led._body_opened = True
+            with open(f"{path}.body.jsonl", "w" if fresh else "a", encoding="utf-8") as fh:
                 fh.write(json.dumps(body) + "\n")
 
     def _size_fold(self) -> None:

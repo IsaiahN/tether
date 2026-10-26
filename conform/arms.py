@@ -888,6 +888,12 @@ ARMS: dict[str, str] = {
                         "first to System 0's TOUCH while the object exists, and it is spent when "
                         "TOUCH reaches it, pressed or abstained. OFF: the refusal alone, as "
                         "before. default ON",
+    "TETHER_BODY_APPEND": "THE BODY RECORD STARTS WITH ITS LEDGER (the reviewer 2026-10-26 06:02; "
+                          "PLAY11 r9's c0-c96 @body rows lost): Agent._consolidate opens "
+                          "{ledger}.body.jsonl 'w' once per ledger object (led._body_opened), "
+                          "'a' after, so (B)'s fresh agent on the same ledger appends instead of "
+                          "truncating the faulted agent's rows. No ledger row changes. OFF: 'w' "
+                          "at each agent's first fold, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
