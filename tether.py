@@ -24,7 +24,7 @@ import sys
 import time
 from collections import Counter
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, is_dataclass
 from dataclasses import replace as _replace
 from functools import cache, partial, wraps
 from typing import Any
@@ -789,6 +789,13 @@ _DEATH_VOTE = armflag.arm("TETHER_DEATH_VOTE", default=True)
 # it is held as the parent's subgoal (row subgoal_adopted, naming the operand read) and selected
 # while open; ends on arrival, on its own exhausted routes, or at the level. OFF: as before
 _SUBGOAL = armflag.arm("TETHER_SUBGOAL", default=True)
+# (6c) ROUTINES CARRIED BY KIND (the reviewer 2026-10-26 06:32, ruled; Fig 4 :22-24 "Only methods
+# cross up. Only head starts come down."): each settled routine is written in KIND FORM (every
+# slot by its kind key, a TOUCH object by its kind; a Call or Let is not carried) in the optional
+# generation field routines_by_kind, folded one row per kind form (lineage_store._counts_apply);
+# at load each is bound per level where every kind has exactly ONE slot here, and offered to the
+# routine mint as a CANDIDATE -- on trial, never settled. OFF: none of it, as before
+_ROUTINE_CARRY = armflag.arm("TETHER_ROUTINE_CARRY", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3179,6 +3186,11 @@ class Agent:
         self._last_press_key: tuple | None = None
         self._press_situ: tuple | None = None
         self._subgoal: dict | None = None   # (4g) R-C: {"parent", "sub"} while a detour is held
+        # (6c): kind forms loaded (key -> row), the keys this instance has written, and this
+        # level's bound candidates (None until first asked)
+        self._routines_in: dict = {}
+        self._rk_written: set = set()
+        self._rk_bound: list | None = None
         self._audit_at: int | None = None   # R-B: the cycle whose press was last audited
         # R-C: slot -> the correction its last overshoot owes; (slot, target) -> the oscillation
         # guard's last |gap| and its count of overshoots that did not shrink it
@@ -3737,6 +3749,7 @@ class Agent:
         self._gap, self._route_refused, self._route_run = {}, {}, {}
         self._route_stale = {}                       # (3c): this level's, like the refusals
         self._subgoal = None                         # (4g): slot names do not cross
+        self._rk_bound = None                        # (6c): bound again on the new board
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
         self._dw_tried = {}
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
@@ -8721,6 +8734,110 @@ class Agent:
             term = getattr(term, "operand_term", None)
         return out
 
+    def _routine_form(self, r: Any) -> Any:
+        """(6c): a routine as its KIND FORM, JSON-able, or None when any part is a name that means
+        nothing on another board (Call, Let, a repeat, a guard or object that is no slot/object)."""
+        if isinstance(r, IFace.Intent):
+            if r.repeat is not None or not r.subject:
+                return None
+            obj = r.object
+            if obj not in (None, "+", "-"):
+                if obj not in self._objs_named(r.subject) | {o for s in self.slots
+                                                            for o in self._objs_named(s)}:
+                    return None
+                obj = ["@kind", repr(self._kind(obj))]
+            return {"I": [type(r).__name__, r.kind, self._kind_key(r.subject), obj, r.value,
+                          getattr(r, "to", None)]}
+        if isinstance(r, Rt.Act):
+            act = self._routine_form(r.action)
+            return None if act is None else {"N": "Act", "f": {"action": act}}
+        if isinstance(r, (Rt.Call, Rt.Let)):
+            return None
+        if isinstance(r, str):                  # a guard: a slot name
+            return {"G": self._kind_key(r)} if r in self.slots else None
+        if isinstance(r, int) or r is None:
+            return {"V": r}
+        if not is_dataclass(r):
+            return None
+        parts = {}
+        for f in fields(r):
+            v = self._routine_form(getattr(r, f.name)) if f.name != "slot" else (
+                {"G": self._kind_key(r.slot)} if r.slot in self.slots else None)
+            if v is None and getattr(r, f.name) is not None:
+                return None
+            parts[f.name] = v
+        return {"N": type(r).__name__, "f": parts}
+
+    def routines_by_kind(self) -> list[dict]:
+        """(6c): the settled routines as kind-form rows {key, form, standing}, one per form."""
+        out: dict = {}
+        for r in self.routines:
+            cap.head()
+            form = self._routine_form(r)
+            if form is not None:
+                key = json.dumps(form, sort_keys=True)
+                out[key] = {"key": key, "form": form, "standing": "settled"}
+        return list(out.values())
+
+    def _carry_routines_in(self, rows: list) -> int:
+        """(6c) at load: the kind forms the lineage holds, one per key; bound per level later."""
+        self._routines_in.update({r["key"]: r for r in rows if r.get("key") and r.get("form")})
+        self._rk_written |= set(self._routines_in)      # already in the lineage: never rewritten
+        self._rk_bound = None
+        return len(self._routines_in)
+
+    def _bind_form(self, x: Any, slots: dict, objs: dict) -> Any:
+        """(6c): a kind form back onto THIS board; raises KeyError where a kind has not exactly
+        one slot (or object) here -- the identity-sure rule of 6b."""
+        if "I" in x:
+            cls, kind, sk, obj, val, to = x["I"]
+            sub = slots[sk]
+            if isinstance(obj, list):
+                obj = objs[obj[1]]
+            if cls == "Specific":
+                return IFace.Specific(kind, sub, obj, value=val, to=to)
+            return IFace.Intent(kind, sub, obj, value=val)
+        if "G" in x:
+            return slots[x["G"]]
+        if "V" in x:
+            return x["V"]
+        cls = getattr(Rt, x["N"])
+        kw = {k: (None if v is None else self._bind_form(v, slots, objs))
+              for k, v in x["f"].items()}
+        if x["N"] == "Act":
+            return Rt.Act(kw["action"])
+        return cls(**kw)
+
+    def _carried_cands(self) -> list:
+        """(6c): this level's carried routines bound onto this board, once per level; each
+        offered as a candidate (on trial). Rows routine_bound / routine_unbound per level."""
+        if self._rk_bound is not None:
+            return self._rk_bound
+        self._rk_bound = []
+        if not self._routines_in:
+            return self._rk_bound
+        bys: dict = {}
+        for s in self.slots:
+            bys.setdefault(self._kind_key(s), []).append(s)
+        byo: dict = {}
+        for o in sorted({o for s in self.slots for o in self._objs_named(s)}):
+            byo.setdefault(repr(self._kind(o)), []).append(o)
+        slots = {k: v[0] for k, v in bys.items() if len(v) == 1}
+        objs = {k: v[0] for k, v in byo.items() if len(v) == 1}
+        unbound = 0
+        for _key, row in sorted(self._routines_in.items()):
+            cap.head()
+            try:
+                self._rk_bound.append(self._bind_form(row["form"], slots, objs))
+            except (KeyError, TypeError, AttributeError):
+                unbound += 1
+        self.led.record(self.cycle, "PLAN", "@routines", "routine_bound",
+                        carried=len(self._routines_in), bound=len(self._rk_bound),
+                        unbound=unbound,
+                        reads="carried routines by kind, bound where each kind has one slot here; "
+                              "offered on trial, never settled (6c)")
+        return self._rk_bound
+
     def _subgoal_end(self, how: str) -> None:
         sg, self._subgoal = self._subgoal, None
         if sg is not None:
@@ -13522,6 +13639,9 @@ class Agent:
         _step = self._goal_want if self._goal_want is not None else act
         cands = Rt.enumerate_routines((_step,), gnames + self._compound_guards(slot, gnames),
                                       shelf, loop_budget)
+        if _ROUTINE_CARRY:
+            # (6c): the lineage's routines, bound by kind, stand as candidates: on trial
+            cands = [*cands, *(c for c in self._carried_cands() if c not in cands)]
         # WEIGHTED AND CLOCKED, per §18.2 via `gamma.Standing`: a refutation excludes only while
         # its decaying strength stands, so a failed shape leaves the running and returns.
         _offered, _gap0 = len(cands), self._characterise_gap(slot)

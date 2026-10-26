@@ -602,6 +602,12 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                                   for k, n in sorted(c.items())
                                   if n > ag._3a_written.get(fam, {}).get(k, 0)}
                             for fam, c in _hazard_families(ag._3a_hazard).items()}
+    if tether._ROUTINE_CARRY and hasattr(ag, "routines_by_kind"):
+        # (6c): the settled routines in kind form not yet in the lineage; absent when none, so a
+        # generation with nothing to carry is written exactly as before
+        rk = [r for r in ag.routines_by_kind() if r["key"] not in ag._rk_written]
+        if rk:
+            gen["routines_by_kind"] = rk
     if fc is not None:
         # item 4: the generation names how its game ended; the faulted cycle's stamped entries
         # are not in it (above); its unstamped structures (kind episodes, counters) are as built
@@ -648,6 +654,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._3a_written = {f: dict(c) for f, c in _hazard_families(ag._3a_hazard).items()}
         if "entry_use" in gen:
             ag._entry_use_written = {k: dict(c) for k, c in ag._entry_use.items()}
+        if "routines_by_kind" in gen:
+            ag._rk_written |= {r["key"] for r in gen["routines_by_kind"]}
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -1058,6 +1066,9 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         rep["root_shapes_in"] = len(ag._root_grade_in)
     if tether._M7_INV and hasattr(ag, "_reinvent_carried"):
         rep["inventions_in"] = ag._reinvent_carried(list(c.get("inventions", [])))
+    if tether._ROUTINE_CARRY and hasattr(ag, "_carry_routines_in"):
+        # (6c): one row per kind form (the store's fold); absent in an older store: none
+        rep["routines_in"] = ag._carry_routines_in(list(c.get("routines_by_kind", {}).values()))
     if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
         for site, d_ in c.get("kind_counts", {}).items():
             ag._kind_carried_in.setdefault(site, {}).update(d_)
@@ -1263,6 +1274,10 @@ def load(d: str | Path, ag: Any) -> dict:
         # M7-INV: every generation's inventions, root to tip, re-invented on trial
         rep["inventions_in"] = ag._reinvent_carried(
             [r for _h, g in chain for r in g.get("inventions", ())])
+    if tether._ROUTINE_CARRY and hasattr(ag, "_carry_routines_in"):
+        # (6c): root to tip, one row per kind form, the latest standing kept
+        rk = {r["key"]: r for _h, g in chain for r in g.get("routines_by_kind", ())}
+        rep["routines_in"] = ag._carry_routines_in(list(rk.values()))
     if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
         # 7h (h): the kind counts of every generation, root to tip, read as A1's second key
         for _h, g in chain:
