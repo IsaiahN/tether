@@ -135,7 +135,7 @@ def _offers(on: bool) -> dict:
 def check_d_must_hold_budget_never_reached_equals_off() -> None:
     # each arm in its own fresh process: two agents in one process share state (the reviewer
     # 2026-10-26 12:12; OFF against OFF in one process differed on 160 of 196 slots)
-    env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", TETHER_AGENT_SEED="0")
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0")
 
     def run(arm: str) -> dict:
         p = subprocess.run([sys.executable, __file__, "--offers", arm], env=env,
