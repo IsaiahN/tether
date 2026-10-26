@@ -140,8 +140,9 @@ def _may_bind(cand: Any, slot_type: str | None) -> bool:
         return True
     return out == slot_type and out in REPR_AGREES and _head_accepts(cand, slot_type)
 
-# F127's arm B. Seat-side and off unless asked for, so the default build is byte-identical.
-_TYPED_BIND = armflag.arm("TETHER_TYPED_BIND")
+# L3, ON AS AN ORDERING (Isaiah 2026-10-26 08:24; the reviewer 08:30): a binding whose head
+# does not accept the slot type is walked LAST, in its own late round -- never refused.
+_TYPED_BIND = armflag.arm("TETHER_TYPED_BIND", default=True)
 # F130 arm C: supply `_library_fit`'s retrieval the relation channel its two
 # sibling call sites already pass. Seat-side, off by default.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -497,7 +498,9 @@ _NOT_ATOM = armflag.arm("TETHER_NOT_ATOM")
 # AND DEFAULT OFF BECAUSE THE FILE RECORDS THIS FAILING BEFORE: *the version that DROPPED
 # operand-reading terms when R showed no dependence on another slot LOST A CLOSING TERM.*
 # Different rule, same family. `distinct compositions must not fall` is the falsifier.
-_DELTA_OPERANDS = armflag.arm("TETHER_DELTA_OPERANDS")
+# L2 (Isaiah 2026-10-26 08:24; the reviewer 08:30): NOW AN ORDERING, so ON -- world-moved, then
+# self-moved, then contact partners, then every other slot, at both sites; nothing is dropped.
+_DELTA_OPERANDS = armflag.arm("TETHER_DELTA_OPERANDS", default=True)
 # ITEM 6, THE RE-KEY. Was default OFF. `F303` measured the key BEFORE this was built: a GLOBAL frame
 # delta is saturated at every granularity that crosses boards -- types 100% of cycles, attribute
 # names 91% -- because *did ANY slot of this type move ANYWHERE* is always yes across 1,688
@@ -532,9 +535,12 @@ _LIBRARY_FIRST = armflag.arm("TETHER_LIBRARY_FIRST", default=True)
 # the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. Inert unless a term reading an
 # earlier frame is bound (TETHER_PREV_OFFER).
 _UNSEAL_START = armflag.arm("TETHER_UNSEAL_START", default=True)
-# THE HISTORY WINDOW (R3 item 2; Isaiah's H1; the reviewer 18:10Z, 18:15Z). OFF; reason in
-# conform/arms.py. Lags `slot~j` offered after every other binding, ranked; the budget bounds them.
-_WINDOW = armflag.arm("TETHER_WINDOW")
+# THE HISTORY WINDOW (R3 item 2; Isaiah's H1; the reviewer 18:10Z, 18:15Z), REVAMPED AS THE
+# LOOK-BACK (L1; Isaiah 2026-10-26 08:24 "revamp the history window to work better with the new
+# system and not overpower"; the reviewer 08:30): evidence lags only, depth-bounded, walked in a
+# round of their own after the present frame's, and only when the governor says think. ON; see
+# conform/arms.py.
+_WINDOW = armflag.arm("TETHER_WINDOW", default=True)
 # B2b's round 3 (the reviewer 2026-10-11 10:57 CDT): derived binds walked last; reason in
 # conform/arms.py under TETHER_RELATION_SET.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -801,6 +807,10 @@ _REENGAGE = armflag.arm("TETHER_REENGAGE", default=True)
 # at load each is bound per level where every kind has exactly ONE slot here, and offered to the
 # routine mint as a CANDIDATE -- on trial, never settled. OFF: none of it, as before
 _ROUTINE_CARRY = armflag.arm("TETHER_ROUTINE_CARRY", default=True)
+# THE GOVERNOR, THINK OR ACT (Isaiah 2026-10-26 08:24; the reviewer 08:30): one function,
+# Agent._think_or_act, read by the look-back (L1), the typed-late round (L3) and the widened streams
+# (L4) before each walks: closer_found / urgent / probe_first / ok. OFF: they walk without the gate
+_THINK_OR_ACT = armflag.arm("TETHER_THINK_OR_ACT", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -1971,7 +1981,9 @@ def _replace_lib(lib: Any) -> Any:
 # ABORT CRITERIA, declared before the first run and unchanged: candidates tried rises while
 # arrivals do not -> OFF; calls-per-cycle growth steepens against the control -> OFF; binds
 # per candidate rises -> OFF. Each is a RESULT, not a failure.
-_STREAM_WIDEN = armflag.arm("TETHER_STREAM_WIDEN")
+# L4, ON UNDER THE SHARE (Isaiah 2026-10-26 08:24; the reviewer 08:30): the widened streams draw
+# only after every base stream has stopped in the round, and only if the governor says think.
+_STREAM_WIDEN = armflag.arm("TETHER_STREAM_WIDEN", default=True)
 # D2, STREAM SHARE (the reviewer 2026-10-12 05:43, 06:19 CDT): within a round, the stream that has
 # spent the least rank takes the next candidate (Fig 6: distribute the search, keep the searchers
 # independent), and a stream stops at its OWN kind's floor. ON; reason in conform/arms.py.
@@ -3080,6 +3092,7 @@ class Agent:
         self._entry_use_written: dict = {}   # 1b: the counts already written to a generation
         self._entry_use_in: dict = {}      # 1b: the same, carried in by the lineage (summed)
         self._3a_aim: dict = {}            # E2 D2: (epoch, trace index) -> the object meant
+        self._reaff_at: dict = {}          # L1: trace index -> that step's (2a) reafferent slots
         self._seam_now = False             # B: this step's outcome was a frame break (a seam)
         self._window_at = 0                # C: history() reads the trace from here (the last break)
         self._3a_hazard = diagnose.Hazard()   # E2: world/own counts per spot, kind, actor
@@ -3256,6 +3269,7 @@ class Agent:
         # spent its whole life not acting.
         self._last_commit = 0
         self._last_progress = 0   # (6d): the cycle an objective gap last shrank
+        self._probe_wait: dict = {}   # the governor: slot -> (cycle, what could be probed then)
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
         self._overrides: list[tuple[float, bool, int]] = []
@@ -3735,6 +3749,7 @@ class Agent:
         self._held_level = ({"bound": dict(self.bound), "route_refused": dict(self._route_refused)}
                             if how == "death" and _DEATH_KEEPS else None)
         self.bound, self.trace = {}, []
+        self._reaff_at = {}        # L1: keyed by trace index, so it restarts with the trace
         self._window_at = 0        # C: the trace restarts, so does its window
         self._served = {}          # (iv): a served binding does not cross the boundary either
         self._parts, self._d5_pending, self._shadow = {}, {}, {}
@@ -9395,11 +9410,13 @@ class Agent:
         # not exist yet, so this claims the smaller thing and says so.
         # THE CONTEXT KEY IS READ BEFORE THE STEP, because it is the contact present WHEN THE
         # ACTION WAS TAKEN -- reading it after would key an effect by the world the effect made.
+        _reaff = (self._reafferent(after) if _REAFFERENCE and not self._seam_now
+                  else frozenset())
         if not self._seam_now and self.iface.audit(
                 _real, before, after, _ctx,
                 IFace.Interface.context(self.env) if IFace._DEST_GAP else None,
                 own=self._own_clock_keys() if _OWN_CLOCK_SUBJECT else frozenset(),
-                reaff=self._reafferent(after) if _REAFFERENCE else frozenset(),
+                reaff=_reaff,
                 meant=self._meant(action) if IFace._IA_SERVED else None):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
@@ -9595,6 +9612,8 @@ class Agent:
                                self._intent_now.kind if self._intent_now is not None
                                else NO_INTENT,
                                self._last_landed))
+            if _WINDOW:
+                self._reaff_at[len(self.trace) - 1] = _reaff   # L1 orders own-press frames by it
         if _3A_DIAGNOSE and not self._seam_now:
             # D2's aim: the object the act was MEANT for (the intent's subject), beside where the
             # press landed; None where no intent named one (D2 is then skipped, never guessed)
@@ -9651,11 +9670,18 @@ class Agent:
         the lookup's. So re-keying route (b) without this MOVES the cost rather than removing
         it. Reviewer's ruling, 2026-09-22: conflict 4 applies at both sites.
 
-        IT EXCLUDES (corrected 2026-10-09): a NON-EMPTY kept set drops every slot outside it
-        (`return keep or others`); only an EMPTY one falls back to the full list. So it is a
-        cut, not an ordering, and arming it ON owes the must-hold the ~1 narrowing carries:
-        no closer the unarmed run finds may be lost.
+        IT EXCLUDED (corrected 2026-10-09): a NON-EMPTY kept set dropped every slot outside it,
+        a cut. L2 (Isaiah 2026-10-26 08:24; the reviewer 08:30; Fig 9 :60 "Use filters for the
+        budget and witnesses for the verdict"): it is now an ORDER over ALL candidates -- the
+        slots the world moved (moved, less 2a's self-movers) first, then the self-moved, then
+        their contact partners, then every other slot; the budget cuts. See _delta_tier.
         """
+        tier = self._delta_tier(others, robs)
+        return sorted(others, key=lambda x: tier.get(x, 3))
+
+    def _delta_tier(self, others: list, robs: list) -> dict:
+        """L2's tiers: 0 world-moved on the residual frames, 1 self-moved (2a: every owner of the
+        slot is a self-mover now), 2 a contact partner of a moved slot, 3 the rest (absent)."""
         after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
         moved: set = set()
         for st, _a, _v, _intent, _landed in robs:
@@ -9665,19 +9691,22 @@ class Agent:
                 continue
             moved |= {k for k, v in st.items() if k in aft and aft[k] != v}
         if not moved:
-            return others
+            return {}
+        selfm = self._self_moved_now
+        tier = {k: (1 if selfm and (o := self._objs_named(k)) and o <= selfm else 0)
+                for k in moved}
         own = self._slot_owners(self.env)
         tch = getattr(self.env, "contacts", None)
-        grown = set(moved)
         if tch is not None and own:
             adj_of = tch()
             nearby: set = set()
             for m in moved:
                 cap.head()
                 nearby |= set(adj_of.get(own.get(m), ()))
-            grown |= {x for x in others if own.get(x) in nearby}
-        keep = [x for x in others if x in grown]
-        return keep or others
+            for x in others:
+                if x not in tier and own.get(x) in nearby:
+                    tier[x] = 2
+        return tier
 
     def _rebindings(self, term: Term, slot: str, guards=None, robs: list | None = None):
         """The term as held, then -- only if it arrived unbound and reads an operand -- the
@@ -10022,7 +10051,7 @@ class Agent:
                 r.pop("mode", None)
             return tuple(rs)
 
-        def _judge(cand, price, n):
+        def _judge(cand, price, n, late=False):
             nonlocal _uf
             _n0 = self.led.written
             # BEFORE `_explains`, and separately from it: may this BIND is a type question
@@ -10030,18 +10059,11 @@ class Agent:
             # would put two quantities under one name at the site that decides both.
             if not _may_bind(cand, _st):
                 return False, None, None, _since(_n0)
-            # F127 EXPERIMENT, SEAT-SIDE SWITCH, DEFAULT OFF. The line above filters the OUT
-            # type and nothing filters the IN type against the slot's, so `none` -- a
-            # zero-test typed `PRED` -- binds to an EXTENT slot and reads `int(not width)`,
-            # unsatisfiable because a width is never 0. 354 of 424 measured mismatches are
-            # that one atom. The comment two lines up already says binding is a type
-            # question; it checks the wrong end.
-            #
-            # NOT ON BY DEFAULT because removing 354 bindings changes every board and the
-            # replacement is unmeasured -- those slots may simply lose their objective. An
-            # env switch so the two arms are one build and the comparison is real.
-            if _TYPED_BIND and not _head_accepts(cand, _st):
-                return False, None, None, _since(_n0)
+            # F127: the line above filters the OUT type and nothing filtered the IN type, so
+            # `none` bound an EXTENT slot and read `int(not width)`. L3: such a head is DEFERRED
+            # (None) to the late round, never refused; `late` is that round's own judging.
+            if _TYPED_BIND and not late and not _head_accepts(cand, _st):
+                return None, None, None, _since(_n0)
             if not price:
                 return True, None, None, _since(_n0)
             _left = self._left(cand, slot, hist)
@@ -10065,77 +10087,113 @@ class Agent:
             _cost = self._bits((cand, _units))
             return True, _left, _cost, _since(_n0, _n1, _n2)
 
-        for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
-                                    youth=self.gamma.youth_of):
-            cap.head()
-            if n == exclude or (self._not and self._term_refused(n, _gk)):
-                continue
-            # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
-            # name is an instance, so an IMPORTED operand-reading term is `idn` here -- both
-            # `translate` and `recolour` return `v` on empty operands -- and `_explains` tests
-            # behaviour, so it could never explain a slot that moves. Binding is re-decided at
-            # the destination for every locally minted term; the import path never did it.
-            #
-            # ONLY IMPORTS PAY THIS. Every term made here carries its binding, so the candidates
-            # are exactly the loaded ones, and a cold run adds nothing. Typed by
-            # `_operand_fits`, which is the same filter the mint uses.
-            _lt = self.gamma.library[n]
-            if _FIT_DEDUP:
-                _cands = _dd_reb.get(_lt)
-                if _cands is None or _FIT_DEDUP_CHECK:
-                    _fresh = list(self._rebindings(_lt, slot, _guard_pool, _robs))
-                    if _cands is not None:
-                        self._dedup_check(slot, n, "rebindings", _fresh == _cands)
-                    _cands = _dd_reb[_lt] = _fresh
-            else:
-                _cands = self._rebindings(_lt, slot, _guard_pool, _robs)
-            for _i, cand in enumerate(_cands):
+        # L3's late round: what `_judge` deferred is walked after every typed candidate, once
+        # per candidate, if the governor says think; `typed_late` records walked and closed.
+        _late: dict = {}
+        _late_keys: set = set()
+        _lw: dict = {}
+
+        def _late_row(took):
+            if _lw:
+                self.led.record(self.cycle, "ROUTE", slot, "typed_late",
+                                deferred=_lw["deferred"], walked=_lw["walked"],
+                                gate=_lw["gate"], closed=int(took in _late_keys),
+                                reads="heads not accepting the slot type, walked last")
+                _lw.clear()
+
+        def _pairs():
+            for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
+                                        youth=self.gamma.youth_of):
                 cap.head()
-                if _i == 0:
-                    cand = _lt          # the name's own object, as _rebindings yields it first
-                if _FIT_DEDUP and _BARGAIN_FIT:
-                    _v = _dd_cand.get(cand)
-                    if _v is None or _FIT_DEDUP_CHECK:
-                        _fresh = _judge(cand, True, n)
-                        if _v is not None:
-                            self._dedup_check(slot, n, "candidate", _fresh == _v)
-                        _v = _dd_cand[cand] = _fresh
-                    else:
-                        self._replay_rows(_v[3])
-                    _ok, _left, _cost, _ = _v
-                else:
-                    _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n)
-                if not _ok:
+                if n == exclude or (self._not and self._term_refused(n, _gk)):
                     continue
-                # F32 ARM D, **ON BY DEFAULT SINCE 2026-09-30**. `_explains` is `_left(...) == 0.0`,
-                # and ISAIAH RULED THAT OUT: *the residual NEVER fully closes -- the corpus would
-                # have told you that. That kills `left == 0.0` outright.* Figure 5's "stating it,
-                # PLUS WHAT REMAINS UNEXPLAINED AFTER IT" is vacuous under a zero-remainder rule,
-                # and Figure 13 lists "no remainder left after each step" as a FAILURE condition.
+                # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
+                # name is an instance, so an IMPORTED operand-reading term is `idn` here -- both
+                # `translate` and `recolour` return `v` on empty operands -- and `_explains` tests
+                # behaviour, so it could never explain a slot that moves. Binding is re-decided at
+                # the destination for every locally minted term; the import path never did it.
                 #
-                # THE REPAIR EXISTED AND DID NOT REACH HERE, AND NOW IT DOES. The reuse sweep
-                # cited F32 at its own site and accepted on the ONE BARGAIN while this path kept
-                # the old test, so retrieval refused every partial improvement -- which is what
-                # 200 `reach_failed` rows were, and the arity-2 split followed, a multi-slot
-                # history rarely closing to zero. Same baseline as the sweep: what the currently
-                # bound term leaves.
-                if _BARGAIN_FIT:
-                    if _CARRY_PRICE:
-                        # EVERY payer is collected and the lowest WHOLE price wins (H3: first is
-                        # not best); `_today` is the one the arm-OFF walk would have returned.
-                        if _today is None and pays(_cost, _left, _base):
-                            _today = (n, cand.name)
-                        _cred = self._carry_credit(n, cand, slot, _left, _base, _held_t,
-                                                   _carry_robs)
-                        _price = _ref + _left if _cred else _cost + _left
-                        if _price < _base:
-                            _paying.append((_price, len(_paying), n, cand, _cred, _left, _cost))
-                        continue
-                    if not pays(_cost, _left, _base):
-                        continue
-                elif not self._explains(cand, slot, hist):
+                # ONLY IMPORTS PAY THIS. Every term made here carries its binding, so the candidates
+                # are exactly the loaded ones, and a cold run adds nothing. Typed by
+                # `_operand_fits`, which is the same filter the mint uses.
+                _lt = self.gamma.library[n]
+                if _FIT_DEDUP:
+                    _cands = _dd_reb.get(_lt)
+                    if _cands is None or _FIT_DEDUP_CHECK:
+                        _fresh = list(self._rebindings(_lt, slot, _guard_pool, _robs))
+                        if _cands is not None:
+                            self._dedup_check(slot, n, "rebindings", _fresh == _cands)
+                        _cands = _dd_reb[_lt] = _fresh
+                else:
+                    _cands = self._rebindings(_lt, slot, _guard_pool, _robs)
+                for _i, cand in enumerate(_cands):
+                    cap.head()
+                    if _i == 0:
+                        cand = _lt      # the name's own object, as _rebindings yields it first
+                    yield n, cand, False
+            if not _late:
+                return
+            _walk, _why = self._think_or_act(slot, closer=bool(_paying))
+            _lw.update(deferred=len(_late), gate=_why, walked=0)
+            if not _walk:
+                _late_row(None)
+                return
+            for cand, n in _late.items():
+                cap.head()
+                _lw["walked"] += 1
+                _late_keys.add((n, cand.name))
+                yield n, cand, True
+
+        for n, cand, _is_late in _pairs():
+            if _is_late:
+                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n, late=True)
+            elif _FIT_DEDUP and _BARGAIN_FIT:
+                _v = _dd_cand.get(cand)
+                if _v is None or _FIT_DEDUP_CHECK:
+                    _fresh = _judge(cand, True, n)
+                    if _v is not None:
+                        self._dedup_check(slot, n, "candidate", _fresh == _v)
+                    _v = _dd_cand[cand] = _fresh
+                else:
+                    self._replay_rows(_v[3])
+                _ok, _left, _cost, _ = _v
+            else:
+                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n)
+            if _ok is None:
+                _late.setdefault(cand, n)
+                continue
+            if not _ok:
+                continue
+            # F32 ARM D, **ON BY DEFAULT SINCE 2026-09-30**. `_explains` is `_left(...) == 0.0`,
+            # and ISAIAH RULED THAT OUT: *the residual NEVER fully closes -- the corpus would
+            # have told you that. That kills `left == 0.0` outright.* Figure 5's "stating it,
+            # PLUS WHAT REMAINS UNEXPLAINED AFTER IT" is vacuous under a zero-remainder rule,
+            # and Figure 13 lists "no remainder left after each step" as a FAILURE condition.
+            #
+            # THE REPAIR EXISTED AND DID NOT REACH HERE, AND NOW IT DOES. The reuse sweep
+            # cited F32 at its own site and accepted on the ONE BARGAIN while this path kept
+            # the old test, so retrieval refused every partial improvement -- which is what
+            # 200 `reach_failed` rows were, and the arity-2 split followed, a multi-slot
+            # history rarely closing to zero. Same baseline as the sweep: what the currently
+            # bound term leaves.
+            if _BARGAIN_FIT:
+                if _CARRY_PRICE:
+                    # EVERY payer is collected and the lowest WHOLE price wins (H3: first is
+                    # not best); `_today` is the one the arm-OFF walk would have returned.
+                    if _today is None and pays(_cost, _left, _base):
+                        _today = (n, cand.name)
+                    _cred = self._carry_credit(n, cand, slot, _left, _base, _held_t,
+                                               _carry_robs)
+                    _price = _ref + _left if _cred else _cost + _left
+                    if _price < _base:
+                        _paying.append((_price, len(_paying), n, cand, _cred, _left, _cost))
                     continue
-                return self._take_pull(n, cand, slot)
+                if not pays(_cost, _left, _base):
+                    continue
+            elif not self._explains(cand, slot, hist):
+                continue
+            _late_row((n, cand.name))
+            return self._take_pull(n, cand, slot)
         if _paying:
             price, _o, n, cand, cred, left_, cost_ = min(_paying, key=lambda x: (x[0], x[1]))
             book = self.gamma.book
@@ -10151,6 +10209,7 @@ class Agent:
                      "first_in_order": None if _today is None else _today[1],
                      "carried": (cred and (self.gamma.stamps.get(n) or {}).get("seq", 0)
                                  < self._seq_at_level)}
+            _late_row((n, cand.name))
             out = self._take_pull(n, cand, slot, carry=carry)
             if cred:
                 self._carry_log[(out, slot)] = {
@@ -10161,6 +10220,7 @@ class Agent:
         # REACHED AND FAILED, WHICH IS THE HALF NOTHING COULD SEE. *I looked for something with
         # this shape and found nothing* is an UNREACHED with a subject, and a retrieval that
         # returns nothing leaves no other trace at all.
+        _late_row(None)
         self.led.record(self.cycle, "ROUTE", slot, "reach_failed",
                         reads="described the gap and the library held nothing that explains it")
         return None
@@ -13349,6 +13409,45 @@ class Agent:
             return _IDLE_RELIEF, False
         return max(1.0, (cs[-1] - cs[0]) / (len(cs) - 1)), True
 
+    def _think_or_act(self, slot: str, closer: bool) -> tuple[bool, str]:
+        """THE GOVERNOR, think or act (Isaiah 2026-10-26 08:24: "its in a similar position to
+        overthinking versus when action is better, and some sort of reasoning in that vein should
+        hamper it"; the reviewer 08:30). Whether a description-side extension of the search (the
+        look-back, the typed-late round, the widened streams) is walked for `slot` in this mint,
+        and why. Fig 12 :125-130: search costs bits, finding out costs actions, the two are read
+        apart and never summed. In the agent's own units, no wall clock:
+          closer_found  a present-frame binding already closed in this mint;
+          urgent        steps since progress (6d) have already lowered the commit bar to its
+                        floor (idle / relief rate >= _QUORUM_HALF, the accumulator's own relief);
+          probe_first   an action could test the slot's object first: 3d's held probe names it,
+                        or an advertised action has never been tried (the table holds no entry);
+          probe_declined  the same probes were open at an earlier cycle's ask for this slot and
+                        none was taken since: the agent chose not to act, so it may think (the
+                        reviewer 2026-10-26 08:47, so an untaken probe cannot starve the walk);
+          ok            none of these: walk."""
+        if not _THINK_OR_ACT:
+            return True, "ok"
+        if closer:
+            return False, "closer_found"
+        idle = self.cycle - (self._last_progress if _URGENCY_PROGRESS else self._last_commit)
+        rate, _earned = self._relief_rate()
+        if idle / rate >= _QUORUM_HALF:
+            return False, "urgent"
+        probe = getattr(self, "_can_probe", None)
+        held = (probe if _CAN_PROBE and probe is not None and probe in self._objs_named(slot)
+                else None)
+        untried = frozenset(a for a in self.actions
+                            if a != IFace.RESET and a not in self.iface.table)
+        if held is not None or untried:
+            open_ = (held, untried)
+            was = self._probe_wait.get(slot)
+            if was is not None and was[1] == open_ and was[0] < self.cycle:
+                return True, "probe_declined"
+            if was is None or was[1] != open_:
+                self._probe_wait[slot] = (self.cycle, open_)
+            return False, "probe_first"
+        return True, "ok"
+
     @staticmethod
     def _gap_key(gap: dict) -> tuple:
         """THE NAME-FREE HALF of a characterised gap. What a failure is filed under so it can
@@ -14953,15 +15052,15 @@ class Agent:
         another slot LOST A CLOSING TERM -- `_cannot_pay` records it. Ranking cannot:
         every binding is still reached, and since the mint breaks on the first closer,
         order decides WHICH closer is found and never WHETHER one exists."""
-        others = [s for s in self.slots if s != slot]
-        if _DELTA_OPERANDS and robs:
-            others = self._delta_narrowed(others, robs)
+        others = [s for s in self.slots if s != slot]   # L2 orders them at the end, never cuts
         # `*_` -- this row gained the INTENT on 2026-09-29 and this site was missed twice:
         # once by scoping the search to one file, once by EXCLUDING that file from the
         # repo-wide search. The pattern, not the file, is what has to be searched.
         seen = {s: len({st[s] for st, _a, _v, _i, _l in robs if s in st}) for s in others}
         # ITS OWN PREVIOUS VALUE, ONE CANDIDATE, ordered like the rest by how much it varies.
-        if _PREV_OFFER and not _WINDOW:      # under the window ~1 is one lag of the block below
+        # ~1 belongs to PREV_OFFER, window or not; the look-back offers j >= 2 (the reviewer
+        # 2026-10-26 09:43: under L1 the window offers evidence lags only, so ~1 was cut)
+        if _PREV_OFFER:
             mine = slot + PREV
             seen[mine] = len({v for v in (self._operand_value(mine, st)
                                           for st, _a, _v, _i, _l in robs)
@@ -15021,6 +15120,11 @@ class Agent:
         else:
             out = [None] + sorted(others, key=lambda s: (s in _der, *rank(s), s not in lib,
                                                          -seen[s], s))
+        if _DELTA_OPERANDS and robs:
+            # L2: the delta's tier is the first key, the order above breaks its ties (a stable
+            # sort); every slot is still offered, the budget cuts (Fig 9 :60)
+            _tier = self._delta_tier(others, robs)
+            out = [None] + sorted(out[1:], key=lambda s: _tier.get(s, 3))
         if _WINDOW:
             out += self._window_lags(slot, robs)
         return out
@@ -15032,14 +15136,31 @@ class Agent:
         filter (Fig 9): the budget decides how far down it is walked, and what it does not reach
         is counted in the mint's record."""
         reach = len(self.trace) - 1
-        recs = [self._lag_evidence(slot, robs, j) for j in range(1, reach + 1)]
-        order = ([r["j"] for r in recs if r["evidence"]]
-                 + [r["j"] for r in recs if not r["evidence"]])
+        lo = 2 if _PREV_OFFER else 1           # ~1 is PREV_OFFER's, offered in its own place
+        recs = [self._lag_evidence(slot, robs, j) for j in range(lo, reach + 1)]
         no_ev = [r for r in recs if not r["evidence"]]
-        self._window_info[slot] = {"offered": len(order),
-                                   "evidence": [r for r in recs if r["evidence"]],
+        # L1 THE LOOK-BACK: only lags the residual's own record names (evidence), at most the
+        # deepest such lag and at most 4f's effect window where a bound term reads a lag. Order:
+        # the frames the agent's own press moved the slot (changed, and not in that step's 2a
+        # reafferent set), then the frames it changed anyway, then nearest. No new constant.
+        # ALIGNED: from the live frame `slot~j` reads trace[-j]'s BEFORE (`_prev_of`), the value
+        # step -j then acted on, so step -j is the step whose change ranks lag j.
+        ev = [r for r in recs if r["evidence"]]
+        top = max((r["j"] for r in ev), default=0)
+        win = self._effect_window(slot)
+        top = min(top, win) if win else top
+        keep = [r for r in ev if r["j"] <= top]
+        n = len(self.trace)
+        reaff = getattr(self, "_reaff_at", {})
+        moved = {j: (1 if slot in reaff.get(n - j, ()) else 0) for j in range(1, n + 1)
+                 if self.trace[-j][0].get(slot) != self.trace[-j][2].get(slot)}
+        order = [r["j"] for r in sorted(keep, key=lambda r: (moved.get(r["j"], 2), r["j"]))]
+        self._window_info[slot] = {"offered": len(order), "evidence": keep,
+                                   "beyond_depth": len(ev) - len(keep),
+                                   "no_evidence_not_walked": len(no_ev),
                                    "tested_no_evidence": sum(1 for r in no_ev if r["recurred"]),
-                                   "untested": sum(1 for r in no_ev if not r["recurred"])}
+                                   "untested": sum(1 for r in no_ev if not r["recurred"]),
+                                   "gate": None}
         return [f"{slot}~{j}" for j in order]
 
     @_in_step("MINT")
@@ -15338,6 +15459,7 @@ class Agent:
         wanted: tuple[float, Term, int] | None = None
         rank = 0
         _share: dict = {}        # D2: per-stream rank/pays/turns, recorded under the arm
+        _widen: dict = {}        # L4: the widened streams' kinds and the governor's gate per round
         _skey = _hit = None
         priced, _skipped = {}, 0
 
@@ -15355,8 +15477,11 @@ class Agent:
             operand_binds = self._bindings(slot, robs)
             _no_ev: set = set()                  # item 2b: the lags pass 2 walks
             if _WINDOW and slot in self._window_info:
-                _evn = {f"{slot}~{r['j']}" for r in self._window_info[slot]["evidence"]}
-                _no_ev = {b for b in operand_binds if b and lag_of(b) and b not in _evn}
+                # L1: the look-back offers evidence lags only, and they take a round of their own
+                # after the present frame's, so a lag never takes rank from a present binding.
+                # PREV_OFFER's ~1 stays in round 1, ungated, as with the window OFF.
+                _no_ev = {b for b in operand_binds if b and lag_of(b)
+                          and not (_PREV_OFFER and b == slot + PREV)}
             # B2b TWO ROUNDS (the reviewer 2026-10-11 10:57 CDT): derivation order across the
             # whole chain x bind enumeration, where the budget is charged. A DERIVED bind (a pair
             # relation, or a lag of one) is walked in a LAST round over the chains round 1
@@ -15388,7 +15513,7 @@ class Agent:
             stype = self.slot_types.get(slot)
             if stype:
                 streams.append((stype, OBJ_TYPE))
-            # THE out_type WIDENING -- Isaiah's 3A, arm `TETHER_STREAM_WIDEN`, default OFF.
+            # THE out_type WIDENING -- Isaiah's 3A, arm `TETHER_STREAM_WIDEN`, default ON (L4).
             #
             # THESE TWO STREAMS ARE THE COMPOSITION CEILING, measured rather than argued: the
             # agent mints 74 multi-atom terms on `ar25` and gets FOUR distinct compositions --
@@ -15402,12 +15527,17 @@ class Agent:
             # involves -- the graph says which pairs are LEGAL, the delta says which are
             # RELEVANT NOW. Widening to the graph's capacity would rebuild the enumeration
             # explosion deliberately.
+            # L4: streams from _nbase on are the widened ones; each round holds them back until
+            # every base stream has stopped, then the governor decides whether they draw.
+            _nbase = len(streams)
             if _STREAM_WIDEN and stype:
                 seen_out = {o for _i, o in streams}
                 for t in (gap.get("varies_types") or ()):
                     if t and t not in seen_out:
                         streams.append((stype, t))
                         seen_out.add(t)
+            if len(streams) > _nbase:
+                _widen.update(streams=[_kind_of(s[1]) for s in streams[_nbase:]], gate={})
             # THE THIRD STREAM IS WITHDRAWN, AND THE REASON IS A DEFECT IT INTRODUCED.
             # `OBJECT -> OBJ` was legitimate once `Ctx.obj` stopped the extract atoms
             # abstaining -- and it is NOT type-coherent, which the reachability check missed.
@@ -15518,9 +15648,17 @@ class Agent:
                 stats["budget_spent"] = stats["budget_spent"] or _st["budget_spent"]
 
             for _round in _rounds:
+                if _round == 2 and _WINDOW and slot in self._window_info:
+                    # L1's gate: the look-back is walked only when the governor says think
+                    _walk, _why = self._think_or_act(slot, closer=best is not None)
+                    self._window_info[slot]["gate"] = _why
+                    if not _walk:
+                        continue
                 _open: dict = {}
                 _live = [k for k in range(len(streams)) if k not in _floored]
                 _spent = dict.fromkeys(_live, 0)
+                _held = [k for k in _live if k >= _nbase]
+                _live = [k for k in _live if k < _nbase]
                 _cur, _r0 = None, rank
                 while True:
                     cap.head()
@@ -15528,6 +15666,14 @@ class Agent:
                         _spent[_cur] += rank - _r0
                         _share[_cur]["rank"] += rank - _r0
                         _cur = None
+                    if not _live and _held:
+                        # L4: every base stream has stopped this round; the widened draw next
+                        if rank >= self.cfg.work_budget:
+                            _walk, _why = False, "budget"
+                        else:
+                            _walk, _why = self._think_or_act(slot, closer=best is not None)
+                        _widen["gate"][_round] = _why
+                        _live, _held = (_held if _walk else []), []
                     if not _live:
                         break
                     _ns_calls += 1
@@ -16041,6 +16187,8 @@ class Agent:
                 **{_kind_of(streams[k][1]): v for k, v in _share.items()},
                 "unasked": [_kind_of(streams[k][1]) for k, v in _share.items()
                             if v["first_rank"] is None]}
+        if _widen:
+            detail["widen"] = _widen
         if _hit:
             detail["chains_already_priced"] = _skipped
         if unseal is not None:
@@ -16051,9 +16199,14 @@ class Agent:
         if _win is not None:
             # WHAT THE WINDOW OFFERED AND WHAT THE BUDGET REACHED, by kind (Fig 13: counted).
             _ev = {f"{slot}~{r['j']}" for r in _win["evidence"]}
-            _lags = [b for b in operand_binds if b and lag_of(b)]
-            _out = [b for b in _lags if b not in _win_reached]
-            _win.update(reached=len(_win_reached), chains_reached=len(priced),
+            # the look-back counts its OWN lags; PREV_OFFER's ~1 is recorded beside them
+            # (the reviewer 2026-10-26 r259)
+            _p1 = slot + PREV if _PREV_OFFER else None
+            _own = _win_reached - {_p1}
+            _lags = [b for b in operand_binds if b and lag_of(b) and b != _p1]
+            _out = [b for b in _lags if b not in _own]
+            _win.update(reached=len(_own), prev1_reached=int(_p1 in _win_reached),
+                        chains_reached=len(priced),
                         pass2_chains=_pass2_chains,
                         beyond_bound={"evidence": sum(b in _ev for b in _out),
                                       "no_evidence": sum(b not in _ev for b in _out)})
