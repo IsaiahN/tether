@@ -801,6 +801,10 @@ _REENGAGE = armflag.arm("TETHER_REENGAGE", default=True)
 # at load each is bound per level where every kind has exactly ONE slot here, and offered to the
 # routine mint as a CANDIDATE -- on trial, never settled. OFF: none of it, as before
 _ROUTINE_CARRY = armflag.arm("TETHER_ROUTINE_CARRY", default=True)
+# THE GOVERNOR, THINK OR ACT (Isaiah 2026-10-26 08:24; the reviewer 08:30): one function,
+# Agent._think_or_act, read by the look-back (L1), the typed-late round (L3) and the widened streams
+# (L4) before each walks: closer_found / urgent / probe_first / ok. OFF: they walk without the gate
+_THINK_OR_ACT = armflag.arm("TETHER_THINK_OR_ACT", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -13348,6 +13352,33 @@ class Agent:
         if len(cs) < 2:
             return _IDLE_RELIEF, False
         return max(1.0, (cs[-1] - cs[0]) / (len(cs) - 1)), True
+
+    def _think_or_act(self, slot: str, closer: bool) -> tuple[bool, str]:
+        """THE GOVERNOR, think or act (Isaiah 2026-10-26 08:24: "its in a similar position to
+        overthinking versus when action is better, and some sort of reasoning in that vein should
+        hamper it"; the reviewer 08:30). Whether a description-side extension of the search (the
+        look-back, the typed-late round, the widened streams) is walked for `slot` in this mint,
+        and why. Fig 12 :125-130: search costs bits, finding out costs actions, the two are read
+        apart and never summed. In the agent's own units, no wall clock:
+          closer_found  a present-frame binding already closed in this mint;
+          urgent        steps since progress (6d) have already lowered the commit bar to its
+                        floor (idle / relief rate >= _QUORUM_HALF, the accumulator's own relief);
+          probe_first   an action could test the slot's object first: 3d's held probe names it,
+                        or an advertised action has never been tried (the table holds no entry);
+          ok            none of these: walk."""
+        if not _THINK_OR_ACT:
+            return True, "ok"
+        if closer:
+            return False, "closer_found"
+        idle = self.cycle - (self._last_progress if _URGENCY_PROGRESS else self._last_commit)
+        rate, _earned = self._relief_rate()
+        if idle / rate >= _QUORUM_HALF:
+            return False, "urgent"
+        probe = getattr(self, "_can_probe", None)
+        if ((_CAN_PROBE and probe is not None and probe in self._objs_named(slot))
+                or any(a != IFace.RESET and a not in self.iface.table for a in self.actions)):
+            return False, "probe_first"
+        return True, "ok"
 
     @staticmethod
     def _gap_key(gap: dict) -> tuple:

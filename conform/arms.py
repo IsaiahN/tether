@@ -990,6 +990,17 @@ ARMS: dict[str, str] = {
                             "routine_bound: carried, bound, unbound) and the routine mint offers "
                             "the bound ones as CANDIDATES (on trial, never settled). An older "
                             "store without the field loads as none. OFF: none of it. default ON",
+    "TETHER_THINK_OR_ACT": "THE GOVERNOR, THINK OR ACT (Isaiah 2026-10-26 08:24 'similar position "
+                           "to overthinking versus when action is better'; the reviewer 08:30; "
+                           "Fig 12 :125-130, two currencies read apart): Agent._think_or_act "
+                           "(slot, closer) -> (walk, why), read by the look-back (L1), the "
+                           "typed-late round (L3) and the widened streams (L4) before each walks: "
+                           "closer_found (a present-frame binding closed in this mint) / urgent "
+                           "(steps since progress, 6d, have lowered the commit bar to its floor: "
+                           "idle / relief rate >= _QUORUM_HALF) / probe_first (3d's probe names "
+                           "the slot's object, or an advertised action was never tried) / ok. "
+                           "Agent units only, no wall clock. OFF: the three walk ungated. "
+                           "default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
