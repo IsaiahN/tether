@@ -960,6 +960,16 @@ ARMS: dict[str, str] = {
                          "also within I-C's predicted set) and _goal_choice ranks a want whose "
                          "kind carries deaths after, below A4's nomination. No action is "
                          "removed, RESET included. OFF: deaths are not read. default ON",
+    "TETHER_SUBGOAL": "(4g) R-C, SUBGOALS ARE ROUTES (the 10-23 design; the reviewer 2026-10-26 "
+                      "06:19: only on an enabling reading the code already holds): "
+                      "Agent._enablers reads the SETTLED term bound on a slot for an operand "
+                      "(Term.operand, lag stripped, through operand_term) on ANOTHER object; at "
+                      "route_exhausted ('another subject', not a re-statement) the first such "
+                      "slot with an open want is held as the subgoal (row subgoal_adopted, "
+                      "naming the operand read) and _goal_choice selects it while open, so R-B "
+                      "reads routes on its gap and the parent's growth refuses nothing; ends on "
+                      "arrival, its own exhausted routes, or the level (row subgoal_end). OFF: "
+                      "as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "

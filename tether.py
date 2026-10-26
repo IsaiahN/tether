@@ -783,6 +783,12 @@ _S0_CONTEST = armflag.arm("TETHER_S0_CONTEST", default=True)
 # ranks after in _goal_choice, after A4's nomination. No action is ever removed, RESET included.
 # OFF: deaths are not read, as before
 _DEATH_VOTE = armflag.arm("TETHER_DEATH_VOTE", default=True)
+# (4g) R-C, SUBGOALS ARE ROUTES (the 10-23 design; the reviewer 2026-10-26 06:19: built only on an
+# enabling reading the code already holds): when an intent's routes are exhausted and the SETTLED
+# term bound on its slot reads another object's slot as its operand, and that slot's want is open,
+# it is held as the parent's subgoal (row subgoal_adopted, naming the operand read) and selected
+# while open; ends on arrival, on its own exhausted routes, or at the level. OFF: as before
+_SUBGOAL = armflag.arm("TETHER_SUBGOAL", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3172,6 +3178,7 @@ class Agent:
         self._death_n: Counter = Counter()
         self._last_press_key: tuple | None = None
         self._press_situ: tuple | None = None
+        self._subgoal: dict | None = None   # (4g) R-C: {"parent", "sub"} while a detour is held
         self._audit_at: int | None = None   # R-B: the cycle whose press was last audited
         # R-C: slot -> the correction its last overshoot owes; (slot, target) -> the oscillation
         # guard's last |gap| and its count of overshoots that did not shrink it
@@ -3729,6 +3736,7 @@ class Agent:
         # death, so a carry across tries is R-D's, open (the reviewer 2026-10-23 22:12)
         self._gap, self._route_refused, self._route_run = {}, {}, {}
         self._route_stale = {}                       # (3c): this level's, like the refusals
+        self._subgoal = None                         # (4g): slot names do not cross
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
         self._dw_tried = {}
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
@@ -8695,6 +8703,30 @@ class Agent:
         magnitude would make it "specific"."""
         return "general"
 
+    def _enablers(self, slot: str) -> list[tuple[str, str]]:
+        """(4g) R-C: the slots of OTHER objects that the SETTLED term bound on `slot` reads as its
+        operand (Term.operand, lag stripped; read by _ops) -- the agent's own reading that B's
+        value enters A's. [(B, the line read)], in the term's order."""
+        name = self.bound.get(slot)
+        if not name or name not in self.gamma.library or not self.gamma.is_settled(name, slot):
+            return []
+        mine, out = self._objs_named(slot), []
+        term = self.gamma.library[name]
+        while term is not None:
+            cap.head()
+            op = getattr(term, "operand", None)
+            b = (lag_of(op) or (op,))[0] if op else None
+            if b and b != slot and not (self._objs_named(b) & mine):
+                out.append((b, f"{name}.operand {op}"))
+            term = getattr(term, "operand_term", None)
+        return out
+
+    def _subgoal_end(self, how: str) -> None:
+        sg, self._subgoal = self._subgoal, None
+        if sg is not None:
+            self.led.record(self.cycle, "SETTLE", sg["sub"], "subgoal_end", parent=sg["parent"],
+                            how=how, reads="the detour ends; the parent is chosen again (R-C)")
+
     def _press_kind(self, action: str, situ: tuple, slot: str | None = None) -> tuple:
         """(5c) A12: a press as a KIND -- the held goal's slot kind (Fig 11 :49: valence is relative
         to the residual), the action, the situation's contact kinds (never names, never alive)."""
@@ -12160,6 +12192,15 @@ class Agent:
         hot = ({o for s, v in self._outstanding.items() if v > 0 for o in self._objs_named(s)}
                if _SURPRISE_NOMINATES else None)
         unnom: tuple | None = None                 # (5a): the pick nomination would not make
+        if _SUBGOAL and self._subgoal is not None and hyp is None:
+            # (4g) R-C: a held detour is the end selected while its want is open; R-B then reads
+            # routes on its gap, and the parent's gap may grow meanwhile
+            _sub = self._subgoal["sub"]
+            if _sub in self._res and arrival(self._res[_sub]) == OPEN:
+                if why is not None:
+                    why.update(tally, slots=len(self._res), subgoal=_sub)
+                return _sub
+            self._subgoal_end("arrived" if _sub in self._res else "gone")
         for slot, series in sorted(self._res.items()):
             cap.head()
             longest = max(longest, len(series))
@@ -14102,6 +14143,20 @@ class Agent:
                                     "next": "re-state the intent" if _restate
                                     else "another subject"} if _STEER else {}),
                                 reads="no route for this intent here at this budget")
+                if _SUBGOAL and self._subgoal is not None and chosen == self._subgoal["sub"]:
+                    self._subgoal_end("routes")      # (4g): the detour, too, ran out of routes
+                elif _SUBGOAL and not _restate and self._subgoal is None:
+                    # (4g) R-C: the next subject is the one the agent's own model says enters
+                    # this one -- held as a detour while its want is open
+                    _en = [(b, ln) for b, ln in self._enablers(chosen)
+                           if b in self._res and arrival(self._res[b]) == OPEN]
+                    if _en:
+                        self._subgoal = {"parent": chosen, "sub": _en[0][0]}
+                        self.led.record(self.cycle, "PLAN", _en[0][0], "subgoal_adopted",
+                                        parent=chosen, read=_en[0][1],
+                                        reads="the parent's routes are exhausted; its settled "
+                                              "term reads this slot, so it is pursued as a "
+                                              "route (R-C)")
                 if _restate:
                     self._rf_restate.add(chosen)
                 elif self._hyp is not None and chosen in self._hyp["slots"]:
