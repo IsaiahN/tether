@@ -22,6 +22,7 @@ import tempfile
 import time
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
+from conform.identity_mod_rows import mask_timings
 
 sys.dont_write_bytecode = True
 HERE = _repo.ROOT
@@ -82,8 +83,10 @@ def fake(mode: str = "", extra: dict | None = None) -> bytes:
 
 
 def body(raw: bytes) -> list:
-    """The ledger's lines, the @run header aside (it names the arms, so it differs by design)."""
-    return [x for x in raw.splitlines() if b'"slot": "@run"' not in x]
+    """The ledger's lines, the @run header aside (it names the arms, so it differs by design), the
+    shared TIMINGS masked (the step clock's wall_s)."""
+    rows = [json.loads(x) for x in raw.splitlines() if x.strip() and b'"slot": "@run"' not in x]
+    return [json.dumps(r, sort_keys=True) for r in mask_timings(rows)]
 
 
 def killed(mode: str, n: int) -> tuple[int, int, bool]:

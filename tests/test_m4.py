@@ -26,6 +26,7 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 import test_entry
 import tether
 import tether_agent
+from conform.identity_mod_rows import mask_timings
 
 sys.dont_write_bytecode = True
 
@@ -117,7 +118,7 @@ def _old_path(rows: list) -> list:
                         and isinstance(v, int) else tr(v))
                     for k, v in o.items() if k not in ("library_first", "library")}
         return [tr(v) for v in o] if isinstance(o, list) else o
-    return [tr(r) for r in keep]
+    return mask_timings([tr(r) for r in keep])      # tr copies, so the mask edits only the copy
 
 
 def test_the_contagion_pair_reaches_the_mint_with_its_operand():

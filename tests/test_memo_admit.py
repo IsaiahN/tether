@@ -22,6 +22,7 @@ import subprocess
 import sys
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
+from conform.identity_mod_rows import mask_timings
 
 sys.dont_write_bytecode = True
 HERE = _repo.ROOT
@@ -78,8 +79,8 @@ WORK = {("@budget", "spent"), ("@budget", "late_asked"), ("*", "late_asked")}
 
 def main() -> int:
     on, off = child("fake", "1"), child("fake", "0")
-    a = [r for r in on["rows"] if r["slot"] not in ("@run", "@memo")]
-    b = [r for r in off["rows"] if r["slot"] not in ("@run", "@memo")]
+    a = mask_timings([r for r in on["rows"] if r["slot"] not in ("@run", "@memo")])
+    b = mask_timings([r for r in off["rows"] if r["slot"] not in ("@run", "@memo")])
     assert len(a) == len(b), (len(a), len(b))
     work = 0
     for x, y in zip(a, b, strict=True):

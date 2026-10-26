@@ -822,6 +822,12 @@ _STEP_ACT = armflag.arm("TETHER_STEP_ACT", default=True)
 # mints are OWED (mint_deferred) and minted first next step. The unit is the mint's own stop; no
 # constant. ON; conform/arms.py
 _STEP_MINT = armflag.arm("TETHER_STEP_MINT", default=True)
+# THE STEP CLOCK (the reviewer 2026-10-26 r263 (b)): a LEDGER INSTRUMENT, never read by the agent.
+# Each step's REPEAT row carries wall_s per step phase (exclusive, from _step_scope), trace_len,
+# wants_n, owed_import_n, gamma_reuse_live and gamma_reuse_on_board (r264); step_mint and each
+# MINT park row carry wall_s. ON; conform/arms.py
+_STEP_CLOCK = armflag.arm("TETHER_STEP_CLOCK", default=True)
+_OBJ_ID = re.compile(r"\bo\d+\b")     # the step clock (r264): an object id in a slot or term name
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -2733,6 +2739,9 @@ class Agent:
     _cut_scope = None          # the step scope a cut was raised in
     _pressed = False           # this step's action went out in perceive
     _sm = None                 # B1: this step's mint tally while the ACCEPT loop runs
+    _clk_stack = None          # the step clock: open scopes (label, start); None outside a step
+    _clk: dict = {}            # the step clock: seconds per scope this step (replaced per step)
+    _clk_t0 = 0.0              # the step clock: the step's start
     _end_reserve = None        # the end-path reserve R, s (None: unmeasured, none taken)
     _end_sleep_s = None        # the carried end path's sleep part (checkpoint + quick_check), s
     _end_path_t0 = None        # set by the end block: the end path is timed whole
@@ -2744,6 +2753,12 @@ class Agent:
         """_in_step for an inline phase of step() or an entry point: the step running for
         the block, restored after (the reviewer 2026-10-16 09:23)."""
         prev, self._running_step = self._running_step, step
+        stk = self._clk_stack if _STEP_CLOCK else None
+        if stk is not None:     # the step clock: time is the innermost scope's, never counted twice
+            t = time.perf_counter()
+            if stk:
+                self._clk[stk[-1][0]] = self._clk.get(stk[-1][0], 0.0) + t - stk[-1][1]
+            stk.append((step, t))
         try:
             yield
         except cap.CapReached:
@@ -2751,6 +2766,12 @@ class Agent:
             raise
         finally:
             self._running_step = prev
+            if stk is not None and stk:
+                t = time.perf_counter()
+                lab, s = stk.pop()
+                self._clk[lab] = self._clk.get(lab, 0.0) + t - s
+                if stk:
+                    stk[-1] = (stk[-1][0], t)
 
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
@@ -15260,8 +15281,11 @@ class Agent:
                                   "this budget, never a verdict")
             return
         self._mint_exhausted = False
+        t0 = time.perf_counter() if _STEP_CLOCK else None
         self.mint(slot)
         if sm is not None:
+            if t0 is not None:
+                sm["wall"] = sm.get("wall", 0.0) + time.perf_counter() - t0
             sm["run"] += 1
             if self._mint_exhausted and sm["stop"] is None:
                 sm["stop"] = slot
@@ -15483,6 +15507,7 @@ class Agent:
             self.gamma.book.get("want_retained_unpaid", 0) + 1)
 
     def _mint(self, slot: str) -> None:
+        _clk0 = time.perf_counter() if _STEP_CLOCK else None   # the step clock: park rows' wall_s
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
         _lf_stats = {"yielded": 0, "beyond_depth": 0}   # M4 library-first, read only when ON
         self._window_info.pop(slot, None)
@@ -16435,7 +16460,8 @@ class Agent:
                 # bound_at_park says one is bound
                 detail["bound_at_park"] = slot in self.bound
                 self._retain_unpaid_want(slot, wanted, detail)
-            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
+            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail,
+                            **self._clock_since(_clk0))
             if _ds_wo:
                 return              # DS (4): the want is written; the slot is never bound
             if _D13:
@@ -16500,11 +16526,13 @@ class Agent:
             # so a replacement may not leave more than the rule it replaces.
             self.gamma.book["unseal_leaves_more"] = self.gamma.book.get("unseal_leaves_more", 0) + 1
             detail["verdict"] = "unseal_leaves_more"
-            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
+            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail,
+                            **self._clock_since(_clk0))
             return
         if self._derived_subject(slot):
             detail["verdict"] = "derived_subject"
-            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail)
+            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail,
+                            **self._clock_since(_clk0))
             return
         detail["explained"], detail["overclaimed"] = self.explain(slot, base_held - left)
         with cap.hold():   # C1 (A): the accepted term and what is written with it
@@ -17202,12 +17230,15 @@ class Agent:
         self._pressed, self._cut_scope = False, None
         cap.AT = until if _CAP_INNER else None
         c0 = self.cycle
+        if _STEP_CLOCK:
+            self._clk, self._clk_stack, self._clk_t0 = {}, [], time.perf_counter()
         try:
             return self._step_body(action)
         except cap.CapReached as cut:
             return self._cut_step(cut)
         finally:
             cap.AT = None
+            self._clk_stack = None      # the step clock closes with the step
             self.led.flush_tally(c0)    # the choice tally's per-step rows, at the step's end
 
     def _note_boundary_wall(self, wall_s: float) -> None:
@@ -17728,7 +17759,9 @@ class Agent:
                 if sm["run"] or sm["deferred"]:
                     self.led.record(self.cycle, "ACCEPT", "@step_mint", "step_mint",
                                     mints_run=sm["run"], mints_deferred=len(sm["deferred"]),
-                                    stop=sm["stop"])
+                                    stop=sm["stop"],
+                                    **({"wall_s": round(sm.get("wall", 0.0), 4)}
+                                       if _STEP_CLOCK else {}))
         self._sm = None
         self._turn_ahead = None
         if _OBJ_EVENT and self._events:
@@ -17855,8 +17888,37 @@ class Agent:
                             # row that exists every cycle regardless of which branch ran.
                             any_live=self.drive.live,
                             admissions=self.gamma.admissions(),
-                            **(self._r4_repeat() if _R4_RECORD else {}))
+                            **(self._r4_repeat() if _R4_RECORD else {}),
+                            **(self._clock_row() if _STEP_CLOCK else {}))
         return True
+
+    @staticmethod
+    def _clock_since(t0) -> dict:
+        """The step clock's wall_s since t0 (a park row's mint); {} when the clock is OFF."""
+        return {} if t0 is None else {"wall_s": round(time.perf_counter() - t0, 4)}
+
+    def _clock_row(self) -> dict:
+        """The step clock's REPEAT fields (r263 (b)): written, never read by the agent. wall_s is
+        exclusive seconds per step scope so far this step, plus "other" (outside any scope) and
+        "total"; the scope still open (REPEAT) is counted up to this row."""
+        t = time.perf_counter()
+        wall = {k: round(v, 4) for k, v in self._clk.items()}
+        if self._clk_stack:
+            lab, s = self._clk_stack[-1]
+            wall[lab] = round(wall.get(lab, 0.0) + t - s, 4)
+        total = t - self._clk_t0
+        wall["other"] = round(max(0.0, total - sum(wall.values())), 4)
+        wall["total"] = round(total, 4)
+        # r264: the reuse sweep's installs held live, and of those the ones whose object ids
+        # (oN in the name) are all on the current board's slots; a name with no id counts on board
+        stamps = self.gamma.stamps
+        reuse = [n for n in self.gamma.library
+                 if str((stamps.get(n) or {}).get("residual") or "").startswith("reuse:")]
+        here = set(_OBJ_ID.findall(" ".join(self.slots)))
+        return {"wall_s": wall, "trace_len": len(self.trace), "wants_n": len(self.wants),
+                "owed_import_n": len(self.owed_import), "gamma_reuse_live": len(reuse),
+                "gamma_reuse_on_board": sum(1 for n in reuse
+                                            if set(_OBJ_ID.findall(n)) <= here)}
 
     def run(self, cycles: int) -> Report:
         for _ in range(cycles):
