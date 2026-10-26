@@ -532,9 +532,12 @@ _LIBRARY_FIRST = armflag.arm("TETHER_LIBRARY_FIRST", default=True)
 # the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. Inert unless a term reading an
 # earlier frame is bound (TETHER_PREV_OFFER).
 _UNSEAL_START = armflag.arm("TETHER_UNSEAL_START", default=True)
-# THE HISTORY WINDOW (R3 item 2; Isaiah's H1; the reviewer 18:10Z, 18:15Z). OFF; reason in
-# conform/arms.py. Lags `slot~j` offered after every other binding, ranked; the budget bounds them.
-_WINDOW = armflag.arm("TETHER_WINDOW")
+# THE HISTORY WINDOW (R3 item 2; Isaiah's H1; the reviewer 18:10Z, 18:15Z), REVAMPED AS THE
+# LOOK-BACK (L1; Isaiah 2026-10-26 08:24 "revamp the history window to work better with the new
+# system and not overpower"; the reviewer 08:30): evidence lags only, depth-bounded, walked in a
+# round of their own after the present frame's, and only when the governor says think. ON; see
+# conform/arms.py.
+_WINDOW = armflag.arm("TETHER_WINDOW", default=True)
 # B2b's round 3 (the reviewer 2026-10-11 10:57 CDT): derived binds walked last; reason in
 # conform/arms.py under TETHER_RELATION_SET.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -15064,13 +15067,24 @@ class Agent:
         is counted in the mint's record."""
         reach = len(self.trace) - 1
         recs = [self._lag_evidence(slot, robs, j) for j in range(1, reach + 1)]
-        order = ([r["j"] for r in recs if r["evidence"]]
-                 + [r["j"] for r in recs if not r["evidence"]])
         no_ev = [r for r in recs if not r["evidence"]]
-        self._window_info[slot] = {"offered": len(order),
-                                   "evidence": [r for r in recs if r["evidence"]],
+        # L1 THE LOOK-BACK: only lags the residual's own record names (evidence), at most the
+        # deepest such lag and at most 4f's effect window where a bound term reads a lag; the
+        # frames the agent's own press moved the slot first, then nearest. No new constant.
+        ev = [r for r in recs if r["evidence"]]
+        top = max((r["j"] for r in ev), default=0)
+        win = self._effect_window(slot)
+        top = min(top, win) if win else top
+        keep = [r for r in ev if r["j"] <= top]
+        own = {j for j in range(1, len(self.trace) + 1)
+               if self.trace[-j][0].get(slot) != self.trace[-j][2].get(slot)}
+        order = [r["j"] for r in sorted(keep, key=lambda r: (r["j"] not in own, r["j"]))]
+        self._window_info[slot] = {"offered": len(order), "evidence": keep,
+                                   "beyond_depth": len(ev) - len(keep),
+                                   "no_evidence_not_walked": len(no_ev),
                                    "tested_no_evidence": sum(1 for r in no_ev if r["recurred"]),
-                                   "untested": sum(1 for r in no_ev if not r["recurred"])}
+                                   "untested": sum(1 for r in no_ev if not r["recurred"]),
+                                   "gate": None}
         return [f"{slot}~{j}" for j in order]
 
     @_in_step("MINT")
@@ -15386,8 +15400,9 @@ class Agent:
             operand_binds = self._bindings(slot, robs)
             _no_ev: set = set()                  # item 2b: the lags pass 2 walks
             if _WINDOW and slot in self._window_info:
-                _evn = {f"{slot}~{r['j']}" for r in self._window_info[slot]["evidence"]}
-                _no_ev = {b for b in operand_binds if b and lag_of(b) and b not in _evn}
+                # L1: the look-back offers evidence lags only, and they take a round of their own
+                # after the present frame's, so a lag never takes rank from a present binding
+                _no_ev = {b for b in operand_binds if b and lag_of(b)}
             # B2b TWO ROUNDS (the reviewer 2026-10-11 10:57 CDT): derivation order across the
             # whole chain x bind enumeration, where the budget is charged. A DERIVED bind (a pair
             # relation, or a lag of one) is walked in a LAST round over the chains round 1
@@ -15549,6 +15564,12 @@ class Agent:
                 stats["budget_spent"] = stats["budget_spent"] or _st["budget_spent"]
 
             for _round in _rounds:
+                if _round == 2 and _WINDOW and slot in self._window_info:
+                    # L1's gate: the look-back is walked only when the governor says think
+                    _walk, _why = self._think_or_act(slot, closer=best is not None)
+                    self._window_info[slot]["gate"] = _why
+                    if not _walk:
+                        continue
                 _open: dict = {}
                 _live = [k for k in range(len(streams)) if k not in _floored]
                 _spent = dict.fromkeys(_live, 0)
