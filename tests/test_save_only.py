@@ -2,7 +2,9 @@
 save-only path and never reads it back.
 
   (a) OFF identity: the ledger of a run with the save-only path is the ledger of one without it,
-      row for row;
+      row for row, the timings masked by the shared list (conform/identity_mod_rows.TIMINGS,
+      imported; red since 89c1ee9 on goal_hypotheses' wall_s only, the reviewer 2026-10-25 21:52);
+      MF-ID: a non-timing field changed in one row (goal_hypotheses' group_n) still differs;
   (b) one file per run, named by the run header, marked lossy in its own header;
   (c) a second run with the same save-only path never loads anything (Gamma.load is not called)
       and writes a second, distinct file;
@@ -15,6 +17,7 @@ save-only path and never reads it back.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -28,7 +31,18 @@ import world
 from test_entry import FakeWrapper
 
 sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.join(_repo.ROOT, "conform"))
+from identity_mod_rows import mask_timings  # noqa: E402
+
 N = 2
+
+
+def _same(a: list[dict], b: list[dict]) -> tuple[bool, object]:
+    """Equal row for row once the shared timings are masked, else the first difference."""
+    da, db = ([json.dumps(r, sort_keys=True) for r in mask_timings(json.loads(json.dumps(x)))]
+              for x in (a, b))
+    return da == db, next(((i, x, y) for i, (x, y) in enumerate(zip(da, db, strict=False))
+                           if x != y), (len(da), len(db)))
 
 
 def _run(tmp: Path, name: str, save_only_dir: str | None = None) -> tuple[dict, list]:
@@ -52,8 +66,16 @@ def main() -> None:
         _run(tmp, "warm")
         _, plain = _run(tmp, "plain")
         rep, saving = _run(tmp, "saving", str(so))
-        assert plain == saving, "the save-only path changed the ledger"
-        print(f"  (a) ledger identical with and without the save-only path ({len(plain)} rows)")
+        ok, diff = _same(plain, saving)
+        assert ok, ("the save-only path changed the ledger", diff)
+        hyp = [i for i, r in enumerate(saving) if r["event"] == "goal_hypotheses"]
+        assert hyp, "PRECONDITION: no goal_hypotheses row to plant in"
+        planted = json.loads(json.dumps(saving))
+        planted[hyp[0]]["detail"]["group_n"] = (planted[hyp[0]]["detail"].get("group_n") or 0) + 1
+        assert not _same(plain, planted)[0], "MF-ID: a non-timing change passed the mask"
+        print(f"  (a) ledger identical with and without the save-only path ({len(plain)} rows, "
+              f"timings masked); MF-ID: group_n changed in one of {len(hyp)} goal_hypotheses "
+              f"rows -> a difference")
         files = sorted(so.glob("*.json"))
         assert len(files) == 1 and rep["saved_only"]["path"] == str(files[0]), (files, rep)
         hdr = json.loads(files[0].read_text(encoding="utf-8"))["header"]
