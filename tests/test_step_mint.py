@@ -6,15 +6,16 @@ gridworld agent.
   (b) with a small closure budget, at most one loop mint per step parks budget_exhausted, and some
       step deferred (occasions);
   (c) MUST-FAIL: OFF, as before -- no mint_deferred, and some step parks two or more exhausted;
-  (d) MUST-HOLD: cfg.budget and work_budget 10**9 (nothing exhausts): the ledger is byte-identical
-      ON and OFF, each arm in its own fresh process, hash seed pinned.
+  (d) MUST-HOLD: cfg.budget and work_budget 10**9 (nothing exhausts): the normalised ledger is
+      identical ON and OFF, row for row, each arm in its own fresh process, hash seed pinned;
+  (e) GUARD: every Agent method under @_in_step at ae028d6 still carries the same label.
 
     python tests/test_step_mint.py [check names]
 """
 from __future__ import annotations
 
+import ast
 import collections
-import hashlib
 import json
 import os
 import subprocess
@@ -113,29 +114,80 @@ def check_c_must_fail_off_runs_every_mint() -> None:
     assert any(len(s) >= 2 for s in ex.values()), ("OFF never exhausted twice in a step", ex)
 
 
-def _ledger_sha(on: bool) -> str:
+def _normalised(rows: list) -> list:
+    """The ledger with B1's own record rows and the per-process fields taken out (the reviewer
+    2026-10-26 14:35 item 3): row 0 (the header, naming the entry and the arm lists), seq,
+    detail.wall_s, the step_mint rows, and completion_sweep's segment_rows (a row count)."""
+    out = []
+    for r in rows[1:]:
+        if r.get("event") == "step_mint":
+            continue
+        r = {k: v for k, v in r.items() if k != "seq"}
+        d = dict(r.get("detail") or {})
+        d.pop("wall_s", None)
+        if r.get("event") == "completion_sweep":
+            d.pop("segment_rows", None)
+        r["detail"] = d
+        out.append(json.dumps(r, sort_keys=True, default=str))
+    return out
+
+
+def _ledger_rows(on: bool) -> list:
     tether._STEP_MINT = on
     ag = _agent(steps=6, budget=10 ** 9, work_budget=10 ** 9)
-    rows = json.dumps(ag.led.rows(), sort_keys=True, default=str)
-    return f"{hashlib.sha256(rows.encode('utf-8')).hexdigest()} {len(ag.led.rows())}"
+    return _normalised(ag.led.rows())
 
 
 def check_d_must_hold_nothing_exhausts_on_equals_off() -> None:
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0")
 
-    def run(arm: str) -> str:
+    def run(arm: str) -> list:
         p = subprocess.run([sys.executable, __file__, "--ledger", arm], env=env,
                            capture_output=True, text=True, timeout=240)
         assert p.returncode == 0, (arm, p.returncode, p.stderr[-2000:])
-        return p.stdout.strip().splitlines()[-1]
+        return json.loads(p.stdout.strip().splitlines()[-1])
     on, off = run("on"), run("off")
-    assert on == off, (on, off)
-    assert int(on.split()[1]) > 0, on
+    assert len(on) == len(off), (len(on), len(off))
+    diff = [i for i, (a, b) in enumerate(zip(on, off, strict=True)) if a != b]
+    assert not diff, [(i, on[i][:300], off[i][:300]) for i in diff[:3]]
+    assert len(on) > 0, "no rows: vacuous"
+
+
+def _decorated(src: str) -> dict:
+    """{method name: the _in_step label} for every Agent method under @_in_step("...")."""
+    out = {}
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, ast.ClassDef) and node.name == "Agent":
+            for f in node.body:
+                if not isinstance(f, ast.FunctionDef):
+                    continue
+                for dec in f.decorator_list:
+                    if (isinstance(dec, ast.Call) and getattr(dec.func, "id", None) == "_in_step"
+                            and dec.args and isinstance(dec.args[0], ast.Constant)):
+                        out[f.name] = dec.args[0].value
+    return out
+
+
+def check_e_every_step_scope_decorator_kept() -> None:
+    """GUARD (the reviewer 2026-10-26 14:35 item 1): a new method inserted between a decorator and
+    its def moves the decorator. Twice today (route at ebd7743, mint at 47972ad). Every method
+    decorated with @_in_step at ae028d6 still carries the same label here."""
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base = subprocess.run(["git", "-C", root, "show", "ae028d6:tether.py"], capture_output=True,
+                          text=True, encoding="utf-8", timeout=60)
+    assert base.returncode == 0, base.stderr[-500:]
+    then = _decorated(base.stdout)
+    with open(os.path.join(root, "tether.py"), encoding="utf-8") as fh:
+        now = _decorated(fh.read())
+    assert then, "no decorated method found at ae028d6: the reader is wrong"
+    assert {"mint": "MINT", "route": "ROUTE"}.items() <= then.items(), then
+    moved = {k: (v, now.get(k)) for k, v in then.items() if now.get(k) != v}
+    assert not moved, moved
 
 
 def main() -> int:
     if sys.argv[1:2] == ["--ledger"]:
-        print(_ledger_sha(sys.argv[2] == "on"))
+        print(json.dumps(_ledger_rows(sys.argv[2] == "on")))
         return 0
     want = set(sys.argv[1:])
     checks = [v for k, v in globals().items() if k.startswith("check_")
