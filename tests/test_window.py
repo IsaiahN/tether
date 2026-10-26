@@ -167,6 +167,7 @@ def _mint_window(seq: list[int], budget: int) -> tuple[dict, str]:
     ag._trace_pos = None
     ag.bound.pop(slot, None)
     ag.cfg.work_budget = budget
+    ag._think_or_act = lambda _s, **_k: (True, "ok")   # the walk is the subject (test_limbs: gate)
     keep = tether._WINDOW
     try:
         tether._WINDOW = True
@@ -195,21 +196,20 @@ def _one_lag_budget(seq: list[int]) -> tuple[dict, int]:
 
 
 def check_mf_d4_the_rank_decides_the_cut() -> None:
-    """The reviewer 18:25Z, item 4: before the rota's lag (~2) has recurred it has no evidence, so
-    a budget reaching one lag reaches ~1 and counts ~2 beyond bound (no evidence); once it
-    recurs it has evidence, ranks first, and is the lag reached."""
+    """The reviewer 18:25Z, item 4, under L1 (the reviewer 2026-10-26 09:15): before the rota's
+    lag (~2) has recurred it has no evidence, so it is counted and never offered, and no budget
+    reaches a lag; once it recurs it has evidence, ranks first, and is the one lag reached."""
     # a distinct opening, so the residual clears the floor before the rota's lag recurs
     rota = [1, 2, 3, 5, 6] + [4, 4, 7] * 8
     # the first record on which the MINT'S OWN residual gives ~2 evidence (an unbounded budget)
     n = next(k for k in range(6, len(rota) + 1)
              if any(e["j"] == 2 for e in _mint_window(rota[:k], 10 ** 6)[0].get("evidence", ())))
-    before, b0 = _one_lag_budget(rota[:n - 1])
-    assert not any(e["j"] == 2 for e in before["evidence"]), before
-    assert before["beyond_bound"]["no_evidence"] >= 1, before          # ~2 among them
-    after, b1 = _one_lag_budget(rota[:n])
-    assert any(e["j"] == 2 for e in after["evidence"]), after
-    assert after["beyond_bound"]["evidence"] == len(after["evidence"]) - 1, after
-    assert after["beyond_bound"]["no_evidence"] == after["offered"] - len(after["evidence"]), after
+    before, _ = _mint_window(rota[:n - 1], 10 ** 6)
+    assert before["offered"] == 0 and before["reached"] == 0, before
+    assert before["no_evidence_not_walked"] >= 1, before               # ~2 among them
+    after, _b1 = _one_lag_budget(rota[:n])
+    assert [e["j"] for e in after["evidence"]] == [2], after            # ~2 alone, so first
+    assert after["reached"] == 1, after
 
 
 def _walk(seq: list[int], window: bool, two_pass: bool, budget: int = 10 ** 6):
@@ -224,6 +224,7 @@ def _walk(seq: list[int], window: bool, two_pass: bool, budget: int = 10 ** 6):
     ag._trace_pos = None
     ag.bound.pop(slot, None)
     ag.cfg.work_budget = budget
+    ag._think_or_act = lambda _s, **_k: (True, "ok")   # the walk is the subject (test_limbs: gate)
     walked: list = []
     orig = ag._operand_fits
 
@@ -281,6 +282,7 @@ def _resume_walk(seq: list[int], budgets: tuple[int, ...]) -> list:
                 for i in range(len(seq) - 1)]
     ag._trace_pos = None
     ag.bound.pop(slot, None)
+    ag._think_or_act = lambda _s, **_k: (True, "ok")   # the walk is the subject (test_limbs: gate)
     out = []
     orig = ag._operand_fits
     for budget in budgets:
