@@ -159,6 +159,11 @@ _SITUATED_EFFECT = armflag.arm("TETHER_SITUATED_EFFECT", default=True)
 # S11: a coordinate clicked in an earlier epoch excludes nothing; within the epoch recency
 # orders: unclicked first, then the least recently clicked
 _SITUATED_CLICK = armflag.arm("TETHER_SITUATED_CLICK", default=True)
+# RESET ADJACENCY (Isaiah 2026-09-29 "no consecutive resets"; the reviewer 2026-10-25 22:21, 22:46):
+# the flag is set where the press is SENT (note_sent), and one helper (adjacent) drops RESET from
+# every offer right after a RESET -- realise, undirected, a bare routine step. OFF: as before (the
+# flag from audit, the re-choose in realise only)
+_RESET_ADJACENT = armflag.arm("TETHER_RESET_ADJACENT", default=True)
 # 7k (the reviewer 2026-10-15 17:32, 20:27): ELICIT's fresh pick reads LEARNING VALUE before the
 # draw -- the residual is the unknowns an action reaches (reach, more first), the learning
 # reading its presses over every context (table n, fewer first). The interface informs; the
@@ -513,6 +518,18 @@ class Interface:
         # would count presses that never happened. `audit` sees what ACTUALLY ran.
         self._last_was_reset = False
 
+    def note_sent(self, action: str) -> None:
+        """The adjacency flag from the press as SENT, every press, seam or not (the agent calls it
+        right after env.step). Under TETHER_RESET_ADJACENT; OFF the flag is set in audit."""
+        if _RESET_ADJACENT:
+            self._last_was_reset = action == RESET
+
+    def adjacent(self, offered: tuple[str, ...]) -> tuple[str, ...]:
+        """THE ONE ADJACENCY RULE: no RESET is offered right after a RESET. Nothing else gated."""
+        if _RESET_ADJACENT and self._last_was_reset:
+            return tuple(a for a in offered if a != RESET)
+        return offered
+
     # ---- downward: intent -> action --------------------------------------------------
 
     def realise(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
@@ -555,6 +572,10 @@ class Interface:
         """
         # 7a(5) C: RUIN IS ORDERED FIRST. A pair the floor vetoes on this board is never offered,
         # unless every option is vetoed; then all are offered and `why` says so.
+        if _RESET_ADJACENT:
+            offered = self.adjacent(offered)   # before the floor, so RESET is never even ranked
+            if not offered:
+                return None
         offered, w, every = self._withhold(withheld, offered, state, env)
         r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker)
         if r is not None and r.action == RESET and self._last_was_reset:
@@ -1110,6 +1131,8 @@ class Interface:
         Returns `None` on an empty offer rather than raising: nothing to draw from is a reading,
         not an error.
         """
+        if _RESET_ADJACENT:
+            offered = self.adjacent(offered)   # the round-2 path: this sweep never read the flag
         if not offered:
             return None
         # 7a(5) C: the draw never lands unaimed on a pair vetoed unaimed, so a withheld pair is
@@ -1556,8 +1579,10 @@ class Interface:
         """
         # **THE ADJACENCY FLAG, SET WHERE THE PRESS ACTUALLY HAPPENED.** `realise`
         # refuses a second consecutive `RESET`; this is the only thing that tells it
-        # there was a first one.
-        self._last_was_reset = (r.action == RESET)
+        # there was a first one. Under TETHER_RESET_ADJACENT it is set at the send (note_sent)
+        # instead, because audit is skipped on a seam step and the send never is.
+        if not _RESET_ADJACENT:
+            self._last_was_reset = (r.action == RESET)
         self.audits += 1
         if r.coord is not None:
             self.clicked.add(r.coord)
