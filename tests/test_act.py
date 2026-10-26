@@ -6,7 +6,8 @@ A2 TETHER_WALK_BUDGET, on a stepped gridworld agent.
   (b) A1 MUST-FAIL: with the arm OFF the lookup runs at once;
   (c) A2: with STEP_BUDGET forced to 1 the index walk stops at an entry boundary (walk_cut), the
       truncated index is not memoised, the slot is owed, and the next route asks it first;
-  (d) A2 MUST-HOLD: with the budget never reached the lookup offers the same as with the arm OFF;
+  (d) A2 MUST-HOLD: with the budget never reached the lookup offers the same as with the arm OFF,
+      each arm in its own fresh process;
   (e) A1 under urgency: deferred "urgent" at cycle c, walked at c+1 (urgent_declined), deferred
       again at c+2 -- the library every other step, never zero (the reviewer 11:52 item 3);
   (f) route runs in the ROUTE step scope; its MUST-FAIL calls route without the decorator.
@@ -15,6 +16,9 @@ A2 TETHER_WALK_BUDGET, on a stepped gridworld agent.
 """
 from __future__ import annotations
 
+import json
+import os
+import subprocess
 import sys
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
@@ -116,22 +120,29 @@ def check_c_walk_budget_cuts_at_an_entry_and_owes() -> None:
         tether.STEP_BUDGET, tether._STEP_ACT = keep
 
 
+def _offers(on: bool) -> dict:
+    ag = _agent()
+    tether._WALK_BUDGET, tether._STEP_ACT, tether.STEP_BUDGET = on, False, 10 ** 9
+    out = {}
+    for slot in sorted(ag.slots):
+        ag._spent = 0
+        ag._library_fit(slot, None)
+        out[slot] = [sorted(map(repr, ag._lib_offers.get(slot, []))),
+                     sorted(map(repr, (ag._named.get(slot) or {}).items()))]
+    return out
+
+
 def check_d_must_hold_budget_never_reached_equals_off() -> None:
-    def offers(on: bool) -> dict:
-        ag = _agent()
-        keep = tether._WALK_BUDGET, tether._STEP_ACT, tether.STEP_BUDGET
-        try:
-            tether._WALK_BUDGET, tether._STEP_ACT, tether.STEP_BUDGET = on, False, 10 ** 9
-            out = {}
-            for slot in sorted(ag.slots):
-                ag._spent = 0
-                ag._library_fit(slot, None)
-                out[slot] = (sorted(map(repr, ag._lib_offers.get(slot, []))),
-                             sorted(map(repr, (ag._named.get(slot) or {}).items())))
-            return out
-        finally:
-            tether._WALK_BUDGET, tether._STEP_ACT, tether.STEP_BUDGET = keep
-    on, off = offers(True), offers(False)
+    # each arm in its own fresh process: two agents in one process share state (the reviewer
+    # 2026-10-26 12:12; OFF against OFF in one process differed on 160 of 196 slots)
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", TETHER_AGENT_SEED="0")
+
+    def run(arm: str) -> dict:
+        p = subprocess.run([sys.executable, __file__, "--offers", arm], env=env,
+                           capture_output=True, text=True, timeout=240)
+        assert p.returncode == 0, (arm, p.returncode, p.stderr[-2000:])
+        return json.loads(p.stdout.strip().splitlines()[-1])
+    on, off = run("on"), run("off")
     assert on == off, [s for s in on if on[s] != off.get(s)]
     assert any(v[0] or v[1] for v in on.values()), "no slot was offered anything: vacuous"
 
@@ -180,6 +191,9 @@ def check_f_route_runs_in_the_route_step() -> None:
 
 
 def main() -> int:
+    if sys.argv[1:2] == ["--offers"]:
+        print(json.dumps(_offers(sys.argv[2] == "on")))
+        return 0
     want = set(sys.argv[1:])
     checks = [v for k, v in globals().items() if k.startswith("check_")
               and (not want or k in want)]
