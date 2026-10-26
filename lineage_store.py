@@ -226,6 +226,10 @@ def _counts_apply(c: dict, g: dict) -> dict:
         for fld, n in du.items():
             into[fld] = n if fld == "last" else into.get(fld, 0) + n
     c.setdefault("inventions", []).extend(g.get("inventions", ()))
+    if g.get("routines_by_kind"):
+        # (6c) THE FOLD, ONE ROW PER KIND FORM, the latest standing: load reads distinct kinds,
+        # never lifetime (the reviewer 2026-10-26 06:32; Isaiah 10-19)
+        c.setdefault("routines_by_kind", {}).update({r["key"]: r for r in g["routines_by_kind"]})
     if "kinds_landed_n" not in g and g.get("kinds_landed"):
         c["kinds_set_form"] = c.get("kinds_set_form", 0) + len(g["kinds_landed"])
     return c
