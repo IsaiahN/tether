@@ -10626,7 +10626,6 @@ class Agent:
             total += correction_bits(got, actual, self.alphabet[slot])
         return total
 
-    @_in_step("ROUTE")
     def _defer_lookup(self, slot: str) -> str | None:
         """A1 (TETHER_STEP_ACT; Isaiah 2026-10-26 11:25, the reviewer 11:33): the governor at the
         step. The why when the slot's library lookup is deferred this step -- owed through C1's
@@ -10648,6 +10647,7 @@ class Agent:
                               "step")
         return why
 
+    @_in_step("ROUTE")
     def route(self, res: dict[str, SlotResidual]) -> list[tuple[str, str, str | None]]:
         out = []
         pos = {s: i for i, s in enumerate(res)}       # today's order, handed back to the mints
