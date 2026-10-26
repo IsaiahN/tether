@@ -720,6 +720,11 @@ _URGENCY_PROGRESS = armflag.arm("TETHER_URGENCY_PROGRESS", default=True)
 # carries back each entry whose objects were all re-found unambiguously (the refutations' rule).
 # OFF: cleared at every boundary, as before
 _DEATH_KEEPS = armflag.arm("TETHER_DEATH_KEEPS", default=True)
+# (4h) A MET GOAL UNDONE IS WEIGHED (09-29; Isaiah 2026-10-26 04:51 build order, the reviewer
+# 04:53; AUD link 4): when an intent has undone an objective that holds now MIN_REPEAT times or
+# more, the route this press took is refused in this context through R-B's store, so the next
+# choice here asks for another route. OFF: the conflict row only, "not yet weighed", as before
+_UNDO_WEIGHED = armflag.arm("TETHER_UNDO_WEIGHED", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -13468,7 +13473,7 @@ class Agent:
         # formed in `choose` that fails to realise never reaches this door.
         if want is not None:
             self._intent_kinds.add(want.kind)
-            self._note_decision(want)
+            self._note_decision(want, r)
         return r.action
 
     def _r4_repeat(self) -> dict:
@@ -13483,7 +13488,7 @@ class Agent:
                 **({"unrealised": self.iface.take_unrealised()} if IFace._UNREALISED_WHY
                    else {})}
 
-    def _note_decision(self, want: Any) -> None:
+    def _note_decision(self, want: Any, r: Any = None) -> None:
         """**A CONFLICT THE AGENT WAS IN -- NOT YET A DECISION IT MADE.**
 
         **THE DISTINCTION IS THE REVIEWER'S, 2026-09-29, AND I HAD OVER-CLAIMED IT.** I filed
@@ -13520,6 +13525,21 @@ class Agent:
         if not live:
             return
         _slot, _n = max(live, key=lambda kv: kv[1])
+        _ctx = IFace.Interface.context(self.env)
+        # (4h) WEIGHED: a repeated undo of a met objective is the ground's vote against this route
+        # here (WATSON case 7; R-B "any farther reading refuses that route in that context"). The
+        # route is refused through R-B's own store, which choosing reads; the intent stays and
+        # asks for another route. Below the repeat bar it stays a recorded conflict
+        weighed = bool(_UNDO_WEIGHED and r is not None and _n >= MIN_REPEAT)
+        if weighed:
+            route = self._route_key(want, r, _ctx)
+            if route not in self._route_refused:
+                self._route_refused[route] = ("undoes_met_goal", self.cycle)
+                self.led.record(self.cycle, "SETTLE", _slot, "route_refused", intent=said,
+                                action=r.action, coord=list(r.coord) if r.coord else None,
+                                context=[list(c) for c in _ctx], why="undoes_met_goal",
+                                outcomes=[], reads="this way undoes an objective that holds, "
+                                                   "repeatedly; refused here, the intent stays")
         self.led.record(self.cycle, "PLAN", _slot, "decision",
                         chose=said,
                         # **THE ALTERNATIVE IS THE ABSTENTION, AND IT IS THE HONEST ONE.** At
@@ -13530,8 +13550,9 @@ class Agent:
                         because={"undone_here": _n,
                                  "across": self._undone_across.get((said, _slot), 0),
                                  "repeated": _n >= MIN_REPEAT},
-                        at=IFace.Interface.context(self.env),
-                        status="conflict, not yet weighed",
+                        at=_ctx,
+                        status=("weighed: this route refused here (R-B), the intent stays"
+                                if weighed else "conflict, not yet weighed"),
                         reads="I have undone this objective with this intent before and it "
                               "holds right now -- recorded as a CONFLICT I was in, not a "
                               "decision I made: nothing read this before the choice")

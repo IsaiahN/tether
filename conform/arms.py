@@ -835,6 +835,15 @@ ARMS: dict[str, str] = {
                           "were re-found as overlap or unique-shape, the held refutations' rule; "
                           "row death_kept with kept / dropped per store. OFF: both cleared at "
                           "every boundary, as before. default ON",
+    "TETHER_UNDO_WEIGHED": "(4h) A MET GOAL UNDONE IS WEIGHED (09-29; Isaiah 2026-10-26 04:51 "
+                           "build order, the reviewer 04:53; AUD link 4; WATSON case 7): in "
+                           "_note_decision, when the intent has undone an objective that holds "
+                           "now MIN_REPEAT times or more, the route the press took "
+                           "(_route_key: intent, action, coord, context) is refused through R-B's "
+                           "_route_refused (why undoes_met_goal, row route_refused), which the "
+                           "choosing path reads; the decision row reads 'weighed'. Below the bar, "
+                           "or OFF: the conflict row only, 'not yet weighed', as before. "
+                           "default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "
