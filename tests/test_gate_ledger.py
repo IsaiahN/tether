@@ -221,16 +221,16 @@ def main() -> int:
             # AND THE THREE C-HELD-5 ARMS AS THIS PRECONDITION WAS WRITTEN UNDER (OFF; default ON
             # since 2026-10-26, the reviewer 05:13): with all three ON this gridworld reaches no
             # sweep in 11 steps; any one alone OFF does not restore it, the three OFF do
-            held = ("_PREV_OFFER", "_CARRY_PRICE", "_BUDGET_GENERATED")
-            held_was = {f: getattr(tether, f) for f in held}
-            for f in held:
+            c5 = ("_PREV_OFFER", "_CARRY_PRICE", "_BUDGET_GENERATED")
+            c5_was = {f: getattr(tether, f) for f in c5}
+            for f in c5:
                 setattr(tether, f, False)
             try:
                 gridworld(GW_STEPS, None)
             finally:
                 relations._DERIVED_PERCEPT = arm_was
                 tether.G_PRIOR_CODE = code_was
-                for f, v in held_was.items():
+                for f, v in c5_was.items():
                     setattr(tether, f, v)
             sweep = [w for w in writes if w[1] in ("pull", "reuse_install") and w[3] == "MINT"]
             assert sweep, f"precondition: no MINT sweep row in {GW_STEPS} steps, arm off"
