@@ -159,6 +159,31 @@ _SITUATED_EFFECT = armflag.arm("TETHER_SITUATED_EFFECT", default=True)
 # S11: a coordinate clicked in an earlier epoch excludes nothing; within the epoch recency
 # orders: unclicked first, then the least recently clicked
 _SITUATED_CLICK = armflag.arm("TETHER_SITUATED_CLICK", default=True)
+# RESET ADJACENCY (Isaiah 2026-09-29 "no consecutive resets"; the reviewer 2026-10-25 22:21, 22:46):
+# the flag is set where the press is SENT (note_sent), and one helper (adjacent) drops RESET from
+# every offer right after a RESET -- realise, undirected, a bare routine step. OFF: as before (the
+# flag from audit, the re-choose in realise only)
+_RESET_ADJACENT = armflag.arm("TETHER_RESET_ADJACENT", default=True)
+# (2c) AIM INSIDE THE OBJECT (Isaiah 2026-10-26 04:51 build order, the reviewer 04:53; UMW A7): a
+# positioned press aims at a cell the object occupies (the world's cell_of, set by the agent), not
+# its bounding-box corner, which a hollow or slanted shape need not occupy. OFF, or a world with
+# no cell_of: the corner, as before
+_AIM_INSIDE = armflag.arm("TETHER_AIM_INSIDE", default=True)
+# (4b) A FAILED REALISE RETURNS A REASON (Isaiah 2026-10-26 04:51 build order, the reviewer 04:53;
+# UMW A6): every None realise hands back is recorded with its kind (blocked / no way known / tried
+# and failed), why and asker, in Interface.unrealised and a bounded log the agent's REPEAT row
+# drains each step. OFF: a bare None, as before
+_UNREALISED_WHY = armflag.arm("TETHER_UNREALISED_WHY", default=True)
+# (4a) I-A, THE LIMB LEARNS FROM THE PROGRESS VERDICT (the 10-23 design; UMW A5; Isaiah 2026-10-26
+# 04:51 build order, the reviewer 04:53): the agent's R-F reading of each graded press comes down as
+# verdict(); a BECOME realisation it says served this intent in this context is offered first
+# (_served); the audit receives what the press meant. OFF: none of it, as before
+_IA_SERVED = armflag.arm("TETHER_IA_SERVED", default=True)
+# (3b) SYSTEM 0's ACTION KINDS (Isaiah 09-28; AUD link 2, Fig 3 :7 "terms for what things afford";
+# the 04:51 build order): per action, per contact context, read off this table's ordered effects
+# and value cells, with wall / crossing read from the world's affordance recorder (3a's blocks /
+# passes). OFF: not computed
+_ACTION_KINDS = armflag.arm("TETHER_ACTION_KINDS", default=True)
 # 7k (the reviewer 2026-10-15 17:32, 20:27): ELICIT's fresh pick reads LEARNING VALUE before the
 # draw -- the residual is the unknowns an action reaches (reach, more first), the learning
 # reading its presses over every context (table n, fewer first). The interface informs; the
@@ -341,6 +366,15 @@ def fingerprint(env: Any, state: dict) -> tuple[str, str]:
 
 
 ALL_VETOED = "every option vetoed"
+# (4b) WHY A REALISATION FAILED, three kinds (UMW A6): nothing could be offered or the one option
+# was ruled out; no table cell knows a way; or offered actions were seen to act on the subject and
+# none does what is asked here
+BLOCKED, NO_WAY, TRIED = "blocked", "no way known", "tried and failed"
+# (3b) the action kinds, System 0's terms (09-28). NO_EFFECT_HERE: nothing here though it acts
+# elsewhere, with no blocks reading to call it a wall; VARIES: acts every time, not the same way
+REPEATABLE, CYCLIC, LIMITED, SWITCH = "repeatable", "cyclic", "count-limited", "one-time switch"
+WALL, CROSSING, INERT = "wall", "crossing", "inert"
+NO_EFFECT_HERE, VARIES = "no effect here", "varies"
 
 
 @dataclass(frozen=True)
@@ -455,6 +489,16 @@ class Interface:
         # K3: slot -> its KIND key (the agent's _kind and the attribute), or None; set by the agent
         # under TETHER_KIND_CARRY. None here: no kind tables, today's reading.
         self.kind_of: Any = None
+        # (2c): (object, state) -> (x, y) of a cell the object occupies, or None; set by the agent
+        # from the world under TETHER_AIM_INSIDE. None here: _at aims at the corner, as before.
+        self.cell_of: Any = None
+        # (4b): the last None realise's reason, and every one since the agent last drained them
+        self.unrealised: dict | None = None
+        self.unrealised_log: list = []
+        # (4a) I-A: (intent said, ctx) -> {(action, coord): [on course, off course]}, the agent's
+        # verdicts; and what the last audited press MEANT (intent, why, mode)
+        self.served: dict = {}
+        self.last_meant: tuple | None = None
         self.own_slots: set = set()            # K3: slots with an entry of their own (any action)
         # (ii): ((epoch, breaks), the (action, kind key) cells a press of that action bore out)
         self.era_cells: tuple = (None, set())
@@ -513,6 +557,18 @@ class Interface:
         # would count presses that never happened. `audit` sees what ACTUALLY ran.
         self._last_was_reset = False
 
+    def note_sent(self, action: str) -> None:
+        """The adjacency flag from the press as SENT, every press, seam or not (the agent calls it
+        right after env.step). Under TETHER_RESET_ADJACENT; OFF the flag is set in audit."""
+        if _RESET_ADJACENT:
+            self._last_was_reset = action == RESET
+
+    def adjacent(self, offered: tuple[str, ...]) -> tuple[str, ...]:
+        """THE ONE ADJACENCY RULE: no RESET is offered right after a RESET. Nothing else gated."""
+        if _RESET_ADJACENT and self._last_was_reset:
+            return tuple(a for a in offered if a != RESET)
+        return offered
+
     # ---- downward: intent -> action --------------------------------------------------
 
     def realise(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
@@ -555,15 +611,68 @@ class Interface:
         """
         # 7a(5) C: RUIN IS ORDERED FIRST. A pair the floor vetoes on this board is never offered,
         # unless every option is vetoed; then all are offered and `why` says so.
+        self.unrealised = None
+        if _RESET_ADJACENT:
+            offered = self.adjacent(offered)   # before the floor, so RESET is never even ranked
+            if not offered:
+                return self._none(BLOCKED, "reset adjacency: RESET was the only offer", asker)
         offered, w, every = self._withhold(withheld, offered, state, env)
         r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker)
         if r is not None and r.action == RESET and self._last_was_reset:
             _alt = tuple(a for a in offered if a != RESET)
             r = (self._choose(intent, _alt, ctx, state, env, w, cell=cell, asker=asker)
-                 if _alt else None)
+                 if _alt else self._none(BLOCKED, "reset adjacency: no alternative to RESET",
+                                         asker))
         if r is not None and every:
             r = _replace(r, why=f"{r.why}; {ALL_VETOED}")
         return r
+
+    def _none(self, kind: str, why: str, asker: str | None) -> None:
+        """(4b): record why a realisation failed, then return the None the callers read."""
+        if _UNREALISED_WHY:
+            self.unrealised = {"kind": kind, "why": why, "asker": asker}
+            if len(self.unrealised_log) < 256:
+                self.unrealised_log.append(self.unrealised)
+
+    def _tried(self, offered: tuple[str, ...], subject: str | None) -> str:
+        """(4b): TRIED when an offered action's table already holds a cell on `subject` (it was
+        seen to act on it, and no cell fits what is asked here), else NO_WAY."""
+        for a in offered:
+            e = self.table.get(a, {})
+            if any(k[1] == subject for k in e.get("delta", {})) or \
+                    any(k[1] == subject for k in e.get("lands", {})):
+                return TRIED
+        return NO_WAY
+
+    def verdict(self, said: str, ctx: tuple, action: str, coord: Any, on_course: bool) -> None:
+        """(4a) I-A: the ONE signal that comes down from the reasoning layer -- did this
+        realisation serve this intent, here? Kept per (intent in the agent's words, context), per
+        (action, coord): [on course, off course]. The interface learns its mechanics from it."""
+        cell = self.served.setdefault((said, ctx), {}).setdefault(
+            (action, tuple(coord) if coord else None), [0, 0])
+        cell[0 if on_course else 1] += 1
+
+    def _served(self, intent: Intent, offered: tuple[str, ...], ctx: tuple, w: Withheld,
+                aims: dict) -> Realisation | None:
+        """(4a) I-A, read FIRST: a realisation the agent's own verdicts say served this intent in
+        this context (more on course than off), among what is offered and not withheld; the most
+        net-served, then the action, then the coordinate. None: the table tiers decide."""
+        sv = self.served.get((intent.says(), ctx))
+        if not sv:
+            return None
+        good = [((a, c), n) for (a, c), n in sv.items()
+                if a in offered and n[0] > n[1] and (c is None or (a, c) not in w.pairs)]
+        if not good:
+            return None
+        (a, c), n = min(good, key=lambda g: (-(g[1][0] - g[1][1]), g[0][0], g[0][1] or ()))
+        r = Realisation(a, coord=c, why=f"served this intent here {n[0]} of {n[0] + n[1]} (I-A)",
+                        evidence=(("tier", "served"), ("on", n[0]), ("off", n[1])))
+        return r if c is not None else self._aimed(r, aims)
+
+    def take_unrealised(self) -> list:
+        """(4b): the reasons recorded since the last call; the agent's REPEAT row drains them."""
+        out, self.unrealised_log = self.unrealised_log, []
+        return out
 
     def _withhold(self, w: Withheld, offered: tuple[str, ...], state: dict | None,
                   env: Any) -> tuple[tuple[str, ...], Withheld, bool]:
@@ -602,7 +711,7 @@ class Interface:
         anything whose effect here is not yet known, and only then a repeat.
         """
         if not offered:
-            return None
+            return self._none(BLOCKED, "nothing offered", asker)
 
         if intent.kind == BECOME and intent.subject and intent.value is not None:
             # **THE UNORDERED HALF -- `objective_step`'s COMPARABLE arm, which had no home below
@@ -621,9 +730,11 @@ class Interface:
             # current state there is no cell to look in, and guessing one would be the interface
             # choosing.
             if state is None or intent.subject not in state:
-                return None
+                return self._none(NO_WAY, "no reading of the subject in this state", asker)
             _now = int(state[intent.subject])
             offered, aims = self._aims(offered, intent.subject, state, env, w, asker)
+            if _IA_SERVED and (sv := self._served(intent, offered, ctx, w, aims)) is not None:
+                return sv
             # TWO PASSES, NOT ONE WITH A TIEBREAK -- same shape as the signed half below: this
             # context's evidence wherever it exists, and only then the across-context prior.
             # Written as two loops because one loop with a `best is None` guard makes the
@@ -686,7 +797,8 @@ class Interface:
                        f"from {_now} to {intent.value}")
                 return self._aimed(Realisation(test, why=why, mode="kind_test"), aims)
             if best is None:
-                return None
+                return self._none(self._tried(offered, intent.subject),
+                                  "no cell lands the subject on the value (BECOME)", asker)
             return self._aimed(Realisation(best, why=f"observed to take {intent.subject} from "
                                                      f"{_now} to {intent.value}, and to nothing "
                                                      f"else, {how}"), aims)
@@ -697,6 +809,8 @@ class Interface:
             # reading the agent is entitled to, not a substitution.
             want_sign = 1 if (intent.object or "+") == "+" else -1
             offered, aims = self._aims(offered, intent.subject, state, env, w, asker)
+            if _IA_SERVED and (sv := self._served(intent, offered, ctx, w, aims)) is not None:
+                return sv
             if (_REALISE_CELL and cell and state is not None and intent.subject in state):
                 r, against = self._by_cell(intent.subject, int(state[intent.subject]),
                                            want_sign, offered, ctx, env)
@@ -781,7 +895,8 @@ class Interface:
                                                          ("score", round(t_score, 4)),
                                                          ("n", t_n), ("where", t_how))), aims)
             if best is None:
-                return None
+                return self._none(self._tried(offered, intent.subject),
+                                  "no cell moves the subject that way (BECOME, signed)", asker)
             if how.startswith("on its kind"):
                 KIND_FALLBACK_N["delta"] += 1
             return self._aimed(Realisation(best, why=f"observed to move {intent.subject} that "
@@ -798,7 +913,7 @@ class Interface:
             # from PERCEPTION -- the target's own row/col -- and rides back in the
             # `Realisation`, which has always had the field and which `perceive` already
             # accepts. `step` was recomputing it from the button's name instead.
-            here = self._at(intent.object, state)
+            here = self._at(intent.object, state, self.cell_of)
             pos = [a for a in offered if a in POSITIONED]
             if pos and here is not None and not w.at(pos[0], here):
                 return Realisation(pos[0], coord=here,
@@ -839,11 +954,12 @@ class Interface:
             # NEITHER ROUTE. **An unreachable contact is a reading the agent is entitled to**,
             # and substituting a draw here would be the interface deciding to explore on the
             # agent's behalf while wearing the word contact.
-            return None
+            return self._none(self._tried(offered, intent.object or intent.subject),
+                              "no route to contact (TOUCH)", asker)
         if intent.kind not in (ELICIT, DISTINGUISH):
             # WITHOUT A TABLE ENTRY THERE IS NOTHING HONEST TO PICK, and guessing would be the
             # interface deciding. It abstains and the agent learns the intent was unrealisable.
-            return None
+            return self._none(NO_WAY, "no table entry for this intent kind", asker)
         rank: dict[str, int] = {}
         if intent.kind == DISTINGUISH:
             rank = self.separability(env, offered)
@@ -852,7 +968,8 @@ class Interface:
             # turn *tell my alternatives apart* into *press a button*, which is the downgrade
             # from discrimination to exploration the reviewer refused for `spread`.
             if not rank or max(rank.values()) == min(rank.values()):
-                return None
+                return self._none(NO_WAY, "no member separates anything here (DISTINGUISH)",
+                                  asker)
         unmapped = [a for a in offered if a not in self.table]
         # **VARIETY IS THE CONSTRAINT AND SEPARABILITY IS A RANKING INSIDE IT -- 17c.** The
         # bands below are unchanged and still decide WHICH SET may be drawn from; `rank` only
@@ -913,7 +1030,8 @@ class Interface:
                         # A1: the subject's own object gates; the less-known coordinate next;
                         # then the draw. Not the sorted object order.
                         obj = intent.subject.rsplit(".", 1)[0] if intent.subject else None
-                        at = self._at(obj, state) if obj and state is not None else None
+                        at = (self._at(obj, state, self.cell_of)
+                              if obj and state is not None else None)
                         aim, by, _f = FR.frontier_pick(
                             [(c, None, None) for c in here], {c: int(c == at) for c in here},
                             {c: len(self.aimed_effect.get(c, ())) for c in here},
@@ -1005,7 +1123,7 @@ class Interface:
         if not owner or "~" in owner or _is_relational(slot, env):
             AIM_ROUTED_N[f"{asker or 'other'}:pair_no_record"] += 1
             return None
-        at = self._at(owner, state)
+        at = self._at(owner, state, self.cell_of)
         if at is None or w.at(a, at):
             AIM_ROUTED_N[f"{asker or 'other'}:no_aim"] += 1
             return None
@@ -1110,6 +1228,8 @@ class Interface:
         Returns `None` on an empty offer rather than raising: nothing to draw from is a reading,
         not an error.
         """
+        if _RESET_ADJACENT:
+            offered = self.adjacent(offered)   # the round-2 path: this sweep never read the flag
         if not offered:
             return None
         # 7a(5) C: the draw never lands unaimed on a pair vetoed unaimed, so a withheld pair is
@@ -1141,8 +1261,11 @@ class Interface:
         return Capability(opened=opened, closed=closed)
 
     @staticmethod
-    def _at(obj: str, state: dict | None) -> tuple[int, int] | None:
+    def _at(obj: str, state: dict | None, cell_of: Any = None) -> tuple[int, int] | None:
         """Where `obj` is, as `(x=col, y=row)`. **`_action6_coord` moved, not rewritten.**
+
+        (2c): with `cell_of` (the world's, set under TETHER_AIM_INSIDE), a cell the object
+        occupies; the corner below when the world cannot say.
 
         `F28`: the coordinate is chosen from PERCEPTION -- the object's own perceived row/col --
         and `None` where it has no position slots, so a positioned action stays unpositioned
@@ -1158,10 +1281,13 @@ class Interface:
         col, row = state.get(f"{obj}.col"), state.get(f"{obj}.row")
         if col is None or row is None:
             return None
+        if cell_of is not None and (inside := cell_of(obj, state)) is not None:
+            return inside
         return int(col), int(row)
 
     @staticmethod
-    def _acted(coord: tuple[int, int] | None, state: dict | None) -> str | None:
+    def _acted(coord: tuple[int, int] | None, state: dict | None,
+               cell_of: Any = None) -> str | None:
         """Which object is AT `coord` -- `_at`'s inverse, and here for the same reason.
 
         Knowing how this domain spells a position is the interface's job, so the `.row`/`.col`
@@ -1176,7 +1302,7 @@ class Interface:
         rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
         for obj in sorted(rows & {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}):
             cap.head()
-            if Interface._at(obj, state) == (int(coord[0]), int(coord[1])):
+            if Interface._at(obj, state, cell_of) == (int(coord[0]), int(coord[1])):
                 return obj
         return None
 
@@ -1229,7 +1355,8 @@ class Interface:
             return []
         rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
         cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
-        return [at for obj in sorted(rows & cols) if (at := self._at(obj, state)) is not None]
+        return [at for obj in sorted(rows & cols)
+                if (at := self._at(obj, state, self.cell_of)) is not None]
 
     def _any_object(self, state: dict | None,
                     avoid: set | frozenset = frozenset()) -> tuple[int, int] | None:
@@ -1273,13 +1400,13 @@ class Interface:
         cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
         if _SITUATED_CLICK:
             # S11: this epoch's clicks only, and recency orders (unclicked reads -1)
-            ats = [at for at in (self._at(obj, state) for obj in sorted(rows & cols))
+            ats = [at for at in (self._at(obj, state, self.cell_of) for obj in sorted(rows & cols))
                    if at is not None and at not in avoid]
             return min(ats, key=lambda at: self.clicked_at.get((self.epoch, at), -1),
                        default=None)
         for obj in sorted(rows & cols):
             cap.head()
-            at = self._at(obj, state)
+            at = self._at(obj, state, self.cell_of)
             if at is not None and at not in self.clicked and at not in avoid:
                 return at
         return None
@@ -1531,7 +1658,8 @@ class Interface:
         return n
 
     def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = (),
-              ctx_after: tuple | None = None, own: frozenset = frozenset()) -> bool:
+              ctx_after: tuple | None = None, own: frozenset = frozenset(),
+              reaff: frozenset = frozenset(), meant: tuple | None = None) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 
         **RETURNS `True` FOR *CONDITIONAL*, NOT FOR *CHANGED*, AND THE DIFFERENCE IS ISAIAH'S
@@ -1556,8 +1684,10 @@ class Interface:
         """
         # **THE ADJACENCY FLAG, SET WHERE THE PRESS ACTUALLY HAPPENED.** `realise`
         # refuses a second consecutive `RESET`; this is the only thing that tells it
-        # there was a first one.
-        self._last_was_reset = (r.action == RESET)
+        # there was a first one. Under TETHER_RESET_ADJACENT it is set at the send (note_sent)
+        # instead, because audit is skipped on a seam step and the send never is.
+        if not _RESET_ADJACENT:
+            self._last_was_reset = (r.action == RESET)
         self.audits += 1
         if r.coord is not None:
             self.clicked.add(r.coord)
@@ -1565,7 +1695,7 @@ class Interface:
         # READ OFF `before`, NOT `after`. The cause is whatever was at the coordinate WHEN THE
         # PRESS LANDED -- on a board where the press moves things, reading `after` would
         # attribute the effect to whatever has since arrived there.
-        _acted_on = self._acted(r.coord, before)
+        _acted_on = self._acted(r.coord, before, self.cell_of)
         # The instance record, written from the agent's OWN press and its OWN audit. Keyed by
         # the coordinate it aimed at, which is the only handle it has on "the thing I pressed".
         if r.coord is not None:
@@ -1625,8 +1755,13 @@ class Interface:
         for _k in before:
             cap.head()
             self.present[_k] = self.present.get(_k, 0) + 1
-        changed = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
+        # (2a) I-B: what changed ANYWAY (`reaff`, the agent's reafference reading) is subtracted
+        # before the press is credited; it is kept as last_reaff for the record
+        moved = tuple(sorted(k for k in before if before.get(k) != after.get(k)))
+        changed = tuple(k for k in moved if k not in reaff)
+        self.last_reaff = tuple(k for k in moved if k in reaff)
         self.last_changed = changed      # R4 record: what this press was credited with (F1)
+        self.last_meant = meant          # (4a): the intent, why and mode this press came from
         signature = tuple(sorted(_eff(k) for k in changed
                                  if k.rsplit(".", 1)[-1] not in RELATIONAL))
         e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0, "delta": {}})
@@ -1750,6 +1885,63 @@ class Interface:
         if changed_here:
             self.changed.add(r.action)
         return changed_here
+
+    def action_kinds(self, profiles: dict | None = None) -> dict:
+        """(3b) WHAT EACH ACTION IS, PER CONTACT CONTEXT -- System 0's job (Isaiah 09-28):
+        repeatable, cyclic, count-limited, one-time switch, wall, crossing. Read off the table:
+        `ep` (this epoch's effects in order, else all) and `lands` (the value cells). A context
+        with fewer than MIN_REPEAT presses is unread. `profiles` is the world's affordance
+        recorder by kind (arc_percept.Affordances.seen): a do-nothing here that acts elsewhere is
+        a WALL only when something was read to block, and an effect here that is nothing
+        elsewhere is a CROSSING only when something was read to pass; else NO_EFFECT_HERE / the
+        effect's own kind. Returns {action: {ctx: kind}}."""
+        from self_family import MIN_REPEAT
+        prof = (profiles or {}).values()
+        blocks = any(p.get("blocks") for p in prof)
+        passes = any(p.get("passes") for p in prof)
+        out: dict = {}
+        for a, e in self.table.items():
+            if a == RESET:
+                continue
+            eps = e.get("ep", {})
+            acts_in = {c for c, seq in eps.items() if any(s for _, s in seq)}
+            for ctx, seq in eps.items():
+                cap.head()
+                eff = [s for ep, s in seq if ep == self.epoch] or [s for _, s in seq]
+                if len(eff) < MIN_REPEAT:
+                    continue
+                k = next((i for i, s in enumerate(eff) if not s), len(eff))
+                if k == 0 and not any(eff):
+                    kind = ((WALL if blocks else NO_EFFECT_HERE) if acts_in - {ctx}
+                            else INERT)
+                elif 0 < k < len(eff) and not any(eff[k:]) and len(eff) - k >= MIN_REPEAT:
+                    kind = SWITCH if k == 1 else LIMITED
+                elif all(eff):
+                    kind = (CYCLIC if self._cycles(e.get("lands", {}), ctx)
+                            else REPEATABLE if len(set(eff)) == 1 else VARIES)
+                    if passes and len(acts_in) < len(eps):
+                        kind = CROSSING
+                else:
+                    kind = VARIES
+                out.setdefault(a, {})[ctx] = kind
+        return out
+
+    @staticmethod
+    def _cycles(lands: dict, ctx: tuple) -> bool:
+        """A slot whose one-valued cells in `ctx` chain back to where they started in two or more
+        presses (colour 3 -> 4 -> 5 -> 3): reproducible, and not one fixed result."""
+        step: dict = {}
+        for (c, k, b), vals in lands.items():
+            if c == ctx and len(vals) == 1:
+                step.setdefault(k, {})[b] = next(iter(vals))
+        for m in step.values():
+            for v0 in m:
+                v, n = m[v0], 1
+                while v != v0 and v in m and n <= len(m):
+                    v, n = m[v], n + 1
+                if v == v0 and n >= 2:
+                    return True
+        return False
 
     def report(self) -> dict:
         cells = sum(len(e.get("lands", {})) for e in self.table.values())

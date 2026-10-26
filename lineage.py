@@ -83,12 +83,18 @@ _COMPRESS = armflag.arm("TETHER_COMPRESS", default=True)
 # .dead-<UTC>, never deleted) and rebuilt from the saves by catch_up, as a folder with no store
 # already is. The load report carries what was done. OFF: as 753339c
 _STORE_HEAL = armflag.arm("TETHER_STORE_HEAL", default=True)
+# (d), DEDUP AT SAVE (Isaiah 2026-10-25 05:33; the reviewer 19:57, the alias form): a term row whose
+# load key (gamma.row_key) the parent fold or this save already holds as a ROW is written as an
+# alias {was, key}; the load resolves it against what that row installed, so the replay maps the
+# evidence the same way. OFF: every row written, as before
+_SAVE_DEDUP = armflag.arm("TETHER_SAVE_DEDUP", default=True)
 PREFIX = "gen_"
 
 
 def _key(row: dict) -> str:
-    """A term row's composition (atom chain, guard, operand tree): what load dedups on. Never a
-    row's identity in the record, which is (born, handle) below."""
+    """A term row's atoms, guard and operand tree, WITHOUT the operand: coarser than what load
+    installs by (see gamma.Gamma.row_key, the reviewer 2026-10-25 21:38). Never a row's identity
+    in the record, which is (born, handle) below."""
     return json.dumps([row["atoms"], row.get("guard"), row.get("operand_term")])
 
 
@@ -358,6 +364,8 @@ def fold(chain: list[tuple[str, dict]]) -> dict:
         _keyed(out, "book", g, h, anc, khist, kheads)
         out["evidence"].extend(g["evidence"])
         out["dormant"].extend(dec(g["dormant"]))
+        if g.get("aliases"):
+            out.setdefault("aliases", []).extend(g["aliases"])   # (d), in chain order
     out["terms"] = list(rows.values())
     return out
 
@@ -455,6 +463,9 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     marks = getattr(ag, "_lineage_marks", {}) if _BOUNDARY else {}
     new_names = []
     fc = getattr(ag, "_fault_cycle", None)     # item 4: a write after an agent fault
+    # (d): the load keys held as ROWS by the parent fold, then by this save as it goes
+    held_keys = {gamma.Gamma.row_key(x) for x in base["terms"]} if _SAVE_DEDUP else set()
+    aliases, alias_names = [], []
     for r in blob["terms"]:
         # NEW = minted by this instance; a term it LOADED from the lineage carries its identity
         # in carried (born, handle), and only a non-marker change of its status is written (N1).
@@ -462,10 +473,19 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         if gamma._REPLAY_UNIT:
             r["was"] = name     # R7i: the replay finds the term load installs from this row
         c = ag.gamma.carried.get(name) or written.get(name) or {}
+        if c.get("alias"):
+            continue    # (d): aliased by an earlier write of this life
         rid = (c.get("born"), c.get("handle"))
         if fc is not None and str(r.get("residual") or "").endswith(f"@{fc}"):
             continue    # (C3): the faulted step's own term never met its next observation
         if rid not in prev:
+            k = gamma.Gamma.row_key(r) if _SAVE_DEDUP else None
+            if k in held_keys and r.get("was") and not r.get("guard_ref"):
+                aliases.append({"was": r["was"], "key": k})
+                alias_names.append(name)
+                continue
+            if _SAVE_DEDUP:
+                held_keys.add(k)
             terms.append(r)
             new_names.append((name, r.get("handle")))
         elif r.get("admitted") not in (None, gamma.IMPORTED, prev[rid].get("admitted")):
@@ -480,7 +500,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
            "vindication_tail": list(blob["vindication"])[base["n_vindication"]:],
            "book": {k: v for k, v in blob["book"].items() if base["book"].get(k) != v},
            "invented": {n: r for n, r in blob["invented"].items() if n not in base["invented"]},
-           "dormant": dormant, "dormant_refused": refused}
+           "dormant": dormant, "dormant_refused": refused,
+           **({"aliases": aliases} if aliases else {})}
     # the being's seed and the generation it lived (HOLD_SEED, the reviewer 15:04), so the next
     # process continues it and a replay can read it; OFF writes neither, as before
     if getattr(ag, "seed_source", "constant") != "constant":
@@ -581,6 +602,13 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                                   for k, n in sorted(c.items())
                                   if n > ag._3a_written.get(fam, {}).get(k, 0)}
                             for fam, c in _hazard_families(ag._3a_hazard).items()}
+    if tether._ROUTINE_CARRY and hasattr(ag, "routines_by_kind"):
+        # (6c): the settled routines in kind form not yet in the lineage; absent when none, so a
+        # generation with nothing to carry is written exactly as before
+        rk = [r for r in ag.routines_by_kind()
+              if ag._rk_written.get(r["key"]) != r["standing"]]   # new, or its standing moved
+        if rk:
+            gen["routines_by_kind"] = rk
     if fc is not None:
         # item 4: the generation names how its game ended; the faulted cycle's stamped entries
         # are not in it (above); its unstamped structures (kind episodes, counters) are as built
@@ -598,7 +626,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
     if _BOUNDARY:   # the next write in this instance extends THIS one: one line (F2)
         ag.lineage_parent = h
-        ag._lineage_written = {**written, **{n: {"born": h, "handle": hd} for n, hd in new_names}}
+        ag._lineage_written = {**written, **{n: {"born": h, "handle": hd} for n, hd in new_names},
+                               **{n: {"alias": True} for n in alias_names}}
         ag._lineage_marks = {"dormant": len(dormant_all), "evidence": len(ag.gamma.evidence)}
         if "kinds_landed" in gen:
             ag._kinds_carried = ag._kinds_carried | new_kinds
@@ -626,6 +655,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._3a_written = {f: dict(c) for f, c in _hazard_families(ag._3a_hazard).items()}
         if "entry_use" in gen:
             ag._entry_use_written = {k: dict(c) for k, c in ag._entry_use.items()}
+        if "routines_by_kind" in gen:
+            ag._rk_written.update({r["key"]: r["standing"] for r in gen["routines_by_kind"]})
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -992,7 +1023,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     rep = ag.gamma.load_blob({"terms": list(f.get("rows", {}).values()),
                               "invented": f.get("invented", {}),
                               "vindication": v["vindication"],
-                              "book": f.get("book", {})}, parent=h)
+                              "book": f.get("book", {}),
+                              **({"aliases": f["aliases"]} if f.get("aliases") else {})}, parent=h)
     rep["store_merged_at_load"] = len(v["merged"])
     if v["healed"]:
         rep["store_healed"] = v["healed"]
@@ -1035,6 +1067,9 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         rep["root_shapes_in"] = len(ag._root_grade_in)
     if tether._M7_INV and hasattr(ag, "_reinvent_carried"):
         rep["inventions_in"] = ag._reinvent_carried(list(c.get("inventions", [])))
+    if tether._ROUTINE_CARRY and hasattr(ag, "_carry_routines_in"):
+        # (6c): one row per kind form (the store's fold); absent in an older store: none
+        rep["routines_in"] = ag._carry_routines_in(list(c.get("routines_by_kind", {}).values()))
     if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
         for site, d_ in c.get("kind_counts", {}).items():
             ag._kind_carried_in.setdefault(site, {}).update(d_)
@@ -1171,7 +1206,8 @@ def load(d: str | Path, ag: Any) -> dict:
     if hasattr(ag, "_seed_from_lineage"):
         ag._seed_from_lineage({g["seed"] for _, g in chain if g.get("seed")}, len(chain), h)
     rep = ag.gamma.load_blob({"terms": f["terms"], "invented": f["invented"],
-                              "vindication": f["vindication"], "book": f["book"]}, parent=h)
+                              "vindication": f["vindication"], "book": f["book"],
+                              **({"aliases": f["aliases"]} if f.get("aliases") else {})}, parent=h)
     if gamma._USED_CARRY:
         # L1b: every generation's Rank.used per unit, root to tip, into the code
         tot: dict[str, int] = {}
@@ -1239,6 +1275,10 @@ def load(d: str | Path, ag: Any) -> dict:
         # M7-INV: every generation's inventions, root to tip, re-invented on trial
         rep["inventions_in"] = ag._reinvent_carried(
             [r for _h, g in chain for r in g.get("inventions", ())])
+    if tether._ROUTINE_CARRY and hasattr(ag, "_carry_routines_in"):
+        # (6c): root to tip, one row per kind form, the latest standing kept
+        rk = {r["key"]: r for _h, g in chain for r in g.get("routines_by_kind", ())}
+        rep["routines_in"] = ag._carry_routines_in(list(rk.values()))
     if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
         # 7h (h): the kind counts of every generation, root to tip, read as A1's second key
         for _h, g in chain:

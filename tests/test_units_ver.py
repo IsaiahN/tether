@@ -1,6 +1,8 @@
 """S6 (iv), THE UNITS VERSION, TETHER_UNITS_VER (the reviewer 2026-10-19 14:56 (iv), 15:05).
 
-  E   the fake ARC game, 12 actions, C-seed-X, the arm ON vs OFF: the ledgers identical row for row
+  E   the fake ARC game, 12 actions, C-seed-X, the arm ON vs OFF: the ledgers identical row for row,
+      the timings masked by the shared list (conform/identity_mod_rows, imported; the reviewer
+      2026-10-25 21:52); MF-ID: a non-timing field changed in one row (group_n) still differs
   W   every write that can move the settled set -- library[k] = t, standing.setdefault (a new key),
       standing[k] = a SETTLED Standing, settled_at None -> tick, tick -> None, standing.pop,
       library.update -- leaves units_held equal to a fresh build and to the scanned key's units
@@ -27,6 +29,8 @@ import sys
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.join(_repo.ROOT, "conform"))
+from identity_mod_rows import mask_timings  # noqa: E402
 
 CHILD = r'''
 import json, os, sys, tempfile
@@ -52,7 +56,8 @@ def child(extra: dict | None = None) -> list:
 
 
 def keep(rows: list) -> list:
-    return [r for r in rows if r.get("slot") != "@run" and r.get("event") not in ("header", "arms")]
+    return [r for r in mask_timings(json.loads(json.dumps(rows)))
+            if r.get("slot") != "@run" and r.get("event") not in ("header", "arms")]
 
 
 def exact(g, what: str) -> tuple:
@@ -100,7 +105,13 @@ def main() -> int:
     on, off = keep(child()), keep(child({"TETHER_UNITS_VER": "0"}))
     diff = next(((i, x, y) for i, (x, y) in enumerate(zip(on, off, strict=False)) if x != y), None)
     assert len(on) == len(off) and diff is None, (len(on), len(off), diff)                # E
-    print("E", len(on), "rows identical, the count ON vs OFF")
+    print("E", len(on), "rows identical, the count ON vs OFF (timings masked)")
+    hyp = [i for i, r in enumerate(off) if r.get("event") == "goal_hypotheses"]
+    assert hyp, "PRECONDITION: no goal_hypotheses row to plant in"
+    planted = json.loads(json.dumps(off))
+    planted[hyp[0]]["detail"]["group_n"] = (planted[hyp[0]]["detail"].get("group_n") or 0) + 1
+    assert keep(planted) != on, "MF-ID: a non-timing change passed the mask"
+    print(f"MF-ID group_n changed in one of {len(hyp)} goal_hypotheses rows -> a difference")
     sys.path.insert(0, os.path.join(_repo.ROOT, "conform"))
     import panel
 

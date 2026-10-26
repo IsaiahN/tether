@@ -24,7 +24,7 @@ import sys
 import time
 from collections import Counter
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, is_dataclass
 from dataclasses import replace as _replace
 from functools import cache, partial, wraps
 from typing import Any
@@ -523,7 +523,7 @@ def lag_of(name: str | None) -> tuple[str, int] | None:
     m = _LAG.match(name)
     return (m.group(1), int(m.group(2))) if m and int(m.group(2)) > 0 else None
 # THE ~1 OFFER IN `_bindings` (the reviewer 2026-10-09 06:39Z): OFF, reason in conform/arms.py.
-_PREV_OFFER = armflag.arm("TETHER_PREV_OFFER")
+_PREV_OFFER = armflag.arm("TETHER_PREV_OFFER", default=True)   # C-HELD-5, 2026-10-26
 # M4: the library's offered chains yielded BEFORE the closure stream, priced by the one body
 # (the reviewer 2026-10-09 08:30Z). DEFAULT ON by the registered rule (10:02Z, re-measured after
 # the operand fix 10:19Z). OFF: the offers are recorded and not read.
@@ -555,7 +555,7 @@ _PROMOTE_AFTER_SETTLE = True
 # CARRY CREDIT (R3 item 3; DISCOVERY 503; H3(ii); R-D4; the reviewer 16:31Z, 21:18Z). OFF; reason in
 # conform/arms.py. A minted term's cost is paid once: reused where it RE-GROUNDS (left < base on the
 # slot's own record) it is priced on its leftover, and the library fit takes the lowest whole price.
-_CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE")
+_CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE", default=True)   # C-HELD-5, 2026-10-26
 # MC1 + MC2 (7a(4); R3; the reviewer 2026-10-10 07:57Z). ON; reason in conform/arms.py. The signal
 # is the TRANSITION bet row itself (ledger.signal_sign); ON, each gets exactly one resolution row
 # when its level ends (retarget) or the run ends with the level open (end_run). Record only.
@@ -708,7 +708,99 @@ INTERVAL_DISAGREE: list = []      # the first disagreements, for the check run's
 # 19:13 B3): a chain bounded out on cost generates no instance, so its instances are not charged
 # to work_budget (sp80 669,981 / vc33 276,057 such in 8 cycles at 15k). A REACH change: the same
 # budget walks further. OFF: they are charged, as before (7d5fcf9)
-_BUDGET_GENERATED = armflag.arm("TETHER_BUDGET_GENERATED")
+_BUDGET_GENERATED = armflag.arm("TETHER_BUDGET_GENERATED", default=True)   # C-HELD-5
+# (6d) COMMIT URGENCY FROM STEPS SINCE PROGRESS (Q24; Isaiah 2026-10-26 04:51 build order, the
+# reviewer 04:53): the commit bar's clock counts cycles since any objective gap last shrank
+# (_note_progress, R-A's subtraction), not since the last commitment, so effort spent without
+# progress keeps lowering the bar. OFF: since the last commitment, as before
+_URGENCY_PROGRESS = armflag.arm("TETHER_URGENCY_PROGRESS", default=True)
+# (6b) A DEATH KEEPS THE LEVEL'S BINDINGS AND REFUSALS (Q12 "a death is a game event; the agent
+# persists", Q18 A5 animal filter, R-D carry; Isaiah 2026-10-26 04:51 build order, the reviewer
+# 04:53; AUD link 5): at a death retarget HOLDS self.bound and the refused routes, and restarted()
+# carries back each entry whose objects were all re-found unambiguously (the refutations' rule).
+# OFF: cleared at every boundary, as before
+_DEATH_KEEPS = armflag.arm("TETHER_DEATH_KEEPS", default=True)
+# (4h) A MET GOAL UNDONE IS WEIGHED (09-29; Isaiah 2026-10-26 04:51 build order, the reviewer
+# 04:53; AUD link 4): when an intent has undone an objective that holds now MIN_REPEAT times or
+# more, the route this press took is refused in this context through R-B's store, so the next
+# choice here asks for another route. OFF: the conflict row only, "not yet weighed", as before
+_UNDO_WEIGHED = armflag.arm("TETHER_UNDO_WEIGHED", default=True)
+# (2a) I-B REAFFERENCE (the 10-23 design, approved; UMW A1; Isaiah 2026-10-26 04:51 build order,
+# the reviewer 04:53): before the interface credits a press with the slots that changed, it
+# subtracts what changed anyway: own-clock slots on their own rule's value, and the slots of
+# objects the last cascade read as self-moved. OFF: every changed slot credited, as before
+_REAFFERENCE = armflag.arm("TETHER_REAFFERENCE", default=True)
+# (2b) TOUCH IS FELT (UMW A2; Isaiah 2026-10-26 04:51 build order, the reviewer 04:53): System 0's
+# contact pick is marked explored only after its outcome is read (contact made, or MIN_REPEAT
+# tries that made none), with a contact row per press. OFF: marked before the press, as before
+_TOUCH_FELT = armflag.arm("TETHER_TOUCH_FELT", default=True)
+# (4c) R-F STEERING (Isaiah 2026-10-23 19:19, the 10-23 design; A11 2026-10-25; the reviewer 04:53,
+# 05:27): each graded goal-exit press is read on course / nothing happened / wrong way / wrong
+# thing (row steer); off course, that route is set aside for the next realisation of the intent
+# here; a wrong thing, or an exhausted offer whose interface reason is "no way known", re-states
+# the intent with its target named. OFF: R-B alone, as before
+_STEER = armflag.arm("TETHER_STEER", default=True)
+# (3d) Q23, A CAN-UNKNOWN AFFORDANCE GETS A CHEAP PROBE (Isaiah 2026-10-26 04:51 build order, the
+# reviewer 04:53; AUD link 2): where the routine mint refuses because CAN is unknown, the slot's
+# object becomes System 0's next exploratory target, once (row can_probe). OFF: refusal only
+_CAN_PROBE = armflag.arm("TETHER_CAN_PROBE", default=True)
+# THE BODY RECORD STARTS WITH ITS LEDGER (the reviewer 2026-10-26 06:02): the @body side file was
+# opened "w" at each AGENT's first fold, so (B)'s fresh agent truncated the faulted one's rows
+# (PLAY11 r9: c0-c96 lost). Now "w" once per ledger object, "a" after. OFF: per agent, as before
+_BODY_APPEND = armflag.arm("TETHER_BODY_APPEND", default=True)
+# (3c) "YOU CAN NOW ..." REACHES THE MODES (Isaiah 09-28; AUD link 2; Fig 11 :40, Fig 10 :24-25;
+# the 04:51 build order): System 0's action kinds (3b, wall / crossing from 3a's blocks / passes)
+# are rowed when they change, and when a way to act opens or a switch is read as used, the route
+# refusals earned under the old affordance are set aside (kept, rowed) and the routes re-engaged.
+# OFF: the capability report is recorded and read by nothing, as before
+_CAP_READ = armflag.arm("TETHER_CAP_READ", default=True)
+# (4d) S4, A REFUSAL IS SITUATED (Q16; UMW A9; the 04:51 build order): R-B's route refusal (and
+# 4h's) is keyed by the subject's own contacts and the alive flag, never the whole board's contact
+# multiset, which the table keeps for its pooled presses. OFF: the whole-board key, as before
+_SITUATED_REFUSAL = armflag.arm("TETHER_SITUATED_REFUSAL", default=True)
+# (4e) I-C, THE CURRENT PREDICTION BEFORE THE POOLED TABLE (the 10-23 design, approved; WATSON P5;
+# the 04:51 build order): the goal exit first realises among the actions the settled bound term
+# predicts serve the intent here (row predicted_route); the table's pick when it names none.
+# OFF: the table alone, as before
+_PRED_FIRST = armflag.arm("TETHER_PRED_FIRST", default=True)
+# (4f) R-E, A DELAYED EFFECT IS REFUSED ONLY AFTER ITS PREDICTED WINDOW (the 10-23 design, approved;
+# WATSON case 6; the 04:51 build order): R-B's no-change count waits the largest lag the slot's
+# bound term reads (row route_waiting); "farther" still refuses at once. OFF: MIN_REPEAT, as before
+_DELAY_WINDOW = armflag.arm("TETHER_DELAY_WINDOW", default=True)
+# (5a) A4, SURPRISE SAYS WHERE TO LOOK (Isaiah 2026-10-25 20:21 "do what the tether says"; Fig 1
+# :28, Fig 9 :53): in _goal_choice a shrinking want on an object carrying unexplained surprise
+# ranks before one that carries none; the shrinking bar still selects, surprise is never scored
+# or maximised (Fig 1 :23-27). Row nominated when it changed the pick. OFF: as before
+_SURPRISE_NOMINATES = armflag.arm("TETHER_SURPRISE_NOMINATES", default=True)
+# (5b) SYSTEM 0 NEVER HOLDS THE WHEEL (Isaiah 09-28; AUD link 3; the 04:51 build order): while it
+# is active, distinguish and goal still enter _exit_choice's contest beside it, weighed by A1's
+# readings, instead of deferring. OFF: the goal-directed exits defer to it, as before
+_S0_CONTEST = armflag.arm("TETHER_S0_CONTEST", default=True)
+# (5c) A12, A DEATH VOTES ON THE ROUTE TOWARD THE GOAL (Isaiah 2026-10-25 20:21; Fig 11 :49, :51;
+# Fig 7 :35): presses counted by kind (goal slot kind, action, situation kinds); a death adds a vote
+# to the last press's kind (row death_vote); read as deaths / presses, so it decays as such presses
+# survive. The goal exit asks realise over the never-voted offers first; a want's kind with deaths
+# ranks after in _goal_choice, after A4's nomination. No action is ever removed, RESET included.
+# OFF: deaths are not read, as before
+_DEATH_VOTE = armflag.arm("TETHER_DEATH_VOTE", default=True)
+# (4g) R-C, SUBGOALS ARE ROUTES (the 10-23 design; the reviewer 2026-10-26 06:19: built only on an
+# enabling reading the code already holds): when an intent's routes are exhausted and the SETTLED
+# term bound on its slot reads another object's slot as its operand, and that slot's want is open,
+# it is held as the parent's subgoal (row subgoal_adopted, naming the operand read) and selected
+# while open; ends on arrival, on its own exhausted routes, or at the level. OFF: as before
+_SUBGOAL = armflag.arm("TETHER_SUBGOAL", default=True)
+# (6a) R-D, UNREACHABLE AT BUDGET, THEN RE-ENGAGE (the 10-23 design; A11; Fig 8 :40-41): an
+# exhausted intent is kept as the verdict "unreachable at budget" with the situation it was read
+# in; when a route is offered for it again (its situation moved -- 4d -- or its refusals were set
+# aside -- 3c), a re_engaged row says so. Refusals are untouched. OFF: as before
+_REENGAGE = armflag.arm("TETHER_REENGAGE", default=True)
+# (6c) ROUTINES CARRIED BY KIND (the reviewer 2026-10-26 06:32, ruled; Fig 4 :22-24 "Only methods
+# cross up. Only head starts come down."): each settled routine is written in KIND FORM (every
+# slot by its kind key, a TOUCH object by its kind; a Call or Let is not carried) in the optional
+# generation field routines_by_kind, folded one row per kind form (lineage_store._counts_apply);
+# at load each is bound per level where every kind has exactly ONE slot here, and offered to the
+# routine mint as a CANDIDATE -- on trial, never settled. OFF: none of it, as before
+_ROUTINE_CARRY = armflag.arm("TETHER_ROUTINE_CARRY", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -2653,6 +2745,8 @@ class Agent:
         self.iface.chooser = self._choose_known      # F480: the agent prices the known
         if _KIND_CARRY and _KIND_EFFECTS:
             self.iface.kind_of = self._slot_kind_key  # K3: effects also filed by kind
+        if IFace._AIM_INSIDE:
+            self.iface.cell_of = getattr(env, "aim_cell", None)   # (2c): aim inside the object
         self._subject_n: collections.Counter = collections.Counter()   # A1: curiosity aimed
         self._probe_n: collections.Counter = collections.Counter()     # A1: starved probes
         # 7h (h): the same counts by kind: this instance's, the lineage's (read, never added to),
@@ -3086,6 +3180,23 @@ class Agent:
         # R-B: a refused route -> (why, cycle); a route's run of non-closing readings (the level's)
         self._route_refused: dict[tuple, tuple[str, int]] = {}
         self._route_run: dict[tuple, list[str]] = {}
+        # (3c): refusals set aside when the board's affordance changed (kept, never removed), and
+        # the last (action, context) -> kind reading, so a change is what gets rowed
+        self._route_stale: dict[tuple, tuple[str, int]] = {}
+        self._kinds_was: dict[tuple, str] = {}
+        # (5c) A12: presses and deaths by (goal slot kind, action, situation kinds) -- kinds, so
+        # they cross levels; the press last counted, and the goal exit's situation for it
+        self._press_n: Counter = Counter()
+        self._death_n: Counter = Counter()
+        self._last_press_key: tuple | None = None
+        self._press_situ: tuple | None = None
+        self._subgoal: dict | None = None   # (4g) R-C: {"parent", "sub"} while a detour is held
+        self._unreachable: dict = {}        # (6a) R-D: intent -> {"at", "situation"} at budget
+        # (6c): kind forms loaded (key -> row), the keys this instance has written, and this
+        # level's bound candidates (None until first asked)
+        self._routines_in: dict = {}
+        self._rk_written: dict = {}         # (6c): key -> the standing last written
+        self._rk_bound: list | None = None
         self._audit_at: int | None = None   # R-B: the cycle whose press was last audited
         # R-C: slot -> the correction its last overshoot owes; (slot, target) -> the oscillation
         # guard's last |gap| and its count of overshoots that did not shrink it
@@ -3144,6 +3255,7 @@ class Agent:
         # never committed is already under time pressure at cycle 0, which is correct: it has
         # spent its whole life not acting.
         self._last_commit = 0
+        self._last_progress = 0   # (6d): the cycle an objective gap last shrank
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
         self._overrides: list[tuple[float, bool, int]] = []
@@ -3207,6 +3319,19 @@ class Agent:
         self.refuted_at: dict[tuple, float] = {}
         # HELD at a death's boundary, for `restarted` to carry back where identity is sure (F479).
         self._held_refutations: tuple[dict, dict] | None = None
+        # (6b): the level's bindings and refused routes, HELD at a death the same way
+        self._held_level: dict | None = None
+        self._self_moved_now: frozenset = frozenset()   # (2a): the last cascade's self-movers
+        # (2b): the contact pick awaiting its felt outcome, its pair, and the tries per contact key
+        self._contact_pending: tuple | None = None
+        # (4c) R-F: off-course presses per slot, the route set aside once per (intent, context),
+        # and the slots whose intent is re-stated with its target named
+        self._rf_stall: dict = {}
+        self._rf_differ: dict = {}
+        self._rf_restate: set = set()
+        self._can_probe: str | None = None    # (3d): the object a CAN-unknown slot asks to probe
+        self._contact_pair: tuple = ()
+        self._contact_tries: collections.Counter = collections.Counter()
         # (b'-l) every boundary's cleared stores, instance form, in order; nothing is removed
         self._dormant: list[dict] = []
         self._attempt_cycle = 0
@@ -3486,6 +3611,17 @@ class Agent:
                 m.clear()
         if _CONSOLIDATE:
             self._consolidate(how)
+        if _DEATH_VOTE and how == "death" and self._last_press_key is not None:
+            # (5c) A12: the ground's vote on the press last taken toward the goal held then
+            k = self._last_press_key
+            self._death_n[k] += 1
+            self.led.record(self.cycle, "SETTLE", "@death", "death_vote", goal_kind=k[0],
+                            action=k[1], situation=[list(p) for p in k[2]],
+                            deaths=self._death_n[k], presses=self._press_n[k],
+                            reads="a death votes against this press, toward this goal, in this "
+                                  "kind of situation; read as a share, so it decays as such "
+                                  "presses survive, and it removes no action (A12)")
+        self._last_press_key = None
         if _G1_WANT and self._g1:
             # G1: the ending is the ground's vote on each relational want held through it
             self.led.record(self.cycle, "SETTLE", "@g1_end", "g1_outcomes", how=how,
@@ -3583,6 +3719,8 @@ class Agent:
         self._decomp_cache = None
         self._frame_cache = {}
         self.env, self.level = env, level
+        if IFace._AIM_INSIDE:
+            self.iface.cell_of = getattr(env, "aim_cell", None)   # (2c): the new world's cells
         self.slots = env.slots()
         self.actions = tuple(env.actions())       # a new level may advertise differently
         self.alphabet = self._with_last(self._alphabets(env))   # a new level may re-value slots
@@ -3592,6 +3730,10 @@ class Agent:
             self._d5_level_end()
         if _LINEAGE_HOLD:
             self._hold_lineage(how)
+        # (6b) A DEATH KEEPS THE LEVEL'S BINDINGS AND REFUSED ROUTES: held, for `restarted` to carry
+        # back where identity is sure, as the refutations below are (Q12, Q18, R-D carry)
+        self._held_level = ({"bound": dict(self.bound), "route_refused": dict(self._route_refused)}
+                            if how == "death" and _DEATH_KEEPS else None)
         self.bound, self.trace = {}, []
         self._window_at = 0        # C: the trace restarts, so does its window
         self._served = {}          # (iv): a served binding does not cross the boundary either
@@ -3611,11 +3753,17 @@ class Agent:
         # route_refused rows stay in the ledger (Fig 6 :45). retarget fires on a level edge AND a
         # death, so a carry across tries is R-D's, open (the reviewer 2026-10-23 22:12)
         self._gap, self._route_refused, self._route_run = {}, {}, {}
+        self._route_stale = {}                       # (3c): this level's, like the refusals
+        self._subgoal = None                         # (4g): slot names do not cross
+        self._unreachable = {}                       # (6a): nor intents that name them
+        self._rk_bound = None                        # (6c): bound again on the new board
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
         self._dw_tried = {}
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
         # last reading or step, an undone count, each read on the next level's same NAME.
         self.wants, self._want_terms, self._reach_tested = {}, {}, {}
+        self._rf_stall, self._rf_differ, self._rf_restate = {}, {}, set()   # (4c): slot-keyed
+        self._can_probe = None                                               # (3d): an object id
         self._prev_gap, self._gap_delta, self._undone, self._undone_across = {}, {}, {}, {}
         # AND NEITHER DO THE REFUTATIONS, FOR THE REASON THIS METHOD'S OWN DOCSTRING GIVES:
         # *slot names mean nothing across a boundary.* The reject key is
@@ -3928,8 +4076,13 @@ class Agent:
         self._body_rows.append(body)
         path = getattr(self.led, "_path", None)
         if path is not None:
-            with open(f"{path}.body.jsonl", "a" if self._fold_n > 1 else "w",
-                      encoding="utf-8") as fh:     # a fresh side file with each agent
+            # TETHER_BODY_APPEND: the side file starts with its LEDGER, not with each agent, so a
+            # fresh agent on the same ledger ((B)'s recovery) appends rather than truncating
+            fresh = (not getattr(self.led, "_body_opened", False) if _BODY_APPEND
+                     else self._fold_n <= 1)
+            if _BODY_APPEND:
+                self.led._body_opened = True
+            with open(f"{path}.body.jsonl", "w" if fresh else "a", encoding="utf-8") as fh:
                 fh.write(json.dumps(body) + "\n")
 
     def _size_fold(self) -> None:
@@ -7048,7 +7201,7 @@ class Agent:
         """(v): every (condition, then-term) pair as (ci, fi, total, cost, left), in _invent's order
         (conditions outer). Each part's symbols are walked once and every float operation runs in
         Code.bits' order, so each cost is bit-equal to _inv_cost(f, [c], units)."""
-        code = self.gamma.code()
+        code, ver = self.gamma.code(), self.gamma.code_ver()
         bond = math.log2(max(BONDS, 1))
 
         def vals(t: Term, u: tuple) -> list:
@@ -7082,7 +7235,7 @@ class Agent:
                     b += v
                 cost = (b + code.end) + (kf + len(vc) - 1) * bond
                 yield ci, fi, cost + left, cost, left
-        if self.gamma.code() is not code:     # the code the pairs were priced under never moved
+        if self.gamma.code_ver() != ver:      # what the pairs were priced under never moved ((p))
             raise RuntimeError("_inv_pairs: the code moved while the pairs were priced")
 
     @staticmethod
@@ -8188,6 +8341,9 @@ class Agent:
             elif any(x in controlled for x in near.get(o_, ())):
                 modes[o_] = REACTING
         self.agency.note_order(modes)
+        # (2a) I-B: the objects this cascade read as moving on their own, the in-between-frame
+        # baseline the next audit subtracts (refreshed only by a reading with an order)
+        self._self_moved_now = frozenset(o for o, m in modes.items() if m == SELF_MOVED)
         self.led.record(self.cycle, self._running_step, "*", "cascade_modes", frames=len(frames),
                         modes=modes, first=first, controlled=sorted(controlled))
 
@@ -8458,6 +8614,55 @@ class Agent:
         if (_ROUTE_REFUSE and t.get("route") is not None and _base != "own clock"
                 and t.get("at") == self.cycle == self._audit_at):
             self._route_read(t["route"], _base, slot, t, after)
+            if _STEER:
+                self._steer(t["route"], _base, slot)
+
+    def _meant(self, action: str) -> tuple | None:
+        """(4a) UMW A5: what the press MEANT, handed to the audit beside what it did -- the intent
+        in the agent's words, and the realisation's why and mode -- when the realisation the press
+        came from is this action's; None when no exit recorded one."""
+        r, want = self._last_real, getattr(self, "_intent_now", None)
+        if r is None or r.action != action:
+            return None
+        return (want.says() if want is not None else None, r.why, getattr(r, "mode", None))
+
+    def _steer(self, route: tuple, outcome: str, slot: str) -> None:
+        """(4c) R-F, STEERING (Isaiah 2026-10-23 19:19; the 10-23 design; A11 2026-10-25 "the next
+        try must DIFFER"): the press is read against the intent's own expectation, never against
+        which action was used. Four readings: ON COURSE (closer / reached: keep going); NOTHING
+        HAPPENED (the subject did not change and nothing else credited did); WRONG WAY (farther,
+        or moved to a value not asked for); WRONG THING (the subject did not change but another
+        credited slot did: the intent was misread). Off course, this route is set aside for the
+        next realisation of the intent here (_route_offer, while another offer exists), so the
+        next try differs; a wrong thing also re-states the intent with its target named
+        (_goal_split, R-C's Specific form). R-B's refusal count is untouched."""
+        said, ctx = route[0], route[3]
+        reading = {"closer": "on course", "reached": "on course", "farther": "wrong way",
+                   "not reached": "wrong way"}.get(outcome)
+        if outcome == "no change":
+            other = [s for s in getattr(self.iface, "last_changed", ()) if s != slot]
+            reading = "wrong thing" if other else "nothing happened"
+        if reading is None:
+            return
+        if IFace._IA_SERVED:            # (4a) I-A: the verdict comes down to the limb
+            self.iface.verdict(said, ctx, route[1], route[2], reading == "on course")
+        if reading == "on course":
+            self._rf_stall.pop(slot, None)
+            self._rf_restate.discard(slot)
+        else:
+            self._rf_stall[slot] = self._rf_stall.get(slot, 0) + 1
+            self._rf_differ[(said, ctx)] = route
+            if reading == "wrong thing":
+                self._rf_restate.add(slot)
+        self.led.record(self.cycle, "SETTLE", slot, "steer", reading=reading, outcome=outcome,
+                        intent=said, action=route[1],
+                        coord=list(route[2]) if route[2] else None,
+                        off_course=self._rf_stall.get(slot, 0),
+                        reads={"on course": "keep going",
+                               "nothing happened": "not this way here: the next try differs",
+                               "wrong way": "this realisation does the opposite here: re-ask",
+                               "wrong thing": "the intent was misread: re-state it, target "
+                                              "named"}[reading])
 
     def _route_read(self, route: tuple, outcome: str, slot: str, t: dict | None = None,
                     after: Any = None) -> None:
@@ -8490,8 +8695,17 @@ class Agent:
             why = "overshoots_without_closing"
         else:
             run.append(outcome)
+            # (4f) R-E: a no-change is not a refusal while the effect the model predicts is still
+            # inside its window (the largest lag the slot's bound term reads); "farther" is a
+            # reading and refuses at once
+            win = self._effect_window(slot) if _DELAY_WINDOW and outcome != "farther" else 0
             why = ("farther" if outcome == "farther"
-                   else "no_shrink" if len(run) >= MIN_REPEAT else None)
+                   else "no_shrink" if len(run) >= MIN_REPEAT + win else None)
+            if why is None and win and len(run) >= MIN_REPEAT:
+                self.led.record(self.cycle, "SETTLE", slot, "route_waiting", window=win,
+                                outcomes=list(run), action=route[1],
+                                reads="the predicted effect is delayed: not refused inside "
+                                      "its window (R-E)")
         if why is None:
             return
         self._route_refused[route] = (why, self.cycle)
@@ -8509,6 +8723,223 @@ class Agent:
         magnitude would make it "specific"."""
         return "general"
 
+    def _enablers(self, slot: str) -> list[tuple[str, str]]:
+        """(4g) R-C: the slots of OTHER objects that the SETTLED term bound on `slot` reads as its
+        operand (Term.operand, lag stripped; read by _ops) -- the agent's own reading that B's
+        value enters A's. [(B, the line read)], in the term's order."""
+        name = self.bound.get(slot)
+        if not name or name not in self.gamma.library or not self.gamma.is_settled(name, slot):
+            return []
+        mine, out = self._objs_named(slot), []
+        term = self.gamma.library[name]
+        while term is not None:
+            cap.head()
+            op = getattr(term, "operand", None)
+            b = (lag_of(op) or (op,))[0] if op else None
+            if b and b != slot and not (self._objs_named(b) & mine):
+                out.append((b, f"{name}.operand {op}"))
+            term = getattr(term, "operand_term", None)
+        return out
+
+    def _routine_form(self, r: Any) -> Any:
+        """(6c): a routine as its KIND FORM, JSON-able, or None when any part is a name that means
+        nothing on another board (Call, Let, a repeat, a guard or object that is no slot/object)."""
+        if isinstance(r, IFace.Intent):
+            if r.repeat is not None or not r.subject:
+                return None
+            obj = r.object
+            if obj not in (None, "+", "-"):
+                if obj not in self._objs_named(r.subject) | {o for s in self.slots
+                                                            for o in self._objs_named(s)}:
+                    return None
+                obj = ["@kind", repr(self._kind(obj))]
+            return {"I": [type(r).__name__, r.kind, self._kind_key(r.subject), obj, r.value,
+                          getattr(r, "to", None)]}
+        if isinstance(r, Rt.Act):
+            act = self._routine_form(r.action)
+            return None if act is None else {"N": "Act", "f": {"action": act}}
+        if isinstance(r, (Rt.Call, Rt.Let)):
+            return None
+        if isinstance(r, str):                  # a guard: a slot name
+            return {"G": self._kind_key(r)} if r in self.slots else None
+        if isinstance(r, int) or r is None:
+            return {"V": r}
+        if not is_dataclass(r):
+            return None
+        parts = {}
+        for f in fields(r):
+            v = self._routine_form(getattr(r, f.name)) if f.name != "slot" else (
+                {"G": self._kind_key(r.slot)} if r.slot in self.slots else None)
+            if v is None and getattr(r, f.name) is not None:
+                return None
+            parts[f.name] = v
+        return {"N": type(r).__name__, "f": parts}
+
+    def routines_by_kind(self) -> list[dict]:
+        """(6c): the settled routines as kind-form rows {key, form, standing}, one per form."""
+        out: dict = {}
+        for r in self.routines:
+            cap.head()
+            form = self._routine_form(r)
+            if form is not None:
+                key = json.dumps(form, sort_keys=True)
+                out[key] = {"key": key, "form": form, "standing": "settled"}
+        return list(out.values())
+
+    def _carry_routines_in(self, rows: list) -> int:
+        """(6c) at load: the kind forms the lineage holds, one per key; bound per level later."""
+        self._routines_in.update({r["key"]: r for r in rows if r.get("key") and r.get("form")})
+        # already in the lineage at this standing: rewritten only when the standing changes
+        self._rk_written.update({k: r.get("standing") for k, r in self._routines_in.items()})
+        self._rk_bound = None
+        return len(self._routines_in)
+
+    def _bind_form(self, x: Any, slots: dict, objs: dict) -> Any:
+        """(6c): a kind form back onto THIS board; raises KeyError where a kind has not exactly
+        one slot (or object) here -- the identity-sure rule of 6b."""
+        if "I" in x:
+            cls, kind, sk, obj, val, to = x["I"]
+            sub = slots[sk]
+            if isinstance(obj, list):
+                obj = objs[obj[1]]
+            if cls == "Specific":
+                return IFace.Specific(kind, sub, obj, value=val, to=to)
+            return IFace.Intent(kind, sub, obj, value=val)
+        if "G" in x:
+            return slots[x["G"]]
+        if "V" in x:
+            return x["V"]
+        cls = getattr(Rt, x["N"])
+        kw = {k: (None if v is None else self._bind_form(v, slots, objs))
+              for k, v in x["f"].items()}
+        if x["N"] == "Act":
+            return Rt.Act(kw["action"])
+        return cls(**kw)
+
+    def _carried_cands(self) -> list:
+        """(6c): this level's carried routines bound onto this board, once per level; each
+        offered as a candidate (on trial). Rows routine_bound / routine_unbound per level."""
+        if self._rk_bound is not None:
+            return self._rk_bound
+        self._rk_bound = []
+        if not self._routines_in:
+            return self._rk_bound
+        bys: dict = {}
+        for s in self.slots:
+            bys.setdefault(self._kind_key(s), []).append(s)
+        byo: dict = {}
+        for o in sorted({o for s in self.slots for o in self._objs_named(s)}):
+            byo.setdefault(repr(self._kind(o)), []).append(o)
+        slots = {k: v[0] for k, v in bys.items() if len(v) == 1}
+        objs = {k: v[0] for k, v in byo.items() if len(v) == 1}
+        unbound = 0
+        for _key, row in sorted(self._routines_in.items()):
+            cap.head()
+            try:
+                self._rk_bound.append(self._bind_form(row["form"], slots, objs))
+            except (KeyError, TypeError, AttributeError):
+                unbound += 1
+        self.led.record(self.cycle, "PLAN", "@routines", "routine_bound",
+                        carried=len(self._routines_in), bound=len(self._rk_bound),
+                        unbound=unbound,
+                        reads="carried routines by kind, bound where each kind has one slot here; "
+                              "offered on trial, never settled (6c)")
+        return self._rk_bound
+
+    def _subgoal_end(self, how: str) -> None:
+        sg, self._subgoal = self._subgoal, None
+        if sg is not None:
+            self.led.record(self.cycle, "SETTLE", sg["sub"], "subgoal_end", parent=sg["parent"],
+                            how=how, reads="the detour ends; the parent is chosen again (R-C)")
+
+    def _press_kind(self, action: str, situ: tuple, slot: str | None = None) -> tuple:
+        """(5c) A12: a press as a KIND -- the held goal's slot kind (Fig 11 :49: valence is relative
+        to the residual), the action, the situation's contact kinds (never names, never alive)."""
+        if slot is None:
+            gw = self._goal_want
+            slot = getattr(gw, "subject", None) if gw is not None else None
+        gk = self._kind_key(slot) if slot else None
+        return (gk, action, tuple(p for p in situ if p[0] != "@alive"))
+
+    def _danger(self, key: tuple) -> float:
+        """(5c): the share of this kind's presses that ended in a death; 0 with none recorded."""
+        return self._death_n[key] / self._press_n[key] if self._press_n[key] else 0.0
+
+    def _danger_safe(self, slot: str, offered: tuple, rctx: tuple) -> tuple:
+        """(5c): the offered actions no death has voted against here, toward this goal, when
+        some have such a vote and some do not; else () -- an order, never a removal."""
+        if not self._death_n:
+            return ()
+        safe = tuple(a for a in offered
+                     if not self._danger(self._press_kind(a, rctx, slot)))
+        return safe if 0 < len(safe) < len(offered) else ()
+
+    def _subject_danger(self, slot: str) -> float:
+        """(5c): deaths over presses for every press made toward a goal of this slot's kind."""
+        gk = self._kind_key(slot)
+        d = sum(n for k, n in self._death_n.items() if k[0] == gk)
+        p = sum(n for k, n in self._press_n.items() if k[0] == gk)
+        return d / p if p else 0.0
+
+    def _effect_window(self, slot: str) -> int:
+        """(4f) R-E: how many frames late the agent's own model says an effect on `slot` lands --
+        the largest lag j its bound term reads (operand `x~j`, through operand_term). 0 with no
+        bound term or no lag: R-B's count unchanged."""
+        term = self.gamma.library.get(self.bound.get(slot, IDN))
+        w = 0
+        while term is not None:
+            cap.head()
+            lag = lag_of(getattr(term, "operand", None))
+            w = max(w, lag[1] if lag else 0)
+            term = getattr(term, "operand_term", None)
+        return w
+
+    def _predicted_serves(self, slot: str, want: Any, offered: tuple, before: dict) -> tuple:
+        """(4e) I-C (the 10-23 design, approved; WATSON P5): the offered actions the SETTLED term
+        bound on `slot` predicts, for this press from this state, move the slot the way the
+        intent asks -- nearer its stated target, else in its sign. A term still on trial, an
+        unreadable prediction or a no-change prediction names nothing. `_pred_raw` is restored,
+        as rehearsal does, so asking leaves no trace on the step's bets."""
+        name = self.bound.get(slot)
+        v = before.get(slot)
+        if (not name or name not in self.gamma.library or v is None
+                or not self.gamma.is_settled(name, slot)):
+            return ()
+        tgt = getattr(want, "to", None)
+        tgt = want.value if tgt is None else tgt
+        sign = want.object if want.object in ("+", "-") else None
+        keep, out = dict(self._pred_raw), []
+        try:
+            for a in offered:
+                cap.head()
+                if a == IFace.RESET:
+                    continue
+                p = self._predict(slot, before, a)
+                if p is None or p == v:
+                    continue
+                if (abs(p - tgt) < abs(v - tgt) if tgt is not None
+                        else sign is not None and (p > v) == (sign == "+")):
+                    out.append(a)
+        finally:
+            self._pred_raw = keep
+        return tuple(out)
+
+    def _situation(self, slot: str, ctx: tuple) -> tuple:
+        """(4d) S4, THE REFUSAL'S SITUATION (Q16; UMW A9; Fig 1 :19, Fig 10 :24-25): the contact
+        kinds of the slot's OWN objects (Interface.context's actor filter, merged over a compound
+        owner) and whether the board is alive -- not the whole board's multiset, which moves with
+        any object anywhere, so a refusal held about one press. The table keeps the pooled key.
+        No epoch: R-D carries the refusals across a death (6b). A slot with no object: `ctx`."""
+        if not _SITUATED_REFUSAL:
+            return ctx
+        owners = sorted(self._objs_named(slot))
+        if not owners:
+            return ctx
+        kinds: Counter = Counter()
+        for o in owners:
+            kinds.update(dict(IFace.Interface.context(self.env, actor=o)))
+        return (*sorted(kinds.items()), ("@alive", int(bool(self.iface.alive))))
+
     @staticmethod
     def _route_key(want: Any, r: Any, ctx: tuple) -> tuple:
         """R-B's route: (the intent in the agent's words, the realised action, its coordinate,
@@ -8521,6 +8952,14 @@ class Agent:
         `offered`; a refused positioned route's coordinate joins the withheld pairs on this board,
         so it goes through the interface's one withhold door."""
         ref = [k for k in self._route_refused if k[0] == said and k[3] == ctx]
+        # (4c) R-F: the route last read off course is set aside ONCE for this intent here, so the
+        # next try differs -- only while another offer exists (a lone route is retried; R-B's
+        # count decides it)
+        aside = self._rf_differ.pop((said, ctx), None) if _STEER else None
+        others = (any(a != aside[1] for a in offered) if aside is not None and aside[2] is None
+                  else bool(offered))
+        if aside is not None and aside not in self._route_refused and others:
+            ref = [*ref, aside]
         if not ref:
             return offered, wh
         bare = {k[1] for k in ref if k[2] is None}
@@ -8847,7 +9286,8 @@ class Agent:
         # refutation count did not move: 18 before, 18 after. The treatment-executed check
         # caught it. `_aimed` is set when the action is realised and cleared at the top of
         # the step, so here it is THIS step's aim -- the same value the trace row records.
-        self._last_landed = self.iface._acted(getattr(self, "_aimed", None), before)
+        self._last_landed = self.iface._acted(getattr(self, "_aimed", None), before,
+                                              self.iface.cell_of)
         self._press_seen = _press(getattr(self, "_aimed", None), before, self._last_landed)
         # **WHO MADE THIS PREDICTION -- the reviewer, 2026-10-04. PROVENANCE APPLIED TO
         # EVIDENCE.** Captured HERE, at the moment of the claim, because `route` binds
@@ -8898,6 +9338,7 @@ class Agent:
             self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
         else:
             self.env.step(action)
+        self.iface.note_sent(action)   # TETHER_RESET_ADJACENT: the flag from the press as sent
         self._pressed = True
         after = self.env.observe()
         # B, THE SEAM (the reviewer 2026-10-23 12:35, 13:04): a frame break read on this action's
@@ -8957,7 +9398,9 @@ class Agent:
         if not self._seam_now and self.iface.audit(
                 _real, before, after, _ctx,
                 IFace.Interface.context(self.env) if IFace._DEST_GAP else None,
-                own=self._own_clock_keys() if _OWN_CLOCK_SUBJECT else frozenset()):
+                own=self._own_clock_keys() if _OWN_CLOCK_SUBJECT else frozenset(),
+                reaff=self._reafferent(after) if _REAFFERENCE else frozenset(),
+                meant=self._meant(action) if IFace._IA_SERVED else None):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
@@ -8965,9 +9408,21 @@ class Agent:
             self._audit_at = self.cycle    # R-B: this step's press was audited (no seam, no cut)
         if _R4_RECORD and not self._seam_now:
             _cr = getattr(self.iface, "last_changed", ())
+            _ra = getattr(self.iface, "last_reaff", ()) if _REAFFERENCE else ()
             self.led.record(self.cycle, "PERCEIVE", "@interface", "audit", of=(action,),
                             credited=len(_cr), own_clock=sorted(set(_cr) & _own_clock),
-                            reads="every slot that changed is credited to this press (F1)")
+                            **({"reafferent": len(_ra)} if _REAFFERENCE else {}),
+                            **({"meant": self.iface.last_meant} if IFace._IA_SERVED else {}),
+                            reads=("every slot that changed is credited to this press, less "
+                                   "what changed anyway (I-B)" if _REAFFERENCE else
+                                   "every slot that changed is credited to this press (F1)"))
+        if _TOUCH_FELT and self._contact_pending is not None:
+            self._contact_felt()
+        if _DEATH_VOTE and not self._seam_now:
+            # (5c) A12: every press counted under its kind, so a death's vote is a share of them
+            self._last_press_key = self._press_kind(action, self._press_situ or _ctx)
+            self._press_n[self._last_press_key] += 1
+        self._press_situ = None
         # AND WHAT THE BOARD NOW AFFORDS, **named as capability and never as a button** --
         # Isaiah: *"the board has enabled us to move to the left or right after doing xyz"*.
         # F28's line held: availability is legitimate to read, directional semantics never.
@@ -8976,6 +9431,7 @@ class Agent:
         # checks for a CALLER and not for a CONSUMER, so a report written to the record and
         # read by no mode passes it. **Nothing in systems 0, 1 or 2 reads this yet**, which is
         # why the commit that added it claims a RECORDED fact and not a changed decision.
+        # **READ SINCE (3c), under TETHER_CAP_READ: _cap_read below, with System 0's kinds.**
         _cap = self.iface.capability(tuple(self.env.actions()), after=action)
         self._last_cap = _cap
         if _cap.moved():
@@ -8983,6 +9439,8 @@ class Agent:
                             of=tuple(_cap.opened + _cap.closed),
                             reads=("what the board affords has changed, stated as what became "
                                    "possible rather than as which action it is"))
+        if _CAP_READ and not self._seam_now:
+            self._cap_read(_cap)       # (3c): the report and System 0's kinds, read above the seam
         name, deg_after = self.env.objective()
 
         res: dict[str, SlotResidual] = {}
@@ -10926,6 +11384,8 @@ class Agent:
                 # construction, so the nameable denominator is the TRANSITION rows alone.
                 act = self._took(_untried, IFace.Intent(IFace.ELICIT))
             elif target is not None:
+                if why == "can-unknown probe":
+                    self._can_probe = None      # (3d): the one probe, pressed or abstained
                 _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=target),
                                         tuple(self.actions),
                                         IFace.Interface.context(self.env), before, self.env,
@@ -10952,7 +11412,10 @@ class Agent:
                 # Simpler, not an extra mechanism: the same call, its result no longer discarded
                 # when the action happens to be mapped.
                 act = self._took(_untried, IFace.Intent(IFace.ELICIT))
-            if self._contact_pick is not None:
+            if self._contact_pick is not None and _TOUCH_FELT:
+                # (2b): marked only after the outcome is felt (_contact_felt, in perceive)
+                self._contact_pending = (self._contact_pick, self._contact_pair)
+            elif self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
             # target is an OBJECT id (_contact_target), never a slot. The row is labelled with the
             # step running (PLAN, choose), first on the ladder, so F500's order holds without the
@@ -11073,11 +11536,18 @@ class Agent:
         """The object to aim at, and why. Isaiah's ordering: an untried contact is the main
         mode; an object touching NOTHING is the next thing to go and make contact with; the
         uniform draw is last."""
+        probe = self._can_probe     # (3d) Q23: read, not spent; spent where TOUCH reaches it
+        if _CAN_PROBE and probe is not None:
+            if any(k.startswith(probe + ".") for k in before):
+                self._contact_pick = None
+                return probe, "can-unknown probe"
+            self._can_probe = None      # its object is gone: nothing left to probe
         keys = self._contact_keys(before)
         unexplored = [k for k in keys if k not in self._contact_seen]
         if unexplored:
             k = min(unexplored)          # deterministic, so a run is reproducible
             self._contact_pick = k
+            self._contact_pair = keys[k]  # (2b): the pair whose contact the press should feel
             return keys[k][0], "untried-contact"
         touching = {n for pair in keys.values() for n in pair}
         owners = sorted({x.rsplit(".", 1)[0] for x in before if "." in x} - touching)
@@ -11155,6 +11625,8 @@ class Agent:
                                before, self.env, withheld=self._withheld)
         self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
                         reads=(want.says(), r.why if r else "unrealisable"))
+        if r is None and self.actions and not self.iface.adjacent(tuple(self.actions)):
+            return None   # TETHER_RESET_ADJACENT: RESET alone is offered and the last press was one
         if r is None:
             # **AN EXPLICIT FAILURE, NOT A FALLBACK THAT CANNOT WORK -- the reviewer,
             # 2026-09-28.** This used to draw uniformly. Measured: 0 abstentions in 56 `ELICIT`
@@ -11295,6 +11767,7 @@ class Agent:
             # unwritten row -- which is how the depth buckets evaded that guard entirely.
             if g < prev:
                 self.gamma.book["gap_improved"] = self.gamma.book.get("gap_improved", 0) + 1
+                self._last_progress = self.cycle   # (6d): the commit bar's clock restarts here
             elif g == prev:
                 self.gamma.book["gap_flat"] = self.gamma.book.get("gap_flat", 0) + 1
             else:
@@ -11839,6 +12312,20 @@ class Agent:
         longest = 0
         refuted = self._refuted_slots() if _7H_RESCOPE and hasattr(self, "_rescoped") else {}
         plain: tuple[float, str] | None = None     # 7h (b): the pick without the rank
+        # (5a) A4: the objects carrying unexplained surprise nominate where to look; the
+        # shrinking bar below still selects, and an un-nominated want still qualifies
+        hot = ({o for s, v in self._outstanding.items() if v > 0 for o in self._objs_named(s)}
+               if _SURPRISE_NOMINATES else None)
+        unnom: tuple | None = None                 # (5a): the pick nomination would not make
+        if _SUBGOAL and self._subgoal is not None and hyp is None:
+            # (4g) R-C: a held detour is the end selected while its want is open; R-B then reads
+            # routes on its gap, and the parent's gap may grow meanwhile
+            _sub = self._subgoal["sub"]
+            if _sub in self._res and arrival(self._res[_sub]) == OPEN:
+                if why is not None:
+                    why.update(tally, slots=len(self._res), subgoal=_sub)
+                return _sub
+            self._subgoal_end("arrived" if _sub in self._res else "gone")
         for slot, series in sorted(self._res.items()):
             cap.head()
             longest = max(longest, len(series))
@@ -11894,6 +12381,15 @@ class Agent:
                     # today's R_goal shrink as the tie-break. A shrinking window opens above 0
                     _rw = series[-(MIN_REPEAT + 1):]
                     shrink = ((window[0] - window[-1]) / window[0], _rw[0] - _rw[-1])
+                if _DEATH_VOTE and self._death_n:
+                    shrink = (-self._subject_danger(slot), shrink)    # (5c) A12, weighed
+                if hot is not None:
+                    if unnom is None or shrink > unnom[0]:
+                        unnom = (shrink, slot)
+                    # a slot naming no object cannot be seen by surprise, so it cannot be
+                    # demoted by it: nominated (the reviewer 06:53; Fig 1 :23, :27)
+                    _on = self._objs_named(slot)
+                    shrink = (not _on or bool(_on & hot), shrink)
                 if refuted:
                     if plain is None or shrink > plain[0]:
                         plain = (shrink, slot)
@@ -11906,6 +12402,11 @@ class Agent:
                 tally["rose"] += 1
             else:
                 tally["flat"] += 1
+        if hot is not None and best and unnom and best[1] != unnom[1] and book:
+            self.led.record(self.cycle, self._running_step, best[1], "nominated",
+                            taken=best[1], passed=unnom[1],
+                            reads="unexplained surprise says where to look (A4); the "
+                                  "shrinking bar chose among those it named")
         if refuted and best and plain and best[1] != plain[1]:
             k = (self.cycle, best[1], plain[1])
             if k not in self._rescoped:
@@ -12251,7 +12752,10 @@ class Agent:
             opts.append("system0")
             res["system0"] = max((self.outstanding(s) for s in self.slots
                                   if s.split(".")[0] == s0_tw[0]), default=0)
-        else:
+        # (5b): System 0 hands over by a WEIGHED contest, never by holding the wheel -- the goal-
+        # directed exits stand beside it, read by the same A1 readings (what is unexplained where
+        # each aims, then turns taken, then the draw). OFF: they defer while it is active
+        if not s0 or _S0_CONTEST:
             dist_r = self.iface.realise(IFace.Intent(IFace.DISTINGUISH), tuple(self.actions),
                                         IFace.Interface.context(self.env), before, self.env,
                                         withheld=self._withheld)
@@ -12268,7 +12772,8 @@ class Agent:
                  else "goal")
         pick = self._choice("exit", None, [(e, None, 1) for e in opts], res,
                             {e: self._exit_n[(self.level, e)] for e in opts},
-                            extra={"s0_defer": s0, "fixed_would": fixed})
+                            extra={"s0_defer": s0, "fixed_would": fixed,
+                                   **({"s0_contest": True} if s0 and _S0_CONTEST else {})})
         self._exit_n[(self.level, pick)] += 1
         return pick, s0_tw, dist_r
 
@@ -12357,6 +12862,7 @@ class Agent:
         travelling changed and silent (the reviewer, 2026-10-06). The rest are NAMED, not carried.
         """
         held, self._held_refutations = self._held_refutations, None
+        held_level, self._held_level = self._held_level, None
         if _STEP_BUDGET:
             self._close_owed("restart")
         if _CONSOLIDATE:
@@ -12368,6 +12874,8 @@ class Agent:
             self._level_attempts += 1
         if _LINEAGE_HOLD:
             self._carry_lineage(env)
+        if held_level:
+            self._restore_level(env, held_level)
         if not held:
             return
         idn = getattr(env, "identity", None)
@@ -12389,6 +12897,30 @@ class Agent:
         self.led.record(_c, "IMPORT", _s, "restart", **_lv,
                         carried=sorted(carried), not_carried=not_carried,
                         reads="refutations held at the death; carried only where identity is sure")
+
+    def _restore_level(self, env: Any, held: dict) -> None:
+        """(6b): carry the bindings and refused routes held at the death back into the restarted
+        level, each only where every object its key names (by _objs_named and by any o<n> in the
+        key's text, so an intent string's subject counts) was re-found as overlap or a unique
+        shape. The rest are counted, never carried silently."""
+        idn = getattr(env, "identity", None)
+        kept: dict[str, int] = {}
+        dropped: dict[str, int] = {}
+        for store, items in held.items():
+            dest = self.bound if store == "bound" else self._route_refused
+            for k, v in items.items():
+                objs = self._objs_named(k) | set(re.findall(r"(?<![\w])o\d+(?![\w])", str(k)))
+                sure = all((idn(o) if idn else None) in ("overlap", "unique-shape")
+                           for o in objs)
+                if not sure:
+                    dropped[store] = dropped.get(store, 0) + 1
+                    continue
+                dest[k] = v
+                kept[store] = kept.get(store, 0) + 1
+        _c, _s, _lv = self._boundary_key("@boundary")
+        self.led.record(_c, "IMPORT", _s, "death_kept", **_lv, kept=kept, dropped=dropped,
+                        reads="the level's bindings and refused routes held at the death; "
+                              "carried only where identity is sure")
 
     @_in_step("SETTLE")
     def _hold_lineage(self, how: str) -> None:
@@ -12773,7 +13305,7 @@ class Agent:
         # relayed verbatim: *your current standing (resources, energy, ability, restrictions,
         # history)* sets it. The bar is read from how its own overrides ended; the relief rate
         # from its own intervals between commitments. Each is a SEED, marked, until it has one.
-        idle = self.cycle - self._last_commit
+        idle = self.cycle - (self._last_progress if _URGENCY_PROGRESS else self._last_commit)
         bar, bar_earned = self._commit_bar()
         rate, rate_earned = self._relief_rate()
         threshold = max(bar - _QUORUM_HALF, bar - idle / rate)
@@ -12988,6 +13520,13 @@ class Agent:
         if verdict != YES:
             self.led.record(self.cycle, "PLAN", slot, "routine_refused",
                             reason=f"CAN is {verdict}, and only yes commits")
+            # (3d) Q23: an UNKNOWN affordance gets a cheap probe, never a refusal alone -- System
+            # 0's next exploratory press aims at the slot's object (_contact_target); NO stays no
+            objs = sorted(self._objs_named(slot)) if _CAN_PROBE and verdict == UNKNOWN else []
+            if objs and self._can_probe is None:
+                self._can_probe = objs[0]
+                self.led.record(self.cycle, "PLAN", slot, "can_probe", target=objs[0],
+                                reads="CAN unknown: one press aimed at it will say")
             return
         self._split_why = None
         self._goal_want = None
@@ -13108,6 +13647,9 @@ class Agent:
         _step = self._goal_want if self._goal_want is not None else act
         cands = Rt.enumerate_routines((_step,), gnames + self._compound_guards(slot, gnames),
                                       shelf, loop_budget)
+        if _ROUTINE_CARRY:
+            # (6c): the lineage's routines, bound by kind, stand as candidates: on trial
+            cands = [*cands, *(c for c in self._carried_cands() if c not in cands)]
         # WEIGHTED AND CLOCKED, per §18.2 via `gamma.Standing`: a refutation excludes only while
         # its decaying strength stands, so a failed shape leaves the running and returns.
         _offered, _gap0 = len(cands), self._characterise_gap(slot)
@@ -13414,7 +13956,7 @@ class Agent:
         # formed in `choose` that fails to realise never reaches this door.
         if want is not None:
             self._intent_kinds.add(want.kind)
-            self._note_decision(want)
+            self._note_decision(want, r)
         return r.action
 
     def _r4_repeat(self) -> dict:
@@ -13424,9 +13966,12 @@ class Agent:
         r = self._last_real
         return {"offered": list(self.actions),
                 "withheld": None if r is None else getattr(self, "_r4_withheld", None),
-                "realised": None if r is None else {"why": r.why, **dict(r.evidence)}}
+                "realised": None if r is None else {"why": r.why, **dict(r.evidence)},
+                # (4b): every realisation that failed this step, with its kind and why
+                **({"unrealised": self.iface.take_unrealised()} if IFace._UNREALISED_WHY
+                   else {})}
 
-    def _note_decision(self, want: Any) -> None:
+    def _note_decision(self, want: Any, r: Any = None) -> None:
         """**A CONFLICT THE AGENT WAS IN -- NOT YET A DECISION IT MADE.**
 
         **THE DISTINCTION IS THE REVIEWER'S, 2026-09-29, AND I HAD OVER-CLAIMED IT.** I filed
@@ -13463,6 +14008,21 @@ class Agent:
         if not live:
             return
         _slot, _n = max(live, key=lambda kv: kv[1])
+        _ctx = self._situation(_slot, IFace.Interface.context(self.env))   # (4d) as R-B's key
+        # (4h) WEIGHED: a repeated undo of a met objective is the ground's vote against this route
+        # here (WATSON case 7; R-B "any farther reading refuses that route in that context"). The
+        # route is refused through R-B's own store, which choosing reads; the intent stays and
+        # asks for another route. Below the repeat bar it stays a recorded conflict
+        weighed = bool(_UNDO_WEIGHED and r is not None and _n >= MIN_REPEAT)
+        if weighed:
+            route = self._route_key(want, r, _ctx)
+            if route not in self._route_refused:
+                self._route_refused[route] = ("undoes_met_goal", self.cycle)
+                self.led.record(self.cycle, "SETTLE", _slot, "route_refused", intent=said,
+                                action=r.action, coord=list(r.coord) if r.coord else None,
+                                context=[list(c) for c in _ctx], why="undoes_met_goal",
+                                outcomes=[], reads="this way undoes an objective that holds, "
+                                                   "repeatedly; refused here, the intent stays")
         self.led.record(self.cycle, "PLAN", _slot, "decision",
                         chose=said,
                         # **THE ALTERNATIVE IS THE ABSTENTION, AND IT IS THE HONEST ONE.** At
@@ -13473,8 +14033,9 @@ class Agent:
                         because={"undone_here": _n,
                                  "across": self._undone_across.get((said, _slot), 0),
                                  "repeated": _n >= MIN_REPEAT},
-                        at=IFace.Interface.context(self.env),
-                        status="conflict, not yet weighed",
+                        at=_ctx,
+                        status=("weighed: this route refused here (R-B), the intent stays"
+                                if weighed else "conflict, not yet weighed"),
                         reads="I have undone this objective with this intent before and it "
                               "holds right now -- recorded as a CONFLICT I was in, not a "
                               "decision I made: nothing read this before the choice")
@@ -13507,6 +14068,8 @@ class Agent:
             return None
         if IFace._AIM_ROUTED and emit in IFace.POSITIONED:   # a name has no slot to aim from
             IFace.AIM_ROUTED_N["routine:bare_step_refused"] += 1
+            return None
+        if not self.iface.adjacent((emit,)):   # TETHER_RESET_ADJACENT: a bare RESET after a RESET
             return None
         return emit if emit in self.actions else None
 
@@ -13617,6 +14180,8 @@ class Agent:
             elif _ordered:
                 _corr = None
                 _aim = self._intent_aim(chosen, _tgt)
+                if _STEER and chosen in self._rf_restate:
+                    _aim = "specific"      # (4c) R-F: a wrong-thing reading re-states the intent
                 if _aim == "specific":
                     _want = IFace.Specific(IFace.BECOME, chosen, _want.object, to=_tgt)
             else:
@@ -13627,12 +14192,43 @@ class Agent:
         self._goal_want = _want
         self._intent_kinds.add(_want.kind)
         _ctx = IFace.Interface.context(self.env)
+        _rctx = self._situation(chosen, _ctx)   # (4d) S4: the refusal's situation, not the table's
         _offer, _wh = tuple(self.actions), self._withheld
         if _ROUTE_REFUSE:          # R-B: this intent's refused routes here are not offered
-            _offer, _wh = self._route_offer(_want.says(), _ctx, _offer, _wh)
-        _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
-                                 asker="goal")
-              if _offer or not _ROUTE_REFUSE else None)
+            _offer, _wh = self._route_offer(_want.says(), _rctx, _offer, _wh)
+        _r = None
+        if _PRED_FIRST and _offer:
+            # (4e) I-C: what the settled model predicts THIS press does HERE is asked first; the
+            # pooled table only when it names nothing (or the interface cannot realise it)
+            _pf = self._predicted_serves(chosen, _want, _offer, before)
+            if _pf and _DEATH_VOTE:
+                _pf = self._danger_safe(chosen, _pf, _rctx) or _pf     # (5c): an order
+            if _pf:
+                _r = self.iface.realise(_want, _pf, _ctx, before, self.env, withheld=_wh,
+                                        asker="goal")
+                if commit:
+                    self.led.record(self.cycle, "PLAN", chosen, "predicted_route",
+                                    intent=_want.says(), predicted=list(_pf),
+                                    taken=_r.action if _r is not None else None,
+                                    reads="the current prediction before the pooled table")
+        if _r is None and _DEATH_VOTE and _offer:
+            # (5c) A12: the offers no death has voted against, toward this goal here, first
+            _sf = self._danger_safe(chosen, _offer, _rctx)
+            if _sf:
+                _r = self.iface.realise(_want, _sf, _ctx, before, self.env, withheld=_wh,
+                                        asker="goal")
+                if commit:
+                    self.led.record(self.cycle, "PLAN", chosen, "danger_order",
+                                    intent=_want.says(), safe=list(_sf),
+                                    taken=_r.action if _r is not None else None,
+                                    reads="a death voted against the rest here; they stay "
+                                          "offered after these (A12)")
+        if _r is None:
+            _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
+                                     asker="goal")
+                  if _offer or not _ROUTE_REFUSE else None)
+        if commit and _r is not None:
+            self._press_situ = _rctx      # (5c): the situation this goal press is counted under
         if _corr is not None and commit:
             # R-C: the correction is looked up in the agent's OWN record (the interface's delta
             # table, via realise) and never assumed; none known is recorded, the route is kept
@@ -13653,22 +14249,62 @@ class Agent:
                 return None
         if _ROUTE_REFUSE and self._route_refused and (
                 not _offer or (_r is not None
-                               and self._route_key(_want, _r, _ctx) in self._route_refused)):
+                               and self._route_key(_want, _r, _rctx) in self._route_refused)):
             # R-B: every route this intent has here is refused -- the interface had nothing else
             # to offer. No route here at this budget (Fig 9 :44), never "impossible"; the
             # refusals stay, and a held hypothesis on this slot ends by="routes" (R-D's first half)
             self._split_why = "route_exhausted"
             if commit:
                 said = _want.says()
+                # (4c) THE REASON PICKS THE NEXT MOVE (4b's reader; the reviewer 2026-10-26 05:27):
+                # the interface's own reason when it was asked this step, else every offer here
+                # was refused (blocked). "no way known" -> re-state the intent (its target named)
+                # before another subject; "tried and failed" / "blocked" -> the route, not the
+                # translation: another subject (the held hypothesis ends by routes)
+                _why = (self.iface.unrealised if _offer and _r is None else None) or \
+                    {"kind": IFace.BLOCKED, "why": "every route for this intent here is refused"}
+                _restate = (_STEER and _why["kind"] == IFace.NO_WAY and _ordered
+                            and chosen not in self._rf_restate)
                 self.led.record(self.cycle, "PLAN", chosen, "route_exhausted", intent=said,
-                                context=[list(c) for c in _ctx],
+                                context=[list(c) for c in _rctx],
                                 refused=sorted(([k[1], list(k[2]) if k[2] else None, v[0]]
                                                 for k, v in self._route_refused.items()
-                                                if k[0] == said and k[3] == _ctx), key=repr),
+                                                if k[0] == said and k[3] == _rctx), key=repr),
+                                **({"unrealised": _why,
+                                    "next": "re-state the intent" if _restate
+                                    else "another subject"} if _STEER else {}),
+                                **({"verdict": "unreachable at budget"} if _REENGAGE else {}),
                                 reads="no route for this intent here at this budget")
-                if self._hyp is not None and chosen in self._hyp["slots"]:
+                if _REENGAGE:
+                    # (6a) R-D: kept as a verdict with its scope, so a route found later is read
+                    # as a re-engagement and what changed is said (Fig 8 :40-41)
+                    self._unreachable.setdefault(said, {"at": self.cycle, "situation": _rctx})
+                if _SUBGOAL and self._subgoal is not None and chosen == self._subgoal["sub"]:
+                    self._subgoal_end("routes")      # (4g): the detour, too, ran out of routes
+                elif _SUBGOAL and not _restate and self._subgoal is None:
+                    # (4g) R-C: the next subject is the one the agent's own model says enters
+                    # this one -- held as a detour while its want is open
+                    _en = [(b, ln) for b, ln in self._enablers(chosen)
+                           if b in self._res and arrival(self._res[b]) == OPEN]
+                    if _en:
+                        self._subgoal = {"parent": chosen, "sub": _en[0][0]}
+                        self.led.record(self.cycle, "PLAN", _en[0][0], "subgoal_adopted",
+                                        parent=chosen, read=_en[0][1],
+                                        reads="the parent's routes are exhausted; its settled "
+                                              "term reads this slot, so it is pursued as a "
+                                              "route (R-C)")
+                if _restate:
+                    self._rf_restate.add(chosen)
+                elif self._hyp is not None and chosen in self._hyp["slots"]:
                     self._hyp_end("stalled", by="routes")
             return None
+        if _REENGAGE and commit and _r is not None and _want.says() in self._unreachable:
+            _was = self._unreachable.pop(_want.says())
+            self.led.record(self.cycle, "PLAN", chosen, "re_engaged", intent=_want.says(),
+                            since=_was["at"], situation_changed=_was["situation"] != _rctx,
+                            action=_r.action,
+                            reads="unreachable at budget was a reading of then, not a verdict "
+                                  "for ever: a route is offered again (R-D)")
         if _r is not None:
             # FORMED IS NOT TAKEN (the reviewer 2026-10-10 12:27Z, 12:36Z). The routine mint asks
             # which press would serve this intent and does not press it this turn, so it writes no
@@ -13683,7 +14319,7 @@ class Agent:
                 if getattr(_r, "mode", "") == "kind_test":
                     self._test["kind_test"] = True     # (ii): graded as a test of the entry
                 if _ROUTE_REFUSE:          # R-B: the route this outcome will be read against
-                    self._test["route"] = self._route_key(_want, _r, _ctx)
+                    self._test["route"] = self._route_key(_want, _r, _rctx)
                     self._test["at"] = self.cycle
                     self._test["aim"] = _aim       # R-C: how the outcome is graded
             self.led.record(self.cycle, "PLAN", chosen, "intent",
@@ -13795,6 +14431,79 @@ class Agent:
                         after=self._last_action,
                         note="a condition was met or unmet; the denominator moved")
         self.actions = now
+
+    def _cap_read(self, cap_: Any) -> None:
+        """(3c) THE CAPABILITY REPORT, READ ABOVE THE SEAM (Isaiah 09-28: System 0 tells the modes
+        "you can now ..."). System 0's action kinds (iface.action_kinds, 3b; wall / crossing need
+        the world's blocks / passes readings, 3a) are rowed when one changes (action_kinds). When
+        a way to act OPENED, or a switch is newly read as used, the board's affordance moved: the
+        route refusals earned before it were read through a channel that has since gone stale
+        (Fig 10 :24-25), so they are set aside -- kept in _route_stale and rowed, never removed --
+        and the routes are tried again (R-B counts afresh). A refusal for undoing a met goal is a
+        reading about the goal, not the affordance, and stays."""
+        aff = getattr(self.env, "aff", None)
+        kinds = (self.iface.action_kinds(getattr(aff, "seen", None))
+                 if IFace._ACTION_KINDS else {})
+        now = {(a, c): k for a, m in kinds.items() for c, k in m.items()}
+        moved = {ak: k for ak, k in now.items() if self._kinds_was.get(ak) != k}
+        if moved:
+            self.led.record(self.cycle, "PERCEIVE", "@interface", "action_kinds",
+                            changed=sorted(([a, [list(x) for x in c], self._kinds_was.get((a, c)),
+                                             k] for (a, c), k in moved.items()), key=repr),
+                            held=dict(collections.Counter(now.values())),
+                            reads="what each way to act is, here: System 0's terms")
+        self._kinds_was = now
+        switched = sum(1 for k in moved.values() if k == IFace.SWITCH)
+        if not (cap_.opened or switched):
+            return
+        stale = {r: v for r, v in self._route_refused.items() if v[0] != "undoes_met_goal"}
+        if not stale:
+            return
+        self._route_stale.update(stale)
+        for r in stale:
+            self._route_refused.pop(r)
+            self._route_run.pop(r, None)
+        self.led.record(self.cycle, "PERCEIVE", "@interface", "capability_read",
+                        opened=len(cap_.opened), switched=switched, reengaged=len(stale),
+                        reads="you can now act in a way you could not: the refusals earned "
+                              "before stay recorded, and those routes are tried again")
+
+    def _contact_felt(self) -> None:
+        """(2b) TOUCH IS FELT (UMW A2; Johansson & Flanagan 2009, contact events): after the press
+        the pending contact pick reads whether contact was MADE -- the press landed on either object
+        of the pair, or a slot of either changed in the credited (net of I-B) set -- in a contact
+        row. The key is marked explored only when contact is made, or after MIN_REPEAT tries that
+        made none (then 'unmade'). A seam step reads nothing and drops the pick."""
+        k, pair = self._contact_pending
+        self._contact_pending = None
+        if self._seam_now:
+            return
+        changed = getattr(self.iface, "last_changed", ())
+        landed = self._last_landed in pair
+        moved = sorted(s for s in changed if self._objs_named(s) & set(pair))
+        made = landed or bool(moved)
+        self._contact_tries[k] += 1
+        if made or self._contact_tries[k] >= MIN_REPEAT:
+            self._contact_seen.add(k)
+        self.led.record(self.cycle, "PERCEIVE", pair[0], "contact", pair=list(pair),
+                        kind=k[0], made=made, landed=landed, moved=moved[:8],
+                        tries=self._contact_tries[k],
+                        explored=k in self._contact_seen,
+                        reads=("contact made: the press reached the pair" if made else
+                               "no contact felt: the pair did not respond to the press"))
+
+    def _reafferent(self, after: dict) -> frozenset:
+        """(2a) I-B, REAFFERENCE (von Holst & Mittelstaedt 1950; the 10-23 design): the slots whose
+        change this step happened anyway, subtracted before the press is credited. Two readings
+        the agent already has: an own-clock slot that landed exactly on its own rule's value
+        (own_expected), and every slot of an object the last cascade read as moving on its own
+        (SELF_MOVED, _self_moved_now)."""
+        oe = getattr(self.env, "own_expected", None)
+        out = {s for s, v in (oe() if oe is not None else {}).items() if after.get(s) == v}
+        if self._self_moved_now:
+            out |= {k for k in after
+                    if (objs := self._objs_named(k)) and objs <= self._self_moved_now}
+        return frozenset(out)
 
     def _own_clock_keys(self) -> frozenset:
         """TETHER_OWN_CLOCK_SUBJECT: the slots the agent's own clock writes this step (empty when
@@ -16283,6 +16992,9 @@ class Agent:
     def _step_body(self, action: str | None = None) -> bool:
         """One turn. Returns False if no action was proposed -- which is a legal outcome. Under
         TETHER_CAP_MIDSTEP a deadline passed between two lookups ends the turn at the route."""
+        # PER STEP (the reviewer 2026-10-25 22:46): choose() resets these too, but a GIVEN action
+        # never reaches choose, so its rows read the last chosen step's -- or, never set, raised.
+        self._split_term, self._routine_fed, self._last_real = None, [], None
         if _7H_ROOT and self._root_id is None and self._alive:
             self._intent_root()   # 7h: the first step of every live situation
         self._touch_cache = None      # a new step is a new frame, so contact and owners go
@@ -16507,6 +17219,32 @@ class Agent:
             action, by = self.choose(before)
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
+        if IFace._RESET_ADJACENT:
+            # (C) THE BACKSTOP AT THE SEND: any path that still emits RESET right after a RESET
+            # (a given action, or an exit that calls neither helper) is not sent. Expected never.
+            # (i) the one rule, through the one helper (the reviewer 2026-10-25 23:10)
+            refused = action == IFace.RESET and not self.iface.adjacent((action,))
+            if refused:
+                with self._step_scope("ROUTE"):
+                    self.led.record(self.cycle, "ROUTE", "@loop", "reset_adjacent_refused", by=by,
+                                    reads="RESET right after a RESET is not sent (Isaiah: never "
+                                          "RESET,RESET)")
+                action = None
+            # (f) nothing proposed. The step is a legal no-action; the runner's loop advances and
+            # ends by its own cap. (ii) the cause is adjacency only when the rule dropped a RESET
+            if action is None:
+                adj = refused or len(self.iface.adjacent(tuple(self.actions))) < len(self.actions)
+                self._reset_idle = getattr(self, "_reset_idle", 0) + 1
+                with self._step_scope("ROUTE"):
+                    self.led.record(self.cycle, "ROUTE", "@loop", "no_action", by=by,
+                                    actions=len(self.actions), idle_n=self._reset_idle,
+                                    cause=("reset adjacency: the last press was RESET" if adj
+                                           else "the chooser returned nothing"),
+                                    reads=("nothing is pressed; RESET twice in a row would "
+                                           "restart the game" if adj else "nothing is pressed"))
+                self._last_action = None
+                self.cycle += 1
+                return False
         self._acts[action] += 1   # System-0 instrument: the concrete action distribution
         _prov = getattr(self.env, "provenance", lambda _a: None)(action)
         # S1: a press on a dead board throws nothing away, so it adds nothing to the restart's price
