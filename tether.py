@@ -811,6 +811,10 @@ _ROUTINE_CARRY = armflag.arm("TETHER_ROUTINE_CARRY", default=True)
 # Agent._think_or_act, read by the look-back (L1), the typed-late round (L3) and the widened streams
 # (L4) before each walks: closer_found / urgent / probe_first / ok. OFF: they walk without the gate
 _THINK_OR_ACT = armflag.arm("TETHER_THINK_OR_ACT", default=True)
+# A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
+# boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
+# lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
+_WALK_BUDGET = armflag.arm("TETHER_WALK_BUDGET", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -2852,6 +2856,7 @@ class Agent:
                                                     "units_for", "walk")}
         self._late = (0, 0)                # K1: this step's T4 / T5 entries (asked, not asked)
         self._k1_trunc = False             # K1: the last index walk was cut by the budget
+        self._walk_cut = 0                 # A2: entries this lookup's index walks left unreached
         self._deferred: set = set()        # K1: (slot, delta kind) a T1 hit deferred, to re-ask
         # K1 (the reviewer 20:43): (delta kind, entry, target kind) -> asks where it was OFFERED
         self._kind_offered_dk: Counter = Counter()
@@ -5538,6 +5543,15 @@ class Agent:
         kinds: dict | None = {} if _KIND_HOIST else None
         for i_, (key, _w) in enumerate(lit):
             cap.head()
+            if _WALK_BUDGET and _STEP_BUDGET and self._spent >= STEP_BUDGET:
+                # A2: K1's guard on EVERY key, at the entry boundary (a memo-walked entry's charge
+                # has landed by here); the rest is unreached at this budget, the index is not
+                # memoised, and _library_fit owes the slot
+                a_, na_ = self._late
+                self._late = (a_, na_ + sum(1 for k_, _x in lit[i_:] if k_ in late))
+                self._walk_cut += len(lit) - i_
+                self._k1_trunc = True
+                break
             if key in late:
                 # K1's COST GUARD: T4 / T5 are asked only while the step's budget remains; the
                 # rest is counted not asked, and the truncated index is not memoised
@@ -10019,7 +10033,18 @@ class Agent:
             self._asked += 1
             if slot in self._route_cls:
                 self._class_n[self._route_cls[slot]][0] += 1
+            self._walk_cut = 0
             self._lookup(slot, hist)
+            if _WALK_BUDGET and self._walk_cut:
+                # A2: the walk stopped at the step's budget; the slot is owed, asked first next step
+                own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+                qid = (self.cycle, own.get(slot, slot))
+                self._owed_q[slot] = qid
+                self.owed_import.add(slot)
+                self.led.record(self.cycle, "ROUTE", slot, "walk_cut", question=list(qid),
+                                unreached=self._walk_cut, spent=self._spent, budget=STEP_BUDGET,
+                                reads="unreached at this budget, never absent: the index walk "
+                                      "stopped between entries; owed, asked first next step")
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
         # `rejection_of`, so the order reads evidence of the current age rather than a total
         # frozen at whatever tick it was last touched.
