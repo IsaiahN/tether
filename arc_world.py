@@ -1165,6 +1165,23 @@ class ArcWorld:
         return {n: set(o["cells"]) for n, o in tr.items() if isinstance(o, dict)
                 and "cells" in o}
 
+    def aim_cell(self, obj: str, state: dict) -> tuple[int, int] | None:
+        """(2c, TETHER_AIM_INSIDE): a cell `obj` occupies, as (x=col, y=row). Its shape key placed
+        at its (row, col), as _obs_pair_derive rebuilds it; the occupied cell nearest the box's
+        centre, then the lower row, then the lower col. None when the shape cannot be decoded (a
+        compound owner, no published shape), and the interface then aims at the corner."""
+        key = self._shape_key(state.get(f"{obj}.shape"))
+        if not key:
+            return None
+        try:
+            r, c = int(state.get(f"{obj}.row")), int(state.get(f"{obj}.col"))
+        except (TypeError, ValueError):
+            return None
+        mid_r = max(dr for dr, _ in key) / 2
+        mid_c = max(dc for _, dc in key) / 2
+        dr, dc = min(key, key=lambda p: ((p[0] - mid_r) ** 2 + (p[1] - mid_c) ** 2, p[0], p[1]))
+        return c + dc, r + dr
+
     def mode(self) -> dict[str, Any]:
         """§16.2's contingent read, PER LOCUS -- and the board reading is a FINDING.
 

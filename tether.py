@@ -2653,6 +2653,8 @@ class Agent:
         self.iface.chooser = self._choose_known      # F480: the agent prices the known
         if _KIND_CARRY and _KIND_EFFECTS:
             self.iface.kind_of = self._slot_kind_key  # K3: effects also filed by kind
+        if IFace._AIM_INSIDE:
+            self.iface.cell_of = getattr(env, "aim_cell", None)   # (2c): aim inside the object
         self._subject_n: collections.Counter = collections.Counter()   # A1: curiosity aimed
         self._probe_n: collections.Counter = collections.Counter()     # A1: starved probes
         # 7h (h): the same counts by kind: this instance's, the lineage's (read, never added to),
@@ -3583,6 +3585,8 @@ class Agent:
         self._decomp_cache = None
         self._frame_cache = {}
         self.env, self.level = env, level
+        if IFace._AIM_INSIDE:
+            self.iface.cell_of = getattr(env, "aim_cell", None)   # (2c): the new world's cells
         self.slots = env.slots()
         self.actions = tuple(env.actions())       # a new level may advertise differently
         self.alphabet = self._with_last(self._alphabets(env))   # a new level may re-value slots
@@ -8847,7 +8851,8 @@ class Agent:
         # refutation count did not move: 18 before, 18 after. The treatment-executed check
         # caught it. `_aimed` is set when the action is realised and cleared at the top of
         # the step, so here it is THIS step's aim -- the same value the trace row records.
-        self._last_landed = self.iface._acted(getattr(self, "_aimed", None), before)
+        self._last_landed = self.iface._acted(getattr(self, "_aimed", None), before,
+                                              self.iface.cell_of)
         self._press_seen = _press(getattr(self, "_aimed", None), before, self._last_landed)
         # **WHO MADE THIS PREDICTION -- the reviewer, 2026-10-04. PROVENANCE APPLIED TO
         # EVIDENCE.** Captured HERE, at the moment of the claim, because `route` binds

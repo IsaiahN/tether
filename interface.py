@@ -164,6 +164,11 @@ _SITUATED_CLICK = armflag.arm("TETHER_SITUATED_CLICK", default=True)
 # every offer right after a RESET -- realise, undirected, a bare routine step. OFF: as before (the
 # flag from audit, the re-choose in realise only)
 _RESET_ADJACENT = armflag.arm("TETHER_RESET_ADJACENT", default=True)
+# (2c) AIM INSIDE THE OBJECT (Isaiah 2026-10-26 04:51 build order, the reviewer 04:53; UMW A7): a
+# positioned press aims at a cell the object occupies (the world's cell_of, set by the agent), not
+# its bounding-box corner, which a hollow or slanted shape need not occupy. OFF, or a world with
+# no cell_of: the corner, as before
+_AIM_INSIDE = armflag.arm("TETHER_AIM_INSIDE", default=True)
 # 7k (the reviewer 2026-10-15 17:32, 20:27): ELICIT's fresh pick reads LEARNING VALUE before the
 # draw -- the residual is the unknowns an action reaches (reach, more first), the learning
 # reading its presses over every context (table n, fewer first). The interface informs; the
@@ -460,6 +465,9 @@ class Interface:
         # K3: slot -> its KIND key (the agent's _kind and the attribute), or None; set by the agent
         # under TETHER_KIND_CARRY. None here: no kind tables, today's reading.
         self.kind_of: Any = None
+        # (2c): (object, state) -> (x, y) of a cell the object occupies, or None; set by the agent
+        # from the world under TETHER_AIM_INSIDE. None here: _at aims at the corner, as before.
+        self.cell_of: Any = None
         self.own_slots: set = set()            # K3: slots with an entry of their own (any action)
         # (ii): ((epoch, breaks), the (action, kind key) cells a press of that action bore out)
         self.era_cells: tuple = (None, set())
@@ -819,7 +827,7 @@ class Interface:
             # from PERCEPTION -- the target's own row/col -- and rides back in the
             # `Realisation`, which has always had the field and which `perceive` already
             # accepts. `step` was recomputing it from the button's name instead.
-            here = self._at(intent.object, state)
+            here = self._at(intent.object, state, self.cell_of)
             pos = [a for a in offered if a in POSITIONED]
             if pos and here is not None and not w.at(pos[0], here):
                 return Realisation(pos[0], coord=here,
@@ -934,7 +942,8 @@ class Interface:
                         # A1: the subject's own object gates; the less-known coordinate next;
                         # then the draw. Not the sorted object order.
                         obj = intent.subject.rsplit(".", 1)[0] if intent.subject else None
-                        at = self._at(obj, state) if obj and state is not None else None
+                        at = (self._at(obj, state, self.cell_of)
+                              if obj and state is not None else None)
                         aim, by, _f = FR.frontier_pick(
                             [(c, None, None) for c in here], {c: int(c == at) for c in here},
                             {c: len(self.aimed_effect.get(c, ())) for c in here},
@@ -1026,7 +1035,7 @@ class Interface:
         if not owner or "~" in owner or _is_relational(slot, env):
             AIM_ROUTED_N[f"{asker or 'other'}:pair_no_record"] += 1
             return None
-        at = self._at(owner, state)
+        at = self._at(owner, state, self.cell_of)
         if at is None or w.at(a, at):
             AIM_ROUTED_N[f"{asker or 'other'}:no_aim"] += 1
             return None
@@ -1164,8 +1173,11 @@ class Interface:
         return Capability(opened=opened, closed=closed)
 
     @staticmethod
-    def _at(obj: str, state: dict | None) -> tuple[int, int] | None:
+    def _at(obj: str, state: dict | None, cell_of: Any = None) -> tuple[int, int] | None:
         """Where `obj` is, as `(x=col, y=row)`. **`_action6_coord` moved, not rewritten.**
+
+        (2c): with `cell_of` (the world's, set under TETHER_AIM_INSIDE), a cell the object
+        occupies; the corner below when the world cannot say.
 
         `F28`: the coordinate is chosen from PERCEPTION -- the object's own perceived row/col --
         and `None` where it has no position slots, so a positioned action stays unpositioned
@@ -1181,10 +1193,13 @@ class Interface:
         col, row = state.get(f"{obj}.col"), state.get(f"{obj}.row")
         if col is None or row is None:
             return None
+        if cell_of is not None and (inside := cell_of(obj, state)) is not None:
+            return inside
         return int(col), int(row)
 
     @staticmethod
-    def _acted(coord: tuple[int, int] | None, state: dict | None) -> str | None:
+    def _acted(coord: tuple[int, int] | None, state: dict | None,
+               cell_of: Any = None) -> str | None:
         """Which object is AT `coord` -- `_at`'s inverse, and here for the same reason.
 
         Knowing how this domain spells a position is the interface's job, so the `.row`/`.col`
@@ -1199,7 +1214,7 @@ class Interface:
         rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
         for obj in sorted(rows & {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}):
             cap.head()
-            if Interface._at(obj, state) == (int(coord[0]), int(coord[1])):
+            if Interface._at(obj, state, cell_of) == (int(coord[0]), int(coord[1])):
                 return obj
         return None
 
@@ -1252,7 +1267,8 @@ class Interface:
             return []
         rows = {k.rsplit(".", 1)[0] for k in state if k.endswith(".row")}
         cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
-        return [at for obj in sorted(rows & cols) if (at := self._at(obj, state)) is not None]
+        return [at for obj in sorted(rows & cols)
+                if (at := self._at(obj, state, self.cell_of)) is not None]
 
     def _any_object(self, state: dict | None,
                     avoid: set | frozenset = frozenset()) -> tuple[int, int] | None:
@@ -1296,13 +1312,13 @@ class Interface:
         cols = {k.rsplit(".", 1)[0] for k in state if k.endswith(".col")}
         if _SITUATED_CLICK:
             # S11: this epoch's clicks only, and recency orders (unclicked reads -1)
-            ats = [at for at in (self._at(obj, state) for obj in sorted(rows & cols))
+            ats = [at for at in (self._at(obj, state, self.cell_of) for obj in sorted(rows & cols))
                    if at is not None and at not in avoid]
             return min(ats, key=lambda at: self.clicked_at.get((self.epoch, at), -1),
                        default=None)
         for obj in sorted(rows & cols):
             cap.head()
-            at = self._at(obj, state)
+            at = self._at(obj, state, self.cell_of)
             if at is not None and at not in self.clicked and at not in avoid:
                 return at
         return None
@@ -1590,7 +1606,7 @@ class Interface:
         # READ OFF `before`, NOT `after`. The cause is whatever was at the coordinate WHEN THE
         # PRESS LANDED -- on a board where the press moves things, reading `after` would
         # attribute the effect to whatever has since arrived there.
-        _acted_on = self._acted(r.coord, before)
+        _acted_on = self._acted(r.coord, before, self.cell_of)
         # The instance record, written from the agent's OWN press and its OWN audit. Keyed by
         # the coordinate it aimed at, which is the only handle it has on "the thing I pressed".
         if r.coord is not None:
