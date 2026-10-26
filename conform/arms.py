@@ -861,6 +861,17 @@ ARMS: dict[str, str] = {
                          "contact row, and marks the key explored when made or after MIN_REPEAT "
                          "tries without contact. OFF: marked before the press, as before. "
                          "default ON",
+    "TETHER_STEER": "(4c) R-F STEERING (Isaiah 2026-10-23 19:19; the 10-23 design; A11; the "
+                    "reviewer 2026-10-26 04:53, 05:27): Agent._steer reads each graded goal-exit "
+                    "press on course (closer / reached) / nothing happened / wrong way (farther, "
+                    "not reached) / wrong thing (no change on the subject, another credited slot "
+                    "changed), row steer; off course, the route is set aside once for the next "
+                    "realisation of that intent in that context (_route_offer, only while "
+                    "another offer exists); a wrong thing re-states the intent with its target "
+                    "named (_rf_restate -> R-C's Specific form in _goal_split). 4b's reader: "
+                    "route_exhausted carries the interface's reason (iface.unrealised) and its "
+                    "next move, 'no way known' -> re-state the intent, else another subject. "
+                    "OFF: R-B alone, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "

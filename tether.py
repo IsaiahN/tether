@@ -734,6 +734,12 @@ _REAFFERENCE = armflag.arm("TETHER_REAFFERENCE", default=True)
 # contact pick is marked explored only after its outcome is read (contact made, or MIN_REPEAT
 # tries that made none), with a contact row per press. OFF: marked before the press, as before
 _TOUCH_FELT = armflag.arm("TETHER_TOUCH_FELT", default=True)
+# (4c) R-F STEERING (Isaiah 2026-10-23 19:19, the 10-23 design; A11 2026-10-25; the reviewer 04:53,
+# 05:27): each graded goal-exit press is read on course / nothing happened / wrong way / wrong
+# thing (row steer); off course, that route is set aside for the next realisation of the intent
+# here; a wrong thing, or an exhausted offer whose interface reason is "no way known", re-states
+# the intent with its target named. OFF: R-B alone, as before
+_STEER = armflag.arm("TETHER_STEER", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3240,6 +3246,11 @@ class Agent:
         self._self_moved_now: frozenset = frozenset()   # (2a): the last cascade's self-movers
         # (2b): the contact pick awaiting its felt outcome, its pair, and the tries per contact key
         self._contact_pending: tuple | None = None
+        # (4c) R-F: off-course presses per slot, the route set aside once per (intent, context),
+        # and the slots whose intent is re-stated with its target named
+        self._rf_stall: dict = {}
+        self._rf_differ: dict = {}
+        self._rf_restate: set = set()
         self._contact_pair: tuple = ()
         self._contact_tries: collections.Counter = collections.Counter()
         # (b'-l) every boundary's cleared stores, instance form, in order; nothing is removed
@@ -3657,6 +3668,7 @@ class Agent:
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
         # last reading or step, an undone count, each read on the next level's same NAME.
         self.wants, self._want_terms, self._reach_tested = {}, {}, {}
+        self._rf_stall, self._rf_differ, self._rf_restate = {}, {}, set()   # (4c): slot-keyed
         self._prev_gap, self._gap_delta, self._undone, self._undone_across = {}, {}, {}, {}
         # AND NEITHER DO THE REFUTATIONS, FOR THE REASON THIS METHOD'S OWN DOCSTRING GIVES:
         # *slot names mean nothing across a boundary.* The reject key is
@@ -8502,6 +8514,44 @@ class Agent:
         if (_ROUTE_REFUSE and t.get("route") is not None and _base != "own clock"
                 and t.get("at") == self.cycle == self._audit_at):
             self._route_read(t["route"], _base, slot, t, after)
+            if _STEER:
+                self._steer(t["route"], _base, slot)
+
+    def _steer(self, route: tuple, outcome: str, slot: str) -> None:
+        """(4c) R-F, STEERING (Isaiah 2026-10-23 19:19; the 10-23 design; A11 2026-10-25 "the next
+        try must DIFFER"): the press is read against the intent's own expectation, never against
+        which action was used. Four readings: ON COURSE (closer / reached: keep going); NOTHING
+        HAPPENED (the subject did not change and nothing else credited did); WRONG WAY (farther,
+        or moved to a value not asked for); WRONG THING (the subject did not change but another
+        credited slot did: the intent was misread). Off course, this route is set aside for the
+        next realisation of the intent here (_route_offer, while another offer exists), so the
+        next try differs; a wrong thing also re-states the intent with its target named
+        (_goal_split, R-C's Specific form). R-B's refusal count is untouched."""
+        said, ctx = route[0], route[3]
+        reading = {"closer": "on course", "reached": "on course", "farther": "wrong way",
+                   "not reached": "wrong way"}.get(outcome)
+        if outcome == "no change":
+            other = [s for s in getattr(self.iface, "last_changed", ()) if s != slot]
+            reading = "wrong thing" if other else "nothing happened"
+        if reading is None:
+            return
+        if reading == "on course":
+            self._rf_stall.pop(slot, None)
+            self._rf_restate.discard(slot)
+        else:
+            self._rf_stall[slot] = self._rf_stall.get(slot, 0) + 1
+            self._rf_differ[(said, ctx)] = route
+            if reading == "wrong thing":
+                self._rf_restate.add(slot)
+        self.led.record(self.cycle, "SETTLE", slot, "steer", reading=reading, outcome=outcome,
+                        intent=said, action=route[1],
+                        coord=list(route[2]) if route[2] else None,
+                        off_course=self._rf_stall.get(slot, 0),
+                        reads={"on course": "keep going",
+                               "nothing happened": "not this way here: the next try differs",
+                               "wrong way": "this realisation does the opposite here: re-ask",
+                               "wrong thing": "the intent was misread: re-state it, target "
+                                              "named"}[reading])
 
     def _route_read(self, route: tuple, outcome: str, slot: str, t: dict | None = None,
                     after: Any = None) -> None:
@@ -8565,6 +8615,14 @@ class Agent:
         `offered`; a refused positioned route's coordinate joins the withheld pairs on this board,
         so it goes through the interface's one withhold door."""
         ref = [k for k in self._route_refused if k[0] == said and k[3] == ctx]
+        # (4c) R-F: the route last read off course is set aside ONCE for this intent here, so the
+        # next try differs -- only while another offer exists (a lone route is retried; R-B's
+        # count decides it)
+        aside = self._rf_differ.pop((said, ctx), None) if _STEER else None
+        others = (any(a != aside[1] for a in offered) if aside is not None and aside[2] is None
+                  else bool(offered))
+        if aside is not None and aside not in self._route_refused and others:
+            ref = [*ref, aside]
         if not ref:
             return offered, wh
         bare = {k[1] for k in ref if k[2] is None}
@@ -13725,6 +13783,8 @@ class Agent:
             elif _ordered:
                 _corr = None
                 _aim = self._intent_aim(chosen, _tgt)
+                if _STEER and chosen in self._rf_restate:
+                    _aim = "specific"      # (4c) R-F: a wrong-thing reading re-states the intent
                 if _aim == "specific":
                     _want = IFace.Specific(IFace.BECOME, chosen, _want.object, to=_tgt)
             else:
@@ -13768,13 +13828,27 @@ class Agent:
             self._split_why = "route_exhausted"
             if commit:
                 said = _want.says()
+                # (4c) THE REASON PICKS THE NEXT MOVE (4b's reader; the reviewer 2026-10-26 05:27):
+                # the interface's own reason when it was asked this step, else every offer here
+                # was refused (blocked). "no way known" -> re-state the intent (its target named)
+                # before another subject; "tried and failed" / "blocked" -> the route, not the
+                # translation: another subject (the held hypothesis ends by routes)
+                _why = (self.iface.unrealised if _offer and _r is None else None) or \
+                    {"kind": IFace.BLOCKED, "why": "every route for this intent here is refused"}
+                _restate = (_STEER and _why["kind"] == IFace.NO_WAY and _ordered
+                            and chosen not in self._rf_restate)
                 self.led.record(self.cycle, "PLAN", chosen, "route_exhausted", intent=said,
                                 context=[list(c) for c in _ctx],
                                 refused=sorted(([k[1], list(k[2]) if k[2] else None, v[0]]
                                                 for k, v in self._route_refused.items()
                                                 if k[0] == said and k[3] == _ctx), key=repr),
+                                **({"unrealised": _why,
+                                    "next": "re-state the intent" if _restate
+                                    else "another subject"} if _STEER else {}),
                                 reads="no route for this intent here at this budget")
-                if self._hyp is not None and chosen in self._hyp["slots"]:
+                if _restate:
+                    self._rf_restate.add(chosen)
+                elif self._hyp is not None and chosen in self._hyp["slots"]:
                     self._hyp_end("stalled", by="routes")
             return None
         if _r is not None:
