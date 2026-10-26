@@ -79,7 +79,7 @@ ag.slot_types[sl] = "POSITION"
 ended = []
 ag._hyp_end = lambda why, **k: ended.append([why, k.get("by")])
 ag.iface.realise = (lambda want, offered, ctx, state=None, env=None,
-                    withheld=IFace.NO_WITHHELD, cell=True:
+                    withheld=IFace.NO_WITHHELD, cell=True, asker=None:
                     IFace.Realisation(offered[0], why="probe: first offered") if offered else None)
 CTX = [(("probe", 1),)]
 IFace.Interface.context = staticmethod(lambda env, actor=None: CTX[0])

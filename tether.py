@@ -12261,7 +12261,10 @@ class Agent:
                 if hot is not None:
                     if unnom is None or shrink > unnom[0]:
                         unnom = (shrink, slot)
-                    shrink = (bool(self._objs_named(slot) & hot), shrink)
+                    # a slot naming no object cannot be seen by surprise, so it cannot be
+                    # demoted by it: nominated (the reviewer 06:53; Fig 1 :23, :27)
+                    _on = self._objs_named(slot)
+                    shrink = (not _on or bool(_on & hot), shrink)
                 if refuted:
                     if plain is None or shrink > plain[0]:
                         plain = (shrink, slot)
