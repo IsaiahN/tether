@@ -821,6 +821,12 @@ ARMS: dict[str, str] = {
                              "iface.unrealised and a bounded log the agent's REPEAT row drains "
                              "each step (unrealised). The None itself is unchanged. OFF: a bare "
                              "None, nothing recorded, as before. default ON",
+    "TETHER_URGENCY_PROGRESS": "(6d) COMMIT URGENCY FROM STEPS SINCE PROGRESS (Q24; Isaiah "
+                               "2026-10-26 04:51 build order, the reviewer 04:53): the commit "
+                               "bar's clock (idle in the accumulator's threshold) counts cycles "
+                               "since any objective gap last shrank (_last_progress, stamped in "
+                               "_note_progress where g < prev), not since the last commitment. "
+                               "OFF: since the last commitment, as before. default ON",
     "TETHER_BLOB_STAMP": "(i-e) EOL-independent stamps (the reviewer 2026-10-14 10:19, 2026-10-15 "
                          "18:45): the run header adds files_blob (the .py files on disk minus "
                          "an exclusion table of directory names) and library_blob, each over "

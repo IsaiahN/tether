@@ -709,6 +709,11 @@ INTERVAL_DISAGREE: list = []      # the first disagreements, for the check run's
 # to work_budget (sp80 669,981 / vc33 276,057 such in 8 cycles at 15k). A REACH change: the same
 # budget walks further. OFF: they are charged, as before (7d5fcf9)
 _BUDGET_GENERATED = armflag.arm("TETHER_BUDGET_GENERATED", default=True)   # C-HELD-5
+# (6d) COMMIT URGENCY FROM STEPS SINCE PROGRESS (Q24; Isaiah 2026-10-26 04:51 build order, the
+# reviewer 04:53): the commit bar's clock counts cycles since any objective gap last shrank
+# (_note_progress, R-A's subtraction), not since the last commitment, so effort spent without
+# progress keeps lowering the bar. OFF: since the last commitment, as before
+_URGENCY_PROGRESS = armflag.arm("TETHER_URGENCY_PROGRESS", default=True)
 # SPEED-1 S1 (the reviewer 2026-10-15 11:00, 11:05; Isaiah 10:56 "never at the sacrifice of
 # functionality"): _index_reach asks for the views that land on ONE slot, so under the hold only
 # the held rows that land there are bound (Fig 7: "The room is summoned by the residual rather
@@ -3146,6 +3151,7 @@ class Agent:
         # never committed is already under time pressure at cycle 0, which is correct: it has
         # spent its whole life not acting.
         self._last_commit = 0
+        self._last_progress = 0   # (6d): the cycle an objective gap last shrank
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
         self._overrides: list[tuple[float, bool, int]] = []
@@ -11303,6 +11309,7 @@ class Agent:
             # unwritten row -- which is how the depth buckets evaded that guard entirely.
             if g < prev:
                 self.gamma.book["gap_improved"] = self.gamma.book.get("gap_improved", 0) + 1
+                self._last_progress = self.cycle   # (6d): the commit bar's clock restarts here
             elif g == prev:
                 self.gamma.book["gap_flat"] = self.gamma.book.get("gap_flat", 0) + 1
             else:
@@ -12781,7 +12788,7 @@ class Agent:
         # relayed verbatim: *your current standing (resources, energy, ability, restrictions,
         # history)* sets it. The bar is read from how its own overrides ended; the relief rate
         # from its own intervals between commitments. Each is a SEED, marked, until it has one.
-        idle = self.cycle - self._last_commit
+        idle = self.cycle - (self._last_progress if _URGENCY_PROGRESS else self._last_commit)
         bar, bar_earned = self._commit_bar()
         rate, rate_earned = self._relief_rate()
         threshold = max(bar - _QUORUM_HALF, bar - idle / rate)
