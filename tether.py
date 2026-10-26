@@ -7048,7 +7048,7 @@ class Agent:
         """(v): every (condition, then-term) pair as (ci, fi, total, cost, left), in _invent's order
         (conditions outer). Each part's symbols are walked once and every float operation runs in
         Code.bits' order, so each cost is bit-equal to _inv_cost(f, [c], units)."""
-        code = self.gamma.code()
+        code, ver = self.gamma.code(), self.gamma.code_ver()
         bond = math.log2(max(BONDS, 1))
 
         def vals(t: Term, u: tuple) -> list:
@@ -7082,7 +7082,7 @@ class Agent:
                     b += v
                 cost = (b + code.end) + (kf + len(vc) - 1) * bond
                 yield ci, fi, cost + left, cost, left
-        if self.gamma.code() is not code:     # the code the pairs were priced under never moved
+        if self.gamma.code_ver() != ver:      # what the pairs were priced under never moved ((p))
             raise RuntimeError("_inv_pairs: the code moved while the pairs were priced")
 
     @staticmethod
