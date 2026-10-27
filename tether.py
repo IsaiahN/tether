@@ -828,6 +828,10 @@ _STEP_MINT = armflag.arm("TETHER_STEP_MINT", default=True)
 # MINT park row carry wall_s. ON; conform/arms.py
 _STEP_CLOCK = armflag.arm("TETHER_STEP_CLOCK", default=True)
 _OBJ_ID = re.compile(r"\bo\d+\b")     # the step clock (r264): an object id in a slot or term name
+# B2, ONE STOP PER STEP FOR EVERY MINT KIND (the reviewer 2026-10-26 r270): the derived-want mints
+# after the ACCEPT loop share B1's stop -- once a mint this step stopped at a bound, the remaining
+# derived asks are OWED (never marked tried) and asked first next step. ON; conform/arms.py
+_STEP_DERIVED = armflag.arm("TETHER_STEP_DERIVED", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -2742,6 +2746,7 @@ class Agent:
     _clk_stack = None          # the step clock: open scopes (label, start); None outside a step
     _clk: dict = {}            # the step clock: seconds per scope this step (replaced per step)
     _clk_t0 = 0.0              # the step clock: the step's start
+    _dw_stop = None            # B2: the slot whose mint this step stopped at a bound, if any
     _end_reserve = None        # the end-path reserve R, s (None: unmeasured, none taken)
     _end_sleep_s = None        # the carried end path's sleep part (checkpoint + quick_check), s
     _end_path_t0 = None        # set by the end block: the end path is timed whole
@@ -2883,6 +2888,7 @@ class Agent:
         self._dslots: tuple = (None, frozenset())
         self._want_only = False     # E0-W: this mint writes a want and never binds
         self._dw_tried: dict = {}   # E0-W: derived slot -> the transitions held at its asks
+        self._dw_owed: dict = {}    # B2: derived slot -> (first deferred cycle, its transition)
         # R4: the keys each admitted memo has been asked once (kept across a boundary clear)
         self._hits0: dict = dict(_INDEX_N)    # R4's hit counter is read as this agent's deltas
         self._seen_keys: dict = {m: set() for m in ("reach_index", "compile", "fold", "verdicts",
@@ -3816,6 +3822,7 @@ class Agent:
         self._rk_bound = None                        # (6c): bound again on the new board
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
         self._dw_tried = {}
+        self._dw_owed = {}                           # B2: owed asks are slot-keyed, like tried
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
         # last reading or step, an undone count, each read on the next level's same NAME.
         self.wants, self._want_terms, self._reach_tested = {}, {}, {}
@@ -4270,15 +4277,46 @@ class Agent:
         der = self.env.derived() if hasattr(self.env, "derived") else {}
         before, after = self.trace[-1][0], self.trace[-1][2]
         ctx = self._no_search_ctx() if _DERIVED_SUBJECT else None
-        for d in sorted(der):
+        # B2: the step's stop (an ACCEPT-loop mint stopped at a bound) carries into these mints
+        b2 = ({"run": 0, "deferred": 0, "dropped": 0, "stop": self._dw_stop, "wall": 0.0}
+              if _STEP_DERIVED else None)
+        owed: dict = {}
+        if b2 is not None and self._dw_owed:
+            for d, ct in sorted(self._dw_owed.items()):   # still due, or dropped and counted
+                if d in der and d not in self.wants:
+                    owed[d] = ct
+                else:
+                    b2["dropped"] += 1
+            self._dw_owed = {}
+        order = sorted(der)
+        if owed:
+            order = sorted(order, key=lambda s: s not in owed)   # owed first, stable
+        for d in order:
             cap.head()
-            if d in self.wants or before.get(d) is None or after.get(d) in (None, before[d]):
+            missed = None
+            if d in owed:
+                t = owed[d][1]
+                self._dw_tried.setdefault(d, set()).add(t)
+            else:
+                if d in self.wants or before.get(d) is None or after.get(d) in (None, before[d]):
+                    continue
+                t = (before[d], self.trace[-1][1], after[d])   # 7f: asked again on new evidence
+                if t in self._dw_tried.setdefault(d, set()):
+                    continue
+                self._dw_tried[d].add(t)
+                missed = self._ds_echo(d)
+            if b2 is not None and b2["stop"] is not None and not missed:
+                # OWED, NOT TRIED: the ask stays askable; it is asked first next step
+                self._dw_tried[d].discard(t)
+                self._dw_owed[d] = (owed[d][0] if d in owed else self.cycle, t)
+                b2["deferred"] += 1
+                self.led.record(self.cycle, "MINT", d, "derived_deferred", owes=True,
+                                after=b2["stop"], transition=list(t),
+                                since=self._dw_owed[d][0],
+                                reads="B2: not minted this step: a mint this step already stopped "
+                                      "at its bound; owed, asked first next step -- unreached at "
+                                      "this budget, never a verdict")
                 continue
-            t = (before[d], self.trace[-1][1], after[d])   # 7f: asked again on new evidence only
-            if t in self._dw_tried.setdefault(d, set()):
-                continue
-            self._dw_tried[d].add(t)
-            missed = self._ds_echo(d)
             if missed:
                 formed, free = self._no_search_want(d, before, after, *ctx) if ctx else (None, 0)
                 self.led.record(self.cycle, "MINT", d, "derived_asked", echo=True, missed=missed,
@@ -4295,12 +4333,27 @@ class Agent:
                                           "kept as a want by G1's rule -- never bound, never bet")
                 continue
             self.led.record(self.cycle, "MINT", d, "derived_asked",     # E4 counts the asks
-                            **({"echo": missed} if _DERIVED_SUBJECT else {}))
+                            **({"echo": missed} if _DERIVED_SUBJECT else {}),
+                            **({"owed_since": owed[d][0]} if d in owed else {}))
             self._want_only = True
+            if b2 is not None:
+                self._mint_exhausted = False
+                t0 = time.perf_counter()
             try:
                 self.mint(d)
             finally:
                 self._want_only = False
+            if b2 is not None:
+                b2["wall"] += time.perf_counter() - t0
+                b2["run"] += 1
+                if self._mint_exhausted and b2["stop"] is None:
+                    b2["stop"] = d
+        if b2 is not None and (b2["run"] or b2["deferred"] or b2["dropped"]):
+            self.led.record(self.cycle, "MINT", "@step_derived", "step_derived",
+                            derived_run=b2["run"], derived_deferred=b2["deferred"],
+                            owed_dropped=b2["dropped"], derived_stop=b2["stop"],
+                            stop_from_accept=self._dw_stop,
+                            **({"wall_s": round(b2["wall"], 4)} if _STEP_CLOCK else {}))
 
     def _g1_wants(self) -> None:
         """G1: per event, one objective-only question over the derived slots it CHANGED this step
@@ -17762,6 +17815,7 @@ class Agent:
                                     stop=sm["stop"],
                                     **({"wall_s": round(sm.get("wall", 0.0), 4)}
                                        if _STEP_CLOCK else {}))
+        self._dw_stop = self._sm["stop"] if self._sm is not None else None   # B2 reads it
         self._sm = None
         self._turn_ahead = None
         if _OBJ_EVENT and self._events:
