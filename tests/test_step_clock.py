@@ -40,7 +40,7 @@ NEW = {"repeat": ("wall_s", "trace_len", "wants_n", "owed_import_n", "gamma_reus
 KEYS = {"wall_s", "trace_len", "wants_n", "owed_import_n", "gamma_reuse_live",
         "gamma_reuse_on_board"}
 WRITERS = {"_step_scope", "step", "_mint", "_mint_in_step", "_step_body", "_clock_row",
-           "_clock_since"}
+           "_clock_since", "_derived_wants"}
 
 
 def _run(on: bool, steps: int = 8) -> list:
