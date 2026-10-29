@@ -219,9 +219,19 @@ def _partition(f, blob, names):
     return None
 
 
-def on_checks():
+PARTS = ("a", "b", "c", "d")     # by name, one process each at landing, each under 5 min (r299)
+
+
+def on_checks(parts=PARTS):
     assert lineage._CARRY and tether._LINEAGE_HOLD, "the child must be started with both arms"
     tmp = Path(tempfile.mkdtemp(prefix="lineage_"))
+    for p in parts:
+        globals()[f"_part_{p}"](tmp)
+    shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _part_a(tmp):
+    """R-g1, R-g3, N3 and R-g1's second process."""
     d = tmp / "g"
     # R-g1: game 1 from the root, then game 2 loads its generation.
     env, ag1, rep = _agent(d, 0)
@@ -304,6 +314,10 @@ def on_checks():
                        stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)
     sys.stdout.write(r.stdout)
     assert r.returncode == 0, f"R-g1 second process:\n{r.stderr[-2000:]}"
+
+
+def _part_b(tmp):
+    """R-g2."""
     # R-g2: the round trip, with a dormant record (HOLD on, a real retarget).
     rr = tmp / "rt"
     env, ag, _ = _agent(rr, 3)
@@ -322,7 +336,7 @@ def on_checks():
     # reviewer 2026-10-29 r299: per check, in the test). ON TWIN: tests/test_kind_save.py
     # check_gridworld (no instance alias / was / evidence name, and the same library, standing and
     # replay through the load)
-    kind_save, lineage._KIND_SAVE = lineage._KIND_SAVE, False
+    kind_save, lineage._KIND_SAVE = getattr(lineage, "_KIND_SAVE", False), False
     try:
         lineage.write(rr, ag, "default")
     finally:
@@ -373,6 +387,10 @@ def on_checks():
           f"{len(ag._dormant)} dormant record(s) read back equal; on load: unbound "
           f"{repb['crossed_without_binding']}, skipped inventions "
           f"{len(repb['skipped_invented'])}", flush=True)
+
+
+def _part_c(tmp):
+    """Identity, (d) OFF and ON."""
     # LINEAGE-UNIQUE IDENTITY (the reviewer 20:45): a per-game COUNTER in place of the handle's
     # random suffix, so two games of one name mint the same handle text; both rows must fold.
     cd = tmp / "same_text"
@@ -431,8 +449,8 @@ def on_checks():
     gy = _gen(cb, wy)
     # the row is FOUND by the name the save writes in "was": under TETHER_KIND_SAVE an instance's is
     # its kind's (3); (b) is about handle identity, so it runs ON (no pin), only the locator moves
-    was = (lineage._kind_name(agy.gamma, own["name"]) if lineage._KIND_SAVE and own.get("operand")
-           else own["name"])
+    was = (lineage._kind_name(agy.gamma, own["name"])
+           if getattr(lineage, "_KIND_SAVE", False) and own.get("operand") else own["name"])
     row2 = next((r for r in gy["terms"] if r.get("was") == was), None)
     assert row2 and row2["handle"] == row1["handle"], ("(b) OCCASION: no same-text row", row2)
     assert gamma.Gamma.row_key(row2) != gamma.Gamma.row_key(row1), "(b) OCCASION: one composition"
@@ -451,6 +469,10 @@ def on_checks():
     print(f"  identity ON: {row1['handle']} names two compositions ({row1['was']}, {row2['was']}), "
           f"born {wx['hash']} and {wy['hash']}, 0 aliases for them; both fold and load to "
           f"{sorted(got)}; MF keyed by text: {len(fb['terms'])} rows -> {len(by_text)}", flush=True)
+
+
+def _part_d(tmp):
+    """ONE PATH."""
     # ONE PATH, the plumbing: play() writes a generation and the next play() loads it.
     pd = tmp / "play"
 
@@ -464,7 +486,6 @@ def on_checks():
     assert b["lineage"]["parent"] == a["lineage"]["hash"], ("ONE PATH parent", b["lineage"])
     print(f"  ONE PATH: play wrote {a['lineage']['hash']}, the next play loaded it and wrote "
           f"{b['lineage']['hash']}", flush=True)
-    shutil.rmtree(tmp, ignore_errors=True)
 
 
 def second(d):
@@ -482,8 +503,10 @@ def main():
     # both seeds pinned (the reviewer 2026-10-22 19:39): R-g1's precondition rode the birth seed
     env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_HOLD="1", TETHER_AGENT_SEED="0",
                PYTHONHASHSEED="0")
-    r = subprocess.run([sys.executable, "-B", __file__, "--on"], env=env, stdin=subprocess.DEVNULL,
-                       capture_output=True, text=True, check=False)
+    # part names on the command line run only those parts (a b c d); none runs all
+    parts = [a for a in sys.argv[1:] if a in PARTS]
+    r = subprocess.run([sys.executable, "-B", __file__, "--on", *parts], env=env,
+                       stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)
     sys.stdout.write(r.stdout)
     assert r.returncode == 0, f"--on failed:\n{r.stderr[-3000:]}"
     print("lineage carry: OK")
@@ -493,6 +516,6 @@ if __name__ == "__main__":
     if "--second" in sys.argv:
         second(sys.argv[sys.argv.index("--second") + 1])
     elif "--on" in sys.argv:
-        on_checks()
+        on_checks(tuple(a for a in sys.argv[sys.argv.index("--on") + 1:] if a in PARTS) or PARTS)
     else:
         main()

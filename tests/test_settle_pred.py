@@ -8,7 +8,8 @@ seed 0 (30 steps; its settles agree with persistence). Each check runs in its ow
                       cannot occur); risky == (predicted_code != from_code); risky True occurs
                       (fake) and False occurs (gridworld)
   check_off           MUST-FAIL OFF: no settle row carries the fields
-  check_off_identity  the arm OFF writes the same ledger as d1c64f0 on both fixtures, arms rows
+  check_off_identity_fake, check_off_identity_gridworld  the arm OFF writes the same ledger as
+                      d1c64f0 on that fixture (one each, r302), arms rows
                       aside and wall timings masked
     python tests/test_settle_pred.py [check ...]
 """
@@ -95,7 +96,16 @@ def check_off() -> None:
     print("  MUST-FAIL OFF: settle rows on both fixtures carry none of the fields")
 
 
-def check_off_identity() -> None:
+def check_off_identity_fake() -> None:
+    _off_identity("fake")
+
+
+def check_off_identity_gridworld() -> None:
+    _off_identity("gridworld")
+
+
+def _off_identity(w: str) -> None:
+    """one fixture per process, each under 5 minutes (the reviewer 2026-10-29 r302)"""
     root = str(_repo.ROOT)
     sys.path.insert(0, os.path.join(root, "conform"))
     from identity_mod_rows import mask_timings
@@ -108,16 +118,13 @@ def check_off_identity() -> None:
         tar = subprocess.run(["git", "-C", root, "archive", BASE], capture_output=True, check=True)
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
             tf.extractall(d, filter="data")
-        for w in ("fake", "gridworld"):
-            base = norm(child(d, w))
-            cur = norm(child(root, w, {"TETHER_SETTLE_PRED": "0"}))
-            diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base)
-                                                                                  - len(cur))
-            assert len(base) > 50 and diff == 0, ("OFF identity", w, len(base), len(cur),
-                                                 next((i for i, (x, y) in enumerate(
-                                                     zip(base, cur, strict=False)) if x != y),
-                                                     None))
-            print(f"  OFF identity ({w}): {len(base)} rows against {BASE}, 0 differences")
+        base = norm(child(d, w))
+    cur = norm(child(root, w, {"TETHER_SETTLE_PRED": "0"}))
+    diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base) - len(cur))
+    assert len(base) > 50 and diff == 0, ("OFF identity", w, len(base), len(cur),
+                                         next((i for i, (x, y) in enumerate(
+                                             zip(base, cur, strict=False)) if x != y), None))
+    print(f"  OFF identity ({w}): {len(base)} rows against {BASE}, 0 differences")
 
 
 def main() -> int:
