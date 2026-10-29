@@ -574,7 +574,7 @@ class Interface:
     def realise(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
                 state: dict | None = None, env: Any = None,
                 withheld: Withheld = NO_WITHHELD, cell: bool = True,
-                asker: str | None = None) -> Realisation | None:
+                asker: str | None = None, split: dict | None = None) -> Realisation | None:
         """**THE ONE DOOR, SO NO EXIT CAN SEND A SECOND CONSECUTIVE `RESET`.**
 
         **ISAIAH, 2026-09-29, AND IT IS A HARD CONSTRAINT RATHER THAN A PREFERENCE:** *fully
@@ -617,10 +617,11 @@ class Interface:
             if not offered:
                 return self._none(BLOCKED, "reset adjacency: RESET was the only offer", asker)
         offered, w, every = self._withhold(withheld, offered, state, env)
-        r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker)
+        r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker, split=split)
         if r is not None and r.action == RESET and self._last_was_reset:
             _alt = tuple(a for a in offered if a != RESET)
-            r = (self._choose(intent, _alt, ctx, state, env, w, cell=cell, asker=asker)
+            r = (self._choose(intent, _alt, ctx, state, env, w, cell=cell, asker=asker,
+                              split=split)
                  if _alt else self._none(BLOCKED, "reset adjacency: no alternative to RESET",
                                          asker))
         if r is not None and every:
@@ -690,7 +691,7 @@ class Interface:
     def _choose(self, intent: Intent, offered: tuple[str, ...], ctx: tuple = (),
                 state: dict | None = None, env: Any = None,
                 w: Withheld = NO_WITHHELD, cell: bool = True,
-                asker: str | None = None) -> Realisation | None:
+                asker: str | None = None, split: dict | None = None) -> Realisation | None:
         """Pick an action that serves this intent, or abstain.
 
         **ABSTENTION IS A READING** -- §12.2. `None` means *this board's vocabulary cannot
@@ -961,7 +962,7 @@ class Interface:
             # interface deciding. It abstains and the agent learns the intent was unrealisable.
             return self._none(NO_WAY, "no table entry for this intent kind", asker)
         rank: dict[str, int] = {}
-        if intent.kind == DISTINGUISH:
+        if intent.kind == DISTINGUISH and not split:
             rank = self.separability(env, offered)
             # **THE ABSTENTION IS THE POINT OF THE VERB.** No member separates anything here, so
             # there is no action to offer that answers what was asked. Returning SOMETHING would
@@ -1058,6 +1059,29 @@ class Interface:
                 why = f"{why}, aimed at what moves this slot"
             return Realisation(a, coord=coord, unmapped=(a not in self.table), why=why)
 
+        if intent.kind == DISTINGUISH and split:
+            # 1b ASK (the reviewer 2026-10-29 r279, r325): the agent hands how each press would
+            # split its surviving hypotheses (block sizes); the press whose LARGEST block is
+            # smallest is taken -- twenty questions' worst case -- then more blocks, then A1.
+            # Every press leaving one block is the verb's own abstention. D-WIN-RESET: on a live
+            # board RESET's outcome is known before it is pressed, so it splits nothing.
+            known = {RESET} if (_RESET_KNOWN and self.alive) else set()
+            score = {a: (max(split[a]), -len(split[a])) for a in offered
+                     if split.get(a) and a not in known}
+            if not score or all(len(split[a]) == 1 for a in score):
+                return self._none(NO_WAY, "no press splits the survivors (DISTINGUISH)", asker)
+            top = min(score.values())
+            best = [a for a in score if score[a] == top]
+            a = best[0]
+            if len(best) > 1:
+                a, by, _f = FR.frontier_pick(
+                    [(b, None, None) for b in best], dict.fromkeys(best, 0),
+                    {b: len(self.table.get(b, {}).get("by_ctx", {}).get(ctx, ())) for b in best},
+                    f"split:{self.audits}:{ctx!r}:{intent.subject}", self.draw_seed)
+                self.pick_by[by] += 1
+            n = sum(split[a])
+            return _made(a, f"requested a split of {n} survivors of {intent.subject}: largest "
+                            f"block {top[0]} in {-top[1]} blocks")
         asked = "exploration" if intent.kind == ELICIT else "something that separates"
         # D-WIN-RESET: on a live board RESET is known, never an unknown to elicit
         known_a_priori = {RESET} if (_RESET_KNOWN and self.alive) else set()

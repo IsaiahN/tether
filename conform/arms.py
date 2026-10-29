@@ -1137,6 +1137,18 @@ ARMS: dict[str, str] = {
                           "code space the ground judged in (the slot's alphabet), and risky = "
                           "predicted_code != from_code (persistence would have been wrong). No "
                           "decision reads it. OFF: the row as before. default ON",
+    "TETHER_ASK": "1b ASK (the reviewer 2026-10-29 r279, r322, r325; Fig 9 :38, Fig 5 :12). Under "
+                  "TETHER_DIVIDE, choose's DISTINGUISH is aimed at ONE gap: among the open spaces "
+                  "with two or more survivors (S1, bargain-shaped, r327: terms in valid cells "
+                  "whose stored bound, cost + unit x rows charged, is still below the current bar, "
+                  "ranked by deficit), the one _understanding ranks first (ties: A1). Each "
+                  "survivor's prediction of the slot under each offered action gives the split as "
+                  "block sizes; interface._choose takes the press whose largest block is smallest "
+                  "(then more blocks, then A1; a live board's RESET splits nothing, D-WIN-RESET) "
+                  "or abstains when no press splits, and then the board-level DISTINGUISH runs as "
+                  "before. An aimed DISTINGUISH competes in "
+                  "_exit_choice with its gap's outstanding. Row: PLAN 'ask'. OFF: DISTINGUISH as "
+                  "before. default ON",
     "TETHER_DIVIDE_CREDIT": "1a CREDIT (the reviewer 2026-10-29 r312 ask 3; Fig 12 :108, Fig 6 "
                             ":50). Under TETHER_DIVIDE, a closure chain the gap's kind had met "
                             "before, re-met with no row evaluated and no term reaching the "

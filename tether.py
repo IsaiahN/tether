@@ -859,6 +859,11 @@ _DIVIDE = armflag.arm("TETHER_DIVIDE", default=True)
 # never met. Its cost is in the other currency (wall), read apart. Needs TETHER_DIVIDE. ON;
 # conform/arms.py
 _DIVIDE_CREDIT = armflag.arm("TETHER_DIVIDE_CREDIT", default=True)
+# 1b ASK (the reviewer 2026-10-29 r279, r322, r325; Fig 9 :38, Fig 5 :12): DISTINGUISH aimed at the
+# survivors of the one gap _understanding ranks first -- the agent hands the interface how each
+# press would split them, and the interface takes the press whose largest block is smallest. Needs
+# TETHER_DIVIDE (the survivors are its record). ON; conform/arms.py
+_ASK = armflag.arm("TETHER_ASK", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -3163,6 +3168,9 @@ class Agent:
         self._kind_space: dict = {}     # 1a: gap kind -> chains met, costs under (code, units)
         self._dv: dict | None = None    # 1a: this mint's divide counts, None outside a walk
         self._dv_answered = False       # 1a: the last _cannot_pay refused on its record alone
+        self._ask_n: Counter = Counter()  # 1b: asks aimed at each slot, A1's learning reading
+        self._ask_cyc: tuple = (None, None)   # 1b: (cycle, this cycle's aimed ask)
+        self._ask_abstained: tuple | None = None   # 1b: (slot, survivors) when no press split
         self._trace_epoch = 0
         # (ctx, intent, slot, the discrepancy it was met at) -> times that pair undid it.
         # ISAIAH, 2026-09-29: a goal met then un-met is "data similar to actions becoming
@@ -11143,6 +11151,106 @@ class Agent:
                         slot_record=len(cells), kind_record=len(dv["krec"]["met"]),
                         reads="1a: this mint against its gap's carried record")
 
+    def _survivors(self, slot: str) -> list:
+        """S1, BARGAIN-SHAPED (the reviewer 2026-10-29 r327, r312's round trip): the terms priced on
+        this gap, in valid cells under the current key and stamps, whose record does NOT prove they
+        cannot pay at the CURRENT bar -- the stored bound (the cost each was priced at + unit x the
+        rows charged on the rows it covers) still below it, _cannot_pay's own lemma. A term wrong
+        on a row may still be the best there is (Fig 9 :40). Ranked by deficit, lowest first."""
+        if not _DIVIDE or slot not in self._space:
+            return []
+        seen = self._tally.get(slot)
+        held = self.gamma.library[self.bound.get(slot, IDN)]
+        if seen is None or seen[0] != self._divide_key(slot, held):
+            return []
+        bar = self._bar(slot, held)
+        unit, size, out = math.log2(self.alphabet[slot]), None, {}
+        for cells in (seen[1], seen[2]):
+            for t, c in cells.items():
+                if len(c) < 7 or (c[3] is not None and c[3] != self.cycle):
+                    continue
+                if c[5] is not None:
+                    size = self._decoder_size() if size is None else size
+                    if c[5] != size:
+                        continue
+                bound = c[6] + unit * c[1]
+                if bound < bar:
+                    out[t] = bound - bar
+        return sorted(out, key=lambda t: (out[t], t.name))
+
+    def _bar(self, slot: str, held: Term) -> float:
+        """The bar a challenger pays against now: mint's base (:_accumulated) with the seal's held
+        cost added where the held rule reads an earlier frame -- the same lines as mint's."""
+        base = self._accumulated(slot, held)
+        if _UNSEAL_START and lag_of(held.operand) is not None and any(
+                self._no_earlier_frame(held, r[0]) for r in self.history(slot)):
+            base += self._bits((held, self._units_for(slot)))
+        return base
+
+    def _predict_with(self, term: Term, slot: str, state: dict, action: str):
+        """`_predict`'s reading for any term: its value of `slot` after `action` from `state`, in
+        the slot's code, or None where it cannot read."""
+        if not self._applies(term, state):
+            return None
+        ops = self._ops(term, state)
+        if ops is None:
+            return None
+        _now = self._intent_now.kind if self._intent_now is not None else NO_INTENT
+        ctx = self._eval_ctx(slot, state, action=action, operands=ops, intent=_now,
+                             touching=self._touching(slot), landed=self._last_landed,
+                             guard_ref=term.guard_ref)
+        got = self._value_of(term, slot, state, ctx)
+        return None if got is NOT_RESOLVED else got % self.alphabet[slot]
+
+    def _ask_aimed(self, before: dict) -> tuple:
+        """1b (TETHER_ASK): this cycle's AIMED DISTINGUISH, computed once (choose and _exit_choice
+        both reach it): (realisation, gap), or (None, None) when no gap qualifies or no press
+        splits. Only the aimed ask is held for the cycle; the board-level DISTINGUISH is realised
+        at each site exactly as before, since realise records what it could not serve."""
+        if self._ask_cyc[0] != self.cycle:
+            self._ask_cyc = (self.cycle, self._ask(before))
+        return self._ask_cyc[1]
+
+    def _ask(self, before: dict) -> tuple:
+        """1b: among the open gaps with two or more survivors (S1), the ONE _understanding ranks
+        first (ties: A1) -- the table is built for that gap only (r325 (2)): each survivor's
+        prediction under each offered action, the split as block sizes; the interface takes the
+        press whose largest block is smallest, or abstains. With its "ask" row."""
+        t0 = time.perf_counter()
+        elig = {}
+        for s in sorted(self._space):
+            sv = self._survivors(s)
+            if len(sv) >= 2:
+                elig[s] = sv
+        if not elig:
+            return None, None
+        slot = next(iter(elig))
+        if len(elig) > 1:
+            slot = self._choice("ask", None, [(s, None, None) for s in elig],
+                                {s: self._understanding(s) for s in elig},
+                                {s: self._ask_n[s] for s in elig})
+        sv, acts = elig[slot], tuple(self.actions)
+        vec = {t: tuple(self._predict_with(t, slot, before, a) for a in acts) for t in sv}
+        split = {}
+        for i, a in enumerate(acts):
+            blocks = Counter(v[i] for v in vec.values())
+            split[a] = sorted(blocks.values(), reverse=True)
+        self._ask_n[slot] += 1
+        want = IFace.Intent(IFace.DISTINGUISH, subject=slot)
+        r = self.iface.realise(want, acts, IFace.Interface.context(self.env), before, self.env,
+                               withheld=self._withheld, split=split)
+        self._ask_abstained = None if r is not None else (slot, len(sv))
+        self.led.record(self.cycle, "PLAN", slot, "ask", gaps_eligible=len(elig), gap_asked=slot,
+                        survivors=len(sv), vectors=len(set(vec.values())),
+                        chosen=r.action if r is not None else None,
+                        partition=split[r.action] if r is not None else None,
+                        largest=split[r.action][0] if r is not None else None,
+                        evaluations=len(sv) * len(acts),
+                        wall_s=round(time.perf_counter() - t0, 4),
+                        reads="1b: the press that splits this gap's surviving hypotheses most "
+                              "evenly, or none")
+        return r, (slot if r is not None else None)
+
     def _guard_scope(self, slot: str, robs: list, operand_binds: list) -> tuple:
         """The guards and referents the chain loop will walk -- the same expressions, which
         read no chain. In the key because `_separates` reads the WHOLE history, not only R, so
@@ -11537,23 +11645,24 @@ class Agent:
                             ref = i
             if cost + unit * wrong >= base:
                 if cell is not None:
-                    cell[term] = (self._divide_cell(term, i + 1, wrong, ref, start, was, e0)
-                                  if _DIVIDE else (i + 1, wrong))
+                    cell[term] = (self._divide_cell(term, i + 1, wrong, ref, start, was, e0,
+                                                    cost) if _DIVIDE else (i + 1, wrong))
                 return True          # `wrong` only grows; the rest of R adds nothing
         if cell is not None:
-            cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was, e0)
+            cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was, e0, cost)
                           if _DIVIDE else (len(robs), wrong))
         if _DIVIDE and self._dv is not None:
             self._dv["passed"] += 1     # the term goes on to the bargain: not a lookup (CREDIT)
         return False
 
     def _divide_cell(self, term: Term, rows: int, wrong: int, ref, start: int, was,
-                     e0: int) -> tuple:
+                     e0: int, cost: float) -> tuple:
         """1a: the cell `_cannot_pay` stores, and this mint's divide counts for it: rows evaluated
         now beside rows the record avoided, whether an earlier mint of the gap wrote it (m1's
         carried), and whether it was eliminated before and the new base reopened it. 1b: the
         sixth field is the shape table's size when any of its rows read the table's extent (now,
-        or before -- a stale stamp never reaches here, `_cannot_pay` recomputes it), else None."""
+        or before -- a stale stamp never reaches here, `_cannot_pay` recomputes it), else None;
+        the seventh the cost it was priced at, so S1 reads its stored bound (r327)."""
         dv = self._dv
         if dv is not None and rows > start:
             dv["priced_now"] += 1
@@ -11567,7 +11676,8 @@ class Agent:
         read = _EXTENT[0] != e0 or (was is not None and was[5] is not None)
         return (rows, wrong, ref,
                 self.cycle if getattr(term, "out_type", "val") == OBJ_TYPE else None,
-                dv["mint"] if dv is not None else 0, self._decoder_size() if read else None)
+                dv["mint"] if dv is not None else 0, self._decoder_size() if read else None,
+                cost)
 
     def _out_of_step_range(self, term: Term, slot: str, state: dict, actual: int) -> bool:
         """P6: `_cannot_pay` needs a BOOLEAN and `objective_step` computes a VALUE.
@@ -11948,7 +12058,11 @@ class Agent:
         # mint, the goal split and the draw. The verb keeps the refusal and drops the ranking.
         _want = IFace.Intent(IFace.DISTINGUISH)
         # 7h (f): a chosen distinguish reuses the gate's realise; a chosen goal skips it
+        _aim, _gap = self._ask_aimed(before) if (_ASK and _DIVIDE) else (None, None)
+        if _gap is not None:                 # 1b: this cycle's aimed DISTINGUISH
+            _want = IFace.Intent(IFace.DISTINGUISH, subject=_gap)
         _r = (dist_r if take == "distinguish" else None if take == "goal"
+              else _aim if _gap is not None
               else self.iface.realise(_want, tuple(self.actions),
                                       IFace.Interface.context(self.env), before, self.env,
                                       withheld=self._withheld))
@@ -13266,12 +13380,18 @@ class Agent:
         # directed exits stand beside it, read by the same A1 readings (what is unexplained where
         # each aims, then turns taken, then the draw). OFF: they defer while it is active
         if not s0 or _S0_CONTEST:
-            dist_r = self.iface.realise(IFace.Intent(IFace.DISTINGUISH), tuple(self.actions),
-                                        IFace.Interface.context(self.env), before, self.env,
-                                        withheld=self._withheld)
+            _gap = None
+            if _ASK and _DIVIDE:
+                dist_r, _gap = self._ask_aimed(before)    # 1b: aimed at a gap's survivors
+            if _gap is None:
+                dist_r = self.iface.realise(IFace.Intent(IFace.DISTINGUISH), tuple(self.actions),
+                                            IFace.Interface.context(self.env), before, self.env,
+                                            withheld=self._withheld)
             if dist_r is not None:
                 opts.append("distinguish")
-                res["distinguish"] = 0       # it aims at the board, not a slot
+                # it aims at the board, not a slot -- unless 1b aimed it at a gap's survivors:
+                # then the outstanding of the slot it aims at, this function's own rule
+                res["distinguish"] = self.outstanding(_gap) if _gap else 0
             gslot = self._goal_choice()
             if gslot is not None and self._goal_split(before, commit=False) is not None:
                 opts.append("goal")
