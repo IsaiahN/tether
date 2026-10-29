@@ -317,7 +317,16 @@ def on_checks():
     names = [r["name"] for r in ag.gamma.blob(with_names=True)["terms"]]
     assert ag.gamma.evidence and ag._dormant, ("fixture: no evidence or no dormant record",
                                                len(ag.gamma.evidence), len(ag._dormant))
-    lineage.write(rr, ag, "default")
+    # R-g2 is ABOUT instance aliases and "was == name" (and the evidence written as held), which
+    # TETHER_KIND_SAVE (3) changes by construction: pinned to KIND_SAVE OFF for this write (the
+    # reviewer 2026-10-29 r299: per check, in the test). ON TWIN: tests/test_kind_save.py
+    # check_gridworld (no instance alias / was / evidence name, and the same library, standing and
+    # replay through the load)
+    kind_save, lineage._KIND_SAVE = lineage._KIND_SAVE, False
+    try:
+        lineage.write(rr, ag, "default")
+    finally:
+        lineage._KIND_SAVE = kind_save
     _h, f = lineage.head(rr)
     bad = _partition(f, blob, names)
     assert bad is None, ("R-g2 terms", bad)
@@ -420,10 +429,14 @@ def on_checks():
     agy.gamma.handles[own["name"]] = row1["handle"]
     wy = lineage.write(cb, agy, "default")
     gy = _gen(cb, wy)
-    row2 = next((r for r in gy["terms"] if r.get("was") == own["name"]), None)
+    # the row is FOUND by the name the save writes in "was": under TETHER_KIND_SAVE an instance's is
+    # its kind's (3); (b) is about handle identity, so it runs ON (no pin), only the locator moves
+    was = (lineage._kind_name(agy.gamma, own["name"]) if lineage._KIND_SAVE and own.get("operand")
+           else own["name"])
+    row2 = next((r for r in gy["terms"] if r.get("was") == was), None)
     assert row2 and row2["handle"] == row1["handle"], ("(b) OCCASION: no same-text row", row2)
     assert gamma.Gamma.row_key(row2) != gamma.Gamma.row_key(row1), "(b) OCCASION: one composition"
-    assert own["name"] not in {a["was"] for a in gy.get("aliases", [])}, "(b) the row was aliased"
+    assert was not in {a["was"] for a in gy.get("aliases", [])}, "(b) the row was aliased"
     _h, fb = lineage.head(cb)
     pair = [r for r in fb["terms"] if r["handle"] == row1["handle"]]
     assert {r["born"] for r in pair} == {wx["hash"], wy["hash"]}, ("(b) both rows fold", pair)

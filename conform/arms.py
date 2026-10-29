@@ -1122,6 +1122,14 @@ ARMS: dict[str, str] = {
                               "instance's evidence by replay, its own per-slot standing kept. "
                               "Row instance_retired per break (count 0 included). OFF: no term "
                               "leaves the live set, as before. default ON",
+    "TETHER_KIND_SAVE": "3, THE SAVE CARRIES THE KIND, NEVER THE INSTANCE (the reviewer 2026-10-29 "
+                        "r292, r294; Fig 4 :22, Fig 10 :68). lineage.write: an instance row (one "
+                        "with an operand) writes no alias and its 'was' is its kind's name "
+                        "(gamma.Gamma.kind_of, the rule load_blob installs by); an evidence row "
+                        "naming an instance is written under that kind name, so the load-time "
+                        "replay lands on the same term as through today's alias. Rows otherwise "
+                        "unchanged. OFF: instance aliases and instance-named evidence, as before. "
+                        "default ON",
     "TETHER_STEP_MINT":"B1, WHOLE MINTS PER STEP (the reviewer 2026-10-26 14:20, (b'); Fig 12 "
                         ":127 'the budget is what decides how much of the space is reached', "
                         "read as the mint's own stop; Fig 6 :49-50 distribute the search across "

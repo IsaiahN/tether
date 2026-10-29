@@ -213,7 +213,11 @@ def main():
     # (ii) MF-D ON, the shipped default: one seed and the same steps, the map intact and cleared.
     # The cleared map must show as aliases beyond the intact run's, and cost bytes, not meaning.
     # Its occasion is checked once under seed 0 at N_ON steps a level (lengthened, never re-seeded)
-    pin = {"TETHER_AGENT_SEED": "0"}
+    # MF-D ON is ABOUT the aliases a cleared map adds, and TETHER_KIND_SAVE (3) writes no instance
+    # alias by construction: pinned to KIND_SAVE OFF for these runs (the reviewer 2026-10-29 r299:
+    # per check, in the test). ON TWIN: tests/test_kind_save.py check_gridworld (no instance alias,
+    # and the same library and standing load: bytes, not meaning)
+    pin = {"TETHER_AGENT_SEED": "0", "TETHER_KIND_SAVE": "0"}
     _out(_child("game", tmp / "on_full", -1, "none", N_ON, **pin), "REPORT")
     seed, rows, _al = _occasion(tmp / "on_full")
     print(f"  MF-D ON occasion: seed {seed}, {N_ON} steps a level, rows before the last "
