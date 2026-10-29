@@ -63,7 +63,11 @@ print("RESULT", json.dumps(out))
 
 def child(mode: str, d: str, arm: str) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-    env.update({"PYTHONDONTWRITEBYTECODE": "1", "TETHER_REPLAY_UNIT": arm})
+    # every check here (R, D, MF) is ABOUT renamed[the INSTANCE name], which TETHER_KIND_SAVE (3)
+    # no longer writes (the evidence carries the kind name instead): pinned to KIND_SAVE OFF (the
+    # reviewer 2026-10-29 r299: per check, in the test). ON TWIN: tests/test_kind_save.py
+    # check_two_by_three (each kind holds the paid, settles and refutes of what reloaded onto it)
+    env.update({"PYTHONDONTWRITEBYTECODE": "1", "TETHER_REPLAY_UNIT": arm, "TETHER_KIND_SAVE": "0"})
     p = subprocess.run([sys.executable, "-B", "-c", CHILD, mode, d], capture_output=True,
                        text=True, env=env, cwd=HERE, stdin=subprocess.DEVNULL)
     assert p.returncode == 0, p.stderr[-3000:]

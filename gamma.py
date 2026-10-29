@@ -1042,6 +1042,7 @@ class Gamma:
         self.carried_used: dict[str, int] = {}   # L1b: unit_key -> the lineage's Rank.used
         self.renamed: dict[str, str] = {}        # R7i: a carried row's old name -> its term here
         self.lost_onto_atom: set[str] = set()    # R7i: rows load merged onto a PRIOR atom (F420)
+        self.retired: dict[str, Term] = {}       # 2: instance terms out of the live set, the record
         for a in atoms:
             # THE ATOM'S OWN CLAUSE IF IT DECLARED ONE. A blanket `NECESSARY` was true of the
             # VOCABULARY and false of most of its members, and `admissions()` read
@@ -1185,6 +1186,28 @@ class Gamma:
         # surviving one. Leaving it clauseless made `unstated` read 19 of 21 on the first run
         # that put real mints through the counter.
         return self._install(term, seq, residual, admitted=ACCEPTED)
+
+    def retire(self, name: str) -> Term:
+        """2 (TETHER_INSTANCE_RETIRE; the reviewer 2026-10-29 r294; Fig 6 :42 "What is recorded
+        only grows. What is reachable is derived, and it can fall."): the term leaves the LIVE set
+        and stays in the record -- its stamp, handle, standing and evidence untouched, the term
+        itself kept in `retired`, which `blob` still writes. Nothing is deleted."""
+        term = self.library.pop(name)
+        self.retired[name] = term
+        self._paid_ver += 1
+        return term
+
+    def kind_of(self, term: Term) -> Term:
+        """The KIND of an instance term: the term load_blob installs from its saved row on the
+        carry path (parent given) -- atoms, guard and operand tree with no operand, or, where that
+        lands on a PRIOR atom, the same with the operand's object ids blanked (unbound_form, "?").
+        One rule for the break (2), the save (3) and the load, so a kind is the same name all three
+        ways (the reviewer 2026-10-29 r294's 2x3 check). Origin stays the term's (r294 (a))."""
+        k = Term(term.atoms, origin=term.origin, guard=term.guard, operand_term=term.operand_term)
+        if term.operand and k.name in self.library and self.library[k.name].origin == PRIOR:
+            k = Term(term.atoms, origin=term.origin, guard=term.guard,
+                     operand=self.unbound_form(term.operand), operand_term=term.operand_term)
+        return k
 
     # -- standing: the ground's verdict, defeasibly ----------------------------------
 
@@ -1445,7 +1468,9 @@ class Gamma:
         this; `save` writes it unchanged. `with_names` adds each row's term name, for lineage
         only, which must tell a term minted here from one it loaded."""
         out = []
-        for name, t in self.library.items():
+        # 2: a retired term is the record, so the save still carries it (empty when the arm is OFF)
+        held = list(self.library.items()) + list(self.retired.items())
+        for name, t in held:
             if t.origin == PRIOR:
                 continue          # an atom was not minted; there is nothing to carry
             if t.guard == INVENTED_GUARD:

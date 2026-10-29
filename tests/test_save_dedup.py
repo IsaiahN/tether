@@ -133,6 +133,20 @@ def missing_and_mustfail(row, k):
 
 
 def on_off(tmp):
+    # D-4's occasion is an INSTANCE alias, which TETHER_KIND_SAVE (3) stops writing by construction;
+    # under the reviewer's standing rule A-D its original runs with that arm OFF, and its ON twin is
+    # tests/test_kind_save.py check_gridworld (library, standing, replay equal through the load).
+    # PRE-EXISTING RED, r299 AFTER-DEADLINE: D-4's must-fail (aliases dropped, not_held must rise)
+    # is red at 6c04c56 unchanged -- renamed fills from the rows' "was" there, so dropping aliases
+    # loses nothing; to bisect from the 10-25 pass after the deadline
+    kind_save, lineage._KIND_SAVE = lineage._KIND_SAVE, False
+    try:
+        _on_off(tmp)
+    finally:
+        lineage._KIND_SAVE = kind_save
+
+
+def _on_off(tmp):
     out = {}
     for arm in (True, False):
         lineage._SAVE_DEDUP = arm
