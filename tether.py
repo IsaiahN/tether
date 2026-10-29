@@ -841,6 +841,11 @@ _ARRIVAL_GAP = armflag.arm("TETHER_ARRIVAL_GAP", default=True)
 # Fig 6 :42, Fig 10 :68): a "reuse:" term naming an object the break did not re-find goes to the
 # record, its kind (no operand, as load installs it) stays live. ON; conform/arms.py
 _INSTANCE_RETIRE = armflag.arm("TETHER_INSTANCE_RETIRE", default=True)
+# THE SETTLE ROW CARRIES ITS OWN PREDICTION, RECORD ONLY (the reviewer 2026-10-29 r288, r294;
+# harvest item 6): the maker's predicted code, the actual and the from value in the same code
+# space, and risky = the prediction differed from what persistence would have said. Nothing reads
+# it. ON; conform/arms.py
+_SETTLE_PRED = armflag.arm("TETHER_SETTLE_PRED", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -17185,7 +17190,8 @@ class Agent:
                             status="accepted",
                             asked=[name, slot], ground_said=True,
                             verdict="held on a transition it was not fitted to",
-                            held_out_cycle=self.cycle, fitted_through=born)
+                            held_out_cycle=self.cycle, fitted_through=born,
+                            **(self._settle_pred(slot, r) if _SETTLE_PRED else {}))
 
     # -- the utterance: the only way an action is proposed --------------------------------
 
@@ -17417,6 +17423,21 @@ class Agent:
             if n in kind_of:
                 self._pred_by[s] = kind_of[n] if kind_of[n] in lib else None
         return repointed, dropped
+
+    def _settle_pred(self, slot: str, r: SlotResidual) -> dict:
+        """Item 6's exact reading, on the settle row only (no decision reads it): the residual's
+        own prediction (the maker's, already a code), the actual and this step's from value (the
+        trace row perceive just wrote) in the SAME code space the ground judged in (correction_bits
+        over the slot's alphabet), and risky = the prediction differed from the from value's code,
+        i.e. persistence would have been wrong (the reviewer r288: Fig 9 :60's null)."""
+        a = self.alphabet.get(slot)
+        fv = (self.trace[-1][0] if self.trace else {}).get(slot)
+
+        def code(v: Any) -> Any:
+            return v % a if isinstance(v, int) and isinstance(a, int) and a > 0 else v
+        pc, fc = r.predicted, code(fv)
+        return {"predicted_code": pc, "actual_code": code(r.actual), "from_value": fv,
+                "from_code": fc, "risky": pc is not None and fc is not None and pc != fc}
 
     def _repoint_wants(self, kind_of: dict) -> tuple[int, dict]:
         """r296 follow-up 1: a goal link writes FOUR holders together (wants, _want_terms,

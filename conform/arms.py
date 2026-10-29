@@ -1130,7 +1130,14 @@ ARMS: dict[str, str] = {
                         "replay lands on the same term as through today's alias. Rows otherwise "
                         "unchanged. OFF: instance aliases and instance-named evidence, as before. "
                         "default ON",
-    "TETHER_STEP_MINT":"B1, WHOLE MINTS PER STEP (the reviewer 2026-10-26 14:20, (b'); Fig 12 "
+    "TETHER_SETTLE_PRED": "THE SETTLE ROW CARRIES ITS OWN PREDICTION, RECORD ONLY (the reviewer "
+                          "2026-10-29 r288, r294; harvest item 6). Agent._settle_pred adds to each "
+                          "settle row: predicted_code (the residual's own, the maker's), "
+                          "actual_code, from_value (this step's trace row) and from_code in the "
+                          "code space the ground judged in (the slot's alphabet), and risky = "
+                          "predicted_code != from_code (persistence would have been wrong). No "
+                          "decision reads it. OFF: the row as before. default ON",
+    "TETHER_STEP_MINT": "B1, WHOLE MINTS PER STEP (the reviewer 2026-10-26 14:20, (b'); Fig 12 "
                         ":127 'the budget is what decides how much of the space is reached', "
                         "read as the mint's own stop; Fig 6 :49-50 distribute the search across "
                         "steps; Fig 9 :60 owed, never a verdict): a mint runs as before, with all "
