@@ -137,7 +137,14 @@ def check_d_must_hold_nothing_exhausts_on_equals_off() -> None:
 
 
 def check_e_owed_derived_slot_asked_first_next_step() -> None:
-    rows = _run(True, budget=40).led.rows()
+    """OFF path: owed first, 1d OFF (TETHER_OWED_REJUDGE=0). ON, owed and fresh asks go by
+    A1: test_owed_rejudge check_i_on_derived_a1_order."""
+    keep = tether._OWED_REJUDGE
+    tether._OWED_REJUDGE = False     # B2's owed-first order; 1d (r281) replaces it by A1
+    try:
+        rows = _run(True, budget=40).led.rows()
+    finally:
+        tether._OWED_REJUDGE = keep
     dfr = {(r["cycle"], r["slot"]) for r in _of(rows, "derived_deferred")}
     by_c = collections.defaultdict(list)
     for r in _of(rows, "derived_asked"):
@@ -158,10 +165,14 @@ def check_f_owed_transition_not_tried_until_minted() -> None:
         for d, (_c0, t) in ag._dw_owed.items():
             assert t not in ag._dw_tried.get(d, set()), (d, t)
             seen["owed"] += 1
-        asked_owed = {r["slot"] for r in ag.led.rows()
-                      if r.get("cycle") == ag.cycle - 1 and r.get("event") == "derived_asked"
+        last = [r for r in ag.led.rows() if r.get("cycle") == ag.cycle - 1]
+        asked_owed = {r["slot"] for r in last if r.get("event") == "derived_asked"
                       and "owed_since" in (r.get("detail") or {})}
+        # 1d (TETHER_OWED_REJUDGE): an owed ask whose slot moved again carries the newer transition
+        now = {r["slot"]: tuple(r["detail"]["now"]) for r in last
+               if r.get("event") == "owed_superseded"}
         for d, (_c0, t) in prev.items():
+            t = now.get(d, t)
             if d in asked_owed and d not in ag._dw_owed:
                 assert t in ag._dw_tried.get(d, set()), (d, t)       # tried once its mint ran
                 seen["minted"] += 1

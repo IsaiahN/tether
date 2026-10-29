@@ -56,7 +56,8 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
            ("step_mint", "wall_s"),          # the step clock: the step's mints
            ("park", "wall_s"),               # the step clock: the parked mint
            ("step_derived", "wall_s"),       # the step clock: B2's derived mints (38d3299)
-           ("end_path", "wall_s"))           # arc_holdout, C1 (A): the end path, timed whole
+           ("end_path", "wall_s"),           # arc_holdout, C1 (A): the end path, timed whole
+           ("ask", "wall_s"))                # 1b ASK (TETHER_ASK): the aimed ask's table + press
 
 
 # The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One

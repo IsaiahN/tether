@@ -833,6 +833,13 @@ _OBJ_ID = re.compile(r"\bo\d+\b")     # the step clock (r264): an object id in a
 # after the ACCEPT loop share B1's stop -- once a mint this step stopped at a bound, the remaining
 # derived asks are OWED (never marked tried) and asked first next step. ON; conform/arms.py
 _STEP_DERIVED = armflag.arm("TETHER_STEP_DERIVED", default=True)
+# 1d OWED_REJUDGE (the reviewer 2026-10-28 r281, corrected 2026-10-29 r326 Option A; Fig 11 :51,
+# Fig 3): each owed derived ask is re-read against the current frame -- released, with its reason,
+# when no longer derived, when it wants, or when none of its SOURCES has outstanding > 0; newer
+# evidence replaces its stored transition. The step's mints go by _understanding (A1 ties), and the
+# derived asks (rank 0) after them by A1 -- never owed-first or code order. The releases
+# need TETHER_STEP_DERIVED (asks are owed only under it). ON; conform/arms.py
+_OWED_REJUDGE = armflag.arm("TETHER_OWED_REJUDGE", default=True)
 # 5, THE ARRIVAL GAP (the reviewer 2026-10-28 r283; Fig 5 :4-5, Fig 11 :73): at a frame the agent
 # did not press for, the frame it held is scored against the one that arrived; above every
 # ordinary no-press reading this life it is a break, appearance only corroborating. ON;
@@ -2975,6 +2982,8 @@ class Agent:
         self._want_only = False     # E0-W: this mint writes a want and never binds
         self._dw_tried: dict = {}   # E0-W: derived slot -> the transitions held at its asks
         self._dw_owed: dict = {}    # B2: derived slot -> (first deferred cycle, its transition)
+        self._dw_seen: Counter = Counter()   # 1d: derived slot -> asks run (A1's learning reading)
+        self._mint_seen: Counter = Counter()   # 1d: slot -> step mints run (A1's learning reading)
         # R4: the keys each admitted memo has been asked once (kept across a boundary clear)
         self._hits0: dict = dict(_INDEX_N)    # R4's hit counter is read as this agent's deltas
         self._seen_keys: dict = {m: set() for m in ("reach_index", "compile", "fold", "verdicts",
@@ -3643,6 +3652,10 @@ class Agent:
             self._memo_sizes(f"end:{how}")      # R4: the memos' sizes at the run's end
         if _DIVIDE:
             self._divide_end()                  # 1a: the spaces end with the run, never saved
+        if _OWED_REJUDGE:
+            for d, ct in sorted(self._dw_owed.items()):   # 1d: still outranked at the game's end
+                self._owed_release(d, ct, "outranked")
+            self._dw_owed = {}
         flush = getattr(self.led, "flush_tally", None)
         if flush is not None:
             flush(self.cycle)        # the choice tally: repeats written outside a step
@@ -3919,6 +3932,10 @@ class Agent:
         self._rk_bound = None                        # (6c): bound again on the new board
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
         self._dw_tried = {}
+        if _OWED_REJUDGE:
+            for d, ct in sorted(self._dw_owed.items()):   # 1d: each one released, recorded
+                self._owed_release(d, ct, "level end")
+            self._dw_seen, self._mint_seen = Counter(), Counter()   # slot names do not cross
         self._dw_owed = {}                           # B2: owed asks are slot-keyed, like tried
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
         # last reading or step, an undone count, each read on the next level's same NAME.
@@ -4369,6 +4386,36 @@ class Agent:
         self.led.record(self.cycle, self._running_step, slot, "derived_unbound", site=site,
                         reads="DS: a derived slot is no subject; no term is bound to it")
 
+    def _owed_why(self, d: str, der: dict) -> str | None:
+        """1d's guards, read on this frame (r326 Option A): why an owed derived ask is let go, or
+        None while it is still owed. A derived slot is never bet on, so its surprise is read
+        through its SOURCES: it is explained exactly when they are (Fig 13)."""
+        if d not in der:
+            return "not derived"
+        if d in self.wants:
+            return "wants"
+        return None if any(self.outstanding(s) > 0 for s in der[d]) else "sources explained"
+
+    def _supersedes(self, d: str, ct: tuple, t_new: tuple) -> bool:
+        """1d: the slot's newer transition replaces an owed ask's stored one -- unless it was
+        already asked, which is not new evidence (7f's tried set): carrying it would let B2's
+        deferral reopen a settled question."""
+        return t_new != ct[1] and t_new not in self._dw_tried.get(d, ())
+
+    @_in_step("MINT")
+    def _owed_release(self, d: str, ct: tuple, why: str) -> None:
+        """1d: an owed derived ask let go, with the reason and the readings it was judged on. It
+        is not marked tried, so new evidence raises it again. Its own MINT scope: a release at
+        retarget or end_run runs outside the step's MINT phase, after later steps have written
+        rows on the slot, so those go on "@owed" (as "@boundary" does), naming the ask."""
+        der = self.env.derived() if hasattr(self.env, "derived") else {}
+        at = "@owed" if why in ("level end", "outranked") else d
+        self.led.record(self.cycle, "MINT", at, "owed_released", ask=d, since=ct[0], why=why,
+                        transition=list(ct[1]), wants=d in self.wants,
+                        sources={s: round(self.outstanding(s), 4) for s in der.get(d, ())},
+                        reads="1d: an owed derived ask re-read against this frame and released "
+                              "-- recorded, never marked tried")
+
     def _derived_wants(self) -> None:
         """E0-W: each declared-derived slot that moved this step and wants nothing is minted for
         its objective alone, so it is wanted as before E0 and never bound, bet or charged."""
@@ -4381,7 +4428,26 @@ class Agent:
         b2 = ({"run": 0, "deferred": 0, "dropped": 0, "stop": self._dw_stop, "wall": 0.0}
               if _STEP_DERIVED else None)
         owed: dict = {}
-        if b2 is not None and self._dw_owed:
+        released: set = set()        # 1d: judged on this frame; only a later one re-raises
+        if b2 is not None and self._dw_owed and _OWED_REJUDGE:
+            for d, ct in sorted(self._dw_owed.items()):   # 1d: re-read against this frame
+                why = self._owed_why(d, der)
+                if why is not None:
+                    self._owed_release(d, ct, why)
+                    released.add(d)
+                    b2["dropped"] += 1
+                    continue
+                if before.get(d) is not None and after.get(d) not in (None, before[d]):
+                    t_new = (before[d], self.trace[-1][1], after[d])
+                    if self._supersedes(d, ct, t_new):   # newer evidence replaces the stored one
+                        self.led.record(self.cycle, "MINT", d, "owed_superseded",
+                                        since=ct[0], was=list(ct[1]), now=list(t_new),
+                                        reads="1d: the slot moved again; the ask carries the "
+                                              "newer transition")
+                        ct = (ct[0], t_new)
+                owed[d] = ct
+            self._dw_owed = {}
+        elif b2 is not None and self._dw_owed:
             for d, ct in sorted(self._dw_owed.items()):   # still due, or dropped and counted
                 if d in der and d not in self.wants:
                     owed[d] = ct
@@ -4389,7 +4455,13 @@ class Agent:
                     b2["dropped"] += 1
             self._dw_owed = {}
         order = sorted(der)
-        if owed:
+        if _OWED_REJUDGE:
+            # 1d: every derived ask ranks 0 (its own _understanding), so A1 orders them, owed and
+            # fresh alike: fewer asks run first, then the recorded draw
+            drawn = {s: i for i, s in enumerate(FR.draw_order(order, f"{self.cycle}:derived",
+                                                              self.draw_seed))}
+            order = sorted(order, key=lambda s: (self._dw_seen[s], drawn[s]))
+        elif owed:
             order = sorted(order, key=lambda s: s not in owed)   # owed first, stable
         for d in order:
             cap.head()
@@ -4398,7 +4470,8 @@ class Agent:
                 t = owed[d][1]
                 self._dw_tried.setdefault(d, set()).add(t)
             else:
-                if d in self.wants or before.get(d) is None or after.get(d) in (None, before[d]):
+                if (d in self.wants or d in released or before.get(d) is None
+                        or after.get(d) in (None, before[d])):
                     continue
                 t = (before[d], self.trace[-1][1], after[d])   # 7f: asked again on new evidence
                 if t in self._dw_tried.setdefault(d, set()):
@@ -4443,6 +4516,8 @@ class Agent:
                 self.mint(d)
             finally:
                 self._want_only = False
+            if _OWED_REJUDGE:
+                self._dw_seen[d] += 1            # 1d: A1's learning reading, turns taken
             if b2 is not None:
                 b2["wall"] += time.perf_counter() - t0
                 b2["run"] += 1
@@ -15745,6 +15820,31 @@ class Agent:
                                    "gate": None}
         return [f"{slot}~{j}" for j in order]
 
+    def _rank_mints(self, routed: list, split_now) -> list:
+        """1d (r281 3): the step's mint candidates take their turns by _understanding, highest
+        first; ties by A1 -- fewer step mints run, then the recorded draw. Only the candidates'
+        turns are permuted, among their own positions, so every other route keeps its place."""
+        at = [i for i, (s, b, fit, _w) in enumerate(routed)
+              if s not in split_now and s not in self._own_now
+              and (b == MECHANISM or (b == REFUTED and not fit))]
+        if len(at) < 2:
+            return routed
+        cands = [routed[i] for i in at]
+        rank = {t[0]: self._understanding(t[0]) for t in cands}
+        drawn = {s: k for k, s in enumerate(FR.draw_order(sorted(rank), f"{self.cycle}:mints",
+                                                          self.draw_seed))}
+        ranked = sorted(cands, key=lambda t: (-rank[t[0]], self._mint_seen[t[0]], drawn[t[0]]))
+        out = list(routed)
+        for i, t in zip(at, ranked, strict=True):
+            out[i] = t
+        self.led.record(self.cycle, "ACCEPT", "@step_mint", "mint_rank",
+                        order=[t[0] for t in ranked],
+                        rank=[round(rank[t[0]], 4) for t in ranked],
+                        was=[t[0] for t in cands],
+                        reads="1d: the step's mints by what is worth finding out, not by age or "
+                              "code order")
+        return out
+
     def _mint_in_step(self, slot: str, b: str) -> None:
         """B1 (TETHER_STEP_MINT; the reviewer 2026-10-26 14:20, (b')): the step's mint for `slot`;
         or, once a mint this step has parked with its search stopped at a bound, the slot OWED --
@@ -15762,6 +15862,8 @@ class Agent:
         self._mint_exhausted = False
         t0 = time.perf_counter() if _STEP_CLOCK else None
         self.mint(slot)
+        if _OWED_REJUDGE:
+            self._mint_seen[slot] += 1           # 1d: A1's learning reading, turns taken
         if sm is not None:
             if t0 is not None:
                 sm["wall"] = sm.get("wall", 0.0) + time.perf_counter() - t0
@@ -18407,11 +18509,13 @@ class Agent:
         # THE SLOTS WHOSE OWN TURN RUNS THIS CYCLE, for the probe flush below: a slot past its
         # turn takes no MINT row after its ACCEPT (F500's rule; the probe flush, 2026-10-14).
         _turned = set(self._turn_ahead) | set(_split_now)
-        if _STEP_MINT and getattr(self, "_mint_owed", None):
+        if _STEP_MINT and getattr(self, "_mint_owed", None) and not _OWED_REJUDGE:
             # B1: the mints owed from an earlier step first, then today's order (stable)
             routed = sorted(routed, key=lambda t: t[0] not in self._mint_owed)
         self._sm = {"run": 0, "deferred": [], "stop": None}
         with self._step_scope("ACCEPT"):
+            if _OWED_REJUDGE:
+                routed = self._rank_mints(routed, _split_now)    # 1d: rank, not age or code order
             for _i, (slot, b, fit, _why) in enumerate(routed):
                 if slot in _split_now:
                     continue

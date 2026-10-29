@@ -1137,6 +1137,17 @@ ARMS: dict[str, str] = {
                           "code space the ground judged in (the slot's alphabet), and risky = "
                           "predicted_code != from_code (persistence would have been wrong). No "
                           "decision reads it. OFF: the row as before. default ON",
+    "TETHER_OWED_REJUDGE": "1d OWED_REJUDGE (the reviewer 2026-10-28 r281, 2026-10-29 r326 "
+                           "Option A; Fig 11 :51, Fig 3). Each owed derived ask is re-read "
+                           "against the current frame and released (owed_released, with why) "
+                           "when no longer derived, when it wants, or when none of its sources "
+                           "(env.derived()) has outstanding > 0 ('sources explained'); never "
+                           "marked tried, so new evidence re-raises it. Newer evidence replaces "
+                           "its stored transition (owed_superseded). The step's mint candidates "
+                           "take their turns by _understanding, ties by A1 (mint_rank row); "
+                           "derived asks rank 0 and run after them, ordered by A1. Releases "
+                           "'level end' at retarget and 'outranked' at end_run. OFF: B1/B2's "
+                           "owed-first order as before. default ON",
     "TETHER_ASK": "1b ASK (the reviewer 2026-10-29 r279, r322, r325; Fig 9 :38, Fig 5 :12). Under "
                   "TETHER_DIVIDE, choose's DISTINGUISH is aimed at ONE gap: among the open spaces "
                   "with two or more survivors (S1, bargain-shaped, r327: terms in valid cells "
