@@ -14,12 +14,25 @@ ARMS = (
     ("TETHER_ASK", "2a8045c"),               # 1b
     ("TETHER_OWED_REJUDGE", "20cc52a"),      # 1d
     ("TETHER_S1_REPRICE", "2855932"),        # 1b's re-price (r350)
-    ("TETHER_STOP_RULES", None),             # 1c; its sha comes with the next arm
+    ("TETHER_STOP_RULES", "d148097"),        # 1c
+)
+# A batch arm whose TREE DEFAULT was flipped after later arms landed (r359): (the arm, the last
+# batch arm before the flip, its value before, the flip's commit). An arm under test that landed
+# after the flipped arm and up to the flip was gated against bases holding the old value, so
+# off_env pins it.
+FLIPS = (
+    ("TETHER_DIVIDE_CREDIT", "TETHER_STOP_RULES", "1", None),   # (a2), Isaiah 2026-10-29 15:50
 )
 
 
 def off_env(arm: str) -> dict:
-    """The arm and every later batch arm OFF, for an OFF identity against the arm's base."""
+    """The arm and every later batch arm OFF, for an OFF identity against the arm's base; a flipped
+    arm that landed before it is pinned to its value before the flip (FLIPS)."""
     names = [a for a, _c in ARMS]
     assert arm in names, ("not a batch arm", arm)
-    return dict.fromkeys(names[names.index(arm):], "0")
+    i = names.index(arm)
+    env = dict.fromkeys(names[i:], "0")
+    for flipped, last, before, _c in FLIPS:
+        if flipped not in env and i <= names.index(last):
+            env[flipped] = before
+    return env

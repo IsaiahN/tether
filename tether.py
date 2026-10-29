@@ -863,9 +863,10 @@ _DIVIDE = armflag.arm("TETHER_DIVIDE", default=True)
 # 1a CREDIT (the reviewer 2026-10-29 r312 ask 3; Fig 12 :108, Fig 6 :50): a closure chain this gap's
 # kind had already met, re-met with no row evaluated and no term reaching the bargain, is a lookup,
 # and its yield is credited back to enumerate_closure's budget, so the same budget reaches chains
-# never met. Its cost is in the other currency (wall), read apart. Needs TETHER_DIVIDE. ON;
-# conform/arms.py
-_DIVIDE_CREDIT = armflag.arm("TETHER_DIVIDE_CREDIT", default=True)
+# never met. Its cost is in the other currency (wall), read apart. Needs TETHER_DIVIDE. OFF since
+# (a2) (Isaiah 2026-10-29 15:50 "you can switch off credit"; r344, r355): the yield is refunded
+# but not the work. conform/arms.py
+_DIVIDE_CREDIT = armflag.arm("TETHER_DIVIDE_CREDIT", default=False)
 # 1b ASK (the reviewer 2026-10-29 r279, r322, r325; Fig 9 :38, Fig 5 :12): DISTINGUISH aimed at the
 # survivors of the one gap _understanding ranks first -- the agent hands the interface how each
 # press would split them, and the interface takes the press whose largest block is smallest. Needs

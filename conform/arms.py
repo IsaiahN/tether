@@ -1197,7 +1197,11 @@ ARMS: dict[str, str] = {
                             "gamma.enumerate_closure subtracts from what it has emitted), so the "
                             "same cfg.budget reaches chains never met. The divide row carries "
                             "'credited'. Its cost is wall time, read apart from DIVIDE's. OFF: no "
-                            "credit is written and the closure counts as before. default ON",
+                            "credit is written and the closure counts as before. default OFF since "
+                            "(a2): the credit refunds the yield count but not the work, so a "
+                            "credited walk runs the whole space (r344's ledger read: credited = "
+                            "candidates_seen = 62,585 on a PLAY19 round-1 walk); Isaiah 2026-10-29 "
+                            "15:50 'you can switch off credit' (r355). ON is a measuring setting",
     "TETHER_DIVIDE": "1a DIVIDE, A CARRIED SPACE PER OPEN GAP (the reviewer 2026-10-29 r279, r308, "
                      "r311, r312; Fig 9 :38-41, Fig 6 :50, Fig 12 :108). The mint's row tally "
                      "(_cannot_pay) is keyed by Agent._divide_key -- held, alphabet, epoch, the "
