@@ -116,39 +116,46 @@ def ev(rows: list, name: str) -> list:
     return [r for r in rows if r["event"] == name]
 
 
-def miss_cases() -> None:
+def _miss(kind: str) -> None:
     root = str(_repo.ROOT)
-    for kind in ("a", "b"):
-        on = child(root, kind, 4)
-        c = on["switch_at"]
-        gap, brk = ev(on["rows"], "arrival_gap"), ev(on["rows"], "frame_break")
-        assert c is not None and len(gap) == 1 and gap[0]["cycle"] == c, ("MISS occasion", kind, c,
-                                                                         gap)
-        d = gap[0]["detail"]
-        assert d["appearance"]["broke"] is False, ("MISS precondition: appearance broke", kind, d)
-        assert d["bar_n"] > 0 and d["decided_by"].startswith("bar: ordinary-max"), (kind, d)
-        assert d["share"] > d["bar"] and d["broke"] and d["applied"] >= 1, ("MISS ON: no break",
-                                                                             kind, d)
-        assert [r["cycle"] for r in brk] == [c], ("MISS ON: frame_break", kind, brk)
-        dis = ev(on["rows"], "appearance_disagrees")
-        assert len(dis) == 1 and dis[0]["cycle"] == c, ("MISS ON: appearance_disagrees", kind, dis)
-        assert on["gate"][0] == "pass", ("MISS ON: gate", kind, on["gate"])
-        assert on["n"] >= 4, ("HOLD: ordinary readings not counted", kind, on["n"])
-        print(f"  MISS ({kind}) ON: arrival at cycle {c}: held {d['held']}, failed {d['failed']} "
-              f"(carried {d['carried']}, changed {d['changed']}), share {d['share']} > bar "
-              f"{d['bar']} ({d['decided_by']}); appearance found {d['appearance']['found']} "
-              f"claimed {d['appearance']['claimed']} median {d['appearance']['median']} colour "
-              f"{d['appearance']['colour_share']} said no break; break applied ({d['applied']} "
-              f"record), appearance_disagrees written; gate pass")
-        off = child(root, kind, 4, {"TETHER_ARRIVAL_GAP": "0"})
-        assert off["switch_at"] is not None, ("MUST-FAIL OFF occasion", kind)
-        assert not ev(off["rows"], "frame_break") and not ev(off["rows"], "arrival_gap"), (
-            "MUST-FAIL OFF: a break or gap row", kind)
-        print(f"  MISS ({kind}) MUST-FAIL OFF: the arrival at cycle {off['switch_at']} keeps its "
-              "claims: no frame_break, no arrival_gap (the appearance gate refuses, as on the 12)")
+    on = child(root, kind, 4)
+    c = on["switch_at"]
+    gap, brk = ev(on["rows"], "arrival_gap"), ev(on["rows"], "frame_break")
+    assert c is not None and len(gap) == 1 and gap[0]["cycle"] == c, ("MISS occasion", kind, c,
+                                                                     gap)
+    d = gap[0]["detail"]
+    assert d["appearance"]["broke"] is False, ("MISS precondition: appearance broke", kind, d)
+    assert d["bar_n"] > 0 and d["decided_by"].startswith("bar: ordinary-max"), (kind, d)
+    assert d["share"] > d["bar"] and d["broke"] and d["applied"] >= 1, ("MISS ON: no break",
+                                                                         kind, d)
+    assert [r["cycle"] for r in brk] == [c], ("MISS ON: frame_break", kind, brk)
+    dis = ev(on["rows"], "appearance_disagrees")
+    assert len(dis) == 1 and dis[0]["cycle"] == c, ("MISS ON: appearance_disagrees", kind, dis)
+    assert on["gate"][0] == "pass", ("MISS ON: gate", kind, on["gate"])
+    assert on["n"] >= 4, ("HOLD: ordinary readings not counted", kind, on["n"])
+    print(f"  MISS ({kind}) ON: arrival at cycle {c}: held {d['held']}, failed {d['failed']} "
+          f"(carried {d['carried']}, changed {d['changed']}), share {d['share']} > bar "
+          f"{d['bar']} ({d['decided_by']}); appearance found {d['appearance']['found']} "
+          f"claimed {d['appearance']['claimed']} median {d['appearance']['median']} colour "
+          f"{d['appearance']['colour_share']} said no break; break applied ({d['applied']} "
+          f"record), appearance_disagrees written; gate pass")
+    off = child(root, kind, 4, {"TETHER_ARRIVAL_GAP": "0"})
+    assert off["switch_at"] is not None, ("MUST-FAIL OFF occasion", kind)
+    assert not ev(off["rows"], "frame_break") and not ev(off["rows"], "arrival_gap"), (
+        "MUST-FAIL OFF: a break or gap row", kind)
+    print(f"  MISS ({kind}) MUST-FAIL OFF: the arrival at cycle {off['switch_at']} keeps its "
+          "claims: no frame_break, no arrival_gap (the appearance gate refuses, as on the 12)")
 
 
-def hold_and_first() -> None:
+def check_miss_a() -> None:
+    _miss("a")
+
+
+def check_miss_b() -> None:
+    _miss("b")
+
+
+def check_hold() -> None:
     root = str(_repo.ROOT)
     plain = child(root, "plain", 0)
     assert plain["n"] and plain["n"] >= 6, ("HOLD occasion: ordinary readings", plain["n"])
@@ -157,6 +164,10 @@ def hold_and_first() -> None:
                                  plain["max"])
     print(f"  HOLD: 8 ordinary steps: {plain['n']} ordinary readings, max {plain['max']}; no "
           "arrival_gap, no frame_break")
+
+
+def check_first() -> None:
+    root = str(_repo.ROOT)
     for kind, want in (("a", False), ("stripes", True)):
         r = child(root, kind, 1)
         gap = ev(r["rows"], "arrival_gap")
@@ -170,7 +181,7 @@ def hold_and_first() -> None:
               f"appearance alone ({'break' if want else 'no break'}; share {d['share']})")
 
 
-def off_identity() -> None:
+def _off_identity(kind: str, k: int) -> None:
     root = str(_repo.ROOT)
     sys.path.insert(0, os.path.join(root, "conform"))
     from identity_mod_rows import mask_timings
@@ -183,25 +194,39 @@ def off_identity() -> None:
         tar = subprocess.run(["git", "-C", root, "archive", BASE], capture_output=True, check=True)
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
             tf.extractall(d, filter="data")
-        for kind, k in (("plain", 0), ("a", 4)):
-            base = norm(child(d, kind, k)["rows"])
-            cur = norm(child(root, kind, k, {"TETHER_ARRIVAL_GAP": "0"})["rows"])
-            diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base)
-                                                                                  - len(cur))
-            assert len(base) > 50 and diff == 0, ("OFF identity", kind, len(base), len(cur),
-                                                 next((i for i, (x, y) in enumerate(
-                                                     zip(base, cur, strict=False)) if x != y),
-                                                     None))
-            print(f"  OFF identity ({kind}): {len(base)} rows against {BASE}, 0 differences "
-                  "(arms rows aside, wall timings masked)")
+        base = norm(child(d, kind, k)["rows"])
+        cur = norm(child(root, kind, k, {"TETHER_ARRIVAL_GAP": "0"})["rows"])
+        diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base)
+                                                                              - len(cur))
+        assert len(base) > 50 and diff == 0, ("OFF identity", kind, len(base), len(cur),
+                                             next((i for i, (x, y) in enumerate(
+                                                 zip(base, cur, strict=False)) if x != y),
+                                                 None))
+        print(f"  OFF identity ({kind}): {len(base)} rows against {BASE}, 0 differences "
+              "(arms rows aside, wall timings masked)")
 
 
-def main() -> None:
-    miss_cases()
-    hold_and_first()
-    off_identity()
-    print("arrival_gap: OK")
+def check_off_identity_plain() -> None:
+    _off_identity("plain", 0)
+
+
+def check_off_identity_miss_a() -> None:
+    _off_identity("a", 4)
+
+
+def main() -> int:
+    # names on the command line run only those checks, one per process, each under the 5-minute
+    # cap (the reviewer 2026-10-28 r284, as test_window)
+    want = set(sys.argv[1:])
+    checks = [v for k, v in globals().items() if k.startswith("check_")
+              and (not want or k in want)]
+    assert not want or len(checks) == len(want), ("unknown check name", sorted(want))
+    for c in checks:
+        c()
+        print("ok  ", c.__name__)
+    print(f"arrival_gap: {len(checks)} checks passed")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
