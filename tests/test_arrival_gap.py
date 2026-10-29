@@ -214,10 +214,15 @@ def check_off_identity_miss_a() -> None:
     _off_identity("a", 4)
 
 
+PARTS = {"miss_cases": ("check_miss_a", "check_miss_b"),        # the reviewer r285's three parts
+         "hold_and_first": ("check_hold", "check_first"),
+         "off_identity": ("check_off_identity_plain", "check_off_identity_miss_a")}
+
+
 def main() -> int:
-    # names on the command line run only those checks, one per process, each under the 5-minute
-    # cap (the reviewer 2026-10-28 r284, as test_window)
-    want = set(sys.argv[1:])
+    # names on the command line run only those checks (or a part's), one per process, each under
+    # the 5-minute cap (the reviewer 2026-10-28 r284, r285, as test_window)
+    want = {c for a in sys.argv[1:] for c in PARTS.get(a, (a,))}
     checks = [v for k, v in globals().items() if k.startswith("check_")
               and (not want or k in want)]
     assert not want or len(checks) == len(want), ("unknown check name", sorted(want))
