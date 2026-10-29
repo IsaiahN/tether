@@ -72,7 +72,7 @@ env, ag, led, *_ = arc_holdout.wire(w, "fake")
 for _ in range(3):
     ag.step()
 out = {"mode": mode}
-if mode in ("retire", "refound", "bind", "bind_norepoint"):
+if mode in ("retire", "refound", "bind", "bind_norepoint", "goal", "goal_norepoint"):
     ag.gamma.keep_evidence = True
     lib = ag.gamma.library
     atoms = lib["translate"].atoms + lib["recolour"].atoms
@@ -105,6 +105,20 @@ if mode in ("retire", "refound", "bind", "bind_norepoint"):
                     self._repoint_retired = lambda kind_of: (0, {})
                 return real_retire(self, *a, **k)
             type(ag)._retire_instances = spied
+        if mode.startswith("goal"):
+            # FIXTURE-ONLY SPY: a goal link on the surviving slot o4.col to the o1 instance,
+            # written to all four holders as the link writes them (tether.py goal link)
+            real_retire = type(ag)._retire_instances
+            def spied_goal(self, *a, **k):
+                t = self.gamma.library[names["o1"]]
+                self.wants["o4.col"] = t.name
+                self._want_terms["o4.col"] = t
+                self._want_scope["o4.col"] = t.name
+                self._goal_links["spy"] = (("o4.col", t.name),)
+                if mode == "goal_norepoint":
+                    self._repoint_wants = lambda kind_of: (0, {})
+                return real_retire(self, *a, **k)
+            type(ag)._retire_instances = spied_goal
         w.new = after_board
         w._frame(GameState.NOT_FINISHED)
         assert env.arrive()
@@ -118,6 +132,10 @@ if mode in ("retire", "refound", "bind", "bind_norepoint"):
         else:
             ag.step()
         out["bound_o4"] = ag.bound.get("o4.col")
+        out["want_o4"] = [ag.wants.get("o4.col"),
+                          getattr(ag._want_terms.get("o4.col"), "name", None),
+                          ag._want_scope.get("o4.col"),
+                          [n for _sl, n in ag._goal_links.get("spy", ())]]
         if mode == "bind":
             ag.step()                       # the next step's sweep and route read the bindings
             out["stepped"] = True
@@ -240,6 +258,33 @@ def check_invariant_fail() -> None:
     assert f"bound o4.col: {inst}" in dang, ("the check did not name it", dang)
     print(f"  MUST-FAIL (re-point disabled by a spy): the check names {dang[:2]}; "
           f"the step then raised {r.get('raised')}")
+
+
+def check_wants_hold() -> None:
+    """MUST-HOLD (r296 follow-up 1): a goal link on a surviving slot to an instance the break
+    retires -- after the break all four holders (wants, _want_terms, _want_scope, _goal_links)
+    name the kind, and dangling is []."""
+    r = child(str(_repo.ROOT), "goal")
+    inst = r["names"]["o1"]
+    assert inst in r["retired"], ("occasion: the linked instance was not retired", r["retired"])
+    row = ev(r["rows"], "instance_retired")
+    assert len(row) == 1 and row[0]["detail"]["dangling"] == [], row
+    assert r["want_o4"] == [r["kind"], r["kind"], r["kind"], [r["kind"]]], (r["want_o4"], r["kind"])
+    print(f"  WANTS HOLD: wants / _want_terms / _want_scope / _goal_links on o4.col named {inst!r} "
+          f"(retired) -> all four name {r['kind']!r}; dangling []")
+
+
+def check_wants_fail() -> None:
+    """MUST-FAIL (r296 follow-up 1): with the want re-point disabled by a fixture-only spy, the
+    check names the want."""
+    r = child(str(_repo.ROOT), "goal_norepoint")
+    inst = r["names"]["o1"]
+    row = ev(r["rows"], "instance_retired")
+    assert len(row) == 1 and inst in r["retired"], ("occasion", r["retired"])
+    dang = row[0]["detail"]["dangling"]
+    assert f"wants o4.col: {inst}" in dang and f"want_scope o4.col: {inst}" in dang, dang
+    print(f"  MUST-FAIL (want re-point disabled by a spy): the check names "
+          f"{[d for d in dang if 'o4.col' in d or 'goal' in d][:4]}")
 
 
 def check_rebind_kind() -> None:

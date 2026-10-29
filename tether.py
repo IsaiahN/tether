@@ -17405,9 +17405,10 @@ class Agent:
         for n in [n for n in self._settled_lvl if n in kind_of]:
             self._settled_lvl.discard(n)
             self._settled_lvl.add(kind_of[n])
-        for s, t in list(self._want_terms.items()):
-            if getattr(t, "name", None) in kind_of and kind_of[t.name] in lib:
-                self._want_terms[s] = lib[kind_of[t.name]]
+        wants = self._repoint_wants(kind_of)
+        for n, slots in wants[1].items():
+            dropped.setdefault(n, []).extend(slots)
+        repointed += wants[0]
         for n in [n for n in self.candidates if n in kind_of]:
             c, k = self.candidates.pop(n), kind_of[n]
             if k in lib and not self.gamma.is_atom(lib[k]):
@@ -17417,6 +17418,37 @@ class Agent:
                 self._pred_by[s] = kind_of[n] if kind_of[n] in lib else None
         return repointed, dropped
 
+    def _repoint_wants(self, kind_of: dict) -> tuple[int, dict]:
+        """r296 follow-up 1: a goal link writes FOUR holders together (wants, _want_terms,
+        _want_scope, _goal_links); all four take the kind, or the want / link is dropped and
+        recorded when the kind is not live."""
+        lib, n_re, dropped = self.gamma.library, 0, {}
+        for s, n in list(self.wants.items()):
+            if n in kind_of:
+                if kind_of[n] in lib:
+                    self.wants[s] = kind_of[n]
+                    n_re += 1
+                else:
+                    self.wants.pop(s)
+                    self._want_terms.pop(s, None)
+                    self._want_scope.pop(s, None)
+                    dropped.setdefault(n, []).append(f"want {s}")
+        for s, t in list(self._want_terms.items()):
+            if getattr(t, "name", None) in kind_of and kind_of[t.name] in lib:
+                self._want_terms[s] = lib[kind_of[t.name]]
+        for s, n in list(self._want_scope.items()):
+            if n in kind_of and kind_of[n] in lib:
+                self._want_scope[s] = kind_of[n]
+        for key, link in list(self._goal_links.items()):
+            if any(n in kind_of for _sl, n in link):
+                if all(kind_of[n] in lib for _sl, n in link if n in kind_of):
+                    self._goal_links[key] = tuple((sl, kind_of.get(n, n)) for sl, n in link)
+                else:
+                    self._goal_links.pop(key)
+                    for _sl, n in link:
+                        dropped.setdefault(n, []).append(f"goal {key}")
+        return n_re, dropped
+
     def _held_dangling(self) -> list:
         """r295's invariant, checked once at the end of the break: every binding names a live term,
         and no live holder (bindings, this level's settled names, want and goal terms, candidates,
@@ -17424,10 +17456,12 @@ class Agent:
         lib, gone = self.gamma.library, self.gamma.retired
         out = [f"bound {s}: {n}" for s, n in sorted(self.bound.items()) if n not in lib]
         out += [f"settled_lvl: {n}" for n in sorted(self._settled_lvl) if n in gone]
+        out += [f"wants {s}: {n}" for s, n in sorted(self.wants.items()) if n in gone]
+        out += [f"want_scope {s}: {n}" for s, n in sorted(self._want_scope.items()) if n in gone]
         out += [f"want {s}: {t.name}" for s, t in sorted(self._want_terms.items())
                 if getattr(t, "name", None) in gone]
-        out += [f"goal {k}: {n}" for k, v in sorted(self._goal_links.items()) for _sl, n in v
-                if n in gone]
+        links = sorted(self._goal_links.items(), key=lambda kv: str(kv[0]))
+        out += [f"goal {k}: {n}" for k, v in links for _sl, n in v if n in gone]
         out += [f"candidate: {n}" for n in sorted(self.candidates) if n in gone]
         out += [f"pred_by {s}: {n}" for s, n in sorted(self._pred_by.items()) if n in gone]
         return out
