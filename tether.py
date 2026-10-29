@@ -876,6 +876,11 @@ _ASK = armflag.arm("TETHER_ASK", default=True)
 # bound's one row test, before 1b counts it a survivor; eligibility is lazy in rank order. OFF
 # restores the stale-S1 asks -- a measuring setting, not a safe one. ON; conform/arms.py
 _S1_REPRICE = armflag.arm("TETHER_S1_REPRICE", default=True)
+# 1c STOP_RULES (the reviewer 2026-10-29 r325, r327, r337; Fig 5 :10-14, Fig 9 :42): read from 1a's
+# space after each step -- HELD (one survivor with a risky settle: the gap leaves 1b), MECHANISM
+# BROKEN (the survivors ran out: the slot owes), SPLIT REFUSED (1b abstained: the gap's owner joins
+# the probe's aim). They stop asking and never bind. Needs TETHER_ASK. ON; conform/arms.py
+_STOP_RULES = armflag.arm("TETHER_STOP_RULES", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -3187,6 +3192,12 @@ class Agent:
         self._ask_abstained: tuple | None = None   # 1b: (slot, survivors) when no press split
         self._repriced: tuple = (0, 0, 0.0, 0)  # 1b: the last S1 read's (cells, rows, secs, hits)
         self._reprice_memo: dict = {}  # 1b: slot -> ((tally key, decoder size), term -> charges)
+        self._stop: dict = {}           # 1c: slot -> the stop rule it is in (held / none_survive)
+        self._last_surv: dict = {}      # 1c: slot -> ({survivor: bound}, bar) at its last survivors
+        self._risky: dict = {}          # 1c: (slot, term) -> the key of its last risky settle
+        self._split_aim: dict = {}      # 1c (iii): refused gap -> (owner readings, refusal key)
+        self._split_spent: dict = {}    # 1c (iii): gap -> the refusal key its aim was spent on
+        self._split_probed: dict = {}   # 1c (iii): gap -> owner readings at the probe's press
         self._trace_epoch = 0
         # (ctx, intent, slot, the discrepancy it was met at) -> times that pair undid it.
         # ISAIAH, 2026-09-29: a goal met then un-met is "data similar to actions becoming
@@ -3943,6 +3954,9 @@ class Agent:
             for d, ct in sorted(self._dw_owed.items()):   # 1d: each one released, recorded
                 self._owed_release(d, ct, "level end")
             self._dw_seen, self._mint_seen = Counter(), Counter()   # slot names do not cross
+        if _STOP_RULES:
+            self._stop, self._last_surv, self._risky = {}, {}, {}
+            self._split_aim, self._split_spent, self._split_probed = {}, {}, {}
         self._dw_owed = {}                           # B2: owed asks are slot-keyed, like tried
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
         # last reading or step, an undone count, each read on the next level's same NAME.
@@ -11243,6 +11257,12 @@ class Agent:
         got = self._space_bounds(slot, "reprice" if _S1_REPRICE else "stale")
         return [] if got is None else self._s1_of(*got)
 
+    def _space_survivors(self, slot: str) -> list | None:
+        """1c: S1 on a CURRENT record (re-priced on read, r346), else None where the record cannot
+        judge (no space, a moved key) -- so 1c (ii) tells 'none survive' from 'cannot say'."""
+        got = self._space_bounds(slot, "reprice")
+        return None if got is None else self._s1_of(*got)
+
     @staticmethod
     def _s1_of(bounds: list, bar: float) -> list:
         """S1 from a space's bounds: each term with a bound under the bar, by deficit."""
@@ -11251,6 +11271,16 @@ class Agent:
             if bound < bar:
                 out[t] = bound - bar
         return sorted(out, key=lambda t: (out[t], t.name))
+
+    @staticmethod
+    def _none_cause(prev: dict, low: dict, bar_before: float) -> str:
+        """1c (ii), r339, r340: 'bound' when a last survivor's bound rose to the bar it last
+        survived under -- the ground's charge alone would have removed it (Fig 5 :14); 'stale'
+        when no last survivor's cell is still valid (P2 at the survivor grain); else 'bar': the
+        cut moved (Fig 9 :40-41). Read on re-priced bounds, so over the gap's current rows."""
+        if not any(n in low for n in prev):
+            return "stale"
+        return "bound" if any(n in low and low[n] >= bar_before for n in prev) else "bar"
 
     def _space_bounds(self, slot: str, mode: str) -> tuple | None:
         """([(term, bound)] over the gap's valid cells in the record's order, the bar), or None
@@ -11376,6 +11406,8 @@ class Agent:
         t0 = time.perf_counter()
         elig = {}                    # the stored (stale) S1: an upper set, charges only add
         for s in sorted(self._space):
+            if _STOP_RULES and self._stop.get(s) == "held":
+                continue                         # 1c (i): asking has stopped on this gap
             got = self._space_bounds(s, "stale")
             n = len(self._s1_of(*got)) if got is not None else 0
             if n >= 2:
@@ -11427,7 +11459,114 @@ class Agent:
                         wall_s=round(time.perf_counter() - t0, 4),
                         reads="1b: the press that splits this gap's surviving hypotheses most "
                               "evenly, or none")
+        if r is None and _STOP_RULES:
+            owner = slot.rsplit(".", 1)[0]
+            rkey = (self._tally[slot][0], frozenset(t.name for t in sv))
+            spent = self._split_spent.get(slot) == rkey
+            if not spent:
+                self._split_aim[slot] = (self._owner_reads(owner, before), rkey)
+            self.led.record(self.cycle, "PLAN", slot, "ask_unsplit", survivors=len(sv),
+                            vectors=len(set(vec.values())), owner=owner, spent=spent,
+                            aims=sorted(self._split_aim),
+                            reads="1c (iii): no press splits the survivors -- new: extend "
+                                  "perception, aim the probe at the gap's owner (Fig 5 :12)")
         return r, (slot if r is not None else None)
+
+    @_in_step("MINT")
+    def _stop_rules(self) -> None:
+        """1c, read from each open space after the step (r325, r327): (i) HELD -- one survivor with
+        a risky settle on this slot under the current key: the gap leaves 1b; (ii) NONE SURVIVE --
+        the space had survivors and has none, judged only where the record is current: the slot
+        owes, and the import route refits held terms before a mint (r338). And (iii)'s aims leave
+        once probed, when their owner reads anew, or when their space closes. A stop_rule row on
+        each change of rule; nothing binds."""
+        now = self.trace[-1][2] if self.trace else {}
+        for s in list(self._stop):
+            if s not in self._space:
+                self._stop.pop(s)
+        self._last_surv = {k: v for k, v in self._last_surv.items() if k in self._space}
+        rp = [0, 0, 0.0, 0]                       # r361: this read's re-price, kept on its own row
+        for s in sorted(self._space):
+            got = self._space_bounds(s, "reprice")   # r346: 1c reads a CURRENT record only
+            rp = [a + b for a, b in zip(rp, self._repriced, strict=True)]
+            if got is None:
+                continue                          # the record cannot judge this frame
+            bounds, bar = got
+            low: dict = {}
+            for t, b in bounds:
+                low[t.name] = min(b, low.get(t.name, b))
+            sv = self._s1_of(bounds, bar)
+            was, prev = self._stop.get(s), self._last_surv.get(s)
+            rule, extra = None, {}
+            if sv:
+                self._last_surv[s] = ({t.name: low[t.name] for t in sv}, bar)
+                if len(sv) == 1 and self._risky.get((s, sv[0].name), self) == self._tally[s][0]:
+                    rule = "held"                 # a risky settle under the current key
+            elif prev is not None:
+                rule = "none_survive"             # the import route sorts the kind
+            if rule == was:
+                continue
+            if rule is None:
+                self._stop.pop(s, None)
+                rule_row = "resumed"
+            else:
+                self._stop[s] = rule_row = rule
+            if rule == "none_survive":
+                # r342 5 (Fig 10 :13): the bounds and the bar over the same rows -- the bounds are
+                # re-priced to the gap's current residual rows (r349: each cell's own c[0])
+                cause = self._none_cause(prev[0], low, prev[1])
+                if cause == "bound":
+                    self.owed_import.add(s)       # evidence: the ground charged the survivors
+                rose = {n: [round(v, 4), round(low[n], 4)] for n, v in sorted(prev[0].items())
+                        if low.get(n) is not None and low[n] > v}
+                after = [low[n] for n in prev[0] if low.get(n) is not None]
+                # the last survivors can number thousands: their count, the lowest bound before
+                # and after, the bar before and after, and in full the ones whose bound rose
+                extra = {"cause": cause, "owes": cause == "bound", "last_survivors": len(prev[0]),
+                         "bound_rose": rose,
+                         "reached_bar": sorted(n for n in prev[0]
+                                               if n in low and low[n] >= prev[1]),
+                         "invalid_cells": sum(1 for n in prev[0] if n not in low),
+                         "low_before": round(min(prev[0].values()), 4),
+                         "low_after": round(min(after), 4) if after else None,
+                         "bar_before": round(prev[1], 4), "bar_after": round(bar, 4)}
+            self.led.record(self.cycle, "MINT", s, "stop_rule", rule=rule_row, was=was,
+                            survivors=len(sv), term=sv[0].name if len(sv) == 1 else None,
+                            **extra,
+                            reads="1c: held (one survivor, a risky settle) stops asking; none "
+                                  "surviving owes -- the import route refits before a mint "
+                                  "(Fig 5 :13-14); nothing binds")
+        if self._space:
+            self.led.record(self.cycle, "MINT", "@stop", "stop_read", spaces=len(self._space),
+                            repriced_cells=rp[0], repriced_rows=rp[1], reprice_s=round(rp[2], 4),
+                            reprice_hits=rp[3],
+                            reads="1c: this step's read of every open space, re-priced on read "
+                                  "(r361: its wall apart from the mint's)")
+        for s, (reads, rkey) in sorted(self._split_aim.items()):
+            owner = s.rsplit(".", 1)[0]
+            after = self._owner_reads(owner, now)
+            probed = self._split_probed.pop(s, None)
+            why = ("probed" if probed is not None else "space closed" if s not in self._space
+                   else "owner read anew" if after != reads else None)
+            if why is None:
+                continue
+            del self._split_aim[s]
+            if why == "probed":
+                self._split_spent[s] = rkey      # once per refusal (r338): a new one re-enters
+            self.led.record(self.cycle, "MINT", s, "split_aim_left", why=why, owner=owner,
+                            aims=len(self._split_aim),
+                            **({"before": probed, "after": after} if probed is not None else {}),
+                            reads="1c (iii): the probe pressed at the owner, its readings moved, "
+                                  "or the gap closed")
+
+    def _aims(self) -> set:
+        """The probe's aim set: the starved slots, and under 1c (iii) the gaps whose survivors no
+        press splits (r325 (3)), each until its owner reads anew or its space closes."""
+        return self._starved | set(self._split_aim) if _STOP_RULES else self._starved
+
+    def _owner_reads(self, owner: str, state: dict) -> dict:
+        """1c (iii): every reading of the gap's owner in this frame; any change lets it go."""
+        return {k: v for k, v in state.items() if k.split(".", 1)[0] == owner}
 
     def _guard_scope(self, slot: str, robs: list, operand_binds: list) -> tuple:
         """The guards and referents the chain loop will walk -- the same expressions, which
@@ -12052,17 +12191,20 @@ class Agent:
                     return goal, "discriminate:goal"
         take, s0_tw, dist_r = None, None, None
         if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
-                self.drive.bored() and not (_STARVED_CONTACT and self._starved)):
+                self.drive.bored() and not (_STARVED_CONTACT and self._aims())):
             take, s0_tw, dist_r = self._exit_choice(before)
-        if _STARVED_CONTACT and self._starved and take in (None, "probe"):
-            pick = sorted(self._starved)[0]
-            if _A1_STARVED and len(self._starved) > 1:
+        aims = self._aims()
+        if _STARVED_CONTACT and aims and take in (None, "probe"):
+            pick = sorted(aims)[0]
+            if _A1_STARVED and len(aims) > 1:
                 # A1: what is unexplained NOW gates and ranks; then the less-probed; then the draw
-                pick = self._choice("starved", None, [(s, None, None) for s in self._starved],
-                                    {s: self.outstanding(s) for s in self._starved},
-                                    self._seen_n("starved", self._probe_n, self._starved))
+                pick = self._choice("starved", None, [(s, None, None) for s in aims],
+                                    {s: self.outstanding(s) for s in aims},
+                                    self._seen_n("starved", self._probe_n, aims))
             self._probe_n[pick] += 1
             self._count_kind("starved", pick)
+            if _STOP_RULES and pick in self._split_aim:     # 1c (iii): this aim is spent
+                self._split_probed[pick] = self._owner_reads(pick.rsplit(".", 1)[0], before)
             aim = pick.rsplit(".", 1)[0]
             self._s0_target = aim
             # **ONE INTENT, NOT A MODALITY CHOICE -- the plan's 19.** This read
@@ -13520,12 +13662,12 @@ class Agent:
         contest is starved probe vs system0; otherwise starved probe, distinguish, goal.
         Returns (exit or None, the contact target read for system0, distinguish's realise)."""
         s0 = self._system0_active()
-        starved = _STARVED_CONTACT and bool(self._starved)
+        starved = _STARVED_CONTACT and bool(self._aims())
         opts, res = [], {}
         s0_tw = dist_r = None
         if starved:
             opts.append("probe")
-            res["probe"] = max(self.outstanding(s) for s in self._starved)
+            res["probe"] = max(self.outstanding(s) for s in self._aims())
         if s0:
             s0_tw = self._contact_target(before)
             opts.append("system0")
@@ -17805,6 +17947,9 @@ class Agent:
             # ground paid arrived looking the same.
             self._carry_note(name, slot, "settled")
             self._settled_lvl.add(name)
+            if _STOP_RULES and self._settle_pred(slot, r)["risky"]:
+                # 1c (i): a survival persistence would miss, under the space's key of now (r338)
+                self._risky[(slot, name)] = self._tally.get(slot, (None,))[0]
             self.led.record(self.cycle, "SETTLE", slot, "settle", term=name,
                             status="accepted",
                             asked=[name, slot], ground_said=True,
@@ -18678,6 +18823,8 @@ class Agent:
         if _DERIVED_WANT and self.trace:
             with self._step_scope("MINT"):
                 self._derived_wants()
+        if _STOP_RULES and _ASK and _DIVIDE:
+            self._stop_rules()
         if by == "probe":
             self._flush_probe(_turned)
         if self.drive.never_live(len(self.actions)) and not self._said_never_live:

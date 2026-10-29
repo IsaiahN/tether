@@ -59,7 +59,8 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
            ("end_path", "wall_s"),           # arc_holdout, C1 (A): the end path, timed whole
            ("ask", "wall_s"),                 # 1b ASK (TETHER_ASK): the aimed ask's table + press
            ("ask", "reprice_s"),              # 1b's S1 re-priced on read (r346, r347)
-           ("ask_none", "reprice_s"))         # the same, when no gap stays eligible
+           ("ask_none", "reprice_s"),          # the same, when no gap stays eligible
+           ("stop_read", "reprice_s"))        # 1c's per-step re-price of every open space (r361)
 
 
 # The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One

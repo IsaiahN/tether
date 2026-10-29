@@ -13,7 +13,8 @@ ARMS = (
     ("TETHER_DIVIDE_CREDIT", "78d42b4"),
     ("TETHER_ASK", "2a8045c"),               # 1b
     ("TETHER_OWED_REJUDGE", "20cc52a"),      # 1d
-    ("TETHER_S1_REPRICE", None),             # 1b's re-price (r350); its sha comes with 1c
+    ("TETHER_S1_REPRICE", "2855932"),        # 1b's re-price (r350)
+    ("TETHER_STOP_RULES", None),             # 1c; its sha comes with the next arm
 )
 
 

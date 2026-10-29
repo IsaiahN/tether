@@ -228,6 +228,7 @@ def check_s1_reprice() -> None:
 def check_s1_mustfail_reprice() -> None:
     ag, s, _held, _robs, behind = _stale_gap()
     stored = ag._s1_of(*ag._space_bounds(s, "stale"))
+    ag._reprice_memo = {}                 # 1c's _stop_rules keeps the real row test's charges
     ag._row_wrong = lambda _t, _s, _row: False           # a spy: no row charges
     now = ag._survivors(s)
     assert behind and set(now) == set(stored), ("MUST-FAIL: uncharged, S1 stays stale", len(now))
