@@ -25,6 +25,8 @@ import sys
 import tarfile
 import tempfile
 
+from _batch import off_env  # noqa: E402  the batch's arms (r348)
+
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
@@ -322,7 +324,7 @@ def check_off_identity() -> None:
             tf.extractall(d, filter="data")
         for mode in ("plain", "arrive"):
             base = norm(child(d, mode)["rows"])
-            cur = norm(child(root, mode, {"TETHER_INSTANCE_RETIRE": "0"})["rows"])
+            cur = norm(child(root, mode, off_env("TETHER_INSTANCE_RETIRE"))["rows"])
             diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base)
                                                                                   - len(cur))
             assert len(base) > 50 and diff == 0, ("OFF identity", mode, len(base), len(cur),
