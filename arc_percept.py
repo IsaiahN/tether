@@ -27,6 +27,7 @@ TWO CHOICES THE CORPUS DOES NOT SETTLE, MADE HERE AND STATED:
 """
 from __future__ import annotations
 
+import copy
 import sys
 from typing import Any
 
@@ -612,6 +613,37 @@ class Objects:
         self.placements = {}
         self.changes = {}
 
+    # 5, THE ARRIVAL GAP (TETHER_ARRIVAL_GAP, read by arc_world; the reviewer 2026-10-28 r283): on a
+    # frame that arrived with no action, the first board-changed call records its appearance call
+    # and keeps the claims (deferred); the agent scores what it held and resolves. A break restores
+    # the state from before the arrival and the world re-reads with that call's break forced.
+    def arrival_begin(self) -> None:
+        snap = {k: (dict(v) if k == "_shapes" else copy.deepcopy(v))
+                for k, v in self.__dict__.items() if k not in ("call_log", "breaks", "_arr")}
+        self._arr = {"first": True, "force": False, "pending": None, "snap": snap,
+                     "n0": len(self.call_log)}
+
+    def arrival_end(self) -> None:
+        arr = getattr(self, "_arr", None)
+        if arr is not None:
+            arr["first"] = False
+            if arr["force"]:
+                self._arr = None
+
+    def arrival_resolve(self, brk: bool) -> bool:
+        """True when an arrival call was pending. On a break the tracker is back at its state from
+        before the arrival, with the next board-changed call's break forced."""
+        arr, self._arr = getattr(self, "_arr", None), None
+        if arr is None or arr["pending"] is None:
+            return False
+        if brk:
+            log, brks = self.call_log[:arr["n0"]], self.breaks
+            self.__dict__.update(arr["snap"])
+            self.call_log, self.breaks = log, brks
+            self._arr = {"first": True, "force": True, "pending": None, "snap": None,
+                         "n0": len(log)}
+        return True
+
     def _break(self, board: Any, found: list, assign: dict) -> None:
         """B: on a board-changed call, read the claims and, on a break, turn every non-exact claim
         into a birth (assign[i] = (None, 0.0)). Records each board-changed call and each break."""
@@ -625,6 +657,12 @@ class Objects:
             return
         claims = [(i, n, s) for i, (n, s) in assign.items() if n is not None]
         rec = {"found": len(found), "claimed": len(claims), "tested": bool(claims)}
+        arr = getattr(self, "_arr", None)
+        arr = arr if arr is not None and arr["first"] else None
+        if arr is not None:
+            arr["first"] = False
+            if not arr["force"]:
+                arr["pending"] = rec
         if claims:
             sc = sorted(s for _i, _n, s in claims)
             med = sc[(len(sc) - 1) // 2]
@@ -632,6 +670,10 @@ class Objects:
                        if found[i].get("colour") != self.tracked[n].get("colour")]
             share = len(changed) / len(claims)
             brk = med < BREAK_MEDIAN and share > BREAK_COLOUR
+            if arr is not None:                 # 5: the appearance call, kept beside the decision
+                rec["appearance"] = brk
+                brk = arr["force"]
+                rec["forced" if brk else "deferred"] = True
             rec.update(median=round(med, 4), colour_share=round(share, 4), broke=brk,
                        bars=[BREAK_MEDIAN, BREAK_COLOUR])
             if brk:

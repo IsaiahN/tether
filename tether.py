@@ -832,6 +832,11 @@ _OBJ_ID = re.compile(r"\bo\d+\b")     # the step clock (r264): an object id in a
 # after the ACCEPT loop share B1's stop -- once a mint this step stopped at a bound, the remaining
 # derived asks are OWED (never marked tried) and asked first next step. ON; conform/arms.py
 _STEP_DERIVED = armflag.arm("TETHER_STEP_DERIVED", default=True)
+# 5, THE ARRIVAL GAP (the reviewer 2026-10-28 r283; Fig 5 :4-5, Fig 11 :73): at a frame the agent
+# did not press for, the frame it held is scored against the one that arrived; above every
+# ordinary no-press reading this life it is a break, appearance only corroborating. ON;
+# conform/arms.py
+_ARRIVAL_GAP = armflag.arm("TETHER_ARRIVAL_GAP", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -9460,6 +9465,8 @@ class Agent:
         self.iface.note_sent(action)   # TETHER_RESET_ADJACENT: the flag from the press as sent
         self._pressed = True
         after = self.env.observe()
+        if _ARRIVAL_GAP:
+            self._ag_held = dict(after)     # 5: the frame this press left the agent holding
         # B, THE SEAM (the reviewer 2026-10-23 12:35, 13:04): a frame break read on this action's
         # OUTCOME makes the action-outcome pair a seam (Fig 10 :13). Every bet of the step is
         # suspended (reason "seam") and nothing from the pair is credited to the action: no
@@ -17263,6 +17270,59 @@ class Agent:
 
     # -- driving ---------------------------------------------------------------------------
 
+    def _arrival_gap(self) -> list[dict]:
+        """5, THE ARRIVAL GAP (the reviewer 2026-10-28 r280, r283; Isaiah 10-28 "same seed, new
+        soil"). Fig 5 :4-5, "the prediction gap / fires on every action": a frame that arrived with
+        no action was never scored, so the frame the agent held is scored against it here, per
+        held slot, held or failed (gone counts failed). Every step head is a no-press boundary; one
+        with no arrival pending is an ORDINARY reading. At an arrival the break fires above every
+        ordinary reading this life (no constant); before the first, the deferred appearance call
+        decides alone, as OFF does. Appearance stays on the row, never ANDed in (Fig 2 :31);
+        where it disagrees, a row says so (Fig 10 :16-17). Returns the break records applied."""
+        held = getattr(self, "_ag_held", None)
+        _pf = getattr(self.env, "arrival_pending", None)
+        pend = _pf() if _pf is not None else None
+        n, top = getattr(self, "_ag_n", 0), getattr(self, "_ag_max", 0.0)
+        failed = carried = changed = 0
+        if held is not None:
+            now = self.env.observe()
+            for s, v in held.items():
+                if s in now:
+                    carried += 1
+                    changed += now[s] != v
+            failed = len(held) - carried + changed
+        share = failed / len(held) if held else 0.0
+        if pend is None:
+            if held is not None:
+                self._ag_n, self._ag_max = n + 1, max(top, share)
+            return []
+        appear = bool(pend.get("appearance"))
+        if held is None or not n:
+            brk, by = appear, "bar: none yet, appearance"
+        else:
+            brk, by = share > top, f"bar: ordinary-max n={n}"
+        recs = self.env.arrival_resolve(brk)
+        if not brk and held is not None:
+            self._ag_n, self._ag_max = n + 1, max(top, share)
+        found = pend.get("found") or 0
+        look = {"found": found, "claimed": pend.get("claimed"), "median": pend.get("median"),
+                "colour_share": pend.get("colour_share"),
+                "births_share": round((found - (pend.get("claimed") or 0)) / found, 4) if found
+                else None, "broke": appear}
+        with self._step_scope("PERCEIVE"):
+            self.led.record(self.cycle, "PERCEIVE", "@frame", "arrival_gap", of=("@frame",),
+                            held=len(held or ()), failed=failed, share=round(share, 4),
+                            carried=carried, changed=changed,
+                            bar=round(top, 4) if n else None, bar_n=n, decided_by=by,
+                            broke=brk, applied=len(recs), appearance=look)
+            if appear != brk:
+                self.led.record(self.cycle, "PERCEIVE", "@frame", "appearance_disagrees",
+                                of=("@frame",), appearance=appear, expectation=brk,
+                                share=round(share, 4), decided_by=by,
+                                reads=("the arrived frame's look and what the agent held "
+                                       "disagree about a break; the held frame decided"))
+        return recs
+
     def step(self, action: str | None = None) -> bool:
         """One turn (_step_body). C1 (A), the overrun safety net (Isaiah 2026-10-22 12:36; the
         reviewer 12:37, 15:17, 15:34): the thinking deadline (_think_until) is cap.AT for the step
@@ -17350,6 +17410,8 @@ class Agent:
         # follows env.step nothing is pending (perceive drained it), so this reads [].
         _fb = getattr(self.env, "frame_breaks", None)
         _head_brk = _fb() if _fb is not None else []
+        if _ARRIVAL_GAP:
+            _head_brk = _head_brk + self._arrival_gap()
         if _head_brk:                   # read as PERCEIVE, so its rows carry the step running
             with self._step_scope("PERCEIVE"):
                 for _b in _head_brk:

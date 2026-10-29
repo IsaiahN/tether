@@ -59,6 +59,10 @@ REL_SLOTS_N = {"kept": 0, "built": 0, "checked": 0}
 # the current streaks, never advanced here), so blocks / passes are written. None when no locus
 # or more than one is held: those readings stay unread. OFF: mover=None, as before
 _AFF_MOVER = armflag.arm("TETHER_AFF_MOVER", default=True)
+# 5, THE ARRIVAL GAP (the reviewer 2026-10-28 r283): arrive() defers the tracker's appearance call
+# on the new frame; the agent scores what it held against it and resolves through arrival_resolve.
+# ON; conform/arms.py
+_ARRIVAL_GAP = armflag.arm("TETHER_ARRIVAL_GAP", default=True)
 # E0: each object attribute the percept derives, and the readings it derives it from (the frame
 # deltas from the before-state's readings too). The cell-change attributes (add_* / rem_*) are NOT
 # here: they also depend on how the tracker established identity (identity_of), not only on readings
@@ -1065,9 +1069,33 @@ class ArcWorld:
         if frame is None:
             return False
         self._take_frame(frame)
+        defer = _ARRIVAL_GAP and hasattr(self._decompose, "arrival_begin")
+        if defer:
+            self._decompose.arrival_begin()
         self._decomposed()
+        if defer:
+            self._decompose.arrival_end()
         self._own = ({}, 0)
         return True
+
+    def arrival_pending(self) -> dict | None:
+        """5: the deferred appearance call of the frame that arrived, or None."""
+        arr = getattr(self._decompose, "_arr", None)
+        return arr["pending"] if arr is not None else None
+
+    def arrival_resolve(self, brk: bool) -> list[dict]:
+        """5: the agent's ruling on the arrived frame. On a break the frame is re-read from the
+        tracker's state before the arrival, its first board-changed call broken; the break records
+        are returned as frame_breaks() would. No break: the claims stand."""
+        res = getattr(self._decompose, "arrival_resolve", None)
+        if res is None or not res(brk) or not brk:
+            return []
+        prev = self._prev_contacts
+        self._take_frame(None)
+        self._prev_contacts = prev
+        self._decomposed()
+        self._decompose.arrival_end()
+        return self.frame_breaks()
 
     def step(self, action: str, x: int | None = None, y: int | None = None) -> None:
         act = GameAction[action]
