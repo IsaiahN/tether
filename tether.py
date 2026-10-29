@@ -846,6 +846,12 @@ _INSTANCE_RETIRE = armflag.arm("TETHER_INSTANCE_RETIRE", default=True)
 # space, and risky = the prediction differed from what persistence would have said. Nothing reads
 # it. ON; conform/arms.py
 _SETTLE_PRED = armflag.arm("TETHER_SETTLE_PRED", default=True)
+# 1a DIVIDE, A CARRIED SPACE PER OPEN GAP (the reviewer 2026-10-29 r279, r308, r311, r312; Fig 9
+# :38-41, Fig 6 :50, Fig 12 :108): the row tally lives for the gap's life under a key naming every
+# input an old row's evaluation reads (the cycle leaves it), a refusal the record still proves
+# takes no rank, chain costs are kept per gap kind, and each mint writes its "divide" row. In-run
+# only, never saved. ON; conform/arms.py
+_DIVIDE = armflag.arm("TETHER_DIVIDE", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -2431,6 +2437,24 @@ def _same_object(landed_on: str | None, slot: str) -> bool:
 # one-flag control.
 _OBJECTIVE_DOMAIN = armflag.arm("TETHER_OBJECTIVE_DOMAIN", default=True)
 
+# 1a: the parts of Agent._divide_key, in its order, so a closed space names what moved
+_DIVIDE_PARTS = ("held", "alphabet", "epoch", "window", "row_filter", "decoder", "invented",
+                 "peers", "owner_attrs")
+
+
+def _divide_cause(old: tuple, new: tuple) -> str:
+    """1a: which parts of a slot's key moved, by name."""
+    return "+".join(n for n, a, b in zip(_DIVIDE_PARTS, old, new, strict=True) if a != b) or "same"
+
+
+def _divide_kind(gap: dict) -> tuple:
+    """1a: the gap's KIND -- retrieval's described gap and nothing else (the reviewer 2026-10-29
+    r312 (c), sense (i)): the target type, the types that varied, arity, the relation types.
+    The varied types as a SET: `fits` reads only membership, so how many slots of a type moved
+    is not part of the question retrieval asks. Types only, so no slot name or object id enters."""
+    return (gap.get("target_type"), tuple(sorted(set(gap.get("varies_types") or ()))),
+            gap.get("arity"), tuple(sorted(set(gap.get("rel_types") or ()))))
+
 
 def pays(cost: float, left: float, base: float) -> bool:
     """The bargain. Strict: a tie does not license a new term."""
@@ -3092,6 +3116,10 @@ class Agent:
         # from `held` moving** -- a rebind leaves every entry for that slot unreachable,
         # since they are reusable only if the slot returns to exactly that binding.
         self._tally: dict = {}
+        self._space: dict = {}          # 1a: slot -> its open space (kind, opened, mints, base)
+        self._kind_space: dict = {}     # 1a: gap kind -> chains met, costs under (code, units)
+        self._dv: dict | None = None    # 1a: this mint's divide counts, None outside a walk
+        self._dv_answered = False       # 1a: the last _cannot_pay refused on its record alone
         self._trace_epoch = 0
         # (ctx, intent, slot, the discrepancy it was met at) -> times that pair undid it.
         # ISAIAH, 2026-09-29: a goal met then un-met is "data similar to actions becoming
@@ -3562,6 +3590,8 @@ class Agent:
             self._close_goals(how)
         if _MEMO_CLEAR or _MEMO_ADMIT:
             self._memo_sizes(f"end:{how}")      # R4: the memos' sizes at the run's end
+        if _DIVIDE:
+            self._divide_end()                  # 1a: the spaces end with the run, never saved
         flush = getattr(self.led, "flush_tally", None)
         if flush is not None:
             flush(self.cycle)        # the choice tally: repeats written outside a step
@@ -3824,6 +3854,8 @@ class Agent:
         if _MC34:
             self._level_attempts = 1
         self._trace_epoch += 1          # the tallies summarise a history that is gone
+        if _DIVIDE:
+            self._divide_close_all("epoch")   # 1a: each space's row before its tallies go
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
         # R-A/R-B: nor their raw gaps, nor the routes keyed by their names -- a scope end, the
@@ -4054,7 +4086,10 @@ class Agent:
         agent = {"reach_index": len(self._reach_index), "reach_verdicts": len(self._reach_verdicts),
                  "reach_fold": len(self._reach_fold), "compile": len(self._compile_cache),
                  "units_for": len(self._units_for_memo), "frontiers": len(self._frontiers),
-                 **({"walk": len(self._walk_memo)} if _WALK_MEMO else {})}
+                 **({"walk": len(self._walk_memo)} if _WALK_MEMO else {}),
+                 **({"divide_slot": sum(len(v[1]) + len(v[2]) for v in self._tally.values()),
+                     "divide_kind": sum(len(k["met"]) for k in self._kind_space.values())}
+                    if _DIVIDE else {})}
         exempt = {"bound_memo": len(_BOUND_MEMO), "bound_slot_memo": len(_BOUND_SLOT_MEMO),
                   "bound_slot_map": len(_BOUND_SLOT_MAP), "pairs_seen": len(_PAIRS_SEEN),
                   "bound_term": len(_BOUND_TERM), "bound_cache": len(self._bound_cache),
@@ -10915,6 +10950,132 @@ class Agent:
     def _frontier_store(self, slot: str, entry: tuple) -> None:
         self._frontiers[slot] = entry
 
+    def _divide_key(self, slot: str, held: Term) -> tuple:
+        """1a (the reviewer 2026-10-29 r311, r312): the row tally's key under TETHER_DIVIDE -- each
+        input an OLD row's evaluation in `_cannot_pay` reads that can move between steps, in place
+        of the cycle. From `_eval_ctx`: the shape decoder by its SIZE (append-only, asserted in
+        arc_world.shapes), `_invented` by its length (append-only, one writer), the slot's peers and
+        its owner's published attributes (re-read from the frame every step and applied to old rows
+        by `_group` / `_record`). From `history`: the break window and the D5 row filter. An
+        objective's domain draws its ties per cycle, so an OBJ term's cell carries its cycle."""
+        if self._decomp_cache is None:
+            own = getattr(self.env, "slot_owner", None)
+            att = getattr(self.env, "attribute_of", None)
+            shp = getattr(self.env, "shapes", None)
+            self._decomp_cache = (own() if own else {}, att() if att else {},
+                                  shp() if shp else {})
+        if self._peer_cache is None:
+            fn = getattr(self.env, "peers", None)
+            self._peer_cache = fn() if fn is not None else {}
+        owners, attrs, _shp = self._decomp_cache
+        mine = owners.get(slot)
+        mine_attrs = (frozenset((s, attrs.get(s)) for s, o in owners.items() if o == mine)
+                      if mine is not None else frozenset())
+        return (held, self.alphabet.get(slot), self._trace_epoch,
+                self._window_at if _BREAK_WINDOW else 0, self._row_filter.get(slot),
+                len(self._shapes_now() or ()) if _SHAPE_DECODE else 0, len(self._invented),
+                tuple(self._peer_cache.get(slot, ())), mine_attrs)
+
+    def _divide_open(self, slot: str, tri: tuple, kind: tuple, base: float, units: tuple):
+        """1a: the gap's space for this searching mint -- a kind change closes it (a different
+        question, Fig 9 :57), a searching mint starts the tally's next generation (SPEED-2's bound:
+        the last two searching mints' touched entries), and this mint's divide counts begin.
+        Returns the tally cell(s) `_cannot_pay` reads."""
+        seen = self._tally[slot]
+        sp = self._space.get(slot)
+        if sp is not None and sp["kind"] != kind:
+            self._divide_close(slot, "kind", seen)
+            seen = self._tally[slot] = (tri, {}, {})
+            sp = None
+        if sp is None:
+            sp = self._space[slot] = {"kind": kind, "opened": self.cycle, "mints": 0, "base": None}
+        elif _SPEED2_BOUND:
+            seen = self._tally[slot] = (tri, {}, seen[1])
+        sp["mints"] += 1
+        krec = self._kind_space.setdefault(kind, {"ver": None, "cost": {}, "met": set()})
+        ver = (self.gamma.code_ver(), tuple(u.name for u in units))
+        if krec["ver"] != ver:
+            krec["ver"], krec["cost"] = ver, {}     # costs are re-read; what was met stays met
+        self._dv = {"mint": sp["mints"], "base_prev": sp["base"], "krec": krec, "now": set(),
+                    **dict.fromkeys(("priced_now", "carried", "rows_evaluated", "rows_avoided",
+                                     "answered", "terms_reopened", "chains_met_before",
+                                     "chains_new", "chains_reopened"), 0)}
+        sp["base"] = base
+        return (seen[1], seen[2]) if _SPEED2_BOUND else seen[1]
+
+    def _divide_chain(self, cand: Term, units: tuple, base: float) -> float:
+        """1a: a chain's cost from its kind's record (slot-free: an unguarded term pays no guard
+        bits, so the bound reads only the atoms, the units and the code -- all in the record's
+        version), and whether this kind met it before; a met chain inside [last base, base) is
+        one the new rows reopened (Fig 9 :41, ranked and reversible)."""
+        dv = self._dv
+        krec, k = dv["krec"], tuple(a.name for a in cand.atoms)
+        c = krec["cost"].get(k)
+        if c is None:
+            c = krec["cost"][k] = self._bits((Term(cand.atoms), units))
+        if k not in dv["now"]:
+            dv["now"].add(k)
+            if k in krec["met"]:
+                dv["chains_met_before"] += 1
+                if dv["base_prev"] is not None and dv["base_prev"] <= c < base:
+                    dv["chains_reopened"] += 1
+            else:
+                krec["met"].add(k)
+                dv["chains_new"] += 1
+        return c
+
+    def _divide_close(self, slot: str, cause: str, seen: tuple) -> None:
+        """1a: a space ends (a key part moved, the kind changed, the level, the run): one row with
+        its counts, and nothing reads its tallies after (the reviewer 2026-10-29 r312 (a); Fig 6
+        :46, kept as held-and-given-up)."""
+        sp = self._space.pop(slot, None)
+        if sp is None:
+            return
+        cells = [*seen[1].items(), *seen[2].items()]
+        surv = sorted((v[1], t.name) for t, v in cells if len(v) > 2 and v[2] is None)
+        self.led.record(self.cycle, self._running_step, slot, "space_closed", cause=cause,
+                        opened=sp["opened"], mints=sp["mints"], kind=list(sp["kind"]),
+                        entries=len(cells), survivors=len(surv),
+                        eliminated=sum(1 for _t, v in cells if len(v) > 2 and v[2] is not None),
+                        # by rows charged; the record's sample size, as the mint's cuts
+                        top_survivors=[n for _w, n in surv[:12]],
+                        reads="1a: the gap's space closed; its tallies are not read again")
+
+    @_in_step("SETTLE")
+    def _divide_end(self) -> None:
+        """1a: the run's end closes every space, written as the run's last memo row is."""
+        self._divide_close_all("end")
+
+    def _divide_close_all(self, cause: str) -> None:
+        """1a: every open space, at the level's end or the run's (r312 (a))."""
+        for slot in list(self._space):
+            seen = self._tally.get(slot)
+            if seen is None:
+                self._space.pop(slot)
+                continue
+            key = self._divide_key(slot, seen[0][0])
+            self._divide_close(slot, cause if key == seen[0] else _divide_cause(seen[0], key), seen)
+
+    def _divide_row(self, slot: str, rkey) -> None:
+        """1a: the mint's divide row, the exact m1 (the reviewer 2026-10-29 r308, r312): of the
+        terms whose rows were evaluated, those carried from an earlier mint of this gap; the chains
+        met before, new and reopened; the space's survivors and eliminated; both records' sizes."""
+        dv, self._dv = self._dv, None
+        cells = ([*rkey[0].items(), *rkey[1].items()] if isinstance(rkey, tuple)
+                 else list(rkey.items()))
+        sp = self._space[slot]
+        self.led.record(self.cycle, "MINT", slot, "divide", mint_k=dv["mint"], opened=sp["opened"],
+                        priced_now=dv["priced_now"], carried=dv["carried"],
+                        m1=round(dv["carried"] / dv["priced_now"], 6) if dv["priced_now"] else None,
+                        answered=dv["answered"], rows_evaluated=dv["rows_evaluated"],
+                        rows_avoided=dv["rows_avoided"], terms_reopened=dv["terms_reopened"],
+                        chains_met_before=dv["chains_met_before"], chains_new=dv["chains_new"],
+                        chains_reopened=dv["chains_reopened"],
+                        survivors=sum(1 for _t, v in cells if len(v) > 2 and v[2] is None),
+                        eliminated=sum(1 for _t, v in cells if len(v) > 2 and v[2] is not None),
+                        slot_record=len(cells), kind_record=len(dv["krec"]["met"]),
+                        reads="1a: this mint against its gap's carried record")
+
     def _guard_scope(self, slot: str, robs: list, operand_binds: list) -> tuple:
         """The guards and referents the chain loop will walk -- the same expressions, which
         read no chain. In the key because `_separates` reads the WHOLE history, not only R, so
@@ -11239,17 +11400,31 @@ class Agent:
         if isinstance(cell, tuple):     # SPEED-2: (this walk's generation, the previous walk's)
             cell, prev = cell
         wrong, start = 0, 0
+        # 1a: a cell is (rows, charged, the first refuting row, the cycle an OBJ term was priced
+        # in, the gap's mint that wrote it); a refutation is a wrong PREDICTION, an abstention is
+        # charged and refutes nothing (Fig 12 :112)
+        ref, was = None, None
+        if _DIVIDE:
+            self._dv_answered = False
         if cell is not None:
             seen = cell.get(term)
             if seen is None and prev:
                 seen = prev.pop(term, None)
                 if seen is not None:
                     cell[term] = seen   # touched again: it lives in this walk's generation
+            if _DIVIDE and seen is not None and seen[3] is not None and seen[3] != self.cycle:
+                seen = None             # an objective's domain draws its ties per cycle (_domain)
             if seen is not None:
-                start, wrong = seen
+                start, wrong = seen[0], seen[1]
+                if _DIVIDE:
+                    ref, was = seen[2], seen
                 if start > len(robs):
-                    start, wrong = 0, 0     # shrank under us: the triple did not separate them
+                    start, wrong, ref = 0, 0, None   # shrank under us: the triple did not separate
                 elif cost + unit * wrong >= base:
+                    if _DIVIDE:
+                        self._dv_answered = True
+                        if self._dv is not None:
+                            self._dv["answered"] += 1
                     return True             # the stored prefix already proves it
         for i in range(start, len(robs)):
             cap.head()
@@ -11263,6 +11438,8 @@ class Agent:
                 wrong += 1                            # inapplicable is unexplained
             elif self._out_of_step_range(term, slot, state, actual):
                 wrong += 1                            # P6: no reachable value equals `actual`
+                if ref is None:
+                    ref = i
             else:
                 ops = self._ops(term, state)
                 if ops is None:
@@ -11273,15 +11450,39 @@ class Agent:
                                                         operands=ops, intent=intent,
                                                         landed=landed,
                                                         guard_ref=term.guard_ref))
-                    wrong += (got is NOT_RESOLVED
-                              or got % self.alphabet[slot] != actual % self.alphabet[slot])
+                    if got is NOT_RESOLVED:
+                        wrong += 1
+                    elif got % self.alphabet[slot] != actual % self.alphabet[slot]:
+                        wrong += 1
+                        if ref is None:
+                            ref = i
             if cost + unit * wrong >= base:
                 if cell is not None:
-                    cell[term] = (i + 1, wrong)
+                    cell[term] = (self._divide_cell(term, i + 1, wrong, ref, start, was) if _DIVIDE
+                                  else (i + 1, wrong))
                 return True          # `wrong` only grows; the rest of R adds nothing
         if cell is not None:
-            cell[term] = (len(robs), wrong)
+            cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was) if _DIVIDE
+                          else (len(robs), wrong))
         return False
+
+    def _divide_cell(self, term: Term, rows: int, wrong: int, ref, start: int, was) -> tuple:
+        """1a: the cell `_cannot_pay` stores, and this mint's divide counts for it: rows evaluated
+        now beside rows the record avoided, whether an earlier mint of the gap wrote it (m1's
+        carried), and whether it was eliminated before and the new base reopened it."""
+        dv = self._dv
+        if dv is not None and rows > start:
+            dv["priced_now"] += 1
+            dv["rows_evaluated"] += rows - start
+            if was is not None:
+                dv["rows_avoided"] += start
+                if was[4] < dv["mint"]:
+                    dv["carried"] += 1
+                if was[2] is not None:
+                    dv["terms_reopened"] += 1
+        return (rows, wrong, ref,
+                self.cycle if getattr(term, "out_type", "val") == OBJ_TYPE else None,
+                dv["mint"] if dv is not None else 0)
 
     def _out_of_step_range(self, term: Term, slot: str, state: dict, actual: int) -> bool:
         """P6: `_cannot_pay` needs a BOOLEAN and `objective_step` computes a VALUE.
@@ -15629,13 +15830,19 @@ class Agent:
         # clearing the trace; keying costs one fresh walk for that slot and nothing else.
         # `_shapes_now()` is per-cycle and unhashable, so under the shape arm the cycle
         # enters the triple and the tally simply stops reusing -- OFF rather than WRONG.
-        _tri = (held, self.alphabet[slot], self._trace_epoch,
-                self.cycle if _SHAPE_DECODE else 0)
+        # 1a: under TETHER_DIVIDE the key names each input an old row's evaluation reads instead
+        # (_divide_key), so the tally lives for the gap's life.
+        _tri = (self._divide_key(slot, held) if _DIVIDE
+                else (held, self.alphabet[slot], self._trace_epoch,
+                      self.cycle if _SHAPE_DECODE else 0))
         _seen = self._tally.get(slot)
         if _seen is None or _seen[0] != _tri:
+            if _DIVIDE and _seen is not None:
+                self._divide_close(slot, _divide_cause(_seen[0], _tri), _seen)
             _seen = (_tri, {}, {})      # the slot moved; its old tallies can never be hit
             self._tally[slot] = _seen
-        elif _SPEED2_BOUND:             # this walk starts a generation; the one before it goes
+        elif _SPEED2_BOUND and not _DIVIDE:   # this walk starts a generation; the one before goes
+            # (1a: only a SEARCHING mint starts one, in _divide_open)
             _seen = self._tally[slot] = (_tri, {}, _seen[1])
         rkey = (_seen[1], _seen[2]) if _SPEED2_BOUND else _seen[1]
         # HOISTED, because `units()` rebuilds a list and the pricing runs once per candidate.
@@ -15672,6 +15879,8 @@ class Agent:
             rel = getattr(self.env, "contact_changes", None)
             gap = retrieval.characterise(robs, slot, list(self.alphabet), self.slot_types,
                                          relations=rel() if rel else None)
+            if _DIVIDE:
+                rkey = self._divide_open(slot, _tri, _divide_kind(gap), base, _units)
             # HOISTED. `_bindings` depends on `slot` and `robs` and not on the candidate, and
             # it was being rebuilt identically for every one -- an owner map, a contact set and
             # a variance count per candidate. Computed once here; the ORDER is unchanged.
@@ -15975,7 +16184,8 @@ class Agent:
                     # refused on cost alone. Exact: `rank` (the work budget) still counts them and
                     # `novelty` is still read; only the cut bookkeeping differs, as its own reason.
                     _n = len(binds) * len(_pairs)
-                    if _n and robs and (self._bits((Term(cand.atoms), _units))
+                    if _n and robs and ((self._divide_chain(cand, _units, base) if _DIVIDE
+                                         else self._bits((Term(cand.atoms), _units)))
                                + min(_guard_bits(g, len(_gs) - 1, len(_refs)) for g in _gs)
                                >= base):
                         if not guards["novelty"]:
@@ -16045,6 +16255,15 @@ class Agent:
                         # them is refused without the walk. 6.7x less work over the panel and
                         # nothing lost, because the bound is necessary rather than plausible.
                         if self._cannot_pay(term, slot, robs, cost, base, rkey):
+                            if _DIVIDE and self._dv_answered:
+                                # 1a: the record still proves it -- a lookup, not work (Fig 12
+                                # :108), so it takes no rank and counts as no try
+                                rank -= 1
+                                if _7H_TRIED and bind is not None:
+                                    _tk = (self.level, slot, bind)
+                                    self._tried[_tk] -= 1
+                                    if not self._tried[_tk]:
+                                        del self._tried[_tk]
                             cut_n["bounded-out: cannot pay on R alone"] += 1
                             if len(cuts) < 12:
                                 cuts.append({"name": term.name, "rank": rank, "reversible": True,
@@ -16317,6 +16536,8 @@ class Agent:
                 #
                 # The INNER break stays: within one stream, a bound on that stream's own
                 # search skips nobody who was going to be asked.
+            if _DIVIDE:
+                self._divide_row(slot, rkey)
 
         # WHICH KIND WON THE SLOT, AND BY HOW MUCH. The residual alone buries the answer:
         # *did an objective ever out-predict a plain value bet* is the question the two-stream
@@ -17621,10 +17842,11 @@ class Agent:
         self._present()       # before the frame, so slots and frame cannot disagree
         if _INSTANCE_RETIRE and getattr(self, "_retire_due", None) is not None:
             self._retire_instances()    # 2: after the turnover settled the bindings
-        # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is
-        # `2**(h*w)` over its own bounding box, which moves when the object resizes -- and a
-        # resize changes slot VALUES, not the slot SET, so the three existing refresh sites
-        # never fire. The declaration is still the domain's; only when it is read has moved.
+        # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is the
+        # shape table's size (arc_world, "THE COUNT OF LABELS"; it read `2**(h*w)` over the
+        # bounding box until that was replaced), which grows when a frame publishes a new shape --
+        # a change to slot VALUES, not the slot SET, so the three existing refresh sites never
+        # fire. The declaration is still the domain's; only when it is read has moved.
         self.alphabet = self._with_last(self._alphabets(self.env))
         before = self.env.observe()
         if _RUIN_RECORD:

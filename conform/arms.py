@@ -1137,6 +1137,18 @@ ARMS: dict[str, str] = {
                           "code space the ground judged in (the slot's alphabet), and risky = "
                           "predicted_code != from_code (persistence would have been wrong). No "
                           "decision reads it. OFF: the row as before. default ON",
+    "TETHER_DIVIDE": "1a DIVIDE, A CARRIED SPACE PER OPEN GAP (the reviewer 2026-10-29 r279, r308, "
+                     "r311, r312; Fig 9 :38-41, Fig 6 :50, Fig 12 :108). The mint's row tally "
+                     "(_cannot_pay) is keyed by Agent._divide_key -- held, alphabet, epoch, the "
+                     "break window, the D5 row filter, the decoder SIZE, len(_invented), the "
+                     "slot's peers, its owner's attribute map -- in place of the cycle, so it "
+                     "lives for the gap's life; an OBJ term's cell keeps its cycle (the objective "
+                     "domain draws per cycle). A term the record still refuses takes no rank. "
+                     "Chain costs are kept per gap kind (retrieval's described gap) under "
+                     "(code_ver, units). Rows: MINT 'divide' per searching mint (m1 = carried / "
+                     "priced_now) and 'space_closed' (cause by key part, kind, epoch, end). "
+                     "In-run only, never saved. OFF: the cycle key and every row as before. "
+                     "default ON",
     "TETHER_STEP_MINT": "B1, WHOLE MINTS PER STEP (the reviewer 2026-10-26 14:20, (b'); Fig 12 "
                         ":127 'the budget is what decides how much of the space is reached', "
                         "read as the mint's own stop; Fig 6 :49-50 distribute the search across "
