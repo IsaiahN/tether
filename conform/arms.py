@@ -1137,6 +1137,14 @@ ARMS: dict[str, str] = {
                           "code space the ground judged in (the slot's alphabet), and risky = "
                           "predicted_code != from_code (persistence would have been wrong). No "
                           "decision reads it. OFF: the row as before. default ON",
+    "TETHER_DIVIDE_CREDIT": "1a CREDIT (the reviewer 2026-10-29 r312 ask 3; Fig 12 :108, Fig 6 "
+                            ":50). Under TETHER_DIVIDE, a closure chain the gap's kind had met "
+                            "before, re-met with no row evaluated and no term reaching the "
+                            "bargain, is a lookup: its yield is credited back (st['credit'], which "
+                            "gamma.enumerate_closure subtracts from what it has emitted), so the "
+                            "same cfg.budget reaches chains never met. The divide row carries "
+                            "'credited'. Its cost is wall time, read apart from DIVIDE's. OFF: no "
+                            "credit is written and the closure counts as before. default ON",
     "TETHER_DIVIDE": "1a DIVIDE, A CARRIED SPACE PER OPEN GAP (the reviewer 2026-10-29 r279, r308, "
                      "r311, r312; Fig 9 :38-41, Fig 6 :50, Fig 12 :108). The mint's row tally "
                      "(_cannot_pay) is keyed by Agent._divide_key -- held, alphabet, epoch, the "

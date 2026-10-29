@@ -22,6 +22,11 @@ r308, r311, r312). Each check runs in its own process, under 5 minutes.
                       elimination made permanent (a refuted cell always answered) none does
   check_off_identity_grid, check_off_identity_fake   T4: TETHER_DIVIDE=0 writes the same ledger as
                       549f403 (arms rows aside, wall timings masked)
+  check_t2_reach      T2 (CREDIT, restated 05:06, r317): some enumerate_closure call on the fake
+                      yields more than its budget -- met chains credited back, past the old cut
+  check_t2_mustfail   T2 MUST-FAIL: CREDIT OFF (DIVIDE ON), no call yields more than its budget
+  check_credit_off_identity_grid, check_credit_off_identity_fake   TETHER_DIVIDE_CREDIT=0 writes
+                      the same ledger as d6a4055 (1b)
   check_store         T5: memo_sizes rows carry both records' sizes ON, neither OFF
   check_cond_a        r312 (a): every space ends in a space_closed row, and no _cannot_pay reads a
                       closed space's cells; the lineage save carries neither record
@@ -458,7 +463,7 @@ def _child(tree: str, which: str, extra: dict | None = None) -> list:
     return json.loads(out.stdout.strip().splitlines()[-1])["rows"]
 
 
-def _off_identity(w: str) -> None:
+def _off_identity(w: str, base_tree: str = BASE, arm: str = "TETHER_DIVIDE") -> None:
     root = str(_repo.ROOT)
     sys.path.insert(0, os.path.join(root, "conform"))
     from identity_mod_rows import mask_timings
@@ -468,16 +473,17 @@ def _off_identity(w: str) -> None:
                  json.dumps(r["detail"], sort_keys=True, default=str))
                 for r in mask_timings(json.loads(json.dumps(rows))) if r["event"] != "arms"]
     with tempfile.TemporaryDirectory() as d:
-        tar = subprocess.run(["git", "-C", root, "archive", BASE], capture_output=True, check=True)
+        tar = subprocess.run(["git", "-C", root, "archive", base_tree], capture_output=True,
+                             check=True)
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
             tf.extractall(d, filter="data")
         base = norm(_child(d, w))
-    cur = norm(_child(root, w, {"TETHER_DIVIDE": "0"}))
+    cur = norm(_child(root, w, {arm: "0"}))
     diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base) - len(cur))
     assert len(base) > 50 and diff == 0, ("OFF identity", w, len(base), len(cur),
                                          next((i for i, (x, y) in enumerate(
                                              zip(base, cur, strict=False)) if x != y), None))
-    print(f"  T4 OFF identity ({w}): {len(base)} rows against {BASE}, 0 differences")
+    print(f"  OFF identity ({arm}=0, {w}): {len(base)} rows against {base_tree}, 0 differences")
 
 
 def check_off_identity_grid() -> None:
@@ -486,6 +492,17 @@ def check_off_identity_grid() -> None:
 
 def check_off_identity_fake() -> None:
     _off_identity("fake")
+
+
+CREDIT_BASE = "d6a4055"     # 1b, the tree before TETHER_DIVIDE_CREDIT
+
+
+def check_credit_off_identity_grid() -> None:
+    _off_identity("grid", CREDIT_BASE, "TETHER_DIVIDE_CREDIT")
+
+
+def check_credit_off_identity_fake() -> None:
+    _off_identity("fake", CREDIT_BASE, "TETHER_DIVIDE_CREDIT")
 
 
 def check_store() -> None:
@@ -564,6 +581,47 @@ def check_cond_b() -> None:
     assert not shared, ("(b) one slot's cells handed to another", shared)
     print(f"  (b) {len(by)} cell dicts over {len({s for v in by.values() for s in v})} slots, "
           "each handed to one slot only")
+
+
+def _reach(credit: bool) -> list:
+    """Per enumerate_closure call on the fake game: (yields, the budget it was given)."""
+    import gamma
+    import tether
+    tether._DIVIDE_CREDIT = credit
+    calls: list = []
+    ec0 = gamma.Gamma.enumerate_closure
+
+    def ec(self, in_type, out_type, max_depth, budget, stats=None, order=None):
+        rec = [0, budget]
+        calls.append(rec)
+        for t in ec0(self, in_type, out_type, max_depth, budget, stats, order):
+            rec[0] += 1
+            yield t
+    gamma.Gamma.enumerate_closure = ec
+    _agent("fake", 24)
+    return calls
+
+
+def check_t2_reach() -> None:
+    """T2 (r312 ask 3, restated 05:06): with CREDIT, some closure walk yields MORE than its budget
+    -- the met chains it re-met were credited back and it went past the old cut."""
+    calls = _reach(True)
+    past = [c for c in calls if c[0] > c[1]]
+    assert calls, "occasion: no closure walk"
+    assert past, ("T2: no walk went past its budget", max(c[0] for c in calls))
+    print(f"  T2: {len(past)} of {len(calls)} closure walks yielded past their budget (most "
+          f"{max(c[0] for c in past)} against {past[0][1]})")
+
+
+def check_t2_mustfail() -> None:
+    """T2 MUST-FAIL: CREDIT OFF (DIVIDE ON), no walk yields more than its budget."""
+    calls = _reach(False)
+    assert calls and max(c[0] for c in calls) >= min(c[1] for c in calls), (
+        "occasion: no walk reached its budget", max(c[0] for c in calls))
+    assert not [c for c in calls if c[0] > c[1]], "T2 MUST-FAIL: a walk passed its budget"
+    most = max(c[0] for c in calls)
+    print(f"  T2 MUST-FAIL: CREDIT OFF, {len(calls)} walks, the most yields {most} = the budget; "
+          "none past it")
 
 
 def check_kind_multiset() -> None:

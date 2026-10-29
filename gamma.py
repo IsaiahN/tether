@@ -2035,7 +2035,9 @@ class Gamma:
                 # closed it, which is exactly `elem is None`.
                 cap.head()
                 if elem is None and cur == out_type:
-                    if emitted >= budget:
+                    # a yield the caller found already answered is credited back (tether's
+                    # TETHER_DIVIDE_CREDIT writes "credit"; nothing else does)
+                    if emitted - (stats.get("credit", 0) if stats is not None else 0) >= budget:
                         spent = True
                         break
                     emitted += 1

@@ -853,6 +853,12 @@ _SETTLE_PRED = armflag.arm("TETHER_SETTLE_PRED", default=True)
 # takes no rank, chain costs are kept per gap kind, and each mint writes its "divide" row. In-run
 # only, never saved. ON; conform/arms.py
 _DIVIDE = armflag.arm("TETHER_DIVIDE", default=True)
+# 1a CREDIT (the reviewer 2026-10-29 r312 ask 3; Fig 12 :108, Fig 6 :50): a closure chain this gap's
+# kind had already met, re-met with no row evaluated and no term reaching the bargain, is a lookup,
+# and its yield is credited back to enumerate_closure's budget, so the same budget reaches chains
+# never met. Its cost is in the other currency (wall), read apart. Needs TETHER_DIVIDE. ON;
+# conform/arms.py
+_DIVIDE_CREDIT = armflag.arm("TETHER_DIVIDE_CREDIT", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -11042,7 +11048,7 @@ class Agent:
         self._dv = {"mint": sp["mints"], "base_prev": sp["base"], "krec": krec, "now": set(),
                     **dict.fromkeys(("priced_now", "carried", "rows_evaluated", "rows_avoided",
                                      "answered", "terms_reopened", "chains_met_before",
-                                     "chains_new", "chains_reopened"), 0)}
+                                     "chains_new", "chains_reopened", "passed", "credited"), 0)}
         sp["base"] = base
         return (seen[1], seen[2]) if _SPEED2_BOUND else seen[1]
 
@@ -11066,6 +11072,23 @@ class Agent:
                 krec["met"].add(k)
                 dv["chains_new"] += 1
         return c
+
+    def _divide_credit_open(self, st: dict, cand: Term) -> tuple:
+        """CREDIT: a closure chain is drawn -- whether its kind met it before, and the work counts
+        it starts from."""
+        dv = self._dv
+        return (st, tuple(a.name for a in cand.atoms) in dv["krec"]["met"],
+                dv["rows_evaluated"], dv["passed"])
+
+    def _divide_credit(self, cr: tuple) -> None:
+        """CREDIT (r312 ask 3): a chain met before whose instances evaluated no row and sent no term
+        to the bargain was answered by the record -- a lookup (Fig 12 :108) -- so its yield is
+        returned to the closure's budget (gamma.enumerate_closure reads "credit")."""
+        st, met, rows0, passed0 = cr
+        dv = self._dv
+        if met and dv["rows_evaluated"] == rows0 and dv["passed"] == passed0:
+            st["credit"] = st.get("credit", 0) + 1
+            dv["credited"] += 1
 
     def _divide_close(self, slot: str, cause: str, seen: tuple) -> None:
         """1a: a space ends (a key part moved, the kind changed, the level, the run): one row with
@@ -11114,6 +11137,7 @@ class Agent:
                         rows_avoided=dv["rows_avoided"], terms_reopened=dv["terms_reopened"],
                         chains_met_before=dv["chains_met_before"], chains_new=dv["chains_new"],
                         chains_reopened=dv["chains_reopened"],
+                        **({"credited": dv["credited"]} if _DIVIDE_CREDIT else {}),
                         survivors=sum(1 for _t, v in cells if len(v) > 2 and v[2] is None),
                         eliminated=sum(1 for _t, v in cells if len(v) > 2 and v[2] is not None),
                         slot_record=len(cells), kind_record=len(dv["krec"]["met"]),
@@ -11519,6 +11543,8 @@ class Agent:
         if cell is not None:
             cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was, e0)
                           if _DIVIDE else (len(robs), wrong))
+        if _DIVIDE and self._dv is not None:
+            self._dv["passed"] += 1     # the term goes on to the bargain: not a lookup (CREDIT)
         return False
 
     def _divide_cell(self, term: Term, rows: int, wrong: int, ref, start: int, was,
@@ -16057,6 +16083,7 @@ class Agent:
             # evidence lags), and round 2, only with budget left, walks the chains round 1 recorded
             # with their no-evidence lags. One round otherwise, so OFF is the old loop exactly.
             _rec2: dict = {}
+            _lf_of: dict = {}
 
             def _stream_open(_si, _round):
                 in_t, out_t = streams[_si]
@@ -16087,6 +16114,7 @@ class Agent:
                 _lf = (self._library_chains(slot, in_t, out_t, _lf_stats, _lf_ops, _lf_ev)
                        if _LIBRARY_FIRST and _round == 1 else [])
                 _lf_names = {c.name for c in _lf}
+                _lf_of[_si] = _lf_names          # CREDIT: a library chain took no yield
                 _lf_seen.update(tuple(a.name for a in c.atoms) for c in _lf)
                 _clo = (c for c in self.gamma.enumerate_closure(
                             in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit)
@@ -16129,6 +16157,7 @@ class Agent:
                 _held = [k for k in _live if k >= _nbase]
                 _live = [k for k in _live if k < _nbase]
                 _cur, _r0 = None, rank
+                _cr = None                       # CREDIT: the chain whose yield may be returned
                 while True:
                     cap.head()
                     if _cur is not None:
@@ -16152,11 +16181,17 @@ class Agent:
                     if _si not in _open:
                         _open[_si] = _stream_open(_si, _round)
                     kind, st, _walker = _open[_si]
+                    if _cr is not None:          # CREDIT: settle the last chain before a yield
+                        self._divide_credit(_cr)
+                        _cr = None
                     _nx = next(_walker, None)
                     if _nx is None:
                         _stop(_si, _open, _live)
                         continue
                     cand, _pass = _nx
+                    if (_DIVIDE and _DIVIDE_CREDIT and _round == 1
+                            and cand.name not in _lf_of.get(_si, ())):
+                        _cr = self._divide_credit_open(st, cand)
                     _cur, _r0 = _si, rank
                     _sh = _share[_si]
                     _sh["turns"] += 1
@@ -16586,6 +16621,8 @@ class Agent:
                             _sh["floor_stop"] = _round
                             _floored.add(_si)
                         _stop(_si, _open, _live)
+                if _cr is not None:              # CREDIT: the round's last chain, counted
+                    self._divide_credit(_cr)
                 # NO BREAK ACROSS STREAMS. There was one, and it made the contest a FALLBACK
                 # CHAIN rather than a contest: `("val","val")` runs first, so a predictor that
                 # explained perfectly ENDED THE SEARCH and the objective stream was never
