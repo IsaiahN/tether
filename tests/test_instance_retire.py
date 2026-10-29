@@ -84,8 +84,12 @@ if mode in ("retire", "refound", "bind", "bind_norepoint"):
             names[o] = ag._install_reuse(Term(atoms, operand=f"{o}.row"), f"{o}.col")
             ag.gamma.settle(names[o], "w", f"{o}.col")
     kind = Term(atoms).name
+    # a ONE-ATOM instance: its kind is not the prior atom but the unbound form, as load gives it
+    one = ag._install_reuse(Term(lib["translate"].atoms, operand="o1.row"), "o1.colour")
+    ag.gamma.settle(one, "w", "o1.colour")
+    kind1 = ag.gamma.kind_of(ag.gamma.library[one]).name
     out.update(names=names, kind=kind, ev0=len(ag.gamma.evidence),
-               kind_live0=kind in lib)
+               kind_live0=kind in lib, one=one, kind1=kind1)
     if mode == "refound":
         ag._retire_due = ag.cycle          # the rule on this board: every object re-found
         ag._retire_instances()
@@ -126,6 +130,8 @@ if mode in ("retire", "refound", "bind", "bind_norepoint"):
                inst_origin=getattr(ag.gamma.retired.get(names.get("o1", "")) if hasattr(
                    ag.gamma, "retired") else None, "origin", None),
                kind_conf=getattr(st, "confirmations", None), ev1=len(ag.gamma.evidence),
+               kind1_live=out["kind1"] in ag.gamma.library,
+               kind1_conf=getattr(ag.gamma.standing.get(out["kind1"]), "confirmations", None),
                blob_names=sorted(r["name"] for r in ag.gamma.blob(with_names=True)["terms"]),
                identity={o: env.identity(o) for o in names})
     if mode == "retire" and kind in ag.gamma.library:
@@ -180,6 +186,10 @@ def check_retire_on() -> None:
     assert r["kind_origin"] == r["inst_origin"] is not None, (r["kind_origin"], r["inst_origin"])
     assert r["kind_conf"] and r["kind_conf"] > 0, ("the kind took no evidence", r["kind_conf"])
     assert r["ev1"] == r["ev0"], ("replay wrote evidence rows", r["ev0"], r["ev1"])
+    # the one-atom instance: kind = the unbound form load installs, live, holding its evidence
+    assert r["one"] in r["retired"] and r["kind1"] == "translate<?.row>", (r["one"], r["kind1"])
+    assert r["kind1_live"] and r["kind1_conf"] and r["kind1_conf"] > 0, (r["kind1_live"],
+                                                                         r["kind1_conf"])
     row = ev(r["rows"], "instance_retired")
     assert len(row) == 1 and row[0]["detail"]["retired"] == len(r["retired"]), row
     assert row[0]["detail"]["dangling"] == [], ("the invariant", row[0]["detail"]["dangling"])

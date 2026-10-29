@@ -1197,6 +1197,18 @@ class Gamma:
         self._paid_ver += 1
         return term
 
+    def kind_of(self, term: Term) -> Term:
+        """The KIND of an instance term: the term load_blob installs from its saved row on the
+        carry path (parent given) -- atoms, guard and operand tree with no operand, or, where that
+        lands on a PRIOR atom, the same with the operand's object ids blanked (unbound_form, "?").
+        One rule for the break (2), the save (3) and the load, so a kind is the same name all three
+        ways (the reviewer 2026-10-29 r294's 2x3 check). Origin stays the term's (r294 (a))."""
+        k = Term(term.atoms, origin=term.origin, guard=term.guard, operand_term=term.operand_term)
+        if term.operand and k.name in self.library and self.library[k.name].origin == PRIOR:
+            k = Term(term.atoms, origin=term.origin, guard=term.guard,
+                     operand=self.unbound_form(term.operand), operand_term=term.operand_term)
+        return k
+
     # -- standing: the ground's verdict, defeasibly ----------------------------------
 
     def settle(self, name: str, where: Any = None, slot: str | None = None) -> None:

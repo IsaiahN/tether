@@ -17355,8 +17355,7 @@ class Agent:
                 continue
             term = self.gamma.retire(n)
             lost.update(miss)
-            kind = Term(term.atoms, origin=term.origin, guard=term.guard,
-                        operand_term=term.operand_term)
+            kind = self.gamma.kind_of(term)     # load's own rule: one name all three ways
             if kind.name in self.gamma.library:
                 kinds_held += 1
             else:
