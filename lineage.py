@@ -88,7 +88,20 @@ _STORE_HEAL = armflag.arm("TETHER_STORE_HEAL", default=True)
 # alias {was, key}; the load resolves it against what that row installed, so the replay maps the
 # evidence the same way. OFF: every row written, as before
 _SAVE_DEDUP = armflag.arm("TETHER_SAVE_DEDUP", default=True)
+# 3, THE SAVE CARRIES THE KIND, NEVER THE INSTANCE (the reviewer 2026-10-29 r292, r294; Fig 4 :22
+# "Only methods cross up", Fig 10 :68): an instance row (one with an operand) writes no alias, its
+# "was" is its kind's name (gamma.Gamma.kind_of, load's own rule), and an evidence row naming an
+# instance is written under that kind name, so the replay lands where it lands today. ON;
+# conform/arms.py
+_KIND_SAVE = armflag.arm("TETHER_KIND_SAVE", default=True)
 PREFIX = "gen_"
+
+
+def _kind_name(g: Any, name: str) -> str:
+    """3: the name load installs for a held term's row -- its kind when it is an instance (it has
+    an operand), else itself. A name the Gamma no longer holds is written as it is."""
+    t = g.library.get(name) or getattr(g, "retired", {}).get(name)
+    return g.kind_of(t).name if t is not None and t.operand else name
 
 
 def _key(row: dict) -> str:
@@ -471,7 +484,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         # in carried (born, handle), and only a non-marker change of its status is written (N1).
         name = r.pop("name")
         if gamma._REPLAY_UNIT:
-            r["was"] = name     # R7i: the replay finds the term load installs from this row
+            # R7i: the replay finds the term load installs from this row; 3: an instance by its kind
+            r["was"] = _kind_name(ag.gamma, name) if _KIND_SAVE and r.get("operand") else name
         c = ag.gamma.carried.get(name) or written.get(name) or {}
         if c.get("alias"):
             continue    # (d): aliased by an earlier write of this life
@@ -481,8 +495,9 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         if rid not in prev:
             k = gamma.Gamma.row_key(r) if _SAVE_DEDUP else None
             if k in held_keys and r.get("was") and not r.get("guard_ref"):
-                aliases.append({"was": r["was"], "key": k})
-                alias_names.append(name)
+                if not (_KIND_SAVE and r.get("operand")):
+                    aliases.append({"was": r["was"], "key": k})
+                alias_names.append(name)   # 3: an instance is handled, with no alias written
                 continue
             if _SAVE_DEDUP:
                 held_keys.add(k)
@@ -496,7 +511,9 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     dormant_all = getattr(ag, "_dormant", [])
     dormant, refused = dormant_items(dormant_all[d0:], d0)
     gen = {"lineage": 1, "parent": parent, "game": game, "terms": terms, "status": status,
-           "evidence": list(ag.gamma.evidence)[e0:],
+           "evidence": ([[e[0], _kind_name(ag.gamma, e[1]), *e[2:]]
+                         for e in list(ag.gamma.evidence)[e0:]] if _KIND_SAVE
+                        else list(ag.gamma.evidence)[e0:]),
            "vindication_tail": list(blob["vindication"])[base["n_vindication"]:],
            "book": {k: v for k, v in blob["book"].items() if base["book"].get(k) != v},
            "invented": {n: r for n, r in blob["invented"].items() if n not in base["invented"]},

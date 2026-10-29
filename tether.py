@@ -837,6 +837,15 @@ _STEP_DERIVED = armflag.arm("TETHER_STEP_DERIVED", default=True)
 # ordinary no-press reading this life it is a break, appearance only corroborating. ON;
 # conform/arms.py
 _ARRIVAL_GAP = armflag.arm("TETHER_ARRIVAL_GAP", default=True)
+# 2, INSTANCE TERMS LEAVE THE LIVE SET AT THE AGENT'S OWN BREAK (the reviewer 2026-10-29 r292, r294;
+# Fig 6 :42, Fig 10 :68): a "reuse:" term naming an object the break did not re-find goes to the
+# record, its kind (no operand, as load installs it) stays live. ON; conform/arms.py
+_INSTANCE_RETIRE = armflag.arm("TETHER_INSTANCE_RETIRE", default=True)
+# THE SETTLE ROW CARRIES ITS OWN PREDICTION, RECORD ONLY (the reviewer 2026-10-29 r288, r294;
+# harvest item 6): the maker's predicted code, the actual and the from value in the same code
+# space, and risky = the prediction differed from what persistence would have said. Nothing reads
+# it. ON; conform/arms.py
+_SETTLE_PRED = armflag.arm("TETHER_SETTLE_PRED", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -9480,6 +9489,8 @@ class Agent:
             self._window_at = len(self.trace)   # C: the seam row is not appended, so it starts here
             self.iface.note_break()             # TETHER_AIM_ROUTED: aims read only what follows
             self._memo_clear_at_break()         # P3: this board's instance memos
+            if _INSTANCE_RETIRE:
+                self._retire_due = self.cycle   # 2: read at the next turnover (_present)
         for _b in _brk:
             self.led.record(self.cycle, "PERCEIVE", "@frame", "frame_break", of=("@frame",),
                             action=action, **_b)
@@ -13316,9 +13327,11 @@ class Agent:
         if G_UNITS_MEMO:
             # R1: keyed on the units (the same held tuple), the slot's refusal key, and the
             # refusal scope's versions -- _not is appended only, and the library and the routines
-            # only grow, so their lengths version their name sets exactly
+            # only grow, so their lengths version their name sets exactly; 2 (r295): a retire
+            # SHRINKS the library, so the retired count joins the key (installs and retires
+            # both only grow, so the pair versions the live set exactly)
             mkey = (gk, sum(len(v) for v in self._not.values()), len(self.gamma.library),
-                    len(self.routine_lib))
+                    len(self.gamma.retired), len(self.routine_lib))
             hit = self._units_for_memo.get(mkey)
             if hit is not None and hit[0] is units:
                 return hit[1]
@@ -17177,7 +17190,8 @@ class Agent:
                             status="accepted",
                             asked=[name, slot], ground_said=True,
                             verdict="held on a transition it was not fitted to",
-                            held_out_cycle=self.cycle, fitted_through=born)
+                            held_out_cycle=self.cycle, fitted_through=born,
+                            **(self._settle_pred(slot, r) if _SETTLE_PRED else {}))
 
     # -- the utterance: the only way an action is proposed --------------------------------
 
@@ -17323,6 +17337,156 @@ class Agent:
                                        "disagree about a break; the held frame decided"))
         return recs
 
+    def _retire_instances(self) -> None:
+        """2 (the reviewer 2026-10-29 r292, r294): at the turnover after the agent's own break
+        (arrival or seam), a "reuse:" term naming an object the break did not RE-FIND (identity
+        "overlap" / "unique-shape", the rule _carry_lineage uses) leaves the live set for the
+        record (Gamma.retire; never read back). Its KIND -- the term with no operand, the one
+        load_blob installs next life, origin the instance's -- stays live, so ROUTE's re-binding
+        reaches the method again (Fig 10 :68 "a generator crosses, an instance does not"), and
+        takes the instance's evidence as load's replay would, its own per-slot standing kept.
+        THE INVARIANT (r295): afterwards nothing live names a retired term -- a binding is
+        re-pointed to the kind, or dropped and recorded beside the instance; checked once, here."""
+        due, self._retire_due = self._retire_due, None
+        idn = getattr(self.env, "identity", None)
+        stamps = self.gamma.stamps
+        retired, kinds_new, kinds_held, replayed = [], 0, 0, 0
+        kind_of: dict[str, str] = {}
+        lost: Counter = Counter()
+        for n in [n for n in self.gamma.library
+                  if str((stamps.get(n) or {}).get("residual") or "").startswith("reuse:")]:
+            objs = set(_OBJ_ID.findall(n))
+            miss = [o for o in objs if (idn(o) if idn else None) not in ("overlap", "unique-shape")]
+            if not miss:
+                continue
+            term = self.gamma.retire(n)
+            lost.update(miss)
+            kind = self.gamma.kind_of(term)     # load's own rule: one name all three ways
+            if kind.name in self.gamma.library:
+                kinds_held += 1
+            else:
+                self.gamma.accept(kind, seq=len(self.led), residual=f"kind:{n}@{self.cycle}")
+                kinds_new += 1
+            rows = [[r[0], kind.name, *r[2:]] for r in self.gamma.evidence if r[1] == n]
+            if rows:
+                st = self.gamma.standing.get(kind.name)
+                keep = (set(st.settled_on), dict(st.refusals_on)) if st is not None else None
+                self.gamma.replay(rows)
+                if keep is not None:
+                    st = self.gamma.standing[kind.name]
+                    st.settled_on.clear()
+                    st.settled_on.update(keep[0])
+                    st.refusals_on.clear()
+                    st.refusals_on.update(keep[1])
+                replayed += len(rows)
+            kind_of[n] = kind.name
+            retired.append(n)
+        repointed, dropped = self._repoint_retired(kind_of)
+        dangling = self._held_dangling()
+        self._retired_instances = getattr(self, "_retired_instances", []) + [
+            {"break_cycle": due, "cycle": self.cycle, "terms": list(retired),
+             "bound_slots": dropped}]
+        self.led.record(self.cycle, self._running_step, "@library", "instance_retired",
+                        break_cycle=due, retired=len(retired), names=retired,
+                        kinds_new=kinds_new, kinds_held=kinds_held, evidence_replayed=replayed,
+                        repointed=repointed, dropped=sum(len(v) for v in dropped.values()),
+                        dangling=dangling, not_refound=dict(sorted(lost.items())),
+                        reads="kept as the record; never consulted by slot name")
+
+    def _repoint_retired(self, kind_of: dict) -> tuple[int, dict]:
+        """r295: every live holder of a retired instance's name takes its kind instead (what K2
+        carried is the method, Fig 4 :22); a binding whose kind is not live is dropped, its slots
+        returned for the dormant record. A newly installed kind becomes a candidate, as the
+        reuse install makes its term one, so it can settle."""
+        lib, repointed, dropped = self.gamma.library, 0, {}
+        for s, n in list(self.bound.items()):
+            if n in kind_of:
+                if kind_of[n] in lib:
+                    self.bound[s] = kind_of[n]
+                    repointed += 1
+                else:
+                    self.bound.pop(s)
+                    self.owed_import.add(s)
+                    dropped.setdefault(n, []).append(s)
+        for n in [n for n in self._settled_lvl if n in kind_of]:
+            self._settled_lvl.discard(n)
+            self._settled_lvl.add(kind_of[n])
+        wants = self._repoint_wants(kind_of)
+        for n, slots in wants[1].items():
+            dropped.setdefault(n, []).extend(slots)
+        repointed += wants[0]
+        for n in [n for n in self.candidates if n in kind_of]:
+            c, k = self.candidates.pop(n), kind_of[n]
+            if k in lib and not self.gamma.is_atom(lib[k]):
+                self.candidates.setdefault(k, c)
+        for s, n in list(self._pred_by.items()):
+            if n in kind_of:
+                self._pred_by[s] = kind_of[n] if kind_of[n] in lib else None
+        return repointed, dropped
+
+    def _settle_pred(self, slot: str, r: SlotResidual) -> dict:
+        """Item 6's exact reading, on the settle row only (no decision reads it): the residual's
+        own prediction (the maker's, already a code), the actual and this step's from value (the
+        trace row perceive just wrote) in the SAME code space the ground judged in (correction_bits
+        over the slot's alphabet), and risky = the prediction differed from the from value's code,
+        i.e. persistence would have been wrong (the reviewer r288: Fig 9 :60's null)."""
+        a = self.alphabet.get(slot)
+        fv = (self.trace[-1][0] if self.trace else {}).get(slot)
+
+        def code(v: Any) -> Any:
+            return v % a if isinstance(v, int) and isinstance(a, int) and a > 0 else v
+        pc, fc = r.predicted, code(fv)
+        return {"predicted_code": pc, "actual_code": code(r.actual), "from_value": fv,
+                "from_code": fc, "risky": pc is not None and fc is not None and pc != fc}
+
+    def _repoint_wants(self, kind_of: dict) -> tuple[int, dict]:
+        """r296 follow-up 1: a goal link writes FOUR holders together (wants, _want_terms,
+        _want_scope, _goal_links); all four take the kind, or the want / link is dropped and
+        recorded when the kind is not live."""
+        lib, n_re, dropped = self.gamma.library, 0, {}
+        for s, n in list(self.wants.items()):
+            if n in kind_of:
+                if kind_of[n] in lib:
+                    self.wants[s] = kind_of[n]
+                    n_re += 1
+                else:
+                    self.wants.pop(s)
+                    self._want_terms.pop(s, None)
+                    self._want_scope.pop(s, None)
+                    dropped.setdefault(n, []).append(f"want {s}")
+        for s, t in list(self._want_terms.items()):
+            if getattr(t, "name", None) in kind_of and kind_of[t.name] in lib:
+                self._want_terms[s] = lib[kind_of[t.name]]
+        for s, n in list(self._want_scope.items()):
+            if n in kind_of and kind_of[n] in lib:
+                self._want_scope[s] = kind_of[n]
+        for key, link in list(self._goal_links.items()):
+            if any(n in kind_of for _sl, n in link):
+                if all(kind_of[n] in lib for _sl, n in link if n in kind_of):
+                    self._goal_links[key] = tuple((sl, kind_of.get(n, n)) for sl, n in link)
+                else:
+                    self._goal_links.pop(key)
+                    for _sl, n in link:
+                        dropped.setdefault(n, []).append(f"goal {key}")
+        return n_re, dropped
+
+    def _held_dangling(self) -> list:
+        """r295's invariant, checked once at the end of the break: every binding names a live term,
+        and no live holder (bindings, this level's settled names, want and goal terms, candidates,
+        the last predictors) names a retired one. Returns what violates it."""
+        lib, gone = self.gamma.library, self.gamma.retired
+        out = [f"bound {s}: {n}" for s, n in sorted(self.bound.items()) if n not in lib]
+        out += [f"settled_lvl: {n}" for n in sorted(self._settled_lvl) if n in gone]
+        out += [f"wants {s}: {n}" for s, n in sorted(self.wants.items()) if n in gone]
+        out += [f"want_scope {s}: {n}" for s, n in sorted(self._want_scope.items()) if n in gone]
+        out += [f"want {s}: {t.name}" for s, t in sorted(self._want_terms.items())
+                if getattr(t, "name", None) in gone]
+        links = sorted(self._goal_links.items(), key=lambda kv: str(kv[0]))
+        out += [f"goal {k}: {n}" for k, v in links for _sl, n in v if n in gone]
+        out += [f"candidate: {n}" for n in sorted(self.candidates) if n in gone]
+        out += [f"pred_by {s}: {n}" for s, n in sorted(self._pred_by.items()) if n in gone]
+        return out
+
     def step(self, action: str | None = None) -> bool:
         """One turn (_step_body). C1 (A), the overrun safety net (Isaiah 2026-10-22 12:36; the
         reviewer 12:37, 15:17, 15:34): the thinking deadline (_think_until) is cap.AT for the step
@@ -17426,6 +17590,8 @@ class Agent:
                         self._old_form = {**getattr(self, "_old_form", {}),
                                           **_b.get("old_form", {})}
                 self._memo_clear_at_break()     # P3: this board's instance memos
+                if _INSTANCE_RETIRE:
+                    self._retire_due = self.cycle   # 2: read at this step's turnover (_present)
         if _W_EVICT_EVERY_STEP:
             self._w_evict(hard=True, why="every step (W-2's check)")
         if _CONSOLIDATE:
@@ -17453,6 +17619,8 @@ class Agent:
         self._narrate_cues()
         self._advertised()
         self._present()       # before the frame, so slots and frame cannot disagree
+        if _INSTANCE_RETIRE and getattr(self, "_retire_due", None) is not None:
+            self._retire_instances()    # 2: after the turnover settled the bindings
         # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is
         # `2**(h*w)` over its own bounding box, which moves when the object resizes -- and a
         # resize changes slot VALUES, not the slot SET, so the three existing refresh sites

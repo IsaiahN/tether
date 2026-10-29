@@ -71,9 +71,15 @@ def role_game(d, stop, mf, n=N):
     else:
         ag.end_run("cap")
         reps.append(lineage.write(d, ag, "default"))
+    # L3 compares the fold's evidence with the agent's, under the names the SAVE writes: with
+    # TETHER_KIND_SAVE (3) an instance's evidence is written under its kind's name, so the
+    # expected list is mapped the same way (the reviewer 2026-10-29 r301: map, don't pin; L3 is
+    # about the evidence crossing whole and in order, which keeps being tested ON)
+    ev = ([[e[0], lineage._kind_name(ag.gamma, e[1]), *e[2:]] for e in ag.gamma.evidence]
+          if getattr(lineage, "_KIND_SAVE", False) else ag.gamma.evidence)
     print("REPORT " + json.dumps({"reps": [{k: r.get(k) for k in ("hash", "parent", "terms",
                                                                    "refused")} for r in reps],
-                                  "evidence": ag.gamma.evidence,
+                                  "evidence": ev,
                                   "bound": len(ag._bound_cache) + len(tether._BOUND_MEMO)}),
           flush=True)
 
@@ -145,8 +151,18 @@ def _l3(d, evidence):
     return chain
 
 
-def main():
+PARTS = ("l1", "l4", "mfl", "mfd", "mfdon")   # by name, one process each, under 5 min (r299)
+
+
+def main(parts=PARTS):
     tmp = Path(tempfile.mkdtemp(prefix="bound_"))
+    for p in parts:
+        globals()[f"_part_{p}"](tmp)
+    print("lineage boundary: OK")
+
+
+def _part_l1(tmp):
+    """L1, L2, L3 and L3's must-fail."""
     out = _out(_child("game", tmp / "full", -1, "none"), "REPORT")
     hs = [r["hash"] for r in out["reps"]]
     gens = sorted(Path(tmp / "full").glob(f"{lineage.PREFIX}*.json"))
@@ -168,7 +184,21 @@ def main():
         print(f"  L3 must-fail fired: {e.args[0][0]}")
     else:
         raise AssertionError("L3 MUST-FAIL did not fail: a row written twice passed")
+    # L3 EVIDENCE MUST-FAIL (the reviewer 2026-10-29 r301): the fold with one evidence row dropped
+    # goes red on the evidence clause, so the mapped compare can still fail
+    assert f["evidence"], "fixture: the full run kept no evidence"
+    try:
+        _l3_fold({**f, "evidence": f["evidence"][:-1]}, out["evidence"])
+    except AssertionError as e:
+        assert e.args[0][0] == "L3: evidence differs", ("L3 evidence MF the wrong clause", e)
+        print(f"  L3 evidence must-fail fired: {e.args[0][0]} ({len(f['evidence']) - 1} against "
+              f"{len(out['evidence'])})")
+    else:
+        raise AssertionError("L3 evidence MUST-FAIL did not fail: a dropped row passed")
 
+
+def _part_l4(tmp):
+    """L4."""
     k = 1
     out = _out(_child("game", tmp / "stop", k, "none"), "REPORT")
     assert len(out["reps"]) == k + 1, ("L4: boundaries written before the stop", out["reps"])
@@ -185,9 +215,16 @@ def main():
           f"memo pending "
           f"{got['memo_pending']} (the stopped game bound {out['bound']})")
 
+
+def _part_mfl(tmp):
+    """MF-L."""
     r = _child("game", tmp / "mfl", -1, "parent")
     assert r.returncode != 0 and "tip" in r.stderr, "MF-L MUST-FAIL did not fail: no N3"
     print("  MF-L must-fail fired: the parent left behind gives two tips (N3)")
+
+
+def _part_mfd(tmp):
+    """MF-D (i), (d) OFF."""
     # (i) MF-D verbatim with (d) OFF (amends registered refuter MF-D, the reviewer 2026-10-15
     # 07:30, ruled 2026-10-25 21:27): under (d) the re-write a cleared map lets through is an
     # alias, so L3 cannot see it
@@ -210,10 +247,18 @@ def main():
         print(f"  MF-D must-fail fired: {e.args[0][0]}")
     else:
         raise AssertionError("MF-D MUST-FAIL did not fail: the written map is not what dedups")
+
+
+def _part_mfdon(tmp):
+    """MF-D (ii) ON."""
     # (ii) MF-D ON, the shipped default: one seed and the same steps, the map intact and cleared.
     # The cleared map must show as aliases beyond the intact run's, and cost bytes, not meaning.
     # Its occasion is checked once under seed 0 at N_ON steps a level (lengthened, never re-seeded)
-    pin = {"TETHER_AGENT_SEED": "0"}
+    # MF-D ON is ABOUT the aliases a cleared map adds, and TETHER_KIND_SAVE (3) writes no instance
+    # alias by construction: pinned to KIND_SAVE OFF for these runs (the reviewer 2026-10-29 r299:
+    # per check, in the test). ON TWIN: tests/test_kind_save.py check_gridworld (no instance alias,
+    # and the same library and standing load: bytes, not meaning)
+    pin = {"TETHER_AGENT_SEED": "0", "TETHER_KIND_SAVE": "0"}
     _out(_child("game", tmp / "on_full", -1, "none", N_ON, **pin), "REPORT")
     seed, rows, _al = _occasion(tmp / "on_full")
     print(f"  MF-D ON occasion: seed {seed}, {N_ON} steps a level, rows before the last "
@@ -229,7 +274,6 @@ def main():
         "MF-D ON: the cleared map changed what loads", lf, lc)
     print(f"  MF-D ON: aliases intact {n_full}, cleared {n_cleared}; the same library "
           f"({len(lf['library'])}) and standing ({lf['standing']}) load from both")
-    print("lineage boundary: OK")
 
 
 if __name__ == "__main__":
@@ -240,4 +284,5 @@ if __name__ == "__main__":
         else:
             role_load(a[1])
     else:
-        main()
+        # part names on the command line run only those parts; none runs all
+        main(tuple(a for a in sys.argv[1:] if a in PARTS) or PARTS)

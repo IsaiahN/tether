@@ -130,7 +130,13 @@ def _run(code: str, arms: dict) -> dict:
 
 def main() -> None:
     on, off = _run(CHILD, {}), _run(CHILD, {"TETHER_SETTLED_CORE": "0"})
-    by_name = _run(CHILD, {"TETHER_REPLAY_UNIT": "0"})
+    # I2b, I6b and MF-R reach a bound term through renamed[its INSTANCE name], which
+    # TETHER_KIND_SAVE (3) no longer writes (the evidence carries the kind name instead), so they
+    # are pinned to KIND_SAVE OFF in their own runs (the reviewer 2026-10-29 r299: per check, in the
+    # test). ON TWINS: tests/test_kind_save.py check_two_by_three (a bound term's kind reloads
+    # settled, with its paid, not innate) and check_gridworld (same standing with renamed 0)
+    bound = _run(CHILD, {"TETHER_KIND_SAVE": "0"})
+    by_name = _run(CHILD, {"TETHER_REPLAY_UNIT": "0", "TETHER_KIND_SAVE": "0"})
     assert on["born"]["inn"] and on["admitted"]["inn"] == "inherited", ("I1", on["born"])
     assert on["after"]["inn"] and on["contradictions"] >= 4 and "contradiction" in on["rows"], (
         "I1: an innate term was demoted, or its contradiction not recorded", on)
@@ -157,7 +163,7 @@ def main() -> None:
             and not on["reload_innate"]["lrn2"]), ("I6 learned", on)
     assert not on["reload"]["lrn"], "I6: a demoted learned recipe came back settled"
     print("  I6 innate stays innate, learned stays learned (a demoted one stays demoted)")
-    bnd, bdm = on["reload_bound"]["bnd"], on["reload_bound"]["bdm"]
+    bnd, bdm = bound["reload_bound"]["bnd"], bound["reload_bound"]["bdm"]
     assert bnd[0] and bnd[1] and bnd[4] == {"default:L0": 1} and not bnd[3], ("I2b", bnd)
     print(f"  I2b a bound earned term reloads as {bnd[0]!r}, settled, paid {bnd[4]}")
     assert bdm[0] and bdm[2] == "learned" and not bdm[3] and not bdm[1], ("I6b", bdm)
