@@ -4,12 +4,15 @@ r308, r311, r312). Each check runs in its own process, under 5 minutes.
                       mint wrote, the shadow recomputes its stored prefix (rows, charged, first
                       refuting row) from row 0 over the same rows; 0 differences. Occasions: reuses,
                       lookups (answered) and carried > 0
-  check_exact_fake    K1: the fake ARC game, 24 steps, under SHAPE_DECODE: the same shadow, 0
-                      differences; occasions: reuses > 0, and spaces closed by a decoder growth
-                      and by a peer change (the key refused each)
-  check_decoder       K2, constructed: publishing a shape later turns an old row's rotate from an
-                      abstention into a prediction (the occasion); the key's decoder part moves;
-                      MUST-FAIL: with that part masked the carried cell differs from the recompute
+  check_exact_fake    K1/B3: the fake ARC game, 24 steps, under SHAPE_DECODE: the same shadow, 0
+                      differences; occasions: reuses > 0, a peer close, and (1b) unstamped cells
+                      reused across a decoder growth; "decoder" is no close cause
+  check_b1_unmarked_encoder  B1 (1b): an atom defined only here that re-encodes through
+                      _to_shape_id is stamped by observation; after the shape is published its cell
+                      is recomputed; CONTROL with the stamp suppressed the reused cell is wrong
+  check_b2_rotate     B2 = K2 under 1b: the same for rotate
+  check_b4_handles    B4 legs 1 and 3 (r314, r315): the shape table is read only in HANDLES, and
+                      none dict-tests its handle; MUST-FAIL a planted reader is caught on both
   check_peers         K3, constructed: a peer leaving flips an old row's group reading; the key's
                       peers part moves; MUST-FAIL as K2
   check_window        K4, constructed: a break moving the window drops rows from history; the key's
@@ -103,6 +106,7 @@ def _spy(stats: collections.Counter, closed: set, by_slot: dict) -> None:
     is handed and whether a closed space's dicts are read again."""
     import tether
     cp0, close0 = tether.Agent._cannot_pay, tether.Agent._divide_close
+    written: dict = {}      # (slot, term) -> the decoder size its cell was last written at
 
     def cp(self, term, slot, robs, cost, base, rkey=None):
         if self._dv is not None and isinstance(rkey, tuple):
@@ -111,12 +115,24 @@ def _spy(stats: collections.Counter, closed: set, by_slot: dict) -> None:
             if ids[0] in closed or ids[1] in closed:
                 stats["read_after_close"] += 1
             c = rkey[0].get(term) or rkey[1].get(term)
-            if (c is not None and (c[3] is None or c[3] == self.cycle)
+            size = self._decoder_size()
+            if c is not None and c[5] is not None and c[5] != size:
+                stats["stale_stamp"] += 1        # 1b: must be recomputed, never reused
+            elif (c is not None and (c[3] is None or c[3] == self.cycle)
                     and c[4] < self._dv["mint"] and c[0] <= len(robs)):
                 stats["reused"] += 1
+                if c[5] is None and written.get((slot, term), size) != size:
+                    stats["survived_growth"] += 1   # 1b: an unstamped cell across a growth
                 if _shadow(self, term, slot, robs, c[0]) != (c[1], c[2]):
                     stats["differ"] += 1
-        return cp0(self, term, slot, robs, cost, base, rkey)
+        r = cp0(self, term, slot, robs, cost, base, rkey)
+        if self._dv is not None and isinstance(rkey, tuple):
+            c = rkey[0].get(term)
+            if c is not None:
+                # r314 (3): a stored cell is unstamped or stamped at the size it was read at
+                assert c[5] is None or c[5] == self._decoder_size(), ("mixed sizes", c)
+                written[(slot, term)] = self._decoder_size()
+        return r
 
     def close(self, slot, cause, seen):
         closed.update((id(seen[1]), id(seen[2])))
@@ -149,11 +165,15 @@ def check_exact_fake() -> None:
     causes = collections.Counter(c for r in _rows(led, "space_closed")
                                  for c in r["detail"]["cause"].split("+"))
     assert stats["reused"] > 0, ("occasion: no carried cell reused", dict(stats))
-    assert causes["decoder"] > 0 and causes["peers"] > 0, ("occasion: no decoder or peer close",
-                                                           dict(causes))
+    assert causes["peers"] > 0, ("occasion: no peer close", dict(causes))
+    assert stats["survived_growth"] > 0, ("B3 occasion: no unstamped cell met a growth",
+                                          dict(stats))
+    assert "decoder" not in causes, ("1b: the decoder still closes spaces", dict(causes))
     assert stats["differ"] == 0, ("K1: a carried cell differs from its recompute", dict(stats))
-    print(f"  K1 fake (SHAPE_DECODE): {stats['reused']} reused cells, 0 differ; the key refused "
-          f"reuse across {causes['decoder']} decoder growths and {causes['peers']} peer changes")
+    print(f"  K1/B3 fake (SHAPE_DECODE): {stats['reused']} reused cells, 0 differ; "
+          f"{stats['survived_growth']} reuses of unstamped cells across a decoder growth; "
+          f"{stats['stale_stamp']} stamped cells met a grown table and were recomputed; closes "
+          f"{dict(causes)}")
 
 
 def _masked(ag, slot: str, held, *parts: int) -> tuple:
@@ -170,13 +190,15 @@ def _fresh_frame(ag) -> None:
         ag._memo.clear()
 
 
-def check_decoder() -> None:
-    """K2: rotate on a shape slot's old row abstains until the rotated shape is published."""
+def _stamp_case(make_atom, label: str) -> None:
+    """1b: a cell whose rows re-encode a shape is stamped with the table's size; once the frame
+    publishes the shape its old row reads differently, and the stamped cell is recomputed, not
+    reused. CONTROL: the same cell with its stamp suppressed is reused as it stands: wrong."""
     import arc_atoms
     from gamma import Term
-    from tether import _DIVIDE_PARTS, IDN
     env, ag, _led = _agent("fake", 12)
     rot = next(a for a in ag.gamma.atoms if a.name == "rotate")
+    atom = make_atom(rot)
     table = ag.env._decompose._shapes
     hit = None
     for slot in ag.alphabet:
@@ -190,24 +212,98 @@ def check_decoder() -> None:
                 break
         if hit:
             break
-    assert hit, "K2 occasion: no old row whose rotated shape is unpublished"
+    assert hit, (label, "occasion: no old row whose rotated shape is unpublished")
     slot, hist, i, shape = hit
-    term, held = Term((rot,)), ag.gamma.library[ag.bound.get(slot, IDN)]
-    before = (_shadow(ag, term, slot, hist, i + 1), ag._divide_key(slot, held),
-              _masked(ag, slot, held, 1, 5))
+    robs, term, cells, inf = hist[: i + 1], Term((atom,)), ({}, {}), float("inf")
+    size0 = ag._decoder_size()
+    ag._cannot_pay(term, slot, robs, 0.0, inf, cells)
+    c1 = cells[0][term]
+    assert c1[5] == size0, (label, "the cell was not stamped", c1)
     table.setdefault(shape, len(table))                 # the frame publishes it, append-only
     _fresh_frame(ag)
     ag.alphabet = ag._with_last(ag._alphabets(ag.env))
-    after = (_shadow(ag, term, slot, hist, i + 1), ag._divide_key(slot, held),
-             _masked(ag, slot, held, 1, 5))
-    assert before[0] != after[0], ("K2 occasion: the old row read the same", before[0], after[0])
-    moved = [n for n, a, b in zip(_DIVIDE_PARTS, before[1], after[1], strict=True) if a != b]
-    assert "decoder" in moved, ("K2: the key did not refuse on the decoder", moved)
-    assert before[2] == after[2], "K2 MUST-FAIL: with decoder and alphabet masked it should hold"
-    print(f"  K2 decoder: {slot} row {i}: rotate reads {before[0]} then {after[0]} once the shape "
-          f"is published; the key moved on {moved} (a shape slot's alphabet is the table's size, "
-          "so both parts move); MUST-FAIL with both masked the key holds and a carried cell "
-          f"would read {before[0]} against {after[0]}")
+    truth = _shadow(ag, term, slot, robs, len(robs))
+    assert truth != (c1[1], c1[2]), (label, "occasion: the growth changed no row", truth, c1)
+    ag._cannot_pay(term, slot, robs, 0.0, inf, cells)
+    c2 = cells[0][term]
+    assert (c2[1], c2[2]) == truth and c2[5] == ag._decoder_size(), (label, "not recomputed", c2)
+    cells[0][term] = (*c1[:5], None)
+    ag._cannot_pay(term, slot, robs, 0.0, inf, cells)
+    c3 = cells[0][term]
+    assert (c3[1], c3[2]) == (c1[1], c1[2]) != truth, (label, "control", c3, truth)
+    print(f"  {label}: {term.name} on {slot} rows 0..{i} stamped at size {size0}, read "
+          f"{(c1[1], c1[2])}; the shape published (size {ag._decoder_size()}), the row reads "
+          f"{truth} and the cell was recomputed to it; CONTROL with the stamp suppressed the cell "
+          f"is reused at {(c3[1], c3[2])}, wrong")
+
+
+def check_b1_unmarked_encoder() -> None:
+    """B1 (r313): an atom that re-encodes through _to_shape_id, defined here and named in no list or
+    declaration anywhere, is stamped by observation -- the cell keys on the decoder anyway."""
+    import arc_atoms
+    from gamma import NOT_RESOLVED, Atom
+
+    def make(rot):
+        def fn(v, c):
+            s = arc_atoms._as_shape(v, c)
+            if not isinstance(s, frozenset) or not s:
+                return NOT_RESOLVED
+            return arc_atoms._to_shape_id(arc_atoms._rotated(s), c)
+        return Atom("unmarked_turn", fn, rot.in_type, rot.out_type)
+    _stamp_case(make, "B1 unmarked encoder")
+
+
+def check_b2_rotate() -> None:
+    """B2 = K2 under 1b: rotate's cell is stamped and refused reuse after the shape is published."""
+    _stamp_case(lambda rot: rot, "B2 rotate")
+
+
+HANDLES = {("arc_atoms.py", "_as_shape"), ("arc_atoms.py", "_to_shape_id"),
+           ("tether.py", "_decomp"), ("tether.py", "_shapes_now")}
+
+
+def check_b4_handles() -> None:
+    """B4 (r314 (4), r315), legs 1 and 3; leg 2 is the quick set run with the arm ON. Leg 1: every
+    read of a shape table in tracked code outside the tests is one of HANDLES -- a new site fails
+    here by name until it is routed through the view. Leg 3: no isinstance(x, dict) or
+    type(x) is dict on a shape handle inside those functions (a dict test is quiet on the view)."""
+    import ast
+    import re
+    root = pathlib.Path(_repo.ROOT)
+    files = subprocess.run(["git", "-C", str(root), "ls-files", "*.py"], capture_output=True,
+                           text=True, check=True).stdout.split()
+    read = re.compile(r"""getattr\([^)]*["']shapes["']|\.shapes\(\)|\bc\.shapes\b""")
+    dict_test = re.compile(r"isinstance\(\s*\w+\s*,\s*dict\s*\)|type\(\s*\w+\s*\)\s+is\s+dict")
+    def scan(fname: str, src: str, found: set, quiet: list) -> None:
+        tree = ast.parse(src)
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            body = ast.get_source_segment(src, node) or ""
+            code = "\n".join(ln for ln in body.splitlines() if not ln.strip().startswith("#"))
+            code = re.sub(r'""".*?"""', "", code, flags=re.S)
+            inner = {n.name for n in ast.walk(node) if n is not node
+                     and isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+            if read.search(code) and not inner:
+                found.add((fname, node.name))
+                if dict_test.search(code):
+                    quiet.append((fname, node.name))
+    found, quiet = set(), []
+    for f in files:
+        if f.startswith("tests/") or "/" in f and f.split("/")[0] in ("conform", "harness"):
+            continue
+        scan(pathlib.Path(f).name, (root / f).read_text(encoding="utf-8"), found, quiet)
+    assert found == HANDLES, ("leg 1: a shape table read outside the handles",
+                              sorted(found - HANDLES), "missing", sorted(HANDLES - found))
+    assert not quiet, ("leg 3: a dict test on a shape handle", quiet)
+    # MUST-FAIL: a planted reader with a dict test is caught on both legs, by name
+    pf, pq = set(), []
+    scan("planted.py", "def planted(c):\n    m = getattr(c, 'shapes', None)\n"
+                       "    return m.get(1) if isinstance(m, dict) else None\n", pf, pq)
+    assert pf == {("planted.py", "planted")} and pq == [("planted.py", "planted")], (pf, pq)
+    print(f"  B4 legs 1 and 3: the shape table is read in exactly {sorted(HANDLES)}; none tests "
+          "its handle with isinstance(..., dict) or type(...) is dict; MUST-FAIL a planted reader "
+          "with a dict test is caught on both legs")
 
 
 def check_peers() -> None:
@@ -249,10 +345,10 @@ def check_peers() -> None:
     held = ag.gamma.library[ag.bound.get(slot, IDN)]
     _fresh_frame(ag)
     ag._peer_cache = full
-    k0, m0 = ag._divide_key(slot, held), _masked(ag, slot, held, 7)
+    k0, m0 = ag._divide_key(slot, held), _masked(ag, slot, held, _DIVIDE_PARTS.index("peers"))
     _fresh_frame(ag)
     ag._peer_cache = {**full, slot: tuple(q for q in full[slot] if q != p)}
-    k1, m1 = ag._divide_key(slot, held), _masked(ag, slot, held, 7)
+    k1, m1 = ag._divide_key(slot, held), _masked(ag, slot, held, _DIVIDE_PARTS.index("peers"))
     moved = [n for n, a, b in zip(_DIVIDE_PARTS, k0, k1, strict=True) if a != b]
     assert moved == ["peers"], ("K3: the key did not refuse on peers alone", moved)
     assert m0 == m1, "K3 MUST-FAIL: with peers masked the key should have held"
@@ -271,11 +367,11 @@ def check_window() -> None:
     idn = ag.gamma.library[IDN]
     h0 = ag.history(slot)
     before = (_shadow(ag, idn, slot, h0, len(h0)), ag._divide_key(slot, held),
-              _masked(ag, slot, held, 3))
+              _masked(ag, slot, held, _DIVIDE_PARTS.index("window")))
     ag._window_at = len(ag.trace) - 2                    # a break two frames back
     h1 = ag.history(slot)
     after = (_shadow(ag, idn, slot, h1, min(len(h1), len(h0))), ag._divide_key(slot, held),
-             _masked(ag, slot, held, 3))
+             _masked(ag, slot, held, _DIVIDE_PARTS.index("window")))
     assert len(h1) < len(h0), "K4 occasion: the window dropped no row"
     moved = [n for n, a, b in zip(_DIVIDE_PARTS, before[1], after[1], strict=True) if a != b]
     assert moved == ["window"], ("K4: the key did not refuse on the window alone", moved)

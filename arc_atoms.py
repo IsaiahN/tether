@@ -31,6 +31,7 @@ than discovering it at 3c.
 from __future__ import annotations
 
 import sys
+from collections.abc import Mapping
 from dataclasses import replace
 from typing import Any
 
@@ -571,7 +572,9 @@ def _as_shape(v: Any, c: Ctx) -> Any:
     if isinstance(v, frozenset):
         return v
     m = getattr(c, "shapes", None) if c is not None else None
-    return m.get(v, v) if isinstance(m, dict) else v
+    # A Mapping, not only a dict: under TETHER_DIVIDE the table arrives as tether's counting view,
+    # and a dict test would go quiet on it (the reviewer 2026-10-29 r315)
+    return m.get(v, v) if isinstance(m, Mapping) else v
 
 
 def _to_shape_id(v: Any, c: Ctx) -> Any:
@@ -598,7 +601,7 @@ def _to_shape_id(v: Any, c: Ctx) -> Any:
     if not isinstance(v, frozenset):
         return v
     m = getattr(c, "shapes", None) if c is not None else None
-    if not isinstance(m, dict):
+    if not isinstance(m, Mapping):      # Mapping, as `_as_shape` (r315)
         return NOT_RESOLVED
     for pid, offsets in m.items():
         if offsets == v:

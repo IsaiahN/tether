@@ -23,6 +23,7 @@ import re
 import sys
 import time
 from collections import Counter
+from collections.abc import Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field, fields, is_dataclass
 from dataclasses import replace as _replace
@@ -2437,9 +2438,45 @@ def _same_object(landed_on: str | None, slot: str) -> bool:
 # one-flag control.
 _OBJECTIVE_DOMAIN = armflag.arm("TETHER_OBJECTIVE_DOMAIN", default=True)
 
-# 1a: the parts of Agent._divide_key, in its order, so a closed space names what moved
-_DIVIDE_PARTS = ("held", "alphabet", "epoch", "window", "row_filter", "decoder", "invented",
-                 "peers", "owner_attrs")
+# 1a: the parts of Agent._divide_key, in its order, so a closed space names what moved. The
+# decoder is not among them (1b): a cell whose rows read the table's extent carries its size.
+_DIVIDE_PARTS = ("held", "alphabet", "epoch", "window", "row_filter", "invented", "peers",
+                 "owner_attrs")
+
+# 1b: extent reads of the shape table since the process began (_DecoderView); _cannot_pay reads it
+# before and after a cell's new rows
+_EXTENT = [0]
+
+
+class _DecoderView(Mapping):
+    """1b (the reviewer 2026-10-29 r313-r315): the shape table as an evaluation reads it under
+    TETHER_DIVIDE. A read-only Mapping and never a dict, so no dict fast path reads past it. It
+    counts EXTENT reads -- a miss (through [] or get or `in`), iteration, keys / items / values,
+    len -- and not a hit: the table is append-only (arc_world.shapes asserts it), so a hit keeps
+    its answer as entries are added, and only an extent read can see them."""
+    __slots__ = ("_m",)
+
+    def __init__(self, m: dict) -> None:
+        self._m = m
+
+    def __getitem__(self, k: Any) -> Any:
+        try:
+            return self._m[k]
+        except KeyError:
+            _EXTENT[0] += 1
+            raise
+
+    def __iter__(self):
+        _EXTENT[0] += 1
+        return iter(self._m)
+
+    def __len__(self) -> int:
+        _EXTENT[0] += 1
+        return len(self._m)
+
+    def size(self) -> int:
+        """The table's size for a stamp or a key -- the agent's read, not an evaluation's."""
+        return len(self._m)
 
 
 def _divide_cause(old: tuple, new: tuple) -> str:
@@ -8546,14 +8583,10 @@ class Agent:
         key = ("rec", slot, id(state))
         hit = self._frame_cache.get(key)
         if hit is not None and hit[0] is state:
+            if len(hit) > 2 and hit[2]:
+                _EXTENT[0] += 1     # 1b: the cached record's table read is this evaluation's too
             return hit[1]
-        if self._decomp_cache is None:
-            own = getattr(self.env, "slot_owner", None)
-            att = getattr(self.env, "attribute_of", None)
-            shp = getattr(self.env, "shapes", None)
-            self._decomp_cache = (own() if own else {}, att() if att else {},
-                                  shp() if shp else {})
-        owners, attrs, shapes = self._decomp_cache
+        owners, attrs, shapes = self._decomp()
         mine = owners.get(slot)
         if mine is None:
             self._frame_cache[key] = (state, None)
@@ -8568,14 +8601,29 @@ class Agent:
         # the frozenset would compare a set against a table of ints and read FALSE in silence.
         # Two quantities, two keys -- check 5, at the one site where merging them is tempting
         # because they name the same thing.
-        cells = shapes.get(rec.get("shape"))
+        e0 = _EXTENT[0]
+        sid = rec.get("shape")
+        # 1b: no id is no lookup (None is never a key, so it could never become a hit)
+        cells = shapes.get(sid) if sid is not None or not _DIVIDE else None
         if cells is not None:
             rec["structure"] = cells
         # SHARED, AND EVERY CONSUMER IS READ-ONLY -- checked rather than assumed: the eight
         # `_extract` atoms, `_area`, `_centroid` and `_touch_n` all `.get`/index and none
         # assigns. A mutating consumer would make this a defect, not a speedup.
-        self._frame_cache[key] = (state, rec)
+        self._frame_cache[key] = ((state, rec, _EXTENT[0] != e0) if _DIVIDE else (state, rec))
         return rec
+
+    def _decomp(self) -> tuple:
+        """The frame's (owners, attributes, shape table), read once per frame. 1b: under
+        TETHER_DIVIDE the table is handed out as a _DecoderView, so a read of its extent is seen."""
+        if self._decomp_cache is None:
+            own = getattr(self.env, "slot_owner", None)
+            att = getattr(self.env, "attribute_of", None)
+            shp = getattr(self.env, "shapes", None)
+            tbl = shp() if shp else {}
+            self._decomp_cache = (own() if own else {}, att() if att else {},
+                                  _DecoderView(tbl) if _DIVIDE and shp else tbl)
+        return self._decomp_cache
 
     def _group(self, slot: str, state: dict) -> tuple:
         """The outer stream for one slot: this attribute's values on the other objects."""
@@ -10957,24 +11005,19 @@ class Agent:
         arc_world.shapes), `_invented` by its length (append-only, one writer), the slot's peers and
         its owner's published attributes (re-read from the frame every step and applied to old rows
         by `_group` / `_record`). From `history`: the break window and the D5 row filter. An
-        objective's domain draws its ties per cycle, so an OBJ term's cell carries its cycle."""
-        if self._decomp_cache is None:
-            own = getattr(self.env, "slot_owner", None)
-            att = getattr(self.env, "attribute_of", None)
-            shp = getattr(self.env, "shapes", None)
-            self._decomp_cache = (own() if own else {}, att() if att else {},
-                                  shp() if shp else {})
+        objective's domain draws its ties per cycle, so an OBJ term's cell carries its cycle.
+        1b: the decoder is not in it -- a cell whose rows read the table's extent carries the
+        size it was read at (`_cannot_pay`), and every other cell cannot see the table grow."""
         if self._peer_cache is None:
             fn = getattr(self.env, "peers", None)
             self._peer_cache = fn() if fn is not None else {}
-        owners, attrs, _shp = self._decomp_cache
+        owners, attrs, _shp = self._decomp()
         mine = owners.get(slot)
         mine_attrs = (frozenset((s, attrs.get(s)) for s, o in owners.items() if o == mine)
                       if mine is not None else frozenset())
         return (held, self.alphabet.get(slot), self._trace_epoch,
                 self._window_at if _BREAK_WINDOW else 0, self._row_filter.get(slot),
-                len(self._shapes_now() or ()) if _SHAPE_DECODE else 0, len(self._invented),
-                tuple(self._peer_cache.get(slot, ())), mine_attrs)
+                len(self._invented), tuple(self._peer_cache.get(slot, ())), mine_attrs)
 
     def _divide_open(self, slot: str, tri: tuple, kind: tuple, base: float, units: tuple):
         """1a: the gap's space for this searching mint -- a kind change closes it (a different
@@ -11096,8 +11139,15 @@ class Agent:
         if c != self.cycle:
             f = getattr(self.env, "shapes", None)
             m = f() if f is not None else None
+            if _DIVIDE and m is not None:
+                m = _DecoderView(m)     # 1b: an evaluation's extent reads are seen
             self._shape_cache = (self.cycle, m)
         return m
+
+    def _decoder_size(self) -> int:
+        """The shape table's size for a key or a stamp, read without counting as an extent read."""
+        m = self._shapes_now()
+        return m.size() if isinstance(m, _DecoderView) else len(m or ())
 
     @staticmethod
     def _slot_types(env) -> dict[str, str]:
@@ -11406,14 +11456,19 @@ class Agent:
         ref, was = None, None
         if _DIVIDE:
             self._dv_answered = False
+            e0 = _EXTENT[0]
         if cell is not None:
             seen = cell.get(term)
             if seen is None and prev:
                 seen = prev.pop(term, None)
                 if seen is not None:
                     cell[term] = seen   # touched again: it lives in this walk's generation
-            if _DIVIDE and seen is not None and seen[3] is not None and seen[3] != self.cycle:
-                seen = None             # an objective's domain draws its ties per cycle (_domain)
+            if _DIVIDE and seen is not None and (
+                    (seen[3] is not None and seen[3] != self.cycle)
+                    or (seen[5] is not None and seen[5] != self._decoder_size())):
+                # an objective's domain draws its ties per cycle (_domain); 1b: rows that read the
+                # shape table's extent were read at a size the table has since left
+                seen = None
             if seen is not None:
                 start, wrong = seen[0], seen[1]
                 if _DIVIDE:
@@ -11458,18 +11513,21 @@ class Agent:
                             ref = i
             if cost + unit * wrong >= base:
                 if cell is not None:
-                    cell[term] = (self._divide_cell(term, i + 1, wrong, ref, start, was) if _DIVIDE
-                                  else (i + 1, wrong))
+                    cell[term] = (self._divide_cell(term, i + 1, wrong, ref, start, was, e0)
+                                  if _DIVIDE else (i + 1, wrong))
                 return True          # `wrong` only grows; the rest of R adds nothing
         if cell is not None:
-            cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was) if _DIVIDE
-                          else (len(robs), wrong))
+            cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was, e0)
+                          if _DIVIDE else (len(robs), wrong))
         return False
 
-    def _divide_cell(self, term: Term, rows: int, wrong: int, ref, start: int, was) -> tuple:
+    def _divide_cell(self, term: Term, rows: int, wrong: int, ref, start: int, was,
+                     e0: int) -> tuple:
         """1a: the cell `_cannot_pay` stores, and this mint's divide counts for it: rows evaluated
         now beside rows the record avoided, whether an earlier mint of the gap wrote it (m1's
-        carried), and whether it was eliminated before and the new base reopened it."""
+        carried), and whether it was eliminated before and the new base reopened it. 1b: the
+        sixth field is the shape table's size when any of its rows read the table's extent (now,
+        or before -- a stale stamp never reaches here, `_cannot_pay` recomputes it), else None."""
         dv = self._dv
         if dv is not None and rows > start:
             dv["priced_now"] += 1
@@ -11480,9 +11538,10 @@ class Agent:
                     dv["carried"] += 1
                 if was[2] is not None:
                     dv["terms_reopened"] += 1
+        read = _EXTENT[0] != e0 or (was is not None and was[5] is not None)
         return (rows, wrong, ref,
                 self.cycle if getattr(term, "out_type", "val") == OBJ_TYPE else None,
-                dv["mint"] if dv is not None else 0)
+                dv["mint"] if dv is not None else 0, self._decoder_size() if read else None)
 
     def _out_of_step_range(self, term: Term, slot: str, state: dict, actual: int) -> bool:
         """P6: `_cannot_pay` needs a BOOLEAN and `objective_step` computes a VALUE.
@@ -15980,7 +16039,7 @@ class Agent:
                      tuple(sorted(self.gamma.library)), tuple(sorted(u.name for u in _units)),
                      tuple(streams),
                      json.dumps(gap, sort_keys=True, default=str),
-                     len(self._shapes_now() or ()) if _SHAPE_DECODE else 0,
+                     self._decoder_size() if _SHAPE_DECODE else 0,
                      self._guard_scope(slot, robs, operand_binds))
             _hit = self._frontier_lookup(slot, _skey) if _RESUME else None
             priced: dict = dict(_hit[1]) if _hit else {}
