@@ -48,6 +48,8 @@ def _rows(ag: tether.Agent, n0: int, event: str) -> list:
 
 
 def check_a_one_exhausting_mint_then_owed_first() -> None:
+    """OFF path: owed first, 1d OFF (TETHER_OWED_REJUDGE=0). ON, the step's mints go by
+    _understanding: test_owed_rejudge check_h_on_first_mint_by_rank."""
     ag = _agent()
     three = [s for s in sorted(ag.slots) if s not in getattr(ag, "_own_now", ())][:3]
     assert len(three) == 3, three
@@ -58,9 +60,10 @@ def check_a_one_exhausting_mint_then_owed_first() -> None:
         ag._mint_exhausted = True                  # every mint stops at its bound
     ag.mint = fake_mint
     ag.route = lambda _res: [(s, tether.MECHANISM, None, "test") for s in three]
-    keep = tether._STEP_MINT
+    keep, keep_r = tether._STEP_MINT, tether._OWED_REJUDGE
     try:
         tether._STEP_MINT = True
+        tether._OWED_REJUDGE = False     # B1's owed-first order; 1d (r281) replaces it by rank
         c0, n0 = ag.cycle, len(ag.led.rows())
         ag.step()
         first = [s for c, s in calls if c == c0 and s in three]
@@ -76,7 +79,7 @@ def check_a_one_exhausting_mint_then_owed_first() -> None:
         second = [s for c, s in calls if c == c1 and s in three]
         assert second and second[0] in three[1:], second      # an owed slot is minted first
     finally:
-        tether._STEP_MINT = keep
+        tether._STEP_MINT, tether._OWED_REJUDGE = keep, keep_r
 
 
 def _loop_exhausted(ag: tether.Agent, n0: int) -> dict:
@@ -154,6 +157,7 @@ def check_d_must_hold_nothing_exhausts_on_equals_off() -> None:
     diff = [i for i, (a, b) in enumerate(zip(on, off, strict=True)) if a != b]
     assert not diff, [(i, on[i][:300], off[i][:300]) for i in diff[:3]]
     assert len(on) > 0, "no rows: vacuous"
+    print(f"     {len(on)} rows ON, {len(off)} rows OFF, equal")
 
 
 def _decorated(src: str) -> dict:

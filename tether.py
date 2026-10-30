@@ -833,6 +833,13 @@ _OBJ_ID = re.compile(r"\bo\d+\b")     # the step clock (r264): an object id in a
 # after the ACCEPT loop share B1's stop -- once a mint this step stopped at a bound, the remaining
 # derived asks are OWED (never marked tried) and asked first next step. ON; conform/arms.py
 _STEP_DERIVED = armflag.arm("TETHER_STEP_DERIVED", default=True)
+# 1d OWED_REJUDGE (the reviewer 2026-10-28 r281, corrected 2026-10-29 r326 Option A; Fig 11 :51,
+# Fig 3): each owed derived ask is re-read against the current frame -- released, with its reason,
+# when no longer derived, when it wants, or when none of its SOURCES has outstanding > 0; newer
+# evidence replaces its stored transition. The step's mints go by _understanding (A1 ties), and the
+# derived asks (rank 0) after them by A1 -- never owed-first or code order. The releases
+# need TETHER_STEP_DERIVED (asks are owed only under it). ON; conform/arms.py
+_OWED_REJUDGE = armflag.arm("TETHER_OWED_REJUDGE", default=True)
 # 5, THE ARRIVAL GAP (the reviewer 2026-10-28 r283; Fig 5 :4-5, Fig 11 :73): at a frame the agent
 # did not press for, the frame it held is scored against the one that arrived; above every
 # ordinary no-press reading this life it is a break, appearance only corroborating. ON;
@@ -856,9 +863,36 @@ _DIVIDE = armflag.arm("TETHER_DIVIDE", default=True)
 # 1a CREDIT (the reviewer 2026-10-29 r312 ask 3; Fig 12 :108, Fig 6 :50): a closure chain this gap's
 # kind had already met, re-met with no row evaluated and no term reaching the bargain, is a lookup,
 # and its yield is credited back to enumerate_closure's budget, so the same budget reaches chains
-# never met. Its cost is in the other currency (wall), read apart. Needs TETHER_DIVIDE. ON;
-# conform/arms.py
-_DIVIDE_CREDIT = armflag.arm("TETHER_DIVIDE_CREDIT", default=True)
+# never met. Its cost is in the other currency (wall), read apart. Needs TETHER_DIVIDE. OFF since
+# (a2) (Isaiah 2026-10-29 15:50 "you can switch off credit"; r344, r355): the yield is refunded
+# but not the work. conform/arms.py
+_DIVIDE_CREDIT = armflag.arm("TETHER_DIVIDE_CREDIT", default=False)
+# 1b ASK (the reviewer 2026-10-29 r279, r322, r325; Fig 9 :38, Fig 5 :12): DISTINGUISH aimed at the
+# survivors of the one gap _understanding ranks first -- the agent hands the interface how each
+# press would split them, and the interface takes the press whose largest block is smallest. Needs
+# TETHER_DIVIDE (the survivors are its record). ON; conform/arms.py
+_ASK = armflag.arm("TETHER_ASK", default=True)
+# 1b's S1 RE-PRICED ON READ (the reviewer 2026-10-29 r346, r347, r349, r350): a cell under the bar
+# charged on fewer residual rows than its gap now holds is charged on the rows it missed, by the
+# bound's one row test, before 1b counts it a survivor; eligibility is lazy in rank order. OFF
+# restores the stale-S1 asks -- a measuring setting, not a safe one. ON; conform/arms.py
+_S1_REPRICE = armflag.arm("TETHER_S1_REPRICE", default=True)
+# 1c STOP_RULES (the reviewer 2026-10-29 r325, r327, r337; Fig 5 :10-14, Fig 9 :42): read from 1a's
+# space after each step -- HELD (one survivor with a risky settle: the gap leaves 1b), MECHANISM
+# BROKEN (the survivors ran out: the slot owes), SPLIT REFUSED (1b abstained: the gap's owner joins
+# the probe's aim). They stop asking and never bind. Needs TETHER_ASK. ON; conform/arms.py
+_STOP_RULES = armflag.arm("TETHER_STOP_RULES", default=True)
+# 1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 :134-139, Fig 9 :4-5, Fig 8
+# :39-42): when 1c finds no survivor, a remainder row names what is left -- two of the last
+# survivors whose charged rows are disjoint (several questions), the gap's kind, and the reach the
+# gap's last mint proved, in the mint's own words. Record only: nothing reads it. Needs
+# TETHER_STOP_RULES. ON; conform/arms.py
+_NAMED_REMAINDER = armflag.arm("TETHER_NAMED_REMAINDER", default=True)
+# 4 PLAN_NARROW (the reviewer 2026-10-29 r325 ASK 3, r365; Fig 12 :127): the planner compiles the
+# shelf-won texts first and the rest only if they yield no pick -- what the life learned ranks and
+# cuts the work, never widens it. Exact: the same pick. The goal_hypotheses row says how many were
+# compiled and left. ON; conform/arms.py
+_PLAN_NARROW = armflag.arm("TETHER_PLAN_NARROW", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -2970,6 +3004,8 @@ class Agent:
         self._want_only = False     # E0-W: this mint writes a want and never binds
         self._dw_tried: dict = {}   # E0-W: derived slot -> the transitions held at its asks
         self._dw_owed: dict = {}    # B2: derived slot -> (first deferred cycle, its transition)
+        self._dw_seen: Counter = Counter()   # 1d: derived slot -> asks run (A1's learning reading)
+        self._mint_seen: Counter = Counter()   # 1d: slot -> step mints run (A1's learning reading)
         # R4: the keys each admitted memo has been asked once (kept across a boundary clear)
         self._hits0: dict = dict(_INDEX_N)    # R4's hit counter is read as this agent's deltas
         self._seen_keys: dict = {m: set() for m in ("reach_index", "compile", "fold", "verdicts",
@@ -3163,6 +3199,17 @@ class Agent:
         self._kind_space: dict = {}     # 1a: gap kind -> chains met, costs under (code, units)
         self._dv: dict | None = None    # 1a: this mint's divide counts, None outside a walk
         self._dv_answered = False       # 1a: the last _cannot_pay refused on its record alone
+        self._ask_n: Counter = Counter()  # 1b: asks aimed at each slot, A1's learning reading
+        self._ask_cyc: tuple = (None, None)   # 1b: (cycle, this cycle's aimed ask)
+        self._ask_abstained: tuple | None = None   # 1b: (slot, survivors) when no press split
+        self._repriced: tuple = (0, 0, 0.0, 0)  # 1b: the last S1 read's (cells, rows, secs, hits)
+        self._reprice_memo: dict = {}  # 1b: slot -> ((tally key, decoder size), term -> charges)
+        self._stop: dict = {}           # 1c: slot -> the stop rule it is in (held / none_survive)
+        self._last_surv: dict = {}      # 1c: slot -> ({survivor: bound}, bar) at its last survivors
+        self._risky: dict = {}          # 1c: (slot, term) -> the key of its last risky settle
+        self._split_aim: dict = {}      # 1c (iii): refused gap -> (owner readings, refusal key)
+        self._split_spent: dict = {}    # 1c (iii): gap -> the refusal key its aim was spent on
+        self._split_probed: dict = {}   # 1c (iii): gap -> owner readings at the probe's press
         self._trace_epoch = 0
         # (ctx, intent, slot, the discrepancy it was met at) -> times that pair undid it.
         # ISAIAH, 2026-09-29: a goal met then un-met is "data similar to actions becoming
@@ -3635,6 +3682,10 @@ class Agent:
             self._memo_sizes(f"end:{how}")      # R4: the memos' sizes at the run's end
         if _DIVIDE:
             self._divide_end()                  # 1a: the spaces end with the run, never saved
+        if _OWED_REJUDGE:
+            for d, ct in sorted(self._dw_owed.items()):   # 1d: still outranked at the game's end
+                self._owed_release(d, ct, "outranked")
+            self._dw_owed = {}
         flush = getattr(self.led, "flush_tally", None)
         if flush is not None:
             flush(self.cycle)        # the choice tally: repeats written outside a step
@@ -3911,6 +3962,13 @@ class Agent:
         self._rk_bound = None                        # (6c): bound again on the new board
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
         self._dw_tried = {}
+        if _OWED_REJUDGE:
+            for d, ct in sorted(self._dw_owed.items()):   # 1d: each one released, recorded
+                self._owed_release(d, ct, "level end")
+            self._dw_seen, self._mint_seen = Counter(), Counter()   # slot names do not cross
+        if _STOP_RULES:
+            self._stop, self._last_surv, self._risky = {}, {}, {}
+            self._split_aim, self._split_spent, self._split_probed = {}, {}, {}
         self._dw_owed = {}                           # B2: owed asks are slot-keyed, like tried
         # NOR WHAT WAS KEYED BY THEM, by this block's own rule: a want, a tested reach, a gap's
         # last reading or step, an undone count, each read on the next level's same NAME.
@@ -4361,6 +4419,36 @@ class Agent:
         self.led.record(self.cycle, self._running_step, slot, "derived_unbound", site=site,
                         reads="DS: a derived slot is no subject; no term is bound to it")
 
+    def _owed_why(self, d: str, der: dict) -> str | None:
+        """1d's guards, read on this frame (r326 Option A): why an owed derived ask is let go, or
+        None while it is still owed. A derived slot is never bet on, so its surprise is read
+        through its SOURCES: it is explained exactly when they are (Fig 13)."""
+        if d not in der:
+            return "not derived"
+        if d in self.wants:
+            return "wants"
+        return None if any(self.outstanding(s) > 0 for s in der[d]) else "sources explained"
+
+    def _supersedes(self, d: str, ct: tuple, t_new: tuple) -> bool:
+        """1d: the slot's newer transition replaces an owed ask's stored one -- unless it was
+        already asked, which is not new evidence (7f's tried set): carrying it would let B2's
+        deferral reopen a settled question."""
+        return t_new != ct[1] and t_new not in self._dw_tried.get(d, ())
+
+    @_in_step("MINT")
+    def _owed_release(self, d: str, ct: tuple, why: str) -> None:
+        """1d: an owed derived ask let go, with the reason and the readings it was judged on. It
+        is not marked tried, so new evidence raises it again. Its own MINT scope: a release at
+        retarget or end_run runs outside the step's MINT phase, after later steps have written
+        rows on the slot, so those go on "@owed" (as "@boundary" does), naming the ask."""
+        der = self.env.derived() if hasattr(self.env, "derived") else {}
+        at = "@owed" if why in ("level end", "outranked") else d
+        self.led.record(self.cycle, "MINT", at, "owed_released", ask=d, since=ct[0], why=why,
+                        transition=list(ct[1]), wants=d in self.wants,
+                        sources={s: round(self.outstanding(s), 4) for s in der.get(d, ())},
+                        reads="1d: an owed derived ask re-read against this frame and released "
+                              "-- recorded, never marked tried")
+
     def _derived_wants(self) -> None:
         """E0-W: each declared-derived slot that moved this step and wants nothing is minted for
         its objective alone, so it is wanted as before E0 and never bound, bet or charged."""
@@ -4373,7 +4461,26 @@ class Agent:
         b2 = ({"run": 0, "deferred": 0, "dropped": 0, "stop": self._dw_stop, "wall": 0.0}
               if _STEP_DERIVED else None)
         owed: dict = {}
-        if b2 is not None and self._dw_owed:
+        released: set = set()        # 1d: judged on this frame; only a later one re-raises
+        if b2 is not None and self._dw_owed and _OWED_REJUDGE:
+            for d, ct in sorted(self._dw_owed.items()):   # 1d: re-read against this frame
+                why = self._owed_why(d, der)
+                if why is not None:
+                    self._owed_release(d, ct, why)
+                    released.add(d)
+                    b2["dropped"] += 1
+                    continue
+                if before.get(d) is not None and after.get(d) not in (None, before[d]):
+                    t_new = (before[d], self.trace[-1][1], after[d])
+                    if self._supersedes(d, ct, t_new):   # newer evidence replaces the stored one
+                        self.led.record(self.cycle, "MINT", d, "owed_superseded",
+                                        since=ct[0], was=list(ct[1]), now=list(t_new),
+                                        reads="1d: the slot moved again; the ask carries the "
+                                              "newer transition")
+                        ct = (ct[0], t_new)
+                owed[d] = ct
+            self._dw_owed = {}
+        elif b2 is not None and self._dw_owed:
             for d, ct in sorted(self._dw_owed.items()):   # still due, or dropped and counted
                 if d in der and d not in self.wants:
                     owed[d] = ct
@@ -4381,7 +4488,13 @@ class Agent:
                     b2["dropped"] += 1
             self._dw_owed = {}
         order = sorted(der)
-        if owed:
+        if _OWED_REJUDGE:
+            # 1d: every derived ask ranks 0 (its own _understanding), so A1 orders them, owed and
+            # fresh alike: fewer asks run first, then the recorded draw
+            drawn = {s: i for i, s in enumerate(FR.draw_order(order, f"{self.cycle}:derived",
+                                                              self.draw_seed))}
+            order = sorted(order, key=lambda s: (self._dw_seen[s], drawn[s]))
+        elif owed:
             order = sorted(order, key=lambda s: s not in owed)   # owed first, stable
         for d in order:
             cap.head()
@@ -4390,7 +4503,8 @@ class Agent:
                 t = owed[d][1]
                 self._dw_tried.setdefault(d, set()).add(t)
             else:
-                if d in self.wants or before.get(d) is None or after.get(d) in (None, before[d]):
+                if (d in self.wants or d in released or before.get(d) is None
+                        or after.get(d) in (None, before[d])):
                     continue
                 t = (before[d], self.trace[-1][1], after[d])   # 7f: asked again on new evidence
                 if t in self._dw_tried.setdefault(d, set()):
@@ -4435,6 +4549,8 @@ class Agent:
                 self.mint(d)
             finally:
                 self._want_only = False
+            if _OWED_REJUDGE:
+                self._dw_seen[d] += 1            # 1d: A1's learning reading, turns taken
             if b2 is not None:
                 b2["wall"] += time.perf_counter() - t0
                 b2["run"] += 1
@@ -6786,7 +6902,7 @@ class Agent:
         proposal writes the goal_hypotheses row it would have written, with pick None and capped
         {at, checked, unreached}, "unreached at this budget"; never _hyp_exhausted, never System 0's
         why. Then the cut goes on to step."""
-        n0, self._hyp_open = self._hyp_n, None
+        n0, self._hyp_open, self._hyp_phases = self._hyp_n, None, 0
         try:
             return self._hyp_propose_body(before)
         except cap.CapReached:
@@ -6795,7 +6911,8 @@ class Agent:
             self.led.record(self.cycle, "PLAN", "@goal", "goal_hypotheses", pick=None,
                             why="unreached at this budget",
                             capped={"at": "goal_hypothesis", "checked": checked,
-                                    "unreached": None if opened is None else opened - checked})
+                                    "unreached": None if opened is None else opened - checked,
+                                    **({"phases": self._hyp_phases} if _PLAN_NARROW else {})})
             raise
 
     def _hyp_propose_body(self, before: dict) -> None:
@@ -6839,62 +6956,79 @@ class Agent:
                  if _OWN_CLOCK_SUBJECT else None)
         if clock is not None and not clock:
             OWN_CLOCK_N["empty"] += 1
-        for text, s in src.items():
-            cap.head()
-            if routable_slots is not None:
-                named = _SLOT_IN_TEXT.findall(text) if "(" not in text else ()
-                if (named and all(n in before and n.rsplit(".", 1)[1]
-                                  not in compile_term.CHANGE_OF for n in named)
-                        and not any(n in routable_slots for n in named)):
-                    HYP_ROUTE_FIRST_N["dropped"] += 1
-                    if not _HYP_ROUTE_FIRST_CHECK:
-                        refused["route first: no slot of it has an entry"] += 1
-                        continue
-                    would_drop.add(text)
+        # 4 PLAN_NARROW (r325 ASK 3, r365): the shelf-won texts are known before compiling, and
+        # every won group ranks above every other; compile them first and the rest only if they
+        # yield no pick -- the same pick, by construction. OFF, or nothing won: one phase, as before
+        won_src = ({t: k for t, k in src.items()
+                    if self._goal_shelf.get(k, {}).get("record", {}).get("won", 0)}
+                   if _PLAN_NARROW else {})
+        phases = ([won_src, {t: k for t, k in src.items() if t not in won_src}]
+                  if won_src and len(won_src) < len(src) else [src])
+        compiled = [0]
+
+        def _admit(items: dict) -> list:
+            out = []
+            for text, s in items.items():
+                cap.head()
+                if routable_slots is not None:
+                    named = _SLOT_IN_TEXT.findall(text) if "(" not in text else ()
+                    if (named and all(n in before and n.rsplit(".", 1)[1]
+                                      not in compile_term.CHANGE_OF for n in named)
+                            and not any(n in routable_slots for n in named)):
+                        HYP_ROUTE_FIRST_N["dropped"] += 1
+                        if not _HYP_ROUTE_FIRST_CHECK:
+                            refused["route first: no slot of it has an entry"] += 1
+                            continue
+                        would_drop.add(text)
+                    else:
+                        HYP_ROUTE_FIRST_N["kept"] += 1
+                compiled[0] += 1
+                c = self._compile_cache.get(text)
+                if c is None:
+                    c = self._compile_cache[text] = compile_term.compile_candidate(
+                        {"condition": text}, atoms)
+                if isinstance(c, compile_term.Refusal):
+                    refused[c.reason] += 1
+                    continue
+                if c.slot not in before:
+                    in_slots = True                 # unread: "not in before" refuses first
+                elif slot_set is None:
+                    in_slots = c.slot in self.slots
                 else:
-                    HYP_ROUTE_FIRST_N["kept"] += 1
-            c = self._compile_cache.get(text)
-            if c is None:
-                c = self._compile_cache[text] = compile_term.compile_candidate(
-                    {"condition": text}, atoms)
-            if isinstance(c, compile_term.Refusal):
-                refused[c.reason] += 1
-                continue
-            if c.slot not in before:
-                in_slots = True                 # unread: "not in before" refuses first
-            elif slot_set is None:
-                in_slots = c.slot in self.slots
-            else:
-                in_slots = c.slot in slot_set
-                HYP_SLOTSET_N["asked"] += 1
-                if _HYP_SLOTSET_CHECK:
-                    assert in_slots == (c.slot in self.slots), \
-                        "TETHER_HYP_SLOTSET_CHECK: the set and the list differ"
-                    HYP_SLOTSET_N["checked"] += 1
-            if c.slot not in before or not in_slots or c.slot in der:
-                refused["subject not a movable slot"] += 1
-                continue
-            if clock and clock & self._named_slots(text, c):
-                OWN_CLOCK_N["refused"] += 1
-                refused["the own clock moves it"] += 1     # time can make it hold, either side
-                continue
-            if _GOAL_HYP and self._self_moving(
-                    c.slot, _smw.setdefault(c.slot, {}) if _R4_RECORD else None):
-                refused["self-moving subject"] += 1     # a clock; it may still be an operand
-                continue
-            if compile_term.run(c, before) is not False:
-                refused["holds now or unreadable"] += 1
-                continue
-            tk = (tpl.get(text, text), c.slot, c.operand)
-            if tk in self._hyp_tried:
-                refused["tried this level"] += 1
-                continue
-            won = self._goal_shelf.get(s, {}).get("record", {}).get("won", 0) if s else 0
-            bits = term_bits(self.gamma.length(c.term), self.gamma.alphabet)
-            cands.append(((0 if won else 1, round(bits, 6)), text, c, tk, s))
+                    in_slots = c.slot in slot_set
+                    HYP_SLOTSET_N["asked"] += 1
+                    if _HYP_SLOTSET_CHECK:
+                        assert in_slots == (c.slot in self.slots), \
+                            "TETHER_HYP_SLOTSET_CHECK: the set and the list differ"
+                        HYP_SLOTSET_N["checked"] += 1
+                if c.slot not in before or not in_slots or c.slot in der:
+                    refused["subject not a movable slot"] += 1
+                    continue
+                if clock and clock & self._named_slots(text, c):
+                    OWN_CLOCK_N["refused"] += 1
+                    refused["the own clock moves it"] += 1     # time can make it hold, either side
+                    continue
+                if _GOAL_HYP and self._self_moving(
+                        c.slot, _smw.setdefault(c.slot, {}) if _R4_RECORD else None):
+                    refused["self-moving subject"] += 1     # a clock; it may still be an operand
+                    continue
+                if compile_term.run(c, before) is not False:
+                    refused["holds now or unreadable"] += 1
+                    continue
+                tk = (tpl.get(text, text), c.slot, c.operand)
+                if tk in self._hyp_tried:
+                    refused["tried this level"] += 1
+                    continue
+                won = self._goal_shelf.get(s, {}).get("record", {}).get("won", 0) if s else 0
+                bits = term_bits(self.gamma.length(c.term), self.gamma.alphabet)
+                out.append(((0 if won else 1, round(bits, 6)), text, c, tk, s))
+            return out
+
+        cands = _admit(phases[0])
         cands.sort(key=lambda x: x[0])
         ranked_all = list(cands)                # the pick's rank is read against this order
         self._hyp_open = len(cands)              # C1 item 1: a cut's record counts against it
+        self._hyp_phases, pending = 1, phases[1:]
         routable = 0
         detail = {"candidates": len(src), "open": len(cands), "refused": dict(refused),
                   "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][1],
@@ -6904,7 +7038,16 @@ class Agent:
         pick = None
         checked = 0
         group_n = None
-        while cands and pick is None:
+        while pick is None:
+            if not cands:
+                if not pending:
+                    break
+                cands = _admit(pending.pop(0))  # 4: the won group held no route; the rest now
+                cands.sort(key=lambda x: x[0])
+                ranked_all += cands
+                self._hyp_open += len(cands)
+                self._hyp_phases += 1
+                continue
             cap.head()
             group = [x for x in cands if x[0] == cands[0][0]]
             cands = cands[len(group):]
@@ -6965,6 +7108,9 @@ class Agent:
         if pick is None:
             pick = self._hyp_pair(before, detail)
         detail.update(checked=checked, refused=dict(refused))
+        if _PLAN_NARROW:
+            detail.update(compile_reads=compiled[0], not_admitted=sum(len(p) for p in pending),
+                          phases=self._hyp_phases, wall_s=round(time.perf_counter() - t0, 4))
         if _HYP_DRAW:              # its wall time and the size of the group it stopped in
             detail.update(wall_s=round(time.perf_counter() - t0, 4), group_n=group_n)
         if pick is None:
@@ -11143,6 +11289,384 @@ class Agent:
                         slot_record=len(cells), kind_record=len(dv["krec"]["met"]),
                         reads="1a: this mint against its gap's carried record")
 
+    def _survivors(self, slot: str) -> list:
+        """S1, BARGAIN-SHAPED (the reviewer 2026-10-29 r327, r312's round trip): the terms priced on
+        this gap, in valid cells under the current key and stamps, whose record does NOT prove they
+        cannot pay at the CURRENT bar -- the stored bound (the cost each was priced at + unit x the
+        rows charged on the rows it covers) still below it, _cannot_pay's own lemma. A term wrong
+        on a row may still be the best there is (Fig 9 :40). Ranked by deficit, lowest first.
+        r346, r347: read on a CURRENT record -- the bounds re-priced on read (_space_bounds)."""
+        got = self._space_bounds(slot, "reprice" if _S1_REPRICE else "stale")
+        return [] if got is None else self._s1_of(*got)
+
+    def _space_survivors(self, slot: str) -> list | None:
+        """1c: S1 on a CURRENT record (re-priced on read, r346), else None where the record cannot
+        judge (no space, a moved key) -- so 1c (ii) tells 'none survive' from 'cannot say'."""
+        got = self._space_bounds(slot, "reprice")
+        return None if got is None else self._s1_of(*got)
+
+    @staticmethod
+    def _s1_of(bounds: list, bar: float) -> list:
+        """S1 from a space's bounds: each term with a bound under the bar, by deficit."""
+        out = {}
+        for t, bound in bounds:
+            if bound < bar:
+                out[t] = bound - bar
+        return sorted(out, key=lambda t: (out[t], t.name))
+
+    @staticmethod
+    def _none_cause(prev: dict, low: dict, bar_before: float) -> str:
+        """1c (ii), r339, r340: 'bound' when a last survivor's bound rose to the bar it last
+        survived under -- the ground's charge alone would have removed it (Fig 5 :14); 'stale'
+        when no last survivor's cell is still valid (P2 at the survivor grain); else 'bar': the
+        cut moved (Fig 9 :40-41). Read on re-priced bounds, so over the gap's current rows."""
+        if not any(n in low for n in prev):
+            return "stale"
+        return "bound" if any(n in low and low[n] >= bar_before for n in prev) else "bar"
+
+    def _space_bounds(self, slot: str, mode: str) -> tuple | None:
+        """([(term, bound)] over the gap's valid cells in the record's order, the bar), or None
+        where the record cannot judge: no space, or a moved key (r347 (b), P2). "stale": the
+        stored bounds as they are, an upper set since charges only add. "reprice" (r346,
+        r347): a cell under the current bar that was charged on fewer residual rows than the
+        gap now holds -- the residual list only extends while the key holds -- is charged ON
+        READ on exactly the rows it missed, by _cannot_pay's own row test; the record is not
+        rewritten. A cell already at or above the bar is out either way. r350: the charges on
+        the missed rows are kept per cell across cycles and served while the cell, the residual
+        list's length, the tally key and the decoder size are all unchanged (_reprice_hit)."""
+        self._repriced = (0, 0, 0.0, 0)
+        if not _DIVIDE or slot not in self._space:
+            return None
+        seen = self._tally.get(slot)
+        held = self.gamma.library[self.bound.get(slot, IDN)]
+        if seen is None or seen[0] != self._divide_key(slot, held):
+            return None
+        t0, robs, cells_n, rows_n, hits = time.perf_counter(), None, 0, 0, 0
+        bar = self._bar(slot, held)
+        unit, size, out = math.log2(self.alphabet[slot]), None, []
+        for cells in (seen[1], seen[2]):
+            for t, c in cells.items():
+                if len(c) < 7 or (c[3] is not None and c[3] != self.cycle):
+                    continue
+                if c[5] is not None:
+                    size = self._decoder_size() if size is None else size
+                    if c[5] != size:
+                        continue
+                bound = c[6] + unit * c[1]
+                if mode == "reprice" and bound < bar:
+                    if robs is None:
+                        robs = self._residual_obs(slot, held, self.history(slot))
+                        memo = self._reprice_memo.get(slot)
+                        mkey = (seen[0], self._decoder_size())
+                        if memo is None or memo[0] != mkey:
+                            memo = self._reprice_memo[slot] = (mkey, {})
+                    if c[0] > len(robs):
+                        return None             # the list shrank under the key: cannot judge
+                    if c[0] < len(robs):
+                        hit = memo[1].get(t)
+                        if self._reprice_hit(hit, c, len(robs)):
+                            k, hits = hit[2], hits + 1
+                        else:
+                            miss = robs[c[0]:]
+                            k = sum(1 for row in miss if self._row_wrong(t, slot, row))
+                            memo[1][t] = (c, len(robs), k)
+                            cells_n, rows_n = cells_n + 1, rows_n + len(miss)
+                        bound += unit * k
+                out.append((t, bound))
+        self._repriced = (cells_n, rows_n, time.perf_counter() - t0, hits)
+        return out, bar
+
+    @staticmethod
+    def _reprice_hit(hit: tuple | None, cell: tuple, n: int) -> bool:
+        """r350: a kept charge is served only for the SAME cell (a rewrite is a new tuple) over
+        the same residual list length, the list only extending under the key."""
+        return hit is not None and hit[0] is cell and hit[1] == n
+
+    def _row_wrong(self, term: Term, slot: str, row: tuple) -> int:
+        """THE bound's row test, one definition for _cannot_pay and 1b's re-price on read (r349):
+        0 the term is right on the row; 1 charged, refuting nothing (inapplicable, an unreadable
+        operand, unresolved); 2 charged and REFUTED there (out of its step range, or wrong)."""
+        state, action, actual, intent, landed = row
+        # `_ops` was called TWICE per row here -- once to test for None and again to
+        # build the Ctx -- while `_left` next door hoists it. Pure function of
+        # (term, state), so hoisting is exact; it halves the hottest callee in the
+        # profile. Nest rather than chain, or the hoist just moves the double call onto
+        # `_applies`.
+        if not self._applies(term, state):
+            return 1                                  # inapplicable is unexplained
+        if self._out_of_step_range(term, slot, state, actual):
+            return 2                                  # P6: no reachable value equals `actual`
+        ops = self._ops(term, state)
+        if ops is None:
+            return 1                                  # unreadable operand is unexplained
+        got = self._value_of(term, slot, state,
+                             self._eval_ctx(slot, state, action=action, operands=ops,
+                                            intent=intent, landed=landed,
+                                            guard_ref=term.guard_ref))
+        if got is NOT_RESOLVED:
+            return 1
+        return 2 if got % self.alphabet[slot] != actual % self.alphabet[slot] else 0
+
+    def _bar(self, slot: str, held: Term) -> float:
+        """The bar a challenger pays against now: mint's base (:_accumulated) with the seal's held
+        cost added where the held rule reads an earlier frame -- the same lines as mint's."""
+        base = self._accumulated(slot, held)
+        if _UNSEAL_START and lag_of(held.operand) is not None and any(
+                self._no_earlier_frame(held, r[0]) for r in self.history(slot)):
+            base += self._bits((held, self._units_for(slot)))
+        return base
+
+    def _predict_with(self, term: Term, slot: str, state: dict, action: str):
+        """`_predict`'s reading for any term: its value of `slot` after `action` from `state`, in
+        the slot's code, or None where it cannot read."""
+        if not self._applies(term, state):
+            return None
+        ops = self._ops(term, state)
+        if ops is None:
+            return None
+        _now = self._intent_now.kind if self._intent_now is not None else NO_INTENT
+        ctx = self._eval_ctx(slot, state, action=action, operands=ops, intent=_now,
+                             touching=self._touching(slot), landed=self._last_landed,
+                             guard_ref=term.guard_ref)
+        got = self._value_of(term, slot, state, ctx)
+        return None if got is NOT_RESOLVED else got % self.alphabet[slot]
+
+    def _ask_aimed(self, before: dict) -> tuple:
+        """1b (TETHER_ASK): this cycle's AIMED DISTINGUISH, computed once (choose and _exit_choice
+        both reach it): (realisation, gap), or (None, None) when no gap qualifies or no press
+        splits. Only the aimed ask is held for the cycle; the board-level DISTINGUISH is realised
+        at each site exactly as before, since realise records what it could not serve."""
+        if self._ask_cyc[0] != self.cycle:
+            self._ask_cyc = (self.cycle, self._ask(before))
+        return self._ask_cyc[1]
+
+    def _ask(self, before: dict) -> tuple:
+        """1b: among the open gaps with two or more survivors (S1), the ONE _understanding ranks
+        first (ties: A1) -- the table is built for that gap only (r325 (2)): each survivor's
+        prediction under each offered action, the split as block sizes; the interface takes the
+        press whose largest block is smallest, or abstains. With its "ask" row."""
+        t0 = time.perf_counter()
+        elig = {}                    # the stored (stale) S1: an upper set, charges only add
+        for s in sorted(self._space):
+            if _STOP_RULES and self._stop.get(s) == "held":
+                continue                         # 1c (i): asking has stopped on this gap
+            got = self._space_bounds(s, "stale")
+            n = len(self._s1_of(*got)) if got is not None else 0
+            if n >= 2:
+                elig[s] = n
+        if not elig:
+            return None, None
+        # r347 (a): LAZY, in rank order -- the top gap re-priced; under two survivors it is
+        # skipped with its re-priced count, and the next is re-priced
+        order, skipped, slot, sv, rp = list(elig), [], None, [], [0, 0, 0.0, 0]
+        while order:
+            pick = order[0] if len(order) == 1 else self._choice(
+                "ask", None, [(s, None, None) for s in order],
+                {s: self._understanding(s) for s in order}, {s: self._ask_n[s] for s in order})
+            sv = self._survivors(pick)
+            rp = [a + b for a, b in zip(rp, self._repriced, strict=True)]
+            if len(sv) >= 2:
+                slot = pick
+                break
+            skipped.append([pick, elig[pick], len(sv)])
+            order.remove(pick)
+        if slot is None:
+            self.led.record(self.cycle, "PLAN", "@ask", "ask_none", gaps_eligible=len(elig),
+                            skipped=skipped, repriced_cells=rp[0], repriced_rows=rp[1],
+                            reprice_s=round(rp[2], 4), reprice_hits=rp[3],
+                            reads="1b: every stored-eligible gap re-priced under two survivors "
+                                  "(r347 (a)); nothing asked")
+            return None, None
+        acts = tuple(self.actions)
+        vec = {t: tuple(self._predict_with(t, slot, before, a) for a in acts) for t in sv}
+        split = {}
+        for i, a in enumerate(acts):
+            blocks = Counter(v[i] for v in vec.values())
+            split[a] = sorted(blocks.values(), reverse=True)
+        self._ask_n[slot] += 1
+        want = IFace.Intent(IFace.DISTINGUISH, subject=slot)
+        r = self.iface.realise(want, acts, IFace.Interface.context(self.env), before, self.env,
+                               withheld=self._withheld, split=split)
+        self._ask_abstained = None if r is not None else (slot, len(sv))
+        # OFF, S1 is the stored one and every eligible gap holds its two: the 20cc52a ask, its row
+        rep = ({"stored_survivors": elig[slot], "skipped": skipped, "repriced_cells": rp[0],
+                "repriced_rows": rp[1], "reprice_s": round(rp[2], 4), "reprice_hits": rp[3]}
+               if _S1_REPRICE else {})
+        self.led.record(self.cycle, "PLAN", slot, "ask", gaps_eligible=len(elig), gap_asked=slot,
+                        survivors=len(sv), **rep, vectors=len(set(vec.values())),
+                        chosen=r.action if r is not None else None,
+                        partition=split[r.action] if r is not None else None,
+                        largest=split[r.action][0] if r is not None else None,
+                        evaluations=len(sv) * len(acts),
+                        wall_s=round(time.perf_counter() - t0, 4),
+                        reads="1b: the press that splits this gap's surviving hypotheses most "
+                              "evenly, or none")
+        if r is None and _STOP_RULES:
+            owner = slot.rsplit(".", 1)[0]
+            rkey = (self._tally[slot][0], frozenset(t.name for t in sv))
+            spent = self._split_spent.get(slot) == rkey
+            if not spent:
+                self._split_aim[slot] = (self._owner_reads(owner, before), rkey)
+            self.led.record(self.cycle, "PLAN", slot, "ask_unsplit", survivors=len(sv),
+                            vectors=len(set(vec.values())), owner=owner, spent=spent,
+                            aims=sorted(self._split_aim),
+                            reads="1c (iii): no press splits the survivors -- new: extend "
+                                  "perception, aim the probe at the gap's owner (Fig 5 :12)")
+        return r, (slot if r is not None else None)
+
+    @_in_step("MINT")
+    def _stop_rules(self) -> None:
+        """1c, read from each open space after the step (r325, r327): (i) HELD -- one survivor with
+        a risky settle on this slot under the current key: the gap leaves 1b; (ii) NONE SURVIVE --
+        the space had survivors and has none, judged only where the record is current: the slot
+        owes, and the import route refits held terms before a mint (r338). And (iii)'s aims leave
+        once probed, when their owner reads anew, or when their space closes. A stop_rule row on
+        each change of rule; nothing binds."""
+        now = self.trace[-1][2] if self.trace else {}
+        for s in list(self._stop):
+            if s not in self._space:
+                self._stop.pop(s)
+        self._last_surv = {k: v for k, v in self._last_surv.items() if k in self._space}
+        rp = [0, 0, 0.0, 0]                       # r361: this read's re-price, kept on its own row
+        for s in sorted(self._space):
+            got = self._space_bounds(s, "reprice")   # r346: 1c reads a CURRENT record only
+            rp = [a + b for a, b in zip(rp, self._repriced, strict=True)]
+            if got is None:
+                continue                          # the record cannot judge this frame
+            bounds, bar = got
+            low: dict = {}
+            for t, b in bounds:
+                low[t.name] = min(b, low.get(t.name, b))
+            sv = self._s1_of(bounds, bar)
+            was, prev = self._stop.get(s), self._last_surv.get(s)
+            rule, extra = None, {}
+            if sv:
+                self._last_surv[s] = ({t.name: low[t.name] for t in sv}, bar)
+                if len(sv) == 1 and self._risky.get((s, sv[0].name), self) == self._tally[s][0]:
+                    rule = "held"                 # a risky settle under the current key
+            elif prev is not None:
+                rule = "none_survive"             # the import route sorts the kind
+            if rule == was:
+                continue
+            if rule is None:
+                self._stop.pop(s, None)
+                rule_row = "resumed"
+            else:
+                self._stop[s] = rule_row = rule
+            if rule == "none_survive":
+                # r342 5 (Fig 10 :13): the bounds and the bar over the same rows -- the bounds are
+                # re-priced to the gap's current residual rows (r349: each cell's own c[0])
+                cause = self._none_cause(prev[0], low, prev[1])
+                if cause == "bound":
+                    self.owed_import.add(s)       # evidence: the ground charged the survivors
+                rose = {n: [round(v, 4), round(low[n], 4)] for n, v in sorted(prev[0].items())
+                        if low.get(n) is not None and low[n] > v}
+                after = [low[n] for n in prev[0] if low.get(n) is not None]
+                # the last survivors can number thousands: their count, the lowest bound before
+                # and after, the bar before and after, and in full the ones whose bound rose
+                extra = {"cause": cause, "owes": cause == "bound", "last_survivors": len(prev[0]),
+                         "bound_rose": rose,
+                         "reached_bar": sorted(n for n in prev[0]
+                                               if n in low and low[n] >= prev[1]),
+                         "invalid_cells": sum(1 for n in prev[0] if n not in low),
+                         "low_before": round(min(prev[0].values()), 4),
+                         "low_after": round(min(after), 4) if after else None,
+                         "bar_before": round(prev[1], 4), "bar_after": round(bar, 4)}
+            self.led.record(self.cycle, "MINT", s, "stop_rule", rule=rule_row, was=was,
+                            survivors=len(sv), term=sv[0].name if len(sv) == 1 else None,
+                            **extra,
+                            reads="1c: held (one survivor, a risky settle) stops asking; none "
+                                  "surviving owes -- the import route refits before a mint "
+                                  "(Fig 5 :13-14); nothing binds")
+            if rule == "none_survive" and _NAMED_REMAINDER:
+                self._remainder(s, prev[0], extra["cause"])
+        if self._space:
+            self.led.record(self.cycle, "MINT", "@stop", "stop_read", spaces=len(self._space),
+                            repriced_cells=rp[0], repriced_rows=rp[1], reprice_s=round(rp[2], 4),
+                            reprice_hits=rp[3],
+                            reads="1c: this step's read of every open space, re-priced on read "
+                                  "(r361: its wall apart from the mint's)")
+        for s, (reads, rkey) in sorted(self._split_aim.items()):
+            owner = s.rsplit(".", 1)[0]
+            after = self._owner_reads(owner, now)
+            probed = self._split_probed.pop(s, None)
+            why = ("probed" if probed is not None else "space closed" if s not in self._space
+                   else "owner read anew" if after != reads else None)
+            if why is None:
+                continue
+            del self._split_aim[s]
+            if why == "probed":
+                self._split_spent[s] = rkey      # once per refusal (r338): a new one re-enters
+            self.led.record(self.cycle, "MINT", s, "split_aim_left", why=why, owner=owner,
+                            aims=len(self._split_aim),
+                            **({"before": probed, "after": after} if probed is not None else {}),
+                            reads="1c (iii): the probe pressed at the owner, its readings moved, "
+                                  "or the gap closed")
+
+    def _remainder(self, slot: str, last: dict, cause: str) -> None:
+        """1e (r325, r364): what is left when the last survivors are gone. (a) several questions:
+        two of the LAST SURVIVORS whose charged-row sets over the gap's current residual rows are
+        disjoint (Fig 9 :4-5), each set read on read by the one row test, the pair whose larger
+        set is smallest (ties by name); none is a not-found, never a proof (Fig 8 :39). (b) the
+        gap's kind. (c) reach: the gap's last mint verdict with its own note and cycle."""
+        t0 = time.perf_counter()
+        seen = self._tally.get(slot)
+        held = self.gamma.library[self.bound.get(slot, IDN)]
+        robs = self._residual_obs(slot, held, self.history(slot))
+        terms = ({t.name: t for cells in (seen[1], seen[2]) for t in cells}
+                 if seen is not None else {})
+        sets: dict = {}
+        for n in sorted(last):
+            if n in terms:
+                k = frozenset(i for i, row in enumerate(robs)
+                              if self._row_wrong(terms[n], slot, row))
+                sets.setdefault(k, []).append(n)
+        reps = sorted((names[0], k) for k, names in sets.items())   # one term per charged set
+        best = None
+        for i, (na, sa) in enumerate(reps):
+            for nb, sb in reps[i + 1:]:
+                if self._splits(sa, sb):
+                    rank = (max(len(sa), len(sb)), na, nb)
+                    if best is None or rank < best[0]:
+                        best = (rank, na, sa, nb, sb)
+        if best is None:
+            several = "no split found among the last survivors"
+        else:
+            _r, na, sa, nb, sb = best
+            several = {"pair": [na, nb], "explained_by_a_only": sorted(sb - sa),
+                       "explained_by_b_only": sorted(sa - sb),
+                       "explained_by_both": len(robs) - len(sa | sb),
+                       "shared_charged": len(sa & sb)}
+        sp = self._space.get(slot, {})
+        v = sp.get("verdict")
+        reach = (None if v is None else "unreached at this budget" if v[0] == "budget_spent"
+                 else v[1])
+        self.led.record(self.cycle, "MINT", slot, "remainder", cause=cause,
+                        population="last_survivors", last_survivors=len(last),
+                        uncharged=len(sets.get(frozenset(), ())),
+                        unpriced=sum(1 for n in last if n not in terms), charged_sets=len(sets),
+                        several=several, kind=list(sp.get("kind") or ()), residual_rows=len(robs),
+                        verdict=v[0] if v else None, verdict_cycle=v[2] if v else None,
+                        opened=sp.get("opened"), reach=reach,
+                        wall_s=round(time.perf_counter() - t0, 4),
+                        reads="1e: what remains when the last survivors are gone -- record only "
+                              "(Fig 13 :134-139)")
+
+    @staticmethod
+    def _splits(a: frozenset, b: frozenset) -> bool:
+        """1e (a), r370: each of the two explains a row the other does not -- both charged
+        somewhere, on no row in common. A term charged nowhere explains every row alone."""
+        return bool(a) and bool(b) and not (a & b)
+
+    def _aims(self) -> set:
+        """The probe's aim set: the starved slots, and under 1c (iii) the gaps whose survivors no
+        press splits (r325 (3)), each until its owner reads anew or its space closes."""
+        return self._starved | set(self._split_aim) if _STOP_RULES else self._starved
+
+    def _owner_reads(self, owner: str, state: dict) -> dict:
+        """1c (iii): every reading of the gap's owner in this frame; any change lets it go."""
+        return {k: v for k, v in state.items() if k.split(".", 1)[0] == owner}
+
     def _guard_scope(self, slot: str, robs: list, operand_binds: list) -> tuple:
         """The guards and referents the chain loop will walk -- the same expressions, which
         read no chain. In the key because `_separates` reads the WHOLE history, not only R, so
@@ -11507,53 +12031,31 @@ class Agent:
                     return True             # the stored prefix already proves it
         for i in range(start, len(robs)):
             cap.head()
-            state, action, actual, intent, landed = robs[i]
-            # `_ops` was called TWICE per row here -- once to test for None and again to
-            # build the Ctx -- while `_left` next door hoists it. Pure function of
-            # (term, state), so hoisting is exact; it halves the hottest callee in the
-            # profile. Nest rather than chain the `elif`, or the hoist just moves the
-            # double call onto `_applies`.
-            if not self._applies(term, state):
-                wrong += 1                            # inapplicable is unexplained
-            elif self._out_of_step_range(term, slot, state, actual):
-                wrong += 1                            # P6: no reachable value equals `actual`
-                if ref is None:
+            w = self._row_wrong(term, slot, robs[i])
+            if w:
+                wrong += 1
+                if w == 2 and ref is None:
                     ref = i
-            else:
-                ops = self._ops(term, state)
-                if ops is None:
-                    wrong += 1                        # unreadable operand is unexplained
-                else:
-                    got = self._value_of(term, slot, state,
-                                         self._eval_ctx(slot, state, action=action,
-                                                        operands=ops, intent=intent,
-                                                        landed=landed,
-                                                        guard_ref=term.guard_ref))
-                    if got is NOT_RESOLVED:
-                        wrong += 1
-                    elif got % self.alphabet[slot] != actual % self.alphabet[slot]:
-                        wrong += 1
-                        if ref is None:
-                            ref = i
             if cost + unit * wrong >= base:
                 if cell is not None:
-                    cell[term] = (self._divide_cell(term, i + 1, wrong, ref, start, was, e0)
-                                  if _DIVIDE else (i + 1, wrong))
+                    cell[term] = (self._divide_cell(term, i + 1, wrong, ref, start, was, e0,
+                                                    cost) if _DIVIDE else (i + 1, wrong))
                 return True          # `wrong` only grows; the rest of R adds nothing
         if cell is not None:
-            cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was, e0)
+            cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was, e0, cost)
                           if _DIVIDE else (len(robs), wrong))
         if _DIVIDE and self._dv is not None:
             self._dv["passed"] += 1     # the term goes on to the bargain: not a lookup (CREDIT)
         return False
 
     def _divide_cell(self, term: Term, rows: int, wrong: int, ref, start: int, was,
-                     e0: int) -> tuple:
+                     e0: int, cost: float) -> tuple:
         """1a: the cell `_cannot_pay` stores, and this mint's divide counts for it: rows evaluated
         now beside rows the record avoided, whether an earlier mint of the gap wrote it (m1's
         carried), and whether it was eliminated before and the new base reopened it. 1b: the
         sixth field is the shape table's size when any of its rows read the table's extent (now,
-        or before -- a stale stamp never reaches here, `_cannot_pay` recomputes it), else None."""
+        or before -- a stale stamp never reaches here, `_cannot_pay` recomputes it), else None;
+        the seventh the cost it was priced at, so S1 reads its stored bound (r327)."""
         dv = self._dv
         if dv is not None and rows > start:
             dv["priced_now"] += 1
@@ -11567,7 +12069,8 @@ class Agent:
         read = _EXTENT[0] != e0 or (was is not None and was[5] is not None)
         return (rows, wrong, ref,
                 self.cycle if getattr(term, "out_type", "val") == OBJ_TYPE else None,
-                dv["mint"] if dv is not None else 0, self._decoder_size() if read else None)
+                dv["mint"] if dv is not None else 0, self._decoder_size() if read else None,
+                cost)
 
     def _out_of_step_range(self, term: Term, slot: str, state: dict, actual: int) -> bool:
         """P6: `_cannot_pay` needs a BOOLEAN and `objective_step` computes a VALUE.
@@ -11787,17 +12290,20 @@ class Agent:
                     return goal, "discriminate:goal"
         take, s0_tw, dist_r = None, None, None
         if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
-                self.drive.bored() and not (_STARVED_CONTACT and self._starved)):
+                self.drive.bored() and not (_STARVED_CONTACT and self._aims())):
             take, s0_tw, dist_r = self._exit_choice(before)
-        if _STARVED_CONTACT and self._starved and take in (None, "probe"):
-            pick = sorted(self._starved)[0]
-            if _A1_STARVED and len(self._starved) > 1:
+        aims = self._aims()
+        if _STARVED_CONTACT and aims and take in (None, "probe"):
+            pick = sorted(aims)[0]
+            if _A1_STARVED and len(aims) > 1:
                 # A1: what is unexplained NOW gates and ranks; then the less-probed; then the draw
-                pick = self._choice("starved", None, [(s, None, None) for s in self._starved],
-                                    {s: self.outstanding(s) for s in self._starved},
-                                    self._seen_n("starved", self._probe_n, self._starved))
+                pick = self._choice("starved", None, [(s, None, None) for s in aims],
+                                    {s: self.outstanding(s) for s in aims},
+                                    self._seen_n("starved", self._probe_n, aims))
             self._probe_n[pick] += 1
             self._count_kind("starved", pick)
+            if _STOP_RULES and pick in self._split_aim:     # 1c (iii): this aim is spent
+                self._split_probed[pick] = self._owner_reads(pick.rsplit(".", 1)[0], before)
             aim = pick.rsplit(".", 1)[0]
             self._s0_target = aim
             # **ONE INTENT, NOT A MODALITY CHOICE -- the plan's 19.** This read
@@ -11948,7 +12454,11 @@ class Agent:
         # mint, the goal split and the draw. The verb keeps the refusal and drops the ranking.
         _want = IFace.Intent(IFace.DISTINGUISH)
         # 7h (f): a chosen distinguish reuses the gate's realise; a chosen goal skips it
+        _aim, _gap = self._ask_aimed(before) if (_ASK and _DIVIDE) else (None, None)
+        if _gap is not None:                 # 1b: this cycle's aimed DISTINGUISH
+            _want = IFace.Intent(IFace.DISTINGUISH, subject=_gap)
         _r = (dist_r if take == "distinguish" else None if take == "goal"
+              else _aim if _gap is not None
               else self.iface.realise(_want, tuple(self.actions),
                                       IFace.Interface.context(self.env), before, self.env,
                                       withheld=self._withheld))
@@ -13251,12 +13761,12 @@ class Agent:
         contest is starved probe vs system0; otherwise starved probe, distinguish, goal.
         Returns (exit or None, the contact target read for system0, distinguish's realise)."""
         s0 = self._system0_active()
-        starved = _STARVED_CONTACT and bool(self._starved)
+        starved = _STARVED_CONTACT and bool(self._aims())
         opts, res = [], {}
         s0_tw = dist_r = None
         if starved:
             opts.append("probe")
-            res["probe"] = max(self.outstanding(s) for s in self._starved)
+            res["probe"] = max(self.outstanding(s) for s in self._aims())
         if s0:
             s0_tw = self._contact_target(before)
             opts.append("system0")
@@ -13266,12 +13776,18 @@ class Agent:
         # directed exits stand beside it, read by the same A1 readings (what is unexplained where
         # each aims, then turns taken, then the draw). OFF: they defer while it is active
         if not s0 or _S0_CONTEST:
-            dist_r = self.iface.realise(IFace.Intent(IFace.DISTINGUISH), tuple(self.actions),
-                                        IFace.Interface.context(self.env), before, self.env,
-                                        withheld=self._withheld)
+            _gap = None
+            if _ASK and _DIVIDE:
+                dist_r, _gap = self._ask_aimed(before)    # 1b: aimed at a gap's survivors
+            if _gap is None:
+                dist_r = self.iface.realise(IFace.Intent(IFace.DISTINGUISH), tuple(self.actions),
+                                            IFace.Interface.context(self.env), before, self.env,
+                                            withheld=self._withheld)
             if dist_r is not None:
                 opts.append("distinguish")
-                res["distinguish"] = 0       # it aims at the board, not a slot
+                # it aims at the board, not a slot -- unless 1b aimed it at a gap's survivors:
+                # then the outstanding of the slot it aims at, this function's own rule
+                res["distinguish"] = self.outstanding(_gap) if _gap else 0
             gslot = self._goal_choice()
             if gslot is not None and self._goal_split(before, commit=False) is not None:
                 opts.append("goal")
@@ -15625,6 +16141,31 @@ class Agent:
                                    "gate": None}
         return [f"{slot}~{j}" for j in order]
 
+    def _rank_mints(self, routed: list, split_now) -> list:
+        """1d (r281 3): the step's mint candidates take their turns by _understanding, highest
+        first; ties by A1 -- fewer step mints run, then the recorded draw. Only the candidates'
+        turns are permuted, among their own positions, so every other route keeps its place."""
+        at = [i for i, (s, b, fit, _w) in enumerate(routed)
+              if s not in split_now and s not in self._own_now
+              and (b == MECHANISM or (b == REFUTED and not fit))]
+        if len(at) < 2:
+            return routed
+        cands = [routed[i] for i in at]
+        rank = {t[0]: self._understanding(t[0]) for t in cands}
+        drawn = {s: k for k, s in enumerate(FR.draw_order(sorted(rank), f"{self.cycle}:mints",
+                                                          self.draw_seed))}
+        ranked = sorted(cands, key=lambda t: (-rank[t[0]], self._mint_seen[t[0]], drawn[t[0]]))
+        out = list(routed)
+        for i, t in zip(at, ranked, strict=True):
+            out[i] = t
+        self.led.record(self.cycle, "ACCEPT", "@step_mint", "mint_rank",
+                        order=[t[0] for t in ranked],
+                        rank=[round(rank[t[0]], 4) for t in ranked],
+                        was=[t[0] for t in cands],
+                        reads="1d: the step's mints by what is worth finding out, not by age or "
+                              "code order")
+        return out
+
     def _mint_in_step(self, slot: str, b: str) -> None:
         """B1 (TETHER_STEP_MINT; the reviewer 2026-10-26 14:20, (b')): the step's mint for `slot`;
         or, once a mint this step has parked with its search stopped at a bound, the slot OWED --
@@ -15642,6 +16183,8 @@ class Agent:
         self._mint_exhausted = False
         t0 = time.perf_counter() if _STEP_CLOCK else None
         self.mint(slot)
+        if _OWED_REJUDGE:
+            self._mint_seen[slot] += 1           # 1d: A1's learning reading, turns taken
         if sm is not None:
             if t0 is not None:
                 sm["wall"] = sm.get("wall", 0.0) + time.perf_counter() - t0
@@ -16817,6 +17360,9 @@ class Agent:
                 detail["note"] = ("the whole space at this depth was seen and none paid; "
                                   "not at this depth, NOT unreachable")
             detail["base_bits"] = round(base, 3)
+            if _NAMED_REMAINDER and slot in self._space:
+                # 1e (r364): the gap's last verdict, in the mint's own words, with its cycle
+                self._space[slot]["verdict"] = (detail["verdict"], detail.get("note"), self.cycle)
             if detail["verdict"] == "no_support":
                 self._starved.add(slot)
             # `under_floor` OWES LIKE THE OTHER TWO, and the write site at `accept` is what
@@ -17503,6 +18049,9 @@ class Agent:
             # ground paid arrived looking the same.
             self._carry_note(name, slot, "settled")
             self._settled_lvl.add(name)
+            if _STOP_RULES and self._settle_pred(slot, r)["risky"]:
+                # 1c (i): a survival persistence would miss, under the space's key of now (r338)
+                self._risky[(slot, name)] = self._tally.get(slot, (None,))[0]
             self.led.record(self.cycle, "SETTLE", slot, "settle", term=name,
                             status="accepted",
                             asked=[name, slot], ground_said=True,
@@ -18287,11 +18836,13 @@ class Agent:
         # THE SLOTS WHOSE OWN TURN RUNS THIS CYCLE, for the probe flush below: a slot past its
         # turn takes no MINT row after its ACCEPT (F500's rule; the probe flush, 2026-10-14).
         _turned = set(self._turn_ahead) | set(_split_now)
-        if _STEP_MINT and getattr(self, "_mint_owed", None):
+        if _STEP_MINT and getattr(self, "_mint_owed", None) and not _OWED_REJUDGE:
             # B1: the mints owed from an earlier step first, then today's order (stable)
             routed = sorted(routed, key=lambda t: t[0] not in self._mint_owed)
         self._sm = {"run": 0, "deferred": [], "stop": None}
         with self._step_scope("ACCEPT"):
+            if _OWED_REJUDGE:
+                routed = self._rank_mints(routed, _split_now)    # 1d: rank, not age or code order
             for _i, (slot, b, fit, _why) in enumerate(routed):
                 if slot in _split_now:
                     continue
@@ -18374,6 +18925,8 @@ class Agent:
         if _DERIVED_WANT and self.trace:
             with self._step_scope("MINT"):
                 self._derived_wants()
+        if _STOP_RULES and _ASK and _DIVIDE:
+            self._stop_rules()
         if by == "probe":
             self._flush_probe(_turned)
         if self.drive.never_live(len(self.actions)) and not self._said_never_live:

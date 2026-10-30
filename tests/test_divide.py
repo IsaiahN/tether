@@ -27,6 +27,9 @@ r308, r311, r312). Each check runs in its own process, under 5 minutes.
   check_t2_mustfail   T2 MUST-FAIL: CREDIT OFF (DIVIDE ON), no call yields more than its budget
   check_credit_off_identity_grid, check_credit_off_identity_fake   TETHER_DIVIDE_CREDIT=0 writes
                       the same ledger as d6a4055 (1b)
+  check_credit_flip_identity_grid, check_credit_flip_identity_fake   (a2): this tree with
+                      TETHER_DIVIDE_CREDIT=1 writes the same ledger as d148097, the tree before the
+                      default flip
   check_store         T5: memo_sizes rows carry both records' sizes ON, neither OFF
   check_cond_a        r312 (a): every space ends in a space_closed row, and no _cannot_pay reads a
                       closed space's cells; the lineage save carries neither record
@@ -45,6 +48,8 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+
+from _batch import flip_env, off_env  # noqa: E402  the batch's arms (r348)
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
@@ -463,7 +468,8 @@ def _child(tree: str, which: str, extra: dict | None = None) -> list:
     return json.loads(out.stdout.strip().splitlines()[-1])["rows"]
 
 
-def _off_identity(w: str, base_tree: str = BASE, arm: str = "TETHER_DIVIDE") -> None:
+def _off_identity(w: str, base_tree: str = BASE, arm: str = "TETHER_DIVIDE",
+                  env: dict | None = None) -> None:
     root = str(_repo.ROOT)
     sys.path.insert(0, os.path.join(root, "conform"))
     from identity_mod_rows import mask_timings
@@ -478,12 +484,14 @@ def _off_identity(w: str, base_tree: str = BASE, arm: str = "TETHER_DIVIDE") -> 
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
             tf.extractall(d, filter="data")
         base = norm(_child(d, w))
-    cur = norm(_child(root, w, {arm: "0"}))
+    env = off_env(arm) if env is None else env
+    cur = norm(_child(root, w, env))
     diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base) - len(cur))
     assert len(base) > 50 and diff == 0, ("OFF identity", w, len(base), len(cur),
                                          next((i for i, (x, y) in enumerate(
                                              zip(base, cur, strict=False)) if x != y), None))
-    print(f"  OFF identity ({arm}=0, {w}): {len(base)} rows against {base_tree}, 0 differences")
+    print(f"  identity ({', '.join(f'{k}={v}' for k, v in sorted(env.items()))}, {w}): "
+          f"{len(base)} rows against {base_tree}, 0 differences")
 
 
 def check_off_identity_grid() -> None:
@@ -503,6 +511,17 @@ def check_credit_off_identity_grid() -> None:
 
 def check_credit_off_identity_fake() -> None:
     _off_identity("fake", CREDIT_BASE, "TETHER_DIVIDE_CREDIT")
+
+
+FLIP_BASE = "d148097"      # 1c, the tree before (a2) flipped CREDIT's default to OFF
+
+
+def check_credit_flip_identity_grid() -> None:
+    _off_identity("grid", FLIP_BASE, "TETHER_DIVIDE_CREDIT", flip_env("TETHER_DIVIDE_CREDIT"))
+
+
+def check_credit_flip_identity_fake() -> None:
+    _off_identity("fake", FLIP_BASE, "TETHER_DIVIDE_CREDIT", flip_env("TETHER_DIVIDE_CREDIT"))
 
 
 def check_store() -> None:
