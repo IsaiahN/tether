@@ -1199,6 +1199,13 @@ class ArcWorld:
         return {n: set(o["cells"]) for n, o in tr.items() if isinstance(o, dict)
                 and "cells" in o}
 
+    def forms(self) -> dict[str, int | None]:
+        """Each tracked object's form code, the one K1's break row carries (arc_percept.form_code
+        of its shape). Read by TETHER_ARRIVAL_ALIAS to find a kind unique on the board."""
+        tr = getattr(self._decompose, "tracked", {}) or {}
+        return {n: arc_percept.form_code(o.get("shape")) for n, o in tr.items()
+                if isinstance(o, dict)}
+
     def aim_cell(self, obj: str, state: dict) -> tuple[int, int] | None:
         """(2c, TETHER_AIM_INSIDE): a cell `obj` occupies, as (x=col, y=row). Its shape key placed
         at its (row, col), as _obs_pair_derive rebuilds it; the occupied cell nearest the box's

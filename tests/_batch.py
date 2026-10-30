@@ -24,7 +24,9 @@ ARMS = (
     ("TETHER_CARRY_W", "afe1a82"),           # wip/finish 5
     ("TETHER_INDIST_ON_CHANGE", "2de7df7"),  # wip/finish 6 (r400)
     ("TETHER_VIEW_HOLD_SAME", "c1075e4"),    # wip/finish2 7 (r414, r415)
-    ("TETHER_VIEW_HOLD_SAME_ROLE", "wip"),   # wip/finish2 8 (r417)
+    ("TETHER_VIEW_HOLD_SAME_ROLE", "e7a1c8e"),   # wip/finish2 8 (r417)
+    ("TETHER_CONTINGENT_ONE_PASS", "b0489bf"),   # wip/finish3 9 (B3, r427)
+    ("TETHER_ARRIVAL_ALIAS", "wip"),         # wip/arrival-alias 10 (r428, r431)
 )
 # A batch arm whose TREE DEFAULT was flipped after later arms landed (r359): (the arm, the last
 # batch arm before the flip, its value before, the flip's commit). An arm under test that landed

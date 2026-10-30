@@ -867,6 +867,11 @@ _ARRIVAL_GAP = armflag.arm("TETHER_ARRIVAL_GAP", default=True)
 # Fig 6 :42, Fig 10 :68): a "reuse:" term naming an object the break did not re-find goes to the
 # record, its kind (no operand, as load installs it) stays live. ON; conform/arms.py
 _INSTANCE_RETIRE = armflag.arm("TETHER_INSTANCE_RETIRE", default=True)
+# 10, THE ARRIVAL ALIAS (the reviewer 2026-10-30 r428, r431; Fig 10 :68): at the turnover after the
+# agent's own break, Agency's counts on objects no longer on the board go to its dormant record; an
+# object that left whose form is unique among those that left and equal to the form of exactly one
+# board object has its counts carried to that object. ON; conform/arms.py
+_ARRIVAL_ALIAS = armflag.arm("TETHER_ARRIVAL_ALIAS", default=True)
 # THE SETTLE ROW CARRIES ITS OWN PREDICTION, RECORD ONLY (the reviewer 2026-10-29 r288, r294;
 # harvest item 6): the maker's predicted code, the actual and the from value in the same code
 # space, and risky = the prediction differed from what persistence would have said. Nothing reads
@@ -9849,6 +9854,10 @@ class Agent:
                 self._succ_in = {**getattr(self, "_succ_in", {}), **_b["successor"]}
                 self._succ_form = {**getattr(self, "_succ_form", {}), **_b["successor_form"]}
                 self._old_form = {**getattr(self, "_old_form", {}), **_b.get("old_form", {})}
+            if _ARRIVAL_ALIAS:                          # 10: read at the next turnover
+                self._aa_due = self.cycle
+                self._aa_form = {**getattr(self, "_aa_form", {}), **(_b.get("old_form") or {})}
+                self._aa_succ = {**getattr(self, "_aa_succ", {}), **(_b.get("successor") or {})}
         _own_clock: set = set()
         if _OWN_CLOCK:
             # the instrument's own expectation, formed now that the frames are in (a corollary
@@ -18377,6 +18386,38 @@ class Agent:
                                        "disagree about a break; the held frame decided"))
         return recs
 
+    def _arrival_alias(self) -> None:
+        """10 (the reviewer 2026-10-30 r428, r431): at the turnover after the agent's own break,
+        Agency's (slot, action) counts on objects no longer on the board leave the per-step Agency
+        for its dormant record (Agency.retire; never deleted). An object that left is ALIASED to a
+        board object, its counts carried, when its form (the break row's old_form) is unique among
+        those that left and equal to the form of exactly one board object (the world's forms());
+        either side not unique, no alias. One arrival_alias row."""
+        due, self._aa_due = self._aa_due, None
+        old_form, succ = getattr(self, "_aa_form", {}), getattr(self, "_aa_succ", {})
+        self._aa_form, self._aa_succ = {}, {}
+        board = {t for s in self.slots for t in _OID_TOKEN.findall(s)}
+        left = {t for s, _a in self.agency.tried for t in _OID_TOKEN.findall(s)} - board
+        forms = getattr(self.env, "forms", None)
+        now_form = {o: f for o, f in (forms() if forms is not None else {}).items()
+                    if o in board and f is not None}
+        left_form = {o: old_form[o] for o in left if old_form.get(o) is not None}
+        n_now, n_left = Counter(now_form.values()), Counter(left_form.values())
+        one = {f: o for o, f in now_form.items() if n_now[f] == 1}
+        alias = {o: one[f] for o, f in sorted(left_form.items())
+                 if n_left[f] == 1 and f in one}
+        got = self.agency.retire(board, alias, _OID_TOKEN)
+        self.led.record(self.cycle, self._running_step, "@instrument", "arrival_alias",
+                        break_at=due, left=len(left), with_form=len(left_form),
+                        aliases_by_form=len(alias),
+                        aliases_by_successor=sum(1 for o, c in alias.items() if succ.get(o) == c),
+                        alias=dict(sorted(alias.items())), kept=got["kept"],
+                        aliased=got["aliased"], dormant=got["dormant"],
+                        alias_collision=got["alias_collision"],
+                        held=len(self.agency.tried), dormant_held=len(self.agency.dormant_tried),
+                        reads="Agency's counts follow the board; a kind unique on both sides "
+                              "carries its counts across, else they rest in the dormant record")
+
     def _retire_instances(self) -> None:
         """2 (the reviewer 2026-10-29 r292, r294): at the turnover after the agent's own break
         (arrival or seam), a "reuse:" term naming an object the break did not RE-FIND (identity
@@ -18629,6 +18670,12 @@ class Agent:
                                            **_b["successor_form"]}
                         self._old_form = {**getattr(self, "_old_form", {}),
                                           **_b.get("old_form", {})}
+                    if _ARRIVAL_ALIAS:                  # 10: read at this step's turnover
+                        self._aa_due = self.cycle
+                        self._aa_form = {**getattr(self, "_aa_form", {}),
+                                         **(_b.get("old_form") or {})}
+                        self._aa_succ = {**getattr(self, "_aa_succ", {}),
+                                         **(_b.get("successor") or {})}
                 self._memo_clear_at_break()     # P3: this board's instance memos
                 if _INSTANCE_RETIRE:
                     self._retire_due = self.cycle   # 2: read at this step's turnover (_present)
@@ -18661,6 +18708,8 @@ class Agent:
         self._present()       # before the frame, so slots and frame cannot disagree
         if _INSTANCE_RETIRE and getattr(self, "_retire_due", None) is not None:
             self._retire_instances()    # 2: after the turnover settled the bindings
+        if _ARRIVAL_ALIAS and getattr(self, "_aa_due", None) is not None:
+            self._arrival_alias()       # 10: Agency follows the board, by kind across it
         # PER STEP, BECAUSE ONE SLOT TYPE'S RANGE IS NOT CONSTANT. A shape slot's alphabet is the
         # shape table's size (arc_world, "THE COUNT OF LABELS"; it read `2**(h*w)` over the
         # bounding box until that was replaced), which grows when a frame publishes a new shape --
