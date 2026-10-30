@@ -47,6 +47,7 @@ import relations
 import retrieval
 import routine as Rt
 import store as door  # the one door; `store` is a local name in three methods
+from gamma import _CARRY_W as G_CARRY_W
 from gamma import _PRIOR_CODE as G_PRIOR_CODE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import _UNITS_MEMO as G_UNITS_MEMO
@@ -893,6 +894,38 @@ _NAMED_REMAINDER = armflag.arm("TETHER_NAMED_REMAINDER", default=True)
 # cuts the work, never widens it. Exact: the same pick. The goal_hypotheses row says how many were
 # compiled and left. ON; conform/arms.py
 _PLAN_NARROW = armflag.arm("TETHER_PLAN_NARROW", default=True)
+# 1 CONTACT_FIRST (Isaiah 2026-10-30 06:19-06:21; the reviewer r392, r393; Fig 12 :126-127, Fig 9
+# :53): a step's mint is owed, not walked, when the step's own record says the next fact is on the
+# board -- (a) the act was already named (a settled prediction served the intent, or a held
+# routine emitted it), or (b) the gap holds the same rows under the same key and library as at its
+# last walk, so nothing the mint could form is told apart until a new row arrives. Owed through
+# owed_import, walked at the next step (a) or when the rows change (b); a contact_first row each
+# time. ON; conform/arms.py
+_CONTACT_FIRST = armflag.arm("TETHER_CONTACT_FIRST", default=True)
+# 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
+# when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
+# prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
+# deferral, with a route_named row, and walked at the next step. ON; conform/arms.py
+_ROUTE_NAMED = armflag.arm("TETHER_ROUTE_NAMED", default=True)
+# 3 PROGRESS_SHELF (the reviewer r392; the plan's decision 2): a held goal condition counts the
+# progress rows whose closer names one of its slots; a level that ends without a clear SHELVES the
+# conditions that made progress ({"won": 0, "lost": 0, "progress": n}) through the same M7
+# template carry as a clear, instead of dropping them. The shelf ranks won first, then progress,
+# lexicographically, and 4's first phase reads a progress entry as it reads a won one.
+# ON; conform/arms.py
+_PROGRESS_SHELF = armflag.arm("TETHER_PROGRESS_SHELF", default=True)
+# 4 UNTESTED_KEEP (the reviewer r392, r397): a goal hypothesis that ends with none of its own steps
+# taken and no touch (steps == 0, touches == 0 -- the board could not host its test) ends "untested"
+# and is NOT entered in _hyp_tried; the proposal forms candidates only over objects present now, so
+# it can come back only when its own slot is on the board again, the check that ended it then
+# passing. A goal_hypothesis_reopened row when it does. ON; conform/arms.py
+_UNTESTED_KEEP = armflag.arm("TETHER_UNTESTED_KEEP", default=True)
+# 6 INDIST_ON_CHANGE (the reviewer r400; Fig 3 :27 read the other way round): §12.4's trigger
+# reads its compressed reading, the GROUPING (which owners share a featural vector), every step,
+# but walks the residual sums and writes its "indistinct" row only when that grouping differs from
+# the last one computed -- a member arriving or leaving, the case the trigger exists for. The row
+# carries since. Nothing reads the row; pure cost. ON; conform/arms.py
+_INDIST_ON_CHANGE = armflag.arm("TETHER_INDIST_ON_CHANGE", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -3043,8 +3076,12 @@ class Agent:
         self._goal_n = 0              # GQ1: goal atoms are numbered for the agent's life
         self._goal_meta: dict = {}    # GQ1: key -> met_state, templates, affects (for the shelf)
         self._goal_shelf: dict = {}   # GQ1: shelved goal conditions, key -> provenance + record
+        self._goal_prog: Counter = Counter()   # PROGRESS_SHELF: held key -> progress rows on it
         self._hyp: dict | None = None  # GQ2: the goal hypothesis held now
         self._hyp_tried: dict = {}    # GQ2: (template, subject, operand) -> how it ended (level)
+        self._untested: dict = {}     # UNTESTED_KEEP: tkey -> (cycle, the check that ended it)
+        self._indist_key = None       # INDIST_ON_CHANGE: the last grouping computed
+        self._indist_at = None        # INDIST_ON_CHANGE: the cycle of the last indistinct row
         self._hyp_n = 0               # GQ2: hypotheses held, for their link keys
         self._hyp_exhausted = None    # GQ2: the delta-table size at which nothing was routable
         self._hyp_known = 0
@@ -3204,6 +3241,11 @@ class Agent:
         self._ask_abstained: tuple | None = None   # 1b: (slot, survivors) when no press split
         self._repriced: tuple = (0, 0, 0.0, 0)  # 1b: the last S1 read's (cells, rows, secs, hits)
         self._reprice_memo: dict = {}  # 1b: slot -> ((tally key, decoder size), term -> charges)
+        self._cf_rows: dict = {}        # CONTACT_FIRST: slot -> what its last walk read
+        self._cf_owed: dict = {}        # CONTACT_FIRST: slot -> cycle owed for a named act
+        self._rn_owed: dict = {}        # ROUTE_NAMED: slot -> cycle its lookup was owed
+        self._pred_named = None         # CONTACT_FIRST: cycle a settled prediction named the act
+        self._act_named = None          # CONTACT_FIRST: cycle the act was named
         self._stop: dict = {}           # 1c: slot -> the stop rule it is in (held / none_survive)
         self._last_surv: dict = {}      # 1c: slot -> ({survivor: bound}, bar) at its last survivors
         self._risky: dict = {}          # 1c: (slot, term) -> the key of its last risky settle
@@ -3907,6 +3949,8 @@ class Agent:
                 self._hyp_end("level_cleared" if how in (WIN, ADVANCE) else f"closed_{how}",
                               won=how in (WIN, ADVANCE), step="IMPORT")
             self._hyp_tried, self._hyp_exhausted = {}, None
+            if _UNTESTED_KEEP:
+                self._untested = {}
         if self._goal_conds and _LEVEL_GOAL and how in (WIN, ADVANCE):
             self._shelve_goals(how)
         if self._goal_conds:
@@ -6720,6 +6764,15 @@ class Agent:
         at a retarget or the run's end -- and is never re-priced against the next level's
         empty history, which would unhold it with a false reason. No verdict, not counted as
         unlinked; the wants are cleared by retarget's own rule. Carry is M7."""
+        if _PROGRESS_SHELF:
+            if _LEVEL_GOAL and how not in (WIN, ADVANCE):     # a clear shelved them as won
+                for key in sorted(self._goal_conds):
+                    if self._goal_prog[key]:
+                        self._shelve_one(key, how, {"won": 0, "lost": 0,
+                                                    "progress": self._goal_prog[key]},
+                                         "a goal that made progress without a clear, kept as a "
+                                         "ranked hypothesis below the won (PROGRESS_SHELF)")
+            self._goal_prog = Counter()
         for key in sorted(self._goal_conds):
             self.led.record(self.cycle, "IMPORT", "@completion", "goal_closed", key=key,
                             condition=self._goal_text.get(key), how=how, verdict=None,
@@ -6727,35 +6780,47 @@ class Agent:
         self._goal_conds, self._goal_text, self._goal_links = {}, {}, {}
         self._want_scope = {}
 
+    def _cond_slots(self, key: str) -> set:
+        """PROGRESS_SHELF: the slots a held condition is about -- its goal links and the slots
+        its own text names."""
+        text = self._goal_text.get(key) or ""
+        return ({sl for sl, _t in self._goal_links.get(key, ())}
+                | {w for w in re.findall(r"[^\s()]+", text) if w in self.slots})
+
     def _shelve_goals(self, how: str) -> None:
         """GQ1 (the reviewer 2026-10-20 14:27): a goal condition learned at a clear outlives its
         level as a RANKED HYPOTHESIS, never wiped: shelved with its provenance (game, level), a
         record (one clear won with it), and carried as its METHOD (the template, never the
         instance text) through M7-INV, a pair part by part. The level's links still close."""
         for key in sorted(self._goal_conds):
-            meta = self._goal_meta.get(key, {})
-            rec = {"name": key, "text": self._goal_text.get(key), "game": self.gamma.game,
-                   "level": meta.get("level", self.level), "born": self.cycle, "how": how,
-                   "met_state": meta.get("met_state"), "templates": meta.get("templates", []),
-                   "record": {"won": 1, "lost": 0}}
-            self._goal_shelf[key] = rec
-            carried = []
-            if _M7_INV:
-                for i, (tpl, part) in enumerate(zip(meta.get("templates", ()),
-                                                    meta.get("parts", ()), strict=False)):
-                    if not tpl:
-                        continue
-                    name = key if len(meta.get("parts", ())) == 1 else f"{key}_{i + 1}"
-                    self._inv_carry.append({
-                        "name": name, "template": tpl, "affects": meta.get("affects", []),
-                        "reading": "completed", "term": name, "then": [],
-                        "game": self.gamma.game, "born": self.cycle, "kind": "goal",
-                        "level": rec["level"], "met_state": rec["met_state"], "part": part})
-                    carried.append(name)
-            self.led.record(self.cycle, "IMPORT", "@completion", "goal_shelved", key=key,
-                            condition=rec["text"], level=rec["level"], how=how,
-                            met_state=rec["met_state"], carried=carried,
-                            reads="a goal learned at a clear, kept as a ranked hypothesis (GQ1)")
+            self._shelve_one(key, how, {"won": 1, "lost": 0},
+                             "a goal learned at a clear, kept as a ranked hypothesis (GQ1)")
+
+    def _shelve_one(self, key: str, how: str, record: dict, reads: str) -> None:
+        """GQ1's shelving of one held condition with `record`, carried by its template (M7)."""
+        meta = self._goal_meta.get(key, {})
+        rec = {"name": key, "text": self._goal_text.get(key), "game": self.gamma.game,
+               "level": meta.get("level", self.level), "born": self.cycle, "how": how,
+               "met_state": meta.get("met_state"), "templates": meta.get("templates", []),
+               "record": record}
+        self._goal_shelf[key] = rec
+        carried = []
+        if _M7_INV:
+            for i, (tpl, part) in enumerate(zip(meta.get("templates", ()),
+                                                meta.get("parts", ()), strict=False)):
+                if not tpl:
+                    continue
+                name = key if len(meta.get("parts", ())) == 1 else f"{key}_{i + 1}"
+                self._inv_carry.append({
+                    "name": name, "template": tpl, "affects": meta.get("affects", []),
+                    "reading": "completed", "term": name, "then": [],
+                    "game": self.gamma.game, "born": self.cycle, "kind": "goal",
+                    "level": rec["level"], "met_state": rec["met_state"], "part": part})
+                carried.append(name)
+        self.led.record(self.cycle, "IMPORT", "@completion", "goal_shelved", key=key,
+                        condition=rec["text"], level=rec["level"], how=how,
+                        met_state=rec["met_state"], carried=carried, reads=reads,
+                        **({"record": record} if record.get("progress") else {}))
 
     def _goal_hypothesis(self, before: dict) -> None:
         """GQ2 (the reviewer 2026-10-20 14:27; Fig 5 :62-66, Fig 11 :43-48, Fig 9 :40-44): the
@@ -6833,10 +6898,16 @@ class Agent:
         # the echo wants it displaced come back where their slot is free: a record, not an end
         self._hyp_restore({sl: v for sl, v in h.get("displaced", {}).items()
                            if sl not in self.wants})
-        self._hyp_tried[h["tkey"]] = (why, h.get("cond"), h["text"])
+        ended_by = None
+        if _UNTESTED_KEEP and h["steps"] == 0 and h["touches"] == 0 and not (loss or won):
+            self._untested[h["tkey"]] = (self.cycle, why)    # the board could not host its test
+            why, ended_by = "untested", why
+        else:
+            self._hyp_tried[h["tkey"]] = (why, h.get("cond"), h["text"])
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
         self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
+                        **({"ended_by": ended_by} if ended_by is not None else {}),
                         text=h["text"], why=why, steps=h["steps"], released=released,
                         source=h["source"], by=by, held_unreadable=h["held_unreadable"],
                         touches=h["touches"], losses=h["losses"],
@@ -6960,7 +7031,9 @@ class Agent:
         # every won group ranks above every other; compile them first and the rest only if they
         # yield no pick -- the same pick, by construction. OFF, or nothing won: one phase, as before
         won_src = ({t: k for t, k in src.items()
-                    if self._goal_shelf.get(k, {}).get("record", {}).get("won", 0)}
+                    if self._goal_shelf.get(k, {}).get("record", {}).get("won", 0)
+                    or (_PROGRESS_SHELF
+                        and self._goal_shelf.get(k, {}).get("record", {}).get("progress", 0))}
                    if _PLAN_NARROW else {})
         phases = ([won_src, {t: k for t, k in src.items() if t not in won_src}]
                   if won_src and len(won_src) < len(src) else [src])
@@ -7021,7 +7094,11 @@ class Agent:
                     continue
                 won = self._goal_shelf.get(s, {}).get("record", {}).get("won", 0) if s else 0
                 bits = term_bits(self.gamma.length(c.term), self.gamma.alphabet)
-                out.append(((0 if won else 1, round(bits, 6)), text, c, tk, s))
+                rank = 0 if won else 1
+                if _PROGRESS_SHELF and not won:     # won, then progress, then the rest: ordinal
+                    rec = self._goal_shelf.get(s, {}).get("record", {}) if s else {}
+                    rank = 1 if rec.get("progress", 0) else 2
+                out.append(((rank, round(bits, 6)), text, c, tk, s))
             return out
 
         cands = _admit(phases[0])
@@ -7130,6 +7207,11 @@ class Agent:
                      "born": self.cycle, "displaced": link["_held"],
                      "reads": {}, "seg": {}, "touches": 0, "losses": 0,
                      "held_unreadable": 0, "acted": Counter()}
+        if _UNTESTED_KEEP and x[3] in self._untested:
+            since, ended_by = self._untested.pop(x[3])
+            self.led.record(self.cycle, "PLAN", sl, "goal_hypothesis_reopened", text=x[1],
+                            ended_by=ended_by, since=since,
+                            reads="an untested hypothesis back on a board that can host its test")
         detail.update(routable=routable, pick_bits=x[0][1],
                       pick_rank=next((i for i, y in enumerate(ranked_all) if y is x), None))
         self.led.record(self.cycle, "PLAN", sl, "goal_hypotheses", pick=x[1], key=key,
@@ -10596,7 +10678,7 @@ class Agent:
     def _explains(self, term: Term, slot: str, hist) -> bool:
         return bool(hist) and self._left(term, slot, hist) == 0.0
 
-    def indistinguishable(self) -> list[dict]:
+    def indistinguishable(self) -> list[dict] | None:
         """§12.4's TRIGGER: *two slots with the same attribute vector and different residuals.*
 
         **A corpus SLOT is an object and a code slot is one of its attributes** -- five to one
@@ -10631,6 +10713,10 @@ class Agent:
         # removes the invariant instead of maintaining it, and absence is now an exclusion.
         owners = self._slot_owners(self.env)
         if not owners:
+            if _INDIST_ON_CHANGE:
+                if self._indist_key == frozenset():
+                    return None                  # the grouping is unchanged: no walk, no row
+                self._indist_key = frozenset()
             return []
         state = self.env.observe()
         groups: dict[tuple, list[str]] = {}
@@ -10651,6 +10737,11 @@ class Agent:
                 continue
             groups.setdefault(tuple(sorted((self.slot_types.get(x), state[x])
                                            for x in feat)), []).append(owner)
+        if _INDIST_ON_CHANGE:
+            key = frozenset((vec, tuple(sorted(m))) for vec, m in groups.items() if len(m) >= 2)
+            if key == self._indist_key:
+                return None                      # the grouping is unchanged: no walk, no row
+            self._indist_key = key
         out = []
         for vec, members in groups.items():
             cap.head()
@@ -10967,6 +11058,17 @@ class Agent:
         """A1 (TETHER_STEP_ACT; Isaiah 2026-10-26 11:25, the reviewer 11:33): the governor at the
         step. The why when the slot's library lookup is deferred this step -- owed through C1's
         queue, asked first next step -- else None, and the lookup runs as today."""
+        if _ROUTE_NAMED:
+            if self._act_named == self.cycle and slot not in self._rn_owed:
+                own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+                self._owed_q[slot] = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
+                self.owed_import.add(slot)
+                self._rn_owed[slot] = self.cycle
+                self.led.record(self.cycle, "ROUTE", slot, "route_named", owes=True,
+                                reads="the act was already named, so the next fact is on the "
+                                      "board: the library lookup is owed, asked at the next step")
+                return "named"
+            self._rn_owed.pop(slot, None)
         if not _STEP_ACT:
             return None
         walk, why = self._think_or_act(slot, closer=False)
@@ -12808,6 +12910,10 @@ class Agent:
                             # here is the honest and current state: it has never once chosen.
                             selected_want=self._goal_choice(),
                             wants_held=len(self.wants))
+            if _PROGRESS_SHELF:
+                for key in sorted(self._goal_conds):
+                    if self._cond_slots(key) & set(better):
+                        self._goal_prog[key] += 1
 
     def _note_goal_choice(self, action: Any, before: dict, after: dict) -> None:
         """THE SELECTOR, EVERY CYCLE (the reviewer 2026-10-11 20:58 CDT). `progress` names the
@@ -15284,6 +15390,8 @@ class Agent:
                 _r = self.iface.realise(_want, _pf, _ctx, before, self.env, withheld=_wh,
                                         asker="goal")
                 if commit:
+                    if _r is not None:
+                        self._pred_named = self.cycle   # CONTACT_FIRST (a): the act is named
                     self.led.record(self.cycle, "PLAN", chosen, "predicted_route",
                                     intent=_want.says(), predicted=list(_pf),
                                     taken=_r.action if _r is not None else None,
@@ -16180,8 +16288,29 @@ class Agent:
                                   "bound; it owes and is minted first next step -- unreached at "
                                   "this budget, never a verdict")
             return
+        fp = self._contact_fp(slot) if _CONTACT_FIRST else None
+        if _CONTACT_FIRST:
+            why = ("same_rows" if fp is not None and self._cf_rows.get(slot) == fp
+                   else "named" if (self._act_named == self.cycle
+                                    and slot not in self._cf_owed) else None)
+            if why is not None:
+                self.owed_import.add(slot)
+                if why == "named":
+                    self._cf_owed[slot] = self.cycle
+                self.led.record(self.cycle, "ACCEPT", slot, "contact_first", bin=b, why=why,
+                                owes=True,
+                                reads=("not minted this step: the act was already named, so the "
+                                       "next fact is on the board; minted at the next step"
+                                       if why == "named" else
+                                       "not minted this step: the same rows under the same key "
+                                       "and library as its last walk; owed until a new row "
+                                       "arrives"))
+                return
+            self._cf_owed.pop(slot, None)
         self._mint_exhausted = False
         t0 = time.perf_counter() if _STEP_CLOCK else None
+        if fp is not None:
+            self._cf_rows[slot] = fp
         self.mint(slot)
         if _OWED_REJUDGE:
             self._mint_seen[slot] += 1           # 1d: A1's learning reading, turns taken
@@ -16191,6 +16320,17 @@ class Agent:
             sm["run"] += 1
             if self._mint_exhausted and sm["stop"] is None:
                 sm["stop"] = slot
+
+    def _contact_fp(self, slot: str) -> tuple | None:
+        """CONTACT_FIRST (b): what the mint would read for `slot` -- the gap's 1a key, how many
+        residual rows the held term leaves, and the library's size -- or None where no term is
+        held to read it under."""
+        held = self.gamma.library.get(self.bound.get(slot, IDN))
+        if held is None or slot not in self.alphabet:
+            return None
+        return (self._divide_key(slot, held),
+                len(self._residual_obs(slot, held, self.history(slot))),
+                len(self.gamma.library))
 
     @_in_step("MINT")
     def mint(self, slot: str) -> None:
@@ -18657,6 +18797,9 @@ class Agent:
             action, by = self.choose(before)
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
+            if (_CONTACT_FIRST or _ROUTE_NAMED) and (by == "routine"
+                                                     or self._pred_named == self.cycle):
+                self._act_named = self.cycle
         if IFace._RESET_ADJACENT:
             # (C) THE BACKSTOP AT THE SEND: any path that still emits RESET right after a RESET
             # (a given action, or an exit that calls neither helper) is not sent. Expected never.
@@ -18970,11 +19113,15 @@ class Agent:
         # things the world distinguishes -- so it is recorded, not acted on here.
         indist = self.indistinguishable()
         with self._step_scope("PERCEIVE"):
-            self.led.record(self.cycle - 1, "PERCEIVE", "@vector", "indistinct",
-                            pairs=len(indist), top=indist[:3],
-                            remedy=self.resolve() if indist else None,
-                            reads=("same featural vector, different |R|. Ranked by how many "
-                                   "objects shared the vector, which the remedy cannot move"))
+            if indist is not None:              # INDIST_ON_CHANGE: None = the grouping unchanged
+                self.led.record(self.cycle - 1, "PERCEIVE", "@vector", "indistinct",
+                                pairs=len(indist), top=indist[:3],
+                                remedy=self.resolve() if indist else None,
+                                **({"since": self._indist_at} if _INDIST_ON_CHANGE else {}),
+                                reads=("same featural vector, different |R|. Ranked by how many "
+                                       "objects shared the vector, which the remedy cannot move"))
+                if _INDIST_ON_CHANGE:
+                    self._indist_at = self.cycle - 1
             if _7I_ROUTE and self._contra_q:
                 # 3a: a ground contradiction suspects the READING first (core concepts are innate
                 # and settled, Isaiah 10-14 07:08), so it goes to perception's remedy by name
@@ -18996,6 +19143,13 @@ class Agent:
                 if _e["name"] is None:
                     continue                                    # a table route names no term
                 self._fed_rows.setdefault(_e["name"], []).append((len(self.led), _e["role"]))
+        if G_CARRY_W and self.gamma.carry_w_log:
+            for k, h, f, w in self.gamma.carry_w_log:
+                self.led.record(self.cycle - 1, "REPEAT", "@carry_w", "carry_w", kind=k, held=h,
+                                failed=f, w=w,
+                                reads="w for this kind of carried term: the share of its "
+                                      "outcomes this life that held (Symbols :20-26)")
+            self.gamma.carry_w_log.clear()
         with self._step_scope("REPEAT"):
             self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
                             integral=round(self.pe_integral(), 3),

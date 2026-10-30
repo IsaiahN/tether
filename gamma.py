@@ -402,6 +402,13 @@ _WRITES = [0]   # the settled set's writes, every Gamma's (shared: it can only o
 # A / (the library's mean recipe length) and gains one per settlement. No library and nothing
 # learned: today's uniform code exactly. OFF: tether.term_bits (9f26ee9)
 _PRIOR_CODE = armflag.arm("TETHER_PRIOR_CODE", default=True)
+# 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
+# and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
+# past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
+# * this life's own record of it, where w per kind = held / (held + failed) over this life's
+# outcomes of carried terms of that kind (replay excluded). No outcome for the kind: w = 1, today's
+# track_of exactly. Orders retrieval only; settled is untouched. ON; conform/arms.py
+_CARRY_W = armflag.arm("TETHER_CARRY_W", default=True)
 # L1b (the reviewer 2026-10-17 19:06, 19:33): Rank.used crosses the lineage. It lived on the Agent,
 # so every process re-earned that half of its preparedness; Standing.paid already crosses, by 7i's
 # replay of the carried settle rows. Carried per UNIT (the atom sequence), never per binding.
@@ -997,6 +1004,14 @@ class Gamma:
         # SET AT LOAD, never at mint: a term that originated elsewhere says so without the
         # reader having to parse a game name out of a handle.
         self.carried: dict[str, dict] = {}
+        # CARRY_W: name -> (confirmations, refusals) as loaded; name -> [held, failed] this life;
+        # kind -> [held, failed]; (kind, held, failed, w) per change, for tether's carry_w rows
+        self.carry_w_base: dict[str, tuple] = {}
+        self.carry_w_life: dict[str, list] = {}
+        self.carry_w_kind: dict[str, list] = {}
+        self.carry_w_log: list = []
+        self._carry_w_kinds: dict[str, str] = {}
+        self._replaying = False
         # **A MERGE THAT FORGETS ITS MEMBERS FAILS THE PROVENANCE CLAIM -- the reviewer,
         # 2026-10-03.** When N carried compositions reduce to ONE chain, that may be right
         # for TRANSFER -- one law, many instances -- but Isaiah's condition is that we can
@@ -1116,6 +1131,7 @@ class Gamma:
                **({"renamed": 0, "onto_atom": 0} if _REPLAY_UNIT else {})}
         keep, tick = self.keep_evidence, self.tick
         self.keep_evidence = False
+        self._replaying = _CARRY_W      # CARRY_W: the carried evidence is not this life's outcomes
         try:
             for r in rows:
                 kind, name, slot, where, t = r[:5]
@@ -1139,7 +1155,35 @@ class Gamma:
                 st.refusals_on.clear()
         finally:
             self.keep_evidence, self.tick = keep, tick
+            self._replaying = False
+        if _CARRY_W:
+            for name in self.carried:
+                if name in self.library and name not in self.innate \
+                        and name not in self.carry_w_life:
+                    st = self.standing.get(name)
+                    self.carry_w_base[name] = ((st.confirmations, st.refusals)
+                                               if st is not None else (0.0, 0.0))
         return out
+
+    def _carry_w_note(self, name: str, held: bool) -> None:
+        """CARRY_W: one outcome of a carried, non-innate term in this life, counted for its kind
+        (replay excluded), with the kind's new w logged for tether's carry_w row."""
+        if self._replaying or name not in self.carried or name in self.innate \
+                or name not in self.library:
+            return
+        if name not in self.carry_w_base:
+            st = self.standing.get(name)
+            self.carry_w_base[name] = ((st.confirmations, st.refusals) if st is not None
+                                       else (0.0, 0.0))
+        k = self._carry_w_kinds.get(name)
+        if k is None:
+            k = self._carry_w_kinds[name] = self.kind_of(self.library[name]).name
+        life = self.carry_w_life.setdefault(name, [0, 0])
+        kc = self.carry_w_kind.setdefault(k, [0, 0])
+        i = 0 if held else 1
+        life[i] += 1
+        kc[i] += 1
+        self.carry_w_log.append((k, kc[0], kc[1], round(kc[0] / (kc[0] + kc[1]), 6)))
 
     def admissions(self) -> dict[str, int]:
         """How many entries cited each of Â§11's two clauses.
@@ -1234,6 +1278,8 @@ class Gamma:
         st = self.standing.setdefault(name, Standing())
         st.decay(self.tick, self.halflife)
         st.settled_at = self.tick
+        if _CARRY_W:
+            self._carry_w_note(name, True)
         # THE TOTAL, UNCONDITIONAL -- and the breakdown BESIDE it, never instead of it. The
         # same two lines `refute` writes, in the same order, so the pair cannot drift apart.
         st.confirmations += 1.0
@@ -1306,6 +1352,8 @@ class Gamma:
             self.evidence.append(["refute", name, slot, where, self.tick])
         st = self.standing.setdefault(name, Standing())
         was = self.is_settled(name, slot)
+        if _CARRY_W and ((slot in st.settled_on) if slot is not None else st.settled):
+            self._carry_w_note(name, False)     # a refusal by Standing.refute's own reading
         st.refute(self.tick, self.halflife, where=where, slot=slot)
         # TRUE ONLY WHEN THIS MISS COST STANDING, on the slot when one is given. This returned
         # `was settled (anywhere)`, so the caller unbound on every miss by a settled term --
@@ -1373,6 +1421,16 @@ class Gamma:
         if st is None:
             return 0.5                       # UNTRIED READS 0.5, as the spec requires
         st.decay(self.tick, self.halflife)
+        if _CARRY_W and name in self.carry_w_base:
+            k = self._carry_w_kinds.get(name)
+            if k is None and name in self.library:
+                k = self._carry_w_kinds[name] = self.kind_of(self.library[name]).name
+            h, f = self.carry_w_kind.get(k, (0, 0))
+            if h + f:                        # outcomes for the kind: mix (Symbols :20-26)
+                w = h / (h + f)
+                c0, r0 = self.carry_w_base[name]
+                c1, r1 = self.carry_w_life.get(name, (0, 0))
+                return w * (c0 + 1.0) / (c0 + r0 + 2.0) + (1 - w) * (c1 + 1.0) / (c1 + r1 + 2.0)
         return (st.confirmations + 1.0) / (st.confirmations + st.refusals + 2.0)
 
     def youth_of(self, name: str) -> float:
