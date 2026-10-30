@@ -23,6 +23,8 @@ import sys
 import tarfile
 import tempfile
 
+from _batch import off_env  # noqa: E402  the batch's arms (r348)
+
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
@@ -119,7 +121,7 @@ def _off_identity(w: str) -> None:
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
             tf.extractall(d, filter="data")
         base = norm(child(d, w))
-    cur = norm(child(root, w, {"TETHER_SETTLE_PRED": "0"}))
+    cur = norm(child(root, w, off_env("TETHER_SETTLE_PRED")))
     diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base) - len(cur))
     assert len(base) > 50 and diff == 0, ("OFF identity", w, len(base), len(cur),
                                          next((i for i, (x, y) in enumerate(
