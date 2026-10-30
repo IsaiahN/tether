@@ -913,6 +913,12 @@ _ROUTE_NAMED = armflag.arm("TETHER_ROUTE_NAMED", default=True)
 # lexicographically, and 4's first phase reads a progress entry as it reads a won one.
 # ON; conform/arms.py
 _PROGRESS_SHELF = armflag.arm("TETHER_PROGRESS_SHELF", default=True)
+# 4 UNTESTED_KEEP (the reviewer r392, r397): a goal hypothesis that ends with none of its own steps
+# taken and no touch (steps == 0, touches == 0 -- the board could not host its test) ends "untested"
+# and is NOT entered in _hyp_tried; the proposal forms candidates only over objects present now, so
+# it can come back only when its own slot is on the board again, the check that ended it then
+# passing. A goal_hypothesis_reopened row when it does. ON; conform/arms.py
+_UNTESTED_KEEP = armflag.arm("TETHER_UNTESTED_KEEP", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -3066,6 +3072,7 @@ class Agent:
         self._goal_prog: Counter = Counter()   # PROGRESS_SHELF: held key -> progress rows on it
         self._hyp: dict | None = None  # GQ2: the goal hypothesis held now
         self._hyp_tried: dict = {}    # GQ2: (template, subject, operand) -> how it ended (level)
+        self._untested: dict = {}     # UNTESTED_KEEP: tkey -> (cycle, the check that ended it)
         self._hyp_n = 0               # GQ2: hypotheses held, for their link keys
         self._hyp_exhausted = None    # GQ2: the delta-table size at which nothing was routable
         self._hyp_known = 0
@@ -3933,6 +3940,8 @@ class Agent:
                 self._hyp_end("level_cleared" if how in (WIN, ADVANCE) else f"closed_{how}",
                               won=how in (WIN, ADVANCE), step="IMPORT")
             self._hyp_tried, self._hyp_exhausted = {}, None
+            if _UNTESTED_KEEP:
+                self._untested = {}
         if self._goal_conds and _LEVEL_GOAL and how in (WIN, ADVANCE):
             self._shelve_goals(how)
         if self._goal_conds:
@@ -6880,10 +6889,16 @@ class Agent:
         # the echo wants it displaced come back where their slot is free: a record, not an end
         self._hyp_restore({sl: v for sl, v in h.get("displaced", {}).items()
                            if sl not in self.wants})
-        self._hyp_tried[h["tkey"]] = (why, h.get("cond"), h["text"])
+        ended_by = None
+        if _UNTESTED_KEEP and h["steps"] == 0 and h["touches"] == 0 and not (loss or won):
+            self._untested[h["tkey"]] = (self.cycle, why)    # the board could not host its test
+            why, ended_by = "untested", why
+        else:
+            self._hyp_tried[h["tkey"]] = (why, h.get("cond"), h["text"])
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
         self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
+                        **({"ended_by": ended_by} if ended_by is not None else {}),
                         text=h["text"], why=why, steps=h["steps"], released=released,
                         source=h["source"], by=by, held_unreadable=h["held_unreadable"],
                         touches=h["touches"], losses=h["losses"],
@@ -7183,6 +7198,11 @@ class Agent:
                      "born": self.cycle, "displaced": link["_held"],
                      "reads": {}, "seg": {}, "touches": 0, "losses": 0,
                      "held_unreadable": 0, "acted": Counter()}
+        if _UNTESTED_KEEP and x[3] in self._untested:
+            since, ended_by = self._untested.pop(x[3])
+            self.led.record(self.cycle, "PLAN", sl, "goal_hypothesis_reopened", text=x[1],
+                            ended_by=ended_by, since=since,
+                            reads="an untested hypothesis back on a board that can host its test")
         detail.update(routable=routable, pick_bits=x[0][1],
                       pick_rank=next((i for i, y in enumerate(ranked_all) if y is x), None))
         self.led.record(self.cycle, "PLAN", sl, "goal_hypotheses", pick=x[1], key=key,

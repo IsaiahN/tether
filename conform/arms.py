@@ -1177,6 +1177,15 @@ ARMS: dict[str, str] = {
                              "(ordinal classes; bits second, as before) and PLAN_NARROW's first "
                              "phase takes progress entries with the won. No number. OFF: close "
                              "drops them, as before. default ON",
+    "TETHER_UNTESTED_KEEP": "4 UNTESTED_KEEP (the reviewer r392, r397). In _hyp_end, a goal "
+                            "hypothesis that ends with steps == 0 and touches == 0 and no loss or "
+                            "win (the board could not host its test) ends why 'untested' with "
+                            "ended_by = the check's own why, and is kept in _untested, NOT "
+                            "_hyp_tried. The proposal forms candidates only over objects present "
+                            "now and its tried key carries the slot, so it comes back only when "
+                            "its slot is on the board again; then a goal_hypothesis_reopened row "
+                            "(ended_by, since). Reset with _hyp_tried at a level. No number. OFF: "
+                            "it enters _hyp_tried, as before. default ON",
     "TETHER_NAMED_REMAINDER": "1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 "
                               ":134-139, Fig 9 :4-5, Fig 8 :39-42). When 1c's none_survive fires "
                               "(any cause), a MINT 'remainder' row on the slot: (a) among the LAST "
