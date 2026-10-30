@@ -70,8 +70,8 @@ def p2() -> None:
 def a2(rows: list) -> int:
     seen = 0
     for r in rows:
-        if r["event"] != "choice":
-            continue
+        if r["event"] != "choice" or r["detail"].get("site") == "goal_hypothesis":
+            continue    # a2 reads frontier rows; goal_hypothesis is draw_each's (89c1ee9, r452 B4)
         d, seen = r["detail"], seen + 1
         assert d["by"] in FR.BY and d["site"], d
         front = [f[0] for f in d["frontier"]]
@@ -140,7 +140,9 @@ def main() -> None:
         print("  MF-P must-fail fired: our order fails P1")
     else:
         raise AssertionError("MF-P MUST-FAIL did not fail")
-    _rows, by_off = _child({"TETHER_A1_TIES": "0"})
+    # 1b ASK's split tie-break (2a8045c, interface.py's DISTINGUISH) counts pick_by with no A1_TIES
+    # gate, so ASK is held off for this must-fail (r452 B4: stale since 2a8045c)
+    _rows, by_off = _child({"TETHER_A1_TIES": "0", "TETHER_ASK": "0"})
     assert not by_off, ("MF-A MUST-FAIL did not fail: the interface still picked by frontier",
                         by_off)
     print("  MF-A must-fail fired: with A1_TIES OFF the interface records no frontier pick")

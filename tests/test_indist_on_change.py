@@ -4,8 +4,8 @@ gates: one must-fail, one must-hold, each in its own process.
                         computes once and returns None at a second read with nothing changed; with
                         the arm off it computes both times
   check_off_identity    MUST-HOLD: TETHER_INDIST_ON_CHANGE=0 (off_env) against afe1a82, fake,
-                        whole-run; and ON against OFF on the same run, every row but "indistinct"
-                        identical -- no decision moved, pure cost
+                        whole-run; and ON (later batch arms off, as in OFF) against OFF on the same
+                        run, every row but "indistinct" identical -- no decision moved, pure cost
     python tests/test_indist_on_change.py [check ...]
 """
 from __future__ import annotations
@@ -79,7 +79,9 @@ def check_off_identity() -> None:
     diff = sum(1 for x, y in zip(base, off, strict=False) if x != y) + abs(len(base) - len(off))
     assert len(base) > 50 and diff == 0, (len(base), len(off), next(
         (i for i, (x, y) in enumerate(zip(base, off, strict=False)) if x != y), None))
-    on = _norm(_child(root))
+    # ON with every LATER batch arm held off as OFF holds them, so the pair differs by this arm
+    # alone: arms 7 / 8 add view_hold to memo_sizes when on (r452 B3; row 4191 confirmed)
+    on = _norm(_child(root, off_env("TETHER_VIEW_HOLD_SAME")))
     keep_on, keep_off = _unpos(on), _unpos(off)
     d2 = sum(1 for x, y in zip(keep_on, keep_off, strict=False) if x != y) + abs(
         len(keep_on) - len(keep_off))
