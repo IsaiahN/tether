@@ -655,6 +655,13 @@ _VIEW_HOLD = armflag.arm("TETHER_VIEW_HOLD", default=True)
 # a mismatch
 _VIEW_HOLD_SAME = armflag.arm("TETHER_VIEW_HOLD_SAME", default=True)
 _VIEW_HOLD_SAME_CHECK = armflag.arm("TETHER_VIEW_HOLD_SAME_CHECK", default=False)
+# 8 VIEW_HOLD_SAME_ROLE (the reviewer 2026-10-30 r417): the same one-placeholder hold for MEASURE /
+# RELATION views with o == x. partner_named is library _names, a whole-id regex whose edge class
+# excludes braces, and every template sets a name between non-edge characters, so with one
+# placeholder it matches exactly where the name would. One collision is named and not proved
+# absent -- a reading name equal to an id -- and VIEW_HOLD_SAME_CHECK counts it if it happens.
+# ON; conform/arms.py
+_VIEW_HOLD_SAME_ROLE = armflag.arm("TETHER_VIEW_HOLD_SAME_ROLE", default=True)
 _HELD_ROLES = ("STATE", "TEST", "PROCESS", "CAUSE")   # RELATION/MEASURE filter on x (library 504)
 # (b'-q) THE INDEX HOLD (Fig 12 :107-108; the reviewer 2026-10-14 12:19, 12:23). ON; reason in
 # conform/arms.py. A held role's view is compiled ONCE per process under the placeholders and a
@@ -4260,7 +4267,8 @@ class Agent:
         self.led.record(self.cycle, step, "@memo", "memo_sizes", at=at, agent=agent,
                         exempt=exempt, asked={m: len(v) for m, v in self._seen_keys.items()},
                         carried={"bs": len(_BS_CARRIED), "bm": len(_BM_CARRIED)}, hits=hits,
-                        **({"view_hold": dict(self._view_hold_n)} if _VIEW_HOLD_SAME else {}),
+                        **({"view_hold": dict(self._view_hold_n)}
+                           if _VIEW_HOLD_SAME or _VIEW_HOLD_SAME_ROLE else {}),
                         reads="R4: the memos' entries at this boundary (agent-level, cleared "
                               "next; exempt, kept), the asked keys, the bound memos' hits")
 
@@ -6507,13 +6515,15 @@ class Agent:
             return lib.view(key, role, o, x)
         why = ("role" if role not in _HELD_ROLES else "same" if o == x
                else "brace" if any(b in o + x for b in "{}") else None)
-        if (why == "same" and _VIEW_HOLD_SAME and role in ("STATE", "TEST", "PROCESS")
-                and not any(b in o for b in "{}")):
+        by_role = _VIEW_HOLD_SAME_ROLE and o == x and role in ("MEASURE", "RELATION")
+        by_same = why == "same" and _VIEW_HOLD_SAME and role in ("STATE", "TEST", "PROCESS")
+        if (by_role or by_same) and not any(b in o for b in "{}"):
+            n_ = "_role" if by_role else ""
             held = self._view_hold.get((key, role, "same"))
             if held is None:
                 held = self._view_hold[(key, role, "same")] = lib.view(key, role, "{o}", "{o}")
-                self._view_hold_n["held_same"] += 1
-            self._view_hold_n["served_same"] += 1
+                self._view_hold_n["held_same" + n_] += 1
+            self._view_hold_n["served_same" + n_] += 1
             got = _restore(held, o, o)
             if _VIEW_HOLD_SAME_CHECK:
                 self._view_hold_n["same_checked"] += 1

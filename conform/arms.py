@@ -1217,6 +1217,16 @@ ARMS: dict[str, str] = {
                              "bypassed (partner_named reads the name). _view_hold_n counts "
                              "held_same / served_same; the memo_sizes row carries view_hold. No "
                              "number. OFF: the o == x view computed fresh, as before. default ON",
+    "TETHER_VIEW_HOLD_SAME_ROLE": "8 VIEW_HOLD_SAME_ROLE (the reviewer r417). The same "
+                                  "one-placeholder hold for MEASURE / RELATION views with o == x "
+                                  "(they reach _lib_view as the 'role' bypass, so the branch reads "
+                                  "o == x directly): (key, role, 'same'), lib.view(key, role, "
+                                  "'{o}', '{o}'), _restore(held, o, o); counts held_same_role / "
+                                  "served_same_role. Exact because partner_named is library "
+                                  "_names, a whole-id regex whose edge class excludes braces; one "
+                                  "collision is named, not proved absent (a reading name equal to "
+                                  "an id), and TETHER_VIEW_HOLD_SAME_CHECK counts it. No number. "
+                                  "OFF: computed fresh, as before. default ON",
     "TETHER_VIEW_HOLD_SAME_CHECK": "7's check (the reviewer r415): each view served from the "
                                    "'same' hold is also computed fresh with lib.view(key, role, "
                                    "o, x) and compared; same_checked / same_mismatch in "
