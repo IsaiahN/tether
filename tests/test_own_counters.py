@@ -30,7 +30,7 @@ import world
 
 sys.dont_write_bytecode = True
 HERE = _repo.ROOT
-MAIN = "C:/Users/Admin/Documents/GitHub/tether"
+MAIN = HERE      # the merge's base read is done; now the docstring's determinism check (r452 C)
 sys.path.insert(0, os.path.join(HERE, "conform"))
 from identity_mod_rows import compare  # noqa: E402  the one identity reader, imported
 
@@ -122,7 +122,7 @@ def main() -> int:
             for rs in (base, f_off))
     bad = compare(a, b, set())
     assert not bad, bad[:3]
-    print(f"  ID: OFF on this tree = 116481a's ledger ({MAIN}): {len(b)} rows past the header "
+    print(f"  ID: OFF on this tree, run twice, the same ledger: {len(b)} rows past the header "
           f"(compare())")
     print("own_counters: OK")
     return 0

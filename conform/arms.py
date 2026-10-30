@@ -1,4 +1,6 @@
-"""arms: eighteen capability switches, all default OFF, and nothing computed the sum.
+"""arms: every capability switch the agent reads, each with its default and its row below; the
+seat prints the count and how many are ON (this line said "eighteen, all default OFF" long after
+that stopped being true -- the reviewer 2026-10-30 r452 C), and nothing computed the sum.
 
 **ENVIRONMENT SWITCHES ONLY, AND THE COUNT ABOVE IS THEREFORE NOT THE AGENT'S TOTAL --
 ANNOTATED 2026-09-28.** The detector is `os.environ.get("TETHER_X")`, so a capability switch

@@ -50,7 +50,11 @@ which are identical on both branches (see `arc-solver-agent`'s README).
 - **Does not ship:** anything learned. The agent starts with its inherited library and no
   experience of its own. What it learns is written to a lineage folder outside the repository (one
   generation file per run, plus its memory store), which starts empty. No lineage, learned library
-  or run output is ever committed.
+  or run ledger is ever committed. Two seat-side records are: `docs/log_index/` (a copy of the run
+  index -- one lossy summary row per run ledger -- with its pins and removals, committed after each
+  indexing box by ruling, and read by `tests/test_log_index.py`) and `docs/TOMBSTONES/` (the record
+  of files removed on Isaiah's word, what they were and why). Neither holds anything the agent
+  learned or reads.
 
 ## From a fresh clone
 

@@ -47,5 +47,8 @@ idx_*.json
 ak_*.json
 RESTORE_LOG*.tsv
 *.dead-*
+# a learned library file is never committed by accident (the reviewer 2026-10-30 r452 C)
+library/runtime.json
+learnings.json
 # the editor's own settings (the reviewer 2026-10-21 19:38)
 .vscode/
