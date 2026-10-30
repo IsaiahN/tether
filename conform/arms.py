@@ -1148,6 +1148,17 @@ ARMS: dict[str, str] = {
                           "phases and wall_s; open, ranked and refused cover "
                           "the phases run; the cap record carries phases. The kind-scoped cut is a "
                           "later item. OFF, or nothing won: one phase, as before. default ON",
+    "TETHER_CONTACT_FIRST": "1 CONTACT_FIRST (Isaiah 2026-10-30 06:19-06:21; the reviewer r392, "
+                            "r393; Fig 12 :126-127, Fig 9 :53). In the step's mint, read from the "
+                            "step's own record: (a) the act was already named (a settled "
+                            "prediction served the intent -- predicted_route taken -- or a held "
+                            "routine emitted it), or (b) the gap holds the same rows under the "
+                            "same 1a key and library size as at its last walk, so nothing the "
+                            "mint could form is told apart until a new row arrives. Then the "
+                            "mint is not walked: the slot is owed (owed_import) with a "
+                            "contact_first row (why named / same_rows); (a) walks at the next "
+                            "step, (b) when the rows change. No number. OFF: the mint walks "
+                            "every step, as before. default ON",
     "TETHER_NAMED_REMAINDER": "1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 "
                               ":134-139, Fig 9 :4-5, Fig 8 :39-42). When 1c's none_survive fires "
                               "(any cause), a MINT 'remainder' row on the slot: (a) among the LAST "

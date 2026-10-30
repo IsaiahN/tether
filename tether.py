@@ -893,6 +893,14 @@ _NAMED_REMAINDER = armflag.arm("TETHER_NAMED_REMAINDER", default=True)
 # cuts the work, never widens it. Exact: the same pick. The goal_hypotheses row says how many were
 # compiled and left. ON; conform/arms.py
 _PLAN_NARROW = armflag.arm("TETHER_PLAN_NARROW", default=True)
+# 1 CONTACT_FIRST (Isaiah 2026-10-30 06:19-06:21; the reviewer r392, r393; Fig 12 :126-127, Fig 9
+# :53): a step's mint is owed, not walked, when the step's own record says the next fact is on the
+# board -- (a) the act was already named (a settled prediction served the intent, or a held
+# routine emitted it), or (b) the gap holds the same rows under the same key and library as at its
+# last walk, so nothing the mint could form is told apart until a new row arrives. Owed through
+# owed_import, walked at the next step (a) or when the rows change (b); a contact_first row each
+# time. ON; conform/arms.py
+_CONTACT_FIRST = armflag.arm("TETHER_CONTACT_FIRST", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -3204,6 +3212,10 @@ class Agent:
         self._ask_abstained: tuple | None = None   # 1b: (slot, survivors) when no press split
         self._repriced: tuple = (0, 0, 0.0, 0)  # 1b: the last S1 read's (cells, rows, secs, hits)
         self._reprice_memo: dict = {}  # 1b: slot -> ((tally key, decoder size), term -> charges)
+        self._cf_rows: dict = {}        # CONTACT_FIRST: slot -> what its last walk read
+        self._cf_owed: dict = {}        # CONTACT_FIRST: slot -> cycle owed for a named act
+        self._pred_named = None         # CONTACT_FIRST: cycle a settled prediction named the act
+        self._act_named = None          # CONTACT_FIRST: cycle the act was named
         self._stop: dict = {}           # 1c: slot -> the stop rule it is in (held / none_survive)
         self._last_surv: dict = {}      # 1c: slot -> ({survivor: bound}, bar) at its last survivors
         self._risky: dict = {}          # 1c: (slot, term) -> the key of its last risky settle
@@ -15284,6 +15296,8 @@ class Agent:
                 _r = self.iface.realise(_want, _pf, _ctx, before, self.env, withheld=_wh,
                                         asker="goal")
                 if commit:
+                    if _r is not None:
+                        self._pred_named = self.cycle   # CONTACT_FIRST (a): the act is named
                     self.led.record(self.cycle, "PLAN", chosen, "predicted_route",
                                     intent=_want.says(), predicted=list(_pf),
                                     taken=_r.action if _r is not None else None,
@@ -16180,8 +16194,29 @@ class Agent:
                                   "bound; it owes and is minted first next step -- unreached at "
                                   "this budget, never a verdict")
             return
+        fp = self._contact_fp(slot) if _CONTACT_FIRST else None
+        if _CONTACT_FIRST:
+            why = ("same_rows" if fp is not None and self._cf_rows.get(slot) == fp
+                   else "named" if (self._act_named == self.cycle
+                                    and slot not in self._cf_owed) else None)
+            if why is not None:
+                self.owed_import.add(slot)
+                if why == "named":
+                    self._cf_owed[slot] = self.cycle
+                self.led.record(self.cycle, "ACCEPT", slot, "contact_first", bin=b, why=why,
+                                owes=True,
+                                reads=("not minted this step: the act was already named, so the "
+                                       "next fact is on the board; minted at the next step"
+                                       if why == "named" else
+                                       "not minted this step: the same rows under the same key "
+                                       "and library as its last walk; owed until a new row "
+                                       "arrives"))
+                return
+            self._cf_owed.pop(slot, None)
         self._mint_exhausted = False
         t0 = time.perf_counter() if _STEP_CLOCK else None
+        if fp is not None:
+            self._cf_rows[slot] = fp
         self.mint(slot)
         if _OWED_REJUDGE:
             self._mint_seen[slot] += 1           # 1d: A1's learning reading, turns taken
@@ -16191,6 +16226,17 @@ class Agent:
             sm["run"] += 1
             if self._mint_exhausted and sm["stop"] is None:
                 sm["stop"] = slot
+
+    def _contact_fp(self, slot: str) -> tuple | None:
+        """CONTACT_FIRST (b): what the mint would read for `slot` -- the gap's 1a key, how many
+        residual rows the held term leaves, and the library's size -- or None where no term is
+        held to read it under."""
+        held = self.gamma.library.get(self.bound.get(slot, IDN))
+        if held is None or slot not in self.alphabet:
+            return None
+        return (self._divide_key(slot, held),
+                len(self._residual_obs(slot, held, self.history(slot))),
+                len(self.gamma.library))
 
     @_in_step("MINT")
     def mint(self, slot: str) -> None:
@@ -18657,6 +18703,8 @@ class Agent:
             action, by = self.choose(before)
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
+            if _CONTACT_FIRST and (by == "routine" or self._pred_named == self.cycle):
+                self._act_named = self.cycle
         if IFace._RESET_ADJACENT:
             # (C) THE BACKSTOP AT THE SEND: any path that still emits RESET right after a RESET
             # (a given action, or an exit that calls neither helper) is not sent. Expected never.

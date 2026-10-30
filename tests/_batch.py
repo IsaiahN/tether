@@ -17,6 +17,7 @@ ARMS = (
     ("TETHER_STOP_RULES", "d148097"),        # 1c
     ("TETHER_NAMED_REMAINDER", "a228a09"),        # 1e
     ("TETHER_PLAN_NARROW", "e4c3be3"),       # 4
+    ("TETHER_CONTACT_FIRST", "wip"),         # wip/finish 1 (r392, r393)
 )
 # A batch arm whose TREE DEFAULT was flipped after later arms landed (r359): (the arm, the last
 # batch arm before the flip, its value before, the flip's commit). An arm under test that landed
