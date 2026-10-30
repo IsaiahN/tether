@@ -36,8 +36,9 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 
-RECORD = (r"C:\Users\Admin\AppData\Local\Temp\claude\c--Users-Admin-Documents-GitHub-tether"
-          r"\2043231f-437e-4548-ac19-702f1efcfb71\scratchpad\DRESET\birth_1.jsonl")
+# the captured birth (DRESET's birth_1.jsonl) exists on one machine only: named by an env var, never
+# a machine path (Isaiah 2026-10-30 16:33); unset, the test says SKIP-ENV and passes nothing
+RECORD_VAR = "TETHER_DECAY_RECORD"
 ARMS = ("TETHER_DEAD_PRICE", "TETHER_SITUATED_EFFECT", "TETHER_SITUATED_REACH",
         "TETHER_SITUATED_CLICK")
 RD2_BUDGET_S = 190   # a test's wall bound (the reviewer: every test under 5 minutes), never a prior
@@ -192,7 +193,10 @@ def direct() -> None:
 
 
 def main() -> None:
-    rec = sys.argv[1] if len(sys.argv) > 1 else RECORD
+    rec = sys.argv[1] if len(sys.argv) > 1 else os.environ.get(RECORD_VAR)
+    if not rec:
+        print(f"SKIP-ENV {RECORD_VAR} is unset: the captured record names no file; nothing checked")
+        return
     assert os.path.exists(rec), f"the captured record is missing: {rec}"
     replay = {"TETHER_SEED_FROM": rec}
     t0 = time.perf_counter()

@@ -50,5 +50,11 @@ RESTORE_LOG*.tsv
 # a learned library file is never committed by accident (the reviewer 2026-10-30 r452 C)
 library/runtime.json
 learnings.json
+# the seat's own Claude instructions and configuration stay local (Isaiah 2026-10-30 16:33)
+CLAUDE.md
+.claude/
+# run output stays local: the run index's copy and the tombstone's file list (Isaiah 2026-10-30 16:33)
+docs/log_index/
+docs/TOMBSTONES/*.jsonl
 # the editor's own settings (the reviewer 2026-10-21 19:38)
 .vscode/

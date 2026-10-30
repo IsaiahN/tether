@@ -50,11 +50,7 @@ which are identical on both branches (see `arc-solver-agent`'s README).
 - **Does not ship:** anything learned. The agent starts with its inherited library and no
   experience of its own. What it learns is written to a lineage folder outside the repository (one
   generation file per run, plus its memory store), which starts empty. No lineage, learned library
-  or run ledger is ever committed. Two seat-side records are: `docs/log_index/` (a copy of the run
-  index -- one lossy summary row per run ledger -- with its pins and removals, committed after each
-  indexing box by ruling, and read by `tests/test_log_index.py`) and `docs/TOMBSTONES/` (the record
-  of files removed on Isaiah's word, what they were and why). Neither holds anything the agent
-  learned or reads.
+  or run output is ever committed.
 
 ## From a fresh clone
 
@@ -64,19 +60,20 @@ it with `--no-deps` so nothing else is resolved.
     git clone -b general-agent https://github.com/IsaiahN/tether.git
     cd tether
     python -m venv .venv
-    .venv/Scripts/python.exe -m pip install --no-deps -r requirements.lock   # bin/python off Windows
+    # activate .venv; `python` below is the venv's interpreter on any OS
+    python -m pip install --no-deps -r requirements.lock
 
 ## The checks
 
 Run from the repository root, one at a time, without writing bytecode:
 
     export PYTHONDONTWRITEBYTECODE=1                    # a POSIX shell; Git Bash on Windows
-    .venv/Scripts/python.exe -m ruff check .
-    .venv/Scripts/python.exe -B tests/test_gate.py
-    .venv/Scripts/python.exe -B tests/test_entry.py
-    .venv/Scripts/python.exe -B tests/test_gate_ledger.py
-    .venv/Scripts/python.exe -B tests/test_arm_modules.py
-    .venv/Scripts/python.exe -B conform/arms.py
+    python -m ruff check .
+    python -B tests/test_gate.py
+    python -B tests/test_entry.py
+    python -B tests/test_gate_ledger.py
+    python -B tests/test_arm_modules.py
+    python -B conform/arms.py
 
 Each prints its own result line and exits 0 when it passes. `tests/test_gate.py` checks the
 checker itself: one planted defect per check, and every defect must be caught.

@@ -1,3 +1,4 @@
+# WINDOWS-ONLY (PowerShell, Get-CimInstance Win32_Process; the reviewer 2026-10-30 r456).
 # The 1 s commit sampler for a run that does not start one itself (the reviewer 2026-10-19 05:50: not Python).
 # Finds OUR probe_counter process(es) whose command line names the given out dir (the venv launcher and the real
 # interpreter both match; each is sampled), then writes every second: t_s, pid, private bytes. Read only; ends

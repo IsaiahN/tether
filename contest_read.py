@@ -27,7 +27,7 @@ TWO READINGS, the reviewer 2026-10-02 13:46:
 `win` is reported with its denominator everywhere, because a W on 2/2 is not a W on 35/35 and
 the tally alone cannot tell them apart.
 
-    .venv/Scripts/python.exe contest_read.py <panel output file>
+    python contest_read.py <panel output file>
 """
 
 from __future__ import annotations

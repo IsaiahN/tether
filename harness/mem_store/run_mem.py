@@ -11,8 +11,9 @@ import sys
 sys.dont_write_bytecode = True
 repo, lin, OUT = sys.argv[1:4]
 ON, DRY = "--on" in sys.argv[4:], "--dry" in sys.argv[4:]
-R = "C:/TETHER_RUNS/E4_2026-10-18"
-PY = "C:/Users/Admin/Documents/GitHub/tether/.venv/Scripts/python.exe"
+R = os.path.join(os.environ.get("TETHER_RUNS_DIR")
+                 or sys.exit("set TETHER_RUNS_DIR to the runs folder"), "E4_2026-10-18")
+PY = sys.executable      # the interpreter running this (r456: no machine path)
 HERE = os.path.dirname(os.path.abspath(__file__))
 assert not os.path.exists(os.path.join(OUT, "switch.tsv")), "the out dir already holds a stream"
 assert os.path.abspath(lin) != os.path.abspath(f"{R}/lineage"), "a COPY, never the E4 lineage"

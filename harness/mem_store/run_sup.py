@@ -9,7 +9,7 @@ import sys
 
 sys.dont_write_bytecode = True
 repo, SUP, MAXS, *CHILD = sys.argv[1:]
-PY = "C:/Users/Admin/Documents/GitHub/tether/.venv/Scripts/python.exe"
+PY = sys.executable      # the interpreter running this (r456: no machine path)
 ENV = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_") and k != "PYTHONMALLOC"}
 ENV["PYTHONDONTWRITEBYTECODE"] = "1"
 ENV["PYTHONHASHSEED"] = "0"

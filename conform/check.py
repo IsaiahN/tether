@@ -32,7 +32,7 @@ sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).parent.parent        # the repo, not this folder
 HERE = Path(__file__).parent
-PY = ROOT / ".venv" / "Scripts" / "python.exe"
+PY = Path(sys.executable)   # r456: the running interpreter
 if not PY.exists():
     PY = Path(sys.executable)
 
