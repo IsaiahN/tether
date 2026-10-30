@@ -47,6 +47,7 @@ import relations
 import retrieval
 import routine as Rt
 import store as door  # the one door; `store` is a local name in three methods
+from gamma import _CARRY_W as G_CARRY_W
 from gamma import _PRIOR_CODE as G_PRIOR_CODE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import _UNITS_MEMO as G_UNITS_MEMO
@@ -19121,6 +19122,13 @@ class Agent:
                 if _e["name"] is None:
                     continue                                    # a table route names no term
                 self._fed_rows.setdefault(_e["name"], []).append((len(self.led), _e["role"]))
+        if G_CARRY_W and self.gamma.carry_w_log:
+            for k, h, f, w in self.gamma.carry_w_log:
+                self.led.record(self.cycle - 1, "REPEAT", "@carry_w", "carry_w", kind=k, held=h,
+                                failed=f, w=w,
+                                reads="w for this kind of carried term: the share of its "
+                                      "outcomes this life that held (Symbols :20-26)")
+            self.gamma.carry_w_log.clear()
         with self._step_scope("REPEAT"):
             self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",
                             integral=round(self.pe_integral(), 3),

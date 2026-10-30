@@ -1186,6 +1186,17 @@ ARMS: dict[str, str] = {
                             "its slot is on the board again; then a goal_hypothesis_reopened row "
                             "(ended_by, since). Reset with _hyp_tried at a level. No number. OFF: "
                             "it enters _hyp_tried, as before. default ON",
+    "TETHER_CARRY_W": "5 CARRY_W (the reviewer r392, r395, r397; Symbols :20-26). In gamma: an "
+                      "outcome of a carried, non-innate term in this life (settle = held; a "
+                      "refute that is a refusal by Standing.refute's own held reading = failed; "
+                      "replay's carried evidence excluded) counts for its kind "
+                      "(gamma.kind_of(term).name); w = held / (held + failed). track_of for such "
+                      "a term is w * Laplace(its standing as loaded) + (1 - w) * Laplace(this "
+                      "life's own counts) once its kind has an outcome; with none, today's "
+                      "track_of exactly. Orders retrieval only; settled and is_settled are "
+                      "untouched; the innate core is untouched. tether writes a carry_w row "
+                      "(kind, held, failed, w) per change. No number. OFF: carried standing "
+                      "taken whole, as before. default ON",
     "TETHER_NAMED_REMAINDER": "1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 "
                               ":134-139, Fig 9 :4-5, Fig 8 :39-42). When 1c's none_survive fires "
                               "(any cause), a MINT 'remainder' row on the slot: (a) among the LAST "
