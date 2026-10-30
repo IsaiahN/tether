@@ -888,6 +888,11 @@ _STOP_RULES = armflag.arm("TETHER_STOP_RULES", default=True)
 # gap's last mint proved, in the mint's own words. Record only: nothing reads it. Needs
 # TETHER_STOP_RULES. ON; conform/arms.py
 _NAMED_REMAINDER = armflag.arm("TETHER_NAMED_REMAINDER", default=True)
+# 4 PLAN_NARROW (the reviewer 2026-10-29 r325 ASK 3, r365; Fig 12 :127): the planner compiles the
+# shelf-won texts first and the rest only if they yield no pick -- what the life learned ranks and
+# cuts the work, never widens it. Exact: the same pick. The goal_hypotheses row says how many were
+# compiled and left. ON; conform/arms.py
+_PLAN_NARROW = armflag.arm("TETHER_PLAN_NARROW", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -6897,7 +6902,7 @@ class Agent:
         proposal writes the goal_hypotheses row it would have written, with pick None and capped
         {at, checked, unreached}, "unreached at this budget"; never _hyp_exhausted, never System 0's
         why. Then the cut goes on to step."""
-        n0, self._hyp_open = self._hyp_n, None
+        n0, self._hyp_open, self._hyp_phases = self._hyp_n, None, 0
         try:
             return self._hyp_propose_body(before)
         except cap.CapReached:
@@ -6906,7 +6911,8 @@ class Agent:
             self.led.record(self.cycle, "PLAN", "@goal", "goal_hypotheses", pick=None,
                             why="unreached at this budget",
                             capped={"at": "goal_hypothesis", "checked": checked,
-                                    "unreached": None if opened is None else opened - checked})
+                                    "unreached": None if opened is None else opened - checked,
+                                    **({"phases": self._hyp_phases} if _PLAN_NARROW else {})})
             raise
 
     def _hyp_propose_body(self, before: dict) -> None:
@@ -6950,62 +6956,79 @@ class Agent:
                  if _OWN_CLOCK_SUBJECT else None)
         if clock is not None and not clock:
             OWN_CLOCK_N["empty"] += 1
-        for text, s in src.items():
-            cap.head()
-            if routable_slots is not None:
-                named = _SLOT_IN_TEXT.findall(text) if "(" not in text else ()
-                if (named and all(n in before and n.rsplit(".", 1)[1]
-                                  not in compile_term.CHANGE_OF for n in named)
-                        and not any(n in routable_slots for n in named)):
-                    HYP_ROUTE_FIRST_N["dropped"] += 1
-                    if not _HYP_ROUTE_FIRST_CHECK:
-                        refused["route first: no slot of it has an entry"] += 1
-                        continue
-                    would_drop.add(text)
+        # 4 PLAN_NARROW (r325 ASK 3, r365): the shelf-won texts are known before compiling, and
+        # every won group ranks above every other; compile them first and the rest only if they
+        # yield no pick -- the same pick, by construction. OFF, or nothing won: one phase, as before
+        won_src = ({t: k for t, k in src.items()
+                    if self._goal_shelf.get(k, {}).get("record", {}).get("won", 0)}
+                   if _PLAN_NARROW else {})
+        phases = ([won_src, {t: k for t, k in src.items() if t not in won_src}]
+                  if won_src and len(won_src) < len(src) else [src])
+        compiled = [0]
+
+        def _admit(items: dict) -> list:
+            out = []
+            for text, s in items.items():
+                cap.head()
+                if routable_slots is not None:
+                    named = _SLOT_IN_TEXT.findall(text) if "(" not in text else ()
+                    if (named and all(n in before and n.rsplit(".", 1)[1]
+                                      not in compile_term.CHANGE_OF for n in named)
+                            and not any(n in routable_slots for n in named)):
+                        HYP_ROUTE_FIRST_N["dropped"] += 1
+                        if not _HYP_ROUTE_FIRST_CHECK:
+                            refused["route first: no slot of it has an entry"] += 1
+                            continue
+                        would_drop.add(text)
+                    else:
+                        HYP_ROUTE_FIRST_N["kept"] += 1
+                compiled[0] += 1
+                c = self._compile_cache.get(text)
+                if c is None:
+                    c = self._compile_cache[text] = compile_term.compile_candidate(
+                        {"condition": text}, atoms)
+                if isinstance(c, compile_term.Refusal):
+                    refused[c.reason] += 1
+                    continue
+                if c.slot not in before:
+                    in_slots = True                 # unread: "not in before" refuses first
+                elif slot_set is None:
+                    in_slots = c.slot in self.slots
                 else:
-                    HYP_ROUTE_FIRST_N["kept"] += 1
-            c = self._compile_cache.get(text)
-            if c is None:
-                c = self._compile_cache[text] = compile_term.compile_candidate(
-                    {"condition": text}, atoms)
-            if isinstance(c, compile_term.Refusal):
-                refused[c.reason] += 1
-                continue
-            if c.slot not in before:
-                in_slots = True                 # unread: "not in before" refuses first
-            elif slot_set is None:
-                in_slots = c.slot in self.slots
-            else:
-                in_slots = c.slot in slot_set
-                HYP_SLOTSET_N["asked"] += 1
-                if _HYP_SLOTSET_CHECK:
-                    assert in_slots == (c.slot in self.slots), \
-                        "TETHER_HYP_SLOTSET_CHECK: the set and the list differ"
-                    HYP_SLOTSET_N["checked"] += 1
-            if c.slot not in before or not in_slots or c.slot in der:
-                refused["subject not a movable slot"] += 1
-                continue
-            if clock and clock & self._named_slots(text, c):
-                OWN_CLOCK_N["refused"] += 1
-                refused["the own clock moves it"] += 1     # time can make it hold, either side
-                continue
-            if _GOAL_HYP and self._self_moving(
-                    c.slot, _smw.setdefault(c.slot, {}) if _R4_RECORD else None):
-                refused["self-moving subject"] += 1     # a clock; it may still be an operand
-                continue
-            if compile_term.run(c, before) is not False:
-                refused["holds now or unreadable"] += 1
-                continue
-            tk = (tpl.get(text, text), c.slot, c.operand)
-            if tk in self._hyp_tried:
-                refused["tried this level"] += 1
-                continue
-            won = self._goal_shelf.get(s, {}).get("record", {}).get("won", 0) if s else 0
-            bits = term_bits(self.gamma.length(c.term), self.gamma.alphabet)
-            cands.append(((0 if won else 1, round(bits, 6)), text, c, tk, s))
+                    in_slots = c.slot in slot_set
+                    HYP_SLOTSET_N["asked"] += 1
+                    if _HYP_SLOTSET_CHECK:
+                        assert in_slots == (c.slot in self.slots), \
+                            "TETHER_HYP_SLOTSET_CHECK: the set and the list differ"
+                        HYP_SLOTSET_N["checked"] += 1
+                if c.slot not in before or not in_slots or c.slot in der:
+                    refused["subject not a movable slot"] += 1
+                    continue
+                if clock and clock & self._named_slots(text, c):
+                    OWN_CLOCK_N["refused"] += 1
+                    refused["the own clock moves it"] += 1     # time can make it hold, either side
+                    continue
+                if _GOAL_HYP and self._self_moving(
+                        c.slot, _smw.setdefault(c.slot, {}) if _R4_RECORD else None):
+                    refused["self-moving subject"] += 1     # a clock; it may still be an operand
+                    continue
+                if compile_term.run(c, before) is not False:
+                    refused["holds now or unreadable"] += 1
+                    continue
+                tk = (tpl.get(text, text), c.slot, c.operand)
+                if tk in self._hyp_tried:
+                    refused["tried this level"] += 1
+                    continue
+                won = self._goal_shelf.get(s, {}).get("record", {}).get("won", 0) if s else 0
+                bits = term_bits(self.gamma.length(c.term), self.gamma.alphabet)
+                out.append(((0 if won else 1, round(bits, 6)), text, c, tk, s))
+            return out
+
+        cands = _admit(phases[0])
         cands.sort(key=lambda x: x[0])
         ranked_all = list(cands)                # the pick's rank is read against this order
         self._hyp_open = len(cands)              # C1 item 1: a cut's record counts against it
+        self._hyp_phases, pending = 1, phases[1:]
         routable = 0
         detail = {"candidates": len(src), "open": len(cands), "refused": dict(refused),
                   "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][1],
@@ -7015,7 +7038,16 @@ class Agent:
         pick = None
         checked = 0
         group_n = None
-        while cands and pick is None:
+        while pick is None:
+            if not cands:
+                if not pending:
+                    break
+                cands = _admit(pending.pop(0))  # 4: the won group held no route; the rest now
+                cands.sort(key=lambda x: x[0])
+                ranked_all += cands
+                self._hyp_open += len(cands)
+                self._hyp_phases += 1
+                continue
             cap.head()
             group = [x for x in cands if x[0] == cands[0][0]]
             cands = cands[len(group):]
@@ -7076,6 +7108,9 @@ class Agent:
         if pick is None:
             pick = self._hyp_pair(before, detail)
         detail.update(checked=checked, refused=dict(refused))
+        if _PLAN_NARROW:
+            detail.update(compiled=compiled[0], uncompiled=sum(len(p) for p in pending),
+                          phases=self._hyp_phases, wall_s=round(time.perf_counter() - t0, 4))
         if _HYP_DRAW:              # its wall time and the size of the group it stopped in
             detail.update(wall_s=round(time.perf_counter() - t0, 4), group_n=group_n)
         if pick is None:

@@ -1137,6 +1137,15 @@ ARMS: dict[str, str] = {
                           "code space the ground judged in (the slot's alphabet), and risky = "
                           "predicted_code != from_code (persistence would have been wrong). No "
                           "decision reads it. OFF: the row as before. default ON",
+    "TETHER_PLAN_NARROW": "4 PLAN_NARROW (the reviewer 2026-10-29 r325 ASK 3, r365; Fig 12 :127). "
+                          "_hyp_propose_body admits candidates in two phases when the goal shelf "
+                          "holds a won record: the shelf-won texts first (known before "
+                          "compiling), the rest only if the won groups yield no pick. Every won "
+                          "group ranks above every other and the walk stops at the first group "
+                          "with a route, so the pick is today's. The goal_hypotheses row carries "
+                          "compiled, uncompiled, phases and wall_s; open, ranked and refused cover "
+                          "the phases run; the cap record carries phases. The kind-scoped cut is a "
+                          "later item. OFF, or nothing won: one phase, as before. default ON",
     "TETHER_NAMED_REMAINDER": "1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 "
                               ":134-139, Fig 9 :4-5, Fig 8 :39-42). When 1c's none_survive fires "
                               "(any cause), a MINT 'remainder' row on the slot: (a) among the LAST "
