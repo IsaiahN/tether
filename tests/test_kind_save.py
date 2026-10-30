@@ -28,6 +28,8 @@ import tarfile
 import tempfile
 from pathlib import Path
 
+from _batch import off_env  # noqa: E402  the batch's arms (r348)
+
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
@@ -234,7 +236,7 @@ def check_off_identity() -> None:
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
             tf.extractall(d, filter="data")
         base = child(d, {})
-    cur = child(root, {"TETHER_KIND_SAVE": "0"})
+    cur = child(root, off_env("TETHER_KIND_SAVE"))
     assert base["gens"] and base == cur, ("OFF identity", len(base["gens"]), len(cur["gens"]),
                                           base["replayed"], cur["replayed"])
     print(f"  OFF identity: {len(base['gens'])} generations equal in content (handles aside), "

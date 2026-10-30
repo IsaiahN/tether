@@ -10,6 +10,16 @@ own process, under 5 minutes.
                           the board-level DISTINGUISH
   check_hold_no_gap       MUST-HOLD: gridworld, the steps before its first ask: ON
                           writes the same ledger as OFF (wall timings masked)
+  check_s1_reprice        r346, r347: on a row-stale gap the re-priced S1 is a strict subset of the
+                          stored one (the newest rows price survivors out)
+  check_s1_mustfail_reprice   MUST-FAIL: the row test spied to charge nothing: S1 = the stored S1
+  check_s1_reprice_exact  each re-priced cell's charge equals _cannot_pay's own count over the
+                          current rows from a fresh cell
+  check_s1_lazy_eligibility   r347 (a): the top-ranked gap re-prices to one survivor and is
+                          skipped; the next is asked
+  check_s1_mustfail_lazy  MUST-FAIL: re-pricing spied off: the top gap is asked among stale
+                          survivors
+  check_s1_reprice_key_moved  r347 (b): the held term changes: the space cannot judge, S1 empty
   check_off_identity_grid, check_off_identity_fake   TETHER_ASK=0 writes the same ledger as dad9d2b
     python tests/test_ask.py [check ...]
 """
@@ -22,6 +32,8 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+
+from _batch import off_env  # noqa: E402  the batch's arms (r348)
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
@@ -134,7 +146,7 @@ def _constructed(ask: bool):
     still = gamma.Atom("ask_test_still", lambda v, _c: v, "val", "val")
     terms = [gamma.Term((step_,)), gamma.Term((still,))]
     ag._space = {slot: {"kind": (), "opened": ag.cycle, "mints": 1, "base": None}}
-    ag._survivors = lambda s: terms if s == slot else []
+    ag._space_bounds = lambda s, _mode: ([(t, 0.0) for t in terms], 1.0) if s == slot else None
     ag._ask_cyc = (None, None)
     n0 = len(led.rows())
     before = env.observe()
@@ -172,8 +184,111 @@ def _s1_case(below: bool):
     atom = gamma.Atom("s1_test", lambda v, _c: v, "val", "val")
     t = gamma.Term((atom,))
     cost = bar - unit - (1.0 if below else 0.0)          # bound = cost + unit x 1 row charged
-    seen[1][t] = (1, 1, 0, None, 1, None, cost)          # one row covered, charged, REFUTED there
+    rows = len(ag._residual_obs(slot, held, ag.history(slot)))   # charged on every current row
+    seen[1][t] = (rows, 1, 0, None, 1, None, cost)       # all rows covered, one charged, REFUTED
     return t in ag._survivors(slot), slot, bar, cost + unit
+
+
+def _stale_gap():
+    """A gridworld gap whose record is a row stale: cells under the bar charged on fewer
+    residual rows than the gap now holds (the 1b asks of cycles 12-19 read such records)."""
+    from tether import IDN
+    _env, ag, _led = _agent("grid", 6)
+    for _ in range(18):
+        for s in sorted(ag._space):
+            stale = ag._space_bounds(s, "stale")
+            if stale is None or len(ag._s1_of(*stale)) < 2:
+                continue
+            held = ag.gamma.library[ag.bound.get(s, IDN)]
+            robs = ag._residual_obs(s, held, ag.history(s))
+            seen = ag._tally[s]
+            behind = [(t, c) for cells in (seen[1], seen[2]) for t, c in cells.items()
+                      if len(c) >= 7 and c[0] < len(robs)
+                      and c[6] + __import__("math").log2(ag.alphabet[s]) * c[1] < stale[1]]
+            if behind:
+                return ag, s, held, robs, behind
+        ag.step()
+    raise AssertionError("occasion: no row-stale gap in 24 gridworld steps")
+
+
+def check_s1_reprice() -> None:
+    ag, s, _held, robs, behind = _stale_gap()
+    stored = ag._s1_of(*ag._space_bounds(s, "stale"))
+    now = ag._survivors(s)
+    assert set(now) < set(stored), (len(now), len(stored))
+    print(f"  {s}: {len(behind)} cells under the bar a row stale ({len(robs)} rows now); S1 "
+          f"stored {len(stored)} -> re-priced {len(now)}")
+
+
+def check_s1_mustfail_reprice() -> None:
+    ag, s, _held, _robs, behind = _stale_gap()
+    stored = ag._s1_of(*ag._space_bounds(s, "stale"))
+    ag._row_wrong = lambda _t, _s, _row: False           # a spy: no row charges
+    now = ag._survivors(s)
+    assert behind and set(now) == set(stored), ("MUST-FAIL: uncharged, S1 stays stale", len(now))
+    print(f"  MUST-FAIL: {s}, the row test charging nothing: S1 = the stored {len(stored)}")
+
+
+def check_s1_reprice_exact() -> None:
+    import math
+    ag, s, _held, robs, behind = _stale_gap()
+    unit = math.log2(ag.alphabet[s])
+    for t, c in behind[:40]:
+        on_read = c[1] + sum(1 for row in robs[c[0]:] if ag._row_wrong(t, s, row))
+        fresh: dict = {}
+        ag._cannot_pay(t, s, robs, c[6], float("inf"), fresh)
+        assert fresh[t][0] == len(robs), (t.name, fresh[t])
+        whole = fresh[t][1]
+        assert on_read == whole, (t.name, c[0], c[1], on_read, whole)
+    print(f"  {s}: {min(40, len(behind))} stale cells; each on-read charge equals "
+          f"_cannot_pay's count over all {len(robs)} rows (unit {unit:.3f})")
+
+
+def _two_gaps(reprice: bool):
+    """Two eligible gaps on the stored record; the top-ranked one keeps one survivor re-priced."""
+    import gamma
+    _env, ag, led = _agent("grid", 3)
+    a, b = "o0.row", "o0.col"
+    ts = [gamma.Term((gamma.Atom(f"lazy_{i}", lambda v, _c: v, "val", "val"),)) for i in range(4)]
+    ag._space = {s: {"kind": (), "opened": ag.cycle, "mints": 1, "base": None} for s in (a, b)}
+    stored = {a: [(ts[0], 0.0), (ts[1], 0.0)], b: [(ts[2], 0.0), (ts[3], 0.0)]}
+    priced = {a: [(ts[0], 0.0), (ts[1], 9.0)], b: stored[b]}
+    ag._space_bounds = lambda s, mode: (((priced if reprice and mode == "reprice" else stored)[s],
+                                         1.0) if s in stored else None)
+    ag._understanding = lambda s: 10.0 if s == a else 1.0
+    first = tuple(ag.actions)[0]
+    ag._predict_with = lambda t, _s, _st, act: (1 if act == first and t in (ts[0], ts[2]) else 0)
+    ag._ask_cyc = (None, None)
+    n0 = len(led.rows())
+    ag._ask_aimed(ag.env.observe())
+    return a, b, [r for r in led.rows()[n0:] if r["event"] == "ask"]
+
+
+def check_s1_lazy_eligibility() -> None:
+    a, b, asks = _two_gaps(True)
+    assert asks and asks[0]["slot"] == b, asks
+    assert asks[0]["detail"]["skipped"] == [[a, 2, 1]], asks[0]["detail"]
+    print(f"  {a} ranks first, re-prices to 1 survivor and is skipped ([{a}, 2, 1]); {b} asked")
+
+
+def check_s1_mustfail_lazy() -> None:
+    a, _b, asks = _two_gaps(False)
+    assert asks and asks[0]["slot"] == a and asks[0]["detail"]["survivors"] == 2, (
+        "MUST-FAIL: unpriced, the top gap is asked among stale survivors", asks)
+    print(f"  MUST-FAIL: re-pricing off, {a} is asked among its 2 stale survivors")
+
+
+def check_s1_reprice_key_moved() -> None:
+    import gamma
+    from tether import IDN
+    ag, s, held, _robs, _behind = _stale_gap()
+    assert ag._space_bounds(s, "reprice") is not None, "occasion: the space judges first"
+    other = gamma.Term((gamma.Atom("key_move", lambda v, _c: v, "val", "val"),))
+    ag.gamma.library[other.name] = other
+    ag.bound[s] = other.name
+    assert ag.gamma.library[ag.bound.get(s, IDN)] != held
+    assert ag._space_bounds(s, "reprice") is None and ag._survivors(s) == [], "a moved key judges"
+    print(f"  {s}: the held term moved: the record cannot judge (None), S1 empty, no increment")
 
 
 def check_s1_bargain_hold() -> None:
@@ -273,7 +388,7 @@ def _off_identity(w: str) -> None:
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
             tf.extractall(d, filter="data")
         base = _norm(_child(d, w))
-    cur = _norm(_child(root, w, {"TETHER_ASK": "0"}))
+    cur = _norm(_child(root, w, off_env("TETHER_ASK")))      # and every later batch arm
     _same(base, cur, f"OFF identity {w}")
     print(f"  OFF identity (TETHER_ASK=0, {w}): {len(base)} rows against {BASE}, 0 differences")
 
