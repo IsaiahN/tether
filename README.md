@@ -45,19 +45,16 @@ Fetch a game once with the `arc_agi` package's own anonymous fetch (every run af
 offline), then play it, carrying a lineage folder (created if absent; give the same folder again
 to carry on from it):
 
-    .venv/Scripts/python.exe -c "from arc_agi import Arcade; from arc_agi.base import OperationMode; Arcade(operation_mode=OperationMode.NORMAL).make('<game_id>')"
-    .venv/Scripts/python.exe -B -c "import arc_holdout; print(arc_holdout.play('<game_id>', 40, lineage_dir='lineage')['persistence']['lineage'])"
+    python -c "from arc_agi import Arcade; from arc_agi.base import OperationMode; Arcade(operation_mode=OperationMode.NORMAL).make('<game_id>')"
+    python -B -c "import arc_holdout; print(arc_holdout.play('<game_id>', 40, lineage_dir='lineage')['persistence']['lineage'])"
 
 The checks are the same six as on `general-agent`.
 
 ## Kaggle notes
 
-- `kaggle_bundle.py` builds the submission from what the agent actually imports, offline: a
-  package directory and one equivalent single file. `arcengine` is never bundled; it comes from
-  the competition's wheels.
-- `kaggle_agent.py` is the agent class the notebook loads. It drives `tether_agent.run` one step
-  at a time through the same wiring `play` uses. Its actions-per-game bound
-  (`MAX_ACTIONS_PER_GAME`) is a placeholder termination bound, not a tuned value.
+- The submission bundle and the notebook's agent class are not built yet (the earlier
+  `kaggle_bundle.py` and `kaggle_agent.py` were removed on 2026-10-24). When built, the bundle
+  carries only what the agent imports, and `arcengine` comes from the competition's wheels.
 - Runner items designed and held for the Kaggle step are in `docs/kaggle_export/E9_RUNNER_HELD.txt`.
 - The API key is never committed: `.env` is gitignored, and it appears in no commit.
 
