@@ -1,7 +1,8 @@
 """THE LOG INDEX, L4 (harness/log_index.py; the reviewer 2026-10-21 23:27, 2026-10-22 00:03), on
 temp copies of three small committed-shape ledgers: one with a @run header and a result.json, one
 old with no header, one with a torn last line. Nothing outside the temp folder is written; the
-real C:/TETHER_RUNS is only read (by the pins scan).
+real runs folder (TETHER_RUNS_DIR) is only read, by the pins scan, whose hand rows come from
+tests/fixtures/log_pins_hand.tsv; unset, MF6 / MF7 print SKIP-ENV.
 
   ADD  three ledgers indexed, one row each; verify OK on all three.
   MF1  a byte flipped in a ledger -> verify refuses (sha256).
@@ -156,20 +157,29 @@ def main() -> None:
         print("  MF5: a list holding a ledger that fails verify retires nothing; the eligible one "
               f"alone -> {dead[0].name}, one LOG_REMOVALS line")
 
-        real_pins = tmp / "REAL_PINS.tsv"
-        shutil.copyfile(HERE / "docs" / "log_index" / "LOG_PINS.tsv", real_pins)   # hand rows
-        assert run("--pins", str(real_pins), "pins", str(HERE / "docs" / "LEDGER.md")) == 0
-        assert run("--pins", str(real_pins), "pins", str(HERE / "docs" / "LEDGER.md"),
-                   "--check") == 0
-        n = len(li.read_pins(real_pins))
-        planted = tmp / "LEDGER_planted.md"
-        for mf, tok in (("MF6", "S9" + "ZQ"), ("MF7", "wt_" + "zz9")):
-            planted.write_text((HERE / "docs" / "LEDGER.md").read_text(encoding="utf-8")
-                               + f"\n- planted: the {tok} box measured nothing.\n",
-                               encoding="utf-8")
-            assert run("--pins", str(real_pins), "pins", str(planted), "--check") == 1, mf
-            print(f"  {mf}: {n} pins from docs/LEDGER.md pass --check; a planted {tok} "
-                  "citation with no folder or pin FAILS it")
+        runs = os.environ.get("TETHER_RUNS_DIR")
+        if not runs:
+            print("  SKIP-ENV TETHER_RUNS_DIR is unset: MF6 / MF7 read the real box folders; "
+                  "not checked")
+        else:
+            hold = os.environ.get("TETHER_HOLDING_DIR") or str(Path(runs).parent / "TETHER_HOLDING")
+            real_pins = tmp / "REAL_PINS.tsv"
+            hand = (HERE / "tests" / "fixtures" / "log_pins_hand.tsv").read_text(encoding="utf-8")
+            real_pins.write_text(hand.replace("<RUNS>", Path(runs).as_posix())
+                                 .replace("<HOLDING>", Path(hold).as_posix())
+                                 .replace("<REPO>", HERE.as_posix()), encoding="utf-8")
+            assert run("--pins", str(real_pins), "pins", str(HERE / "docs" / "LEDGER.md")) == 0
+            assert run("--pins", str(real_pins), "pins", str(HERE / "docs" / "LEDGER.md"),
+                       "--check") == 0
+            n = len(li.read_pins(real_pins))
+            planted = tmp / "LEDGER_planted.md"
+            for mf, tok in (("MF6", "S9" + "ZQ"), ("MF7", "wt_" + "zz9")):
+                planted.write_text((HERE / "docs" / "LEDGER.md").read_text(encoding="utf-8")
+                                   + f"\n- planted: the {tok} box measured nothing.\n",
+                                   encoding="utf-8")
+                assert run("--pins", str(real_pins), "pins", str(planted), "--check") == 1, mf
+                print(f"  {mf}: {n} pins from docs/LEDGER.md pass --check; a planted {tok} "
+                      "citation with no folder or pin FAILS it")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("test_log_index: pass")

@@ -1,6 +1,6 @@
 """The agent's primary stream, verbatim, per cycle -- for reading against a board by hand.
 
-    .venv/Scripts/python.exe transcript.py ka59 24 C:/Users/Admin/Desktop/transcripts
+    python transcript.py ka59 24 <out folder>
 
 **THE TOOL IS VERSIONED AND THE TRANSCRIPTS ARE NOT**, the same split as the figures pipeline:
 they are large, they grow with depth, they are regenerable from any run, and committing them

@@ -14,9 +14,9 @@ interpreter are the same arm twice. Each arm ASSERTS ITS OWN FLAGS before steppi
 whose build cannot supply a flag reports UNAVAILABLE rather than running as its opposite --
 which is the treatment-absent failure that makes a null unreadable.
 
-    .venv/Scripts/python.exe contest_table.py                      the table
-    .venv/Scripts/python.exe contest_table.py --patched <root>     include the CONTEST arms
-    .venv/Scripts/python.exe contest_table.py --child ...          one arm (used by the parent)
+    python contest_table.py                      the table
+    python contest_table.py --patched <root>     include the CONTEST arms
+    python contest_table.py --child ...          one arm (used by the parent)
 
 THE OUTCOME IS THE SLOT'S FINAL STATE -- standing, the reviewer 2026-10-02. The final bound
 term, whether it SETTLED, and how it predicted after the bind. **A MINT COUNT AND A FITTED
@@ -36,13 +36,13 @@ halves of it are now refused, and they are refused for the reasons they were wro
 
     S=<scratch>
     git worktree add $S/wt_base <commit>
-    .venv/Scripts/python.exe contest_table.py --base $S/wt_base --seeds 6,8
+    python contest_table.py --base $S/wt_base --seeds 6,8
 
 A CONTEST arm needs a tree that HAS the flag, and a PATCHED worktree is dirty by
 construction, so the variant must be COMMITTED to its own branch first:
 
     git worktree add $S/wt_contest <contest-commit>
-    .venv/Scripts/python.exe contest_table.py --base $S/wt_base --patched $S/wt_contest
+    python contest_table.py --base $S/wt_base --patched $S/wt_contest
 
 Without `--patched`, both CONTEST arms print `UNAVAILABLE -- this build has no TETHER_CONTEST`.
 THAT IS THE POINT: an arm whose build cannot supply its flag must refuse, never run as its
