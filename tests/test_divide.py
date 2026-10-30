@@ -49,7 +49,7 @@ import sys
 import tarfile
 import tempfile
 
-from _batch import off_env  # noqa: E402  the batch's arms (r348)
+from _batch import flip_env, off_env  # noqa: E402  the batch's arms (r348)
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
@@ -517,11 +517,11 @@ FLIP_BASE = "d148097"      # 1c, the tree before (a2) flipped CREDIT's default t
 
 
 def check_credit_flip_identity_grid() -> None:
-    _off_identity("grid", FLIP_BASE, "TETHER_DIVIDE_CREDIT", {"TETHER_DIVIDE_CREDIT": "1"})
+    _off_identity("grid", FLIP_BASE, "TETHER_DIVIDE_CREDIT", flip_env("TETHER_DIVIDE_CREDIT"))
 
 
 def check_credit_flip_identity_fake() -> None:
-    _off_identity("fake", FLIP_BASE, "TETHER_DIVIDE_CREDIT", {"TETHER_DIVIDE_CREDIT": "1"})
+    _off_identity("fake", FLIP_BASE, "TETHER_DIVIDE_CREDIT", flip_env("TETHER_DIVIDE_CREDIT"))
 
 
 def check_store() -> None:

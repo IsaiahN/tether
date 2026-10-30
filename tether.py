@@ -882,6 +882,12 @@ _S1_REPRICE = armflag.arm("TETHER_S1_REPRICE", default=True)
 # BROKEN (the survivors ran out: the slot owes), SPLIT REFUSED (1b abstained: the gap's owner joins
 # the probe's aim). They stop asking and never bind. Needs TETHER_ASK. ON; conform/arms.py
 _STOP_RULES = armflag.arm("TETHER_STOP_RULES", default=True)
+# 1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 :134-139, Fig 9 :4-5, Fig 8
+# :39-42): when 1c finds no survivor, a remainder row names what is left -- two of the last
+# survivors whose charged rows are disjoint (several questions), the gap's kind, and the reach the
+# gap's last mint proved, in the mint's own words. Record only: nothing reads it. Needs
+# TETHER_STOP_RULES. ON; conform/arms.py
+_NAMED_REMAINDER = armflag.arm("TETHER_NAMED_REMAINDER", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -11537,6 +11543,8 @@ class Agent:
                             reads="1c: held (one survivor, a risky settle) stops asking; none "
                                   "surviving owes -- the import route refits before a mint "
                                   "(Fig 5 :13-14); nothing binds")
+            if rule == "none_survive" and _NAMED_REMAINDER:
+                self._remainder(s, prev[0], extra["cause"])
         if self._space:
             self.led.record(self.cycle, "MINT", "@stop", "stop_read", spaces=len(self._space),
                             repriced_cells=rp[0], repriced_rows=rp[1], reprice_s=round(rp[2], 4),
@@ -11559,6 +11567,59 @@ class Agent:
                             **({"before": probed, "after": after} if probed is not None else {}),
                             reads="1c (iii): the probe pressed at the owner, its readings moved, "
                                   "or the gap closed")
+
+    def _remainder(self, slot: str, last: dict, cause: str) -> None:
+        """1e (r325, r364): what is left when the last survivors are gone. (a) several questions:
+        two of the LAST SURVIVORS whose charged-row sets over the gap's current residual rows are
+        disjoint (Fig 9 :4-5), each set read on read by the one row test, the pair whose larger
+        set is smallest (ties by name); none is a not-found, never a proof (Fig 8 :39). (b) the
+        gap's kind. (c) reach: the gap's last mint verdict with its own note and cycle."""
+        t0 = time.perf_counter()
+        seen = self._tally.get(slot)
+        held = self.gamma.library[self.bound.get(slot, IDN)]
+        robs = self._residual_obs(slot, held, self.history(slot))
+        terms = ({t.name: t for cells in (seen[1], seen[2]) for t in cells}
+                 if seen is not None else {})
+        sets: dict = {}
+        for n in sorted(last):
+            if n in terms:
+                k = frozenset(i for i, row in enumerate(robs)
+                              if self._row_wrong(terms[n], slot, row))
+                sets.setdefault(k, []).append(n)
+        reps = sorted((names[0], k) for k, names in sets.items())   # one term per charged set
+        best = None
+        for i, (na, sa) in enumerate(reps):
+            for nb, sb in reps[i + 1:]:
+                if self._split_disjoint(sa, sb):
+                    rank = (max(len(sa), len(sb)), na, nb)
+                    if best is None or rank < best[0]:
+                        best = (rank, na, sa, nb, sb)
+        if best is None:
+            several = "no split found among the last survivors"
+        else:
+            _r, na, sa, nb, sb = best
+            several = {"pair": [na, nb], "explained_by_a_only": sorted(sb - sa),
+                       "explained_by_b_only": sorted(sa - sb),
+                       "explained_by_both": len(robs) - len(sa | sb),
+                       "shared_charged": len(sa & sb)}
+        sp = self._space.get(slot, {})
+        v = sp.get("verdict")
+        reach = (None if v is None else "unreached at this budget" if v[0] == "budget_spent"
+                 else v[1])
+        self.led.record(self.cycle, "MINT", slot, "remainder", cause=cause,
+                        population="last_survivors", last_survivors=len(last),
+                        unpriced=sum(1 for n in last if n not in terms), charged_sets=len(sets),
+                        several=several, kind=list(sp.get("kind") or ()), residual_rows=len(robs),
+                        verdict=v[0] if v else None, verdict_cycle=v[2] if v else None,
+                        opened=sp.get("opened"), reach=reach,
+                        wall_s=round(time.perf_counter() - t0, 4),
+                        reads="1e: what remains when the last survivors are gone -- record only "
+                              "(Fig 13 :134-139)")
+
+    @staticmethod
+    def _split_disjoint(a: frozenset, b: frozenset) -> bool:
+        """1e (a): no residual row is charged to both, so each is explained by one of the two."""
+        return not (a & b)
 
     def _aims(self) -> set:
         """The probe's aim set: the starved slots, and under 1c (iii) the gaps whose survivors no
@@ -17262,6 +17323,9 @@ class Agent:
                 detail["note"] = ("the whole space at this depth was seen and none paid; "
                                   "not at this depth, NOT unreachable")
             detail["base_bits"] = round(base, 3)
+            if _NAMED_REMAINDER and slot in self._space:
+                # 1e (r364): the gap's last verdict, in the mint's own words, with its cycle
+                self._space[slot]["verdict"] = (detail["verdict"], detail.get("note"), self.cycle)
             if detail["verdict"] == "no_support":
                 self._starved.add(slot)
             # `under_floor` OWES LIKE THE OTHER TWO, and the write site at `accept` is what
