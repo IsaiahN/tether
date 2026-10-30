@@ -1227,6 +1227,14 @@ ARMS: dict[str, str] = {
                                   "collision is named, not proved absent (a reading name equal to "
                                   "an id), and TETHER_VIEW_HOLD_SAME_CHECK counts it. No number. "
                                   "OFF: computed fresh, as before. default ON",
+    "TETHER_CONTINGENT_ONE_PASS": "9 CONTINGENT_ONE_PASS (B3, the reviewer r427): "
+                                  "instruments.Agency.contingent groups tried by slot in ONE pass "
+                                  "and applies the same always / never tests per slot, returning "
+                                  "the same sorted list; OFF scans the whole of tried once per "
+                                  "distinct slot (quadratic in what was ever noted; 49 s of own "
+                                  "time at cycle 85 in B3). Exact: the same keys are read, and a "
+                                  "Counter's missing key reads 0 without inserting. Cost-only. "
+                                  "default ON",
     "TETHER_VIEW_HOLD_SAME_CHECK": "7's check (the reviewer r415): each view served from the "
                                    "'same' hold is also computed fresh with lib.view(key, role, "
                                    "o, x) and compared; same_checked / same_mismatch in "

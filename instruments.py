@@ -30,6 +30,9 @@ import ledger
 # stamp whatever their line endings or import order. New names, so an old stamp is never
 # compared with a new one; the old fields are kept. default ON (Isaiah 2026-10-15 07:53, 17:26)
 _BLOB_STAMP = armflag.arm("TETHER_BLOB_STAMP", default=True)
+# 9 CONTINGENT_ONE_PASS: Agency.contingent groups tried by slot in one pass, not one scan per slot;
+# the same keys read, the same sorted list returned (B3: 49 s of own time at cycle 85)
+_CONTINGENT_ONE_PASS = armflag.arm("TETHER_CONTINGENT_ONE_PASS", default=True)
 
 # names a fixture declared through Attribution.declare_patch; read into the run header
 PATCHED: list[str] = []
@@ -358,6 +361,8 @@ class Agency:
     steps: int = 0
     order: Counter = field(default_factory=Counter)     # H2: (object, mode) -> actions read
     no_order: int = 0                                   # H2: actions with one frame, no order
+    # 9: contingent()'s answer, held until note() next writes (the key moves with every note)
+    _c_memo: tuple | None = field(default=None, repr=False, compare=False)
 
     def note(self, action: str, changed: set[str], slots: list[str]) -> None:
         self.steps += 1
@@ -379,6 +384,20 @@ class Agency:
     def contingent(self) -> list[str]:
         """Slots whose movement depends on WHICH action was taken."""
         out = []
+        if _CONTINGENT_ONE_PASS:
+            key = (self.steps, len(self.tried), len(self.moved))
+            if self._c_memo is not None and self._c_memo[0] == key:
+                return list(self._c_memo[1])
+            by: dict[str, list[str]] = {}
+            for sl, a in self.tried:
+                by.setdefault(sl, []).append(a)
+            for s, acts in by.items():
+                always = [a for a in acts if self.moved[(s, a)] == self.tried[(s, a)]]
+                never = [a for a in acts if self.moved[(s, a)] == 0]
+                if always and never:
+                    out.append(s)
+            self._c_memo = (key, tuple(sorted(out)))
+            return list(self._c_memo[1])
         for s in {k[0] for k in self.tried}:
             acts = [a for (sl, a) in self.tried if sl == s]
             always = [a for a in acts if self.moved[(s, a)] == self.tried[(s, a)]]
