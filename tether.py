@@ -645,6 +645,16 @@ _MC6 = armflag.arm("TETHER_MC6", default=True)
 # (Isaiah 2026-10-14 06:07: "the library never resets"); reason in conform/arms.py. A cost
 # change only: the same views, looked up rather than re-derived. 0 is the one-flag control.
 _VIEW_HOLD = armflag.arm("TETHER_VIEW_HOLD", default=True)
+# 7 VIEW_HOLD_SAME (the reviewer 2026-10-30 r414, r415; the r396 profile: sp80's view calls were
+# nearly all bypasses): a STATE / TEST / PROCESS view with o == x is held once per (entry, role)
+# under ONE placeholder, lib.view(key, role, "{o}", "{o}"), and restored with the name. Exact: the
+# texts are equal under one placeholder exactly when they are equal under the name (the brace guard
+# keeps the substitution injective), so PROCESS's dedup keeps the same rows in the same order.
+# MEASURE / RELATION stay bypassed (partner_named reads the name). The memo_sizes row carries the
+# counts. ON; conform/arms.py. Its CHECK (default OFF) computes each served view fresh and counts
+# a mismatch
+_VIEW_HOLD_SAME = armflag.arm("TETHER_VIEW_HOLD_SAME", default=True)
+_VIEW_HOLD_SAME_CHECK = armflag.arm("TETHER_VIEW_HOLD_SAME_CHECK", default=False)
 _HELD_ROLES = ("STATE", "TEST", "PROCESS", "CAUSE")   # RELATION/MEASURE filter on x (library 504)
 # (b'-q) THE INDEX HOLD (Fig 12 :107-108; the reviewer 2026-10-14 12:19, 12:23). ON; reason in
 # conform/arms.py. A held role's view is compiled ONCE per process under the placeholders and a
@@ -4250,6 +4260,7 @@ class Agent:
         self.led.record(self.cycle, step, "@memo", "memo_sizes", at=at, agent=agent,
                         exempt=exempt, asked={m: len(v) for m, v in self._seen_keys.items()},
                         carried={"bs": len(_BS_CARRIED), "bm": len(_BM_CARRIED)}, hits=hits,
+                        **({"view_hold": dict(self._view_hold_n)} if _VIEW_HOLD_SAME else {}),
                         reads="R4: the memos' entries at this boundary (agent-level, cleared "
                               "next; exempt, kept), the asked keys, the bound memos' hits")
 
@@ -6496,6 +6507,19 @@ class Agent:
             return lib.view(key, role, o, x)
         why = ("role" if role not in _HELD_ROLES else "same" if o == x
                else "brace" if any(b in o + x for b in "{}") else None)
+        if (why == "same" and _VIEW_HOLD_SAME and role in ("STATE", "TEST", "PROCESS")
+                and not any(b in o for b in "{}")):
+            held = self._view_hold.get((key, role, "same"))
+            if held is None:
+                held = self._view_hold[(key, role, "same")] = lib.view(key, role, "{o}", "{o}")
+                self._view_hold_n["held_same"] += 1
+            self._view_hold_n["served_same"] += 1
+            got = _restore(held, o, o)
+            if _VIEW_HOLD_SAME_CHECK:
+                self._view_hold_n["same_checked"] += 1
+                if got != lib.view(key, role, o, x):
+                    self._view_hold_n["same_mismatch"] += 1
+            return got
         if why:
             self._view_hold_n["bypass_" + why] += 1
             return lib.view(key, role, o, x)

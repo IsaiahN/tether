@@ -1207,6 +1207,21 @@ ARMS: dict[str, str] = {
                                "carries since (the last row's cycle). The row has no reader; "
                                "3a's contradiction_routed is untouched. No number. OFF: every "
                                "step, as before. default ON",
+    "TETHER_VIEW_HOLD_SAME": "7 VIEW_HOLD_SAME (the reviewer r414, r415; the r396 profile: on sp80 "
+                             "nearly every _lib_view call bypassed the hold since G1 asks "
+                             "mine == partner). In _lib_view, a STATE / TEST / PROCESS view with "
+                             "o == x and no brace in o is held once per (entry, role, 'same') as "
+                             "lib.view(key, role, '{o}', '{o}'), served by _restore(held, o, o). "
+                             "Exact: one placeholder keeps text equality, so PROCESS's dedup by "
+                             "condition keeps the same rows in order. MEASURE / RELATION stay "
+                             "bypassed (partner_named reads the name). _view_hold_n counts "
+                             "held_same / served_same; the memo_sizes row carries view_hold. No "
+                             "number. OFF: the o == x view computed fresh, as before. default ON",
+    "TETHER_VIEW_HOLD_SAME_CHECK": "7's check (the reviewer r415): each view served from the "
+                                   "'same' hold is also computed fresh with lib.view(key, role, "
+                                   "o, x) and compared; same_checked / same_mismatch in "
+                                   "_view_hold_n. A test instrument for the must-hold. default "
+                                   "OFF",
     "TETHER_NAMED_REMAINDER": "1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 "
                               ":134-139, Fig 9 :4-5, Fig 8 :39-42). When 1c's none_survive fires "
                               "(any cause), a MINT 'remainder' row on the slot: (a) among the LAST "
