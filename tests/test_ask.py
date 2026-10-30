@@ -423,9 +423,12 @@ def _same(a: list, b: list, what: str) -> None:
 
 def check_hold_no_gap() -> None:
     root = str(_repo.ROOT)
-    on = _child(root, "grid", n=HOLD)
+    # 1c (d148097) needs TETHER_ASK and writes a stop_read row each step, so it is held OFF on
+    # both sides: masking those rows still shifts row counts and seqs (segment_rows, signal_seq)
+    # (r452 B2)
+    on = _child(root, "grid", {"TETHER_STOP_RULES": "0"}, n=HOLD)
     assert not [r for r in on if r["event"] == "ask"], "occasion: gridworld asked; not a no-gap run"
-    off = _child(root, "grid", {"TETHER_ASK": "0"}, n=HOLD)
+    off = _child(root, "grid", {"TETHER_ASK": "0", "TETHER_STOP_RULES": "0"}, n=HOLD)
     _same(_norm(on), _norm(off), "MUST-HOLD: no gap, ON differs from OFF")
     print(f"  MUST-HOLD: gridworld {HOLD} steps, no ask yet: ON = OFF, {len(on)} rows")
 
