@@ -1159,6 +1159,13 @@ ARMS: dict[str, str] = {
                             "contact_first row (why named / same_rows); (a) walks at the next "
                             "step, (b) when the rows change. No number. OFF: the mint walks "
                             "every step, as before. default ON",
+    "TETHER_ROUTE_NAMED": "2 ROUTE_NAMED (the reviewer r392, r393). In ROUTE's _defer_lookup, "
+                          "before A1's reading: when this cycle's act was already named "
+                          "(CONTACT_FIRST's (a), set when either arm is on) and the slot's lookup "
+                          "was not already owed for it, the library lookup is not walked -- the "
+                          "slot is owed through C1's queue (_owed_q, owed_import) with a "
+                          "route_named row, and asked at the next step. No number. OFF: the "
+                          "lookup as before. default ON",
     "TETHER_NAMED_REMAINDER": "1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 "
                               ":134-139, Fig 9 :4-5, Fig 8 :39-42). When 1c's none_survive fires "
                               "(any cause), a MINT 'remainder' row on the slot: (a) among the LAST "

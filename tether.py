@@ -901,6 +901,11 @@ _PLAN_NARROW = armflag.arm("TETHER_PLAN_NARROW", default=True)
 # owed_import, walked at the next step (a) or when the rows change (b); a contact_first row each
 # time. ON; conform/arms.py
 _CONTACT_FIRST = armflag.arm("TETHER_CONTACT_FIRST", default=True)
+# 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
+# when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
+# prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
+# deferral, with a route_named row, and walked at the next step. ON; conform/arms.py
+_ROUTE_NAMED = armflag.arm("TETHER_ROUTE_NAMED", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -3214,6 +3219,7 @@ class Agent:
         self._reprice_memo: dict = {}  # 1b: slot -> ((tally key, decoder size), term -> charges)
         self._cf_rows: dict = {}        # CONTACT_FIRST: slot -> what its last walk read
         self._cf_owed: dict = {}        # CONTACT_FIRST: slot -> cycle owed for a named act
+        self._rn_owed: dict = {}        # ROUTE_NAMED: slot -> cycle its lookup was owed
         self._pred_named = None         # CONTACT_FIRST: cycle a settled prediction named the act
         self._act_named = None          # CONTACT_FIRST: cycle the act was named
         self._stop: dict = {}           # 1c: slot -> the stop rule it is in (held / none_survive)
@@ -10979,6 +10985,17 @@ class Agent:
         """A1 (TETHER_STEP_ACT; Isaiah 2026-10-26 11:25, the reviewer 11:33): the governor at the
         step. The why when the slot's library lookup is deferred this step -- owed through C1's
         queue, asked first next step -- else None, and the lookup runs as today."""
+        if _ROUTE_NAMED:
+            if self._act_named == self.cycle and slot not in self._rn_owed:
+                own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+                self._owed_q[slot] = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
+                self.owed_import.add(slot)
+                self._rn_owed[slot] = self.cycle
+                self.led.record(self.cycle, "ROUTE", slot, "route_named", owes=True,
+                                reads="the act was already named, so the next fact is on the "
+                                      "board: the library lookup is owed, asked at the next step")
+                return "named"
+            self._rn_owed.pop(slot, None)
         if not _STEP_ACT:
             return None
         walk, why = self._think_or_act(slot, closer=False)
@@ -18703,7 +18720,8 @@ class Agent:
             action, by = self.choose(before)
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
-            if _CONTACT_FIRST and (by == "routine" or self._pred_named == self.cycle):
+            if (_CONTACT_FIRST or _ROUTE_NAMED) and (by == "routine"
+                                                     or self._pred_named == self.cycle):
                 self._act_named = self.cycle
         if IFace._RESET_ADJACENT:
             # (C) THE BACKSTOP AT THE SEND: any path that still emits RESET right after a RESET
