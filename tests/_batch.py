@@ -16,7 +16,7 @@ ARMS = (
     ("TETHER_S1_REPRICE", "2855932"),        # 1b's re-price (r350)
     ("TETHER_STOP_RULES", "d148097"),        # 1c
     ("TETHER_NAMED_REMAINDER", "a228a09"),        # 1e
-    ("TETHER_PLAN_NARROW", None),            # 4; its sha comes with the next arm
+    ("TETHER_PLAN_NARROW", "e4c3be3"),       # 4
 )
 # A batch arm whose TREE DEFAULT was flipped after later arms landed (r359): (the arm, the last
 # batch arm before the flip, its value before, the flip's commit). An arm under test that landed

@@ -2,10 +2,10 @@
 The won shelf entry is CONSTRUCTED in the test (record won 1, the method behind the fake's first
 library pick), never read from a learned store. Each check in its own process, under 5 minutes.
   check_no_win_identity_fake   no shelf: ON equals OFF whole-run, masking only the new fields; every
-                               ON row is one phase with nothing left uncompiled
+                               ON row is one phase with nothing left unadmitted
   check_run_identity_fake      a won shelf entry: ON equals OFF whole-run, masking only the fields
                                phase 1 leaves partial; OCCASIONS: an ON row picked in phase 1 with
-                               texts left uncompiled, and an ON row where phase 2 ran
+                               texts not admitted, and an ON row where phase 2 ran
   check_run_identity_grid      the same on gridworld, where nothing routes: the won group yields
                                no pick and phase 2 runs (OCCASION: an ON row with phases 2)
   check_mustfail_compiles_fewer   MUST-FAIL: at the fake's first narrowed pick, ON reads the
@@ -34,7 +34,7 @@ sys.dont_write_bytecode = True
 
 BASE = "a228a09"        # wip/ask-stop after 1e, the tree before the arm
 TEMPLATE = "{o}.row == {x}.row"     # the method behind the fake's first library pick (r365 2(a))
-PARTIAL = ("open", "ranked", "refused", "self_moving", "compiled", "uncompiled", "phases",
+PARTIAL = ("open", "ranked", "refused", "self_moving", "compile_reads", "not_admitted", "phases",
            "wall_s")
 
 PROBE = r'''
@@ -104,7 +104,7 @@ def _run_identity(w: str, shelf: bool) -> tuple:
     root = str(_repo.ROOT)
     on = _child(root, w, shelf=shelf)
     off = _child(root, w, {"TETHER_PLAN_NARROW": "0"}, shelf=shelf)
-    new = ("compiled", "uncompiled", "phases")
+    new = ("compile_reads", "not_admitted", "phases")
     _same(_norm(on, PARTIAL if shelf else new + ("wall_s",)),
           _norm(off, PARTIAL if shelf else new + ("wall_s",)), f"run identity {w}")
     return _hyp(on), _hyp(off), len(on)
@@ -112,23 +112,23 @@ def _run_identity(w: str, shelf: bool) -> tuple:
 
 def check_no_win_identity_fake() -> None:
     on, _off, n = _run_identity("fake", False)
-    assert on and all(d.get("phases") in (1, None) and not d.get("uncompiled") for d in on), on
+    assert on and all(d.get("phases") in (1, None) and not d.get("not_admitted") for d in on), on
     print(f"  fake, no shelf: {n} rows ON = OFF (new fields masked); {len(on)} proposals, every "
-          "one a single phase with nothing uncompiled")
+          "one a single phase with nothing unadmitted")
 
 
 def check_run_identity_fake() -> None:
     on, off, n = _run_identity("fake", True)
-    narrowed = [d for d in on if d.get("pick") and d.get("phases") == 1 and d.get("uncompiled")]
-    assert narrowed, ("occasion: a phase-1 pick with texts left uncompiled", on)
+    narrowed = [d for d in on if d.get("pick") and d.get("phases") == 1 and d.get("not_admitted")]
+    assert narrowed, ("occasion: a phase-1 pick with texts not admitted", on)
     two = [d for d in on if d.get("phases") == 2]
     assert two, ("occasion: a proposal where the won group held no route and phase 2 ran", on)
     picks_on = [d.get("pick") for d in on]
     assert picks_on == [d.get("pick") for d in off], (picks_on, [d.get("pick") for d in off])
     d = narrowed[0]
     print(f"  fake, a won shelf entry ({TEMPLATE}): {n} rows ON = OFF (phase-1 fields masked); "
-          f"{len(narrowed)} phase-1 picks, e.g. {d['pick']!r} with {d['compiled']} compiled, "
-          f"{d['uncompiled']} left uncompiled; {len(two)} ran phase 2; picks {picks_on}")
+          f"{len(narrowed)} phase-1 picks, e.g. {d['pick']!r} with {d['compile_reads']} reads, "
+          f"{d['not_admitted']} not admitted; {len(two)} ran phase 2; picks {picks_on}")
 
 
 def check_run_identity_grid() -> None:
@@ -173,10 +173,10 @@ def check_mustfail_compiles_fewer() -> None:
     n_on, d_on = _first_pick_reads(True)
     n_off, d_off = _first_pick_reads(False)
     assert d_on["pick"] == d_off["pick"], (d_on["pick"], d_off["pick"])
-    assert d_on["phases"] == 1 and d_on["uncompiled"] > 0, d_on
+    assert d_on["phases"] == 1 and d_on["not_admitted"] > 0, d_on
     assert n_on < n_off, ("MUST-FAIL: narrowing off compiles every text", n_on, n_off)
     print(f"  first pick {d_on['pick']!r}: ON read the compile cache {n_on} times, OFF {n_off}; "
-          f"ON left {d_on['uncompiled']} uncompiled")
+          f"ON left {d_on['not_admitted']} not admitted")
 
 
 def check_cap_record_phases() -> None:

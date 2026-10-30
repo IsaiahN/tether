@@ -7109,7 +7109,7 @@ class Agent:
             pick = self._hyp_pair(before, detail)
         detail.update(checked=checked, refused=dict(refused))
         if _PLAN_NARROW:
-            detail.update(compiled=compiled[0], uncompiled=sum(len(p) for p in pending),
+            detail.update(compile_reads=compiled[0], not_admitted=sum(len(p) for p in pending),
                           phases=self._hyp_phases, wall_s=round(time.perf_counter() - t0, 4))
         if _HYP_DRAW:              # its wall time and the size of the group it stopped in
             detail.update(wall_s=round(time.perf_counter() - t0, 4), group_n=group_n)
@@ -11625,7 +11625,7 @@ class Agent:
         best = None
         for i, (na, sa) in enumerate(reps):
             for nb, sb in reps[i + 1:]:
-                if self._split_disjoint(sa, sb):
+                if self._splits(sa, sb):
                     rank = (max(len(sa), len(sb)), na, nb)
                     if best is None or rank < best[0]:
                         best = (rank, na, sa, nb, sb)
@@ -11643,6 +11643,7 @@ class Agent:
                  else v[1])
         self.led.record(self.cycle, "MINT", slot, "remainder", cause=cause,
                         population="last_survivors", last_survivors=len(last),
+                        uncharged=len(sets.get(frozenset(), ())),
                         unpriced=sum(1 for n in last if n not in terms), charged_sets=len(sets),
                         several=several, kind=list(sp.get("kind") or ()), residual_rows=len(robs),
                         verdict=v[0] if v else None, verdict_cycle=v[2] if v else None,
@@ -11652,9 +11653,10 @@ class Agent:
                               "(Fig 13 :134-139)")
 
     @staticmethod
-    def _split_disjoint(a: frozenset, b: frozenset) -> bool:
-        """1e (a): no residual row is charged to both, so each is explained by one of the two."""
-        return not (a & b)
+    def _splits(a: frozenset, b: frozenset) -> bool:
+        """1e (a), r370: each of the two explains a row the other does not -- both charged
+        somewhere, on no row in common. A term charged nowhere explains every row alone."""
+        return bool(a) and bool(b) and not (a & b)
 
     def _aims(self) -> set:
         """The probe's aim set: the starved slots, and under 1c (iii) the gaps whose survivors no

@@ -1143,7 +1143,9 @@ ARMS: dict[str, str] = {
                           "compiling), the rest only if the won groups yield no pick. Every won "
                           "group ranks above every other and the walk stops at the first group "
                           "with a route, so the pick is today's. The goal_hypotheses row carries "
-                          "compiled, uncompiled, phases and wall_s; open, ranked and refused cover "
+                          "compile_reads (compile-cache reads in the phases run), not_admitted "
+                          "(texts in a phase never run: no route-first, compile or filter), "
+                          "phases and wall_s; open, ranked and refused cover "
                           "the phases run; the cap record carries phases. The kind-scoped cut is a "
                           "later item. OFF, or nothing won: one phase, as before. default ON",
     "TETHER_NAMED_REMAINDER": "1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 "

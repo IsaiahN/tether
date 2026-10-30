@@ -6,6 +6,8 @@ readings, each check in its own process, under 5 minutes.
                             "one question" (Fig 8 :39)
   check_a_mustfail_overlap  MUST-FAIL: the pair test with disjointness dropped names a pair whose
                             charged sets intersect; the real test names none
+  check_a_mustfail_empty    MUST-FAIL (r370): with non-emptiness dropped, a survivor charged on no
+                            row pairs with another; the real test names none, uncharged 1
   check_c_budget            the gap's last verdict budget_spent: "unreached at this budget"
   check_c_priced_out        priced_out_at_depth: the mint's own note, verbatim
   check_c_age               a verdict from an earlier mint of the same space carries its own cycle
@@ -64,7 +66,7 @@ def _term(name: str):
     return gamma.Term((gamma.Atom(name, lambda v, _c: v, "val", "val"),))
 
 
-def _remainder(charged: dict, verdict=None, disjoint=None) -> dict:
+def _remainder(charged: dict, verdict=None, splits=None) -> dict:
     """The last survivors {name: charged rows}, priced in the gap's tally; the row it writes."""
     _env, ag = _agent()
     slot = _gap(ag)
@@ -75,8 +77,8 @@ def _remainder(charged: dict, verdict=None, disjoint=None) -> dict:
     ag._row_wrong = lambda t, _s, row: row in charged[t.name]
     if verdict is not None:
         ag._space[slot]["verdict"] = verdict(ag)
-    if disjoint is not None:
-        ag._split_disjoint = disjoint
+    if splits is not None:
+        ag._splits = splits
     n0 = len(ag.led.rows())
     ag._remainder(slot, dict.fromkeys(charged, 1.0), "bound")
     rows = [r for r in ag.led.rows()[n0:] if r["event"] == "remainder"]
@@ -106,11 +108,23 @@ def check_a_mustfail_overlap() -> None:
     charged = {"rem_a": {0, 1}, "rem_b": {1, 2}}
     real = _remainder(charged)["detail"]["several"]
     assert real == "no split found among the last survivors", real
-    broke = _remainder(charged, disjoint=lambda a, b: a != b)["detail"]["several"]
+    broke = _remainder(charged, splits=lambda a, b: a != b)["detail"]["several"]
     assert isinstance(broke, dict) and broke["shared_charged"] > 0, (
         "MUST-FAIL: without disjointness a pair sharing a charged row is named", broke)
     print(f"  MUST-FAIL: disjointness dropped names {broke['pair']} sharing "
           f"{broke['shared_charged']} charged row; the real test names none")
+
+
+def check_a_mustfail_empty() -> None:
+    charged = {"rem_a": set(), "rem_b": {0, 1}}
+    real = _remainder(charged)["detail"]
+    assert real["several"] == "no split found among the last survivors", real["several"]
+    assert real["uncharged"] == 1, real
+    broke = _remainder(charged, splits=lambda a, b: not (a & b))["detail"]["several"]
+    assert isinstance(broke, dict) and broke["explained_by_b_only"] == [], (
+        "MUST-FAIL: without non-emptiness an uncharged survivor pairs with another", broke)
+    print(f"  MUST-FAIL: non-emptiness dropped names {broke['pair']} though rem_a explains every "
+          "row; the real test names none and reports uncharged 1")
 
 
 def check_c_budget() -> None:
