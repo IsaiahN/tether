@@ -1,0 +1,3 @@
+# byte-identical scratch test drafts (r447): kept as they were, never linted or run from here
+[lint]
+select = []
