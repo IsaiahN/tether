@@ -1,0 +1,735 @@
+Seat -> Reviewer -- 2026-10-30 14:51:16 CDT -- r447 / r448 / r449: the INVENTORY, the SCAN and the FIVE NEW BRANCHES (pushed plain, no force; nothing protected moved)
+
+RECEIPT: r449, read whole. Applied before the push:
+- today's files are in the NEW subfolder harness/play_2026-10-30/;
+- the harness diff is adds only. My first draft modified the root .gitattributes; it was amended before the push to a nested .gitattributes;
+- the drafts are on wip/draft-* branches with your wording;
+- tether_arm12.py is kept and listed;
+- the --gateway lines are printed whole in section 6.
+
+== 1. BRANCHES ON THE REMOTE (git ls-remote origin, 14:51:16)
+26a68e0e23bef27a622ccfa5f86bb01d83f04126	refs/heads/arc-solver-agent
+eadee1aa0c5c6f7e24381099d8573f28be254e04	refs/heads/general-agent
+453ced105418f5904d4e3f6b22545b79e21a8437	refs/heads/wip/draft-s1r2-20261030
+179ab7a9e8c4cf99f62dca132d7a10a9c89529d9	refs/heads/wip/draft-s1reprice-20261030
+faac9cae11d62d7e81c5ff0bdb0561d9ef9e6bd2	refs/heads/wip/draft-scratch-tests-20261030
+8440a1807b63b1df4865d9bd70b13a47da203ef5	refs/heads/wip/draft-wt55-20261030
+f74533cefb8ada7ec46e6c69454e634fd8a633cf	refs/heads/wip/harness-2026-10-30
+
+wip/harness-2026-10-30  commit f74533cefb8ada7ec46e6c69454e634fd8a633cf  tree e531d1b7f2bc33808b4a0eabf1abb8640cbba9fb  parent eadee1a
+wip/draft-scratch-tests-20261030  commit faac9cae11d62d7e81c5ff0bdb0561d9ef9e6bd2  tree fd7f4393f3be1ab47801b31f620a865953b89014  parent eadee1a
+wip/draft-s1r2-20261030  commit 453ced105418f5904d4e3f6b22545b79e21a8437  tree 8537934b2a253448c296f36606745c23fa8934ea  parent 20cc52a
+wip/draft-s1reprice-20261030  commit 179ab7a9e8c4cf99f62dca132d7a10a9c89529d9  tree e86a6060e4e3aad571feede714adba9a80e61dd0  parent 20cc52a
+wip/draft-wt55-20261030  commit 8440a1807b63b1df4865d9bd70b13a47da203ef5  tree 89964b028c562f68a8f90ba36e849c16299eb6e0  parent e50406d
+
+- wip/harness-2026-10-30: the HARNESS, READER and EDIT-TOOL files, byte-for-byte, under harness/play_2026-10-30/. play/ holds the PLAY set; scripts/, readers/ and edits/ hold the rest. The folder also carries README.md, MANIFEST.tsv, ruff.toml (lint off) and .gitattributes (-text).
+- wip/draft-scratch-tests-20261030: the 7 AGENT-side test drafts from the scratchpad, under scratch_test_drafts/ (adds only; not wired into tests/).
+- wip/draft-s1r2-20261030 and wip/draft-s1reprice-20261030: tether-wt-s1r2's and tether-wt-s1reprice's uncommitted state, each on its own HEAD 20cc52a. Message: "Uncommitted draft found 2026-10-30; did NOT run in PLAY22-24; not reviewed ... a backup, not a candidate, and nothing merges from it".
+- wip/draft-wt55-20261030: tether-wt55's uncommitted state on its own HEAD e50406d (the 10-08 library build), with the same wording.
+  - Its name-status vs e50406d is 27 A, 3 M, 1 D. The D is library/README.md: it was staged deleted and absent from disk, so the commit records the state as found.
+
+Byte checks:
+- harness: 451 of 451 committed blobs match MANIFEST.tsv sha256; git check-attr text on a .sh reads unset.
+- drafts: 7 of 7 match.
+- wt55: every file matches its disk bytes.
+
+== 2. git diff --name-status eadee1a wip/harness-2026-10-30 (whole;  455 A ; no M, no D, no existing file replaced)
+A	harness/play_2026-10-30/.gitattributes
+A	harness/play_2026-10-30/MANIFEST.tsv
+A	harness/play_2026-10-30/README.md
+A	harness/play_2026-10-30/edits/_repo_fix.py
+A	harness/play_2026-10-30/edits/c2_edit.py
+A	harness/play_2026-10-30/edits/c2_ledger.py
+A	harness/play_2026-10-30/edits/c_edit.py
+A	harness/play_2026-10-30/edits/c_edit_patch.py
+A	harness/play_2026-10-30/edits/clock_fixture.py
+A	harness/play_2026-10-30/edits/commit1_edit.py
+A	harness/play_2026-10-30/edits/crash_edit.py
+A	harness/play_2026-10-30/edits/crlf_fix.py
+A	harness/play_2026-10-30/edits/cs_edit.py
+A	harness/play_2026-10-30/edits/cut_lines.py
+A	harness/play_2026-10-30/edits/d_edit.py
+A	harness/play_2026-10-30/edits/draw_edit.py
+A	harness/play_2026-10-30/edits/drop8th_1c.py
+A	harness/play_2026-10-30/edits/dv_credit_probe.py
+A	harness/play_2026-10-30/edits/e4b_box_credit_off.py
+A	harness/play_2026-10-30/edits/edit_1c_a.py
+A	harness/play_2026-10-30/edits/edit_1c_b.py
+A	harness/play_2026-10-30/edits/edit_1c_c.py
+A	harness/play_2026-10-30/edits/edit_1c_d.py
+A	harness/play_2026-10-30/edits/edit_1c_e.py
+A	harness/play_2026-10-30/edits/edit_1c_f.py
+A	harness/play_2026-10-30/edits/edit_1c_g.py
+A	harness/play_2026-10-30/edits/edit_1c_h.py
+A	harness/play_2026-10-30/edits/edit_1c_i.py
+A	harness/play_2026-10-30/edits/edit_1c_j.py
+A	harness/play_2026-10-30/edits/edit_1c_tests.py
+A	harness/play_2026-10-30/edits/edit_1d.py
+A	harness/play_2026-10-30/edits/edit_1e.py
+A	harness/play_2026-10-30/edits/edit_2a.py
+A	harness/play_2026-10-30/edits/edit_2ai.py
+A	harness/play_2026-10-30/edits/edit_4.py
+A	harness/play_2026-10-30/edits/edit_a2.py
+A	harness/play_2026-10-30/edits/edit_ask_test.py
+A	harness/play_2026-10-30/edits/edit_batch.py
+A	harness/play_2026-10-30/edits/edit_i2.py
+A	harness/play_2026-10-30/edits/edit_i2_tests.py
+A	harness/play_2026-10-30/edits/edit_lbl.py
+A	harness/play_2026-10-30/edits/edit_ledger_s3.py
+A	harness/play_2026-10-30/edits/edit_none.py
+A	harness/play_2026-10-30/edits/edit_offid.py
+A	harness/play_2026-10-30/edits/edit_pin.py
+A	harness/play_2026-10-30/edits/edit_r349.py
+A	harness/play_2026-10-30/edits/edit_r350.py
+A	harness/play_2026-10-30/edits/edit_r361.py
+A	harness/play_2026-10-30/edits/edit_r369.py
+A	harness/play_2026-10-30/edits/edit_r370.py
+A	harness/play_2026-10-30/edits/edit_r371.py
+A	harness/play_2026-10-30/edits/edit_rel.py
+A	harness/play_2026-10-30/edits/edit_ren.py
+A	harness/play_2026-10-30/edits/edit_s2jr.py
+A	harness/play_2026-10-30/edits/edit_sr.py
+A	harness/play_2026-10-30/edits/edit_sup.py
+A	harness/play_2026-10-30/edits/edit_sync.py
+A	harness/play_2026-10-30/edits/edit_sync2.py
+A	harness/play_2026-10-30/edits/edit_t.py
+A	harness/play_2026-10-30/edits/edit_t2.py
+A	harness/play_2026-10-30/edits/edit_t3.py
+A	harness/play_2026-10-30/edits/edit_t4.py
+A	harness/play_2026-10-30/edits/edit_w12.py
+A	harness/play_2026-10-30/edits/fill.py
+A	harness/play_2026-10-30/edits/fill_msg4.py
+A	harness/play_2026-10-30/edits/fill_msgfu.py
+A	harness/play_2026-10-30/edits/fix1.py
+A	harness/play_2026-10-30/edits/fix2.py
+A	harness/play_2026-10-30/edits/fix_armsmod.py
+A	harness/play_2026-10-30/edits/fix_design.py
+A	harness/play_2026-10-30/edits/fix_hyp.py
+A	harness/play_2026-10-30/edits/fix_link.py
+A	harness/play_2026-10-30/edits/fix_lint_b.py
+A	harness/play_2026-10-30/edits/fix_long.py
+A	harness/play_2026-10-30/edits/fix_mintwrap.py
+A	harness/play_2026-10-30/edits/fix_msg_1e.py
+A	harness/play_2026-10-30/edits/fix_pair.py
+A	harness/play_2026-10-30/edits/fix_park.py
+A	harness/play_2026-10-30/edits/fix_pfread.py
+A	harness/play_2026-10-30/edits/fix_sac_read.py
+A	harness/play_2026-10-30/edits/fix_sac_read2.py
+A	harness/play_2026-10-30/edits/fix_sac_read3.py
+A	harness/play_2026-10-30/edits/fix_scope.py
+A	harness/play_2026-10-30/edits/fix_tci.py
+A	harness/play_2026-10-30/edits/fix_tci2.py
+A	harness/play_2026-10-30/edits/fix_tfc.py
+A	harness/play_2026-10-30/edits/fix_tfc2.py
+A	harness/play_2026-10-30/edits/fix_tfc3.py
+A	harness/play_2026-10-30/edits/fix_tfc4.py
+A	harness/play_2026-10-30/edits/fix_tfr_board.py
+A	harness/play_2026-10-30/edits/fix_tfr_files.py
+A	harness/play_2026-10-30/edits/fix_tfr_r2.py
+A	harness/play_2026-10-30/edits/fix_tskm.py
+A	harness/play_2026-10-30/edits/fix_tskm2.py
+A	harness/play_2026-10-30/edits/fix_wbox.py
+A	harness/play_2026-10-30/edits/fix_wread.py
+A	harness/play_2026-10-30/edits/fixchain.py
+A	harness/play_2026-10-30/edits/fixmove.py
+A	harness/play_2026-10-30/edits/fixmove2.py
+A	harness/play_2026-10-30/edits/fixmove3.py
+A	harness/play_2026-10-30/edits/fixmove4.py
+A	harness/play_2026-10-30/edits/fixprog.py
+A	harness/play_2026-10-30/edits/fixrange.py
+A	harness/play_2026-10-30/edits/fu_edit.py
+A	harness/play_2026-10-30/edits/hold_edit.py
+A	harness/play_2026-10-30/edits/hold_fix.py
+A	harness/play_2026-10-30/edits/item2_edit.py
+A	harness/play_2026-10-30/edits/item4_patch.py
+A	harness/play_2026-10-30/edits/item4_play.py
+A	harness/play_2026-10-30/edits/k1_edit.py
+A	harness/play_2026-10-30/edits/k1_old_edit.py
+A	harness/play_2026-10-30/edits/k2_edit.py
+A	harness/play_2026-10-30/edits/kdel_edit.py
+A	harness/play_2026-10-30/edits/l3_edit.py
+A	harness/play_2026-10-30/edits/ledger_75.py
+A	harness/play_2026-10-30/edits/ledger_b.py
+A	harness/play_2026-10-30/edits/ledger_c.py
+A	harness/play_2026-10-30/edits/ledger_c1.py
+A	harness/play_2026-10-30/edits/ledger_c3row.py
+A	harness/play_2026-10-30/edits/ledger_cf.py
+A	harness/play_2026-10-30/edits/ledger_clock.py
+A	harness/play_2026-10-30/edits/ledger_con6.py
+A	harness/play_2026-10-30/edits/ledger_cs.py
+A	harness/play_2026-10-30/edits/ledger_d.py
+A	harness/play_2026-10-30/edits/ledger_e4b.py
+A	harness/play_2026-10-30/edits/ledger_fd.py
+A	harness/play_2026-10-30/edits/ledger_fdi.py
+A	harness/play_2026-10-30/edits/ledger_freeze.py
+A	harness/play_2026-10-30/edits/ledger_fu.py
+A	harness/play_2026-10-30/edits/ledger_hold.py
+A	harness/play_2026-10-30/edits/ledger_i6.py
+A	harness/play_2026-10-30/edits/ledger_item4.py
+A	harness/play_2026-10-30/edits/ledger_k.py
+A	harness/play_2026-10-30/edits/ledger_k11.py
+A	harness/play_2026-10-30/edits/ledger_k7.py
+A	harness/play_2026-10-30/edits/ledger_one.py
+A	harness/play_2026-10-30/edits/ledger_s0.py
+A	harness/play_2026-10-30/edits/ledger_s2a.py
+A	harness/play_2026-10-30/edits/ledger_s2r.py
+A	harness/play_2026-10-30/edits/ledger_seat.py
+A	harness/play_2026-10-30/edits/ledger_td.py
+A	harness/play_2026-10-30/edits/ledger_w12.py
+A	harness/play_2026-10-30/edits/ledger_walk.py
+A	harness/play_2026-10-30/edits/mk_r2.py
+A	harness/play_2026-10-30/edits/mk_split.py
+A	harness/play_2026-10-30/edits/patch_b.py
+A	harness/play_2026-10-30/edits/patch_dormc.py
+A	harness/play_2026-10-30/edits/patch_dormc_test.py
+A	harness/play_2026-10-30/edits/patch_item6.py
+A	harness/play_2026-10-30/edits/patch_item6b.py
+A	harness/play_2026-10-30/edits/patch_plant.py
+A	harness/play_2026-10-30/edits/patch_rg2.py
+A	harness/play_2026-10-30/edits/patch_rg3.py
+A	harness/play_2026-10-30/edits/place_test_1e.py
+A	harness/play_2026-10-30/edits/place_test_4.py
+A	harness/play_2026-10-30/edits/readme_final.py
+A	harness/play_2026-10-30/edits/readme_fix.py
+A	harness/play_2026-10-30/edits/readme_wrap.py
+A	harness/play_2026-10-30/edits/repo_doc.py
+A	harness/play_2026-10-30/edits/resolve_1c.py
+A	harness/play_2026-10-30/edits/s0_doc.py
+A	harness/play_2026-10-30/edits/s0_edit.py
+A	harness/play_2026-10-30/edits/s0_wrap.py
+A	harness/play_2026-10-30/edits/splice.py
+A	harness/play_2026-10-30/edits/split_a1.py
+A	harness/play_2026-10-30/edits/spy_fix_check.py
+A	harness/play_2026-10-30/edits/stub_edit.py
+A	harness/play_2026-10-30/edits/sw_patch.py
+A	harness/play_2026-10-30/edits/tier0_test_edit.py
+A	harness/play_2026-10-30/edits/to_crlf.py
+A	harness/play_2026-10-30/edits/tw_edit.py
+A	harness/play_2026-10-30/edits/tw_head.py
+A	harness/play_2026-10-30/edits/walk_edit.py
+A	harness/play_2026-10-30/edits/wrap_holds.py
+A	harness/play_2026-10-30/edits/wrap_tether.py
+A	harness/play_2026-10-30/play/E4B_SPY/break_audit.py
+A	harness/play_2026-10-30/play/E4B_SPY/e4b_box.credit_off.20261030T043350Z.py
+A	harness/play_2026-10-30/play/E4B_SPY/e4b_box.credit_on.20261029T213714Z.py
+A	harness/play_2026-10-30/play/E4B_SPY/e4b_box.py
+A	harness/play_2026-10-30/play/E4B_SPY/e4b_read.py
+A	harness/play_2026-10-30/play/E4B_SPY/e4b_run.py
+A	harness/play_2026-10-30/play/E4B_SPY/kind_spy.py
+A	harness/play_2026-10-30/play/E4B_SPY/kind_spy.py.0622d0e9
+A	harness/play_2026-10-30/play/PF/pf_check.py
+A	harness/play_2026-10-30/play/PLAY24/play_across.py
+A	harness/play_2026-10-30/play/PLAY24/play_chain.sh
+A	harness/play_2026-10-30/play/PLAY24/play_chain.want
+A	harness/play_2026-10-30/play/PLAY24/precheck.sh
+A	harness/play_2026-10-30/play/PLAY24/spy_sweep.py
+A	harness/play_2026-10-30/readers/aa_read.py
+A	harness/play_2026-10-30/readers/across_table.py
+A	harness/play_2026-10-30/readers/across_trend.py
+A	harness/play_2026-10-30/readers/action_ast.py
+A	harness/play_2026-10-30/readers/alias_read.py
+A	harness/play_2026-10-30/readers/arms_diff.py
+A	harness/play_2026-10-30/readers/arms_mf.py
+A	harness/play_2026-10-30/readers/arms_r1_check.py
+A	harness/play_2026-10-30/readers/arms_w12.py
+A	harness/play_2026-10-30/readers/ask_pos.py
+A	harness/play_2026-10-30/readers/ask_smoke.py
+A	harness/play_2026-10-30/readers/ask_stale.py
+A	harness/play_2026-10-30/readers/ask_why.py
+A	harness/play_2026-10-30/readers/audit_integrity.py
+A	harness/play_2026-10-30/readers/audit_lib.py
+A	harness/play_2026-10-30/readers/b2_probe.py
+A	harness/play_2026-10-30/readers/b2_read.py
+A	harness/play_2026-10-30/readers/b3_read.py
+A	harness/play_2026-10-30/readers/before_act.py
+A	harness/play_2026-10-30/readers/bp35_read.py
+A	harness/play_2026-10-30/readers/bucket_keys.py
+A	harness/play_2026-10-30/readers/bucket_read.py
+A	harness/play_2026-10-30/readers/bucket_schema.py
+A	harness/play_2026-10-30/readers/budget_read.py
+A	harness/play_2026-10-30/readers/calls_read.py
+A	harness/play_2026-10-30/readers/cap2_block.py
+A	harness/play_2026-10-30/readers/cap_reach.py
+A	harness/play_2026-10-30/readers/cap_reach2.py
+A	harness/play_2026-10-30/readers/carry_read.py
+A	harness/play_2026-10-30/readers/clock_read.py
+A	harness/play_2026-10-30/readers/closure4d.py
+A	harness/play_2026-10-30/readers/closure_ab.py
+A	harness/play_2026-10-30/readers/const_ast.py
+A	harness/play_2026-10-30/readers/contact.py
+A	harness/play_2026-10-30/readers/count_dormant.py
+A	harness/play_2026-10-30/readers/count_values.py
+A	harness/play_2026-10-30/readers/cw_probe.py
+A	harness/play_2026-10-30/readers/dbcount.py
+A	harness/play_2026-10-30/readers/dec.py
+A	harness/play_2026-10-30/readers/dec2.py
+A	harness/play_2026-10-30/readers/dec3.py
+A	harness/play_2026-10-30/readers/decode_handoff.py
+A	harness/play_2026-10-30/readers/derived_outstanding.py
+A	harness/play_2026-10-30/readers/diag_off.py
+A	harness/play_2026-10-30/readers/diag_off2.py
+A	harness/play_2026-10-30/readers/dv_fake_probe.py
+A	harness/play_2026-10-30/readers/dv_shadow_probe.py
+A	harness/play_2026-10-30/readers/dv_smoke.py
+A	harness/play_2026-10-30/readers/e4a_results.py
+A	harness/play_2026-10-30/readers/e8_agg.py
+A	harness/play_2026-10-30/readers/e8_scan.py
+A	harness/play_2026-10-30/readers/e8_show.py
+A	harness/play_2026-10-30/readers/e8_tot.py
+A	harness/play_2026-10-30/readers/evhist.py
+A	harness/play_2026-10-30/readers/evverbs.py
+A	harness/play_2026-10-30/readers/figlines.py
+A	harness/play_2026-10-30/readers/figs.py
+A	harness/play_2026-10-30/readers/figtext.py
+A	harness/play_2026-10-30/readers/figx.py
+A	harness/play_2026-10-30/readers/filepeek.py
+A	harness/play_2026-10-30/readers/find_b.py
+A	harness/play_2026-10-30/readers/flaps.py
+A	harness/play_2026-10-30/readers/fx_probe.py
+A	harness/play_2026-10-30/readers/gameid_ast.py
+A	harness/play_2026-10-30/readers/gamma_adds.py
+A	harness/play_2026-10-30/readers/gap_read.py
+A	harness/play_2026-10-30/readers/gd_probe.py
+A	harness/play_2026-10-30/readers/gen_aliases.py
+A	harness/play_2026-10-30/readers/gen_keys.py
+A	harness/play_2026-10-30/readers/gen_probe.py
+A	harness/play_2026-10-30/readers/gendiff.py
+A	harness/play_2026-10-30/readers/gendiff2.py
+A	harness/play_2026-10-30/readers/genpeek.py
+A	harness/play_2026-10-30/readers/genpeek2.py
+A	harness/play_2026-10-30/readers/gens.py
+A	harness/play_2026-10-30/readers/gens2.py
+A	harness/play_2026-10-30/readers/gh_probe.py
+A	harness/play_2026-10-30/readers/gl_b1off.py
+A	harness/play_2026-10-30/readers/gm_probe.py
+A	harness/play_2026-10-30/readers/guard_mf.py
+A	harness/play_2026-10-30/readers/h611_probe.py
+A	harness/play_2026-10-30/readers/hash_term.py
+A	harness/play_2026-10-30/readers/head_v2.py
+A	harness/play_2026-10-30/readers/heir_read.py
+A	harness/play_2026-10-30/readers/held_ord.py
+A	harness/play_2026-10-30/readers/hyp_picks.py
+A	harness/play_2026-10-30/readers/indist_since.py
+A	harness/play_2026-10-30/readers/inv_fate.py
+A	harness/play_2026-10-30/readers/io_diag.py
+A	harness/play_2026-10-30/readers/ir_probe.py
+A	harness/play_2026-10-30/readers/k1_inproc.py
+A	harness/play_2026-10-30/readers/kaggle_census.py
+A	harness/play_2026-10-30/readers/kdel_identity.py
+A	harness/play_2026-10-30/readers/keys.py
+A	harness/play_2026-10-30/readers/kh_dbg.py
+A	harness/play_2026-10-30/readers/kh_dbg2.py
+A	harness/play_2026-10-30/readers/kinds.py
+A	harness/play_2026-10-30/readers/km_diff.py
+A	harness/play_2026-10-30/readers/libcmp.py
+A	harness/play_2026-10-30/readers/lineage_vs_manifest.py
+A	harness/play_2026-10-30/readers/live_probe.py
+A	harness/play_2026-10-30/readers/load_read.py
+A	harness/play_2026-10-30/readers/loops.py
+A	harness/play_2026-10-30/readers/lost_lookups.py
+A	harness/play_2026-10-30/readers/m1_read.py
+A	harness/play_2026-10-30/readers/mem_read.py
+A	harness/play_2026-10-30/readers/mf_memo_probe.py
+A	harness/play_2026-10-30/readers/mf_seed_real.py
+A	harness/play_2026-10-30/readers/mk_probe_dorm.py
+A	harness/play_2026-10-30/readers/move4d.py
+A	harness/play_2026-10-30/readers/o11w.py
+A	harness/play_2026-10-30/readers/offoff.py
+A	harness/play_2026-10-30/readers/old_names.py
+A	harness/play_2026-10-30/readers/oneoff_prep.py
+A	harness/play_2026-10-30/readers/only_2be.py
+A	harness/play_2026-10-30/readers/park_cuts.py
+A	harness/play_2026-10-30/readers/park_read.py
+A	harness/play_2026-10-30/readers/park_sum.py
+A	harness/play_2026-10-30/readers/park_verdict.py
+A	harness/play_2026-10-30/readers/peak_read.py
+A	harness/play_2026-10-30/readers/peek_gen.py
+A	harness/play_2026-10-30/readers/phase_bins.py
+A	harness/play_2026-10-30/readers/play19_read.py
+A	harness/play_2026-10-30/readers/play20_read.py
+A	harness/play_2026-10-30/readers/pool_audit.py
+A	harness/play_2026-10-30/readers/pool_verify.py
+A	harness/play_2026-10-30/readers/pos_read.py
+A	harness/play_2026-10-30/readers/prep_box.py
+A	harness/play_2026-10-30/readers/probe_cocc.py
+A	harness/play_2026-10-30/readers/probe_dc.py
+A	harness/play_2026-10-30/readers/probe_ph.py
+A	harness/play_2026-10-30/readers/probe_rd3.py
+A	harness/play_2026-10-30/readers/probe_rg2.py
+A	harness/play_2026-10-30/readers/probe_rg2all.py
+A	harness/play_2026-10-30/readers/probe_rg2dorm.py
+A	harness/play_2026-10-30/readers/prof_phase_r396.py
+A	harness/play_2026-10-30/readers/prof_probe_r396.py
+A	harness/play_2026-10-30/readers/prof_read.py
+A	harness/play_2026-10-30/readers/q16_scan.py
+A	harness/play_2026-10-30/readers/q21_scan.py
+A	harness/play_2026-10-30/readers/r15_read.py
+A	harness/play_2026-10-30/readers/r15_read2.py
+A	harness/play_2026-10-30/readers/r16_read.py
+A	harness/play_2026-10-30/readers/r17_read.py
+A	harness/play_2026-10-30/readers/r1_compare.py
+A	harness/play_2026-10-30/readers/r1_read.py
+A	harness/play_2026-10-30/readers/r2_read.py
+A	harness/play_2026-10-30/readers/r3_arms.py
+A	harness/play_2026-10-30/readers/r4_cmp.py
+A	harness/play_2026-10-30/readers/r4_dump.py
+A	harness/play_2026-10-30/readers/r4_hyp.py
+A	harness/play_2026-10-30/readers/r5_age.py
+A	harness/play_2026-10-30/readers/rank_probe.py
+A	harness/play_2026-10-30/readers/reach4d.py
+A	harness/play_2026-10-30/readers/reach_count.py
+A	harness/play_2026-10-30/readers/read_a2.py
+A	harness/play_2026-10-30/readers/read_a_r423.py
+A	harness/play_2026-10-30/readers/rejudge_smoke.py
+A	harness/play_2026-10-30/readers/repo_import_check.py
+A	harness/play_2026-10-30/readers/reprice_cost.py
+A	harness/play_2026-10-30/readers/reuse_rows.py
+A	harness/play_2026-10-30/readers/reuse_rows2.py
+A	harness/play_2026-10-30/readers/reuse_use.py
+A	harness/play_2026-10-30/readers/risky_probe.py
+A	harness/play_2026-10-30/readers/s0_events.py
+A	harness/play_2026-10-30/readers/s0_first.py
+A	harness/play_2026-10-30/readers/s0_gov.py
+A	harness/play_2026-10-30/readers/s2o_diff.py
+A	harness/play_2026-10-30/readers/s2o_diff2.py
+A	harness/play_2026-10-30/readers/s2p_diff.py
+A	harness/play_2026-10-30/readers/sample.py
+A	harness/play_2026-10-30/readers/seed_for.py
+A	harness/play_2026-10-30/readers/series_read.py
+A	harness/play_2026-10-30/readers/sha_pn.py
+A	harness/play_2026-10-30/readers/slots_b3.py
+A	harness/play_2026-10-30/readers/slow_steps.py
+A	harness/play_2026-10-30/readers/sp_probe.py
+A	harness/play_2026-10-30/readers/sp_probe2.py
+A	harness/play_2026-10-30/readers/step7_src.py
+A	harness/play_2026-10-30/readers/step_map.py
+A	harness/play_2026-10-30/readers/stepwalls.py
+A	harness/play_2026-10-30/readers/stop_smoke.py
+A	harness/play_2026-10-30/readers/store_tables.py
+A	harness/play_2026-10-30/readers/su15_read.py
+A	harness/play_2026-10-30/readers/svgtext.py
+A	harness/play_2026-10-30/readers/sweep_terminal.py
+A	harness/play_2026-10-30/readers/t2_last_probe.py
+A	harness/play_2026-10-30/readers/t4t5.py
+A	harness/play_2026-10-30/readers/tier0_walk.py
+A	harness/play_2026-10-30/readers/tplpeek.py
+A	harness/play_2026-10-30/readers/tr87_read.py
+A	harness/play_2026-10-30/readers/units_probe.py
+A	harness/play_2026-10-30/readers/vc33_clock.py
+A	harness/play_2026-10-30/readers/w4probe.py
+A	harness/play_2026-10-30/readers/warm_hyp_files.py
+A	harness/play_2026-10-30/readers/warm_hyp_scan.py
+A	harness/play_2026-10-30/readers/winner_read.py
+A	harness/play_2026-10-30/readers/witness_probe.py
+A	harness/play_2026-10-30/ruff.toml
+A	harness/play_2026-10-30/scripts/abc.sh
+A	harness/play_2026-10-30/scripts/abc2.sh
+A	harness/play_2026-10-30/scripts/act_runs.sh
+A	harness/play_2026-10-30/scripts/auto_play21.ps1
+A	harness/play_2026-10-30/scripts/auto_play22.ps1
+A	harness/play_2026-10-30/scripts/auto_play23.ps1
+A	harness/play_2026-10-30/scripts/auto_play23_resume.ps1
+A	harness/play_2026-10-30/scripts/auto_play24.ps1
+A	harness/play_2026-10-30/scripts/b2_run.sh
+A	harness/play_2026-10-30/scripts/b3_run.sh
+A	harness/play_2026-10-30/scripts/b4_run.sh
+A	harness/play_2026-10-30/scripts/b5_run.sh
+A	harness/play_2026-10-30/scripts/b6_run.sh
+A	harness/play_2026-10-30/scripts/backup_lineage.py
+A	harness/play_2026-10-30/scripts/backup_rundir.py
+A	harness/play_2026-10-30/scripts/carry24.py
+A	harness/play_2026-10-30/scripts/inv_git.sh
+A	harness/play_2026-10-30/scripts/make_play13.py
+A	harness/play_2026-10-30/scripts/make_play14.py
+A	harness/play_2026-10-30/scripts/make_play15.py
+A	harness/play_2026-10-30/scripts/make_play16.py
+A	harness/play_2026-10-30/scripts/make_play17.py
+A	harness/play_2026-10-30/scripts/make_play18.py
+A	harness/play_2026-10-30/scripts/make_play19.py
+A	harness/play_2026-10-30/scripts/mint_runs.sh
+A	harness/play_2026-10-30/scripts/pack_harness.py
+A	harness/play_2026-10-30/scripts/prof.sh
+A	harness/play_2026-10-30/scripts/prof_run_r396.sh
+A	harness/play_2026-10-30/scripts/prof_run_r423.sh
+A	harness/play_2026-10-30/scripts/relaunch3.py
+A	harness/play_2026-10-30/scripts/round16.sh
+A	harness/play_2026-10-30/scripts/run_1c.sh
+A	harness/play_2026-10-30/scripts/run_1c2.sh
+A	harness/play_2026-10-30/scripts/run_1c3.sh
+A	harness/play_2026-10-30/scripts/run_1d.sh
+A	harness/play_2026-10-30/scripts/run_1d_b.sh
+A	harness/play_2026-10-30/scripts/run_1e.sh
+A	harness/play_2026-10-30/scripts/run_4.sh
+A	harness/play_2026-10-30/scripts/run_a2.sh
+A	harness/play_2026-10-30/scripts/run_aa.sh
+A	harness/play_2026-10-30/scripts/run_cf.sh
+A	harness/play_2026-10-30/scripts/run_cp.sh
+A	harness/play_2026-10-30/scripts/run_cw.sh
+A	harness/play_2026-10-30/scripts/run_fu.sh
+A	harness/play_2026-10-30/scripts/run_full.sh
+A	harness/play_2026-10-30/scripts/run_i2.sh
+A	harness/play_2026-10-30/scripts/run_io.sh
+A	harness/play_2026-10-30/scripts/run_offid.sh
+A	harness/play_2026-10-30/scripts/run_ps.sh
+A	harness/play_2026-10-30/scripts/run_r349.sh
+A	harness/play_2026-10-30/scripts/run_r350.sh
+A	harness/play_2026-10-30/scripts/run_r361.sh
+A	harness/play_2026-10-30/scripts/run_r369.sh
+A	harness/play_2026-10-30/scripts/run_rn.sh
+A	harness/play_2026-10-30/scripts/run_stale.sh
+A	harness/play_2026-10-30/scripts/run_sync.sh
+A	harness/play_2026-10-30/scripts/run_table.sh
+A	harness/play_2026-10-30/scripts/run_uk.sh
+A	harness/play_2026-10-30/scripts/run_vh.sh
+A	harness/play_2026-10-30/scripts/run_vr.sh
+A	harness/play_2026-10-30/scripts/set_fd.sh
+A	harness/play_2026-10-30/scripts/spy_sweep.py
+A	harness/play_2026-10-30/scripts/stop_smoke.sh
+A	harness/play_2026-10-30/scripts/want21.sh
+A	harness/play_2026-10-30/scripts/want22.sh
+A	harness/play_2026-10-30/scripts/want23.sh
+A	harness/play_2026-10-30/scripts/want24.sh
+
+== 2b. git diff --name-status eadee1a wip/draft-scratch-tests-20261030 (whole)
+A	scratch_test_drafts/.gitattributes
+A	scratch_test_drafts/1c_test_stop_rules.py
+A	scratch_test_drafts/MANIFEST.tsv
+A	scratch_test_drafts/README.md
+A	scratch_test_drafts/ruff.toml
+A	scratch_test_drafts/test_fault_recover.py
+A	scratch_test_drafts/test_plan_narrow.src.py
+A	scratch_test_drafts/test_remainder.src.py
+A	scratch_test_drafts/test_stream_win.py
+A	scratch_test_drafts/test_stream_win_stub.py
+A	scratch_test_drafts/test_window.full.py
+
+== 2c. the three worktree drafts vs their own HEAD (whole)
+-- wip/draft-s1r2-20261030 vs 20cc52a:
+M	conform/identity_mod_rows.py
+A	tests/_batch.py
+M	tests/test_arrival_gap.py
+M	tests/test_ask.py
+M	tests/test_divide.py
+M	tests/test_instance_retire.py
+M	tests/test_kind_save.py
+M	tests/test_owed_rejudge.py
+M	tests/test_settle_pred.py
+M	tether.py
+-- wip/draft-s1reprice-20261030 vs 20cc52a:
+M	conform/identity_mod_rows.py
+A	tests/_batch.py
+M	tests/test_arrival_gap.py
+M	tests/test_ask.py
+M	tests/test_divide.py
+M	tests/test_instance_retire.py
+M	tests/test_kind_save.py
+M	tests/test_owed_rejudge.py
+M	tests/test_settle_pred.py
+M	tether.py
+-- wip/draft-wt55-20261030 vs e50406d:
+A	.gitattributes
+A	conform/fast_check.py
+A	docs/cohesion/CODEBASE_CHECK.md
+A	docs/cohesion/DOCS_CONSOLIDATION.md
+A	docs/cohesion/FAST_COMMIT.md
+A	docs/cohesion/REPO_AUDIT.md
+A	docs/cohesion/RULINGS_CHECK.md
+A	docs/cohesion/WORKLOG.md
+A	library/BUILD_REPORT.md
+A	library/DEDUP_LOG.json
+A	library/LIBRARY_DESIGN.md
+A	library/LIBRARY_SPEC.md
+D	library/README.md
+A	library/ROLES_LOG.json
+M	library/agent_atoms.json
+M	library/atoms.json
+A	library/build_library.py
+A	library/clusters.json
+A	library/dedup_2026_10_08.py
+A	library/dedup_pass4_2026_10_08.py
+A	library/grammar.json
+A	library/grid_groundings.json
+A	library/index.json
+A	library/library_runtime.py
+M	library/molecules.json
+A	library/orientation_draft.json
+A	library/readings.json
+A	library/reads_explicit.json
+A	library/relations.json
+A	library/roles_2026_10_08.py
+A	library/sharpened_2026_10_08.txt
+
+== 3. EVERY GIT CHECKOUT ON THE BOX (read only, --no-optional-locks; 54 read, fresh_r30 skipped as PLAY24's running tree)
+REPO GitHub/tether | branch wip/finish3 | HEAD b0489bf | origin https://github.com/IsaiahN/tether.git | porcelain lines 1
+     M .claude/settings.json
+REPO GitHub/tether-wt-a | branch wip/tether-wt-a-20261020 | HEAD 1222f93 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO GitHub/tether-wt-alias | branch wip/arrival-alias | HEAD eadee1a | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO GitHub/tether-wt-mergeARC | branch HEAD | HEAD 26a68e0 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO GitHub/tether-wt-mergeGA | branch HEAD | HEAD 3ebbab0 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO GitHub/tether-wt-prof | branch HEAD | HEAD 7b9a90f | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO GitHub/tether-wt-s1r2 | branch HEAD | HEAD 20cc52a | origin https://github.com/IsaiahN/tether.git | porcelain lines 10
+     M conform/identity_mod_rows.py
+     M tests/test_arrival_gap.py
+     M tests/test_ask.py
+     M tests/test_divide.py
+     M tests/test_instance_retire.py
+     M tests/test_kind_save.py
+     M tests/test_owed_rejudge.py
+     M tests/test_settle_pred.py
+     M tether.py
+    ?? tests/_batch.py
+REPO GitHub/tether-wt-s1r3 | branch wip/s1-reprice | HEAD 2855932 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO GitHub/tether-wt-s1reprice | branch HEAD | HEAD 20cc52a | origin https://github.com/IsaiahN/tether.git | porcelain lines 10
+     M conform/identity_mod_rows.py
+     M tests/test_arrival_gap.py
+     M tests/test_ask.py
+     M tests/test_divide.py
+     M tests/test_instance_retire.py
+     M tests/test_kind_save.py
+     M tests/test_owed_rejudge.py
+     M tests/test_settle_pred.py
+     M tether.py
+    ?? tests/_batch.py
+REPO GitHub/tether-wt55 | branch HEAD | HEAD e50406d | origin https://github.com/IsaiahN/tether.git | porcelain lines 10
+    D  library/README.md
+    D  library/agent_atoms.json
+    D  library/atoms.json
+    D  library/domains.json
+    D  library/molecules.json
+    D  library/tag_index.json
+    ?? .gitattributes
+    ?? conform/fast_check.py
+    ?? docs/cohesion/
+    ?? library/
+REPO S6/draft | branch wip/store-facade-r3 | HEAD f73ceef | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/wt_before | branch HEAD | HEAD 82be617 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/wt_c | branch fixset | HEAD cb2b861 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/wt_ivv | branch tests-move | HEAD 665754f | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/arc-solver-agent | branch arc-solver-agent | HEAD a04eb7b | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/ctl_11b/general-agent | branch general-agent | HEAD 11beb28 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/ctl_19c/general-agent | branch general-agent | HEAD 19c861a | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/ctl_81b/general-agent | branch general-agent | HEAD 81b3f55 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/ctl_b17/general-agent | branch general-agent | HEAD b17cb2d | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r10/arc-solver-agent | branch arc-solver-agent | HEAD 2337226 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r11/arc-solver-agent | branch arc-solver-agent | HEAD f11da35 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r12/arc-solver-agent | branch arc-solver-agent | HEAD ce83f22 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r13/arc-solver-agent | branch arc-solver-agent | HEAD de78104 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r14/arc-solver-agent | branch arc-solver-agent | HEAD de78104 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r15/arc-solver-agent | branch arc-solver-agent | HEAD 64e8e6b | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r16/arc-solver-agent | branch arc-solver-agent | HEAD ebcb1b1 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r17/arc-solver-agent | branch arc-solver-agent | HEAD 2e77f16 | origin C:/TETHER_RUNS/S6_2026-10-19/split/general-agent | porcelain lines 0
+REPO S6/split/fresh_r18/arc-solver-agent | branch arc-solver-agent | HEAD 8dae023 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r19/arc-solver-agent | branch arc-solver-agent | HEAD 9f77f70 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r20/arc-solver-agent | branch arc-solver-agent | HEAD ba01d98 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r21/arc-solver-agent | branch arc-solver-agent | HEAD d5f2c7a | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r22/arc-solver-agent | branch arc-solver-agent | HEAD f5453c3 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r23/arc-solver-agent | branch arc-solver-agent | HEAD 5153347 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r24/arc-solver-agent | branch arc-solver-agent | HEAD 45234ba | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r25/arc-solver-agent | branch arc-solver-agent | HEAD 8412f6f | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r26/arc-solver-agent | branch arc-solver-agent | HEAD 7b9a90f | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r27/arc-solver-agent | branch arc-solver-agent | HEAD 9d23841 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r28/arc-solver-agent | branch arc-solver-agent | HEAD a3ad3ef | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r29/arc-solver-agent | branch arc-solver-agent | HEAD 26a68e0 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+SKIP S6/split/fresh_r30/arc-solver-agent (PLAY24's running tree, r447)
+REPO S6/split/fresh_r4/arc-solver-agent | branch arc-solver-agent | HEAD a04eb7b | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r4/general-agent | branch general-agent | HEAD 0fd6663 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r5/arc-solver-agent | branch arc-solver-agent | HEAD 7e90033 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r6/arc-solver-agent | branch arc-solver-agent | HEAD 13c4db2 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r7/arc-solver-agent | branch arc-solver-agent | HEAD adaeb1f | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r8/arc-solver-agent | branch arc-solver-agent | HEAD eaaf712 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/fresh_r9/arc-solver-agent | branch arc-solver-agent | HEAD adeb139 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/general-agent | branch arc-solver-agent | HEAD 2e77f16 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/merge_d2 | branch arc-solver-agent | HEAD 8abc582 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/merge_p3 | branch arc-solver-agent | HEAD de78104 | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/six_umwelt | branch HEAD | HEAD bbe5c34 | origin C:/TETHER_RUNS/S6_2026-10-19/split/general-agent | porcelain lines 0
+REPO S6/split/suite_base | branch HEAD | HEAD 30be254 | origin C:/TETHER_RUNS/S6_2026-10-19/split/general-agent | porcelain lines 0
+REPO S6/split/suite_m1 | branch HEAD | HEAD d3259bc | origin C:/TETHER_RUNS/S6_2026-10-19/split/general-agent | porcelain lines 0
+REPO S6/split/wip_newborn | branch wip/savededup | HEAD 083587a | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+REPO S6/split/wip_reset | branch wip/reset-adjacent | HEAD 49ca64b | origin https://github.com/IsaiahN/tether.git | porcelain lines 0
+
+Dirty checkouts: 4.
+- GitHub/tether: only " M .claude/settings.json". Excluded, kept, listed in section 5. Never committed.
+- tether-wt-s1r2 and tether-wt-s1reprice: now on wip/draft-s1r2-20261030 and wip/draft-s1reprice-20261030, clean.
+- tether-wt55: now on wip/draft-wt55-20261030, clean.
+
+New worktrees I made for the push, both clean, kept: GitHub/tether-wt-harness1030 (wip/harness-2026-10-30) and GitHub/tether-wt-drafts1030 (wip/draft-scratch-tests-20261030).
+
+55 tether-* directories without .git are not checkouts.
+
+== 4. FILES OUTSIDE THE REPO (AGENT / HARNESS / READER)
+Pushed, by class (MANIFEST.tsv on each branch gives the source path, sha256 and bytes of every file):
+    172 EDIT-TOOL
+     67 HARNESS
+     14 HARNESS-PLAY
+    198 READER
+  AGENT-TEST-DRAFT: 7, on wip/draft-scratch-tests-20261030
+
+How the classes were set:
+- HARNESS-PLAY: checked against PLAY24's play_chain.want and its SPY pin.
+- HARNESS, READER and EDIT-TOOL: by file name only.
+  - EDIT-TOOL means the script wrote an edit into a repository file, a doc or a ledger. Whether each edit landed in a commit was NOT checked file by file.
+
+The PLAY set (sha256[:16]):
+- E4B_SPY/e4b_box.py de890479b92db1ea: PLAY20-24
+- E4B_SPY/e4b_box.credit_on.20261029T213714Z.py: identical
+- E4B_SPY/e4b_box.credit_off.20261030T043350Z.py 3aecb6cebedd7df1: PLAY19's box, credit OFF (r344)
+- E4B_SPY/e4b_run.py ab811e2660cbbba7, e4b_read.py 33b4253fb443063e, break_audit.py ef8f4ca65e024d5a: PLAY19-24
+- E4B_SPY/kind_spy.py 0df3871e1b49935b: PLAY24
+- E4B_SPY/kind_spy.py.0622d0e9 0622d0e95995f3b4: PLAY19-23
+- PF/pf_check.py 9d578a9152bacbdd
+- PLAY24/play_chain.sh f2dfb6fc6d6f44f6, precheck.sh d88a2b1c886d8f9f, play_across.py fc80c1f78544dfbb, spy_sweep.py 70ede177da985471, play_chain.want 00a41055f76675ca
+
+== 5. KEPT ON DISK, NOT PUSHED (sha256, bytes, path)
+4487913dd6f15d08efed28ba0f2f6661f5538571305dfcf43e8126f8cf3e7bd4 1223130 /c/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-Documents-GitHub-tether/b5d0f0d4-c815-4bdb-a3b5-cbfc474103cf/scratchpad/tether_arm12.py
+b3f70595e285c31b05d372a7c1be43ee71f3317164b92d01629adc1f33cc5e74 1000871 /c/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-Documents-GitHub-tether/b5d0f0d4-c815-4bdb-a3b5-cbfc474103cf/scratchpad/t_orig.py
+98afcd6caaa465e08c5ce74cf28cd62ddb7755caab470b7761deb9a2a9533044 1138966 /c/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-Documents-GitHub-tether/b5d0f0d4-c815-4bdb-a3b5-cbfc474103cf/scratchpad/tether_act_full.py
+97b4fbf1946fd7942866eb00914549f273999f2b931fc06ee6bbb903e39ea3b8 1048719 /c/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-Documents-GitHub-tether/b5d0f0d4-c815-4bdb-a3b5-cbfc474103cf/scratchpad/tether_affb69d.py
+2cf377c912b3a7b7b053848780b6a7c44206f7a7731fd728ab1a82dfe5910a34 1052013 /c/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-Documents-GitHub-tether/b5d0f0d4-c815-4bdb-a3b5-cbfc474103cf/scratchpad/tether_b17.py
+ab3d9ddb0f8e2d157a2a14539f053dd16059962adee9038c8c616b3fc39087f9 12755 /c/Users/Admin/AppData/Local/Temp/claude/c--Users-Admin-Documents-GitHub-tether/b5d0f0d4-c815-4bdb-a3b5-cbfc474103cf/scratchpad/e4_stream_eadee1a.py
+d98155b7aa708afb8b6f43480ed619f571bbf9cd6ab683e42cca8b8901b5827f 2830 /c/Users/Admin/Documents/GitHub/tether/.claude/settings.json
+
+Notes on these:
+- tether_arm12.py is af6f0cd's tether.py less 3 lines: arm 2 is dropped from one condition (af6f0cd:18723-18724). It is an AGENT probe copy, superseded.
+- t_orig, tether_act_full, tether_affb69d and tether_b17 are whole-file AGENT snapshots used as probe and backup copies. They were not diffed against commits.
+- e4_stream_eadee1a.py is a copy of the repo's harness/mem_store/e4_stream.py at eadee1a, used for the slice-rule quote.
+- settings.json is the harness permission file, never committed.
+
+== 6. EXCLUDED, AND THE SCAN
+Excluded (data, not code):
+- the lineage C:/TETHER_RUNS/E4_2026-10-18/lineage (memory.db and generations) and every backup of it;
+- every run's stream.jsonl, ledgers, chain.log, switch.tsv, sup/mem.tsv, read.out and logs;
+- PLAY24's directory and fresh_r30, untouched.
+
+Not inventoried file by file, as a SCOPE QUESTION for you:
+- C:/TETHER_RUNS/S6_2026-10-19 holds about 18,390 .py/.sh/.ps1 files outside split/. Almost all are whole tree copies (~318 per run directory: MF3*, SLOT*, L1-L5, rc_*, mf3_*, ...).
+- Also there: the older PLAY13-23 directories' own play_chain.sh and precheck.sh (carried ancestors of PLAY24's), and PF/'s other files (pf_box, pf_run, pf_read, pf_chain*).
+- I pushed the PLAY set PLAY24 runs and every script in my scratchpad. Say if the older run directories' scripts should go up too.
+
+Scan of the ADDED lines of each branch:
+- Patterns: secret|token|memory.db|lineage/|sqlite|TETHER_RUNS, then a secret subset: secret|api key|password|bearer|credential|ARC_API|arcprize|authorization|sk-ant|x-api.
+- Earlier, on the 457 source files: key-shaped strings (uuid, 28+ mixed-case alnum) and emails. The only uuid is this session's own scratchpad path id; the only long base64 decodes to "Reviewer -> Seat -- 2026-10-23 19:13"; no email.
+
+Results per branch:
+- harness: 252 lines hit the patterns.
+  - 193 are TETHER_RUNS paths. The rest are the README's own exclusion text, code that opens a DB given by argv (mode=ro&immutable=1), doc text quoting rulings, and the identifier _atoms_token.
+  - Secret-subset lines, whole: the README's two scan-description lines only.
+- drafts: 0. s1r2: 0. s1reprice: 0.
+- wt55: 94. All are library vocabulary: "EXCHANGE|Token economy", "THAUMATURGICAL|Warding token", a "secret" key, "secretly working to undermine", "aids its bearer".
+
+The --gateway lines, whole (edits/kdel_edit.py, an EDIT-TOOL that deleted Kaggle checks). There is no value, URL or host:
+        (572, 664, "def gateway_one_card_takes_every_worker_process(")]
+old_main = ('    # `--gateway` runs the server-backed wiring check ALONE: ~2 min, past the per-commit seat\'s\n'
+            '    # ruled 180s stage cap, so it is run explicitly rather than on every commit.\n'
+            '    gw = "--gateway" in sys.argv\n').replace("\n", nl)
+assert txt.count(old_main) == 1, "the --gateway comment block moved"
+           '              if (k.startswith("gateway_") if gw else k.startswith("check_"))]\n'
+
+== 7. FATES (r448), one line each
+- e51-harness 66197ae: SUPERSEDED. Its stream is superseded by harness/mem_store/e4_stream.py (entered 9b33fa7, 2026-10-19; last touched 11beb28). The other 45 E4/E5-era tools in harness/e4/ stay as a backup branch. No ruling found in INDEX or ISAIAH_RULINGS.
+- wip/store-5a e4a1805: OUTSTANDING, for your ruling. store_fold.py, harness/x1_replay.py and harness/x2_play.py were never in general-agent, and it also changes lineage.py (+255) and store.py. No ruling found. Its sibling f73ceef (store-facade-r3) IS in general-agent.
+- wip/arrival-gap 89594ae: OUTSTANDING, for your ruling. The part names are already in 0588f3a. 39b5de0's removal of ("end_path","wall_s") is NOT applied: eadee1a conform/identity_mod_rows.py:59 still reads ("end_path", "wall_s"),  # arc_holdout, C1 (A).
+- agency-belief-ruling5 b9b79e1 and b-triage 778d247: PARKED.
+
+== 8. PLAY24
+Round 2 is running at game 11 (tr87). 0 agent_fault, 0 spy errors. Nothing above touched it, fresh_r30 or the lineage.
+The r445/r446 reads follow at round 2's END.
