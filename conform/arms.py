@@ -1,4 +1,6 @@
-"""arms: eighteen capability switches, all default OFF, and nothing computed the sum.
+"""arms: every capability switch the agent reads, each with its default and its row below; the
+seat prints the count and how many are ON (this line said "eighteen, all default OFF" long after
+that stopped being true -- the reviewer 2026-10-30 r452 C), and nothing computed the sum.
 
 **ENVIRONMENT SWITCHES ONLY, AND THE COUNT ABOVE IS THEREFORE NOT THE AGENT'S TOTAL --
 ANNOTATED 2026-09-28.** The detector is `os.environ.get("TETHER_X")`, so a capability switch
@@ -1250,6 +1252,14 @@ ARMS: dict[str, str] = {
                             "aliases nothing; OFF never calls forms(). No number. OFF: the counts "
                             "of every object ever seen stay in the per-step Agency, as before. "
                             "default ON",
+    "TETHER_ASK_ON_BOARD": "11 ASK_ON_BOARD (the reviewer r452 A). In 1b's eligibility loop a "
+                           "gap whose slot is not in this step's `before` is not eligible this "
+                           "step; it stays in the space and is not released, so it can be asked "
+                           "on a later board that holds it. The ask and ask_none rows count them "
+                           "(gaps_off_board). The test is the slot's presence on this board, never "
+                           "an object id. OFF: such a gap can be chosen, and its prediction reads "
+                           "state[slot] in _value_of and raises KeyError (contained in play by "
+                           "fault recovery, at the cost of the life's state). default ON",
     "TETHER_VIEW_HOLD_SAME_CHECK": "7's check (the reviewer r415): each view served from the "
                                    "'same' hold is also computed fresh with lib.view(key, role, "
                                    "o, x) and compared; same_checked / same_mismatch in "
@@ -2282,6 +2292,14 @@ _NO_ENV = type("armflag", (), {"arm": staticmethod(lambda _name, default=False: 
 VALUES = {"TETHER_SEED_FROM": "a REPLAY: the path of a record (a ledger or a lineage generation) "
                               "whose recorded seed and generation the agent reads; never a seed "
                               "value (HOLD_SEED, the reviewer 2026-10-15 15:04)",
+          "TETHER_RUNS_DIR": "a PATH: the runs folder (the run index, its pins and removals, the "
+                             "box folders, E4's folder for the mem_store runners); never on/off "
+                             "(Isaiah 2026-10-30 16:33, the reviewer r454)",
+          "TETHER_HOLDING_DIR": "a PATH: the holding folder beside the runs folder, scanned for "
+                                "box folders; never on/off (Isaiah 2026-10-30 16:33, the reviewer "
+                                "r454)",
+          "TETHER_DECAY_RECORD": "a PATH: test_decay's captured birth record; never on/off (Isaiah "
+                                 "2026-10-30 16:33, the reviewer r454)",
           "TETHER_STEP_BUDGET_N": "a COUNT, MAGIC (an interim constant authored by the seats, Fig "
                                   "10 :48; B1-B5 replaces it post-Kaggle): K-W, the per-step "
                                   "lookup budget tether.STEP_BUDGET "

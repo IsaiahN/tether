@@ -98,7 +98,10 @@ def check_off_identity() -> None:
     assert out.returncode == 0, out.stderr[-3000:]
     n = json.loads(out.stdout.strip().splitlines()[-1])
     assert n.get("served_same", 0) > 0, ("occasion: no 'same' view served on the fake run", n)
-    assert n.get("same_checked", 0) == n["served_same"] and n.get("same_mismatch", 0) == 0, n
+    # 8 (e7a1c8e) serves MEASURE / RELATION o == x views from its own hold and the one check
+    # counts both (tether.py same_checked); as test_view_hold_same_role.py:80 (r452 B1)
+    served = n["served_same"] + n.get("served_same_role", 0)
+    assert n.get("same_checked", 0) == served and n.get("same_mismatch", 0) == 0, n
     print(f"  OFF identity (TETHER_VIEW_HOLD_SAME=0, fake): {len(base)} rows against {BASE}, 0 "
           f"differences; ON with the check: {n}")
 

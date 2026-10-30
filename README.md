@@ -38,7 +38,8 @@ Python 3.13 (`pyproject.toml`: `>=3.13,<3.14`).
     git clone -b arc-solver-agent https://github.com/IsaiahN/tether.git
     cd tether
     python -m venv .venv
-    .venv/Scripts/python.exe -m pip install --no-deps -r requirements.lock   # bin/python off Windows
+    # activate .venv; `python` below is the venv's interpreter on any OS
+    python -m pip install --no-deps -r requirements.lock
 
 Fetch a game once with the `arc_agi` package's own anonymous fetch (every run after that is
 offline), then play it, carrying a lineage folder (created if absent; give the same folder again

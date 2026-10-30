@@ -16,13 +16,18 @@ approval. The row is lossy by design and says what it dropped (Fig 4 :27-31).
     python -B harness/log_index.py retire LIST --approval TEXT --roots ROOT...
                                                     rename each to .dead-<UTC>, logged
 
-Options: --index, --pins, --removals (defaults beside each other in C:/TETHER_RUNS). A ledger is a
+Options: --index, --pins, --removals (defaults beside each other in the runs folder,
+TETHER_RUNS_DIR, which has no default: unset, any command that needs it stops and names it). A
+ledger is a
 *.jsonl whose first row has "step" and "event" (the tombstone's rule, docs/TOMBSTONES). Nothing here
 deletes: the .dead files are removed as a separate, ruled step. The pins' sources are the record:
 docs/*.md, the repo's *.py and tests/*.py less tests/test_log_index.py (its planted S9Z),
 harness/*.py, conform/*.py;
-hand rows (an alias, a whole root) are kept from the pins file, and a copy of the index, the pins
-and the removals is committed under docs/log_index/ after each indexing box (the reviewer 00:03 A).
+hand rows (an alias, a whole root) are kept from the pins file. The index, the pins and the
+removals are run output: kept locally and never committed (Isaiah 2026-10-30 16:33, superseding the
+reviewer's 2026-10-22 00:03 A copy under docs/log_index/). The box folders are scanned under the
+runs folder and under the holding folder beside it (TETHER_HOLDING_DIR, else the runs folder's
+sibling TETHER_HOLDING).
 """
 import argparse
 import hashlib
@@ -32,13 +37,25 @@ import re
 import time
 from pathlib import Path
 
-HOME = Path("C:/TETHER_RUNS")
+
+def home() -> Path:
+    """The runs folder: TETHER_RUNS_DIR, with no machine default (Isaiah 2026-10-30 16:33)."""
+    d = os.environ.get("TETHER_RUNS_DIR")
+    if not d:
+        raise SystemExit("log_index: set TETHER_RUNS_DIR to the runs folder")
+    return Path(d)
+
+
 WINDOW = 25   # the newest ledgers kept full (the reviewer 2026-10-22 00:03 (a): globally, by mtime)
 # a box is cited by its folder's name: the folders directly under a dated run root (BOX_PARENTS'
 # children), and any token of a citation pattern -- an S box, or a worktree (wt_..., tether-wt...;
 # the reviewer 2026-10-22 00:30 (c)) -- which must then resolve to a folder or a hand row (MF6)
 BOX_RE = re.compile(r"\bS[0-9][A-Z]{1,2}\b|\bwt_[A-Za-z0-9_]+|\btether-wt[-A-Za-z0-9]*")
-BOX_PARENTS = ("C:/TETHER_RUNS/*", "C:/TETHER_HOLDING/2026-10-16_step7_runs")
+def box_parents() -> tuple[str, str]:
+    hold = os.environ.get("TETHER_HOLDING_DIR") or str(home().parent / "TETHER_HOLDING")
+    return (home().as_posix() + "/*", Path(hold, "2026-10-16_step7_runs").as_posix())
+
+
 KEPT_SLOTS = ("@run", "@boundary", "@loop")
 DROPPED = "every other row's detail (each kind's count and first/last cycle are in tally)"
 SUMMARISER = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]
@@ -201,7 +218,7 @@ def pinned(p: str, pins) -> str | None:
 
 def box_folders() -> dict[str, list[str]]:
     out: dict[str, list[str]] = {}
-    for pat in BOX_PARENTS:
+    for pat in box_parents():
         base = Path(pat.removesuffix("/*"))
         parents = sorted(d for d in base.iterdir() if d.is_dir()) if pat.endswith("/*") else [base]
         for parent in parents:
@@ -321,9 +338,9 @@ def cmd_retire(a) -> int:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--index", type=Path, default=HOME / "LOG_INDEX.jsonl")
-    ap.add_argument("--pins", type=Path, default=HOME / "LOG_PINS.tsv")
-    ap.add_argument("--removals", type=Path, default=HOME / "LOG_REMOVALS.tsv")
+    ap.add_argument("--index", type=Path)
+    ap.add_argument("--pins", type=Path)
+    ap.add_argument("--removals", type=Path)
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("add")
     s.add_argument("roots", nargs="+")
@@ -342,6 +359,10 @@ def main(argv=None) -> int:
     s.add_argument("--approval", required=True)
     s.add_argument("--roots", nargs="+", required=True)
     a = ap.parse_args(argv)
+    for k, name in (("index", "LOG_INDEX.jsonl"), ("pins", "LOG_PINS.tsv"),
+                    ("removals", "LOG_REMOVALS.tsv")):
+        if getattr(a, k) is None:
+            setattr(a, k, home() / name)
     return {"add": cmd_add, "verify": cmd_verify, "pins": cmd_pins, "window": cmd_window,
             "retire": cmd_retire}[a.cmd](a)
 

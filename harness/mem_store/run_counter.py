@@ -9,7 +9,7 @@ import sys
 
 sys.dont_write_bytecode = True
 repo, lin, OUT, GAME = sys.argv[1:5]
-PY = "C:/Users/Admin/Documents/GitHub/tether/.venv/Scripts/python.exe"
+PY = sys.executable      # the interpreter running this (r456: no machine path)
 HERE = os.path.dirname(os.path.abspath(__file__))
 assert not os.path.exists(os.path.join(OUT, "counter_at_write.jsonl")), "the out dir already holds a reading"
 assert os.path.isdir(lin) and len([f for f in os.listdir(lin) if f.endswith(".json")]) == 54, "54 originals"

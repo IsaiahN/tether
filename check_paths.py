@@ -7,10 +7,11 @@ Every check states what would make it FAIL, because a check that has never faile
 shown you what it does when it fails (I33/I34).
 """
 import inspect
+import os
 import sys
 
 sys.dont_write_bytecode = True
-sys.path.insert(0, r"c:\Users\Admin\Documents\GitHub\tether")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # the repo root (r454)
 
 import retrieval  # noqa: E402
 from tether import Agent as Tether  # noqa: E402
