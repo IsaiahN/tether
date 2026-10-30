@@ -920,6 +920,12 @@ _PROGRESS_SHELF = armflag.arm("TETHER_PROGRESS_SHELF", default=True)
 # it can come back only when its own slot is on the board again, the check that ended it then
 # passing. A goal_hypothesis_reopened row when it does. ON; conform/arms.py
 _UNTESTED_KEEP = armflag.arm("TETHER_UNTESTED_KEEP", default=True)
+# 6 INDIST_ON_CHANGE (the reviewer r400; Fig 3 :27 read the other way round): §12.4's trigger
+# reads its compressed reading, the GROUPING (which owners share a featural vector), every step,
+# but walks the residual sums and writes its "indistinct" row only when that grouping differs from
+# the last one computed -- a member arriving or leaving, the case the trigger exists for. The row
+# carries since. Nothing reads the row; pure cost. ON; conform/arms.py
+_INDIST_ON_CHANGE = armflag.arm("TETHER_INDIST_ON_CHANGE", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -3074,6 +3080,8 @@ class Agent:
         self._hyp: dict | None = None  # GQ2: the goal hypothesis held now
         self._hyp_tried: dict = {}    # GQ2: (template, subject, operand) -> how it ended (level)
         self._untested: dict = {}     # UNTESTED_KEEP: tkey -> (cycle, the check that ended it)
+        self._indist_key = None       # INDIST_ON_CHANGE: the last grouping computed
+        self._indist_at = None        # INDIST_ON_CHANGE: the cycle of the last indistinct row
         self._hyp_n = 0               # GQ2: hypotheses held, for their link keys
         self._hyp_exhausted = None    # GQ2: the delta-table size at which nothing was routable
         self._hyp_known = 0
@@ -10670,7 +10678,7 @@ class Agent:
     def _explains(self, term: Term, slot: str, hist) -> bool:
         return bool(hist) and self._left(term, slot, hist) == 0.0
 
-    def indistinguishable(self) -> list[dict]:
+    def indistinguishable(self) -> list[dict] | None:
         """§12.4's TRIGGER: *two slots with the same attribute vector and different residuals.*
 
         **A corpus SLOT is an object and a code slot is one of its attributes** -- five to one
@@ -10705,6 +10713,10 @@ class Agent:
         # removes the invariant instead of maintaining it, and absence is now an exclusion.
         owners = self._slot_owners(self.env)
         if not owners:
+            if _INDIST_ON_CHANGE:
+                if self._indist_key == frozenset():
+                    return None                  # the grouping is unchanged: no walk, no row
+                self._indist_key = frozenset()
             return []
         state = self.env.observe()
         groups: dict[tuple, list[str]] = {}
@@ -10725,6 +10737,11 @@ class Agent:
                 continue
             groups.setdefault(tuple(sorted((self.slot_types.get(x), state[x])
                                            for x in feat)), []).append(owner)
+        if _INDIST_ON_CHANGE:
+            key = frozenset((vec, tuple(sorted(m))) for vec, m in groups.items() if len(m) >= 2)
+            if key == self._indist_key:
+                return None                      # the grouping is unchanged: no walk, no row
+            self._indist_key = key
         out = []
         for vec, members in groups.items():
             cap.head()
@@ -19096,11 +19113,15 @@ class Agent:
         # things the world distinguishes -- so it is recorded, not acted on here.
         indist = self.indistinguishable()
         with self._step_scope("PERCEIVE"):
-            self.led.record(self.cycle - 1, "PERCEIVE", "@vector", "indistinct",
-                            pairs=len(indist), top=indist[:3],
-                            remedy=self.resolve() if indist else None,
-                            reads=("same featural vector, different |R|. Ranked by how many "
-                                   "objects shared the vector, which the remedy cannot move"))
+            if indist is not None:              # INDIST_ON_CHANGE: None = the grouping unchanged
+                self.led.record(self.cycle - 1, "PERCEIVE", "@vector", "indistinct",
+                                pairs=len(indist), top=indist[:3],
+                                remedy=self.resolve() if indist else None,
+                                **({"since": self._indist_at} if _INDIST_ON_CHANGE else {}),
+                                reads=("same featural vector, different |R|. Ranked by how many "
+                                       "objects shared the vector, which the remedy cannot move"))
+                if _INDIST_ON_CHANGE:
+                    self._indist_at = self.cycle - 1
             if _7I_ROUTE and self._contra_q:
                 # 3a: a ground contradiction suspects the READING first (core concepts are innate
                 # and settled, Isaiah 10-14 07:08), so it goes to perception's remedy by name

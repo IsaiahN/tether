@@ -1197,6 +1197,16 @@ ARMS: dict[str, str] = {
                       "untouched; the innate core is untouched. tether writes a carry_w row "
                       "(kind, held, failed, w) per change. No number. OFF: carried standing "
                       "taken whole, as before. default ON",
+    "TETHER_INDIST_ON_CHANGE": "6 INDIST_ON_CHANGE (the reviewer r400; the r396 profile: 21% of "
+                               "ft09's and 32% of lp85's step time, cold). indistinguishable() "
+                               "still builds the grouping every step (which owners share a "
+                               "featural vector); when the set of groups with two or more "
+                               "members (vector, members) equals the last one computed it "
+                               "returns None: no _left walk over the slots' histories and no "
+                               "indistinct row. On a change it computes as before and the row "
+                               "carries since (the last row's cycle). The row has no reader; "
+                               "3a's contradiction_routed is untouched. No number. OFF: every "
+                               "step, as before. default ON",
     "TETHER_NAMED_REMAINDER": "1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 "
                               ":134-139, Fig 9 :4-5, Fig 8 :39-42). When 1c's none_survive fires "
                               "(any cause), a MINT 'remainder' row on the slot: (a) among the LAST "
