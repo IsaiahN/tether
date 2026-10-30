@@ -906,6 +906,13 @@ _CONTACT_FIRST = armflag.arm("TETHER_CONTACT_FIRST", default=True)
 # prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
 # deferral, with a route_named row, and walked at the next step. ON; conform/arms.py
 _ROUTE_NAMED = armflag.arm("TETHER_ROUTE_NAMED", default=True)
+# 3 PROGRESS_SHELF (the reviewer r392; the plan's decision 2): a held goal condition counts the
+# progress rows whose closer names one of its slots; a level that ends without a clear SHELVES the
+# conditions that made progress ({"won": 0, "lost": 0, "progress": n}) through the same M7
+# template carry as a clear, instead of dropping them. The shelf ranks won first, then progress,
+# lexicographically, and 4's first phase reads a progress entry as it reads a won one.
+# ON; conform/arms.py
+_PROGRESS_SHELF = armflag.arm("TETHER_PROGRESS_SHELF", default=True)
 # A2, THE STEP BUDGET INSIDE THE WALK (the reviewer 11:33): _index_reach stops at an entry
 # boundary once the step's budget is spent -- K1's guard on every key -- so the cut is ranked (the
 # lit list is ordered) and the slot is owed, never a verdict. ON; conform/arms.py
@@ -3056,6 +3063,7 @@ class Agent:
         self._goal_n = 0              # GQ1: goal atoms are numbered for the agent's life
         self._goal_meta: dict = {}    # GQ1: key -> met_state, templates, affects (for the shelf)
         self._goal_shelf: dict = {}   # GQ1: shelved goal conditions, key -> provenance + record
+        self._goal_prog: Counter = Counter()   # PROGRESS_SHELF: held key -> progress rows on it
         self._hyp: dict | None = None  # GQ2: the goal hypothesis held now
         self._hyp_tried: dict = {}    # GQ2: (template, subject, operand) -> how it ended (level)
         self._hyp_n = 0               # GQ2: hypotheses held, for their link keys
@@ -6738,6 +6746,15 @@ class Agent:
         at a retarget or the run's end -- and is never re-priced against the next level's
         empty history, which would unhold it with a false reason. No verdict, not counted as
         unlinked; the wants are cleared by retarget's own rule. Carry is M7."""
+        if _PROGRESS_SHELF:
+            if _LEVEL_GOAL and how not in (WIN, ADVANCE):     # a clear shelved them as won
+                for key in sorted(self._goal_conds):
+                    if self._goal_prog[key]:
+                        self._shelve_one(key, how, {"won": 0, "lost": 0,
+                                                    "progress": self._goal_prog[key]},
+                                         "a goal that made progress without a clear, kept as a "
+                                         "ranked hypothesis below the won (PROGRESS_SHELF)")
+            self._goal_prog = Counter()
         for key in sorted(self._goal_conds):
             self.led.record(self.cycle, "IMPORT", "@completion", "goal_closed", key=key,
                             condition=self._goal_text.get(key), how=how, verdict=None,
@@ -6745,35 +6762,47 @@ class Agent:
         self._goal_conds, self._goal_text, self._goal_links = {}, {}, {}
         self._want_scope = {}
 
+    def _cond_slots(self, key: str) -> set:
+        """PROGRESS_SHELF: the slots a held condition is about -- its goal links and the slots
+        its own text names."""
+        text = self._goal_text.get(key) or ""
+        return ({sl for sl, _t in self._goal_links.get(key, ())}
+                | {w for w in re.findall(r"[^\s()]+", text) if w in self.slots})
+
     def _shelve_goals(self, how: str) -> None:
         """GQ1 (the reviewer 2026-10-20 14:27): a goal condition learned at a clear outlives its
         level as a RANKED HYPOTHESIS, never wiped: shelved with its provenance (game, level), a
         record (one clear won with it), and carried as its METHOD (the template, never the
         instance text) through M7-INV, a pair part by part. The level's links still close."""
         for key in sorted(self._goal_conds):
-            meta = self._goal_meta.get(key, {})
-            rec = {"name": key, "text": self._goal_text.get(key), "game": self.gamma.game,
-                   "level": meta.get("level", self.level), "born": self.cycle, "how": how,
-                   "met_state": meta.get("met_state"), "templates": meta.get("templates", []),
-                   "record": {"won": 1, "lost": 0}}
-            self._goal_shelf[key] = rec
-            carried = []
-            if _M7_INV:
-                for i, (tpl, part) in enumerate(zip(meta.get("templates", ()),
-                                                    meta.get("parts", ()), strict=False)):
-                    if not tpl:
-                        continue
-                    name = key if len(meta.get("parts", ())) == 1 else f"{key}_{i + 1}"
-                    self._inv_carry.append({
-                        "name": name, "template": tpl, "affects": meta.get("affects", []),
-                        "reading": "completed", "term": name, "then": [],
-                        "game": self.gamma.game, "born": self.cycle, "kind": "goal",
-                        "level": rec["level"], "met_state": rec["met_state"], "part": part})
-                    carried.append(name)
-            self.led.record(self.cycle, "IMPORT", "@completion", "goal_shelved", key=key,
-                            condition=rec["text"], level=rec["level"], how=how,
-                            met_state=rec["met_state"], carried=carried,
-                            reads="a goal learned at a clear, kept as a ranked hypothesis (GQ1)")
+            self._shelve_one(key, how, {"won": 1, "lost": 0},
+                             "a goal learned at a clear, kept as a ranked hypothesis (GQ1)")
+
+    def _shelve_one(self, key: str, how: str, record: dict, reads: str) -> None:
+        """GQ1's shelving of one held condition with `record`, carried by its template (M7)."""
+        meta = self._goal_meta.get(key, {})
+        rec = {"name": key, "text": self._goal_text.get(key), "game": self.gamma.game,
+               "level": meta.get("level", self.level), "born": self.cycle, "how": how,
+               "met_state": meta.get("met_state"), "templates": meta.get("templates", []),
+               "record": record}
+        self._goal_shelf[key] = rec
+        carried = []
+        if _M7_INV:
+            for i, (tpl, part) in enumerate(zip(meta.get("templates", ()),
+                                                meta.get("parts", ()), strict=False)):
+                if not tpl:
+                    continue
+                name = key if len(meta.get("parts", ())) == 1 else f"{key}_{i + 1}"
+                self._inv_carry.append({
+                    "name": name, "template": tpl, "affects": meta.get("affects", []),
+                    "reading": "completed", "term": name, "then": [],
+                    "game": self.gamma.game, "born": self.cycle, "kind": "goal",
+                    "level": rec["level"], "met_state": rec["met_state"], "part": part})
+                carried.append(name)
+        self.led.record(self.cycle, "IMPORT", "@completion", "goal_shelved", key=key,
+                        condition=rec["text"], level=rec["level"], how=how,
+                        met_state=rec["met_state"], carried=carried, reads=reads,
+                        **({"record": record} if record.get("progress") else {}))
 
     def _goal_hypothesis(self, before: dict) -> None:
         """GQ2 (the reviewer 2026-10-20 14:27; Fig 5 :62-66, Fig 11 :43-48, Fig 9 :40-44): the
@@ -6978,7 +7007,9 @@ class Agent:
         # every won group ranks above every other; compile them first and the rest only if they
         # yield no pick -- the same pick, by construction. OFF, or nothing won: one phase, as before
         won_src = ({t: k for t, k in src.items()
-                    if self._goal_shelf.get(k, {}).get("record", {}).get("won", 0)}
+                    if self._goal_shelf.get(k, {}).get("record", {}).get("won", 0)
+                    or (_PROGRESS_SHELF
+                        and self._goal_shelf.get(k, {}).get("record", {}).get("progress", 0))}
                    if _PLAN_NARROW else {})
         phases = ([won_src, {t: k for t, k in src.items() if t not in won_src}]
                   if won_src and len(won_src) < len(src) else [src])
@@ -7039,7 +7070,11 @@ class Agent:
                     continue
                 won = self._goal_shelf.get(s, {}).get("record", {}).get("won", 0) if s else 0
                 bits = term_bits(self.gamma.length(c.term), self.gamma.alphabet)
-                out.append(((0 if won else 1, round(bits, 6)), text, c, tk, s))
+                rank = 0 if won else 1
+                if _PROGRESS_SHELF and not won:     # won, then progress, then the rest: ordinal
+                    rec = self._goal_shelf.get(s, {}).get("record", {}) if s else {}
+                    rank = 1 if rec.get("progress", 0) else 2
+                out.append(((rank, round(bits, 6)), text, c, tk, s))
             return out
 
         cands = _admit(phases[0])
@@ -12837,6 +12872,10 @@ class Agent:
                             # here is the honest and current state: it has never once chosen.
                             selected_want=self._goal_choice(),
                             wants_held=len(self.wants))
+            if _PROGRESS_SHELF:
+                for key in sorted(self._goal_conds):
+                    if self._cond_slots(key) & set(better):
+                        self._goal_prog[key] += 1
 
     def _note_goal_choice(self, action: Any, before: dict, after: dict) -> None:
         """THE SELECTOR, EVERY CYCLE (the reviewer 2026-10-11 20:58 CDT). `progress` names the

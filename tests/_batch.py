@@ -18,7 +18,8 @@ ARMS = (
     ("TETHER_NAMED_REMAINDER", "a228a09"),        # 1e
     ("TETHER_PLAN_NARROW", "e4c3be3"),       # 4
     ("TETHER_CONTACT_FIRST", "82308d8"),     # wip/finish 1 (r392, r393)
-    ("TETHER_ROUTE_NAMED", "wip"),           # wip/finish 2
+    ("TETHER_ROUTE_NAMED", "af6f0cd"),       # wip/finish 2
+    ("TETHER_PROGRESS_SHELF", "wip"),        # wip/finish 3
 )
 # A batch arm whose TREE DEFAULT was flipped after later arms landed (r359): (the arm, the last
 # batch arm before the flip, its value before, the flip's commit). An arm under test that landed

@@ -1166,6 +1166,17 @@ ARMS: dict[str, str] = {
                           "slot is owed through C1's queue (_owed_q, owed_import) with a "
                           "route_named row, and asked at the next step. No number. OFF: the "
                           "lookup as before. default ON",
+    "TETHER_PROGRESS_SHELF": "3 PROGRESS_SHELF (the reviewer r392). At _note_progress's progress "
+                             "row, each held goal condition whose slots (its _goal_links and the "
+                             "slots its own text names) meet closer counts one progress. At "
+                             "_close_goals with how not WIN or ADVANCE (no clear, so not already "
+                             "shelved won), a condition with progress >= 1 is SHELVED through "
+                             "GQ1's own shelving (_shelve_one, the M7 template carry) with record "
+                             "{won 0, lost 0, progress n}; its goal_shelved row carries the "
+                             "record. The proposal ranks won, then progress, then the rest "
+                             "(ordinal classes; bits second, as before) and PLAN_NARROW's first "
+                             "phase takes progress entries with the won. No number. OFF: close "
+                             "drops them, as before. default ON",
     "TETHER_NAMED_REMAINDER": "1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 "
                               ":134-139, Fig 9 :4-5, Fig 8 :39-42). When 1c's none_survive fires "
                               "(any cause), a MINT 'remainder' row on the slot: (a) among the LAST "
