@@ -1250,6 +1250,14 @@ ARMS: dict[str, str] = {
                             "aliases nothing; OFF never calls forms(). No number. OFF: the counts "
                             "of every object ever seen stay in the per-step Agency, as before. "
                             "default ON",
+    "TETHER_ASK_ON_BOARD": "11 ASK_ON_BOARD (the reviewer r452 A). In 1b's eligibility loop a "
+                           "gap whose slot is not in this step's `before` is not eligible this "
+                           "step; it stays in the space and is not released, so it can be asked "
+                           "on a later board that holds it. The ask and ask_none rows count them "
+                           "(gaps_off_board). The test is the slot's presence on this board, never "
+                           "an object id. OFF: such a gap can be chosen, and its prediction reads "
+                           "state[slot] in _value_of and raises KeyError (contained in play by "
+                           "fault recovery, at the cost of the life's state). default ON",
     "TETHER_VIEW_HOLD_SAME_CHECK": "7's check (the reviewer r415): each view served from the "
                                    "'same' hold is also computed fresh with lib.view(key, role, "
                                    "o, x) and compared; same_checked / same_mismatch in "

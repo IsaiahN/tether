@@ -900,6 +900,11 @@ _ASK = armflag.arm("TETHER_ASK", default=True)
 # bound's one row test, before 1b counts it a survivor; eligibility is lazy in rank order. OFF
 # restores the stale-S1 asks -- a measuring setting, not a safe one. ON; conform/arms.py
 _S1_REPRICE = armflag.arm("TETHER_S1_REPRICE", default=True)
+# 11, 1b ASKS ONLY ON THIS BOARD (the reviewer 2026-10-30 r452 A): a gap whose slot is not in this
+# step's `before` is not eligible this step -- it stays in the space, never released -- since its
+# prediction reads state[slot] (_value_of). The ask rows count them, gaps_off_board. OFF: such a
+# gap can be chosen and raise KeyError. ON; conform/arms.py
+_ASK_ON_BOARD = armflag.arm("TETHER_ASK_ON_BOARD", default=True)
 # 1c STOP_RULES (the reviewer 2026-10-29 r325, r327, r337; Fig 5 :10-14, Fig 9 :42): read from 1a's
 # space after each step -- HELD (one survivor with a risky settle: the gap leaves 1b), MECHANISM
 # BROKEN (the survivors ran out: the slot owes), SPLIT REFUSED (1b abstained: the gap's owner joins
@@ -11592,15 +11597,20 @@ class Agent:
         press whose largest block is smallest, or abstains. With its "ask" row."""
         t0 = time.perf_counter()
         elig = {}                    # the stored (stale) S1: an upper set, charges only add
+        off_board = 0
         for s in sorted(self._space):
             if _STOP_RULES and self._stop.get(s) == "held":
                 continue                         # 1c (i): asking has stopped on this gap
+            if _ASK_ON_BOARD and s not in before:
+                off_board += 1                   # 11: not on this board; kept in the space
+                continue
             got = self._space_bounds(s, "stale")
             n = len(self._s1_of(*got)) if got is not None else 0
             if n >= 2:
                 elig[s] = n
         if not elig:
             return None, None
+        ob = {"gaps_off_board": off_board} if _ASK_ON_BOARD else {}
         # r347 (a): LAZY, in rank order -- the top gap re-priced; under two survivors it is
         # skipped with its re-priced count, and the next is re-priced
         order, skipped, slot, sv, rp = list(elig), [], None, [], [0, 0, 0.0, 0]
@@ -11616,7 +11626,7 @@ class Agent:
             skipped.append([pick, elig[pick], len(sv)])
             order.remove(pick)
         if slot is None:
-            self.led.record(self.cycle, "PLAN", "@ask", "ask_none", gaps_eligible=len(elig),
+            self.led.record(self.cycle, "PLAN", "@ask", "ask_none", gaps_eligible=len(elig), **ob,
                             skipped=skipped, repriced_cells=rp[0], repriced_rows=rp[1],
                             reprice_s=round(rp[2], 4), reprice_hits=rp[3],
                             reads="1b: every stored-eligible gap re-priced under two survivors "
@@ -11637,8 +11647,8 @@ class Agent:
         rep = ({"stored_survivors": elig[slot], "skipped": skipped, "repriced_cells": rp[0],
                 "repriced_rows": rp[1], "reprice_s": round(rp[2], 4), "reprice_hits": rp[3]}
                if _S1_REPRICE else {})
-        self.led.record(self.cycle, "PLAN", slot, "ask", gaps_eligible=len(elig), gap_asked=slot,
-                        survivors=len(sv), **rep, vectors=len(set(vec.values())),
+        self.led.record(self.cycle, "PLAN", slot, "ask", gaps_eligible=len(elig), **ob,
+                        gap_asked=slot, survivors=len(sv), **rep, vectors=len(set(vec.values())),
                         chosen=r.action if r is not None else None,
                         partition=split[r.action] if r is not None else None,
                         largest=split[r.action][0] if r is not None else None,
