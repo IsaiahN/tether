@@ -1,0 +1,14 @@
+import sys
+p = sys.argv[1]
+s = open(p, encoding="utf-8", newline="").read()
+nl = "\r\n" if "\r\n" in s else "\n"
+anchor = "- **E4a DECISIONS ON A POSSIBLY DEGENERATE GROUP RESIDUAL"
+assert s.count(anchor) == 1 and "S0 BUILT, THE PER-CANDIDATE DRAW" not in s
+new = ("- **S0 BUILT, THE PER-CANDIDATE DRAW (2026-10-20; the reviewer 18:18): TETHER_HYP_DRAW (default ON), the goal-hypothesis site only.** "
+       "THE READ (18:15): across rank groups _hyp_propose was already lazy (it stops at the first group with a routable member); the cost is INSIDE one group -- most conditions of one shape have one term length, so one tie group holds nearly every candidate (sp80: open 1072, checked 1072, routable 63, pick rank 59; vc33: open 1872, checked 1872) -- and the A1 draw, frontier_pick's hash of the WHOLE routable pool, cannot be had lazily (the pick depends on which members are routable). "
+       "THE BUILD: frontier.draw_order(names, key, seed) -- one blake2b(seed : key : name) per name, lowest first; the first that qualifies is a uniform draw over the qualifying pool (the same distribution as frontier_pick's, still the recorded draw, never a name, a text or a position). frontier_pick itself is unchanged and every other A1 site still uses it. Under the arm the proposal orders each rank group by draw_order (key cycle:goal_hypothesis:None, the agent's draw seed), route-checks in that order and stops at the first routable, which is held as the pick (a choice row: site goal_hypothesis, by draw_each, options, checked); the proposal row adds wall_s and group_n. OFF: every tied member checked, the pool-hash draw (6fe24e2). "
+       "MUST-FAILS: test_hyp_draw (1a) on test_goal_hyp's world, before each of 5 proposals an oracle copy ran the EAGER path and recorded the routable members: every lazy pick was their lowest-hash member, checks lazy 36 / 5 / 10 / 21 / 4 against eager 180 / 180 / 179 / 178 / 177; (1b) a planted tie group of 50 of the board's own conditions, every tenth routable: ON picked the lowest-hash routable at check 2, OFF checked all 50. (2) OFF bit for bit: a 25-step pinned gridworld_arc_s1 run with TETHER_HYP_DRAW=0 against 6fe24e2 (the main checkout), 42,883 rows each, every row identical but the arms row (code hashes, the off list). (3) the other A1 sites: with TETHER_GOAL_HYPOTHESES=0 (no hypothesis site), ON vs OFF 16,046 rows each, identical but the arms row (the on / off lists); with hypotheses on, the picks first differ at c2 (as ruled: the draw lands on another instance) and the 3 other-site choice rows before it are identical -- after a different pick the boards differ, so later rows are not comparable. "
+       "The arms seat (conform/arms.py) reads rc 1 at HEAD and here alike, from TETHER_CONSOLIDATE_CEILING read raw (tether.py:856, test_consolidate.py:138), not from this arm (A undeclared ok)." + nl)
+s = s.replace(anchor, new + anchor)
+open(p, "w", encoding="utf-8", newline="").write(s)
+print("ok")

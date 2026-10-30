@@ -1,0 +1,3 @@
+# byte-identical copies of the seat's harness, reader and edit-tool scripts (r447): kept as they ran, never linted or fixed
+[lint]
+select = []

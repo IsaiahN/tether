@@ -1,0 +1,103 @@
+import sys
+sys.dont_write_bytecode = True
+p = "c:/Users/Admin/Documents/GitHub/tether/tether.py"
+s = open(p, encoding="utf-8", newline="").read()
+nl = "\r\n" if "\r\n" in s else "\n"
+pairs = [
+("        self._had_surv: set = set()     # 1c: slots whose current space has had a survivor\n",
+ "        self._last_surv: dict = {}      # 1c: slot -> ({survivor: bound}, bar) at its last survivors\n"),
+("            self._stop, self._had_surv, self._risky = {}, set(), {}\n",
+ "            self._stop, self._last_surv, self._risky = {}, {}, {}\n"),
+("        got = self._space_bounds(slot)\n"
+ "        if got is None:\n"
+ "            return None\n"
+ "        bounds, bar = got\n"
+ "        out = {}\n"
+ "        for t, bound in bounds:\n"
+ "            if bound < bar:\n"
+ "                out[t] = bound - bar\n"
+ "        return sorted(out, key=lambda t: (out[t], t.name))\n",
+ "        got = self._space_bounds(slot)\n"
+ "        return None if got is None else self._s1_of(*got)\n\n"
+ "    @staticmethod\n"
+ "    def _s1_of(bounds: list, bar: float) -> list:\n"
+ "        \"\"\"S1 from a space's bounds: each term with a stored bound under the bar, by deficit.\"\"\"\n"
+ "        out = {}\n"
+ "        for t, bound in bounds:\n"
+ "            if bound < bar:\n"
+ "                out[t] = bound - bar\n"
+ "        return sorted(out, key=lambda t: (out[t], t.name))\n\n"
+ "    @staticmethod\n"
+ "    def _none_cause(prev: dict, low: dict) -> str:\n"
+ "        \"\"\"1c (ii), r339: 'bound' when a last survivor's stored bound ROSE -- the ground charged\n"
+ "        it, evidence (Fig 5 :14) -- else 'bar': only the cut moved (Fig 9 :40-41).\"\"\"\n"
+ "        return (\"bound\" if any(low.get(n) is not None and low[n] > b for n, b in prev.items())\n"
+ "                else \"bar\")\n"),
+("        self._had_surv &= set(self._space)\n"
+ "        for s in sorted(self._space):\n"
+ "            sv = self._space_survivors(s)\n"
+ "            if sv is None:\n"
+ "                continue                          # the record cannot judge this frame\n"
+ "            was = self._stop.get(s)\n"
+ "            rule = None\n"
+ "            if sv:\n"
+ "                self._had_surv.add(s)\n"
+ "                if len(sv) == 1 and self._risky.get((s, sv[0].name), self) == self._tally[s][0]:\n"
+ "                    rule = \"held\"                 # a risky settle under the current key\n"
+ "            elif s in self._had_surv:\n"
+ "                rule = \"none_survive\"             # owes; the import route sorts the kind\n"
+ "            if rule == was:\n"
+ "                continue\n"
+ "            if rule is None:\n"
+ "                self._stop.pop(s, None)\n"
+ "                rule_row = \"resumed\"\n"
+ "            else:\n"
+ "                self._stop[s] = rule_row = rule\n"
+ "            if rule == \"none_survive\":\n"
+ "                self.owed_import.add(s)\n"
+ "            self.led.record(self.cycle, \"MINT\", s, \"stop_rule\", rule=rule_row, was=was,\n"
+ "                            survivors=len(sv), term=sv[0].name if len(sv) == 1 else None,\n",
+ "        self._last_surv = {k: v for k, v in self._last_surv.items() if k in self._space}\n"
+ "        for s in sorted(self._space):\n"
+ "            got = self._space_bounds(s)\n"
+ "            if got is None:\n"
+ "                continue                          # the record cannot judge this frame\n"
+ "            bounds, bar = got\n"
+ "            low: dict = {}\n"
+ "            for t, b in bounds:\n"
+ "                low[t.name] = min(b, low.get(t.name, b))\n"
+ "            sv = self._s1_of(bounds, bar)\n"
+ "            was, prev = self._stop.get(s), self._last_surv.get(s)\n"
+ "            rule, extra = None, {}\n"
+ "            if sv:\n"
+ "                self._last_surv[s] = ({t.name: low[t.name] for t in sv}, bar)\n"
+ "                if len(sv) == 1 and self._risky.get((s, sv[0].name), self) == self._tally[s][0]:\n"
+ "                    rule = \"held\"                 # a risky settle under the current key\n"
+ "            elif prev is not None:\n"
+ "                rule = \"none_survive\"             # the import route sorts the kind\n"
+ "            if rule == was:\n"
+ "                continue\n"
+ "            if rule is None:\n"
+ "                self._stop.pop(s, None)\n"
+ "                rule_row = \"resumed\"\n"
+ "            else:\n"
+ "                self._stop[s] = rule_row = rule\n"
+ "            if rule == \"none_survive\":\n"
+ "                cause = self._none_cause(prev[0], low)\n"
+ "                if cause == \"bound\":\n"
+ "                    self.owed_import.add(s)       # evidence: the ground charged the survivors\n"
+ "                extra = {\"cause\": cause, \"owes\": cause == \"bound\",\n"
+ "                         \"bound_before\": {n: round(b, 4) for n, b in sorted(prev[0].items())},\n"
+ "                         \"bound_after\": {n: None if low.get(n) is None else round(low[n], 4)\n"
+ "                                         for n in sorted(prev[0])},\n"
+ "                         \"bar_before\": round(prev[1], 4), \"bar_after\": round(bar, 4)}\n"
+ "            self.led.record(self.cycle, \"MINT\", s, \"stop_rule\", rule=rule_row, was=was,\n"
+ "                            survivors=len(sv), term=sv[0].name if len(sv) == 1 else None,\n"
+ "                            **extra,\n"),
+]
+for a, b in pairs:
+    a, b = a.replace("\n", nl), b.replace("\n", nl)
+    assert s.count(a) == 1, (a[:80], s.count(a))
+    s = s.replace(a, b)
+open(p, "w", encoding="utf-8", newline="").write(s)
+print("ok")

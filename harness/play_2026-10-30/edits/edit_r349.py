@@ -1,0 +1,96 @@
+"""r349 (a): ONE row test -- _cannot_pay calls _row_wrong; and _repriced initialised. argv: worktree."""
+import sys
+
+sys.dont_write_bytecode = True
+p = sys.argv[1].rstrip("/") + "/tether.py"
+s = open(p, encoding="utf-8", newline="").read()
+nl = "\r\n" if "\r\n" in s else "\n"
+pairs = [
+ ("    def _row_wrong(self, term: Term, slot: str, row: tuple) -> bool:\n"
+  "        \"\"\"_cannot_pay's row test on one row: the term is charged there (inapplicable, out of its\n"
+  "        step range, unreadable, unresolved or wrong). Held to _cannot_pay's own count by\n"
+  "        test_ask's check_s1_reprice_exact.\"\"\"\n"
+  "        state, action, actual, intent, landed = row\n"
+  "        if not self._applies(term, state) or self._out_of_step_range(term, slot, state, actual):\n"
+  "            return True\n"
+  "        ops = self._ops(term, state)\n"
+  "        if ops is None:\n"
+  "            return True\n"
+  "        got = self._value_of(term, slot, state,\n"
+  "                             self._eval_ctx(slot, state, action=action, operands=ops,\n"
+  "                                            intent=intent, landed=landed,\n"
+  "                                            guard_ref=term.guard_ref))\n"
+  "        return got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]\n",
+  "    def _row_wrong(self, term: Term, slot: str, row: tuple) -> int:\n"
+  "        \"\"\"THE bound's row test, one definition for _cannot_pay and 1b's re-price on read (r349):\n"
+  "        0 the term is right on the row; 1 charged, refuting nothing (inapplicable, an unreadable\n"
+  "        operand, unresolved); 2 charged and REFUTED there (out of its step range, or wrong).\"\"\"\n"
+  "        state, action, actual, intent, landed = row\n"
+  "        # `_ops` was called TWICE per row here -- once to test for None and again to\n"
+  "        # build the Ctx -- while `_left` next door hoists it. Pure function of\n"
+  "        # (term, state), so hoisting is exact; it halves the hottest callee in the\n"
+  "        # profile. Nest rather than chain, or the hoist just moves the double call onto\n"
+  "        # `_applies`.\n"
+  "        if not self._applies(term, state):\n"
+  "            return 1                                  # inapplicable is unexplained\n"
+  "        if self._out_of_step_range(term, slot, state, actual):\n"
+  "            return 2                                  # P6: no reachable value equals `actual`\n"
+  "        ops = self._ops(term, state)\n"
+  "        if ops is None:\n"
+  "            return 1                                  # unreadable operand is unexplained\n"
+  "        got = self._value_of(term, slot, state,\n"
+  "                             self._eval_ctx(slot, state, action=action, operands=ops,\n"
+  "                                            intent=intent, landed=landed,\n"
+  "                                            guard_ref=term.guard_ref))\n"
+  "        if got is NOT_RESOLVED:\n"
+  "            return 1\n"
+  "        return 2 if got % self.alphabet[slot] != actual % self.alphabet[slot] else 0\n"),
+ ("        for i in range(start, len(robs)):\n"
+  "            cap.head()\n"
+  "            state, action, actual, intent, landed = robs[i]\n"
+  "            # `_ops` was called TWICE per row here -- once to test for None and again to\n"
+  "            # build the Ctx -- while `_left` next door hoists it. Pure function of\n"
+  "            # (term, state), so hoisting is exact; it halves the hottest callee in the\n"
+  "            # profile. Nest rather than chain the `elif`, or the hoist just moves the\n"
+  "            # double call onto `_applies`.\n"
+  "            if not self._applies(term, state):\n"
+  "                wrong += 1                            # inapplicable is unexplained\n"
+  "            elif self._out_of_step_range(term, slot, state, actual):\n"
+  "                wrong += 1                            # P6: no reachable value equals `actual`\n"
+  "                if ref is None:\n"
+  "                    ref = i\n"
+  "            else:\n"
+  "                ops = self._ops(term, state)\n"
+  "                if ops is None:\n"
+  "                    wrong += 1                        # unreadable operand is unexplained\n"
+  "                else:\n"
+  "                    got = self._value_of(term, slot, state,\n"
+  "                                         self._eval_ctx(slot, state, action=action,\n"
+  "                                                        operands=ops, intent=intent,\n"
+  "                                                        landed=landed,\n"
+  "                                                        guard_ref=term.guard_ref))\n"
+  "                    if got is NOT_RESOLVED:\n"
+  "                        wrong += 1\n"
+  "                    elif got % self.alphabet[slot] != actual % self.alphabet[slot]:\n"
+  "                        wrong += 1\n"
+  "                        if ref is None:\n"
+  "                            ref = i\n"
+  "            if cost + unit * wrong >= base:\n",
+  "        for i in range(start, len(robs)):\n"
+  "            cap.head()\n"
+  "            w = self._row_wrong(term, slot, robs[i])\n"
+  "            if w:\n"
+  "                wrong += 1\n"
+  "                if w == 2 and ref is None:\n"
+  "                    ref = i\n"
+  "            if cost + unit * wrong >= base:\n"),
+ ("        self._ask_abstained: tuple | None = None   # 1b: (slot, survivors) when no press split\n",
+  "        self._ask_abstained: tuple | None = None   # 1b: (slot, survivors) when no press split\n"
+  "        self._repriced: tuple = (0, 0, 0.0)  # 1b: the last S1 read's (cells, rows, secs) re-priced\n"),
+]
+for a, b in pairs:
+    a, b = a.replace("\n", nl), b.replace("\n", nl)
+    assert s.count(a) == 1, (a[:70], s.count(a))
+    s = s.replace(a, b)
+open(p, "w", encoding="utf-8", newline="").write(s)
+print("ok")
