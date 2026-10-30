@@ -1,0 +1,789 @@
+{
+ "meta": {
+  "what": "explicit readings for atoms whose meaning the tagger cannot place (reviewer 2026-10-08); weight 1.0; the build adds them, never removes others"
+ },
+ "reads": {
+  "ACOUSTIC|Brain": [
+   "colour_changed",
+   "drow",
+   "dcol",
+   "came",
+   "gone"
+  ],
+  "ACOUSTIC|Headphones": [
+   "action",
+   "drow",
+   "dcol",
+   "colour_changed"
+  ],
+  "ALEATORY|Universe": [
+   "came",
+   "gone",
+   "row",
+   "col"
+  ],
+  "ATMOSPHERIC|Condensation": [
+   "gone",
+   "came",
+   "filled",
+   "colour"
+  ],
+  "ATMOSPHERIC|Narrow": [
+   "h",
+   "w"
+  ],
+  "ATMOSPHERIC|Particles": [
+   "filled",
+   "came"
+  ],
+  "AUTOMATON|Loop (Automaton)": [
+   "prev",
+   "stability",
+   "age"
+  ],
+  "AUTOMATON|Read": [
+   "action",
+   "predicted"
+  ],
+  "CELLULAR|Activate": [
+   "stability",
+   "touching",
+   "action"
+  ],
+  "CELLULAR|Export": [
+   "dcells",
+   "came",
+   "touching"
+  ],
+  "CELLULAR|Immune": [
+   "colour_changed",
+   "touching",
+   "stability"
+  ],
+  "CELLULAR|Latent": [
+   "stability",
+   "touching"
+  ],
+  "CELLULAR|Lysis": [
+   "gone",
+   "came",
+   "filled",
+   "colour"
+  ],
+  "CELLULAR|Nervous System": [
+   "touching",
+   "colour_changed",
+   "age"
+  ],
+  "CELLULAR|Symbiosis": [
+   "touching",
+   "drow",
+   "dcol"
+  ],
+  "CELLULAR|Transduction": [
+   "colour_changed",
+   "drow",
+   "dcol",
+   "dcells"
+  ],
+  "CHARACTER|Deception": [
+   "colour",
+   "shape",
+   "drow",
+   "dcol"
+  ],
+  "CHEMICAL|Acidity": [
+   "colour",
+   "touching"
+  ],
+  "CHEMICAL|alcohol": [
+   "touching",
+   "gone",
+   "dcells"
+  ],
+  "CHEMICAL|ester": [
+   "touching",
+   "colour",
+   "drow",
+   "dcol"
+  ],
+  "CHEMICAL|its partner": [
+   "touching",
+   "drow",
+   "dcol"
+  ],
+  "CHEMICAL|template": [
+   "shape",
+   "came"
+  ],
+  "CHOICE|Explanation": [
+   "residual",
+   "standing"
+  ],
+  "CHOICE|Meta-Choice": [
+   "action",
+   "standing"
+  ],
+  "CHOICE|Perfect Knowledge": [
+   "residual"
+  ],
+  "CHOICE|Stop": [
+   "action"
+  ],
+  "CONNECTION|Entanglement": [
+   "touching",
+   "colour_changed",
+   "drow",
+   "dcol"
+  ],
+  "CONNECTION|Entity": [
+   "filled",
+   "colour"
+  ],
+  "CONNECTION|Mutual": [
+   "touching",
+   "colour_changed"
+  ],
+  "CONNECTION|Survival": [
+   "gone",
+   "age"
+  ],
+  "CURIOSITY|Find": [
+   "colour",
+   "shape",
+   "row",
+   "col"
+  ],
+  "CURIOSITY|Phenomenon": [
+   "prev",
+   "stability",
+   "age"
+  ],
+  "CURIOSITY|Suspense": [
+   "predicted",
+   "residual"
+  ],
+  "DESIRE|Need": [
+   "completed",
+   "came",
+   "gone"
+  ],
+  "ECONOMIC|available": [
+   "came",
+   "gone",
+   "touching"
+  ],
+  "ECONOMIC|bidding": [
+   "dcells",
+   "came"
+  ],
+  "ECONOMIC|common price": [
+   "dcells",
+   "came",
+   "gone"
+  ],
+  "ECONOMIC|distorted Val": [
+   "completed",
+   "dcells"
+  ],
+  "ECONOMIC|excess medium": [
+   "filled",
+   "completed"
+  ],
+  "ECONOMIC|non-excludable": [
+   "colour_changed",
+   "drow",
+   "dcol"
+  ],
+  "ECONOMIC|price": [
+   "dcells",
+   "came",
+   "gone"
+  ],
+  "ECONOMIC|rules": [
+   "standing"
+  ],
+  "ECONOMIC|shared Res": [
+   "filled",
+   "dcells",
+   "touching"
+  ],
+  "ELECTRICAL|supercooled": [
+   "stability",
+   "colour_changed"
+  ],
+  "EMBODIMENT|Visual": [
+   "colour",
+   "row",
+   "col",
+   "h",
+   "w"
+  ],
+  "EXCHANGE|Bid": [
+   "dcells",
+   "came"
+  ],
+  "EXCHANGE|Burden": [
+   "touching",
+   "drow",
+   "dcol"
+  ],
+  "EXCHANGE|Community": [
+   "colour",
+   "shape"
+  ],
+  "EXCHANGE|Generosity": [
+   "dcells",
+   "colour_changed",
+   "touching"
+  ],
+  "EXCHANGE|Injustice": [
+   "dcells"
+  ],
+  "EXCHANGE|Medium of Exchange": [
+   "dcells",
+   "gone",
+   "came"
+  ],
+  "EXCHANGE|No Reciprocity": [
+   "touching",
+   "colour_changed"
+  ],
+  "EXCHANGE|No Return": [
+   "prev",
+   "stability"
+  ],
+  "EXCHANGE|Payout": [
+   "completed"
+  ],
+  "EXCHANGE|Prices": [
+   "dcells",
+   "came",
+   "gone"
+  ],
+  "HABIT|Repair": [
+   "prev",
+   "shape",
+   "row",
+   "col"
+  ],
+  "HEAT|surface": [
+   "dperimeter",
+   "touching"
+  ],
+  "HUMAN|Contr partial": [
+   "action",
+   "dcells",
+   "drow",
+   "dcol"
+  ],
+  "INFORMATION|Data about data": [
+   "standing"
+  ],
+  "INFORMATION|Shannon entropy": [
+   "residual"
+  ],
+  "INFORMATION|Sort": [
+   "row",
+   "col",
+   "h",
+   "w",
+   "colour"
+  ],
+  "INFORMATION|pointer": [
+   "row",
+   "col",
+   "shape"
+  ],
+  "INFORMATION|self-reference": [
+   "standing",
+   "predicted"
+  ],
+  "INFORMATION|verification": [
+   "residual",
+   "predicted"
+  ],
+  "LEARNING|Aha": [
+   "residual",
+   "terms"
+  ],
+  "LEARNING|Build": [
+   "terms"
+  ],
+  "LEARNING|Domain": [
+   "colour",
+   "shape"
+  ],
+  "LEARNING|Guide": [
+   "row",
+   "col",
+   "completed"
+  ],
+  "LEARNING|Inspire": [
+   "residual",
+   "terms"
+  ],
+  "LEARNING|Integrate": [
+   "terms",
+   "residual"
+  ],
+  "LEARNING|Learn": [
+   "standing",
+   "terms"
+  ],
+  "LEARNING|Mindset": [
+   "terms",
+   "standing"
+  ],
+  "LEARNING|Recombine": [
+   "terms"
+  ],
+  "LEARNING|Transfer": [
+   "standing"
+  ],
+  "LEARNING|Transfer (Learning)": [
+   "standing",
+   "level"
+  ],
+  "LINEAGE|Activation": [
+   "stability",
+   "colour_changed"
+  ],
+  "LINEAGE|All Life": [
+   "stability",
+   "drow",
+   "dcol"
+  ],
+  "LINEAGE|Dormant": [
+   "stability"
+  ],
+  "LINEAGE|Graft": [
+   "dcells",
+   "touching"
+  ],
+  "LINEAGE|Matrilineal-patrilineal": [
+   "colour",
+   "came",
+   "touching"
+  ],
+  "LINEAGE|Phenotype": [
+   "colour",
+   "shape",
+   "h",
+   "w"
+  ],
+  "LINEAGE|Potential": [
+   "h",
+   "w",
+   "colour"
+  ],
+  "LINEAGE|Power": [
+   "colour_changed",
+   "drow",
+   "dcol"
+  ],
+  "LINEAGE|Preservation": [
+   "stability"
+  ],
+  "LINEAGE|Struggle": [
+   "touching",
+   "dcells"
+  ],
+  "LINEAGE|paternal": [
+   "colour",
+   "came"
+  ],
+  "LINGUISTIC|Aesthetic": [
+   "row",
+   "col",
+   "shape"
+  ],
+  "LINGUISTIC|Norms": [
+   "colour",
+   "drow",
+   "dcol"
+  ],
+  "LIVING|Organ": [
+   "inside",
+   "colour"
+  ],
+  "LOGISTICAL|Just-in-case": [
+   "filled"
+  ],
+  "LOGISTICAL|Minimal": [
+   "h",
+   "w",
+   "filled"
+  ],
+  "LUDIC / ABSURDIST|Amusement": [
+   "residual",
+   "completed"
+  ],
+  "LUDIC / ABSURDIST|No Final Meaning": [
+   "residual"
+  ],
+  "LUDIC / ABSURDIST|Recurrence": [
+   "prev",
+   "stability"
+  ],
+  "LUDIC / ABSURDIST|Seriousness": [
+   "prev",
+   "stability"
+  ],
+  "LUDIC / ABSURDIST|Soul": [
+   "age",
+   "colour_changed",
+   "drow",
+   "dcol"
+  ],
+  "LUDOLOGICAL|Implicit Rule": [
+   "standing"
+  ],
+  "LUDOLOGICAL|Loser": [
+   "level",
+   "completed"
+  ],
+  "LUDOLOGICAL|Metagame": [
+   "standing",
+   "level"
+  ],
+  "LUDOLOGICAL|No Reset": [
+   "prev",
+   "level"
+  ],
+  "LUDOLOGICAL|Self-Reinforcing": [
+   "prev",
+   "stability"
+  ],
+  "LUDOLOGICAL|Unintended Interaction": [
+   "residual",
+   "standing"
+  ],
+  "MATERIAL|Ductile": [
+   "dh",
+   "dw",
+   "touching"
+  ],
+  "MECHANICAL|all tier-5 mechanical": [
+   "touching",
+   "drow",
+   "dcol"
+  ],
+  "MEDICAL|Collagen": [
+   "touching",
+   "came"
+  ],
+  "MEDICAL|Connectivity": [
+   "came",
+   "gone",
+   "touching"
+  ],
+  "MEDICAL|Dose": [
+   "dcells"
+  ],
+  "MEDICAL|Equity": [
+   "h",
+   "w",
+   "filled"
+  ],
+  "MEDICAL|Global": [
+   "colour_changed",
+   "drow",
+   "dcol"
+  ],
+  "MEDICAL|Inflammatory": [
+   "touching",
+   "colour_changed"
+  ],
+  "MEDICAL|Systemic": [
+   "colour_changed"
+  ],
+  "MEDICAL|Targeted": [
+   "press",
+   "colour_changed",
+   "drow",
+   "dcol"
+  ],
+  "MNEMONIC|Generalization": [
+   "standing",
+   "level"
+  ],
+  "NETWORK|High": [
+   "h",
+   "w",
+   "filled"
+  ],
+  "NETWORK|Hub": [
+   "touching",
+   "contact"
+  ],
+  "NOETIC|Contemplation": [
+   "action"
+  ],
+  "NOETIC|Equanimity": [
+   "action",
+   "completed"
+  ],
+  "NUTRITIONAL|Coupled": [
+   "colour_changed",
+   "drow",
+   "dcol",
+   "dcells"
+  ],
+  "NUTRITIONAL|Function": [
+   "touching",
+   "press",
+   "colour_changed"
+  ],
+  "NUTRITIONAL|Glucose": [
+   "touching",
+   "gone",
+   "filled"
+  ],
+  "NUTRITIONAL|Required": [
+   "completed",
+   "came"
+  ],
+  "ONTOLOGICAL|Absolute": [
+   "standing"
+  ],
+  "ONTOLOGICAL|All Agents": [
+   "drow",
+   "dcol",
+   "stability"
+  ],
+  "ONTOLOGICAL|All Truths": [
+   "standing",
+   "terms"
+  ],
+  "ONTOLOGICAL|Clean": [
+   "filled",
+   "came"
+  ],
+  "ONTOLOGICAL|Derivation": [
+   "terms"
+  ],
+  "ONTOLOGICAL|Doubt": [
+   "standing"
+  ],
+  "ONTOLOGICAL|Emanation": [
+   "came",
+   "touching"
+  ],
+  "ONTOLOGICAL|Emptiness": [
+   "came",
+   "gone"
+  ],
+  "ONTOLOGICAL|Examination": [
+   "colour",
+   "shape",
+   "h",
+   "w",
+   "row",
+   "col"
+  ],
+  "ONTOLOGICAL|Reality": [
+   "predicted",
+   "residual"
+  ],
+  "ONTOLOGICAL|Unobserved": [
+   "came",
+   "age"
+  ],
+  "OPTICAL|High Intensity": [
+   "dcells",
+   "drow",
+   "dcol"
+  ],
+  "PATHOLOGICAL|Wisdom": [
+   "standing"
+  ],
+  "PHENOMENOLOGICAL|Bracketing": [
+   "standing",
+   "predicted"
+  ],
+  "PHENOMENOLOGICAL|Face": [
+   "touching",
+   "contact"
+  ],
+  "PHENOMENOLOGICAL|Other": [
+   "drow",
+   "dcol"
+  ],
+  "PHENOMENOLOGICAL|Proximity": [
+   "row",
+   "col",
+   "touching"
+  ],
+  "PHENOMENOLOGICAL|Shared World": [
+   "colour_changed"
+  ],
+  "PSYCHOLOGICAL|first impression": [
+   "age",
+   "terms"
+  ],
+  "PSYCHOLOGICAL|relatedness": [
+   "touching",
+   "colour",
+   "drow",
+   "dcol"
+  ],
+  "QUANTUM|surroundings": [
+   "touching",
+   "contact"
+  ],
+  "QUANTUM|two things": [
+   "touching",
+   "bbox"
+  ],
+  "RAW DATA|removed": [
+   "gone"
+  ],
+  "REBELLION|Authority": [
+   "colour_changed",
+   "drow",
+   "dcol"
+  ],
+  "REBELLION|Destabilization": [
+   "stability",
+   "colour_changed"
+  ],
+  "REBELLION|Institutionalization": [
+   "standing",
+   "stability"
+  ],
+  "REBELLION|Principle": [
+   "standing"
+  ],
+  "REBELLION|Public": [
+   "colour_changed"
+  ],
+  "REBELLION|Voice": [
+   "colour_changed",
+   "came"
+  ],
+  "SKILL|Adaptability": [
+   "action",
+   "residual"
+  ],
+  "SKILL|Adjustment": [
+   "drow",
+   "dcol",
+   "dh",
+   "dw"
+  ],
+  "SKILL|Creativity": [
+   "terms"
+  ],
+  "SKILL|Improvisation": [
+   "terms",
+   "action"
+  ],
+  "SKILL|Perfection": [
+   "residual"
+  ],
+  "SKILL|Skill": [
+   "standing",
+   "completed"
+  ],
+  "SKILL|Style": [
+   "action",
+   "prev"
+  ],
+  "SOCIAL|Culture": [
+   "colour",
+   "drow",
+   "dcol"
+  ],
+  "SOCIAL|Norm": [
+   "colour",
+   "drow",
+   "dcol"
+  ],
+  "SOCIAL|Outgroup": [
+   "colour",
+   "shape"
+  ],
+  "SOCIAL|Sanction": [
+   "drow",
+   "dcol",
+   "dcells",
+   "gone"
+  ],
+  "SOMNIAL|Dream Symbol": [
+   "shape"
+  ],
+  "SOMNIAL|Image": [
+   "colour",
+   "shape"
+  ],
+  "THAUMATURGICAL|Curse": [
+   "dcells",
+   "stability"
+  ],
+  "THAUMATURGICAL|Meditation": [
+   "action"
+  ],
+  "THOUGHT|Domain A": [
+   "shape",
+   "row",
+   "col"
+  ],
+  "THOUGHT|Imagination": [
+   "predicted",
+   "residual"
+  ],
+  "THOUGHT|Inference": [
+   "predicted",
+   "terms"
+  ],
+  "THOUGHT|Logic": [
+   "standing"
+  ],
+  "THOUGHT|Mapping": [
+   "shape",
+   "colour"
+  ],
+  "THOUGHT|Opposition": [
+   "drow",
+   "dcol",
+   "row",
+   "col"
+  ],
+  "THOUGHT|Simul": [
+   "predicted",
+   "residual"
+  ],
+  "TOPOLOGICAL|Attach": [
+   "touching",
+   "drow",
+   "dcol"
+  ],
+  "TOPOLOGICAL|Cosmic": [
+   "came"
+  ],
+  "TOPOLOGICAL|Jones polynomial": [
+   "shape",
+   "dholes"
+  ],
+  "TRANSFORMATION|Emergence": [
+   "shape",
+   "touching",
+   "came"
+  ],
+  "TRANSFORMATION|Flux": [
+   "stability"
+  ],
+  "TRANSFORMATION|Lead": [
+   "prev"
+  ],
+  "ZOOLOGICAL|Celestial": [
+   "row"
+  ],
+  "ZOOLOGICAL|Decentralized": [
+   "colour_changed",
+   "drow",
+   "dcol"
+  ]
+ }
+}

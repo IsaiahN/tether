@@ -1,0 +1,38 @@
+{
+ "meta": {
+  "what": "ORIENTATION for the look-alike families that share every ingredient and qualifier. Reviewer draft, 2026-10-08, at Isaiah's request; for Isaiah to confirm or correct. A front-loaded prior (Isaiah 2026-09-22/27), not an answer: the ground still settles each junction.",
+  "qualifiers": "Drawn from a small closed set that IS the role generator's labels: rising/falling (a change's up/down), from X / to Y (source and goal, prepositions), before/after/next (time), oldest-first/newest-first (order). Written A(x) per the Operators table; not new atoms.",
+  "bonds": "→ sequence, ⇒ production, ⋛ comparison, + conjunction, − subtraction (Operators table). Where written order already differed in the source, the ordered bond is what makes that order count."
+ },
+ "molecules": {
+  "HEAT|Melt":      {"operands": [["HEAT|Temperature", "rising, crosses melting point"], ["HEAT|Phase", "from solid to liquid"]], "junctions": ["⇒"]},
+  "HEAT|Freeze":    {"operands": [["HEAT|Temperature", "falling, crosses melting point"], ["HEAT|Phase", "from liquid to solid"]], "junctions": ["⇒"]},
+  "HEAT|Boil":      {"operands": [["HEAT|Temperature", "rising, crosses boiling point"], ["HEAT|Phase", "from liquid to gas"]], "junctions": ["⇒"]},
+  "HEAT|Condense":  {"operands": [["HEAT|Temperature", "falling, crosses boiling point"], ["HEAT|Phase", "from gas to liquid"]], "junctions": ["⇒"]},
+  "HEAT|Sublimate": {"operands": [["HEAT|Temperature", "rising"], ["HEAT|Phase", "from solid to gas, skipping liquid"]], "junctions": ["⇒"]},
+  "HEAT|Expand":    {"operands": [["HEAT|Heat", "rising"], ["HEAT|Volume", "rising"]], "junctions": ["⇒"]},
+  "HEAT|Contract":  {"operands": [["HEAT|Heat", "falling"], ["HEAT|Volume", "falling"]], "junctions": ["⇒"]},
+  "EXCHANGE|Buy":   {"operands": [["EXCHANGE|Currency", "falling, given"], ["EXCHANGE|Transaction", null], ["EXCHANGE|Resource", "rising, received"]], "junctions": ["→", "⇒"]},
+  "EXCHANGE|Sell":  {"operands": [["EXCHANGE|Resource", "falling, given"], ["EXCHANGE|Transaction", null], ["EXCHANGE|Currency", "rising, received"]], "junctions": ["→", "⇒"]},
+  "HUMAN|Associate":{"operands": [["HUMAN|Statistics", "before: what preceded"], ["HUMAN|Causality", "linked to what followed"]], "junctions": ["→"], "note": "looks back: links an earlier event to a later one"},
+  "HUMAN|Predict":  {"operands": [["HUMAN|Statistics", "now: the last state"], ["HUMAN|Causality", "after: the next state"]], "junctions": ["⇒"], "note": "looks forward: infers the next state"},
+  "INFORMATION|Queue": {"operands": [["INFORMATION|Structure", null], ["INFORMATION|Algorithm", "remove oldest first"]], "junctions": ["→"]},
+  "INFORMATION|Stack": {"operands": [["INFORMATION|Structure", null], ["INFORMATION|Algorithm", "remove newest first"]], "junctions": ["→"]},
+  "LARGE-SCALE|Attraction":   {"operands": [["LARGE-SCALE|Mass", null], ["LARGE-SCALE|Gravity", "pulling toward"]], "junctions": ["⇒"], "role": "PROCESS"},
+  "LARGE-SCALE|Bound system": {"operands": [["LARGE-SCALE|Mass", "many"], ["LARGE-SCALE|Gravity", "holding together"]], "junctions": ["+"], "role": "STATE"},
+  "LARGE-SCALE|Rapid early expansion": {"operands": [["LARGE-SCALE|early state", "during"], ["LARGE-SCALE|Expansion", "rising fast"]], "junctions": ["+"]},
+  "LARGE-SCALE|Remnant radiation":     {"operands": [["LARGE-SCALE|early state", "from"], ["LARGE-SCALE|Expansion", "after, leftover signal"]], "junctions": ["→"]},
+  "MNEMONIC|Proactive interference":   {"operands": [["MNEMONIC|Old Trace", "before"], ["MNEMONIC|Interference", null], ["MNEMONIC|New Trace", "after, blocked"]], "junctions": ["⇒", "−"], "note": "the old blocks the new: forward in time"},
+  "MNEMONIC|Retroactive interference": {"operands": [["MNEMONIC|New Trace", "after"], ["MNEMONIC|Interference", null], ["MNEMONIC|Old Trace", "before, blocked"]], "junctions": ["⇒", "−"], "note": "the new blocks the old: backward in time"},
+  "NETWORK|Connect":  {"operands": [["NETWORK|Node", null], ["NETWORK|Node", "other"], ["NETWORK|Edge", "new"]], "junctions": ["+", "⇒"], "note": "two nodes produce an edge that did not exist"},
+  "NETWORK|Traverse": {"operands": [["NETWORK|Node", "from"], ["NETWORK|Edge", "along"], ["NETWORK|Node", "to"]], "junctions": ["→", "→"], "note": "move from a node along an existing edge to another"},
+  "ONTOLOGICAL|Level ascend":  {"operands": [["ONTOLOGICAL|Base", "from: lower level"], ["ACTION|Meta-Action", "to: higher level"], ["TRANSFORMATION|Shift", null]], "junctions": ["→", "+"], "note": "the source resolved 'Meta' to ACTION|Meta-Action; check that this is the intended atom"},
+  "ONTOLOGICAL|Level descend": {"operands": [["ACTION|Meta-Action", "from: higher level"], ["ONTOLOGICAL|Base", "to: lower level"], ["TRANSFORMATION|Shift", null]], "junctions": ["→", "+"]},
+  "SOMNIAL|Ascend":  {"operands": [["TEMPORAL|Sleep", "from"], ["SOMNIAL|Wake", "to"], ["AUTOMATON|Transition", null]], "junctions": ["→", "+"], "note": "waking up"},
+  "SOMNIAL|Descend": {"operands": [["SOMNIAL|Wake", "from"], ["TEMPORAL|Sleep", "to"], ["AUTOMATON|Transition", null]], "junctions": ["→", "+"], "note": "falling asleep"},
+  "LEARNING|Mastery":          {"role": "STATE", "note": "the state of complete, integrated skill"},
+  "LEARNING|The mastery path": {"role": "PROCESS", "role_of": "LEARNING|Mastery", "note": "the path toward it: Mastery in its process view"},
+  "SKILL|Craft":               {"role": "PROCESS", "note": "the act of skilled creation"},
+  "SKILL|The craftsman":       {"role": "AGENT", "role_of": "SKILL|Craft", "note": "the one who crafts: Craft in its agent view"}
+ }
+}

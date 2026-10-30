@@ -34,7 +34,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": true
+   "reads_operand": true,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "is one position above/before another (comparison over POSITION)",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:above",
+    "in_type": "POSITION",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:above"
+    }
+   }
   },
   "AGENT|abs_delta": {
    "name": "abs_delta",
@@ -91,7 +115,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "size of a signed change",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:abs_delta",
+    "in_type": "DELTA",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:abs_delta"
+    }
+   }
   },
   "AGENT|age": {
    "name": "age",
@@ -121,7 +169,35 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "frames since the object was first tracked",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "age"
+   ],
+   "affects": [],
+   "substrate": [
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:age",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:age"
+    }
+   }
   },
   "AGENT|aligned": {
    "name": "aligned",
@@ -151,7 +227,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "two objects share a row or column",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:aligned",
+    "in_type": "COLOUR",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:aligned"
+    }
+   }
   },
   "AGENT|all": {
    "name": "all",
@@ -170,7 +270,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "every member satisfies",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:all",
+    "in_type": "PRED",
+    "out_type": "OBJ"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:all"
+    }
+   }
   },
   "AGENT|all_same": {
    "name": "all_same",
@@ -200,7 +324,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "every member has the same value",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:all_same",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:all_same"
+    }
+   }
   },
   "AGENT|any": {
    "name": "any",
@@ -219,7 +367,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "some member satisfies",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:any",
+    "in_type": "PRED",
+    "out_type": "OBJ"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:any"
+    }
+   }
   },
   "AGENT|any_same": {
    "name": "any_same",
@@ -249,7 +421,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "some two members share a value",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:any_same",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:any_same"
+    }
+   }
   },
   "AGENT|area": {
    "name": "area",
@@ -279,7 +475,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "number of filled cells",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:area",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:area"
+    }
+   }
   },
   "AGENT|bbox": {
    "name": "bbox",
@@ -309,7 +529,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "bounding-box overlap of two objects",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "bbox"
+   ],
+   "affects": [],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:bbox",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:bbox"
+    }
+   }
   },
   "AGENT|bbox_area": {
    "name": "bbox_area",
@@ -348,7 +597,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "height times width",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:bbox_area",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:bbox_area"
+    }
+   }
   },
   "AGENT|both": {
    "name": "both",
@@ -367,7 +640,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": true
+   "reads_operand": true,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "both predicates hold",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:both",
+    "in_type": "PRED",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:both"
+    }
+   }
   },
   "AGENT|canonical": {
    "name": "canonical",
@@ -397,7 +694,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the outline normalised under rotation/reflection",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:canonical",
+    "in_type": "SHAPE",
+    "out_type": "SHAPE"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:canonical"
+    }
+   }
   },
   "AGENT|centroid": {
    "name": "centroid",
@@ -427,7 +748,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the centre cell",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:centroid",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:centroid"
+    }
+   }
   },
   "AGENT|col": {
    "name": "col",
@@ -457,7 +802,35 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "left column",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "col"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:col",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:col"
+    }
+   }
   },
   "AGENT|colour": {
    "name": "colour",
@@ -487,7 +860,35 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "colour index",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "colour"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:colour",
+    "in_type": "OBJECT",
+    "out_type": "COLOUR"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:colour"
+    }
+   }
   },
   "AGENT|colour_changed": {
    "name": "colour_changed",
@@ -506,7 +907,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "colour differs from last frame",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "colour_changed"
+   ],
+   "affects": [],
+   "substrate": [
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:colour_changed",
+    "in_type": "OBJECT",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:colour_changed"
+    }
+   }
   },
   "AGENT|completed": {
    "name": "completed",
@@ -536,7 +966,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the board's progress count",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "completed"
+   ],
+   "affects": [],
+   "substrate": [
+    "gradient",
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:completed",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:completed"
+    }
+   }
   },
   "AGENT|contact": {
    "name": "contact",
@@ -566,7 +1025,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "shared cell faces with another object",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "contact"
+   ],
+   "affects": [],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:contact",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:contact"
+    }
+   }
   },
   "AGENT|corners": {
    "name": "corners",
@@ -605,7 +1093,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "corner cells of the outline",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:corners",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:corners"
+    }
+   }
   },
   "AGENT|count": {
    "name": "count",
@@ -644,7 +1156,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "how many members",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:count",
+    "in_type": "COLOUR",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:count"
+    }
+   }
   },
   "AGENT|dcells": {
    "name": "dcells",
@@ -710,7 +1246,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "change in filled cells",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "dcells"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dcells",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:dcells"
+    }
+   }
   },
   "AGENT|dcol": {
    "name": "dcol",
@@ -776,7 +1341,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "columns moved",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "dcol"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dcol",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:dcol"
+    }
+   }
   },
   "AGENT|dh": {
    "name": "dh",
@@ -833,7 +1427,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "height change",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "dh"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dh",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:dh"
+    }
+   }
   },
   "AGENT|dholes": {
    "name": "dholes",
@@ -881,7 +1504,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "change in holes",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "dholes"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dholes",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:dholes"
+    }
+   }
   },
   "AGENT|distinct": {
    "name": "distinct",
@@ -920,7 +1572,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "number of different values",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:distinct",
+    "in_type": "COLOUR",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:distinct"
+    }
+   }
   },
   "AGENT|dperimeter": {
    "name": "dperimeter",
@@ -968,7 +1644,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "change in outline length",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "dperimeter"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dperimeter",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:dperimeter"
+    }
+   }
   },
   "AGENT|drow": {
    "name": "drow",
@@ -1034,7 +1739,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "rows moved",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "drow"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:drow",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:drow"
+    }
+   }
   },
   "AGENT|dw": {
    "name": "dw",
@@ -1091,7 +1825,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "width change",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "dw"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:dw",
+    "in_type": "OBJECT",
+    "out_type": "DELTA"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:dw"
+    }
+   }
   },
   "AGENT|either": {
    "name": "either",
@@ -1110,7 +1873,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": true
+   "reads_operand": true,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "at least one predicate holds",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:either",
+    "in_type": "PRED",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:either"
+    }
+   }
   },
   "AGENT|h": {
    "name": "h",
@@ -1140,7 +1927,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "height",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "h"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:h",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:h"
+    }
+   }
   },
   "AGENT|holes": {
    "name": "holes",
@@ -1179,7 +1995,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "enclosed background regions",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:holes",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:holes"
+    }
+   }
   },
   "AGENT|idn": {
    "name": "idn",
@@ -1198,7 +2038,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the value unchanged (identity)",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:idn",
+    "in_type": "val",
+    "out_type": "val"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:idn"
+    }
+   }
   },
   "AGENT|inside": {
    "name": "inside",
@@ -1217,7 +2081,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "lies in another's hole",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "inside"
+   ],
+   "affects": [],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:inside",
+    "in_type": "OBJECT",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:inside"
+    }
+   }
   },
   "AGENT|is_max": {
    "name": "is_max",
@@ -1247,7 +2140,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "is the largest in its group",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:is_max",
+    "in_type": "POSITION",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:is_max"
+    }
+   }
   },
   "AGENT|is_min": {
    "name": "is_min",
@@ -1277,7 +2194,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "is the smallest in its group",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:is_min",
+    "in_type": "POSITION",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:is_min"
+    }
+   }
   },
   "AGENT|is_mode": {
    "name": "is_mode",
@@ -1307,7 +2248,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "is the most common value",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:is_mode",
+    "in_type": "COLOUR",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:is_mode"
+    }
+   }
   },
   "AGENT|is_square": {
    "name": "is_square",
@@ -1337,7 +2302,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "height equals width and all cells filled",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:is_square",
+    "in_type": "SHAPE",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:is_square"
+    }
+   }
   },
   "AGENT|negate": {
    "name": "negate",
@@ -1356,7 +2345,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the predicate does not hold",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:negate",
+    "in_type": "PRED",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:negate"
+    }
+   }
   },
   "AGENT|none": {
    "name": "none",
@@ -1375,7 +2388,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "no member satisfies",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:none",
+    "in_type": "PRED",
+    "out_type": "OBJ"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:none"
+    }
+   }
   },
   "AGENT|none_same": {
    "name": "none_same",
@@ -1405,7 +2442,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "no two members share a value",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:none_same",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:none_same"
+    }
+   }
   },
   "AGENT|orbit_size": {
    "name": "orbit_size",
@@ -1444,7 +2505,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "number of distinct outlines under rotation/reflection",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:orbit_size",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:orbit_size"
+    }
+   }
   },
   "AGENT|other": {
    "name": "other",
@@ -1474,7 +2559,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": true
+   "reads_operand": true,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "differs from",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:other",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:other"
+    }
+   }
   },
   "AGENT|owner": {
    "name": "owner",
@@ -1493,7 +2602,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "the object a cell or slot belongs to",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:owner",
+    "in_type": "val",
+    "out_type": "OBJECT"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:owner"
+    }
+   }
   },
   "AGENT|parity": {
    "name": "parity",
@@ -1523,7 +2656,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "even or odd",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:parity",
+    "in_type": "POSITION",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:parity"
+    }
+   }
   },
   "AGENT|perimeter": {
    "name": "perimeter",
@@ -1562,7 +2719,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "outline length",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:perimeter",
+    "in_type": "SHAPE",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:perimeter"
+    }
+   }
   },
   "AGENT|rank_in": {
    "name": "rank_in",
@@ -1601,7 +2782,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "position in an ordering of the group",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:rank_in",
+    "in_type": "POSITION",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:rank_in"
+    }
+   }
   },
   "AGENT|recolour": {
    "name": "recolour",
@@ -1631,7 +2836,37 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": true
+   "reads_operand": true,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "set the colour",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [
+    "colour",
+    "colour_changed"
+   ],
+   "substrate": [
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:recolour",
+    "in_type": "val",
+    "out_type": "val"
+   },
+   "roles": {
+    "default": "PROCESS",
+    "available": {
+     "PROCESS": 1
+    },
+    "example": {
+     "PROCESS": "arc_atoms:recolour"
+    }
+   }
   },
   "AGENT|reflect": {
    "name": "reflect",
@@ -1661,7 +2896,35 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "mirror the outline",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:reflect",
+    "in_type": "SHAPE",
+    "out_type": "SHAPE"
+   },
+   "roles": {
+    "default": "PROCESS",
+    "available": {
+     "PROCESS": 1
+    },
+    "example": {
+     "PROCESS": "arc_atoms:reflect"
+    }
+   }
   },
   "AGENT|rotate": {
    "name": "rotate",
@@ -1691,7 +2954,35 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "turn the outline by 90 degrees",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:rotate",
+    "in_type": "SHAPE",
+    "out_type": "SHAPE"
+   },
+   "roles": {
+    "default": "PROCESS",
+    "available": {
+     "PROCESS": 1
+    },
+    "example": {
+     "PROCESS": "arc_atoms:rotate"
+    }
+   }
   },
   "AGENT|row": {
    "name": "row",
@@ -1721,7 +3012,35 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "top row",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "row"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:row",
+    "in_type": "OBJECT",
+    "out_type": "POSITION"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:row"
+    }
+   }
   },
   "AGENT|same": {
    "name": "same",
@@ -1751,7 +3070,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": true
+   "reads_operand": true,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "equals",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:same",
+    "in_type": "COLOUR",
+    "out_type": "PRED"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:same"
+    }
+   }
   },
   "AGENT|shape": {
    "name": "shape",
@@ -1781,7 +3124,35 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "outline label",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "shape"
+   ],
+   "affects": [],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:shape",
+    "in_type": "OBJECT",
+    "out_type": "SHAPE"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:shape"
+    }
+   }
   },
   "AGENT|sign": {
    "name": "sign",
@@ -1829,7 +3200,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "direction of a signed change",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:sign",
+    "in_type": "DELTA",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:sign"
+    }
+   }
   },
   "AGENT|speed": {
    "name": "speed",
@@ -1859,7 +3254,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "cells moved this frame",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "speed"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:speed",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:speed"
+    }
+   }
   },
   "AGENT|stability": {
    "name": "stability",
@@ -1889,7 +3313,35 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "frames unchanged",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "stability"
+   ],
+   "affects": [],
+   "substrate": [
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:stability",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:stability"
+    }
+   }
   },
   "AGENT|sum_group": {
    "name": "sum_group",
@@ -1928,7 +3380,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "total over the group",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:sum_group",
+    "in_type": "POSITION",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:sum_group"
+    }
+   }
   },
   "AGENT|symmetric": {
    "name": "symmetric",
@@ -1958,7 +3434,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "unchanged under a reflection",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:symmetric",
+    "in_type": "SHAPE",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:symmetric"
+    }
+   }
   },
   "AGENT|touching": {
    "name": "touching",
@@ -1977,7 +3477,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "shares a cell face with another",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "touching"
+   ],
+   "affects": [],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:touching",
+    "in_type": "OBJECT",
+    "out_type": "BOOL"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:touching"
+    }
+   }
   },
   "AGENT|touching_n": {
    "name": "touching_n",
@@ -2007,7 +3536,31 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": "handed",
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "how many objects it touches",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [],
+   "substrate": [],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:touching_n",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "MEASURE",
+    "available": {
+     "MEASURE": 1
+    },
+    "example": {
+     "MEASURE": "arc_atoms:touching_n"
+    }
+   }
   },
   "AGENT|translate": {
    "name": "translate",
@@ -2026,7 +3579,37 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": true
+   "reads_operand": true,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "move by an offset",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [],
+   "affects": [
+    "drow",
+    "dcol"
+   ],
+   "substrate": [
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:translate",
+    "in_type": "val",
+    "out_type": "val"
+   },
+   "roles": {
+    "default": "PROCESS",
+    "available": {
+     "PROCESS": 1
+    },
+    "example": {
+     "PROCESS": "arc_atoms:translate"
+    }
+   }
   },
   "AGENT|w": {
    "name": "w",
@@ -2056,7 +3639,36 @@
     "arc_atoms.three_spaces"
    ],
    "admitted": null,
-   "reads_operand": false
+   "reads_operand": false,
+   "kind": "PRIMITIVE",
+   "grid": {
+    "meaning": "width",
+    "status": "built",
+    "lineage": "arc_atoms (executable)"
+   },
+   "reads": [
+    "w"
+   ],
+   "affects": [],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "PRIMITIVE",
+    "impl": "arc_atoms:w",
+    "in_type": "OBJECT",
+    "out_type": "EXTENT"
+   },
+   "roles": {
+    "default": "STATE",
+    "available": {
+     "STATE": 1
+    },
+    "example": {
+     "STATE": "arc_atoms:w"
+    }
+   }
   }
  }
 }

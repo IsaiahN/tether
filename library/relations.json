@@ -1,0 +1,3308 @@
+{
+ "meta": {
+  "what": "THE RELATION VOCABULARY (RELATIONS.md Parts 1-5) as data: what two objects can be to each other, what one does to another. Status letters as RELATIONS.md marks them (P perceived today, C composable, — blocked) are a snapshot of 2026-09; the live status of each underlying reading is in readings.json.",
+  "source": "docs/library-closure/RELATIONS.md"
+ },
+ "relations": {
+  "disjoint": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.1 Contact and its absence",
+   "condition": "no points in common",
+   "status": "C — the negation of contact",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": "no points in common",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "touching": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.1 Contact and its absence",
+   "condition": "boundaries meet, interiors do not",
+   "status": "P — `touching(a,b)`, the one published relation",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": "boundaries meet, interiors do not",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "intersecting": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.1 Contact and its absence",
+   "condition": "interiors cross",
+   "status": "C — needs overlap",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": "interiors cross",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "overlapping": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.1 Contact and its absence",
+   "condition": "share a region of nonzero area",
+   "status": "— and not for the reason first recorded, see below",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": "share a region of nonzero area",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "coincident": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.1 Contact and its absence",
+   "condition": "occupy exactly the same region",
+   "status": "— same blocker as overlapping",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": "occupy exactly the same region",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "point contact": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.1 Contact and its absence",
+   "on a grid": "corner to corner",
+   "what it affords": "pivoting; minimal constraint",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "edge contact": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.1 Contact and its absence",
+   "on a grid": "one cell face shared",
+   "what it affords": "sliding along; one axis constrained",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "face contact": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.1 Contact and its absence",
+   "on a grid": "a run of shared faces",
+   "what it affords": "pushing; two axes constrained",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "contained": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.2 Containment",
+   "condition": "one interior lies wholly inside another",
+   "status": "— needs bounding boxes, which nothing computes",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "inside",
+     "bbox"
+    ],
+    "condition_text": "one interior lies wholly inside another",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 6,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 12,
+     "RESULT": 12,
+     "INSTRUMENT": 6,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 12
+    },
+    "example": {
+     "STATE": "inside(o1, o2) > 0",
+     "PROCESS": "o1.dinside != 0",
+     "RELATION": "inside(o1, o2) > 0",
+     "MEASURE": "inside(o1, o2) > 0",
+     "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
+    }
+   }
+  },
+  "strictly contained": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.2 Containment",
+   "condition": "inside, not touching the boundary",
+   "status": "— downstream of contained",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "inside",
+     "bbox"
+    ],
+    "condition_text": "inside, not touching the boundary",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 6,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 12,
+     "RESULT": 12,
+     "INSTRUMENT": 6,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 12
+    },
+    "example": {
+     "STATE": "inside(o1, o2) > 0",
+     "PROCESS": "o1.dinside != 0",
+     "RELATION": "inside(o1, o2) > 0",
+     "MEASURE": "inside(o1, o2) > 0",
+     "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
+    }
+   }
+  },
+  "internally tangent": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.2 Containment",
+   "condition": "inside and touching the boundary",
+   "status": "— downstream of contained",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "inside",
+     "bbox"
+    ],
+    "condition_text": "inside and touching the boundary",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 6,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 12,
+     "RESULT": 12,
+     "INSTRUMENT": 6,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 12
+    },
+    "example": {
+     "STATE": "inside(o1, o2) > 0",
+     "PROCESS": "o1.dinside != 0",
+     "RELATION": "inside(o1, o2) > 0",
+     "MEASURE": "inside(o1, o2) > 0",
+     "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
+    }
+   }
+  },
+  "contains": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.2 Containment",
+   "condition": "the inverse",
+   "status": "— the same test, arguments swapped",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "inside",
+     "bbox"
+    ],
+    "condition_text": "the inverse",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 6,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 12,
+     "RESULT": 12,
+     "INSTRUMENT": 6,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 12
+    },
+    "example": {
+     "STATE": "inside(o1, o2) > 0",
+     "PROCESS": "o1.dinside != 0",
+     "RELATION": "inside(o1, o2) > 0",
+     "MEASURE": "inside(o1, o2) > 0",
+     "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
+    }
+   }
+  },
+  "nested": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.2 Containment",
+   "condition": "containment in layers",
+   "status": "— containment, transitively",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "inside",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "inside",
+     "bbox"
+    ],
+    "condition_text": "containment in layers",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 6,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 12,
+     "RESULT": 12,
+     "INSTRUMENT": 6,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 12
+    },
+    "example": {
+     "STATE": "inside(o1, o2) > 0",
+     "PROCESS": "o1.dinside != 0",
+     "RELATION": "inside(o1, o2) > 0",
+     "MEASURE": "inside(o1, o2) > 0",
+     "CAUSE": "inside(o1, o2) > 0 ⇒ o2.dinside != 0"
+    }
+   }
+  },
+  "collinear": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.3 Alignment and orientation",
+   "condition": "centres or edges on one line",
+   "status": "C — from position",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "row",
+    "col",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "row",
+     "col",
+     "h",
+     "w"
+    ],
+    "condition_text": "centres or edges on one line",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 14,
+     "PROCESS": 12,
+     "RELATION": 12,
+     "MEASURE": 12,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 12,
+     "TEST": 14,
+     "RULE": 14,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.row < o2.row",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.row < o2.row",
+     "MEASURE": "o1.row < o2.row",
+     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "aligned": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.3 Alignment and orientation",
+   "condition": "reference features share a direction or coordinate",
+   "status": "C — equality on one axis",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "row",
+    "col",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "row",
+     "col",
+     "h",
+     "w"
+    ],
+    "condition_text": "reference features share a direction or coordinate",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 14,
+     "PROCESS": 12,
+     "RELATION": 12,
+     "MEASURE": 12,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 12,
+     "TEST": 14,
+     "RULE": 14,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.row < o2.row",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.row < o2.row",
+     "MEASURE": "o1.row < o2.row",
+     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "parallel": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.3 Alignment and orientation",
+   "condition": "matching directions, need not meet",
+   "status": "C on a grid: same row-extent or column-extent",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "row",
+    "col",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "row",
+     "col",
+     "h",
+     "w"
+    ],
+    "condition_text": "matching directions, need not meet",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 14,
+     "PROCESS": 12,
+     "RELATION": 12,
+     "MEASURE": 12,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 12,
+     "TEST": 14,
+     "RULE": 14,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.row < o2.row",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.row < o2.row",
+     "MEASURE": "o1.row < o2.row",
+     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "perpendicular": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.3 Alignment and orientation",
+   "condition": "directions meet at a right angle",
+   "status": "C — one extends in row, the other in column",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "row",
+    "col",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "row",
+     "col",
+     "h",
+     "w"
+    ],
+    "condition_text": "directions meet at a right angle",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 14,
+     "PROCESS": 12,
+     "RELATION": 12,
+     "MEASURE": 12,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 12,
+     "TEST": 14,
+     "RULE": 14,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.row < o2.row",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.row < o2.row",
+     "MEASURE": "o1.row < o2.row",
+     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "concentric": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.3 Alignment and orientation",
+   "condition": "shared centre, different size",
+   "status": "C — equal centroid, unequal extent",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "row",
+    "col",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "row",
+     "col",
+     "h",
+     "w"
+    ],
+    "condition_text": "shared centre, different size",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 14,
+     "PROCESS": 12,
+     "RELATION": 12,
+     "MEASURE": 12,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 12,
+     "TEST": 14,
+     "RULE": 14,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.row < o2.row",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.row < o2.row",
+     "MEASURE": "o1.row < o2.row",
+     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "offset": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.3 Alignment and orientation",
+   "condition": "a fixed separation maintained",
+   "status": "C — constant delta between positions",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "row",
+    "col",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "row",
+     "col",
+     "h",
+     "w"
+    ],
+    "condition_text": "a fixed separation maintained",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 14,
+     "PROCESS": 12,
+     "RELATION": 12,
+     "MEASURE": 12,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 12,
+     "TEST": 14,
+     "RULE": 14,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.row < o2.row",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.row < o2.row",
+     "MEASURE": "o1.row < o2.row",
+     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "symmetric": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.3 Alignment and orientation",
+   "condition": "one is the other under reflection, rotation or translation",
+   "status": "— needs the offset frozenset, which is computed and unpublished",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape"
+    ],
+    "condition_text": "one is the other under reflection, rotation or translation",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 3,
+     "RELATION": 1,
+     "MEASURE": 1,
+     "CAUSE": 6,
+     "RESULT": 6,
+     "INSTRUMENT": 3,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 6
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
+    }
+   }
+  },
+  "congruent": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.3 Alignment and orientation",
+   "condition": "same shape and size, after moving",
+   "status": "C — equal shape ids, the one relation the label can carry",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape"
+    ],
+    "condition_text": "same shape and size, after moving",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 3,
+     "RELATION": 1,
+     "MEASURE": 1,
+     "CAUSE": 6,
+     "RESULT": 6,
+     "INSTRUMENT": 3,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 6
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
+    }
+   }
+  },
+  "similar": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.3 Alignment and orientation",
+   "condition": "same shape, different size",
+   "status": "— the same erasure, under scaling",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape"
+    ],
+    "condition_text": "same shape, different size",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 3,
+     "RELATION": 1,
+     "MEASURE": 1,
+     "CAUSE": 6,
+     "RESULT": 6,
+     "INSTRUMENT": 3,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 6
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
+    }
+   }
+  },
+  "occluding": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.4 Visibility",
+   "condition": "one blocks part of another from a viewpoint",
+   "status": "—",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape"
+    ],
+    "condition_text": "one blocks part of another from a viewpoint",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 3,
+     "RELATION": 1,
+     "MEASURE": 1,
+     "CAUSE": 6,
+     "RESULT": 6,
+     "INSTRUMENT": 3,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 6
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
+    }
+   }
+  },
+  "adjacent": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.4 Visibility",
+   "condition": "next to, possibly sharing a boundary",
+   "status": "C — contact or distance one",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": "next to, possibly sharing a boundary",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "interlocked": {
+   "part": "Part 1 — Static relations: where two things are",
+   "section": "1.4 Visibility",
+   "condition": "cannot separate without passing through",
+   "status": "— needs a motion test, not a static one",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape"
+    ],
+    "condition_text": "cannot separate without passing through",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 3,
+     "RELATION": 1,
+     "MEASURE": 1,
+     "CAUSE": 6,
+     "RESULT": 6,
+     "INSTRUMENT": 3,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 6
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
+    }
+   }
+  },
+  "no relative motion": {
+   "part": "Part 2 — Relative motion: how one moves with respect to another",
+   "section": "1.4 Visibility",
+   "condition": "deltas equal",
+   "status": "C",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": "deltas equal",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "translation": {
+   "part": "Part 2 — Relative motion: how one moves with respect to another",
+   "section": "1.4 Visibility",
+   "condition": "relative position changes, orientation does not",
+   "status": "C — delta differs, shape id constant",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": "relative position changes, orientation does not",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "rotation": {
+   "part": "Part 2 — Relative motion: how one moves with respect to another",
+   "section": "1.4 Visibility",
+   "condition": "relative orientation changes",
+   "status": "— the same erasure, under rotation",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape"
+    ],
+    "condition_text": "relative orientation changes",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 3,
+     "RELATION": 1,
+     "MEASURE": 1,
+     "CAUSE": 6,
+     "RESULT": 6,
+     "INSTRUMENT": 3,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 6
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
+    }
+   }
+  },
+  "rolling": {
+   "part": "Part 3 — Constraint: what one body prevents another from doing",
+   "section": "1.4 Visibility",
+   "what it removes": "translation and rotation independently",
+   "on a grid": "wheel on ground",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 3,
+     "RELATION": 1,
+     "MEASURE": 1,
+     "CAUSE": 6,
+     "RESULT": 6,
+     "INSTRUMENT": 3,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 6
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
+    }
+   }
+  },
+  "sliding": {
+   "part": "Part 2 — Relative motion: how one moves with respect to another",
+   "section": "1.4 Visibility",
+   "condition": "contact maintained, tangential relative motion",
+   "status": "C — touching persists and deltas differ",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": "contact maintained, tangential relative motion",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "spinning": {
+   "part": "Part 2 — Relative motion: how one moves with respect to another",
+   "section": "1.4 Visibility",
+   "condition": "rotation at the contact region",
+   "status": "—",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape"
+    ],
+    "condition_text": "rotation at the contact region",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 3,
+     "RELATION": 1,
+     "MEASURE": 1,
+     "CAUSE": 6,
+     "RESULT": 6,
+     "INSTRUMENT": 3,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 6
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
+    }
+   }
+  },
+  "orbiting": {
+   "part": "Part 2 — Relative motion: how one moves with respect to another",
+   "section": "1.4 Visibility",
+   "condition": "one circles the other",
+   "status": "C — distance constant, direction cycling",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": "one circles the other",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "oscillating": {
+   "part": "Part 2 — Relative motion: how one moves with respect to another",
+   "section": "1.4 Visibility",
+   "condition": "relative motion reverses periodically",
+   "status": "C — delta sign alternates",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": "relative motion reverses periodically",
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "fixed": {
+   "part": "Part 3 — Constraint: what one body prevents another from doing",
+   "section": "1.4 Visibility",
+   "what it removes": "all relative motion",
+   "on a grid": "two cells that always move together",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "contact": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.3 Collision, as a sequence",
+   "observable": "touching becomes true",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "touching",
+    "contact",
+    "bbox"
+   ],
+   "substrate": [
+    "network",
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "touching",
+     "contact",
+     "bbox"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 4,
+     "PROCESS": 9,
+     "RELATION": 2,
+     "MEASURE": 2,
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 4,
+     "AGENT": 24
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.dcontact != 0",
+     "RELATION": "contact(o1, o2) > 0",
+     "MEASURE": "contact(o1, o2) > 0",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+    }
+   }
+  },
+  "distance": {
+   "part": "Part 3 — Constraint: what one body prevents another from doing",
+   "section": "1.4 Visibility",
+   "what it removes": "separation beyond a bound",
+   "on a grid": "a tether or rod",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "cable": {
+   "part": "Part 3 — Constraint: what one body prevents another from doing",
+   "section": "1.4 Visibility",
+   "what it removes": "separation only; compression free",
+   "on a grid": "pull but do not push",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "revolute": {
+   "part": "Part 3 — Constraint: what one body prevents another from doing",
+   "section": "1.4 Visibility",
+   "what it removes": "all but one rotation",
+   "on a grid": "a pivot",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "prismatic": {
+   "part": "Part 3 — Constraint: what one body prevents another from doing",
+   "section": "1.4 Visibility",
+   "what it removes": "all but one translation",
+   "on a grid": "a slot or rail",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "planar": {
+   "part": "Part 3 — Constraint: what one body prevents another from doing",
+   "section": "1.4 Visibility",
+   "what it removes": "motion off a plane",
+   "on a grid": "a floor",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "normal": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.1 Contact forces",
+   "direction": "perpendicular to the contact",
+   "detectable as": "a blocked move",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "friction, static": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.1 Contact forces",
+   "direction": "tangential, prevents slip",
+   "detectable as": "a move that fails while touching",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "friction, kinetic": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.1 Contact forces",
+   "direction": "tangential, during slip",
+   "detectable as": "motion slower than the action commands",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "rolling resistance": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.1 Contact forces",
+   "direction": "opposes rolling",
+   "detectable as": "—",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape"
+   ],
+   "substrate": [
+    "space"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 2,
+     "PROCESS": 3,
+     "RELATION": 1,
+     "MEASURE": 1,
+     "CAUSE": 6,
+     "RESULT": 6,
+     "INSTRUMENT": 3,
+     "TEST": 2,
+     "RULE": 2,
+     "AGENT": 6
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
+    }
+   }
+  },
+  "tension": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.1 Contact forces",
+   "direction": "pull along a connector",
+   "detectable as": "two objects moving together at a distance",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "compression": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.3 Collision, as a sequence",
+   "observable": "shapes deform, or deltas go to zero",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "spring": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.1 Contact forces",
+   "direction": "proportional to displacement",
+   "detectable as": "delta proportional to separation",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "damping": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.1 Contact forces",
+   "direction": "opposes relative velocity",
+   "detectable as": "delta decaying over frames",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "impact": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.1 Contact forces",
+   "direction": "large, brief",
+   "detectable as": "a single-frame delta far above the usual",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "gravity": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.2 Field interactions, and why they matter here",
+   "contact required": "no",
+   "on a grid": "a persistent delta in one direction absent support",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "electric, magnetic": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.2 Field interactions, and why they matter here",
+   "contact required": "no",
+   "on a grid": "attraction or repulsion by distance",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "buoyancy": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.2 Field interactions, and why they matter here",
+   "contact required": "no, mediated",
+   "on a grid": "a delta against the gravitational one under a condition",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "radiation, thermal": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.2 Field interactions, and why they matter here",
+   "contact required": "no",
+   "on a grid": "a value changing with proximity",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching",
+    "action"
+   ],
+   "substrate": [
+    "energy",
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching",
+     "action"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 10,
+     "TEST": 10,
+     "RULE": 10,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "approach": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.3 Collision, as a sequence",
+   "observable": "distance decreasing",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "exchange": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.3 Collision, as a sequence",
+   "observable": "momentum transfers: one delta drops, another rises",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "separate or stick": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.3 Collision, as a sequence",
+   "observable": "touching becomes false, or both deltas match thereafter",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "elastic": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.3 Collision, as a sequence",
+   "ratio": "1",
+   "after": "both move, energy preserved",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "inelastic": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.3 Collision, as a sequence",
+   "ratio": "between 0 and 1",
+   "after": "both move, some lost",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "perfectly inelastic": {
+   "part": "Part 4 — Interaction: what one does to another",
+   "section": "4.3 Collision, as a sequence",
+   "ratio": "0",
+   "after": "they move as one",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "drow",
+    "dcol",
+    "touching"
+   ],
+   "substrate": [
+    "network",
+    "space",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "drow",
+     "dcol",
+     "touching"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 8,
+     "PROCESS": 9,
+     "RELATION": 4,
+     "MEASURE": 4,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 8,
+     "RULE": 8,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "touching(o1, o2) == 1",
+     "PROCESS": "o1.drow != 0",
+     "RELATION": "o1.drow == o2.drow",
+     "MEASURE": "o1.drow == o2.drow",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+    }
+   }
+  },
+  "deformation": {
+   "part": "Part 5 — Non-rigid interaction",
+   "section": "4.3 Collision, as a sequence",
+   "what breaks": "shape is not invariant under motion",
+   "on a grid": "shape id changes while the object persists",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape",
+    "dcells",
+    "came",
+    "gone",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape",
+     "dcells",
+     "came",
+     "gone",
+     "h",
+     "w"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 20,
+     "PROCESS": 14,
+     "RELATION": 9,
+     "MEASURE": 9,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 14,
+     "TEST": 20,
+     "RULE": 20,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dcells != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
+    }
+   }
+  },
+  "fragmentation": {
+   "part": "Part 5 — Non-rigid interaction",
+   "section": "4.3 Collision, as a sequence",
+   "what breaks": "one object becomes several",
+   "on a grid": "one component becomes two — `Separate = Decompose + Co`",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape",
+    "dcells",
+    "came",
+    "gone",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape",
+     "dcells",
+     "came",
+     "gone",
+     "h",
+     "w"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 20,
+     "PROCESS": 14,
+     "RELATION": 9,
+     "MEASURE": 9,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 14,
+     "TEST": 20,
+     "RULE": 20,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dcells != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
+    }
+   }
+  },
+  "merging": {
+   "part": "Part 5 — Non-rigid interaction",
+   "section": "4.3 Collision, as a sequence",
+   "what breaks": "several become one",
+   "on a grid": "two components become one — `Merge`, and the seam is gone",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape",
+    "dcells",
+    "came",
+    "gone",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape",
+     "dcells",
+     "came",
+     "gone",
+     "h",
+     "w"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 20,
+     "PROCESS": 14,
+     "RELATION": 9,
+     "MEASURE": 9,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 14,
+     "TEST": 20,
+     "RULE": 20,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dcells != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
+    }
+   }
+  },
+  "accretion": {
+   "part": "Part 5 — Non-rigid interaction",
+   "section": "4.3 Collision, as a sequence",
+   "what breaks": "one grows by absorbing another",
+   "on a grid": "extent increases as another's disappears",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape",
+    "dcells",
+    "came",
+    "gone",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape",
+     "dcells",
+     "came",
+     "gone",
+     "h",
+     "w"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 20,
+     "PROCESS": 14,
+     "RELATION": 9,
+     "MEASURE": 9,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 14,
+     "TEST": 20,
+     "RULE": 20,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dcells != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
+    }
+   }
+  },
+  "erosion": {
+   "part": "Part 5 — Non-rigid interaction",
+   "section": "4.3 Collision, as a sequence",
+   "what breaks": "one shrinks without an absorber",
+   "on a grid": "extent decreases, nothing gains",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape",
+    "dcells",
+    "came",
+    "gone",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape",
+     "dcells",
+     "came",
+     "gone",
+     "h",
+     "w"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 20,
+     "PROCESS": 14,
+     "RELATION": 9,
+     "MEASURE": 9,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 14,
+     "TEST": 20,
+     "RULE": 20,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dcells != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
+    }
+   }
+  },
+  "flow": {
+   "part": "Part 5 — Non-rigid interaction",
+   "section": "4.3 Collision, as a sequence",
+   "what breaks": "no fixed shape at all",
+   "on a grid": "a region that changes shape and conserves area",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape",
+    "dcells",
+    "came",
+    "gone",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape",
+     "dcells",
+     "came",
+     "gone",
+     "h",
+     "w"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 20,
+     "PROCESS": 14,
+     "RELATION": 9,
+     "MEASURE": 9,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 14,
+     "TEST": 20,
+     "RULE": 20,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dcells != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
+    }
+   }
+  },
+  "phase change": {
+   "part": "Part 5 — Non-rigid interaction",
+   "section": "4.3 Collision, as a sequence",
+   "what breaks": "the kind changes at a threshold",
+   "on a grid": "`Melt`, `Freeze`, `Boil` — one formula, three substances",
+   "kind": "RELATION",
+   "arity": 2,
+   "reads": [
+    "shape",
+    "dcells",
+    "came",
+    "gone",
+    "h",
+    "w"
+   ],
+   "substrate": [
+    "space",
+    "spectrum",
+    "time"
+   ],
+   "run": {
+    "route": "GROUNDED",
+    "lit_by": [
+     "shape",
+     "dcells",
+     "came",
+     "gone",
+     "h",
+     "w"
+    ],
+    "condition_text": null,
+    "held_as": "a two-place frame filled by two objects (NSM_GRAMMAR: TOUCH(X,Y)); settled by the ground"
+   },
+   "roles": {
+    "default": "RELATION",
+    "available": {
+     "STATE": 20,
+     "PROCESS": 14,
+     "RELATION": 9,
+     "MEASURE": 9,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 14,
+     "TEST": 20,
+     "RULE": 20,
+     "AGENT": 36
+    },
+    "example": {
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dcells != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "MEASURE": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dcells != 0"
+    }
+   }
+  }
+ }
+}

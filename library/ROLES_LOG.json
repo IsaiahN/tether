@@ -1,0 +1,921 @@
+{
+ "roles_assigned": [
+  [
+   "ACOUSTIC|Chladni",
+   "ACOUSTIC|Chladni pattern",
+   "RULE"
+  ],
+  [
+   "ACOUSTIC|Damping",
+   "ACOUSTIC|Damping material",
+   "INSTRUMENT"
+  ],
+  [
+   "ACOUSTIC|Resonance",
+   "ACOUSTIC|Resonance freq",
+   "MEASURE"
+  ],
+  [
+   "ADHERENCE|Allegiance",
+   "ADHERENCE|Allegiance crisis",
+   "STATE"
+  ],
+  [
+   "ADHERENCE|Covenant",
+   "ADHERENCE|Covenant bind",
+   "RELATION"
+  ],
+  [
+   "ADHERENCE|Fidelity",
+   "ADHERENCE|Fidelity test",
+   "TEST"
+  ],
+  [
+   "ADHERENCE|Loyalty",
+   "ADHERENCE|Loyalty dilemma",
+   "STATE"
+  ],
+  [
+   "ADHERENCE|Promise",
+   "ADHERENCE|Promise break",
+   "PROCESS"
+  ],
+  [
+   "AESTHETIC|Gestalt",
+   "AESTHETIC|Gestalt switch",
+   "PROCESS"
+  ],
+  [
+   "AUTOMATON|Automaton",
+   "AUTOMATON|Automaton network",
+   "RELATION"
+  ],
+  [
+   "AUTOMATON|Program",
+   "AUTOMATON|Program loop",
+   "PROCESS"
+  ],
+  [
+   "CELLULAR|Bacteriophage",
+   "CELLULAR|Bacteriophage cycle",
+   "PROCESS"
+  ],
+  [
+   "CELLULAR|Horizontal",
+   "CELLULAR|Horizontal transfer",
+   "PROCESS"
+  ],
+  [
+   "CHARACTER|Authenticity",
+   "CHARACTER|Authenticity break",
+   "PROCESS"
+  ],
+  [
+   "CHARACTER|Conscience",
+   "CHARACTER|Conscience call",
+   "CAUSE"
+  ],
+  [
+   "CHARACTER|Identity",
+   "CHARACTER|Identity formation",
+   "PROCESS"
+  ],
+  [
+   "CHARACTER|Integrity",
+   "CHARACTER|Integrity check",
+   "TEST"
+  ],
+  [
+   "CHARACTER|Reputation",
+   "CHARACTER|Reputation build",
+   "PROCESS"
+  ],
+  [
+   "CHEMICAL|energy",
+   "CHEMICAL|energy flow",
+   "PROCESS"
+  ],
+  [
+   "CHOICE|Regret",
+   "CHOICE|Regret calc",
+   "TEST"
+  ],
+  [
+   "CONNECTION|Network",
+   "CONNECTION|Network effect",
+   "RESULT"
+  ],
+  [
+   "CONNECTION|Resonance",
+   "CONNECTION|Resonance field",
+   "MEASURE"
+  ],
+  [
+   "CURIOSITY|Curiosity",
+   "CURIOSITY|Curiosity cycle",
+   "PROCESS"
+  ],
+  [
+   "CURIOSITY|Discovery",
+   "CURIOSITY|Discovery thrill",
+   "CAUSE"
+  ],
+  [
+   "CURIOSITY|Exploration",
+   "CURIOSITY|Exploration drive",
+   "CAUSE"
+  ],
+  [
+   "CURIOSITY|Information Gap",
+   "CURIOSITY|Information gap anxiety",
+   "STATE"
+  ],
+  [
+   "CURIOSITY|Mystery",
+   "CURIOSITY|Mystery maintenance",
+   "STATE"
+  ],
+  [
+   "CURIOSITY|Surprise",
+   "CURIOSITY|Surprise inquiry",
+   "TEST"
+  ],
+  [
+   "CYBERNETIC|Feedback",
+   "CYBERNETIC|Feedback delay",
+   "PROCESS"
+  ],
+  [
+   "CYBERNETIC|Integral",
+   "CYBERNETIC|Integral windup",
+   "PROCESS"
+  ],
+  [
+   "DESIRE|Aspiration",
+   "DESIRE|Aspiration hold",
+   "STATE"
+  ],
+  [
+   "DESIRE|Craving",
+   "DESIRE|Craving urge",
+   "CAUSE"
+  ],
+  [
+   "DESIRE|Desire",
+   "DESIRE|Desire fatigue",
+   "MEASURE"
+  ],
+  [
+   "DESIRE|Frustration",
+   "DESIRE|Frustration loop",
+   "PROCESS"
+  ],
+  [
+   "DESIRE|Satisfaction",
+   "DESIRE|Satisfaction reach",
+   "MEASURE"
+  ],
+  [
+   "DYNAMIC|Latency",
+   "DYNAMIC|Latency wins",
+   "RESULT"
+  ],
+  [
+   "ELECTRICAL|Resistance",
+   "ELECTRICAL|Resistance law",
+   "RULE"
+  ],
+  [
+   "EMBODIMENT|Vestibular",
+   "EMBODIMENT|Vestibular habituation",
+   "PROCESS"
+  ],
+  [
+   "EMBODIMENT|Visual",
+   "EMBODIMENT|Visual Feedback",
+   "PROCESS"
+  ],
+  [
+   "EMOTION|Affect",
+   "EMOTION|Affect heuristic",
+   "RULE"
+  ],
+  [
+   "EMOTION|Arousal",
+   "EMOTION|Arousal judge",
+   "TEST"
+  ],
+  [
+   "EMOTION|Social",
+   "EMOTION|Social contagion",
+   "PROCESS"
+  ],
+  [
+   "EMOTION|Surprise",
+   "EMOTION|Surprise update",
+   "PROCESS"
+  ],
+  [
+   "EMOTION|Valence",
+   "EMOTION|Valence judge",
+   "TEST"
+  ],
+  [
+   "EXCHANGE|Exchange",
+   "EXCHANGE|Exchange rate",
+   "MEASURE"
+  ],
+  [
+   "FLUID|Laminar",
+   "FLUID|Laminar flow",
+   "PROCESS"
+  ],
+  [
+   "FLUID|Turbulent",
+   "FLUID|Turbulent flow",
+   "PROCESS"
+  ],
+  [
+   "HABIT|Environment",
+   "HABIT|Environment cue",
+   "CAUSE"
+  ],
+  [
+   "HABIT|Novelty",
+   "HABIT|Novelty override",
+   "PROCESS"
+  ],
+  [
+   "HABIT|Pattern",
+   "HABIT|Pattern lock",
+   "STATE"
+  ],
+  [
+   "HABIT|The groove",
+   "HABIT|The groove carver",
+   "AGENT"
+  ],
+  [
+   "HABIT|Trigger",
+   "HABIT|Trigger net",
+   "RELATION"
+  ],
+  [
+   "LINEAGE|Legacy",
+   "LINEAGE|Legacy build",
+   "PROCESS"
+  ],
+  [
+   "LINEAGE|Lineage",
+   "LINEAGE|Lineage burden",
+   "STATE"
+  ],
+  [
+   "LINGUISTIC|Discourse",
+   "LINGUISTIC|Discourse grammar",
+   "INSTRUMENT"
+  ],
+  [
+   "LIVING|electrical",
+   "LIVING|electrical signal",
+   "CAUSE"
+  ],
+  [
+   "LOGISTICAL|Bottleneck",
+   "LOGISTICAL|Bottleneck analysis",
+   "TEST"
+  ],
+  [
+   "LOGISTICAL|Schedule",
+   "LOGISTICAL|Schedule task",
+   "STATE"
+  ],
+  [
+   "LOGISTICAL|Supply Chain",
+   "LOGISTICAL|Supply chain map",
+   "INSTRUMENT"
+  ],
+  [
+   "LUDIC / ABSURDIST|Absurd",
+   "LUDIC / ABSURDIST|Absurd situation",
+   "STATE"
+  ],
+  [
+   "MATERIAL|Fatigue",
+   "MATERIAL|Fatigue cycle",
+   "PROCESS"
+  ],
+  [
+   "MATERIAL|Hardness",
+   "MATERIAL|Hardness test",
+   "TEST"
+  ],
+  [
+   "MEDICAL|Contagion",
+   "MEDICAL|Contagion spread",
+   "PROCESS"
+  ],
+  [
+   "MEDICAL|Healing",
+   "MEDICAL|Healing process",
+   "PROCESS"
+  ],
+  [
+   "ONTOLOGICAL|Reality",
+   "ONTOLOGICAL|Reality check",
+   "TEST"
+  ],
+  [
+   "PATHOLOGICAL|Endurance",
+   "PATHOLOGICAL|Endurance limit",
+   "MEASURE"
+  ],
+  [
+   "REBELLION|Heresy",
+   "REBELLION|Heresy cascade",
+   "PROCESS"
+  ],
+  [
+   "REBELLION|Subversion",
+   "REBELLION|Subversion loop",
+   "PROCESS"
+  ],
+  [
+   "SKILL|Performance",
+   "SKILL|Performance anxiety",
+   "STATE"
+  ],
+  [
+   "SOCIAL|Reputation",
+   "SOCIAL|Reputation cascade",
+   "PROCESS"
+  ],
+  [
+   "SOMNIAL|Unconscious",
+   "SOMNIAL|Unconscious process",
+   "PROCESS"
+  ]
+ ],
+ "unclassified": [
+  {
+   "pair": [
+    "ACOUSTIC|Reflection",
+    "ACOUSTIC|Reflection ac"
+   ],
+   "added": "ac"
+  },
+  {
+   "pair": [
+    "ADHERENCE|Discipline",
+    "ADHERENCE|Discipline act"
+   ],
+   "added": "act"
+  },
+  {
+   "pair": [
+    "AESTHETIC|Proportion",
+    "AESTHETIC|Proportional division"
+   ],
+   "added": "al division"
+  },
+  {
+   "pair": [
+    "AESTHETIC|Rhythm",
+    "AESTHETIC|Rhythmic asymmetry"
+   ],
+   "added": "ic asymmetry"
+  },
+  {
+   "pair": [
+    "ALEATORY|Entropy",
+    "ALEATORY|Entropy (stochastic)"
+   ],
+   "added": "(stochastic)"
+  },
+  {
+   "pair": [
+    "AUTOMATON|Process",
+    "AUTOMATON|Process optimisation"
+   ],
+   "added": "optimisation"
+  },
+  {
+   "pair": [
+    "CELLULAR|Antibiotic",
+    "CELLULAR|Antibiotic action"
+   ],
+   "added": "action"
+  },
+  {
+   "pair": [
+    "CELLULAR|Biofilm",
+    "CELLULAR|Biofilm city"
+   ],
+   "added": "city"
+  },
+  {
+   "pair": [
+    "CELLULAR|Microbiome",
+    "CELLULAR|Microbiome gut brain"
+   ],
+   "added": "gut brain"
+  },
+  {
+   "pair": [
+    "CHARACTER|Virtue",
+    "CHARACTER|Virtue act"
+   ],
+   "added": "act"
+  },
+  {
+   "pair": [
+    "CHEMICAL|template",
+    "CHEMICAL|Templated copying"
+   ],
+   "added": "d copying"
+  },
+  {
+   "pair": [
+    "CHOICE|Commitment",
+    "CHOICE|Commitment act"
+   ],
+   "added": "act"
+  },
+  {
+   "pair": [
+    "CHOICE|Regret calc",
+    "CHOICE|Regret calculation"
+   ],
+   "added": "ulation"
+  },
+  {
+   "pair": [
+    "CONNECTION|Affinity",
+    "CONNECTION|Affinity draw"
+   ],
+   "added": "draw"
+  },
+  {
+   "pair": [
+    "CURIOSITY|Wonder",
+    "CURIOSITY|Wonder awe"
+   ],
+   "added": "awe"
+  },
+  {
+   "pair": [
+    "CYBERNETIC|Disturbance",
+    "CYBERNETIC|Disturbance rejection"
+   ],
+   "added": "rejection"
+  },
+  {
+   "pair": [
+    "DESIRE|Wanting",
+    "DESIRE|Wanting (vs. Liking)"
+   ],
+   "added": "(vs. Liking)"
+  },
+  {
+   "pair": [
+    "EMOTION|Emotion",
+    "EMOTION|Emotional cascade"
+   ],
+   "added": "al cascade"
+  },
+  {
+   "pair": [
+    "HABIT|Inertia",
+    "HABIT|Inertia cont"
+   ],
+   "added": "cont"
+  },
+  {
+   "pair": [
+    "LEARNING|Storage",
+    "LEARNING|Storage (Learning)"
+   ],
+   "added": "(Learning)"
+  },
+  {
+   "pair": [
+    "LEARNING|Transfer",
+    "LEARNING|Transfer (Learning)"
+   ],
+   "added": "(Learning)"
+  },
+  {
+   "pair": [
+    "LINGUISTIC|Metaphor",
+    "LINGUISTIC|Metaphor grounding"
+   ],
+   "added": "grounding"
+  },
+  {
+   "pair": [
+    "LINGUISTIC|Narrative",
+    "LINGUISTIC|Narrative arc"
+   ],
+   "added": "arc"
+  },
+  {
+   "pair": [
+    "LIVING|environment",
+    "LIVING|Environmental expression"
+   ],
+   "added": "al expression"
+  },
+  {
+   "pair": [
+    "LIVING|Selection",
+    "LIVING|Selection over generations"
+   ],
+   "added": "over generations"
+  },
+  {
+   "pair": [
+    "LIVING|Transport",
+    "LIVING|Transport fluid"
+   ],
+   "added": "fluid"
+  },
+  {
+   "pair": [
+    "LOGISTICAL|Dispatching",
+    "LOGISTICAL|Dispatching AI"
+   ],
+   "added": "AI"
+  },
+  {
+   "pair": [
+    "LOGISTICAL|Inventory",
+    "LOGISTICAL|Inventory optimisation"
+   ],
+   "added": "optimisation"
+  },
+  {
+   "pair": [
+    "LUDIC / ABSURDIST|Laughter",
+    "LUDIC / ABSURDIST|Laughter as meaning"
+   ],
+   "added": "as meaning"
+  },
+  {
+   "pair": [
+    "LUDIC / ABSURDIST|The jester",
+    "LUDIC / ABSURDIST|The jester universe"
+   ],
+   "added": "universe"
+  },
+  {
+   "pair": [
+    "LUDOLOGICAL|Metagame",
+    "LUDOLOGICAL|Metagame theory"
+   ],
+   "added": "theory"
+  },
+  {
+   "pair": [
+    "LUDOLOGICAL|Voluntary",
+    "LUDOLOGICAL|Voluntary play"
+   ],
+   "added": "play"
+  },
+  {
+   "pair": [
+    "MATERIAL|Brittle",
+    "MATERIAL|Brittle failure"
+   ],
+   "added": "failure"
+  },
+  {
+   "pair": [
+    "MATERIAL|Ductile",
+    "MATERIAL|Ductile failure"
+   ],
+   "added": "failure"
+  },
+  {
+   "pair": [
+    "MATERIAL|Stress",
+    "MATERIAL|Stress concentration"
+   ],
+   "added": "concentration"
+  },
+  {
+   "pair": [
+    "MEDICAL|Chronic",
+    "MEDICAL|Chronic disease"
+   ],
+   "added": "disease"
+  },
+  {
+   "pair": [
+    "MEDICAL|Inflammatory",
+    "MEDICAL|Inflammatory response"
+   ],
+   "added": "response"
+  },
+  {
+   "pair": [
+    "MEDICAL|Tissue",
+    "MEDICAL|Tissue engineering"
+   ],
+   "added": "engineering"
+  },
+  {
+   "pair": [
+    "MORPHOGENETIC|Diffusion",
+    "MORPHOGENETIC|DIFFUSION Driven INSTAB"
+   ],
+   "added": "Driven INSTAB"
+  },
+  {
+   "pair": [
+    "MORPHOGENETIC|Reaction",
+    "MORPHOGENETIC|Reaction diffusion"
+   ],
+   "added": "diffusion"
+  },
+  {
+   "pair": [
+    "NETWORK|Centrality",
+    "NETWORK|Centrality measure"
+   ],
+   "added": "measure"
+  },
+  {
+   "pair": [
+    "NETWORK|Connect",
+    "NETWORK|Connection"
+   ],
+   "added": "ion"
+  },
+  {
+   "pair": [
+    "NOETIC|Insight",
+    "NOETIC|Insight moment"
+   ],
+   "added": "moment"
+  },
+  {
+   "pair": [
+    "NOETIC|Non-judgment",
+    "NOETIC|Non-judgmental reframe"
+   ],
+   "added": "al reframe"
+  },
+  {
+   "pair": [
+    "NOETIC|Surrender",
+    "NOETIC|Surrender control"
+   ],
+   "added": "control"
+  },
+  {
+   "pair": [
+    "ONTOLOGICAL|Illusion",
+    "ONTOLOGICAL|Illusion pierce"
+   ],
+   "added": "pierce"
+  },
+  {
+   "pair": [
+    "ONTOLOGICAL|Simulation",
+    "ONTOLOGICAL|Simulation argument"
+   ],
+   "added": "argument"
+  },
+  {
+   "pair": [
+    "OPTICAL|Periscope",
+    "OPTICAL|Periscope array"
+   ],
+   "added": "array"
+  },
+  {
+   "pair": [
+    "PATHOLOGICAL|Suffering",
+    "PATHOLOGICAL|Suffering wisdom"
+   ],
+   "added": "wisdom"
+  },
+  {
+   "pair": [
+    "PATHOLOGICAL|Trauma",
+    "PATHOLOGICAL|Trauma integration"
+   ],
+   "added": "integration"
+  },
+  {
+   "pair": [
+    "PHENOMENOLOGICAL|Horizon",
+    "PHENOMENOLOGICAL|Horizon awareness"
+   ],
+   "added": "awareness"
+  },
+  {
+   "pair": [
+    "PHENOMENOLOGICAL|Presence",
+    "PHENOMENOLOGICAL|Presence feel"
+   ],
+   "added": "feel"
+  },
+  {
+   "pair": [
+    "PSYCHOLOGICAL|action",
+    "PSYCHOLOGICAL|action mismatched"
+   ],
+   "added": "mismatched"
+  },
+  {
+   "pair": [
+    "QUANTUM|Tunnel",
+    "QUANTUM|Tunnelling"
+   ],
+   "added": "ling"
+  },
+  {
+   "pair": [
+    "RAW DATA|Density",
+    "RAW DATA|Density gradient"
+   ],
+   "added": "gradient"
+  },
+  {
+   "pair": [
+    "REBELLION|Courage",
+    "REBELLION|Courage under fire"
+   ],
+   "added": "under fire"
+  },
+  {
+   "pair": [
+    "REBELLION|Insurrection",
+    "REBELLION|Insurrection ecology"
+   ],
+   "added": "ecology"
+  },
+  {
+   "pair": [
+    "REBELLION|Principle",
+    "REBELLION|Principled Disobedience"
+   ],
+   "added": "d Disobedience"
+  },
+  {
+   "pair": [
+    "REBELLION|Revolution",
+    "REBELLION|Revolutionary act"
+   ],
+   "added": "ary act"
+  },
+  {
+   "pair": [
+    "SKILL|Improvisation",
+    "SKILL|Improvisational mastery"
+   ],
+   "added": "al mastery"
+  },
+  {
+   "pair": [
+    "SKILL|Precision",
+    "SKILL|Precision timing"
+   ],
+   "added": "timing"
+  },
+  {
+   "pair": [
+    "SKILL|Refine",
+    "SKILL|Refinement"
+   ],
+   "added": "ment"
+  },
+  {
+   "pair": [
+    "SKILL|Technique",
+    "SKILL|Technique learn"
+   ],
+   "added": "learn"
+  },
+  {
+   "pair": [
+    "SOCIAL|Collective",
+    "SOCIAL|Collective memory"
+   ],
+   "added": "memory"
+  },
+  {
+   "pair": [
+    "SOCIAL|Individual",
+    "SOCIAL|Individuals"
+   ],
+   "added": "s"
+  },
+  {
+   "pair": [
+    "SOMNIAL|Hypnagogia",
+    "SOMNIAL|Hypnagogia state"
+   ],
+   "added": "state"
+  },
+  {
+   "pair": [
+    "SOMNIAL|Nightmare",
+    "SOMNIAL|Nightmare endure"
+   ],
+   "added": "endure"
+  },
+  {
+   "pair": [
+    "TEMPORAL|Rhythm",
+    "TEMPORAL|Rhythm entrain"
+   ],
+   "added": "entrain"
+  },
+  {
+   "pair": [
+    "THAUMATURGICAL|Cleansing",
+    "THAUMATURGICAL|Cleansing rite"
+   ],
+   "added": "rite"
+  },
+  {
+   "pair": [
+    "THAUMATURGICAL|Ritual",
+    "THAUMATURGICAL|Ritual structure"
+   ],
+   "added": "structure"
+  },
+  {
+   "pair": [
+    "THOUGHT|Abstract",
+    "THOUGHT|Abstraction"
+   ],
+   "added": "ion"
+  },
+  {
+   "pair": [
+    "TOPOLOGICAL|Knot detect",
+    "TOPOLOGICAL|Knot detection"
+   ],
+   "added": "ion"
+  },
+  {
+   "pair": [
+    "TOPOLOGICAL|Möbius",
+    "TOPOLOGICAL|Möbius twist"
+   ],
+   "added": "twist"
+  },
+  {
+   "pair": [
+    "TOPOLOGICAL|Project",
+    "TOPOLOGICAL|Projection"
+   ],
+   "added": "ion"
+  },
+  {
+   "pair": [
+    "TRANSFORMATION|Emerge",
+    "TRANSFORMATION|Emergence"
+   ],
+   "added": "nce"
+  },
+  {
+   "pair": [
+    "TRANSFORMATION|Evolution",
+    "TRANSFORMATION|Evolutionary arms race"
+   ],
+   "added": "ary arms race"
+  },
+  {
+   "pair": [
+    "ZOOLOGICAL|Harmless",
+    "ZOOLOGICAL|Harmless looks dangerous"
+   ],
+   "added": "looks dangerous"
+  },
+  {
+   "pair": [
+    "ZOOLOGICAL|Imprinting",
+    "ZOOLOGICAL|Imprinting phase"
+   ],
+   "added": "phase"
+  },
+  {
+   "pair": [
+    "ZOOLOGICAL|Migration",
+    "ZOOLOGICAL|Migration navigation"
+   ],
+   "added": "navigation"
+  },
+  {
+   "pair": [
+    "ZOOLOGICAL|Territory",
+    "ZOOLOGICAL|Territory mark"
+   ],
+   "added": "mark"
+  }
+ ]
+}

@@ -1,0 +1,2 @@
+library/*.json text eol=lf
+library/BUILD_REPORT.md text eol=lf
