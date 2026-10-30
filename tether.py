@@ -11231,15 +11231,38 @@ class Agent:
         this gap, in valid cells under the current key and stamps, whose record does NOT prove they
         cannot pay at the CURRENT bar -- the stored bound (the cost each was priced at + unit x the
         rows charged on the rows it covers) still below it, _cannot_pay's own lemma. A term wrong
-        on a row may still be the best there is (Fig 9 :40). Ranked by deficit, lowest first."""
+        on a row may still be the best there is (Fig 9 :40). Ranked by deficit, lowest first.
+        r346, r347: read on a CURRENT record -- the bounds re-priced on read (_space_bounds)."""
+        got = self._space_bounds(slot, "reprice")
+        return [] if got is None else self._s1_of(*got)
+
+    @staticmethod
+    def _s1_of(bounds: list, bar: float) -> list:
+        """S1 from a space's bounds: each term with a bound under the bar, by deficit."""
+        out = {}
+        for t, bound in bounds:
+            if bound < bar:
+                out[t] = bound - bar
+        return sorted(out, key=lambda t: (out[t], t.name))
+
+    def _space_bounds(self, slot: str, mode: str) -> tuple | None:
+        """([(term, bound)] over the gap's valid cells in the record's order, the bar), or None
+        where the record cannot judge: no space, or a moved key (r347 (b), P2). "stale": the
+        stored bounds as they are, an upper set since charges only add. "reprice" (r346,
+        r347): a cell under the current bar that was charged on fewer residual rows than the
+        gap now holds -- the residual list only extends while the key holds -- is charged ON
+        READ on exactly the rows it missed, by _cannot_pay's own row test; the record is not
+        rewritten. A cell already at or above the bar is out either way."""
+        self._repriced = (0, 0, 0.0)
         if not _DIVIDE or slot not in self._space:
-            return []
+            return None
         seen = self._tally.get(slot)
         held = self.gamma.library[self.bound.get(slot, IDN)]
         if seen is None or seen[0] != self._divide_key(slot, held):
-            return []
+            return None
+        t0, robs, cells_n, rows_n = time.perf_counter(), None, 0, 0
         bar = self._bar(slot, held)
-        unit, size, out = math.log2(self.alphabet[slot]), None, {}
+        unit, size, out = math.log2(self.alphabet[slot]), None, []
         for cells in (seen[1], seen[2]):
             for t, c in cells.items():
                 if len(c) < 7 or (c[3] is not None and c[3] != self.cycle):
@@ -11249,9 +11272,34 @@ class Agent:
                     if c[5] != size:
                         continue
                 bound = c[6] + unit * c[1]
-                if bound < bar:
-                    out[t] = bound - bar
-        return sorted(out, key=lambda t: (out[t], t.name))
+                if mode == "reprice" and bound < bar:
+                    if robs is None:
+                        robs = self._residual_obs(slot, held, self.history(slot))
+                    if c[0] > len(robs):
+                        return None             # the list shrank under the key: cannot judge
+                    if c[0] < len(robs):
+                        miss = robs[c[0]:]
+                        bound += unit * sum(1 for row in miss if self._row_wrong(t, slot, row))
+                        cells_n, rows_n = cells_n + 1, rows_n + len(miss)
+                out.append((t, bound))
+        self._repriced = (cells_n, rows_n, time.perf_counter() - t0)
+        return out, bar
+
+    def _row_wrong(self, term: Term, slot: str, row: tuple) -> bool:
+        """_cannot_pay's row test on one row: the term is charged there (inapplicable, out of its
+        step range, unreadable, unresolved or wrong). Held to _cannot_pay's own count by
+        test_ask's check_s1_reprice_exact."""
+        state, action, actual, intent, landed = row
+        if not self._applies(term, state) or self._out_of_step_range(term, slot, state, actual):
+            return True
+        ops = self._ops(term, state)
+        if ops is None:
+            return True
+        got = self._value_of(term, slot, state,
+                             self._eval_ctx(slot, state, action=action, operands=ops,
+                                            intent=intent, landed=landed,
+                                            guard_ref=term.guard_ref))
+        return got is NOT_RESOLVED or got % self.alphabet[slot] != actual % self.alphabet[slot]
 
     def _bar(self, slot: str, held: Term) -> float:
         """The bar a challenger pays against now: mint's base (:_accumulated) with the seal's held
@@ -11292,19 +11340,36 @@ class Agent:
         prediction under each offered action, the split as block sizes; the interface takes the
         press whose largest block is smallest, or abstains. With its "ask" row."""
         t0 = time.perf_counter()
-        elig = {}
+        elig = {}                    # the stored (stale) S1: an upper set, charges only add
         for s in sorted(self._space):
-            sv = self._survivors(s)
-            if len(sv) >= 2:
-                elig[s] = sv
+            got = self._space_bounds(s, "stale")
+            n = len(self._s1_of(*got)) if got is not None else 0
+            if n >= 2:
+                elig[s] = n
         if not elig:
             return None, None
-        slot = next(iter(elig))
-        if len(elig) > 1:
-            slot = self._choice("ask", None, [(s, None, None) for s in elig],
-                                {s: self._understanding(s) for s in elig},
-                                {s: self._ask_n[s] for s in elig})
-        sv, acts = elig[slot], tuple(self.actions)
+        # r347 (a): LAZY, in rank order -- the top gap re-priced; under two survivors it is
+        # skipped with its re-priced count, and the next is re-priced
+        order, skipped, slot, sv, rp = list(elig), [], None, [], [0, 0, 0.0]
+        while order:
+            pick = order[0] if len(order) == 1 else self._choice(
+                "ask", None, [(s, None, None) for s in order],
+                {s: self._understanding(s) for s in order}, {s: self._ask_n[s] for s in order})
+            sv = self._survivors(pick)
+            rp = [rp[0] + self._repriced[0], rp[1] + self._repriced[1], rp[2] + self._repriced[2]]
+            if len(sv) >= 2:
+                slot = pick
+                break
+            skipped.append([pick, elig[pick], len(sv)])
+            order.remove(pick)
+        if slot is None:
+            self.led.record(self.cycle, "PLAN", "@ask", "ask_none", gaps_eligible=len(elig),
+                            skipped=skipped, repriced_cells=rp[0], repriced_rows=rp[1],
+                            reprice_s=round(rp[2], 4),
+                            reads="1b: every stored-eligible gap re-priced under two survivors "
+                                  "(r347 (a)); nothing asked")
+            return None, None
+        acts = tuple(self.actions)
         vec = {t: tuple(self._predict_with(t, slot, before, a) for a in acts) for t in sv}
         split = {}
         for i, a in enumerate(acts):
@@ -11316,7 +11381,9 @@ class Agent:
                                withheld=self._withheld, split=split)
         self._ask_abstained = None if r is not None else (slot, len(sv))
         self.led.record(self.cycle, "PLAN", slot, "ask", gaps_eligible=len(elig), gap_asked=slot,
-                        survivors=len(sv), vectors=len(set(vec.values())),
+                        survivors=len(sv), stored_survivors=elig[slot], skipped=skipped,
+                        repriced_cells=rp[0], repriced_rows=rp[1], reprice_s=round(rp[2], 4),
+                        vectors=len(set(vec.values())),
                         chosen=r.action if r is not None else None,
                         partition=split[r.action] if r is not None else None,
                         largest=split[r.action][0] if r is not None else None,

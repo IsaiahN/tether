@@ -39,6 +39,8 @@ import sys
 import tarfile
 import tempfile
 
+from _batch import off_env  # noqa: E402  the batch's arms (r348)
+
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
@@ -404,7 +406,7 @@ def _off_identity(w: str) -> None:
         with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
             tf.extractall(d, filter="data")
         base = _norm(_child(d, w))
-    cur = _norm(_child(root, w, {"TETHER_OWED_REJUDGE": "0"}))
+    cur = _norm(_child(root, w, off_env("TETHER_OWED_REJUDGE")))
     diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base) - len(cur))
     assert len(base) > 50 and diff == 0, (w, len(base), len(cur), next(
         (i for i, (x, y) in enumerate(zip(base, cur, strict=False)) if x != y), None))
