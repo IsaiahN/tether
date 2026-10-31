@@ -23,6 +23,7 @@ import json
 import os
 import sys
 import time
+import weakref
 
 sys.dont_write_bytecode = True
 CODE, OUT, LIN, CARD, QDIR, N, DL, WID = sys.argv[1:9]
@@ -233,9 +234,17 @@ while nxt is not None:
     if MEM_GUARD and SHARE_MB and grow_max is not None:
         c_now = commit_mb()[0]
         if c_now + grow_max > SHARE_MB:
+            old = (weakref.ref(ag), weakref.ref(env)) if os.environ.get("B_TEST_SHARE_MB") else None
             env, ag = rewire(env, ag, ctx, {"commit_mb": c_now, "largest_game_growth_mb": grow_max,
                                             "share_mb": SHARE_MB, "games_played": len(taken) - 1})
             gc.collect()      # the old life is cyclic garbage until collected, and freeing it is the guard's point
+            if old is not None:   # r557, the test only: nothing may still hold the old agent or its world
+                held = [r() for r in old]
+                ag.led.record(ag.cycle, "SETTLE", "@run", "b_mem_guard_test",
+                              old_agent_dead=held[0] is None, old_env_dead=held[1] is None,
+                              holders=[sorted({type(x).__name__ for x in gc.get_referrers(h)}) for h in held
+                                       if h is not None])
+                del held
             memo("rewire", i, g)
     c_game0 = commit_mb()[0] if MEM_GUARD else None
     seq0 = len(ag.led)
