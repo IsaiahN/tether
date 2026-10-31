@@ -40,6 +40,7 @@ import arc_atoms
 import arc_percept
 import arc_predict
 import arc_run
+import armflag
 import behaviour
 import experiment
 import gamma
@@ -55,14 +56,25 @@ from arc_world import ArcWorld
 
 sys.dont_write_bytecode = True
 
+# 13, THE HARNESS'S RESET IS A LEVEL RESET (the reviewer 2026-10-30 r464; Isaiah 20:11; Fig 11 :70,
+# a test harness is a substituted habitat): arcengine's handle_reset makes a RESET on a level with
+# no action yet a FULL reset (level 1, score 0) unless ONLY_RESET_LEVELS is "true", and arc_agi
+# reads that variable when an Arcade is made. Competition play never wipes that way, so local play
+# sets it before any Arcade is made (_mode, the one call before each). Harness only; the agent is
+# untouched.
+# OFF: the variable is left as the environment has it. ON; conform/arms.py
+_HARNESS_LEVEL_RESET = armflag.arm("TETHER_HARNESS_LEVEL_RESET", default=True)
+
 
 def _mode():
     """`OFFLINE` unless `OPERATION_MODE` says otherwise. The package reads that variable itself
     and defaults to `NORMAL`; passing a mode explicitly overrides it, so the default is inverted
-    here and the variable still works."""
+    here and the variable still works. 13: it also sets ONLY_RESET_LEVELS, before the Arcade."""
     import os
 
     from arc_agi.base import OperationMode
+    if _HARNESS_LEVEL_RESET:
+        os.environ["ONLY_RESET_LEVELS"] = "true"
     env = os.getenv("OPERATION_MODE", "").strip().lower()
     ok = ("normal", "online", "offline", "competition")
     return OperationMode(env) if env in ok else OperationMode.OFFLINE

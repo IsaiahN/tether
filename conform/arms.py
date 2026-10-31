@@ -1268,6 +1268,14 @@ ARMS: dict[str, str] = {
                                     "unreached check reads the row as a park with no coverage and "
                                     "refuses the ledger (demo.py on draws c36f0f02, 838dce71, "
                                     "c2377d1e). default ON",
+    "TETHER_HARNESS_LEVEL_RESET": "13 HARNESS_LEVEL_RESET (the reviewer r464 2; Isaiah 2026-10-30 "
+                                  "20:11). HARNESS, never the agent: arc_holdout._mode, the one "
+                                  "call before every Arcade, sets ONLY_RESET_LEVELS=true, so "
+                                  "arcengine's handle_reset makes every RESET a level reset. OFF: "
+                                  "the variable is left as the environment has it, and a RESET on "
+                                  "a level with no action yet (just reached, or right after "
+                                  "another RESET) is a FULL reset to level 1, score 0, which "
+                                  "competition play never does. default ON",
     "TETHER_ASK_ON_BOARD": "11 ASK_ON_BOARD (the reviewer r452 A). In 1b's eligibility loop a "
                            "gap whose slot is not in this step's `before` is not eligible this "
                            "step; it stays in the space and is not released, so it can be asked "
