@@ -1252,6 +1252,14 @@ ARMS: dict[str, str] = {
                             "aliases nothing; OFF never calls forms(). No number. OFF: the counts "
                             "of every object ever seen stay in the per-step Agency, as before. "
                             "default ON",
+    "TETHER_STOP_READ_STEP": "12 STOP_READ_STEP (the reviewer r462, r463; Fig 3 :20). 1c's pass "
+                             "(_stop_rules) runs after the ACCEPT loop and before the step's "
+                             "SETTLE; ON its scope and its four rows (stop_rule, stop_read, "
+                             "split_aim_left, remainder) say ACCEPT, where it sits. Label only: "
+                             "no decision moves, no row is added or dropped. OFF: they say MINT, "
+                             "so a slot that ACCEPTed this cycle reads MINT after ACCEPT and the "
+                             "gate refuses the ledger (demo.py on draws c2377d1e, 838dce71). "
+                             "default ON",
     "TETHER_ASK_ON_BOARD": "11 ASK_ON_BOARD (the reviewer r452 A). In 1b's eligibility loop a "
                            "gap whose slot is not in this step's `before` is not eligible this "
                            "step; it stays in the space and is not released, so it can be asked "

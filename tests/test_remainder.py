@@ -79,10 +79,14 @@ def _remainder(charged: dict, verdict=None, splits=None) -> dict:
         ag._space[slot]["verdict"] = verdict(ag)
     if splits is not None:
         ag._splits = splits
+    import tether
     n0 = len(ag.led.rows())
-    ag._remainder(slot, dict.fromkeys(charged, 1.0), "bound")
+    # in the scope the 1c pass opens (12, TETHER_STOP_READ_STEP: ACCEPT; off, MINT), its only caller
+    step = "ACCEPT" if tether._STOP_READ_STEP else "MINT"
+    with ag._step_scope(step):
+        ag._remainder(slot, dict.fromkeys(charged, 1.0), "bound")
     rows = [r for r in ag.led.rows()[n0:] if r["event"] == "remainder"]
-    assert len(rows) == 1 and rows[0]["slot"] == slot and rows[0]["step"] == "MINT", rows
+    assert len(rows) == 1 and rows[0]["slot"] == slot and rows[0]["step"] == step, rows
     return rows[0]
 
 

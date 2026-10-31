@@ -27,7 +27,8 @@ ARMS = (
     ("TETHER_VIEW_HOLD_SAME_ROLE", "e7a1c8e"),   # wip/finish2 8 (r417)
     ("TETHER_CONTINGENT_ONE_PASS", "b0489bf"),   # wip/finish3 9 (B3, r427)
     ("TETHER_ARRIVAL_ALIAS", "eadee1a"),     # wip/arrival-alias 10 (r428, r431)
-    ("TETHER_ASK_ON_BOARD", "wip"),          # wip/ask-on-board 11 (r452 A)
+    ("TETHER_ASK_ON_BOARD", "3736340"),      # wip/ask-on-board 11 (r452 A)
+    ("TETHER_STOP_READ_STEP", "wip"),        # wip/stop-read-step 12 (r462, r463)
 )
 # A batch arm whose TREE DEFAULT was flipped after later arms landed (r359): (the arm, the last
 # batch arm before the flip, its value before, the flip's commit). An arm under test that landed

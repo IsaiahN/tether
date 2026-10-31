@@ -910,6 +910,12 @@ _ASK_ON_BOARD = armflag.arm("TETHER_ASK_ON_BOARD", default=True)
 # BROKEN (the survivors ran out: the slot owes), SPLIT REFUSED (1b abstained: the gap's owner joins
 # the probe's aim). They stop asking and never bind. Needs TETHER_ASK. ON; conform/arms.py
 _STOP_RULES = armflag.arm("TETHER_STOP_RULES", default=True)
+# 12, 1c's READ IN THE STEP IT RUNS IN (the reviewer 2026-10-30 r462, r463; Fig 3 :20): the pass
+# runs after the ACCEPT loop and before the step's SETTLE, so its scope and its four rows
+# (stop_rule, stop_read, split_aim_left, remainder) say ACCEPT; labelled MINT, a slot that
+# ACCEPTed this cycle read MINT after ACCEPT and the gate refused the ledger. Label only. ON;
+# conform/arms.py
+_STOP_READ_STEP = armflag.arm("TETHER_STOP_READ_STEP", default=True)
 # 1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 :134-139, Fig 9 :4-5, Fig 8
 # :39-42): when 1c finds no survivor, a remainder row names what is left -- two of the last
 # survivors whose charged rows are disjoint (several questions), the gap's kind, and the reach the
@@ -11669,8 +11675,13 @@ class Agent:
                                   "perception, aim the probe at the gap's owner (Fig 5 :12)")
         return r, (slot if r is not None else None)
 
-    @_in_step("MINT")
     def _stop_rules(self) -> None:
+        """12 (TETHER_STOP_READ_STEP): the pass runs, and writes, in the step it sits in -- ACCEPT;
+        OFF in MINT, as before."""
+        with self._step_scope("ACCEPT" if _STOP_READ_STEP else "MINT"):
+            self._stop_rules_pass()
+
+    def _stop_rules_pass(self) -> None:
         """1c, read from each open space after the step (r325, r327): (i) HELD -- one survivor with
         a risky settle on this slot under the current key: the gap leaves 1b; (ii) NONE SURVIVE --
         the space had survivors and has none, judged only where the record is current: the slot
@@ -11727,7 +11738,7 @@ class Agent:
                          "low_before": round(min(prev[0].values()), 4),
                          "low_after": round(min(after), 4) if after else None,
                          "bar_before": round(prev[1], 4), "bar_after": round(bar, 4)}
-            self.led.record(self.cycle, "MINT", s, "stop_rule", rule=rule_row, was=was,
+            self.led.record(self.cycle, self._running_step, s, "stop_rule", rule=rule_row, was=was,
                             survivors=len(sv), term=sv[0].name if len(sv) == 1 else None,
                             **extra,
                             reads="1c: held (one survivor, a risky settle) stops asking; none "
@@ -11736,7 +11747,8 @@ class Agent:
             if rule == "none_survive" and _NAMED_REMAINDER:
                 self._remainder(s, prev[0], extra["cause"])
         if self._space:
-            self.led.record(self.cycle, "MINT", "@stop", "stop_read", spaces=len(self._space),
+            self.led.record(self.cycle, self._running_step, "@stop", "stop_read",
+                            spaces=len(self._space),
                             repriced_cells=rp[0], repriced_rows=rp[1], reprice_s=round(rp[2], 4),
                             reprice_hits=rp[3],
                             reads="1c: this step's read of every open space, re-priced on read "
@@ -11752,7 +11764,8 @@ class Agent:
             del self._split_aim[s]
             if why == "probed":
                 self._split_spent[s] = rkey      # once per refusal (r338): a new one re-enters
-            self.led.record(self.cycle, "MINT", s, "split_aim_left", why=why, owner=owner,
+            self.led.record(self.cycle, self._running_step, s, "split_aim_left", why=why,
+                            owner=owner,
                             aims=len(self._split_aim),
                             **({"before": probed, "after": after} if probed is not None else {}),
                             reads="1c (iii): the probe pressed at the owner, its readings moved, "
@@ -11796,7 +11809,7 @@ class Agent:
         v = sp.get("verdict")
         reach = (None if v is None else "unreached at this budget" if v[0] == "budget_spent"
                  else v[1])
-        self.led.record(self.cycle, "MINT", slot, "remainder", cause=cause,
+        self.led.record(self.cycle, self._running_step, slot, "remainder", cause=cause,
                         population="last_survivors", last_survivors=len(last),
                         uncharged=len(sets.get(frozenset(), ())),
                         unpriced=sum(1 for n in last if n not in terms), charged_sets=len(sets),
