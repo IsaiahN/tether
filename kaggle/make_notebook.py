@@ -16,7 +16,7 @@ import time
 
 T0 = time.time()
 # the competition: a notebook runs at most 9 hours, internet off (the competition page, read 2026-10-30)
-KAGGLE_WALL_S = 9 * 3600
+KAGGLE_WALL_S = float(os.environ.get("NB_WALL_S", 9 * 3600))   # NB_WALL_S: local runs only (a short deadline_at)
 # PLAY's whole-run margin (play_chain.sh: e4b_run.py ... 300); its end path measured 104-119 s (PLAY24 rounds 1-6)
 MARGIN_S = 300
 # rule A's slice (Isaiah 2026-10-23), at the values Isaiah set for Kaggle A 2026-10-30 21:28 ("like 300s-400 seconds")
@@ -205,6 +205,20 @@ if RERUN:
                 print(fh.read()[-6000:])
 '''
 
+RUN_B = RUN.split("    cmd = [")[0].replace('"run_a"', '"run_b"') + '''\
+    cmd = [sys.executable, "-B", os.path.join(CODE, "kaggle", "run_b.py"), CODE, OUT, LIN,
+           repr(DEADLINE_AT)] + ([N_GAMES] if N_GAMES else [])
+    print("run", cmd)
+    p = subprocess.run(cmd, env=env, cwd=CODE, stdin=subprocess.DEVNULL)
+    print(f"run_b rc {p.returncode} wall {time.time() - T0:.1f} s since T0")
+    for f in [os.path.join(OUT, "kaggle_b.json")] + sorted(glob.glob(os.path.join(OUT, "worker_*", "*"))):
+        if os.path.basename(f) in ("kaggle_b.json", "switch.tsv", "stream.result.json", "stream.traceback.txt",
+                                   "worker.log") and os.path.isfile(f):
+            with open(f, encoding="utf-8") as fh:
+                print("=====", f)
+                print(fh.read()[-4000:])
+'''
+
 DUMMY = '''\
 # Non-rerun mode: produce a dummy submission (the competition's sample, its import moved under the test: a rerun
 # never needs pandas)
@@ -231,11 +245,16 @@ A = [("markdown", "# tether, shape A\nOne process, one agent, the games the gate
                   "carries on from that lineage.\n"),
      ("code", PARAMS), ("code", MACHINE), ("code", INSTALL), ("code", FIND), ("code", LINEAGE), ("code", RUN),
      ("code", DUMMY)]
+B = [("markdown", "# tether, shape B\nN processes, each one agent, taking the games the gateway lists from one queue; "
+                  "N is read from this machine's cores and memory, and each game's share of the run from the "
+                  "gateway's count. Every worker loads the same learned lineage and none writes to it.\n"),
+     ("code", PARAMS), ("code", MACHINE), ("code", INSTALL), ("code", FIND), ("code", LINEAGE), ("code", RUN_B),
+     ("code", DUMMY)]
 PROBE = [("markdown", "# machine probe\nCores, memory and interpreter of the submit machine; nothing is played.\n"),
          ("code", PARAMS), ("code", MACHINE), ("code", DUMMY)]
 
 if __name__ == "__main__":
-    for name, cells in (("tether_a.ipynb", A), ("probe_machine.ipynb", PROBE)):
+    for name, cells in (("tether_a.ipynb", A), ("tether_b.ipynb", B), ("probe_machine.ipynb", PROBE)):
         with open(os.path.join(HERE, name), "w", encoding="utf-8", newline="\n") as fh:
             json.dump(nb(cells), fh, indent=1)
             fh.write("\n")
