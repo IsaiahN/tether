@@ -584,6 +584,12 @@ _RUIN_RECORD = armflag.arm("TETHER_RUIN_RECORD", default=True)
 _RUIN = armflag.arm("TETHER_RUIN", default=True)
 if _RUIN and not _RUIN_RECORD:
     raise RuntimeError("TETHER_RUIN reads the veto floor: it needs TETHER_RUIN_RECORD on")
+# 23 NOOP_WITHHOLD (the reviewer r571): a press after which the board's fingerprint is the one it
+# had before adds (fingerprint, action, realised coordinate) to `self._noops`, beside the ruin
+# vetoes, and is withheld on that identical board only, through the same Withheld path; when every
+# option is withheld the interface lifts it, as for the vetoes. Cleared at retarget. It reads the
+# fingerprint and the withhold, so it acts only with TETHER_RUIN. ON; conform/arms.py
+_NOOP_WITHHOLD = armflag.arm("TETHER_NOOP_WITHHOLD", default=True)
 # 7a(5b) THE CONTACT INSTRUMENT (Isaiah 2026-10-10 06:46 CDT; the reviewer 11:46Z, 12:27Z). ON;
 # reason in conform/arms.py. Record only: `gamma_read["fed"]` names, by seq, each library term read
 # by the exit whose action is RETURNED, with its role (goal: it chose what to reach; route: its
@@ -3736,6 +3742,7 @@ class Agent:
         self._dir_scope_noted = False
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self._vetoes: set[tuple] = set()       # 7a(5) B: (fingerprint, action, coordinate)
+        self._noops: set[tuple] = set()        # 23: (fingerprint, action, coordinate), unchanged
         self._ruin_step: tuple | None = None   # this step's (fp, of, action, coord, cycle)
         self._ending_counted: str | None = None  # the word counted with no step since
         self._step_fp: tuple[str, str] | None = None    # this step's board, read once
@@ -4201,6 +4208,8 @@ class Agent:
         # reset states for `_res` and `_disc`.
         self._refuted_slot: dict = {}
         self._dl_missed = {}               # 20: its keys name slots, so the same rule
+        if _NOOP_WITHHOLD:
+            self._noops.clear()            # 23: the level's own boards
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
         # to the avatar is a fact about the ACTION, not about the slot names of one level.
         #
@@ -19038,8 +19047,18 @@ class Agent:
             self._step_fp, self._step_before = self._fingerprint(before), before
         if _RUIN:
             _fp = self._step_fp[0]
-            self._withheld = IFace.Withheld(
-                _fp, frozenset((a, c) for f, a, c in self._vetoes if f == _fp))
+            _held = frozenset((a, c) for f, a, c in self._vetoes if f == _fp)
+            if _NOOP_WITHHOLD:
+                _nop = frozenset((a, c) for f, a, c in self._noops if f == _fp) - _held
+                if _nop:
+                    self.led.record(self.cycle, "PLAN", "@noop", "withheld", n=len(_nop),
+                                    pairs=sorted(([a, list(c) if c else None] for a, c in _nop),
+                                                 key=str),
+                                    reads="23: pressed on this identical board before and the "
+                                          "board did not change: withheld here only; lifted if "
+                                          "every option is withheld")
+                    _held = _held | _nop
+            self._withheld = IFace.Withheld(_fp, _held)
         # ONE READING PER GOAL HYPOTHESIS, EVERY STEP, BEFORE ANYTHING ACTS ON IT. A trend
         # needs a series, and a series only exists if the reading is unconditional -- taking
         # it inside the branch that consumes it would record only the steps that already
@@ -19368,6 +19387,11 @@ class Agent:
                                       "anything goes last and ties go to the higher "
                                       "changed-per-press ratio on this board (Fig 11 :40)")
         res = self.perceive(action, coord, self._intent_now)
+        if _NOOP_WITHHOLD and _RUIN and self._ruin_step is not None:
+            # 23: the board after the press, read the way the withhold reads it
+            fp0, _of, act, crd, _c = self._ruin_step
+            if self._fingerprint(self.env.observe())[0] == fp0:
+                self._noops.add((fp0, act, crd))
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         try:
             routed = self.route(res)

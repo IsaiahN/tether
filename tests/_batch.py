@@ -36,7 +36,8 @@ ARMS = (
     ("TETHER_CHANGE_TALLY", "34dc715"),      # wip/change-tally 17 (r481); base 3813c79
     ("TETHER_HELD_COMPILE_MEMO", "1e9d4d5"),  # wip/held-compile 18 (r512, r524); base 8e6efa5
     ("TETHER_DESCRIBED_LOOKUP", "88ff176"),   # wip/described-lookup 20 (r563, r565); base 1e9d4d5
-    ("TETHER_INCREMENTAL_JUDGE", "wip"),      # wip/incremental-judge 22 (r571); base 2d0df39
+    ("TETHER_INCREMENTAL_JUDGE", "a2aae88"),  # wip/incremental-judge 22 (r571); base 2d0df39
+    ("TETHER_NOOP_WITHHOLD", "9714519"),      # wip/noop-withhold 23 (r571); here base 1fa2474
 )
 # A batch arm whose TREE DEFAULT was flipped after later arms landed (r359): (the arm, the last
 # batch arm before the flip, its value before, the flip's commit). An arm under test that landed
