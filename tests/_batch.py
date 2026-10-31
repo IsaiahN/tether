@@ -34,7 +34,8 @@ ARMS = (
     ("TETHER_REMAINDER_VERDICT_KEY", "22319e0"),   # wip/remainder-verdict-key 14 (r466 1(b))
     ("TETHER_CONTACT_LIGHT", "27d3af5"),     # wip/contact-light 16 (r483, r490, r491); base 3813c79
     ("TETHER_CHANGE_TALLY", "34dc715"),      # wip/change-tally 17 (r481); base 3813c79
-    ("TETHER_HELD_COMPILE_MEMO", "wip"),     # wip/held-compile 18 (r512, r524); base 8e6efa5
+    ("TETHER_HELD_COMPILE_MEMO", "1e9d4d5"),  # wip/held-compile 18 (r512, r524); base 8e6efa5
+    ("TETHER_DESCRIBED_LOOKUP", "wip"),       # wip/described-lookup 20 (r563, r565); base 1e9d4d5
 )
 # A batch arm whose TREE DEFAULT was flipped after later arms landed (r359): (the arm, the last
 # batch arm before the flip, its value before, the flip's commit). An arm under test that landed
