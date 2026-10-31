@@ -19106,6 +19106,17 @@ class Agent:
             # subject, the a561fb2 lesson): the killing step's key if this step dies
             self._ruin_step = (*self._step_fp, action,
                                tuple(coord) if coord is not None else None, self.cycle)
+        tn = getattr(self.iface, "tally_note", None) if IFace._CHANGE_TALLY else None
+        if tn is not None:
+            # 17: the interface's changed-or-not tally decided a tie for THIS press (set while this
+            # step chose it, for this action); the counts it read, once
+            self.iface.tally_note = None
+            if tn["at"] == self.iface.audits and action in (tn.get("pick"), tn.get("action")):
+                self.led.record(self.cycle, "PLAN", "@tally", "tally_order",
+                                **{k: v for k, v in tn.items() if k != "at"},
+                                reads="17: inside the variety tier, an action that never changed "
+                                      "anything goes last and ties go to the higher "
+                                      "changed-per-press ratio on this board (Fig 11 :40)")
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         try:

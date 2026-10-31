@@ -1268,6 +1268,15 @@ ARMS: dict[str, str] = {
                                     "unreached check reads the row as a park with no coverage and "
                                     "refuses the ledger (demo.py on draws c36f0f02, 838dce71, "
                                     "c2377d1e). default ON",
+    "TETHER_CHANGE_TALLY": "17 CHANGE_TALLY (the reviewer r481; Isaiah 2026-10-31 02:15; Fig 11 "
+                           ":40). Below the seam: interface.audit counts per action the presses "
+                           "after which something credited to the press changed (changed_n beside "
+                           "n), and per positioned action by the kind it landed on. Read only "
+                           "inside the variety rule's tiers: an action or landing kind pressed in "
+                           ">= 2 contexts that never changed anything goes last, and ties of the "
+                           "tier's first reading go to the higher changed-per-press ratio; one "
+                           "@tally tally_order row when it decided. OFF: no count, no row, the "
+                           "tiers' order as before. default ON",
     "TETHER_HARNESS_LEVEL_RESET": "13 HARNESS_LEVEL_RESET (the reviewer r464 2; Isaiah 2026-10-30 "
                                   "20:11). HARNESS, never the agent: arc_holdout._mode, the one "
                                   "call before every Arcade, sets ONLY_RESET_LEVELS=true, so "
