@@ -922,6 +922,11 @@ _STOP_READ_STEP = armflag.arm("TETHER_STOP_READ_STEP", default=True)
 # gap's last mint proved, in the mint's own words. Record only: nothing reads it. Needs
 # TETHER_STOP_RULES. ON; conform/arms.py
 _NAMED_REMAINDER = armflag.arm("TETHER_NAMED_REMAINDER", default=True)
+# 14 REMAINDER_VERDICT_KEY (the reviewer 2026-10-30 r466 1(b)): the remainder row carries the gap's
+# last mint verdict as mint_verdict / mint_verdict_cycle; under the mint's own key, "verdict", the
+# gate read the row as a park without coverage and refused the ledger. Key names only. ON;
+# conform/arms.py
+_REMAINDER_VERDICT_KEY = armflag.arm("TETHER_REMAINDER_VERDICT_KEY", default=True)
 # 4 PLAN_NARROW (the reviewer 2026-10-29 r325 ASK 3, r365; Fig 12 :127): the planner compiles the
 # shelf-won texts first and the rest only if they yield no pick -- what the life learned ranks and
 # cuts the work, never widens it. Exact: the same pick. The goal_hypotheses row says how many were
@@ -11809,12 +11814,14 @@ class Agent:
         v = sp.get("verdict")
         reach = (None if v is None else "unreached at this budget" if v[0] == "budget_spent"
                  else v[1])
+        vk = (("mint_verdict", "mint_verdict_cycle") if _REMAINDER_VERDICT_KEY
+              else ("verdict", "verdict_cycle"))
         self.led.record(self.cycle, self._running_step, slot, "remainder", cause=cause,
                         population="last_survivors", last_survivors=len(last),
                         uncharged=len(sets.get(frozenset(), ())),
                         unpriced=sum(1 for n in last if n not in terms), charged_sets=len(sets),
                         several=several, kind=list(sp.get("kind") or ()), residual_rows=len(robs),
-                        verdict=v[0] if v else None, verdict_cycle=v[2] if v else None,
+                        **{vk[0]: v[0] if v else None, vk[1]: v[2] if v else None},
                         opened=sp.get("opened"), reach=reach,
                         wall_s=round(time.perf_counter() - t0, 4),
                         reads="1e: what remains when the last survivors are gone -- record only "
