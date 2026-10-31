@@ -142,10 +142,11 @@ if RERUN:
 '''
 
 DUMMY = '''\
-# Non-rerun mode: produce a dummy submission (the competition's sample, as it stands)
-import pandas as pd
-
+# Non-rerun mode: produce a dummy submission (the competition's sample, its import moved under the test: a rerun
+# never needs pandas)
 if not os.getenv('KAGGLE_IS_COMPETITION_RERUN'):
+    import pandas as pd
+
     submission = pd.DataFrame(
         data=[['1_0', '1', True, 1]],
         columns=['row_id', 'game_id', 'end_of_game', 'score'])
