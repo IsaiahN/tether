@@ -1268,6 +1268,16 @@ ARMS: dict[str, str] = {
                                     "unreached check reads the row as a park with no coverage and "
                                     "refuses the ledger (demo.py on draws c36f0f02, 838dce71, "
                                     "c2377d1e). default ON",
+    "TETHER_CONTACT_LIGHT": "16 CONTACT_LIGHT (the reviewer r481, r483, r490, r491). The library "
+                            "lookup scores a row once per (slot, val-typed candidate), not every "
+                            "step (r491): _library_fit's two full-history _left calls resume a "
+                            "stored prefix while the slot's _divide_key holds and the shape table "
+                            "has not grown under a row that read its extent, and score only the "
+                            "new rows. An OBJ-typed candidate walks its whole history (its domain "
+                            "draws per cycle and writes choice rows). Needs TETHER_DIVIDE. The "
+                            "repeat-mint wait was stopped, the existing deferrals already take it "
+                            "(r490). OFF: every candidate is scored over its whole history at "
+                            "every lookup. default ON",
     "TETHER_HARNESS_LEVEL_RESET": "13 HARNESS_LEVEL_RESET (the reviewer r464 2; Isaiah 2026-10-30 "
                                   "20:11). HARNESS, never the agent: arc_holdout._mode, the one "
                                   "call before every Arcade, sets ONLY_RESET_LEVELS=true, so "

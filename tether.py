@@ -946,6 +946,15 @@ _PLAN_NARROW = armflag.arm("TETHER_PLAN_NARROW", default=True)
 # owed_import, walked at the next step (a) or when the rows change (b); a contact_first row each
 # time. ON; conform/arms.py
 _CONTACT_FIRST = armflag.arm("TETHER_CONTACT_FIRST", default=True)
+# 16 CONTACT_LIGHT (the reviewer 2026-10-31 r481, r483, r490, r491; Isaiah 2026-10-31 02:15): the
+# library lookup scores a row once per (slot, val-typed candidate), not every step. _library_fit's
+# two full-history _left calls resume each candidate's stored prefix total while the slot's
+# _divide_key holds and the shape table has not grown under a row that read its extent (1b's
+# rule), and score only the new rows -- _left is a prefix sum, so the total is bit-identical. An
+# OBJ-typed candidate walks its whole history every time: its domain draws per cycle and writes
+# choice rows. Needs TETHER_DIVIDE (the extent count). The repeat-mint wait (Part B) was stopped:
+# STEP_MINT's stop and CONTACT_FIRST already take it (r490). ON; conform/arms.py
+_CONTACT_LIGHT = armflag.arm("TETHER_CONTACT_LIGHT", default=True)
 # 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
 # when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
 # prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
@@ -3276,6 +3285,7 @@ class Agent:
         # from `held` moving** -- a rebind leaves every entry for that slot unreachable,
         # since they are reusable only if the slot returns to exactly that binding.
         self._tally: dict = {}
+        self._cl_cells: dict = {}       # 16: slot -> (its _divide_key, {term: (rows, total, size)})
         self._space: dict = {}          # 1a: slot -> its open space (kind, opened, mints, base)
         self._kind_space: dict = {}     # 1a: gap kind -> chains met, costs under (code, units)
         self._dv: dict | None = None    # 1a: this mint's divide counts, None outside a walk
@@ -4039,6 +4049,7 @@ class Agent:
         if _DIVIDE:
             self._divide_close_all("epoch")   # 1a: each space's row before its tallies go
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
+        self._cl_cells.clear()          # 16: likewise keyed by the epoch
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
         # R-A/R-B: nor their raw gaps, nor the routes keyed by their names -- a scope end, the
         # route_refused rows stay in the ledger (Fig 6 :45). retarget fires on a level edge AND a
@@ -10469,7 +10480,8 @@ class Agent:
         # NOT ON BY DEFAULT: `retrieve` returns every name ordered by fit, so this is a RANKING
         # change, not an exclusion, and whether ranking is what the wall is made of is unmeasured.
         # The supply side may simply be thin -- 7 arity-2 atoms of 48.
-        _base = (self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
+        _cells = self._cl_cells_for(slot, self.gamma.library[self.bound.get(slot, IDN)])
+        _base = (self._cl_left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist, _cells)
                  if _BARGAIN_FIT else 0.0)
         # ARM H's pool, computed ONCE per lookup and never per candidate -- `_residual_obs` walks
         # the history and `_guards` is a filter over it, so doing it inside the candidate loop
@@ -10581,7 +10593,7 @@ class Agent:
                 return None, None, None, _since(_n0)
             if not price:
                 return True, None, None, _since(_n0)
-            _left = self._left(cand, slot, hist)
+            _left = self._cl_left(cand, slot, hist, _cells)
             _n1 = self.led.written
             if not _FIT_UNITS:
                 _units = self._units_for(slot)
@@ -11079,7 +11091,7 @@ class Agent:
         self._served[slot] = (fit, max(0.0, base - left))
 
     def _left(self, term: Term, slot: str, hist, ceiling: float | None = None,
-              offset: float = 0.0) -> float:
+              offset: float = 0.0, start: int = 0, total: float = 0.0) -> float:
         """What the term leaves unexplained across the slot's history, in bits.
 
         `ceiling` IS AN EXACT ABORT, NOT AN APPROXIMATION. Every term added here is
@@ -11095,9 +11107,11 @@ class Agent:
         which can disagree with `pays` at the last ulp. Float addition is monotone, so a
         partial total that fails `pays` is a full one that fails it. No mint site reads
         `left` from a term that does not pay. Default 0.0 adds exactly nothing.
+
+        16: `start` and `total` resume a stored prefix -- the rows before `start` summed to `total`
+        (_cl_left). Defaults walk the whole history from zero.
         """
-        total = 0.0
-        for state, action, actual, intent, landed in hist:
+        for state, action, actual, intent, landed in (hist[start:] if start else hist):
             cap.head()
             if ceiling is not None and offset + total >= ceiling:
                 return total
@@ -11117,6 +11131,34 @@ class Agent:
                 total += math.log2(self.alphabet[slot])   # unread is unexplained
                 continue
             total += correction_bits(got, actual, self.alphabet[slot])
+        return total
+
+    def _cl_cells_for(self, slot: str, held: Term) -> dict | None:
+        """16: the slot's stored prefixes under this lookup's _divide_key, or None (arm or DIVIDE
+        off). A key that moved drops the slot's cells, so only the current key's are kept."""
+        if not (_CONTACT_LIGHT and _DIVIDE):
+            return None
+        key = self._divide_key(slot, held)
+        got = self._cl_cells.get(slot)
+        if got is None or got[0] != key:
+            got = self._cl_cells[slot] = (key, {})
+        return got[1]
+
+    def _cl_left(self, term: Term, slot: str, hist, cells: dict | None) -> float:
+        """16: `_left` over the full history, resuming a val-typed term's stored prefix. A cell is
+        (rows, total, the shape table's size if any of its rows read the extent, else None) --
+        1b's rule: a grown table voids it. An OBJ-typed term always walks the whole history."""
+        if cells is None or getattr(term, "out_type", "val") == OBJ_TYPE:
+            return self._left(term, slot, hist)
+        cell = cells.get(term)
+        start, total = 0, 0.0
+        if cell is not None and cell[0] <= len(hist) and (
+                cell[2] is None or cell[2] == self._decoder_size()):
+            start, total = cell[0], cell[1]
+        e0 = _EXTENT[0]
+        total = self._left(term, slot, hist, start=start, total=total)
+        read = _EXTENT[0] != e0 or (start and cell[2] is not None)
+        cells[term] = (len(hist), total, self._decoder_size() if read else None)
         return total
 
     def _defer_lookup(self, slot: str) -> str | None:
