@@ -973,6 +973,70 @@ _HELD_COMPILE_MEMO = armflag.arm("TETHER_HELD_COMPILE_MEMO", default=True)
 # delta kind, the readings, its contact) is not asked again, and an owed lookup due under a missed
 # key is dropped with a row. A new description is a new key. ON; conform/arms.py
 _DESCRIBED_LOOKUP = armflag.arm("TETHER_DESCRIBED_LOOKUP", default=True)
+# 22 INCREMENTAL_JUDGE (the reviewer r571; Fig 9 :38-39, Fig 12 :108-109, Fig 6 :50): 16's stored
+# prefixes are voided by the slot's peers or its owner's attributes moving only for a term whose
+# atoms declare they read them (reads_ctx "group" / "obj", the only fields _eval_ctx fills from
+# them); every other cell resumes. The rest of _divide_key voids every cell as before. ON;
+# conform/arms.py
+_INCREMENTAL_JUDGE = armflag.arm("TETHER_INCREMENTAL_JUDGE", default=True)
+_FRAME_READS = ("group", "obj")
+_READS_FRAME: dict = {}          # 22: term -> whether it reads the frame's peers / owner record
+
+
+def _reads_frame(term: Term) -> bool:
+    """22: whether any atom of the term (its operand term too) declares a read of Ctx.group or
+    Ctx.obj."""
+    got = _READS_FRAME.get(term)
+    if got is None:
+        got = _READS_FRAME[term] = (
+            any(f in a.reads_ctx for a in term.atoms for f in _FRAME_READS)
+            or (term.operand_term is not None and _reads_frame(term.operand_term)))
+    return got
+
+
+class _DepCells:
+    """22: one slot's stored prefixes in two stores -- the terms that read the frame's peers / owner
+    record, voided when those move, and the rest, which keep -- behind _cl_left's get / set."""
+
+    __slots__ = ("still", "frame")
+
+    def __init__(self, still: dict, frame: dict) -> None:
+        self.still, self.frame = still, frame
+
+    def get(self, term: Term) -> Any:
+        return (self.frame if _reads_frame(term) else self.still).get(term)
+
+    def __setitem__(self, term: Term, cell: tuple) -> None:
+        (self.frame if _reads_frame(term) else self.still)[term] = cell
+
+
+def _lazy_field(name: str) -> property:
+    """22: a Ctx field built on its first read from the thunk _eval_ctx left for it."""
+    def get(self: Any) -> Any:
+        d = self.__dict__
+        if name not in d:
+            d[name] = d["_lz"].pop(name)()
+        return d[name]
+
+    def put(self: Any, value: Any) -> None:
+        self.__dict__[name] = value
+    return property(get, put)
+
+
+class _LazyCtx(Ctx):
+    """22: a Ctx whose `group` and `obj` -- the peers' values and the owner's record, which almost
+    no term reads -- are built when first read, and return exactly what the eager fields held."""
+
+    group = _lazy_field("group")
+    obj = _lazy_field("obj")
+
+
+def _lazy_ctx(fields: dict, group: Any, obj: Any) -> Ctx:
+    c = object.__new__(_LazyCtx)
+    for k, v in fields.items():
+        object.__setattr__(c, k, v)
+    object.__setattr__(c, "_lz", {"group": group, "obj": obj})
+    return c
 # 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
 # when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
 # prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
@@ -11027,6 +11091,18 @@ class Agent:
                 hit = key = None
             if hit is not None and hit[0] is state:
                 return hit[1]
+        if _INCREMENTAL_JUDGE:
+            # 22: group and obj are built on their first read (nearly no term reads them)
+            ctx = _lazy_ctx({"action": action, "intent": intent, "operands": operands,
+                             "touching": touching,
+                             "acted_self": _same_object(landed, guard_ref or slot),
+                             "cond_holds": bool(self._invented) and self._inv_holds(guard_ref,
+                                                                                    state),
+                             "shapes": self._shapes_now() if shapes else None},
+                            lambda: self._group(slot, state), lambda: self._record(slot, state))
+            if key is not None:
+                memo[key] = (state, ctx)
+            return ctx
         ctx = Ctx(action=action, intent=intent, operands=operands, touching=touching,
                    # **AGAINST THE TERM'S OWN REFERENT WHEN IT HAS ONE.** `guard_ref`
                    # falls back to the slot, which is exactly what `ACTED_SELF` meant, so
@@ -11254,6 +11330,15 @@ class Agent:
             return None
         key = self._divide_key(slot, held)
         got = self._cl_cells.get(slot)
+        if _INCREMENTAL_JUDGE:
+            # 22: _divide_key's last two parts are the slot's peers and its owner's attributes
+            core, frame = key[:-2], key[-2:]
+            if got is None or got[0] != core:
+                got = (core, frame, {}, {})
+            elif got[1] != frame:
+                got = (core, frame, got[2], {})
+            self._cl_cells[slot] = got
+            return _DepCells(got[2], got[3])
         if got is None or got[0] != key:
             got = self._cl_cells[slot] = (key, {})
         return got[1]
