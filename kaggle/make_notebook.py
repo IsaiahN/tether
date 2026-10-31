@@ -135,7 +135,9 @@ if lfound:
 
     lbad = [rel for h, rel in lrows if _lsha(rel) != h]
     assert len(lrows) == LMETA["names"] and not lbad, ("the lineage copy differs", len(lrows), lbad[:5])
-    r = subprocess.run([sys.executable, "-B", "-c", "import sys, lineage; print(lineage.head(sys.argv[1])[0])", LIN],
+    # the tip read one generation at a time (build_lineage.tip): lineage.head folds them all at once
+    r = subprocess.run([sys.executable, "-B", "-c", "import sys; sys.path.insert(0, 'kaggle'); import build_lineage; "
+                        "print(build_lineage.tip(sys.argv[1]))", LIN],
                        cwd=CODE, capture_output=True, text=True, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
     assert r.returncode == 0 and r.stdout.strip() == LMETA["head"], ("the copy's head", r.stdout, r.stderr[-1000:])
     print(f"lineage copied and checked in {time.time() - t:.1f} s: {len(lrows)} names, head {LMETA['head']}")

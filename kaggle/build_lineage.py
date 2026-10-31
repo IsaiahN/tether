@@ -13,6 +13,7 @@ import re
 import shutil
 import sys
 import time
+from pathlib import Path
 
 sys.dont_write_bytecode = True
 MARK = "TETHER_KAGGLE_LINEAGE.json"
@@ -29,17 +30,39 @@ def _sha(p: str) -> str:
     return h.hexdigest()
 
 
+def tip(d: str) -> str:
+    """The chain's one tip, read one generation at a time: each file hashed against its name, its
+    parents collected, the generation no other names as a parent. lineage.head folds every
+    generation at once, O(life) in memory, and ran out of it on a 1.3 GB lineage."""
+    if ROOT not in sys.path:
+        sys.path.insert(0, ROOT)
+    import lineage
+    import lineage_store as ls
+    names, parents = [], set()
+    for f in sorted(os.listdir(d)):
+        if not (f.startswith(lineage.PREFIX) and f.endswith(".json")):
+            continue
+        raw = ls.file_bytes(Path(d) / f)
+        h = hashlib.sha256(raw).hexdigest()[:16]
+        assert f == f"{lineage.PREFIX}{h}.json", (f, "does not hash to its name", h)
+        names.append(h)
+        parents.update(lineage._parents(json.loads(raw)))
+        del raw
+    tips = [h for h in names if h not in parents]
+    assert len(tips) == 1, ("not one tip", tips)
+    return tips[0]
+
+
 def build(src: str, want: str, out: str) -> dict:
     assert not os.path.exists(os.path.join(out, MARK)), ("the out dir already holds a lineage", out)
     dst = os.path.join(out, "lineage")
     before = {f: (os.stat(os.path.join(src, f)).st_size, _sha(os.path.join(src, f))) for f in sorted(os.listdir(src))}
-    shutil.copytree(src, dst)
+    if not os.path.isdir(dst):      # else a copy left by a build that stopped later: checked below, never re-made
+        shutil.copytree(src, dst)
     after = {f: (os.stat(os.path.join(dst, f)).st_size, _sha(os.path.join(dst, f))) for f in sorted(os.listdir(dst))}
     again = {f: (os.stat(os.path.join(src, f)).st_size, _sha(os.path.join(src, f))) for f in sorted(os.listdir(src))}
     assert before == after == again, "the source moved during the copy, or the copy differs"
-    sys.path.insert(0, ROOT)
-    import lineage
-    head, _fold = lineage.head(dst)
+    head = tip(dst)
     assert head == want, ("the copy's head is not the expected head", head, want)
     hits = []
     for f in after:
