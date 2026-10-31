@@ -19,8 +19,10 @@ T0 = time.time()
 KAGGLE_WALL_S = 9 * 3600
 # PLAY's whole-run margin (play_chain.sh: e4b_run.py ... 300); its end path measured 104-119 s (PLAY24 rounds 1-6)
 MARGIN_S = 300
-# today's slice rule (rule A, Isaiah 2026-10-23): Isaiah's to change, a parameter until he rules
-SLICE_MIN_S, SLICE_MAX_S = 120, 300
+# rule A's slice (Isaiah 2026-10-23), at the values Isaiah set for Kaggle A 2026-10-30 21:28 ("like 300s-400 seconds")
+SLICE_MIN_S, SLICE_MAX_S = 300, 400
+# the learned lineage is required: this agent is born once and carries on from it (Isaiah 2026-10-30 21:28)
+REQUIRE_LINEAGE = True
 INPUT = os.environ.get("NB_INPUT", "/kaggle/input")
 WORKING = os.environ.get("NB_WORKING", "/kaggle/working")
 GATEWAY = os.environ.get("NB_GATEWAY", "http://gateway:8001")
@@ -106,11 +108,45 @@ print(r.stdout[-1000:], r.stderr[-2000:])
 assert r.returncode == 0, "the agent does not import on this interpreter"
 '''
 
+LINEAGE = '''\
+LMARK = "TETHER_KAGGLE_LINEAGE.json"
+lfound = sorted(set(glob.glob(os.path.join(INPUT, "*", LMARK))
+                    + glob.glob(os.path.join(INPUT, "datasets", "*", "*", LMARK))))
+assert len(lfound) <= 1, ("more than one lineage dataset", lfound)
+assert lfound or not REQUIRE_LINEAGE, "no lineage dataset attached, and the run requires one"
+LIN = os.path.join(WORKING, "lineage")          # a writable copy: the agent writes its generations into it
+assert not os.path.exists(LIN), ("a lineage copy already exists", LIN)
+if lfound:
+    LDS = os.path.dirname(lfound[0])
+    with open(lfound[0]) as fh:
+        LMETA = json.load(fh)
+    print("lineage dataset", LDS, json.dumps(LMETA))
+    t = time.time()
+    shutil.copytree(os.path.join(LDS, "lineage"), LIN)
+    with open(os.path.join(LDS, "MANIFEST.sha256")) as fh:
+        lrows = [ln.rstrip("\\n").split("  ", 1) for ln in fh if ln.strip()]
+
+    def _lsha(rel):
+        h = hashlib.sha256()
+        with open(os.path.join(LIN, rel), "rb") as fh:
+            for b in iter(lambda: fh.read(1 << 20), b""):
+                h.update(b)
+        return h.hexdigest()
+
+    lbad = [rel for h, rel in lrows if _lsha(rel) != h]
+    assert len(lrows) == LMETA["names"] and not lbad, ("the lineage copy differs", len(lrows), lbad[:5])
+    r = subprocess.run([sys.executable, "-B", "-c", "import sys, lineage; print(lineage.head(sys.argv[1])[0])", LIN],
+                       cwd=CODE, capture_output=True, text=True, env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
+    assert r.returncode == 0 and r.stdout.strip() == LMETA["head"], ("the copy's head", r.stdout, r.stderr[-1000:])
+    print(f"lineage copied and checked in {time.time() - t:.1f} s: {len(lrows)} names, head {LMETA['head']}")
+else:
+    print("no lineage dataset: the agent starts from the library alone")
+'''
+
 RUN = '''\
 import urllib.request
 
 OUT = os.path.join(WORKING, "run_a")
-LIN = os.path.join(WORKING, "lineage")          # a fresh lineage: the learned one waits on Isaiah
 if RERUN:
     t = time.time()
     while True:                                 # the gateway, as the competition's sample waits for it (600 s)
@@ -163,8 +199,10 @@ def nb(cells: list[tuple[str, str]]) -> dict:
 
 
 A = [("markdown", "# tether, shape A\nOne process, one agent, the games the gateway lists, in its order. "
-                  "The code is the dataset's, copied and checked by sha256. No lineage is carried in yet.\n"),
-     ("code", PARAMS), ("code", MACHINE), ("code", INSTALL), ("code", FIND), ("code", RUN), ("code", DUMMY)]
+                  "The code and the learned lineage are the datasets', copied and checked by sha256; the agent "
+                  "carries on from that lineage.\n"),
+     ("code", PARAMS), ("code", MACHINE), ("code", INSTALL), ("code", FIND), ("code", LINEAGE), ("code", RUN),
+     ("code", DUMMY)]
 PROBE = [("markdown", "# machine probe\nCores, memory and interpreter of the submit machine; nothing is played.\n"),
          ("code", PARAMS), ("code", MACHINE), ("code", DUMMY)]
 

@@ -24,12 +24,22 @@ ap.add_argument("port", type=int)
 ap.add_argument("--layout", choices=("flat", "nested"), default="nested")
 ap.add_argument("--n-games", default=None)
 ap.add_argument("--no-rerun", action="store_true")
+# kaggle/build_lineage.py's output, MOUNTED (a junction; a link off Windows), never copied: the notebook's own copy into
+# working is the one a Kaggle run makes too
+ap.add_argument("--lineage-ds", default=None)
 A = ap.parse_args()
 assert not os.path.exists(A.work), ("the work dir exists", A.work)
 inp, working = os.path.join(A.work, "input"), os.path.join(A.work, "working")
 mount = (os.path.join(inp, "tether-agent") if A.layout == "flat"
          else os.path.join(inp, "datasets", "owner", "tether-agent"))
 shutil.copytree(A.dataset, mount)
+if A.lineage_ds:
+    lmount = os.path.join(os.path.dirname(mount), "tether-lineage")
+    if os.name == "nt":
+        import _winapi
+        _winapi.CreateJunction(os.path.abspath(A.lineage_ds), lmount)
+    else:
+        os.symlink(os.path.abspath(A.lineage_ds), lmount, target_is_directory=True)
 os.makedirs(working)
 os.environ.update(NB_INPUT=inp, NB_WORKING=working, NB_GATEWAY=f"http://127.0.0.1:{A.port}")
 os.environ.pop("KAGGLE_IS_COMPETITION_RERUN", None)
