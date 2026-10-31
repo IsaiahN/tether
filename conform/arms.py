@@ -1268,6 +1268,15 @@ ARMS: dict[str, str] = {
                                     "unreached check reads the row as a park with no coverage and "
                                     "refuses the ledger (demo.py on draws c36f0f02, 838dce71, "
                                     "c2377d1e). default ON",
+    "TETHER_CONTACT_LIGHT": "16 CONTACT_LIGHT (the reviewer r481, r482 B, r483; Isaiah 2026-10-31 "
+                            "02:15; Fig 9 :43). On a step whose exit is system0, a slot's "
+                            "MECHANISM mint waits (owed through _mint_owed) when this board minted "
+                            "for it, its gap kind (_gap_key) is unchanged since, and the units it "
+                            "composes from (gamma._units_key: atoms, settled parts, rank) are "
+                            "unchanged; released by a new kind, a move in the units, or a step "
+                            "that is not a contact press. REFUTED is never gated. One "
+                            "@contact_light mint_waits row a step, mint_waits_end at the run's "
+                            "end. OFF: every such mint runs on the contact press. default ON",
     "TETHER_HARNESS_LEVEL_RESET": "13 HARNESS_LEVEL_RESET (the reviewer r464 2; Isaiah 2026-10-30 "
                                   "20:11). HARNESS, never the agent: arc_holdout._mode, the one "
                                   "call before every Arcade, sets ONLY_RESET_LEVELS=true, so "

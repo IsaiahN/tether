@@ -946,6 +946,13 @@ _PLAN_NARROW = armflag.arm("TETHER_PLAN_NARROW", default=True)
 # owed_import, walked at the next step (a) or when the rows change (b); a contact_first row each
 # time. ON; conform/arms.py
 _CONTACT_FIRST = armflag.arm("TETHER_CONTACT_FIRST", default=True)
+# 16 CONTACT_LIGHT (the reviewer 2026-10-31 r481, r482 B, r483; Isaiah 2026-10-31 02:15; Fig 9 :43
+# "Elimination is what you do after you arrive"): on a step whose exit is system0, a slot's mint
+# WAITS when this board already minted for it, its gap kind is unchanged since, and the units mint
+# composes from (gamma._units_key: atoms, settled parts, rank; Fig 6 :42-43, the reach) have not
+# moved since. Owed through STEP_MINT's _mint_owed; released by a new gap kind, a move in the
+# units, or a step that is not a contact press. A refutation is never gated. ON; conform/arms.py
+_CONTACT_LIGHT = armflag.arm("TETHER_CONTACT_LIGHT", default=True)
 # 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
 # when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
 # prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
@@ -3535,6 +3542,12 @@ class Agent:
         self._probe_wait: dict = {}   # the governor: slot -> (cycle, what could be probed then)
         self._mint_owed: dict = {}    # B1: slot -> the cycle its mint was deferred; minted first
         self._mint_exhausted = False  # B1: the last mint parked with its search stopped at a bound
+        # 16: slot -> ((epoch, window), gap key, library version) at its last mint on this board;
+        # whether this step's exit is system0; the mints waiting now, and the most that ever waited
+        self._cl_minted: dict = {}
+        self._cl_s0 = False
+        self._cl_waiting: set = set()
+        self._cl_max = 0
         self._urgent_wait: dict = {}  # the governor: slot -> (cycle, urgent / urgent_declined)
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
@@ -3772,6 +3785,12 @@ class Agent:
             for d, ct in sorted(self._dw_owed.items()):   # 1d: still outranked at the game's end
                 self._owed_release(d, ct, "outranked")
             self._dw_owed = {}
+        if _CONTACT_LIGHT:
+            # 16: the mints still waiting at the run's end, and the most that ever waited -- read,
+            # never drained here (r482: a drain would be a ruling, not a build)
+            self.led.record(self.cycle, "SETTLE", "@contact_light", "mint_waits_end",
+                            waiting_left=sorted(self._cl_waiting), max_waiting=self._cl_max,
+                            reads="the repeat mints still waiting when the run ended")
         flush = getattr(self.led, "flush_tally", None)
         if flush is not None:
             flush(self.cycle)        # the choice tally: repeats written outside a step
@@ -16386,11 +16405,26 @@ class Agent:
                                        "arrives"))
                 return
             self._cf_owed.pop(slot, None)
+        cl = None
+        if _CONTACT_LIGHT:
+            # 16: this board, the slot's gap kind, the units mint composes from -- as its last
+            # mint saw them
+            cl = ((self._epoch, getattr(self, "_window_at", 0)), self._cl_gap_key(slot),
+                  self.gamma._units_key())
+            if b == MECHANISM and self._cl_s0 and self._cl_minted.get(slot) == cl:
+                self.owed_import.add(slot)
+                if sm is not None:
+                    sm["deferred"].append(slot)
+                self._cl_waiting.add(slot)
+                self._cl_step.append(cl[1])
+                return
         self._mint_exhausted = False
         t0 = time.perf_counter() if _STEP_CLOCK else None
         if fp is not None:
             self._cf_rows[slot] = fp
         self.mint(slot)
+        if cl is not None:
+            self._cl_minted[slot] = (cl[0], cl[1], self.gamma._units_key())
         if _OWED_REJUDGE:
             self._mint_seen[slot] += 1           # 1d: A1's learning reading, turns taken
         if sm is not None:
@@ -16399,6 +16433,26 @@ class Agent:
             sm["run"] += 1
             if self._mint_exhausted and sm["stop"] is None:
                 sm["stop"] = slot
+
+    def _cl_units_settled(self) -> int:
+        """16: how many settled parts the units hold now (_units_key's second member), for a row."""
+        return len(self.gamma._units_key()[1])
+
+    def _cl_gap_key(self, slot: str) -> tuple | None:
+        """16: the slot's gap KIND now -- _gap_key of the characterisation _library_fit makes, with
+        the same channels (relations, the owner's scope); None with no history."""
+        hist = self.history(slot)
+        if not hist:
+            return None
+        _rel = getattr(self.env, "contact_changes", None) if _REL_GAP else None
+        _scope = None
+        if _DELTA_KEY:
+            own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+            mine = own.get(slot)
+            _scope = {s_ for s_, o_ in own.items() if o_ == mine} if mine else None
+        gap = retrieval.characterise(hist, slot, list(self.alphabet), self.slot_types,
+                                     relations=_rel() if _rel else None, scope=_scope)
+        return self._gap_key(gap)
 
     def _contact_fp(self, slot: str) -> tuple | None:
         """CONTACT_FIRST (b): what the mint would read for `slot` -- the gap's 1a key, how many
@@ -18940,9 +18994,12 @@ class Agent:
         self._last_landed = None
         self._press_seen = None
         self._hyp_why = None          # per step: choose sets it when it runs
+        self._cl_s0 = False           # 16: per step, set below when this step's exit is system0
         if action is None:
             _h = self._hyp
             action, by = self.choose(before)
+            if _CONTACT_LIGHT:
+                self._cl_s0 = by == "system0"
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
             if (_CONTACT_FIRST or _ROUTE_NAMED) and (by == "routine"
@@ -19134,7 +19191,11 @@ class Agent:
         with self._step_scope("ACCEPT"):
             if _OWED_REJUDGE:
                 routed = self._rank_mints(routed, _split_now)    # 1d: rank, not age or code order
+            if _CONTACT_LIGHT:
+                self._cl_step = []      # 16: the gap kinds whose repeat mint waits this step
             for _i, (slot, b, fit, _why) in enumerate(routed):
+                if _CONTACT_LIGHT:
+                    self._cl_waiting.discard(slot)      # 16: waits again only if the gate holds
                 if slot in _split_now:
                     continue
                 if slot in self._own_now and b in (MECHANISM, REBIND, REFUTED):
@@ -19195,6 +19256,17 @@ class Agent:
                 elif b == MECHANISM:
                     self._mint_in_step(slot, b)
                 self._turn_ahead.discard(slot)
+            if _CONTACT_LIGHT:
+                self._cl_max = max(self._cl_max, len(self._cl_waiting))
+                if self._cl_step:
+                    self.led.record(self.cycle, "ACCEPT", "@contact_light", "mint_waits",
+                                    waiting=len(self._cl_step),
+                                    kinds=sorted({repr(k) for k in self._cl_step}),
+                                    units_key=[len(self.gamma.atoms), self._cl_units_settled(),
+                                               self.gamma._units_key()[3]],
+                                    reads="a contact press: a repeat mint for an unchanged kind on "
+                                          "unchanged units (the reach it composes from) waits "
+                                          "for arrival (Fig 9 :43)")
             if _STEP_MINT:
                 sm = self._sm
                 was = getattr(self, "_mint_owed", None) or {}
