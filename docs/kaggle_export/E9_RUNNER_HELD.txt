@@ -1,0 +1,64 @@
+E9_RUNNER_HELD.txt -- placed in git at 4e (2026-10-22; the path approved by the reviewer 15:17; K11 on the Kaggle export list, docs/LEDGER.md:236). Below, the held designs as drafted 2026-10-22 12:13-12:34 CDT, unchanged; then the Kaggle notes added the same day.
+
+E9 RUNNER ITEMS, HELD (the reviewer 2026-10-22 12:36: Kaggle-path work, parked under the Kaggle step by Isaiah's 10-14 06:07 ruling; Isaiah to confirm or overrule). Designs as drafted 2026-10-22 12:13-12:34 CDT, with the reviewer's 12:31 answers to (3) and (4b) folded in. NOT BUILT. Lines at tests-move a7b48ce.
+
+OVERLAP WITH K1 (docs/LEDGER.md:236, the Kaggle export list), for when the Kaggle step opens:
+ - K1 is "the worker-fault catch ... to be REBUILT from the 10-14 05:55 design (W1-W4, R1-R5)". The parked diff ID/id_parked.diff (09aff747d13f4af2) is LOST: on no disk and not in git, found 2026-10-20.
+ - 4b below does K1's job (catch at the game boundary, the worker goes on). Reconcile the two against the 10-14 05:55 design (W1-W4, R1-R5), not against the lost diff.
+ - 2 and 3 have no K-number yet. They sit beside K10 (the runner gets a writable lineage dir) and the runner refactor (per-worker lineage, carry, no library=), and they are tested with those on the Kaggle setup, once.
+
+RESIDUALS:
+ 2. A worker that never returns holds the run past the ceiling. The card is closed only after every worker joins, so a single hang holds the card open past the ceiling; whether a run killed at the 8 h mark is scored at all is not in our records.
+ 3. K workers on one box each budget memory as if alone. On a 16 GB box with K = 4: 4 x 8 GiB budgeted against 16.
+ 4b. An exception inside a game ends that game with nothing carried: no generation and no library save. On the Kaggle path it also ends the worker, so that worker's remaining games are never played.
+
+ITEM 2, THE RUNNER BACKSTOP
+ Lines: tether_runner.py:52-68 (worker) and :82-89 (run's start/join).
+ - worker writes its record after EVERY game, not only at the end. The interim record carries "in_flight": the game about to start. The final write is today's exact content ({"worker", "library", "games"}).
+ - run joins each process with join(timeout = max(0, deadline - now)), where deadline = start + CEILING_S, the existing sourced ceiling.
+ - A process alive at the deadline is ended (kill, then join). Its record gains "cut": "ceiling backstop" and "cut_at" (seconds past start). Every game it finished is kept, because the record was written per game.
+ - serve's finally still closes the card. It now always gets there before the 8 h mark: CEILING_S already leaves the sample's 5 min.
+ Condition absent (every worker returns before the deadline): the join returns as today; the final record files are byte-equal to today's; the run dict gains nothing.
+ Records: the cut in the run record and in the worker's record file (worker index, the in-flight game, seconds past start).
+ Must-fail + CHECK switch TETHER_RUNNER_BACKSTOP (default ON):
+ - Fixture: k = 2, ceiling 3 s, margin 1 s, through a worker seam. The new run() parameter worker_fn defaults to worker; the test passes a module-level worker that sleeps for an hour.
+ - ON: run returns within ceiling + 15 s; the hung worker's record says cut; the other worker's record is whole; close_card was called once.
+ - OFF: the same call in a child process with a 30 s timeout must NOT return (TimeoutExpired). That is the defect reproduced. The test then ends its own child's tree.
+ Constants: none new. CEILING_S is sourced (:29-33). The kill needs no grace constant: the record is already on disk per game, and SIGTERM/kill ends a Python process without a handler.
+
+ITEM 3, THE PER-WORKER MEMORY SHARE (as you answered at 12:31: each worker gets min(8 GiB, RAM/(2K)))
+ Lines: tether.py:981-1017 (_ram_bytes, _w_budget) and :2699 (the @run header); tether_runner.py run (:76-89) and worker (:52-56).
+ - _ram_bytes is split so its reading carries its SOURCE: a new _ram_read() returns (bytes, source), source in "planted" / "container limit" / "physical", and _ram_bytes() returns its bytes as today.
+ - The runner computes the budget ONCE, in run(), after K = the number of worker processes it starts: B_w = min(8 GiB, RAM // (2K)). A container limit enters the same min through _ram_read, as it does today.
+ - It passes three values to each worker, set in the worker process before its first agent is born:
+   - TETHER_W_BUDGET_BYTES = B_w;
+   - TETHER_W_SHARE = K;
+   - TETHER_W_BUDGET_SOURCE = "runner: min(8 GiB, RAM/(2K)); RAM <source>".
+ - _w_budget reads TETHER_W_BUDGET_BYTES when set. Otherwise it is today's min(8 GiB, RAM // 2) unchanged (the game_one / play path, one process).
+ - The in-process path (processes=False) runs games one at a time and sets nothing.
+ - The @run header writes budget_bytes (as today), w_share and budget_source. identity_mod_rows.MACHINE masks the two new fields as it masks budget_bytes and ram_bytes.
+ Condition absent (none of the three set): B is today's number exactly; the header's two new fields are null and masked; the ledger compare OFF vs ON equals under the mask.
+ Records: B, K and the source of each term in every @run header (your 12:31), and the same three in the runner's run record.
+ Must-fail + CHECK switch TETHER_RUNNER_SHARE (default ON; the runner side):
+ - Unit, planted RAM:
+   - 16 GiB unset -> 8 GiB (today);
+   - 16 GiB, K = 4 -> 2 GiB;
+   - 64 GiB, K = 4 -> 8 GiB (your example: not 2).
+ - Runner: k = 2 with a worker_fn that writes the three values it sees into its record. ON: B_w = min(8 GiB, RAM // 4), K 2, the source string. OFF: none of the three, so each worker budgets the box alone (the defect).
+ Constants: none new. 8 GiB and 1/2 are Isaiah's (10-19); K is read live (len of the processes started); SOFT 3/4 and HARD 9/10 of B are unchanged.
+
+ITEM 4b (the runner side of item 4; item 4's agent-side checked save is NOT held)
+ - tether_agent.run returns a record with end "agent_error", the error text and the whole traceback, after (i)-(iii).
+ - The worker writes that row and goes on to its next game with a fresh agent, which loads the worker's library file. Because (iii) replaces that file only after its read-back passes, it is either the error game's checked save or the one before it.
+ - The run record lists each game's end, so a reader sees which game raised and that the queue went on.
+ Must-fail + CHECK switch TETHER_ERROR_CARRY (the runner case) (default ON):
+ - Kaggle path (your 12:31): through tether_runner with processes=False and 3 stub games, an exception injected in game 1.
+   - ON: games 2 and 3 are played and recorded; game 2's agent loads the library item 4 wrote (or the one before it, when the round trip is planted to refuse).
+   - OFF: the exception leaves run() and games 2 and 3 are never played (the defect).
+
+FIGURE CENSUS for these: Fig 10 :29, :46-48 (items 2, 3); Fig 11 :47, :66 and Fig 12 :127 (item 3); Fig 4 :23-25 and Fig 11 :32 (4b).
+
+KAGGLE NOTES ADDED 2026-10-22 (for the Kaggle step, with the items above):
+ - tether_agent.run's step_or_recover call is HELD here: (B), the in-game recovery after an agent fault (fe6ee21), is built at arc_holdout.play and harness/mem_store/e4_stream.py; the Kaggle entry loop (tether_agent.run:49) gets the same one-line call at the Kaggle step, reconciled with 4b and K1 (the reviewer 15:17).
+ - THE END-PATH RESERVE NEEDS A MEASURED end_path_s IN THE SHIPPED SNAPSHOT (the reviewer 22:43): C1 (A)'s reserve is read at load from the store's meta 'end_path', written after a game's sleep. A lineage snapshot that never ran under 1 + (A) (the S3O point does not) has none, so every Kaggle worker's first game runs with NO reserve: the thinking deadline is the runner's whole deadline. At export, check the snapshot carries it, or ship one made after a game run under 1 + (A).
+ - THE BUNDLE'S library_sha CHANGES: 1d4c4c8 edited library/library_runtime.py (a guarded import of cap.head and 8 heads), so the shipped library/ hashes differently from earlier exports; nothing at load reads library_sha (the lineage load checks compile_term.signature), beside K7's line-ending note.
