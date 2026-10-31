@@ -1260,6 +1260,14 @@ ARMS: dict[str, str] = {
                              "so a slot that ACCEPTed this cycle reads MINT after ACCEPT and the "
                              "gate refuses the ledger (demo.py on draws c2377d1e, 838dce71). "
                              "default ON",
+    "TETHER_REMAINDER_VERDICT_KEY": "14 REMAINDER_VERDICT_KEY (the reviewer r466 1(b)). The "
+                                    "remainder row (1e) carries the gap's last mint verdict as "
+                                    "mint_verdict and mint_verdict_cycle. Key names only: no "
+                                    "decision moves, no row is added or dropped. OFF: the keys are "
+                                    "the mint's own, verdict and verdict_cycle, so gate.py's "
+                                    "unreached check reads the row as a park with no coverage and "
+                                    "refuses the ledger (demo.py on draws c36f0f02, 838dce71, "
+                                    "c2377d1e). default ON",
     "TETHER_ASK_ON_BOARD": "11 ASK_ON_BOARD (the reviewer r452 A). In 1b's eligibility loop a "
                            "gap whose slot is not in this step's `before` is not eligible this "
                            "step; it stays in the space and is not released, so it can be asked "
