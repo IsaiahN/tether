@@ -103,6 +103,18 @@ def commit_mb() -> tuple[int, int]:
     return int(c.PrivateUsage) // 2**20, int(c.PeakPagefileUsage) // 2**20
 
 
+MEMOS = ("_HELD_COMPILE", "_INDEX_STORE", "_BOUND_MEMO")   # process-wide, never cleared (r551 3)
+
+
+def memo(event: str, i: int, g: str) -> None:
+    """RECORD ONLY (r551 3): at each claim and each game's end, the sizes of tether's process-wide memos and this
+    process's commit, to memo.tsv; the driver writes it and the agent never reads it. A memo absent here is -1."""
+    sizes = [len(getattr(tether, n)) if hasattr(tether, n) else -1 for n in MEMOS]
+    c, pk = commit_mb()
+    with open(os.path.join(OUT, "memo.tsv"), "a", encoding="utf-8") as fh:
+        fh.write("\t".join(map(str, (round(time.time(), 1), event, i, g, *sizes, c, pk))) + "\n")
+
+
 SW = os.path.join(OUT, "switch.tsv")
 
 
@@ -192,6 +204,7 @@ nxt = first
 while nxt is not None:
     i, g = nxt
     taken.append(g)
+    memo("claim", i, g)
     if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the life
         budget_unreached.append(g)
         finished(i)
@@ -260,6 +273,7 @@ while nxt is not None:
         f"{(lv_seen - (lv_start or 0))}\t{ending}\t{dict(endings)}\t{commit_end}\t{seq0}\t{seqP}\t{seq1}\t"
         f"{acts}\t{first_act_s}\t{extended}\t{unreached}\t{overrun}\t{round(mx, 1)}\t{left}\t{round(longest, 1)}\t"
         f"{peak}")
+    memo("end", i, g)
     finished(i)
     nxt = take()
 ag.end_run("cap")                         # no lineage.write: B keeps nothing (r541 3(d))
