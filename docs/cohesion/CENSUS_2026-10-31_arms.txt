@@ -1,6 +1,6 @@
 ARMS CENSUS (r466 section 2), one line per conform/arms.py ARMS key at 8e6efa5 = general-agent 3813c79 + arm 16 CONTACT_LIGHT + arm 17 CHANGE_TALLY. 272 keys: 248 ON, 4 NO_ switches OFF (their feature ON), 20 OFF.
 Columns: env | where defined | default state | in the release 3813c79 (rel) / PLAY24's tree 26a68e0 (p24) / PLAY25's tree 8e6efa5 (p25) | the commit that first defined it | the ruling, from its ARMS row | every default flip (commit date old->new) | for an OFF arm, its comment.
-STATE = the default: PLAY's box sets only TETHER_AGENT_SEED, and Kaggle run A strips TETHER_*, so no run overrides an arm (except the A' ON/OFF tests, which set them per process).
+STATE = the default: PLAY's box sets only TETHER_AGENT_SEED, and the competition run strips TETHER_*, so no run overrides an arm (except the A' ON/OFF tests, which set them per process).
 
 TETHER_ACTED_GUARD | tether.py:198 | ON | rel Y p24 Y p25 Y | added def6706 2026-10-08 (the one-parser commit; the switch is older) | a term may be guarded on `ACTED_SELF` -- true when the press LANDED ON this slot's object, resolved per slot b
 TETHER_AIMED_CURIOSITY | tether.py:204 | ON | rel Y p24 Y p25 Y | added def6706 2026-10-08 (the one-parser commit; the switch is older) | the CURIOSITY exit names a subject -- the slot with the most unexplained surprise that it has also watched mov
