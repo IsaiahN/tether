@@ -1268,6 +1268,17 @@ ARMS: dict[str, str] = {
                                     "unreached check reads the row as a park with no coverage and "
                                     "refuses the ledger (demo.py on draws c36f0f02, 838dce71, "
                                     "c2377d1e). default ON",
+    "TETHER_DESCRIBED_WALK": "19 DESCRIBED_WALK (the reviewer r531, r533; Fig 9 :27-29, :40-41, "
+                             ":60). ORDER ONLY: _index_reach walks a slot's lit entries with "
+                             "those whose held views land on the asked slot under this "
+                             "question's names, or come through an event route, first; the rest "
+                             "follow in today's order. Nothing is dropped and no verdict is "
+                             "written: A2's budget cut holds back the tail, owed as before. A "
+                             "filter was measured first and refused (r533): no cheap key covered "
+                             "every found walk on six movers (own reading 71.8%, with the event "
+                             "route 88.3%, the reading cluster 98.6%). One ROUTE @described_walk "
+                             "walk_ordered row per step the order moved. OFF: today's order, no "
+                             "row. default ON",
     "TETHER_HELD_COMPILE_MEMO": "18 HELD_COMPILE_MEMO (the reviewer r512, r524). _held_index "
                                 "compiles a held view's conditions under the placeholders, so the "
                                 "same few (condition, subject) pairs were compiled again for every "

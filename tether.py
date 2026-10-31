@@ -673,6 +673,7 @@ _INDEX_STORE: dict = (_Kept() if _W_HELD_LAZY and _W_CACHES   # (compile_term.si
                       else {})                                  # role) -> held compiles
 _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent never reads it
 _HELD_COMPILE: dict = {}   # 18: (signature, condition, subject) -> the compile; the process's
+_DW_ENTRY: dict = {}       # 19: (signature, entry) -> (its held views' placeholder slots, any via)
 # THE BOUND ANSWERS OUTLIVE THE GAME (Isaiah 2026-10-15 06:01; the reviewer 06:10, 06:56): one
 # memo per PROCESS, keyed by the code primitives' content token, used only by an Agent whose
 # Gamma holds the shared objects (gamma.shared_token); any other Agent keeps its own memo.
@@ -964,6 +965,12 @@ _CONTACT_LIGHT = armflag.arm("TETHER_CONTACT_LIGHT", default=True)
 # signature is what a compile can read of them; Compiled, Refusal and Term are frozen. Record
 # only, beside it: the step clock's reach_s, _library_reach's wall this step. ON; conform/arms.py
 _HELD_COMPILE_MEMO = armflag.arm("TETHER_HELD_COMPILE_MEMO", default=True)
+# 19 DESCRIBED_WALK (the reviewer r531, r533; Fig 9 :27-29, :40-41, :60): ORDER ONLY. _index_reach
+# walks a slot's lit entries with the ones whose held views land on the asked slot (bound to this
+# question's names), or come through an event route, first; the rest follow in today's order. No
+# filter: A2's budget cut still holds back the tail, owed as before. Measured (r533): no cheaper
+# key covered every found walk, so nothing is cut on it. ON; conform/arms.py
+_DESCRIBED_WALK = armflag.arm("TETHER_DESCRIBED_WALK", default=True)
 # 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
 # when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
 # prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
@@ -3352,6 +3359,7 @@ class Agent:
         self._named: dict[str, dict[str, list]] = {}
         self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
+        self._dw_n: Counter = Counter()          # 19: this step's described-walk counts
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._walk_memo: dict = {}         # (A): one lit entry's walk, by what it reads
         self._ak_rec: Counter | None = None   # (A)'s check: the asks a fresh walk made
@@ -5931,6 +5939,33 @@ class Agent:
                 tuple(sorted(rec["refused"].items(), key=str)), rec["spent"],
                 tuple(rec["landed"]), tuple(rec["calls"]))
 
+    def _dw_order(self, lib: Any, lit: list, mine: str, partner: str, tslots: tuple,
+                  atoms: dict, sig: tuple) -> list:
+        """19: the lit entries whose held views land on an asked slot under this question's
+        names (the walk's own landing test, c.slot == t_), or come through an event route,
+        first; each part in today's order. Nothing is dropped."""
+        first, rest = [], []
+        for e in lit:
+            cap.head()
+            pl = _DW_ENTRY.get((sig, e[0]))
+            if pl is None:
+                slots, via = set(), False
+                for role in _HELD_ROLES:
+                    for _cand, c1, c2 in self._held_index(lib, e[0], role, atoms, sig):
+                        for c in (c1, c2):
+                            if isinstance(c, compile_term.Compiled):
+                                slots.add(c.slot)
+                                via = via or c.via is not None
+                pl = _DW_ENTRY[(sig, e[0])] = (frozenset(slots), via)
+            hit = pl[1] or any(_ph_sub(s, mine, partner) in tslots for s in pl[0])
+            (first if hit else rest).append(e)
+        out = first + rest
+        if out != lit:
+            self._dw_n["moved"] += 1
+        self._dw_n["k_first"] += len(first)
+        self._dw_n["lit"] += len(lit)
+        return out
+
     def _index_reach(self, lib: Any, lit: list, slot: str, mine: str, others: tuple,
                      partner: str | None = None, late: frozenset = frozenset(),
                      probe: bool = False, targets: tuple = ()) -> tuple:
@@ -5960,6 +5995,9 @@ class Agent:
         sig = compile_term.signature(atoms) if _INDEX_HOLD else None
         _pno = _PAIR_NOT_OBJECT and ("~" in mine or "~" in partner)
         kinds: dict | None = {} if _KIND_HOIST else None
+        walked_n = 0
+        if _DESCRIBED_WALK and sig is not None and lit:
+            lit = self._dw_order(lib, lit, mine, partner, targets or (slot,), atoms, sig)
         for i_, (key, _w) in enumerate(lit):
             cap.head()
             if _WALK_BUDGET and _STEP_BUDGET and self._spent >= STEP_BUDGET:
@@ -5980,6 +6018,7 @@ class Agent:
                     self._k1_trunc = True
                     break
                 self._late = (a_ + 1, na_)
+            walked_n += 1
             if _WALK_MEMO:
                 self._walk_memo_entry(lib, key, slot, mine, partner, others, targets, comp, atoms,
                                       sig, tally is not None, _pno, views, causes, refused, kinds)
@@ -6066,6 +6105,9 @@ class Agent:
                                    # so the record rebuilds any finer index the ladder drops
                                    **({"dk": list(self._cur_dk)}
                                       if _DELTA_KIND and self._cur_dk is not None else {})})
+        if _DESCRIBED_WALK and sig is not None:
+            self._dw_n["walked"] += walked_n
+            self._dw_n["found"] += len(views) + len(causes)
         return views, causes, refused
 
     @cap.held      # C1 (A): one landing writes several kind stores the lineage carries (15:34 2)
@@ -11226,6 +11268,7 @@ class Agent:
         pos = {s: i for i, s in enumerate(res)}       # today's order, handed back to the mints
         self._route_cls = {}
         self._step_act = Counter()
+        self._dw_n = Counter()
         if _STEP_BUDGET:
             # C1: this step's budget starts at zero; the slots a budget left unasked go first,
             # the rest keep today's order (so a budget that never binds changes nothing)
@@ -11347,6 +11390,14 @@ class Agent:
                                               if k != "walked"},
                             reads="A1: this step's lookups the governor let run, and those it "
                                   "deferred by why")
+        if _DESCRIBED_WALK and self._dw_n["moved"]:
+            self.led.record(self.cycle, "ROUTE", "@described_walk", "walk_ordered",
+                            lookups_reordered=self._dw_n["moved"], lit=self._dw_n["lit"],
+                            k_first=self._dw_n["k_first"], walked=self._dw_n["walked"],
+                            found=self._dw_n["found"],
+                            reads=("walked in the order the gap's description fits, those whose "
+                                   "views land on the asked slot first; nothing dropped, the "
+                                   "budget's tail owed as before (Fig 9 :27-29, :40-41, :60)"))
         if _STEP_RANK:
             out.sort(key=lambda t: pos[t[0]])           # the mints run in today's order
         return out
