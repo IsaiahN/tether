@@ -65,8 +65,8 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
 
 
 # The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One
-# machine gives one value; two machines (here and Kaggle) differ, and no decision reads the RAM
-# figure itself. Masked as BIRTH is.
+# machine gives one value; two machines (here and the submission machine) differ, and no decision
+# reads the RAM figure itself. Masked as BIRTH is.
 MACHINE = ("budget_bytes", "ram_bytes")
 # Fields that depend on WHEN a body fold evicted a cache (W-2, 2026-10-22): the memo sizes and
 # hit counts a memo_sizes row reports. Masked only by a comparer that runs a fold or an eviction on

@@ -45,7 +45,7 @@ import inherited
 sys.dont_write_bytecode = True
 
 # THE SEED IS READ FROM BESIDE THIS FILE, NOT FROM WHEREVER THE PROCESS STARTED -- 2026-10-06.
-# Kaggle runs main.py from another directory; a cwd-relative open fails there. The
+# The submission machine runs main.py from another directory; a cwd-relative open fails there. The
 # recorded provenance keeps the repo-relative path.
 _HERE = os.path.dirname(os.path.abspath(__file__))
 

@@ -1,4 +1,5 @@
-"""THE ENTRY SEAT -- the Kaggle path, offline, on a FAKE wrapper. No ARC board is touched.
+"""THE ENTRY SEAT -- the competition entry point's path, offline, on a FAKE wrapper. No ARC board
+is touched.
 
 The fake mirrors the real arc_agi wrappers where it matters here: it RESETS IN ITS OWN __init__
 (both real ones do), holds the last frame as `observation_space`, and takes

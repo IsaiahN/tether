@@ -310,7 +310,7 @@ def minimum_set() -> Registry:
     **TIER 2 IS ABSENT HERE AND IS NO LONGER FORBIDDEN -- SUPERSEDED BY ISAIAH, 2026-09-19.**
     This docstring read: *§12.3 says symmetry, containment, holes, counting-by-colour and
     alignment must be REACHED, because reaching is the only evidence the composition system
-    works, and the 2026-08-27 ruling makes loading them forbidden.* **The Kaggle constraints
+    works, and the 2026-08-27 ruling makes loading them forbidden.* **The competition's offline rule
     force the human priors to be trained in, and those are the 2700 AND THE INSTRUMENTS.**
 
     **The premise is what moved, not the rule's wording: THE NOVEL COMPOSITION HAPPENS IN THE

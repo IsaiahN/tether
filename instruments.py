@@ -823,7 +823,8 @@ class Attribution:
         """WHICH CODE RAN, beside which arms (the reviewer 2026-10-12 12:41 CDT, item 4).
 
         `files_sha` hashes the project files IMPORTED when it is called, read where they ran, so
-        it needs no git (Kaggle) and shows a tree that changed between the members of a batch.
+        it needs no git (the submission machine) and shows a tree that changed between the members
+        of a batch.
         A module first imported later in the run is not in it. `head`/`tree`/`dirty` are git's
         view of the same directory (`dirty`: tracked files only); where git cannot say they are
         None with the reason, never raised. Nothing reads this to decide anything."""
