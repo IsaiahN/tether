@@ -484,6 +484,17 @@ ARMS: dict[str, str] = {
                    "dies, so its only evidence is the dying-world fixture until step 13"
                    ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
                    "record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_NOOP_WITHHOLD": "23 NOOP_WITHHOLD (the reviewer r571; the one mechanism the public "
+                            "leaderboard reports replicated: never repeat a press that changed "
+                            "nothing in an identical state). A press after which the board's "
+                            "fingerprint (interface.fingerprint, the one TETHER_RUIN reads) is "
+                            "the one it had before adds (fingerprint, action, realised "
+                            "coordinate) to a no-op set beside the ruin vetoes; on that "
+                            "identical board only it joins the Withheld set, so the interface's "
+                            "existing rule lifts it when every option would be withheld. "
+                            "Learned on the board, kept by state, cleared at retarget; one PLAN "
+                            "'@noop' 'withheld' row per step it withholds anything. Acts only "
+                            "with TETHER_RUIN. OFF: the vetoes alone, as 1e9d4d5. default ON",
     "TETHER_RUIN_RECORD": "7a(5) A + B (ARC_AGENT 19.3-19.4; the reviewer 2026-10-10 10:41Z): "
                           "ON, every ending reaches instruments.Termination exactly once "
                           "(retarget, or end_run unless retarget counted the same word; "
