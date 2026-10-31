@@ -672,6 +672,7 @@ PH_O, PH_X = "PHo", "PHx"   # no id generator makes these (arc_percept 638, grid
 _INDEX_STORE: dict = (_Kept() if _W_HELD_LAZY and _W_CACHES   # (compile_term.signature, entry,
                       else {})                                  # role) -> held compiles
 _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent never reads it
+_HELD_COMPILE: dict = {}   # 18: (signature, condition, subject) -> the compile; the process's
 # THE BOUND ANSWERS OUTLIVE THE GAME (Isaiah 2026-10-15 06:01; the reviewer 06:10, 06:56): one
 # memo per PROCESS, keyed by the code primitives' content token, used only by an Agent whose
 # Gamma holds the shared objects (gamma.shared_token); any other Agent keeps its own memo.
@@ -946,6 +947,23 @@ _PLAN_NARROW = armflag.arm("TETHER_PLAN_NARROW", default=True)
 # owed_import, walked at the next step (a) or when the rows change (b); a contact_first row each
 # time. ON; conform/arms.py
 _CONTACT_FIRST = armflag.arm("TETHER_CONTACT_FIRST", default=True)
+# 16 CONTACT_LIGHT (the reviewer 2026-10-31 r481, r483, r490, r491; Isaiah 2026-10-31 02:15): the
+# library lookup scores a row once per (slot, val-typed candidate), not every step. _library_fit's
+# two full-history _left calls resume each candidate's stored prefix total while the slot's
+# _divide_key holds and the shape table has not grown under a row that read its extent (1b's
+# rule), and score only the new rows -- _left is a prefix sum, so the total is bit-identical. An
+# OBJ-typed candidate walks its whole history every time: its domain draws per cycle and writes
+# choice rows. Needs TETHER_DIVIDE (the extent count). The repeat-mint wait (Part B) was stopped:
+# STEP_MINT's stop and CONTACT_FIRST already take it (r490). ON; conform/arms.py
+_CONTACT_LIGHT = armflag.arm("TETHER_CONTACT_LIGHT", default=True)
+# 18 HELD_COMPILE_MEMO (the reviewer r512, r524): _held_index compiles a held view's conditions
+# under the placeholders, so the same few (condition, subject) pairs compiled again for every
+# entry -- 260,912 compiles over 143 distinct pairs on the movers fixture. Each is compiled once
+# per process, keyed (compile_term.signature, condition, the subject as passed): the compiler is
+# a pure function of the condition and the atoms (_index_reach, its _compile_cache) and the
+# signature is what a compile can read of them; Compiled, Refusal and Term are frozen. Record
+# only, beside it: the step clock's reach_s, _library_reach's wall this step. ON; conform/arms.py
+_HELD_COMPILE_MEMO = armflag.arm("TETHER_HELD_COMPILE_MEMO", default=True)
 # 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
 # when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
 # prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
@@ -1157,7 +1175,7 @@ _STEP_BUDGET = armflag.arm("TETHER_STEP_BUDGET", default=True)
 # K-W, 1,000,000 -> 50,000 (Isaiah 2026-10-21 18:58, via the reviewer 19:02; measured S2W, S3G: a
 # step's lookups past it are OWED and asked first next step). A VALUE: TETHER_STEP_BUDGET_N
 # overrides it, 1000000 restores the old pacing (317879c). MAGIC: a seat-authored constant
-# (Fig 10 :48), replaced post-Kaggle by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
+# (Fig 10 :48), replaced after the competition entry by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 STEP_BUDGET = int(os.environ.get("TETHER_STEP_BUDGET_N", "50000"))
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
@@ -2944,6 +2962,7 @@ class Agent:
     _end_path_t0 = None        # set by the end block: the end path is timed whole
     _fault_cycle = None        # item 4: the cycle an agent fault was raised in (None: none)
     _fault_text = None         # item 4: the fault, type and message
+    _reach_wall = 0.0          # 18: _library_reach's seconds this step, for reach_s
 
     @contextmanager
     def _step_scope(self, step: str):
@@ -3276,6 +3295,7 @@ class Agent:
         # from `held` moving** -- a rebind leaves every entry for that slot unreachable,
         # since they are reusable only if the slot returns to exactly that binding.
         self._tally: dict = {}
+        self._cl_cells: dict = {}       # 16: slot -> (its _divide_key, {term: (rows, total, size)})
         self._space: dict = {}          # 1a: slot -> its open space (kind, opened, mints, base)
         self._kind_space: dict = {}     # 1a: gap kind -> chains met, costs under (code, units)
         self._dv: dict | None = None    # 1a: this mint's divide counts, None outside a walk
@@ -4039,6 +4059,7 @@ class Agent:
         if _DIVIDE:
             self._divide_close_all("epoch")   # 1a: each space's row before its tallies go
         self._tally.clear()             # (the epoch is in the triple; this is belt and braces)
+        self._cl_cells.clear()          # 16: likewise keyed by the epoch
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
         # R-A/R-B: nor their raw gaps, nor the routes keyed by their names -- a scope end, the
         # route_refused rows stay in the ledger (Fig 6 :45). retarget fires on a level edge AND a
@@ -4990,14 +5011,14 @@ class Agent:
                                "pairs offered, bonds read over its frames, nothing adopted"))
         dk = self._delta_kind(slot, hist) if _DELTA_KIND else None
         if ev is None:
-            self._library_reach(slot, mine, own, described, dk=dk)
+            self._reach_timed(slot, mine, own, described, dk=dk)
             return
         # a pair slot under two events is ANSWERED once, by the event it was assigned to (the
         # reviewer 21:53); it still lends its description to both
         answer = tuple(m for m in members if self._event_of.get(m) == ev)
         dks = {m: (dk if m == slot else self._delta_kind(m, self.history(m))) if _DELTA_KIND
                else None for m in answer}
-        self._library_reach(slot, mine, own, described, dk=dk, members=answer, dks=dks)
+        self._reach_timed(slot, mine, own, described, dk=dk, members=answer, dks=dks)
         self._ev_done[ev] = {"offers": {m: list(self._lib_offers.get(m, [])) for m in answer},
                              "named": named_of}
 
@@ -5230,6 +5251,16 @@ class Agent:
             put("T5", [(k, float(m)) for k, m in order(
                 score.items(), lambda kv: (molecule(kv[0]), -kv[1]))])
         return out, n
+
+    def _reach_timed(self, *a: Any, **k: Any) -> None:
+        """_library_reach, its wall added to this step's reach_s (18, record only; r524)."""
+        if not _HELD_COMPILE_MEMO:
+            return self._library_reach(*a, **k)
+        t0 = time.perf_counter()
+        try:
+            return self._library_reach(*a, **k)
+        finally:
+            self._reach_wall += time.perf_counter() - t0
 
     def _library_reach(self, slot: str, mine: str, own: dict, described: dict,
                        dk: tuple | None = None, members: tuple = (),
@@ -6515,8 +6546,15 @@ class Agent:
             held = door.resolve(self, lib, key, role, sig)
         if held is None:
             def comp(cond: str, subject: str | None = None) -> Any:
-                return compile_term.compile_candidate(
-                    {"condition": cond}, atoms, subject=subject if _LIBRARY_ABDUCE else None)
+                subj = subject if _LIBRARY_ABDUCE else None
+                mk = (sig, cond, subj)
+                if _HELD_COMPILE_MEMO and mk in _HELD_COMPILE:
+                    return _HELD_COMPILE[mk]
+                _INDEX_N["held_compile"] += 1
+                got = compile_term.compile_candidate({"condition": cond}, atoms, subject=subj)
+                if _HELD_COMPILE_MEMO:
+                    _HELD_COMPILE[mk] = got
+                return got
             held = []
             for cand in lib.view(key, role, PH_O, PH_X):
                 cap.head()
@@ -10469,7 +10507,8 @@ class Agent:
         # NOT ON BY DEFAULT: `retrieve` returns every name ordered by fit, so this is a RANKING
         # change, not an exclusion, and whether ranking is what the wall is made of is unmeasured.
         # The supply side may simply be thin -- 7 arity-2 atoms of 48.
-        _base = (self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
+        _cells = self._cl_cells_for(slot, self.gamma.library[self.bound.get(slot, IDN)])
+        _base = (self._cl_left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist, _cells)
                  if _BARGAIN_FIT else 0.0)
         # ARM H's pool, computed ONCE per lookup and never per candidate -- `_residual_obs` walks
         # the history and `_guards` is a filter over it, so doing it inside the candidate loop
@@ -10581,7 +10620,7 @@ class Agent:
                 return None, None, None, _since(_n0)
             if not price:
                 return True, None, None, _since(_n0)
-            _left = self._left(cand, slot, hist)
+            _left = self._cl_left(cand, slot, hist, _cells)
             _n1 = self.led.written
             if not _FIT_UNITS:
                 _units = self._units_for(slot)
@@ -11079,7 +11118,7 @@ class Agent:
         self._served[slot] = (fit, max(0.0, base - left))
 
     def _left(self, term: Term, slot: str, hist, ceiling: float | None = None,
-              offset: float = 0.0) -> float:
+              offset: float = 0.0, start: int = 0, total: float = 0.0) -> float:
         """What the term leaves unexplained across the slot's history, in bits.
 
         `ceiling` IS AN EXACT ABORT, NOT AN APPROXIMATION. Every term added here is
@@ -11095,9 +11134,11 @@ class Agent:
         which can disagree with `pays` at the last ulp. Float addition is monotone, so a
         partial total that fails `pays` is a full one that fails it. No mint site reads
         `left` from a term that does not pay. Default 0.0 adds exactly nothing.
+
+        16: `start` and `total` resume a stored prefix -- the rows before `start` summed to `total`
+        (_cl_left). Defaults walk the whole history from zero.
         """
-        total = 0.0
-        for state, action, actual, intent, landed in hist:
+        for state, action, actual, intent, landed in (hist[start:] if start else hist):
             cap.head()
             if ceiling is not None and offset + total >= ceiling:
                 return total
@@ -11117,6 +11158,34 @@ class Agent:
                 total += math.log2(self.alphabet[slot])   # unread is unexplained
                 continue
             total += correction_bits(got, actual, self.alphabet[slot])
+        return total
+
+    def _cl_cells_for(self, slot: str, held: Term) -> dict | None:
+        """16: the slot's stored prefixes under this lookup's _divide_key, or None (arm or DIVIDE
+        off). A key that moved drops the slot's cells, so only the current key's are kept."""
+        if not (_CONTACT_LIGHT and _DIVIDE):
+            return None
+        key = self._divide_key(slot, held)
+        got = self._cl_cells.get(slot)
+        if got is None or got[0] != key:
+            got = self._cl_cells[slot] = (key, {})
+        return got[1]
+
+    def _cl_left(self, term: Term, slot: str, hist, cells: dict | None) -> float:
+        """16: `_left` over the full history, resuming a val-typed term's stored prefix. A cell is
+        (rows, total, the shape table's size if any of its rows read the extent, else None) --
+        1b's rule: a grown table voids it. An OBJ-typed term always walks the whole history."""
+        if cells is None or getattr(term, "out_type", "val") == OBJ_TYPE:
+            return self._left(term, slot, hist)
+        cell = cells.get(term)
+        start, total = 0, 0.0
+        if cell is not None and cell[0] <= len(hist) and (
+                cell[2] is None or cell[2] == self._decoder_size()):
+            start, total = cell[0], cell[1]
+        e0 = _EXTENT[0]
+        total = self._left(term, slot, hist, start=start, total=total)
+        read = _EXTENT[0] != e0 or (start and cell[2] is not None)
+        cells[term] = (len(hist), total, self._decoder_size() if read else None)
         return total
 
     def _defer_lookup(self, slot: str) -> str | None:
@@ -18655,6 +18724,7 @@ class Agent:
         c0 = self.cycle
         if _STEP_CLOCK:
             self._clk, self._clk_stack, self._clk_t0 = {}, [], time.perf_counter()
+            self._reach_wall = 0.0
         try:
             return self._step_body(action)
         except cap.CapReached as cut:
@@ -19106,6 +19176,17 @@ class Agent:
             # subject, the a561fb2 lesson): the killing step's key if this step dies
             self._ruin_step = (*self._step_fp, action,
                                tuple(coord) if coord is not None else None, self.cycle)
+        tn = getattr(self.iface, "tally_note", None) if IFace._CHANGE_TALLY else None
+        if tn is not None:
+            # 17: the interface's changed-or-not tally decided a tie for THIS press (set while this
+            # step chose it, for this action); the counts it read, once
+            self.iface.tally_note = None
+            if tn["at"] == self.iface.audits and action in (tn.get("pick"), tn.get("action")):
+                self.led.record(self.cycle, "PLAN", "@tally", "tally_order",
+                                **{k: v for k, v in tn.items() if k != "at"},
+                                reads="17: inside the variety tier, an action that never changed "
+                                      "anything goes last and ties go to the higher "
+                                      "changed-per-press ratio on this board (Fig 11 :40)")
         res = self.perceive(action, coord, self._intent_now)
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         try:
@@ -19372,7 +19453,9 @@ class Agent:
         reuse = [n for n in self.gamma.library
                  if str((stamps.get(n) or {}).get("residual") or "").startswith("reuse:")]
         here = set(_OBJ_ID.findall(" ".join(self.slots)))
-        return {"wall_s": wall, "trace_len": len(self.trace), "wants_n": len(self.wants),
+        return {"wall_s": wall, **({"reach_s": round(self._reach_wall, 4)}
+                                   if _HELD_COMPILE_MEMO else {}),
+                "trace_len": len(self.trace), "wants_n": len(self.wants),
                 "owed_import_n": len(self.owed_import), "gamma_reuse_live": len(reuse),
                 "gamma_reuse_on_board": sum(1 for n in reuse
                                             if set(_OBJ_ID.findall(n)) <= here)}

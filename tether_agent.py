@@ -1,4 +1,5 @@
-"""THE KAGGLE ENTRY POINT'S LOOP (14a) -- harness-free, so it imports nothing from ARC-AGI-3-Agents.
+"""THE COMPETITION ENTRY POINT'S LOOP (14a) -- harness-free, so it imports nothing from
+ARC-AGI-3-Agents.
 
 The reference `Agent.main()` owns a push loop (`choose_action` returns an action and the harness
 sends it); tether's loop is pull (`Agent.step()` acts on its world). The subclass the bundler

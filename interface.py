@@ -146,6 +146,13 @@ _AIM_GAP = armflag.arm("TETHER_AIM_GAP", default=True)
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _A1_CHOOSE = armflag.arm("TETHER_A1_CHOOSE", default=True)
 _A1_TIES = armflag.arm("TETHER_A1_TIES", default=True)
+# 17 CHANGE_TALLY (the reviewer 2026-10-31 r481; Isaiah 2026-10-31 02:15; Fig 11 :40): audit counts,
+# per action on this board, the presses after which something it credits to the press changed
+# ("changed_n" beside "n"), and per positioned action the same by the kind it landed on. Read only
+# inside the variety rule's tiers: an action (or a landing kind) pressed in >= 2 contexts that never
+# changed anything goes last in its tier (probe.Drive's two-states anchor), and ties of the tier's
+# own first reading go to the higher changed-per-press ratio. ON; conform/arms.py
+_CHANGE_TALLY = armflag.arm("TETHER_CHANGE_TALLY", default=True)
 # THE DECAY CLASS (Isaiah 2026-10-15 15:54 "its what decay is for"; 10-09: staleness at
 # boundaries, within a level age only orders; the reviewer 16:18, 18:13). A situation is
 # (level, alive), numbered by an epoch the agent hands over at each boundary (situate). Every
@@ -485,6 +492,7 @@ class Interface:
         # A1-CONVERT: how often each step of frontier_pick decided a press here (gate, frontier,
         # residual, learning, draw); the interface's own record of how it realised intents.
         self.pick_by: Counter = Counter()
+        self.tally_note: dict | None = None    # 17: what the tally read when it decided a pick
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
         # K3: slot -> its KIND key (the agent's _kind and the attribute), or None; set by the agent
         # under TETHER_KIND_CARRY. None here: no kind tables, today's reading.
@@ -979,6 +987,23 @@ class Interface:
         # which is what stops `learned`'s collapse (`ACTION2`, 105 of 150 on `ls20`) travelling
         # below the seam wearing the word exploration.
         def _pick(band: list[str], learn: bool = False) -> str:
+            if not (_CHANGE_TALLY and intent.kind == ELICIT and len(band) > 1):
+                return _pick_in(band, learn)
+            # 17: the tally orders inside this tier; the tier's own first reading (as _pick_in
+            # reads it) is kept, and the tally decides only among its ties
+            lv = learn and _7K_LEARN
+            first = ({b: self.reach(b, ctx, offered) for b in band} if lv else
+                     {b: rank.get(b, 0) for b in band})
+            stat = {b: (self.table.get(b, {}).get("n", 0),
+                        self.table.get(b, {}).get("changed_n", 0),
+                        len(self.table.get(b, {}).get("by_ctx", {}))) for b in band}
+            keep, read, decided = self._tally_order(band, first, stat)
+            a = _pick_in(keep, learn)
+            if decided:
+                self.tally_note = {"at": self.audits, "pick": a, "band": list(band), **read}
+            return a
+
+        def _pick_in(band: list[str], learn: bool = False) -> str:
             if _A1_TIES and len(band) > 1:
                 # A1: the separability rank is the residual reading; then the least-seen here;
                 # then the draw. The band's list position never decides. 7k: for ELICIT's fresh
@@ -1033,6 +1058,21 @@ class Interface:
                         obj = intent.subject.rsplit(".", 1)[0] if intent.subject else None
                         at = (self._at(obj, state, self.cell_of)
                               if obj and state is not None else None)
+                        if _CHANGE_TALLY:
+                            # 17: the same tie order by the kind each coordinate would land on
+                            kinds = {c: self._landed_kind(self._acted(c, state, self.cell_of),
+                                                          state) for c in here}
+                            tk = self.table.get(a, {}).get("tally_kind", {})
+                            stat = {c: ((t[0], t[1], len(t[2])) if (t := tk.get(kinds[c]))
+                                        else (0, 0, 0)) for c in here}
+                            keep, read, decided = self._tally_order(
+                                here, {c: int(c == at) for c in here}, stat)
+                            if decided:
+                                self.tally_note = {"at": self.audits, "action": a,
+                                                   "band": [list(c) for c in here],
+                                                   "kinds": {str(c): kinds[c] for c in here},
+                                                   **read}
+                            here = keep
                         aim, by, _f = FR.frontier_pick(
                             [(c, None, None) for c in here], {c: int(c == at) for c in here},
                             {c: len(self.aimed_effect.get(c, ())) for c in here},
@@ -1364,6 +1404,34 @@ class Interface:
         if not best:
             return None
         return min(best, key=lambda c: (len(self.aimed_effect[c]), c))
+
+    def _landed_kind(self, obj: str | None, state: dict | None) -> str | None:
+        """17: the kind of the object a positioned press landed on (K3's kind_of, read from one of
+        the object's slots), never the object's name; None without a kind reader."""
+        if obj is None or state is None or self.kind_of is None:
+            return None
+        slot = next((k for k in sorted(state) if k.rsplit(".", 1)[0] == obj), None)
+        return self.kind_of(slot) if slot is not None else None
+
+    @staticmethod
+    def _tally_order(items: list, first: dict, stat: dict) -> tuple[list, dict, bool]:
+        """17: inside one tier. An item with presses in >= 2 contexts and no change goes last (kept
+        only if every item is such); among those tied on the tier's own first reading, the higher
+        changed-per-press ratio, when every tied item has been pressed. `stat`: item -> (presses,
+        changed, contexts). Returns the items to choose among, what was read, and whether the tally
+        decided anything the first reading alone would not have."""
+        inert = [i for i in items if stat[i][0] and not stat[i][1] and stat[i][2] >= 2]
+        live = [i for i in items if i not in inert] or list(items)
+        top = max(first.get(i, 0) for i in live)
+        tied = [i for i in live if first.get(i, 0) == top]
+        keep = tied
+        if len(tied) > 1 and all(stat[i][0] for i in tied):
+            best = max(stat[i][1] / stat[i][0] for i in tied)
+            keep = [i for i in tied if stat[i][1] / stat[i][0] == best]
+        top_all = max(first.get(i, 0) for i in items)
+        decided = sorted(keep) != sorted(i for i in items if first.get(i, 0) == top_all)
+        read = {"inert_last": inert, "ratio": {str(i): list(stat[i][:2]) for i in tied}}
+        return keep, read, decided
 
     def _unpressed_here(self, state: dict | None, ctx: tuple,
                         avoid: set | frozenset = frozenset()) -> list[tuple[int, int]]:
@@ -1790,6 +1858,15 @@ class Interface:
                                  if k.rsplit(".", 1)[-1] not in RELATIONAL))
         e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0, "delta": {}})
         e["n"] += 1
+        if _CHANGE_TALLY:
+            # 17: the press changed something it is credited with (reafference already out), or not
+            e["changed_n"] = e.get("changed_n", 0) + bool(changed)
+            lk = self._landed_kind(_acted_on, before) if r.coord is not None else None
+            if lk is not None:
+                t = e.setdefault("tally_kind", {}).setdefault(lk, [0, 0, set()])
+                t[0] += 1
+                t[1] += bool(changed)
+                t[2].add(ctx)
         # WHERE IT LED (TETHER_DEST_GAP; the caller passes it only under the arm). Keyed by v1's
         # contact-kind multiset, so "mapped there" is only as fine as that key, and a board with
         # few contexts may read worked-out early. A press that ends a level records the next

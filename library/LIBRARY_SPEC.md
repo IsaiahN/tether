@@ -28,7 +28,7 @@ recorded only grows. What is reachable is derived"*).
 
 **What this replaces.** The code reads the library from two places today: `composer.py`,
 `condition.py`, `mapping.py`, `self_graded.py` read `docs/library-closure/` (ATOMS.md,
-ATTRIBUTES.md, ATTRIBUTE_INDEX.json, WORKING_SET.json); `inherited.py` and `kaggle_bundle.py` read
+ATTRIBUTES.md, ATTRIBUTE_INDEX.json, WORKING_SET.json); `inherited.py` and the submission bundle read
 `library/*.json`. Same population, two stores — the duplicate Isaiah named. After this, all of them
 read `library/`; `docs/library-closure/` keeps the source texts as provenance only.
 `tag_index.json` is superseded by `index.json` (its `by_tag` and `by_attribute` are in it).
@@ -128,7 +128,7 @@ is evidence). Ablation: wipe `learnings.json`, keep the seed, re-run.
 | 4 | the reach site lights from the frame's change via `Library.light` and offers candidates and `molecules_lit` to the mint, ordered | tether.py (`composer.lookup` call at the reach) | section 3 |
 | 5 | the observer publishes the full vector of `readings.json`, NULL at frame 0, and emits the changed-reading dict | arc_percept / arc_world (the tracker) | section 3 step 1 |
 | 6 | runtime and learnings layers persisted; promotion reuses `gamma.Standing` | gamma.py save/load, library_runtime | section 4 |
-| 7 | the Kaggle bundle ships `library/` whole | kaggle_bundle.py | the agent travels with its library |
+| 7 | the submission bundle ships `library/` whole | the submission's dataset builder | the agent travels with its library |
 | 8 | a seat check: `build_library.py --check` reproduces `index.json`; every entry has a route; every candidate parses; every `reads` is a reading | conform/ | derived means checkable (Figure 10: *"a convention nothing can check is a constant the seat authored"*) |
 
 **Acceptance (fixtures only, no game runs):** `library_runtime._selftest` (11 checks, all pass);

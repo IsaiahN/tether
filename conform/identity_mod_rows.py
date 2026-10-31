@@ -53,6 +53,7 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
            ("muse", "compute_ms"),           # tether 6328, 6358
            ("cap_mid_step", "overrun_s"),    # tether 2998, wall at the cap minus the deadline
            ("repeat", "wall_s"),             # the step clock (TETHER_STEP_CLOCK): per scope
+           ("repeat", "reach_s"),            # 18: _library_reach's wall this step (r524)
            ("step_mint", "wall_s"),          # the step clock: the step's mints
            ("park", "wall_s"),               # the step clock: the parked mint
            ("step_derived", "wall_s"),       # the step clock: B2's derived mints (38d3299)
@@ -65,8 +66,8 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
 
 
 # The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One
-# machine gives one value; two machines (here and Kaggle) differ, and no decision reads the RAM
-# figure itself. Masked as BIRTH is.
+# machine gives one value; two machines (here and the submission machine) differ, and no decision
+# reads the RAM figure itself. Masked as BIRTH is.
 MACHINE = ("budget_bytes", "ram_bytes")
 # Fields that depend on WHEN a body fold evicted a cache (W-2, 2026-10-22): the memo sizes and
 # hit counts a memo_sizes row reports. Masked only by a comparer that runs a fold or an eviction on
