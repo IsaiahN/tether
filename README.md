@@ -67,10 +67,14 @@ The checks are the same six as on `general-agent`.
 
 ## Kaggle notes
 
-- The submission bundle and the notebook's agent class are not built yet. When built, the
-  bundle carries only what the agent imports, and `arcengine` comes from the competition's
-  wheels.
-- Runner items designed and held for the Kaggle step are in `docs/kaggle_export/E9_RUNNER_HELD.txt`.
+- `kaggle/` holds the submission. `make_notebook.py` renders `tether_a.ipynb`, which plays the
+  games the competition's gateway lists, in its order, as one life that carries one lineage,
+  and `probe_machine.ipynb`, which prints the machine's cores, memory, disk and Python.
+- `build_dataset.py` and `build_lineage.py` build the two Kaggle datasets: the code with the
+  library, and the learned lineage, each with a sha256 manifest. The lineage is never in this
+  repository.
+- The notebook installs offline from the competition's own wheelhouse; `arcengine` comes from
+  those wheels.
 - The API key is never committed: `.env` is gitignored, and it appears in no commit.
 
 No result is claimed here. Results are reported where they are measured, with the games, the
