@@ -127,6 +127,27 @@ def log(line: str) -> None:
     print(line, flush=True)
 
 
+class NoAnswer(BaseException):
+    """r563: the wrapper answered None (arc_agi's client logs any HTTP error or timeout and returns None). Raised in
+    place of handing the None to the agent; a BaseException, so step_or_recover never reads it as an agent fault."""
+
+
+def _answer(frame):
+    if frame is None:
+        raise NoAnswer
+    return frame
+
+
+def card_gone(arc) -> bool:
+    """r563: after a make with no frame, whether the card itself is gone -- the gateway's own 404 for it (a competition
+    card that is still open answers 403, api.py get_scorecard). Anything else reads as not gone."""
+    try:
+        arc.get_scorecard()
+    except Exception as e:   # noqa: BLE001
+        return getattr(getattr(e, "response", None), "status_code", None) == 404
+    return False
+
+
 class Stream:
     """The proxy wrapper: the current game's wrapper, swapped by the harness between steps."""
 
@@ -138,13 +159,13 @@ class Stream:
         return getattr(self.cur, "observation_space", None)
 
     def reset(self):
-        return self.cur.reset()
+        return _answer(self.cur.reset())
 
     def step(self, act, data=None):
         if self.pending is not None:      # the switch lands here: the new board is the outcome
             self.cur, self.pending = self.pending, None
-            return getattr(self.cur, "observation_space", None) or self.cur.reset()
-        return self.cur.step(act, data=data) if data is not None else self.cur.step(act)
+            return getattr(self.cur, "observation_space", None) or _answer(self.cur.reset())
+        return _answer(self.cur.step(act, data=data) if data is not None else self.cur.step(act))
 
     def switch_to(self, game: str) -> None:
         if A.switch == "between":         # current at once; the driver hands its frame over (arrive)
@@ -182,7 +203,11 @@ if CH:
     CH.point("after_load", ag, A.out)
 endings_all = collections.Counter()
 budget_unreached = []
+no_answer, gone = [], False   # r563
 for i, g in enumerate(order):
+    if gone:
+        log(f"# {i}\t{g}\tnot played: the card is gone (the gateway's 404)")
+        continue
     if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the life
         budget_unreached.append(g)
         log(f"# {i}\t{g}\tunreached at this budget (the whole-run deadline passed; no switch)")
@@ -190,6 +215,11 @@ for i, g in enumerate(order):
     seq0 = len(ag.led)           # the check's window opens before the switch (and the plant) ...
     if i:
         proxy.switch_to(g)
+        if A.switch == "between" and proxy.observation_space is None:   # r563: no frame at the make, no retry
+            no_answer.append(g)
+            gone = card_gone(arc)
+            log(f"# {i}\t{g}\tno_answer: the make held no frame; nothing taken, no retry; card gone {gone}")
+            continue
         if A.switch == "between" and not env.arrive():   # the new game's first frame, before the next step
             log(f"# {i}\t{g}\tarrive: the wrapper held no frame; nothing taken, no reset issued")
         if A.mf:
@@ -202,7 +232,22 @@ for i, g in enumerate(order):
     n_steps = STEPS[min(i, len(STEPS) - 1)] if STEPS else None
     acts, first_act_s = 0, None
     while going(steps, n_steps, t_start, acts):
-        env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
+        try:
+            env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
+        except NoAnswer:   # r563: the game ends here, no retry; the agent cut inside its step is replaced
+            steps += 1
+            ending = "no_answer"
+            no_answer.append(g)
+            arc_holdout.guarded(ag, ag.end_run, "cap")
+            cycle, deadline, led = ag.cycle, ag.deadline, ag.led
+            env = arc_holdout.world_on(env.w, ctx["game"], ctx["palette"], env.on_frame)
+            ag, _loaded = arc_holdout.wire_agent(env, ctx["game"], None, led, None, A.lineage,
+                                                 clock=(cycle, deadline))
+            led.record(cycle, "SETTLE", "@run", "no_answer", game_steps=steps,
+                       parent=getattr(ag, "lineage_parent", None),
+                       reads="the wrapper answered None to a step, so that game ended with no retry and the agent "
+                             "cut inside its step was dropped; a fresh agent from the lineage goes on")
+            break
         if fault is not None:
             raise fault
         steps += 1
@@ -254,7 +299,7 @@ if close:
 out = {"seed": seed, "order": order, "cycles": ag.cycle, "wall_s": round(time.time() - T0, 1),
        "endings": dict(endings_all), "lineage": str(gen)[:300], "mf": A.mf, "deadline_at": A.deadline_at,
        "deadline_fired": bool(getattr(ag, "_cut", False)), "budget_unreached": budget_unreached,
-       "end_path_s": end_path_s}
+       "end_path_s": end_path_s, "no_answer": no_answer, "card_gone": gone}
 with open(os.path.join(A.out, "stream.result.json"), "w", encoding="utf-8") as fh:
     json.dump(out, fh, default=str)
 log(f"# stream end {time.strftime('%Y-%m-%d %H:%M:%S')} {json.dumps(out, default=str)[:400]}")

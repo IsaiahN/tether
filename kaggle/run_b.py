@@ -125,8 +125,10 @@ finally:
             sc = arc.close_scorecard(card)
             rec["closed"] = sc.model_dump(mode="json") if hasattr(sc, "model_dump") else repr(sc)
         except Exception as e:   # noqa: BLE001
-            rc = 1
             rec["close_error"] = repr(e)
+            # r563: a 404 on our own close is the gateway's auto-close (STALE_MINUTES) having closed it first
+            rec["closed_by_gateway"] = getattr(getattr(e, "response", None), "status_code", None) == 404
+            rc = rc if rec["closed_by_gateway"] else 1
     rec["t_end"] = time.time()
     with open(os.path.join(OUT, "kaggle_b.json"), "w", encoding="utf-8") as fh:
         json.dump(rec, fh, indent=1, default=repr)

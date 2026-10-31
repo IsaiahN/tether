@@ -10,7 +10,10 @@ that its slice ends. What differs, and only this:
     x N / the games not yet finished, this one among them; min = max = the share under rule A. B_SHARE=0: run A's
     300/400 (B_ and never TETHER_: that namespace is the agent's arms, as harness/supervise.py says);
   - nothing is written to the lineage: the end write is not called, the boundary writes are off
-    (TETHER_LINEAGE_BOUNDARY=0) and a fault is recovered without end_path's write (TETHER_FAULT_RECOVER=0; recover).
+    (TETHER_LINEAGE_BOUNDARY=0) and a fault is recovered without end_path's write (TETHER_FAULT_RECOVER=0; recover);
+  - a None from the wrapper (r563) is never handed to the agent: the game ends "no_answer" with no retry, the agent
+    cut inside its step is replaced from the unchanged lineage, and a make with no frame on a gone card (the
+    gateway's 404) ends this worker's claims, exit 0.
 THE ONE KNOWN DUPLICATION (the reviewer 2026-10-31 r543): the per-step loop below is e4_stream's text; when e4_stream's
 loop changes, this one must follow.
 B_TEST_FAULT="worker,step" (the local test only, r543's must-hold; never set by the notebook): that worker's agent
@@ -127,25 +130,47 @@ def log(line: str) -> None:
     print(line, flush=True)
 
 
+class NoAnswer(BaseException):
+    """r563: the wrapper answered None (arc_agi's client logs any HTTP error or timeout and returns None). Raised in
+    place of handing the None to the agent; a BaseException, so step_or_recover never reads it as an agent fault."""
+
+
 class Stream:
     """The proxy wrapper: the current game's wrapper, swapped by the harness between steps (e4_stream's, the switch
-    'between'), every game made on the one card."""
+    'between'), every game made on the one card. switch_to says whether the made game holds a frame."""
 
-    def __init__(self, arc, first: str):
-        self.arc, self.cur = arc, arc.make(first, scorecard_id=CARD)
+    def __init__(self, arc):
+        self.arc, self.cur = arc, None
 
     @property
     def observation_space(self):
         return getattr(self.cur, "observation_space", None)
 
     def reset(self):
-        return self.cur.reset()
+        return self._answer(self.cur.reset())
 
     def step(self, act, data=None):
-        return self.cur.step(act, data=data) if data is not None else self.cur.step(act)
+        return self._answer(self.cur.step(act, data=data) if data is not None else self.cur.step(act))
 
-    def switch_to(self, game: str) -> None:
+    @staticmethod
+    def _answer(frame):
+        if frame is None:
+            raise NoAnswer
+        return frame
+
+    def switch_to(self, game: str) -> bool:
         self.cur = self.arc.make(game, scorecard_id=CARD)
+        return self.observation_space is not None
+
+
+def card_gone(arc) -> bool:
+    """r563: after a make with no frame, whether the card itself is gone -- the gateway's own 404 for it (a competition
+    card that is still open answers 403, api.py get_scorecard). Anything else reads as not gone."""
+    try:
+        arc.get_scorecard(CARD)
+    except Exception as e:   # noqa: BLE001
+        return getattr(getattr(e, "response", None), "status_code", None) == 404
+    return False
 
 
 def recover(env, ag, ctx):
@@ -164,15 +189,27 @@ def recover(env, ag, ctx):
     return fresh_env, fresh
 
 
-def rewire(env, ag, ctx, why: dict):
+def rewire(env, ag, ctx, why: dict, no_answer: bool = False):
     """B_MEM_GUARD (the reviewer 2026-10-31 r554 3), BETWEEN games only: recover()'s path with no fault -- this life's
     end_run, a fresh world on the SAME wrapper, a fresh agent on the SAME ledger from the UNCHANGED lineage, the clock
     carried -- because this worker's commit and its own largest one-game growth would pass its share of the machine.
-    What this life built in memory is dropped; nothing is written."""
-    ag.end_run("cap")
+    What this life built in memory is dropped; nothing is written.
+    no_answer (r563): the same path after a step the wrapper never answered, whose agent was cut inside its step, so
+    its end_run is guarded as recover()'s is."""
+    if no_answer:
+        arc_holdout.guarded(ag, ag.end_run, "cap")
+    else:
+        ag.end_run("cap")
     cycle, deadline, led = ag.cycle, ag.deadline, ag.led
     fresh_env = arc_holdout.world_on(env.w, ctx["game"], ctx["palette"], env.on_frame)
     fresh, _loaded = arc_holdout.wire_agent(fresh_env, ctx["game"], None, led, None, LIN, clock=(cycle, deadline))
+    if no_answer:
+        led.record(cycle, "SETTLE", "@run", "no_answer", what="rewire", **why,
+                   parent=getattr(fresh, "lineage_parent", None),
+                   reads="run B: the wrapper answered None to a step, so that game ended with no retry and the "
+                         "agent cut inside its step was dropped; a fresh agent from the unchanged lineage goes on to "
+                         "the next game; nothing was written")
+        return fresh_env, fresh
     led.record(cycle, "SETTLE", "@run", "b_mem_guard", what="rewire", **why,
                parent=getattr(fresh, "lineage_parent", None),
                reads="run B B_MEM_GUARD: between games, a fresh agent from the unchanged lineage, because this "
@@ -191,12 +228,19 @@ def inject(ag) -> None:
 
 
 steps_life = 0
-first = take()
-if first is None:
-    log(f"# worker {WID}: no game left to take")
-    sys.exit(0)
 arc = Arcade(operation_mode=arc_holdout._mode())
-proxy = Stream(arc, first[1])
+proxy = Stream(arc)
+no_answer = []                            # r563: games ended because the wrapper answered None
+first = take()
+while first is not None and not proxy.switch_to(first[1]):
+    no_answer.append(first[1])
+    finished(first[0])
+    gone = card_gone(arc)
+    log(f"# {first[0]}\t{first[1]}\tno_answer: the make held no frame; no retry; card gone {gone}")
+    first = None if gone else take()
+if first is None:
+    log(f"# worker {WID}: no game left to take (no_answer {no_answer})")
+    sys.exit(0)
 led_path = os.path.join(OUT, "stream.jsonl")
 env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path=led_path, lineage_dir=LIN)
 ctx = {"game": "stream", "cfg": None, "library": None, "lineage_dir": LIN,
@@ -249,7 +293,13 @@ while nxt is not None:
     c_game0 = commit_mb()[0] if MEM_GUARD else None
     seq0 = len(ag.led)
     if len(taken) > 1:
-        proxy.switch_to(g)
+        if not proxy.switch_to(g):        # r563: no frame at the make; a gone card stops this worker's claims
+            no_answer.append(g)
+            finished(i)
+            gone = card_gone(arc)
+            log(f"# {i}\t{g}\tno_answer: the make held no frame; nothing taken, no retry; card gone {gone}")
+            nxt = None if gone else take()
+            continue
         if not env.arrive():
             log(f"# {i}\t{g}\tarrive: the wrapper held no frame; nothing taken, no reset issued")
     seqP = len(ag.led)
@@ -268,7 +318,14 @@ while nxt is not None:
         if FAULT_AT is not None and steps_life == FAULT_AT:
             inject(ag)
         steps_life += 1
-        env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)
+        try:
+            env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)
+        except NoAnswer:                  # r563: the game ends here, no retry; the cut agent is replaced
+            steps += 1
+            ending = "no_answer"
+            no_answer.append(g)
+            env, ag = rewire(env, ag, ctx, {"game_steps": steps}, no_answer=True)
+            break
         if fault is not None:
             if ctx["faults"].count(arc_holdout.fault_key(fault)) > 1:
                 raise fault                # a repeat ends the life, as e4_stream's
@@ -321,7 +378,7 @@ if close:
 out = {"worker": WID, "taken": taken, "cycles": ag.cycle, "wall_s": round(time.time() - T0, 1),
        "endings": dict(endings_all), "deadline_at": DL, "deadline_fired": bool(getattr(ag, "_cut", False)),
        "budget_unreached": budget_unreached, "faults": len(ctx.get("faults", [])), "peak_mb": commit_mb()[1],
-       "longest_step_s": round(longest, 1)}
+       "longest_step_s": round(longest, 1), "no_answer": no_answer}
 with open(os.path.join(OUT, "stream.result.json"), "w", encoding="utf-8") as fh:
     json.dump(out, fh, default=str)
 log(f"# worker {WID} end {time.strftime('%Y-%m-%d %H:%M:%S')} {json.dumps(out, default=str)[:400]}")
