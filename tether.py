@@ -672,6 +672,7 @@ PH_O, PH_X = "PHo", "PHx"   # no id generator makes these (arc_percept 638, grid
 _INDEX_STORE: dict = (_Kept() if _W_HELD_LAZY and _W_CACHES   # (compile_term.signature, entry,
                       else {})                                  # role) -> held compiles
 _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent never reads it
+_HELD_COMPILE: dict = {}   # 18: (signature, condition, subject) -> the compile; the process's
 # THE BOUND ANSWERS OUTLIVE THE GAME (Isaiah 2026-10-15 06:01; the reviewer 06:10, 06:56): one
 # memo per PROCESS, keyed by the code primitives' content token, used only by an Agent whose
 # Gamma holds the shared objects (gamma.shared_token); any other Agent keeps its own memo.
@@ -955,6 +956,14 @@ _CONTACT_FIRST = armflag.arm("TETHER_CONTACT_FIRST", default=True)
 # choice rows. Needs TETHER_DIVIDE (the extent count). The repeat-mint wait (Part B) was stopped:
 # STEP_MINT's stop and CONTACT_FIRST already take it (r490). ON; conform/arms.py
 _CONTACT_LIGHT = armflag.arm("TETHER_CONTACT_LIGHT", default=True)
+# 18 HELD_COMPILE_MEMO (the reviewer r512, r524): _held_index compiles a held view's conditions
+# under the placeholders, so the same few (condition, subject) pairs compiled again for every
+# entry -- 260,912 compiles over 143 distinct pairs on the movers fixture. Each is compiled once
+# per process, keyed (compile_term.signature, condition, the subject as passed): the compiler is
+# a pure function of the condition and the atoms (_index_reach, its _compile_cache) and the
+# signature is what a compile can read of them; Compiled, Refusal and Term are frozen. Record
+# only, beside it: the step clock's reach_s, _library_reach's wall this step. ON; conform/arms.py
+_HELD_COMPILE_MEMO = armflag.arm("TETHER_HELD_COMPILE_MEMO", default=True)
 # 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
 # when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
 # prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
@@ -2953,6 +2962,7 @@ class Agent:
     _end_path_t0 = None        # set by the end block: the end path is timed whole
     _fault_cycle = None        # item 4: the cycle an agent fault was raised in (None: none)
     _fault_text = None         # item 4: the fault, type and message
+    _reach_wall = 0.0          # 18: _library_reach's seconds this step, for reach_s
 
     @contextmanager
     def _step_scope(self, step: str):
@@ -5001,14 +5011,14 @@ class Agent:
                                "pairs offered, bonds read over its frames, nothing adopted"))
         dk = self._delta_kind(slot, hist) if _DELTA_KIND else None
         if ev is None:
-            self._library_reach(slot, mine, own, described, dk=dk)
+            self._reach_timed(slot, mine, own, described, dk=dk)
             return
         # a pair slot under two events is ANSWERED once, by the event it was assigned to (the
         # reviewer 21:53); it still lends its description to both
         answer = tuple(m for m in members if self._event_of.get(m) == ev)
         dks = {m: (dk if m == slot else self._delta_kind(m, self.history(m))) if _DELTA_KIND
                else None for m in answer}
-        self._library_reach(slot, mine, own, described, dk=dk, members=answer, dks=dks)
+        self._reach_timed(slot, mine, own, described, dk=dk, members=answer, dks=dks)
         self._ev_done[ev] = {"offers": {m: list(self._lib_offers.get(m, [])) for m in answer},
                              "named": named_of}
 
@@ -5241,6 +5251,16 @@ class Agent:
             put("T5", [(k, float(m)) for k, m in order(
                 score.items(), lambda kv: (molecule(kv[0]), -kv[1]))])
         return out, n
+
+    def _reach_timed(self, *a: Any, **k: Any) -> None:
+        """_library_reach, its wall added to this step's reach_s (18, record only; r524)."""
+        if not _HELD_COMPILE_MEMO:
+            return self._library_reach(*a, **k)
+        t0 = time.perf_counter()
+        try:
+            return self._library_reach(*a, **k)
+        finally:
+            self._reach_wall += time.perf_counter() - t0
 
     def _library_reach(self, slot: str, mine: str, own: dict, described: dict,
                        dk: tuple | None = None, members: tuple = (),
@@ -6526,8 +6546,15 @@ class Agent:
             held = door.resolve(self, lib, key, role, sig)
         if held is None:
             def comp(cond: str, subject: str | None = None) -> Any:
-                return compile_term.compile_candidate(
-                    {"condition": cond}, atoms, subject=subject if _LIBRARY_ABDUCE else None)
+                subj = subject if _LIBRARY_ABDUCE else None
+                mk = (sig, cond, subj)
+                if _HELD_COMPILE_MEMO and mk in _HELD_COMPILE:
+                    return _HELD_COMPILE[mk]
+                _INDEX_N["held_compile"] += 1
+                got = compile_term.compile_candidate({"condition": cond}, atoms, subject=subj)
+                if _HELD_COMPILE_MEMO:
+                    _HELD_COMPILE[mk] = got
+                return got
             held = []
             for cand in lib.view(key, role, PH_O, PH_X):
                 cap.head()
@@ -18697,6 +18724,7 @@ class Agent:
         c0 = self.cycle
         if _STEP_CLOCK:
             self._clk, self._clk_stack, self._clk_t0 = {}, [], time.perf_counter()
+            self._reach_wall = 0.0
         try:
             return self._step_body(action)
         except cap.CapReached as cut:
@@ -19425,7 +19453,9 @@ class Agent:
         reuse = [n for n in self.gamma.library
                  if str((stamps.get(n) or {}).get("residual") or "").startswith("reuse:")]
         here = set(_OBJ_ID.findall(" ".join(self.slots)))
-        return {"wall_s": wall, "trace_len": len(self.trace), "wants_n": len(self.wants),
+        return {"wall_s": wall, **({"reach_s": round(self._reach_wall, 4)}
+                                   if _HELD_COMPILE_MEMO else {}),
+                "trace_len": len(self.trace), "wants_n": len(self.wants),
                 "owed_import_n": len(self.owed_import), "gamma_reuse_live": len(reuse),
                 "gamma_reuse_on_board": sum(1 for n in reuse
                                             if set(_OBJ_ID.findall(n)) <= here)}

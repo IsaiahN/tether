@@ -35,10 +35,10 @@ from conform.identity_mod_rows import mask_timings
 sys.dont_write_bytecode = True
 
 NEW = {"repeat": ("wall_s", "trace_len", "wants_n", "owed_import_n", "gamma_reuse_live",
-                  "gamma_reuse_on_board"),
+                  "gamma_reuse_on_board", "reach_s"),
        "park": ("wall_s",), "step_mint": ("wall_s",)}
 KEYS = {"wall_s", "trace_len", "wants_n", "owed_import_n", "gamma_reuse_live",
-        "gamma_reuse_on_board"}
+        "gamma_reuse_on_board", "reach_s"}
 WRITERS = {"_step_scope", "step", "_mint", "_mint_in_step", "_step_body", "_clock_row",
            "_clock_since", "_derived_wants"}
 
