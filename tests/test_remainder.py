@@ -79,10 +79,14 @@ def _remainder(charged: dict, verdict=None, splits=None) -> dict:
         ag._space[slot]["verdict"] = verdict(ag)
     if splits is not None:
         ag._splits = splits
+    import tether
     n0 = len(ag.led.rows())
-    ag._remainder(slot, dict.fromkeys(charged, 1.0), "bound")
+    # in the scope the 1c pass opens (12, TETHER_STOP_READ_STEP: ACCEPT; off, MINT), its only caller
+    step = "ACCEPT" if tether._STOP_READ_STEP else "MINT"
+    with ag._step_scope(step):
+        ag._remainder(slot, dict.fromkeys(charged, 1.0), "bound")
     rows = [r for r in ag.led.rows()[n0:] if r["event"] == "remainder"]
-    assert len(rows) == 1 and rows[0]["slot"] == slot and rows[0]["step"] == "MINT", rows
+    assert len(rows) == 1 and rows[0]["slot"] == slot and rows[0]["step"] == step, rows
     return rows[0]
 
 
@@ -127,18 +131,26 @@ def check_a_mustfail_empty() -> None:
           "row; the real test names none and reports uncharged 1")
 
 
+def _vk() -> tuple:
+    """The row's keys for the mint's verdict and its cycle (14, TETHER_REMAINDER_VERDICT_KEY)."""
+    import tether
+    return (("mint_verdict", "mint_verdict_cycle") if tether._REMAINDER_VERDICT_KEY
+            else ("verdict", "verdict_cycle"))
+
+
 def check_c_budget() -> None:
     d = _remainder({"rem_a": {0}}, verdict=lambda ag: ("budget_spent", "stopped early", ag.cycle))
-    d = d["detail"]
-    assert d["verdict"] == "budget_spent" and d["reach"] == "unreached at this budget", d
-    print(f"  verdict budget_spent at cycle {d['verdict_cycle']}: reach '{d['reach']}'")
+    d, (vk, ck) = d["detail"], _vk()
+    assert d[vk] == "budget_spent" and d["reach"] == "unreached at this budget", d
+    print(f"  {vk} budget_spent at cycle {d[ck]}: reach '{d['reach']}'")
 
 
 def check_c_priced_out() -> None:
     d = _remainder({"rem_a": {0}},
                    verdict=lambda ag: ("priced_out_at_depth", NOTE, ag.cycle))["detail"]
-    assert d["verdict"] == "priced_out_at_depth" and d["reach"] == NOTE, d
-    print(f"  verdict priced_out_at_depth: reach is the mint's own note: '{d['reach']}'")
+    vk = _vk()[0]
+    assert d[vk] == "priced_out_at_depth" and d["reach"] == NOTE, d
+    print(f"  {vk} priced_out_at_depth: reach is the mint's own note: '{d['reach']}'")
 
 
 def check_c_age() -> None:
@@ -147,9 +159,9 @@ def check_c_age() -> None:
     row = _remainder({"rem_a": {0}},
                      verdict=lambda ag: ("budget_spent", "stopped early",
                                          ag._space[_gap(ag)]["opened"]))
-    d = row["detail"]
-    assert d["opened"] <= d["verdict_cycle"] < row["cycle"], (row["cycle"], d)
-    print(f"  a verdict from cycle {d['verdict_cycle']} read at cycle {row['cycle']} (space opened "
+    d, ck = row["detail"], _vk()[1]
+    assert d["opened"] <= d[ck] < row["cycle"], (row["cycle"], d)
+    print(f"  a verdict from cycle {d[ck]} read at cycle {row['cycle']} (space opened "
           f"{d['opened']}) carries its own cycle")
 
 

@@ -867,6 +867,12 @@ _ARRIVAL_GAP = armflag.arm("TETHER_ARRIVAL_GAP", default=True)
 # Fig 6 :42, Fig 10 :68): a "reuse:" term naming an object the break did not re-find goes to the
 # record, its kind (no operand, as load installs it) stays live. ON; conform/arms.py
 _INSTANCE_RETIRE = armflag.arm("TETHER_INSTANCE_RETIRE", default=True)
+# 15 RETIRE_HOLDER (the reviewer 2026-10-30 r466 1(c), r470): r295's invariant reaches D5's three
+# holders -- a cut candidate's and a pending split's incumbent, a split's parts A and B. Re-pointed
+# to the kind when it is live, else the cut or split is dropped beside the instance; _held_dangling
+# lists them. Off, a pending split carried a retired name past the break and _d5_split wrote it
+# back into bound (PLAY24 round 8, twice). ON; conform/arms.py
+_RETIRE_HOLDER = armflag.arm("TETHER_RETIRE_HOLDER", default=True)
 # 10, THE ARRIVAL ALIAS (the reviewer 2026-10-30 r428, r431; Fig 10 :68): at the turnover after the
 # agent's own break, Agency's counts on objects no longer on the board go to its dormant record; an
 # object that left whose form is unique among those that left and equal to the form of exactly one
@@ -910,12 +916,23 @@ _ASK_ON_BOARD = armflag.arm("TETHER_ASK_ON_BOARD", default=True)
 # BROKEN (the survivors ran out: the slot owes), SPLIT REFUSED (1b abstained: the gap's owner joins
 # the probe's aim). They stop asking and never bind. Needs TETHER_ASK. ON; conform/arms.py
 _STOP_RULES = armflag.arm("TETHER_STOP_RULES", default=True)
+# 12, 1c's READ IN THE STEP IT RUNS IN (the reviewer 2026-10-30 r462, r463; Fig 3 :20): the pass
+# runs after the ACCEPT loop and before the step's SETTLE, so its scope and its four rows
+# (stop_rule, stop_read, split_aim_left, remainder) say ACCEPT; labelled MINT, a slot that
+# ACCEPTed this cycle read MINT after ACCEPT and the gate refused the ledger. Label only. ON;
+# conform/arms.py
+_STOP_READ_STEP = armflag.arm("TETHER_STOP_READ_STEP", default=True)
 # 1e NAMED_REMAINDER (the reviewer 2026-10-29 r325, r364; Fig 13 :134-139, Fig 9 :4-5, Fig 8
 # :39-42): when 1c finds no survivor, a remainder row names what is left -- two of the last
 # survivors whose charged rows are disjoint (several questions), the gap's kind, and the reach the
 # gap's last mint proved, in the mint's own words. Record only: nothing reads it. Needs
 # TETHER_STOP_RULES. ON; conform/arms.py
 _NAMED_REMAINDER = armflag.arm("TETHER_NAMED_REMAINDER", default=True)
+# 14 REMAINDER_VERDICT_KEY (the reviewer 2026-10-30 r466 1(b)): the remainder row carries the gap's
+# last mint verdict as mint_verdict / mint_verdict_cycle; under the mint's own key, "verdict", the
+# gate read the row as a park without coverage and refused the ledger. Key names only. ON;
+# conform/arms.py
+_REMAINDER_VERDICT_KEY = armflag.arm("TETHER_REMAINDER_VERDICT_KEY", default=True)
 # 4 PLAN_NARROW (the reviewer 2026-10-29 r325 ASK 3, r365; Fig 12 :127): the planner compiles the
 # shelf-won texts first and the rest only if they yield no pick -- what the life learned ranks and
 # cuts the work, never widens it. Exact: the same pick. The goal_hypotheses row says how many were
@@ -11669,8 +11686,13 @@ class Agent:
                                   "perception, aim the probe at the gap's owner (Fig 5 :12)")
         return r, (slot if r is not None else None)
 
-    @_in_step("MINT")
     def _stop_rules(self) -> None:
+        """12 (TETHER_STOP_READ_STEP): the pass runs, and writes, in the step it sits in -- ACCEPT;
+        OFF in MINT, as before."""
+        with self._step_scope("ACCEPT" if _STOP_READ_STEP else "MINT"):
+            self._stop_rules_pass()
+
+    def _stop_rules_pass(self) -> None:
         """1c, read from each open space after the step (r325, r327): (i) HELD -- one survivor with
         a risky settle on this slot under the current key: the gap leaves 1b; (ii) NONE SURVIVE --
         the space had survivors and has none, judged only where the record is current: the slot
@@ -11727,7 +11749,7 @@ class Agent:
                          "low_before": round(min(prev[0].values()), 4),
                          "low_after": round(min(after), 4) if after else None,
                          "bar_before": round(prev[1], 4), "bar_after": round(bar, 4)}
-            self.led.record(self.cycle, "MINT", s, "stop_rule", rule=rule_row, was=was,
+            self.led.record(self.cycle, self._running_step, s, "stop_rule", rule=rule_row, was=was,
                             survivors=len(sv), term=sv[0].name if len(sv) == 1 else None,
                             **extra,
                             reads="1c: held (one survivor, a risky settle) stops asking; none "
@@ -11736,7 +11758,8 @@ class Agent:
             if rule == "none_survive" and _NAMED_REMAINDER:
                 self._remainder(s, prev[0], extra["cause"])
         if self._space:
-            self.led.record(self.cycle, "MINT", "@stop", "stop_read", spaces=len(self._space),
+            self.led.record(self.cycle, self._running_step, "@stop", "stop_read",
+                            spaces=len(self._space),
                             repriced_cells=rp[0], repriced_rows=rp[1], reprice_s=round(rp[2], 4),
                             reprice_hits=rp[3],
                             reads="1c: this step's read of every open space, re-priced on read "
@@ -11752,7 +11775,8 @@ class Agent:
             del self._split_aim[s]
             if why == "probed":
                 self._split_spent[s] = rkey      # once per refusal (r338): a new one re-enters
-            self.led.record(self.cycle, "MINT", s, "split_aim_left", why=why, owner=owner,
+            self.led.record(self.cycle, self._running_step, s, "split_aim_left", why=why,
+                            owner=owner,
                             aims=len(self._split_aim),
                             **({"before": probed, "after": after} if probed is not None else {}),
                             reads="1c (iii): the probe pressed at the owner, its readings moved, "
@@ -11796,12 +11820,14 @@ class Agent:
         v = sp.get("verdict")
         reach = (None if v is None else "unreached at this budget" if v[0] == "budget_spent"
                  else v[1])
-        self.led.record(self.cycle, "MINT", slot, "remainder", cause=cause,
+        vk = (("mint_verdict", "mint_verdict_cycle") if _REMAINDER_VERDICT_KEY
+              else ("verdict", "verdict_cycle"))
+        self.led.record(self.cycle, self._running_step, slot, "remainder", cause=cause,
                         population="last_survivors", last_survivors=len(last),
                         uncharged=len(sets.get(frozenset(), ())),
                         unpriced=sum(1 for n in last if n not in terms), charged_sets=len(sets),
                         several=several, kind=list(sp.get("kind") or ()), residual_rows=len(robs),
-                        verdict=v[0] if v else None, verdict_cycle=v[2] if v else None,
+                        **{vk[0]: v[0] if v else None, vk[1]: v[2] if v else None},
                         opened=sp.get("opened"), reach=reach,
                         wall_s=round(time.perf_counter() - t0, 4),
                         reads="1e: what remains when the last survivors are gone -- record only "
@@ -18513,6 +18539,27 @@ class Agent:
         for s, n in list(self._pred_by.items()):
             if n in kind_of:
                 self._pred_by[s] = kind_of[n] if kind_of[n] in lib else None
+        if _RETIRE_HOLDER:
+            for hold in (getattr(self, "_d5_candidates", {}), self._d5_pending):
+                for s, c in list(hold.items()):    # (P, numbers, incumbent)
+                    if c[2] in kind_of:
+                        if kind_of[c[2]] in lib:
+                            hold[s] = (*c[:2], kind_of[c[2]], *c[3:])
+                            repointed += 1
+                        else:
+                            hold.pop(s)
+                            dropped.setdefault(c[2], []).append(f"d5 cut {s}")
+            for s, part in list(self._parts.items()):
+                hit = [k for k in ("A", "B") if part.get(k) in kind_of]
+                if not hit:
+                    continue
+                if all(kind_of[part[k]] in lib for k in hit):
+                    self._parts[s] = {**part, **{k: kind_of[part[k]] for k in hit}}
+                    repointed += 1
+                else:
+                    self._parts.pop(s)
+                    for k in hit:
+                        dropped.setdefault(part[k], []).append(f"d5 split {s}")
         return repointed, dropped
 
     def _settle_pred(self, slot: str, r: SlotResidual) -> dict:
@@ -18564,7 +18611,8 @@ class Agent:
     def _held_dangling(self) -> list:
         """r295's invariant, checked once at the end of the break: every binding names a live term,
         and no live holder (bindings, this level's settled names, want and goal terms, candidates,
-        the last predictors) names a retired one. Returns what violates it."""
+        the last predictors; under 15, D5's cuts and splits) names a retired one. Returns what
+        violates it."""
         lib, gone = self.gamma.library, self.gamma.retired
         out = [f"bound {s}: {n}" for s, n in sorted(self.bound.items()) if n not in lib]
         out += [f"settled_lvl: {n}" for n in sorted(self._settled_lvl) if n in gone]
@@ -18576,6 +18624,13 @@ class Agent:
         out += [f"goal {k}: {n}" for k, v in links for _sl, n in v if n in gone]
         out += [f"candidate: {n}" for n in sorted(self.candidates) if n in gone]
         out += [f"pred_by {s}: {n}" for s, n in sorted(self._pred_by.items()) if n in gone]
+        if _RETIRE_HOLDER:
+            out += [f"d5_candidate {s}: {c[2]}"
+                    for s, c in sorted(getattr(self, "_d5_candidates", {}).items()) if c[2] in gone]
+            out += [f"d5_pending {s}: {c[2]}" for s, c in sorted(self._d5_pending.items())
+                    if c[2] in gone]
+            out += [f"d5_part {s}: {p[k]}" for s, p in sorted(self._parts.items())
+                    for k in ("A", "B") if p.get(k) in gone]
         return out
 
     def step(self, action: str | None = None) -> bool:
