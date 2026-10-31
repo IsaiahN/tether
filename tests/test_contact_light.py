@@ -113,7 +113,8 @@ def check_mustfail_resume() -> None:
     slot = sorted(ag.alphabet)[0]
     held = ag.gamma.library[ag.bound.get(slot, tether.IDN)]
     hist = ag.history(slot)
-    vals = [t for t in ag.gamma.library.values() if getattr(t, "out_type", "val") != tether.OBJ_TYPE]
+    vals = [t for t in ag.gamma.library.values()
+            if getattr(t, "out_type", "val") != tether.OBJ_TYPE]
     assert len(hist) > 3 and len(vals) > 3, (len(hist), len(vals))
     rows = [0]
     real = type(ag)._left
