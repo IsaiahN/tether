@@ -673,6 +673,7 @@ _INDEX_STORE: dict = (_Kept() if _W_HELD_LAZY and _W_CACHES   # (compile_term.si
                       else {})                                  # role) -> held compiles
 _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent never reads it
 _HELD_COMPILE: dict = {}   # 18: (signature, condition, subject) -> the compile; the process's
+_DL_ENTRY: dict = {}       # 20: (signature, entry) -> (its held views' readings, any event route)
 # THE BOUND ANSWERS OUTLIVE THE GAME (Isaiah 2026-10-15 06:01; the reviewer 06:10, 06:56): one
 # memo per PROCESS, keyed by the code primitives' content token, used only by an Agent whose
 # Gamma holds the shared objects (gamma.shared_token); any other Agent keeps its own memo.
@@ -964,6 +965,78 @@ _CONTACT_LIGHT = armflag.arm("TETHER_CONTACT_LIGHT", default=True)
 # signature is what a compile can read of them; Compiled, Refusal and Term are frozen. Record
 # only, beside it: the step clock's reach_s, _library_reach's wall this step. ON; conform/arms.py
 _HELD_COMPILE_MEMO = armflag.arm("TETHER_HELD_COMPILE_MEMO", default=True)
+# 20 DESCRIBED_LOOKUP (the reviewer r563, r565, r571; Isaiah 2026-10-31 13:27, 13:31; Fig 9
+# :27-29, :43-45, Fig 11 :44): a lookup asks only what its residual's description points to --
+# K1's T1a, T1b, T1c, T2, and the other lit entries whose held views read the asked slot's own
+# reading or come through an event route (the exact-reading key, r571) -- never T1d / T3 / T4 / T5
+# in the same ask. A complete ask with no offer is a verdict (no_entry); the same key (the slot, its
+# delta kind, the readings, its contact) is not asked again, and an owed lookup due under a missed
+# key is dropped with a row. A new description is a new key. ON; conform/arms.py
+_DESCRIBED_LOOKUP = armflag.arm("TETHER_DESCRIBED_LOOKUP", default=True)
+# 22 INCREMENTAL_JUDGE (the reviewer r571; Fig 9 :38-39, Fig 12 :108-109, Fig 6 :50): 16's stored
+# prefixes are voided by the slot's peers or its owner's attributes moving only for a term whose
+# atoms declare they read them (reads_ctx "group" / "obj", the only fields _eval_ctx fills from
+# them); every other cell resumes. The rest of _divide_key voids every cell as before. ON;
+# conform/arms.py
+_INCREMENTAL_JUDGE = armflag.arm("TETHER_INCREMENTAL_JUDGE", default=True)
+_FRAME_READS = ("group", "obj")
+_READS_FRAME: dict = {}          # 22: term -> whether it reads the frame's peers / owner record
+
+
+def _reads_frame(term: Term) -> bool:
+    """22: whether any atom of the term (its operand term too) declares a read of Ctx.group or
+    Ctx.obj."""
+    got = _READS_FRAME.get(term)
+    if got is None:
+        got = _READS_FRAME[term] = (
+            any(f in a.reads_ctx for a in term.atoms for f in _FRAME_READS)
+            or (term.operand_term is not None and _reads_frame(term.operand_term)))
+    return got
+
+
+class _DepCells:
+    """22: one slot's stored prefixes in two stores -- the terms that read the frame's peers / owner
+    record, voided when those move, and the rest, which keep -- behind _cl_left's get / set."""
+
+    __slots__ = ("still", "frame")
+
+    def __init__(self, still: dict, frame: dict) -> None:
+        self.still, self.frame = still, frame
+
+    def get(self, term: Term) -> Any:
+        return (self.frame if _reads_frame(term) else self.still).get(term)
+
+    def __setitem__(self, term: Term, cell: tuple) -> None:
+        (self.frame if _reads_frame(term) else self.still)[term] = cell
+
+
+def _lazy_field(name: str) -> property:
+    """22: a Ctx field built on its first read from the thunk _eval_ctx left for it."""
+    def get(self: Any) -> Any:
+        d = self.__dict__
+        if name not in d:
+            d[name] = d["_lz"].pop(name)()
+        return d[name]
+
+    def put(self: Any, value: Any) -> None:
+        self.__dict__[name] = value
+    return property(get, put)
+
+
+class _LazyCtx(Ctx):
+    """22: a Ctx whose `group` and `obj` -- the peers' values and the owner's record, which almost
+    no term reads -- are built when first read, and return exactly what the eager fields held."""
+
+    group = _lazy_field("group")
+    obj = _lazy_field("obj")
+
+
+def _lazy_ctx(fields: dict, group: Any, obj: Any) -> Ctx:
+    c = object.__new__(_LazyCtx)
+    for k, v in fields.items():
+        object.__setattr__(c, k, v)
+    object.__setattr__(c, "_lz", {"group": group, "obj": obj})
+    return c
 # 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
 # when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
 # prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
@@ -3352,6 +3425,9 @@ class Agent:
         self._named: dict[str, dict[str, list]] = {}
         self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
+        self._dl_missed: dict = {}         # 20: a described key with no offer -> its miss's cycle
+        self._dl_owed = False              # 20: this lookup was due from the owed queue
+        self._dl_n: Counter = Counter()    # 20: this step's described-lookup counts
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._walk_memo: dict = {}         # (A): one lit entry's walk, by what it reads
         self._ak_rec: Counter | None = None   # (A)'s check: the asks a fresh walk made
@@ -4124,6 +4200,7 @@ class Agent:
         # SLOT NAME, and the slots do not survive a level boundary. Same rule the boundary
         # reset states for `_res` and `_disc`.
         self._refuted_slot: dict = {}
+        self._dl_missed = {}               # 20: its keys name slots, so the same rule
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
         # to the avatar is a fact about the ACTION, not about the slot names of one level.
         #
@@ -5316,6 +5393,31 @@ class Agent:
             lit, tiers = self._tiers(lib, lit, dk, mine, described, att,
                                      more=tuple(d for m, d in (dks or {}).items()
                                                 if members and m != slot and d))
+        dl_key, dl_cut = None, 0
+        if _DESCRIBED_LOOKUP and tiers is not None and _INDEX_HOLD and lit:
+            # 20: the key is the description -- the slot, its delta kind, the readings, its contact
+            dl_key = (slot, dk, tuple(sorted(changed)), tuple(sorted(self._touching(slot))), tg)
+            owed, self._dl_owed = self._dl_owed, False
+            if dl_key in self._dl_missed:
+                if owed:
+                    self._dl_n["owed_dropped"] += 1
+                    self.led.record(self.cycle, "ROUTE", slot, "owed_dropped",
+                                    key=self._dl_key_row(dl_key), missed_at=self._dl_missed[dl_key],
+                                    reads="20 (e): owed, but its description is unchanged since "
+                                          "its miss: already answered, so it is not asked again; "
+                                          "a changed description asks anew")
+                else:
+                    self._dl_n["held"] += 1
+                return
+            n_lit = len(lit)
+            lit = self._described_lit(lib, lit, tiers, att, tg)
+            self._dl_n["asked"] += 1
+            self._dl_n["listed"] += n_lit
+            self._dl_n["kept"] += len(lit)
+            if not lit:
+                self._dl_miss(dl_key, tiers, 0, n_lit)
+                return
+            dl_cut = n_lit - len(lit)
         if not lit:
             return
         if _ENTRY_USE:
@@ -5345,7 +5447,8 @@ class Agent:
             cands, rank, n_tiers, _cov = self._rank_causes(slot, mine, own, tuple(rep_slot), att)
         n_t1 = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c")) if tiers else 0
         # T1d, T4 and T5 are the list's tail, walked only while the step's budget remains
-        n_late = sum(tiers.get(t, 0) for t in ("T1d", "T4", "T5")) if tiers else 0
+        n_late = (sum(tiers.get(t, 0) for t in ("T1d", "T4", "T5"))
+                  if tiers and dl_key is None else 0)     # 20: the tail is not in this ask
         late = frozenset(k for k, _w in lit[len(lit) - n_late:]) if n_late else frozenset()
         a0, na0 = self._late
 
@@ -5405,6 +5508,8 @@ class Agent:
             self.led.record(self.cycle, "ROUTE", slot, "lookup_tiers",
                             dk=list(dk) if dk else None, listed=tiers, deferred=deferred,
                             late_asked=a1 - a0, late_not_asked=na1 - na0,
+                            **({"described": {"kept": len(lit), "cut": dl_cut}}
+                               if dl_key is not None else {}),
                             reads="K1: the lit list as tiers -- listed per tier, the tiers a T1 "
                                   "hit deferred, and the T4 / T5 entries the step's budget let "
                                   "this lookup ask")
@@ -5470,6 +5575,51 @@ class Agent:
                             reads=("the library lit by this residual's description; the distinct "
                                    "views and CAUSE then-sides that compile onto this slot, tested "
                                    "and recorded, each with the count of entries that offered it"))
+        if dl_key is not None and not self._k1_trunc and not self._walk_cut \
+                and not any(self._lib_offers.get(m) for m in tg):
+            self._dl_miss(dl_key, tiers, len(lit), dl_cut)
+
+    def _described_lit(self, lib: Any, lit: list, tiers: dict, att: dict, tg: tuple) -> list:
+        """20: the described tier of K1's list -- T1a, T1b, T1c and T2 as listed, then the other
+        lit entries whose held views read one of the asked slots' own readings or come through an
+        event route (the exact-reading key, r571), in their listed order."""
+        head = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c", "T2"))
+        reads = {att.get(s) for s in tg}
+        atoms = {a.name: a for a in self.gamma.atoms}
+        sig = compile_term.signature(atoms)
+        extra = []
+        for e in lit[head:]:
+            cap.head()
+            pl = _DL_ENTRY.get((sig, e[0]))
+            if pl is None:
+                rd, via = set(), False
+                for role in _HELD_ROLES:
+                    for _cand, c1, c2 in self._held_index(lib, e[0], role, atoms, sig):
+                        for c in (c1, c2):
+                            if isinstance(c, compile_term.Compiled) and c.slot:
+                                rd.add(c.slot.rsplit(".", 1)[-1])
+                                via = via or c.via is not None
+                pl = _DL_ENTRY[(sig, e[0])] = (frozenset(rd), via)
+            if pl[1] or pl[0] & reads:
+                extra.append(e)
+        self._dl_n["extra"] += len(extra)
+        return lit[:head] + extra
+
+    @staticmethod
+    def _dl_key_row(key: tuple) -> dict:
+        slot, dk, readings, contact, tg = key
+        return {"slot": slot, "dk": list(dk) if dk else None, "readings": list(readings),
+                "contact": list(contact), "targets": list(tg)}
+
+    def _dl_miss(self, key: tuple, tiers: dict, asked: int, cut: int) -> None:
+        """20 (c): a complete ask of the described tier offered nothing -- a verdict, kept by its
+        key until the description changes."""
+        self._dl_missed[key] = self.cycle
+        self._dl_n["no_entry"] += 1
+        self.led.record(self.cycle, "ROUTE", "@described_lookup", "no_entry",
+                        key=self._dl_key_row(key), listed=tiers, asked=asked, not_asked=cut,
+                        reads="nothing in the library under this description: leave (Fig 9 :43); "
+                              "finding nothing here proves nothing (Fig 9 :44)")
 
     def _frames_for(self, rep_slot: dict) -> list:
         """The reach frames over the trace, rebuilt when the trace moved (one object per epoch)."""
@@ -10558,12 +10708,13 @@ class Agent:
                             reads="not asked: the step's budget was spent; owed, asked first next "
                                   "step")
         else:
-            self._owed_q.pop(slot, None)
+            self._dl_owed = self._owed_q.pop(slot, None) is not None
             self._asked += 1
             if slot in self._route_cls:
                 self._class_n[self._route_cls[slot]][0] += 1
             self._walk_cut = 0
             self._lookup(slot, hist)
+            self._dl_owed = False
             if _WALK_BUDGET and self._walk_cut:
                 # A2: the walk stopped at the step's budget; the slot is owed, asked first next step
                 own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
@@ -10940,6 +11091,18 @@ class Agent:
                 hit = key = None
             if hit is not None and hit[0] is state:
                 return hit[1]
+        if _INCREMENTAL_JUDGE:
+            # 22: group and obj are built on their first read (nearly no term reads them)
+            ctx = _lazy_ctx({"action": action, "intent": intent, "operands": operands,
+                             "touching": touching,
+                             "acted_self": _same_object(landed, guard_ref or slot),
+                             "cond_holds": bool(self._invented) and self._inv_holds(guard_ref,
+                                                                                    state),
+                             "shapes": self._shapes_now() if shapes else None},
+                            lambda: self._group(slot, state), lambda: self._record(slot, state))
+            if key is not None:
+                memo[key] = (state, ctx)
+            return ctx
         ctx = Ctx(action=action, intent=intent, operands=operands, touching=touching,
                    # **AGAINST THE TERM'S OWN REFERENT WHEN IT HAS ONE.** `guard_ref`
                    # falls back to the slot, which is exactly what `ACTED_SELF` meant, so
@@ -11167,6 +11330,15 @@ class Agent:
             return None
         key = self._divide_key(slot, held)
         got = self._cl_cells.get(slot)
+        if _INCREMENTAL_JUDGE:
+            # 22: _divide_key's last two parts are the slot's peers and its owner's attributes
+            core, frame = key[:-2], key[-2:]
+            if got is None or got[0] != core:
+                got = (core, frame, {}, {})
+            elif got[1] != frame:
+                got = (core, frame, got[2], {})
+            self._cl_cells[slot] = got
+            return _DepCells(got[2], got[3])
         if got is None or got[0] != key:
             got = self._cl_cells[slot] = (key, {})
         return got[1]
@@ -11226,6 +11398,7 @@ class Agent:
         pos = {s: i for i, s in enumerate(res)}       # today's order, handed back to the mints
         self._route_cls = {}
         self._step_act = Counter()
+        self._dl_n = Counter()
         if _STEP_BUDGET:
             # C1: this step's budget starts at zero; the slots a budget left unasked go first,
             # the rest keep today's order (so a budget that never binds changes nothing)
@@ -11347,6 +11520,13 @@ class Agent:
                                               if k != "walked"},
                             reads="A1: this step's lookups the governor let run, and those it "
                                   "deferred by why")
+        if _DESCRIBED_LOOKUP and self._dl_n:
+            self.led.record(self.cycle, "ROUTE", "@described_lookup", "described_lookup",
+                            **dict(sorted(self._dl_n.items())),
+                            reads=("20: this step's lookups asked of the described tier only -- "
+                                   "the lit entries listed, kept and cut, the misses (no_entry), "
+                                   "the unchanged keys not asked again (held) and the owed ones "
+                                   "dropped (Fig 9 :27-29, :43-45)"))
         if _STEP_RANK:
             out.sort(key=lambda t: pos[t[0]])           # the mints run in today's order
         return out

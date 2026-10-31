@@ -270,7 +270,9 @@ class Ledger:
         i = bisect.bisect_left(self._wat, w0)
         out = [(self._wat[j], self._row(self._entries[j])) for j in range(i, len(self._entries))]
         if self._tev:
-            out += [(w, dict(r)) for w, r in self._tev if w >= w0]
+            # _tev is appended in `written` order, so its tail from w0 is a bisect, not a scan
+            k = bisect.bisect_left(self._tev, w0, key=lambda p: p[0])
+            out += [(w, dict(r)) for w, r in self._tev[k:]]
             out.sort(key=lambda p: p[0])
         return [r for _w, r in out]
 
