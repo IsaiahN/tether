@@ -14,7 +14,7 @@ own handling: a GAME_OVER is that game's death, a clear its level edge.
 The order, the seed and each switch (wall time, the agent's cycle) go to the HARNESS's switch.tsv, never to the
 agent's ledger. --mf plants ag.restarted(env) at every switch, so e4_stream_check.py can be shown to catch it.
 
-argv: repo out [--seed HEX] [--slice-s S] [--lineage DIR] [--mf]"""
+argv: repo out [--seed HEX] [--slice-s S] [--lineage DIR] [--mf] [--games files|arcade]"""
 import argparse
 import collections
 import json
@@ -33,7 +33,10 @@ ap.add_argument("--slice-s", type=float, default=600.0)
 ap.add_argument("--lineage", default=None)
 ap.add_argument("--mf", action="store_true")
 ap.add_argument("--switch", choices=("between", "step"), default="between")   # see THE SWAP above
-ap.add_argument("--n-games", type=int, default=25)   # the MF test plays the first 2 of the order
+ap.add_argument("--n-games", type=int, default=None)   # the MF test plays the first 2 of the order; None: all
+# where the games come from: "files" (environment_files, the 25, a seeded order) or "arcade" (the Arcade's own list, in
+# its order and count, as a competition gateway serves it; the reviewer 2026-10-30 r464 3)
+ap.add_argument("--games", choices=("files", "arcade"), default="files")
 ap.add_argument("--slice-steps", default=None)       # per position, e.g. "3,1": a slice ends after N agent steps
 ap.add_argument("--census", action="store_true")     # census_heap.point between steps (the reviewer 2026-10-19 03:00)
 # E4b's slice rule (A) (Isaiah 2026-10-23 "i like c and then a"; the reviewer 06:29 B1, 06:54 (a)): a slice ends at
@@ -79,16 +82,26 @@ import lineage  # noqa: E402
 import tether  # noqa: E402
 from arc_agi import Arcade  # noqa: E402
 
-games = sorted(os.listdir(os.path.join(A.repo, "environment_files")))
-assert len(games) == 25, games
-seed = A.seed or secrets.token_hex(4)
-order = random.Random(seed).sample(games, len(games))
+arc = Arcade(operation_mode=arc_holdout._mode())
+if A.games == "arcade":
+    seed = A.seed
+    order = [e.game_id for e in arc.get_environments()]
+    assert order, "the Arcade lists no games"
+else:
+    games = sorted(os.listdir(os.path.join(A.repo, "environment_files")))
+    assert len(games) == 25, games
+    seed = A.seed or secrets.token_hex(4)
+    order = random.Random(seed).sample(games, len(games))
 order = order[:A.n_games]
 SW = os.path.join(A.out, "switch.tsv")
 
 
 def commit_mb() -> int:
-    """This process's private commit, MB (the reviewer 23:13: the stream logs commit at every switch)."""
+    """This process's private commit, MB (the reviewer 23:13: the stream logs commit at every switch); off Windows the
+    resident set, as the agent reads its own body (tether._commit_bytes), -1 if unreadable."""
+    if os.name != "nt":
+        b = tether._commit_bytes()
+        return -1 if b is None else b // 2**20
     import ctypes
     import ctypes.wintypes as wt
 
@@ -140,7 +153,6 @@ class Stream:
             self.pending = self.arc.make(game)
 
 
-arc = Arcade(operation_mode=arc_holdout._mode())
 proxy = Stream(arc, order[0])
 led_path = os.path.join(A.out, "stream.jsonl")
 env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path=led_path,
