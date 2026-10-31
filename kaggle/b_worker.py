@@ -7,8 +7,8 @@ that its slice ends. What differs, and only this:
   - the card: every game is made on the ONE scorecard run_b.py opened (a competition server refuses a second open,
     arc_agi api.py new_scorecard); run_b.py closes it;
   - the slice: each game's share, derived when its slice starts -- (deadline_at - now - this worker's longest step)
-    x N / the games not yet finished, this one among them; min = max = the share under rule A. TETHER_B_SHARE=0:
-    run A's 300/400;
+    x N / the games not yet finished, this one among them; min = max = the share under rule A. B_SHARE=0: run A's
+    300/400 (B_ and never TETHER_: that namespace is the agent's arms, as harness/supervise.py says);
   - nothing is written to the lineage: the end write is not called, the boundary writes are off
     (TETHER_LINEAGE_BOUNDARY=0) and a fault is recovered without end_path's write (TETHER_FAULT_RECOVER=0; recover).
 THE ONE KNOWN DUPLICATION (the reviewer 2026-10-31 r543): the per-step loop below is e4_stream's text; when e4_stream's
@@ -26,13 +26,11 @@ import time
 sys.dont_write_bytecode = True
 CODE, OUT, LIN, CARD, QDIR, N, DL, WID = sys.argv[1:9]
 N, DL = int(N), float(DL)
-SHARE = os.environ.get("TETHER_B_SHARE", "1") != "0"
+SHARE = os.environ.get("B_SHARE", "1") != "0"
 FAULT_AT = os.environ.get("B_TEST_FAULT", "")
 FAULT_AT = int(FAULT_AT.split(",")[1]) if FAULT_AT and FAULT_AT.split(",")[0] == WID else None
-FIXED_MIN_S, FIXED_MAX_S = 300.0, 400.0      # run A's slice (Isaiah 2026-10-30 21:28); only under TETHER_B_SHARE=0
+FIXED_MIN_S, FIXED_MAX_S = 300.0, 400.0      # run A's slice (Isaiah 2026-10-30 21:28); only under B_SHARE=0
 assert os.environ.get("PYTHONHASHSEED") == "0", "the hash seed must be pinned by the launcher"
-assert os.environ.get("TETHER_LINEAGE_BOUNDARY") == "0", "B writes no lineage: the launcher turns boundary writes off"
-assert os.environ.get("TETHER_FAULT_RECOVER") == "0", "B writes no lineage: a fault is recovered here, without a write"
 os.environ["TETHER_AGENT_SEED"] = "0"
 os.makedirs(OUT, exist_ok=True)
 
@@ -55,7 +53,8 @@ import lineage  # noqa: E402
 import tether  # noqa: E402
 from arc_agi import Arcade  # noqa: E402
 
-assert not lineage._BOUNDARY and not tether._FAULT_RECOVER and lineage._CARRY, "the arms B runs under"
+assert not lineage._BOUNDARY and not tether._FAULT_RECOVER and lineage._CARRY, (
+    "the arms B runs under, read through armflag: run_b sets TETHER_LINEAGE_BOUNDARY=0 and TETHER_FAULT_RECOVER=0")
 with open(os.path.join(QDIR, "games.json"), encoding="utf-8") as fh:
     GAMES = json.load(fh)
 
@@ -182,7 +181,7 @@ led_path = os.path.join(OUT, "stream.jsonl")
 env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path=led_path, lineage_dir=LIN)
 ctx = {"game": "stream", "cfg": None, "library": None, "lineage_dir": LIN,
        "led_path": led_path, "save_only_dir": None, "palette": _pal}
-LOAD_S = round(time.time() - float(os.environ.get("TETHER_B_T0", time.time())), 1)
+LOAD_S = round(time.time() - float(os.environ.get("B_T0", time.time())), 1)
 log(f"# worker {WID} start {time.strftime('%Y-%m-%d %H:%M:%S')} card {CARD} n_workers {N} share {SHARE} "
     f"deadline_at {DL} load_s_since_launch {LOAD_S} games_listed {len(GAMES)}")
 log("# idx\tgame\twall_start_s\tcycle_start\twall_s\tsteps\tlevels_in_slice\tending\tendings\tcommit_mb_end\t"

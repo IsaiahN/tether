@@ -94,7 +94,7 @@ try:
         json.dump(games, fh)
     before = listing(LIN)
     env = {**os.environ, "TETHER_LINEAGE_BOUNDARY": "0", "TETHER_FAULT_RECOVER": "0",
-           "TETHER_B_T0": repr(time.time()), "PYTHONDONTWRITEBYTECODE": "1"}
+           "B_T0": repr(time.time()), "PYTHONDONTWRITEBYTECODE": "1"}
     print(f"run_b: {len(games)} games, N {n} (cores {nproc} by {nproc_from}; memory {mem // 2**20} MB by {mem_from} "
           f"// peak {PEAK_MB} MB), card {card}", flush=True)
     procs = []
