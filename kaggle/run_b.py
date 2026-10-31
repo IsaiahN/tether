@@ -84,8 +84,11 @@ try:
     games = games[:int(rest[0])] if rest else games
     (nproc, nproc_from), (mem, mem_from) = cores(), memory()
     n = max(1, min(nproc, mem // (PEAK_MB * 2**20), len(games)))
+    # B_MEM_GUARD's share (r554 3): the memory read above, less this parent's own commit now, split over the N workers
+    parent_mb = (arc_holdout.tether._commit_bytes() or 0) // 2**20
+    share_mb = (mem // 2**20 - parent_mb) // n
     rec.update(games=games, n_workers=n, nproc=nproc, nproc_from=nproc_from, mem_bytes=mem, mem_from=mem_from,
-               peak_mb=PEAK_MB)
+               peak_mb=PEAK_MB, parent_commit_mb=parent_mb, share_mb=share_mb)
     card = arc.create_scorecard()
     rec["card"] = card
     qdir = os.path.join(OUT, "queue")
@@ -94,9 +97,10 @@ try:
         json.dump(games, fh)
     before = listing(LIN)
     env = {**os.environ, "TETHER_LINEAGE_BOUNDARY": "0", "TETHER_FAULT_RECOVER": "0",
-           "B_T0": repr(time.time()), "PYTHONDONTWRITEBYTECODE": "1"}
+           "B_T0": repr(time.time()), "B_SHARE_MB": str(share_mb), "PYTHONDONTWRITEBYTECODE": "1"}
     print(f"run_b: {len(games)} games, N {n} (cores {nproc} by {nproc_from}; memory {mem // 2**20} MB by {mem_from} "
-          f"// peak {PEAK_MB} MB), card {card}", flush=True)
+          f"// peak {PEAK_MB} MB), card {card}, each worker's share {share_mb} MB (parent {parent_mb} MB)",
+          flush=True)
     procs = []
     for k in range(n):                     # spawned, never forked: each loads its own copy, on Windows as on Linux
         wout = os.path.join(OUT, f"worker_{k}")

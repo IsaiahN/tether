@@ -17,6 +17,7 @@ B_TEST_FAULT="worker,step" (the local test only, r543's must-hold; never set by 
 raises once at that step of its life, through step_or_recover, so the recovery below can be seen to run.
 argv: code out lineage card queue_dir n_workers deadline_at worker"""
 import collections
+import gc
 import glob
 import json
 import os
@@ -29,6 +30,8 @@ N, DL = int(N), float(DL)
 SHARE = os.environ.get("B_SHARE", "1") != "0"
 FAULT_AT = os.environ.get("B_TEST_FAULT", "")
 FAULT_AT = int(FAULT_AT.split(",")[1]) if FAULT_AT and FAULT_AT.split(",")[0] == WID else None
+MEM_GUARD = os.environ.get("B_MEM_GUARD", "1") != "0"   # r554 3; B_TEST_SHARE_MB forces a share (the must-fail only)
+SHARE_MB = int(os.environ.get("B_TEST_SHARE_MB") or os.environ.get("B_SHARE_MB") or 0)
 FIXED_MIN_S, FIXED_MAX_S = 300.0, 400.0      # run A's slice (Isaiah 2026-10-30 21:28); only under B_SHARE=0
 assert os.environ.get("PYTHONHASHSEED") == "0", "the hash seed must be pinned by the launcher"
 os.environ["TETHER_AGENT_SEED"] = "0"
@@ -160,6 +163,22 @@ def recover(env, ag, ctx):
     return fresh_env, fresh
 
 
+def rewire(env, ag, ctx, why: dict):
+    """B_MEM_GUARD (the reviewer 2026-10-31 r554 3), BETWEEN games only: recover()'s path with no fault -- this life's
+    end_run, a fresh world on the SAME wrapper, a fresh agent on the SAME ledger from the UNCHANGED lineage, the clock
+    carried -- because this worker's commit and its own largest one-game growth would pass its share of the machine.
+    What this life built in memory is dropped; nothing is written."""
+    ag.end_run("cap")
+    cycle, deadline, led = ag.cycle, ag.deadline, ag.led
+    fresh_env = arc_holdout.world_on(env.w, ctx["game"], ctx["palette"], env.on_frame)
+    fresh, _loaded = arc_holdout.wire_agent(fresh_env, ctx["game"], None, led, None, LIN, clock=(cycle, deadline))
+    led.record(cycle, "SETTLE", "@run", "b_mem_guard", what="rewire", **why,
+               parent=getattr(fresh, "lineage_parent", None),
+               reads="run B B_MEM_GUARD: between games, a fresh agent from the unchanged lineage, because this "
+                     "worker's commit plus its largest one-game growth would pass its share; nothing was written")
+    return fresh_env, fresh
+
+
 def inject(ag) -> None:
     """B_TEST_FAULT: this agent's next step() raises, once; the instance's own step is restored by the raise."""
     real = ag.step
@@ -199,6 +218,7 @@ ag.deadline = DL
 T0 = time.time()
 endings_all = collections.Counter()
 budget_unreached, taken, longest = [], [], 0.0
+grow_max = None                           # B_MEM_GUARD: this worker's largest one-game commit growth, MB
 nxt = first
 while nxt is not None:
     i, g = nxt
@@ -210,6 +230,14 @@ while nxt is not None:
         log(f"# {i}\t{g}\tunreached at this budget (the whole-run deadline passed; no switch)")
         nxt = take()
         continue
+    if MEM_GUARD and SHARE_MB and grow_max is not None:
+        c_now = commit_mb()[0]
+        if c_now + grow_max > SHARE_MB:
+            env, ag = rewire(env, ag, ctx, {"commit_mb": c_now, "largest_game_growth_mb": grow_max,
+                                            "share_mb": SHARE_MB, "games_played": len(taken) - 1})
+            gc.collect()      # the old life is cyclic garbage until collected, and freeing it is the guard's point
+            memo("rewire", i, g)
+    c_game0 = commit_mb()[0] if MEM_GUARD else None
     seq0 = len(ag.led)
     if len(taken) > 1:
         proxy.switch_to(g)
@@ -265,6 +293,8 @@ while nxt is not None:
             break
     endings_all.update(endings)
     wall_end, (commit_end, peak) = round(time.time() - t_start, 1), commit_mb()
+    if c_game0 is not None:
+        grow_max = max(grow_max or 0, commit_end - c_game0)
     extended = first_act_s is None or first_act_s > mn
     unreached = acts == 0
     overrun = round(max(0.0, wall_end - mx), 1)
