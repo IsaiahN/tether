@@ -1285,8 +1285,11 @@ ARMS: dict[str, str] = {
                             "new rows. An OBJ-typed candidate walks its whole history (its domain "
                             "draws per cycle and writes choice rows). Needs TETHER_DIVIDE. The "
                             "repeat-mint wait was stopped, the existing deferrals already take it "
-                            "(r490). OFF: every candidate is scored over its whole history at "
-                            "every lookup. default ON",
+                            "(r490). Saves, on six identical movers over 20 steps: 35.5% of the "
+                            "rows re-scored and 23% of the scoring time, which is 9% of the "
+                            "lookup; the lookup's time is in _library_reach (r498). OFF: every "
+                            "candidate is scored over its whole history at every lookup. "
+                            "default ON",
     "TETHER_HARNESS_LEVEL_RESET": "13 HARNESS_LEVEL_RESET (the reviewer r464 2; Isaiah 2026-10-30 "
                                   "20:11). HARNESS, never the agent: arc_holdout._mode, the one "
                                   "call before every Arcade, sets ONLY_RESET_LEVELS=true, so "
