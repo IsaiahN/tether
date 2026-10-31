@@ -7,6 +7,8 @@ ONE scorecard: opened here before any worker starts (a competition server refuse
 new_scorecard), its id handed to every worker, closed here once every worker has ended -- the close scores every game.
 Writes <out>/kaggle_b.json: N and what it was read from, the card and what its close returned, each worker's rc, and
 whether the lineage folder is unchanged (names, sizes and modification times, before and after).
+B_TEST_CLOSE_AT=<seconds> (the local test only, r570; never set by the notebook): this parent closes the card that long
+after the workers start, so every worker's next press meets a closed card through the gateway's own path.
 argv: code out lineage deadline_at [n_games]"""
 import json
 import os
@@ -110,6 +112,13 @@ try:
                                            wout, LIN, card, qdir, str(n), DL, str(k)],
                                           env=env, cwd=CODE, stdin=subprocess.DEVNULL, stdout=fh,
                                           stderr=subprocess.STDOUT))
+    if os.environ.get("B_TEST_CLOSE_AT"):  # the local test only (r570), never the notebook: close the card mid-run
+        time.sleep(float(os.environ["B_TEST_CLOSE_AT"]))
+        try:
+            arc.close_scorecard(card)
+            rec["test_closed_at"] = time.time()
+        except Exception as e:   # noqa: BLE001
+            rec["test_close_error"] = repr(e)
     rec["workers"] = [{"worker": k, "rc": p.wait()} for k, p in enumerate(procs)]
     rc = int(any(w["rc"] for w in rec["workers"]))
     after = listing(LIN)
