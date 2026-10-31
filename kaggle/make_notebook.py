@@ -53,6 +53,13 @@ print(f"nproc os.cpu_count {os.cpu_count()} sched_getaffinity "
       f"{len(os.sched_getaffinity(0)) if hasattr(os, 'sched_getaffinity') else None}")
 print(f"MemTotal {mem.get('MemTotal')} MemAvailable {mem.get('MemAvailable')} cgroup {cg}")
 print(f"disk working free {shutil.disk_usage(WORKING if os.path.isdir(WORKING) else '.').free}")
+# how the inputs were stored (an unpacked folder or a .zip): two levels, names and sizes
+for d1 in sorted(os.listdir(INPUT)) if os.path.isdir(INPUT) else []:
+    p1 = os.path.join(INPUT, d1)
+    print("input", d1, "" if os.path.isdir(p1) else os.path.getsize(p1))
+    for d2 in sorted(os.listdir(p1))[:40] if os.path.isdir(p1) else []:
+        p2 = os.path.join(p1, d2)
+        print("   ", d2, "<dir>" if os.path.isdir(p2) else os.path.getsize(p2))
 '''
 
 INSTALL = '''\
@@ -77,6 +84,27 @@ FIND = '''\
 import glob
 import hashlib
 import json
+import zipfile
+
+
+def _place(ds, name, dst):
+    """The dataset's <name> folder to dst, the one writable copy: copied when the upload stayed a
+    folder, extracted and moved into place when it was stored as <name>.zip (either layout inside)."""
+    assert not os.path.exists(dst), ("a copy already exists", dst)
+    if os.path.isdir(os.path.join(ds, name)):
+        shutil.copytree(os.path.join(ds, name), dst)
+        return "folder"
+    z = os.path.join(ds, name + ".zip")
+    assert os.path.isfile(z), ("neither a folder nor a zip", name, sorted(os.listdir(ds)))
+    tmp = dst + ".unzip"
+    with zipfile.ZipFile(z) as zf:
+        zf.extractall(tmp)
+    top = os.listdir(tmp)
+    os.replace(os.path.join(tmp, name) if top == [name] else tmp, dst)
+    if os.path.isdir(tmp):
+        os.rmdir(tmp)
+    return "zip"
+
 
 MARK = "TETHER_KAGGLE_DATASET.json"
 found = sorted(set(glob.glob(os.path.join(INPUT, "*", MARK))
@@ -88,8 +116,7 @@ with open(found[0]) as fh:
     META = json.load(fh)
 print("dataset", DS, json.dumps(META))
 CODE = os.path.join(WORKING, "tether")          # a writable copy: the input mount is read-only
-assert not os.path.exists(CODE), ("a copy already exists", CODE)
-shutil.copytree(os.path.join(DS, "code"), CODE)
+print("code stored as", _place(DS, "code", CODE))
 with open(os.path.join(DS, "MANIFEST.sha256")) as fh:
     rows = [ln.rstrip("\\n").split("  ", 1) for ln in fh if ln.strip()]
 
@@ -115,14 +142,13 @@ lfound = sorted(set(glob.glob(os.path.join(INPUT, "*", LMARK))
 assert len(lfound) <= 1, ("more than one lineage dataset", lfound)
 assert lfound or not REQUIRE_LINEAGE, "no lineage dataset attached, and the run requires one"
 LIN = os.path.join(WORKING, "lineage")          # a writable copy: the agent writes its generations into it
-assert not os.path.exists(LIN), ("a lineage copy already exists", LIN)
 if lfound:
     LDS = os.path.dirname(lfound[0])
     with open(lfound[0]) as fh:
         LMETA = json.load(fh)
     print("lineage dataset", LDS, json.dumps(LMETA))
     t = time.time()
-    shutil.copytree(os.path.join(LDS, "lineage"), LIN)
+    print("lineage stored as", _place(LDS, "lineage", LIN))
     with open(os.path.join(LDS, "MANIFEST.sha256")) as fh:
         lrows = [ln.rstrip("\\n").split("  ", 1) for ln in fh if ln.strip()]
 

@@ -27,6 +27,7 @@ ap.add_argument("--no-rerun", action="store_true")
 # kaggle/build_lineage.py's output, MOUNTED (a junction; a link off Windows), never copied: the notebook's own copy into
 # working is the one a Kaggle run makes too
 ap.add_argument("--lineage-ds", default=None)
+ap.add_argument("--cells", type=int, default=None)   # only the first N code cells (5: up to the lineage, no play)
 A = ap.parse_args()
 assert not os.path.exists(A.work), ("the work dir exists", A.work)
 inp, working = os.path.join(A.work, "input"), os.path.join(A.work, "working")
@@ -54,7 +55,7 @@ if not A.no_rerun:
                                os.path.join(A.work, "gateway_out"), str(A.port)], stdout=log,
                               stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
 with open(A.notebook, encoding="utf-8") as fh:
-    cells = [("".join(c["source"])) for c in json.load(fh)["cells"] if c["cell_type"] == "code"]
+    cells = [("".join(c["source"])) for c in json.load(fh)["cells"] if c["cell_type"] == "code"][:A.cells]
 ns = {"__name__": "__main__"}
 rc = 0
 try:
