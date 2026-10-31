@@ -30,6 +30,7 @@ ARMS = (
     ("TETHER_ASK_ON_BOARD", "3736340"),      # wip/ask-on-board 11 (r452 A)
     ("TETHER_HARNESS_LEVEL_RESET", "713c73e"),   # wip/harness-level-reset 13 (r464 2); base cba1dd5
     ("TETHER_STOP_READ_STEP", "9eb4012"),    # wip/stop-read-step 12 (r462, r463)
+    ("TETHER_RETIRE_HOLDER", "f0b53e8"),     # wip/retire-holder 15 (r466 1(c), r470); base 9eb4012
     ("TETHER_REMAINDER_VERDICT_KEY", "22319e0"),   # wip/remainder-verdict-key 14 (r466 1(b))
 )
 # A batch arm whose TREE DEFAULT was flipped after later arms landed (r359): (the arm, the last

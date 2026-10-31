@@ -1276,6 +1276,14 @@ ARMS: dict[str, str] = {
                                   "a level with no action yet (just reached, or right after "
                                   "another RESET) is a FULL reset to level 1, score 0, which "
                                   "competition play never does. default ON",
+    "TETHER_RETIRE_HOLDER": "15 RETIRE_HOLDER (the reviewer r466 1(c), r470). At the break, "
+                            "_repoint_retired re-points D5's three holders -- a cut candidate's "
+                            "and a pending split's incumbent, a split's parts A and B -- to the "
+                            "retired instance's kind when it is live, else drops that cut or "
+                            "split beside the instance; _held_dangling lists them. OFF: a pending "
+                            "split carries the retired name past the break, _d5_split writes it "
+                            "back into bound, and _present's orphan scan raises KeyError (PLAY24 "
+                            "round 8, cycles 21 and 106). default ON",
     "TETHER_ASK_ON_BOARD": "11 ASK_ON_BOARD (the reviewer r452 A). In 1b's eligibility loop a "
                            "gap whose slot is not in this step's `before` is not eligible this "
                            "step; it stays in the space and is not released, so it can be asked "
