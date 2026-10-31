@@ -496,7 +496,7 @@ class Clocks:
 # cap from 2026-10-22, for TETHER_CAP_INNER (C1 widened).
 ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms", "compile_term", "gridworld",
                "interface", "lineage", "gamma", "instruments", "sensors_heavy", "relations",
-               "ledger", "lineage_store", "cap")
+               "ledger", "lineage_store", "cap", "arc_holdout")
 
 
 class Attribution:
