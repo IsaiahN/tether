@@ -867,6 +867,12 @@ _ARRIVAL_GAP = armflag.arm("TETHER_ARRIVAL_GAP", default=True)
 # Fig 6 :42, Fig 10 :68): a "reuse:" term naming an object the break did not re-find goes to the
 # record, its kind (no operand, as load installs it) stays live. ON; conform/arms.py
 _INSTANCE_RETIRE = armflag.arm("TETHER_INSTANCE_RETIRE", default=True)
+# 15 RETIRE_HOLDER (the reviewer 2026-10-30 r466 1(c), r470): r295's invariant reaches D5's three
+# holders -- a cut candidate's and a pending split's incumbent, a split's parts A and B. Re-pointed
+# to the kind when it is live, else the cut or split is dropped beside the instance; _held_dangling
+# lists them. Off, a pending split carried a retired name past the break and _d5_split wrote it
+# back into bound (PLAY24 round 8, twice). ON; conform/arms.py
+_RETIRE_HOLDER = armflag.arm("TETHER_RETIRE_HOLDER", default=True)
 # 10, THE ARRIVAL ALIAS (the reviewer 2026-10-30 r428, r431; Fig 10 :68): at the turnover after the
 # agent's own break, Agency's counts on objects no longer on the board go to its dormant record; an
 # object that left whose form is unique among those that left and equal to the form of exactly one
@@ -18526,6 +18532,27 @@ class Agent:
         for s, n in list(self._pred_by.items()):
             if n in kind_of:
                 self._pred_by[s] = kind_of[n] if kind_of[n] in lib else None
+        if _RETIRE_HOLDER:
+            for hold in (getattr(self, "_d5_candidates", {}), self._d5_pending):
+                for s, c in list(hold.items()):    # (P, numbers, incumbent)
+                    if c[2] in kind_of:
+                        if kind_of[c[2]] in lib:
+                            hold[s] = (*c[:2], kind_of[c[2]], *c[3:])
+                            repointed += 1
+                        else:
+                            hold.pop(s)
+                            dropped.setdefault(c[2], []).append(f"d5 cut {s}")
+            for s, part in list(self._parts.items()):
+                hit = [k for k in ("A", "B") if part.get(k) in kind_of]
+                if not hit:
+                    continue
+                if all(kind_of[part[k]] in lib for k in hit):
+                    self._parts[s] = {**part, **{k: kind_of[part[k]] for k in hit}}
+                    repointed += 1
+                else:
+                    self._parts.pop(s)
+                    for k in hit:
+                        dropped.setdefault(part[k], []).append(f"d5 split {s}")
         return repointed, dropped
 
     def _settle_pred(self, slot: str, r: SlotResidual) -> dict:
@@ -18577,7 +18604,8 @@ class Agent:
     def _held_dangling(self) -> list:
         """r295's invariant, checked once at the end of the break: every binding names a live term,
         and no live holder (bindings, this level's settled names, want and goal terms, candidates,
-        the last predictors) names a retired one. Returns what violates it."""
+        the last predictors; under 15, D5's cuts and splits) names a retired one. Returns what
+        violates it."""
         lib, gone = self.gamma.library, self.gamma.retired
         out = [f"bound {s}: {n}" for s, n in sorted(self.bound.items()) if n not in lib]
         out += [f"settled_lvl: {n}" for n in sorted(self._settled_lvl) if n in gone]
@@ -18589,6 +18617,13 @@ class Agent:
         out += [f"goal {k}: {n}" for k, v in links for _sl, n in v if n in gone]
         out += [f"candidate: {n}" for n in sorted(self.candidates) if n in gone]
         out += [f"pred_by {s}: {n}" for s, n in sorted(self._pred_by.items()) if n in gone]
+        if _RETIRE_HOLDER:
+            out += [f"d5_candidate {s}: {c[2]}"
+                    for s, c in sorted(getattr(self, "_d5_candidates", {}).items()) if c[2] in gone]
+            out += [f"d5_pending {s}: {c[2]}" for s, c in sorted(self._d5_pending.items())
+                    if c[2] in gone]
+            out += [f"d5_part {s}: {p[k]}" for s, p in sorted(self._parts.items())
+                    for k in ("A", "B") if p.get(k) in gone]
         return out
 
     def step(self, action: str | None = None) -> bool:
