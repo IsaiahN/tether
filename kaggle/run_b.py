@@ -71,7 +71,7 @@ def listing(d: str) -> dict:
     return out
 
 
-import arc_holdout  # noqa: E402   (for _mode, the one reading of OPERATION_MODE)
+import arc_holdout  # noqa: E402, I001   (for _mode, the one reading of OPERATION_MODE)
 from arc_agi import Arcade  # noqa: E402
 
 rec = {"argv": sys.argv, "t_start": time.time(), "error": None}
