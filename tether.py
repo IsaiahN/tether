@@ -2356,6 +2356,12 @@ _S2_STALL = armflag.arm("TETHER_S2_STALL", default=True)
 # change -- a bar that ticks on any press) may not be chosen as the goal, nor be the focus or the
 # cue a press is made for; each refusal is booked (indifferent_refused). OFF: as before.
 _DISCRIMINATE = armflag.arm("TETHER_DISCRIMINATE_STEER", default=True)
+# MISS TYPE DECIDES THE WORK (the reviewer 2026-11-01 r674 2, r675; Fig 5: mis-attached means refit
+# what you have, mechanism broken means a new term is owed): a miss whose actual lies inside the
+# slot's own observed range is HELD first -- no lookup, no mint, settle still judges the bound term
+# -- and only if the slot misses again before it predicts is the search owed. Each route row
+# carries miss_grade (in_range_hold / broken_after_hold / searched). OFF: every miss is searched.
+_MISS_GRADE = armflag.arm("TETHER_MISS_GRADE", default=True)
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
 # (gamma.kind_of, the save's and the load's one rule) is a term the agent carries is that carried
@@ -3168,6 +3174,9 @@ class Agent:
         self._fc_seen: set[str] = set()   # F6: slots already met at first contact this board
         # TETHER_S2_STALL (r674 4): presses since the gap last moved; the last plan's length
         self._unmoved, self._plan_len = 0, 0
+        # TETHER_MISS_GRADE (r674 2): each slot's observed range; the slots held once on a miss
+        self._range: dict[str, tuple] = {}
+        self._miss_held: set[str] = set()
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
@@ -10528,6 +10537,13 @@ class Agent:
                     yield Term(term.atoms, operand=b, guard=g,
                                operand_term=term.operand_term)
 
+    def _miss_in_range(self, slot: str, r: SlotResidual) -> bool:
+        """TETHER_MISS_GRADE: a miss whose actual value lies inside the range the slot has already
+        shown, and the slot's first miss since it last predicted (r675: the first response)."""
+        rg = self._range.get(slot)
+        return (rg is not None and slot not in self._miss_held and isinstance(r.actual, int)
+                and rg[0] <= r.actual <= rg[1])
+
     def _indiff_book(self) -> None:
         """r674 1: one refusal of a slot whose change does not depend on the action (undeclared in
         BOOKS, so OFF stays exact)."""
@@ -11593,7 +11609,7 @@ class Agent:
                                 why_not=LEFT_BOARD, support=len(self.trace),
                                 **({"refusal_not_priced": filed} if filed else {}))
                 continue
-            _dropped = None
+            _dropped, _grade = None, None
             was_refused = self._refuted_slot.pop(slot, None)
             # ONLY WHILE THE REFUSED TERM'S RESIDUAL PERSISTS -- the reviewer 2026-10-07 14:58Z
             # (F498), superseding 13:06Z's "while this cycle's residual is nonzero", which could
@@ -11644,6 +11660,7 @@ class Agent:
                 b = REFUTED
             elif r.mass == 0.0 and slot not in self.owed_import:
                 b, fit = HELD, None
+                self._miss_held.discard(slot)      # MISS_GRADE: predicted, so a new miss is first
             elif r.mass == 0.0:
                 # a slice reading zero while the accumulated residual is live. HELD says
                 # "the slot is bound and the bound term predicted it" -- neither is true
@@ -11657,18 +11674,31 @@ class Agent:
                     b = REBIND
             elif len(self.trace) < 2:
                 b, fit = NOVEL, None
+            elif _MISS_GRADE and self._miss_in_range(slot, r):
+                # r674 2, r675: a miss inside the slot's own range is held first -- no lookup, no
+                # mint; settle still judges the bound term. Missed again, the search is owed.
+                self._miss_held.add(slot)
+                b, fit, _grade = HELD, None, "in_range_hold"
             else:
                 self._fit_none.pop(slot, None)     # S2a: a row the bound term missed reopens it
                 fit = (None if self._defer_lookup(slot)
                        else self._library_fit(slot, self.bound.get(slot)))
                 b = REBIND if fit else MECHANISM
+                if _MISS_GRADE:
+                    _grade = "broken_after_hold" if slot in self._miss_held else "searched"
             why = OWES if (r.mass == 0.0 and slot in self.owed_import) else WHY_NOT[b]
             out.append((slot, b, fit, why))
             self.led.record(self.cycle, "ROUTE", slot, "route", bin=b,
                             why_not=WHY_NOT[b], support=len(self.trace),
                             # WHY THE BIN DROPPED ITS COMPETITOR, so the cause is read, not
                             # inferred (F497): a starved slot.
-                            **({"competitor_dropped": _dropped} if _dropped else {}))
+                            **({"competitor_dropped": _dropped} if _dropped else {}),
+                            **({"miss_grade": _grade} if _grade else {}))
+        if _MISS_GRADE:
+            for slot, r in res.items():            # the slot's own range, after this step's grade
+                if isinstance(r.actual, int) and not r.gone:
+                    lo, hi = self._range.get(slot, (r.actual, r.actual))
+                    self._range[slot] = (min(lo, r.actual), max(hi, r.actual))
         if _STEP_BUDGET:
             self.led.record(self.cycle, "ROUTE", "@budget", "budget", budget=STEP_BUDGET,
                             spent=self._spent, asked=self._asked, not_asked=self._not_asked,

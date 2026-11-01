@@ -859,6 +859,11 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_MISS_GRADE": "MISS TYPE DECIDES THE WORK (the reviewer 2026-11-01 r674 2, r675): a "
+                         "miss whose actual lies inside the slot's own observed range is held "
+                         "first, with no lookup and no mint; a second miss before it predicts "
+                         "owes the search; route rows carry miss_grade. OFF is the line before "
+                         "it exactly",
     "TETHER_DISCRIMINATE_STEER": "A SIGNAL MUST DISCRIMINATE BEFORE IT STEERS (the reviewer "
                                  "2026-11-01 r674 1): a slot whose change does not depend on "
                                  "which action was pressed (instruments.Agency.indifferent) may "
