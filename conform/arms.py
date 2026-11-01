@@ -2140,6 +2140,11 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_ROUTE_KEY_GENERAL": "42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer "
+                                "2026-11-01 r717): R-B keys a route by the intent's general "
+                                "statement (slot and sign; a Specific's stated target dropped), so "
+                                "R-C's re-statement does not restart its run. OFF: the full "
+                                "wording (c0f64e9). default ON",
     "TETHER_ELICIT_NO_REFUSED": "41 (3), ELICIT DOES NOT OFFER A PRESS THE LOOP WILL REFUSE (the "
                                 "reviewer 2026-11-01 r710, r712): system0's ELICIT leaves RESET "
                                 "out while the board is live and RESET_REASON holds, so the "

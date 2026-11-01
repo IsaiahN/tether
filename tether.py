@@ -638,6 +638,13 @@ _R4_RECORD = armflag.arm("TETHER_R4_RECORD", default=True)
 # right-way move reaches; a specific one's overshoot is corrected, never refused). default ON
 # (Isaiah 2026-10-24 14:16: 'just keep the switch on period'). OFF: today's trend and goal exit.
 _ROUTE_REFUSE = armflag.arm("TETHER_ROUTE_REFUSE", default=True)
+# 42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer 2026-11-01 r717): R-B keyed a route
+# by the intent's full wording, so R-C re-stating a general want as a specific one ("BECOME
+# o21.col -" -> "- -> 30") made a new route whose run restarted at 1 and MIN_REPEAT was never
+# reached (tn36, measured: same action, coord and context). The key reads the intent's GENERAL
+# statement (slot and sign; the stated target dropped), so a failed way of moving that slot that
+# way is refused however the want is worded. OFF: the full wording, as before
+_ROUTE_KEY_GENERAL = armflag.arm("TETHER_ROUTE_KEY_GENERAL", default=True)
 # 7a D5, SPLIT A SLOT'S RESIDUAL ON STRAIN (Fig 9 :4-5, :54-58; the reviewer 2026-10-10 15:58Z).
 # ON; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term
 # gets right from the rows it gets wrong (at least 2 each side), the slot gets two PARTS: the
@@ -9900,10 +9907,16 @@ class Agent:
         return (*sorted(kinds.items()), ("@alive", int(bool(self.iface.alive))))
 
     @staticmethod
+    def _route_said(want: Any) -> str:
+        """42: the intent as R-B keys it -- its general statement (a Specific's stated target
+        dropped) under TETHER_ROUTE_KEY_GENERAL, else its full wording."""
+        return IFace.Intent.says(want) if _ROUTE_KEY_GENERAL else want.says()
+
+    @staticmethod
     def _route_key(want: Any, r: Any, ctx: tuple) -> tuple:
         """R-B's route: (the intent in the agent's words, the realised action, its coordinate,
         the contact context at press time)."""
-        return (want.says(), r.action, tuple(r.coord) if r.coord else None, ctx)
+        return (Agent._route_said(want), r.action, tuple(r.coord) if r.coord else None, ctx)
 
     def _route_offer(self, said: str, ctx: tuple, offered: tuple,
                      wh: Any) -> tuple[tuple, Any]:
@@ -16194,7 +16207,7 @@ class Agent:
         _rctx = self._situation(chosen, _ctx)   # (4d) S4: the refusal's situation, not the table's
         _offer, _wh = tuple(self.actions), self._withheld
         if _ROUTE_REFUSE:          # R-B: this intent's refused routes here are not offered
-            _offer, _wh = self._route_offer(_want.says(), _rctx, _offer, _wh)
+            _offer, _wh = self._route_offer(self._route_said(_want), _rctx, _offer, _wh)
         _r = None
         if _PRED_FIRST and _offer:
             # (4e) I-C: what the settled model predicts THIS press does HERE is asked first; the
@@ -16256,7 +16269,7 @@ class Agent:
             # refusals stay, and a held hypothesis on this slot ends by="routes" (R-D's first half)
             self._split_why = "route_exhausted"
             if commit:
-                said = _want.says()
+                said = self._route_said(_want)
                 # (4c) THE REASON PICKS THE NEXT MOVE (4b's reader; the reviewer 2026-10-26 05:27):
                 # the interface's own reason when it was asked this step, else every offer here
                 # was refused (blocked). "no way known" -> re-state the intent (its target named)
