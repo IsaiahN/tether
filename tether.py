@@ -50,6 +50,7 @@ import store as door  # the one door; `store` is a local name in three methods
 from gamma import _CARRY_W as G_CARRY_W
 from gamma import _FIRST_CONTACT as G_FIRST_CONTACT
 from gamma import _KIND_ATTR as G_KIND_ATTR
+from gamma import _KIND_REL as G_KIND_REL
 from gamma import _PRIOR_CODE as G_PRIOR_CODE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import _UNITS_MEMO as G_UNITS_MEMO
@@ -10563,6 +10564,11 @@ class Agent:
                 for b in self.slots:
                     slot_form.setdefault(Gamma.unbound_form(b), []).append(b)
             ops = [b for b in slot_form.get(k.operand, ()) if b != s] if k.operand else [None]
+            rel = self.gamma.kind_rel.get(k.name) if G_KIND_REL and len(ops) > 1 else None
+            if rel and len(rel) == 1:
+                # r674 3: the kind's relation picks the operand: its target's own object or another
+                own = Gamma.first_obj(s)
+                ops = [b for b in ops if (Gamma.first_obj(b) == own) == ("same" in rel)]
             fits = [k if b is None else Term(k.atoms, operand=b, guard=k.guard,
                                              operand_term=k.operand_term)
                     for b in ops if len(ops) == 1 and self._operand_fits(k, s, b)]
@@ -18903,6 +18909,8 @@ class Agent:
             term = self.gamma.retire(n)
             lost.update(miss)
             kind = self.gamma.kind_of(term)     # load's own rule: one name all three ways
+            if G_KIND_REL:
+                self.gamma.note_rel(kind.name, term.operand, (stamps.get(n) or {}).get("residual"))
             if kind.name in self.gamma.library:
                 kinds_held += 1
             else:

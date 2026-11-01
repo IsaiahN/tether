@@ -859,6 +859,11 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_KIND_REL": "KIND KEEPS THE OPERAND'S RELATION (the reviewer 2026-11-01 r674 3): a kind "
+                       "records whether its instances read their target's own object or another's "
+                       "(gamma.note_rel: at load from each row's operand and residual slot, and at "
+                       "the instance break), and a first-contact bet narrows its operand by that "
+                       "relation. OFF is the line before it exactly",
     "TETHER_S2_STALL": "S2 STALL TRIGGER (the reviewer 2026-11-01 r674 4, ruled (c)): a planning "
                        "episode also opens when the goal's gap has stood unmoved for as many "
                        "presses as the last plan's length (the wants that episode set or changed, "

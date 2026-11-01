@@ -412,6 +412,11 @@ _KIND_ATTR = armflag.arm("TETHER_KIND_ATTR", default=True)
 # attribute form of each slot a carried term was settled on, and a slot met for the first time
 # bets with the one carried kind settled on its attribute (tether._first_contact). OFF: neither.
 _FIRST_CONTACT = armflag.arm("TETHER_FIRST_CONTACT_CARRIED", default=True)
+# KIND KEEPS THE OPERAND'S RELATION (the reviewer 2026-11-01 r674 3; the F6 finding): a kind records
+# whether its instances read their own target's object ("same") or another's ("other"), from each
+# instance's operand and the slot its residual names -- at load from the rows already written, and
+# at the instance break -- so a first-contact bet can bind where only the attribute was ambiguous.
+_KIND_REL = armflag.arm("TETHER_KIND_REL", default=True)
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
@@ -1036,6 +1041,7 @@ class Gamma:
         self.evidence: list[list] = []
         # F6: name -> the unbound forms of the slots the carried evidence settled it on (replay)
         self.settled_forms: dict[str, set[str]] = {}
+        self.kind_rel: dict[str, set[str]] = {}   # KIND_REL: name -> {"same", "other"} (note_rel)
         self.innate: set[str] = set()   # 7i: names whose standing a refute never moves
         # name -> the two verdicts that promoted it. A dict rather than a set because
         # `primitive requires both` is only checkable if both are on the record.
@@ -1625,6 +1631,23 @@ class Gamma:
         return self.load_blob(blob, hold_unbound=hold_unbound)
 
     @staticmethod
+    def first_obj(text: str) -> str | None:
+        """The first object id ("o12") a slot or operand names, or None."""
+        m = re.search(r"o\d+", text)
+        return m.group(0) if m else None
+
+    def note_rel(self, name: str, operand: str | None, residual: str | None) -> None:
+        """KIND_REL: an instance with operand `operand`, minted for the slot its residual names
+        ("o1.col@12", "reuse:o1.col@12:..."), says its kind reads the target's own object or
+        another's. A residual naming no slot ("kind:...") says nothing."""
+        if not (_KIND_REL and operand and residual) or str(residual).startswith("kind:"):
+            return
+        slot = str(residual).split("@", 1)[0].removeprefix("reuse:")
+        a, b = self.first_obj(operand), self.first_obj(slot)
+        if a and b:
+            self.kind_rel.setdefault(name, set()).add("same" if a == b else "other")
+
+    @staticmethod
     def unbound_form(operand: str) -> str:
         """An operand with every object id replaced by "?", by the slot grammar the worlds
         publish: f"{name}.{attr}" (arc_percept 847-849), pairs f"{a}.{rel}_{b}" (arc_world 813),
@@ -1732,6 +1755,7 @@ class Gamma:
                 unbound = r["operand"]
                 t = Term(t.atoms, origin=IMPORTED, guard=t.guard,
                          operand=self.unbound_form(unbound), operand_term=t.operand_term)
+                self.note_rel(t.name, unbound, r.get("residual"))
             if t.name in self.library:
                 # **`already_held` WAS ONE NUMBER OVER TWO OPPOSITE OUTCOMES -- `F420`.** A row
                 # can land on a composition this registry genuinely holds, which is a real
