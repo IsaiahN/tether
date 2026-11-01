@@ -859,6 +859,10 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_FC_CONTACT": "WHICH OTHER, BY CONTACT (the reviewer 2026-11-01 r676): a carried kind "
+                         "reading 'another object' with several candidates keeps, at first "
+                         "contact, the operands whose object the agent's own last press touched "
+                         "(S1's contact set). OFF is the line before it exactly",
     "TETHER_MISS_GRADE": "MISS TYPE DECIDES THE WORK (the reviewer 2026-11-01 r674 2, r675): a "
                          "miss whose actual lies inside the slot's own observed range is held "
                          "first, with no lookup and no mint; a second miss before it predicts "

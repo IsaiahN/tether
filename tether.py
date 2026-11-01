@@ -2362,6 +2362,10 @@ _DISCRIMINATE = armflag.arm("TETHER_DISCRIMINATE_STEER", default=True)
 # -- and only if the slot misses again before it predicts is the search owed. Each route row
 # carries miss_grade (in_range_hold / broken_after_hold / searched). OFF: every miss is searched.
 _MISS_GRADE = armflag.arm("TETHER_MISS_GRADE", default=True)
+# WHICH OTHER, BY CONTACT (the reviewer 2026-11-01 r676; Fig 9 :43): where a carried kind reads
+# "another object" and several remain, first contact keeps the operands whose object the agent's own
+# last press touched (S1's contact set); still several or none, it stays declined. OFF: as before.
+_FC_CONTACT = armflag.arm("TETHER_FC_CONTACT", default=True)
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
 # (gamma.kind_of, the save's and the load's one rule) is a term the agent carries is that carried
@@ -10598,6 +10602,11 @@ class Agent:
                 # r674 3: the kind's relation picks the operand: its target's own object or another
                 own = Gamma.first_obj(s)
                 ops = [b for b in ops if (Gamma.first_obj(b) == own) == ("same" in rel)]
+                if (_FC_CONTACT and rel == {"other"} and len(ops) > 1
+                        and getattr(self, "_contact_slots", None)):
+                    # r676: which other -- the object the agent's own last press touched
+                    touched = {Gamma.first_obj(x) for x in self._contact_slots}
+                    ops = [b for b in ops if Gamma.first_obj(b) in touched]
             fits = [k if b is None else Term(k.atoms, operand=b, guard=k.guard,
                                              operand_term=k.operand_term)
                     for b in ops if len(ops) == 1 and self._operand_fits(k, s, b)]
