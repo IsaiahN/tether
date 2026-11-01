@@ -533,7 +533,8 @@ def arms_today() -> dict:
     names = {"tether": ("_TERMINAL_RESET", "_S1_CONTACT_ONLY", "_PLAN_EPISODES",
                         "_CARRIED_BEFORE_MINT", "_S2_STALL", "_DISCRIMINATE", "_MISS_GRADE",
                         "_FC_CONTACT", "_PROBE_NO_RESTART", "_GOAL_CONTINGENT", "_ROUTINE_TOUCH",
-                        "_BOND_INC", "_RESET_REASON", "_COUNTERS", "_RELATION_BET"),
+                        "_BOND_INC", "_RESET_REASON", "_COUNTERS", "_RELATION_BET",
+                        "_WIN_CREDIT"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL"),
              "interface": ("_ACTION_CARRY",)}
     mods = {"tether": sys.modules[__name__], "gamma": _g, "interface": _i}
@@ -2416,6 +2417,10 @@ _COUNTERS = armflag.arm("TETHER_COUNTERS", default=True)
 # subject on this board -- that residual enters route, it is bet on as itself from then on, and a
 # term can be bound or minted for it; booked relation_subject. Other derived slots: as before (DS).
 _RELATION_BET = armflag.arm("TETHER_RELATION_BET", default=True)
+# A WIN MOVES STANDING (the reviewer 2026-11-01 r694 row 3; Fig 1 "the ground enters as the only
+# metric"): at a level clear (ADVANCE / WIN, never a death) each non-atom term bound on the clearing
+# segment is settled once -- the settle writes evidence, which the next life replays; win_credit.
+_WIN_CREDIT = armflag.arm("TETHER_WIN_CREDIT", default=True)
 _BOND_INC_CHECK = armflag.arm("TETHER_BOND_INC_CHECK")
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
@@ -4205,6 +4210,21 @@ class Agent:
                                 note="the segment is credited, not the last action",
                                 decay_half="boundary demotion, its own item -- credit without "
                                            "decay is the incumbency pathology (§21.4)")
+                if _WIN_CREDIT:
+                    # r694 row 3: the ground's own verdict moves standing -- each non-atom term
+                    # bound on the clearing segment is settled once, so the win reaches the
+                    # evidence the next life replays
+                    n_ = 0
+                    for s_, nm_ in sorted(self.bound.items()):
+                        t_ = self.gamma.library.get(nm_)
+                        if t_ is None or self.gamma.is_atom(t_):
+                            continue
+                        self.gamma.settle(nm_, where=self._scope, slot=s_)
+                        n_ += 1
+                    self.gamma.book["win_credit"] = self.gamma.book.get("win_credit", 0) + n_
+                    self.led.record(_cc, "SETTLE", _cs, "win_credit", **_clv, how=how,
+                                    terms=n_, reads="each non-atom term bound on the "
+                                                    "clearing segment, settled once (r694 3)")
         self._resolve_signals("level", how)
         if _D13:
             self._settle_process("level", how)

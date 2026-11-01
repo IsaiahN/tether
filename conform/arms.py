@@ -871,6 +871,10 @@ ARMS: dict[str, str] = {
                            "subject on this board (its residual enters route, it is bet on as "
                            "itself, a term may be bound or minted for it); book relation_subject. "
                            "OFF is the line before it exactly",
+    "TETHER_WIN_CREDIT": "A WIN MOVES STANDING (the reviewer 2026-11-01 r694 row 3): at a level "
+                         "clear (ADVANCE / WIN) each non-atom term bound on the clearing segment "
+                         "is settled once, writing the evidence the next life replays (row and "
+                         "book win_credit). OFF is the line before it exactly",
     "TETHER_ACTION_CARRY": "THE ACTION TABLE CARRIES BY KIND (the reviewer 2026-11-01 r688 "
                            "STORAGE/RECALL; Q17): the interface's kind tables (delta_kind, "
                            "lands_kind; name-free) are written to the lineage (action_kinds) and "
