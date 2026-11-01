@@ -2432,6 +2432,13 @@ _BOND_INC = armflag.arm("TETHER_BOND_INC", default=True)
 # RESET by system0): on a live board only `terminal` or a `routine` may press RESET; any other
 # chooser's RESET is re-realised through the probe offer (which leaves RESET out), each booked.
 _RESET_REASON = armflag.arm("TETHER_RESET_REASON", default=True)
+# 41 (3), ELICIT DOES NOT OFFER A PRESS THE LOOP WILL REFUSE (the reviewer 2026-11-01 r710, r712):
+# system0's ELICIT (first contact with an unmapped action) ran before its target touch, and on a
+# live board under RESET_REASON the unmapped RESET is always refused and swapped for a random-cell
+# draw -- so it never maps, ELICIT picks it again, and the goal-aimed touch never ran (pass 1: 7 of
+# 9 CAN-unknown probes on lp85 tn36 vc33). ELICIT's offer leaves RESET out while the board is live
+# and RESET_REASON holds; booked elicit_reset_left_out. OFF: RESET offered, as before
+_ELICIT_NO_REFUSED = armflag.arm("TETHER_ELICIT_NO_REFUSED", default=True)
 # THE FOUR COUNTERS (the reviewer 2026-11-01 r692 4; checklist Q6/Q8/Q16/Q21), books only, no choice
 # reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
 # press_carried (a press realised as a carried kind cell's test).
@@ -2604,6 +2611,7 @@ BOOKS: tuple[str, ...] = (
     "reach_gate_kept",                  # 40 check run: a gated slot minted anyway accepted nothing
     "reach_gate_lost",                  # 40 check run: a gated slot minted anyway ACCEPTED a term
     "reach_gate_atom_raised",           # 40: a T -> T atom raised on a reach value (booked)
+    "elicit_reset_left_out",            # 41 (3): ELICIT's offer without the live-board RESET
     "tiers_index_agree",                # (C) check run: the index's rung sums matched the scan
     "tiers_index_disagree",             # (C) check run: they did NOT match
     "tiers_index_fallback",             # (C): a count <= 0 met; that call scanned
@@ -13260,9 +13268,13 @@ class Agent:
             # could never complete and the learned arm could never resume. **That rule is the
             # AGENT's -- it is about what the agent still needs to learn, not about which
             # button does what -- so it stays here and is said as an intent.**
-            _untried = self.iface.realise(IFace.Intent(IFace.ELICIT), tuple(self.actions),
-                                          IFace.Interface.context(self.env), before, self.env,
-                                          withheld=self._withheld)
+            _eoffer = tuple(self.actions)
+            if _ELICIT_NO_REFUSED and _RESET_REASON and self._alive and IFace.RESET in _eoffer:
+                _eoffer = tuple(a for a in _eoffer if a != IFace.RESET)    # 41 (3): refused anyway
+                _book_add(self.gamma.book, "elicit_reset_left_out")
+            _untried = (self.iface.realise(IFace.Intent(IFace.ELICIT), _eoffer,
+                                           IFace.Interface.context(self.env), before, self.env,
+                                           withheld=self._withheld) if _eoffer else None)
             # **NO LOCAL COPY OF THE AIM. `_took` OWNS IT.** This kept `_coord` and then
             # wrote `self._aimed = _coord` at the end of the branch, which CLOBBERED the aim
             # `_took` had just set -- so an exploratory click that the interface had aimed went
