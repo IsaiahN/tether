@@ -2366,6 +2366,11 @@ _MISS_GRADE = armflag.arm("TETHER_MISS_GRADE", default=True)
 # "another object" and several remain, first contact keeps the operands whose object the agent's own
 # last press touched (S1's contact set); still several or none, it stays declined. OFF: as before.
 _FC_CONTACT = armflag.arm("TETHER_FC_CONTACT", default=True)
+# A PROBE DOES NOT RESTART THE LEVEL (the reviewer 2026-11-01 r674 5, the audit's first general
+# break): while the board is live, the exploratory realisations (_explore's ELICIT, the undirected
+# floor draw) leave out every action known to restart the level, unless nothing else is offered;
+# a deliberate exit may still choose one. OFF: the probe may draw RESET, as before.
+_PROBE_NO_RESTART = armflag.arm("TETHER_PROBE_NO_RESTART", default=True)
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
 # (gamma.kind_of, the save's and the load's one rule) is a term the agent carries is that carried
@@ -13285,7 +13290,7 @@ class Agent:
         the board offers nothing the interface can distinguish.
         """
         want = IFace.Intent(IFace.ELICIT, subject=subject)
-        r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env),
+        r = self.iface.realise(want, self._probe_offer(), IFace.Interface.context(self.env),
                                before, self.env, withheld=self._withheld)
         self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
                         reads=(want.says(), r.why if r else "unrealisable"))
@@ -15659,11 +15664,28 @@ class Agent:
         `Drive()` sites), same bookkeeping, same order. The refuter is therefore exact: any
         difference in the per-action SEQUENCE on a fixed seed is a defect, not sampling.
         """
-        r = self.iface.undirected(tuple(self.actions), self.cycle, withheld=self._withheld,
+        r = self.iface.undirected(self._probe_offer(), self.cycle, withheld=self._withheld,
                                   env=self.env)
         if r is None:
             return None
         return self.drive.note_draw(self._took(r), _where(before))
+
+    def _probe_offer(self) -> tuple:
+        """TETHER_PROBE_NO_RESTART (r674 5, the audit's first break): a probe asks what an action
+        does here, and an action KNOWN to restart the level answers that already -- probed while
+        the board is live it can only erase the level's progress (lp85, PLAY25 round 9: 7 of 32
+        presses were probe RESETs). So while alive the probe's offer leaves those out, unless
+        nothing else is offered; each withholding is booked. A chosen exit may still restart."""
+        offered = tuple(self.actions)
+        if not (_PROBE_NO_RESTART and self._alive):
+            return offered
+        ctx = IFace.Interface.context(self.env)
+        keep = tuple(a for a in offered if self.iface._known_effect(a, ctx) != IFace.RESTARTS)
+        if keep and len(keep) < len(offered):
+            self.gamma.book["probe_restart_withheld"] = (
+                self.gamma.book.get("probe_restart_withheld", 0) + 1)
+            return keep
+        return offered
 
     def _took(self, r: Any, want: Any = None) -> str:
         """Accept a `Realisation`: keep its aim and its INTENT, return its action. **One door,

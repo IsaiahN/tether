@@ -859,6 +859,12 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_PROBE_NO_RESTART": "A PROBE DOES NOT RESTART THE LEVEL (the reviewer 2026-11-01 "
+                               "r674 5; the audit: lp85 round 9, 7 of 32 presses were probe "
+                               "RESETs): while the board is live the exploratory realisations "
+                               "leave out actions known to restart, unless nothing else is "
+                               "offered (book probe_restart_withheld). OFF is the line before "
+                               "it exactly",
     "TETHER_FC_CONTACT": "WHICH OTHER, BY CONTACT (the reviewer 2026-11-01 r676): a carried kind "
                          "reading 'another object' with several candidates keeps, at first "
                          "contact, the operands whose object the agent's own last press touched "
