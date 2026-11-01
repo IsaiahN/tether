@@ -534,7 +534,7 @@ def arms_today() -> dict:
                         "_CARRIED_BEFORE_MINT", "_S2_STALL", "_DISCRIMINATE", "_MISS_GRADE",
                         "_FC_CONTACT", "_PROBE_NO_RESTART", "_GOAL_CONTINGENT", "_ROUTINE_TOUCH",
                         "_BOND_INC", "_RESET_REASON", "_COUNTERS", "_RELATION_BET",
-                        "_WIN_CREDIT"),
+                        "_WIN_CREDIT", "_BOARD_BOUNDARY"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL"),
              "interface": ("_ACTION_CARRY",), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2422,6 +2422,13 @@ _RELATION_BET = armflag.arm("TETHER_RELATION_BET", default=True)
 # metric"): at a level clear (ADVANCE / WIN, never a death) each non-atom term bound on the clearing
 # segment is settled once -- the settle writes evidence, which the next life replays; win_credit.
 _WIN_CREDIT = armflag.arm("TETHER_WIN_CREDIT", default=True)
+# THE BOARD BOUNDARY IS THE AGENT'S OWN (the reviewer 2026-11-01 r696, the deep dive's row 1): a
+# frame that arrives with no action (the head frame break; R9: 24 of 24 game switches, none within
+# a level) is a new board -- retarget(how=NEW_BOARD) resets the board-named state (trace, bound,
+# refuted, wants, owed, epoch, today's per-board sets, the progress clock) while the library and
+# the lineage carry; it credits nothing and names no game. OFF: one life runs on across switches.
+_BOARD_BOUNDARY = armflag.arm("TETHER_BOARD_BOUNDARY", default=True)
+NEW_BOARD = "new_board"
 _BOND_INC_CHECK = armflag.arm("TETHER_BOND_INC_CHECK")
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
@@ -4287,6 +4294,8 @@ class Agent:
             self._pressed_seen.clear()
         if _RELATION_BET and how != "death":
             self._rel_subjects.clear()
+        if _BOARD_BOUNDARY and how != "death":
+            self._last_progress = self.cycle   # r696 row 5: a new board does not start "urgent"
         self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts = 1
@@ -9111,7 +9120,11 @@ class Agent:
             try:
                 steps.append(sum(1 for r, row in enumerate(a)
                                  for c, v in enumerate(row) if b[r][c] != v))
-            except (TypeError, IndexError, KeyError):
+            except (TypeError, IndexError, KeyError) as e:
+                bk = self.gamma.book                 # r696 row 15: booked, never silent
+                bk["cascade_except"] = bk.get("cascade_except", 0) + 1
+                self.led.record(self.cycle, self._running_step, "*", "cascade_except",
+                                error=type(e).__name__)
                 return
         self.led.record(self.cycle, self._running_step, "*", "cascade",
                         frames=len(frames), within_step=steps)
@@ -19417,6 +19430,11 @@ class Agent:
                 self._memo_clear_at_break()     # P3: this board's instance memos
                 if _INSTANCE_RETIRE:
                     self._retire_due = self.cycle   # 2: read at this step's turnover (_present)
+                if _BOARD_BOUNDARY:
+                    # r696 row 1 (a): a frame that ARRIVED with no action is a new board -- the
+                    # agent's own reading (R9: 24 of 24 game switches, none within a level). Its
+                    # board-named state resets; the library and the lineage carry. Never a game id.
+                    self.retarget(self.env, self.level, how=NEW_BOARD)
         if _W_EVICT_EVERY_STEP:
             self._w_evict(hard=True, why="every step (W-2's check)")
         if _CONSOLIDATE:

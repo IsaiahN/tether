@@ -871,6 +871,11 @@ ARMS: dict[str, str] = {
                            "subject on this board (its residual enters route, it is bet on as "
                            "itself, a term may be bound or minted for it); book relation_subject. "
                            "OFF is the line before it exactly",
+    "TETHER_BOARD_BOUNDARY": "THE BOARD BOUNDARY IS THE AGENT'S OWN (the reviewer 2026-11-01 r696, "
+                             "row 1): a frame arriving with no action is a new board; "
+                             "retarget(how=new_board) resets board-named state while the library "
+                             "and the lineage carry; credits nothing, names no game. OFF is the "
+                             "line before it exactly",
     "TETHER_RESOLVE_ONCE": "RESOLVE ONCE PER LINEAGE (the reviewer 2026-11-01 r695 1): a matched "
                            "resolve of a carried index entry is written with a fingerprint of the "
                            "entry, the readings table and the library code; a later life with the "
