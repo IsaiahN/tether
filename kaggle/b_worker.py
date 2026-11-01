@@ -247,6 +247,11 @@ if first is None:
     sys.exit(0)
 led_path = os.path.join(OUT, "stream.jsonl")
 env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path=led_path, lineage_dir=LIN)
+_today = tether.arms_today()     # r690 3, STAYS ON: every arm built 2026-11-01 must read ON here
+led.record(0, "SETTLE", "@run", "arms_today", arms=_today, off=sorted(k for k, v in _today.items() if not v))
+if not all(_today.values()):
+    log(f"# worker {WID}: arms OFF {sorted(k for k, v in _today.items() if not v)} -- the run is refused (r690 3)")
+    sys.exit(3)
 ctx = {"game": "stream", "cfg": None, "library": None, "lineage_dir": LIN,
        "led_path": led_path, "save_only_dir": None, "palette": _pal}
 LOAD_S = round(time.time() - float(os.environ.get("B_T0", time.time())), 1)

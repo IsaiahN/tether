@@ -525,6 +525,21 @@ PREV = "~1"
 _LAG = re.compile(r"^(.*)~(\d+)$")
 
 
+def arms_today() -> dict:
+    """r690 3, STAYS ON: the live value of every arm built on 2026-11-01, read from the modules
+    (never the environment). The Kaggle worker records it and fails the run if any reads False."""
+    import gamma as _g
+    import interface as _i
+    names = {"tether": ("_TERMINAL_RESET", "_S1_CONTACT_ONLY", "_PLAN_EPISODES",
+                        "_CARRIED_BEFORE_MINT", "_S2_STALL", "_DISCRIMINATE", "_MISS_GRADE",
+                        "_FC_CONTACT", "_PROBE_NO_RESTART", "_GOAL_CONTINGENT", "_ROUTINE_TOUCH",
+                        "_BOND_INC"),
+             "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL"),
+             "interface": ("_ACTION_CARRY",)}
+    mods = {"tether": sys.modules[__name__], "gamma": _g, "interface": _i}
+    return {f"{m}.{n}": bool(getattr(mods[m], n)) for m, ns in names.items() for n in ns}
+
+
 def lag_of(name: str | None) -> tuple[str, int] | None:
     """(slot, j) for an operand reading j frames back, else None."""
     if not name or "~" not in name:
