@@ -402,6 +402,12 @@ _WRITES = [0]   # the settled set's writes, every Gamma's (shared: it can only o
 # A / (the library's mean recipe length) and gains one per settlement. No library and nothing
 # learned: today's uniform code exactly. OFF: tether.term_bits (9f26ee9)
 _PRIOR_CODE = armflag.arm("TETHER_PRIOR_CODE", default=True)
+# F3a THE CLOCK RESTARTS WITH A LIFE (the reviewer 2026-10-31 r603 P3; the audit): a carried
+# Standing keeps its last_tick (lineage.py dec) and a new life's cycle starts at 0, so
+# max(0, tick - last_tick) is 0 until the new life passes the old one's last cycle: a carried
+# refutation does not decay. ON: a tick below last_tick is a restarted clock, and the gap counts
+# from the new life's start (tick). OFF: as before.
+_DECAY_NEW_LIFE = armflag.arm("TETHER_DECAY_NEW_LIFE", default=True)
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
@@ -912,7 +918,8 @@ class Standing:
         agent has no basis, and **a seed that is replaced the moment evidence exists is the
         floor without the ceiling** -- not a default hiding the absence of a reading.
         """
-        gap = max(0, tick - self.last_tick)
+        gap = (tick if _DECAY_NEW_LIFE and tick < self.last_tick
+               else max(0, tick - self.last_tick))
         if gap:
             _f = 0.5 ** (gap / (halflife or REJECTION_HALFLIFE))
             self.rejections *= _f

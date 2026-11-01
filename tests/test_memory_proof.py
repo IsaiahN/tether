@@ -30,7 +30,8 @@ import zlib
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
-EXPECTED = {"check_p1_kind_keeps_attribute": "FAIL", "check_p3_decay_across_lives": "FAIL",
+EXPECTED = {"check_p1_kind_keeps_attribute": "FAIL",
+            "check_p3_decay_across_lives": "PASS",     # F3a TETHER_DECAY_NEW_LIFE
             "check_p4_faulted_step_dropped": "PASS"}   # F4 TETHER_FAULT_FORMATS
 
 
