@@ -2131,6 +2131,15 @@ ARMS: dict[str, str] = {
     "TETHER_FIT_DEDUP_CHECK": "(2a)'s check run: every reuse also computes fresh and "
                               "compares; the fresh values are used. A measurement "
                               "switch for check runs, never a play setting. default OFF",
+    "TETHER_FIT_BOUND": "(C), THE FIT BOUND (the reviewer 2026-11-01 r699): under CARRY_PRICE, "
+                        "once the first payer is held, a candidate whose lowest price (cost; "
+                        "min(cost, ref) if minted) is at or above the best price held has its "
+                        "left unjudged; exact, since left is non-negative bits. Booked "
+                        "fit_bound_skipped. OFF: every left judged. default ON",
+    "TETHER_FIT_BOUND_CHECK": "(C)'s check run: a would-skip is judged anyway and its true "
+                              "price compared with the bound (fit_bound_agree / disagree). A "
+                              "measurement switch for check runs, never a play setting. "
+                              "default OFF",
     "TETHER_CYCLE_SEQ": "ONE SEQ PER CYCLE (the reviewer 2026-10-20 23:33): every landing in a "
                         "(game, level, cycle) carries that cycle's _kind_seq -- equally recent, "
                         "the ground gave them no order -- and _pair_counts' key gains a landing "

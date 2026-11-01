@@ -1709,6 +1709,17 @@ _FIT_DEDUP = armflag.arm("TETHER_FIT_DEDUP", default=True)
 # (2a)'s check run: every reuse also computes fresh and compares; the fresh values are used. A
 # measurement switch, never a play setting. OFF: no check
 _FIT_DEDUP_CHECK = armflag.arm("TETHER_FIT_DEDUP_CHECK")
+# (C), THE FIT BOUND (the reviewer 2026-11-01 r699): under CARRY_PRICE a candidate's price is
+# (ref if credited else cost) + left, and left is a sum of non-negative bits, so its lowest
+# possible price before left is judged is cost (min(cost, ref) for a minted term). Once the first
+# payer is in hand, a candidate whose lowest price is at or above the best price held (or the
+# base) cannot win or enter the payers, and its left is not judged; booked fit_bound_skipped.
+# Exact: the winner, the payers and the first payer are unchanged. OFF: every left judged
+_FIT_BOUND = armflag.arm("TETHER_FIT_BOUND", default=True)
+# Its check run: a candidate the bound would skip is judged anyway and its true price compared
+# with the bound (fit_bound_agree / fit_bound_disagree). A measurement switch, never a play
+# setting. OFF: no check
+_FIT_BOUND_CHECK = armflag.arm("TETHER_FIT_BOUND_CHECK")
 # (C), THE TIERS INDEX (the reviewer 2026-10-21 03:05): _tiers ranked by walking every carried and
 # landed (delta kind, entry, target) row and every recency row on each call -- a cost that grew
 # with the agent's life. rung() only reads the asked kinds and their types, so the per-entry sums
@@ -2574,6 +2585,9 @@ BOOKS: tuple[str, ...] = (
     "fit_units_disagree",               # (B) check run: the reused units did NOT match
     "fit_dedup_agree",                  # (2a) check run: a reused definition matched fresh
     "fit_dedup_disagree",               # (2a) check run: a reused definition did NOT match
+    "fit_bound_skipped",                # (C): a candidate whose lowest price already lost, unjudged
+    "fit_bound_agree",                  # (C) check run: a would-skip's true price was >= the bound
+    "fit_bound_disagree",               # (C) check run: a would-skip's true price was BELOW it
     "tiers_index_agree",                # (C) check run: the index's rung sums matched the scan
     "tiers_index_disagree",             # (C) check run: they did NOT match
     "tiers_index_fallback",             # (C): a count <= 0 met; that call scanned
@@ -11116,8 +11130,26 @@ class Agent:
                 r.pop("mode", None)
             return tuple(rs)
 
-        def _judge(cand, price, n, late=False):
+        def _fit_units(n):
             nonlocal _uf
+            if not _FIT_UNITS:
+                return self._units_for(slot)
+            if _uf is None:
+                _uf = self._units_for(slot)
+                return _uf
+            if _FIT_UNITS_CHECK:
+                _units = self._units_for(slot)
+                _same = _units == _uf
+                _book_add(self.gamma.book,
+                          "fit_units_agree" if _same else "fit_units_disagree")
+                if not _same:
+                    self.led.record(self.cycle, "ROUTE", slot, "fit_units_check",
+                                    term=n, agree=False,
+                                    reads="the fit's reused units differed from fresh (B)")
+                return _units
+            return _uf
+
+        def _judge(cand, price, n, late=False, best=None):
             _n0 = self.led.written
             # BEFORE `_explains`, and separately from it: may this BIND is a type question
             # and does it EXPLAIN is a behavioural one. Folding the first into the second
@@ -11131,26 +11163,28 @@ class Agent:
                 return None, None, None, _since(_n0)
             if not price:
                 return True, None, None, _since(_n0)
+            if best is not None:
+                # (C): the cost first, so the bound can decline to judge left
+                _n1 = self.led.written
+                _units = _fit_units(n)
+                _n2 = self.led.written
+                _cost = self._bits((cand, _units))
+                if _lowest(n, _cost) >= best:
+                    return "bound", None, _cost, _since(_n0, _n1, _n2)
+                _left = self._cl_left(cand, slot, hist, _cells)
+                return True, _left, _cost, _since(_n0, _n1, _n2)
             _left = self._cl_left(cand, slot, hist, _cells)
             _n1 = self.led.written
-            if not _FIT_UNITS:
-                _units = self._units_for(slot)
-            elif _uf is None:
-                _uf = _units = self._units_for(slot)
-            elif _FIT_UNITS_CHECK:
-                _units = self._units_for(slot)
-                _same = _units == _uf
-                _book_add(self.gamma.book,
-                          "fit_units_agree" if _same else "fit_units_disagree")
-                if not _same:
-                    self.led.record(self.cycle, "ROUTE", slot, "fit_units_check",
-                                    term=n, agree=False,
-                                    reads="the fit's reused units differed from fresh (B)")
-            else:
-                _units = _uf
+            _units = _fit_units(n)
             _n2 = self.led.written
             _cost = self._bits((cand, _units))
             return True, _left, _cost, _since(_n0, _n1, _n2)
+
+        def _lowest(n, cost):
+            # (C): the lowest price a candidate can have before left (>= 0) is added
+            if (self.gamma.stamps.get(n) or {}).get("origin") == MINTED:
+                return min(cost, _ref)
+            return cost
 
         # L3's late round: what `_judge` deferred is walked after every typed candidate, once
         # per candidate, if the governor says think; `typed_late` records walked and closed.
@@ -11209,21 +11243,31 @@ class Agent:
                 _late_keys.add((n, cand.name))
                 yield n, cand, True
 
+        # (C): the bound in hand once the first payer is (so the first payer cannot move): the
+        # best price held, or the base while none is held
+        _bnd = _FIT_BOUND and _BARGAIN_FIT and _CARRY_PRICE
+        _bmin = _base
         for n, cand, _is_late in _pairs():
+            _bb = _bmin if _bnd and _today is not None and not _FIT_BOUND_CHECK else None
             if _is_late:
-                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n, late=True)
+                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n, late=True, best=_bb)
             elif _FIT_DEDUP and _BARGAIN_FIT:
                 _v = _dd_cand.get(cand)
                 if _v is None or _FIT_DEDUP_CHECK:
-                    _fresh = _judge(cand, True, n)
+                    _fresh = _judge(cand, True, n, best=None if _FIT_DEDUP_CHECK else _bb)
                     if _v is not None:
                         self._dedup_check(slot, n, "candidate", _fresh == _v)
-                    _v = _dd_cand[cand] = _fresh
+                    _v = _fresh
+                    if _fresh[0] != "bound":
+                        _dd_cand[cand] = _fresh
                 else:
                     self._replay_rows(_v[3])
                 _ok, _left, _cost, _ = _v
             else:
-                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n)
+                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n, best=_bb)
+            if _ok == "bound":
+                _book_add(self.gamma.book, "fit_bound_skipped")
+                continue
             if _ok is None:
                 _late.setdefault(cand, n)
                 continue
@@ -11250,8 +11294,13 @@ class Agent:
                     _cred = self._carry_credit(n, cand, slot, _left, _base, _held_t,
                                                _carry_robs)
                     _price = _ref + _left if _cred else _cost + _left
+                    if (_bnd and _FIT_BOUND_CHECK and _today is not None
+                            and _today != (n, cand.name) and _lowest(n, _cost) >= _bmin):
+                        _book_add(self.gamma.book, "fit_bound_agree" if _price >= _bmin
+                                  else "fit_bound_disagree")
                     if _price < _base:
                         _paying.append((_price, len(_paying), n, cand, _cred, _left, _cost))
+                        _bmin = min(_bmin, _price)
                     continue
                 if not pays(_cost, _left, _base):
                     continue
