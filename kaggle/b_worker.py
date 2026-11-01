@@ -249,6 +249,10 @@ led_path = os.path.join(OUT, "stream.jsonl")
 env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path=led_path, lineage_dir=LIN)
 _today = tether.arms_today()     # r690 3, STAYS ON: every arm built 2026-11-01 must read ON here
 led.record(0, "SETTLE", "@run", "arms_today", arms=_today, off=sorted(k for k, v in _today.items() if not v))
+# r694 row 22: the lineage load reserves the last save's end-path wall; B writes nothing, so it is spent
+led.record(0, "SETTLE", "@run", "end_reserve_zeroed", was=getattr(ag, "_end_reserve", None),
+           sleep_was=getattr(ag, "_end_sleep_s", None))
+ag._end_reserve, ag._end_sleep_s = 0.0, 0.0
 if not all(_today.values()):
     log(f"# worker {WID}: arms OFF {sorted(k for k, v in _today.items() if not v)} -- the run is refused (r690 3)")
     sys.exit(3)
