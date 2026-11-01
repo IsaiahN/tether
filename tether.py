@@ -870,6 +870,18 @@ _STEP_ACT = armflag.arm("TETHER_STEP_ACT", default=True)
 # mints are OWED (mint_deferred) and minted first next step. The unit is the mint's own stop; no
 # constant. ON; conform/arms.py
 _STEP_MINT = armflag.arm("TETHER_STEP_MINT", default=True)
+# 40, THE NOMINAL REACH GATE (the reviewer 2026-11-01 r706, r707 (ii)): a slot whose declared type
+# is nominal (not ordered) is not minted when no residual row's new value is in reach -- the old
+# value, any same-typed slot's value on the board in the slot's history (the take chain, lags
+# included), and their images under the type's own T -> T atoms, closed to max_depth. Translate's
+# arithmetic on a nominal id is left out (r707: a sum of two names names nothing). Outside that,
+# correction is binary, so no term pays; booked reach_gate_skipped, the step's mint goes on to the
+# next slot. R9: 135 of 198 budget_spent parks were .shape slots, 88% of mint wall. OFF: minted
+_REACH_GATE = armflag.arm("TETHER_REACH_GATE", default=True)
+# Its check run: a gated slot is minted anyway; reach_gate_kept books a mint that accepted nothing,
+# reach_gate_lost one that accepted (a row names the terms). A measurement switch, never a play
+# setting. OFF: no check
+_REACH_GATE_CHECK = armflag.arm("TETHER_REACH_GATE_CHECK")
 # THE STEP CLOCK (the reviewer 2026-10-26 r263 (b)): a LEDGER INSTRUMENT, never read by the agent.
 # Each step's REPEAT row carries wall_s per step phase (exclusive, from _step_scope), trace_len,
 # wants_n, owed_import_n, gamma_reuse_live and gamma_reuse_on_board (r264); step_mint and each
@@ -2588,6 +2600,10 @@ BOOKS: tuple[str, ...] = (
     "fit_bound_skipped",                # (C): a candidate whose lowest price already lost, unjudged
     "fit_bound_agree",                  # (C) check run: a would-skip's true price was >= the bound
     "fit_bound_disagree",               # (C) check run: a would-skip's true price was BELOW it
+    "reach_gate_skipped",               # 40: a nominal slot's mint skipped, every row out of reach
+    "reach_gate_kept",                  # 40 check run: a gated slot minted anyway accepted nothing
+    "reach_gate_lost",                  # 40 check run: a gated slot minted anyway ACCEPTED a term
+    "reach_gate_atom_raised",           # 40: a T -> T atom raised on a reach value (booked)
     "tiers_index_agree",                # (C) check run: the index's rung sums matched the scan
     "tiers_index_disagree",             # (C) check run: they did NOT match
     "tiers_index_fallback",             # (C): a count <= 0 met; that call scanned
@@ -17095,6 +17111,17 @@ class Agent:
                                        "arrives"))
                 return
             self._cf_owed.pop(slot, None)
+        gated = _REACH_GATE and self._out_of_reach(slot)
+        if gated:
+            _book_add(self.gamma.book, "reach_gate_skipped")
+            self.led.record(self.cycle, "ACCEPT", slot, "reach_gate", bin=b,
+                            type=self.slot_types.get(slot), check=bool(_REACH_GATE_CHECK),
+                            reads="not minted: no residual row's new value is in the vocabulary's "
+                                  "reach for this nominal type -- outside in principle, never "
+                                  "searched to budget; the event is read through other slots")
+            if not _REACH_GATE_CHECK:
+                return
+            minted0 = {n for n, s in self.gamma.stamps.items() if s.get("origin") == MINTED}
         self._mint_exhausted = False
         t0 = time.perf_counter() if _STEP_CLOCK else None
         if fp is not None:
@@ -17108,6 +17135,55 @@ class Agent:
             sm["run"] += 1
             if self._mint_exhausted and sm["stop"] is None:
                 sm["stop"] = slot
+        if gated:
+            got = sorted(n for n, s in self.gamma.stamps.items()
+                         if s.get("origin") == MINTED and n not in minted0)
+            _book_add(self.gamma.book, "reach_gate_lost" if got else "reach_gate_kept")
+            if got:
+                self.led.record(self.cycle, "ACCEPT", slot, "reach_gate_lost", terms=got,
+                                reads="40 check run: a gated slot, minted anyway, accepted these")
+
+    def _out_of_reach(self, slot: str) -> bool:
+        """40: no residual row's new value is in reach (see _REACH_GATE). Never gates an ordered,
+        untyped or val slot, a slot with no residual, or a world that publishes no types."""
+        ty = self.slot_types.get(slot)
+        if ty is None or ty == "val" or ty in ORDERED_TYPES:
+            return False
+        hist = self.history(slot)
+        held = self.gamma.library[self.bound.get(slot, IDN)]
+        if not hist or not self._residual_obs(slot, held, hist):
+            return False
+        same = [s for s, t in self.slot_types.items() if t == ty]
+        ops = [a for a in self.gamma.atoms
+               if a.in_type == ty and a.out_type == ty and not a.reads_operand]
+        ctx = self._eval_ctx(slot, hist[-1][0], action=None, operands=()) if ops else None
+        m = self.alphabet[slot]
+        reach: set = set()
+        # IN ORDER: a row's reach is what the board showed at or before it -- a row's new value is
+        # the next row's before-state, so a later state would put every value in reach
+        for row in hist:
+            front = {row[0][s] for s in same if s in row[0]} - reach
+            reach |= front
+            for _ in range(self.cfg.max_depth if ops else 0):
+                nxt = set()
+                for v in front:
+                    for a in ops:
+                        cap.head()
+                        try:
+                            w = a.fn(v, ctx)
+                        except Exception:       # an atom that cannot read v reaches nothing
+                            _book_add(self.gamma.book, "reach_gate_atom_raised")
+                            continue
+                        if w is not NOT_RESOLVED and isinstance(w, int) and w not in reach:
+                            nxt.add(w)
+                reach |= nxt
+                front = nxt
+                if not front:
+                    break
+            if (row[2] % m in {v % m for v in reach if isinstance(v, int)}
+                    and self._residual_obs(slot, held, [row])):
+                return False                    # a residual row whose new value is in reach
+        return True
 
     def _contact_fp(self, slot: str) -> tuple | None:
         """CONTACT_FIRST (b): what the mint would read for `slot` -- the gap's 1a key, how many

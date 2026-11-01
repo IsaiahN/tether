@@ -2140,6 +2140,15 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_REACH_GATE": "40, THE NOMINAL REACH GATE (the reviewer 2026-11-01 r706, r707 (ii)): "
+                         "a nominal-typed slot is not minted when no residual row's new value is "
+                         "in reach (the old value, any same-typed slot's value in its history, "
+                         "and their images under the type's T -> T atoms to max_depth; "
+                         "translate's sums of nominal ids left out); booked reach_gate_skipped. "
+                         "OFF: minted (11914d6). default ON",
+    "TETHER_REACH_GATE_CHECK": "40's check run: a gated slot is minted anyway; reach_gate_kept / "
+                               "reach_gate_lost (a row names the terms). A measurement switch "
+                               "for check runs, never a play setting. default OFF",
     "TETHER_UNBOUND_MEMO": "37, THE UNBOUND-FORM MEMO (the reviewer 2026-11-01 r700): "
                            "Gamma.unbound_form, a pure function of one slot string called per "
                            "candidate slot, is held per string, so each name is split once; "
