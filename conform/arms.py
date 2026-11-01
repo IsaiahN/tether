@@ -849,6 +849,11 @@ ARMS: dict[str, str] = {
                              "before it exactly. "
                              "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
                              "the checklist's culprit isolation",
+    "TETHER_CARRIED_BEFORE_MINT": "CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47; r669 12): a "
+                                  "mint whose term's kind (gamma.kind_of) is a carried term is "
+                                  "that carried term re-bound, so it keeps the carried identity "
+                                  "and the save writes no new row (row carried_reused, book "
+                                  "carried_reused). OFF is the line before it exactly",
     "TETHER_PLAN_EPISODES": "S2 PLAN EPISODES (Isaiah 2026-11-01 06:47 'dont think of goal "
                             "planning time as a step speed issue'; r669 8): _g1_wants and "
                             "_derived_wants run only in a planning episode the agent opens on its "

@@ -2343,6 +2343,13 @@ _S1_CONTACT_ONLY = armflag.arm("TETHER_S1_CONTACT_ONLY", default=True)
 # and its seconds, so step time and planning time read apart. OFF: every step, as before.
 _PLAN_EPISODES = armflag.arm("TETHER_PLAN_EPISODES", default=True)
 
+# CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
+# (gamma.kind_of, the save's and the load's one rule) is a term the agent carries is that carried
+# term re-bound here, so it keeps the carried identity and the save writes no new row for it; each
+# is a carried_reused row (lineage_carry part c: game 2 re-minted take<o1.colour> while carrying
+# take<?.colour>). Fig 9 :43, the lookup before the elimination. OFF: a new term, as before.
+_CARRIED_BEFORE_MINT = armflag.arm("TETHER_CARRIED_BEFORE_MINT", default=True)
+
 # THE SATISFACTION PREDICATE'S SPELLING, AND IT EXISTS BECAUSE OF AN `A6i` OF MINE.
 # `condition.py`'s grammar is `expr := INSTRUMENT(args) | SLOT | NUMBER` -- **a bare SLOT is an
 # EXPRESSION, so it denotes the slot's VALUE.** The first version of the guard reader returned
@@ -10071,6 +10078,8 @@ class Agent:
         # on fixture A it scored `[]` against the whole-board key's `[down, up]` -- same
         # precision, no recall. The matrix is in `docs/ACTION_INTERFACE_PLAN.md`.
         _ctx = IFace.Interface.context(self.env)
+        _m0 = (self.env.locus_masks() if _S1_CONTACT_ONLY and hasattr(self.env, "locus_masks")
+               else None)
         if coord is not None:
             self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
         else:
@@ -10078,13 +10087,16 @@ class Agent:
         self.iface.note_sent(action)   # TETHER_RESET_ADJACENT: the flag from the press as sent
         self._pressed = True
         after = self.env.observe()
-        if _S1_CONTACT_ONLY:
-            _own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
-            _ch = {s for s in set(before) | set(after) if before.get(s) != after.get(s)}
-            _objs = {_own[s] for s in _ch if _own.get(s)}
+        if _m0 is not None:
+            # THE CONTACT IS READ OFF THE CELLS: an object is in contact when the cells it covers
+            # changed across the press, or the press landed on it. Slot values cannot say this --
+            # every relative slot changes whenever any object moves (ls20: 762-958 of 966 slots)
+            _m1 = self.env.locus_masks()
+            _objs = {o for o in set(_m0) | set(_m1) if _m0.get(o) != _m1.get(o)}
             if self._last_landed:
                 _objs.add(self._last_landed)
-            self._contact_slots = _ch | {s for s, o in _own.items() if o in _objs}
+            _own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+            self._contact_slots = {s for s, o in _own.items() if o in _objs}
         if _ARRIVAL_GAP:
             self._ag_held = dict(after)     # 5: the frame this press left the agent holding
         # B, THE SEAM (the reviewer 2026-10-23 12:35, 13:04): a frame break read on this action's
@@ -18004,6 +18016,7 @@ class Agent:
         with cap.hold():   # C1 (A): the accepted term and what is written with it
             # cross whole (the reviewer 2026-10-22 15:34 (b))
             self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
+            self._carry_identity(term, slot)
             self.bound[slot] = term.name
             self.rank.note(term.name, self.cycle)
             closes = left == 0.0
@@ -18405,6 +18418,7 @@ class Agent:
                              + ("partial -- a remainder remains" if partial else "full closure"))
         stamp = "partial" if partial else "closed"
         self.gamma.accept(cand, seq=len(self.led), residual=f"reuse:{slot}@{self.cycle}:{stamp}")
+        self._carry_identity(cand, slot)
         # A CANDIDATE, AS A MINTED TERM IS (the mint's own route, ~"self.candidates[term.name]").
         # Without it `settle` skips the term: it could never settle, never be demoted, and stayed
         # bound and wrong in silence while the sweep promoted it (gridworld_arc_s0, 2026-10-09).
@@ -18412,6 +18426,21 @@ class Agent:
             self.candidates.setdefault(cand.name, self.cycle)
             self._cand_level[cand.name] = self.level
         return cand.name
+
+    def _carry_identity(self, term: Term, slot: str) -> None:
+        """TETHER_CARRIED_BEFORE_MINT (r669 12): a term just accepted whose kind (gamma.kind_of, the
+        save's and the load's one rule) is a carried term IS that carried term re-bound here, so it
+        keeps the carried identity (born, handle) and the save writes no new row for it."""
+        if not _CARRIED_BEFORE_MINT:
+            return
+        kn = self.gamma.kind_of(term).name
+        if kn == term.name or kn not in self.gamma.carried or term.name in self.gamma.carried:
+            return
+        self.gamma.carried[term.name] = dict(self.gamma.carried[kn])
+        self.gamma.book["carried_reused"] = self.gamma.book.get("carried_reused", 0) + 1
+        self.led.record(self.cycle, self._running_step, slot, "carried_reused", term=term.name,
+                        kind=kn, reads="the term's kind is carried: the carried term re-bound "
+                                       "here, not a new one (r669 12)")
 
     @_in_step("SETTLE")
     def settle(self, res: dict[str, SlotResidual]) -> None:
