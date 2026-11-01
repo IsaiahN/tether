@@ -533,7 +533,7 @@ def arms_today() -> dict:
     names = {"tether": ("_TERMINAL_RESET", "_S1_CONTACT_ONLY", "_PLAN_EPISODES",
                         "_CARRIED_BEFORE_MINT", "_S2_STALL", "_DISCRIMINATE", "_MISS_GRADE",
                         "_FC_CONTACT", "_PROBE_NO_RESTART", "_GOAL_CONTINGENT", "_ROUTINE_TOUCH",
-                        "_BOND_INC"),
+                        "_BOND_INC", "_RESET_REASON"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL"),
              "interface": ("_ACTION_CARRY",)}
     mods = {"tether": sys.modules[__name__], "gamma": _g, "interface": _i}
@@ -2403,6 +2403,10 @@ _ROUTINE_TOUCH = armflag.arm("TETHER_ROUTINE_TOUCH", default=True)
 # frame; exact by construction, and TETHER_BOND_INC_CHECK compares every folded reading with a full
 # read. OFF: every reach re-reads every frame, as before.
 _BOND_INC = armflag.arm("TETHER_BOND_INC", default=True)
+# A RESET NEEDS A BOOKED REASON (the reviewer 2026-11-01 r692 3; the checklist's NEW row, ft09's
+# RESET by system0): on a live board only `terminal` or a `routine` may press RESET; any other
+# chooser's RESET is re-realised through the probe offer (which leaves RESET out), each booked.
+_RESET_REASON = armflag.arm("TETHER_RESET_REASON", default=True)
 _BOND_INC_CHECK = armflag.arm("TETHER_BOND_INC_CHECK")
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
@@ -19590,6 +19594,18 @@ class Agent:
                                 by_was=_by, now=action, aim_now=self._aimed,
                                 reads="this empty cell was pressed already on this board; the "
                                       "press is re-aimed through the probe (r678 a)")
+            if (_RESET_REASON and action == IFace.RESET and self._alive
+                    and by not in ("terminal", "routine")):
+                # r692 3: a RESET needs a reason on the record -- the board ended (terminal) or a
+                # plan asks for it (routine); any other chooser's RESET is re-realised as a probe
+                _was_by = by
+                _alt = self._explore(before)
+                if _alt is not None and _alt != IFace.RESET:
+                    action, by = _alt, "probe"
+                self.gamma.book["reset_refused"] = self.gamma.book.get("reset_refused", 0) + 1
+                self.led.record(self.cycle, "PLAN", "@loop", "reset_refused", by_was=_was_by,
+                                now=action, reads="a RESET with no booked reason (not terminal, "
+                                                  "not a plan's) is not pressed on a live board")
             if _ROUTINE_TOUCH:
                 self._rt_press = by == "routine"
             if _h is not None:

@@ -859,6 +859,10 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_RESET_REASON": "A RESET NEEDS A BOOKED REASON (the reviewer 2026-11-01 r692 3): on a "
+                           "live board only terminal or a routine may press RESET; any other "
+                           "chooser's RESET is re-realised through the probe offer (row "
+                           "reset_refused, book reset_refused). OFF is the line before it exactly",
     "TETHER_ACTION_CARRY": "THE ACTION TABLE CARRIES BY KIND (the reviewer 2026-11-01 r688 "
                            "STORAGE/RECALL; Q17): the interface's kind tables (delta_kind, "
                            "lands_kind; name-free) are written to the lineage (action_kinds) and "
