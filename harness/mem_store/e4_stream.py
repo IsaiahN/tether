@@ -74,12 +74,16 @@ sys.path.insert(0, A.repo)
 os.chdir(A.repo)
 
 import arc_holdout  # noqa: E402, I001   (the import order is the run's; not reordered)
+import armflag  # noqa: E402
 import ledger  # noqa: E402
 import lineage  # noqa: E402
 import tether  # noqa: E402
 from arc_agi import Arcade  # noqa: E402
 
-games = sorted(os.listdir(os.path.join(A.repo, "environment_files")))
+# 26 GAME_WRITE (the reviewer 2026-10-31 r575; Isaiah 15:33): a boundary write at each game switch, so a round's
+# library is written after every game and not only at its end. HARNESS: the stream (PLAY) only; B has its own loop
+_GAME_WRITE = armflag.arm("TETHER_GAME_WRITE", default=True)
+games =sorted(os.listdir(os.path.join(A.repo, "environment_files")))
 assert len(games) == 25, games
 seed = A.seed or secrets.token_hex(4)
 order = random.Random(seed).sample(games, len(games))
@@ -151,6 +155,65 @@ log(f"# stream start {time.strftime('%Y-%m-%d %H:%M:%S')} seed {seed} slice_s {A
     f"slice_min_s {A.slice_min_s} slice_max_s {A.slice_max_s} order {','.join(order)}")
 log("# idx\tgame\twall_start_s\tcycle_start\twall_s\tsteps\tlevels_in_slice\tending\tendings\tcommit_mb_end\t"
     "seq0\tseqP\tseq1\tacts\tfirst_act_s\textended\tunreached\toverrun_s")
+
+
+GW = os.path.join(A.out, "game_write.jsonl")
+gw = {"n": 0, "refused": 0, "off": None}
+
+
+def _gen_ok(name: str) -> bool:
+    """The generation's file decodes and hashes to its name, as pf_check and the loader read it."""
+    import hashlib
+    import zlib
+    with open(os.path.join(A.lineage, name), "rb") as fh:
+        raw = fh.read()
+    b = zlib.decompress(raw) if raw[:1] == b"\x78" else raw
+    return name == f"gen_{hashlib.sha256(b).hexdigest()[:16]}.json"
+
+
+def game_write(i: int, g: str) -> None:
+    """26: one boundary write after game i's slice, its own row (seconds, peak commit, names, terms) and its own
+    check (the written generation verifies, and chains to the head before it). A failed check is refused: no
+    further game writes this round, and the end write still runs."""
+    import threading
+    names0, head0 = set(os.listdir(A.lineage)), getattr(ag, "lineage_parent", None)
+    peak, stop = [commit_mb()], threading.Event()
+
+    def sample():
+        while not stop.wait(0.2):
+            peak[0] = max(peak[0], commit_mb())
+
+    th = threading.Thread(target=sample, daemon=True)
+    th.start()
+    t = time.perf_counter()
+    try:
+        r, err = lineage.boundary(A.lineage, ag, "stream", "game"), None
+    except Exception as x:  # noqa: BLE001 -- the write's error is the row; the round goes on (r575)
+        r, err = None, repr(x)[:300]
+    s = round(time.perf_counter() - t, 2)
+    stop.set()
+    th.join()
+    names1 = set(os.listdir(A.lineage))
+    gens = sorted(n for n in names1 - names0 if n.startswith("gen_"))
+    why = [err] if err else []
+    if r is None and not err:
+        why.append("no write (boundary arm, carry or folder absent)")
+    elif r is not None:
+        if gens != [r["written"]]:
+            why.append(f"generations added {gens}, wrote {r['written']}")
+        elif not _gen_ok(r["written"]):
+            why.append(f"{r['written']} does not hash to its name")
+        if r["parent"] != head0:
+            why.append(f"parent {r['parent']} is not the head before {head0}")
+    gw["n"] += 1
+    if why:
+        gw["refused"] += 1
+        gw["off"] = f"after game {i} {g}"
+    row = {"idx": i, "game": g, "cycle": ag.cycle, "s": s, "peak_commit_mb": peak[0], "names_before": len(names0),
+           "names_after": len(names1), "head_before": head0, "hash": (r or {}).get("hash"),
+           "terms": (r or {}).get("terms"), "evidence": (r or {}).get("evidence"), "verified": not why, "why": why}
+    with open(GW, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(row, default=str) + "\n")
 
 
 def going(steps: int, n_steps, t_start: float, acts: int) -> bool:
@@ -232,6 +295,9 @@ for i, g in enumerate(order):
     log(f"{i}\t{g}\t{round(t_start - T0, 1)}\t{c_start}\t{wall_end}\t{steps}\t"
         f"{(lv_seen - (lv_start or 0))}\t{ending}\t{dict(endings)}\t{commit_end}\t{seq0}\t{seqP}\t{seq1}\t"
         f"{acts}\t{first_act_s}\t{extended}\t{unreached}\t{overrun}")
+    if (_GAME_WRITE and lineage._BOUNDARY and lineage._CARRY and A.lineage and gw["off"] is None
+            and i < len(order) - 1 and not getattr(ag, "_cut", False)):   # the last game's write is the end path's
+        game_write(i, g)
 t_end = time.time()
 ag.end_run("cap")
 gen = lineage.write(A.lineage, ag, "stream") if lineage._CARRY and A.lineage else None
@@ -242,7 +308,8 @@ if close:
 out = {"seed": seed, "order": order, "cycles": ag.cycle, "wall_s": round(time.time() - T0, 1),
        "endings": dict(endings_all), "lineage": str(gen)[:300], "mf": A.mf, "deadline_at": A.deadline_at,
        "deadline_fired": bool(getattr(ag, "_cut", False)), "budget_unreached": budget_unreached,
-       "end_path_s": end_path_s}
+       "end_path_s": end_path_s, "game_writes": gw["n"], "game_writes_refused": gw["refused"],
+       "game_writes_off": gw["off"]}
 with open(os.path.join(A.out, "stream.result.json"), "w", encoding="utf-8") as fh:
     json.dump(out, fh, default=str)
 log(f"# stream end {time.strftime('%Y-%m-%d %H:%M:%S')} {json.dumps(out, default=str)[:400]}")

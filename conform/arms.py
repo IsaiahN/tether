@@ -1304,6 +1304,16 @@ ARMS: dict[str, str] = {
                             "lookup; the lookup's time is in _library_reach (r498). OFF: every "
                             "candidate is scored over its whole history at every lookup. "
                             "default ON",
+    "TETHER_GAME_WRITE": "26 GAME_WRITE (the reviewer r575; Isaiah 2026-10-31 15:33). HARNESS, "
+                         "never the agent: the stream (e4_stream, the PLAY rounds) makes one "
+                         "lineage.boundary write after each game's slice but the last, so a "
+                         "round's library is written after every game and not only at its end. "
+                         "Each write "
+                         "has its own row (seconds, peak commit, names, terms) and check (the "
+                         "generation hashes to its name and chains to the head before it); a "
+                         "failed check is refused, no further game writes that round, the end "
+                         "write still runs. Off under TETHER_LINEAGE_BOUNDARY=0 (B). OFF: the "
+                         "round's library is written once, at its end. default ON",
     "TETHER_HARNESS_LEVEL_RESET": "13 HARNESS_LEVEL_RESET (the reviewer r464 2; Isaiah 2026-10-30 "
                                   "20:11). HARNESS, never the agent: arc_holdout._mode, the one "
                                   "call before every Arcade, sets ONLY_RESET_LEVELS=true, so "
