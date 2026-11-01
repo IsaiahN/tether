@@ -472,6 +472,73 @@ def _read_two(left: str, right: str, frames: list) -> tuple:
     return {k: len(v) for k, v in asked.items()}, tuple(held)
 
 
+def fold_two(st: dict | None, frames: list, left: str, right: str) -> tuple:
+    """B2.3 (the reviewer 2026-11-01 r681): _read_two as a FOLD, so a reading pair already read
+    over a prefix of these frames reads only the frames after it. holds() is a left-to-right scan
+    whose only state is seen_a, b_before_a and "a None in a before t", and each bond's verdict is
+    (some asked frame True, none False); so the fold carries exactly those, plus the occasions'
+    counts and the two last values, and its (occasions, held) equals _read_two's on the whole
+    list. Returns (state, (occasions, held)); state None starts from the first frame."""
+    if st is None:
+        st = {"n": 0, "pa": None, "pb": None, "seen_a": False, "bba": False, "none_a": False,
+              "occ": {"+": 0, "−": 0, "→": 0, "⇒": 0},
+              "tf": {b: [False, False] for b in READ_ON_TWO}}
+    occ, tf = st["occ"], st["tf"]
+    for k in range(st["n"], len(frames)):
+        cap.head()
+        va, vb = frames[k].get(left), frames[k].get(right)
+        if k > 0:
+            pa, pb = st["pa"], st["pb"]
+            x = None if va is None or pa is None else va != pa
+            y = None if vb is None or pb is None else vb != pb
+            ask = {"+": x is True or y is True, "−": x is True, "→": y is True, "⇒": y is True}
+            for kk, on in ask.items():
+                if on:
+                    occ[kk] += 1
+            seen_a, bba = st["seen_a"], st["bba"]
+            for bond in READ_ON_TWO:
+                if not ask[bond]:
+                    continue
+                if bond == "+":
+                    v = _and(x, y)
+                elif bond == "−":
+                    v = _and(x, _not(y))
+                elif bond == "→":
+                    v = False if y is False else (None if y is None else (
+                        True if seen_a else None if st["none_a"] else False))
+                else:                                # ⇒
+                    v = y if y is not True else not (bba or not seen_a)
+                if v is True:
+                    tf[bond][0] = True
+                elif v is False:
+                    tf[bond][1] = True
+            if not seen_a and y is True and x is not True:
+                st["bba"] = True
+            st["seen_a"] = seen_a or x is True
+            st["none_a"] = st["none_a"] or x is None
+        st["pa"], st["pb"], st["n"] = va, vb, k + 1
+    held = tuple(b for b in READ_ON_TWO if tf[b][0] and not tf[b][1])
+    return st, (dict(occ), held)
+
+
+def read_iter_inc(pairs, frames: list, state: dict, check=None):
+    """read_iter with each reading pair's reading FOLDED over the frames (fold_two), its state kept
+    in `state` across lookups of the same history; `check(key, got)` (the equality arm) is called
+    with each pair's folded reading the first time this call reads it."""
+    cache: dict = {}
+    for p in pairs:
+        cap.head()
+        key = (p["left_reading"], p["right_reading"])
+        got = cache.get(key)
+        if got is None:
+            state[key], got = fold_two(state.get(key), frames, key[0], key[1])
+            cache[key] = got
+            if check is not None:
+                check(key, got)
+        occ, held = got
+        yield dict(p, occasions=dict(occ), held=list(held), undecided=dict(UNDECIDED_HERE))
+
+
 def read_pairs(pairs: list, frames: list) -> list:
     """Each offered pair read by the bond tests over the residual's own frames. An operand's
     truth on a frame is THAT ITS READING CHANGED there. Each bond is asked only where its own

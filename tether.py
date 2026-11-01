@@ -2382,6 +2382,13 @@ _GOAL_CONTINGENT = armflag.arm("TETHER_GOAL_CONTINGENT", default=True)
 # refutation); and an aimed press that would land on empty board where one already did this board
 # is re-aimed through the probe. OFF: the routine runs on, as before.
 _ROUTINE_TOUCH = armflag.arm("TETHER_ROUTINE_TOUCH", default=True)
+# B2.3 INCREMENTAL BOND READINGS (the reviewer 2026-11-01 r681; Fig 12, "where the arrangement is
+# recorded, re-deriving it is a lookup and the actions were spent once"): the reach's bond readings
+# are folded over the slot's frames (composer.fold_two), so a repeated reach reads only the new
+# frame; exact by construction, and TETHER_BOND_INC_CHECK compares every folded reading with a full
+# read. OFF: every reach re-reads every frame, as before.
+_BOND_INC = armflag.arm("TETHER_BOND_INC", default=True)
+_BOND_INC_CHECK = armflag.arm("TETHER_BOND_INC_CHECK")
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
 # (gamma.kind_of, the save's and the load's one rule) is a term the agent carries is that carried
@@ -3200,6 +3207,7 @@ class Agent:
         # TETHER_ROUTINE_TOUCH (r678 a): this step's press touched nothing; a routine pressed this
         # step; the empty-board cells pressed on this board
         self._untouched, self._rt_press, self._empty_pressed = False, False, set()
+        self._bond_inc: dict = {}    # TETHER_BOND_INC: slot -> its frames' ids, each pair's fold
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
@@ -4222,6 +4230,8 @@ class Agent:
             self._fc_seen.clear()          # a new board: its slots are met for the first time
         if _ROUTINE_TOUCH and how != "death":
             self._empty_pressed.clear()
+        if _BOND_INC and how != "death":
+            self._bond_inc.clear()         # a new board's slots: their folds start again
         self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts = 1
@@ -5122,7 +5132,7 @@ class Agent:
                     d_.pop(s, None)
         if _LOOKUP_STREAM:
             q_, offered, n_jun, held_n, dig, held, named_of = self._lookup_stream(
-                ev, members, described, desc_of, hist)
+                ev, members, described, desc_of, hist, slot=slot)
             found = {"query": q_, "junctions": n_jun}
         elif ev is None:
             found = composer.lookup(described)
@@ -5196,7 +5206,7 @@ class Agent:
                              "named": named_of}
 
     def _lookup_stream(self, ev: Any, members: tuple, described: dict, desc_of: dict,
-                       hist: list) -> tuple:
+                       hist: list, slot: str | None = None) -> tuple:
         """L: _lookup's pairs in ONE pass, in the order the lists had them (each member's own
         pairs in turn, an event's deduped by the same 5-tuple), each read by composer.read_iter
         (one bond reading per reading pair). Returns what the lists gave the record: (query,
@@ -5235,7 +5245,8 @@ class Agent:
                     yield p
         dig, held_n, sample = hashlib.sha256(), 0, []
         frames = [b for b, _act, _val, _intent, _landed in hist]
-        for r in composer.read_iter(pairs(), frames, {}):
+        for r in (self._bond_read(slot, pairs(), frames) if _BOND_INC and slot is not None
+                  else composer.read_iter(pairs(), frames, {})):
             cap.head()
             if r["held"]:
                 h_ = {k: r[k] for k in LOOKUP_HELD_KEYS}
@@ -5247,6 +5258,32 @@ class Agent:
         self._lookup_set = (len(seen_p), sys.getsizeof(seen_p)
                             + sum(sys.getsizeof(k_) for k_ in seen_p))
         return sorted(query), n[0], len(jun), held_n, dig, sample, named_of
+
+    def _bond_read(self, slot: str, pairs: Any, frames: list):
+        """TETHER_BOND_INC (r681): the reach's bond readings folded over this slot's frames, each
+        reading pair resuming where its last lookup of this history stopped (composer.fold_two),
+        so a repeated reach reads only the new frame. Valid only while the frames read before are
+        STILL this history's first frames, by identity: a moved window or a filtered row starts
+        the slot again. TETHER_BOND_INC_CHECK compares every folded reading with a full
+        _read_two and books agree / disagree."""
+        ids = [id(f) for f in frames]
+        st = self._bond_inc.get(slot)
+        if st is None or len(st["ids"]) > len(ids) or ids[:len(st["ids"])] != st["ids"]:
+            st = self._bond_inc[slot] = {"ids": ids, "pairs": {}}
+        else:
+            st["ids"] = ids
+        chk = None
+        if _BOND_INC_CHECK:
+            def chk(key, got):
+                full = composer._read_two(key[0], key[1], frames)
+                same = full[0] == got[0] and tuple(full[1]) == tuple(got[1])
+                k_ = "bond_inc_agree" if same else "bond_inc_disagree"
+                self.gamma.book[k_] = self.gamma.book.get(k_, 0) + 1
+                if not same:
+                    self.led.record(self.cycle, "ROUTE", slot, "bond_inc_check", pair=list(key),
+                                    full=[full[0], list(full[1])], folded=[got[0], list(got[1])],
+                                    reads="the folded bond reading differed from a full read")
+        return composer.read_iter_inc(pairs, frames, st["pairs"], chk)
 
     def _delta_kind(self, slot: str, hist: list) -> tuple | None:
         """K1: HOW the residual's own slot changed -- (cluster, sign, size class), from its last

@@ -859,6 +859,15 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_BOND_INC": "B2.3 INCREMENTAL BOND READINGS (the reviewer 2026-11-01 r681): the reach's "
+                       "bond readings fold over the slot's frames (composer.fold_two), each "
+                       "reading pair resuming where its last lookup stopped while the frames read "
+                       "before are still this history's first frames by identity. OFF is the "
+                       "line before it exactly",
+    "TETHER_BOND_INC_CHECK": "B2.3's equality arm (r681's must-hold, as _WALK_MEMO_CHECK): every "
+                             "folded bond reading compared with a full composer._read_two, "
+                             "booked bond_inc_agree / bond_inc_disagree, a row per mismatch. "
+                             "Default OFF: a measuring arm, never shipped on",
     "TETHER_GOAL_CONTINGENT": "A TIE IS NOT A CHOICE (the reviewer 2026-11-01 r678 (b)): among "
                               "goal hypotheses at one price, those about a slot the agent's own "
                               "presses turn (Agency.contingent) are tried first; the choice row "
