@@ -2329,6 +2329,20 @@ _STARVED_CONTACT = armflag.arm("TETHER_STARVED_CONTACT", default=True)
 # either press would end the game (HTTP 400 / 500). OFF: as before.
 _TERMINAL_RESET = armflag.arm("TETHER_TERMINAL_RESET", default=True)
 
+# S1 CONTACT ONLY (Isaiah 2026-10-31 13:31 "never be checking the whole library", 2026-11-01 06:47;
+# r669 7, r671 (i)): the step's CONTACT is the slots whose value changed across the press plus the
+# slots of every object that changed or that the press landed on; a library term is re-bound only
+# to operand slots in the contact, so _library_fit judges candidates that touch what happened and
+# never the whole board's slot set. The term as held is still judged. OFF: every slot, as before.
+_S1_CONTACT_ONLY = armflag.arm("TETHER_S1_CONTACT_ONLY", default=True)
+
+# S2 PLAN EPISODES (Isaiah 2026-11-01 06:47 "dont think of goal planning time as a step speed
+# issue"; r669 8): _g1_wants and _derived_wants run only in a planning episode the agent opens on
+# its own reason -- no plan yet, a boundary or restart, a plan that ended, the board changing (a
+# frame break), the goal's gap moving -- and each episode is a plan_episode row with its reasons
+# and its seconds, so step time and planning time read apart. OFF: every step, as before.
+_PLAN_EPISODES = armflag.arm("TETHER_PLAN_EPISODES", default=True)
+
 # THE SATISFACTION PREDICATE'S SPELLING, AND IT EXISTS BECAUSE OF AN `A6i` OF MINE.
 # `condition.py`'s grammar is `expr := INSTRUMENT(args) | SLOT | NUMBER` -- **a bare SLOT is an
 # EXPRESSION, so it denotes the slot's VALUE.** The first version of the guard reader returned
@@ -3127,6 +3141,9 @@ class Agent:
         # the decay class: the situation (level, alive) and its epoch, set at the agent's own
         # boundaries (retarget, restarted) and handed to the interface; never read from a frame
         self._alive, self._epoch = True, 0
+        # TETHER_PLAN_EPISODES (r669 8): the agent's own reasons to plan, gathered since the last
+        # episode; empty means the plan in hand stands and the step does no goal planning
+        self._episode_why: list[str] = ["no plan yet"]
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
@@ -4143,6 +4160,8 @@ class Agent:
         self._attempt_actions = 0
         # a death is a boundary into a dead situation; any other ending into a live one
         self._alive, self._epoch = how != "death", self._epoch + 1
+        if _PLAN_EPISODES:
+            self._episode_why.append(f"a boundary ({how})")
         self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts = 1
@@ -8454,6 +8473,8 @@ class Agent:
         self.led.record(self.cycle, step or self._running_step, self.routine_for or "*",
                         "routine_end",
                         outcome=why, routine=Rt.render(self.routine), **extra)
+        if _PLAN_EPISODES:
+            self._episode_why.append(f"the plan ended ({why})")
         self._guard_exit = None
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
@@ -10057,6 +10078,13 @@ class Agent:
         self.iface.note_sent(action)   # TETHER_RESET_ADJACENT: the flag from the press as sent
         self._pressed = True
         after = self.env.observe()
+        if _S1_CONTACT_ONLY:
+            _own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+            _ch = {s for s in set(before) | set(after) if before.get(s) != after.get(s)}
+            _objs = {_own[s] for s in _ch if _own.get(s)}
+            if self._last_landed:
+                _objs.add(self._last_landed)
+            self._contact_slots = _ch | {s for s, o in _own.items() if o in _objs}
         if _ARRIVAL_GAP:
             self._ag_held = dict(after)     # 5: the frame this press left the agent holding
         # B, THE SEAM (the reviewer 2026-10-23 12:35, 13:04): a frame break read on this action's
@@ -10260,6 +10288,11 @@ class Agent:
                            if self._seam_now else {}))
         if not self._seam_now:
             self._route_reward(deg_after, deg_after - deg_before)
+        if _PLAN_EPISODES:
+            if self._seam_now:
+                self._episode_why.append("the board changed (frame break)")
+            elif deg_after != deg_before:
+                self._episode_why.append("the goal's gap moved")
         # the bracket channel: this env defines no coarse view, so it is inert. The
         # cause was already here and it was in prose -- `inert=...` says CHANNEL_CLOSED
         # in a sentence, on a row that then reported cause=None. The taxonomy is the
@@ -10438,6 +10471,8 @@ class Agent:
         # ARM L AT THE LOOKUP'S OWN SITE. This loop is the other half of the operand axis and
         # was never bounded -- see `_delta_narrowed`. Same rule, same arm, one switch.
         cands = [b for b in self.slots if b != slot]
+        if _S1_CONTACT_ONLY and getattr(self, "_contact_slots", None) is not None:
+            cands = [b for b in cands if b in self._contact_slots]   # r669 7: the contact only
         if _DELTA_OPERANDS and robs:
             cands = self._delta_narrowed(cands, robs)
         for b in cands:
@@ -14354,6 +14389,8 @@ class Agent:
             self._consolidate("restart")
         self._attempt_actions = 0
         self._alive, self._epoch = True, self._epoch + 1   # the same level, alive again
+        if _PLAN_EPISODES:
+            self._episode_why.append("a restart")
         self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts += 1
@@ -19521,14 +19558,25 @@ class Agent:
         self._dw_stop = self._sm["stop"] if self._sm is not None else None   # B2 reads it
         self._sm = None
         self._turn_ahead = None
+        # r669 8: goal planning is an EPISODE the agent opens on its own reason, not a per-step
+        # cost; with no reason the plan in hand stands. OFF: every step, as before.
+        _plan = not _PLAN_EPISODES or bool(self._episode_why)
+        _t_ep = time.perf_counter() if _PLAN_EPISODES and _plan else None
         if _OBJ_EVENT and self._events:
             with self._step_scope("MINT"):
                 self._event_prices()
-                if _G1_WANT:
+                if _G1_WANT and _plan:
                     self._g1_wants()
-        if _DERIVED_WANT and self.trace:
+        if _DERIVED_WANT and self.trace and _plan:
             with self._step_scope("MINT"):
                 self._derived_wants()
+        if _t_ep is not None:
+            self.led.record(self.cycle, "MINT", "@plan", "plan_episode",
+                            why=list(dict.fromkeys(self._episode_why)),
+                            s=round(time.perf_counter() - _t_ep, 4),
+                            reads="goal planning ran because the agent had a reason (r669 8); "
+                                  "its seconds are planning time, not step time")
+            self._episode_why = []
         if _STOP_RULES and _ASK and _DIVIDE:
             self._stop_rules()
         if by == "probe":

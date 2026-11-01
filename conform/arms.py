@@ -849,6 +849,20 @@ ARMS: dict[str, str] = {
                              "before it exactly. "
                              "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
                              "the checklist's culprit isolation",
+    "TETHER_PLAN_EPISODES": "S2 PLAN EPISODES (Isaiah 2026-11-01 06:47 'dont think of goal "
+                            "planning time as a step speed issue'; r669 8): _g1_wants and "
+                            "_derived_wants run only in a planning episode the agent opens on its "
+                            "own reason (no plan yet, a boundary or restart, a plan that ended, a "
+                            "frame break, the goal's gap moving); each is a plan_episode row with "
+                            "its reasons and seconds. OFF is the line before it exactly",
+    "TETHER_S1_CONTACT_ONLY": "S1 CONTACT ONLY (Isaiah 2026-10-31 13:31 'never be checking the "
+                              "whole library', 2026-11-01 06:47; r669 7, r671 (i)): the step's "
+                              "contact is the slots that changed across the press plus every "
+                              "slot of an object that changed or that the press landed on; "
+                              "_rebindings offers only contact slots as operands, so "
+                              "_library_fit judges what touches the step and never the whole "
+                              "board's slot set; the term as held is still judged. OFF is the "
+                              "line before it exactly",
     "TETHER_TERMINAL_RESET": "TERMINAL RESET (Isaiah 2026-11-01 06:47, r669 1, 'fix in the "
                              "agent'): on a dead board choose() takes the press whose known "
                              "effect is RESTARTS (Interface.restart_open; row terminal_reset, exit "
