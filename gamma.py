@@ -388,6 +388,12 @@ _SETTLED_CORE = armflag.arm("TETHER_SETTLED_CORE", default=True)
 # Held under a key of everything it reads: the atoms, the settled set (scanned from standing, so no
 # writer can be missed) and the rank's version. OFF: rebuilt each call (ffbdf14)
 _UNITS_MEMO = armflag.arm("TETHER_UNITS_MEMO", default=True)
+# 37, THE UNBOUND-FORM MEMO (the reviewer 2026-11-01 r700, generation): unbound_form is a pure
+# function of one slot string, and _rebindings and the mint call it per candidate slot (2.55M calls,
+# 36.2 s of a 6-step wa30 profile, nearly all regex). Held per string, so each name is split once.
+# OFF: split on every call (0513d0f)
+_UNBOUND_MEMO = armflag.arm("TETHER_UNBOUND_MEMO", default=True)
+_UNBOUND: dict = {}
 # S6 (iv), THE UNITS VERSION (the reviewer 2026-10-19 14:56 (iv), 15:05): R1's key scanned all of
 # standing on every units_held call (55.3% of P's sc25 firing step, inclusive). Now every write that
 # can move the settled set bumps one count -- any mutation of the library or standing dict, and a
@@ -1653,6 +1659,12 @@ class Gamma:
         publish: f"{name}.{attr}" (arc_percept 847-849), pairs f"{a}.{rel}_{b}" (arc_world 813),
         compound owners a~b, and a ~j frame lag. o2.proximity -> ?.proximity; o1.adjacent_o3 ->
         ?.adjacent_?."""
+        if _UNBOUND_MEMO:
+            v = _UNBOUND.get(operand)
+            if v is None:
+                v = _UNBOUND[operand] = "".join("?" if re.fullmatch(r"o\d+", tok) else tok
+                                                for tok in re.split(r"([._~@])", operand))
+            return v
         return "".join("?" if re.fullmatch(r"o\d+", tok) else tok
                        for tok in re.split(r"([._~@])", operand))
 

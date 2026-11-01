@@ -2140,6 +2140,10 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_UNBOUND_MEMO": "37, THE UNBOUND-FORM MEMO (the reviewer 2026-11-01 r700): "
+                           "Gamma.unbound_form, a pure function of one slot string called per "
+                           "candidate slot, is held per string, so each name is split once; "
+                           "exact. OFF: split on every call (0513d0f). default ON",
     "TETHER_CYCLE_SEQ": "ONE SEQ PER CYCLE (the reviewer 2026-10-20 23:33): every landing in a "
                         "(game, level, cycle) carries that cycle's _kind_seq -- equally recent, "
                         "the ground gave them no order -- and _pair_counts' key gains a landing "
