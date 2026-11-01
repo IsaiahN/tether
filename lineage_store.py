@@ -230,6 +230,9 @@ def _counts_apply(c: dict, g: dict) -> dict:
         # (6c) THE FOLD, ONE ROW PER KIND FORM, the latest standing: load reads distinct kinds,
         # never lifetime (the reviewer 2026-10-26 06:32; Isaiah 10-19)
         c.setdefault("routines_by_kind", {}).update({r["key"]: r for r in g["routines_by_kind"]})
+    if g.get("resolve_ok"):
+        # r695 1: resolve verdicts per lineage, one row per (signature, entry, role), the latest
+        c.setdefault("resolve_ok", {}).update(g["resolve_ok"])
     if g.get("action_kinds"):
         # r688 STORAGE: the action table by kind, one row per cell, the latest value kept
         c.setdefault("action_kinds", {}).update(g["action_kinds"])

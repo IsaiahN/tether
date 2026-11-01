@@ -536,8 +536,9 @@ def arms_today() -> dict:
                         "_BOND_INC", "_RESET_REASON", "_COUNTERS", "_RELATION_BET",
                         "_WIN_CREDIT"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL"),
-             "interface": ("_ACTION_CARRY",)}
-    mods = {"tether": sys.modules[__name__], "gamma": _g, "interface": _i}
+             "interface": ("_ACTION_CARRY",), "lineage": ("_RESOLVE_ONCE",)}
+    import lineage as _lin
+    mods = {"tether": sys.modules[__name__], "gamma": _g, "interface": _i, "lineage": _lin}
     return {f"{m}.{n}": bool(getattr(mods[m], n)) for m, ns in names.items() for n in ns}
 
 

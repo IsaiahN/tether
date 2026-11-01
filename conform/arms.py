@@ -871,6 +871,14 @@ ARMS: dict[str, str] = {
                            "subject on this board (its residual enters route, it is bet on as "
                            "itself, a term may be bound or minted for it); book relation_subject. "
                            "OFF is the line before it exactly",
+    "TETHER_RESOLVE_ONCE": "RESOLVE ONCE PER LINEAGE (the reviewer 2026-11-01 r695 1): a matched "
+                           "resolve of a carried index entry is written with a fingerprint of the "
+                           "entry, the readings table and the library code; a later life with the "
+                           "same fingerprint and carried hashes takes the verdict without "
+                           "re-hashing the view. OFF is the line before it exactly",
+    "TETHER_RESOLVE_ONCE_CHECK": "RESOLVE_ONCE's equality arm: re-hashes the view anyway and books "
+                                 "once_agree / once_disagree in lineage._RESOLVE. Default OFF: a "
+                                 "measuring arm, never shipped on",
     "TETHER_WIN_CREDIT": "A WIN MOVES STANDING (the reviewer 2026-11-01 r694 row 3): at a level "
                          "clear (ADVANCE / WIN) each non-atom term bound on the clearing segment "
                          "is settled once, writing the evidence the next life replays (row and "

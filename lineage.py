@@ -632,6 +632,11 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         ak = ag.iface.kind_tables_out(getattr(ag, "_ak_written", {}))
         if ak:
             gen["action_kinds"] = ak
+    if _RESOLVE_ONCE:
+        # r695 1: this life's matched resolves not yet in the lineage
+        ro = {k: v for k, v in _RESOLVE_NEW.items() if _RESOLVE_OK.get(k) != v}
+        if ro:
+            gen["resolve_ok"] = ro
     if fc is not None:
         # item 4: the generation names how its game ended; the faulted cycle's stamped entries
         # are not in it (above); its unstamped structures (kind episodes, counters) are as built
@@ -682,6 +687,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._rk_written.update({r["key"]: r["standing"] for r in gen["routines_by_kind"]})
         if "action_kinds" in gen:
             ag._ak_written = {**getattr(ag, "_ak_written", {}), **gen["action_kinds"]}
+        if "resolve_ok" in gen:
+            _RESOLVE_OK.update(gen["resolve_ok"])
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -1098,6 +1105,9 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     if tether.IFace._ACTION_CARRY and hasattr(ag, "iface"):
         ag._ak_written = dict(c.get("action_kinds", {}))       # r688 RECALL: the action table
         rep["action_kinds_in"] = ag.iface.kind_tables_in(ag._ak_written)
+    if _RESOLVE_ONCE:
+        _RESOLVE_OK.update(c.get("resolve_ok", {}))            # r695 1: verdicts per lineage
+        rep["resolve_ok_in"] = len(_RESOLVE_OK)
     if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
         for site, d_ in c.get("kind_counts", {}).items():
             ag._kind_carried_in.setdefault(site, {}).update(d_)
@@ -1312,6 +1322,10 @@ def load(d: str | Path, ag: Any) -> dict:
         for _h, g in chain:
             ag._ak_written.update(g.get("action_kinds", {}))
         rep["action_kinds_in"] = ag.iface.kind_tables_in(ag._ak_written)
+    if _RESOLVE_ONCE:
+        for _h, g in chain:                                     # r695 1: verdicts per lineage
+            _RESOLVE_OK.update(g.get("resolve_ok", {}))
+        rep["resolve_ok_in"] = len(_RESOLVE_OK)
     if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
         # 7h (h): the kind counts of every generation, root to tip, read as A1's second key
         for _h, g in chain:
@@ -1400,6 +1414,36 @@ _ROWED: set = set()   # generations that already wrote their one unresolved row
 _LAZY: dict[tuple, dict] = {}       # (signature, entry, role) -> {gen, folder}
 _VERDICT: dict[tuple, tuple] = {}   # (signature, entry, role) -> each position's ch, as matched
 _VERDICT_N: dict[str, int] = {"refetched": 0}
+# RESOLVE ONCE PER LINEAGE (the reviewer 2026-11-01 r695 1; Fig 12 "re-deriving it is a lookup"):
+# a resolve that matched is recorded with a fingerprint of what the view is computed from (the
+# entry's own definition, the readings table, the library code) and the carried hashes it matched;
+# a later life with the same fingerprint and the same hashes takes the verdict without re-hashing
+# the view. _RESOLVE_ONCE_CHECK hashes anyway and books agree / disagree.
+_RESOLVE_ONCE = armflag.arm("TETHER_RESOLVE_ONCE", default=True)
+_RESOLVE_ONCE_CHECK = armflag.arm("TETHER_RESOLVE_ONCE_CHECK")
+_RESOLVE_OK: dict[str, list] = {}     # repr((sig hash, entry, role)) -> [fingerprint, [ch, ...]]
+_RESOLVE_NEW: dict[str, list] = {}    # this life's matched resolves, to write
+_FP_BASE: list = []                   # the readings table + the library code, hashed once
+_SIG_H: dict[int, tuple] = {}         # id(signature) -> (signature, its short hash)
+
+
+def _sig_h(sig: tuple) -> str:
+    got = _SIG_H.get(id(sig))
+    if got is None or got[0] is not sig:
+        got = _SIG_H[id(sig)] = (sig, hashlib.sha256(repr(sig).encode()).hexdigest()[:16])
+    return got[1]
+
+
+def _lib_fp(lib: Any, key: str) -> str:
+    """What lib.view(key, ...) is computed from: the entry, the readings table and the code."""
+    if not _FP_BASE:
+        import inspect
+        src = inspect.getsource(type(lib)) if hasattr(lib, "view") else ""
+        _FP_BASE.append(hashlib.sha256((json.dumps(getattr(lib, "readings", {}), sort_keys=True,
+                                                   default=str) + src).encode()).hexdigest())
+    e = lib.get(key) if hasattr(lib, "get") else None
+    return hashlib.sha256((_FP_BASE[0] + json.dumps(e, sort_keys=True, default=str)).encode()
+                          ).hexdigest()[:16]
 
 
 def _held_in_store(folder: str, key: str, role: str, snap: Any,
@@ -1760,11 +1804,26 @@ def resolve(ag: Any, lib: Any, key: str, role: str, sig: tuple) -> list | None:
         p = {"gen": lz["gen"], "folder": lz["folder"], "items": items}
     view = lib.view(key, role, tether.PH_O, tether.PH_X)
     items = p["items"]
-    try:
-        match = len(view) == len(items) and all(i < len(view) and _ch(view[i]) == ch
-                                                for i, ch, _, _ in items)
-    except Unencodable:   # a view candidate with no form is a MISS, never raised to the agent
-        match = False
+    rk = fp = once = None
+    if _RESOLVE_ONCE:
+        rk = repr((_sig_h(sig), key, role))
+        fp = _lib_fp(lib, key)
+        once = (len(view) == len(items)
+                and _RESOLVE_OK.get(rk) == [fp, [ch for _, ch, _, _ in items]])
+    if once and not _RESOLVE_ONCE_CHECK:
+        match = True
+        _RESOLVE["once"] = _RESOLVE.get("once", 0) + 1
+    else:
+        try:
+            match = len(view) == len(items) and all(i < len(view) and _ch(view[i]) == ch
+                                                    for i, ch, _, _ in items)
+        except Unencodable:   # a view candidate with no form is a MISS, never raised to the agent
+            match = False
+        if once is not None and _RESOLVE_ONCE_CHECK and once:
+            k_ = "once_agree" if match else "once_disagree"
+            _RESOLVE[k_] = _RESOLVE.get(k_, 0) + 1
+    if match and rk is not None:
+        _RESOLVE_NEW[rk] = [fp, [ch for _, ch, _, _ in items]]
     if match:
         held = [(view[i], c, t) for i, _, c, t in items]
         tether._INDEX_STORE[(sig, key, role)] = held
