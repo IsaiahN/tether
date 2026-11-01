@@ -2350,6 +2350,12 @@ _PLAN_EPISODES = armflag.arm("TETHER_PLAN_EPISODES", default=True)
 # presses as the last plan's length -- the wants that episode set or changed, at least one -- a
 # reading of the agent's own plan, not a constant. OFF: the gap moving, as before.
 _S2_STALL = armflag.arm("TETHER_S2_STALL", default=True)
+# A SIGNAL MUST DISCRIMINATE BEFORE IT STEERS (the reviewer 2026-11-01 r674 1; Fig 9 :60 "Use
+# filters for the budget and witnesses for the verdict"): a slot whose change does not depend on
+# which action was pressed (Agency.indifferent: every action tried moved it, by one and the same
+# change -- a bar that ticks on any press) may not be chosen as the goal, nor be the focus or the
+# cue a press is made for; each refusal is booked (indifferent_refused). OFF: as before.
+_DISCRIMINATE = armflag.arm("TETHER_DISCRIMINATE_STEER", default=True)
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
 # (gamma.kind_of, the save's and the load's one rule) is a term the agent carries is that carried
@@ -10364,6 +10370,8 @@ class Agent:
             self._note_direction(action, before, after, sorted(res))
         if not self._seam_now:          # B: a seam's moved slots are no contingency of the action
             self.agency.note(action, self._moved(res, before, after), sorted(res))
+            if _DISCRIMINATE:
+                self.agency.note_delta(action, before, after, sorted(res))
         self._charge(res)
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
@@ -10519,6 +10527,11 @@ class Agent:
                     cap.head()
                     yield Term(term.atoms, operand=b, guard=g,
                                operand_term=term.operand_term)
+
+    def _indiff_book(self) -> None:
+        """r674 1: one refusal of a slot whose change does not depend on the action (undeclared in
+        BOOKS, so OFF stays exact)."""
+        self.gamma.book["indifferent_refused"] = self.gamma.book.get("indifferent_refused", 0) + 1
 
     def _s2_plan_len(self) -> int:
         """TETHER_S2_STALL: the plan in hand after this episode is the wants held; its length is how
@@ -13922,6 +13935,9 @@ class Agent:
         tally = {"too_short": 0, "flat": 0, "rose": 0, "qualified": 0, "arrived": 0}
         if _ARRIVAL:
             tally["touched"] = 0
+        ind = set(self.agency.indifferent()) if _DISCRIMINATE else set()
+        if _DISCRIMINATE:
+            tally["indifferent"] = 0
         # GQ2: while a hypothesis is held it is the one end selected (selectable while OPEN, the
         # agent's own pursuit, no shrinking bar to earn first); echo wants are not ends meanwhile
         hyp = self._hyp["slots"] if (_GOAL_HYP and self._hyp is not None) else None
@@ -13944,6 +13960,11 @@ class Agent:
             self._subgoal_end("arrived" if _sub in self._res else "gone")
         for slot, series in sorted(self._res.items()):
             cap.head()
+            if slot in ind:              # r674 1: its change is no reading of the choice
+                tally["indifferent"] += 1
+                if book:
+                    self._indiff_book()
+                continue
             longest = max(longest, len(series))
             # **AN OBJECTIVE THAT HAS ARRIVED IS NOT ONE TO PURSUE, AND ARRIVING LOOKS EXACTLY
             # LIKE SHRINKING ON THE LAST READING.** §13.4 defines the series as *a scalar
@@ -19308,6 +19329,12 @@ class Agent:
         # unreadable focal is a KeyError. You cannot attend to what you cannot read this
         # frame; the binding is untouched and it is eligible again the moment it uncovers.
         readable = sorted(s for s in self.slots if s in before) or sorted(self.slots)
+        _ind = set(self.agency.indifferent()) if _DISCRIMINATE else set()
+        if _ind and any(s not in _ind for s in readable):
+            # r674 1: a slot that moves whatever is pressed is not what a press is made for
+            if any(s in _ind for s in readable):
+                self._indiff_book()
+            readable = [s for s in readable if s not in _ind]
         focal = max(readable,
                     key=lambda s: (self._last_mass.get(s, 0.0), s in self.owed_import))
         # **SYSTEM 2 SETS WHAT TO ATTEND TO; SYSTEM 1 EXECUTES -- Isaiah, 2026-09-25, and it is
@@ -19367,7 +19394,7 @@ class Agent:
             if _muts and _attr_of is not None:
                 _want = {a for m in _muts for a in _CUE_ATTR.get(m, ())}
                 _hit = sorted(s for s, a in _attr_of().items()
-                              if a in _want and s in before)
+                              if a in _want and s in before and s not in _ind)
                 if _hit:
                     # STABLE PICK. `sorted` then first, so the focal slot does not wander
                     # between cycles on an unordered set -- an attention that moves for no

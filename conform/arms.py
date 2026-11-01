@@ -859,6 +859,12 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_DISCRIMINATE_STEER": "A SIGNAL MUST DISCRIMINATE BEFORE IT STEERS (the reviewer "
+                                 "2026-11-01 r674 1): a slot whose change does not depend on "
+                                 "which action was pressed (instruments.Agency.indifferent) may "
+                                 "not be chosen as the goal, the focus or the cue; each refusal "
+                                 "booked (indifferent_refused; the goal tally's indifferent). "
+                                 "OFF is the line before it exactly",
     "TETHER_KIND_REL": "KIND KEEPS THE OPERAND'S RELATION (the reviewer 2026-11-01 r674 3): a kind "
                        "records whether its instances read their target's own object or another's "
                        "(gamma.note_rel: at load from each row's operand and residual slot, and at "
