@@ -36,6 +36,10 @@ FAULT_AT = os.environ.get("B_TEST_FAULT", "")
 FAULT_AT = int(FAULT_AT.split(",")[1]) if FAULT_AT and FAULT_AT.split(",")[0] == WID else None
 MEM_GUARD = os.environ.get("B_MEM_GUARD", "1") != "0"   # r554 3; B_TEST_SHARE_MB forces a share (the must-fail only)
 SHARE_MB = int(os.environ.get("B_TEST_SHARE_MB") or os.environ.get("B_SHARE_MB") or 0)
+# B_MEM_GROWTH_MARGIN, a declared convention (Fig 10; Isaiah 2026-11-01 06:47, r669 2): the guard
+# reckons the next game may grow by this multiple of the largest one-game growth seen so far in
+# this worker (rehearsal 2's bp35 grew ~1.7x its estimate). 1 is the guard as before.
+GROWTH_MARGIN = float(os.environ.get("B_MEM_GROWTH_MARGIN", "2"))
 FIXED_MIN_S, FIXED_MAX_S = 300.0, 400.0      # run A's slice (Isaiah 2026-10-30 21:28); only under B_SHARE=0
 assert os.environ.get("PYTHONHASHSEED") == "0", "the hash seed must be pinned by the launcher"
 os.environ["TETHER_AGENT_SEED"] = "0"
@@ -277,9 +281,10 @@ while nxt is not None:
         continue
     if MEM_GUARD and SHARE_MB and grow_max is not None:
         c_now = commit_mb()[0]
-        if c_now + grow_max > SHARE_MB:
+        if c_now + GROWTH_MARGIN * grow_max > SHARE_MB:
             old = (weakref.ref(ag), weakref.ref(env)) if os.environ.get("B_TEST_SHARE_MB") else None
             env, ag = rewire(env, ag, ctx, {"commit_mb": c_now, "largest_game_growth_mb": grow_max,
+                                            "growth_margin": GROWTH_MARGIN,
                                             "share_mb": SHARE_MB, "games_played": len(taken) - 1})
             gc.collect()      # the old life is cyclic garbage until collected, and freeing it is the guard's point
             if old is not None:   # r557, the test only: nothing may still hold the old agent or its world
