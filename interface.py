@@ -209,6 +209,12 @@ _RESET_KNOWN = armflag.arm("TETHER_RESET_KNOWN", default=True)
 # routes it; a cell borne out here routes as before; RESET is never a carried test (its delta is
 # state-relative, Fig 4 :25). OFF: today's realise
 _KIND_TEST = armflag.arm("TETHER_KIND_TEST", default=True)
+# THE ACTION TABLE CARRIES BY KIND (the reviewer 2026-11-01 r688 STORAGE/RECALL; checklist Q17): the
+# kind tables (delta_kind, lands_kind -- name-free: contact context, kind key, rel or the value
+# before) are written to the lineage and loaded into `carried_kind`, beside the table and never into
+# it (an action absent from the table stays unmapped, so game 2 still learns its buttons); the kind
+# readers see carried cells under this life's own, and _KIND_TEST presses one as a test first.
+_ACTION_CARRY = armflag.arm("TETHER_ACTION_CARRY", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -494,6 +500,7 @@ class Interface:
         self.pick_by: Counter = Counter()
         self.tally_note: dict | None = None    # 17: what the tally read when it decided a pick
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
+        self.carried_kind: dict[str, dict] = {}   # TETHER_ACTION_CARRY: action -> kind tables
         # K3: slot -> its KIND key (the agent's _kind and the attribute), or None; set by the agent
         # under TETHER_KIND_CARRY. None here: no kind tables, today's reading.
         self.kind_of: Any = None
@@ -789,7 +796,7 @@ class Interface:
             if ks is not None:                  # K3: only a slot with no entry of its own
                 for a in offered:
                     cap.head()
-                    lands = self.table.get(a, {}).get("lands_kind", {})
+                    lands = self._kind_tab(a, "lands_kind")
                     seen = {v for (_c, k, b), vs in lands.items()
                             if k == ks and b == _now for v in vs}
                     if seen == {intent.value}:
@@ -878,7 +885,7 @@ class Interface:
                     tot = sum(v[1] for key, v in d.items() if key[1] == intent.subject)
                     where = "in every context seen"
                 if not n and ks is not None:    # K3: only a slot with no entry of its own
-                    dk = self.table.get(a, {}).get("delta_kind", {})
+                    dk = self._kind_tab(a, "delta_kind")
                     kn, kt = _summed(dk, ctx, ks)
                     where = "on its kind, here (no entry of its own)"
                     if not kn:
@@ -1630,6 +1637,48 @@ class Interface:
                 continue
             kinds[kind] = kinds.get(kind, 0) + 1
         return tuple(sorted(kinds.items()))
+
+    def _kind_tab(self, a: str, tab: str) -> dict:
+        """A kind table for action `a`: this life's own cells, over the carried ones (own wins)."""
+        own = self.table.get(a, {}).get(tab, {})
+        car = self.carried_kind.get(a, {}).get(tab) if _ACTION_CARRY else None
+        return {**car, **own} if car else own
+
+    def kind_tables_out(self, written: dict) -> dict:
+        """TETHER_ACTION_CARRY: every kind cell, carried and own together (n and total summed,
+        landed values united), keyed by repr((action, table, cell)); only cells whose value moved
+        since `written`, the lineage's own copy."""
+        out = {}
+        for a in set(self.table) | set(self.carried_kind):
+            for tab in ("delta_kind", "lands_kind"):
+                own = self.table.get(a, {}).get(tab, {})
+                car = self.carried_kind.get(a, {}).get(tab, {})
+                for k in set(own) | set(car):
+                    o, c = own.get(k), car.get(k)
+                    if tab == "delta_kind":
+                        o, c = o or (0, 0), c or (0, 0)
+                        v = [o[0] + c[0], o[1] + c[1]]
+                    else:
+                        v = sorted(set(o or ()) | set(c or ()))
+                    key = repr((a, tab, k))
+                    if written.get(key) != v:
+                        out[key] = v
+        return out
+
+    def kind_tables_in(self, rows: dict) -> int:
+        """TETHER_ACTION_CARRY: the lineage's kind cells into `carried_kind`; a row that does not
+        parse is skipped. The count installed."""
+        import ast
+        n = 0
+        for key, v in rows.items():
+            try:
+                a, tab, k = ast.literal_eval(key)
+            except (ValueError, SyntaxError):
+                continue
+            t = self.carried_kind.setdefault(a, {}).setdefault(tab, {})
+            t[k] = tuple(v) if tab == "delta_kind" else set(v)
+            n += 1
+        return n
 
     def _kind_fallback(self, slot: str | None, env: object) -> Any:
         """K3: the slot's kind key when its kind may answer for it, else None: a slot with ANY

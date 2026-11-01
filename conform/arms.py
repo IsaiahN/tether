@@ -859,6 +859,12 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_ACTION_CARRY": "THE ACTION TABLE CARRIES BY KIND (the reviewer 2026-11-01 r688 "
+                           "STORAGE/RECALL; Q17): the interface's kind tables (delta_kind, "
+                           "lands_kind; name-free) are written to the lineage (action_kinds) and "
+                           "loaded into Interface.carried_kind, never into the table, so an "
+                           "untried action stays unmapped; the kind readers see carried cells "
+                           "under this life's own. OFF is the line before it exactly",
     "TETHER_BOND_INC": "B2.3 INCREMENTAL BOND READINGS (the reviewer 2026-11-01 r681): the reach's "
                        "bond readings fold over the slot's frames (composer.fold_two), each "
                        "reading pair resuming where its last lookup stopped while the frames read "

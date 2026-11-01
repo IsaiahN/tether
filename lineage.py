@@ -626,6 +626,12 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
               if ag._rk_written.get(r["key"]) != r["standing"]]   # new, or its standing moved
         if rk:
             gen["routines_by_kind"] = rk
+    if tether.IFace._ACTION_CARRY and hasattr(ag, "iface"):
+        # r688 STORAGE: the action table by kind (carried + own), the cells that moved since the
+        # last write; absent when none, so a generation with nothing new is written as before
+        ak = ag.iface.kind_tables_out(getattr(ag, "_ak_written", {}))
+        if ak:
+            gen["action_kinds"] = ak
     if fc is not None:
         # item 4: the generation names how its game ended; the faulted cycle's stamped entries
         # are not in it (above); its unstamped structures (kind episodes, counters) are as built
@@ -674,6 +680,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._entry_use_written = {k: dict(c) for k, c in ag._entry_use.items()}
         if "routines_by_kind" in gen:
             ag._rk_written.update({r["key"]: r["standing"] for r in gen["routines_by_kind"]})
+        if "action_kinds" in gen:
+            ag._ak_written = {**getattr(ag, "_ak_written", {}), **gen["action_kinds"]}
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -1087,6 +1095,9 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     if tether._ROUTINE_CARRY and hasattr(ag, "_carry_routines_in"):
         # (6c): one row per kind form (the store's fold); absent in an older store: none
         rep["routines_in"] = ag._carry_routines_in(list(c.get("routines_by_kind", {}).values()))
+    if tether.IFace._ACTION_CARRY and hasattr(ag, "iface"):
+        ag._ak_written = dict(c.get("action_kinds", {}))       # r688 RECALL: the action table
+        rep["action_kinds_in"] = ag.iface.kind_tables_in(ag._ak_written)
     if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
         for site, d_ in c.get("kind_counts", {}).items():
             ag._kind_carried_in.setdefault(site, {}).update(d_)
@@ -1296,6 +1307,11 @@ def load(d: str | Path, ag: Any) -> dict:
         # (6c): root to tip, one row per kind form, the latest standing kept
         rk = {r["key"]: r for _h, g in chain for r in g.get("routines_by_kind", ())}
         rep["routines_in"] = ag._carry_routines_in(list(rk.values()))
+    if tether.IFace._ACTION_CARRY and hasattr(ag, "iface"):
+        ag._ak_written = {}                                     # r688 RECALL: root to tip, latest
+        for _h, g in chain:
+            ag._ak_written.update(g.get("action_kinds", {}))
+        rep["action_kinds_in"] = ag.iface.kind_tables_in(ag._ak_written)
     if tether._7H_KIND_CARRY and hasattr(ag, "_kind_carried_in"):
         # 7h (h): the kind counts of every generation, root to tip, read as A1's second key
         for _h, g in chain:
