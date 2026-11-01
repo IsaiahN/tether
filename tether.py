@@ -2344,6 +2344,11 @@ _S1_CONTACT_ONLY = armflag.arm("TETHER_S1_CONTACT_ONLY", default=True)
 # frame break), the goal's gap moving -- and each episode is a plan_episode row with its reasons
 # and its seconds, so step time and planning time read apart. OFF: every step, as before.
 _PLAN_EPISODES = armflag.arm("TETHER_PLAN_EPISODES", default=True)
+# S2 STALL TRIGGER (the reviewer 2026-11-01 r674 4, ruled (c); Fig 9 :4-5 "Disagreements that do not
+# shrink with effort"): an episode also opens when the goal's gap has stood unmoved for as many
+# presses as the last plan's length -- the wants that episode set or changed, at least one -- a
+# reading of the agent's own plan, not a constant. OFF: the gap moving, as before.
+_S2_STALL = armflag.arm("TETHER_S2_STALL", default=True)
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
 # (gamma.kind_of, the save's and the load's one rule) is a term the agent carries is that carried
@@ -3154,6 +3159,8 @@ class Agent:
         # episode; empty means the plan in hand stands and the step does no goal planning
         self._episode_why: list[str] = ["no plan yet"]
         self._fc_seen: set[str] = set()   # F6: slots already met at first contact this board
+        # TETHER_S2_STALL (r674 4): presses since the gap last moved; the last plan's length
+        self._unmoved, self._plan_len = 0, 0
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
@@ -10312,6 +10319,13 @@ class Agent:
                 self._episode_why.append("the board changed (frame break)")
             elif deg_after != deg_before:
                 self._episode_why.append("the goal's gap moved")
+                self._unmoved = 0
+            elif _S2_STALL and self._plan_len:
+                self._unmoved += 1
+                if self._unmoved >= self._plan_len:
+                    self._episode_why.append(f"the goal's gap stood {self._unmoved} presses, the "
+                                             "last plan's length")
+                    self._unmoved = 0
         # the bracket channel: this env defines no coarse view, so it is inert. The
         # cause was already here and it was in prose -- `inert=...` says CHANNEL_CLOSED
         # in a sentence, on a row that then reported cause=None. The taxonomy is the
@@ -10504,6 +10518,14 @@ class Agent:
                     cap.head()
                     yield Term(term.atoms, operand=b, guard=g,
                                operand_term=term.operand_term)
+
+    def _s2_plan_len(self) -> int:
+        """TETHER_S2_STALL: the plan in hand after this episode is the wants held; its length is how
+        many presses the gap may stand before the agent plans again. No held goal, no length: an
+        empty plan has no gap to stand, so only the other reasons re-open planning."""
+        self._plan_len = len(self.wants)
+        self._unmoved = 0
+        return self._plan_len
 
     def _first_contact(self, betting: list) -> None:
         """F6 FIRST CONTACT USES CARRIED KINDS (Isaiah 2026-11-01 06:47; r669 10). A slot holding
@@ -19653,6 +19675,7 @@ class Agent:
         # cost; with no reason the plan in hand stands. OFF: every step, as before.
         _plan = not _PLAN_EPISODES or bool(self._episode_why)
         _t_ep = time.perf_counter() if _PLAN_EPISODES and _plan else None
+        _s2 = _S2_STALL and _t_ep is not None
         if _OBJ_EVENT and self._events:
             with self._step_scope("MINT"):
                 self._event_prices()
@@ -19666,7 +19689,8 @@ class Agent:
                             why=list(dict.fromkeys(self._episode_why)),
                             s=round(time.perf_counter() - _t_ep, 4),
                             reads="goal planning ran because the agent had a reason (r669 8); "
-                                  "its seconds are planning time, not step time")
+                                  "its seconds are planning time, not step time",
+                            **({"plan_len": self._s2_plan_len()} if _s2 else {}))
             self._episode_why = []
         if _STOP_RULES and _ASK and _DIVIDE:
             self._stop_rules()
