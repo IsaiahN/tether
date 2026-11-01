@@ -854,6 +854,11 @@ ARMS: dict[str, str] = {
                                   "that carried term re-bound, so it keeps the carried identity "
                                   "and the save writes no new row (row carried_reused, book "
                                   "carried_reused). OFF is the line before it exactly",
+    "TETHER_KIND_ATTR": "F1/F2 KIND KEEPS THE ATTRIBUTE (Isaiah 2026-11-01 06:47; r669 10): "
+                        "gamma.kind_of and the carried load keep every operand as its unbound "
+                        "attribute form ('?.row'), not only where the bare chain is a PRIOR "
+                        "atom, and _rebindings re-binds such a term only to slots of that "
+                        "form. OFF is the line before it exactly",
     "TETHER_PLAN_EPISODES": "S2 PLAN EPISODES (Isaiah 2026-11-01 06:47 'dont think of goal "
                             "planning time as a step speed issue'; r669 8): _g1_wants and "
                             "_derived_wants run only in a planning episode the agent opens on its "

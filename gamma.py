@@ -402,6 +402,12 @@ _WRITES = [0]   # the settled set's writes, every Gamma's (shared: it can only o
 # A / (the library's mean recipe length) and gains one per settlement. No library and nothing
 # learned: today's uniform code exactly. OFF: tether.term_bits (9f26ee9)
 _PRIOR_CODE = armflag.arm("TETHER_PRIOR_CODE", default=True)
+# F1/F2 KIND KEEPS THE ATTRIBUTE (Isaiah 2026-11-01 06:47 "sounds reasonable"; r669 10; WATSON
+# 10-31; P1): an instance's kind keeps its operand as the unbound attribute form ("?.row") for every
+# operand, not only where the bare chain is a PRIOR atom, and the carried row loads that way, so the
+# cause crosses as a kind-level reference (inc.dec<o1.row> and inc.dec<o1.colour> stay two kinds);
+# the lookup re-binds such a term only to slots of the same attribute form. OFF: as before.
+_KIND_ATTR = armflag.arm("TETHER_KIND_ATTR", default=True)
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
@@ -1248,7 +1254,8 @@ class Gamma:
         One rule for the break (2), the save (3) and the load, so a kind is the same name all three
         ways (the reviewer 2026-10-29 r294's 2x3 check). Origin stays the term's (r294 (a))."""
         k = Term(term.atoms, origin=term.origin, guard=term.guard, operand_term=term.operand_term)
-        if term.operand and k.name in self.library and self.library[k.name].origin == PRIOR:
+        if term.operand and (_KIND_ATTR or (k.name in self.library
+                                            and self.library[k.name].origin == PRIOR)):
             k = Term(term.atoms, origin=term.origin, guard=term.guard,
                      operand=self.unbound_form(term.operand), operand_term=term.operand_term)
         return k
@@ -1704,8 +1711,9 @@ class Gamma:
                      operand_term=(Term(tuple(self._by_name[n] for n in tree))
                                    if tree else None))
             unbound = None
-            if ((parent or hold_unbound) and r.get("operand") and t.name in self.library
-                    and self.library[t.name].origin == PRIOR):
+            if ((parent or hold_unbound) and r.get("operand")
+                    and (_KIND_ATTR or (t.name in self.library
+                                        and self.library[t.name].origin == PRIOR))):
                 # (b'-g), UNDER THE CARRY ONLY (the reviewer 2026-10-14 20:45): LOAD NEVER
                 # DESTROYS (F420; Isaiah 11:05). The binding does not cross, so every object id in
                 # the operand becomes "?", which no id generator makes (o{n}: arc_percept 638,

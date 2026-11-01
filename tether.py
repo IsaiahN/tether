@@ -48,6 +48,7 @@ import retrieval
 import routine as Rt
 import store as door  # the one door; `store` is a local name in three methods
 from gamma import _CARRY_W as G_CARRY_W
+from gamma import _KIND_ATTR as G_KIND_ATTR
 from gamma import _PRIOR_CODE as G_PRIOR_CODE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import _UNITS_MEMO as G_UNITS_MEMO
@@ -10485,6 +10486,9 @@ class Agent:
         cands = [b for b in self.slots if b != slot]
         if _S1_CONTACT_ONLY and getattr(self, "_contact_slots", None) is not None:
             cands = [b for b in cands if b in self._contact_slots]   # r669 7: the contact only
+        if G_KIND_ATTR and term.operand and "?" in term.operand:
+            # r669 10: a kind-level operand re-binds only to slots of the same attribute
+            cands = [b for b in cands if Gamma.unbound_form(b) == term.operand]
         if _DELTA_OPERANDS and robs:
             cands = self._delta_narrowed(cands, robs)
         for b in cands:
