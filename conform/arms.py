@@ -2300,6 +2300,13 @@ ARMS: dict[str, str] = {
                          "summed root to tip at load; it lived on the Agent, so it never "
                          "crossed. Paid is not carried here: 7i's replay is its one carrier. "
                          "OFF: nothing written or read (a102c5a). default ON",
+    "TETHER_DECAY_NEW_LIFE": "F3a (the reviewer 2026-10-31 r603; the memory audit, P3). A "
+                             "carried Standing keeps its last_tick, and a new life's cycle "
+                             "starts at 0, so max(0, tick - last_tick) stayed 0 until the new "
+                             "life passed the old one's last cycle: a carried refutation did "
+                             "not decay. ON: a tick below last_tick is a restarted clock and "
+                             "the gap counts from the new life's start. OFF: as before. "
+                             "default ON",
     "TETHER_PRIOR_CODE": "L1 (the reviewer 2026-10-17 18:13 (a), 18:40, 18:48): a transition "
                          "term's stating cost is its length under a NORMALIZED code over "
                          "{units, END}, p(s) = (w(s) + 1) / Z, w = Rank.used + Standing.paid of "
