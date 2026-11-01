@@ -2371,6 +2371,17 @@ _FC_CONTACT = armflag.arm("TETHER_FC_CONTACT", default=True)
 # floor draw) leave out every action known to restart the level, unless nothing else is offered;
 # a deliberate exit may still choose one. OFF: the probe may draw RESET, as before.
 _PROBE_NO_RESTART = armflag.arm("TETHER_PROBE_NO_RESTART", default=True)
+# A TIE IS NOT A CHOICE (the reviewer 2026-11-01 r678 (b); Fig 9 :60, contingency the witness that
+# breaks it): among goal hypotheses at one price, those about a slot the agent's own presses are
+# seen to turn (Agency.contingent) are tried before the rest; the choice row books how many were
+# and whether the pick was one. OFF: the draw alone, as before.
+_GOAL_CONTINGENT = armflag.arm("TETHER_GOAL_CONTINGENT", default=True)
+# A PRESS THAT TOUCHES NOTHING ENDS ITS ROUTINE (the reviewer 2026-11-01 r678 (a); Fig 9 :43 "The
+# verdict tells you to leave."): a routine whose own press this step made no contact -- no object's
+# cells changed and the press landed on none -- ends there ("no_contact", a non-trial, so not a
+# refutation); and an aimed press that would land on empty board where one already did this board
+# is re-aimed through the probe. OFF: the routine runs on, as before.
+_ROUTINE_TOUCH = armflag.arm("TETHER_ROUTINE_TOUCH", default=True)
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
 # (gamma.kind_of, the save's and the load's one rule) is a term the agent carries is that carried
@@ -3186,6 +3197,9 @@ class Agent:
         # TETHER_MISS_GRADE (r674 2): each slot's observed range; the slots held once on a miss
         self._range: dict[str, tuple] = {}
         self._miss_held: set[str] = set()
+        # TETHER_ROUTINE_TOUCH (r678 a): this step's press touched nothing; a routine pressed this
+        # step; the empty-board cells pressed on this board
+        self._untouched, self._rt_press, self._empty_pressed = False, False, set()
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
@@ -4206,6 +4220,8 @@ class Agent:
             self._episode_why.append(f"a boundary ({how})")
         if G_FIRST_CONTACT and how != "death":
             self._fc_seen.clear()          # a new board: its slots are met for the first time
+        if _ROUTINE_TOUCH and how != "death":
+            self._empty_pressed.clear()
         self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts = 1
@@ -7457,12 +7473,19 @@ class Agent:
             cap.head()
             group = [x for x in cands if x[0] == cands[0][0]]
             cands = cands[len(group):]
+            # r678 (b) A TIE IS NOT A CHOICE: within one price, hypotheses about a slot the agent's
+            # own presses are seen to turn (Agency.contingent) come before the rest
+            _cset = set(self.agency.contingent()) if _GOAL_CONTINGENT else set()
+            _cfirst = sum(1 for x in group if x[2].slot in _cset) if _GOAL_CONTINGENT else None
             if _HYP_DRAW:
                 # S0: the draw first, one hash per candidate, then the routes in that order -- the
                 # first routable is the lowest-hash routable, so the rest need no check
                 dkey = f"{self.cycle}:goal_hypothesis:None"
                 order = FR.draw_order([x[1] for x in group], dkey, self.draw_seed)
                 by_text = {x[1]: x for x in group}
+                if _cfirst:
+                    order = ([t for t in order if by_text[t][2].slot in _cset]
+                             + [t for t in order if by_text[t][2].slot not in _cset])
                 for n, text in enumerate(order, 1):
                     cap.head()
                     x = by_text[text]
@@ -7480,7 +7503,10 @@ class Agent:
                     self.led.record(self.cycle, "PLAN", "@choice", "choice",
                                     site="goal_hypothesis", in_step=self._running_step,
                                     options=len(group), checked=n, pick=repr(text),
-                                    by="draw_each")
+                                    by="draw_each",
+                                    **({"contingent_first": _cfirst,
+                                        "pick_contingent": x[2].slot in _cset}
+                                       if _GOAL_CONTINGENT else {}))
                     break
                 continue
             ok = []
@@ -7501,6 +7527,8 @@ class Agent:
                 self._hyp_restore(link["_held"])
             if not ok:
                 continue
+            if _cfirst and any(o[0][2].slot in _cset for o in ok):
+                ok = [o for o in ok if o[0][2].slot in _cset]    # r678 (b): the turnable first
             if len(ok) > 1 and _A1_TIES:
                 k = self._choice("goal_hypothesis", None,
                                  [(x[1], x[0][1], None) for x, _k, _l in ok])
@@ -8406,6 +8434,11 @@ class Agent:
         if self.routine is None or not self._routine_acts:
             return
         state = self.env.observe()
+        if _ROUTINE_TOUCH and self._rt_press and self._untouched:
+            # r678 (a): this step's routine press made no contact -- the board answered "nothing
+            # here", so the routine ends (a non-trial: no verdict, no refutation)
+            self._end_routine("no_contact", state, step="SETTLE")
+            return
         if self._check_expectation(state, step="SETTLE"):
             return
         if self._routine_adopted is None:
@@ -10136,6 +10169,13 @@ class Agent:
                 _objs.add(self._last_landed)
             _own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
             self._contact_slots = {s for s, o in _own.items() if o in _objs}
+        if _ROUTINE_TOUCH:
+            # r678 (a): did this press touch anything -- the cells (S1's reading) or, without it,
+            # a landing or any change at all
+            self._untouched = (not _objs if _m0 is not None
+                               else self._last_landed is None and after == before)
+            if coord is not None and self._last_landed is None:
+                self._empty_pressed.add(tuple(coord))
         if _ARRIVAL_GAP:
             self._ag_held = dict(after)     # 5: the frame this press left the agent holding
         # B, THE SEAM (the reviewer 2026-10-23 12:35, 13:04): a frame break read on this action's
@@ -19486,6 +19526,20 @@ class Agent:
                 self.led.record(self.cycle, "PLAN", "@loop", "unaimed_refused", was=_was,
                                 now=action, reads="a positioned action with no aim is not sent; "
                                                   "through the gateway it ends the game (r669 1)")
+            if (_ROUTINE_TOUCH and action in IFace.POSITIONED and self._aimed is not None
+                    and tuple(self._aimed) in self._empty_pressed
+                    and self.iface._acted(self._aimed, before, self.iface.cell_of) is None):
+                # r678 (a): empty board was already probed here once; the press goes elsewhere
+                _was, _at, _by = action, self._aimed, by
+                _alt = self._explore(before)
+                if _alt is not None:
+                    action, by = _alt, "probe"
+                self.led.record(self.cycle, "PLAN", "@loop", "empty_refused", was=_was, at=_at,
+                                by_was=_by, now=action, aim_now=self._aimed,
+                                reads="this empty cell was pressed already on this board; the "
+                                      "press is re-aimed through the probe (r678 a)")
+            if _ROUTINE_TOUCH:
+                self._rt_press = by == "routine"
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
             if (_CONTACT_FIRST or _ROUTE_NAMED) and (by == "routine"

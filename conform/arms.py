@@ -859,6 +859,16 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_GOAL_CONTINGENT": "A TIE IS NOT A CHOICE (the reviewer 2026-11-01 r678 (b)): among "
+                              "goal hypotheses at one price, those about a slot the agent's own "
+                              "presses turn (Agency.contingent) are tried first; the choice row "
+                              "books contingent_first and pick_contingent. OFF is the line before "
+                              "it exactly",
+    "TETHER_ROUTINE_TOUCH": "A PRESS THAT TOUCHES NOTHING ENDS ITS ROUTINE (the reviewer "
+                            "2026-11-01 r678 (a)): a routine whose own press made no contact ends "
+                            "('no_contact', a non-trial); an aimed press onto an empty cell "
+                            "already pressed empty on this board is re-aimed through the probe "
+                            "(row empty_refused). OFF is the line before it exactly",
     "TETHER_PROBE_NO_RESTART": "A PROBE DOES NOT RESTART THE LEVEL (the reviewer 2026-11-01 "
                                "r674 5; the audit: lp85 round 9, 7 of 32 presses were probe "
                                "RESETs): while the board is live the exploratory realisations "
