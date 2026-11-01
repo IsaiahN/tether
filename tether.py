@@ -406,6 +406,7 @@ PHASE_OF: dict[str, str] = {
     "probe": I.PROBE,
     "draw": I.PROBE,
     "given": I.PROBE,          # handed in by the caller: not a choice this loop made
+    "terminal": I.DIRECTED,    # TETHER_TERMINAL_RESET: a dead board, the restart (r669 1)
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
@@ -2320,6 +2321,13 @@ def _seed_at_birth() -> dict:
 # no counter and no quota, exactly as the unexplored-contact count is System 0's.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _STARVED_CONTACT = armflag.arm("TETHER_STARVED_CONTACT", default=True)
+
+# TERMINAL RESET (Isaiah 2026-11-01 06:47, r669 1, "fix in the agent"): on a dead board (retarget
+# how=death) the episode has ended and only a restart is open, so choose() takes the press whose
+# known effect is RESTARTS (Interface.restart_open); and a positioned action leaves step only with
+# an aim -- unaimed, the press is re-realised among the unpositioned offers. Through the gateway
+# either press would end the game (HTTP 400 / 500). OFF: as before.
+_TERMINAL_RESET = armflag.arm("TETHER_TERMINAL_RESET", default=True)
 
 # THE SATISFACTION PREDICATE'S SPELLING, AND IT EXISTS BECAUSE OF AN `A6i` OF MINE.
 # `condition.py`'s grammar is `expr := INSTRUMENT(args) | SLOT | NUMBER` -- **a bare SLOT is an
@@ -12555,6 +12563,14 @@ class Agent:
         # routine or probe exit carried the PREVIOUS cycle's value onto its REPEAT row.
         self._gamma_read = {}
         self._split_term, self._routine_fed, self._last_real = None, [], None
+        if _TERMINAL_RESET and not self._alive:
+            _open = self.iface.restart_open(self.iface.adjacent(tuple(self.actions)),
+                                            IFace.Interface.context(self.env))
+            if _open:
+                self.led.record(self.cycle, "PLAN", "@loop", "terminal_reset", action=_open[0],
+                                reads="the board is dead: the episode ended and only a restart "
+                                      "is open here (r669 1)")
+                return _open[0], "terminal"
         # why a held hypothesis did or did not act this cycle, for the repeat row (18:40 (iii))
         self._hyp_why = (None if not _GOAL_HYP or self._hyp is None
                          else "a held routine acted first")
@@ -19212,6 +19228,18 @@ class Agent:
         if action is None:
             _h = self._hyp
             action, by = self.choose(before)
+            if _TERMINAL_RESET and action in IFace.POSITIONED and self._aimed is None:
+                # r669 1: a positioned action never leaves without an aim; it is re-realised among
+                # the unpositioned offers (the same ELICIT intent the probe exits ask for)
+                _was, _want = action, IFace.Intent(IFace.ELICIT)
+                _r = self.iface.realise(_want, tuple(a for a in self.actions
+                                                     if a not in IFace.POSITIONED),
+                                        IFace.Interface.context(self.env), before, self.env,
+                                        withheld=self._withheld)
+                action, by = (self._took(_r, _want), "probe") if _r is not None else (None, by)
+                self.led.record(self.cycle, "PLAN", "@loop", "unaimed_refused", was=_was,
+                                now=action, reads="a positioned action with no aim is not sent; "
+                                                  "through the gateway it ends the game (r669 1)")
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
             if (_CONTACT_FIRST or _ROUTE_NAMED) and (by == "routine"

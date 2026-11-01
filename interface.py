@@ -1265,6 +1265,11 @@ class Interface:
         return sum(1 for d in to for b in offered
                    if b != RESET and self._known_now(b, d) is None)
 
+    def restart_open(self, offered: tuple[str, ...], ctx: tuple) -> tuple[str, ...]:
+        """TETHER_TERMINAL_RESET (Isaiah 2026-11-01 06:47, r669 1): on a dead board the episode has
+        ended and only a restart is open -- the offered actions whose known effect is RESTARTS."""
+        return tuple(a for a in offered if self._known_effect(a, ctx) == RESTARTS)
+
     def _known_effect(self, a: str, ctx: tuple) -> str:
         """What `a` is KNOWN to do in this context, as a kind the agent can price. RESET's is the
         platform's documented consequence, inherited like ACTION6 taking a position."""

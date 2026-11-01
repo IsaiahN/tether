@@ -849,6 +849,13 @@ ARMS: dict[str, str] = {
                              "before it exactly. "
                              "default ON (Isaiah 2026-10-15 07:53, 17:26); the switch is kept for "
                              "the checklist's culprit isolation",
+    "TETHER_TERMINAL_RESET": "TERMINAL RESET (Isaiah 2026-11-01 06:47, r669 1, 'fix in the "
+                             "agent'): on a dead board choose() takes the press whose known "
+                             "effect is RESTARTS (Interface.restart_open; row terminal_reset, exit "
+                             "'terminal'), and a positioned action with no aim is re-realised "
+                             "among the unpositioned offers (row unaimed_refused). Through the "
+                             "gateway either press ended the game (HTTP 400 / 500, rehearsal 2 "
+                             "sp80 and dc22). OFF is the line before it exactly",
     "TETHER_RESET_ADJACENT": "RESET ADJACENCY (Isaiah 2026-09-29 'no consecutive resets'; "
                              "the reviewer 2026-10-25 22:21, 22:46; PLAY11 round 2's c12-c13 "
                              "RESET,RESET chosen by Interface.undirected): the flag is set where "
