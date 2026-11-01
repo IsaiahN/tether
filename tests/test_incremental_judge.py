@@ -2,9 +2,10 @@
 Minimal gates, each in its own process.
   check_identity_and_long_life
                       THE MUST-HOLD: six movers (r481's fixture), 60 steps: the ON and OFF ledgers
-                      identical row for row, the timing fields and the arms row aside; THE
-                      MUST-FAIL, the same runs: the history rows _left walks and ROUTE's seconds
-                      per step, OFF vs ON, as series; ON walks fewer in all and in the second half
+                      identical row for row, the timing fields and the arms row aside; and REPORTED,
+                      the same runs: the history rows _left walks and ROUTE's seconds per step, OFF
+                      vs ON, as series, and the change in rows walked (r610: a cost is reported,
+                      never asserted: the pair reads 22 on top of whatever else is in the tree)
   check_off_identity  TETHER_INCREMENTAL_JUDGE=0 (off_env) against 2d0df39, fake, whole-run
     python tests/test_incremental_judge.py [check ...]
 """
@@ -140,8 +141,13 @@ def check_identity_and_long_life() -> None:
     print(f"  ROUTE s per step ON:  {r_on}")
     print(f"  ROUTE sum OFF {sum(r_off):.1f} s, ON {sum(r_on):.1f} s")
     assert sum(s_off) > 0, "the fixture walks no history OFF: the arm cannot be read"
-    assert sum(s_on) < sum(s_off) and sum(s_on[half:]) < sum(s_off[half:]), (
-        "STOP: ON walks no fewer rows", sum(s_on), sum(s_off))
+    # THE COST IS REPORTED, NOT ASSERTED (the reviewer 2026-10-31 r610, r579). The pair is 22 alone
+    # (ON vs TETHER_INCREMENTAL_JUDGE=0), so with arms 20 and 23 in the tree it reads 22 on top of
+    # them: on the merged tree 5be0c46, -0.06% (40,737,957 -> 40,711,776 rows), where 22 alone at
+    # a2aae88 read -15%
+    pct = 100.0 * (sum(s_on) - sum(s_off)) / sum(s_off)
+    print(f"  COST, REPORTED: rows _left walked ON vs OFF {pct:+.2f}% overall; second half "
+          f"{sum(s_off[half:])} -> {sum(s_on[half:])}")
 
 
 def check_off_identity() -> None:
