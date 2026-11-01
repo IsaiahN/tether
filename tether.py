@@ -533,7 +533,7 @@ def arms_today() -> dict:
     names = {"tether": ("_TERMINAL_RESET", "_S1_CONTACT_ONLY", "_PLAN_EPISODES",
                         "_CARRIED_BEFORE_MINT", "_S2_STALL", "_DISCRIMINATE", "_MISS_GRADE",
                         "_FC_CONTACT", "_PROBE_NO_RESTART", "_GOAL_CONTINGENT", "_ROUTINE_TOUCH",
-                        "_BOND_INC", "_RESET_REASON"),
+                        "_BOND_INC", "_RESET_REASON", "_COUNTERS"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL"),
              "interface": ("_ACTION_CARRY",)}
     mods = {"tether": sys.modules[__name__], "gamma": _g, "interface": _i}
@@ -2407,6 +2407,10 @@ _BOND_INC = armflag.arm("TETHER_BOND_INC", default=True)
 # RESET by system0): on a live board only `terminal` or a `routine` may press RESET; any other
 # chooser's RESET is re-realised through the probe offer (which leaves RESET out), each booked.
 _RESET_REASON = armflag.arm("TETHER_RESET_REASON", default=True)
+# THE FOUR COUNTERS (the reviewer 2026-11-01 r692 4; checklist Q6/Q8/Q16/Q21), books only, no choice
+# reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
+# press_carried (a press realised as a carried kind cell's test).
+_COUNTERS = armflag.arm("TETHER_COUNTERS", default=True)
 _BOND_INC_CHECK = armflag.arm("TETHER_BOND_INC_CHECK")
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
@@ -3227,6 +3231,7 @@ class Agent:
         # step; the empty-board cells pressed on this board
         self._untouched, self._rt_press, self._empty_pressed = False, False, set()
         self._bond_inc: dict = {}    # TETHER_BOND_INC: slot -> its frames' ids, each pair's fold
+        self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
@@ -4251,6 +4256,8 @@ class Agent:
             self._empty_pressed.clear()
         if _BOND_INC and how != "death":
             self._bond_inc.clear()         # a new board's slots: their folds start again
+        if _COUNTERS and how != "death":
+            self._pressed_seen.clear()
         self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts = 1
@@ -10214,6 +10221,11 @@ class Agent:
             self.env.step(action)
         self.iface.note_sent(action)   # TETHER_RESET_ADJACENT: the flag from the press as sent
         self._pressed = True
+        if _COUNTERS:     # r692 4 (Q6): a press (action, cell) never made before on this board
+            _pk = (action, tuple(coord) if coord is not None else None)
+            if _pk not in self._pressed_seen:
+                self._pressed_seen.add(_pk)
+                self.gamma.book["press_new"] = self.gamma.book.get("press_new", 0) + 1
         after = self.env.observe()
         if _m0 is not None:
             # THE CONTACT IS READ OFF THE CELLS: an object is in contact when the cells it covers
@@ -15810,6 +15822,8 @@ class Agent:
         if want is not None:
             self._intent_kinds.add(want.kind)
             self._note_decision(want, r)
+        if _COUNTERS and getattr(r, "mode", None) == "kind_test":   # r692 4 (Q16)
+            self.gamma.book["press_carried"] = self.gamma.book.get("press_carried", 0) + 1
         return r.action
 
     def _r4_repeat(self) -> dict:
@@ -18834,6 +18848,12 @@ class Agent:
             if self._cand_level.get(name) != self.level:
                 continue
             self.gamma.settle(name, where=self._scope, slot=slot)
+            if _COUNTERS:     # r692 4 (Q8, Q21): what settles, by where it came from
+                bk = self.gamma.book
+                if (self.gamma.stamps.get(name) or {}).get("origin") == MINTED:
+                    bk["settle_minted"] = bk.get("settle_minted", 0) + 1
+                if name in self.gamma.carried:
+                    bk["settle_carried"] = bk.get("settle_carried", 0) + 1
             if _LIBRARY_EXPLAINS and self._served.get(slot, ("",))[0] == name:
                 bits = self._served.pop(slot)[1]
                 ex, over = self.explain(slot, bits)
