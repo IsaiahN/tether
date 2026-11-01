@@ -10650,8 +10650,10 @@ class Agent:
         # ARM L AT THE LOOKUP'S OWN SITE. This loop is the other half of the operand axis and
         # was never bounded -- see `_delta_narrowed`. Same rule, same arm, one switch.
         cands = [b for b in self.slots if b != slot]
-        if _S1_CONTACT_ONLY and getattr(self, "_contact_slots", None) is not None:
-            cands = [b for b in cands if b in self._contact_slots]   # r669 7: the contact only
+        if _S1_CONTACT_ONLY and getattr(self, "_contact_slots", None):
+            # r669 7: the contact only -- and an EMPTY contact (a press that touched nothing)
+            # narrows nothing, or no operand term could re-bind on that step (r694 deep dive, row 2)
+            cands = [b for b in cands if b in self._contact_slots]
         if G_KIND_ATTR and term.operand and "?" in term.operand:
             # r669 10: a kind-level operand re-binds only to slots of the same attribute
             cands = [b for b in cands if Gamma.unbound_form(b) == term.operand]
