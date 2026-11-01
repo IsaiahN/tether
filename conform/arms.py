@@ -859,6 +859,13 @@ ARMS: dict[str, str] = {
                         "attribute form ('?.row'), not only where the bare chain is a PRIOR "
                         "atom, and _rebindings re-binds such a term only to slots of that "
                         "form. OFF is the line before it exactly",
+    "TETHER_FIRST_CONTACT_CARRIED": "F6 FIRST CONTACT USES CARRIED KINDS (Isaiah 2026-11-01 "
+                                    "06:47; r669 10): replay keeps the attribute form of each "
+                                    "slot a carried term was settled on (gamma.settled_forms), "
+                                    "and a slot met for the first time on a board, holding no "
+                                    "term, bets with the one carried kind settled on its "
+                                    "attribute, re-bound (row first_contact). OFF is the line "
+                                    "before it exactly",
     "TETHER_PLAN_EPISODES": "S2 PLAN EPISODES (Isaiah 2026-11-01 06:47 'dont think of goal "
                             "planning time as a step speed issue'; r669 8): _g1_wants and "
                             "_derived_wants run only in a planning episode the agent opens on its "

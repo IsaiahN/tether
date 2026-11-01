@@ -408,6 +408,10 @@ _PRIOR_CODE = armflag.arm("TETHER_PRIOR_CODE", default=True)
 # cause crosses as a kind-level reference (inc.dec<o1.row> and inc.dec<o1.colour> stay two kinds);
 # the lookup re-binds such a term only to slots of the same attribute form. OFF: as before.
 _KIND_ATTR = armflag.arm("TETHER_KIND_ATTR", default=True)
+# F6 FIRST CONTACT USES CARRIED KINDS (Isaiah 2026-11-01 06:47; r669 10): replay keeps the
+# attribute form of each slot a carried term was settled on, and a slot met for the first time
+# bets with the one carried kind settled on its attribute (tether._first_contact). OFF: neither.
+_FIRST_CONTACT = armflag.arm("TETHER_FIRST_CONTACT_CARRIED", default=True)
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
@@ -1030,6 +1034,8 @@ class Gamma:
         # only when the lineage carry sets keep_evidence (lineage.py); empty otherwise.
         self.keep_evidence = False
         self.evidence: list[list] = []
+        # F6: name -> the unbound forms of the slots the carried evidence settled it on (replay)
+        self.settled_forms: dict[str, set[str]] = {}
         self.innate: set[str] = set()   # 7i: names whose standing a refute never moves
         # name -> the two verdicts that promoted it. A dict rather than a set because
         # `primitive requires both` is only checkable if both are on the record.
@@ -1155,6 +1161,9 @@ class Gamma:
                     continue
                 self.tick = t
                 (self.settle if kind == "settle" else self.refute)(name, tup(where), slot)
+                if _FIRST_CONTACT and kind == "settle" and isinstance(slot, str):
+                    # the attribute it was settled on, never the board's slot (A1 holds)
+                    self.settled_forms.setdefault(name, set()).add(self.unbound_form(slot))
                 out[kind] += 1
                 st = self.standing[name]
                 st.settled_on.clear()

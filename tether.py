@@ -48,6 +48,7 @@ import retrieval
 import routine as Rt
 import store as door  # the one door; `store` is a local name in three methods
 from gamma import _CARRY_W as G_CARRY_W
+from gamma import _FIRST_CONTACT as G_FIRST_CONTACT
 from gamma import _KIND_ATTR as G_KIND_ATTR
 from gamma import _PRIOR_CODE as G_PRIOR_CODE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
@@ -3152,6 +3153,7 @@ class Agent:
         # TETHER_PLAN_EPISODES (r669 8): the agent's own reasons to plan, gathered since the last
         # episode; empty means the plan in hand stands and the step does no goal planning
         self._episode_why: list[str] = ["no plan yet"]
+        self._fc_seen: set[str] = set()   # F6: slots already met at first contact this board
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
@@ -4170,6 +4172,8 @@ class Agent:
         self._alive, self._epoch = how != "death", self._epoch + 1
         if _PLAN_EPISODES:
             self._episode_why.append(f"a boundary ({how})")
+        if G_FIRST_CONTACT and how != "death":
+            self._fc_seen.clear()          # a new board: its slots are met for the first time
         self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts = 1
@@ -10051,6 +10055,8 @@ class Agent:
         _derived = getattr(self.env, "derived", None)
         _derived = _derived() if _derived is not None else {}
         betting = [s for s in betting if s not in _derived]
+        if G_FIRST_CONTACT and self.gamma.settled_forms:
+            self._first_contact(betting)
         self._pred_by = {s: self.bound.get(s) for s in betting}
         pred = {s: self._predict(s, before, action) for s in betting}
         raw = {s: self._pred_raw.get(s) for s in betting if pred[s] is not None}
@@ -10498,6 +10504,58 @@ class Agent:
                     cap.head()
                     yield Term(term.atoms, operand=b, guard=g,
                                operand_term=term.operand_term)
+
+    def _first_contact(self, betting: list) -> None:
+        """F6 FIRST CONTACT USES CARRIED KINDS (Isaiah 2026-11-01 06:47; r669 10). A slot holding
+        no term, met for the first time on this board, bets with the carried kind the ground
+        settled on that slot's attribute in an earlier game, re-bound here, so its first
+        prediction is the inherited one and the ground judges it from the first press. Only a
+        unique inheritance binds -- one carried kind for the attribute and, for a kind-level
+        operand, one other slot of that operand's form, type-fitting; anything else is left to
+        the residual and route, as before."""
+        new = [s for s in betting if s not in self.bound and s not in self._fc_seen]
+        if not new:
+            return
+        self._fc_seen.update(new)
+        lib, forms, bk = self.gamma.library, {}, self.gamma.book
+        slot_form: dict | None = None
+
+        def _fc_book(_b: dict, key: str) -> None:    # undeclared in BOOKS, so OFF stays exact
+            bk[key] = bk.get(key, 0) + 1
+        for n, fs in self.gamma.settled_forms.items():
+            if n in self.gamma.carried and n in lib:
+                for f in fs:
+                    forms.setdefault(f, []).append(n)
+        for s in new:
+            cap.head()
+            ks = forms.get(Gamma.unbound_form(s), ())
+            if len(ks) != 1:
+                if ks:
+                    _fc_book(self.gamma.book, "first_contact_ambiguous")
+                continue
+            k = lib[ks[0]]
+            if k.operand and "?" not in k.operand:
+                continue                   # an operand naming another board's object
+            if k.operand and slot_form is None:
+                slot_form = {}
+                for b in self.slots:
+                    slot_form.setdefault(Gamma.unbound_form(b), []).append(b)
+            ops = [b for b in slot_form.get(k.operand, ()) if b != s] if k.operand else [None]
+            fits = [k if b is None else Term(k.atoms, operand=b, guard=k.guard,
+                                             operand_term=k.operand_term)
+                    for b in ops if len(ops) == 1 and self._operand_fits(k, s, b)]
+            if len(fits) != 1:
+                _fc_book(self.gamma.book, "first_contact_ambiguous")
+                continue
+            n = self._take_pull(k.name, fits[0], s)
+            self._serve(s, n)
+            self.bound[s] = n
+            self._carry(n)
+            self.rank.note(n, self.cycle)
+            _fc_book(self.gamma.book, "first_contact_bound")
+            self.led.record(self.cycle, "PERCEIVE", s, "first_contact", term=n, kind=k.name,
+                            reads="a slot met for the first time bets with the carried kind "
+                                  "settled on its attribute; the ground judges it this press")
 
     def _take_pull(self, n: str, cand: Term, slot: str, carry: dict | None = None) -> str:
         """Bind a library pull: install a re-binding if it is new, and write the pull row."""
