@@ -1133,6 +1133,17 @@ class Interface:
         # D-WIN-RESET: on a live board RESET is known, never an unknown to elicit
         known_a_priori = {RESET} if (_RESET_KNOWN and self.alive) else set()
         unmapped = [a for a in offered if a not in self.table and a not in known_a_priori]
+        if unmapped and _ACTION_CARRY and self.carried_kind and state and self.kind_of:
+            # r688 RECALL: among the actions never taken here, one the carried table says moves a
+            # kind on this board is tried first -- the inheritance as a test, never a skip
+            here = {self.kind_of(s) for s in state}
+            told = [a for a in unmapped
+                    if any(k[1] in here
+                           for k in self.carried_kind.get(a, {}).get("delta_kind", {}))]
+            if told:
+                r = _made(_pick(told), f"requested {asked}: never taken here, and the carried "
+                                       "table says it moves a kind on this board (a test)")
+                return _replace(r, mode="kind_test")
         if unmapped:
             return _made(_pick(unmapped), f"requested {asked}: never taken")
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
