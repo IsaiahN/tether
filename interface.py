@@ -238,6 +238,7 @@ def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
 
 
 KIND_FALLBACK_N: Counter = Counter()     # K3: realisations a kind answered ("lands" / "delta")
+CONTEXT_FAULTS: Counter = Counter()      # r696 row 14: context() reads that raised, by exception
 # THE AIMED ROUTE (the reviewer 2026-10-25 12:02, 12:17): a positioned action realised by a route
 # (BECOME's lands / delta / cell tier, TOUCH's route 2) carries a coordinate from the agent's own
 # record -- where its presses moved this slot in THIS situation and since its own last frame break
@@ -1637,7 +1638,8 @@ class Interface:
             return ()
         try:
             pts = fn() or ()
-        except Exception:                                  # noqa: BLE001
+        except Exception as e:                             # noqa: BLE001
+            CONTEXT_FAULTS[type(e).__name__] += 1          # r696 row 14: booked, never silent
             return ()
         kinds: dict[str, int] = {}
         for a, b, kind in pts:
