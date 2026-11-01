@@ -721,6 +721,13 @@ ARMS: dict[str, str] = {
     "TETHER_HYP_MOVABLE_CHECK": "(C)'s CHECK: inside the scope, every _movable_by also reads "
                                 "both per call and raises if either differs from the scoped "
                                 "read (a verification switch, never a play setting). default OFF",
+    "TETHER_FAULT_FORMATS": "F4 (the reviewer 2026-10-31 r603; the memory audit, P4). The write "
+                            "after an agent fault drops the faulted step's own terms by their "
+                            "residual. Residuals are written as {slot}@{c}, kind:{n}@{c}, "
+                            "reuse:{slot}@{c}:{stamp} and {m}@{c}:event:{p}. ON: the cycle "
+                            "followed by ':' or the end matches. OFF: endswith('@{c}'), which "
+                            "the last two forms never meet, so their terms were carried. "
+                            "default ON",
     "TETHER_DORMANT_TERM_FORM": "(c) THE DORMANT ITEM WRITTEN WHOLE (the reviewer 2026-10-22 "
                                 "20:57): a boundary item's live Terms (its want_terms copy) are "
                                 "written by lineage.write in their term-row form "
