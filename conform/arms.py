@@ -866,6 +866,11 @@ ARMS: dict[str, str] = {
                            "live board only terminal or a routine may press RESET; any other "
                            "chooser's RESET is re-realised through the probe offer (row "
                            "reset_refused, book reset_refused). OFF is the line before it exactly",
+    "TETHER_RELATION_BET": "RELATIONS ARE BET ON (the reviewer 2026-11-01 r688, C7): a derived "
+                           "pair slot whose relation surprised while its sources held becomes a "
+                           "subject on this board (its residual enters route, it is bet on as "
+                           "itself, a term may be bound or minted for it); book relation_subject. "
+                           "OFF is the line before it exactly",
     "TETHER_ACTION_CARRY": "THE ACTION TABLE CARRIES BY KIND (the reviewer 2026-11-01 r688 "
                            "STORAGE/RECALL; Q17): the interface's kind tables (delta_kind, "
                            "lands_kind; name-free) are written to the lineage (action_kinds) and "

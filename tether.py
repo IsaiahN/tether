@@ -533,7 +533,7 @@ def arms_today() -> dict:
     names = {"tether": ("_TERMINAL_RESET", "_S1_CONTACT_ONLY", "_PLAN_EPISODES",
                         "_CARRIED_BEFORE_MINT", "_S2_STALL", "_DISCRIMINATE", "_MISS_GRADE",
                         "_FC_CONTACT", "_PROBE_NO_RESTART", "_GOAL_CONTINGENT", "_ROUTINE_TOUCH",
-                        "_BOND_INC", "_RESET_REASON", "_COUNTERS"),
+                        "_BOND_INC", "_RESET_REASON", "_COUNTERS", "_RELATION_BET"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL"),
              "interface": ("_ACTION_CARRY",)}
     mods = {"tether": sys.modules[__name__], "gamma": _g, "interface": _i}
@@ -2411,6 +2411,11 @@ _RESET_REASON = armflag.arm("TETHER_RESET_REASON", default=True)
 # reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
 # press_carried (a press realised as a carried kind cell's test).
 _COUNTERS = armflag.arm("TETHER_COUNTERS", default=True)
+# RELATIONS ARE BET ON (the reviewer 2026-11-01 r688 RELATIONS, the audit's C7): a derived pair slot
+# whose relation surprised (its sources were predicted right, the relation was not) becomes a
+# subject on this board -- that residual enters route, it is bet on as itself from then on, and a
+# term can be bound or minted for it; booked relation_subject. Other derived slots: as before (DS).
+_RELATION_BET = armflag.arm("TETHER_RELATION_BET", default=True)
 _BOND_INC_CHECK = armflag.arm("TETHER_BOND_INC_CHECK")
 
 # CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
@@ -3232,6 +3237,7 @@ class Agent:
         self._untouched, self._rt_press, self._empty_pressed = False, False, set()
         self._bond_inc: dict = {}    # TETHER_BOND_INC: slot -> its frames' ids, each pair's fold
         self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
+        self._rel_subjects: set = set()   # TETHER_RELATION_BET: relations that became subjects
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
@@ -4258,6 +4264,8 @@ class Agent:
             self._bond_inc.clear()         # a new board's slots: their folds start again
         if _COUNTERS and how != "death":
             self._pressed_seen.clear()
+        if _RELATION_BET and how != "death":
+            self._rel_subjects.clear()
         self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts = 1
@@ -4728,6 +4736,8 @@ class Agent:
         """DS: the slot is declared derived by this step's world (env.derived()), never by name."""
         if not _DERIVED_SUBJECT:
             return False
+        if _RELATION_BET and slot in self._rel_subjects:
+            return False                  # r688 C7: a relation that surprised is its own subject
         key = (self.cycle, len(self.trace), id(self.env))
         if self.__dict__.get("_ds_key") != key:
             der = self.env.derived() if hasattr(self.env, "derived") else {}
@@ -10182,7 +10192,8 @@ class Agent:
         # on the same evidence as others carries no information of its own.
         _derived = getattr(self.env, "derived", None)
         _derived = _derived() if _derived is not None else {}
-        betting = [s for s in betting if s not in _derived]
+        betting = [s for s in betting if s not in _derived
+                   or (_RELATION_BET and s in self._rel_subjects)]
         if G_FIRST_CONTACT and self.gamma.settled_forms:
             self._first_contact(betting)
         self._pred_by = {s: self.bound.get(s) for s in betting}
@@ -10862,6 +10873,8 @@ class Agent:
             cap.head()
             if k not in dpred or k not in after:
                 continue
+            if _RELATION_BET and k in self._rel_subjects:
+                continue                      # r688 C7: bet on as itself now; its own residual
             if not all(s in res and res[s].bits == 0 for s in srcs):
                 if after[k] != dpred[k]:
                     gaps, echo = gaps + 1, echo + 1
@@ -10872,7 +10885,13 @@ class Agent:
             surprised += 1
             gaps += 1
             bits = correction_bits(dpred[k] % self.alphabet[k], after[k], self.alphabet[k])
-            if _DERIVED_SUBJECT:
+            if _DERIVED_SUBJECT and _RELATION_BET and k not in self._rel_subjects:
+                # r688 C7: the first genuine relational surprise makes the relation a subject on
+                # this board -- its residual enters route, and from now on it is bet on as itself
+                self._rel_subjects.add(k)
+                bk = self.gamma.book
+                bk["relation_subject"] = bk.get("relation_subject", 0) + 1
+            elif _DERIVED_SUBJECT:
                 # DS (3): recorded once, never a residual -- route() never bins it
                 self.led.record(self.cycle, "PERCEIVE", k, "derived_new", of=tuple(srcs),
                                 inputs=list(srcs), from_value=before.get(k), derived=dpred[k],
