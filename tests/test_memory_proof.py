@@ -23,6 +23,13 @@ process, by name.
                                  a predictor (_pred_by not None). bound is emptied at every game
                                  and level start (tether.py 4045) and _pred_by is filled from it
                                  (9858), so nothing carried predicts before the first miss
+  check_p8_t1d_bounded_over_lives
+                                 AUDIT AT 1e9d4d5: FAIL; MEASURED: PASS (see EXPECTED). Three
+                                 lives on one lineage (the fake game, 30
+                                 steps each, each its own process): every lookup's T1d lists no
+                                 more than its T3 (today's lit), and the evaluations spent per
+                                 lookup do not rise from life 1 to life 3. T1d holds every entry
+                                 that ever compiled (tether.py 6016-6059)
     python tests/test_memory_proof.py [check ...]
 """
 from __future__ import annotations
@@ -40,7 +47,12 @@ sys.dont_write_bytecode = True
 EXPECTED = {"check_p1_kind_keeps_attribute": "FAIL",
             "check_p3_decay_across_lives": "PASS",     # F3a TETHER_DECAY_NEW_LIFE
             "check_p4_faulted_step_dropped": "PASS",   # F4 TETHER_FAULT_FORMATS
-            "check_p6_carried_press_term_predicts_at_step_1": "FAIL"}
+            "check_p6_carried_press_term_predicts_at_step_1": "FAIL",
+            # measured PASS, against the audit's FAIL: over 3 lives of 30 steps T1d stays under T3
+            # (max T1d - T3 -201, -96, -47) and spent per lookup falls (2876.5, 1938.8, 1978.4);
+            # but mean T1d GROWS 605.9 -> 786.1 -> 872.4 against a flat T3 ~1095, so the bound is
+            # approached, not held by construction
+            "check_p8_t1d_bounded_over_lives": "PASS"}
 
 LIFE = r'''
 import json, sys
@@ -59,6 +71,13 @@ if mode == "write":
     out["settled"] = sorted(t for t in ag.gamma.library if ag.gamma.is_settled(t)
                             and ag.gamma.library[t].origin != "prior")
     out["settled_press"] = [t for t in out["settled"] if "?TOUCH" in t or "?ACTED" in t]
+    ag.end_run("cap")
+    out["written"] = lineage.write(lin, ag, "fake")["written"]
+elif mode == "tiers":
+    rows = ag.led.rows()
+    out["tiers"] = [r["detail"]["listed"] for r in rows if r["event"] == "lookup_tiers"]
+    out["spent"] = [r["detail"]["spent"] for r in rows if r["event"] == "budget"]
+    out["lookups"] = sum(1 for r in rows if r["event"] == "lookup")
     ag.end_run("cap")
     out["written"] = lineage.write(lin, ag, "fake")["written"]
 else:
@@ -146,6 +165,23 @@ def check_p6_carried_press_term_predicts_at_step_1() -> None:
         print(f"  life 2 (parent {two['loaded_parent']}): after step 1, slots with a predictor "
               f"{len(two['pred_by'])} of {two['slots']} {dict(list(two['pred_by'].items())[:3])}")
         assert two["pred_by"], "nothing carried predicts at step 1 of a new life"
+
+
+def check_p8_t1d_bounded_over_lives() -> None:
+    with tempfile.TemporaryDirectory() as lin:
+        lives = [_life(lin, "tiers", 30) for _ in range(3)]
+    worst, per_lookup = [], []
+    for i, lv in enumerate(lives, 1):
+        over = [t.get("T1d", 0) - t.get("T3", 0) for t in lv["tiers"]]
+        worst.append(max(over) if over else None)
+        per_lookup.append(round(sum(lv["spent"]) / max(lv["lookups"], 1), 1))
+        mean_d = round(sum(t.get("T1d", 0) for t in lv["tiers"]) / max(len(lv["tiers"]), 1), 1)
+        mean_3 = round(sum(t.get("T3", 0) for t in lv["tiers"]) / max(len(lv["tiers"]), 1), 1)
+        print(f"  life {i}: lookups listed {len(lv['tiers'])}, mean T1d {mean_d}, mean T3 (lit) "
+              f"{mean_3}, max T1d - T3 {worst[-1]}; spent per lookup {per_lookup[-1]}")
+    assert all(lv["tiers"] for lv in lives), "PRECONDITION: a life listed no lookup; cannot fire"
+    assert all(w <= 0 for w in worst), ("T1d lists more than is lit", worst)
+    assert per_lookup[-1] <= per_lookup[0], ("spent per lookup rose over lives", per_lookup)
 
 
 def main() -> int:
