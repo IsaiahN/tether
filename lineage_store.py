@@ -681,7 +681,14 @@ def _rebuild(con: sqlite3.Connection, folder: str | Path, read: Any) -> list:
         raise
     con.execute("COMMIT")
     state = lineage.FoldState(lists=False)
-    return [{**merge_save(con, folder, h, read(h), state), "dag": "rebuild"} for h in order]
+    out = []
+    for h in order:
+        out.append({**merge_save(con, folder, h, read(h), state), "dag": "rebuild"})
+        # the save path's WAL bound (r794 3): every save rewrites the fold blob, so a rebuild with
+        # no checkpoint grew the WAL with saves x blob (17.6 GB at about save 120 of 250, 11-02)
+        if WAL_BOUND_BYTES is not None and wal_bytes(folder) > WAL_BOUND_BYTES:
+            out[-1]["wal_bound"] = {"wal_bytes": wal_bytes(folder), **checkpoint(con)}
+    return out
 
 
 # A2c CONTINUE, THE EXACT CASE ONLY (the reviewer 2026-11-02 r792): when fold's _topo order is the
