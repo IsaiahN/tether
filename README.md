@@ -14,9 +14,20 @@ grows by mapping a world against a ground it cannot argue with.
 - The figures it is built from are in [`figures/`](figures/), with the formula,
   [`figures/THE_FORMULA.md`](figures/THE_FORMULA.md).
 
-Branches: **`general-agent`** (this one: the agent) ·
-**[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)** (the same agent
-pointed at ARC-AGI-3). The code is identical on both; only the README differs.
+## The three branches
+
+- **[`core`](https://github.com/IsaiahN/tether/tree/core)**: the minimal kernel. The Tether loop,
+  gate and abstention on a toy symbolic world, about 1,600 lines. Read this first to see the
+  architecture whole.
+- **[`general-agent`](https://github.com/IsaiahN/tether/tree/general-agent)** (this one): the
+  full general learning agent. Domain-agnostic: the library of ~4,000 human-prior entries, the
+  lineage (generations, merge, graft), search, minting, the narrator. Where general work lands
+  first.
+- **[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)**:
+  `general-agent` plus the ARC-AGI-3 interface and the Kaggle runner. The competition build: it
+  receives `general-agent` by merge and adds only what ARC needs.
+
+Swap the interface, keep the lineage.
 
 ## What it is an example of
 
