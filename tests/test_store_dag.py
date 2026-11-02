@@ -168,8 +168,112 @@ def _synthetic(tmp: Path) -> dict:
             "ids": (r, a1, a2, b1, m, c)}
 
 
+def _tables(d: Path) -> dict:
+    con = lineage_store.open_store(d)
+    try:
+        out = {t: sorted(map(repr, con.execute(f"SELECT * FROM {t}")))
+               for t in (*lineage_store._TABLES, "meta")}
+    finally:
+        con.close()
+    return out
+
+
+def _hash(g: dict) -> str:
+    return hashlib.sha256(json.dumps(g, sort_keys=True, indent=1).encode("utf-8")).hexdigest()[:16]
+
+
+def _continue_case(tmp: Path, name: str, where: str, contest: bool) -> dict:
+    """A2c (r792): a linear store R, A1..A3; then a branch B off R, its hash picked so fold's
+    _topo puts it AFTER the chain or INSIDE it, and the merge. The store caught up through
+    catch_up (continue when it may) against a copy caught up with the continue arm OFF (the full
+    rebuild), table by table; and the continue forced, to show what the refusal prevents."""
+    d = tmp / name
+    d.mkdir()
+
+    def row(i, tag):
+        return {"handle": f"{tag}{i}", "atoms": [f"a{i % 5}"], "admitted": "candidate"}
+    r = _put(d, _gen(None, [row(i, "h") for i in range(12)], book={"k0": "r"}))
+    a1 = _put(d, _gen(r, [row(i, "a") for i in range(4)],
+                      [{"born": r, "handle": "h1", "admitted": "necessary"}], {"k1": "a"}))
+    a2 = _put(d, _gen(a1, status=[{"born": a1, "handle": "a2", "admitted": "promoted"}]))
+    a3 = _put(d, _gen(a2, [row(i, "c") for i in range(3)], book={"k2": "a"}))
+    con = lineage_store.open_store(d)
+    try:
+        lineage_store.catch_up(con, d)
+    finally:
+        con.close()
+    b = _gen(r, [row(i, "b") for i in range(4)],
+             [{"born": r, "handle": "h1" if contest else "h5", "admitted": "promoted"}],
+             {"k3": "b"})
+    ok = ((lambda h: h > max(a1, a2, a3)) if where == "after" else (lambda h: h < a1))
+    for i in range(10_000):
+        b["game"] = f"dag{i}"
+        if ok(_hash(b)):
+            break
+    assert ok(_put(d, b)), ("fixture: no hash in place", where)
+    m = lineage.merge(d)["hash"]
+    d_off, d_forced = tmp / f"{name}_rebuild", tmp / f"{name}_forced"
+    for x in (d_off, d_forced):
+        x.mkdir()
+        for f in d.glob(f"{lineage.PREFIX}*.json"):
+            shutil.copy(f, x / f.name)
+    con = lineage_store.open_store(d)
+    try:
+        paths = [x.get("dag") for x in lineage_store.catch_up(con, d)]
+    finally:
+        con.close()
+    lineage_store._CONTINUE = False
+    try:
+        for x in (d_off, d_forced):
+            con = lineage_store.open_store(x)
+            try:
+                if x == d_off:
+                    lineage_store.catch_up(con, x)
+                    continue
+                # the forced continue: the chain linear, then the new saves appended in _topo order
+                for h in (r, a1, a2, a3):
+                    lineage_store.merge_save(con, x, h, lineage._read(x)[h])
+                new = [h for h in lineage._topo(lineage._read(x)) if h not in (r, a1, a2, a3)]
+                for h in new:
+                    lineage_store.merge_save(con, x, h, lineage._read(x)[h],
+                                             lineage_store.CONTINUE)
+            finally:
+                con.close()
+    finally:
+        lineage_store._CONTINUE = True
+    order = lineage._topo(lineage._read(d))
+    _same(d)
+    return {"paths": paths, "b_at": order.index(_hash(b)), "of": len(order), "merge": m,
+            "equal": _tables(d) == _tables(d_off),
+            "forced_equal": _tables(d_forced) == _tables(d_off)}
+
+
+def _continue_cases(tmp: Path) -> dict:
+    after = _continue_case(tmp, "c_after", "after", contest=False)
+    assert after["paths"] == ["continue", "continue"], ("(ii) the exact case did not continue",
+                                                        after)
+    assert after["equal"], ("(ii) continue != the full rebuild, table by table", after)
+    inside = _continue_case(tmp, "c_inside", "inside", contest=False)
+    assert set(inside["paths"]) == {"rebuild"}, ("(i) a save inside the chain was not refused",
+                                                 inside)
+    assert inside["equal"] and not inside["forced_equal"], (
+        "(i) the refusal is load-bearing: forced, the continue differs from the rebuild", inside)
+    contest = _continue_case(tmp, "c_contest", "after", contest=True)
+    assert set(contest["paths"]) == {"rebuild"}, ("a contested save was not refused", contest)
+    assert contest["equal"] and not contest["forced_equal"], ("contest: forced must differ",
+                                                              contest)
+    return {"after": after, "inside": inside, "contest": contest}
+
+
 def main():
     tether._AGENT_SEED = False
+    cc = _continue_cases(Path(tempfile.mkdtemp(prefix="store_cont_")))
+    print("  A2c continue: (ii) B after the chain at {}/{} -> paths {}, equal to the rebuild table "
+          "by table; (i) B inside at {}/{} -> REFUSED (paths {}), forced continue differs; a "
+          "contested save -> REFUSED, forced differs".format(
+              cc["after"]["b_at"] + 1, cc["after"]["of"], cc["after"]["paths"],
+              cc["inside"]["b_at"] + 1, cc["inside"]["of"], sorted(set(cc["inside"]["paths"]))),
+          flush=True)
     assert lineage._MEMORY_STORE and getattr(lineage_store, "_DAG", True), "the store arms are ON"
     tmp = Path(tempfile.mkdtemp(prefix="store_dag_"))
     syn = _synthetic(tmp)
