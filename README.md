@@ -12,6 +12,20 @@ It is built on **The Tether** architecture:
   · [Substack](https://adventuresinml.substack.com/p/arrival-of-the-fittest-the-tether)
 - The figures and the formula are in [`figures/`](figures/).
 
+## The three branches
+
+- **[`core`](https://github.com/IsaiahN/tether/tree/core)**: the minimal kernel. The Tether loop,
+  gate and abstention on a toy symbolic world, about 1,600 lines. Read this first to see the
+  architecture whole.
+- **[`general-agent`](https://github.com/IsaiahN/tether/tree/general-agent)**: the full general
+  learning agent. Domain-agnostic: the library of ~4,000 human-prior entries, the lineage
+  (generations, merge, graft), search, minting, the narrator. Where general work lands first.
+- **[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)** (this one):
+  `general-agent` plus the ARC-AGI-3 interface and the Kaggle runner. The competition build: it
+  receives `general-agent` by merge and adds only what ARC needs.
+
+Swap the interface, keep the lineage.
+
 **The agent's code is the same as on `general-agent`.** For what the agent is and how it
 reasons, read [that README](https://github.com/IsaiahN/tether/tree/general-agent). What is
 particular to ARC is only the adapter and the harness below.
