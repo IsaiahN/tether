@@ -1898,11 +1898,10 @@ ARMS: dict[str, str] = {
                         "and keys. OFF: refused, and the load and save refold the archive. "
                         "default ON",
     "TETHER_STORE_CONTINUE": "A2c (the reviewer 2026-11-02 r792): under A2, when fold's _topo "
-                             "order is the store's chain followed by the new saves and no new "
-                             "save sets a row, status, book key or invented name that a save it "
-                             "does not descend from set, the new saves are appended in that "
-                             "order instead of the full rebuild. OFF: always the rebuild. "
-                             "default ON",
+                             "order is the store's chain followed by the new saves, the new "
+                             "saves are appended in that order through the rebuild's body, its "
+                             "FoldState seeded from the chain in memory, instead of the full "
+                             "rebuild. OFF: always the rebuild. default ON",
     "TETHER_STORE_KEY_MEMO": "W1 (S2V; the reviewer 2026-10-21 15:38): lineage_store._merge_kinds "
                              "keeps each kind value's JSON string for one merge, keyed on its "
                              "repr (1, True and 1.0 encode apart); other types encoded fresh. "
