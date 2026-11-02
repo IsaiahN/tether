@@ -2140,6 +2140,11 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_GOAL_SIGN_FLIP": "G CONTENT, A GOAL REACHED WITHOUT A CLEAR IS REFUTED (the reviewer "
+                             "2026-11-01 r744): its (subject, sign) is refuted for this board, "
+                             "the opposite sign on that subject ranks first and the refuted sign "
+                             "last, after the shelf order. OFF: the next pick ignores it "
+                             "(528b285). default ON",
     "TETHER_GOAL_BY_MOVED": "G, GOALS RANKED BY WHAT THIS BOARD'S PRESSES MOVED (the reviewer "
                             "2026-11-01 r730, r736): a goal candidate whose subject slot this "
                             "board's own presses moved (credited, net of I-B, never at a seam) "

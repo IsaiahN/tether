@@ -537,7 +537,8 @@ def arms_today() -> dict:
                         "_WIN_CREDIT", "_BOARD_BOUNDARY", "_FIT_BOUND", "_REACH_GATE",
                         "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
                         "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
-                        "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT", "_GOAL_BY_MOVED"),
+                        "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT", "_GOAL_BY_MOVED",
+                        "_GOAL_SIGN_FLIP"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2491,6 +2492,21 @@ _KIND_TOUCH_FELT = armflag.arm("TETHER_KIND_TOUCH_FELT", default=True)
 # never at a seam) now ranks ahead of the rest, after the shelf order and before bits.
 # OFF: as before
 _GOAL_BY_MOVED = armflag.arm("TETHER_GOAL_BY_MOVED", default=True)
+# G CONTENT, GOAL_SIGN_FLIP (the reviewer 2026-11-01 r744): a goal that ARRIVED without a clear
+# (or ended in a loss) went to _hyp_tried and nothing else read it, so the next pick held the same
+# subject the same way (lp85: "o40.row > o25.row" arrived x3, no level; next "o40.row > o38.row").
+# Its (subject, sign) is now refuted for this board: a candidate with the opposite sign on that
+# subject ranks first, the refuted sign last, after the shelf order. Cleared at new_board.
+# OFF: as before
+_GOAL_SIGN_FLIP = armflag.arm("TETHER_GOAL_SIGN_FLIP", default=True)
+_GOAL_CMP = re.compile(r"^\s*(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-z0-9_~]*)\s*(<|>)\s*")
+_GOAL_OPP = {"<": ">", ">": "<"}
+
+
+def _goal_sign(text: str) -> tuple | None:
+    """GOAL_SIGN_FLIP: (subject slot, '<' or '>') of an ordered goal's text, else None."""
+    m = _GOAL_CMP.match(text or "")
+    return (m.group(1), m.group(2)) if m else None
 # THE FOUR COUNTERS (the reviewer 2026-11-01 r692 4; checklist Q6/Q8/Q16/Q21), books only, no choice
 # reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
 # press_carried (a press realised as a carried kind cell's test).
@@ -3343,6 +3359,7 @@ class Agent:
         self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
         self._board_touched: set = set()  # C2: objects System 0 touched on this board
         self._board_moved: set = set()    # G: slots this board's presses moved (credited)
+        self._goal_refuted: set = set()   # G: (subject, sign) arrived without a clear, this board
         self._rel_subjects: set = set()   # TETHER_RELATION_BET: relations that became subjects
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
@@ -4388,6 +4405,7 @@ class Agent:
         if how != "death":
             self._board_touched.clear()    # C2: a new board's objects are touched once here
             self._board_moved.clear()      # G: what this board's presses moved
+            self._goal_refuted.clear()     # G: the refuted signs are this board's
         if _RELATION_BET and how != "death":
             self._rel_subjects.clear()
         if _BOARD_BOUNDARY and how != "death":
@@ -7448,6 +7466,8 @@ class Agent:
             why, ended_by = "untested", why
         else:
             self._hyp_tried[h["tkey"]] = (why, h.get("cond"), h["text"])
+            if _GOAL_SIGN_FLIP and loss and not won and (sg := _goal_sign(h["text"])):
+                self._goal_refuted.add(sg)      # G: arrived without a clear, or lost
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
         self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
@@ -7643,7 +7663,11 @@ class Agent:
                     rec = self._goal_shelf.get(s, {}).get("record", {}) if s else {}
                     rank = 1 if rec.get("progress", 0) else 2
                 mv = 0 if (_GOAL_BY_MOVED and c.slot in self._board_moved) else 1   # G
-                out.append(((rank, mv, round(bits, 6)), text, c, tk, s))
+                flip = 1
+                if _GOAL_SIGN_FLIP and self._goal_refuted and (sg := _goal_sign(text)):
+                    flip = (2 if sg in self._goal_refuted else
+                            0 if (sg[0], _GOAL_OPP[sg[1]]) in self._goal_refuted else 1)
+                out.append(((rank, flip, mv, round(bits, 6)), text, c, tk, s))
             return out
 
         cands = _admit(phases[0])
@@ -16260,6 +16284,7 @@ class Agent:
         nothing here ranges over more than the ONE slot the selector chose.
         """
         if _BOARD_TRY_FIRST and self._try_first_open():
+            self._split_why = "try_first"   # the refusal row names the hold, not None
             return None                  # TRY_FIRST: this board's buttons are pressed first
         # ITEM 3 GATES ITEM 2. Before the selector this ranged over EVERY OBJ-bound slot,
         # which is *pursue whichever objective happened to bind* -- and it measurably chose to
