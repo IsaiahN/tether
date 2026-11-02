@@ -2142,9 +2142,14 @@ ARMS: dict[str, str] = {
                               "default OFF",
     "TETHER_GOAL_FROM_ACTUATOR": "G, CONTINUE <ACTUATOR> AHEAD OF THE LIBRARY'S RELATIONS (the "
                                  "reviewer 2026-11-01 r746): each object whose touch was credited "
-                                 "a change is continued by a TOUCH of it, strongest first; a press "
-                                 "with no credited change, or a state already seen, refutes it. "
-                                 "OFF: no actuator goal (ade07bb). default ON",
+                                 "a change net of the per-press baseline is continued by a TOUCH "
+                                 "of it, strongest first; a press with no net change, or a state "
+                                 "already seen, refutes it. OFF: no actuator goal (ade07bb). "
+                                 "default ON",
+    "TETHER_PAIR_BOUND": "E, A PAIR THAT CANNOT BEAT A SINGLE IS NOT PRICED (lp85's first clear, "
+                         "2026-11-01): a goal-condition pair whose cost alone exceeds the "
+                         "cheapest single's total is skipped; the pick is identical. OFF: "
+                         "every necessary pair priced (7cc5d1c). default ON",
     "TETHER_GOAL_SIGN_FLIP": "G CONTENT, A GOAL REACHED WITHOUT A CLEAR IS REFUTED (the reviewer "
                              "2026-11-01 r744): its (subject, sign) is refuted for this board, "
                              "the opposite sign on that subject ranks first and the refuted sign "

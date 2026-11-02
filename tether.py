@@ -539,7 +539,7 @@ def arms_today() -> dict:
                         "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
                         "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
                         "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT", "_GOAL_BY_MOVED",
-                        "_GOAL_SIGN_FLIP", "_GOAL_FROM_ACTUATOR"),
+                        "_GOAL_SIGN_FLIP", "_GOAL_FROM_ACTUATOR", "_PAIR_BOUND"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2508,6 +2508,11 @@ _GOAL_SIGN_FLIP = armflag.arm("TETHER_GOAL_SIGN_FLIP", default=True)
 # continuing it, ARRIVED without a clear and refutes that actuator; the next one follows. No count,
 # no constant. Cleared at new_board, kept at death. OFF: no actuator goal
 _GOAL_FROM_ACTUATOR = armflag.arm("TETHER_GOAL_FROM_ACTUATOR", default=True)
+# E, PAIR_BOUND (lp85's first clear, 2026-11-01): at a completion with one reached step every
+# single is "necessary", so _goal_pairs priced pairs quadratically until the game's thinking
+# deadline cut the sweep (no step after it). A pair whose cost alone exceeds the cheapest single's
+# total can neither be the pick nor tie it, so it is not priced; the pick is identical. OFF: all
+_PAIR_BOUND = armflag.arm("TETHER_PAIR_BOUND", default=True)
 _GOAL_CMP = re.compile(r"^\s*(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-z0-9_~]*)\s*(<|>)\s*")
 _GOAL_OPP = {"<": ">", ">": "<"}
 
@@ -7973,12 +7978,24 @@ class Agent:
                       if all(compile_term.run(x[5], st) is True for st in reached)),
                      key=lambda x: x[4])
         out = []
+        self._pair_bounded = 0
+        if _PAIR_BOUND and singles and len(nec) >= 2:
+            best = min(x[0] for x in singles)
+            size = {x[4]: self.gamma.length(x[5].term) for x in nec}
+            s1, s2 = sorted(size.values())[:2]
+            if term_bits(s1 + s2 + 1, self.gamma.alphabet) > best:
+                self._pair_bounded = len(nec) * (len(nec) - 1) // 2   # none can beat a single
+                return out
         for i, a in enumerate(nec):
             cap.head()
             for b in nec[i + 1:]:
                 cap.head()
                 if a[4] == b[4]:
                     continue                    # identical parts are not a pair
+                if _PAIR_BOUND and term_bits(size[a[4]] + size[b[4]] + 1,
+                                             self.gamma.alphabet) > best:
+                    self._pair_bounded += 1     # its cost alone exceeds the cheapest single
+                    continue
                 pair = _Pair((a[5], b[5]))
                 cost, left, e = self._goal_price([pair], rows)
                 out.append((cost + left, cost, left, e, f"{a[4]} and {b[4]}", pair))
@@ -8085,7 +8102,9 @@ class Agent:
                 cands.insert(0, cands.pop(next(i for i, x in enumerate(cands) if x[4] == _a1k)))
         detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
                   "conditions": len(cands), "refused": dict(refused),
-                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain, "lag": lag},
+                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain, "lag": lag,
+                              **({"pair_bounded": self._pair_bounded}
+                                 if _PAIR_BOUND and _GOAL_PAIR else {})},
                   "cheapest": [{"if": x[4], "cost": round(x[1], 3), "left": round(x[2], 3),
                                 "errors": x[3]} for x in cands[:5]]}
         best = cands[0] if cands and pays(cands[0][1], cands[0][2], base) else None
