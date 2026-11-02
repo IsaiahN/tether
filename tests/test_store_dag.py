@@ -320,8 +320,73 @@ def _fold_rules() -> dict:
             "F4": f4["book"]["c"], "F5": sorted(f5["contested_invented"])}
 
 
+def _graft_cases(tmp: Path) -> dict:
+    """lineage.graft (the reviewer 2026-11-02 r802): a main line R -> A1 in d (A1 sets h1
+    "refuted", counter c 100 -> 160), a branch X off R in its own folder (h1 and h2 "accepted",
+    c 130, an idx_ file beside it), grafted onto A1. MF-G1 the counter reads 190, not X's 130;
+    MF-G2 h1 keeps "refuted" with X's "accepted" in the record, h2 carries "accepted"; MF-G3 the
+    store appends it (no rebuild, no refusal); MF-G4 that store equals one rebuilt from nothing,
+    table by table; MF-G5 X's folder is byte-identical after."""
+    d, src = tmp / "graft", tmp / "graft_src"
+    d.mkdir()
+    src.mkdir()
+    r = _put(d, _gen(None, [{"handle": f"h{i}", "atoms": ["a"], "admitted": "candidate"}
+                            for i in range(3)], book={"c": 100}))
+    a1 = _put(d, _gen(r, status=[{"born": r, "handle": "h1", "admitted": "refuted"}],
+                      book={"c": 160}))
+    x = _put(src, _gen(r, [{"handle": "x0", "atoms": ["b"], "admitted": "candidate"}],
+                       [{"born": r, "handle": "h1", "admitted": "accepted"},
+                        {"born": r, "handle": "h2", "admitted": "accepted"}], {"c": 130}))
+    idx = json.dumps({"entries": [], "sig_arm": "t", "sig_atoms": [], "sig_names": []}).encode()
+    (src / f"{lineage.IDX}{x}_{hashlib.sha256(idx).hexdigest()[:16]}.json").write_bytes(idx)
+    con = lineage_store.open_store(d)
+    try:
+        lineage_store.catch_up(con, d)
+    finally:
+        con.close()
+
+    def shas(p):
+        return {f.name: hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(p.iterdir())}
+    before = shas(src)
+    res = lineage.graft(d, src, x, "test")
+    g2 = lineage._read(d)[res["hash"]]
+    assert g2["book"]["c"] == 190, ("MF-G1 counter", g2["book"], "X wrote", 130)
+    kept = g2["graft"]["kept_tip"]
+    assert [s["handle"] for s in g2["status"]] == ["h2"] and kept == [
+        {"status": [r, "h1"], "tip": "refuted", "graft": "accepted"}], ("MF-G2", g2["status"], kept)
+    assert g2["parent"] == a1 and g2["graft"]["old_parent"] == r, ("graft parents", g2["graft"])
+    con = lineage_store.open_store(d)
+    try:
+        paths = [y.get("dag") for y in lineage_store.catch_up(con, d)]
+        fs = json.loads(con.execute("SELECT v FROM blob WHERE k='fold'").fetchone()[0])
+    finally:
+        con.close()
+    assert paths == [None], ("MF-G3 appended linearly, no rebuild", paths)
+    adm = {r_["handle"]: r_.get("admitted") for r_ in fs["rows"].values()}
+    assert adm["h1"] == "refuted" and adm["h2"] == "accepted" and fs["book"]["c"] == 190, (
+        "MF-G3 the store reads the graft", adm, fs["book"])
+    d2 = tmp / "graft_rebuilt"
+    d2.mkdir()
+    for f in d.glob("*_*.json"):
+        shutil.copy(f, d2 / f.name)
+    con = lineage_store.open_store(d2)
+    try:
+        lineage_store.catch_up(con, d2)
+    finally:
+        con.close()
+    assert _tables(d) == _tables(d2), "MF-G4 the appended store != one rebuilt from nothing"
+    assert shas(src) == before, "MF-G5 the source folder changed"
+    assert res["side_files"] == 1 and len(list(d.glob(f"{lineage.IDX}{res['hash']}_*.json"))) == 1
+    return {"hash": res["hash"], "counts": res["counts"], "kept": len(kept)}
+
+
 def main():
     tether._AGENT_SEED = False
+    gr = _graft_cases(Path(tempfile.mkdtemp(prefix="store_graft_")))
+    print(f"  graft: MF-G1 counter 100 -> main 160 / branch 130 -> 190; MF-G2 h1 keeps 'refuted' "
+          f"({gr['kept']} kept_tip), h2 carries 'accepted'; MF-G3 appended linearly; MF-G4 = a "
+          f"store rebuilt from nothing, table by table; MF-G5 source byte-identical; counts "
+          f"{gr['counts']}", flush=True)
     fr = _fold_rules()
     print(f"  fold rules: MF-F1 agreeing heads -> {fr['F1']!r}, no contest; MF-F2 counter 100 -> "
           f"130 / 115 -> {fr['F2']}; MF-F3 differing statuses -> pre-split + both contested; "

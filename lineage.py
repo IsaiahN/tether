@@ -1466,6 +1466,90 @@ def merge(d: str | Path, tips: list[str] | None = None) -> dict:
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parents": tips}
 
 
+
+def graft(d: str | Path, src: str | Path, h: str, ruled: str) -> dict:
+    """A branch save re-parented onto the lineage's tip (the reviewer 2026-11-02 r802; Isaiah
+    11:55): a NEW generation whose parent is the tip and whose contents are TRANSLATED to it, so
+    the chain stays linear and the store appends it. The source save and its folder are only read.
+    Book counters (integers, the save's value at or above its parent's) become the tip's value
+    plus the save's increment; any other book key, status or invented name the tip set differently
+    after the fork keeps the tip's value, and the save's goes under "graft"."kept_tip". Terms,
+    evidence and the other per-save lists are carried as they are; the ak_ / idx_ files beside the
+    save are carried byte for byte under the new name."""
+    import lineage_store as ls
+    p, s = Path(d), Path(src)
+    raw = ls.file_bytes(s / f"{PREFIX}{h}.json")
+    if hashlib.sha256(raw).hexdigest()[:16] != h:
+        raise ValueError(f"lineage.graft: {PREFIX}{h}.json does not hash to its name")
+    g = json.loads(raw)
+    old = _parents(g)
+    gens = _scan(p)
+    tips = _tips(gens)
+    if len(old) != 1 or old[0] not in gens or len(tips) != 1:
+        raise ValueError(f"lineage.graft: parent {old} not one save in the lineage, or tips {tips}")
+    onto, fork = tips[0], old[0]
+    st, at, seen = FoldState(lists=False), None, []
+    for x in _topo(gens):
+        st.step(x, json.loads(ls.file_bytes(p / f"{PREFIX}{x}.json")))
+        seen.append(x)
+        if x == fork:
+            # the fork's own state: refused if fold's order put a non-ancestor before it
+            if set(seen) != st.anc[fork]:
+                raise ValueError("lineage.graft: a save not under the fork sorts before it")
+            at = {"book": dict(st.out["book"])}
+    tip = st.result()
+    kept: list = []
+    n = {k: {"carried": 0, "agreed": 0, "kept_tip": 0} for k in ("book", "status", "invented")}
+    book = {}
+    for k, v in g["book"].items():
+        p0 = at["book"].get(k, 0)
+        tv = tip["book"].get(k)
+        if _count(v) and _count(p0) and v >= p0:
+            book[k] = (tv if _count(tv) else p0) + (v - p0)
+            n["book"]["carried"] += 1
+        elif tv is None or tv == v:
+            book[k] = v
+            n["book"]["agreed" if tv == v else "carried"] += 1
+        else:
+            kept.append({"book": k, "tip": tv, "graft": v})
+            n["book"]["kept_tip"] += 1
+    status = []
+    for x in g["status"]:
+        k = (x["born"], x["handle"])
+        if x["born"] == h or k not in st.rows:
+            raise ValueError(f"lineage.graft: a status on a row the tip does not hold: {k}")
+        after = [q for q, _a in st.hist[k] if q not in st.anc[fork]]
+        tv = st.rows[k].get("admitted")
+        if not after or tv == x["admitted"]:
+            status.append(x)
+            n["status"]["agreed" if after else "carried"] += 1
+        else:
+            kept.append({"status": list(k), "tip": tv, "graft": x["admitted"]})
+            n["status"]["kept_tip"] += 1
+    invented = {}
+    for k, v in g["invented"].items():
+        tv = tip["invented"].get(k)
+        if tv is None or tv == v:
+            invented[k] = v
+            n["invented"]["agreed" if tv == v else "carried"] += 1
+        else:
+            kept.append({"invented": k, "tip": tv, "graft": v})
+            n["invented"]["kept_tip"] += 1
+    gen = {**{k: v for k, v in g.items() if k not in ("parent", "parents")}, "parent": onto,
+           "book": book, "status": status, "invented": invented,
+           "graft": {"from": h, "old_parent": fork, "onto": onto, "ruled": ruled,
+                     "kept_tip": kept}}
+    out_raw = _dumps(gen)
+    h2 = hashlib.sha256(out_raw).hexdigest()[:16]
+    side = [f for pre in ("ak_", IDX) for f in sorted(s.glob(f"{pre}{h}_*.json"))]
+    for f in side:      # beside the generation first: the store merges them with it
+        with open(p / f.name.replace(f"_{h}_", f"_{h2}_", 1), "xb") as fh:
+            fh.write(f.read_bytes())
+    with open(p / f"{PREFIX}{h2}.json", "xb") as fh:
+        fh.write(_store_bytes(out_raw))
+    return {"written": f"{PREFIX}{h2}.json", "hash": h2, "from": h, "old_parent": fork,
+            "onto": onto, "side_files": len(side), "counts": n, "kept_tip": len(kept)}
+
 # -- D3: THE HELD INDEX, CARRIED BESIDE THE GENERATION (the reviewer 2026-10-14 21:59) -------------
 # Under BOTH arms (_CARRY and tether's _INDEX_HOLD), each generation gets an index file beside it
 # holding the held compiles THIS instance made, so a later instance installs them instead of
