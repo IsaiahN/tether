@@ -2140,6 +2140,11 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_GOAL_BY_MOVED": "G, GOALS RANKED BY WHAT THIS BOARD'S PRESSES MOVED (the reviewer "
+                            "2026-11-01 r730, r736): a goal candidate whose subject slot this "
+                            "board's own presses moved (credited, net of I-B, never at a seam) "
+                            "ranks after the shelf order and before description length. OFF: "
+                            "the shelf, then bits (f0a216c). default ON",
     "TETHER_KIND_TOUCH_FELT": "C2 FELT, A KIND TOUCH WRITES ITS CONTACT ROW (the reviewer "
                               "2026-11-01 r742): the touch goes through the felt-outcome path "
                               "and the row reads the whole credited change on the board (count, "

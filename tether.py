@@ -537,7 +537,7 @@ def arms_today() -> dict:
                         "_WIN_CREDIT", "_BOARD_BOUNDARY", "_FIT_BOUND", "_REACH_GATE",
                         "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
                         "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
-                        "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT"),
+                        "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT", "_GOAL_BY_MOVED"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2484,6 +2484,13 @@ _DELTA_TIER_MEMO = armflag.arm("TETHER_DELTA_TIER_MEMO", default=True)
 # through the felt-outcome path: its row reads the whole credited change on the board (net of
 # I-B), with the count and the owners, since an object in no pair can move others. OFF: no row
 _KIND_TOUCH_FELT = armflag.arm("TETHER_KIND_TOUCH_FELT", default=True)
+# G, GOAL_BY_MOVED (the reviewer 2026-11-01 r730, r736): goal hypotheses were ranked by the shelf,
+# then description length over the whole library's conditions (tn36: 363,998 candidates), with no
+# reading of what this board's presses did; the contingent order acted only inside a bits tie. A
+# candidate whose subject slot this board's own presses moved (the credited change, net of I-B,
+# never at a seam) now ranks ahead of the rest, after the shelf order and before bits.
+# OFF: as before
+_GOAL_BY_MOVED = armflag.arm("TETHER_GOAL_BY_MOVED", default=True)
 # THE FOUR COUNTERS (the reviewer 2026-11-01 r692 4; checklist Q6/Q8/Q16/Q21), books only, no choice
 # reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
 # press_carried (a press realised as a carried kind cell's test).
@@ -3335,6 +3342,7 @@ class Agent:
         self._bond_inc: dict = {}    # TETHER_BOND_INC: slot -> its frames' ids, each pair's fold
         self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
         self._board_touched: set = set()  # C2: objects System 0 touched on this board
+        self._board_moved: set = set()    # G: slots this board's presses moved (credited)
         self._rel_subjects: set = set()   # TETHER_RELATION_BET: relations that became subjects
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
@@ -4379,6 +4387,7 @@ class Agent:
             self._pressed_seen.clear()
         if how != "death":
             self._board_touched.clear()    # C2: a new board's objects are touched once here
+            self._board_moved.clear()      # G: what this board's presses moved
         if _RELATION_BET and how != "death":
             self._rel_subjects.clear()
         if _BOARD_BOUNDARY and how != "death":
@@ -7633,7 +7642,8 @@ class Agent:
                 if _PROGRESS_SHELF and not won:     # won, then progress, then the rest: ordinal
                     rec = self._goal_shelf.get(s, {}).get("record", {}) if s else {}
                     rank = 1 if rec.get("progress", 0) else 2
-                out.append(((rank, round(bits, 6)), text, c, tk, s))
+                mv = 0 if (_GOAL_BY_MOVED and c.slot in self._board_moved) else 1   # G
+                out.append(((rank, mv, round(bits, 6)), text, c, tk, s))
             return out
 
         cands = _admit(phases[0])
@@ -7643,7 +7653,7 @@ class Agent:
         self._hyp_phases, pending = 1, phases[1:]
         routable = 0
         detail = {"candidates": len(src), "open": len(cands), "refused": dict(refused),
-                  "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][1],
+                  "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][-1],
                               "source": x[4]} for x in cands[:5]]}
         if _R4_RECORD:
             detail["self_moving"] = dict(sorted(_smw.items()))
@@ -7721,7 +7731,7 @@ class Agent:
                 ok = [o for o in ok if o[0][2].slot in _cset]    # r678 (b): the turnable first
             if len(ok) > 1 and _A1_TIES:
                 k = self._choice("goal_hypothesis", None,
-                                 [(x[1], x[0][1], None) for x, _k, _l in ok])
+                                 [(x[1], x[0][-1], None) for x, _k, _l in ok])
                 x, key, _l = next(o for o in ok if o[0][1] == k)
             else:
                 x, key, _l = ok[0]
@@ -7759,7 +7769,7 @@ class Agent:
             self.led.record(self.cycle, "PLAN", sl, "goal_hypothesis_reopened", text=x[1],
                             ended_by=ended_by, since=since,
                             reads="an untested hypothesis back on a board that can host its test")
-        detail.update(routable=routable, pick_bits=x[0][1],
+        detail.update(routable=routable, pick_bits=x[0][-1],
                       pick_rank=next((i for i, y in enumerate(ranked_all) if y is x), None))
         self.led.record(self.cycle, "PLAN", sl, "goal_hypotheses", pick=x[1], key=key,
                         slots=link["slots"], route=link["route"],
@@ -10467,6 +10477,8 @@ class Agent:
                             reads=("every slot that changed is credited to this press, less "
                                    "what changed anyway (I-B)" if _REAFFERENCE else
                                    "every slot that changed is credited to this press (F1)"))
+        if _GOAL_BY_MOVED and not self._seam_now:
+            self._board_moved.update(getattr(self.iface, "last_changed", ()))
         if _TOUCH_FELT and self._contact_pending is not None:
             self._contact_felt()
         if _DEATH_VOTE and not self._seam_now:
