@@ -536,7 +536,8 @@ def arms_today() -> dict:
                         "_BOND_INC", "_RESET_REASON", "_COUNTERS", "_RELATION_BET",
                         "_WIN_CREDIT", "_BOARD_BOUNDARY", "_FIT_BOUND", "_REACH_GATE",
                         "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
-                        "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND"),
+                        "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
+                        "_DELTA_TIER_MEMO"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2471,6 +2472,12 @@ _S0_BEFORE_BORED = armflag.arm("TETHER_S0_BEFORE_BORED", default=True)
 # Bounded by the board's own kinds (m0r0 5, lp85 11, tn36 15, vc33 11), never its objects.
 # OFF: System 0 ends with its contact pairs; C2 touches by id
 _TOUCH_EACH_KIND = armflag.arm("TETHER_TOUCH_EACH_KIND", default=True)
+# E, DELTA_TIER_MEMO (the reviewer 2026-11-01 r736): _delta_tier ran once per candidate binding and
+# each call re-walked every slot of every residual observation, the whole owner map and the
+# contact map, which do not change until the trace grows (tn36 profile: route 76% of samples,
+# _delta_tier 48% inclusive / 25% self, arc_world.slot_owner 16%). Held per (cycle, trace length):
+# the moved set per residual-observation tuple, the owners and the contacts. Exact. OFF: re-walked
+_DELTA_TIER_MEMO = armflag.arm("TETHER_DELTA_TIER_MEMO", default=True)
 # THE FOUR COUNTERS (the reviewer 2026-11-01 r692 4; checklist Q6/Q8/Q16/Q21), books only, no choice
 # reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
 # press_carried (a press realised as a carried kind cell's test).
@@ -10717,23 +10724,46 @@ class Agent:
     def _delta_tier(self, others: list, robs: list) -> dict:
         """L2's tiers: 0 world-moved on the residual frames, 1 self-moved (2a: every owner of the
         slot is a self-mover now), 2 a contact partner of a moved slot, 3 the rest (absent)."""
-        after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
-        moved: set = set()
-        for st, _a, _v, _intent, _landed in robs:
-            cap.head()
-            aft = after_of.get(id(st))
-            if aft is None:
-                continue
-            moved |= {k for k, v in st.items() if k in aft and aft[k] != v}
+        m = None
+        if _DELTA_TIER_MEMO:
+            mk = (self.cycle, len(self.trace))
+            m = self.__dict__.get("_dt_memo")
+            if m is None or m["k"] != mk:
+                m = self._dt_memo = {"k": mk, "moved": {}, "own": None, "adj": None}
+            rk = tuple(id(r[0]) for r in robs)
+            moved = m["moved"].get(rk)
+        else:
+            moved = None
+        if moved is None:
+            after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
+            moved = set()
+            for st, _a, _v, _intent, _landed in robs:
+                cap.head()
+                aft = after_of.get(id(st))
+                if aft is None:
+                    continue
+                moved |= {k for k, v in st.items() if k in aft and aft[k] != v}
+            if m is not None:
+                m["moved"][rk] = moved
         if not moved:
             return {}
         selfm = self._self_moved_now
         tier = {k: (1 if selfm and (o := self._objs_named(k)) and o <= selfm else 0)
                 for k in moved}
-        own = self._slot_owners(self.env)
+        if m is not None and m["own"] is not None:
+            own = m["own"]
+        else:
+            own = self._slot_owners(self.env)
+            if m is not None:
+                m["own"] = own
         tch = getattr(self.env, "contacts", None)
         if tch is not None and own:
-            adj_of = tch()
+            if m is not None and m["adj"] is not None:
+                adj_of = m["adj"]
+            else:
+                adj_of = tch()
+                if m is not None:
+                    m["adj"] = adj_of
             nearby: set = set()
             for m in moved:
                 cap.head()

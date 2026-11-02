@@ -2140,6 +2140,12 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_DELTA_TIER_MEMO": "E, _delta_tier HELD PER (CYCLE, TRACE LENGTH) (the reviewer "
+                              "2026-11-01 r736): the moved set per residual-observation tuple, "
+                              "the owner map and the contact map are read once until the trace "
+                              "grows (tn36 profile: route 76%, _delta_tier 48%); exact (tn36 6 "
+                              "steps: 8579 rows equal, 9916 calls each). OFF: re-walked per "
+                              "call (9757271). default ON",
     "TETHER_S0_BEFORE_BORED": "C2 FINISH, BOREDOM DOES NOT SKIP AN ACTIVE SYSTEM 0 (the reviewer "
                               "2026-11-01 r736): choose runs the exit contest while System 0 is "
                               "active even when the drive is bored (lp85 measured: 16 of 21 turns "
