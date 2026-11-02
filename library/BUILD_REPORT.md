@@ -10,6 +10,8 @@
 - isomer_families: 13
 - identity_candidates: 162
 - same_name_across_domains: 219
+- name_matched_atoms: 453
+- name_match_new_reads: {'action': 2, 'allowance': 2, 'came': 6, 'colour': 1, 'colour_changed': 1, 'completed': 3, 'dcells': 3, 'dcol': 1, 'dh': 1, 'dperimeter': 1, 'drow': 1, 'dw': 1, 'filled': 1, 'gone': 1, 'h': 1, 'level': 1, 'shape': 3, 'touching': 2, 'w': 1}
 - tag_index_tags: 34
 
 ## Every unresolved item, named

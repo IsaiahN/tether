@@ -75,6 +75,12 @@ PASSTHROUGH = ("readings.json", "domains.json", "clusters.json", "grid_grounding
                "reads_explicit.json", "DEDUP_LOG.json", "ROLES_LOG.json", "orientation_draft.json",
                "sharpened_2026_10_08.txt")
 
+# S1, THE NAME MATCH (the reviewer 2026-11-02 r819; Isaiah 14:14 "go with b"): an atom with no
+# attributes and no definition whose NAME is an attribute name the library's entries carry (case
+# folded) is listed under that attribute and reads its grid terms at 1.0. A rule here, never a
+# SOURCE edit; index.json's name_match lists every one. LIBRARY_NAME_MATCH=0 builds without it.
+NAME_MATCH = os.environ.get("LIBRARY_NAME_MATCH", "1") != "0"
+
 # --- the derivation tables (data, pinned and movable) ------------------------------------------
 GRID_TERM_READS = {
     "contact": ["touching", "contact"],
@@ -348,6 +354,8 @@ def build(check_only: bool = False) -> dict:
         old_files(LIB, ("reads_explicit.json",)).get("reads_explicit.json", {}).get("reads", {})
     )
     report = collections.defaultdict(list)
+    matched = _name_match(atoms["atoms"], mols["molecules"]) if NAME_MATCH else {}
+    nm_new = collections.Counter()
 
     def tags_of(e):
         return [t.rstrip("*") for t in (e.get("tags", {}).get("primary") or [])]
@@ -368,6 +376,12 @@ def build(check_only: bool = False) -> dict:
             for r in src:
                 if r in readings:
                     w[r] = max(w.get(r, 0.0), wt)
+        if k in matched:
+            nt = [t for t, p in _TERMS.items() if re.search(p, matched[k], re.I)]
+            for r in (r for t in nt for r in GRID_TERM_READS.get(t, [])):
+                if r in readings:
+                    nm_new[r] += w.get(r, 0.0) < 1.0
+                    w[r] = 1.0
         for r in explicit.get(k, []):
             if r in readings:
                 w[r] = 1.0
@@ -568,6 +582,8 @@ def build(check_only: bool = False) -> dict:
             idx["by_attribute"][a].append(k)
         for i in e.get("ingredients", []) or []:
             idx["ingredient_of"][i["ref"]].append(k)
+    for k, a in matched.items():
+        idx["by_attribute"][a].append(k)
     fam = collections.defaultdict(list)
     for k, e in mols[
         "molecules"
@@ -664,6 +680,7 @@ def build(check_only: bool = False) -> dict:
         "use_ranking": [{"key": k, "uses": n} for k, n in uses.most_common()],
         "mutual_cycles": [list(c) for c in cycles],
         "same_name_across_domains": collisions,
+        "name_match": dict(sorted(matched.items())),
     }
 
     # --- every entry's ROLE table (Isaiah 2026-10-08: state, process, cause ... for ALL atoms)
@@ -678,9 +695,11 @@ def build(check_only: bool = False) -> dict:
         "isomer_families": len(isomers),
         "identity_candidates": len(ident),
         "same_name_across_domains": len(collisions),
+        "name_matched_atoms": len(matched),
+        "name_match_new_reads": dict(sorted((r, n) for r, n in nm_new.items() if n)),
     }
     tag_index = _tag_index(
-        atoms["atoms"], mols["molecules"], _load("tag_index.json").get("meta", {})
+        atoms["atoms"], mols["molecules"], _load("tag_index.json").get("meta", {}), matched
     )
     counts["tag_index_tags"] = len(tag_index["by_tag"])
     if not check_only:
@@ -700,7 +719,20 @@ def build(check_only: bool = False) -> dict:
     return {"counts": counts, "report": {k: len(v) for k, v in report.items()}}
 
 
-def _tag_index(atoms: dict, mols: dict, meta: dict) -> dict:
+def _name_match(atoms: dict, mols: dict) -> dict:
+    """S1: an implicit atom -> the attribute its own name is, case folded (the first spelling in key
+    order where several fold together)."""
+    names: dict = {}
+    for ents in (atoms, mols):
+        for _k, e in sorted(ents.items()):
+            for a in e.get("attributes") or []:
+                names.setdefault(a.lower(), a)
+    return {k: names[k.split("|", 1)[1].lower()] for k, e in atoms.items()
+            if "|" in k and not e.get("attributes") and not e.get("definition")
+            and k.split("|", 1)[1].lower() in names}
+
+
+def _tag_index(atoms: dict, mols: dict, meta: dict, matched: dict | None = None) -> dict:
     """The tag view inherited.reach reads, DERIVED from the entries' own `tags` (v5). Verified to
     reproduce the pre-dedup file exactly when run on the pre-dedup atoms and molecules: by_tag
     ordered by weight (strongest first, ties by key), by_pair and by_attribute in key order."""
@@ -716,6 +748,8 @@ def _tag_index(atoms: dict, mols: dict, meta: dict) -> dict:
                 by_pair.setdefault("+".join(p), {"atoms": [], "molecules": []})[kind].append(k)
             for a in e.get("attributes") or []:
                 by_attr.setdefault(a, []).append(k)
+    for k, a in (matched or {}).items():
+        by_attr.setdefault(a, []).append(k)
     by_tag = {t: {kd: [k for _, k in sorted(v)] for kd, v in d.items()} for t, d in by_tag.items()}
     meta = dict(meta)
     meta["derived_by"] = "build_library.py _tag_index (v5) -- never edited by hand"

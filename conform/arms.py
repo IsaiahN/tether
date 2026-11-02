@@ -2097,12 +2097,27 @@ ARMS: dict[str, str] = {
     "TETHER_HYP_ROUTE_FIRST_CHECK": "TETHER_HYP_ROUTE_FIRST's CHECK, a measurement switch: keeps "
                                     "every text and asserts no text the filter would drop ever "
                                     "holds (HYP_ROUTE_FIRST_N counts). default OFF",
+    "TETHER_HOT_COLD": "S4, THE MEMORY SPLIT (the reviewer 2026-11-02 r811, r816; Isaiah 13:00): "
+                       "lineage.DkSnapshot's kind enumerations and per-type totals read the "
+                       "HOT rows (n >= 2, or seen this life); a past-life n == 1 row stays on "
+                       "disk, read by key and on a lookup that finds nothing hot. Nothing "
+                       "deleted. OFF: every row. default ON",
     "TETHER_KIND_CANON": "K1 (the reviewer 2026-11-02 r797; Isaiah 10:12): arc_percept.form_code, "
                          "and arc_world.shape_code through it, hash the LEAST of a shape's 8 "
                          "rotations and mirrors, so a turned or mirrored object is one kind and "
                          "canon() gives its pose. OFF: the cells as they stand. default OFF "
                          "(r808): ON orphans tallies stored under the as-seen code until a "
                          "legacy read exists",
+    "TETHER_SERP_CACHE": "S3 (the reviewer 2026-11-02 r816): under SERP, a description key "
+                         "remembers the entries its windows offered nothing from this life and "
+                         "its next ask skips them (the next unjudged window); cleared on a level "
+                         "or game reset. OFF: the offset alone. default ON",
+    "TETHER_SERP": "SERP (the reviewer 2026-11-02 r810, r816; Isaiah 12:53, 13:55): a described "
+                   "lookup ranks its lit list cheaply (tier, then the asked readings an entry "
+                   "reads by the library index's posting lists) and cuts it to TOPK_K (32) "
+                   "BEFORE the held-index filter, _judge and the reach walk; a lookup of the same "
+                   "description that found no fit continues from the last window, and no entry "
+                   "is recorded only past the list's end. OFF: the whole list. default ON",
     "TETHER_TURN_TRACK": "K3a (the reviewer 2026-11-02 r797, r808): the tracker's shape fallback "
                          "matches the same kind (arc_percept.kind_code, any rotation or mirror) "
                          "when no exact shape matches, so a turned object keeps its name. OFF: "

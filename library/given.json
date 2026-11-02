@@ -35150,7 +35150,8 @@
    },
    "reads_weight": {
     "row": 1.0,
-    "col": 1.0
+    "col": 1.0,
+    "came": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -35163,17 +35164,20 @@
    },
    "reads": [
     "row",
-    "col"
+    "col",
+    "came"
    ],
    "affects": [],
    "substrate": [
-    "space"
+    "space",
+    "time"
    ],
    "run": {
     "route": "GROUNDED",
     "lit_by": [
      "row",
-     "col"
+     "col",
+     "came"
     ],
     "condition_text": null,
     "held_as": "the agent's hypothesis over `lit_by`, priced and settled by the ground",
@@ -35182,23 +35186,23 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 6,
-     "PROCESS": 6,
+     "STATE": 11,
+     "PROCESS": 7,
      "RELATION": 6,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 6,
-     "TEST": 2,
-     "RULE": 6,
-     "AGENT": 6
+     "INSTRUMENT": 7,
+     "TEST": 4,
+     "RULE": 11,
+     "AGENT": 7
     },
     "example": {
      "STATE": "o1.row < o2.row",
-     "PROCESS": "o1.drow != 0",
+     "PROCESS": "frame.came > 0",
      "RELATION": "o1.row < o2.row",
      "MEASURE": "o1.row < o2.row",
-     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
+     "CAUSE": "o1.row < o2.row ⇒ frame.came > 0"
     }
    },
    "@grounding": "an object duplicated at another position"
@@ -38623,10 +38627,11 @@
     "age": 1.0,
     "stability": 1.0,
     "prev": 1.0,
-    "came": 0.5,
+    "came": 1.0,
     "gone": 0.5,
     "drow": 0.5,
-    "dcol": 0.5
+    "dcol": 0.5,
+    "dcells": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -38645,6 +38650,7 @@
     "stability",
     "prev",
     "came",
+    "dcells",
     "gone",
     "drow",
     "dcol"
@@ -38664,6 +38670,7 @@
      "stability",
      "prev",
      "came",
+     "dcells",
      "gone",
      "drow",
      "dcol"
@@ -38675,16 +38682,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 20,
-     "PROCESS": 9,
-     "RELATION": 12,
+     "STATE": 24,
+     "PROCESS": 12,
+     "RELATION": 14,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 9,
-     "TEST": 10,
-     "RULE": 20,
-     "AGENT": 9
+     "INSTRUMENT": 12,
+     "TEST": 12,
+     "RULE": 24,
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.colour == o2.colour",
@@ -53979,7 +53986,10 @@
    },
    "reads_weight": {
     "touching": 1.0,
-    "contact": 1.0
+    "contact": 1.0,
+    "dcells": 1.0,
+    "came": 1.0,
+    "colour_changed": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -53992,7 +54002,10 @@
    },
    "reads": [
     "touching",
-    "contact"
+    "contact",
+    "dcells",
+    "came",
+    "colour_changed"
    ],
    "affects": [
     "colour_changed",
@@ -54008,7 +54021,10 @@
     "route": "GROUNDED",
     "lit_by": [
      "touching",
-     "contact"
+     "contact",
+     "dcells",
+     "came",
+     "colour_changed"
     ],
     "condition_text": null,
     "held_as": "the agent's hypothesis over `lit_by`, priced and settled by the ground",
@@ -54017,22 +54033,22 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 3,
-     "PROCESS": 7,
-     "RELATION": 1,
+     "STATE": 18,
+     "PROCESS": 8,
+     "RELATION": 4,
      "MEASURE": 0,
-     "CAUSE": 18,
-     "RESULT": 18,
-     "INSTRUMENT": 7,
-     "TEST": 3,
-     "RULE": 3,
-     "AGENT": 7
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 8,
+     "TEST": 11,
+     "RULE": 18,
+     "AGENT": 8
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
-     "PROCESS": "o1.colour_changed == 1",
+     "PROCESS": "o1.dcells != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.colour_changed == 1"
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcells != 0"
     }
    },
    "@grounding": "a change passing from object to object along contacts"
@@ -85237,7 +85253,8 @@
    },
    "reads_weight": {
     "drow": 1.0,
-    "dcol": 1.0
+    "dcol": 1.0,
+    "action": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -85250,13 +85267,15 @@
    },
    "reads": [
     "drow",
-    "dcol"
+    "dcol",
+    "action"
    ],
    "affects": [
     "drow",
     "dcol"
    ],
    "substrate": [
+    "energy",
     "space",
     "time"
    ],
@@ -85264,7 +85283,8 @@
     "route": "GROUNDED",
     "lit_by": [
      "drow",
-     "dcol"
+     "dcol",
+     "action"
     ],
     "condition_text": null,
     "held_as": "the agent's hypothesis over `lit_by`, priced and settled by the ground",
@@ -85273,22 +85293,22 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 6,
-     "PROCESS": 6,
+     "STATE": 8,
+     "PROCESS": 7,
      "RELATION": 4,
      "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 6,
-     "TEST": 2,
-     "RULE": 6,
-     "AGENT": 6
+     "INSTRUMENT": 7,
+     "TEST": 4,
+     "RULE": 8,
+     "AGENT": 7
     },
     "example": {
-     "STATE": "o1.row < o2.row",
+     "STATE": "frame.action > 0",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
+     "CAUSE": "frame.action > 0 ⇒ o2.drow != 0"
     }
    },
    "@grounding": "the moving objects on the board"
@@ -86015,7 +86035,11 @@
     "colour": 1.0,
     "shape": 1.0,
     "dholes": 0.5,
-    "dperimeter": 0.5
+    "dperimeter": 0.5,
+    "came": 1.0,
+    "gone": 1.0,
+    "allowance": 1.0,
+    "completed": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -86029,11 +86053,17 @@
    "reads": [
     "colour",
     "shape",
+    "came",
+    "gone",
+    "allowance",
+    "completed",
     "dholes",
     "dperimeter"
    ],
    "affects": [],
    "substrate": [
+    "energy",
+    "gradient",
     "space",
     "spectrum",
     "time"
@@ -86043,6 +86073,10 @@
     "lit_by": [
      "colour",
      "shape",
+     "came",
+     "gone",
+     "allowance",
+     "completed",
      "dholes",
      "dperimeter"
     ],
@@ -86053,22 +86087,23 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 4,
-     "PROCESS": 7,
+     "STATE": 12,
+     "PROCESS": 12,
      "RELATION": 6,
-     "MEASURE": 0,
-     "CAUSE": 24,
-     "RESULT": 24,
-     "INSTRUMENT": 7,
-     "TEST": 4,
-     "RULE": 4,
-     "AGENT": 7
+     "MEASURE": 2,
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 12,
+     "TEST": 8,
+     "RULE": 12,
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.colour == o2.colour",
-     "PROCESS": "o1.colour_changed == 1",
+     "PROCESS": "frame.came > 0",
      "RELATION": "o1.colour == o2.colour",
-     "CAUSE": "o1.colour == o2.colour ⇒ o2.colour_changed == 1"
+     "MEASURE": "board.allowance > 0",
+     "CAUSE": "o1.colour == o2.colour ⇒ frame.came > 0"
     }
    },
    "@grounding": "a different exchange in response to one"
@@ -131162,7 +131197,8 @@
     "dperimeter": 1.0,
     "touching": 0.5,
     "contact": 0.5,
-    "bbox": 0.5
+    "bbox": 0.5,
+    "came": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -131180,6 +131216,7 @@
     "shape",
     "dholes",
     "dperimeter",
+    "came",
     "touching",
     "contact",
     "bbox"
@@ -131199,6 +131236,7 @@
      "shape",
      "dholes",
      "dperimeter",
+     "came",
      "touching",
      "contact",
      "bbox"
@@ -131210,16 +131248,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 14,
-     "PROCESS": 13,
+     "STATE": 19,
+     "PROCESS": 14,
      "RELATION": 9,
      "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 13,
-     "TEST": 12,
-     "RULE": 14,
-     "AGENT": 13
+     "INSTRUMENT": 14,
+     "TEST": 14,
+     "RULE": 19,
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.colour == o2.colour",
@@ -134198,7 +134236,9 @@
     "action": 1.0,
     "press": 1.0,
     "row": 0.5,
-    "col": 0.5
+    "col": 0.5,
+    "completed": 1.0,
+    "level": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -134212,13 +134252,17 @@
    "reads": [
     "action",
     "press",
+    "completed",
+    "level",
     "row",
     "col"
    ],
    "affects": [],
    "substrate": [
     "energy",
+    "gradient",
     "space",
+    "spectrum",
     "time"
    ],
    "run": {
@@ -134226,6 +134270,8 @@
     "lit_by": [
      "action",
      "press",
+     "completed",
+     "level",
      "row",
      "col"
     ],
@@ -134236,16 +134282,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 10,
-     "PROCESS": 8,
+     "STATE": 12,
+     "PROCESS": 11,
      "RELATION": 6,
-     "MEASURE": 4,
+     "MEASURE": 6,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 8,
-     "TEST": 6,
-     "RULE": 10,
-     "AGENT": 8
+     "INSTRUMENT": 11,
+     "TEST": 8,
+     "RULE": 12,
+     "AGENT": 11
     },
     "example": {
      "STATE": "frame.action > 0",
@@ -149355,7 +149401,8 @@
    "reads_weight": {
     "drow": 1.0,
     "dcol": 1.0,
-    "action": 0.5
+    "action": 1.0,
+    "touching": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -149369,7 +149416,8 @@
    "reads": [
     "drow",
     "dcol",
-    "action"
+    "action",
+    "touching"
    ],
    "affects": [
     "drow",
@@ -149377,6 +149425,7 @@
    ],
    "substrate": [
     "energy",
+    "network",
     "space",
     "time"
    ],
@@ -149385,7 +149434,8 @@
     "lit_by": [
      "drow",
      "dcol",
-     "action"
+     "action",
+     "touching"
     ],
     "condition_text": null,
     "held_as": "the agent's hypothesis over `lit_by`, priced and settled by the ground",
@@ -149394,16 +149444,16 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 8,
-     "PROCESS": 7,
+     "STATE": 10,
+     "PROCESS": 10,
      "RELATION": 4,
      "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 7,
-     "TEST": 4,
-     "RULE": 8,
-     "AGENT": 7
+     "INSTRUMENT": 10,
+     "TEST": 6,
+     "RULE": 10,
+     "AGENT": 10
     },
     "example": {
      "STATE": "frame.action > 0",
@@ -150658,7 +150708,8 @@
     "age": 1.0,
     "action": 0.5,
     "stability": 0.5,
-    "colour": 0.5
+    "colour": 1.0,
+    "shape": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -150672,13 +150723,15 @@
    "reads": [
     "prev",
     "age",
+    "colour",
+    "shape",
     "action",
-    "stability",
-    "colour"
+    "stability"
    ],
    "affects": [],
    "substrate": [
     "energy",
+    "space",
     "spectrum",
     "time"
    ],
@@ -150687,9 +150740,10 @@
     "lit_by": [
      "prev",
      "age",
+     "colour",
+     "shape",
      "action",
-     "stability",
-     "colour"
+     "stability"
     ],
     "condition_text": null,
     "held_as": "the agent's hypothesis over `lit_by`, priced and settled by the ground",
@@ -150698,16 +150752,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 12,
-     "PROCESS": 3,
-     "RELATION": 7,
+     "STATE": 14,
+     "PROCESS": 6,
+     "RELATION": 8,
      "MEASURE": 4,
-     "CAUSE": 18,
-     "RESULT": 18,
-     "INSTRUMENT": 3,
-     "TEST": 8,
-     "RULE": 12,
-     "AGENT": 3
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 6,
+     "TEST": 10,
+     "RULE": 14,
+     "AGENT": 6
     },
     "example": {
      "STATE": "o1.age > o2.age",
@@ -154629,9 +154683,12 @@
     "age": 1.0,
     "stability": 1.0,
     "prev": 1.0,
-    "h": 0.5,
-    "w": 0.5,
-    "filled": 0.5
+    "h": 1.0,
+    "w": 1.0,
+    "filled": 1.0,
+    "dh": 1.0,
+    "dw": 1.0,
+    "dcells": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -154648,7 +154705,10 @@
     "prev",
     "h",
     "w",
-    "filled"
+    "filled",
+    "dh",
+    "dw",
+    "dcells"
    ],
    "affects": [],
    "substrate": [
@@ -154664,7 +154724,10 @@
      "prev",
      "h",
      "w",
-     "filled"
+     "filled",
+     "dh",
+     "dw",
+     "dcells"
     ],
     "condition_text": null,
     "held_as": "the agent's hypothesis over `lit_by`, priced and settled by the ground",
@@ -154675,7 +154738,7 @@
     "available": {
      "STATE": 20,
      "PROCESS": 11,
-     "RELATION": 15,
+     "RELATION": 21,
      "MEASURE": 10,
      "CAUSE": 36,
      "RESULT": 36,
@@ -154686,10 +154749,10 @@
     },
     "example": {
      "STATE": "o1.age > o2.age",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.dh != 0",
      "RELATION": "o1.age > o2.age",
      "MEASURE": "o1.age > o2.age",
-     "CAUSE": "o1.age > o2.age ⇒ frame.came > 0"
+     "CAUSE": "o1.age > o2.age ⇒ o2.dh != 0"
     }
    },
    "@grounding": "an object adding cells over turns"
@@ -178591,7 +178654,7 @@
     "age": 1.0,
     "stability": 1.0,
     "prev": 1.0,
-    "shape": 0.5,
+    "shape": 1.0,
     "dholes": 0.5,
     "dperimeter": 0.5,
     "colour": 0.5,
@@ -185556,7 +185619,8 @@
    "reads_weight": {
     "drow": 0.5,
     "dcol": 0.5,
-    "action": 0.5
+    "action": 0.5,
+    "shape": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -185568,6 +185632,7 @@
     "lineage": "reviewer seat 2026-10-08, from name and definition; a description, not an instrument"
    },
    "reads": [
+    "shape",
     "drow",
     "dcol",
     "action"
@@ -185581,6 +185646,7 @@
    "run": {
     "route": "GROUNDED",
     "lit_by": [
+     "shape",
      "drow",
      "dcol",
      "action"
@@ -185592,22 +185658,22 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 8,
-     "PROCESS": 7,
-     "RELATION": 4,
+     "STATE": 10,
+     "PROCESS": 10,
+     "RELATION": 5,
      "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 7,
-     "TEST": 4,
-     "RULE": 8,
-     "AGENT": 7
+     "INSTRUMENT": 10,
+     "TEST": 6,
+     "RULE": 10,
+     "AGENT": 10
     },
     "example": {
-     "STATE": "frame.action > 0",
-     "PROCESS": "o1.drow != 0",
-     "RELATION": "o1.drow == o2.drow",
-     "CAUSE": "frame.action > 0 ⇒ o2.drow != 0"
+     "STATE": "o1.shape == o2.shape",
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.shape == o2.shape",
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dperimeter != 0"
     }
    },
    "@grounding": "acting without checking the model"
@@ -200161,6 +200227,7 @@
     "SKILL": 2
    },
    "reads_weight": {
+    "came": 1.0,
     "terms": 1.0
    },
    "kind": "PERCEPT",
@@ -200173,15 +200240,18 @@
     "lineage": "reviewer seat 2026-10-08, from name and definition; a description, not an instrument"
    },
    "reads": [
+    "came",
     "terms"
    ],
    "affects": [],
    "substrate": [
-    "spectrum"
+    "spectrum",
+    "time"
    ],
    "run": {
     "route": "GROUNDED",
     "lit_by": [
+     "came",
      "terms"
     ],
     "condition_text": null,
@@ -200191,23 +200261,23 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 4,
-     "PROCESS": 3,
+     "STATE": 9,
+     "PROCESS": 4,
      "RELATION": 3,
      "MEASURE": 4,
-     "CAUSE": 12,
-     "RESULT": 12,
-     "INSTRUMENT": 3,
-     "TEST": 2,
-     "RULE": 4,
-     "AGENT": 3
+     "CAUSE": 24,
+     "RESULT": 24,
+     "INSTRUMENT": 4,
+     "TEST": 4,
+     "RULE": 9,
+     "AGENT": 4
     },
     "example": {
-     "STATE": "o1.terms > o2.terms",
-     "PROCESS": "o1.dterms != 0",
+     "STATE": "frame.came > 0",
+     "PROCESS": "frame.came > 0",
      "RELATION": "o1.terms > o2.terms",
      "MEASURE": "o1.terms > o2.terms",
-     "CAUSE": "o1.terms > o2.terms ⇒ o2.dterms != 0"
+     "CAUSE": "frame.came > 0 ⇒ frame.came > 0"
     }
    },
    "@grounding": "composing new rules from old parts",
@@ -203765,9 +203835,10 @@
     "NETWORK": 1
    },
    "reads_weight": {
-    "touching": 0.5,
+    "touching": 1.0,
     "contact": 0.5,
-    "bbox": 0.5
+    "bbox": 0.5,
+    "dperimeter": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -203778,18 +203849,21 @@
    },
    "reads": [
     "touching",
+    "dperimeter",
     "contact",
     "bbox"
    ],
    "affects": [],
    "substrate": [
     "network",
-    "space"
+    "space",
+    "time"
    ],
    "run": {
     "route": "GROUNDED",
     "lit_by": [
      "touching",
+     "dperimeter",
      "contact",
      "bbox"
     ],
@@ -203800,22 +203874,22 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 4,
-     "PROCESS": 6,
-     "RELATION": 2,
+     "STATE": 6,
+     "PROCESS": 9,
+     "RELATION": 4,
      "MEASURE": 0,
-     "CAUSE": 24,
-     "RESULT": 24,
-     "INSTRUMENT": 6,
-     "TEST": 4,
-     "RULE": 4,
-     "AGENT": 6
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 9,
+     "TEST": 6,
+     "RULE": 6,
+     "AGENT": 9
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
-     "PROCESS": "o1.dcontact != 0",
-     "RELATION": "contact(o1, o2) > 0",
-     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+     "PROCESS": "o1.dperimeter != 0",
+     "RELATION": "o1.dperimeter == o2.dperimeter",
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dperimeter != 0"
     }
    },
    "@grounding": "links between objects"
@@ -205808,7 +205882,9 @@
    },
    "reads_weight": {
     "drow": 0.5,
-    "dcol": 0.5
+    "dcol": 0.5,
+    "allowance": 1.0,
+    "completed": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -205818,17 +205894,24 @@
     "lineage": "reviewer seat 2026-10-08, from name and definition; a description, not an instrument"
    },
    "reads": [
+    "allowance",
+    "completed",
     "drow",
     "dcol"
    ],
    "affects": [],
    "substrate": [
+    "energy",
+    "gradient",
     "space",
+    "spectrum",
     "time"
    ],
    "run": {
     "route": "GROUNDED",
     "lit_by": [
+     "allowance",
+     "completed",
      "drow",
      "dcol"
     ],
@@ -205839,22 +205922,23 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 6,
-     "PROCESS": 6,
+     "STATE": 8,
+     "PROCESS": 9,
      "RELATION": 4,
-     "MEASURE": 0,
+     "MEASURE": 2,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 6,
-     "TEST": 2,
-     "RULE": 6,
-     "AGENT": 6
+     "INSTRUMENT": 9,
+     "TEST": 4,
+     "RULE": 8,
+     "AGENT": 9
     },
     "example": {
-     "STATE": "o1.row < o2.row",
-     "PROCESS": "o1.drow != 0",
+     "STATE": "board.allowance > 0",
+     "PROCESS": "o1.dcompleted != 0",
      "RELATION": "o1.drow == o2.drow",
-     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
+     "MEASURE": "board.allowance > 0",
+     "CAUSE": "board.allowance > 0 ⇒ o2.dcompleted != 0"
     }
    },
    "@grounding": "shared quantities"
@@ -217001,7 +217085,9 @@
    "reads_weight": {
     "age": 1.0,
     "stability": 1.0,
-    "prev": 1.0
+    "prev": 1.0,
+    "drow": 1.0,
+    "dcol": 1.0
    },
    "kind": "PERCEPT",
    "grid": {
@@ -217016,10 +217102,13 @@
    "reads": [
     "age",
     "stability",
-    "prev"
+    "prev",
+    "drow",
+    "dcol"
    ],
    "affects": [],
    "substrate": [
+    "space",
     "time"
    ],
    "run": {
@@ -217027,7 +217116,9 @@
     "lit_by": [
      "age",
      "stability",
-     "prev"
+     "prev",
+     "drow",
+     "dcol"
     ],
     "condition_text": null,
     "held_as": "the agent's hypothesis over `lit_by`, priced and settled by the ground",
@@ -217036,23 +217127,23 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 8,
-     "PROCESS": 2,
-     "RELATION": 6,
+     "STATE": 14,
+     "PROCESS": 8,
+     "RELATION": 10,
      "MEASURE": 4,
-     "CAUSE": 12,
-     "RESULT": 12,
-     "INSTRUMENT": 2,
-     "TEST": 4,
-     "RULE": 8,
-     "AGENT": 2
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 8,
+     "TEST": 6,
+     "RULE": 14,
+     "AGENT": 8
     },
     "example": {
      "STATE": "o1.age > o2.age",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.drow != 0",
      "RELATION": "o1.age > o2.age",
      "MEASURE": "o1.age > o2.age",
-     "CAUSE": "o1.age > o2.age ⇒ frame.came > 0"
+     "CAUSE": "o1.age > o2.age ⇒ o2.drow != 0"
     }
    },
    "@grounding": "any rule may turn out wrong"
@@ -277456,6 +277547,9 @@
     "age",
     "stability",
     "prev",
+    "dh",
+    "dw",
+    "dcells",
     "touching",
     "contact",
     "bbox",
@@ -277497,7 +277591,7 @@
     "available": {
      "STATE": 37,
      "PROCESS": 27,
-     "RELATION": 30,
+     "RELATION": 36,
      "MEASURE": 14,
      "CAUSE": 36,
      "RESULT": 36,
@@ -279174,6 +279268,8 @@
     "age",
     "stability",
     "prev",
+    "dh",
+    "dw",
     "contact"
    ],
    "affects": [
@@ -279201,7 +279297,7 @@
     "available": {
      "STATE": 37,
      "PROCESS": 27,
-     "RELATION": 32,
+     "RELATION": 36,
      "MEASURE": 14,
      "CAUSE": 36,
      "RESULT": 36,
@@ -281650,7 +281746,8 @@
     "age",
     "stability",
     "prev",
-    "colour"
+    "colour",
+    "shape"
    ],
    "affects": [],
    "substrate": [
@@ -281668,16 +281765,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 36,
-     "PROCESS": 20,
-     "RELATION": 18,
+     "STATE": 38,
+     "PROCESS": 23,
+     "RELATION": 19,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 20,
-     "TEST": 20,
-     "RULE": 36,
-     "AGENT": 20
+     "INSTRUMENT": 23,
+     "TEST": 22,
+     "RULE": 38,
+     "AGENT": 23
     },
     "example": {
      "STATE": "frame.action > 0",
@@ -288032,15 +288129,19 @@
     "row",
     "col",
     "action",
-    "press"
+    "press",
+    "completed",
+    "level"
    ],
    "affects": [
     "gone"
    ],
    "substrate": [
     "energy",
+    "gradient",
     "network",
     "space",
+    "spectrum",
     "time"
    ],
    "grid": {
@@ -288062,16 +288163,16 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 14,
-     "PROCESS": 12,
+     "STATE": 16,
+     "PROCESS": 15,
      "RELATION": 7,
-     "MEASURE": 4,
+     "MEASURE": 6,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 12,
-     "TEST": 9,
-     "RULE": 14,
-     "AGENT": 12
+     "INSTRUMENT": 15,
+     "TEST": 11,
+     "RULE": 16,
+     "AGENT": 15
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
@@ -315097,14 +315198,14 @@
     "dcol",
     "bbox",
     "inside",
+    "dcells",
+    "came",
+    "colour_changed",
     "action",
     "press",
-    "came",
     "gone",
-    "colour_changed",
     "dh",
     "dw",
-    "dcells",
     "stability",
     "colour"
    ],
@@ -316736,7 +316837,10 @@
     "level",
     "h",
     "w",
-    "filled"
+    "filled",
+    "dh",
+    "dw",
+    "dcells"
    ],
    "affects": [],
    "substrate": [
@@ -316763,7 +316867,7 @@
     "available": {
      "STATE": 33,
      "PROCESS": 29,
-     "RELATION": 28,
+     "RELATION": 34,
      "MEASURE": 16,
      "CAUSE": 36,
      "RESULT": 36,
@@ -326378,7 +326482,10 @@
     "action",
     "h",
     "w",
-    "filled"
+    "filled",
+    "dh",
+    "dw",
+    "dcells"
    ],
    "affects": [],
    "substrate": [
@@ -326399,7 +326506,7 @@
     "available": {
      "STATE": 33,
      "PROCESS": 27,
-     "RELATION": 22,
+     "RELATION": 28,
      "MEASURE": 10,
      "CAUSE": 36,
      "RESULT": 36,
@@ -380481,6 +380588,9 @@
    "reads": [
     "drow",
     "dcol",
+    "action",
+    "allowance",
+    "completed",
     "came",
     "gone",
     "dcells"
@@ -380490,7 +380600,10 @@
     "dcol"
    ],
    "substrate": [
+    "energy",
+    "gradient",
     "space",
+    "spectrum",
     "time"
    ],
    "grid": {
@@ -380502,22 +380615,23 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 16,
-     "PROCESS": 11,
+     "STATE": 20,
+     "PROCESS": 15,
      "RELATION": 6,
-     "MEASURE": 0,
+     "MEASURE": 2,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 11,
-     "TEST": 6,
-     "RULE": 16,
-     "AGENT": 11
+     "INSTRUMENT": 15,
+     "TEST": 10,
+     "RULE": 20,
+     "AGENT": 15
     },
     "example": {
-     "STATE": "frame.came > 0",
+     "STATE": "frame.action > 0",
      "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "CAUSE": "frame.came > 0 ⇒ o2.drow != 0"
+     "MEASURE": "board.allowance > 0",
+     "CAUSE": "frame.action > 0 ⇒ o2.drow != 0"
     }
    }
   },
@@ -381212,11 +381326,15 @@
     "dholes",
     "dperimeter",
     "colour",
+    "came",
+    "gone",
+    "allowance",
     "completed",
     "level"
    ],
    "affects": [],
    "substrate": [
+    "energy",
     "gradient",
     "space",
     "spectrum",
@@ -381231,22 +381349,22 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 6,
-     "PROCESS": 10,
+     "STATE": 13,
+     "PROCESS": 12,
      "RELATION": 6,
-     "MEASURE": 2,
+     "MEASURE": 3,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 10,
-     "TEST": 6,
-     "RULE": 6,
-     "AGENT": 10
+     "INSTRUMENT": 12,
+     "TEST": 9,
+     "RULE": 13,
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
      "PROCESS": "o1.dholes != 0",
      "RELATION": "o1.shape == o2.shape",
-     "MEASURE": "board.completed > 0",
+     "MEASURE": "board.allowance > 0",
      "CAUSE": "o1.shape == o2.shape ⇒ o2.dholes != 0"
     }
    }
@@ -402651,11 +402769,11 @@
     "stability",
     "prev",
     "colour",
+    "shape",
     "touching",
     "contact",
     "inside",
     "bbox",
-    "shape",
     "row",
     "col"
    ],
@@ -409522,7 +409640,8 @@
     "age",
     "stability",
     "prev",
-    "colour"
+    "colour",
+    "shape"
    ],
    "affects": [],
    "substrate": [
@@ -409540,16 +409659,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 36,
-     "PROCESS": 20,
-     "RELATION": 18,
+     "STATE": 38,
+     "PROCESS": 23,
+     "RELATION": 19,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 20,
-     "TEST": 20,
-     "RULE": 36,
-     "AGENT": 20
+     "INSTRUMENT": 23,
+     "TEST": 22,
+     "RULE": 38,
+     "AGENT": 23
     },
     "example": {
      "STATE": "frame.action > 0",
@@ -433718,7 +433837,10 @@
     "age",
     "h",
     "w",
-    "filled"
+    "filled",
+    "dh",
+    "dw",
+    "dcells"
    ],
    "affects": [
     "drow",
@@ -433742,7 +433864,7 @@
     "available": {
      "STATE": 35,
      "PROCESS": 27,
-     "RELATION": 23,
+     "RELATION": 29,
      "MEASURE": 10,
      "CAUSE": 36,
      "RESULT": 36,
@@ -434574,7 +434696,10 @@
     "prev",
     "h",
     "w",
-    "filled"
+    "filled",
+    "dh",
+    "dw",
+    "dcells"
    ],
    "affects": [
     "h",
@@ -434600,7 +434725,7 @@
     "available": {
      "STATE": 36,
      "PROCESS": 25,
-     "RELATION": 20,
+     "RELATION": 26,
      "MEASURE": 12,
      "CAUSE": 36,
      "RESULT": 36,
@@ -463803,13 +463928,16 @@
     "row",
     "col",
     "action",
-    "press"
+    "press",
+    "completed",
+    "level"
    ],
    "affects": [
     "came"
    ],
    "substrate": [
     "energy",
+    "gradient",
     "network",
     "space",
     "spectrum",
@@ -463824,16 +463952,16 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 41,
-     "PROCESS": 35,
+     "STATE": 43,
+     "PROCESS": 38,
      "RELATION": 34,
-     "MEASURE": 10,
+     "MEASURE": 12,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 35,
-     "TEST": 25,
-     "RULE": 41,
-     "AGENT": 35
+     "INSTRUMENT": 38,
+     "TEST": 27,
+     "RULE": 43,
+     "AGENT": 38
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
@@ -465257,6 +465385,7 @@
     "shape",
     "dholes",
     "dperimeter",
+    "came",
     "touching",
     "contact",
     "bbox",
@@ -465281,16 +465410,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 22,
-     "PROCESS": 17,
+     "STATE": 27,
+     "PROCESS": 18,
      "RELATION": 15,
      "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 17,
-     "TEST": 18,
-     "RULE": 22,
-     "AGENT": 17
+     "INSTRUMENT": 18,
+     "TEST": 20,
+     "RULE": 27,
+     "AGENT": 18
     },
     "example": {
      "STATE": "frame.action > 0",
@@ -466918,6 +467047,8 @@
     "bbox",
     "action",
     "press",
+    "completed",
+    "level",
     "row",
     "col"
    ],
@@ -466926,6 +467057,7 @@
    ],
    "substrate": [
     "energy",
+    "gradient",
     "network",
     "space",
     "spectrum",
@@ -466940,16 +467072,16 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 41,
-     "PROCESS": 35,
+     "STATE": 43,
+     "PROCESS": 38,
      "RELATION": 25,
-     "MEASURE": 4,
+     "MEASURE": 6,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 35,
-     "TEST": 25,
-     "RULE": 41,
-     "AGENT": 35
+     "INSTRUMENT": 38,
+     "TEST": 27,
+     "RULE": 43,
+     "AGENT": 38
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
@@ -489252,7 +489384,8 @@
     "drow",
     "dcol",
     "colour",
-    "colour_changed"
+    "colour_changed",
+    "dcells"
    ],
    "affects": [
     "colour_changed",
@@ -489275,15 +489408,15 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 24,
+     "STATE": 28,
      "PROCESS": 18,
-     "RELATION": 14,
+     "RELATION": 16,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 18,
-     "TEST": 14,
-     "RULE": 24,
+     "TEST": 16,
+     "RULE": 28,
      "AGENT": 18
     },
     "example": {
@@ -490655,7 +490788,8 @@
     "drow",
     "dcol",
     "colour",
-    "colour_changed"
+    "colour_changed",
+    "dcells"
    ],
    "affects": [
     "colour_changed",
@@ -490680,15 +490814,15 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 24,
+     "STATE": 28,
      "PROCESS": 18,
-     "RELATION": 14,
+     "RELATION": 16,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 18,
-     "TEST": 14,
-     "RULE": 24,
+     "TEST": 16,
+     "RULE": 28,
      "AGENT": 18
     },
     "example": {
@@ -498298,8 +498432,9 @@
     "came",
     "gone",
     "colour_changed",
-    "action",
     "colour",
+    "shape",
+    "action",
     "row",
     "col",
     "drow",
@@ -498323,16 +498458,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 27,
-     "PROCESS": 19,
-     "RELATION": 23,
+     "STATE": 29,
+     "PROCESS": 22,
+     "RELATION": 24,
      "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 19,
-     "TEST": 15,
-     "RULE": 27,
-     "AGENT": 19
+     "INSTRUMENT": 22,
+     "TEST": 17,
+     "RULE": 29,
+     "AGENT": 22
     },
     "example": {
      "STATE": "inside(o1, o2) > 0",
@@ -502587,7 +502722,10 @@
     "prev",
     "h",
     "w",
-    "filled"
+    "filled",
+    "dh",
+    "dw",
+    "dcells"
    ],
    "affects": [
     "colour_changed",
@@ -502610,7 +502748,7 @@
     "available": {
      "STATE": 34,
      "PROCESS": 22,
-     "RELATION": 27,
+     "RELATION": 33,
      "MEASURE": 14,
      "CAUSE": 36,
      "RESULT": 36,
@@ -503152,6 +503290,9 @@
     "h",
     "w",
     "filled",
+    "dh",
+    "dw",
+    "dcells",
     "row",
     "col",
     "drow",
@@ -503190,7 +503331,7 @@
     "available": {
      "STATE": 32,
      "PROCESS": 30,
-     "RELATION": 25,
+     "RELATION": 31,
      "MEASURE": 16,
      "CAUSE": 36,
      "RESULT": 36,
@@ -504225,6 +504366,9 @@
     "h",
     "w",
     "filled",
+    "dh",
+    "dw",
+    "dcells",
     "drow",
     "dcol",
     "shape",
@@ -504256,7 +504400,7 @@
     "available": {
      "STATE": 36,
      "PROCESS": 23,
-     "RELATION": 21,
+     "RELATION": 27,
      "MEASURE": 10,
      "CAUSE": 36,
      "RESULT": 36,
@@ -506554,7 +506698,10 @@
     "contact",
     "bbox",
     "inside",
-    "action"
+    "action",
+    "dcells",
+    "came",
+    "colour_changed"
    ],
    "affects": [
     "colour_changed",
@@ -506576,16 +506723,16 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 13,
-     "PROCESS": 20,
-     "RELATION": 13,
+     "STATE": 28,
+     "PROCESS": 21,
+     "RELATION": 16,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 20,
-     "TEST": 9,
-     "RULE": 13,
-     "AGENT": 20
+     "INSTRUMENT": 21,
+     "TEST": 17,
+     "RULE": 28,
+     "AGENT": 21
     },
     "example": {
      "STATE": "o1.row < o2.row",
@@ -509130,6 +509277,7 @@
     "stability",
     "prev",
     "came",
+    "dcells",
     "gone",
     "touching",
     "contact",
@@ -509138,7 +509286,6 @@
     "shape",
     "dh",
     "dw",
-    "dcells",
     "completed",
     "level",
     "action",
@@ -509349,7 +509496,8 @@
     "touching",
     "contact",
     "inside",
-    "bbox"
+    "bbox",
+    "dperimeter"
    ],
    "affects": [],
    "substrate": [
@@ -509369,16 +509517,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 37,
-     "PROCESS": 30,
-     "RELATION": 26,
+     "STATE": 39,
+     "PROCESS": 33,
+     "RELATION": 28,
      "MEASURE": 10,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 30,
-     "TEST": 21,
-     "RULE": 37,
-     "AGENT": 30
+     "INSTRUMENT": 33,
+     "TEST": 23,
+     "RULE": 39,
+     "AGENT": 33
     },
     "example": {
      "STATE": "o1.row < o2.row",
@@ -511496,6 +511644,9 @@
     "h",
     "w",
     "filled",
+    "dh",
+    "dw",
+    "dcells",
     "came",
     "gone"
    ],
@@ -511521,7 +511672,7 @@
     "available": {
      "STATE": 33,
      "PROCESS": 27,
-     "RELATION": 28,
+     "RELATION": 34,
      "MEASURE": 14,
      "CAUSE": 36,
      "RESULT": 36,
@@ -516160,6 +516311,7 @@
    },
    "reads": [
     "action",
+    "came",
     "terms",
     "prev",
     "stability",
@@ -516189,7 +516341,7 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 34,
+     "STATE": 35,
      "PROCESS": 21,
      "RELATION": 20,
      "MEASURE": 8,
@@ -516197,7 +516349,7 @@
      "RESULT": 36,
      "INSTRUMENT": 21,
      "TEST": 18,
-     "RULE": 34,
+     "RULE": 35,
      "AGENT": 21
     },
     "example": {
@@ -520092,7 +520244,10 @@
     "prev",
     "h",
     "w",
-    "filled"
+    "filled",
+    "dh",
+    "dw",
+    "dcells"
    ],
    "affects": [
     "drow",
@@ -520120,7 +520275,7 @@
     "available": {
      "STATE": 32,
      "PROCESS": 24,
-     "RELATION": 19,
+     "RELATION": 25,
      "MEASURE": 12,
      "CAUSE": 36,
      "RESULT": 36,
@@ -550063,6 +550218,7 @@
     "prev",
     "drow",
     "dcol",
+    "shape",
     "action"
    ],
    "affects": [
@@ -550085,16 +550241,16 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 20,
-     "PROCESS": 10,
-     "RELATION": 11,
+     "STATE": 22,
+     "PROCESS": 13,
+     "RELATION": 12,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 10,
-     "TEST": 10,
-     "RULE": 20,
-     "AGENT": 10
+     "INSTRUMENT": 13,
+     "TEST": 12,
+     "RULE": 22,
+     "AGENT": 13
     },
     "example": {
      "STATE": "frame.came > 0",
@@ -569774,6 +569930,7 @@
     "stability",
     "prev",
     "came",
+    "dcells",
     "gone",
     "drow",
     "dcol",
@@ -569804,15 +569961,15 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 26,
+     "STATE": 30,
      "PROCESS": 16,
-     "RELATION": 15,
+     "RELATION": 17,
      "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 16,
-     "TEST": 14,
-     "RULE": 26,
+     "TEST": 16,
+     "RULE": 30,
      "AGENT": 16
     },
     "example": {
@@ -579026,6 +579183,7 @@
    "reads": [
     "standing",
     "completed",
+    "came",
     "terms",
     "action",
     "press",
@@ -579056,7 +579214,7 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 41,
+     "STATE": 42,
      "PROCESS": 28,
      "RELATION": 23,
      "MEASURE": 13,
@@ -579064,15 +579222,15 @@
      "RESULT": 36,
      "INSTRUMENT": 28,
      "TEST": 23,
-     "RULE": 41,
+     "RULE": 42,
      "AGENT": 28
     },
     "example": {
      "STATE": "o1.standing > o2.standing",
-     "PROCESS": "frame.action > 0",
+     "PROCESS": "frame.came > 0",
      "RELATION": "o1.standing > o2.standing",
      "MEASURE": "o1.standing > o2.standing",
-     "CAUSE": "o1.standing > o2.standing ⇒ frame.action > 0"
+     "CAUSE": "o1.standing > o2.standing ⇒ frame.came > 0"
     }
    }
   },
@@ -579860,6 +580018,7 @@
     "prev",
     "terms",
     "action",
+    "came",
     "colour",
     "colour_changed",
     "drow",
@@ -579867,7 +580026,6 @@
     "dh",
     "dw",
     "dcells",
-    "came",
     "gone",
     "touching",
     "contact",
@@ -584019,6 +584177,8 @@
     "action",
     "row",
     "col",
+    "allowance",
+    "completed",
     "drow",
     "dcol"
    ],
@@ -584028,6 +584188,7 @@
    ],
    "substrate": [
     "energy",
+    "gradient",
     "space",
     "spectrum",
     "time"
@@ -584041,16 +584202,16 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 12,
-     "PROCESS": 13,
+     "STATE": 14,
+     "PROCESS": 16,
      "RELATION": 12,
-     "MEASURE": 4,
+     "MEASURE": 6,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 13,
-     "TEST": 8,
-     "RULE": 12,
-     "AGENT": 13
+     "INSTRUMENT": 16,
+     "TEST": 10,
+     "RULE": 14,
+     "AGENT": 16
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
@@ -587708,12 +587869,15 @@
     "action",
     "row",
     "col",
+    "allowance",
+    "completed",
     "drow",
     "dcol"
    ],
    "affects": [],
    "substrate": [
     "energy",
+    "gradient",
     "space",
     "spectrum",
     "time"
@@ -587727,16 +587891,16 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 12,
-     "PROCESS": 11,
+     "STATE": 14,
+     "PROCESS": 14,
      "RELATION": 12,
-     "MEASURE": 4,
+     "MEASURE": 6,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 11,
-     "TEST": 8,
-     "RULE": 12,
-     "AGENT": 11
+     "INSTRUMENT": 14,
+     "TEST": 10,
+     "RULE": 14,
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
@@ -587869,12 +588033,14 @@
     "touching",
     "contact",
     "inside",
-    "bbox"
+    "bbox",
+    "dperimeter"
    ],
    "affects": [],
    "substrate": [
     "network",
-    "space"
+    "space",
+    "time"
    ],
    "grid": {
     "meaning": "composition: Network [objects connected by links] ? Individuals [single objects] ? Edges [links between objects]",
@@ -587885,22 +588051,22 @@
    "roles": {
     "default": "STATE",
     "available": {
-     "STATE": 5,
-     "PROCESS": 9,
-     "RELATION": 3,
+     "STATE": 7,
+     "PROCESS": 12,
+     "RELATION": 5,
      "MEASURE": 0,
-     "CAUSE": 30,
-     "RESULT": 30,
-     "INSTRUMENT": 9,
-     "TEST": 5,
-     "RULE": 5,
-     "AGENT": 9
+     "CAUSE": 36,
+     "RESULT": 36,
+     "INSTRUMENT": 12,
+     "TEST": 7,
+     "RULE": 7,
+     "AGENT": 12
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
-     "PROCESS": "o1.dcontact != 0",
+     "PROCESS": "o1.dperimeter != 0",
      "RELATION": "contact(o1, o2) > 0",
-     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dcontact != 0"
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dperimeter != 0"
     }
    }
   },
@@ -610989,6 +611155,7 @@
     "contact",
     "inside",
     "bbox",
+    "came",
     "terms"
    ],
    "affects": [
@@ -611010,15 +611177,15 @@
    "roles": {
     "default": "PROCESS",
     "available": {
-     "STATE": 15,
+     "STATE": 20,
      "PROCESS": 16,
      "RELATION": 9,
      "MEASURE": 10,
      "CAUSE": 36,
      "RESULT": 36,
      "INSTRUMENT": 16,
-     "TEST": 11,
-     "RULE": 15,
+     "TEST": 13,
+     "RULE": 20,
      "AGENT": 16
     },
     "example": {
