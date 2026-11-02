@@ -309,10 +309,14 @@ def _fold_rules() -> dict:
         "accepted", "necessary"}, ("MF-F3 a real contest", row)
     f4 = run({"c": 130}, {"c": 90}, {"c": 100}, "book")
     assert f4["book"]["c"] == 100 and len(f4["contested_book"]["c"]) == 2, ("MF-F4", f4["book"])
+    # MF-F6 (r801 4): a counter both branches created after the split (no pre-split value) sums
+    f6 = run({"c": 7}, {"c": 5}, {}, "book")
+    assert f6["book"].get("c") == 12 and "contested_book" not in f6, ("MF-F6 absent pre",
+                                                                     f6["book"])
     f5 = run({"x": {"r": 1}, "y": 7}, {"x": {"r": 2}, "y": 9}, {"y": 3}, "invented")
     assert "x" not in f5["invented"] and f5["invented"]["y"] == 3, ("MF-F5 never summed", f5)
     assert set(f5["contested_invented"]) == {"x", "y"}, ("MF-F5 contested", f5)
-    return {"F1": row and f1["terms"][0]["admitted"], "F2": f2["book"]["c"],
+    return {"F1": row and f1["terms"][0]["admitted"], "F2": f2["book"]["c"], "F6": f6["book"]["c"],
             "F4": f4["book"]["c"], "F5": sorted(f5["contested_invented"])}
 
 
@@ -322,7 +326,7 @@ def main():
     print(f"  fold rules: MF-F1 agreeing heads -> {fr['F1']!r}, no contest; MF-F2 counter 100 -> "
           f"130 / 115 -> {fr['F2']}; MF-F3 differing statuses -> pre-split + both contested; "
           f"MF-F4 a head below pre -> {fr['F4']}, contested; MF-F5 invented {fr['F5']} contested, "
-          f"never summed", flush=True)
+          f"never summed; MF-F6 absent pre, 7 / 5 -> {fr['F6']}", flush=True)
     cc = _continue_cases(Path(tempfile.mkdtemp(prefix="store_cont_")))
     print("  A2c continue: (ii) B after the chain at {}/{} -> paths {}, equal to the rebuild table "
           "by table; (i) B inside at {}/{} -> REFUSED (paths {}), forced continue differs; "

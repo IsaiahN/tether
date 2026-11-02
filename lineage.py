@@ -332,7 +332,8 @@ def _keyed(out: dict, field: str, g: dict, h: str, anc: dict, hist: dict, heads:
     """A keyed field of the fold (book, invented) under the status rule: a value supersedes only
     one its generation descends from. Branches that AGREE read the agreed value; book running
     totals (every head an integer at or above the pre-split one) merge as the pre-split value plus
-    each head's increment (the reviewer 2026-11-02 r800 2). Otherwise branches that disagree keep
+    each head's increment, an absent pre-split value read as 0 (the reviewer 2026-11-02 r800 2,
+    r801 4). Otherwise branches that disagree keep
     the value from before the split (absent if there was none) and record both under
     "contested_<field>"."""
     for key, v in g[field].items():
@@ -348,9 +349,9 @@ def _keyed(out: dict, field: str, g: dict, h: str, anc: dict, hist: dict, heads:
             continue
         common = set.intersection(*(anc[q] for q in heads[k]))
         pre = [x for q, x in hist[k] if q in common]
-        if (field == "book" and pre and _count(pre[-1])
-                and all(_count(x) and x >= pre[-1] for x in vals)):
-            out[field][key] = pre[-1] + sum(x - pre[-1] for x in vals)
+        p0 = pre[-1] if pre else 0      # a counter both branches began after the split (r801 4)
+        if field == "book" and _count(p0) and all(_count(x) and x >= p0 for x in vals):
+            out[field][key] = p0 + sum(x - p0 for x in vals)
             continue
         if pre:
             out[field][key] = pre[-1]
