@@ -90,9 +90,8 @@ class ResetGuard:
     reset in their own `__init__`.
 
     LIVE, a second RESET is REFUSED -- not sent, the current frame returned, the refusal logged and
-    counted -- because a raise mid-game on the submission machine would lose every completed
-    level. `strict=True` RAISES instead; the `entry` seat runs strict so the failure path is shown
-    to fire.
+    counted -- because a raise mid-game in a submission loses every completed level. `strict=True`
+    RAISES instead; the `entry` seat runs strict so the failure path is shown to fire.
     """
 
     def __init__(self, w, strict: bool = False):
@@ -157,7 +156,7 @@ def missing_game(game: str) -> str:
 
 def wire(w, game: str, *, cfg: Any = None, led_path: str | None = None,
          library: str | None = None, on_frame=None, lineage_dir: str | None = None):
-    """THE ONE WIRING OF AN ARC WRAPPER TO THE AGENT -- `play` and the competition entry point both.
+    """THE ONE WIRING OF AN ARC WRAPPER TO THE AGENT -- `play` and the submission entry point both.
 
     Lifted out of `play` unchanged (2026-10-06) so the two cannot drift: the arm flags, the
     palette read, `ArcWorld`, the ledger, the config and the library load are written once.
@@ -451,14 +450,14 @@ def save_only(ag: Any, out_dir: str | None, game: str, led_path: str | None) -> 
 # here, as max_depth=4 is, so the toy world's Config() keeps 15,000 and its falsifier (~13,298
 # candidates to dbl.neg.inc.wrap) is never truncated. A VALUE: TETHER_WORK_BUDGET_N overrides it,
 # 15000 restores the old pacing (317879c). MAGIC: a seat-authored constant (Fig 10 :48),
-# replaced after the competition entry by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
+# replaced post-submission by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 ARC_WORK_BUDGET = int(os.environ.get("TETHER_WORK_BUDGET_N", "5000"))
 # What Gamma is told the game is, for every game and every mode: the stream's constant
 # (harness/mem_store/e4_stream.py wires under "stream"). Isaiah 2026-10-25 07:16.
 AGENT_GAME = "stream"
 
 
-def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
+def play(game: str, cycles: int = 40, library: str | None = None,
          store: str | None = None, arc=None, stop_on_end: bool = False,
          led_path: str | None = None, on_frame=None,
          cfg: Any = None, save_only_dir: str | None = None,
@@ -725,7 +724,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     }
 
 
-def controlled(game: str = "ls20", trials: int = 4) -> dict:
+def controlled(game: str, trials: int = 4) -> dict:
     """§21.1's controlled experiment, run as APPARATUS. **No agent. No Gamma. Nothing carried.**
 
     **RULED 2026-08-28: the seat may restart for its OWN reasons and may not restart to help
@@ -775,7 +774,9 @@ def controlled(game: str = "ls20", trials: int = 4) -> dict:
 
 
 if __name__ == "__main__":
-    name = sys.argv[1] if len(sys.argv) > 1 else "ls20"
+    if len(sys.argv) < 2:
+        sys.exit("usage: python arc_holdout.py GAME")
+    name = sys.argv[1]
     for k, v in play(name).items():
         print(f"  {k:<14}: {v}")
     print("")

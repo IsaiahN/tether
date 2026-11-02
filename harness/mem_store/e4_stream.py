@@ -14,7 +14,7 @@ own handling: a GAME_OVER is that game's death, a clear its level edge.
 The order, the seed and each switch (wall time, the agent's cycle) go to the HARNESS's switch.tsv, never to the
 agent's ledger. --mf plants ag.restarted(env) at every switch, so e4_stream_check.py can be shown to catch it.
 
-argv: repo out [--seed HEX] [--slice-s S] [--lineage DIR] [--mf]"""
+argv: repo out [--seed HEX] [--slice-s S] [--lineage DIR] [--mf] [--games files|arcade]"""
 import argparse
 import collections
 import json
@@ -33,7 +33,10 @@ ap.add_argument("--slice-s", type=float, default=600.0)
 ap.add_argument("--lineage", default=None)
 ap.add_argument("--mf", action="store_true")
 ap.add_argument("--switch", choices=("between", "step"), default="between")   # see THE SWAP above
-ap.add_argument("--n-games", type=int, default=25)   # the MF test plays the first 2 of the order
+ap.add_argument("--n-games", type=int, default=None)   # the MF test plays the first 2 of the order; None: all
+# where the games come from: "files" (environment_files, the 25, a seeded order) or "arcade" (the Arcade's own list, in
+# its order and count, as a competition gateway serves it; the reviewer 2026-10-30 r464 3)
+ap.add_argument("--games", choices=("files", "arcade"), default="files")
 ap.add_argument("--slice-steps", default=None)       # per position, e.g. "3,1": a slice ends after N agent steps
 ap.add_argument("--census", action="store_true")     # census_heap.point between steps (the reviewer 2026-10-19 03:00)
 # E4b's slice rule (A) (Isaiah 2026-10-23 "i like c and then a"; the reviewer 06:29 B1, 06:54 (a)): a slice ends at
@@ -79,16 +82,26 @@ import lineage  # noqa: E402
 import tether  # noqa: E402
 from arc_agi import Arcade  # noqa: E402
 
-games = sorted(os.listdir(os.path.join(A.repo, "environment_files")))
-assert len(games) == 25, games
-seed = A.seed or secrets.token_hex(4)
-order = random.Random(seed).sample(games, len(games))
+arc = Arcade(operation_mode=arc_holdout._mode())
+if A.games == "arcade":
+    seed = A.seed
+    order = [e.game_id for e in arc.get_environments()]
+    assert order, "the Arcade lists no games"
+else:
+    games = sorted(os.listdir(os.path.join(A.repo, "environment_files")))
+    assert len(games) == 25, games
+    seed = A.seed or secrets.token_hex(4)
+    order = random.Random(seed).sample(games, len(games))
 order = order[:A.n_games]
 SW = os.path.join(A.out, "switch.tsv")
 
 
 def commit_mb() -> int:
-    """This process's private commit, MB (the reviewer 23:13: the stream logs commit at every switch)."""
+    """This process's private commit, MB (the reviewer 23:13: the stream logs commit at every switch); off Windows the
+    resident set, as the agent reads its own body (tether._commit_bytes), -1 if unreadable."""
+    if os.name != "nt":
+        b = tether._commit_bytes()
+        return -1 if b is None else b // 2**20
     import ctypes
     import ctypes.wintypes as wt
 
@@ -114,6 +127,27 @@ def log(line: str) -> None:
     print(line, flush=True)
 
 
+class NoAnswer(BaseException):
+    """r563: the wrapper answered None (arc_agi's client logs any HTTP error or timeout and returns None). Raised in
+    place of handing the None to the agent; a BaseException, so step_or_recover never reads it as an agent fault."""
+
+
+def _answer(frame):
+    if frame is None:
+        raise NoAnswer
+    return frame
+
+
+def card_gone(arc) -> bool:
+    """r563: after a make with no frame, whether the card itself is gone -- the gateway's own 404 for it (a competition
+    card that is still open answers 403, api.py get_scorecard). Anything else reads as not gone."""
+    try:
+        arc.get_scorecard()
+    except Exception as e:   # noqa: BLE001
+        return getattr(getattr(e, "response", None), "status_code", None) == 404
+    return False
+
+
 class Stream:
     """The proxy wrapper: the current game's wrapper, swapped by the harness between steps."""
 
@@ -125,13 +159,13 @@ class Stream:
         return getattr(self.cur, "observation_space", None)
 
     def reset(self):
-        return self.cur.reset()
+        return _answer(self.cur.reset())
 
     def step(self, act, data=None):
         if self.pending is not None:      # the switch lands here: the new board is the outcome
             self.cur, self.pending = self.pending, None
-            return getattr(self.cur, "observation_space", None) or self.cur.reset()
-        return self.cur.step(act, data=data) if data is not None else self.cur.step(act)
+            return getattr(self.cur, "observation_space", None) or _answer(self.cur.reset())
+        return _answer(self.cur.step(act, data=data) if data is not None else self.cur.step(act))
 
     def switch_to(self, game: str) -> None:
         if A.switch == "between":         # current at once; the driver hands its frame over (arrive)
@@ -140,7 +174,6 @@ class Stream:
             self.pending = self.arc.make(game)
 
 
-arc = Arcade(operation_mode=arc_holdout._mode())
 proxy = Stream(arc, order[0])
 led_path = os.path.join(A.out, "stream.jsonl")
 env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path=led_path,
@@ -170,7 +203,11 @@ if CH:
     CH.point("after_load", ag, A.out)
 endings_all = collections.Counter()
 budget_unreached = []
+no_answer, gone = [], False   # r563
 for i, g in enumerate(order):
+    if gone:
+        log(f"# {i}\t{g}\tnot played: the card is gone (the gateway's 404)")
+        continue
     if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the life
         budget_unreached.append(g)
         log(f"# {i}\t{g}\tunreached at this budget (the whole-run deadline passed; no switch)")
@@ -178,6 +215,11 @@ for i, g in enumerate(order):
     seq0 = len(ag.led)           # the check's window opens before the switch (and the plant) ...
     if i:
         proxy.switch_to(g)
+        if A.switch == "between" and proxy.observation_space is None:   # r563: no frame at the make, no retry
+            no_answer.append(g)
+            gone = card_gone(arc)
+            log(f"# {i}\t{g}\tno_answer: the make held no frame; nothing taken, no retry; card gone {gone}")
+            continue
         if A.switch == "between" and not env.arrive():   # the new game's first frame, before the next step
             log(f"# {i}\t{g}\tarrive: the wrapper held no frame; nothing taken, no reset issued")
         if A.mf:
@@ -190,7 +232,22 @@ for i, g in enumerate(order):
     n_steps = STEPS[min(i, len(STEPS) - 1)] if STEPS else None
     acts, first_act_s = 0, None
     while going(steps, n_steps, t_start, acts):
-        env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
+        try:
+            env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
+        except NoAnswer:   # r563: the game ends here, no retry; the agent cut inside its step is replaced
+            steps += 1
+            ending = "no_answer"
+            no_answer.append(g)
+            arc_holdout.guarded(ag, ag.end_run, "cap")
+            cycle, deadline, led = ag.cycle, ag.deadline, ag.led
+            env = arc_holdout.world_on(env.w, ctx["game"], ctx["palette"], env.on_frame)
+            ag, _loaded = arc_holdout.wire_agent(env, ctx["game"], None, led, None, A.lineage,
+                                                 clock=(cycle, deadline))
+            led.record(cycle, "SETTLE", "@run", "no_answer", game_steps=steps,
+                       parent=getattr(ag, "lineage_parent", None),
+                       reads="the wrapper answered None to a step, so that game ended with no retry and the agent "
+                             "cut inside its step was dropped; a fresh agent from the lineage goes on")
+            break
         if fault is not None:
             raise fault
         steps += 1
@@ -242,7 +299,7 @@ if close:
 out = {"seed": seed, "order": order, "cycles": ag.cycle, "wall_s": round(time.time() - T0, 1),
        "endings": dict(endings_all), "lineage": str(gen)[:300], "mf": A.mf, "deadline_at": A.deadline_at,
        "deadline_fired": bool(getattr(ag, "_cut", False)), "budget_unreached": budget_unreached,
-       "end_path_s": end_path_s}
+       "end_path_s": end_path_s, "no_answer": no_answer, "card_gone": gone}
 with open(os.path.join(A.out, "stream.result.json"), "w", encoding="utf-8") as fh:
     json.dump(out, fh, default=str)
 log(f"# stream end {time.strftime('%Y-%m-%d %H:%M:%S')} {json.dumps(out, default=str)[:400]}")

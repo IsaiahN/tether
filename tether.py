@@ -48,6 +48,9 @@ import retrieval
 import routine as Rt
 import store as door  # the one door; `store` is a local name in three methods
 from gamma import _CARRY_W as G_CARRY_W
+from gamma import _FIRST_CONTACT as G_FIRST_CONTACT
+from gamma import _KIND_ATTR as G_KIND_ATTR
+from gamma import _KIND_REL as G_KIND_REL
 from gamma import _PRIOR_CODE as G_PRIOR_CODE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import _UNITS_MEMO as G_UNITS_MEMO
@@ -406,6 +409,8 @@ PHASE_OF: dict[str, str] = {
     "probe": I.PROBE,
     "draw": I.PROBE,
     "given": I.PROBE,          # handed in by the caller: not a choice this loop made
+    "terminal": I.DIRECTED,    # TETHER_TERMINAL_RESET: a dead board, the restart (r669 1)
+    "actuator": I.DIRECTED,    # TETHER_GOAL_FROM_ACTUATOR: CONTINUE <actuator> (r746)
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
@@ -521,6 +526,29 @@ PREV = "~1"
 _LAG = re.compile(r"^(.*)~(\d+)$")
 
 
+def arms_today() -> dict:
+    """r690 3, STAYS ON: the live value of every arm built on 2026-11-01, read from the modules
+    (never the environment). The bundle worker records it and fails the run if any reads False."""
+    import gamma as _g
+    import interface as _i
+    names = {"tether": ("_TERMINAL_RESET", "_S1_CONTACT_ONLY", "_PLAN_EPISODES",
+                        "_CARRIED_BEFORE_MINT", "_S2_STALL", "_DISCRIMINATE", "_MISS_GRADE",
+                        "_FC_CONTACT", "_PROBE_NO_RESTART", "_GOAL_CONTINGENT", "_ROUTINE_TOUCH",
+                        "_BOND_INC", "_RESET_REASON", "_COUNTERS", "_RELATION_BET",
+                        "_WIN_CREDIT", "_BOARD_BOUNDARY", "_FIT_BOUND", "_REACH_GATE",
+                        "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
+                        "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
+                        "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT", "_GOAL_BY_MOVED",
+                        "_GOAL_SIGN_FLIP", "_GOAL_FROM_ACTUATOR", "_PAIR_BOUND",
+                        "_PAIRS_FALLBACK", "_ACTUATOR_ROUTINE", "_BASELINE_FROM_OTHERS",
+                        "_ACTUATOR_END_ON_J"),
+             "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
+             "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
+    import lineage as _lin
+    mods = {"tether": sys.modules[__name__], "gamma": _g, "interface": _i, "lineage": _lin}
+    return {f"{m}.{n}": bool(getattr(mods[m], n)) for m, ns in names.items() for n in ns}
+
+
 def lag_of(name: str | None) -> tuple[str, int] | None:
     """(slot, j) for an operand reading j frames back, else None."""
     if not name or "~" not in name:
@@ -584,6 +612,12 @@ _RUIN_RECORD = armflag.arm("TETHER_RUIN_RECORD", default=True)
 _RUIN = armflag.arm("TETHER_RUIN", default=True)
 if _RUIN and not _RUIN_RECORD:
     raise RuntimeError("TETHER_RUIN reads the veto floor: it needs TETHER_RUIN_RECORD on")
+# 23 NOOP_WITHHOLD (the reviewer r571): a press after which the board's fingerprint is the one it
+# had before adds (fingerprint, action, realised coordinate) to `self._noops`, beside the ruin
+# vetoes, and is withheld on that identical board only, through the same Withheld path; when every
+# option is withheld the interface lifts it, as for the vetoes. Cleared at retarget. It reads the
+# fingerprint and the withhold, so it acts only with TETHER_RUIN. ON; conform/arms.py
+_NOOP_WITHHOLD = armflag.arm("TETHER_NOOP_WITHHOLD", default=True)
 # 7a(5b) THE CONTACT INSTRUMENT (Isaiah 2026-10-10 06:46 CDT; the reviewer 11:46Z, 12:27Z). ON;
 # reason in conform/arms.py. Record only: `gamma_read["fed"]` names, by seq, each library term read
 # by the exit whose action is RETURNED, with its role (goal: it chose what to reach; route: its
@@ -611,6 +645,13 @@ _R4_RECORD = armflag.arm("TETHER_R4_RECORD", default=True)
 # right-way move reaches; a specific one's overshoot is corrected, never refused). default ON
 # (Isaiah 2026-10-24 14:16: 'just keep the switch on period'). OFF: today's trend and goal exit.
 _ROUTE_REFUSE = armflag.arm("TETHER_ROUTE_REFUSE", default=True)
+# 42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer 2026-11-01 r717): R-B keyed a route
+# by the intent's full wording, so R-C re-stating a general want as a specific one ("BECOME
+# o21.col -" -> "- -> 30") made a new route whose run restarted at 1 and MIN_REPEAT was never
+# reached (tn36, measured: same action, coord and context). The key reads the intent's GENERAL
+# statement (slot and sign; the stated target dropped), so a failed way of moving that slot that
+# way is refused however the want is worded. OFF: the full wording, as before
+_ROUTE_KEY_GENERAL = armflag.arm("TETHER_ROUTE_KEY_GENERAL", default=True)
 # 7a D5, SPLIT A SLOT'S RESIDUAL ON STRAIN (Fig 9 :4-5, :54-58; the reviewer 2026-10-10 15:58Z).
 # ON; reason in conform/arms.py. When a held predicate cleanly separates the rows a bound term
 # gets right from the rows it gets wrong (at least 2 each side), the slot gets two PARTS: the
@@ -673,6 +714,7 @@ _INDEX_STORE: dict = (_Kept() if _W_HELD_LAZY and _W_CACHES   # (compile_term.si
                       else {})                                  # role) -> held compiles
 _INDEX_N: Counter = Counter()   # held, bound, bound_memo_hit, named; the agent never reads it
 _HELD_COMPILE: dict = {}   # 18: (signature, condition, subject) -> the compile; the process's
+_DL_ENTRY: dict = {}       # 20: (signature, entry) -> (its held views' readings, any event route)
 # THE BOUND ANSWERS OUTLIVE THE GAME (Isaiah 2026-10-15 06:01; the reviewer 06:10, 06:56): one
 # memo per PROCESS, keyed by the code primitives' content token, used only by an Agent whose
 # Gamma holds the shared objects (gamma.shared_token); any other Agent keeps its own memo.
@@ -842,6 +884,18 @@ _STEP_ACT = armflag.arm("TETHER_STEP_ACT", default=True)
 # mints are OWED (mint_deferred) and minted first next step. The unit is the mint's own stop; no
 # constant. ON; conform/arms.py
 _STEP_MINT = armflag.arm("TETHER_STEP_MINT", default=True)
+# 40, THE NOMINAL REACH GATE (the reviewer 2026-11-01 r706, r707 (ii)): a slot whose declared type
+# is nominal (not ordered) is not minted when no residual row's new value is in reach -- the old
+# value, any same-typed slot's value on the board in the slot's history (the take chain, lags
+# included), and their images under the type's own T -> T atoms, closed to max_depth. Translate's
+# arithmetic on a nominal id is left out (r707: a sum of two names names nothing). Outside that,
+# correction is binary, so no term pays; booked reach_gate_skipped, the step's mint goes on to the
+# next slot. R9: 135 of 198 budget_spent parks were .shape slots, 88% of mint wall. OFF: minted
+_REACH_GATE = armflag.arm("TETHER_REACH_GATE", default=True)
+# Its check run: a gated slot is minted anyway; reach_gate_kept books a mint that accepted nothing,
+# reach_gate_lost one that accepted (a row names the terms). A measurement switch, never a play
+# setting. OFF: no check
+_REACH_GATE_CHECK = armflag.arm("TETHER_REACH_GATE_CHECK")
 # THE STEP CLOCK (the reviewer 2026-10-26 r263 (b)): a LEDGER INSTRUMENT, never read by the agent.
 # Each step's REPEAT row carries wall_s per step phase (exclusive, from _step_scope), trace_len,
 # wants_n, owed_import_n, gamma_reuse_live and gamma_reuse_on_board (r264); step_mint and each
@@ -964,6 +1018,78 @@ _CONTACT_LIGHT = armflag.arm("TETHER_CONTACT_LIGHT", default=True)
 # signature is what a compile can read of them; Compiled, Refusal and Term are frozen. Record
 # only, beside it: the step clock's reach_s, _library_reach's wall this step. ON; conform/arms.py
 _HELD_COMPILE_MEMO = armflag.arm("TETHER_HELD_COMPILE_MEMO", default=True)
+# 20 DESCRIBED_LOOKUP (the reviewer r563, r565, r571; Isaiah 2026-10-31 13:27, 13:31; Fig 9
+# :27-29, :43-45, Fig 11 :44): a lookup asks only what its residual's description points to --
+# K1's T1a, T1b, T1c, T2, and the other lit entries whose held views read the asked slot's own
+# reading or come through an event route (the exact-reading key, r571) -- never T1d / T3 / T4 / T5
+# in the same ask. A complete ask with no offer is a verdict (no_entry); the same key (the slot, its
+# delta kind, the readings, its contact) is not asked again, and an owed lookup due under a missed
+# key is dropped with a row. A new description is a new key. ON; conform/arms.py
+_DESCRIBED_LOOKUP = armflag.arm("TETHER_DESCRIBED_LOOKUP", default=True)
+# 22 INCREMENTAL_JUDGE (the reviewer r571; Fig 9 :38-39, Fig 12 :108-109, Fig 6 :50): 16's stored
+# prefixes are voided by the slot's peers or its owner's attributes moving only for a term whose
+# atoms declare they read them (reads_ctx "group" / "obj", the only fields _eval_ctx fills from
+# them); every other cell resumes. The rest of _divide_key voids every cell as before. ON;
+# conform/arms.py
+_INCREMENTAL_JUDGE = armflag.arm("TETHER_INCREMENTAL_JUDGE", default=True)
+_FRAME_READS = ("group", "obj")
+_READS_FRAME: dict = {}          # 22: term -> whether it reads the frame's peers / owner record
+
+
+def _reads_frame(term: Term) -> bool:
+    """22: whether any atom of the term (its operand term too) declares a read of Ctx.group or
+    Ctx.obj."""
+    got = _READS_FRAME.get(term)
+    if got is None:
+        got = _READS_FRAME[term] = (
+            any(f in a.reads_ctx for a in term.atoms for f in _FRAME_READS)
+            or (term.operand_term is not None and _reads_frame(term.operand_term)))
+    return got
+
+
+class _DepCells:
+    """22: one slot's stored prefixes in two stores -- the terms that read the frame's peers / owner
+    record, voided when those move, and the rest, which keep -- behind _cl_left's get / set."""
+
+    __slots__ = ("still", "frame")
+
+    def __init__(self, still: dict, frame: dict) -> None:
+        self.still, self.frame = still, frame
+
+    def get(self, term: Term) -> Any:
+        return (self.frame if _reads_frame(term) else self.still).get(term)
+
+    def __setitem__(self, term: Term, cell: tuple) -> None:
+        (self.frame if _reads_frame(term) else self.still)[term] = cell
+
+
+def _lazy_field(name: str) -> property:
+    """22: a Ctx field built on its first read from the thunk _eval_ctx left for it."""
+    def get(self: Any) -> Any:
+        d = self.__dict__
+        if name not in d:
+            d[name] = d["_lz"].pop(name)()
+        return d[name]
+
+    def put(self: Any, value: Any) -> None:
+        self.__dict__[name] = value
+    return property(get, put)
+
+
+class _LazyCtx(Ctx):
+    """22: a Ctx whose `group` and `obj` -- the peers' values and the owner's record, which almost
+    no term reads -- are built when first read, and return exactly what the eager fields held."""
+
+    group = _lazy_field("group")
+    obj = _lazy_field("obj")
+
+
+def _lazy_ctx(fields: dict, group: Any, obj: Any) -> Ctx:
+    c = object.__new__(_LazyCtx)
+    for k, v in fields.items():
+        object.__setattr__(c, k, v)
+    object.__setattr__(c, "_lz", {"group": group, "obj": obj})
+    return c
 # 2 ROUTE_NAMED (the reviewer r392, r393): ROUTE's library lookup for a slot is owed, not walked,
 # when the step's own record says the act was already named (CONTACT_FIRST's (a): a settled
 # prediction served the intent, or a held routine emitted it); owed through C1's queue like A1's
@@ -1175,7 +1301,7 @@ _STEP_BUDGET = armflag.arm("TETHER_STEP_BUDGET", default=True)
 # K-W, 1,000,000 -> 50,000 (Isaiah 2026-10-21 18:58, via the reviewer 19:02; measured S2W, S3G: a
 # step's lookups past it are OWED and asked first next step). A VALUE: TETHER_STEP_BUDGET_N
 # overrides it, 1000000 restores the old pacing (317879c). MAGIC: a seat-authored constant
-# (Fig 10 :48), replaced after the competition entry by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
+# (Fig 10 :48), replaced post-submission by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 STEP_BUDGET = int(os.environ.get("TETHER_STEP_BUDGET_N", "50000"))
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
@@ -1609,6 +1735,17 @@ _FIT_DEDUP = armflag.arm("TETHER_FIT_DEDUP", default=True)
 # (2a)'s check run: every reuse also computes fresh and compares; the fresh values are used. A
 # measurement switch, never a play setting. OFF: no check
 _FIT_DEDUP_CHECK = armflag.arm("TETHER_FIT_DEDUP_CHECK")
+# (C), THE FIT BOUND (the reviewer 2026-11-01 r699): under CARRY_PRICE a candidate's price is
+# (ref if credited else cost) + left, and left is a sum of non-negative bits, so its lowest
+# possible price before left is judged is cost (min(cost, ref) for a minted term). Once the first
+# payer is in hand, a candidate whose lowest price is at or above the best price held (or the
+# base) cannot win or enter the payers, and its left is not judged; booked fit_bound_skipped.
+# Exact: the winner, the payers and the first payer are unchanged. OFF: every left judged
+_FIT_BOUND = armflag.arm("TETHER_FIT_BOUND", default=True)
+# Its check run: a candidate the bound would skip is judged anyway and its true price compared
+# with the bound (fit_bound_agree / fit_bound_disagree). A measurement switch, never a play
+# setting. OFF: no check
+_FIT_BOUND_CHECK = armflag.arm("TETHER_FIT_BOUND_CHECK")
 # (C), THE TIERS INDEX (the reviewer 2026-10-21 03:05): _tiers ranked by walking every carried and
 # landed (delta kind, entry, target) row and every recency row on each call -- a cost that grew
 # with the agent's life. rung() only reads the asked kinds and their types, so the per-entry sums
@@ -2242,6 +2379,194 @@ def _seed_at_birth() -> dict:
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _STARVED_CONTACT = armflag.arm("TETHER_STARVED_CONTACT", default=True)
 
+# TERMINAL RESET (Isaiah 2026-11-01 06:47, r669 1, "fix in the agent"): on a dead board (retarget
+# how=death) the episode has ended and only a restart is open, so choose() takes the press whose
+# known effect is RESTARTS (Interface.restart_open); and a positioned action leaves step only with
+# an aim -- unaimed, the press is re-realised among the unpositioned offers. Through the gateway
+# either press would end the game (HTTP 400 / 500). OFF: as before.
+_TERMINAL_RESET = armflag.arm("TETHER_TERMINAL_RESET", default=True)
+
+# S1 CONTACT ONLY (Isaiah 2026-10-31 13:31 "never be checking the whole library", 2026-11-01 06:47;
+# r669 7, r671 (i)): the step's CONTACT is the slots whose value changed across the press plus the
+# slots of every object that changed or that the press landed on; a library term is re-bound only
+# to operand slots in the contact, so _library_fit judges candidates that touch what happened and
+# never the whole board's slot set. The term as held is still judged. OFF: every slot, as before.
+_S1_CONTACT_ONLY = armflag.arm("TETHER_S1_CONTACT_ONLY", default=True)
+
+# S2 PLAN EPISODES (Isaiah 2026-11-01 06:47 "dont think of goal planning time as a step speed
+# issue"; r669 8): _g1_wants and _derived_wants run only in a planning episode the agent opens on
+# its own reason -- no plan yet, a boundary or restart, a plan that ended, the board changing (a
+# frame break), the goal's gap moving -- and each episode is a plan_episode row with its reasons
+# and its seconds, so step time and planning time read apart. OFF: every step, as before.
+_PLAN_EPISODES = armflag.arm("TETHER_PLAN_EPISODES", default=True)
+# S2 STALL TRIGGER (the reviewer 2026-11-01 r674 4, ruled (c); Fig 9 :4-5 "Disagreements that do not
+# shrink with effort"): an episode also opens when the goal's gap has stood unmoved for as many
+# presses as the last plan's length -- the wants that episode set or changed, at least one -- a
+# reading of the agent's own plan, not a constant. OFF: the gap moving, as before.
+_S2_STALL = armflag.arm("TETHER_S2_STALL", default=True)
+# A SIGNAL MUST DISCRIMINATE BEFORE IT STEERS (the reviewer 2026-11-01 r674 1; Fig 9 :60 "Use
+# filters for the budget and witnesses for the verdict"): a slot whose change does not depend on
+# which action was pressed (Agency.indifferent: every action tried moved it, by one and the same
+# change -- a bar that ticks on any press) may not be chosen as the goal, nor be the focus or the
+# cue a press is made for; each refusal is booked (indifferent_refused). OFF: as before.
+_DISCRIMINATE = armflag.arm("TETHER_DISCRIMINATE_STEER", default=True)
+# MISS TYPE DECIDES THE WORK (the reviewer 2026-11-01 r674 2, r675; Fig 5: mis-attached means refit
+# what you have, mechanism broken means a new term is owed): a miss whose actual lies inside the
+# slot's own observed range is HELD first -- no lookup, no mint, settle still judges the bound term
+# -- and only if the slot misses again before it predicts is the search owed. Each route row
+# carries miss_grade (in_range_hold / broken_after_hold / searched). OFF: every miss is searched.
+_MISS_GRADE = armflag.arm("TETHER_MISS_GRADE", default=True)
+# WHICH OTHER, BY CONTACT (the reviewer 2026-11-01 r676; Fig 9 :43): where a carried kind reads
+# "another object" and several remain, first contact keeps the operands whose object the agent's own
+# last press touched (S1's contact set); still several or none, it stays declined. OFF: as before.
+_FC_CONTACT = armflag.arm("TETHER_FC_CONTACT", default=True)
+# A PROBE DOES NOT RESTART THE LEVEL (the reviewer 2026-11-01 r674 5, the audit's first general
+# break): while the board is live, the exploratory realisations (_explore's ELICIT, the undirected
+# floor draw) leave out every action known to restart the level, unless nothing else is offered;
+# a deliberate exit may still choose one. OFF: the probe may draw RESET, as before.
+_PROBE_NO_RESTART = armflag.arm("TETHER_PROBE_NO_RESTART", default=True)
+# A TIE IS NOT A CHOICE (the reviewer 2026-11-01 r678 (b); Fig 9 :60, contingency the witness that
+# breaks it): among goal hypotheses at one price, those about a slot the agent's own presses are
+# seen to turn (Agency.contingent) are tried before the rest; the choice row books how many were
+# and whether the pick was one. OFF: the draw alone, as before.
+_GOAL_CONTINGENT = armflag.arm("TETHER_GOAL_CONTINGENT", default=True)
+# A PRESS THAT TOUCHES NOTHING ENDS ITS ROUTINE (the reviewer 2026-11-01 r678 (a); Fig 9 :43 "The
+# verdict tells you to leave."): a routine whose own press this step made no contact -- no object's
+# cells changed and the press landed on none -- ends there ("no_contact", a non-trial, so not a
+# refutation); and an aimed press that would land on empty board where one already did this board
+# is re-aimed through the probe. OFF: the routine runs on, as before.
+_ROUTINE_TOUCH = armflag.arm("TETHER_ROUTINE_TOUCH", default=True)
+# B2.3 INCREMENTAL BOND READINGS (the reviewer 2026-11-01 r681; Fig 12, "where the arrangement is
+# recorded, re-deriving it is a lookup and the actions were spent once"): the reach's bond readings
+# are folded over the slot's frames (composer.fold_two), so a repeated reach reads only the new
+# frame; exact by construction, and TETHER_BOND_INC_CHECK compares every folded reading with a full
+# read. OFF: every reach re-reads every frame, as before.
+_BOND_INC = armflag.arm("TETHER_BOND_INC", default=True)
+# A RESET NEEDS A BOOKED REASON (the reviewer 2026-11-01 r692 3; the checklist's NEW row, ft09's
+# RESET by system0): on a live board only `terminal` or a `routine` may press RESET; any other
+# chooser's RESET is re-realised through the probe offer (which leaves RESET out), each booked.
+_RESET_REASON = armflag.arm("TETHER_RESET_REASON", default=True)
+# 41 (3), ELICIT DOES NOT OFFER A PRESS THE LOOP WILL REFUSE (the reviewer 2026-11-01 r710, r712):
+# system0's ELICIT (first contact with an unmapped action) ran before its target touch, and on a
+# live board under RESET_REASON the unmapped RESET is always refused and swapped for a random-cell
+# draw -- so it never maps, ELICIT picks it again, and the goal-aimed touch never ran (pass 1: 7 of
+# 9 CAN-unknown probes on lp85 tn36 vc33). ELICIT's offer leaves RESET out while the board is live
+# and RESET_REASON holds; booked elicit_reset_left_out. OFF: RESET offered, as before
+_ELICIT_NO_REFUSED = armflag.arm("TETHER_ELICIT_NO_REFUSED", default=True)
+# C1 BOARD_UNTRIED lives in interface.py (r727: the names stay below the seam); here System 0 stays
+# active while iface.untried_here() -- a count -- is above zero
+# C2 TOUCH_EACH_OBJECT (r726): once the contact pairs are explored, System 0's touch target is an
+# object not yet touched on this board before the seek-contact owners, so an object in no pair
+# (a button) is still touched once. OFF: seek-contact owners only
+_TOUCH_EACH_OBJECT = armflag.arm("TETHER_TOUCH_EACH_OBJECT", default=True)
+# BOARD_TRY_FIRST (r726's CONTACT_FIRST, renamed: TETHER_CONTACT_FIRST is item 1's): while an
+# offered action is unpressed on this board, the step's mint does not run (the slot is owed,
+# booked try_first_owed) and the goal split is not offered. Bounded by the offered actions.
+# OFF: both run from the first press
+_BOARD_TRY_FIRST = armflag.arm("TETHER_BOARD_TRY_FIRST", default=True)
+# C2 FINISH, S0_BEFORE_BORED (the reviewer 2026-11-01 r736): choose skipped the exit contest
+# whenever the drive was bored and nothing was starved, so a bored, uninformed probe took the
+# turn while System 0 was still active (lp85, measured at choose: 16 of 21 turns
+# probe|bored|no aims|s0 active|no exit contest; System 0 had 3). Boredom no longer skips the
+# contest while System 0 is active. OFF: a bored drive skips it, as before
+_S0_BEFORE_BORED = armflag.arm("TETHER_S0_BEFORE_BORED", default=True)
+# C2 FINISH, TOUCH_EACH_KIND (r726, r736): System 0 stays active while an object KIND (the agent's
+# _kind) on this board has no touched member, and its touch goes to the rarest untouched kind
+# first (a kind seen once has no other member to learn it from); TRY_FIRST counts those kinds.
+# Bounded by the board's own kinds (m0r0 5, lp85 11, tn36 15, vc33 11), never its objects.
+# OFF: System 0 ends with its contact pairs; C2 touches by id
+_TOUCH_EACH_KIND = armflag.arm("TETHER_TOUCH_EACH_KIND", default=True)
+# E, DELTA_TIER_MEMO (the reviewer 2026-11-01 r736): _delta_tier ran once per candidate binding and
+# each call re-walked every slot of every residual observation, the whole owner map and the
+# contact map, which do not change until the trace grows (tn36 profile: route 76% of samples,
+# _delta_tier 48% inclusive / 25% self, arc_world.slot_owner 16%). Held per (cycle, trace length):
+# the moved set per residual-observation tuple, the owners and the contacts. Exact. OFF: re-walked
+_DELTA_TIER_MEMO = armflag.arm("TETHER_DELTA_TIER_MEMO", default=True)
+# C2 FELT, KIND_TOUCH_FELT (the reviewer 2026-11-01 r742): a kind touch had no contact pick, so its
+# outcome was never felt and no contact row was written (lp85: the o26 click changed 201 slots on
+# 48 owners against an 80-slot baseline, and the record held nothing of it). A kind touch now goes
+# through the felt-outcome path: its row reads the whole credited change on the board (net of
+# I-B), with the count and the owners, since an object in no pair can move others. OFF: no row
+_KIND_TOUCH_FELT = armflag.arm("TETHER_KIND_TOUCH_FELT", default=True)
+# G, GOAL_BY_MOVED (the reviewer 2026-11-01 r730, r736): goal hypotheses were ranked by the shelf,
+# then description length over the whole library's conditions (tn36: 363,998 candidates), with no
+# reading of what this board's presses did; the contingent order acted only inside a bits tie. A
+# candidate whose subject slot this board's own presses moved (the credited change, net of I-B,
+# never at a seam) now ranks ahead of the rest, after the shelf order and before bits.
+# OFF: as before
+_GOAL_BY_MOVED = armflag.arm("TETHER_GOAL_BY_MOVED", default=True)
+# G CONTENT, GOAL_SIGN_FLIP (the reviewer 2026-11-01 r744): a goal that ARRIVED without a clear
+# (or ended in a loss) went to _hyp_tried and nothing else read it, so the next pick held the same
+# subject the same way (lp85: "o40.row > o25.row" arrived x3, no level; next "o40.row > o38.row").
+# Its (subject, sign) is now refuted for this board: a candidate with the opposite sign on that
+# subject ranks first, the refuted sign last, after the shelf order. Cleared at new_board.
+# OFF: as before
+_GOAL_SIGN_FLIP = armflag.arm("TETHER_GOAL_SIGN_FLIP", default=True)
+# G, GOAL_FROM_ACTUATOR (the reviewer 2026-11-01 r746; Fig 9 :27, Fig 12, Fig 5): the board has
+# described its actuators (the kind-touch rows: an object whose touch was credited a change, net of
+# I-B). Each proposes one goal, CONTINUE <actuator>, ranked AHEAD of the library's relations by its
+# credited change (ties: fewer owners): its press is a TOUCH of it (the interface aims the press).
+# A press that yields 0 credited change, or returns the board to a state already seen while
+# continuing it, ARRIVED without a clear and refutes that actuator; the next one follows. No count,
+# no constant. Cleared at new_board, kept at death. OFF: no actuator goal
+_GOAL_FROM_ACTUATOR = armflag.arm("TETHER_GOAL_FROM_ACTUATOR", default=True)
+# E, PAIR_BOUND (lp85's first clear, 2026-11-01): at a completion with one reached step every
+# single is "necessary", so _goal_pairs priced pairs quadratically until the game's thinking
+# deadline cut the sweep (no step after it). A pair whose cost alone exceeds the cheapest single's
+# total can neither be the pick nor tie it, so it is not priced; the pick is identical. OFF: all
+_PAIR_BOUND = armflag.arm("TETHER_PAIR_BOUND", default=True)
+# (i) PAIRS_FALLBACK (the reviewer 2026-11-01 r747; Fig 9 :60, "Use filters for the budget and
+# witnesses for the verdict"): singles first, pairs only when no single pays. OFF: pairs always
+_PAIRS_FALLBACK = armflag.arm("TETHER_PAIRS_FALLBACK", default=True)
+# I/J, ACTUATOR_ROUTINE (the reviewer 2026-11-01 r750 2): CONTINUE <actuator> is committed as a
+# routine, Until(@actuator, TOUCH it), so the held-routine branch runs it and J's ends (a level
+# edge, the actuator END, its budget) end it. OFF: the per-press actuator exit
+_ACTUATOR_ROUTINE = armflag.arm("TETHER_ACTUATOR_ROUTINE", default=True)
+# G END, BASELINE_FROM_OTHERS (r750 3): an actuator press is read net of what changed when the
+# agent touched OTHER objects on this board (their touches' union), not the every-press
+# intersection, which one small press empties. OFF: the intersection
+_BASELINE_FROM_OTHERS = armflag.arm("TETHER_BASELINE_FROM_OTHERS", default=True)
+# J END, ACTUATOR_END_ON_J (KS1 2026-11-02, the reviewer r759: tu93 re-committed o3 16 times, each
+# exhausted after one press): an actuator's routine that ends exhausted, no_contact, unrealisable
+# or blocked refutes that actuator for the board, as its END does. OFF: only the END refutes
+_ACTUATOR_END_ON_J = armflag.arm("TETHER_ACTUATOR_END_ON_J", default=True)
+_GOAL_CMP = re.compile(r"^\s*(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-z0-9_~]*)\s*(<|>)\s*")
+_GOAL_OPP = {"<": ">", ">": "<"}
+
+
+def _goal_sign(text: str) -> tuple | None:
+    """GOAL_SIGN_FLIP: (subject slot, '<' or '>') of an ordered goal's text, else None."""
+    m = _GOAL_CMP.match(text or "")
+    return (m.group(1), m.group(2)) if m else None
+# THE FOUR COUNTERS (the reviewer 2026-11-01 r692 4; checklist Q6/Q8/Q16/Q21), books only, no choice
+# reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
+# press_carried (a press realised as a carried kind cell's test).
+_COUNTERS = armflag.arm("TETHER_COUNTERS", default=True)
+# RELATIONS ARE BET ON (the reviewer 2026-11-01 r688 RELATIONS, the audit's C7): a derived pair slot
+# whose relation surprised (its sources were predicted right, the relation was not) becomes a
+# subject on this board -- that residual enters route, it is bet on as itself from then on, and a
+# term can be bound or minted for it; booked relation_subject. Other derived slots: as before (DS).
+_RELATION_BET = armflag.arm("TETHER_RELATION_BET", default=True)
+# A WIN MOVES STANDING (the reviewer 2026-11-01 r694 row 3; Fig 1 "the ground enters as the only
+# metric"): at a level clear (ADVANCE / WIN, never a death) each non-atom term bound on the clearing
+# segment is settled once -- the settle writes evidence, which the next life replays; win_credit.
+_WIN_CREDIT = armflag.arm("TETHER_WIN_CREDIT", default=True)
+# THE BOARD BOUNDARY IS THE AGENT'S OWN (the reviewer 2026-11-01 r696, the deep dive's row 1): a
+# frame that arrives with no action (the head frame break; R9: 24 of 24 game switches, none within
+# a level) is a new board -- retarget(how=NEW_BOARD) resets the board-named state (trace, bound,
+# refuted, wants, owed, epoch, today's per-board sets, the progress clock) while the library and
+# the lineage carry; it credits nothing and names no game. OFF: one life runs on across switches.
+_BOARD_BOUNDARY = armflag.arm("TETHER_BOARD_BOUNDARY", default=True)
+NEW_BOARD = "new_board"
+_BOND_INC_CHECK = armflag.arm("TETHER_BOND_INC_CHECK")
+
+# CARRIED BEFORE MINT (Isaiah 2026-11-01 06:47 "build now"; r669 12, r671): a mint whose term's kind
+# (gamma.kind_of, the save's and the load's one rule) is a term the agent carries is that carried
+# term re-bound here, so it keeps the carried identity and the save writes no new row for it; each
+# is a carried_reused row (lineage_carry part c: game 2 re-minted take<o1.colour> while carrying
+# take<?.colour>). Fig 9 :43, the lookup before the elimination. OFF: a new term, as before.
+_CARRIED_BEFORE_MINT = armflag.arm("TETHER_CARRIED_BEFORE_MINT", default=True)
+
 # THE SATISFACTION PREDICATE'S SPELLING, AND IT EXISTS BECAUSE OF AN `A6i` OF MINE.
 # `condition.py`'s grammar is `expr := INSTRUMENT(args) | SLOT | NUMBER` -- **a bare SLOT is an
 # EXPRESSION, so it denotes the slot's VALUE.** The first version of the guard reader returned
@@ -2378,6 +2703,15 @@ BOOKS: tuple[str, ...] = (
     "fit_units_disagree",               # (B) check run: the reused units did NOT match
     "fit_dedup_agree",                  # (2a) check run: a reused definition matched fresh
     "fit_dedup_disagree",               # (2a) check run: a reused definition did NOT match
+    "fit_bound_skipped",                # (C): a candidate whose lowest price already lost, unjudged
+    "fit_bound_agree",                  # (C) check run: a would-skip's true price was >= the bound
+    "fit_bound_disagree",               # (C) check run: a would-skip's true price was BELOW it
+    "reach_gate_skipped",               # 40: a nominal slot's mint skipped, every row out of reach
+    "reach_gate_kept",                  # 40 check run: a gated slot minted anyway accepted nothing
+    "reach_gate_lost",                  # 40 check run: a gated slot minted anyway ACCEPTED a term
+    "reach_gate_atom_raised",           # 40: a T -> T atom raised on a reach value (booked)
+    "elicit_reset_left_out",            # 41 (3): ELICIT's offer without the live-board RESET
+    "try_first_owed",                   # TRY_FIRST: a mint owed, an action unpressed here
     "tiers_index_agree",                # (C) check run: the index's rung sums matched the scan
     "tiers_index_disagree",             # (C) check run: they did NOT match
     "tiers_index_fallback",             # (C): a count <= 0 met; that call scanned
@@ -3040,6 +3374,31 @@ class Agent:
         # the decay class: the situation (level, alive) and its epoch, set at the agent's own
         # boundaries (retarget, restarted) and handed to the interface; never read from a frame
         self._alive, self._epoch = True, 0
+        # TETHER_PLAN_EPISODES (r669 8): the agent's own reasons to plan, gathered since the last
+        # episode; empty means the plan in hand stands and the step does no goal planning
+        self._episode_why: list[str] = ["no plan yet"]
+        self._fc_seen: set[str] = set()   # F6: slots already met at first contact this board
+        # TETHER_S2_STALL (r674 4): presses since the gap last moved; the last plan's length
+        self._unmoved, self._plan_len = 0, 0
+        # TETHER_MISS_GRADE (r674 2): each slot's observed range; the slots held once on a miss
+        self._range: dict[str, tuple] = {}
+        self._miss_held: set[str] = set()
+        # TETHER_ROUTINE_TOUCH (r678 a): this step's press touched nothing; a routine pressed this
+        # step; the empty-board cells pressed on this board
+        self._untouched, self._rt_press, self._empty_pressed = False, False, set()
+        self._bond_inc: dict = {}    # TETHER_BOND_INC: slot -> its frames' ids, each pair's fold
+        self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
+        self._board_touched: set = set()  # C2: objects System 0 touched on this board
+        self._board_moved: set = set()    # G: slots this board's presses moved (credited)
+        self._goal_refuted: set = set()   # G: (subject, sign) arrived without a clear, this board
+        self._actuators: dict = {}        # G: object -> (credited change, owners) of its touch
+        self._act_refuted: set = set()    # G: actuators whose CONTINUE arrived without a clear
+        self._act_seen: dict = {}         # G: actuator -> board fingerprints seen continuing it
+        self._press_every: set | None = None   # G: slots every press of this board changed
+        self._act_rt, self._act_rt_acts = None, 0   # G: the actuator routine held, its acts read
+        self._act_commit = None   # J: (actuator, board_n) of the committed routine, across edges
+        self._act_pending = None          # G: the actuator the last press continued
+        self._rel_subjects: set = set()   # TETHER_RELATION_BET: relations that became subjects
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
@@ -3352,6 +3711,9 @@ class Agent:
         self._named: dict[str, dict[str, list]] = {}
         self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
+        self._dl_missed: dict = {}         # 20: a described key with no offer -> its miss's cycle
+        self._dl_owed = False              # 20: this lookup was due from the owed queue
+        self._dl_n: Counter = Counter()    # 20: this step's described-lookup counts
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._walk_memo: dict = {}         # (A): one lit entry's walk, by what it reads
         self._ak_rec: Counter | None = None   # (A)'s check: the asks a fresh walk made
@@ -3660,6 +4022,7 @@ class Agent:
         self._dir_scope_noted = False
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self._vetoes: set[tuple] = set()       # 7a(5) B: (fingerprint, action, coordinate)
+        self._noops: set[tuple] = set()        # 23: (fingerprint, action, coordinate), unchanged
         self._ruin_step: tuple | None = None   # this step's (fp, of, action, coord, cycle)
         self._ending_counted: str | None = None  # the word counted with no step since
         self._step_fp: tuple[str, str] | None = None    # this step's board, read once
@@ -4003,6 +4366,21 @@ class Agent:
                                 note="the segment is credited, not the last action",
                                 decay_half="boundary demotion, its own item -- credit without "
                                            "decay is the incumbency pathology (§21.4)")
+                if _WIN_CREDIT:
+                    # r694 row 3: the ground's own verdict moves standing -- each non-atom term
+                    # bound on the clearing segment is settled once, so the win reaches the
+                    # evidence the next life replays
+                    n_ = 0
+                    for s_, nm_ in sorted(self.bound.items()):
+                        t_ = self.gamma.library.get(nm_)
+                        if t_ is None or self.gamma.is_atom(t_):
+                            continue
+                        self.gamma.settle(nm_, where=self._scope, slot=s_)
+                        n_ += 1
+                    self.gamma.book["win_credit"] = self.gamma.book.get("win_credit", 0) + n_
+                    self.led.record(_cc, "SETTLE", _cs, "win_credit", **_clv, how=how,
+                                    terms=n_, reads="each non-atom term bound on the "
+                                                    "clearing segment, settled once (r694 3)")
         self._resolve_signals("level", how)
         if _D13:
             self._settle_process("level", how)
@@ -4052,7 +4430,29 @@ class Agent:
         self._attempt_actions = 0
         # a death is a boundary into a dead situation; any other ending into a live one
         self._alive, self._epoch = how != "death", self._epoch + 1
-        self.iface.situate(self._epoch, self._alive)
+        if _PLAN_EPISODES:
+            self._episode_why.append(f"a boundary ({how})")
+        if G_FIRST_CONTACT and how != "death":
+            self._fc_seen.clear()          # a new board: its slots are met for the first time
+        if _ROUTINE_TOUCH and how != "death":
+            self._empty_pressed.clear()
+        if _BOND_INC and how != "death":
+            self._bond_inc.clear()         # a new board's slots: their folds start again
+        if _COUNTERS and how != "death":
+            self._pressed_seen.clear()
+        if how != "death":
+            self._board_touched.clear()    # C2: a new board's objects are touched once here
+            self._board_moved.clear()      # G: what this board's presses moved
+            self._goal_refuted.clear()     # G: the refuted signs are this board's
+            self._actuators, self._act_seen, self._act_pending = {}, {}, None   # G: this board's
+            self._act_rt, self._act_rt_acts = None, 0
+            self._press_every = None
+            self._act_refuted.clear()
+        if _RELATION_BET and how != "death":
+            self._rel_subjects.clear()
+        if _BOARD_BOUNDARY and how != "death":
+            self._last_progress = self.cycle   # r696 row 5: a new board does not start "urgent"
+        self.iface.situate(self._epoch, self._alive, new_board=how != "death")   # C1
         if _MC34:
             self._level_attempts = 1
         self._trace_epoch += 1          # the tallies summarise a history that is gone
@@ -4124,6 +4524,9 @@ class Agent:
         # SLOT NAME, and the slots do not survive a level boundary. Same rule the boundary
         # reset states for `_res` and `_disc`.
         self._refuted_slot: dict = {}
+        self._dl_missed = {}               # 20: its keys name slots, so the same rule
+        if _NOOP_WITHHOLD:
+            self._noops.clear()            # 23: the level's own boards
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
         # to the avatar is a fact about the ACTION, not about the slot names of one level.
         #
@@ -4519,6 +4922,8 @@ class Agent:
         """DS: the slot is declared derived by this step's world (env.derived()), never by name."""
         if not _DERIVED_SUBJECT:
             return False
+        if _RELATION_BET and slot in self._rel_subjects:
+            return False                  # r688 C7: a relation that surprised is its own subject
         key = (self.cycle, len(self.trace), id(self.env))
         if self.__dict__.get("_ds_key") != key:
             der = self.env.derived() if hasattr(self.env, "derived") else {}
@@ -4949,7 +5354,7 @@ class Agent:
                     d_.pop(s, None)
         if _LOOKUP_STREAM:
             q_, offered, n_jun, held_n, dig, held, named_of = self._lookup_stream(
-                ev, members, described, desc_of, hist)
+                ev, members, described, desc_of, hist, slot=slot)
             found = {"query": q_, "junctions": n_jun}
         elif ev is None:
             found = composer.lookup(described)
@@ -5023,7 +5428,7 @@ class Agent:
                              "named": named_of}
 
     def _lookup_stream(self, ev: Any, members: tuple, described: dict, desc_of: dict,
-                       hist: list) -> tuple:
+                       hist: list, slot: str | None = None) -> tuple:
         """L: _lookup's pairs in ONE pass, in the order the lists had them (each member's own
         pairs in turn, an event's deduped by the same 5-tuple), each read by composer.read_iter
         (one bond reading per reading pair). Returns what the lists gave the record: (query,
@@ -5062,7 +5467,8 @@ class Agent:
                     yield p
         dig, held_n, sample = hashlib.sha256(), 0, []
         frames = [b for b, _act, _val, _intent, _landed in hist]
-        for r in composer.read_iter(pairs(), frames, {}):
+        for r in (self._bond_read(slot, pairs(), frames) if _BOND_INC and slot is not None
+                  else composer.read_iter(pairs(), frames, {})):
             cap.head()
             if r["held"]:
                 h_ = {k: r[k] for k in LOOKUP_HELD_KEYS}
@@ -5074,6 +5480,32 @@ class Agent:
         self._lookup_set = (len(seen_p), sys.getsizeof(seen_p)
                             + sum(sys.getsizeof(k_) for k_ in seen_p))
         return sorted(query), n[0], len(jun), held_n, dig, sample, named_of
+
+    def _bond_read(self, slot: str, pairs: Any, frames: list):
+        """TETHER_BOND_INC (r681): the reach's bond readings folded over this slot's frames, each
+        reading pair resuming where its last lookup of this history stopped (composer.fold_two),
+        so a repeated reach reads only the new frame. Valid only while the frames read before are
+        STILL this history's first frames, by identity: a moved window or a filtered row starts
+        the slot again. TETHER_BOND_INC_CHECK compares every folded reading with a full
+        _read_two and books agree / disagree."""
+        ids = [id(f) for f in frames]
+        st = self._bond_inc.get(slot)
+        if st is None or len(st["ids"]) > len(ids) or ids[:len(st["ids"])] != st["ids"]:
+            st = self._bond_inc[slot] = {"ids": ids, "pairs": {}}
+        else:
+            st["ids"] = ids
+        chk = None
+        if _BOND_INC_CHECK:
+            def chk(key, got):
+                full = composer._read_two(key[0], key[1], frames)
+                same = full[0] == got[0] and tuple(full[1]) == tuple(got[1])
+                k_ = "bond_inc_agree" if same else "bond_inc_disagree"
+                self.gamma.book[k_] = self.gamma.book.get(k_, 0) + 1
+                if not same:
+                    self.led.record(self.cycle, "ROUTE", slot, "bond_inc_check", pair=list(key),
+                                    full=[full[0], list(full[1])], folded=[got[0], list(got[1])],
+                                    reads="the folded bond reading differed from a full read")
+        return composer.read_iter_inc(pairs, frames, st["pairs"], chk)
 
     def _delta_kind(self, slot: str, hist: list) -> tuple | None:
         """K1: HOW the residual's own slot changed -- (cluster, sign, size class), from its last
@@ -5316,6 +5748,31 @@ class Agent:
             lit, tiers = self._tiers(lib, lit, dk, mine, described, att,
                                      more=tuple(d for m, d in (dks or {}).items()
                                                 if members and m != slot and d))
+        dl_key, dl_cut = None, 0
+        if _DESCRIBED_LOOKUP and tiers is not None and _INDEX_HOLD and lit:
+            # 20: the key is the description -- the slot, its delta kind, the readings, its contact
+            dl_key = (slot, dk, tuple(sorted(changed)), tuple(sorted(self._touching(slot))), tg)
+            owed, self._dl_owed = self._dl_owed, False
+            if dl_key in self._dl_missed:
+                if owed:
+                    self._dl_n["owed_dropped"] += 1
+                    self.led.record(self.cycle, "ROUTE", slot, "owed_dropped",
+                                    key=self._dl_key_row(dl_key), missed_at=self._dl_missed[dl_key],
+                                    reads="20 (e): owed, but its description is unchanged since "
+                                          "its miss: already answered, so it is not asked again; "
+                                          "a changed description asks anew")
+                else:
+                    self._dl_n["held"] += 1
+                return
+            n_lit = len(lit)
+            lit = self._described_lit(lib, lit, tiers, att, tg)
+            self._dl_n["asked"] += 1
+            self._dl_n["listed"] += n_lit
+            self._dl_n["kept"] += len(lit)
+            if not lit:
+                self._dl_miss(dl_key, tiers, 0, n_lit)
+                return
+            dl_cut = n_lit - len(lit)
         if not lit:
             return
         if _ENTRY_USE:
@@ -5345,7 +5802,8 @@ class Agent:
             cands, rank, n_tiers, _cov = self._rank_causes(slot, mine, own, tuple(rep_slot), att)
         n_t1 = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c")) if tiers else 0
         # T1d, T4 and T5 are the list's tail, walked only while the step's budget remains
-        n_late = sum(tiers.get(t, 0) for t in ("T1d", "T4", "T5")) if tiers else 0
+        n_late = (sum(tiers.get(t, 0) for t in ("T1d", "T4", "T5"))
+                  if tiers and dl_key is None else 0)     # 20: the tail is not in this ask
         late = frozenset(k for k, _w in lit[len(lit) - n_late:]) if n_late else frozenset()
         a0, na0 = self._late
 
@@ -5405,6 +5863,8 @@ class Agent:
             self.led.record(self.cycle, "ROUTE", slot, "lookup_tiers",
                             dk=list(dk) if dk else None, listed=tiers, deferred=deferred,
                             late_asked=a1 - a0, late_not_asked=na1 - na0,
+                            **({"described": {"kept": len(lit), "cut": dl_cut}}
+                               if dl_key is not None else {}),
                             reads="K1: the lit list as tiers -- listed per tier, the tiers a T1 "
                                   "hit deferred, and the T4 / T5 entries the step's budget let "
                                   "this lookup ask")
@@ -5470,6 +5930,51 @@ class Agent:
                             reads=("the library lit by this residual's description; the distinct "
                                    "views and CAUSE then-sides that compile onto this slot, tested "
                                    "and recorded, each with the count of entries that offered it"))
+        if dl_key is not None and not self._k1_trunc and not self._walk_cut \
+                and not any(self._lib_offers.get(m) for m in tg):
+            self._dl_miss(dl_key, tiers, len(lit), dl_cut)
+
+    def _described_lit(self, lib: Any, lit: list, tiers: dict, att: dict, tg: tuple) -> list:
+        """20: the described tier of K1's list -- T1a, T1b, T1c and T2 as listed, then the other
+        lit entries whose held views read one of the asked slots' own readings or come through an
+        event route (the exact-reading key, r571), in their listed order."""
+        head = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c", "T2"))
+        reads = {att.get(s) for s in tg}
+        atoms = {a.name: a for a in self.gamma.atoms}
+        sig = compile_term.signature(atoms)
+        extra = []
+        for e in lit[head:]:
+            cap.head()
+            pl = _DL_ENTRY.get((sig, e[0]))
+            if pl is None:
+                rd, via = set(), False
+                for role in _HELD_ROLES:
+                    for _cand, c1, c2 in self._held_index(lib, e[0], role, atoms, sig):
+                        for c in (c1, c2):
+                            if isinstance(c, compile_term.Compiled) and c.slot:
+                                rd.add(c.slot.rsplit(".", 1)[-1])
+                                via = via or c.via is not None
+                pl = _DL_ENTRY[(sig, e[0])] = (frozenset(rd), via)
+            if pl[1] or pl[0] & reads:
+                extra.append(e)
+        self._dl_n["extra"] += len(extra)
+        return lit[:head] + extra
+
+    @staticmethod
+    def _dl_key_row(key: tuple) -> dict:
+        slot, dk, readings, contact, tg = key
+        return {"slot": slot, "dk": list(dk) if dk else None, "readings": list(readings),
+                "contact": list(contact), "targets": list(tg)}
+
+    def _dl_miss(self, key: tuple, tiers: dict, asked: int, cut: int) -> None:
+        """20 (c): a complete ask of the described tier offered nothing -- a verdict, kept by its
+        key until the description changes."""
+        self._dl_missed[key] = self.cycle
+        self._dl_n["no_entry"] += 1
+        self.led.record(self.cycle, "ROUTE", "@described_lookup", "no_entry",
+                        key=self._dl_key_row(key), listed=tiers, asked=asked, not_asked=cut,
+                        reads="nothing in the library under this description: leave (Fig 9 :43); "
+                              "finding nothing here proves nothing (Fig 9 :44)")
 
     def _frames_for(self, rep_slot: dict) -> list:
         """The reach frames over the trace, rebuilt when the trace moved (one object per epoch)."""
@@ -7003,6 +7508,8 @@ class Agent:
             why, ended_by = "untested", why
         else:
             self._hyp_tried[h["tkey"]] = (why, h.get("cond"), h["text"])
+            if _GOAL_SIGN_FLIP and loss and not won and (sg := _goal_sign(h["text"])):
+                self._goal_refuted.add(sg)      # G: arrived without a clear, or lost
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
         self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
@@ -7197,7 +7704,12 @@ class Agent:
                 if _PROGRESS_SHELF and not won:     # won, then progress, then the rest: ordinal
                     rec = self._goal_shelf.get(s, {}).get("record", {}) if s else {}
                     rank = 1 if rec.get("progress", 0) else 2
-                out.append(((rank, round(bits, 6)), text, c, tk, s))
+                mv = 0 if (_GOAL_BY_MOVED and c.slot in self._board_moved) else 1   # G
+                flip = 1
+                if _GOAL_SIGN_FLIP and self._goal_refuted and (sg := _goal_sign(text)):
+                    flip = (2 if sg in self._goal_refuted else
+                            0 if (sg[0], _GOAL_OPP[sg[1]]) in self._goal_refuted else 1)
+                out.append(((rank, flip, mv, round(bits, 6)), text, c, tk, s))
             return out
 
         cands = _admit(phases[0])
@@ -7207,7 +7719,7 @@ class Agent:
         self._hyp_phases, pending = 1, phases[1:]
         routable = 0
         detail = {"candidates": len(src), "open": len(cands), "refused": dict(refused),
-                  "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][1],
+                  "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][-1],
                               "source": x[4]} for x in cands[:5]]}
         if _R4_RECORD:
             detail["self_moving"] = dict(sorted(_smw.items()))
@@ -7227,12 +7739,19 @@ class Agent:
             cap.head()
             group = [x for x in cands if x[0] == cands[0][0]]
             cands = cands[len(group):]
+            # r678 (b) A TIE IS NOT A CHOICE: within one price, hypotheses about a slot the agent's
+            # own presses are seen to turn (Agency.contingent) come before the rest
+            _cset = set(self.agency.contingent()) if _GOAL_CONTINGENT else set()
+            _cfirst = sum(1 for x in group if x[2].slot in _cset) if _GOAL_CONTINGENT else None
             if _HYP_DRAW:
                 # S0: the draw first, one hash per candidate, then the routes in that order -- the
                 # first routable is the lowest-hash routable, so the rest need no check
                 dkey = f"{self.cycle}:goal_hypothesis:None"
                 order = FR.draw_order([x[1] for x in group], dkey, self.draw_seed)
                 by_text = {x[1]: x for x in group}
+                if _cfirst:
+                    order = ([t for t in order if by_text[t][2].slot in _cset]
+                             + [t for t in order if by_text[t][2].slot not in _cset])
                 for n, text in enumerate(order, 1):
                     cap.head()
                     x = by_text[text]
@@ -7250,7 +7769,10 @@ class Agent:
                     self.led.record(self.cycle, "PLAN", "@choice", "choice",
                                     site="goal_hypothesis", in_step=self._running_step,
                                     options=len(group), checked=n, pick=repr(text),
-                                    by="draw_each")
+                                    by="draw_each",
+                                    **({"contingent_first": _cfirst,
+                                        "pick_contingent": x[2].slot in _cset}
+                                       if _GOAL_CONTINGENT else {}))
                     break
                 continue
             ok = []
@@ -7271,9 +7793,11 @@ class Agent:
                 self._hyp_restore(link["_held"])
             if not ok:
                 continue
+            if _cfirst and any(o[0][2].slot in _cset for o in ok):
+                ok = [o for o in ok if o[0][2].slot in _cset]    # r678 (b): the turnable first
             if len(ok) > 1 and _A1_TIES:
                 k = self._choice("goal_hypothesis", None,
-                                 [(x[1], x[0][1], None) for x, _k, _l in ok])
+                                 [(x[1], x[0][-1], None) for x, _k, _l in ok])
                 x, key, _l = next(o for o in ok if o[0][1] == k)
             else:
                 x, key, _l = ok[0]
@@ -7311,7 +7835,7 @@ class Agent:
             self.led.record(self.cycle, "PLAN", sl, "goal_hypothesis_reopened", text=x[1],
                             ended_by=ended_by, since=since,
                             reads="an untested hypothesis back on a board that can host its test")
-        detail.update(routable=routable, pick_bits=x[0][1],
+        detail.update(routable=routable, pick_bits=x[0][-1],
                       pick_rank=next((i for i, y in enumerate(ranked_all) if y is x), None))
         self.led.record(self.cycle, "PLAN", sl, "goal_hypotheses", pick=x[1], key=key,
                         slots=link["slots"], route=link["route"],
@@ -7474,12 +7998,24 @@ class Agent:
                       if all(compile_term.run(x[5], st) is True for st in reached)),
                      key=lambda x: x[4])
         out = []
+        self._pair_bounded = 0
+        if _PAIR_BOUND and singles and len(nec) >= 2:
+            best = min(x[0] for x in singles)
+            size = {x[4]: self.gamma.length(x[5].term) for x in nec}
+            s1, s2 = sorted(size.values())[:2]
+            if term_bits(s1 + s2 + 1, self.gamma.alphabet) > best:
+                self._pair_bounded = len(nec) * (len(nec) - 1) // 2   # none can beat a single
+                return out
         for i, a in enumerate(nec):
             cap.head()
             for b in nec[i + 1:]:
                 cap.head()
                 if a[4] == b[4]:
                     continue                    # identical parts are not a pair
+                if _PAIR_BOUND and term_bits(size[a[4]] + size[b[4]] + 1,
+                                             self.gamma.alphabet) > best:
+                    self._pair_bounded += 1     # its cost alone exceeds the cheapest single
+                    continue
                 pair = _Pair((a[5], b[5]))
                 cost, left, e = self._goal_price([pair], rows)
                 out.append((cost + left, cost, left, e, f"{a[4]} and {b[4]}", pair))
@@ -7574,8 +8110,8 @@ class Agent:
                 continue
             cost, left, e = self._goal_price([c], rows)
             cands.append((cost + left, cost, left, e, text, c))
-        n_plain = len(cands)
-        if _GOAL_PAIR:
+        n_plain, self._pair_bounded = len(cands), 0
+        if _GOAL_PAIR and not (_PAIRS_FALLBACK and any(pays(x[1], x[2], base) for x in cands)):
             cands += self._goal_pairs(cands, rows)
         lag = sum(1 for x in cands if any(lag_of(t) for t in re.findall(r"[\w.]+~\d+", x[4])))
         cands.sort(key=lambda x: (x[0], x[4]))
@@ -7586,7 +8122,9 @@ class Agent:
                 cands.insert(0, cands.pop(next(i for i, x in enumerate(cands) if x[4] == _a1k)))
         detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
                   "conditions": len(cands), "refused": dict(refused),
-                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain, "lag": lag},
+                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain, "lag": lag,
+                              **({"pair_bounded": self._pair_bounded}
+                                 if _PAIR_BOUND and _GOAL_PAIR else {})},
                   "cheapest": [{"if": x[4], "cost": round(x[1], 3), "left": round(x[2], 3),
                                 "errors": x[3]} for x in cands[:5]]}
         best = cands[0] if cands and pays(cands[0][1], cands[0][2], base) else None
@@ -8176,6 +8714,11 @@ class Agent:
         if self.routine is None or not self._routine_acts:
             return
         state = self.env.observe()
+        if _ROUTINE_TOUCH and self._rt_press and self._untouched:
+            # r678 (a): this step's routine press made no contact -- the board answered "nothing
+            # here", so the routine ends (a non-trial: no verdict, no refutation)
+            self._end_routine("no_contact", state, step="SETTLE")
+            return
         if self._check_expectation(state, step="SETTLE"):
             return
         if self._routine_adopted is None:
@@ -8287,6 +8830,24 @@ class Agent:
         self.led.record(self.cycle, step or self._running_step, self.routine_for or "*",
                         "routine_end",
                         outcome=why, routine=Rt.render(self.routine), **extra)
+        if _PLAN_EPISODES:
+            self._episode_why.append(f"the plan ended ({why})")
+        _ac = self._act_commit
+        if (_ACTUATOR_END_ON_J and _ac is not None and self.routine_for == _ac[0]
+                and why in (Rt.EXHAUSTED, "no_contact", Rt.UNREALISABLE, Rt.BLOCKED)):
+            # J's non-level end of the actuator's routine refutes it ON THE BOARD IT WAS COMMITTED
+            # (r759, r761; Fig 6 :45-46): a routine survives a level edge, and an id from board N
+            # may name another object on board N+1, so an end after a boundary refutes nothing
+            here = _ac[1] == getattr(self.iface, "board_n", None)
+            if here:
+                self._act_refuted.add(_ac[0])
+            self.led.record(self.cycle, step or self._running_step, _ac[0], "actuator_goal_end",
+                            why=f"routine {why}" + ("" if here else " after a boundary"),
+                            refuted=here,
+                            reads=("CONTINUE <actuator> ended by J: refuted, the next actuator "
+                                   "follows (ACTUATOR_END_ON_J)" if here else
+                                   "ended on a later board than its commit: no refutation"))
+            self._act_commit = None
         self._guard_exit = None
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
@@ -8752,7 +9313,11 @@ class Agent:
             try:
                 steps.append(sum(1 for r, row in enumerate(a)
                                  for c, v in enumerate(row) if b[r][c] != v))
-            except (TypeError, IndexError, KeyError):
+            except (TypeError, IndexError, KeyError) as e:
+                bk = self.gamma.book                 # r696 row 15: booked, never silent
+                bk["cascade_except"] = bk.get("cascade_except", 0) + 1
+                self.led.record(self.cycle, self._running_step, "*", "cascade_except",
+                                error=type(e).__name__)
                 return
         self.led.record(self.cycle, self._running_step, "*", "cascade",
                         frames=len(frames), within_step=steps)
@@ -9490,10 +10055,16 @@ class Agent:
         return (*sorted(kinds.items()), ("@alive", int(bool(self.iface.alive))))
 
     @staticmethod
+    def _route_said(want: Any) -> str:
+        """42: the intent as R-B keys it -- its general statement (a Specific's stated target
+        dropped) under TETHER_ROUTE_KEY_GENERAL, else its full wording."""
+        return IFace.Intent.says(want) if _ROUTE_KEY_GENERAL else want.says()
+
+    @staticmethod
     def _route_key(want: Any, r: Any, ctx: tuple) -> tuple:
         """R-B's route: (the intent in the agent's words, the realised action, its coordinate,
         the contact context at press time)."""
-        return (want.says(), r.action, tuple(r.coord) if r.coord else None, ctx)
+        return (Agent._route_said(want), r.action, tuple(r.coord) if r.coord else None, ctx)
 
     def _route_offer(self, said: str, ctx: tuple, offered: tuple,
                      wh: Any) -> tuple[tuple, Any]:
@@ -9854,7 +10425,10 @@ class Agent:
         # on the same evidence as others carries no information of its own.
         _derived = getattr(self.env, "derived", None)
         _derived = _derived() if _derived is not None else {}
-        betting = [s for s in betting if s not in _derived]
+        betting = [s for s in betting if s not in _derived
+                   or (_RELATION_BET and s in self._rel_subjects)]
+        if G_FIRST_CONTACT and self.gamma.settled_forms:
+            self._first_contact(betting)
         self._pred_by = {s: self.bound.get(s) for s in betting}
         pred = {s: self._predict(s, before, action) for s in betting}
         raw = {s: self._pred_raw.get(s) for s in betting if pred[s] is not None}
@@ -9883,13 +10457,37 @@ class Agent:
         # on fixture A it scored `[]` against the whole-board key's `[down, up]` -- same
         # precision, no recall. The matrix is in `docs/ACTION_INTERFACE_PLAN.md`.
         _ctx = IFace.Interface.context(self.env)
+        _m0 = (self.env.locus_masks() if _S1_CONTACT_ONLY and hasattr(self.env, "locus_masks")
+               else None)
         if coord is not None:
             self.env.step(action, coord[0], coord[1])   # F28: positioned, coord from perception
         else:
             self.env.step(action)
         self.iface.note_sent(action)   # TETHER_RESET_ADJACENT: the flag from the press as sent
         self._pressed = True
+        if _COUNTERS:     # r692 4 (Q6): a press (action, cell) never made before on this board
+            _pk = (action, tuple(coord) if coord is not None else None)
+            if _pk not in self._pressed_seen:
+                self._pressed_seen.add(_pk)
+                self.gamma.book["press_new"] = self.gamma.book.get("press_new", 0) + 1
         after = self.env.observe()
+        if _m0 is not None:
+            # THE CONTACT IS READ OFF THE CELLS: an object is in contact when the cells it covers
+            # changed across the press, or the press landed on it. Slot values cannot say this --
+            # every relative slot changes whenever any object moves (ls20: 762-958 of 966 slots)
+            _m1 = self.env.locus_masks()
+            _objs = {o for o in set(_m0) | set(_m1) if _m0.get(o) != _m1.get(o)}
+            if self._last_landed:
+                _objs.add(self._last_landed)
+            _own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+            self._contact_slots = {s for s, o in _own.items() if o in _objs}
+        if _ROUTINE_TOUCH:
+            # r678 (a): did this press touch anything -- the cells (S1's reading) or, without it,
+            # a landing or any change at all
+            self._untouched = (not _objs if _m0 is not None
+                               else self._last_landed is None and after == before)
+            if coord is not None and self._last_landed is None:
+                self._empty_pressed.add(tuple(coord))
         if _ARRIVAL_GAP:
             self._ag_held = dict(after)     # 5: the frame this press left the agent holding
         # B, THE SEAM (the reviewer 2026-10-23 12:35, 13:04): a frame break read on this action's
@@ -9975,6 +10573,11 @@ class Agent:
                             reads=("every slot that changed is credited to this press, less "
                                    "what changed anyway (I-B)" if _REAFFERENCE else
                                    "every slot that changed is credited to this press (F1)"))
+        if _GOAL_BY_MOVED and not self._seam_now:
+            self._board_moved.update(getattr(self.iface, "last_changed", ()))
+        if _GOAL_FROM_ACTUATOR and not self._seam_now and getattr(self.iface, "last_changed", ()):
+            _lc = set(self.iface.last_changed)     # G: a press that changed nothing says nothing
+            self._press_every = _lc if self._press_every is None else self._press_every & _lc
         if _TOUCH_FELT and self._contact_pending is not None:
             self._contact_felt()
         if _DEATH_VOTE and not self._seam_now:
@@ -10093,6 +10696,18 @@ class Agent:
                            if self._seam_now else {}))
         if not self._seam_now:
             self._route_reward(deg_after, deg_after - deg_before)
+        if _PLAN_EPISODES:
+            if self._seam_now:
+                self._episode_why.append("the board changed (frame break)")
+            elif deg_after != deg_before:
+                self._episode_why.append("the goal's gap moved")
+                self._unmoved = 0
+            elif _S2_STALL and self._plan_len:
+                self._unmoved += 1
+                if self._unmoved >= self._plan_len:
+                    self._episode_why.append(f"the goal's gap stood {self._unmoved} presses, the "
+                                             "last plan's length")
+                    self._unmoved = 0
         # the bracket channel: this env defines no coarse view, so it is inert. The
         # cause was already here and it was in prose -- `inert=...` says CHANNEL_CLOSED
         # in a sentence, on a row that then reported cause=None. The taxonomy is the
@@ -10130,6 +10745,8 @@ class Agent:
             self._note_direction(action, before, after, sorted(res))
         if not self._seam_now:          # B: a seam's moved slots are no contingency of the action
             self.agency.note(action, self._moved(res, before, after), sorted(res))
+            if _DISCRIMINATE:
+                self.agency.note_delta(action, before, after, sorted(res))
         self._charge(res)
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
@@ -10224,23 +10841,46 @@ class Agent:
     def _delta_tier(self, others: list, robs: list) -> dict:
         """L2's tiers: 0 world-moved on the residual frames, 1 self-moved (2a: every owner of the
         slot is a self-mover now), 2 a contact partner of a moved slot, 3 the rest (absent)."""
-        after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
-        moved: set = set()
-        for st, _a, _v, _intent, _landed in robs:
-            cap.head()
-            aft = after_of.get(id(st))
-            if aft is None:
-                continue
-            moved |= {k for k, v in st.items() if k in aft and aft[k] != v}
+        m = None
+        if _DELTA_TIER_MEMO:
+            mk = (self.cycle, len(self.trace))
+            m = self.__dict__.get("_dt_memo")
+            if m is None or m["k"] != mk:
+                m = self._dt_memo = {"k": mk, "moved": {}, "own": None, "adj": None}
+            rk = tuple(id(r[0]) for r in robs)
+            moved = m["moved"].get(rk)
+        else:
+            moved = None
+        if moved is None:
+            after_of = {id(b_): a_ for b_, _act, a_, _intent, _landed in self.trace}
+            moved = set()
+            for st, _a, _v, _intent, _landed in robs:
+                cap.head()
+                aft = after_of.get(id(st))
+                if aft is None:
+                    continue
+                moved |= {k for k, v in st.items() if k in aft and aft[k] != v}
+            if m is not None:
+                m["moved"][rk] = moved
         if not moved:
             return {}
         selfm = self._self_moved_now
         tier = {k: (1 if selfm and (o := self._objs_named(k)) and o <= selfm else 0)
                 for k in moved}
-        own = self._slot_owners(self.env)
+        if m is not None and m["own"] is not None:
+            own = m["own"]
+        else:
+            own = self._slot_owners(self.env)
+            if m is not None:
+                m["own"] = own
         tch = getattr(self.env, "contacts", None)
         if tch is not None and own:
-            adj_of = tch()
+            if m is not None and m["adj"] is not None:
+                adj_of = m["adj"]
+            else:
+                adj_of = tch()
+                if m is not None:
+                    m["adj"] = adj_of
             nearby: set = set()
             for m in moved:
                 cap.head()
@@ -10271,6 +10911,13 @@ class Agent:
         # ARM L AT THE LOOKUP'S OWN SITE. This loop is the other half of the operand axis and
         # was never bounded -- see `_delta_narrowed`. Same rule, same arm, one switch.
         cands = [b for b in self.slots if b != slot]
+        if _S1_CONTACT_ONLY and getattr(self, "_contact_slots", None):
+            # r669 7: the contact only -- and an EMPTY contact (a press that touched nothing)
+            # narrows nothing, or no operand term could re-bind on that step (r694 deep dive, row 2)
+            cands = [b for b in cands if b in self._contact_slots]
+        if G_KIND_ATTR and term.operand and "?" in term.operand:
+            # r669 10: a kind-level operand re-binds only to slots of the same attribute
+            cands = [b for b in cands if Gamma.unbound_form(b) == term.operand]
         if _DELTA_OPERANDS and robs:
             cands = self._delta_narrowed(cands, robs)
         for b in cands:
@@ -10280,6 +10927,88 @@ class Agent:
                     cap.head()
                     yield Term(term.atoms, operand=b, guard=g,
                                operand_term=term.operand_term)
+
+    def _miss_in_range(self, slot: str, r: SlotResidual) -> bool:
+        """TETHER_MISS_GRADE: a miss whose actual value lies inside the range the slot has already
+        shown, and the slot's first miss since it last predicted (r675: the first response)."""
+        rg = self._range.get(slot)
+        return (rg is not None and slot not in self._miss_held and isinstance(r.actual, int)
+                and rg[0] <= r.actual <= rg[1])
+
+    def _indiff_book(self) -> None:
+        """r674 1: one refusal of a slot whose change does not depend on the action (undeclared in
+        BOOKS, so OFF stays exact)."""
+        self.gamma.book["indifferent_refused"] = self.gamma.book.get("indifferent_refused", 0) + 1
+
+    def _s2_plan_len(self) -> int:
+        """TETHER_S2_STALL: the plan in hand after this episode is the wants held; its length is how
+        many presses the gap may stand before the agent plans again. No held goal, no length: an
+        empty plan has no gap to stand, so only the other reasons re-open planning."""
+        self._plan_len = len(self.wants)
+        self._unmoved = 0
+        return self._plan_len
+
+    def _first_contact(self, betting: list) -> None:
+        """F6 FIRST CONTACT USES CARRIED KINDS (Isaiah 2026-11-01 06:47; r669 10). A slot holding
+        no term, met for the first time on this board, bets with the carried kind the ground
+        settled on that slot's attribute in an earlier game, re-bound here, so its first
+        prediction is the inherited one and the ground judges it from the first press. Only a
+        unique inheritance binds -- one carried kind for the attribute and, for a kind-level
+        operand, one other slot of that operand's form, type-fitting; anything else is left to
+        the residual and route, as before."""
+        new = [s for s in betting if s not in self.bound and s not in self._fc_seen]
+        if not new:
+            return
+        self._fc_seen.update(new)
+        lib, forms, bk = self.gamma.library, {}, self.gamma.book
+        slot_form: dict | None = None
+
+        def _fc_book(_b: dict, key: str) -> None:    # undeclared in BOOKS, so OFF stays exact
+            bk[key] = bk.get(key, 0) + 1
+        for n, fs in self.gamma.settled_forms.items():
+            if n in self.gamma.carried and n in lib:
+                for f in fs:
+                    forms.setdefault(f, []).append(n)
+        for s in new:
+            cap.head()
+            ks = forms.get(Gamma.unbound_form(s), ())
+            if len(ks) != 1:
+                if ks:
+                    _fc_book(self.gamma.book, "first_contact_ambiguous")
+                continue
+            k = lib[ks[0]]
+            if k.operand and "?" not in k.operand:
+                continue                   # an operand naming another board's object
+            if k.operand and slot_form is None:
+                slot_form = {}
+                for b in self.slots:
+                    slot_form.setdefault(Gamma.unbound_form(b), []).append(b)
+            ops = [b for b in slot_form.get(k.operand, ()) if b != s] if k.operand else [None]
+            rel = self.gamma.kind_rel.get(k.name) if G_KIND_REL and len(ops) > 1 else None
+            if rel and len(rel) == 1:
+                # r674 3: the kind's relation picks the operand: its target's own object or another
+                own = Gamma.first_obj(s)
+                ops = [b for b in ops if (Gamma.first_obj(b) == own) == ("same" in rel)]
+                if (_FC_CONTACT and rel == {"other"} and len(ops) > 1
+                        and getattr(self, "_contact_slots", None)):
+                    # r676: which other -- the object the agent's own last press touched
+                    touched = {Gamma.first_obj(x) for x in self._contact_slots}
+                    ops = [b for b in ops if Gamma.first_obj(b) in touched]
+            fits = [k if b is None else Term(k.atoms, operand=b, guard=k.guard,
+                                             operand_term=k.operand_term)
+                    for b in ops if len(ops) == 1 and self._operand_fits(k, s, b)]
+            if len(fits) != 1:
+                _fc_book(self.gamma.book, "first_contact_ambiguous")
+                continue
+            n = self._take_pull(k.name, fits[0], s)
+            self._serve(s, n)
+            self.bound[s] = n
+            self._carry(n)
+            self.rank.note(n, self.cycle)
+            _fc_book(self.gamma.book, "first_contact_bound")
+            self.led.record(self.cycle, "PERCEIVE", s, "first_contact", term=n, kind=k.name,
+                            reads="a slot met for the first time bets with the carried kind "
+                                  "settled on its attribute; the ground judges it this press")
 
     def _take_pull(self, n: str, cand: Term, slot: str, carry: dict | None = None) -> str:
         """Bind a library pull: install a re-binding if it is new, and write the pull row."""
@@ -10407,6 +11136,8 @@ class Agent:
             cap.head()
             if k not in dpred or k not in after:
                 continue
+            if _RELATION_BET and k in self._rel_subjects:
+                continue                      # r688 C7: bet on as itself now; its own residual
             if not all(s in res and res[s].bits == 0 for s in srcs):
                 if after[k] != dpred[k]:
                     gaps, echo = gaps + 1, echo + 1
@@ -10417,7 +11148,13 @@ class Agent:
             surprised += 1
             gaps += 1
             bits = correction_bits(dpred[k] % self.alphabet[k], after[k], self.alphabet[k])
-            if _DERIVED_SUBJECT:
+            if _DERIVED_SUBJECT and _RELATION_BET and k not in self._rel_subjects:
+                # r688 C7: the first genuine relational surprise makes the relation a subject on
+                # this board -- its residual enters route, and from now on it is bet on as itself
+                self._rel_subjects.add(k)
+                bk = self.gamma.book
+                bk["relation_subject"] = bk.get("relation_subject", 0) + 1
+            elif _DERIVED_SUBJECT:
                 # DS (3): recorded once, never a residual -- route() never bins it
                 self.led.record(self.cycle, "PERCEIVE", k, "derived_new", of=tuple(srcs),
                                 inputs=list(srcs), from_value=before.get(k), derived=dpred[k],
@@ -10558,12 +11295,13 @@ class Agent:
                             reads="not asked: the step's budget was spent; owed, asked first next "
                                   "step")
         else:
-            self._owed_q.pop(slot, None)
+            self._dl_owed = self._owed_q.pop(slot, None) is not None
             self._asked += 1
             if slot in self._route_cls:
                 self._class_n[self._route_cls[slot]][0] += 1
             self._walk_cut = 0
             self._lookup(slot, hist)
+            self._dl_owed = False
             if _WALK_BUDGET and self._walk_cut:
                 # A2: the walk stopped at the step's budget; the slot is owed, asked first next step
                 own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
@@ -10605,8 +11343,26 @@ class Agent:
                 r.pop("mode", None)
             return tuple(rs)
 
-        def _judge(cand, price, n, late=False):
+        def _fit_units(n):
             nonlocal _uf
+            if not _FIT_UNITS:
+                return self._units_for(slot)
+            if _uf is None:
+                _uf = self._units_for(slot)
+                return _uf
+            if _FIT_UNITS_CHECK:
+                _units = self._units_for(slot)
+                _same = _units == _uf
+                _book_add(self.gamma.book,
+                          "fit_units_agree" if _same else "fit_units_disagree")
+                if not _same:
+                    self.led.record(self.cycle, "ROUTE", slot, "fit_units_check",
+                                    term=n, agree=False,
+                                    reads="the fit's reused units differed from fresh (B)")
+                return _units
+            return _uf
+
+        def _judge(cand, price, n, late=False, best=None):
             _n0 = self.led.written
             # BEFORE `_explains`, and separately from it: may this BIND is a type question
             # and does it EXPLAIN is a behavioural one. Folding the first into the second
@@ -10620,26 +11376,28 @@ class Agent:
                 return None, None, None, _since(_n0)
             if not price:
                 return True, None, None, _since(_n0)
+            if best is not None:
+                # (C): the cost first, so the bound can decline to judge left
+                _n1 = self.led.written
+                _units = _fit_units(n)
+                _n2 = self.led.written
+                _cost = self._bits((cand, _units))
+                if _lowest(n, _cost) >= best:
+                    return "bound", None, _cost, _since(_n0, _n1, _n2)
+                _left = self._cl_left(cand, slot, hist, _cells)
+                return True, _left, _cost, _since(_n0, _n1, _n2)
             _left = self._cl_left(cand, slot, hist, _cells)
             _n1 = self.led.written
-            if not _FIT_UNITS:
-                _units = self._units_for(slot)
-            elif _uf is None:
-                _uf = _units = self._units_for(slot)
-            elif _FIT_UNITS_CHECK:
-                _units = self._units_for(slot)
-                _same = _units == _uf
-                _book_add(self.gamma.book,
-                          "fit_units_agree" if _same else "fit_units_disagree")
-                if not _same:
-                    self.led.record(self.cycle, "ROUTE", slot, "fit_units_check",
-                                    term=n, agree=False,
-                                    reads="the fit's reused units differed from fresh (B)")
-            else:
-                _units = _uf
+            _units = _fit_units(n)
             _n2 = self.led.written
             _cost = self._bits((cand, _units))
             return True, _left, _cost, _since(_n0, _n1, _n2)
+
+        def _lowest(n, cost):
+            # (C): the lowest price a candidate can have before left (>= 0) is added
+            if (self.gamma.stamps.get(n) or {}).get("origin") == MINTED:
+                return min(cost, _ref)
+            return cost
 
         # L3's late round: what `_judge` deferred is walked after every typed candidate, once
         # per candidate, if the governor says think; `typed_late` records walked and closed.
@@ -10698,21 +11456,31 @@ class Agent:
                 _late_keys.add((n, cand.name))
                 yield n, cand, True
 
+        # (C): the bound in hand once the first payer is (so the first payer cannot move): the
+        # best price held, or the base while none is held
+        _bnd = _FIT_BOUND and _BARGAIN_FIT and _CARRY_PRICE
+        _bmin = _base
         for n, cand, _is_late in _pairs():
+            _bb = _bmin if _bnd and _today is not None and not _FIT_BOUND_CHECK else None
             if _is_late:
-                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n, late=True)
+                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n, late=True, best=_bb)
             elif _FIT_DEDUP and _BARGAIN_FIT:
                 _v = _dd_cand.get(cand)
                 if _v is None or _FIT_DEDUP_CHECK:
-                    _fresh = _judge(cand, True, n)
+                    _fresh = _judge(cand, True, n, best=None if _FIT_DEDUP_CHECK else _bb)
                     if _v is not None:
                         self._dedup_check(slot, n, "candidate", _fresh == _v)
-                    _v = _dd_cand[cand] = _fresh
+                    _v = _fresh
+                    if _fresh[0] != "bound":
+                        _dd_cand[cand] = _fresh
                 else:
                     self._replay_rows(_v[3])
                 _ok, _left, _cost, _ = _v
             else:
-                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n)
+                _ok, _left, _cost, _ = _judge(cand, _BARGAIN_FIT, n, best=_bb)
+            if _ok == "bound":
+                _book_add(self.gamma.book, "fit_bound_skipped")
+                continue
             if _ok is None:
                 _late.setdefault(cand, n)
                 continue
@@ -10739,8 +11507,13 @@ class Agent:
                     _cred = self._carry_credit(n, cand, slot, _left, _base, _held_t,
                                                _carry_robs)
                     _price = _ref + _left if _cred else _cost + _left
+                    if (_bnd and _FIT_BOUND_CHECK and _today is not None
+                            and _today != (n, cand.name) and _lowest(n, _cost) >= _bmin):
+                        _book_add(self.gamma.book, "fit_bound_agree" if _price >= _bmin
+                                  else "fit_bound_disagree")
                     if _price < _base:
                         _paying.append((_price, len(_paying), n, cand, _cred, _left, _cost))
+                        _bmin = min(_bmin, _price)
                     continue
                 if not pays(_cost, _left, _base):
                     continue
@@ -10940,6 +11713,18 @@ class Agent:
                 hit = key = None
             if hit is not None and hit[0] is state:
                 return hit[1]
+        if _INCREMENTAL_JUDGE:
+            # 22: group and obj are built on their first read (nearly no term reads them)
+            ctx = _lazy_ctx({"action": action, "intent": intent, "operands": operands,
+                             "touching": touching,
+                             "acted_self": _same_object(landed, guard_ref or slot),
+                             "cond_holds": bool(self._invented) and self._inv_holds(guard_ref,
+                                                                                    state),
+                             "shapes": self._shapes_now() if shapes else None},
+                            lambda: self._group(slot, state), lambda: self._record(slot, state))
+            if key is not None:
+                memo[key] = (state, ctx)
+            return ctx
         ctx = Ctx(action=action, intent=intent, operands=operands, touching=touching,
                    # **AGAINST THE TERM'S OWN REFERENT WHEN IT HAS ONE.** `guard_ref`
                    # falls back to the slot, which is exactly what `ACTED_SELF` meant, so
@@ -11167,6 +11952,15 @@ class Agent:
             return None
         key = self._divide_key(slot, held)
         got = self._cl_cells.get(slot)
+        if _INCREMENTAL_JUDGE:
+            # 22: _divide_key's last two parts are the slot's peers and its owner's attributes
+            core, frame = key[:-2], key[-2:]
+            if got is None or got[0] != core:
+                got = (core, frame, {}, {})
+            elif got[1] != frame:
+                got = (core, frame, got[2], {})
+            self._cl_cells[slot] = got
+            return _DepCells(got[2], got[3])
         if got is None or got[0] != key:
             got = self._cl_cells[slot] = (key, {})
         return got[1]
@@ -11226,6 +12020,7 @@ class Agent:
         pos = {s: i for i, s in enumerate(res)}       # today's order, handed back to the mints
         self._route_cls = {}
         self._step_act = Counter()
+        self._dl_n = Counter()
         if _STEP_BUDGET:
             # C1: this step's budget starts at zero; the slots a budget left unasked go first,
             # the rest keep today's order (so a budget that never binds changes nothing)
@@ -11253,7 +12048,7 @@ class Agent:
                                 why_not=LEFT_BOARD, support=len(self.trace),
                                 **({"refusal_not_priced": filed} if filed else {}))
                 continue
-            _dropped = None
+            _dropped, _grade = None, None
             was_refused = self._refuted_slot.pop(slot, None)
             # ONLY WHILE THE REFUSED TERM'S RESIDUAL PERSISTS -- the reviewer 2026-10-07 14:58Z
             # (F498), superseding 13:06Z's "while this cycle's residual is nonzero", which could
@@ -11304,6 +12099,7 @@ class Agent:
                 b = REFUTED
             elif r.mass == 0.0 and slot not in self.owed_import:
                 b, fit = HELD, None
+                self._miss_held.discard(slot)      # MISS_GRADE: predicted, so a new miss is first
             elif r.mass == 0.0:
                 # a slice reading zero while the accumulated residual is live. HELD says
                 # "the slot is bound and the bound term predicted it" -- neither is true
@@ -11317,18 +12113,31 @@ class Agent:
                     b = REBIND
             elif len(self.trace) < 2:
                 b, fit = NOVEL, None
+            elif _MISS_GRADE and self._miss_in_range(slot, r):
+                # r674 2, r675: a miss inside the slot's own range is held first -- no lookup, no
+                # mint; settle still judges the bound term. Missed again, the search is owed.
+                self._miss_held.add(slot)
+                b, fit, _grade = HELD, None, "in_range_hold"
             else:
                 self._fit_none.pop(slot, None)     # S2a: a row the bound term missed reopens it
                 fit = (None if self._defer_lookup(slot)
                        else self._library_fit(slot, self.bound.get(slot)))
                 b = REBIND if fit else MECHANISM
+                if _MISS_GRADE:
+                    _grade = "broken_after_hold" if slot in self._miss_held else "searched"
             why = OWES if (r.mass == 0.0 and slot in self.owed_import) else WHY_NOT[b]
             out.append((slot, b, fit, why))
             self.led.record(self.cycle, "ROUTE", slot, "route", bin=b,
                             why_not=WHY_NOT[b], support=len(self.trace),
                             # WHY THE BIN DROPPED ITS COMPETITOR, so the cause is read, not
                             # inferred (F497): a starved slot.
-                            **({"competitor_dropped": _dropped} if _dropped else {}))
+                            **({"competitor_dropped": _dropped} if _dropped else {}),
+                            **({"miss_grade": _grade} if _grade else {}))
+        if _MISS_GRADE:
+            for slot, r in res.items():            # the slot's own range, after this step's grade
+                if isinstance(r.actual, int) and not r.gone:
+                    lo, hi = self._range.get(slot, (r.actual, r.actual))
+                    self._range[slot] = (min(lo, r.actual), max(hi, r.actual))
         if _STEP_BUDGET:
             self.led.record(self.cycle, "ROUTE", "@budget", "budget", budget=STEP_BUDGET,
                             spent=self._spent, asked=self._asked, not_asked=self._not_asked,
@@ -11347,6 +12156,13 @@ class Agent:
                                               if k != "walked"},
                             reads="A1: this step's lookups the governor let run, and those it "
                                   "deferred by why")
+        if _DESCRIBED_LOOKUP and self._dl_n:
+            self.led.record(self.cycle, "ROUTE", "@described_lookup", "described_lookup",
+                            **dict(sorted(self._dl_n.items())),
+                            reads=("20: this step's lookups asked of the described tier only -- "
+                                   "the lit entries listed, kept and cut, the misses (no_entry), "
+                                   "the unchanged keys not asked again (held) and the owed ones "
+                                   "dropped (Fig 9 :27-29, :43-45)"))
         if _STEP_RANK:
             out.sort(key=lambda t: pos[t[0]])           # the mints run in today's order
         return out
@@ -12366,6 +13182,24 @@ class Agent:
         # routine or probe exit carried the PREVIOUS cycle's value onto its REPEAT row.
         self._gamma_read = {}
         self._split_term, self._routine_fed, self._last_real = None, [], None
+        if _GOAL_FROM_ACTUATOR and _ACTUATOR_ROUTINE and self._alive and (
+                self._act_rt is not None or self._actuators and not self._try_first_open()):
+            # a held actuator routine's END is read every cycle (a board that grows reopens
+            # TRY_FIRST, and the held routine still runs); a new one is committed only once closed
+            self._actuator_routine(before)          # committed: the held-routine branch runs it
+        elif (_GOAL_FROM_ACTUATOR and not _ACTUATOR_ROUTINE and self._actuators and self._alive
+              and not self._try_first_open()):
+            _aact = self._actuator_press(before)
+            if _aact is not None:
+                return _aact, "actuator"
+        if _TERMINAL_RESET and not self._alive:
+            _open = self.iface.restart_open(self.iface.adjacent(tuple(self.actions)),
+                                            IFace.Interface.context(self.env))
+            if _open:
+                self.led.record(self.cycle, "PLAN", "@loop", "terminal_reset", action=_open[0],
+                                reads="the board is dead: the episode ended and only a restart "
+                                      "is open here (r669 1)")
+                return _open[0], "terminal"
         # why a held hypothesis did or did not act this cycle, for the repeat row (18:40 (iii))
         self._hyp_why = (None if not _GOAL_HYP or self._hyp is None
                          else "a held routine acted first")
@@ -12540,7 +13374,8 @@ class Agent:
                     return goal, "discriminate:goal"
         take, s0_tw, dist_r = None, None, None
         if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
-                self.drive.bored() and not (_STARVED_CONTACT and self._aims())):
+                self.drive.bored() and not (_STARVED_CONTACT and self._aims())
+                and not (_S0_BEFORE_BORED and self._try_first_open())):
             take, s0_tw, dist_r = self._exit_choice(before)
         aims = self._aims()
         if _STARVED_CONTACT and aims and take in (None, "probe"):
@@ -12616,6 +13451,7 @@ class Agent:
         # Isaiah's 2026-09-29 ruling, so the only gate left is whether the state calls for it.
         if (take is None and self._system0_active()) or take == "system0":
             target, why = s0_tw if s0_tw is not None else self._contact_target(before)
+            _kt = None
             self._s0_target = target
             act = self._undirected(before)
             self._intent_now = None      # a bare draw means nothing; `None` is the reading
@@ -12633,9 +13469,13 @@ class Agent:
             # could never complete and the learned arm could never resume. **That rule is the
             # AGENT's -- it is about what the agent still needs to learn, not about which
             # button does what -- so it stays here and is said as an intent.**
-            _untried = self.iface.realise(IFace.Intent(IFace.ELICIT), tuple(self.actions),
-                                          IFace.Interface.context(self.env), before, self.env,
-                                          withheld=self._withheld)
+            _eoffer = tuple(self.actions)
+            if _ELICIT_NO_REFUSED and _RESET_REASON and self._alive and IFace.RESET in _eoffer:
+                _eoffer = tuple(a for a in _eoffer if a != IFace.RESET)    # 41 (3): refused anyway
+                _book_add(self.gamma.book, "elicit_reset_left_out")
+            _untried = (self.iface.realise(IFace.Intent(IFace.ELICIT), _eoffer,
+                                           IFace.Interface.context(self.env), before, self.env,
+                                           withheld=self._withheld) if _eoffer else None)
             # **NO LOCAL COPY OF THE AIM. `_took` OWNS IT.** This kept `_coord` and then
             # wrote `self._aimed = _coord` at the end of the branch, which CLOBBERED the aim
             # `_took` had just set -- so an exploratory click that the interface had aimed went
@@ -12656,8 +13496,11 @@ class Agent:
                                         tuple(self.actions),
                                         IFace.Interface.context(self.env), before, self.env,
                                         withheld=self._withheld)
+                self._board_touched.add(target)    # C2: touched (or tried) once on this board
                 if _t is not None:
                     act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
+                    if why == "untouched-kind":
+                        _kt = target                   # C2 FELT: this press is a kind touch
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
                 elif _untried is not None:
@@ -12683,6 +13526,8 @@ class Agent:
                 self._contact_pending = (self._contact_pick, self._contact_pair)
             elif self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
+            elif _KIND_TOUCH_FELT and _TOUCH_FELT and _kt is not None:
+                self._contact_pending = (("kind-touch", _kt), (_kt,))   # felt in perceive
             # target is an OBJECT id (_contact_target), never a slot. The row is labelled with the
             # step running (PLAN, choose), first on the ladder, so F500's order holds without the
             # object-id workaround the old MINT label needed (the reviewer 2026-10-16 09:49).
@@ -12812,6 +13657,12 @@ class Agent:
                 self._contact_pick = None
                 return probe, "can-unknown probe"
             self._can_probe = None      # its object is gone: nothing left to probe
+        if _TOUCH_EACH_KIND:
+            # C2: a kind with no touched member first -- the contact pairs need not run out
+            fresh_k = self._untouched_kinds(before)
+            if fresh_k:
+                self._contact_pick = None
+                return fresh_k[0][0], "untouched-kind"
         keys = self._contact_keys(before)
         unexplored = [k for k in keys if k not in self._contact_seen]
         if unexplored:
@@ -12819,9 +13670,16 @@ class Agent:
             self._contact_pick = k
             self._contact_pair = keys[k]  # (2b): the pair whose contact the press should feel
             return keys[k][0], "untried-contact"
+        self._contact_pick = None
+        if _TOUCH_EACH_OBJECT:
+            # C2: an object not yet touched on this board, in or out of a contact pair
+            done = getattr(self, "_board_touched", set())
+            fresh = sorted(o for o in {x.rsplit(".", 1)[0] for x in before if "." in x}
+                           if o[:1] == "o" and o[1:].isdigit() and o not in done)
+            if fresh:
+                return fresh[0], "untouched-object"
         touching = {n for pair in keys.values() for n in pair}
         owners = sorted({x.rsplit(".", 1)[0] for x in before if "." in x} - touching)
-        self._contact_pick = None
         if owners:
             return owners[self.cycle % len(owners)], "seek-contact"
         return None, "all-contacts-explored"
@@ -12891,7 +13749,7 @@ class Agent:
         the board offers nothing the interface can distinguish.
         """
         want = IFace.Intent(IFace.ELICIT, subject=subject)
-        r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env),
+        r = self.iface.realise(want, self._probe_offer(), IFace.Interface.context(self.env),
                                before, self.env, withheld=self._withheld)
         self.led.record(self.cycle, "PLAN", subject or "@board", "intent",
                         reads=(want.says(), r.why if r else "unrealisable"))
@@ -12913,6 +13771,139 @@ class Agent:
                 f"`env.actions()` returned {self.actions!r}")
         return self._took(r, want)
 
+    def _actuator_press(self, before: dict):
+        """G GOAL_FROM_ACTUATOR: read the last CONTINUE press (0 credited change, or a board state
+        already seen continuing it, refutes that actuator), then TOUCH the strongest actuator not
+        refuted and present, or None."""
+        last = self._act_pending
+        self._act_pending = None
+        if last is not None:
+            self._act_end(last, before)
+        for obj, n, owners in self._act_order(before):
+            _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=obj), tuple(self.actions),
+                                    IFace.Interface.context(self.env), before, self.env,
+                                    withheld=self._withheld)
+            if _t is None:
+                self._act_refuted.add(obj)          # no press reaches it here
+                continue
+            act = self._took(_t, IFace.Intent(IFace.TOUCH, object=obj))
+            self._act_pending = obj
+            self.led.record(self.cycle, "PLAN", obj, "actuator_goal", credited=n, owners=owners,
+                            open=len(self._actuators) - len(self._act_refuted),
+                            reads="CONTINUE <actuator>: the board's own described effect, "
+                                  "carried on (r746)")
+            return act
+        return None
+
+    def _act_base(self, obj: str, ind: bool = True) -> set:
+        """The background an actuator's press is read net of: BASELINE_FROM_OTHERS (r750 3), what
+        changed when the agent touched OTHER objects on this board (the union of their touches'
+        credited change); OFF, what changed on every press (r746 (a)). With indifferent()."""
+        if _BASELINE_FROM_OTHERS:
+            base = set().union(*[v[2] for o, v in self._actuators.items() if o != obj])
+        else:
+            base = set(self._press_every or set())
+        return base | set(self.agency.indifferent()) if ind else base
+
+    def _act_end(self, obj: str, before: dict) -> str | None:
+        """Read the last CONTINUE press of obj: 0 net change, or a board state already seen
+        continuing it (over the net slots), ends it arrived without a clear and refutes it."""
+        if self._seam_now:
+            return None
+        tick = self._act_base(obj)
+        n = len([s for s in getattr(self.iface, "last_changed", ()) if s not in tick])
+        try:
+            fp = hash(tuple(sorted((k, before.get(k)) for k in self._board_moved
+                                   if k in before and k not in tick)))
+        except TypeError:
+            fp = None
+        seen = self._act_seen.setdefault(obj, set())
+        why = ("no change" if n == 0 else
+               "a state already seen" if fp is not None and fp in seen else None)
+        seen.add(fp)
+        if why is not None:
+            self._act_refuted.add(obj)
+            self.led.record(self.cycle, "PLAN", obj, "actuator_goal_end", why=why,
+                            credited=n, reads="CONTINUE arrived without a clear: refuted, "
+                                              "the next actuator follows")
+        return why
+
+    def _act_order(self, before: dict) -> list:
+        """The actuators not refuted and present, strongest net effect first (fewer owners)."""
+        net = {o: (len(v[2] - self._act_base(o, _BASELINE_FROM_OTHERS)), v[1])
+               for o, v in self._actuators.items()}
+        return [(o, n, ow) for o, (n, ow) in sorted(
+                    net.items(), key=lambda kv: (-kv[1][0], kv[1][1], int(kv[0][1:])))
+                if n and o not in self._act_refuted
+                and any(k.startswith(o + ".") for k in before)]
+
+    def _actuator_routine(self, before: dict) -> None:
+        """ACTUATOR_ROUTINE (r750 2): CONTINUE <actuator> is a plan, "press it until its effect
+        stops or the level clears", so it is committed as a routine, Until(@actuator, TOUCH it),
+        and the held-routine branch below runs it (I, then J). The END ends it through
+        _end_routine; the next actuator is then committed."""
+        obj = self._act_rt
+        if obj is not None and (self.routine is None or self.routine_for != obj):
+            obj = self._act_rt = None               # ended by another of J's ends
+        if obj is not None:
+            if self._routine_acts == self._act_rt_acts:
+                return                              # no press of it since the last reading
+            self._act_rt_acts = self._routine_acts
+            why = self._act_end(obj, before)
+            if why is None:
+                return
+            self._end_routine("arrived_no_clear", before, "PLAN", detail={"why": why})
+            self._act_rt = None
+        if self.routine is not None or self._try_first_open():
+            return                    # another routine is held, or the board owes a first try
+        for o, n, owners in self._act_order(before):
+            self.routine = Rt.Until(f"@actuator:{o}", Rt.Act(IFace.Intent(IFace.TOUCH, object=o)),
+                                    n)              # budget: the effect's own size (net slots)
+            self.routine_for, self._routine_adopted, self._routine_acts = o, None, 0
+            self._act_rt, self._act_rt_acts = o, 0
+            self._act_commit = (o, getattr(self.iface, "board_n", None))   # the board it binds to
+            self.led.record(self.cycle, "PLAN", o, "routine", verdict="actuator",
+                            routine=Rt.render(self.routine), credited=n, owners=owners,
+                            reads="CONTINUE <actuator> committed as a routine (r750 2)")
+            self.led.record(self.cycle, "PLAN", o, "actuator_goal", credited=n, owners=owners,
+                            open=len(self._actuators) - len(self._act_refuted),
+                            reads="CONTINUE <actuator>: the board's own described effect, "
+                                  "carried on (r746)")
+            return
+
+    def _untouched_kinds(self, before: dict) -> list:
+        """C2 TOUCH_EACH_KIND: for each object kind on this board with no touched member, its
+        members (by id), rarest kind first -- the agent's own objects and kinds, no button."""
+        done = getattr(self, "_board_touched", set())
+        owners = frozenset(o for o in {x.rsplit(".", 1)[0] for x in before if "." in x}
+                           if o[:1] == "o" and o[1:].isdigit())
+        key = (getattr(self, "cycle", None), len(done), owners)
+        memo = getattr(self, "_uk_memo", None)
+        if memo is not None and memo[0] == key:      # read once per cycle per touched set
+            return memo[1]
+        kinds: dict = {}
+        for o in owners:
+            kinds.setdefault(self._kind(o), []).append(o)
+        open_k = [sorted(ms, key=lambda o: int(o[1:])) for ms in kinds.values()
+                  if not any(m in done for m in ms)]
+        out = sorted(open_k, key=lambda ms: (len(ms), int(ms[0][1:])))
+        self._uk_memo = (key, out)
+        return out
+
+    def _try_first_open(self) -> int:
+        """TRY_FIRST: what this board still owes System 0 -- untried actions, and (TOUCH_EACH_KIND)
+        untouched kinds. A count."""
+        n = self._board_untried_n()
+        if _TOUCH_EACH_KIND and getattr(self, "env", None) is not None:
+            n += len(self._untouched_kinds(self.env.observe()))
+        return n
+
+    def _board_untried_n(self) -> int:
+        """C1 / TRY_FIRST: how many offered actions are not yet pressed on this board -- the
+        interface's count; the names stay below the seam (r727)."""
+        iface = getattr(self, "iface", None)
+        return iface.untried_here(tuple(self.actions)) if iface is not None else 0
+
     def _system0_active(self) -> bool:
         """UNEXPLORED CONTACT COUNT, with the action-effect coverage it replaces kept as the
         first clause. State-derived; no cycle constant and no budget.
@@ -12920,6 +13911,10 @@ class Agent:
         The old test was coverage alone -- every surfaced action tried at >=2 distinct states,
         probe.py's `never_live` anchor. That says nothing about whether the agent has found out
         what touches what, which is the thing System 0 is now for."""
+        if IFace._BOARD_UNTRIED and self._board_untried_n():
+            return True                  # C1: an offered action not yet pressed on this board
+        if _TOUCH_EACH_KIND and self._untouched_kinds(self.env.observe()):
+            return True                  # C2: an object kind on this board not yet touched
         if not self.drive.covered(len(self.actions)):
             return True
         return bool([k for k in self._contact_keys(self.env.observe())
@@ -13580,6 +14575,9 @@ class Agent:
         tally = {"too_short": 0, "flat": 0, "rose": 0, "qualified": 0, "arrived": 0}
         if _ARRIVAL:
             tally["touched"] = 0
+        ind = set(self.agency.indifferent()) if _DISCRIMINATE else set()
+        if _DISCRIMINATE:
+            tally["indifferent"] = 0
         # GQ2: while a hypothesis is held it is the one end selected (selectable while OPEN, the
         # agent's own pursuit, no shrinking bar to earn first); echo wants are not ends meanwhile
         hyp = self._hyp["slots"] if (_GOAL_HYP and self._hyp is not None) else None
@@ -13602,6 +14600,11 @@ class Agent:
             self._subgoal_end("arrived" if _sub in self._res else "gone")
         for slot, series in sorted(self._res.items()):
             cap.head()
+            if slot in ind:              # r674 1: its change is no reading of the choice
+                tally["indifferent"] += 1
+                if book:
+                    self._indiff_book()
+                continue
             longest = max(longest, len(series))
             # **AN OBJECTIVE THAT HAS ARRIVED IS NOT ONE TO PURSUE, AND ARRIVING LOOKS EXACTLY
             # LIKE SHRINKING ON THE LAST READING.** §13.4 defines the series as *a scalar
@@ -13729,6 +14732,8 @@ class Agent:
         the pricing bypass the two-arm board found cannot reappear in the ACT space.
         """
         def holds(guard: str) -> bool | None:
+            if _ACTUATOR_ROUTINE and isinstance(guard, str) and guard.startswith("@actuator:"):
+                return False      # CONTINUE <actuator>: its END, not a guard, says when it stops
             # THE GUARD READS `R_goal`, THE SAME QUANTITY THE MINT TRIGGERED AND PRICED ON.
             # It read `_discrepancy` -- one slot's distance -- while the trigger and price read
             # the SCOPE fraction, and the two disagree about what the routine is for. **A
@@ -14149,6 +15154,8 @@ class Agent:
             self._consolidate("restart")
         self._attempt_actions = 0
         self._alive, self._epoch = True, self._epoch + 1   # the same level, alive again
+        if _PLAN_EPISODES:
+            self._episode_why.append("a restart")
         self.iface.situate(self._epoch, self._alive)
         if _MC34:
             self._level_attempts += 1
@@ -15255,11 +16262,28 @@ class Agent:
         `Drive()` sites), same bookkeeping, same order. The refuter is therefore exact: any
         difference in the per-action SEQUENCE on a fixed seed is a defect, not sampling.
         """
-        r = self.iface.undirected(tuple(self.actions), self.cycle, withheld=self._withheld,
+        r = self.iface.undirected(self._probe_offer(), self.cycle, withheld=self._withheld,
                                   env=self.env)
         if r is None:
             return None
         return self.drive.note_draw(self._took(r), _where(before))
+
+    def _probe_offer(self) -> tuple:
+        """TETHER_PROBE_NO_RESTART (r674 5, the audit's first break): a probe asks what an action
+        does here, and an action KNOWN to restart the level answers that already -- probed while
+        the board is live it can only erase the level's progress (lp85, PLAY25 round 9: 7 of 32
+        presses were probe RESETs). So while alive the probe's offer leaves those out, unless
+        nothing else is offered; each withholding is booked. A chosen exit may still restart."""
+        offered = tuple(self.actions)
+        if not (_PROBE_NO_RESTART and self._alive):
+            return offered
+        ctx = IFace.Interface.context(self.env)
+        keep = tuple(a for a in offered if self.iface._known_effect(a, ctx) != IFace.RESTARTS)
+        if keep and len(keep) < len(offered):
+            self.gamma.book["probe_restart_withheld"] = (
+                self.gamma.book.get("probe_restart_withheld", 0) + 1)
+            return keep
+        return offered
 
     def _took(self, r: Any, want: Any = None) -> str:
         """Accept a `Realisation`: keep its aim and its INTENT, return its action. **One door,
@@ -15288,6 +16312,8 @@ class Agent:
         if want is not None:
             self._intent_kinds.add(want.kind)
             self._note_decision(want, r)
+        if _COUNTERS and getattr(r, "mode", None) == "kind_test":   # r692 4 (Q16)
+            self.gamma.book["press_carried"] = self.gamma.book.get("press_carried", 0) + 1
         return r.action
 
     def _r4_repeat(self) -> dict:
@@ -15408,6 +16434,8 @@ class Agent:
         """M2 ITEM 2: pick an action because the agent's OWN model says it advances the
         agent's OWN objective. **The first branch in `choose` that reads what the agent WANTS.**
 
+        TRY_FIRST: not offered while an offered action is unpressed on this board.
+
         `DOCTRINE_AUDIT` §1 said *nothing about Gamma, the bound terms, the residual, or the
         objective ever enters action selection.* Gamma entered with `spread`, perception with
         `_learned_split`; **the objective is the half that was still true, and this is it.**
@@ -15442,6 +16470,9 @@ class Agent:
         keyed on the same evidence. And nothing here sums magnitudes across slots, because
         nothing here ranges over more than the ONE slot the selector chose.
         """
+        if _BOARD_TRY_FIRST and self._try_first_open():
+            self._split_why = "try_first"   # the refusal row names the hold, not None
+            return None                  # TRY_FIRST: this board's buttons are pressed first
         # ITEM 3 GATES ITEM 2. Before the selector this ranged over EVERY OBJ-bound slot,
         # which is *pursue whichever objective happened to bind* -- and it measurably chose to
         # stand still, because `none_same` on a delta is satisfied by not moving. One selected
@@ -15526,7 +16557,7 @@ class Agent:
         _rctx = self._situation(chosen, _ctx)   # (4d) S4: the refusal's situation, not the table's
         _offer, _wh = tuple(self.actions), self._withheld
         if _ROUTE_REFUSE:          # R-B: this intent's refused routes here are not offered
-            _offer, _wh = self._route_offer(_want.says(), _rctx, _offer, _wh)
+            _offer, _wh = self._route_offer(self._route_said(_want), _rctx, _offer, _wh)
         _r = None
         if _PRED_FIRST and _offer:
             # (4e) I-C: what the settled model predicts THIS press does HERE is asked first; the
@@ -15588,7 +16619,7 @@ class Agent:
             # refusals stay, and a held hypothesis on this slot ends by="routes" (R-D's first half)
             self._split_why = "route_exhausted"
             if commit:
-                said = _want.says()
+                said = self._route_said(_want)
                 # (4c) THE REASON PICKS THE NEXT MOVE (4b's reader; the reviewer 2026-10-26 05:27):
                 # the interface's own reason when it was asked this step, else every offer here
                 # was refused (blocked). "no way known" -> re-state the intent (its target named)
@@ -15813,6 +16844,20 @@ class Agent:
             return
         changed = getattr(self.iface, "last_changed", ())
         landed = self._last_landed in pair
+        if _KIND_TOUCH_FELT and k[0] == "kind-touch":
+            # C2 FELT: an object in no pair can move others, so the whole credited change is read
+            moved_all = sorted(changed)
+            owners = sorted({o for s_ in moved_all for o in self._objs_named(s_)})
+            if _GOAL_FROM_ACTUATOR and moved_all:
+                self._actuators[pair[0]] = (len(moved_all), len(owners),   # G: an actuator
+                                            frozenset(moved_all))
+            self.led.record(self.cycle, "PERCEIVE", pair[0], "contact", pair=list(pair),
+                            kind="kind-touch", made=landed or bool(moved_all), landed=landed,
+                            moved=moved_all[:8], moved_n=len(moved_all), owners_n=len(owners),
+                            owners=owners[:12],
+                            reads=("a kind touch: what the press changed on the board, net of "
+                                   "what changed anyway"))
+            return
         moved = sorted(s for s in changed if self._objs_named(s) & set(pair))
         made = landed or bool(moved)
         self._contact_tries[k] += 1
@@ -16436,6 +17481,16 @@ class Agent:
                                   "bound; it owes and is minted first next step -- unreached at "
                                   "this budget, never a verdict")
             return
+        if _BOARD_TRY_FIRST and self._try_first_open():
+            self.owed_import.add(slot)
+            _book_add(self.gamma.book, "try_first_owed")
+            self.led.record(self.cycle, "ACCEPT", slot, "try_first", bin=b, owes=True,
+                            untried=self._board_untried_n(),
+                            untouched_kinds=(len(self._untouched_kinds(self.env.observe()))
+                                             if _TOUCH_EACH_KIND else None),
+                            reads="not minted this step: an offered action is not yet pressed on "
+                                  "this board; owed, and minted once each has been")
+            return
         fp = self._contact_fp(slot) if _CONTACT_FIRST else None
         if _CONTACT_FIRST:
             why = ("same_rows" if fp is not None and self._cf_rows.get(slot) == fp
@@ -16455,6 +17510,17 @@ class Agent:
                                        "arrives"))
                 return
             self._cf_owed.pop(slot, None)
+        gated = _REACH_GATE and self._out_of_reach(slot)
+        if gated:
+            _book_add(self.gamma.book, "reach_gate_skipped")
+            self.led.record(self.cycle, "ACCEPT", slot, "reach_gate", bin=b,
+                            type=self.slot_types.get(slot), check=bool(_REACH_GATE_CHECK),
+                            reads="not minted: no residual row's new value is in the vocabulary's "
+                                  "reach for this nominal type -- outside in principle, never "
+                                  "searched to budget; the event is read through other slots")
+            if not _REACH_GATE_CHECK:
+                return
+            minted0 = {n for n, s in self.gamma.stamps.items() if s.get("origin") == MINTED}
         self._mint_exhausted = False
         t0 = time.perf_counter() if _STEP_CLOCK else None
         if fp is not None:
@@ -16468,6 +17534,55 @@ class Agent:
             sm["run"] += 1
             if self._mint_exhausted and sm["stop"] is None:
                 sm["stop"] = slot
+        if gated:
+            got = sorted(n for n, s in self.gamma.stamps.items()
+                         if s.get("origin") == MINTED and n not in minted0)
+            _book_add(self.gamma.book, "reach_gate_lost" if got else "reach_gate_kept")
+            if got:
+                self.led.record(self.cycle, "ACCEPT", slot, "reach_gate_lost", terms=got,
+                                reads="40 check run: a gated slot, minted anyway, accepted these")
+
+    def _out_of_reach(self, slot: str) -> bool:
+        """40: no residual row's new value is in reach (see _REACH_GATE). Never gates an ordered,
+        untyped or val slot, a slot with no residual, or a world that publishes no types."""
+        ty = self.slot_types.get(slot)
+        if ty is None or ty == "val" or ty in ORDERED_TYPES:
+            return False
+        hist = self.history(slot)
+        held = self.gamma.library[self.bound.get(slot, IDN)]
+        if not hist or not self._residual_obs(slot, held, hist):
+            return False
+        same = [s for s, t in self.slot_types.items() if t == ty]
+        ops = [a for a in self.gamma.atoms
+               if a.in_type == ty and a.out_type == ty and not a.reads_operand]
+        ctx = self._eval_ctx(slot, hist[-1][0], action=None, operands=()) if ops else None
+        m = self.alphabet[slot]
+        reach: set = set()
+        # IN ORDER: a row's reach is what the board showed at or before it -- a row's new value is
+        # the next row's before-state, so a later state would put every value in reach
+        for row in hist:
+            front = {row[0][s] for s in same if s in row[0]} - reach
+            reach |= front
+            for _ in range(self.cfg.max_depth if ops else 0):
+                nxt = set()
+                for v in front:
+                    for a in ops:
+                        cap.head()
+                        try:
+                            w = a.fn(v, ctx)
+                        except Exception:       # an atom that cannot read v reaches nothing
+                            _book_add(self.gamma.book, "reach_gate_atom_raised")
+                            continue
+                        if w is not NOT_RESOLVED and isinstance(w, int) and w not in reach:
+                            nxt.add(w)
+                reach |= nxt
+                front = nxt
+                if not front:
+                    break
+            if (row[2] % m in {v % m for v in reach if isinstance(v, int)}
+                    and self._residual_obs(slot, held, [row])):
+                return False                    # a residual row whose new value is in reach
+        return True
 
     def _contact_fp(self, slot: str) -> tuple | None:
         """CONTACT_FIRST (b): what the mint would read for `slot` -- the gap's 1a key, how many
@@ -17762,6 +18877,7 @@ class Agent:
         with cap.hold():   # C1 (A): the accepted term and what is written with it
             # cross whole (the reviewer 2026-10-22 15:34 (b))
             self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
+            self._carry_identity(term, slot)
             self.bound[slot] = term.name
             self.rank.note(term.name, self.cycle)
             closes = left == 0.0
@@ -18163,6 +19279,7 @@ class Agent:
                              + ("partial -- a remainder remains" if partial else "full closure"))
         stamp = "partial" if partial else "closed"
         self.gamma.accept(cand, seq=len(self.led), residual=f"reuse:{slot}@{self.cycle}:{stamp}")
+        self._carry_identity(cand, slot)
         # A CANDIDATE, AS A MINTED TERM IS (the mint's own route, ~"self.candidates[term.name]").
         # Without it `settle` skips the term: it could never settle, never be demoted, and stayed
         # bound and wrong in silence while the sweep promoted it (gridworld_arc_s0, 2026-10-09).
@@ -18170,6 +19287,21 @@ class Agent:
             self.candidates.setdefault(cand.name, self.cycle)
             self._cand_level[cand.name] = self.level
         return cand.name
+
+    def _carry_identity(self, term: Term, slot: str) -> None:
+        """TETHER_CARRIED_BEFORE_MINT (r669 12): a term just accepted whose kind (gamma.kind_of, the
+        save's and the load's one rule) is a carried term IS that carried term re-bound here, so it
+        keeps the carried identity (born, handle) and the save writes no new row for it."""
+        if not _CARRIED_BEFORE_MINT:
+            return
+        kn = self.gamma.kind_of(term).name
+        if kn == term.name or kn not in self.gamma.carried or term.name in self.gamma.carried:
+            return
+        self.gamma.carried[term.name] = dict(self.gamma.carried[kn])
+        self.gamma.book["carried_reused"] = self.gamma.book.get("carried_reused", 0) + 1
+        self.led.record(self.cycle, self._running_step, slot, "carried_reused", term=term.name,
+                        kind=kn, reads="the term's kind is carried: the carried term re-bound "
+                                       "here, not a new one (r669 12)")
 
     @_in_step("SETTLE")
     def settle(self, res: dict[str, SlotResidual]) -> None:
@@ -18295,6 +19427,12 @@ class Agent:
             if self._cand_level.get(name) != self.level:
                 continue
             self.gamma.settle(name, where=self._scope, slot=slot)
+            if _COUNTERS:     # r692 4 (Q8, Q21): what settles, by where it came from
+                bk = self.gamma.book
+                if (self.gamma.stamps.get(name) or {}).get("origin") == MINTED:
+                    bk["settle_minted"] = bk.get("settle_minted", 0) + 1
+                if name in self.gamma.carried:
+                    bk["settle_carried"] = bk.get("settle_carried", 0) + 1
             if _LIBRARY_EXPLAINS and self._served.get(slot, ("",))[0] == name:
                 bits = self._served.pop(slot)[1]
                 ex, over = self.explain(slot, bits)
@@ -18548,6 +19686,8 @@ class Agent:
             term = self.gamma.retire(n)
             lost.update(miss)
             kind = self.gamma.kind_of(term)     # load's own rule: one name all three ways
+            if G_KIND_REL:
+                self.gamma.note_rel(kind.name, term.operand, (stamps.get(n) or {}).get("residual"))
             if kind.name in self.gamma.library:
                 kinds_held += 1
             else:
@@ -18814,6 +19954,11 @@ class Agent:
                 self._memo_clear_at_break()     # P3: this board's instance memos
                 if _INSTANCE_RETIRE:
                     self._retire_due = self.cycle   # 2: read at this step's turnover (_present)
+                if _BOARD_BOUNDARY:
+                    # r696 row 1 (a): a frame that ARRIVED with no action is a new board -- the
+                    # agent's own reading (R9: 24 of 24 game switches, none within a level). Its
+                    # board-named state resets; the library and the lineage carry. Never a game id.
+                    self.retarget(self.env, self.level, how=NEW_BOARD)
         if _W_EVICT_EVERY_STEP:
             self._w_evict(hard=True, why="every step (W-2's check)")
         if _CONSOLIDATE:
@@ -18858,8 +20003,18 @@ class Agent:
             self._step_fp, self._step_before = self._fingerprint(before), before
         if _RUIN:
             _fp = self._step_fp[0]
-            self._withheld = IFace.Withheld(
-                _fp, frozenset((a, c) for f, a, c in self._vetoes if f == _fp))
+            _held = frozenset((a, c) for f, a, c in self._vetoes if f == _fp)
+            if _NOOP_WITHHOLD:
+                _nop = frozenset((a, c) for f, a, c in self._noops if f == _fp) - _held
+                if _nop:
+                    self.led.record(self.cycle, "PLAN", "@noop", "withheld", n=len(_nop),
+                                    pairs=sorted(([a, list(c) if c else None] for a, c in _nop),
+                                                 key=str),
+                                    reads="23: pressed on this identical board before and the "
+                                          "board did not change: withheld here only; lifted if "
+                                          "every option is withheld")
+                    _held = _held | _nop
+            self._withheld = IFace.Withheld(_fp, _held)
         # ONE READING PER GOAL HYPOTHESIS, EVERY STEP, BEFORE ANYTHING ACTS ON IT. A trend
         # needs a series, and a series only exists if the reading is unconditional -- taking
         # it inside the branch that consumes it would record only the steps that already
@@ -18935,6 +20090,12 @@ class Agent:
         # unreadable focal is a KeyError. You cannot attend to what you cannot read this
         # frame; the binding is untouched and it is eligible again the moment it uncovers.
         readable = sorted(s for s in self.slots if s in before) or sorted(self.slots)
+        _ind = set(self.agency.indifferent()) if _DISCRIMINATE else set()
+        if _ind and any(s not in _ind for s in readable):
+            # r674 1: a slot that moves whatever is pressed is not what a press is made for
+            if any(s in _ind for s in readable):
+                self._indiff_book()
+            readable = [s for s in readable if s not in _ind]
         focal = max(readable,
                     key=lambda s: (self._last_mass.get(s, 0.0), s in self.owed_import))
         # **SYSTEM 2 SETS WHAT TO ATTEND TO; SYSTEM 1 EXECUTES -- Isaiah, 2026-09-25, and it is
@@ -18994,7 +20155,7 @@ class Agent:
             if _muts and _attr_of is not None:
                 _want = {a for m in _muts for a in _CUE_ATTR.get(m, ())}
                 _hit = sorted(s for s, a in _attr_of().items()
-                              if a in _want and s in before)
+                              if a in _want and s in before and s not in _ind)
                 if _hit:
                     # STABLE PICK. `sorted` then first, so the focal slot does not wander
                     # between cycles on an unordered set -- an attention that moves for no
@@ -19013,6 +20174,44 @@ class Agent:
         if action is None:
             _h = self._hyp
             action, by = self.choose(before)
+            if _TERMINAL_RESET and action in IFace.POSITIONED and self._aimed is None:
+                # r669 1: a positioned action never leaves without an aim; it is re-realised among
+                # the unpositioned offers (the same ELICIT intent the probe exits ask for)
+                _was, _want = action, IFace.Intent(IFace.ELICIT)
+                _r = self.iface.realise(_want, tuple(a for a in self.actions
+                                                     if a not in IFace.POSITIONED),
+                                        IFace.Interface.context(self.env), before, self.env,
+                                        withheld=self._withheld)
+                action, by = (self._took(_r, _want), "probe") if _r is not None else (None, by)
+                self.led.record(self.cycle, "PLAN", "@loop", "unaimed_refused", was=_was,
+                                now=action, reads="a positioned action with no aim is not sent; "
+                                                  "through the gateway it ends the game (r669 1)")
+            if (_ROUTINE_TOUCH and action in IFace.POSITIONED and self._aimed is not None
+                    and tuple(self._aimed) in self._empty_pressed
+                    and self.iface._acted(self._aimed, before, self.iface.cell_of) is None):
+                # r678 (a): empty board was already probed here once; the press goes elsewhere
+                _was, _at, _by = action, self._aimed, by
+                _alt = self._explore(before)
+                if _alt is not None:
+                    action, by = _alt, "probe"
+                self.led.record(self.cycle, "PLAN", "@loop", "empty_refused", was=_was, at=_at,
+                                by_was=_by, now=action, aim_now=self._aimed,
+                                reads="this empty cell was pressed already on this board; the "
+                                      "press is re-aimed through the probe (r678 a)")
+            if (_RESET_REASON and action == IFace.RESET and self._alive
+                    and by not in ("terminal", "routine")):
+                # r692 3: a RESET needs a reason on the record -- the board ended (terminal) or a
+                # plan asks for it (routine); any other chooser's RESET is re-realised as a probe
+                _was_by = by
+                _alt = self._explore(before)
+                if _alt is not None and _alt != IFace.RESET:
+                    action, by = _alt, "probe"
+                self.gamma.book["reset_refused"] = self.gamma.book.get("reset_refused", 0) + 1
+                self.led.record(self.cycle, "PLAN", "@loop", "reset_refused", by_was=_was_by,
+                                now=action, reads="a RESET with no booked reason (not terminal, "
+                                                  "not a plan's) is not pressed on a live board")
+            if _ROUTINE_TOUCH:
+                self._rt_press = by == "routine"
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
             if (_CONTACT_FIRST or _ROUTE_NAMED) and (by == "routine"
@@ -19188,6 +20387,11 @@ class Agent:
                                       "anything goes last and ties go to the higher "
                                       "changed-per-press ratio on this board (Fig 11 :40)")
         res = self.perceive(action, coord, self._intent_now)
+        if _NOOP_WITHHOLD and _RUIN and self._ruin_step is not None:
+            # 23: the board after the press, read the way the withhold reads it
+            fp0, _of, act, crd, _c = self._ruin_step
+            if self._fingerprint(self.env.observe())[0] == fp0:
+                self._noops.add((fp0, act, crd))
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         try:
             routed = self.route(res)
@@ -19289,14 +20493,28 @@ class Agent:
         self._dw_stop = self._sm["stop"] if self._sm is not None else None   # B2 reads it
         self._sm = None
         self._turn_ahead = None
+        # r669 8: goal planning is an EPISODE the agent opens on its own reason, not a per-step
+        # cost; with no reason the plan in hand stands. OFF: every step, as before.
+        _plan = not _PLAN_EPISODES or bool(self._episode_why)
+        _t_ep = time.perf_counter() if _PLAN_EPISODES and _plan else None
+        _s2 = _S2_STALL and _t_ep is not None
         if _OBJ_EVENT and self._events:
             with self._step_scope("MINT"):
                 self._event_prices()
-                if _G1_WANT:
+                if _G1_WANT and _plan:
                     self._g1_wants()
-        if _DERIVED_WANT and self.trace:
+        if _DERIVED_WANT and self.trace and _plan:
             with self._step_scope("MINT"):
                 self._derived_wants()
+        if _t_ep is not None:
+            with self._step_scope("MINT"):   # G1: the row's label is the step running
+                self.led.record(self.cycle, "MINT", "@plan", "plan_episode",
+                                why=list(dict.fromkeys(self._episode_why)),
+                                s=round(time.perf_counter() - _t_ep, 4),
+                                reads="goal planning ran because the agent had a reason (r669 8); "
+                                      "its seconds are planning time, not step time",
+                                **({"plan_len": self._s2_plan_len()} if _s2 else {}))
+            self._episode_why = []
         if _STOP_RULES and _ASK and _DIVIDE:
             self._stop_rules()
         if by == "probe":

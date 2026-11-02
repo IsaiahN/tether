@@ -24,6 +24,7 @@ the capture has to be live -- `ArcWorld.on_frame`, attached for the duration of 
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -85,7 +86,9 @@ def _rate(objs: list, key: dict) -> tuple[int, int, list]:
 
 # A DECLARED PANEL, not a chosen one: five games spanning the alphabet, fixed here so the null
 # sample cannot be picked per reading. The seat authors it and the reviewer moves it.
-NULL_PANEL = ("ar25", "dc22", "ls20", "sk48", "wa30")
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "harness", "panels.json"),
+          encoding="utf-8") as _fh:       # r752: a panel is data, never a literal in code
+    NULL_PANEL = tuple(json.load(_fh)["null"])
 
 # THE POOLED CEILING, AND IT IS NOT RECOMPUTED PER CALL -- F179. A per-call ceiling from five
 # draws is a LOCAL MAXIMUM PRESENTED AS A BOUND: the first version of this returned 0.7% and
@@ -96,7 +99,7 @@ NULL_PANEL = ("ar25", "dc22", "ls20", "sk48", "wa30")
 POOLED_NULL_CEILING = 3 / 71
 
 
-def against_null(game: str = "ls20", cycles: int = 25, others=NULL_PANEL) -> dict:
+def against_null(game: str, cycles: int = 25, others=NULL_PANEL) -> dict:
     """The reading and its base-rate DISTRIBUTION, because a scalar null hides its own variance.
 
     THE NULL IS CROSS-GAME: the same trajectory scored against ANOTHER game's key. The signature
@@ -141,7 +144,9 @@ def against_null(game: str = "ls20", cycles: int = 25, others=NULL_PANEL) -> dic
 
 
 if __name__ == "__main__":
-    g = sys.argv[1] if len(sys.argv) > 1 else "ls20"
+    if len(sys.argv) < 2:
+        sys.exit("usage: python rlvr.py GAME [CYCLES]")
+    g = sys.argv[1]
     n = int(sys.argv[2]) if len(sys.argv) > 2 else 25
     r = against_null(g, n)
     print(json.dumps({k: v for k, v in r.items() if k != "rows"}, indent=1))

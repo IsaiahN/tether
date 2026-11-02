@@ -388,6 +388,12 @@ _SETTLED_CORE = armflag.arm("TETHER_SETTLED_CORE", default=True)
 # Held under a key of everything it reads: the atoms, the settled set (scanned from standing, so no
 # writer can be missed) and the rank's version. OFF: rebuilt each call (ffbdf14)
 _UNITS_MEMO = armflag.arm("TETHER_UNITS_MEMO", default=True)
+# 37, THE UNBOUND-FORM MEMO (the reviewer 2026-11-01 r700, generation): unbound_form is a pure
+# function of one slot string, and _rebindings and the mint call it per candidate slot (2.55M calls,
+# 36.2 s of a 6-step wa30 profile, nearly all regex). Held per string, so each name is split once.
+# OFF: split on every call (0513d0f)
+_UNBOUND_MEMO = armflag.arm("TETHER_UNBOUND_MEMO", default=True)
+_UNBOUND: dict = {}
 # S6 (iv), THE UNITS VERSION (the reviewer 2026-10-19 14:56 (iv), 15:05): R1's key scanned all of
 # standing on every units_held call (55.3% of P's sc25 firing step, inclusive). Now every write that
 # can move the settled set bumps one count -- any mutation of the library or standing dict, and a
@@ -402,6 +408,21 @@ _WRITES = [0]   # the settled set's writes, every Gamma's (shared: it can only o
 # A / (the library's mean recipe length) and gains one per settlement. No library and nothing
 # learned: today's uniform code exactly. OFF: tether.term_bits (9f26ee9)
 _PRIOR_CODE = armflag.arm("TETHER_PRIOR_CODE", default=True)
+# F1/F2 KIND KEEPS THE ATTRIBUTE (Isaiah 2026-11-01 06:47 "sounds reasonable"; r669 10; WATSON
+# 10-31; P1): an instance's kind keeps its operand as the unbound attribute form ("?.row") for every
+# operand, not only where the bare chain is a PRIOR atom, and the carried row loads that way, so the
+# cause crosses as a kind-level reference (inc.dec<o1.row> and inc.dec<o1.colour> stay two kinds);
+# the lookup re-binds such a term only to slots of the same attribute form. OFF: as before.
+_KIND_ATTR = armflag.arm("TETHER_KIND_ATTR", default=True)
+# F6 FIRST CONTACT USES CARRIED KINDS (Isaiah 2026-11-01 06:47; r669 10): replay keeps the
+# attribute form of each slot a carried term was settled on, and a slot met for the first time
+# bets with the one carried kind settled on its attribute (tether._first_contact). OFF: neither.
+_FIRST_CONTACT = armflag.arm("TETHER_FIRST_CONTACT_CARRIED", default=True)
+# KIND KEEPS THE OPERAND'S RELATION (the reviewer 2026-11-01 r674 3; the F6 finding): a kind records
+# whether its instances read their own target's object ("same") or another's ("other"), from each
+# instance's operand and the slot its residual names -- at load from the rows already written, and
+# at the instance break -- so a first-contact bet can bind where only the attribute was ambiguous.
+_KIND_REL = armflag.arm("TETHER_KIND_REL", default=True)
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
@@ -1024,6 +1045,9 @@ class Gamma:
         # only when the lineage carry sets keep_evidence (lineage.py); empty otherwise.
         self.keep_evidence = False
         self.evidence: list[list] = []
+        # F6: name -> the unbound forms of the slots the carried evidence settled it on (replay)
+        self.settled_forms: dict[str, set[str]] = {}
+        self.kind_rel: dict[str, set[str]] = {}   # KIND_REL: name -> {"same", "other"} (note_rel)
         self.innate: set[str] = set()   # 7i: names whose standing a refute never moves
         # name -> the two verdicts that promoted it. A dict rather than a set because
         # `primitive requires both` is only checkable if both are on the record.
@@ -1149,6 +1173,9 @@ class Gamma:
                     continue
                 self.tick = t
                 (self.settle if kind == "settle" else self.refute)(name, tup(where), slot)
+                if _FIRST_CONTACT and kind == "settle" and isinstance(slot, str):
+                    # the attribute it was settled on, never the board's slot (A1 holds)
+                    self.settled_forms.setdefault(name, set()).add(self.unbound_form(slot))
                 out[kind] += 1
                 st = self.standing[name]
                 st.settled_on.clear()
@@ -1248,7 +1275,8 @@ class Gamma:
         One rule for the break (2), the save (3) and the load, so a kind is the same name all three
         ways (the reviewer 2026-10-29 r294's 2x3 check). Origin stays the term's (r294 (a))."""
         k = Term(term.atoms, origin=term.origin, guard=term.guard, operand_term=term.operand_term)
-        if term.operand and k.name in self.library and self.library[k.name].origin == PRIOR:
+        if term.operand and (_KIND_ATTR or (k.name in self.library
+                                            and self.library[k.name].origin == PRIOR)):
             k = Term(term.atoms, origin=term.origin, guard=term.guard,
                      operand=self.unbound_form(term.operand), operand_term=term.operand_term)
         return k
@@ -1609,11 +1637,34 @@ class Gamma:
         return self.load_blob(blob, hold_unbound=hold_unbound)
 
     @staticmethod
+    def first_obj(text: str) -> str | None:
+        """The first object id ("o12") a slot or operand names, or None."""
+        m = re.search(r"o\d+", text)
+        return m.group(0) if m else None
+
+    def note_rel(self, name: str, operand: str | None, residual: str | None) -> None:
+        """KIND_REL: an instance with operand `operand`, minted for the slot its residual names
+        ("o1.col@12", "reuse:o1.col@12:..."), says its kind reads the target's own object or
+        another's. A residual naming no slot ("kind:...") says nothing."""
+        if not (_KIND_REL and operand and residual) or str(residual).startswith("kind:"):
+            return
+        slot = str(residual).split("@", 1)[0].removeprefix("reuse:")
+        a, b = self.first_obj(operand), self.first_obj(slot)
+        if a and b:
+            self.kind_rel.setdefault(name, set()).add("same" if a == b else "other")
+
+    @staticmethod
     def unbound_form(operand: str) -> str:
         """An operand with every object id replaced by "?", by the slot grammar the worlds
         publish: f"{name}.{attr}" (arc_percept 847-849), pairs f"{a}.{rel}_{b}" (arc_world 813),
         compound owners a~b, and a ~j frame lag. o2.proximity -> ?.proximity; o1.adjacent_o3 ->
         ?.adjacent_?."""
+        if _UNBOUND_MEMO:
+            v = _UNBOUND.get(operand)
+            if v is None:
+                v = _UNBOUND[operand] = "".join("?" if re.fullmatch(r"o\d+", tok) else tok
+                                                for tok in re.split(r"([._~@])", operand))
+            return v
         return "".join("?" if re.fullmatch(r"o\d+", tok) else tok
                        for tok in re.split(r"([._~@])", operand))
 
@@ -1704,8 +1755,9 @@ class Gamma:
                      operand_term=(Term(tuple(self._by_name[n] for n in tree))
                                    if tree else None))
             unbound = None
-            if ((parent or hold_unbound) and r.get("operand") and t.name in self.library
-                    and self.library[t.name].origin == PRIOR):
+            if ((parent or hold_unbound) and r.get("operand")
+                    and (_KIND_ATTR or (t.name in self.library
+                                        and self.library[t.name].origin == PRIOR))):
                 # (b'-g), UNDER THE CARRY ONLY (the reviewer 2026-10-14 20:45): LOAD NEVER
                 # DESTROYS (F420; Isaiah 11:05). The binding does not cross, so every object id in
                 # the operand becomes "?", which no id generator makes (o{n}: arc_percept 638,
@@ -1715,6 +1767,7 @@ class Gamma:
                 unbound = r["operand"]
                 t = Term(t.atoms, origin=IMPORTED, guard=t.guard,
                          operand=self.unbound_form(unbound), operand_term=t.operand_term)
+                self.note_rel(t.name, unbound, r.get("residual"))
             if t.name in self.library:
                 # **`already_held` WAS ONE NUMBER OVER TWO OPPOSITE OUTCOMES -- `F420`.** A row
                 # can land on a composition this registry genuinely holds, which is a real

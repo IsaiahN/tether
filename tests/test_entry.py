@@ -1,5 +1,4 @@
-"""THE ENTRY SEAT -- the competition entry point's path, offline, on a FAKE wrapper. No ARC board
-is touched.
+"""THE ENTRY SEAT -- the submission path, offline, on a FAKE wrapper. No ARC board is touched.
 
 The fake mirrors the real arc_agi wrappers where it matters here: it RESETS IN ITS OWN __init__
 (both real ones do), holds the last frame as `observation_space`, and takes
@@ -131,6 +130,31 @@ def check_a_death_is_survived_by_the_agents_own_reset():
         f"RESET,RESET sent: {w.calls}")
 
 
+def check_terminal_reset_is_the_next_press_and_no_click_goes_unaimed():
+    """TETHER_TERMINAL_RESET (r669 1): through the gateway any non-RESET press after a death, and a
+    positioned press with no x, y, ends the game. So the press right after the death is the agent's
+    RESET, and every ACTION6 that reaches the wrapper carries a coordinate."""
+    import tether
+    import tether_agent
+    if not tether._TERMINAL_RESET:
+        return
+    w = FakeWrapper(script={2: GameState.GAME_OVER})
+    sent = []
+    real = w.step
+
+    def step(action, data=None, reasoning=None):
+        sent.append((action.name, data))
+        return real(action, data, reasoning)
+    w.step = step
+    tether_agent.run(w, "fake", max_actions=10)
+    names = [a for a, _d in sent]
+    dead_at = next(i for i, a in enumerate(names) if a != "RESET" and
+                   sum(1 for b in names[:i + 1] if b != "RESET") == 2)
+    assert names[dead_at + 1] == "RESET", f"the press after the death was not RESET: {names}"
+    unaimed = [i for i, (a, d) in enumerate(sent) if a == "ACTION6" and not d]
+    assert not unaimed, f"an ACTION6 went out with no coordinate at {unaimed}: {sent}"
+
+
 def check_a_press_after_a_death_keeps_the_board():
     """At GAME_OVER the engine answers a non-RESET press with an EMPTY stack. Read as "no
     board", the agent saw no slots and never acted again -- short of RESET. The world keeps the
@@ -226,6 +250,8 @@ def check_nothing_unknown_here_is_priced_by_the_agent():
     iface.table = {"ACTION1": {"by_ctx": {ctx: {(("o0.row", 1),)}}, "n": 1, "delta": {}},
                    "RESET": {"by_ctx": {ctx: {(("o0.row", -1),)}}, "n": 1, "delta": {}}}
     iface.chooser = lambda known: (1, f"picked {known[1][0]}")
+    for a in ("RESET", "ACTION1"):   # C1: known on THIS board too (pressed here); RESET first
+        iface.note_sent(a)
     r = iface.realise(IF.Intent(IF.ELICIT), ("ACTION1", "RESET"), ctx, {}, None)
     assert r.action == "RESET" and "nothing unknown here; picked restarts the level" in r.why, r
 

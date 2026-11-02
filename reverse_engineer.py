@@ -272,7 +272,9 @@ def _summary(res: dict) -> dict:
 
 if __name__ == "__main__":
     import json as _json
-    game_path = sys.argv[1] if len(sys.argv) > 1 else "replays/ls20_human.ndjson"
+    if len(sys.argv) < 2:
+        sys.exit("usage: python reverse_engineer.py REPLAY.ndjson [--write]")
+    game_path = sys.argv[1]
     key = answer_key(game_path)
     print(f"chunks={key['n_chunks']} levels={key['levels']} "
           f"expressible={key['expressible_chunks']} inexpressible={key['inexpressible_chunks']} "

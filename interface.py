@@ -209,6 +209,12 @@ _RESET_KNOWN = armflag.arm("TETHER_RESET_KNOWN", default=True)
 # routes it; a cell borne out here routes as before; RESET is never a carried test (its delta is
 # state-relative, Fig 4 :25). OFF: today's realise
 _KIND_TEST = armflag.arm("TETHER_KIND_TEST", default=True)
+# THE ACTION TABLE CARRIES BY KIND (the reviewer 2026-11-01 r688 STORAGE/RECALL; checklist Q17): the
+# kind tables (delta_kind, lands_kind -- name-free: contact context, kind key, rel or the value
+# before) are written to the lineage and loaded into `carried_kind`, beside the table and never into
+# it (an action absent from the table stays unmapped, so game 2 still learns its buttons); the kind
+# readers see carried cells under this life's own, and _KIND_TEST presses one as a test first.
+_ACTION_CARRY = armflag.arm("TETHER_ACTION_CARRY", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -232,6 +238,7 @@ def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
 
 
 KIND_FALLBACK_N: Counter = Counter()     # K3: realisations a kind answered ("lands" / "delta")
+CONTEXT_FAULTS: Counter = Counter()      # r696 row 14: context() reads that raised, by exception
 # THE AIMED ROUTE (the reviewer 2026-10-25 12:02, 12:17): a positioned action realised by a route
 # (BECOME's lands / delta / cell tier, TOUCH's route 2) carries a coordinate from the agent's own
 # record -- where its presses moved this slot in THIS situation and since its own last frame break
@@ -239,6 +246,13 @@ KIND_FALLBACK_N: Counter = Counter()     # K3: realisations a kind answered ("la
 # candidate for the intent, so a route never sends a bare click (the game counts one as a scored
 # action and it lands nowhere). OFF: today's routes, no coordinate.
 _AIM_ROUTED = armflag.arm("TETHER_AIM_ROUTED", default=True)
+# C1 BOARD_UNTRIED (the reviewer 2026-11-01 r725-r728; Isaiah 18:00, the names stay in the
+# interface): ELICIT's "never taken" reads "not realised on THIS board" -- the interface's own
+# record per board, a board being what the agent's situate(new_board=True) opens -- never the
+# life's table, which in a serial life maps every button by the second board (pass 3: all of
+# ACTION1-7 by cycle 27). The agent reads only untried_here(), a count. OFF: "never taken" =
+# absent from the life's table
+_BOARD_UNTRIED = armflag.arm("TETHER_BOARD_UNTRIED", default=True)
 AIM_ROUTED_N: Counter = Counter()   # "<asker>:record" / ":object" / ":pair_no_record" / ":no_aim"
 
 
@@ -494,6 +508,7 @@ class Interface:
         self.pick_by: Counter = Counter()
         self.tally_note: dict | None = None    # 17: what the tally read when it decided a pick
         self.table: dict[str, dict] = {}       # action -> what it was observed to do
+        self.carried_kind: dict[str, dict] = {}   # TETHER_ACTION_CARRY: action -> kind tables
         # K3: slot -> its KIND key (the agent's _kind and the attribute), or None; set by the agent
         # under TETHER_KIND_CARRY. None here: no kind tables, today's reading.
         self.kind_of: Any = None
@@ -534,6 +549,8 @@ class Interface:
         # S11: (epoch, coordinate) -> the audit it landed at; grows, never cleared (D1)
         self.clicked_at: dict[tuple, int] = {}
         self.epoch, self.alive = 0, True   # the agent's situation, handed over by situate
+        # C1: the boards the agent has opened, and what was realised on each; grows, never cleared
+        self.board_n, self.realised_board = 0, {}
         # **LAYER 1's OTHER HALF -- INSTANCE MEMORY, AND IT IS DELIBERATELY NOT A KEY.**
         # `rel` says WHETHER acting on one object changes another in this world; it cannot say
         # WHICH object to press to move slot Y. That question is answered by what this agent
@@ -570,6 +587,7 @@ class Interface:
         right after env.step). Under TETHER_RESET_ADJACENT; OFF the flag is set in audit."""
         if _RESET_ADJACENT:
             self._last_was_reset = action == RESET
+        self.realised_board.setdefault(self.board_n, set()).add(action)    # C1
 
     def adjacent(self, offered: tuple[str, ...]) -> tuple[str, ...]:
         """THE ONE ADJACENCY RULE: no RESET is offered right after a RESET. Nothing else gated."""
@@ -789,7 +807,7 @@ class Interface:
             if ks is not None:                  # K3: only a slot with no entry of its own
                 for a in offered:
                     cap.head()
-                    lands = self.table.get(a, {}).get("lands_kind", {})
+                    lands = self._kind_tab(a, "lands_kind")
                     seen = {v for (_c, k, b), vs in lands.items()
                             if k == ks and b == _now for v in vs}
                     if seen == {intent.value}:
@@ -878,7 +896,7 @@ class Interface:
                     tot = sum(v[1] for key, v in d.items() if key[1] == intent.subject)
                     where = "in every context seen"
                 if not n and ks is not None:    # K3: only a slot with no entry of its own
-                    dk = self.table.get(a, {}).get("delta_kind", {})
+                    dk = self._kind_tab(a, "delta_kind")
                     kn, kt = _summed(dk, ctx, ks)
                     where = "on its kind, here (no entry of its own)"
                     if not kn:
@@ -1021,6 +1039,12 @@ class Interface:
                 return a
             return max(band, key=lambda a: (rank.get(a, 0), -band.index(a)))
 
+        def _unm(a: str) -> bool:
+            # C1: an exploration's "never taken" is read on this board, beside the life's table
+            if _BOARD_UNTRIED and intent.kind == ELICIT:
+                return a not in self.realised_board.get(self.board_n, ())
+            return a not in self.table
+
         def _made(a: str, why: str) -> Realisation:
             """**A POSITIONED ACTION IS ALWAYS AIMED, WHATEVER THE INTENT ASKED FOR.**
 
@@ -1078,7 +1102,7 @@ class Interface:
                             {c: len(self.aimed_effect.get(c, ())) for c in here},
                             f"aim_gap:{self.audits}:{ctx!r}:{intent.subject}", self.draw_seed)
                         self.pick_by[by] += 1
-                    return Realisation(a, coord=aim, unmapped=(a not in self.table),
+                    return Realisation(a, coord=aim, unmapped=_unm(a),
                                        why=f"{why}, aimed at {aim} where its effect here "
                                            f"is unknown (by {by})")
             if w.at(a, coord):
@@ -1097,7 +1121,7 @@ class Interface:
                         why = f"{why}, uninformed draw over the objects present"
             elif coord is not None:
                 why = f"{why}, aimed at what moves this slot"
-            return Realisation(a, coord=coord, unmapped=(a not in self.table), why=why)
+            return Realisation(a, coord=coord, unmapped=_unm(a), why=why)
 
         if intent.kind == DISTINGUISH and split:
             # 1b ASK (the reviewer 2026-10-29 r279, r325): the agent hands how each press would
@@ -1125,7 +1149,18 @@ class Interface:
         asked = "exploration" if intent.kind == ELICIT else "something that separates"
         # D-WIN-RESET: on a live board RESET is known, never an unknown to elicit
         known_a_priori = {RESET} if (_RESET_KNOWN and self.alive) else set()
-        unmapped = [a for a in offered if a not in self.table and a not in known_a_priori]
+        unmapped = [a for a in offered if _unm(a) and a not in known_a_priori]
+        if unmapped and _ACTION_CARRY and self.carried_kind and state and self.kind_of:
+            # r688 RECALL: among the actions never taken here, one the carried table says moves a
+            # kind on this board is tried first -- the inheritance as a test, never a skip
+            here = {self.kind_of(s) for s in state}
+            told = [a for a in unmapped
+                    if any(k[1] in here
+                           for k in self.carried_kind.get(a, {}).get("delta_kind", {}))]
+            if told:
+                r = _made(_pick(told), f"requested {asked}: never taken here, and the carried "
+                                       "table says it moves a kind on this board (a test)")
+                return _replace(r, mode="kind_test")
         if unmapped:
             return _made(_pick(unmapped), f"requested {asked}: never taken")
         # THE VARIETY CONDITION: prefer an action whose effect IN THIS CONTEXT is unknown.
@@ -1161,9 +1196,18 @@ class Interface:
         return _made(_pick(band), f"requested {asked}: all known here, least-seen taken")
 
 
-    def situate(self, epoch: int, alive: bool) -> None:
-        """The agent's situation, at each of its boundaries. Nothing recorded is dropped."""
+    def situate(self, epoch: int, alive: bool, new_board: bool = False) -> None:
+        """The agent's situation, at each of its boundaries. Nothing recorded is dropped.
+        new_board: the agent read a new board (any boundary but a death; a restart is not one)."""
         self.epoch, self.alive = epoch, alive
+        if new_board:
+            self.board_n += 1
+
+    def untried_here(self, offered: tuple[str, ...]) -> int:
+        """C1: how many offered actions are not yet realised on this board, RESET left out while
+        alive (known a priori). A count: the names stay on this side of the seam."""
+        done = self.realised_board.get(self.board_n, ())
+        return sum(1 for a in offered if a not in done and not (a == RESET and self.alive))
 
     def note_break(self) -> None:
         """TETHER_AIM_ROUTED: the agent read a frame break (its own boundary reading); a route's
@@ -1264,6 +1308,11 @@ class Interface:
             return 1
         return sum(1 for d in to for b in offered
                    if b != RESET and self._known_now(b, d) is None)
+
+    def restart_open(self, offered: tuple[str, ...], ctx: tuple) -> tuple[str, ...]:
+        """TETHER_TERMINAL_RESET (Isaiah 2026-11-01 06:47, r669 1): on a dead board the episode has
+        ended and only a restart is open -- the offered actions whose known effect is RESTARTS."""
+        return tuple(a for a in offered if self._known_effect(a, ctx) == RESTARTS)
 
     def _known_effect(self, a: str, ctx: tuple) -> str:
         """What `a` is KNOWN to do in this context, as a kind the agent can price. RESET's is the
@@ -1614,7 +1663,8 @@ class Interface:
             return ()
         try:
             pts = fn() or ()
-        except Exception:                                  # noqa: BLE001
+        except Exception as e:                             # noqa: BLE001
+            CONTEXT_FAULTS[type(e).__name__] += 1          # r696 row 14: booked, never silent
             return ()
         kinds: dict[str, int] = {}
         for a, b, kind in pts:
@@ -1625,6 +1675,48 @@ class Interface:
                 continue
             kinds[kind] = kinds.get(kind, 0) + 1
         return tuple(sorted(kinds.items()))
+
+    def _kind_tab(self, a: str, tab: str) -> dict:
+        """A kind table for action `a`: this life's own cells, over the carried ones (own wins)."""
+        own = self.table.get(a, {}).get(tab, {})
+        car = self.carried_kind.get(a, {}).get(tab) if _ACTION_CARRY else None
+        return {**car, **own} if car else own
+
+    def kind_tables_out(self, written: dict) -> dict:
+        """TETHER_ACTION_CARRY: every kind cell, carried and own together (n and total summed,
+        landed values united), keyed by repr((action, table, cell)); only cells whose value moved
+        since `written`, the lineage's own copy."""
+        out = {}
+        for a in set(self.table) | set(self.carried_kind):
+            for tab in ("delta_kind", "lands_kind"):
+                own = self.table.get(a, {}).get(tab, {})
+                car = self.carried_kind.get(a, {}).get(tab, {})
+                for k in set(own) | set(car):
+                    o, c = own.get(k), car.get(k)
+                    if tab == "delta_kind":
+                        o, c = o or (0, 0), c or (0, 0)
+                        v = [o[0] + c[0], o[1] + c[1]]
+                    else:
+                        v = sorted(set(o or ()) | set(c or ()))
+                    key = repr((a, tab, k))
+                    if written.get(key) != v:
+                        out[key] = v
+        return out
+
+    def kind_tables_in(self, rows: dict) -> int:
+        """TETHER_ACTION_CARRY: the lineage's kind cells into `carried_kind`; a row that does not
+        parse is skipped. The count installed."""
+        import ast
+        n = 0
+        for key, v in rows.items():
+            try:
+                a, tab, k = ast.literal_eval(key)
+            except (ValueError, SyntaxError):
+                continue
+            t = self.carried_kind.setdefault(a, {}).setdefault(tab, {})
+            t[k] = tuple(v) if tab == "delta_kind" else set(v)
+            n += 1
+        return n
 
     def _kind_fallback(self, slot: str | None, env: object) -> Any:
         """K3: the slot's kind key when its kind may answer for it, else None: a slot with ANY

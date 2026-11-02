@@ -40,7 +40,7 @@ def _require_online():
     return key, mode
 
 
-def run(game: str = "ls20", cycles: int = 40, out: str | None = None) -> dict:
+def run(game: str, cycles: int = 40, out: str | None = None) -> dict:
     key, mode = _require_online()
     from arc_agi import Arcade, OperationMode
 
@@ -120,6 +120,8 @@ def _print(r: dict) -> None:
 
 
 if __name__ == "__main__":
-    g = sys.argv[1] if len(sys.argv) > 1 else "ls20"
+    if len(sys.argv) < 2:
+        sys.exit("usage: python arc_online.py GAME [CYCLES]")
+    g = sys.argv[1]
     c = int(sys.argv[2]) if len(sys.argv) > 2 else 40
     _print(run(g, c, out=f"runs/online_{g}.json"))

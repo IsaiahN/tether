@@ -86,7 +86,9 @@ def molecule_key(path: str) -> dict:
 if __name__ == "__main__":
     import json
     import sys as _s
-    path = _s.argv[1] if len(_s.argv) > 1 else "replays/ls20_human.ndjson"
+    if len(_s.argv) < 2:
+        _s.exit("usage: python mapping.py REPLAY.ndjson [--molecules]")
+    path = _s.argv[1]
     if "--molecules" in _s.argv:
         mk = molecule_key(path)
         for c in mk["chunks"][:8]:

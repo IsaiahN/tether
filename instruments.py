@@ -367,6 +367,9 @@ class Agency:
     # 10: counts on objects that left the board at a break -- kept, never read per step
     dormant_tried: Counter = field(default_factory=Counter, repr=False, compare=False)
     dormant_moved: Counter = field(default_factory=Counter, repr=False, compare=False)
+    # r674 1: (slot, action) -> the distinct changes seen (at most two kept); indifferent()'s memo
+    deltas: dict = field(default_factory=dict, repr=False, compare=False)
+    _i_memo: tuple | None = field(default=None, repr=False, compare=False)
 
     def retire(self, board: set, alias: dict, token: Any) -> Counter:
         """10 ARRIVAL_ALIAS: a (slot, action) count whose slot names an object not in `board`
@@ -399,8 +402,38 @@ class Agency:
             if self.moved.get(k):
                 moved[to] += self.moved[k]
             out["kept"] += to == k
-        self.tried, self.moved, self._c_memo = tried, moved, None
+        self.tried, self.moved, self._c_memo, self._i_memo = tried, moved, None, None
         return out
+
+    def note_delta(self, action: str, before: dict, after: dict, slots: list[str]) -> None:
+        """r674 1: the change each numeric slot made under this action (two distinct kept)."""
+        for s in slots:
+            b, a = before.get(s), after.get(s)
+            if isinstance(b, int) and isinstance(a, int) and a != b:
+                seen = self.deltas.setdefault((s, action), set())
+                if len(seen) < 2:
+                    seen.add(a - b)
+
+    def indifferent(self) -> list[str]:
+        """r674 1, A SIGNAL MUST DISCRIMINATE BEFORE IT STEERS: slots whose change does NOT depend
+        on WHICH action was taken -- at least two actions tried, every one moved it on every press,
+        and by one and the same change (a bar that ticks on any press). The same kind of predicate
+        as contingent(): an existence claim over what was observed, no rate, re-read every step."""
+        key = (self.steps, len(self.tried), len(self.deltas))
+        if self._i_memo is not None and self._i_memo[0] == key:
+            return list(self._i_memo[1])
+        by: dict[str, list[str]] = {}
+        for sl, a in self.tried:
+            by.setdefault(sl, []).append(a)
+        out = []
+        for s, acts in by.items():
+            if len(acts) < 2 or any(self.moved[(s, a)] != self.tried[(s, a)] for a in acts):
+                continue
+            ds = set().union(*(self.deltas.get((s, a), {None}) for a in acts))
+            if len(ds) == 1 and None not in ds:
+                out.append(s)
+        self._i_memo = (key, tuple(sorted(out)))
+        return list(self._i_memo[1])
 
     def note(self, action: str, changed: set[str], slots: list[str]) -> None:
         self.steps += 1
@@ -823,8 +856,7 @@ class Attribution:
         """WHICH CODE RAN, beside which arms (the reviewer 2026-10-12 12:41 CDT, item 4).
 
         `files_sha` hashes the project files IMPORTED when it is called, read where they ran, so
-        it needs no git (the submission machine) and shows a tree that changed between the members
-        of a batch.
+        it needs no git (a submission) and shows a tree that changed between the members of a batch.
         A module first imported later in the run is not in it. `head`/`tree`/`dirty` are git's
         view of the same directory (`dirty`: tracked files only); where git cannot say they are
         None with the reason, never raised. Nothing reads this to decide anything."""

@@ -32,7 +32,9 @@ run, and measuring *do they differ* where the question is *do they FAIL differen
 """
 from __future__ import annotations
 
+import json
 import logging
+import os
 import sys
 
 from arcengine import GameAction
@@ -44,9 +46,10 @@ sys.dont_write_bytecode = True
 
 # The 25 public identifiers. A game IDENTIFIER is a public name; nothing about any game's
 # mechanics is here.
-PANEL = ("ar25", "bp35", "cd82", "cn04", "dc22", "ft09", "g50t", "ka59", "lf52", "lp85",
-         "ls20", "m0r0", "r11l", "re86", "s5i5", "sb26", "sc25", "sk48", "sp80", "su15",
-         "tn36", "tr87", "tu93", "vc33", "wa30")
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "harness", "panels.json"),
+          encoding="utf-8") as _fh:       # r752: the panels are data, never literals in code
+    _PANELS = json.load(_fh)
+PANEL = tuple(_PANELS["screen"])
 
 # EXEMPTIONS AS DATA, NOT LOGIC -- a table can be pinned; a predicate widens quietly.
 # These six advertise a positioned click and the adapter drops it, because the loop cannot
@@ -54,7 +57,7 @@ PANEL = ("ar25", "bp35", "cd82", "cn04", "dc22", "ft09", "g50t", "ka59", "lf52",
 # external to the members -- a shared failure mode from the HARNESS, which would read as
 # correlation. NOT a claim that these games have no actions: what they contain is
 # unestablished, and this exclusion expires the moment positioned actions are supplied.
-NO_SURFACED_ACTION = ("ft09", "lp85", "r11l", "s5i5", "tn36", "vc33")
+NO_SURFACED_ACTION = tuple(_PANELS["no_surfaced_action"])
 
 
 def _run(arc, game: str, cycles: int) -> dict:
