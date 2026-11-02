@@ -319,10 +319,22 @@ def _chain(d: Path) -> list[tuple[str, dict]]:
     return [(h, gens[h]) for h in _topo(gens)]
 
 
+def _head_values(hist: list, heads: set) -> list:
+    """Each head's own value: the last one it set."""
+    return [next(x for q, x in reversed(hist) if q == head) for head in sorted(heads)]
+
+
+def _count(x: Any) -> bool:
+    return isinstance(x, int) and not isinstance(x, bool)
+
+
 def _keyed(out: dict, field: str, g: dict, h: str, anc: dict, hist: dict, heads: dict) -> None:
     """A keyed field of the fold (book, invented) under the status rule: a value supersedes only
-    one its generation descends from. Branches that disagree keep the value from before the
-    split (absent if there was none) and record both under "contested_<field>"."""
+    one its generation descends from. Branches that AGREE read the agreed value; book running
+    totals (every head an integer at or above the pre-split one) merge as the pre-split value plus
+    each head's increment (the reviewer 2026-11-02 r800 2). Otherwise branches that disagree keep
+    the value from before the split (absent if there was none) and record both under
+    "contested_<field>"."""
     for key, v in g[field].items():
         k = (field, key)
         hist.setdefault(k, []).append((h, v))
@@ -330,8 +342,16 @@ def _keyed(out: dict, field: str, g: dict, h: str, anc: dict, hist: dict, heads:
         if len(heads[k]) == 1:
             out[field][key] = v
             continue
+        vals = _head_values(hist[k], heads[k])
+        if all(x == vals[0] for x in vals):
+            out[field][key] = vals[0]
+            continue
         common = set.intersection(*(anc[q] for q in heads[k]))
         pre = [x for q, x in hist[k] if q in common]
+        if (field == "book" and pre and _count(pre[-1])
+                and all(_count(x) and x >= pre[-1] for x in vals)):
+            out[field][key] = pre[-1] + sum(x - pre[-1] for x in vals)
+            continue
         if pre:
             out[field][key] = pre[-1]
         else:
@@ -374,6 +394,10 @@ class FoldState:
             heads[k] = {q for q in heads[k] if q not in anc[h]} | {h}
             if len(heads[k]) == 1:
                 row["admitted"] = s["admitted"]
+                continue
+            vals = _head_values(hist[k], heads[k])
+            if all(a == vals[0] for a in vals):     # agreement corroborates (r800 2)
+                row["admitted"] = vals[0]
                 continue
             # CONTESTED (Fig 6, Open): branches set this row differently and neither descends from
             # the other. Both are kept; the row reads its value from before the split, never the
