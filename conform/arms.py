@@ -2097,6 +2097,16 @@ ARMS: dict[str, str] = {
     "TETHER_HYP_ROUTE_FIRST_CHECK": "TETHER_HYP_ROUTE_FIRST's CHECK, a measurement switch: keeps "
                                     "every text and asserts no text the filter would drop ever "
                                     "holds (HYP_ROUTE_FIRST_N counts). default OFF",
+    "TETHER_KIND_CANON": "K1 (the reviewer 2026-11-02 r797; Isaiah 10:12): arc_percept.form_code, "
+                         "and arc_world.shape_code through it, hash the LEAST of a shape's 8 "
+                         "rotations and mirrors, so a turned or mirrored object is one kind and "
+                         "canon() gives its pose. OFF: the cells as they stand. default OFF "
+                         "(r808): ON orphans tallies stored under the as-seen code until a "
+                         "legacy read exists",
+    "TETHER_TURN_TRACK": "K3a (the reviewer 2026-11-02 r797, r808): the tracker's shape fallback "
+                         "matches the same kind (arc_percept.kind_code, any rotation or mirror) "
+                         "when no exact shape matches, so a turned object keeps its name. OFF: "
+                         "exact shape only, a turn is a birth. default ON",
     "TETHER_KIND_CARRY": "LEARNING FILED BY KIND, NOT BY NAME TAG (Isaiah 2026-10-25 08:02, 08:19 "
                          "\"thats dementia\", 08:40 \"fix\"; the reviewer 08:43). K1 arc_percept: "
                          "at a frame break each retired name's refused claim is published as its "

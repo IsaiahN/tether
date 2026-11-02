@@ -14,7 +14,6 @@ read game internals, and there is nothing here that knows what any board means.
 """
 from __future__ import annotations
 
-import hashlib
 import sys
 from collections.abc import Callable
 from typing import Any
@@ -516,10 +515,8 @@ class ArcWorld:
         if not cells:
             return None
         code = self._shape_codes.get(cells)
-        if code is None:
-            raw = repr(sorted(tuple(c) for c in cells)).encode()
-            code = self._shape_codes[cells] = int.from_bytes(
-                hashlib.blake2b(raw, digest_size=6).digest(), "big")
+        if code is None:     # arc_percept's one rule, the canonical form's under K1
+            code = self._shape_codes[cells] = arc_percept.form_code(cells)
         return code
 
     def contact_points(self) -> list[tuple[str, str, str]]:

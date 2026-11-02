@@ -101,12 +101,63 @@ _FRAME_BREAK = armflag.arm("TETHER_FRAME_BREAK", default=True)
 _KIND_CARRY = armflag.arm("TETHER_KIND_CARRY", default=True)
 
 
+# K1, ONE KIND PER SHAPE (the reviewer 2026-11-02 r797; Isaiah 10:12 "not get confused if their
+# color, position or rotation/orientation changes"): the form code is taken over the LEAST of the
+# shape's 8 rotations and mirrors, so a turned or mirrored object is the same kind; which way it
+# faces is the pose (canon's second value), a reading beside the kind. OFF: the cells as they
+# stand, so a turn is a different kind. DEFAULT OFF (the reviewer 2026-11-02 r808): every kind
+# tally is stored under the as-seen code (7,981,124 kind rows carry it), so ON orphans the rows of
+# every shape not in its least orientation until a legacy read (both keys, summed) exists.
+_KIND_CANON = armflag.arm("TETHER_KIND_CANON")
+# K3a, A TURN IS NOT A DEATH (r797, r808): the tracker's shape fallback matches the same KIND (any
+# rotation or mirror) when no exact shape matches, by kind_code, whatever _KIND_CANON publishes.
+# OFF: an exact shape match only, so a turned object is a birth.
+_TURN_TRACK = armflag.arm("TETHER_TURN_TRACK", default=True)
+
+
+def _norm(cells: Any) -> frozenset:
+    r0 = min(r for r, _ in cells)
+    c0 = min(c for _, c in cells)
+    return frozenset((r - r0, c - c0) for r, c in cells)
+
+
+def _images(cells: Any) -> list:
+    """The 8 dihedral images, each normalised: rotations by k quarter turns, then mirrored."""
+    out = []
+    for k in range(8):
+        cur = [tuple(c) for c in cells]
+        for _ in range(k % 4):
+            cur = [(c, -r) for r, c in cur]
+        if k >= 4:
+            cur = [(r, -c) for r, c in cur]
+        out.append(_norm(cur))
+    return out
+
+
+def canon(cells: Any) -> tuple[frozenset, int]:
+    """The shape's canonical form (the least image) and its POSE: the least index i whose image
+    of the canonical form is this shape."""
+    best = min(_images(cells), key=sorted)
+    here = _norm(cells)
+    return best, next(i for i, x in enumerate(_images(best)) if x == here)
+
+
+def kind_code(cells: Any) -> int:
+    """The canonical form's code, always: the tracker's kind (K3a), independent of _KIND_CANON."""
+    import hashlib
+    raw = repr(sorted(tuple(c) for c in canon(cells)[0])).encode()
+    return int.from_bytes(hashlib.blake2b(raw, digest_size=6).digest(), "big")
+
+
 def form_code(cells: Any) -> int | None:
     """A form's stable number: a hash of its cells normalised to the bounding box's corner, the
-    code arc_world.shape_code publishes (3c-CANON). None for no cells."""
+    code arc_world.shape_code publishes (3c-CANON); under K1 the canonical form's. None for no
+    cells."""
     if not cells:
         return None
     import hashlib
+    if _KIND_CANON:
+        cells = canon(cells)[0]
     raw = repr(sorted(tuple(c) for c in cells)).encode()
     return int.from_bytes(hashlib.blake2b(raw, digest_size=6).digest(), "big")
 BREAK_MEDIAN, BREAK_COLOUR = 0.71, 0.42
@@ -739,6 +790,7 @@ class Objects:
             else:
                 best, score = None, 0.0
             assign[i] = (best, score)
+        kids = None
         for i, obj in enumerate(found):
             if assign[i][0] is not None:
                 continue
@@ -750,6 +802,14 @@ class Objects:
             # position-independent, so it carries identity across a move.
             best = next((n for n, old in sorted(self.tracked.items())
                          if n not in claimed and shape_of(old) == shape_of(obj)), None)
+            if best is None and _TURN_TRACK:
+                # K3 (r797): A TURN IS A CHANGE, NOT A DEATH -- no exact shape match, so the same
+                # KIND (any rotation or mirror) carries identity; an exact match still wins
+                if kids is None:
+                    kids = {n: kind_code(shape_of(old)) for n, old in self.tracked.items()}
+                k = kind_code(shape_of(obj))
+                best = next((n for n in sorted(self.tracked)
+                             if n not in claimed and kids[n] == k), None)
             if best is not None:
                 claimed.add(best)
             assign[i] = (best, 0.0)
