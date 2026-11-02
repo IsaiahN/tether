@@ -1,6 +1,7 @@
 """SHAPE B (the reviewer 2026-10-31 r541 3, r542; Isaiah 10:26 "tether B parallelized version"): N processes, each ONE
-agent and ONE life (kaggle/b_worker.py), taking the games the Arcade lists from one queue until none is left. ONE MIND,
-N COPIES: every worker loads the same lineage and none writes to it, so the copies never merge (r465 3). Harness only:
+agent and ONE life (kaggle/b_worker.py), taking the games the Arcade lists from one queue until none is left. Under
+K-W (B_WRITE, default ON, r789) N is 1 and the worker writes what it learns into the lineage it was handed; under
+B_WRITE=0, ONE MIND, N COPIES: every worker loads the same lineage and none writes to it (r465 3). Harness only:
 nothing in the agent. Seeds as run A's: PYTHONHASHSEED 0 from the launcher, TETHER_AGENT_SEED 0 in each worker.
 N = min(the cores this process may run on, the memory it may use // one worker's peak), read here at run time.
 ONE scorecard: opened here before any worker starts (a competition server refuses a second open, arc_agi api.py
@@ -27,6 +28,21 @@ sys.path.insert(0, CODE)
 # end path's write (its 9.88 GiB) never runs in a worker.
 PEAK_MB = 7086
 SIDE = ("-shm", "-wal", "-journal")      # SQLite's side files: an open reader makes them; they hold no lineage
+# K-W (the reviewer 2026-11-02 r789; Isaiah 08:24 "it will need to learn and prove learning"): ONE worker playing the
+# games in sequence and WRITING into the lineage it was handed (the notebook's writable, manifest-checked copy in
+# /kaggle/working), so what it learns survives the run and is the next run's library. B_WRITE=0: the N read-only
+# workers as before. The write needs room: twice the largest generation free beside the lineage, else no write and a
+# row saying why (B_TEST_FREE_MB plants a free figure, the local test only).
+WRITE = os.environ.get("B_WRITE", "1") != "0"
+
+
+def headroom(d: str) -> dict:
+    import shutil
+    gens = [os.path.getsize(os.path.join(d, f)) for f in os.listdir(d) if f.startswith("gen_")]
+    need = 2 * max(gens, default=0)
+    free = (int(os.environ["B_TEST_FREE_MB"]) * 2**20 if os.environ.get("B_TEST_FREE_MB")
+            else shutil.disk_usage(d).free)
+    return {"free_mb": free // 2**20, "need_mb": -(-need // 2**20), "ok": free >= need, "gens": len(gens)}
 
 
 def cores() -> tuple[int, str]:
@@ -85,7 +101,16 @@ try:
     assert games, "the Arcade lists no games"
     games = games[:int(rest[0])] if rest else games
     (nproc, nproc_from), (mem, mem_from) = cores(), memory()
-    n = max(1, min(nproc, mem // (PEAK_MB * 2**20), len(games)))
+    write = WRITE
+    if write:
+        rec["headroom"] = headroom(LIN)
+        if not rec["headroom"]["ok"]:
+            write = False
+            rec["write_refused"] = (f"free {rec['headroom']['free_mb']} MB < twice the largest generation "
+                                    f"{rec['headroom']['need_mb']} MB: the run plays without writing")
+            print(f"run_b: {rec['write_refused']}", flush=True)
+    rec["write"] = write
+    n = 1 if write else max(1, min(nproc, mem // (PEAK_MB * 2**20), len(games)))
     # B_MEM_GUARD's share (r554 3): the memory read above, less this parent's own commit now, split over the N workers
     parent_mb = (arc_holdout.tether._commit_bytes() or 0) // 2**20
     share_mb = (mem // 2**20 - parent_mb) // n
@@ -98,7 +123,8 @@ try:
     with open(os.path.join(qdir, "games.json"), "w", encoding="utf-8") as fh:
         json.dump(games, fh)
     before = listing(LIN)
-    env = {**os.environ, "TETHER_LINEAGE_BOUNDARY": "0", "TETHER_FAULT_RECOVER": "0",
+    env = {**os.environ, "TETHER_LINEAGE_BOUNDARY": "1" if write else "0", "TETHER_FAULT_RECOVER": "0",
+           "B_WRITE": "1" if write else "0", "B_LEARNING": os.path.join(OUT, "learning.jsonl"),
            "B_T0": repr(time.time()), "B_SHARE_MB": str(share_mb), "PYTHONDONTWRITEBYTECODE": "1"}
     print(f"run_b: {len(games)} games, N {n} (cores {nproc} by {nproc_from}; memory {mem // 2**20} MB by {mem_from} "
           f"// peak {PEAK_MB} MB), card {card}, each worker's share {share_mb} MB (parent {parent_mb} MB)",
@@ -124,6 +150,8 @@ try:
     after = listing(LIN)
     rec["lineage_unchanged"] = before == after
     rec["lineage_changed"] = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))[:40]
+    # K-W: the generations this run added (the lineage that is now the next run's library)
+    rec["written_gens"] = sorted(k for k in set(after) - set(before) if k.startswith("gen_"))
     rec["untaken"] = [g for i, g in enumerate(games) if not os.path.exists(os.path.join(qdir, f"take_{i}"))]
 except BaseException as e:   # noqa: BLE001 -- every ending, SystemExit included, still closes the card
     rc = 1

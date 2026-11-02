@@ -9,8 +9,10 @@ that its slice ends. What differs, and only this:
   - the slice: each game's share, derived when its slice starts -- (deadline_at - now - this worker's longest step)
     x N / the games not yet finished, this one among them; min = max = the share under rule A. B_SHARE=0: run A's
     300/400 (B_ and never TETHER_: that namespace is the agent's arms, as harness/supervise.py says);
-  - nothing is written to the lineage: the end write is not called, the boundary writes are off
-    (TETHER_LINEAGE_BOUNDARY=0) and a fault is recovered without end_path's write (TETHER_FAULT_RECOVER=0; recover);
+  - under B_WRITE=0, nothing is written to the lineage: the end write is not called, the boundary writes are off
+    (TETHER_LINEAGE_BOUNDARY=0). Under K-W (B_WRITE=1, run_b's default, r789) the ONE worker writes into the working
+    lineage: the boundary writes, one after each game, one before a rewire, and the end write. A fault is recovered
+    without end_path's write either way (TETHER_FAULT_RECOVER=0; recover), from the lineage as last written;
   - a None from the wrapper (r563) is never handed to the agent: the game ends "no_answer" with no retry, the agent
     cut inside its step is replaced from the unchanged lineage, and a make with no frame on a gone card (the
     gateway's 404) ends this worker's claims, exit 0.
@@ -41,6 +43,12 @@ SHARE_MB = int(os.environ.get("B_TEST_SHARE_MB") or os.environ.get("B_SHARE_MB")
 # this worker (rehearsal 2's bp35 grew ~1.7x its estimate). 1 is the guard as before.
 GROWTH_MARGIN = float(os.environ.get("B_MEM_GROWTH_MARGIN", "2"))
 FIXED_MIN_S, FIXED_MAX_S = 300.0, 400.0      # run A's slice (Isaiah 2026-10-30 21:28); only under B_SHARE=0
+# K-W (the reviewer 2026-11-02 r789; Isaiah 08:24 "it will need to learn and prove learning"): B_WRITE=1, set by run_b,
+# makes this ONE worker write what it learns into the working lineage -- the boundary writes, a write after each game
+# and before a rewire (so the fresh agent loads the updated lineage), and the end write -- and log learning.jsonl
+# (B_LEARNING), which the agent never reads. 0: as before, nothing written.
+WRITE = os.environ.get("B_WRITE", "0") == "1"
+LEARNING = os.environ.get("B_LEARNING") or os.path.join(OUT, "learning.jsonl")
 assert os.environ.get("PYTHONHASHSEED") == "0", "the hash seed must be pinned by the launcher"
 os.environ["TETHER_AGENT_SEED"] = "0"
 os.makedirs(OUT, exist_ok=True)
@@ -64,8 +72,50 @@ import lineage  # noqa: E402
 import tether  # noqa: E402
 from arc_agi import Arcade  # noqa: E402
 
-assert not lineage._BOUNDARY and not tether._FAULT_RECOVER and lineage._CARRY, (
-    "the arms B runs under, read through armflag: run_b sets TETHER_LINEAGE_BOUNDARY=0 and TETHER_FAULT_RECOVER=0")
+assert lineage._BOUNDARY == WRITE and not tether._FAULT_RECOVER and lineage._CARRY, (
+    "the arms B runs under, read through armflag: run_b sets TETHER_LINEAGE_BOUNDARY to B_WRITE and "
+    "TETHER_FAULT_RECOVER=0")
+WRITTEN: list = []                        # K-W: this run's generations, in order
+
+
+def save(ag, how: str) -> dict:
+    """K-W: one lineage.write into the working lineage, its row on the ledger; a failed write is the row, never the
+    end of the run. The write moves the agent's parent to the generation it made (the boundary arm)."""
+    t = time.time()
+    try:
+        r = lineage.write(LIN, ag, "stream", sleep=(how == "end")) or {}
+    except Exception as e:  # noqa: BLE001 -- the write's error is the row; the run goes on
+        r = {"error": repr(e)[:300]}
+    r = {**r, "how": how, "s": round(time.time() - t, 2)}
+    if r.get("hash"):
+        WRITTEN.append(r["hash"])
+    ag.led.record(ag.cycle, "SETTLE", "@run", "b_write",
+                  **{k: r.get(k) for k in ("how", "hash", "parent", "terms", "status", "s", "error", "refused")})
+    return r
+
+
+def learned(ag, i: int, g: str, parent0, run_gens: set, seq0: int, r: dict) -> None:
+    """K-W's proof, one line per game in learning.jsonl: the generation the game started from, the one it wrote, the
+    terms that write added, and the terms written EARLIER IN THIS RUN that this game's rows name -- a term the agent
+    used here that it learned in a game before this one in the same run."""
+    # what this agent wrote itself, and what it LOADED born in this run's generations (a fresh agent after a rewire
+    # holds the earlier games' terms only through its load)
+    earlier = {n: v["born"] for src in (getattr(ag.gamma, "carried", None),
+                                        getattr(ag, "_lineage_written", None))
+               for n, v in (src or {}).items() if isinstance(v, dict) and v.get("born") in run_gens}
+    used = collections.Counter()
+    if earlier:
+        for row in ag.led.rows(seq0):
+            for v in (row.get("detail") or {}).values():
+                for x in (v if isinstance(v, list) else [v]):
+                    if isinstance(x, str) and x in earlier:
+                        used[x] += 1
+    line = {"idx": i, "game": g, "parent_at_start": parent0, "written": r.get("hash"), "terms_added": r.get("terms"),
+            "write_s": r.get("s"), "write_error": r.get("error") or r.get("refused"),
+            "held_from_this_run": len(earlier),
+            "used_from_this_run": [{"term": n, "rows": c, "born": earlier[n]} for n, c in used.most_common(20)]}
+    with open(LEARNING, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(line, default=str) + "\n")
 with open(os.path.join(QDIR, "games.json"), encoding="utf-8") as fh:
     GAMES = json.load(fh)
 
@@ -204,6 +254,7 @@ def rewire(env, ag, ctx, why: dict, no_answer: bool = False):
         arc_holdout.guarded(ag, ag.end_run, "cap")
     else:
         ag.end_run("cap")
+    w = save(ag, "rewire") if WRITE and not no_answer else None   # K-W: the fresh agent loads what this life wrote
     cycle, deadline, led = ag.cycle, ag.deadline, ag.led
     fresh_env = arc_holdout.world_on(env.w, ctx["game"], ctx["palette"], env.on_frame)
     fresh, _loaded = arc_holdout.wire_agent(fresh_env, ctx["game"], None, led, None, LIN, clock=(cycle, deadline))
@@ -215,9 +266,10 @@ def rewire(env, ag, ctx, why: dict, no_answer: bool = False):
                          "the next game; nothing was written")
         return fresh_env, fresh
     led.record(cycle, "SETTLE", "@run", "b_mem_guard", what="rewire", **why,
-               parent=getattr(fresh, "lineage_parent", None),
-               reads="run B B_MEM_GUARD: between games, a fresh agent from the unchanged lineage, because this "
-                     "worker's commit plus its largest one-game growth would pass its share; nothing was written")
+               parent=getattr(fresh, "lineage_parent", None), written=(w or {}).get("hash"),
+               reads="run B B_MEM_GUARD: between games, a fresh agent, because this worker's commit plus its "
+                     "largest one-game growth would pass its share; under K-W this life was written first and the "
+                     "fresh agent loads it, else nothing was written and it loads the unchanged lineage")
     return fresh_env, fresh
 
 
@@ -250,9 +302,10 @@ env, ag, led, _board, _pal, _loaded = arc_holdout.wire(proxy, "stream", led_path
 _today = tether.arms_today()     # r690 3, STAYS ON: every arm built 2026-11-01 must read ON here
 led.record(0, "SETTLE", "@run", "arms_today", arms=_today, off=sorted(k for k, v in _today.items() if not v))
 # r694 row 22: the lineage load reserves the last save's end-path wall; B writes nothing, so it is spent
-led.record(0, "SETTLE", "@run", "end_reserve_zeroed", was=getattr(ag, "_end_reserve", None),
-           sleep_was=getattr(ag, "_end_sleep_s", None))
-ag._end_reserve, ag._end_sleep_s = 0.0, 0.0
+if not WRITE:   # K-W keeps the reserve: its end write runs
+    led.record(0, "SETTLE", "@run", "end_reserve_zeroed", was=getattr(ag, "_end_reserve", None),
+               sleep_was=getattr(ag, "_end_sleep_s", None))
+    ag._end_reserve, ag._end_sleep_s = 0.0, 0.0
 if not all(_today.values()):
     log(f"# worker {WID}: arms OFF {sorted(k for k, v in _today.items() if not v)} -- the run is refused (r690 3)")
     sys.exit(3)
@@ -306,6 +359,7 @@ while nxt is not None:
             memo("rewire", i, g)
     c_game0 = commit_mb()[0] if MEM_GUARD else None
     seq0 = len(ag.led)
+    parent0, run_gens = getattr(ag, "lineage_parent", None), set(WRITTEN)    # K-W: what this game starts from
     if len(taken) > 1:
         if not proxy.switch_to(g):        # r563: no frame at the make; a gone card stops this worker's claims
             no_answer.append(g)
@@ -383,16 +437,20 @@ while nxt is not None:
         f"{acts}\t{first_act_s}\t{extended}\t{unreached}\t{overrun}\t{round(mx, 1)}\t{left}\t{round(longest, 1)}\t"
         f"{peak}")
     memo("end", i, g)
+    if WRITE:                             # K-W: the game's learning written before the next game starts
+        learned(ag, i, g, parent0, run_gens, seq0, save(ag, "game"))
     finished(i)
     nxt = take()
-ag.end_run("cap")                         # no lineage.write: B keeps nothing (r541 3(d))
+ag.end_run("cap")
+end_write = save(ag, "end") if WRITE else None   # K-W: the end write; else B keeps nothing (r541 3(d))
 close = getattr(ag.led, "close", None)
 if close:
     close()
 out = {"worker": WID, "taken": taken, "cycles": ag.cycle, "wall_s": round(time.time() - T0, 1),
        "endings": dict(endings_all), "deadline_at": DL, "deadline_fired": bool(getattr(ag, "_cut", False)),
        "budget_unreached": budget_unreached, "faults": len(ctx.get("faults", [])), "peak_mb": commit_mb()[1],
-       "longest_step_s": round(longest, 1), "no_answer": no_answer}
+       "longest_step_s": round(longest, 1), "no_answer": no_answer, "write": WRITE, "written": WRITTEN,
+       "end_write": {k: (end_write or {}).get(k) for k in ("hash", "terms", "s", "error")} if WRITE else None}
 with open(os.path.join(OUT, "stream.result.json"), "w", encoding="utf-8") as fh:
     json.dump(out, fh, default=str)
 log(f"# worker {WID} end {time.strftime('%Y-%m-%d %H:%M:%S')} {json.dumps(out, default=str)[:400]}")
