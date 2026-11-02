@@ -49,6 +49,11 @@ _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
 # boundary record. ON: each Term in it is written as its term-row record (dormant_items), the live
 # and in-memory record untouched. OFF: the item refused and named, as before.
 _DORMANT_TERM_FORM = armflag.arm("TETHER_DORMANT_TERM_FORM", default=True)
+# HOT/COLD, THE CACHE'S ADMISSION RULE (the reviewer 2026-11-02 r811; Isaiah 13:00): the kind_dk
+# enumerations read the HOT set -- n >= 2, or the row seen in this life -- and a past-life row seen
+# once (n == 1: 946,396 of 2,944,831 rows on central) stays on disk, read by key and on a lookup
+# that finds nothing hot. Nothing is deleted. OFF: every row, as before.
+_HOT_COLD = armflag.arm("TETHER_HOT_COLD", default=True)
 # F4 THE FAULTED STEP'S TERM, BY THE FORMATS WRITTEN (the reviewer 2026-10-31 r603; the audit):
 # a residual is "{slot}@{c}", "kind:{n}@{c}", "reuse:{slot}@{c}:{stamp}" or "{m}@{c}:event:{p}"
 # (tether.py 4883, 8039, 17764, 18165, 18554). ON: the cycle followed by ":" or the end. OFF:
@@ -920,27 +925,48 @@ class DkSnapshot:
             "(SELECT dk FROM kind_dk UNION SELECT tgt FROM kind_dk)")}
         self.kind_id = {v: i for i, v in self.kind.items()}
         self.ent = dict(q("SELECT id, s FROM sym WHERE id IN (SELECT entry FROM kind_dk)"))
-        # load()'s two derived readings, in load order (the table's key order, dk then entry)
+        self.ent_id = {v: i for i, v in self.ent.items()}
+        # load()'s two derived readings, in load order (the table's key order, dk then entry);
+        # tot_t over the HOT rows under _HOT_COLD, tot_t_all over every row (the miss fallback)
         self.tot_t: dict = {}
-        for dk, e, n in q("SELECT dk, entry, SUM(n) FROM kind_dk WHERE n != 0 "
-                          "GROUP BY dk, entry ORDER BY dk, entry"):
-            self.tot_t.setdefault(self.kind[dk][0], Counter())[self.ent[e]] += n
+        self.tot_t_all: dict = {}
+        for dk, e, n, hot in q("SELECT dk, entry, SUM(n), SUM(CASE WHEN n = 1 THEN 0 ELSE n END) "
+                               "FROM kind_dk WHERE n != 0 GROUP BY dk, entry ORDER BY dk, entry"):
+            self.tot_t_all.setdefault(self.kind[dk][0], Counter())[self.ent[e]] += n
+            if hot or not _HOT_COLD:
+                self.tot_t.setdefault(self.kind[dk][0], Counter())[self.ent[e]] += (
+                    hot if _HOT_COLD else n)
         self.last_k: dict = {}
         for e, s in q("SELECT entry, MAX(l_seq) FROM kind_dk WHERE l_game IS NOT NULL "
                       "GROUP BY entry ORDER BY MIN(dk), entry"):
             self.last_k[self.ent[e]] = s
         self.closed = False
 
-    def rows(self, d: tuple) -> dict:
-        """One kind's rows, (dk, entry, target) -> n, n != 0, in the table's key order."""
+    def rows(self, d: tuple, hot: bool = True) -> dict:
+        """One kind's rows, (dk, entry, target) -> n, n != 0, in the table's key order; under
+        _HOT_COLD and `hot`, its hot rows only (n != 1)."""
         if self.closed:
             raise RuntimeError("W-4: the load-time dk snapshot is closed")
         i = self.kind_id.get(d)
         if i is None:
             return {}
+        cut = " AND n != 1" if hot and _HOT_COLD else ""
         return {(d, self.ent[e], self.kind[t]): n for e, t, n in self.con.execute(
-            "SELECT entry, tgt, n FROM kind_dk WHERE dk = ? AND n != 0 ORDER BY entry, tgt",
-            (i,))}
+            "SELECT entry, tgt, n FROM kind_dk WHERE dk = ? AND n != 0" + cut
+            + " ORDER BY entry, tgt", (i,))}
+
+    def cold(self, key: tuple) -> int:
+        """A row's stored n if it is COLD (a past-life n == 1), else 0: the keyed read a row seen
+        in this life takes, so its count stays whole."""
+        if self.closed or not _HOT_COLD:
+            return 0
+        d, k, t = key
+        ids = (self.kind_id.get(d), self.ent_id.get(k), self.kind_id.get(t))
+        if None in ids:
+            return 0
+        got = self.con.execute("SELECT n FROM kind_dk WHERE dk = ? AND entry = ? AND tgt = ? "
+                               "AND n = 1", ids).fetchone()
+        return got[0] if got else 0
 
     def items(self):
         """Every row, as load() read them -- the full-scan paths only (a fallback, a check)."""

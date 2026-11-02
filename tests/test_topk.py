@@ -10,6 +10,8 @@ the atoms); the rank's read counts come from the library index's posting lists (
   MF-TK4  within one tier, an entry reading 3 of the asked readings ranks above one reading 1.
   MF-TK5  with 2,500 lit entries, the held-index filter (_described_lit, after the cut) examines at
           most 32 distinct entries in one lookup.
+  MF-SC1  S3: a key asked twice never judges an entry twice -- its two windows are disjoint.
+  MF-SC2  S3: a new description key starts from the top, whatever another key judged.
 
     python tests/test_topk.py
 """
@@ -29,7 +31,8 @@ A = tether.Agent
 
 
 def stub():
-    return SimpleNamespace(_tk_off={}, _dl_n=Counter(), gamma=SimpleNamespace(atoms=[]))
+    return SimpleNamespace(_tk_off={}, _tk_nofit={}, _tk_win=(None, ()), _dl_n=Counter(),
+                           gamma=SimpleNamespace(atoms=[]))
 
 
 def entries(n, prefix="e"):
@@ -78,10 +81,20 @@ def main():
     win, _n = A._topk(ag5, big, big, {"T3": 2500}, att, tg, "k6")
     A._described_lit(ag5, None, win, {"T3": 2500}, att, tg, frozenset())
     assert 0 < len(seen) <= 32, ("MF-TK5: held-index entries examined", len(seen))
+    # MF-SC1 / MF-SC2 (S3): no entry judged twice under one key; a new key starts fresh
+    assert tether._SERP_CACHE, "S3 ON by default"
+    ag6 = stub()
+    w1, n1 = A._topk(ag6, lit, lit, tiers, att, tg, "s1")
+    A._tk_after(ag6, "s1", n1)
+    w2, _n2 = A._topk(ag6, lit, lit, tiers, att, tg, "s1")
+    assert not {k for k, _w in w1} & {k for k, _w in w2} and len(w2) == 32, "MF-SC1"
+    w3, _n3 = A._topk(ag6, lit, lit, tiers, att, tg, "s2")
+    assert [k for k, _w in w3] == [k for k, _w in w1], "MF-SC2: a new key starts from the top"
     print(f"test_topk: 200 kept -> {len(A._topk(stub(), lit, lit, tiers, att, tg, 'k5')[0])} "
           f"evaluated; the rank-70 fit found on lookup {found} (windows 1-2 not yet, no verdict); "
           f"7 windows over 200 -> verdict only at the 7th; the 3-reading entry ranks above the "
-          f"1-reading one; 2,500 lit -> {len(seen)} entries through the held-index filter")
+          f"1-reading one; 2,500 lit -> {len(seen)} entries through the held-index filter; S3: a "
+          f"re-asked key's windows are disjoint, a new key starts from the top")
 
 
 if __name__ == "__main__":

@@ -1037,6 +1037,11 @@ _DESCRIBED_LOOKUP = armflag.arm("TETHER_DESCRIBED_LOOKUP", default=True)
 # the whole list, as before.
 _SERP = armflag.arm("TETHER_SERP", default=True)
 TOPK_K = 32
+# S3, THE RESULT CACHE (r816; Baeza-Yates et al. 2007): under SERP, a description key remembers the
+# entries a window offered nothing from this life; its next ask skips them and takes the next
+# unjudged window. Cleared on a level or game reset; a changed description is a new key. OFF: the
+# offset alone, as SERP has it.
+_SERP_CACHE = armflag.arm("TETHER_SERP_CACHE", default=True)
 
 
 _POSTING: dict = {}
@@ -3454,6 +3459,7 @@ class Agent:
         self._kind_landed_dk: Counter = Counter()
         self._kind_known_dk: Counter = Counter()
         self._kix: dict | None = None   # (C): the tiers index, rebuilt when _kix_ver moves
+        self._kix_cold: dict | None = None   # hot/cold: the full index, for a lookup's miss
         self._dk_snap: Any = None       # W-4: the load-time kind_dk snapshot (lineage.DkSnapshot)
         self._kix_ver = 0               # bumped by each lineage load of the dk stores
         self._dk_index: dict = {}
@@ -3738,6 +3744,8 @@ class Agent:
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
         self._dl_missed: dict = {}         # 20: a described key with no offer -> its miss's cycle
         self._tk_off: dict = {}            # TK: a described key -> where its next window starts
+        self._tk_nofit: dict = {}          # S3: a key -> entries its windows judged no-fit
+        self._tk_win: tuple = (None, ())   # S3: the last window taken (its key, its entries)
         self._dl_owed = False              # 20: this lookup was due from the owed queue
         self._dl_n: Counter = Counter()    # 20: this step's described-lookup counts
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
@@ -4552,6 +4560,7 @@ class Agent:
         self._refuted_slot: dict = {}
         self._dl_missed = {}               # 20: its keys name slots, so the same rule
         self._tk_off = {}
+        self._tk_nofit = {}
         if _NOOP_WITHHOLD:
             self._noops.clear()            # 23: the level's own boards
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
@@ -5610,11 +5619,24 @@ class Agent:
             if land is None or _TIERS_INDEX_CHECK:
                 ix_land = land
                 land = {r_: Counter() for r_ in "abc"}
-                for (d, k, tgt), m in itertools.chain(self._kind_landed_dk.items(),
-                                                      self._known_dk_items()):
+                cold_rows: list = []
+                for (d, k, tgt), m in self._kind_landed_dk.items():
                     cap.head()
                     g_ = rung(d, tgt)
                     if g_:
+                        land[g_][k] += m
+                for (d, k, tgt), m in self._known_dk_items():
+                    cap.head()
+                    g_ = rung(d, tgt)
+                    if not g_:
+                        continue
+                    if lineage._HOT_COLD and m == 1 and (d, k, tgt) not in self._kind_landed_dk:
+                        cold_rows.append((g_, k, m))        # hot/cold: read only on a miss
+                        continue
+                    land[g_][k] += m
+                if cold_rows and not any(land.values()):
+                    for g_, k, m in cold_rows:
+                        cap.head()
                         land[g_][k] += m
                 if ix_land is not None:            # the check: the scan's sums are used
                     last_scan = self._dk_last_k()
@@ -5984,22 +6006,33 @@ class Agent:
         post = _posting_reads()
         ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)),
                                             -len(post.get(e[0], frozenset()) & reads)))
+        if _SERP_CACHE:
+            # S3: what this key already judged no-fit is skipped; the window is the next unjudged
+            seen = self._tk_nofit.get(key, ())
+            ranked = [e for e in ranked if e[0] not in seen]
+            self._tk_off.pop(key, None)
         off = self._tk_off.get(key, 0)
         if off >= len(ranked):
             off = 0
         self._dl_n["topk_cut"] += len(ranked) - min(TOPK_K, len(ranked) - off)
         nxt = off + TOPK_K
+        self._tk_win = (key, tuple(k for k, _w in ranked[off:nxt]))
         return ranked[off:nxt], (nxt if nxt < len(ranked) else None)
 
     def _tk_after(self, key: tuple, nxt: int | None) -> bool:
         """TK: a window that offered nothing. Short of the list's end it is "not yet": the next
         lookup of this description continues from nxt, and no verdict is recorded (False). At the
         end the offset resets and the miss is recorded as before (True)."""
+        if _SERP_CACHE and self._tk_win[0] == key:
+            # S3: the window offered nothing -- every entry in it is judged no-fit under this key
+            self._tk_nofit.setdefault(key, set()).update(self._tk_win[1])
         if nxt is not None:
-            self._tk_off[key] = nxt
+            if not _SERP_CACHE:
+                self._tk_off[key] = nxt
             self._dl_n["topk_not_yet"] += 1
             return False
         self._tk_off.pop(key, None)
+        self._tk_nofit.pop(key, None)
         return True
 
     def _described_lit(self, lib: Any, lit: list, tiers: dict, att: dict, tg: tuple,
@@ -6703,7 +6736,7 @@ class Agent:
             self._kind_seq += 1
             self._kind_seq_at = at
 
-    def _kix_build(self) -> dict | None:
+    def _kix_build(self, hot: bool = True) -> dict | None:
         """(C): the tiers index from the stores -- per kind and per type, each entry's summed count
         over the landed and carried rows (one combined count per (kind, entry, target), as the old
         chained scan sums them); each kind's rows by reference; each entry's latest recency. None
@@ -6714,16 +6747,19 @@ class Agent:
         if snap is not None:
             if snap.nonpos:
                 return None
-            tot_t = {t: Counter(c) for t, c in snap.tot_t.items()}
+            hot = hot and lineage._HOT_COLD
+            tot_t = {t: Counter(c) for t, c in (snap.tot_t if hot else snap.tot_t_all).items()}
             by_d: dict = {}
             for key, m in self._kind_landed_dk.items():
                 cap.head()
                 if m <= 0:
                     return None
-                tot_t.setdefault(key[0][0], Counter())[key[1]] += m
+                # hot/cold: a row seen this life is hot; its stored n == 1 joins it
+                tot_t.setdefault(key[0][0], Counter())[key[1]] += m + (snap.cold(key) if hot
+                                                                        else 0)
                 by_d.setdefault(key[0], []).append(key)
             return {"sig": self._kix_sig(), "rows_d": {}, "tot_d": {}, "tot_t": tot_t, "at": {},
-                    "last_k": self._dk_last_k(), "known": {}, "landed_by_d": by_d}
+                    "last_k": self._dk_last_k(), "known": {}, "landed_by_d": by_d, "hot": hot}
         rows_d: dict = {}
         tot_d: dict = {}
         tot_t: dict = {}
@@ -6732,6 +6768,9 @@ class Agent:
                 cap.head()
                 if m <= 0:
                     return None
+                if (hot and lineage._HOT_COLD and store is self._kind_known_dk and m == 1
+                        and key not in self._kind_landed_dk):
+                    continue        # hot/cold: a past-life row seen once stays out
                 d, k, _t = key
                 if store is self._kind_known_dk or key not in self._kind_known_dk:
                     rows_d.setdefault(d, []).append(key)
@@ -6775,7 +6814,13 @@ class Agent:
         the order the full build keeps (carried, then landed); its carried counts returned."""
         known = ix["known"].get(d)
         if known is None:
-            known = ix["known"][d] = self._dk_snap.rows(d)
+            known = ix["known"][d] = self._dk_snap.rows(d, hot=ix.get("hot", False))
+            if ix.get("hot"):
+                for key in ix["landed_by_d"].get(d, ()):
+                    cap.head()
+                    c = 0 if key in known else self._dk_snap.cold(key)
+                    if c:
+                        known[key] = c      # seen this life: its stored n == 1 is hot again
             rows, tot = list(known), Counter()
             for key, m in known.items():
                 cap.head()
@@ -6809,13 +6854,18 @@ class Agent:
         if at is not None:
             at[k] += m
 
-    def _kix_land(self, kinds: tuple, ko: tuple) -> tuple:
+    def _kix_land(self, kinds: tuple, ko: tuple, hot: bool = True) -> tuple:
         """(C): _tiers' rung sums from the index. a = an asked kind's rows whose target is ko; b =
         the asked kinds' other rows; c = the asked TYPES' rows of kinds not asked (rung()'s three
         cases). (land, last) or (None, None) when the index cannot serve (a count <= 0)."""
-        ix = self._kix
+        hot = hot and lineage._HOT_COLD
+        ix = self._kix if hot or not lineage._HOT_COLD else self._kix_cold
         if ix is None or ix["sig"] != self._kix_sig():
-            ix = self._kix = self._kix_build()
+            ix = self._kix_build(hot=hot)
+            if hot or not lineage._HOT_COLD:
+                self._kix = ix
+            else:
+                self._kix_cold = ix
             if ix is None:
                 _book_add(self.gamma.book, "tiers_index_fallback")
                 return None, None
@@ -6852,6 +6902,10 @@ class Agent:
                 c = m - sum(a.get(k, 0) for a in asked)
                 if c > 0:
                     land["c"][k] += c
+        if hot and not any(land.values()):
+            # hot/cold: nothing hot answers -- read the cold rows (a miss, not a verdict)
+            _book_add(self.gamma.book, "hot_cold_miss")
+            return self._kix_land(kinds, ko, hot=False)
         return land, ix["last_k"]
 
     def _pair_counts(self) -> dict:
