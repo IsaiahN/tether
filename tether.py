@@ -1026,6 +1026,31 @@ _HELD_COMPILE_MEMO = armflag.arm("TETHER_HELD_COMPILE_MEMO", default=True)
 # delta kind, the readings, its contact) is not asked again, and an owed lookup due under a missed
 # key is dropped with a row. A new description is a new key. ON; conform/arms.py
 _DESCRIBED_LOOKUP = armflag.arm("TETHER_DESCRIBED_LOOKUP", default=True)
+# SERP, THE SEARCH-ENGINE LOOKUP (the reviewer 2026-11-02 r810, r812, r816; Isaiah 12:53, 13:55): a
+# described lookup ranks its lit list CHEAPLY -- tier as listed, then how many of the asked readings
+# an entry reads by the library index's posting lists (library/index.json by_reading_reads, read
+# once) -- and cuts it to TOPK_K BEFORE the expensive calls (_described_lit's held-index filter,
+# _judge, the reach walk), which then run on that window only. A lookup of the same description
+# that found no fit continues from where the last window stopped; nothing is dropped and "no
+# entry" is recorded only once the list's end is passed (Fig 9 :40-41, :44, :60). Measured: kept
+# per lookup p90 2,535-2,744; the expensive calls were 15-24% of a step each (py-spy, vc33). OFF:
+# the whole list, as before.
+_SERP = armflag.arm("TETHER_SERP", default=True)
+TOPK_K = 32
+
+
+_POSTING: dict = {}
+
+
+def _posting_reads() -> dict:
+    """Each library entry's readings, from the index's posting lists (reading -> entries), once."""
+    if not _POSTING:
+        from pathlib import Path
+        p = Path(__file__).parent / "library" / "index.json"
+        for r, names in json.loads(door.read_bytes(p))["index"]["by_reading_reads"].items():
+            for e in names:
+                _POSTING.setdefault(e[0] if isinstance(e, list) else e, set()).add(r)
+    return _POSTING
 # 22 INCREMENTAL_JUDGE (the reviewer r571; Fig 9 :38-39, Fig 12 :108-109, Fig 6 :50): 16's stored
 # prefixes are voided by the slot's peers or its owner's attributes moving only for a term whose
 # atoms declare they read them (reads_ctx "group" / "obj", the only fields _eval_ctx fills from
@@ -3712,6 +3737,7 @@ class Agent:
         self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
         self._dl_missed: dict = {}         # 20: a described key with no offer -> its miss's cycle
+        self._tk_off: dict = {}            # TK: a described key -> where its next window starts
         self._dl_owed = False              # 20: this lookup was due from the owed queue
         self._dl_n: Counter = Counter()    # 20: this step's described-lookup counts
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
@@ -4525,6 +4551,7 @@ class Agent:
         # reset states for `_res` and `_disc`.
         self._refuted_slot: dict = {}
         self._dl_missed = {}               # 20: its keys name slots, so the same rule
+        self._tk_off = {}
         if _NOOP_WITHHOLD:
             self._noops.clear()            # 23: the level's own boards
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
@@ -5748,7 +5775,7 @@ class Agent:
             lit, tiers = self._tiers(lib, lit, dk, mine, described, att,
                                      more=tuple(d for m, d in (dks or {}).items()
                                                 if members and m != slot and d))
-        dl_key, dl_cut = None, 0
+        dl_key, dl_cut, tk_next = None, 0, None
         if _DESCRIBED_LOOKUP and tiers is not None and _INDEX_HOLD and lit:
             # 20: the key is the description -- the slot, its delta kind, the readings, its contact
             dl_key = (slot, dk, tuple(sorted(changed)), tuple(sorted(self._touching(slot))), tg)
@@ -5765,12 +5792,20 @@ class Agent:
                     self._dl_n["held"] += 1
                 return
             n_lit = len(lit)
-            lit = self._described_lit(lib, lit, tiers, att, tg)
+            if _SERP and len(lit) > TOPK_K:
+                # the cheap rank and the cut first; the held-index filter then reads the window only
+                head = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c", "T2"))
+                head_keys = frozenset(k for k, _w in lit[:head])
+                lit, tk_next = self._topk(lit, lit, tiers, att, tg, dl_key)
+                lit = self._described_lit(lib, lit, tiers, att, tg, head_keys)
+            else:
+                lit = self._described_lit(lib, lit, tiers, att, tg)
             self._dl_n["asked"] += 1
             self._dl_n["listed"] += n_lit
             self._dl_n["kept"] += len(lit)
             if not lit:
-                self._dl_miss(dl_key, tiers, 0, n_lit)
+                if self._tk_after(dl_key, tk_next):
+                    self._dl_miss(dl_key, tiers, 0, n_lit)
                 return
             dl_cut = n_lit - len(lit)
         if not lit:
@@ -5931,19 +5966,59 @@ class Agent:
                                    "views and CAUSE then-sides that compile onto this slot, tested "
                                    "and recorded, each with the count of entries that offered it"))
         if dl_key is not None and not self._k1_trunc and not self._walk_cut \
-                and not any(self._lib_offers.get(m) for m in tg):
+                and not any(self._lib_offers.get(m) for m in tg) \
+                and self._tk_after(dl_key, tk_next):
             self._dl_miss(dl_key, tiers, len(lit), dl_cut)
 
-    def _described_lit(self, lib: Any, lit: list, tiers: dict, att: dict, tg: tuple) -> list:
+    def _topk(self, full: list, lit: list, tiers: dict, att: dict, tg: tuple,
+              key: tuple) -> tuple[list, int | None]:
+        """TK: the kept list ranked (its tier as listed, then the count of the asked readings it
+        reads, high first; stable) and the TOPK_K window at this key's offset. (window, the next
+        window's start, or None when this window reaches the end)."""
+        tier_of, i = {}, 0
+        for t_i, c in enumerate(tiers.values()):
+            for k, _w in full[i:i + c]:
+                tier_of.setdefault(k, t_i)
+            i += c
+        reads = {att.get(s) for s in tg}
+        post = _posting_reads()
+        ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)),
+                                            -len(post.get(e[0], frozenset()) & reads)))
+        off = self._tk_off.get(key, 0)
+        if off >= len(ranked):
+            off = 0
+        self._dl_n["topk_cut"] += len(ranked) - min(TOPK_K, len(ranked) - off)
+        nxt = off + TOPK_K
+        return ranked[off:nxt], (nxt if nxt < len(ranked) else None)
+
+    def _tk_after(self, key: tuple, nxt: int | None) -> bool:
+        """TK: a window that offered nothing. Short of the list's end it is "not yet": the next
+        lookup of this description continues from nxt, and no verdict is recorded (False). At the
+        end the offset resets and the miss is recorded as before (True)."""
+        if nxt is not None:
+            self._tk_off[key] = nxt
+            self._dl_n["topk_not_yet"] += 1
+            return False
+        self._tk_off.pop(key, None)
+        return True
+
+    def _described_lit(self, lib: Any, lit: list, tiers: dict, att: dict, tg: tuple,
+                       head_keys: frozenset | None = None) -> list:
         """20: the described tier of K1's list -- T1a, T1b, T1c and T2 as listed, then the other
         lit entries whose held views read one of the asked slots' own readings or come through an
-        event route (the exact-reading key, r571), in their listed order."""
-        head = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c", "T2"))
+        event route (the exact-reading key, r571), in their listed order. Under SERP the list is a
+        ranked window and `head_keys` names its T1a-T2 entries (kept as they stand)."""
+        if head_keys is not None:
+            keep = [e for e in lit if e[0] in head_keys]
+            cands = [e for e in lit if e[0] not in head_keys]
+        else:
+            head = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c", "T2"))
+            keep, cands = lit[:head], lit[head:]
         reads = {att.get(s) for s in tg}
         atoms = {a.name: a for a in self.gamma.atoms}
         sig = compile_term.signature(atoms)
         extra = []
-        for e in lit[head:]:
+        for e in cands:
             cap.head()
             pl = _DL_ENTRY.get((sig, e[0]))
             if pl is None:
@@ -5958,7 +6033,7 @@ class Agent:
             if pl[1] or pl[0] & reads:
                 extra.append(e)
         self._dl_n["extra"] += len(extra)
-        return lit[:head] + extra
+        return keep + extra
 
     @staticmethod
     def _dl_key_row(key: tuple) -> dict:

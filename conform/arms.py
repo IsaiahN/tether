@@ -2103,6 +2103,12 @@ ARMS: dict[str, str] = {
                          "canon() gives its pose. OFF: the cells as they stand. default OFF "
                          "(r808): ON orphans tallies stored under the as-seen code until a "
                          "legacy read exists",
+    "TETHER_SERP": "SERP (the reviewer 2026-11-02 r810, r816; Isaiah 12:53, 13:55): a described "
+                   "lookup ranks its lit list cheaply (tier, then the asked readings an entry "
+                   "reads by the library index's posting lists) and cuts it to TOPK_K (32) "
+                   "BEFORE the held-index filter, _judge and the reach walk; a lookup of the same "
+                   "description that found no fit continues from the last window, and no entry "
+                   "is recorded only past the list's end. OFF: the whole list. default ON",
     "TETHER_TURN_TRACK": "K3a (the reviewer 2026-11-02 r797, r808): the tracker's shape fallback "
                          "matches the same kind (arc_percept.kind_code, any rotation or mirror) "
                          "when no exact shape matches, so a turned object keeps its name. OFF: "
