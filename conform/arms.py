@@ -2146,6 +2146,10 @@ ARMS: dict[str, str] = {
                                  "of it, strongest first; a press with no net change, or a state "
                                  "already seen, refutes it. OFF: no actuator goal (ade07bb). "
                                  "default ON",
+    "TETHER_PAIRS_FALLBACK": "(i) SINGLES FIRST, PAIRS ONLY WHEN NO SINGLE PAYS (the reviewer "
+                             "2026-11-01 r747; Fig 9 :60): goal-condition pairs are built "
+                             "only as the fallback for \"none paid\". OFF: pairs always "
+                             "(220f99a). default ON",
     "TETHER_PAIR_BOUND": "E, A PAIR THAT CANNOT BEAT A SINGLE IS NOT PRICED (lp85's first clear, "
                          "2026-11-01): a goal-condition pair whose cost alone exceeds the "
                          "cheapest single's total is skipped; the pick is identical. OFF: "

@@ -539,7 +539,8 @@ def arms_today() -> dict:
                         "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
                         "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
                         "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT", "_GOAL_BY_MOVED",
-                        "_GOAL_SIGN_FLIP", "_GOAL_FROM_ACTUATOR", "_PAIR_BOUND"),
+                        "_GOAL_SIGN_FLIP", "_GOAL_FROM_ACTUATOR", "_PAIR_BOUND",
+                        "_PAIRS_FALLBACK"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2513,6 +2514,9 @@ _GOAL_FROM_ACTUATOR = armflag.arm("TETHER_GOAL_FROM_ACTUATOR", default=True)
 # deadline cut the sweep (no step after it). A pair whose cost alone exceeds the cheapest single's
 # total can neither be the pick nor tie it, so it is not priced; the pick is identical. OFF: all
 _PAIR_BOUND = armflag.arm("TETHER_PAIR_BOUND", default=True)
+# (i) PAIRS_FALLBACK (the reviewer 2026-11-01 r747; Fig 9 :60, "Use filters for the budget and
+# witnesses for the verdict"): singles first, pairs only when no single pays. OFF: pairs always
+_PAIRS_FALLBACK = armflag.arm("TETHER_PAIRS_FALLBACK", default=True)
 _GOAL_CMP = re.compile(r"^\s*(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-z0-9_~]*)\s*(<|>)\s*")
 _GOAL_OPP = {"<": ">", ">": "<"}
 
@@ -8090,8 +8094,8 @@ class Agent:
                 continue
             cost, left, e = self._goal_price([c], rows)
             cands.append((cost + left, cost, left, e, text, c))
-        n_plain = len(cands)
-        if _GOAL_PAIR:
+        n_plain, self._pair_bounded = len(cands), 0
+        if _GOAL_PAIR and not (_PAIRS_FALLBACK and any(pays(x[1], x[2], base) for x in cands)):
             cands += self._goal_pairs(cands, rows)
         lag = sum(1 for x in cands if any(lag_of(t) for t in re.findall(r"[\w.]+~\d+", x[4])))
         cands.sort(key=lambda x: (x[0], x[4]))
