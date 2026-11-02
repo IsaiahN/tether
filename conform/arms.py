@@ -2140,6 +2140,11 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_KIND_TOUCH_FELT": "C2 FELT, A KIND TOUCH WRITES ITS CONTACT ROW (the reviewer "
+                              "2026-11-01 r742): the touch goes through the felt-outcome path "
+                              "and the row reads the whole credited change on the board (count, "
+                              "owners), since an object in no pair can move others. OFF: no row "
+                              "(f8f1a01). default ON",
     "TETHER_DELTA_TIER_MEMO": "E, _delta_tier HELD PER (CYCLE, TRACE LENGTH) (the reviewer "
                               "2026-11-01 r736): the moved set per residual-observation tuple, "
                               "the owner map and the contact map are read once until the trace "

@@ -537,7 +537,7 @@ def arms_today() -> dict:
                         "_WIN_CREDIT", "_BOARD_BOUNDARY", "_FIT_BOUND", "_REACH_GATE",
                         "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
                         "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
-                        "_DELTA_TIER_MEMO"),
+                        "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2478,6 +2478,12 @@ _TOUCH_EACH_KIND = armflag.arm("TETHER_TOUCH_EACH_KIND", default=True)
 # _delta_tier 48% inclusive / 25% self, arc_world.slot_owner 16%). Held per (cycle, trace length):
 # the moved set per residual-observation tuple, the owners and the contacts. Exact. OFF: re-walked
 _DELTA_TIER_MEMO = armflag.arm("TETHER_DELTA_TIER_MEMO", default=True)
+# C2 FELT, KIND_TOUCH_FELT (the reviewer 2026-11-01 r742): a kind touch had no contact pick, so its
+# outcome was never felt and no contact row was written (lp85: the o26 click changed 201 slots on
+# 48 owners against an 80-slot baseline, and the record held nothing of it). A kind touch now goes
+# through the felt-outcome path: its row reads the whole credited change on the board (net of
+# I-B), with the count and the owners, since an object in no pair can move others. OFF: no row
+_KIND_TOUCH_FELT = armflag.arm("TETHER_KIND_TOUCH_FELT", default=True)
 # THE FOUR COUNTERS (the reviewer 2026-11-01 r692 4; checklist Q6/Q8/Q16/Q21), books only, no choice
 # reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
 # press_carried (a press realised as a carried kind cell's test).
@@ -13324,6 +13330,7 @@ class Agent:
         # Isaiah's 2026-09-29 ruling, so the only gate left is whether the state calls for it.
         if (take is None and self._system0_active()) or take == "system0":
             target, why = s0_tw if s0_tw is not None else self._contact_target(before)
+            _kt = None
             self._s0_target = target
             act = self._undirected(before)
             self._intent_now = None      # a bare draw means nothing; `None` is the reading
@@ -13371,6 +13378,8 @@ class Agent:
                 self._board_touched.add(target)    # C2: touched (or tried) once on this board
                 if _t is not None:
                     act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
+                    if why == "untouched-kind":
+                        _kt = target                   # C2 FELT: this press is a kind touch
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
                 elif _untried is not None:
@@ -13396,6 +13405,8 @@ class Agent:
                 self._contact_pending = (self._contact_pick, self._contact_pair)
             elif self._contact_pick is not None:
                 self._contact_seen.add(self._contact_pick)
+            elif _KIND_TOUCH_FELT and _TOUCH_FELT and _kt is not None:
+                self._contact_pending = (("kind-touch", _kt), (_kt,))   # felt in perceive
             # target is an OBJECT id (_contact_target), never a slot. The row is labelled with the
             # step running (PLAN, choose), first on the ladder, so F500's order holds without the
             # object-id workaround the old MINT label needed (the reviewer 2026-10-16 09:49).
@@ -16609,6 +16620,17 @@ class Agent:
             return
         changed = getattr(self.iface, "last_changed", ())
         landed = self._last_landed in pair
+        if _KIND_TOUCH_FELT and k[0] == "kind-touch":
+            # C2 FELT: an object in no pair can move others, so the whole credited change is read
+            moved_all = sorted(changed)
+            owners = sorted({o for s_ in moved_all for o in self._objs_named(s_)})
+            self.led.record(self.cycle, "PERCEIVE", pair[0], "contact", pair=list(pair),
+                            kind="kind-touch", made=landed or bool(moved_all), landed=landed,
+                            moved=moved_all[:8], moved_n=len(moved_all), owners_n=len(owners),
+                            owners=owners[:12],
+                            reads=("a kind touch: what the press changed on the board, net of "
+                                   "what changed anyway"))
+            return
         moved = sorted(s for s in changed if self._objs_named(s) & set(pair))
         made = landed or bool(moved)
         self._contact_tries[k] += 1
