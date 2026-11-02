@@ -2146,6 +2146,11 @@ ARMS: dict[str, str] = {
                                  "of it, strongest first; a press with no net change, or a state "
                                  "already seen, refutes it. OFF: no actuator goal (ade07bb). "
                                  "default ON",
+    "TETHER_ACTUATOR_END_ON_J": "J END, J'S NON-LEVEL END REFUTES THE ACTUATOR (the reviewer "
+                                "2026-11-02 r759): an actuator's routine that ends exhausted, "
+                                "no_contact, unrealisable or blocked refutes that actuator for "
+                                "the board, the end named in the row. OFF: only the END refutes "
+                                "(1c341da). default ON",
     "TETHER_ACTUATOR_ROUTINE": "I/J, CONTINUE <ACTUATOR> IS A ROUTINE (the reviewer 2026-11-01 "
                                "r750 2): the actuator exit commits Until(@actuator, TOUCH it) "
                                "and the held-routine branch runs it; J's ends and the actuator "

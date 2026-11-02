@@ -540,7 +540,8 @@ def arms_today() -> dict:
                         "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
                         "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT", "_GOAL_BY_MOVED",
                         "_GOAL_SIGN_FLIP", "_GOAL_FROM_ACTUATOR", "_PAIR_BOUND",
-                        "_PAIRS_FALLBACK", "_ACTUATOR_ROUTINE", "_BASELINE_FROM_OTHERS"),
+                        "_PAIRS_FALLBACK", "_ACTUATOR_ROUTINE", "_BASELINE_FROM_OTHERS",
+                        "_ACTUATOR_END_ON_J"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2525,6 +2526,10 @@ _ACTUATOR_ROUTINE = armflag.arm("TETHER_ACTUATOR_ROUTINE", default=True)
 # agent touched OTHER objects on this board (their touches' union), not the every-press
 # intersection, which one small press empties. OFF: the intersection
 _BASELINE_FROM_OTHERS = armflag.arm("TETHER_BASELINE_FROM_OTHERS", default=True)
+# J END, ACTUATOR_END_ON_J (KS1 2026-11-02, the reviewer r759: tu93 re-committed o3 16 times, each
+# exhausted after one press): an actuator's routine that ends exhausted, no_contact, unrealisable
+# or blocked refutes that actuator for the board, as its END does. OFF: only the END refutes
+_ACTUATOR_END_ON_J = armflag.arm("TETHER_ACTUATOR_END_ON_J", default=True)
 _GOAL_CMP = re.compile(r"^\s*(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-z0-9_~]*)\s*(<|>)\s*")
 _GOAL_OPP = {"<": ">", ">": "<"}
 
@@ -3391,6 +3396,7 @@ class Agent:
         self._act_seen: dict = {}         # G: actuator -> board fingerprints seen continuing it
         self._press_every: set | None = None   # G: slots every press of this board changed
         self._act_rt, self._act_rt_acts = None, 0   # G: the actuator routine held, its acts read
+        self._act_commit = None   # J: (actuator, board_n) of the committed routine, across edges
         self._act_pending = None          # G: the actuator the last press continued
         self._rel_subjects: set = set()   # TETHER_RELATION_BET: relations that became subjects
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
@@ -8826,6 +8832,22 @@ class Agent:
                         outcome=why, routine=Rt.render(self.routine), **extra)
         if _PLAN_EPISODES:
             self._episode_why.append(f"the plan ended ({why})")
+        _ac = self._act_commit
+        if (_ACTUATOR_END_ON_J and _ac is not None and self.routine_for == _ac[0]
+                and why in (Rt.EXHAUSTED, "no_contact", Rt.UNREALISABLE, Rt.BLOCKED)):
+            # J's non-level end of the actuator's routine refutes it ON THE BOARD IT WAS COMMITTED
+            # (r759, r761; Fig 6 :45-46): a routine survives a level edge, and an id from board N
+            # may name another object on board N+1, so an end after a boundary refutes nothing
+            here = _ac[1] == getattr(self.iface, "board_n", None)
+            if here:
+                self._act_refuted.add(_ac[0])
+            self.led.record(self.cycle, step or self._running_step, _ac[0], "actuator_goal_end",
+                            why=f"routine {why}" + ("" if here else " after a boundary"),
+                            refuted=here,
+                            reads=("CONTINUE <actuator> ended by J: refuted, the next actuator "
+                                   "follows (ACTUATOR_END_ON_J)" if here else
+                                   "ended on a later board than its commit: no refutation"))
+            self._act_commit = None
         self._guard_exit = None
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
@@ -13839,6 +13861,7 @@ class Agent:
                                     n)              # budget: the effect's own size (net slots)
             self.routine_for, self._routine_adopted, self._routine_acts = o, None, 0
             self._act_rt, self._act_rt_acts = o, 0
+            self._act_commit = (o, getattr(self.iface, "board_n", None))   # the board it binds to
             self.led.record(self.cycle, "PLAN", o, "routine", verdict="actuator",
                             routine=Rt.render(self.routine), credited=n, owners=owners,
                             reads="CONTINUE <actuator> committed as a routine (r750 2)")
