@@ -528,7 +528,7 @@ _LAG = re.compile(r"^(.*)~(\d+)$")
 
 def arms_today() -> dict:
     """r690 3, STAYS ON: the live value of every arm built on 2026-11-01, read from the modules
-    (never the environment). The Kaggle worker records it and fails the run if any reads False."""
+    (never the environment). The bundle worker records it and fails the run if any reads False."""
     import gamma as _g
     import interface as _i
     names = {"tether": ("_TERMINAL_RESET", "_S1_CONTACT_ONLY", "_PLAN_EPISODES",
@@ -1301,7 +1301,7 @@ _STEP_BUDGET = armflag.arm("TETHER_STEP_BUDGET", default=True)
 # K-W, 1,000,000 -> 50,000 (Isaiah 2026-10-21 18:58, via the reviewer 19:02; measured S2W, S3G: a
 # step's lookups past it are OWED and asked first next step). A VALUE: TETHER_STEP_BUDGET_N
 # overrides it, 1000000 restores the old pacing (317879c). MAGIC: a seat-authored constant
-# (Fig 10 :48), replaced post-Kaggle by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
+# (Fig 10 :48), replaced post-submission by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 STEP_BUDGET = int(os.environ.get("TETHER_STEP_BUDGET_N", "50000"))
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --

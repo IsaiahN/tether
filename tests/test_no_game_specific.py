@@ -1,6 +1,6 @@
 """NO GAME-SPECIFIC CODE (Isaiah 2026-11-01 23:09, "keep stuff applicable to any game"; the reviewer
 r751): the shipped modules -- the agent's own import set, read from sys.modules after a fake run,
-never the harness, kaggle, conform or tests -- carry no game id ([a-z]{2}[0-9]{2}), no ACTION<n>
+never the harness, bundle, conform or tests -- carry no game id ([a-z]{2}[0-9]{2}), no ACTION<n>
 literal and none of the solution coordinates measured today, in CODE. Read with the tokenizer, so
 a comment or a docstring (which cite measurements) is exempt and a string in code is not. The
 must-fail: a code line naming a game id fires it.
@@ -25,8 +25,10 @@ GAME = re.compile(r"(?<![A-Za-z0-9_])[a-z]{2}[0-9]{2}(?![A-Za-z0-9_])")
 ACT = re.compile(r"(?<![A-Za-z0-9_])ACTION[0-9](?![0-9])")
 COORDS = {(4, 32), (58, 32), (30, 16), (1, 8)}      # r751: the solution cells measured today
 SKIP = ("tests", "harness", "kaggle", "conform")
-# r752 (c): and everything the Kaggle bundle executes, by its static import closure from these
-ENTRIES = ("kaggle/b_worker.py", "kaggle/run_b.py", "tether_agent.py", "arc_holdout.py")
+# r752 (c): and everything the submission bundle executes, by its static import closure from these;
+# an entry is scanned only where its file exists (the submission folder is on one branch, r772)
+ENTRIES = tuple(e for e in ("kaggle/b_worker.py", "kaggle/run_b.py", "tether_agent.py",
+                            "arc_holdout.py") if os.path.exists(os.path.join(ROOT, e)))
 # exemptions as data, each with its reason (a table can be pinned; logic widens quietly)
 EXEMPT = {("interface.py", "ACTION"): "below the seam (r727): the interface is where button names "
                                       "live (POSITIONED, 2026-09-28; r752: flagged, to be learned)"}

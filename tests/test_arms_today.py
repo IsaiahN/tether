@@ -1,8 +1,8 @@
 """THE arms_today CENSUS (the reviewer 2026-11-01 r735; Isaiah 12:29, no unguarded fixes):
 every default-ON arm whose definition line git dates to 2026-11-01 must be in
 tether.arms_today(), and every entry there must read True. Dated by `git blame` on the
-definition line, never by a comment, so an arm built today and left out of the Kaggle worker's
-refuse-if-OFF guard fails here. Needs git (the repo, not the Kaggle bundle). The _CHECK
+definition line, never by a comment, so an arm built today and left out of the submission worker's
+refuse-if-OFF guard fails here. Needs git (the repo, not the submission bundle). The _CHECK
 instruments are OFF by design and match no default=True.
 
     python tests/test_arms_today.py

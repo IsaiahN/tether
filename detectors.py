@@ -125,10 +125,13 @@ def light(effects: list[dict], vanished: int = 0, appeared: int = 0) -> dict:
 
 if __name__ == "__main__":
     import json
+    import sys
 
     import arc_percept
     from reverse_engineer import _match, load_replay
-    steps = load_replay("replays/ls20_human.ndjson")
+    if len(sys.argv) < 2:
+        sys.exit("usage: python detectors.py REPLAY.ndjson")
+    steps = load_replay(sys.argv[1])
     frames = [arc_percept.components(s["grid"]) for s in steps]
     hist: dict = {}
     for a, b in zip(frames, frames[1:], strict=False):

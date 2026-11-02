@@ -261,6 +261,8 @@ if __name__ == "__main__":
     import sys as _s
 
     from reverse_engineer import load_replay
-    path = _s.argv[1] if len(_s.argv) > 1 else "replays/ls20_human.ndjson"
+    if len(_s.argv) < 2:
+        _s.exit("usage: python observer.py REPLAY.ndjson")
+    path = _s.argv[1]
     obs = observe(load_replay(path))
     print(json.dumps(summarise(obs), indent=1))
