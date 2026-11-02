@@ -2506,17 +2506,6 @@ _S0_BEFORE_BORED = armflag.arm("TETHER_S0_BEFORE_BORED", default=True)
 # Bounded by the board's own kinds (m0r0 5, lp85 11, tn36 15, vc33 11), never its objects.
 # OFF: System 0 ends with its contact pairs; C2 touches by id
 _TOUCH_EACH_KIND = armflag.arm("TETHER_TOUCH_EACH_KIND", default=True)
-# P2' (i) TRY_FIRST_PAYS (the reviewer 2026-11-02 r830; Fig 9 :60, Fig 5 :15-17): an untouched kind
-# holds the mint and the split only while touching kinds still PAYS by the agent's own record -- a
-# kind touch whose felt change (the contact row's moved, net of I-B) is empty does not pay, and
-# MIN_REPEAT of those in a row release the kinds' hold; a kind newly on the board re-opens it.
-# Untried ACTIONS hold as before. OFF: the kinds hold until each is touched
-_TRY_FIRST_PAYS = armflag.arm("TETHER_TRY_FIRST_PAYS", default=True)
-# P2' (ii) HYP_OWN_PRESS (r830; Fig 1): a held goal hypothesis ages, and its trend is read, only on
-# its own presses (a routine, a hold, an actuator press); a press spent elsewhere is counted as such
-# and never ends it. OFF: every cycle ages it
-_HYP_OWN_PRESS = armflag.arm("TETHER_HYP_OWN_PRESS", default=True)
-_HYP_OWN_BY = ("routine", "hold", "actuator")
 # E, DELTA_TIER_MEMO (the reviewer 2026-11-01 r736): _delta_tier ran once per candidate binding and
 # each call re-walked every slot of every residual observation, the whole owner map and the
 # contact map, which do not change until the trace grows (tn36 profile: route 76% of samples,
@@ -3431,8 +3420,6 @@ class Agent:
         self._bond_inc: dict = {}    # TETHER_BOND_INC: slot -> its frames' ids, each pair's fold
         self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
         self._board_touched: set = set()  # C2: objects System 0 touched on this board
-        self._kind_unpaid = 0             # P2' (i): kind touches in a row that changed nothing
-        self._kinds_known: set = set()    # P2' (i): the kinds this board has shown
         self._board_moved: set = set()    # G: slots this board's presses moved (credited)
         self._goal_refuted: set = set()   # G: (subject, sign) arrived without a clear, this board
         self._actuators: dict = {}        # G: object -> (credited change, owners) of its touch
@@ -4491,7 +4478,6 @@ class Agent:
             self._pressed_seen.clear()
         if how != "death":
             self._board_touched.clear()    # C2: a new board's objects are touched once here
-            self._kind_unpaid, self._kinds_known = 0, set()
             self._board_moved.clear()      # G: what this board's presses moved
             self._goal_refuted.clear()     # G: the refuted signs are this board's
             self._actuators, self._act_seen, self._act_pending = {}, {}, None   # G: this board's
@@ -7603,14 +7589,6 @@ class Agent:
                 or h["key"] not in self._goal_links:
             self._hyp_end("lost")               # its want was released elsewhere
             return
-        if _HYP_OWN_PRESS and not h.get("own_last"):
-            # P2' (ii): the last press was not its own. Its budget passing with none of its own
-            # ends it with steps 0 -- UNTESTED_KEEP's "untested", kept, never "stalled" -- so a
-            # hypothesis the board never presses for cannot hold the goal slot forever
-            h["elsewhere"] = h.get("elsewhere", 0) + 1
-            if h["elsewhere"] > h["budget"]:
-                self._hyp_end("stalled", by="elsewhere")
-            return
         h["steps"] += 1
         sers = [self._res.get(sl) for sl in h["slots"]]
         if all(s and arrival(s) == CONFIRMED for s in sers):
@@ -7674,7 +7652,6 @@ class Agent:
                         touches=h["touches"], losses=h["losses"],
                         reads_n={sl: len(v) for sl, v in h["reads"].items()},
                         acted=dict(h["acted"]),
-                        **({"elsewhere": h.get("elsewhere", 0)} if _HYP_OWN_PRESS else {}),
                         reads="a goal hypothesis ended; the next must differ (Fig 7 :36)",
                         **({"tests": dict(h.get("tests", {})),
                             "tests_read_by": None} if _R4_RECORD else {}))
@@ -14051,15 +14028,7 @@ class Agent:
         untouched kinds. A count."""
         n = self._board_untried_n()
         if _TOUCH_EACH_KIND and getattr(self, "env", None) is not None:
-            uk = self._untouched_kinds(self.env.observe())
-            if _TRY_FIRST_PAYS:
-                ks = {self._kind(ms[0]) for ms in uk}
-                if ks - self._kinds_known:
-                    self._kind_unpaid = 0      # a kind newly on the board: touching may pay again
-                self._kinds_known |= ks
-                if self._kind_unpaid >= MIN_REPEAT:
-                    return n                   # touching kinds stopped paying: they hold nothing
-            n += len(uk)
+            n += len(self._untouched_kinds(self.env.observe()))
         return n
 
     def _board_untried_n(self) -> int:
@@ -14600,9 +14569,7 @@ class Agent:
         # point where a PERCEIVE row is already in order.
         self._popped = popped
         h = self._hyp
-        if h is not None and _HYP_OWN_PRESS and not h.get("own_last"):
-            pass                   # P2' (ii): not its own press, so not its reading
-        elif h is not None:        # GQ2: the held hypothesis's own readings, and its held cycles
+        if h is not None:          # GQ2: the held hypothesis's own readings, and its held cycles
             for sl in h["slots"]:
                 if sl in held:
                     h["held_unreadable"] += 1
@@ -17017,8 +16984,6 @@ class Agent:
             if _GOAL_FROM_ACTUATOR and moved_all:
                 self._actuators[pair[0]] = (len(moved_all), len(owners),   # G: an actuator
                                             frozenset(moved_all))
-            if _TRY_FIRST_PAYS:
-                self._kind_unpaid = 0 if moved_all else self._kind_unpaid + 1
             self.led.record(self.cycle, "PERCEIVE", pair[0], "contact", pair=list(pair),
                             kind="kind-touch", made=landed or bool(moved_all), landed=landed,
                             moved=moved_all[:8], moved_n=len(moved_all), owners_n=len(owners),
@@ -20382,8 +20347,6 @@ class Agent:
                 self._rt_press = by == "routine"
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
-                if _HYP_OWN_PRESS:
-                    _h["own_last"] = by in _HYP_OWN_BY
             if (_CONTACT_FIRST or _ROUTE_NAMED) and (by == "routine"
                                                      or self._pred_named == self.cycle):
                 self._act_named = self.cycle

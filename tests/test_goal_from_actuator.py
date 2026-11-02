@@ -26,16 +26,13 @@ def _run(steps: int):
     env, ag, _led, *_ = arc_holdout.wire(FakeWrapper(), "fake")
     for _ in range(steps):
         ag.step()
-        if ag._act_rt is not None and ag.routine_for == ag._act_rt:
-            break       # the first held actuator routine is the moment read below (P2'
-                        # HYP_OWN_PRESS reaches it a cycle earlier than a fixed count)
     return env, ag
 
 
 def main():
     import tether
     assert tether._GOAL_FROM_ACTUATOR, "the arm is ON by default"
-    env, ag = _run(14)
+    env, ag = _run(10)
     acts = ag._actuators
     assert len(acts) >= 2, ("occasions: fewer than two actuators on the fixture", acts)
     first, second = sorted(acts, key=lambda o: (-acts[o][0], acts[o][1], int(o[1:])))[:2]
@@ -61,7 +58,7 @@ def main():
     assert not ag._actuators and not ag._act_refuted, "a new board's actuators start empty"
     tether._GOAL_FROM_ACTUATOR = False
     try:
-        _e, ag2 = _run(14)
+        _e, ag2 = _run(10)
     finally:
         tether._GOAL_FROM_ACTUATOR = True
     off = [r for r in ag2.led.rows() if r["event"] == "actuator_goal"]

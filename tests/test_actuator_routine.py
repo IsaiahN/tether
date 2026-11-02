@@ -22,16 +22,13 @@ def _run(steps: int):
     env, ag, _led, *_ = arc_holdout.wire(FakeWrapper(), "fake")
     for _ in range(steps):
         ag.step()
-        if ag._act_rt is not None and ag.routine_for == ag._act_rt:
-            break       # the first held actuator routine is the moment read below (P2'
-                        # HYP_OWN_PRESS reaches it a cycle earlier than a fixed count)
     return env, ag
 
 
 def main():
     import tether
     assert tether._ACTUATOR_ROUTINE, "the arm is ON by default"
-    env, ag = _run(14)
+    env, ag = _run(10)
     rt = [r for r in ag.led.rows() if r["event"] == "routine"
           and (r.get("detail") or {}).get("verdict") == "actuator"]
     assert rt, "occasions: no actuator routine committed on the fixture"
@@ -51,7 +48,7 @@ def main():
     assert held in ag._act_refuted and ag._act_rt != held, (ag._act_rt, held)
     tether._ACTUATOR_ROUTINE = False
     try:
-        _e, ag2 = _run(14)
+        _e, ag2 = _run(10)
     finally:
         tether._ACTUATOR_ROUTINE = True
     off = [r for r in ag2.led.rows() if r["event"] == "routine"
