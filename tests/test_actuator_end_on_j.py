@@ -21,12 +21,15 @@ sys.dont_write_bytecode = True
 os.environ.setdefault("TETHER_AGENT_SEED", "0")
 
 
-def _held(steps: int = 10):
+def _held(steps: int = 14):
     import arc_holdout
     from test_entry import FakeWrapper
     env, ag, _led, *_ = arc_holdout.wire(FakeWrapper(), "fake")
     for _ in range(steps):
         ag.step()
+        if ag._act_rt is not None and ag.routine_for == ag._act_rt:
+            break       # the first held actuator routine is the moment read below (P2'
+                        # HYP_OWN_PRESS reaches it a cycle earlier than a fixed count)
     assert ag._act_rt is not None and ag.routine_for == ag._act_rt, \
         ("occasions: no actuator routine held on the fixture", ag._act_rt, ag.routine_for)
     return env, ag

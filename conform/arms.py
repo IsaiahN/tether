@@ -2108,6 +2108,13 @@ ARMS: dict[str, str] = {
                          "canon() gives its pose. OFF: the cells as they stand. default OFF "
                          "(r808): ON orphans tallies stored under the as-seen code until a "
                          "legacy read exists",
+    "TETHER_TRY_FIRST_PAYS": "P2' (i) (the reviewer 2026-11-02 r830): an untouched kind holds "
+                             "the mint and the split only while kind touches still change "
+                             "something (the contact row's felt change); MIN_REPEAT unpaid "
+                             "touches in a row release it, a new kind re-opens it. default ON",
+    "TETHER_HYP_OWN_PRESS": "P2' (ii) (r830): a held goal hypothesis ages, and reads its trend, "
+                            "only on its own presses (routine, hold, actuator); presses spent "
+                            "elsewhere are counted and never end it. default ON",
     "TETHER_NARRATE": "N1 / N2 (the reviewer 2026-11-02 14:38 plan, r822): a ledger with a path "
                       "says its key rows aloud, one line per event kind per cycle (more counted), "
                       "copied to narrate.log, and each game's 'stopped at link X'. Writes nothing "
