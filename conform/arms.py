@@ -2140,6 +2140,16 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_S0_BEFORE_BORED": "C2 FINISH, BOREDOM DOES NOT SKIP AN ACTIVE SYSTEM 0 (the reviewer "
+                              "2026-11-01 r736): choose runs the exit contest while System 0 is "
+                              "active even when the drive is bored (lp85 measured: 16 of 21 turns "
+                              "a bored uninformed probe with System 0 active). OFF: a bored "
+                              "drive skips the contest (eca35d3). default ON",
+    "TETHER_TOUCH_EACH_KIND": "C2 FINISH, EVERY OBJECT KIND TOUCHED ONCE PER BOARD (r726, r736): "
+                              "System 0 stays active while a kind on this board has no touched "
+                              "member, touches the rarest such kind first, and TRY_FIRST counts "
+                              "those kinds; bounded by the board's kinds. OFF: System 0 ends "
+                              "with its contact pairs (eca35d3). default ON",
     "TETHER_BOARD_UNTRIED": "C1, UNTRIED IS READ ON THIS BOARD (the reviewer 2026-11-01 r725, "
                             "r727, r728): interface.py's ELICIT reads never taken as not "
                             "realised on this board (its own per-board record; the agent's "

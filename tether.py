@@ -536,7 +536,7 @@ def arms_today() -> dict:
                         "_BOND_INC", "_RESET_REASON", "_COUNTERS", "_RELATION_BET",
                         "_WIN_CREDIT", "_BOARD_BOUNDARY", "_FIT_BOUND", "_REACH_GATE",
                         "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
-                        "_BOARD_TRY_FIRST"),
+                        "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2459,6 +2459,18 @@ _TOUCH_EACH_OBJECT = armflag.arm("TETHER_TOUCH_EACH_OBJECT", default=True)
 # booked try_first_owed) and the goal split is not offered. Bounded by the offered actions.
 # OFF: both run from the first press
 _BOARD_TRY_FIRST = armflag.arm("TETHER_BOARD_TRY_FIRST", default=True)
+# C2 FINISH, S0_BEFORE_BORED (the reviewer 2026-11-01 r736): choose skipped the exit contest
+# whenever the drive was bored and nothing was starved, so a bored, uninformed probe took the
+# turn while System 0 was still active (lp85, measured at choose: 16 of 21 turns
+# probe|bored|no aims|s0 active|no exit contest; System 0 had 3). Boredom no longer skips the
+# contest while System 0 is active. OFF: a bored drive skips it, as before
+_S0_BEFORE_BORED = armflag.arm("TETHER_S0_BEFORE_BORED", default=True)
+# C2 FINISH, TOUCH_EACH_KIND (r726, r736): System 0 stays active while an object KIND (the agent's
+# _kind) on this board has no touched member, and its touch goes to the rarest untouched kind
+# first (a kind seen once has no other member to learn it from); TRY_FIRST counts those kinds.
+# Bounded by the board's own kinds (m0r0 5, lp85 11, tn36 15, vc33 11), never its objects.
+# OFF: System 0 ends with its contact pairs; C2 touches by id
+_TOUCH_EACH_KIND = armflag.arm("TETHER_TOUCH_EACH_KIND", default=True)
 # THE FOUR COUNTERS (the reviewer 2026-11-01 r692 4; checklist Q6/Q8/Q16/Q21), books only, no choice
 # reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
 # press_carried (a press realised as a carried kind cell's test).
@@ -13205,7 +13217,8 @@ class Agent:
                     return goal, "discriminate:goal"
         take, s0_tw, dist_r = None, None, None
         if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
-                self.drive.bored() and not (_STARVED_CONTACT and self._aims())):
+                self.drive.bored() and not (_STARVED_CONTACT and self._aims())
+                and not (_S0_BEFORE_BORED and self._try_first_open())):
             take, s0_tw, dist_r = self._exit_choice(before)
         aims = self._aims()
         if _STARVED_CONTACT and aims and take in (None, "probe"):
@@ -13325,9 +13338,9 @@ class Agent:
                                         tuple(self.actions),
                                         IFace.Interface.context(self.env), before, self.env,
                                         withheld=self._withheld)
+                self._board_touched.add(target)    # C2: touched (or tried) once on this board
                 if _t is not None:
                     act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
-                    self._board_touched.add(target)    # C2: touched once on this board
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
                 elif _untried is not None:
@@ -13482,6 +13495,12 @@ class Agent:
                 self._contact_pick = None
                 return probe, "can-unknown probe"
             self._can_probe = None      # its object is gone: nothing left to probe
+        if _TOUCH_EACH_KIND:
+            # C2: a kind with no touched member first -- the contact pairs need not run out
+            fresh_k = self._untouched_kinds(before)
+            if fresh_k:
+                self._contact_pick = None
+                return fresh_k[0][0], "untouched-kind"
         keys = self._contact_keys(before)
         unexplored = [k for k in keys if k not in self._contact_seen]
         if unexplored:
@@ -13590,6 +13609,33 @@ class Agent:
                 f"`env.actions()` returned {self.actions!r}")
         return self._took(r, want)
 
+    def _untouched_kinds(self, before: dict) -> list:
+        """C2 TOUCH_EACH_KIND: for each object kind on this board with no touched member, its
+        members (by id), rarest kind first -- the agent's own objects and kinds, no button."""
+        done = getattr(self, "_board_touched", set())
+        owners = frozenset(o for o in {x.rsplit(".", 1)[0] for x in before if "." in x}
+                           if o[:1] == "o" and o[1:].isdigit())
+        key = (getattr(self, "cycle", None), len(done), owners)
+        memo = getattr(self, "_uk_memo", None)
+        if memo is not None and memo[0] == key:      # read once per cycle per touched set
+            return memo[1]
+        kinds: dict = {}
+        for o in owners:
+            kinds.setdefault(self._kind(o), []).append(o)
+        open_k = [sorted(ms, key=lambda o: int(o[1:])) for ms in kinds.values()
+                  if not any(m in done for m in ms)]
+        out = sorted(open_k, key=lambda ms: (len(ms), int(ms[0][1:])))
+        self._uk_memo = (key, out)
+        return out
+
+    def _try_first_open(self) -> int:
+        """TRY_FIRST: what this board still owes System 0 -- untried actions, and (TOUCH_EACH_KIND)
+        untouched kinds. A count."""
+        n = self._board_untried_n()
+        if _TOUCH_EACH_KIND and getattr(self, "env", None) is not None:
+            n += len(self._untouched_kinds(self.env.observe()))
+        return n
+
     def _board_untried_n(self) -> int:
         """C1 / TRY_FIRST: how many offered actions are not yet pressed on this board -- the
         interface's count; the names stay below the seam (r727)."""
@@ -13605,6 +13651,8 @@ class Agent:
         what touches what, which is the thing System 0 is now for."""
         if IFace._BOARD_UNTRIED and self._board_untried_n():
             return True                  # C1: an offered action not yet pressed on this board
+        if _TOUCH_EACH_KIND and self._untouched_kinds(self.env.observe()):
+            return True                  # C2: an object kind on this board not yet touched
         if not self.drive.covered(len(self.actions)):
             return True
         return bool([k for k in self._contact_keys(self.env.observe())
@@ -16158,7 +16206,7 @@ class Agent:
         keyed on the same evidence. And nothing here sums magnitudes across slots, because
         nothing here ranges over more than the ONE slot the selector chose.
         """
-        if _BOARD_TRY_FIRST and self._board_untried_n():
+        if _BOARD_TRY_FIRST and self._try_first_open():
             return None                  # TRY_FIRST: this board's buttons are pressed first
         # ITEM 3 GATES ITEM 2. Before the selector this ranged over EVERY OBJ-bound slot,
         # which is *pursue whichever objective happened to bind* -- and it measurably chose to
@@ -17154,11 +17202,13 @@ class Agent:
                                   "bound; it owes and is minted first next step -- unreached at "
                                   "this budget, never a verdict")
             return
-        if _BOARD_TRY_FIRST and self._board_untried_n():
+        if _BOARD_TRY_FIRST and self._try_first_open():
             self.owed_import.add(slot)
             _book_add(self.gamma.book, "try_first_owed")
             self.led.record(self.cycle, "ACCEPT", slot, "try_first", bin=b, owes=True,
                             untried=self._board_untried_n(),
+                            untouched_kinds=(len(self._untouched_kinds(self.env.observe()))
+                                             if _TOUCH_EACH_KIND else None),
                             reads="not minted this step: an offered action is not yet pressed on "
                                   "this board; owed, and minted once each has been")
             return
