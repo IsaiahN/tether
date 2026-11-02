@@ -99,7 +99,10 @@ if mode == "p1":
                   if lib.get(k) is not None), key=lambda r: (-r[0], json.dumps(r[1:])))
     out["ask"] = [list(top[0][1]), list(top[0][3])] if top else None
 if mode in ("p2", "p2k"):
-    out["known_dk"] = len(ag._kind_known_dk)
+    # F5 (the reviewer 2026-10-31 r603; the memory audit): under W-4 the carried dk rows are read
+    # through the load-time snapshot (lineage.DkSnapshot) and _kind_known_dk stays empty, so the
+    # count is taken through the agent's own accessor, which reads whichever holds them
+    out["known_dk"] = sum(1 for _ in ag._known_dk_items())
     out["known_off"] = len(ag._kind_known_off)
 if mode == "p2k":
     # the planted meeting: only the carry can feed T1 (this run's own stores emptied)

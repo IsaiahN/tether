@@ -27,6 +27,7 @@ import hashlib
 import heapq
 import json
 import os
+import re
 import time
 from collections import Counter
 from pathlib import Path
@@ -48,6 +49,11 @@ _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
 # boundary record. ON: each Term in it is written as its term-row record (dormant_items), the live
 # and in-memory record untouched. OFF: the item refused and named, as before.
 _DORMANT_TERM_FORM = armflag.arm("TETHER_DORMANT_TERM_FORM", default=True)
+# F4 THE FAULTED STEP'S TERM, BY THE FORMATS WRITTEN (the reviewer 2026-10-31 r603; the audit):
+# a residual is "{slot}@{c}", "kind:{n}@{c}", "reuse:{slot}@{c}:{stamp}" or "{m}@{c}:event:{p}"
+# (tether.py 4883, 8039, 17764, 18165, 18554). ON: the cycle followed by ":" or the end. OFF:
+# endswith("@{c}"), which the last two never meet.
+_FAULT_FORMATS = armflag.arm("TETHER_FAULT_FORMATS", default=True)
 # S1g, THE ASKED RECORD (Isaiah 2026-10-15 13:26, option B; the reviewer 13:27, 13:28): under the
 # slot filter a generation carries WHICH QUESTIONS WERE ASKED, never the bound answers; the next
 # process rebuilds each answer from the carried index by the existing binds. A5: an animal keeps
@@ -490,7 +496,9 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         if c.get("alias"):
             continue    # (d): aliased by an earlier write of this life
         rid = (c.get("born"), c.get("handle"))
-        if fc is not None and str(r.get("residual") or "").endswith(f"@{fc}"):
+        res = str(r.get("residual") or "")
+        if fc is not None and (re.search(rf"@{fc}(?::|$)", res) if _FAULT_FORMATS
+                               else res.endswith(f"@{fc}")):
             continue    # (C3): the faulted step's own term never met its next observation
         if rid not in prev:
             k = gamma.Gamma.row_key(r) if _SAVE_DEDUP else None

@@ -21,6 +21,8 @@ py-modules = ["grammar", "ledger", "gate", "gamma", "world", "tether", "speak", 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# the pass runners are kept as the instruments that produced posted readings (r772 step 6)
+extend-exclude = ["harness/passes"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RET", "ARG", "C4", "TID"]
