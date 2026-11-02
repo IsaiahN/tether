@@ -526,10 +526,10 @@ class Clocks:
 # gamma from 2026-10-15, for TETHER_ATOMS_ONCE).
 # instruments from 2026-10-15, for TETHER_BLOB_STAMP; sensors_heavy from 2026-10-16, for
 # TETHER_HOLES_REPOINT (step 6). lineage_store from 2026-10-21, for TETHER_STORE_KEY_MEMO (W1).
-# cap from 2026-10-22, for TETHER_CAP_INNER (C1 widened).
+# cap from 2026-10-22, for TETHER_CAP_INNER (C1 widened). narrate from 2026-11-02 (TETHER_NARRATE).
 ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms", "compile_term", "gridworld",
                "interface", "lineage", "gamma", "instruments", "sensors_heavy", "relations",
-               "ledger", "lineage_store", "cap", "arc_holdout")
+               "ledger", "lineage_store", "cap", "arc_holdout", "narrate")
 
 
 class Attribution:

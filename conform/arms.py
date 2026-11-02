@@ -2108,6 +2108,10 @@ ARMS: dict[str, str] = {
                          "canon() gives its pose. OFF: the cells as they stand. default OFF "
                          "(r808): ON orphans tallies stored under the as-seen code until a "
                          "legacy read exists",
+    "TETHER_NARRATE": "N1 / N2 (the reviewer 2026-11-02 14:38 plan, r822): a ledger with a path "
+                      "says its key rows aloud, one line per event kind per cycle (more counted), "
+                      "copied to narrate.log, and each game's 'stopped at link X'. Writes nothing "
+                      "back: the ledger is the same OFF. default ON",
     "TETHER_SERP_CACHE": "S3 (the reviewer 2026-11-02 r816): under SERP, a description key "
                          "remembers the entries its windows offered nothing from this life and "
                          "its next ask skips them (the next unjudged window); cleared on a level "

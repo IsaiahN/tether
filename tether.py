@@ -4177,6 +4177,7 @@ class Agent:
         call it after their last step; `retarget` never sees a cap or a timeout."""
         self._intent_verdict(how)
         self._note_ending(how, "run")
+        self.led.end_game(self.cycle, f"end {how}")      # N2: where this game's chain stopped
         self._resolve_signals("game", how)
         if _D13:
             self._settle_process("game", how)
@@ -6031,6 +6032,8 @@ class Agent:
             if not _SERP_CACHE:
                 self._tk_off[key] = nxt
             self._dl_n["topk_not_yet"] += 1
+            self.led.narrate(self.cycle, "NOT_YET", "@described_lookup",
+                             f"a window of {TOPK_K} offered nothing; the next is asked, no verdict")
             return False
         self._tk_off.pop(key, None)
         self._tk_nofit.pop(key, None)

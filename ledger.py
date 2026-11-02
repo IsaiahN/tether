@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import armflag
+import narrate
 
 sys.dont_write_bytecode = True
 
@@ -174,6 +175,7 @@ class Ledger:
         self.tally_full = {"step": 0, "field": 0, "mode": 0}   # ORDER: repeats appended in full
         self._path = Path(path) if path else None
         self._fh = None
+        self.narrator = narrate.Narrator(self._path, (WIN, ADVANCE))   # N1: says key rows aloud
         if self._path is not None:
             self._path.parent.mkdir(parents=True, exist_ok=True)
             self._path.write_text("", encoding="utf-8")
@@ -237,7 +239,17 @@ class Ledger:
             else:
                 with self._path.open("a", encoding="utf-8") as fh:
                     fh.write(line)
+        if self.narrator.on:
+            self.narrator.see(cycle, step, slot, event, detail)
         return e
+
+    def narrate(self, cycle: int, kind: str, slot: str, text: str) -> None:
+        """N1: a line said with no row behind it (the cut's "not yet" is a book count)."""
+        self.narrator.say(cycle, kind, slot, text)
+
+    def end_game(self, cycle: int, label: str) -> None:
+        """N2: this game's "stopped at link X because ..." line, then its counts restart."""
+        self.narrator.end_game(cycle, label)
 
     def close(self) -> None:
         """R2: close the held handle (end_run, and at exit); a later row reopens it."""

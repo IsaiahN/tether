@@ -426,6 +426,7 @@ while nxt is not None:
             ending = "cut"
             break
     endings_all.update(endings)
+    ag.led.end_game(ag.cycle, g)          # N2 (r824): this game's "stopped at link X"
     wall_end, (commit_end, peak) = round(time.time() - t_start, 1), commit_mb()
     if c_game0 is not None:
         grow_max = max(grow_max or 0, commit_end - c_game0)
