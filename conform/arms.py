@@ -2140,6 +2140,22 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_BOARD_UNTRIED": "C1, UNTRIED IS READ ON THIS BOARD (the reviewer 2026-11-01 r725, "
+                            "r727, r728): interface.py's ELICIT reads never taken as not "
+                            "realised on this board (its own per-board record; the agent's "
+                            "situate(new_board=True) opens a board) and System 0 stays active "
+                            "while untried_here(), a count, is above 0; the told order first. "
+                            "OFF: untried = absent from the life's table (18c9ec4). default ON",
+    "TETHER_TOUCH_EACH_OBJECT": "C2, EVERY OBJECT TOUCHED ONCE PER BOARD (r726): after the "
+                                "unexplored contact pairs, System 0's touch target is an object "
+                                "not yet touched on this board, before the seek-contact owners. "
+                                "OFF: seek-contact owners only (18c9ec4). default ON",
+    "TETHER_BOARD_TRY_FIRST": "TRY_FIRST, THIS BOARD'S BUTTONS BEFORE THE MINT AND THE GOAL "
+                              "(r726's CONTACT_FIRST, renamed since TETHER_CONTACT_FIRST is "
+                              "item 1's): "
+                              "while an offered action is unpressed on this board the step's mint "
+                              "is owed (try_first_owed) and the goal split is not offered. OFF: "
+                              "both run from the first press (18c9ec4). default ON",
     "TETHER_ROUTE_KEY_GENERAL": "42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer "
                                 "2026-11-01 r717): R-B keys a route by the intent's general "
                                 "statement (slot and sign; a Specific's stated target dropped), so "

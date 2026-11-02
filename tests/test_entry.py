@@ -250,6 +250,8 @@ def check_nothing_unknown_here_is_priced_by_the_agent():
     iface.table = {"ACTION1": {"by_ctx": {ctx: {(("o0.row", 1),)}}, "n": 1, "delta": {}},
                    "RESET": {"by_ctx": {ctx: {(("o0.row", -1),)}}, "n": 1, "delta": {}}}
     iface.chooser = lambda known: (1, f"picked {known[1][0]}")
+    for a in ("RESET", "ACTION1"):   # C1: known on THIS board too (pressed here); RESET first
+        iface.note_sent(a)
     r = iface.realise(IF.Intent(IF.ELICIT), ("ACTION1", "RESET"), ctx, {}, None)
     assert r.action == "RESET" and "nothing unknown here; picked restarts the level" in r.why, r
 

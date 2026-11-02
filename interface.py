@@ -246,6 +246,13 @@ CONTEXT_FAULTS: Counter = Counter()      # r696 row 14: context() reads that rai
 # candidate for the intent, so a route never sends a bare click (the game counts one as a scored
 # action and it lands nowhere). OFF: today's routes, no coordinate.
 _AIM_ROUTED = armflag.arm("TETHER_AIM_ROUTED", default=True)
+# C1 BOARD_UNTRIED (the reviewer 2026-11-01 r725-r728; Isaiah 18:00, the names stay in the
+# interface): ELICIT's "never taken" reads "not realised on THIS board" -- the interface's own
+# record per board, a board being what the agent's situate(new_board=True) opens -- never the
+# life's table, which in a serial life maps every button by the second board (pass 3: all of
+# ACTION1-7 by cycle 27). The agent reads only untried_here(), a count. OFF: "never taken" =
+# absent from the life's table
+_BOARD_UNTRIED = armflag.arm("TETHER_BOARD_UNTRIED", default=True)
 AIM_ROUTED_N: Counter = Counter()   # "<asker>:record" / ":object" / ":pair_no_record" / ":no_aim"
 
 
@@ -542,6 +549,8 @@ class Interface:
         # S11: (epoch, coordinate) -> the audit it landed at; grows, never cleared (D1)
         self.clicked_at: dict[tuple, int] = {}
         self.epoch, self.alive = 0, True   # the agent's situation, handed over by situate
+        # C1: the boards the agent has opened, and what was realised on each; grows, never cleared
+        self.board_n, self.realised_board = 0, {}
         # **LAYER 1's OTHER HALF -- INSTANCE MEMORY, AND IT IS DELIBERATELY NOT A KEY.**
         # `rel` says WHETHER acting on one object changes another in this world; it cannot say
         # WHICH object to press to move slot Y. That question is answered by what this agent
@@ -578,6 +587,7 @@ class Interface:
         right after env.step). Under TETHER_RESET_ADJACENT; OFF the flag is set in audit."""
         if _RESET_ADJACENT:
             self._last_was_reset = action == RESET
+        self.realised_board.setdefault(self.board_n, set()).add(action)    # C1
 
     def adjacent(self, offered: tuple[str, ...]) -> tuple[str, ...]:
         """THE ONE ADJACENCY RULE: no RESET is offered right after a RESET. Nothing else gated."""
@@ -1029,6 +1039,12 @@ class Interface:
                 return a
             return max(band, key=lambda a: (rank.get(a, 0), -band.index(a)))
 
+        def _unm(a: str) -> bool:
+            # C1: an exploration's "never taken" is read on this board, beside the life's table
+            if _BOARD_UNTRIED and intent.kind == ELICIT:
+                return a not in self.realised_board.get(self.board_n, ())
+            return a not in self.table
+
         def _made(a: str, why: str) -> Realisation:
             """**A POSITIONED ACTION IS ALWAYS AIMED, WHATEVER THE INTENT ASKED FOR.**
 
@@ -1086,7 +1102,7 @@ class Interface:
                             {c: len(self.aimed_effect.get(c, ())) for c in here},
                             f"aim_gap:{self.audits}:{ctx!r}:{intent.subject}", self.draw_seed)
                         self.pick_by[by] += 1
-                    return Realisation(a, coord=aim, unmapped=(a not in self.table),
+                    return Realisation(a, coord=aim, unmapped=_unm(a),
                                        why=f"{why}, aimed at {aim} where its effect here "
                                            f"is unknown (by {by})")
             if w.at(a, coord):
@@ -1105,7 +1121,7 @@ class Interface:
                         why = f"{why}, uninformed draw over the objects present"
             elif coord is not None:
                 why = f"{why}, aimed at what moves this slot"
-            return Realisation(a, coord=coord, unmapped=(a not in self.table), why=why)
+            return Realisation(a, coord=coord, unmapped=_unm(a), why=why)
 
         if intent.kind == DISTINGUISH and split:
             # 1b ASK (the reviewer 2026-10-29 r279, r325): the agent hands how each press would
@@ -1133,7 +1149,7 @@ class Interface:
         asked = "exploration" if intent.kind == ELICIT else "something that separates"
         # D-WIN-RESET: on a live board RESET is known, never an unknown to elicit
         known_a_priori = {RESET} if (_RESET_KNOWN and self.alive) else set()
-        unmapped = [a for a in offered if a not in self.table and a not in known_a_priori]
+        unmapped = [a for a in offered if _unm(a) and a not in known_a_priori]
         if unmapped and _ACTION_CARRY and self.carried_kind and state and self.kind_of:
             # r688 RECALL: among the actions never taken here, one the carried table says moves a
             # kind on this board is tried first -- the inheritance as a test, never a skip
@@ -1180,9 +1196,18 @@ class Interface:
         return _made(_pick(band), f"requested {asked}: all known here, least-seen taken")
 
 
-    def situate(self, epoch: int, alive: bool) -> None:
-        """The agent's situation, at each of its boundaries. Nothing recorded is dropped."""
+    def situate(self, epoch: int, alive: bool, new_board: bool = False) -> None:
+        """The agent's situation, at each of its boundaries. Nothing recorded is dropped.
+        new_board: the agent read a new board (any boundary but a death; a restart is not one)."""
         self.epoch, self.alive = epoch, alive
+        if new_board:
+            self.board_n += 1
+
+    def untried_here(self, offered: tuple[str, ...]) -> int:
+        """C1: how many offered actions are not yet realised on this board, RESET left out while
+        alive (known a priori). A count: the names stay on this side of the seam."""
+        done = self.realised_board.get(self.board_n, ())
+        return sum(1 for a in offered if a not in done and not (a == RESET and self.alive))
 
     def note_break(self) -> None:
         """TETHER_AIM_ROUTED: the agent read a frame break (its own boundary reading); a route's

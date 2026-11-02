@@ -2446,6 +2446,17 @@ _RESET_REASON = armflag.arm("TETHER_RESET_REASON", default=True)
 # 9 CAN-unknown probes on lp85 tn36 vc33). ELICIT's offer leaves RESET out while the board is live
 # and RESET_REASON holds; booked elicit_reset_left_out. OFF: RESET offered, as before
 _ELICIT_NO_REFUSED = armflag.arm("TETHER_ELICIT_NO_REFUSED", default=True)
+# C1 BOARD_UNTRIED lives in interface.py (r727: the names stay below the seam); here System 0 stays
+# active while iface.untried_here() -- a count -- is above zero
+# C2 TOUCH_EACH_OBJECT (r726): once the contact pairs are explored, System 0's touch target is an
+# object not yet touched on this board before the seek-contact owners, so an object in no pair
+# (a button) is still touched once. OFF: seek-contact owners only
+_TOUCH_EACH_OBJECT = armflag.arm("TETHER_TOUCH_EACH_OBJECT", default=True)
+# BOARD_TRY_FIRST (r726's CONTACT_FIRST, renamed: TETHER_CONTACT_FIRST is item 1's): while an
+# offered action is unpressed on this board, the step's mint does not run (the slot is owed,
+# booked try_first_owed) and the goal split is not offered. Bounded by the offered actions.
+# OFF: both run from the first press
+_BOARD_TRY_FIRST = armflag.arm("TETHER_BOARD_TRY_FIRST", default=True)
 # THE FOUR COUNTERS (the reviewer 2026-11-01 r692 4; checklist Q6/Q8/Q16/Q21), books only, no choice
 # reads them: settle_minted, settle_carried, press_new (an (action, cell) new on this board) and
 # press_carried (a press realised as a carried kind cell's test).
@@ -2619,6 +2630,7 @@ BOOKS: tuple[str, ...] = (
     "reach_gate_lost",                  # 40 check run: a gated slot minted anyway ACCEPTED a term
     "reach_gate_atom_raised",           # 40: a T -> T atom raised on a reach value (booked)
     "elicit_reset_left_out",            # 41 (3): ELICIT's offer without the live-board RESET
+    "try_first_owed",                   # TRY_FIRST: a mint owed, an action unpressed here
     "tiers_index_agree",                # (C) check run: the index's rung sums matched the scan
     "tiers_index_disagree",             # (C) check run: they did NOT match
     "tiers_index_fallback",             # (C): a count <= 0 met; that call scanned
@@ -3295,6 +3307,7 @@ class Agent:
         self._untouched, self._rt_press, self._empty_pressed = False, False, set()
         self._bond_inc: dict = {}    # TETHER_BOND_INC: slot -> its frames' ids, each pair's fold
         self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
+        self._board_touched: set = set()  # C2: objects System 0 touched on this board
         self._rel_subjects: set = set()   # TETHER_RELATION_BET: relations that became subjects
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
@@ -4337,11 +4350,13 @@ class Agent:
             self._bond_inc.clear()         # a new board's slots: their folds start again
         if _COUNTERS and how != "death":
             self._pressed_seen.clear()
+        if how != "death":
+            self._board_touched.clear()    # C2: a new board's objects are touched once here
         if _RELATION_BET and how != "death":
             self._rel_subjects.clear()
         if _BOARD_BOUNDARY and how != "death":
             self._last_progress = self.cycle   # r696 row 5: a new board does not start "urgent"
-        self.iface.situate(self._epoch, self._alive)
+        self.iface.situate(self._epoch, self._alive, new_board=how != "death")   # C1
         if _MC34:
             self._level_attempts = 1
         self._trace_epoch += 1          # the tallies summarise a history that is gone
@@ -13310,6 +13325,7 @@ class Agent:
                                         withheld=self._withheld)
                 if _t is not None:
                     act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
+                    self._board_touched.add(target)    # C2: touched once on this board
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
                 elif _untried is not None:
@@ -13471,9 +13487,16 @@ class Agent:
             self._contact_pick = k
             self._contact_pair = keys[k]  # (2b): the pair whose contact the press should feel
             return keys[k][0], "untried-contact"
+        self._contact_pick = None
+        if _TOUCH_EACH_OBJECT:
+            # C2: an object not yet touched on this board, in or out of a contact pair
+            done = getattr(self, "_board_touched", set())
+            fresh = sorted(o for o in {x.rsplit(".", 1)[0] for x in before if "." in x}
+                           if o[:1] == "o" and o[1:].isdigit() and o not in done)
+            if fresh:
+                return fresh[0], "untouched-object"
         touching = {n for pair in keys.values() for n in pair}
         owners = sorted({x.rsplit(".", 1)[0] for x in before if "." in x} - touching)
-        self._contact_pick = None
         if owners:
             return owners[self.cycle % len(owners)], "seek-contact"
         return None, "all-contacts-explored"
@@ -13565,6 +13588,12 @@ class Agent:
                 f"`env.actions()` returned {self.actions!r}")
         return self._took(r, want)
 
+    def _board_untried_n(self) -> int:
+        """C1 / TRY_FIRST: how many offered actions are not yet pressed on this board -- the
+        interface's count; the names stay below the seam (r727)."""
+        iface = getattr(self, "iface", None)
+        return iface.untried_here(tuple(self.actions)) if iface is not None else 0
+
     def _system0_active(self) -> bool:
         """UNEXPLORED CONTACT COUNT, with the action-effect coverage it replaces kept as the
         first clause. State-derived; no cycle constant and no budget.
@@ -13572,6 +13601,8 @@ class Agent:
         The old test was coverage alone -- every surfaced action tried at >=2 distinct states,
         probe.py's `never_live` anchor. That says nothing about whether the agent has found out
         what touches what, which is the thing System 0 is now for."""
+        if IFace._BOARD_UNTRIED and self._board_untried_n():
+            return True                  # C1: an offered action not yet pressed on this board
         if not self.drive.covered(len(self.actions)):
             return True
         return bool([k for k in self._contact_keys(self.env.observe())
@@ -16089,6 +16120,8 @@ class Agent:
         """M2 ITEM 2: pick an action because the agent's OWN model says it advances the
         agent's OWN objective. **The first branch in `choose` that reads what the agent WANTS.**
 
+        TRY_FIRST: not offered while an offered action is unpressed on this board.
+
         `DOCTRINE_AUDIT` §1 said *nothing about Gamma, the bound terms, the residual, or the
         objective ever enters action selection.* Gamma entered with `spread`, perception with
         `_learned_split`; **the objective is the half that was still true, and this is it.**
@@ -16123,6 +16156,8 @@ class Agent:
         keyed on the same evidence. And nothing here sums magnitudes across slots, because
         nothing here ranges over more than the ONE slot the selector chose.
         """
+        if _BOARD_TRY_FIRST and self._board_untried_n():
+            return None                  # TRY_FIRST: this board's buttons are pressed first
         # ITEM 3 GATES ITEM 2. Before the selector this ranged over EVERY OBJ-bound slot,
         # which is *pursue whichever objective happened to bind* -- and it measurably chose to
         # stand still, because `none_same` on a delta is satisfied by not moving. One selected
@@ -17116,6 +17151,14 @@ class Agent:
                             reads="not minted this step: a mint this step already stopped at its "
                                   "bound; it owes and is minted first next step -- unreached at "
                                   "this budget, never a verdict")
+            return
+        if _BOARD_TRY_FIRST and self._board_untried_n():
+            self.owed_import.add(slot)
+            _book_add(self.gamma.book, "try_first_owed")
+            self.led.record(self.cycle, "ACCEPT", slot, "try_first", bin=b, owes=True,
+                            untried=self._board_untried_n(),
+                            reads="not minted this step: an offered action is not yet pressed on "
+                                  "this board; owed, and minted once each has been")
             return
         fp = self._contact_fp(slot) if _CONTACT_FIRST else None
         if _CONTACT_FIRST:
@@ -20133,12 +20176,13 @@ class Agent:
             with self._step_scope("MINT"):
                 self._derived_wants()
         if _t_ep is not None:
-            self.led.record(self.cycle, "MINT", "@plan", "plan_episode",
-                            why=list(dict.fromkeys(self._episode_why)),
-                            s=round(time.perf_counter() - _t_ep, 4),
-                            reads="goal planning ran because the agent had a reason (r669 8); "
-                                  "its seconds are planning time, not step time",
-                            **({"plan_len": self._s2_plan_len()} if _s2 else {}))
+            with self._step_scope("MINT"):   # G1: the row's label is the step running
+                self.led.record(self.cycle, "MINT", "@plan", "plan_episode",
+                                why=list(dict.fromkeys(self._episode_why)),
+                                s=round(time.perf_counter() - _t_ep, 4),
+                                reads="goal planning ran because the agent had a reason (r669 8); "
+                                      "its seconds are planning time, not step time",
+                                **({"plan_len": self._s2_plan_len()} if _s2 else {}))
             self._episode_why = []
         if _STOP_RULES and _ASK and _DIVIDE:
             self._stop_rules()
