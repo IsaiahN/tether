@@ -534,9 +534,11 @@ def arms_today() -> dict:
                         "_CARRIED_BEFORE_MINT", "_S2_STALL", "_DISCRIMINATE", "_MISS_GRADE",
                         "_FC_CONTACT", "_PROBE_NO_RESTART", "_GOAL_CONTINGENT", "_ROUTINE_TOUCH",
                         "_BOND_INC", "_RESET_REASON", "_COUNTERS", "_RELATION_BET",
-                        "_WIN_CREDIT", "_BOARD_BOUNDARY"),
-             "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL"),
-             "interface": ("_ACTION_CARRY",), "lineage": ("_RESOLVE_ONCE",)}
+                        "_WIN_CREDIT", "_BOARD_BOUNDARY", "_FIT_BOUND", "_REACH_GATE",
+                        "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
+                        "_BOARD_TRY_FIRST"),
+             "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
+             "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
     mods = {"tether": sys.modules[__name__], "gamma": _g, "interface": _i, "lineage": _lin}
     return {f"{m}.{n}": bool(getattr(mods[m], n)) for m, ns in names.items() for n in ns}

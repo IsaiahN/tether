@@ -205,16 +205,6 @@ def main() -> int:
             # AND WITH TETHER_PRIOR_CODE OFF (L1, 2026-10-17): under the normalized code the mint
             # takes another path and gridworld_s2 reaches no sweep in 15 steps (first at step 11
             # with the code off); the label does not depend on the code either
-            # MF4's OCCASIONS, from G2's healthy writes (the sweep, 2026-10-23): cycles where the
-            # "cues" write on "*" is followed in its cycle by a "*" write running PLAN; only
-            # there can a PERCEIVE-labelled cues row make LADDER refuse
-            cue_c, occ4 = set(), set()
-            for w in writes:
-                if w[6] == "*" and w[1] == "cues":
-                    cue_c.add(w[5])
-                elif w[6] == "*" and w[3] == "PLAN" and w[5] in cue_c:
-                    occ4.add(w[5])
-            assert occ4, "MF4 precondition: no cues row is followed by a PLAN write on '*'"
             writes.clear()
             arm_was, relations._DERIVED_PERCEPT = relations._DERIVED_PERCEPT, False
             code_was, tether.G_PRIOR_CODE = tether.G_PRIOR_CODE, False
@@ -224,10 +214,16 @@ def main() -> int:
             # (TETHER_STEP_MINT, default ON since 2026-10-26) owes the later mints of a step, so
             # the sweep this check reads falls outside the 11 steps; the label does not depend on
             # B1, and B1's labels are checked by G2 with B1 ON (the reviewer 2026-10-26 r250)
-            c5 = ("_PREV_OFFER", "_CARRY_PRICE", "_BUDGET_GENERATED", "_STEP_MINT")
+            # AND THE THREE r726 ARMS (r736): C1 keeps System 0 pressing each untried action and
+            # TRY_FIRST owes the mint until each is pressed, so the sweep falls later still; G2
+            # checks their rows with them ON
+            c5 = ("_PREV_OFFER", "_CARRY_PRICE", "_BUDGET_GENERATED", "_STEP_MINT",
+                  "_BOARD_TRY_FIRST", "_TOUCH_EACH_OBJECT")
             c5_was = {f: getattr(tether, f) for f in c5}
             for f in c5:
                 setattr(tether, f, False)
+            import interface
+            bu_was, interface._BOARD_UNTRIED = interface._BOARD_UNTRIED, False
             try:
                 gridworld(GW_STEPS, None)
             finally:
@@ -235,6 +231,7 @@ def main() -> int:
                 tether.G_PRIOR_CODE = code_was
                 for f, v in c5_was.items():
                     setattr(tether, f, v)
+                interface._BOARD_UNTRIED = bu_was
             sweep = [w for w in writes if w[1] in ("pull", "reuse_install") and w[3] == "MINT"]
             assert sweep, f"precondition: no MINT sweep row in {GW_STEPS} steps, arm off"
             assert not bad(writes), ("G2 LABEL, arm off: rows labelled with a step not running",
@@ -245,13 +242,33 @@ def main() -> int:
             assert bad(planted), "MF3: sweep rows put back at ROUTE were not flagged"
             print(f"  MF3 sweep rows put back at ROUTE: LABEL flags {len(bad(planted))}")
 
-            writes.clear()
-            cues = tether.Agent._narrate_cues
-            tether.Agent._narrate_cues = tether._in_step("PERCEIVE")(cues)
+            # MF4 WITH TETHER_BOARD_TRY_FIRST OFF (r736): TRY_FIRST holds the goal split until each
+            # offered action is pressed on the board, so note_goals' "*" PLAN write falls outside
+            # the 11 steps (measured: present at 14 with it ON); the ladder does not depend on the
+            # arm, and TRY_FIRST's own rows are checked by G2 with it ON
+            tf_was, tether._BOARD_TRY_FIRST = tether._BOARD_TRY_FIRST, False
             try:
+                writes.clear()
                 gridworld(MF4_STEPS, None)
+                # MF4's OCCASIONS, from a healthy run (the sweep, 2026-10-23): cycles where the
+                # "cues" write on "*" is followed in its cycle by a "*" write running PLAN; only
+                # there can a PERCEIVE-labelled cues row make LADDER refuse
+                cue_c, occ4 = set(), set()
+                for w in writes:
+                    if w[6] == "*" and w[1] == "cues":
+                        cue_c.add(w[5])
+                    elif w[6] == "*" and w[3] == "PLAN" and w[5] in cue_c:
+                        occ4.add(w[5])
+                assert occ4, "MF4 precondition: no cues row is followed by a PLAN write on '*'"
+                writes.clear()
+                cues = tether.Agent._narrate_cues
+                tether.Agent._narrate_cues = tether._in_step("PERCEIVE")(cues)
+                try:
+                    gridworld(MF4_STEPS, None)
+                finally:
+                    tether.Agent._narrate_cues = cues
             finally:
-                tether.Agent._narrate_cues = cues
+                tether._BOARD_TRY_FIRST = tf_was
             assert ladder(writes, ledger.STEPS), ("MF4: a top-of-step helper in PERCEIVE was not "
                                                   "flagged")
             # the flag is the PLAN write on "*" that follows the misplaced cues row, not any break
