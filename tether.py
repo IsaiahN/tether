@@ -410,6 +410,7 @@ PHASE_OF: dict[str, str] = {
     "draw": I.PROBE,
     "given": I.PROBE,          # handed in by the caller: not a choice this loop made
     "terminal": I.DIRECTED,    # TETHER_TERMINAL_RESET: a dead board, the restart (r669 1)
+    "actuator": I.DIRECTED,    # TETHER_GOAL_FROM_ACTUATOR: CONTINUE <actuator> (r746)
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
@@ -538,7 +539,7 @@ def arms_today() -> dict:
                         "_ELICIT_NO_REFUSED", "_ROUTE_KEY_GENERAL", "_TOUCH_EACH_OBJECT",
                         "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
                         "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT", "_GOAL_BY_MOVED",
-                        "_GOAL_SIGN_FLIP"),
+                        "_GOAL_SIGN_FLIP", "_GOAL_FROM_ACTUATOR"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2499,6 +2500,14 @@ _GOAL_BY_MOVED = armflag.arm("TETHER_GOAL_BY_MOVED", default=True)
 # subject ranks first, the refuted sign last, after the shelf order. Cleared at new_board.
 # OFF: as before
 _GOAL_SIGN_FLIP = armflag.arm("TETHER_GOAL_SIGN_FLIP", default=True)
+# G, GOAL_FROM_ACTUATOR (the reviewer 2026-11-01 r746; Fig 9 :27, Fig 12, Fig 5): the board has
+# described its actuators (the kind-touch rows: an object whose touch was credited a change, net of
+# I-B). Each proposes one goal, CONTINUE <actuator>, ranked AHEAD of the library's relations by its
+# credited change (ties: fewer owners): its press is a TOUCH of it (the interface aims the press).
+# A press that yields 0 credited change, or returns the board to a state already seen while
+# continuing it, ARRIVED without a clear and refutes that actuator; the next one follows. No count,
+# no constant. Cleared at new_board, kept at death. OFF: no actuator goal
+_GOAL_FROM_ACTUATOR = armflag.arm("TETHER_GOAL_FROM_ACTUATOR", default=True)
 _GOAL_CMP = re.compile(r"^\s*(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-z0-9_~]*)\s*(<|>)\s*")
 _GOAL_OPP = {"<": ">", ">": "<"}
 
@@ -3360,6 +3369,11 @@ class Agent:
         self._board_touched: set = set()  # C2: objects System 0 touched on this board
         self._board_moved: set = set()    # G: slots this board's presses moved (credited)
         self._goal_refuted: set = set()   # G: (subject, sign) arrived without a clear, this board
+        self._actuators: dict = {}        # G: object -> (credited change, owners) of its touch
+        self._act_refuted: set = set()    # G: actuators whose CONTINUE arrived without a clear
+        self._act_seen: dict = {}         # G: actuator -> board fingerprints seen continuing it
+        self._press_every: set | None = None   # G: slots every press of this board changed
+        self._act_pending = None          # G: the actuator the last press continued
         self._rel_subjects: set = set()   # TETHER_RELATION_BET: relations that became subjects
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
@@ -4406,6 +4420,9 @@ class Agent:
             self._board_touched.clear()    # C2: a new board's objects are touched once here
             self._board_moved.clear()      # G: what this board's presses moved
             self._goal_refuted.clear()     # G: the refuted signs are this board's
+            self._actuators, self._act_seen, self._act_pending = {}, {}, None   # G: this board's
+            self._press_every = None
+            self._act_refuted.clear()
         if _RELATION_BET and how != "death":
             self._rel_subjects.clear()
         if _BOARD_BOUNDARY and how != "death":
@@ -10503,6 +10520,9 @@ class Agent:
                                    "every slot that changed is credited to this press (F1)"))
         if _GOAL_BY_MOVED and not self._seam_now:
             self._board_moved.update(getattr(self.iface, "last_changed", ()))
+        if _GOAL_FROM_ACTUATOR and not self._seam_now and getattr(self.iface, "last_changed", ()):
+            _lc = set(self.iface.last_changed)     # G: a press that changed nothing says nothing
+            self._press_every = _lc if self._press_every is None else self._press_every & _lc
         if _TOUCH_FELT and self._contact_pending is not None:
             self._contact_felt()
         if _DEATH_VOTE and not self._seam_now:
@@ -13107,6 +13127,10 @@ class Agent:
         # routine or probe exit carried the PREVIOUS cycle's value onto its REPEAT row.
         self._gamma_read = {}
         self._split_term, self._routine_fed, self._last_real = None, [], None
+        if _GOAL_FROM_ACTUATOR and self._actuators and self._alive and not self._try_first_open():
+            _aact = self._actuator_press(before)
+            if _aact is not None:
+                return _aact, "actuator"
         if _TERMINAL_RESET and not self._alive:
             _open = self.iface.restart_open(self.iface.adjacent(tuple(self.actions)),
                                             IFace.Interface.context(self.env))
@@ -13685,6 +13709,53 @@ class Agent:
                 "the board advertises no actions, so exploration cannot be realised -- "
                 f"`env.actions()` returned {self.actions!r}")
         return self._took(r, want)
+
+    def _actuator_press(self, before: dict):
+        """G GOAL_FROM_ACTUATOR: read the last CONTINUE press (0 credited change, or a board state
+        already seen continuing it, refutes that actuator), then TOUCH the strongest actuator not
+        refuted and present, or None."""
+        last = self._act_pending
+        self._act_pending = None
+        if last is not None and not self._seam_now:
+            # the per-press baseline (r746 (a)): what changed on every press of this board, a bar
+            # that ticks on any press and so never repeats, with one action or many
+            tick = set(self.agency.indifferent()) | (self._press_every or set())
+            n = len([s for s in getattr(self.iface, "last_changed", ()) if s not in tick])
+            try:
+                fp = hash(tuple(sorted((k, before.get(k)) for k in self._board_moved
+                                       if k in before and k not in tick)))
+            except TypeError:
+                fp = None
+            seen = self._act_seen.setdefault(last, set())
+            why = ("no change" if n == 0 else
+                   "a state already seen" if fp is not None and fp in seen else None)
+            seen.add(fp)
+            if why is not None:
+                self._act_refuted.add(last)
+                self.led.record(self.cycle, "PLAN", last, "actuator_goal_end", why=why,
+                                credited=n, reads="CONTINUE arrived without a clear: refuted, "
+                                                  "the next actuator follows")
+        base = self._press_every or set()
+        net = {o: (len(v[2] - base), v[1]) for o, v in self._actuators.items()}
+        for obj, (n, owners) in sorted(net.items(),
+                                        key=lambda kv: (-kv[1][0], kv[1][1], int(kv[0][1:]))):
+            if (n == 0 or obj in self._act_refuted
+                    or not any(k.startswith(obj + ".") for k in before)):
+                continue
+            _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=obj), tuple(self.actions),
+                                    IFace.Interface.context(self.env), before, self.env,
+                                    withheld=self._withheld)
+            if _t is None:
+                self._act_refuted.add(obj)          # no press reaches it here
+                continue
+            act = self._took(_t, IFace.Intent(IFace.TOUCH, object=obj))
+            self._act_pending = obj
+            self.led.record(self.cycle, "PLAN", obj, "actuator_goal", credited=n, owners=owners,
+                            open=len(self._actuators) - len(self._act_refuted),
+                            reads="CONTINUE <actuator>: the board's own described effect, "
+                                  "carried on (r746)")
+            return act
+        return None
 
     def _untouched_kinds(self, before: dict) -> list:
         """C2 TOUCH_EACH_KIND: for each object kind on this board with no touched member, its
@@ -16661,6 +16732,9 @@ class Agent:
             # C2 FELT: an object in no pair can move others, so the whole credited change is read
             moved_all = sorted(changed)
             owners = sorted({o for s_ in moved_all for o in self._objs_named(s_)})
+            if _GOAL_FROM_ACTUATOR and moved_all:
+                self._actuators[pair[0]] = (len(moved_all), len(owners),   # G: an actuator
+                                            frozenset(moved_all))
             self.led.record(self.cycle, "PERCEIVE", pair[0], "contact", pair=list(pair),
                             kind="kind-touch", made=landed or bool(moved_all), landed=landed,
                             moved=moved_all[:8], moved_n=len(moved_all), owners_n=len(owners),

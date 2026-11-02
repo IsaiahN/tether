@@ -2140,6 +2140,11 @@ ARMS: dict[str, str] = {
                               "price compared with the bound (fit_bound_agree / disagree). A "
                               "measurement switch for check runs, never a play setting. "
                               "default OFF",
+    "TETHER_GOAL_FROM_ACTUATOR": "G, CONTINUE <ACTUATOR> AHEAD OF THE LIBRARY'S RELATIONS (the "
+                                 "reviewer 2026-11-01 r746): each object whose touch was credited "
+                                 "a change is continued by a TOUCH of it, strongest first; a press "
+                                 "with no credited change, or a state already seen, refutes it. "
+                                 "OFF: no actuator goal (ade07bb). default ON",
     "TETHER_GOAL_SIGN_FLIP": "G CONTENT, A GOAL REACHED WITHOUT A CLEAR IS REFUTED (the reviewer "
                              "2026-11-01 r744): its (subject, sign) is refuted for this board, "
                              "the opposite sign on that subject ranks first and the refuted sign "
