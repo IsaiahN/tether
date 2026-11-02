@@ -9,6 +9,7 @@ must-fail: a code line naming a game id fires it.
 """
 from __future__ import annotations
 
+import ast
 import io
 import os
 import re
@@ -24,11 +25,11 @@ GAME = re.compile(r"(?<![A-Za-z0-9_])[a-z]{2}[0-9]{2}(?![A-Za-z0-9_])")
 ACT = re.compile(r"(?<![A-Za-z0-9_])ACTION[0-9](?![0-9])")
 COORDS = {(4, 32), (58, 32), (30, 16), (1, 8)}      # r751: the solution cells measured today
 SKIP = ("tests", "harness", "kaggle", "conform")
+# r752 (c): and everything the Kaggle bundle executes, by its static import closure from these
+ENTRIES = ("kaggle/b_worker.py", "kaggle/run_b.py", "tether_agent.py", "arc_holdout.py")
 # exemptions as data, each with its reason (a table can be pinned; logic widens quietly)
 EXEMPT = {("interface.py", "ACTION"): "below the seam (r727): the interface is where button names "
-                                      "live (POSITIONED, 2026-09-28)",
-          ("arc_holdout.py", "game"): "the seat's local-run defaults (play / controlled / __main__ "
-                                      "default to one game), read by no agent decision"}
+                                      "live (POSITIONED, 2026-09-28; r752: flagged, to be learned)"}
 
 
 def shipped() -> list[str]:
@@ -46,6 +47,27 @@ def shipped() -> list[str]:
                 and not rel.startswith("."):
             out.append(rel)
     return sorted(set(out))
+
+
+def closure() -> list[str]:
+    """The repo modules reachable by import from ENTRIES (read with ast, nothing executed)."""
+    seen, todo = set(), [os.path.normpath(e) for e in ENTRIES]
+    while todo:
+        rel = todo.pop()
+        if rel in seen or not os.path.exists(os.path.join(ROOT, rel)):
+            continue
+        seen.add(rel)
+        with open(os.path.join(ROOT, rel), encoding="utf-8") as fh:
+            tree = ast.parse(fh.read())
+        names = [a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names]
+        names += [n.module for n in ast.walk(tree)
+                  if isinstance(n, ast.ImportFrom) and n.module and not n.level]
+        for nm in names:
+            for cand in (nm.replace(".", os.sep) + ".py",
+                         os.path.join(os.path.dirname(rel), nm.replace(".", os.sep) + ".py")):
+                if os.path.exists(os.path.join(ROOT, cand)):
+                    todo.append(os.path.normpath(cand))
+    return sorted(seen)
 
 
 def hits(src: str) -> list[tuple[int, str]]:
@@ -76,8 +98,9 @@ def hits(src: str) -> list[tuple[int, str]]:
 
 
 def main():
-    mods = shipped()
+    mods = sorted(set(shipped()) | set(closure()))
     assert len(mods) >= 10 and "tether.py" in mods, ("occasions: the import set", mods)
+    assert all(os.path.normpath(e) in mods for e in ENTRIES), ("the bundle's entries", mods)
     bad = {}
     for rel in mods:
         with open(os.path.join(ROOT, rel), encoding="utf-8") as fh:

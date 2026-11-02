@@ -457,7 +457,7 @@ ARC_WORK_BUDGET = int(os.environ.get("TETHER_WORK_BUDGET_N", "5000"))
 AGENT_GAME = "stream"
 
 
-def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
+def play(game: str, cycles: int = 40, library: str | None = None,
          store: str | None = None, arc=None, stop_on_end: bool = False,
          led_path: str | None = None, on_frame=None,
          cfg: Any = None, save_only_dir: str | None = None,
@@ -724,7 +724,7 @@ def play(game: str = "ls20", cycles: int = 40, library: str | None = None,
     }
 
 
-def controlled(game: str = "ls20", trials: int = 4) -> dict:
+def controlled(game: str, trials: int = 4) -> dict:
     """§21.1's controlled experiment, run as APPARATUS. **No agent. No Gamma. Nothing carried.**
 
     **RULED 2026-08-28: the seat may restart for its OWN reasons and may not restart to help
@@ -774,7 +774,9 @@ def controlled(game: str = "ls20", trials: int = 4) -> dict:
 
 
 if __name__ == "__main__":
-    name = sys.argv[1] if len(sys.argv) > 1 else "ls20"
+    if len(sys.argv) < 2:
+        sys.exit("usage: python arc_holdout.py GAME")
+    name = sys.argv[1]
     for k, v in play(name).items():
         print(f"  {k:<14}: {v}")
     print("")

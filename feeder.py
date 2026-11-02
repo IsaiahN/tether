@@ -297,7 +297,7 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
             "fr": fr is not None, **ground}
 
 
-def watch(game: str = "dc22", cycles: int | None = None, offset: int = 0, spacing: int = 1,
+def watch(game: str, cycles: int | None = None, offset: int = 0, spacing: int = 1,
           skip: int = 0, take: int | None = None,
           library: str | None = None, led_path: str | None = None) -> dict:
     """Run the agent over a replay tape. `cycles=None` walks the WHOLE tape exactly once.
@@ -433,7 +433,7 @@ def probe(game: str, library: str, cycles: int = 25, control: bool = True) -> di
     return out
 
 
-def sweep(game: str = "dc22", rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
+def sweep(game: str, rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
           offset: int = 0, skip: int = 0, take: int | None = None,
           on: str | None = None, store: str | None = None,
           led_dir: str | None = None) -> dict:
@@ -485,6 +485,8 @@ if __name__ == "__main__":
         tk = int(sys.argv[4]) if len(sys.argv) > 4 else 4
         print(json.dumps(watch_many(cycles=n, spacing=sp, take=tk), indent=1))
     else:
-        g = sys.argv[2] if len(sys.argv) > 2 else "dc22"
+        if len(sys.argv) < 3:
+            sys.exit("usage: python feeder.py sweep GAME [CYCLES]")
+        g = sys.argv[2]
         n = int(sys.argv[3]) if len(sys.argv) > 3 else 0
         print(json.dumps(sweep(g, cycles=n or None), indent=1))
