@@ -342,20 +342,26 @@ def _keyed(out: dict, field: str, g: dict, h: str, anc: dict, hist: dict, heads:
                 seen.append({"gen": q, "value": x})
 
 
-def fold(chain: list[tuple[str, dict]]) -> dict:
-    """The chain read as one library, root to tip. Every row is kept, each stamped with the
-    generation it was first written in ("born"); nothing is removed (N2)."""
-    rows: dict[tuple, dict] = {}
-    out = {"terms": [], "invented": {}, "vindication": [], "book": {}, "evidence": [],
-           "dormant": []}
-    anc: dict[str, set] = {}
-    # per row: every (generation, admitted) set on it, in fold order, and the setters no later
-    # status descends from. One head is the linear case; two or more are branches that disagree
-    hist: dict[tuple, list] = {}
-    heads: dict[tuple, set] = {}
-    khist: dict[tuple, list] = {}     # the same, for book keys and invented names
-    kheads: dict[tuple, set] = {}
-    for h, g in chain:
+class FoldState:
+    """fold's state, one generation at a time (A2, r784): fold() steps it over the chain, and the
+    store's rebuild of a branched lineage steps the same object save by save, so the two read a
+    DAG by one rule. `lists=False` keeps out the O(life) lists, which the store holds in tables."""
+
+    def __init__(self, lists: bool = True) -> None:
+        self.lists = lists
+        self.rows: dict[tuple, dict] = {}
+        self.out = {"terms": [], "invented": {}, "vindication": [], "book": {}, "evidence": [],
+                    "dormant": []}
+        self.anc: dict[str, set] = {}
+        # per row: every (generation, admitted) set on it, in fold order, and the setters no later
+        # status descends from. One head is the linear case; two or more are branches that disagree
+        self.hist: dict[tuple, list] = {}
+        self.heads: dict[tuple, set] = {}
+        self.khist: dict[tuple, list] = {}     # the same, for book keys and invented names
+        self.kheads: dict[tuple, set] = {}
+
+    def step(self, h: str, g: dict) -> None:
+        rows, out, anc, hist, heads = self.rows, self.out, self.anc, self.hist, self.heads
         anc[h] = {h}.union(*(anc[q] for q in _parents(g)))
         for r in g["terms"]:
             row = {**r, "born": h}
@@ -378,15 +384,28 @@ def fold(chain: list[tuple[str, dict]]) -> dict:
             for q, a in hist[k]:
                 if q in heads[k] and {"gen": q, "admitted": a} not in seen:
                     seen.append({"gen": q, "admitted": a})
-        _keyed(out, "invented", g, h, anc, khist, kheads)
-        out["vindication"].extend(g["vindication_tail"])
-        _keyed(out, "book", g, h, anc, khist, kheads)
-        out["evidence"].extend(g["evidence"])
-        out["dormant"].extend(dec(g["dormant"]))
+        _keyed(out, "invented", g, h, anc, self.khist, self.kheads)
+        if self.lists:
+            out["vindication"].extend(g["vindication_tail"])
+        _keyed(out, "book", g, h, anc, self.khist, self.kheads)
+        if self.lists:
+            out["evidence"].extend(g["evidence"])
+            out["dormant"].extend(dec(g["dormant"]))
         if g.get("aliases"):
             out.setdefault("aliases", []).extend(g["aliases"])   # (d), in chain order
-    out["terms"] = list(rows.values())
-    return out
+
+    def result(self) -> dict:
+        self.out["terms"] = list(self.rows.values())
+        return self.out
+
+
+def fold(chain: list[tuple[str, dict]]) -> dict:
+    """The chain read as one library, root to tip. Every row is kept, each stamped with the
+    generation it was first written in ("born"); nothing is removed (N2)."""
+    st = FoldState()
+    for h, g in chain:
+        st.step(h, g)
+    return st.result()
 
 
 def head(d: str | Path) -> tuple[str | None, dict]:
@@ -1377,12 +1396,32 @@ def load(d: str | Path, ag: Any) -> dict:
             "asked": load_ak(d, ag, chain)}
 
 
+def _scan(d: Path) -> dict[str, dict]:
+    """Every generation's parents, read and hash-checked one file at a time (_read's checks, none
+    of its memory)."""
+    import lineage_store as ls
+    gens: dict[str, dict] = {}
+    for f in sorted(d.glob(f"{PREFIX}*.json")):
+        raw = ls.file_bytes(f)
+        h = hashlib.sha256(raw).hexdigest()[:16]
+        if f.stem != PREFIX + h:
+            raise ValueError(f"lineage: {f.name} does not hash to its name ({h})")
+        gens[h] = {"parents": _parents(json.loads(raw))}
+        del raw
+    bad = {h: p for h, g in gens.items() for p in g["parents"] if p not in gens}
+    if bad:
+        raise ValueError(f"lineage: a parent that is not in the chain: {bad}")
+    return gens
+
+
 def merge(d: str | Path, tips: list[str] | None = None) -> dict:
     """Join branches: one MERGE generation naming every given tip (default: all of them) as its
     parents and holding nothing else. No tip is picked and nothing is copied or removed; the fold
-    reads both branches (Fig 9). Named by its own hash, opened "xb", never overwritten."""
+    reads both branches (Fig 9). Named by its own hash, opened "xb", never overwritten. The tips
+    are read one generation at a time (A3): _read holds every parsed generation at once, and on a
+    1.6 GB lineage that ran out of memory (MemoryError, 2026-11-02 07:42)."""
     p = Path(d)
-    gens = _read(p)
+    gens = _scan(p)
     now = _tips(gens)
     tips = sorted(set(now if tips is None else tips))
     if not set(tips) <= set(now):

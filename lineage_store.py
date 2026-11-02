@@ -504,14 +504,21 @@ def _merge_held(con: sqlite3.Connection, s: "Syms", h: str, idx: dict) -> None:
                     [(s(e["key"]), s(e["role"]), h, sid, _j(e["items"])) for e in idx["entries"]])
 
 
-def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict) -> dict:
+def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict,
+               state: Any = None) -> dict:
     """One memory save into the store, in ONE transaction: its gen_ body, its ak_ and idx_ files.
-    Its parent must be the store's last_merged (a linear chain). Returns the phase times."""
+    Its parent must be the store's last_merged (a linear chain); in a rebuild (`state`, A2) every
+    parent must already be merged. Returns the phase times."""
     p = Path(folder)
     t0 = time.perf_counter()
-    last = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
-    if (last[0] if last else None) != g.get("parent"):
-        raise Refused(f"save {h}'s parent {g.get('parent')} is not last_merged {last}")
+    if state is None:
+        last = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
+        if (last[0] if last else None) != g.get("parent"):
+            raise Refused(f"save {h}'s parent {g.get('parent')} is not last_merged {last}")
+    else:
+        have = {r[0] for r in con.execute("SELECT h FROM saves")}
+        if not set(_parents(g)) <= have:
+            raise Refused(f"save {h}'s parents {_parents(g)} are not all merged")
     k = (con.execute("SELECT max(k) FROM saves").fetchone()[0] or 0) + 1
     aks = [AkFile(f, f"ak_{h}") for f in sorted(p.glob(f"ak_{h}_*.json"))]
     for a in aks:
@@ -521,7 +528,7 @@ def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict) -> 
     t1 = time.perf_counter()
     con.execute("BEGIN")
     try:
-        out = _merge_body(con, h, k, g, aks, idx, files)
+        out = _merge_body(con, h, k, g, aks, idx, files, state)
     except BaseException:
         if con.in_transaction:      # pass 2's re-hash, or any error: nothing of the save lands
             con.execute("ROLLBACK")
@@ -534,7 +541,7 @@ def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict) -> 
 
 
 def _merge_body(con: sqlite3.Connection, h: str, k: int, g: dict, aks: list, idx: dict | None,
-                files: list) -> dict:
+                files: list, state: Any = None) -> dict:
     """merge_save's statements, inside its transaction."""
     s = Syms(con)
     _merge_asked(con, s, k, h, aks)
@@ -552,7 +559,11 @@ def _merge_body(con: sqlite3.Connection, h: str, k: int, g: dict, aks: list, idx
     _meta_add(con, "n_vindication", len(g["vindication_tail"]))
     if g.get("seed"):
         con.execute("INSERT INTO seeds VALUES (?,?)", (k, json.dumps(g["seed"])))
-    f = _fold_apply(_get_blob(con, "fold", {}), h, g)
+    if state is None:
+        f = _fold_apply(_get_blob(con, "fold", {}), h, g)
+    else:
+        state.step(h, g)
+        f = _state_fold(state)
     c = _counts_apply(_get_blob(con, "counts", {}), g)
     c["n_saves"] = k
     con.execute("INSERT OR REPLACE INTO blob VALUES ('fold', ?)", (json.dumps(f),))
@@ -620,6 +631,58 @@ def unmerged(con: sqlite3.Connection, folder: str | Path) -> list:
     return sorted(f.stem[4:] for f in Path(folder).glob("gen_*.json") if f.stem[4:] not in have)
 
 
+def _parents(g: dict) -> list:
+    """lineage._parents: a merge generation names several ("parents"), every other one or none."""
+    if "parents" in g:
+        return list(g["parents"])
+    return [g["parent"]] if g.get("parent") else []
+
+
+def _state_fold(state: Any) -> dict:
+    """A2: the store's fold blob from lineage.FoldState -- the same rows in the same order, keyed
+    as _fold_apply keys them, with the contested records fold keeps."""
+    out = state.result()
+    f = {"rows": {_j([r["born"], r.get("handle")]): r for r in out["terms"]},
+         "invented": out["invented"], "book": out["book"]}
+    for k in ("aliases", "contested_invented", "contested_book"):
+        if out.get(k):
+            f[k] = out[k]
+    return f
+
+
+# A2 THE STORE READS A BRANCHED LINEAGE (the reviewer 2026-11-02 r784, Isaiah 06:31): a lineage
+# joined by lineage.merge was refused here ("linear chains only") and every load and save then
+# refolded the whole archive (the 47 GB path, 2026-10-31). ON: when the unmerged saves do not
+# continue the store's chain one by one, the store is REBUILT from the saves in lineage._topo
+# order, one save parsed at a time, through lineage.FoldState -- fold's own rule for contested
+# statuses and keys -- so the store and the archive read one DAG alike. Later saves continue the
+# merge generation linearly, as before. OFF: refused, as before.
+_DAG = armflag.arm("TETHER_STORE_DAG", default=True)
+_TABLES = ("sym", "saves", "blob", "asked_tally", "ak_whole", "kind", "pair", "kind_dk", "kind_off",
+           "sig", "held", "evidence", "vindication", "seeds")
+
+
+def _rebuild(con: sqlite3.Connection, folder: str | Path, read: Any) -> list:
+    """A2: the store emptied and refilled from every save in the folder, in lineage._topo order.
+    The store is derived from the saves, so emptying it loses nothing; a rebuild cut short is
+    caught by the next catch_up and run again."""
+    import lineage
+    p = Path(folder)
+    gens = {f.stem[4:]: {"parents": _parents(read(f.stem[4:]))} for f in p.glob("gen_*.json")}
+    order = lineage._topo(gens)
+    con.execute("BEGIN")
+    try:
+        for t in _TABLES:
+            con.execute(f"DELETE FROM {t}")
+        con.execute("DELETE FROM meta WHERE k <> 'schema'")
+    except BaseException:
+        con.execute("ROLLBACK")
+        raise
+    con.execute("COMMIT")
+    state = lineage.FoldState(lists=False)
+    return [merge_save(con, folder, h, read(h), state) for h in order]
+
+
 def catch_up(con: sqlite3.Connection, folder: str | Path) -> list:
     """Merge every unmerged memory save, parent before child; each hash-checked against its
     name. ONE save's parse in memory at a time (the parents are read first, then each save is
@@ -629,12 +692,17 @@ def catch_up(con: sqlite3.Connection, folder: str | Path) -> list:
         if hashlib.sha256(raw).hexdigest()[:16] != h:
             raise Refused(f"gen_{h}.json does not hash to its name")
         return json.loads(raw)
-    parent = {h: read(h).get("parent") for h in unmerged(con, folder)}
+    ps = {h: _parents(read(h)) for h in unmerged(con, folder)}
+    if _DAG and any(len(q) > 1 for q in ps.values()):
+        return _rebuild(con, folder, read)
+    parent = {h: (q[0] if len(q) == 1 else None) for h, q in ps.items()}
     out = []
     while parent:
         last = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()
         nxt = [h for h, q in parent.items() if q == (last[0] if last else None)]
         if len(nxt) != 1:
+            if _DAG:
+                return out + _rebuild(con, folder, read)
             raise Refused(f"{len(nxt)} saves continue the store's chain; {len(parent)} unmerged")
         del parent[nxt[0]]
         out.append(merge_save(con, folder, nxt[0], read(nxt[0])))
