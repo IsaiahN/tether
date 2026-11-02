@@ -1891,6 +1891,12 @@ ARMS: dict[str, str] = {
     "TETHER_FIT_UNITS_CHECK": "(B)'s check run: every reuse also takes _units_for fresh and "
                               "compares; the fresh units are used. A measurement switch for "
                               "check runs, never a play setting. default OFF",
+    "TETHER_STORE_DAG": "A2 (the reviewer 2026-11-02 r784; Isaiah 06:31): the store reads a "
+                        "lineage joined by lineage.merge. When the unmerged saves do not continue "
+                        "the store's chain one by one, it is rebuilt from the saves in _topo "
+                        "order through lineage.FoldState, fold's own rule for contested statuses "
+                        "and keys. OFF: refused, and the load and save refold the archive. "
+                        "default ON",
     "TETHER_STORE_KEY_MEMO": "W1 (S2V; the reviewer 2026-10-21 15:38): lineage_store._merge_kinds "
                              "keeps each kind value's JSON string for one merge, keyed on its "
                              "repr (1, True and 1.0 encode apart); other types encoded fresh. "

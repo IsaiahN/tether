@@ -1,0 +1,235 @@
+"""A2, THE STORE READS A BRANCHED LINEAGE (TETHER_STORE_DAG; the reviewer 2026-11-02 r784): a
+root, two branches grown by real gridworld agents in separate folders, a status and a book key each
+branch sets differently, and lineage.merge over the tips. ON: a fresh agent's load takes the store
+path (no store_refused row), and the store's fold equals the archive's fold row for row, in order
+(born, handle, admitted, contested), with the same book, contested book, invented and save count;
+the rows are the union of every generation's, a composition held on both branches held twice.
+MUST-FAIL: the same lineage with the arm OFF writes store_refused and refolds the archive.
+
+    python tests/test_store_dag.py
+"""
+from __future__ import annotations
+
+import ctypes
+import hashlib
+import json
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
+
+sys.dont_write_bytecode = True
+
+import gamma  # noqa: E402
+import gridworld  # noqa: E402
+import ledger  # noqa: E402
+import lineage  # noqa: E402
+import lineage_store  # noqa: E402
+import tether  # noqa: E402
+import world  # noqa: E402
+
+N = 20
+
+
+def _run(d, seed, n):
+    env = world.bind(gridworld.family("default", seed))
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=f"fam_default_{seed}"), tether.Config(),
+                      ledger.Ledger())
+    rep = lineage.load(d, ag)
+    for _ in range(n):
+        ag.step()
+    ag.end_run("cap")
+    return ag, rep
+
+
+def _put(d, gen):
+    raw = json.dumps(gen, sort_keys=True, indent=1).encode("utf-8")
+    h = hashlib.sha256(raw).hexdigest()[:16]
+    (Path(d) / f"{lineage.PREFIX}{h}.json").write_bytes(raw)
+    return h
+
+
+def _status(parent, born, handle, admitted, book):
+    return {"lineage": 1, "parent": parent, "game": "status", "terms": [],
+            "status": [{"born": born, "handle": handle, "admitted": admitted}], "evidence": [],
+            "vindication_tail": [], "book": book, "invented": {}, "dormant": [],
+            "dormant_refused": []}
+
+
+def _peak_mb() -> float:
+    class PMC(ctypes.Structure):
+        _fields_ = [("cb", ctypes.c_ulong), ("PageFaultCount", ctypes.c_ulong)] + [
+            (n, ctypes.c_size_t) for n in ("PeakWorkingSetSize", "WorkingSetSize",
+                                           "QuotaPeakPagedPoolUsage", "QuotaPagedPoolUsage",
+                                           "QuotaPeakNonPagedPoolUsage", "QuotaNonPagedPoolUsage",
+                                           "PagefileUsage", "PeakPagefileUsage")]
+    if not hasattr(ctypes, "windll"):
+        return -1.0
+    k32 = ctypes.windll.kernel32
+    k32.GetCurrentProcess.restype = ctypes.c_void_p
+    gpmi = k32.K32GetProcessMemoryInfo
+    gpmi.argtypes = [ctypes.c_void_p, ctypes.POINTER(PMC), ctypes.c_ulong]
+    c = PMC()
+    c.cb = ctypes.sizeof(PMC)
+    assert gpmi(k32.GetCurrentProcess(), ctypes.byref(c), c.cb), "GetProcessMemoryInfo failed"
+    assert c.PeakPagefileUsage > 0, "a zero peak is a broken reading"
+    return round(c.PeakPagefileUsage / 2**20, 1)
+
+
+def _fixture(tmp: Path) -> tuple[Path, dict]:
+    d, side = tmp / "main", tmp / "side"
+    d.mkdir()
+    side.mkdir()
+    a, _ = _run(d, 0, N)
+    wa = lineage.write(d, a, "default")
+    for f in d.glob(f"*{wa['hash']}*"):
+        shutil.copy(f, side / f.name)
+    b1, _ = _run(d, 0, N)
+    w1 = lineage.write(d, b1, "default")
+    b2, _ = _run(side, 0, N + 5)
+    w2 = lineage.write(side, b2, "default")
+    for f in side.glob(f"*{w2['hash']}*"):
+        shutil.copy(f, d / f.name)
+    gens = lineage._read(d)
+    touched = {(s["born"], s["handle"]) for g in gens.values() for s in g["status"]}
+    root = [r for r in gens[wa["hash"]]["terms"]
+            if r.get("handle") and (wa["hash"], r["handle"]) not in touched]
+    assert root and w1["hash"] != w2["hash"], ("fixture: nothing to contest", len(root))
+    bk = "fixture.dag_probe"
+    s1 = _put(d, _status(w1["hash"], wa["hash"], root[0]["handle"], "necessary", {bk: "b1"}))
+    s2 = _put(d, _status(w2["hash"], wa["hash"], root[0]["handle"], "promoted", {bk: "b2"}))
+    m = lineage.merge(d)
+    assert "hash" in m, ("fixture: merge refused", m)
+    return d, {"root": wa["hash"], "b1": w1["hash"], "b2": w2["hash"], "s1": s1, "s2": s2,
+               "merge": m["hash"], "row": (wa["hash"], root[0]["handle"]), "bk": bk}
+
+
+def _refused(rep_rows) -> list:
+    return [r for r in rep_rows if r["event"] == "store_refused"]
+
+
+def _gen(parent, terms=(), status=(), book=None, parents=None):
+    g = {"lineage": 1, "game": "dag", "terms": list(terms), "status": list(status),
+         "evidence": [], "vindication_tail": [], "book": book or {}, "invented": {},
+         "dormant": [], "dormant_refused": []}
+    if parents:
+        g.update(parents=sorted(parents), merge=True)
+    else:
+        g["parent"] = parent
+    return g
+
+
+def _same(d: Path) -> tuple[int, int]:
+    """The store, caught up, against the archive fold: rows in order, book, contested book."""
+    con = lineage_store.open_store(d)
+    try:
+        lineage_store.catch_up(con, d)
+        fs = json.loads(con.execute("SELECT v FROM blob WHERE k='fold'").fetchone()[0])
+    finally:
+        con.close()
+    _h, fa = lineage.head(d)
+    a = [(r["born"], r["handle"], r.get("admitted"), r.get("contested")) for r in fa["terms"]]
+    s = [(r["born"], r["handle"], r.get("admitted"), r.get("contested"))
+         for r in fs["rows"].values()]
+    assert s == a, ("store != archive", len(s), len(a),
+                    next(((x, y) for x, y in zip(s, a, strict=False) if x != y), None))
+    assert fs["book"] == fa["book"] and fs.get("contested_book") == fa.get("contested_book"), (
+        "book", fs["book"], fa["book"])
+    return len(s), sum(1 for x in s if x[3])
+
+
+def _synthetic(tmp: Path) -> dict:
+    """Hand-written saves: the store merges one branch linearly, the other branch and the merge
+    then arrive (the rebuild), and a child of the merge settles a contested row (linear again)."""
+    d = tmp / "synthetic"
+    d.mkdir()
+
+    def row(i, tag):
+        return {"handle": f"{tag}{i}", "atoms": [f"a{i % 7}"], "admitted": "candidate"}
+
+    r = _put(d, _gen(None, [row(i, "h") for i in range(30)], book={"k0": "r"}))
+    a1 = _put(d, _gen(r, [row(i, "a") for i in range(10)],
+                      [{"born": r, "handle": "h1", "admitted": "necessary"},
+                       {"born": r, "handle": "h2", "admitted": "necessary"}], {"k1": "a"}))
+    a2 = _put(d, _gen(a1, status=[{"born": r, "handle": "h3", "admitted": "promoted"}]))
+    stage1 = _same(d)                                     # a linear store: R, A1, A2
+    b1 = _put(d, _gen(r, [row(i, "b") for i in range(10)],
+                      [{"born": r, "handle": "h1", "admitted": "promoted"},
+                       {"born": r, "handle": "h4", "admitted": "necessary"}], {"k1": "b"}))
+    m = lineage.merge(d)["hash"]
+    stage2 = _same(d)                                     # B1 and the merge: the rebuild
+    c = _put(d, _gen(m, status=[{"born": r, "handle": "h1", "admitted": "necessary"}],
+                     book={"k1": "c"}))
+    stage3 = _same(d)                                     # a child of the merge: linear again
+    assert stage2[1] >= 1 and stage3[0] == stage2[0], ("contested rows", stage2, stage3)
+    return {"rows": stage3[0], "contested_at_merge": stage2[1], "stage1": stage1[0],
+            "ids": (r, a1, a2, b1, m, c)}
+
+
+def main():
+    tether._AGENT_SEED = False
+    assert lineage._MEMORY_STORE and getattr(lineage_store, "_DAG", True), "the store arms are ON"
+    tmp = Path(tempfile.mkdtemp(prefix="store_dag_"))
+    syn = _synthetic(tmp)
+    print(f"  synthetic: {syn['stage1']} rows linear, then the second branch + merge -> "
+          f"{syn['rows']} rows, {syn['contested_at_merge']} contested at the merge, and a child "
+          f"of the merge settling one: store = archive fold at each stage", flush=True)
+    d, ids = _fixture(tmp)
+    d_off = tmp / "main_off"
+    shutil.copytree(d, d_off)
+    # ON: the load reads the store, which rebuilds over the merge
+    c, rep = _run(d, 0, 0)
+    assert rep["parent"] == ids["merge"], ("the load's parent is not the merge", rep.get("parent"))
+    ref = _refused(c.led.rows())
+    assert not ref, ("ON: the store refused the merged lineage", ref[:1])
+    assert "store_merged_at_load" in rep, ("ON: the load did not come from the store", sorted(rep))
+    con = lineage_store.open_store(d)
+    try:
+        fs = json.loads(con.execute("SELECT v FROM blob WHERE k='fold'").fetchone()[0])
+        cs = json.loads(con.execute("SELECT v FROM blob WHERE k='counts'").fetchone()[0])
+        tip = con.execute("SELECT v FROM meta WHERE k='last_merged'").fetchone()[0]
+    finally:
+        con.close()
+    h, fa = lineage.head(d)
+    assert tip == h == ids["merge"], ("the store's tip", tip, h)
+    a_rows = [(r["born"], r.get("handle"), r.get("admitted"), r.get("contested"))
+              for r in fa["terms"]]
+    s_rows = [(r["born"], r.get("handle"), r.get("admitted"), r.get("contested"))
+              for r in fs["rows"].values()]
+    assert s_rows == a_rows, ("the store's rows differ from the archive fold",
+                              len(s_rows), len(a_rows),
+                              next(((x, y) for x, y in zip(s_rows, a_rows, strict=False)
+                                    if x != y), None))
+    for k in ("book", "invented"):
+        assert fs[k] == fa[k], (k, "differs")
+    assert fs.get("contested_book") == fa.get("contested_book"), "contested_book differs"
+    assert cs["n_saves"] == len(lineage._read(d)), ("n_saves", cs["n_saves"])
+    row = next(r for r in fs["rows"].values() if (r["born"], r.get("handle")) == ids["row"])
+    vals = {(x["gen"], x["admitted"]) for x in row.get("contested", [])}
+    assert vals == {(ids["s1"], "necessary"), (ids["s2"], "promoted")}, ("contested", row)
+    gens = lineage._read(d)
+    n_in = sum(len(g["terms"]) for g in gens.values())
+    keys = [gamma.Gamma.row_key(r) for r in fa["terms"]]
+    twice = len(keys) - len(set(keys))
+    assert len(s_rows) == n_in, ("rows are not the union", len(s_rows), n_in)
+    peak = _peak_mb()
+    # MUST-FAIL: the arm OFF refuses the same lineage and refolds the archive
+    lineage_store._DAG = False
+    try:
+        c2, rep2 = _run(d_off, 0, 0)
+    finally:
+        lineage_store._DAG = True
+    ref2 = _refused(c2.led.rows())
+    assert ref2 and "store_merged_at_load" not in rep2, ("must-fail: OFF did not refuse", rep2)
+    print(f"test_store_dag: root {ids['root']}, branches {ids['b1']} / {ids['b2']}, merge "
+          f"{ids['merge']}; ON the store holds {len(s_rows)} rows = the union of "
+          f"{len(gens)} generations' terms ({twice} compositions held more than once), equal to "
+          f"the archive fold in order; contested {sorted(vals)}; book contested "
+          f"{sorted((x['gen'], x['value']) for x in fs['contested_book'][ids['bk']])}; peak "
+          f"commit {peak} MB. OFF: store_refused ({ref2[0]['detail']['reason'][:70]!r})")
+
+
+if __name__ == "__main__":
+    main()

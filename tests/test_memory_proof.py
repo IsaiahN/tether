@@ -44,7 +44,7 @@ import zlib
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
-EXPECTED = {"check_p1_kind_keeps_attribute": "FAIL",
+EXPECTED = {"check_p1_kind_keeps_attribute": "PASS",   # gamma._KIND_ATTR (F1/F2, 11-01)
             "check_p3_decay_across_lives": "PASS",     # F3a TETHER_DECAY_NEW_LIFE
             "check_p4_faulted_step_dropped": "PASS",   # F4 TETHER_FAULT_FORMATS
             "check_p6_carried_press_term_predicts_at_step_1": "FAIL",
@@ -52,7 +52,9 @@ EXPECTED = {"check_p1_kind_keeps_attribute": "FAIL",
             # (max T1d - T3 -201, -96, -47) and spent per lookup falls (2876.5, 1938.8, 1978.4);
             # but mean T1d GROWS 605.9 -> 786.1 -> 872.4 against a flat T3 ~1095, so the bound is
             # approached, not held by construction
-            "check_p8_t1d_bounded_over_lives": "PASS"}
+            # REGISTERED FAIL on the synced code (r785 3a): T1d - T3 [-82, 182, 182] over the
+            # 3 lives (PASS at f36f792, max -47): T1d outgrows what this residual lit; A5 holds it
+            "check_p8_t1d_bounded_over_lives": "FAIL"}
 
 LIFE = r'''
 import json, sys
