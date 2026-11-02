@@ -540,7 +540,7 @@ def arms_today() -> dict:
                         "_BOARD_TRY_FIRST", "_S0_BEFORE_BORED", "_TOUCH_EACH_KIND",
                         "_DELTA_TIER_MEMO", "_KIND_TOUCH_FELT", "_GOAL_BY_MOVED",
                         "_GOAL_SIGN_FLIP", "_GOAL_FROM_ACTUATOR", "_PAIR_BOUND",
-                        "_PAIRS_FALLBACK"),
+                        "_PAIRS_FALLBACK", "_ACTUATOR_ROUTINE", "_BASELINE_FROM_OTHERS"),
              "gamma": ("_KIND_ATTR", "_FIRST_CONTACT", "_KIND_REL", "_UNBOUND_MEMO"),
              "interface": ("_ACTION_CARRY", "_BOARD_UNTRIED"), "lineage": ("_RESOLVE_ONCE",)}
     import lineage as _lin
@@ -2517,6 +2517,14 @@ _PAIR_BOUND = armflag.arm("TETHER_PAIR_BOUND", default=True)
 # (i) PAIRS_FALLBACK (the reviewer 2026-11-01 r747; Fig 9 :60, "Use filters for the budget and
 # witnesses for the verdict"): singles first, pairs only when no single pays. OFF: pairs always
 _PAIRS_FALLBACK = armflag.arm("TETHER_PAIRS_FALLBACK", default=True)
+# I/J, ACTUATOR_ROUTINE (the reviewer 2026-11-01 r750 2): CONTINUE <actuator> is committed as a
+# routine, Until(@actuator, TOUCH it), so the held-routine branch runs it and J's ends (a level
+# edge, the actuator END, its budget) end it. OFF: the per-press actuator exit
+_ACTUATOR_ROUTINE = armflag.arm("TETHER_ACTUATOR_ROUTINE", default=True)
+# G END, BASELINE_FROM_OTHERS (r750 3): an actuator press is read net of what changed when the
+# agent touched OTHER objects on this board (their touches' union), not the every-press
+# intersection, which one small press empties. OFF: the intersection
+_BASELINE_FROM_OTHERS = armflag.arm("TETHER_BASELINE_FROM_OTHERS", default=True)
 _GOAL_CMP = re.compile(r"^\s*(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-z0-9_~]*)\s*(<|>)\s*")
 _GOAL_OPP = {"<": ">", ">": "<"}
 
@@ -3382,6 +3390,7 @@ class Agent:
         self._act_refuted: set = set()    # G: actuators whose CONTINUE arrived without a clear
         self._act_seen: dict = {}         # G: actuator -> board fingerprints seen continuing it
         self._press_every: set | None = None   # G: slots every press of this board changed
+        self._act_rt, self._act_rt_acts = None, 0   # G: the actuator routine held, its acts read
         self._act_pending = None          # G: the actuator the last press continued
         self._rel_subjects: set = set()   # TETHER_RELATION_BET: relations that became subjects
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
@@ -4430,6 +4439,7 @@ class Agent:
             self._board_moved.clear()      # G: what this board's presses moved
             self._goal_refuted.clear()     # G: the refuted signs are this board's
             self._actuators, self._act_seen, self._act_pending = {}, {}, None   # G: this board's
+            self._act_rt, self._act_rt_acts = None, 0
             self._press_every = None
             self._act_refuted.clear()
         if _RELATION_BET and how != "death":
@@ -13150,7 +13160,13 @@ class Agent:
         # routine or probe exit carried the PREVIOUS cycle's value onto its REPEAT row.
         self._gamma_read = {}
         self._split_term, self._routine_fed, self._last_real = None, [], None
-        if _GOAL_FROM_ACTUATOR and self._actuators and self._alive and not self._try_first_open():
+        if _GOAL_FROM_ACTUATOR and _ACTUATOR_ROUTINE and self._alive and (
+                self._act_rt is not None or self._actuators and not self._try_first_open()):
+            # a held actuator routine's END is read every cycle (a board that grows reopens
+            # TRY_FIRST, and the held routine still runs); a new one is committed only once closed
+            self._actuator_routine(before)          # committed: the held-routine branch runs it
+        elif (_GOAL_FROM_ACTUATOR and not _ACTUATOR_ROUTINE and self._actuators and self._alive
+              and not self._try_first_open()):
             _aact = self._actuator_press(before)
             if _aact is not None:
                 return _aact, "actuator"
@@ -13739,32 +13755,9 @@ class Agent:
         refuted and present, or None."""
         last = self._act_pending
         self._act_pending = None
-        if last is not None and not self._seam_now:
-            # the per-press baseline (r746 (a)): what changed on every press of this board, a bar
-            # that ticks on any press and so never repeats, with one action or many
-            tick = set(self.agency.indifferent()) | (self._press_every or set())
-            n = len([s for s in getattr(self.iface, "last_changed", ()) if s not in tick])
-            try:
-                fp = hash(tuple(sorted((k, before.get(k)) for k in self._board_moved
-                                       if k in before and k not in tick)))
-            except TypeError:
-                fp = None
-            seen = self._act_seen.setdefault(last, set())
-            why = ("no change" if n == 0 else
-                   "a state already seen" if fp is not None and fp in seen else None)
-            seen.add(fp)
-            if why is not None:
-                self._act_refuted.add(last)
-                self.led.record(self.cycle, "PLAN", last, "actuator_goal_end", why=why,
-                                credited=n, reads="CONTINUE arrived without a clear: refuted, "
-                                                  "the next actuator follows")
-        base = self._press_every or set()
-        net = {o: (len(v[2] - base), v[1]) for o, v in self._actuators.items()}
-        for obj, (n, owners) in sorted(net.items(),
-                                        key=lambda kv: (-kv[1][0], kv[1][1], int(kv[0][1:]))):
-            if (n == 0 or obj in self._act_refuted
-                    or not any(k.startswith(obj + ".") for k in before)):
-                continue
+        if last is not None:
+            self._act_end(last, before)
+        for obj, n, owners in self._act_order(before):
             _t = self.iface.realise(IFace.Intent(IFace.TOUCH, object=obj), tuple(self.actions),
                                     IFace.Interface.context(self.env), before, self.env,
                                     withheld=self._withheld)
@@ -13779,6 +13772,81 @@ class Agent:
                                   "carried on (r746)")
             return act
         return None
+
+    def _act_base(self, obj: str, ind: bool = True) -> set:
+        """The background an actuator's press is read net of: BASELINE_FROM_OTHERS (r750 3), what
+        changed when the agent touched OTHER objects on this board (the union of their touches'
+        credited change); OFF, what changed on every press (r746 (a)). With indifferent()."""
+        if _BASELINE_FROM_OTHERS:
+            base = set().union(*[v[2] for o, v in self._actuators.items() if o != obj])
+        else:
+            base = set(self._press_every or set())
+        return base | set(self.agency.indifferent()) if ind else base
+
+    def _act_end(self, obj: str, before: dict) -> str | None:
+        """Read the last CONTINUE press of obj: 0 net change, or a board state already seen
+        continuing it (over the net slots), ends it arrived without a clear and refutes it."""
+        if self._seam_now:
+            return None
+        tick = self._act_base(obj)
+        n = len([s for s in getattr(self.iface, "last_changed", ()) if s not in tick])
+        try:
+            fp = hash(tuple(sorted((k, before.get(k)) for k in self._board_moved
+                                   if k in before and k not in tick)))
+        except TypeError:
+            fp = None
+        seen = self._act_seen.setdefault(obj, set())
+        why = ("no change" if n == 0 else
+               "a state already seen" if fp is not None and fp in seen else None)
+        seen.add(fp)
+        if why is not None:
+            self._act_refuted.add(obj)
+            self.led.record(self.cycle, "PLAN", obj, "actuator_goal_end", why=why,
+                            credited=n, reads="CONTINUE arrived without a clear: refuted, "
+                                              "the next actuator follows")
+        return why
+
+    def _act_order(self, before: dict) -> list:
+        """The actuators not refuted and present, strongest net effect first (fewer owners)."""
+        net = {o: (len(v[2] - self._act_base(o, _BASELINE_FROM_OTHERS)), v[1])
+               for o, v in self._actuators.items()}
+        return [(o, n, ow) for o, (n, ow) in sorted(
+                    net.items(), key=lambda kv: (-kv[1][0], kv[1][1], int(kv[0][1:])))
+                if n and o not in self._act_refuted
+                and any(k.startswith(o + ".") for k in before)]
+
+    def _actuator_routine(self, before: dict) -> None:
+        """ACTUATOR_ROUTINE (r750 2): CONTINUE <actuator> is a plan, "press it until its effect
+        stops or the level clears", so it is committed as a routine, Until(@actuator, TOUCH it),
+        and the held-routine branch below runs it (I, then J). The END ends it through
+        _end_routine; the next actuator is then committed."""
+        obj = self._act_rt
+        if obj is not None and (self.routine is None or self.routine_for != obj):
+            obj = self._act_rt = None               # ended by another of J's ends
+        if obj is not None:
+            if self._routine_acts == self._act_rt_acts:
+                return                              # no press of it since the last reading
+            self._act_rt_acts = self._routine_acts
+            why = self._act_end(obj, before)
+            if why is None:
+                return
+            self._end_routine("arrived_no_clear", before, "PLAN", detail={"why": why})
+            self._act_rt = None
+        if self.routine is not None or self._try_first_open():
+            return                    # another routine is held, or the board owes a first try
+        for o, n, owners in self._act_order(before):
+            self.routine = Rt.Until(f"@actuator:{o}", Rt.Act(IFace.Intent(IFace.TOUCH, object=o)),
+                                    n)              # budget: the effect's own size (net slots)
+            self.routine_for, self._routine_adopted, self._routine_acts = o, None, 0
+            self._act_rt, self._act_rt_acts = o, 0
+            self.led.record(self.cycle, "PLAN", o, "routine", verdict="actuator",
+                            routine=Rt.render(self.routine), credited=n, owners=owners,
+                            reads="CONTINUE <actuator> committed as a routine (r750 2)")
+            self.led.record(self.cycle, "PLAN", o, "actuator_goal", credited=n, owners=owners,
+                            open=len(self._actuators) - len(self._act_refuted),
+                            reads="CONTINUE <actuator>: the board's own described effect, "
+                                  "carried on (r746)")
+            return
 
     def _untouched_kinds(self, before: dict) -> list:
         """C2 TOUCH_EACH_KIND: for each object kind on this board with no touched member, its
@@ -14641,6 +14709,8 @@ class Agent:
         the pricing bypass the two-arm board found cannot reappear in the ACT space.
         """
         def holds(guard: str) -> bool | None:
+            if _ACTUATOR_ROUTINE and isinstance(guard, str) and guard.startswith("@actuator:"):
+                return False      # CONTINUE <actuator>: its END, not a guard, says when it stops
             # THE GUARD READS `R_goal`, THE SAME QUANTITY THE MINT TRIGGERED AND PRICED ON.
             # It read `_discrepancy` -- one slot's distance -- while the trigger and price read
             # the SCOPE fraction, and the two disagree about what the routine is for. **A

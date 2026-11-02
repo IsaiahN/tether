@@ -44,9 +44,13 @@ def main():
     assert first in ag._act_refuted, "a press with no credited change refutes the actuator"
     assert ag._act_pending == second, ("the next actuator is continued", ag._act_pending, second)
     ag._act_refuted.discard(second)
-    ag._press_every, ag._act_pending = set(acts[second][2]), None   # every press moved these
-    ag._actuator_press(env.observe())
-    assert ag._act_pending != second, "an actuator whose whole effect is the per-press baseline"
+    tether._BASELINE_FROM_OTHERS = False           # the every-press intersection (its OFF side)
+    try:
+        ag._press_every, ag._act_pending = set(acts[second][2]), None   # every press moved these
+        ag._actuator_press(env.observe())
+        assert ag._act_pending != second, "an actuator whose whole effect is the baseline"
+    finally:
+        tether._BASELINE_FROM_OTHERS = True
     ag._press_every = None
     ag.retarget(env, ag.level, how="death")
     assert ag._actuators and first in ag._act_refuted, "a death keeps the actuators"

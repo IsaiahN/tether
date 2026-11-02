@@ -2146,6 +2146,14 @@ ARMS: dict[str, str] = {
                                  "of it, strongest first; a press with no net change, or a state "
                                  "already seen, refutes it. OFF: no actuator goal (ade07bb). "
                                  "default ON",
+    "TETHER_ACTUATOR_ROUTINE": "I/J, CONTINUE <ACTUATOR> IS A ROUTINE (the reviewer 2026-11-01 "
+                               "r750 2): the actuator exit commits Until(@actuator, TOUCH it) "
+                               "and the held-routine branch runs it; J's ends and the actuator "
+                               "END end it. OFF: the per-press exit (7022bad). default ON",
+    "TETHER_BASELINE_FROM_OTHERS": "G END, THE BACKGROUND IS OTHER OBJECTS' CHANGE (r750 3): an "
+                                   "actuator press is read net of the union of this board's "
+                                   "touches of OTHER objects. OFF: the every-press "
+                                   "intersection (7022bad). default ON",
     "TETHER_PAIRS_FALLBACK": "(i) SINGLES FIRST, PAIRS ONLY WHEN NO SINGLE PAYS (the reviewer "
                              "2026-11-01 r747; Fig 9 :60): goal-condition pairs are built "
                              "only as the fallback for \"none paid\". OFF: pairs always "
