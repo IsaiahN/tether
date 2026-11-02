@@ -187,11 +187,12 @@ def _get_blob(con: sqlite3.Connection, k: str, default: Any) -> Any:
     return json.loads(r[0]) if r else default
 
 
-def _fold_apply(f: dict, h: str, g: dict) -> dict:
+def _fold_apply(f: dict, h: str, g: dict, dag: bool = False) -> dict:
     """lineage.fold's loop body for ONE generation of a LINEAR chain (every status and keyed value
     has one head): the same rows in the same order. A merge generation, or a status for a row the
-    store does not hold, is refused."""
-    if g.get("merge") or len(g.get("parents", [])) > 1:
+    store does not hold, is refused -- except under A2c's continue (`dag`), which has checked that
+    every status and key still has one head."""
+    if not dag and (g.get("merge") or len(g.get("parents", [])) > 1):
         raise Refused(f"generation {h} is a merge; the store holds linear chains only")
     rows = f.setdefault("rows", {})
     for r in g["terms"]:
@@ -507,8 +508,8 @@ def _merge_held(con: sqlite3.Connection, s: "Syms", h: str, idx: dict) -> None:
 def merge_save(con: sqlite3.Connection, folder: str | Path, h: str, g: dict,
                state: Any = None) -> dict:
     """One memory save into the store, in ONE transaction: its gen_ body, its ak_ and idx_ files.
-    Its parent must be the store's last_merged (a linear chain); in a rebuild (`state`, A2) every
-    parent must already be merged. Returns the phase times."""
+    Its parent must be the store's last_merged (a linear chain); in a rebuild (`state`, A2) or a
+    continue (state CONTINUE, A2c) every parent must already be merged. Returns the phase times."""
     p = Path(folder)
     t0 = time.perf_counter()
     if state is None:
@@ -559,8 +560,8 @@ def _merge_body(con: sqlite3.Connection, h: str, k: int, g: dict, aks: list, idx
     _meta_add(con, "n_vindication", len(g["vindication_tail"]))
     if g.get("seed"):
         con.execute("INSERT INTO seeds VALUES (?,?)", (k, json.dumps(g["seed"])))
-    if state is None:
-        f = _fold_apply(_get_blob(con, "fold", {}), h, g)
+    if state is None or state is CONTINUE:
+        f = _fold_apply(_get_blob(con, "fold", {}), h, g, dag=state is CONTINUE)
     else:
         state.step(h, g)
         f = _state_fold(state)
@@ -680,7 +681,49 @@ def _rebuild(con: sqlite3.Connection, folder: str | Path, read: Any) -> list:
         raise
     con.execute("COMMIT")
     state = lineage.FoldState(lists=False)
-    return [merge_save(con, folder, h, read(h), state) for h in order]
+    return [{**merge_save(con, folder, h, read(h), state), "dag": "rebuild"} for h in order]
+
+
+# A2c CONTINUE, THE EXACT CASE ONLY (the reviewer 2026-11-02 r792): when fold's _topo order is the
+# store's merged chain followed by the new saves, and no new save sets a status or a book / invented
+# key that a save it does not descend from already set (the only way fold records a contest), the
+# new saves are appended in that order -- the same rows, order and values a rebuild would give, in
+# minutes instead of hours. Otherwise None, and the full rebuild runs. OFF: always the rebuild.
+_CONTINUE = armflag.arm("TETHER_STORE_CONTINUE", default=True)
+CONTINUE = "continue"
+
+
+def _continue(con: sqlite3.Connection, folder: str | Path, read: Any, ps: dict) -> list | None:
+    """A2c: the unmerged saves (`ps`, their parents) in _topo order when they follow the store's
+    chain and contest nothing, else None."""
+    import lineage
+    merged = [r[0] for r in con.execute("SELECT h FROM saves ORDER BY k")]
+    gens: dict[str, dict] = {}
+    for h, p in con.execute("SELECT h, parent FROM saves"):
+        # a root and a merge save both store no single parent: their own file names theirs
+        gens[h] = {"parents": [p] if p else _parents(read(h))}
+    gens.update({h: {"parents": q} for h, q in ps.items()})
+    order = lineage._topo(gens)
+    new = order[len(merged):]
+    if order[:len(merged)] != merged or set(new) != set(ps):
+        return None
+    anc: dict[str, set] = {}
+    for h in order:
+        anc[h] = {h}.union(*(anc[q] for q in gens[h]["parents"]))
+    seen: dict[str, set] = {}
+
+    def touched(h: str) -> set:
+        # what fold gives a head to: a row (born here, or a status), a book key, an invented name
+        if h not in seen:
+            g = read(h)
+            seen[h] = ({("s", h, r.get("handle")) for r in g["terms"]}
+                       | {("s", x["born"], x["handle"]) for x in g["status"]}
+                       | {("book", k) for k in g["book"]} | {("inv", k) for k in g["invented"]})
+        return seen[h]
+    for i, h in enumerate(new, start=len(merged)):
+        if any(touched(h) & touched(q) for q in order[:i] if q not in anc[h]):
+            return None
+    return [{**merge_save(con, folder, h, read(h), CONTINUE), "dag": "continue"} for h in new]
 
 
 def catch_up(con: sqlite3.Connection, folder: str | Path) -> list:
@@ -694,7 +737,7 @@ def catch_up(con: sqlite3.Connection, folder: str | Path) -> list:
         return json.loads(raw)
     ps = {h: _parents(read(h)) for h in unmerged(con, folder)}
     if _DAG and any(len(q) > 1 for q in ps.values()):
-        return _rebuild(con, folder, read)
+        return (_CONTINUE and _continue(con, folder, read, ps)) or _rebuild(con, folder, read)
     parent = {h: (q[0] if len(q) == 1 else None) for h, q in ps.items()}
     out = []
     while parent:
@@ -702,7 +745,9 @@ def catch_up(con: sqlite3.Connection, folder: str | Path) -> list:
         nxt = [h for h, q in parent.items() if q == (last[0] if last else None)]
         if len(nxt) != 1:
             if _DAG:
-                return out + _rebuild(con, folder, read)
+                rest = {h: ps[h] for h in parent}
+                return out + ((_CONTINUE and _continue(con, folder, read, rest))
+                              or _rebuild(con, folder, read))
             raise Refused(f"{len(nxt)} saves continue the store's chain; {len(parent)} unmerged")
         del parent[nxt[0]]
         out.append(merge_save(con, folder, nxt[0], read(nxt[0])))
