@@ -13,6 +13,8 @@ same with it ON or OFF (Fig 13: "That record is not documentation of the term. I
       <counts>": the first link of the chain whose output this game was empty (Fig 3 :18 "Where a
       given chain stops is a reading, never a property"; :20 "Each link consumes what the one above
       produces").
+  GUARD (the reviewer r825, r828 a): say / see / end_game never raise into play. The first error
+      turns the narrator off for the run and is counted (faults, fault); the ledger is untouched.
 """
 from __future__ import annotations
 
@@ -70,6 +72,28 @@ class Narrator:
         self._want = None
         self.game: collections.Counter = collections.Counter()
         self.refused: collections.Counter = collections.Counter()
+        self._games = 0                  # N2 lines said; an empty game after one is not said
+        self.faults = 0
+        self.fault: str | None = None
+
+    def _guard(self, fn, *a) -> None:
+        if not self.on:
+            return
+        try:
+            fn(*a)
+        except Exception as e:           # a console or log error must never reach play
+            self.on = False
+            self.faults += 1
+            self.fault = repr(e)[:200]
+
+    def say(self, cycle: int, kind: str, slot: str, text: str) -> None:
+        self._guard(self._say, cycle, kind, slot, text)
+
+    def see(self, cycle: int, step: str, slot: str, event: str, d: dict) -> None:
+        self._guard(self._see, cycle, step, slot, event, d)
+
+    def end_game(self, cycle: int, label: str) -> None:
+        self._guard(self._end_game, cycle, label)
 
     def _emit(self, line: str) -> None:
         line = line if len(line) <= WIDTH else line[:WIDTH - 3] + "..."
@@ -88,9 +112,7 @@ class Narrator:
             self._flush()
             self._cyc = cycle
 
-    def say(self, cycle: int, kind: str, slot: str, text: str) -> None:
-        if not self.on:
-            return
+    def _say(self, cycle: int, kind: str, slot: str, text: str) -> None:
         self._turn(cycle)
         self.game[kind] += 1
         if kind in self._said:
@@ -99,9 +121,7 @@ class Narrator:
         self._said.add(kind)
         self._emit(f"c{cycle} {kind} {slot}: {text}")
 
-    def see(self, cycle: int, step: str, slot: str, event: str, d: dict) -> None:
-        if not self.on:
-            return
+    def _see(self, cycle: int, step: str, slot: str, event: str, d: dict) -> None:
         if step == "PERCEIVE" and event == "bet":
             self.game["bet"] += 1
         if step == "PLAN" and event == "routine_refused":
@@ -110,11 +130,11 @@ class Narrator:
             sel = d.get("selected")
             if sel is not None and sel != self._want:
                 self._want = sel
-                self.say(cycle, "PLAN", slot, f"want selected {_short(sel)}")
+                self._say(cycle, "PLAN", slot, f"want selected {_short(sel)}")
             return
         got = say_row(step, event, d, self._ends)
         if got is not None:
-            self.say(cycle, got[0], slot, got[1])
+            self._say(cycle, got[0], slot, got[1])
 
     def stopped_at(self) -> tuple[str, str]:
         """N2: the first link whose output was empty this game, and the counts it read."""
@@ -137,10 +157,11 @@ class Narrator:
             return "plan", reads
         return "carry", reads
 
-    def end_game(self, cycle: int, label: str) -> None:
-        if not self.on:
-            return
+    def _end_game(self, cycle: int, label: str) -> None:
         self._flush()
+        if self._games and not self.game:
+            return                       # nothing since the last game's line: no second line
+        self._games += 1
         link, reads = self.stopped_at()
         self._emit(f"c{cycle} GAME {label}: stopped at link {link} because {reads}")
         self.game, self.refused, self._want = collections.Counter(), collections.Counter(), None

@@ -6,6 +6,9 @@ rows aloud through narrate.Narrator.
   MF-N4  2,500 mint rows in one cycle print ONE MINT line and, at the next cycle, "+2499 more".
   MF-N5  end_game prints "stopped at link perception" for a game with no bet, "vocabulary" for
          bets and no term, and "plan" for a closer with no level.
+  MF-N6  a console that raises on write (an injected UnicodeEncodeError) never reaches play: the
+         rows are all written, the narrator turns itself off and counts 1 fault.
+  MF-N7  a second end_game with no row since the last says nothing.
 
     python tests/test_narrate.py
 """
@@ -76,9 +79,32 @@ def main():
     said, _ = run(True, Path(tempfile.mkdtemp(prefix="narr_game_")), games)
     links = [ln.split("stopped at link ")[1].split()[0] for ln in said.splitlines() if "GAME" in ln]
     assert links == ["perception", "vocabulary", "plan"], ("MF-N5", said)
+
+    def again(led):                      # MF-N7: a second end with nothing since says nothing
+        games(led)
+        led.end_game(4, "end cap")
+    said, _ = run(True, Path(tempfile.mkdtemp(prefix="narr_end_")), again)
+    assert sum("GAME" in ln for ln in said.splitlines()) == 3, ("MF-N7", said)
+
+    class Broken(io.StringIO):           # MF-N6: a console that raises on every write
+        def write(self, s):
+            raise UnicodeEncodeError("cp1252", s, 0, 1, "injected")
+    d = Path(tempfile.mkdtemp(prefix="narr_err_"))
+    led = ledger.Ledger(d / "run.jsonl")
+    saved, sys.stdout = sys.stdout, Broken()
+    try:
+        rows(led)                        # RED before the guard: the error reaches play here
+        led.end_game(2, "g")
+    finally:
+        sys.stdout = saved
+    led.close()
+    n = len((d / "run.jsonl").read_text(encoding="utf-8").splitlines())
+    nar = led.narrator
+    assert n == 3 and not nar.on and nar.faults == 1, ("MF-N6", n, nar.fault)
     print("test_narrate: MINT then SETTLE said in order and logged; the ledger byte-identical "
           "ON/OFF; OFF says nothing; 2,500 mints in a cycle -> 1 line + '+2499 more'; games "
-          f"stop at {links}")
+          f"stop at {links}; an empty second end says nothing; a raising console turns it off "
+          "(1 fault), never into play")
 
 
 if __name__ == "__main__":
