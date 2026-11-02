@@ -2745,6 +2745,7 @@ BOOKS: tuple[str, ...] = (
     "tiers_index_agree",                # (C) check run: the index's rung sums matched the scan
     "tiers_index_disagree",             # (C) check run: they did NOT match
     "tiers_index_fallback",             # (C): a count <= 0 met; that call scanned
+    "hot_cold_miss",                    # S4: nothing hot answered a lookup; the cold rows read
     "goal_link_refused_wants",          # build 3 L2: refused, the slot already wanted
     "goal_unlinked",                    # build 3 L1: a linked condition stopped paying
     # THE MUTATION OBSERVER, wired to the agent path 2026-09-26. `cue_seen` is the
