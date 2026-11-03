@@ -10618,7 +10618,7 @@ class Agent:
         preds = sorted(s for s, n in self.bound.items()
                        if n in lib and self.gamma.is_settled(n, s))
         if subj not in preds:
-            return None
+            return self._la_none(subj, "no settled predictor reads the subject", 0, 0)
         used = [0]
         keep = dict(self._pred_raw)
 
@@ -10662,7 +10662,8 @@ class Agent:
             self._pred_raw = keep
             self._spent += used[0]
         if got is None:
-            return None
+            return self._la_none(subj, "no unit realised" if not units else
+                                 "no sequence ends nearer than now", len(units), used[0])
         (want, real), depth, g_end, g_now, seq = got
         self.led.record(self.cycle, "PLAN", subj, "lookahead", intent=want.says(),
                         action=real.action, depth=depth, gap_now=g_now, gap_end=g_end,
@@ -10677,6 +10678,11 @@ class Agent:
                 self._la_trail = (k, [])
             self._la_trail[1].append(want)
         return self._took(real, want)
+
+    def _la_none(self, subj: str, why: str, units: int, evaluations: int) -> None:
+        """P3: look-ahead was reached and chose nothing -- the row that makes reached countable."""
+        self.led.record(self.cycle, "PLAN", subj, "lookahead_none", why=why, units=units,
+                        evaluations=evaluations)
 
     @staticmethod
     def _thought_key(dk: Any, reads: Any) -> str:

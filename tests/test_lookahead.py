@@ -6,17 +6,21 @@
   P-b  no predictor reads (predict -> None everywhere): None, never a guess.
   P-c  the budget is what stops it: more() is asked before every predicted press, and the count of
        presses predicted never exceeds what more() allowed.
+  P-r  REACHED IS COUNTABLE: Agent._lookahead_act with nothing settled on the subject chooses
+       nothing and writes one lookahead_none row naming why.
 
     python tests/test_lookahead.py
 """
 from __future__ import annotations
 
 import sys
+from types import SimpleNamespace
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 
+import ledger  # noqa: E402
 import tether  # noqa: E402
 
 
@@ -48,8 +52,16 @@ def main():
     none, _ = run(10_000, predict=lambda _st, _a: None)
     assert none is None, ("P-b: nothing predicted, nothing chosen", none)
     assert g_calls <= 2 and d_calls <= 10_000, ("P-c: the budget bounds the presses", g_calls)
+    ag = SimpleNamespace(_hyp={"slots": ["o1.x"]}, bound={}, cycle=4, led=ledger.Ledger(None),
+                         gamma=SimpleNamespace(library={}))
+    ag._la_none = lambda *a: tether.Agent._la_none(ag, *a)
+    got = tether.Agent._lookahead_act(ag, {})
+    rows = [r["detail"]["why"] for r in ag.led.rows() if r["event"] == "lookahead_none"]
+    assert got is None and rows == ["no settled predictor reads the subject"], (
+        "P-r: reached, nothing chosen, one row naming why", got, rows)
     print(f"test_lookahead: greedy ({g_calls} presses) -> None; look-ahead ({d_calls} presses) -> "
-          f"{deep[:4]} by {deep[4]}; nothing predicted -> None")
+          f"{deep[:4]} by {deep[4]}; nothing predicted -> None; reached with nothing settled -> "
+          f"lookahead_none ({rows[0]})")
 
 
 if __name__ == "__main__":
