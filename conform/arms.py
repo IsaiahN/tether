@@ -2108,6 +2108,10 @@ ARMS: dict[str, str] = {
                          "canon() gives its pose. OFF: the cells as they stand. default OFF "
                          "(r808): ON orphans tallies stored under the as-seen code until a "
                          "legacy read exists",
+    "TETHER_SELF_READ": "M3 (the reviewer 2026-11-02 r844 3): each game's N2 stopped-at link is "
+                        "counted and carried; the next game starts with a self_read row of the "
+                        "lineage's counts. A record and a reading; nothing steers by it. "
+                        "default ON",
     "TETHER_THOUGHT_RECORD": "M1 + M2 (the reviewer 2026-11-02 r828 f): each described lookup "
                              "counts, under its kind-form key, the entries it judged and the ones "
                              "that offered; carried like the line grades; S2's rank puts what paid "

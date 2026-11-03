@@ -222,6 +222,7 @@ def _counts_apply(c: dict, g: dict) -> dict:
         for k, d in g.get(fld, {}).items():
             _add(c.setdefault(fld, {}).setdefault(k, {}), d)
     _add(c.setdefault("cause_kinds", {}), g.get("cause_kinds", {}))
+    _add(c.setdefault("stopped_at", {}), g.get("stopped_at", {}))
     for ek, du in g.get("entry_use", {}).items():
         into = c.setdefault("entry_use", {}).setdefault(ek, {})
         for fld, n in du.items():

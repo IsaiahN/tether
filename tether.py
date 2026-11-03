@@ -2541,6 +2541,12 @@ _LA_ROUTINE = armflag.arm("TETHER_LA_ROUTINE", default=True)
 # entry that paid under this key first, one tried and never paid after the untried -- a cut, never a
 # verdict, so it stays reachable. OFF: S2's order, no record
 _THOUGHT_RECORD = armflag.arm("TETHER_THOUGHT_RECORD", default=True)
+# M3 SELF_READ (the reviewer 2026-11-02 r844 3; skill D1, its own process a world it perceives):
+# each game's N2 "stopped at link" is counted and carried (stopped_at deltas, summed at load), and
+# the next game starts by reading it into a self_read row. A record and a reading only: nothing
+# steers by it tonight. Counted where the narrator speaks (TETHER_NARRATE and a ledger path).
+# OFF: neither
+_SELF_READ = armflag.arm("TETHER_SELF_READ", default=True)
 
 
 def lookahead(state: dict, actions: tuple, predict, gap, more) -> tuple | None:
@@ -3477,6 +3483,8 @@ class Agent:
         self._thought: dict = {"tried": {}, "paid": {}}       # M1: key -> entry -> n, this life
         self._thought_in: dict = {"tried": {}, "paid": {}}    # M1: the same, carried in
         self._thought_written: dict = {"tried": {}, "paid": {}}
+        self._stopped_in: dict = {}                # M3: link -> games, carried in
+        self._stopped_written: dict = {}
         self._lib_won: set = set()       # 7h (d) by route: library-route wins at a mint
         self._contra_q: list = []        # 3a: this step's contradictions, for perception
         self._obj_pick: dict = {}                                     # A1: this cycle's
@@ -10675,6 +10683,16 @@ class Agent:
         """M1: a described lookup's key in kind form -- its delta kind and its asked readings."""
         return json.dumps([list(dk) if dk else None, sorted(str(r) for r in reads if r)],
                           default=str)
+
+    def _self_read(self) -> dict:
+        """M3: the lineage's record of where its games' chains stopped, read at game start."""
+        got = dict(sorted(self._stopped_in.items(), key=lambda kv: (-kv[1], kv[0])))
+        _c, _s, _lv = self._boundary_key("@lineage")
+        self.led.record(_c, "IMPORT", _s, "self_read", **_lv, stopped_at=got,
+                        games=sum(got.values()),
+                        reads="where this lineage's games stopped (N2's link), read at the start; "
+                              "a reading only, nothing steers by it")
+        return got
 
     def _thought_note(self, tk: str, tried: list, paid: set) -> None:
         for fld, es in (("tried", tried), ("paid", paid)):
