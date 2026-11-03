@@ -10628,7 +10628,9 @@ class Agent:
                        if n in lib and self.gamma.is_settled(n, s))
         if subj not in preds:
             return self._la_none(subj, "no settled predictor reads the subject", 0, 0)
-        used = [0]
+        if subj not in before:
+            return self._la_none(subj, "slot not on the board", 0, 0)
+        used, unread = [0], set()
         keep = dict(self._pred_raw)
 
         def more():
@@ -10654,6 +10656,9 @@ class Agent:
         def predict(st, u):
             out = dict(st)
             for s in preds:
+                if s not in st:          # r867: off the board is "could not read", never a lookup
+                    unread.add(s)
+                    continue
                 cap.head()
                 used[0] += 1
                 v = self._predict(s, st, u[1].action)
@@ -10672,12 +10677,13 @@ class Agent:
             self._spent += used[0]
         if got is None:
             return self._la_none(subj, "no unit realised" if not units else
-                                 "no sequence ends nearer than now", len(units), used[0])
+                                 "no sequence ends nearer than now", len(units), used[0],
+                                 sorted(unread))
         (want, real), depth, g_end, g_now, seq = got
         self.led.record(self.cycle, "PLAN", subj, "lookahead", intent=want.says(),
                         action=real.action, depth=depth, gap_now=g_now, gap_end=g_end,
                         plan=[w.says() for w, _r in seq], units=len(units),
-                        evaluations=used[0],
+                        evaluations=used[0], unread=sorted(unread),
                         reads="settled one-press predictors chained over intents in thought; "
                               "the first intent of the sequence whose end most shrinks the "
                               "subject's gap (P3)")
@@ -10688,10 +10694,12 @@ class Agent:
             self._la_trail[1].append(want)
         return self._took(real, want)
 
-    def _la_none(self, subj: str, why: str, units: int, evaluations: int) -> None:
-        """P3: look-ahead was reached and chose nothing -- the row that makes reached countable."""
+    def _la_none(self, subj: str, why: str, units: int, evaluations: int,
+                 unread: list | None = None) -> None:
+        """P3: look-ahead was reached and chose nothing -- the row that makes reached countable.
+        unread: the predictor slots it could not read because they were off the board."""
         self.led.record(self.cycle, "PLAN", subj, "lookahead_none", why=why, units=units,
-                        evaluations=evaluations)
+                        evaluations=evaluations, unread=unread or [])
 
     @staticmethod
     def _thought_key(dk: Any, reads: Any) -> str:
