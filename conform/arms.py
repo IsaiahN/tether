@@ -2108,6 +2108,30 @@ ARMS: dict[str, str] = {
                          "canon() gives its pose. OFF: the cells as they stand. default OFF "
                          "(r808): ON orphans tallies stored under the as-seen code until a "
                          "legacy read exists",
+    "TETHER_SELF_READ": "M3 (the reviewer 2026-11-02 r844 3): each game's N2 stopped-at link is "
+                        "counted and carried; the next game starts with a self_read row of the "
+                        "lineage's counts. A record and a reading; nothing steers by it. "
+                        "default ON",
+    "TETHER_THOUGHT_RECORD": "M1 + M2 (the reviewer 2026-11-02 r828 f): each described lookup "
+                             "counts, under its kind-form key, the entries it judged and the ones "
+                             "that offered; carried like the line grades; S2's rank puts what paid "
+                             "under the key first, what was tried and never paid after the "
+                             "untried. default ON",
+    "TETHER_LA_ROUTINE": "P4 (the reviewer 2026-11-02 r832 d): the intents look-ahead pressed for "
+                         "a held hypothesis settle as one kind-form routine when its gap closes "
+                         "(arrival or level clear), carried by routines_by_kind. default ON",
+    "TETHER_LOOKAHEAD": "P3 (the reviewer 2026-11-02 r832 c): the settled one-press predictors "
+                        "chained over press sequences, paid from the step's evaluation budget; "
+                        "the first press of the sequence whose end most shrinks the held "
+                        "hypothesis's subject gap (by lookahead). default ON",
+    "TETHER_MUSE_BOUND": "(the reviewer 2026-11-02 r841) _muse's evaluations are charged to the "
+                         "step's budget (STEP_BUDGET), checked between bindings and methods; what "
+                         "it does not finish is owed to the next quiet step (muse_owed). OFF: "
+                         "unbounded but for the run's deadline. default ON",
+    "TETHER_TF_PASS": "TF_PASS (the reviewer 2026-11-02 r849 2): inside TRY_FIRST_PAYS, the "
+                      "try-first sweep releases only after one touch for each kind the board "
+                      "showed when the hold opened; a re-opened pass is the growth only. "
+                      "default ON",
     "TETHER_TRY_FIRST_PAYS": "P2' (i) (the reviewer 2026-11-02 r830): an untouched kind holds "
                              "the mint and the split only while kind touches still change "
                              "something (the contact row's felt change); MIN_REPEAT unpaid "

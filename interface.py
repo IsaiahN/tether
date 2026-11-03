@@ -1203,6 +1203,11 @@ class Interface:
         if new_board:
             self.board_n += 1
 
+    def can_touch(self, offered: tuple[str, ...]) -> bool:
+        """TF_PASS (r850): whether any offered action can be aimed at an object, so a kind touch
+        is possible at all. The names stay on this side of the seam."""
+        return any(a in POSITIONED for a in offered)
+
     def untried_here(self, offered: tuple[str, ...]) -> int:
         """C1: how many offered actions are not yet realised on this board, RESET left out while
         alive (known a priori). A count: the names stay on this side of the seam."""
