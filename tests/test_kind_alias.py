@@ -407,17 +407,17 @@ def mf_k9(tmp: Path) -> dict:
         _decompose, _shape_codes, form_pairs = Dec(), {}, {}
     st = Stub()
     calls = [0]
-    real = ap.canon
+    real = ap._canon
 
     def spy(cells):
         calls[0] += 1
         return real(cells)
     try:
-        ap._KIND_CANON, ap.canon = True, spy
+        ap._KIND_CANON, ap._canon = True, spy
         c1, c2, c3 = (arc_world.ArcWorld.shape_code(st, o) for o in ("o1", "o2", "o3"))
         c1b = arc_world.ArcWorld.shape_code(st, "o1")
     finally:
-        ap._KIND_CANON, ap.canon = was, real
+        ap._KIND_CANON, ap._canon = was, real
     assert c1 == c2 == c3 == c1b == canon_c and st.form_pairs == {
         ap._hash(turned): (canon_c, ap.canon(turned)[1])}, ("MF-K9b shape_code", st.form_pairs)
     assert calls[0] == 2, ("MF-K9b (r909) a cell set seen again computes canon once", calls[0])

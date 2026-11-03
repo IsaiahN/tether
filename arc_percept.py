@@ -134,12 +134,40 @@ def _images(cells: Any) -> list:
     return out
 
 
-def canon(cells: Any) -> tuple[frozenset, int]:
-    """The shape's canonical form (the least image) and its POSE: the least index i whose image
-    of the canonical form is this shape."""
+# (4) THE canon() MEMO (Build 1; the reviewer 2026-11-03 r909): canon is a function of the cell set
+# alone and a game shows the same few shapes frame after frame, so each cell set's (form, pose) is
+# computed once per game (canon_reset at each ArcWorld). OFF: computed at every call.
+_CANON_MEMO = armflag.arm("TETHER_CANON_MEMO", default=True)
+_CANON: dict = {}
+
+
+def canon_reset() -> None:
+    _CANON.clear()
+
+
+def _canon(cells: Any) -> tuple[frozenset, int]:
     best = min(_images(cells), key=sorted)
     here = _norm(cells)
     return best, next(i for i, x in enumerate(_images(best)) if x == here)
+
+
+def _entry(cells: Any) -> tuple:
+    """(canonical form, pose, canonical code, as-seen code), once per cell set under the memo."""
+    if not _CANON_MEMO:
+        best, pose = _canon(cells)
+        return best, pose, _hash(best), _hash(cells)
+    key = cells if isinstance(cells, frozenset) else frozenset(tuple(c) for c in cells)
+    got = _CANON.get(key)
+    if got is None:
+        best, pose = _canon(key)
+        got = _CANON[key] = (best, pose, _hash(best), _hash(key))
+    return got
+
+
+def canon(cells: Any) -> tuple[frozenset, int]:
+    """The shape's canonical form (the least image) and its POSE: the least index i whose image
+    of the canonical form is this shape."""
+    return _entry(cells)[:2]
 
 
 def _hash(cells: Any) -> int:
@@ -150,7 +178,7 @@ def _hash(cells: Any) -> int:
 
 def kind_code(cells: Any) -> int:
     """The canonical form's code, always: the tracker's kind (K3a), independent of _KIND_CANON."""
-    return _hash(canon(cells)[0])
+    return _entry(cells)[2]
 
 
 def form_code(cells: Any) -> int | None:
@@ -159,7 +187,7 @@ def form_code(cells: Any) -> int | None:
     cells."""
     if not cells:
         return None
-    return _hash(canon(cells)[0] if _KIND_CANON else cells)
+    return _entry(cells)[2] if _KIND_CANON else _hash(cells)
 
 
 # K4, THE ALIAS AT ARRIVAL (the reviewer 2026-11-03 r886, r888, r903, r906): under K1 a shape met
@@ -172,8 +200,8 @@ _FORM_PAIRS = armflag.arm("TETHER_FORM_PAIRS", default=True)
 
 def code_pair(cells: Any) -> tuple[int, int, int]:
     """(as-seen code, canonical code, pose), one canon."""
-    best, pose = canon(cells)
-    return _hash(cells), _hash(best), pose
+    e = _entry(cells)
+    return e[3], e[2], e[1]
 BREAK_MEDIAN, BREAK_COLOUR = 0.71, 0.42
 
 

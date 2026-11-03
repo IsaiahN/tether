@@ -155,6 +155,7 @@ class ArcWorld:
         self._contact_pts: list | None = None
         self._shape_codes: dict = {}   # 3c-CANON: normalised cells -> their stable code
         self.form_pairs: dict = {}     # K4: as-seen code -> (canonical code, pose), under K1
+        arc_percept.canon_reset()      # (4): the canon memo is per game
         self._prev_contacts: dict[str, list[str]] | None = None
         self._actors: frozenset = frozenset()          # ARC B2: set by the agent's `relate`
         self._pair_read: dict[str, int] | None = None  # ARC B2: this frame's pair slots

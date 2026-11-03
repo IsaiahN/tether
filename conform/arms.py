@@ -1911,6 +1911,11 @@ ARMS: dict[str, str] = {
                          "and are not in force, after the life's carried action cells and "
                          "routines under them meet their canonical ones. OFF: the canonical code "
                          "only, no pairs. default ON",
+    "TETHER_CANON_MEMO": "(4) THE canon() MEMO (Build 1; the reviewer 2026-11-03 r909): each cell "
+                         "set's canonical form, pose and both codes are computed once per game "
+                         "(arc_percept._entry; canon_reset at each ArcWorld), read by canon, "
+                         "kind_code (the tracker's K3a), form_code under K1 and code_pair. OFF: "
+                         "computed at every call. default ON",
     "TETHER_STORE_CONTINUE": "A2c (the reviewer 2026-11-02 r792): under A2, when fold's _topo "
                              "order is the store's chain followed by the new saves, the new "
                              "saves are appended in that order through the rebuild's body, its "
