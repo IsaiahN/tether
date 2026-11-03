@@ -75,6 +75,7 @@ class Narrator:
         self._games = 0                  # N2 lines said; an empty game after one is not said
         self.faults = 0
         self.fault: str | None = None
+        self.links: collections.Counter = collections.Counter()   # M3: games per stopped-at link
 
     def _guard(self, fn, *a) -> None:
         if not self.on:
@@ -163,5 +164,6 @@ class Narrator:
             return                       # nothing since the last game's line: no second line
         self._games += 1
         link, reads = self.stopped_at()
+        self.links[link] += 1
         self._emit(f"c{cycle} GAME {label}: stopped at link {link} because {reads}")
         self.game, self.refused, self._want = collections.Counter(), collections.Counter(), None

@@ -25,14 +25,20 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 
+import ledger  # noqa: E402
 import tether  # noqa: E402
 
 A = tether.Agent
 
 
 def stub():
-    return SimpleNamespace(_tk_off={}, _tk_nofit={}, _tk_win=(None, ()), _dl_n=Counter(),
-                           gamma=SimpleNamespace(atoms=[]))
+    ag = SimpleNamespace(_tk_off={}, _tk_nofit={}, _tk_win=(None, ()), _dl_n=Counter(),
+                         gamma=SimpleNamespace(atoms=[]), cycle=0,
+                         led=ledger.Ledger(None),    # N1: _tk_after says "not yet" through it
+                         _thought={"tried": {}, "paid": {}}, _thought_in={"tried": {}, "paid": {}},
+                         _thought_key=A._thought_key)
+    ag._thought_of = lambda f, k: A._thought_of(ag, f, k)
+    return ag
 
 
 def entries(n, prefix="e"):
