@@ -2506,6 +2506,94 @@ _S0_BEFORE_BORED = armflag.arm("TETHER_S0_BEFORE_BORED", default=True)
 # Bounded by the board's own kinds (m0r0 5, lp85 11, tn36 15, vc33 11), never its objects.
 # OFF: System 0 ends with its contact pairs; C2 touches by id
 _TOUCH_EACH_KIND = armflag.arm("TETHER_TOUCH_EACH_KIND", default=True)
+# P2' (i) TRY_FIRST_PAYS (the reviewer 2026-11-02 r830; Fig 9 :60, Fig 5 :15-17): an untouched kind
+# holds the mint and the split only while touching kinds still PAYS by the agent's own record -- a
+# kind touch pays only if its felt change (the contact row's moved, net of I-B) holds a slot no
+# earlier press on this board moved (_board_moved before it: the bin is new, Fig 5 :15-17), and
+# MIN_REPEAT unpaid in a row release the kinds' hold; a kind newly on the board re-opens it.
+# Untried ACTIONS hold as before. OFF: the kinds hold until each is touched
+_TRY_FIRST_PAYS = armflag.arm("TETHER_TRY_FIRST_PAYS", default=True)
+# TF_PASS (the reviewer 2026-11-02 r849 2; Fig 8 :39, "a search that finds nothing is never a proof
+# of absence"; Fig 9 :60, a cut, never a verdict): inside TRY_FIRST_PAYS, the sweep's budget is the
+# board's own count of untouched kinds when the hold opens (U0), one touch each; the novelty release
+# fires only once that pass is done. A re-opened pass is the growth since the last release. A board
+# where nothing pays still releases after its pass. OFF: the release at MIN_REPEAT empty touches
+_TF_PASS = armflag.arm("TETHER_TF_PASS", default=True)
+# P2' (ii) HYP_OWN_PRESS (r830; Fig 1): a held goal hypothesis ages, and its trend is read, only on
+# its own presses (a routine, a hold, an actuator press, its goal split's press); a press spent
+# elsewhere is counted as such and never ends it. OFF: every cycle ages it
+_HYP_OWN_PRESS = armflag.arm("TETHER_HYP_OWN_PRESS", default=True)
+_HYP_OWN_BY = ("routine", "hold", "actuator", "discriminate:goal", "lookahead")
+# P3 LOOK-AHEAD (the reviewer 2026-11-02 14:38 plan, r832 c; Fig 12 :107-108, rehearsal over a
+# sequence): the settled one-press predictors chained over sequences of INTENTS in thought (r841 4:
+# BECOME the subject +/-, TOUCH an object the predictors read, each realised by the interface as
+# every press is), paid from the step's evaluation budget (STEP_BUDGET), so the depth is what the
+# budget reaches, never a constant; the first intent of the sequence whose predicted end most
+# shrinks the held hypothesis's subject gap is pressed (by "lookahead"), re-read every step. A
+# sequence is intents over kinds, never a press replay. OFF: no look-ahead exit
+_LOOKAHEAD = armflag.arm("TETHER_LOOKAHEAD", default=True)
+# P4 LA_ROUTINE (the reviewer 2026-11-02 14:38 plan, r832 d; Fig 4 :25-26, a method carried, never
+# the presses): the intents a held hypothesis pressed by look-ahead are kept; when its gap CLOSES
+# (it arrives, or the level clears) they are settled as one routine in KIND FORM -- Act / Seq over
+# the intents, through _routine_form -- so routines_by_kind carries it and _carried_cands offers it
+# on the next board. A trail with no kind form (an intent naming nothing on another board) is not
+# formed, and says why. OFF: no routine from look-ahead
+_LA_ROUTINE = armflag.arm("TETHER_LA_ROUTINE", default=True)
+# M1 + M2 THE THOUGHT RECORD (the reviewer 2026-11-02 14:38 plan, r828 f; Fig 12 :107-108, "where
+# the arrangement is recorded, re-deriving it is a lookup"): each described lookup counts, under its
+# key in KIND FORM (the delta kind and the asked readings, no slot names), the entries it judged
+# (tried) and the entries that offered (paid); carried by the lineage like the 7h line grades
+# (thought_tried / thought_paid deltas, summed at load). S2's cheap rank reads it: within a tier, an
+# entry that paid under this key first, one tried and never paid after the untried -- a cut, never a
+# verdict, so it stays reachable. OFF: S2's order, no record
+_THOUGHT_RECORD = armflag.arm("TETHER_THOUGHT_RECORD", default=True)
+# M3 SELF_READ (the reviewer 2026-11-02 r844 3; skill D1, its own process a world it perceives):
+# each game's N2 "stopped at link" is counted and carried (stopped_at deltas, summed at load), and
+# the next game starts by reading it into a self_read row. A record and a reading only: nothing
+# steers by it tonight. Counted where the narrator speaks (TETHER_NARRATE and a ledger path).
+# OFF: neither
+_SELF_READ = armflag.arm("TETHER_SELF_READ", default=True)
+
+
+def lookahead(state: dict, actions: tuple, predict, gap, more) -> tuple | None:
+    """P3: breadth first over sequences of units (intents) while more() allows. predict(state, a)
+    is the next state or None; gap(state) an int or None. (first unit, depth, gap at its end, gap
+    now, the sequence) of the sequence with the least gap at its end (then the shortest, then unit
+    order); None if no sequence ends nearer than now. A state already reached is not extended
+    twice."""
+    now = gap(state)
+    if now is None or now == 0 or not actions:
+        return None
+    best, frontier, seen, depth = None, [((), state)], set(), 0
+    while frontier and more():
+        depth += 1
+        nxt = []
+        for seq, st in frontier:
+            for a in actions:
+                if not more():
+                    break
+                s2 = predict(st, a)
+                g = gap(s2) if s2 is not None else None
+                if g is None:
+                    continue
+                if best is None or (g, depth) < best[:2]:
+                    best = (g, depth, seq + (a,))
+                key = tuple(sorted(s2.items()))
+                if g and key not in seen:
+                    seen.add(key)
+                    nxt.append((seq + (a,), s2))
+        if best is not None and best[0] == 0:
+            break
+        frontier = nxt
+    if best is None or best[0] >= now:
+        return None
+    return best[2][0], best[1], best[0], now, best[2]
+# MUSE_BOUND (the reviewer 2026-11-02 r841; Fig 12 :126-127): _muse re-tests every settled method
+# on every residual parked on an earlier level, and its only stop was the RUN's deadline -- after a
+# level clear one step ran over an hour. Each of its evaluations (_left) is charged to the step's
+# evaluation budget (STEP_BUDGET), checked between bindings and methods; what it does not finish is
+# OWED to the next quiet step and resumes where it stopped. OFF: unbounded, as before
+_MUSE_BOUND = armflag.arm("TETHER_MUSE_BOUND", default=True)
 # E, DELTA_TIER_MEMO (the reviewer 2026-11-01 r736): _delta_tier ran once per candidate binding and
 # each call re-walked every slot of every residual observation, the whole owner map and the
 # contact map, which do not change until the trace grows (tn36 profile: route 76% of samples,
@@ -3398,6 +3486,11 @@ class Agent:
         self._line_grade: dict = {}
         self._line_grade_in: dict = {}
         self._line_grade_written: dict = {}
+        self._thought: dict = {"tried": {}, "paid": {}}       # M1: key -> entry -> n, this life
+        self._thought_in: dict = {"tried": {}, "paid": {}}    # M1: the same, carried in
+        self._thought_written: dict = {"tried": {}, "paid": {}}
+        self._stopped_in: dict = {}                # M3: link -> games, carried in
+        self._stopped_written: dict = {}
         self._lib_won: set = set()       # 7h (d) by route: library-route wins at a mint
         self._contra_q: list = []        # 3a: this step's contradictions, for perception
         self._obj_pick: dict = {}                                     # A1: this cycle's
@@ -3420,6 +3513,11 @@ class Agent:
         self._bond_inc: dict = {}    # TETHER_BOND_INC: slot -> its frames' ids, each pair's fold
         self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
         self._board_touched: set = set()  # C2: objects System 0 touched on this board
+        self._kind_unpaid = 0             # P2' (i): kind touches in a row that changed nothing
+        self._la_trail = None             # P4: (hypothesis key, the intents look-ahead pressed)
+        self._kinds_open = 0              # P2' (i): the untouched kinds at the last reading
+        self._tf_len = self._tf_left = None   # TF_PASS: this pass's touches, and those still owed
+        self._tf_rel_u = None             # TF_PASS: the untouched count at the last release
         self._board_moved: set = set()    # G: slots this board's presses moved (credited)
         self._goal_refuted: set = set()   # G: (subject, sign) arrived without a clear, this board
         self._actuators: dict = {}        # G: object -> (credited change, owners) of its touch
@@ -3521,6 +3619,7 @@ class Agent:
         self._inv_seen: dict = {}     # M6: slot -> history length last tried
         self._step_row0 = 0           # MC6: the ledger length when this step began
         self._muse_last = None        # MC6 N2: (targets, methods) last tested, and its cycle
+        self._muse_run = None         # MUSE_BOUND: a muse the step's budget cut, resumed next
         self._deg_prev = None         # the completion sweep: the world's degree last step
         self._sweep_from = (0, 0, set(), set())   # (seq, cycle, settled, owed) at segment start
         self._reach_hist: list = []   # build 2: (after-state, world reached?) per step, this level
@@ -4478,6 +4577,8 @@ class Agent:
             self._pressed_seen.clear()
         if how != "death":
             self._board_touched.clear()    # C2: a new board's objects are touched once here
+            self._kind_unpaid, self._kinds_open = 0, 0
+            self._tf_len = self._tf_left = self._tf_rel_u = None   # TF_PASS: the next board's pass
             self._board_moved.clear()      # G: what this board's presses moved
             self._goal_refuted.clear()     # G: the refuted signs are this board's
             self._actuators, self._act_seen, self._act_pending = {}, {}, None   # G: this board's
@@ -5989,6 +6090,12 @@ class Agent:
                             reads=("the library lit by this residual's description; the distinct "
                                    "views and CAUSE then-sides that compile onto this slot, tested "
                                    "and recorded, each with the count of entries that offered it"))
+        if _THOUGHT_RECORD and dl_key is not None:
+            # M1: this lookup's judged entries and the ones that offered, under its kind-form key
+            paid = {(o_.get("prov") or {}).get("library") for m in tg
+                    for o_ in self._lib_offers.get(m, ()) if o_.get("offered")} - {None}
+            self._thought_note(self._thought_key(dl_key[1], {att.get(s) for s in tg}),
+                               [k for k, _w in lit], paid)
         if dl_key is not None and not self._k1_trunc and not self._walk_cut \
                 and not any(self._lib_offers.get(m) for m in tg) \
                 and self._tk_after(dl_key, tk_next):
@@ -6006,8 +6113,18 @@ class Agent:
             i += c
         reads = {att.get(s) for s in tg}
         post = _posting_reads()
-        ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)),
-                                            -len(post.get(e[0], frozenset()) & reads)))
+        if _THOUGHT_RECORD:
+            tk = self._thought_key(key[1], reads)
+            tried, paid = self._thought_of("tried", tk), self._thought_of("paid", tk)
+
+            def order(e):
+                p = paid.get(e[0], 0)
+                return (tier_of.get(e[0], len(tiers)), -p, bool(tried.get(e[0]) and not p),
+                        -len(post.get(e[0], frozenset()) & reads))
+            ranked = sorted(lit, key=order)
+        else:
+            ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)),
+                                                -len(post.get(e[0], frozenset()) & reads)))
         if _SERP_CACHE:
             # S3: what this key already judged no-fit is skipped; the window is the next unjudged
             seen = self._tk_nofit.get(key, ())
@@ -7589,6 +7706,14 @@ class Agent:
                 or h["key"] not in self._goal_links:
             self._hyp_end("lost")               # its want was released elsewhere
             return
+        if _HYP_OWN_PRESS and not h.get("own_last"):
+            # P2' (ii): the last press was not its own. Its budget passing with none of its own
+            # ends it "untested" (r834; Fig 9 :44, :60: a budget hands no verdict), kept on the
+            # shelf by UNTESTED_KEEP, so one the board never presses for cannot hold the goal slot
+            h["elsewhere"] = h.get("elsewhere", 0) + 1
+            if h["elsewhere"] > h["budget"]:
+                self._hyp_end("untested", by="elsewhere")
+            return
         h["steps"] += 1
         sers = [self._res.get(sl) for sl in h["slots"]]
         if all(s and arrival(s) == CONFIRMED for s in sers):
@@ -7629,6 +7754,7 @@ class Agent:
     def _hyp_end(self, why: str, loss: bool = False, won: bool = False,
                  step: str = "PLAN", by: str | None = None) -> None:
         h, self._hyp = self._hyp, None
+        self._la_routine(h, why)
         kept = self._books_kept()
         released = self._release_link(h["key"])
         self._books_back(kept)
@@ -7652,6 +7778,7 @@ class Agent:
                         touches=h["touches"], losses=h["losses"],
                         reads_n={sl: len(v) for sl, v in h["reads"].items()},
                         acted=dict(h["acted"]),
+                        **({"elsewhere": h.get("elsewhere", 0)} if _HYP_OWN_PRESS else {}),
                         reads="a goal hypothesis ended; the next must differ (Fig 7 :36)",
                         **({"tests": dict(h.get("tests", {})),
                             "tests_read_by": None} if _R4_RECORD else {}))
@@ -8351,43 +8478,78 @@ class Agent:
                          if not self.gamma.is_atom(t) and self.gamma.is_settled(n))
         # N2 (the reviewer 00:05Z): nothing changed since the last muse, nothing is re-tested
         key = (tuple(sorted(targets)), tuple(methods))
-        if self._muse_last is not None and self._muse_last[0] == key:
+        run = self._muse_run if (_MUSE_BOUND and self._muse_run is not None
+                                 and self._muse_run["key"] == key) else None
+        if run is None and self._muse_last is not None and self._muse_last[0] == key:
             self.led.record(self.cycle, "IMPORT", "@muse", "muse", level=self.level,
                             unchanged_since=self._muse_last[1], tried=0, paying=[],
                             compute_ms=round(1000 * (time.perf_counter() - t0), 3),
                             installed=False,
                             reads="the same targets and settled methods as that cycle's muse")
             return
-        self._muse_last = (key, self.cycle)
-        tried, paying, skipped = 0, [], Counter()
-        for key, rec in sorted(targets.items()):
+        if run is None:
+            self._muse_last = (key, self.cycle)
+            run = {"key": key, "i": 0, "j": 0, "b": 0, "best": None, "base": None, "tried": 0,
+                   "paying": [], "skipped": Counter(), "steps": 0, "ms": 0.0}
+        run["steps"] += 1
+        items = sorted(targets.items())
+
+        def spend() -> bool:
+            # MUSE_BOUND: one evaluation per _left, charged to the step; True when spent out
+            if not _MUSE_BOUND:
+                return False
+            if self._spent >= STEP_BUDGET:
+                return True
+            self._spent += 1
+            return False
+
+        while run["i"] < len(items):
+            pk, rec = items[run["i"]]
             cap.head()
             slot, hist = rec["slot"], rec["hist"]
             if slot not in self.alphabet:
-                skipped["slot has no alphabet this level"] += 1
+                run["skipped"]["slot has no alphabet this level"] += 1
+                run["i"], run["j"], run["base"] = run["i"] + 1, 0, None
                 continue
-            base = self._left(self.gamma.library[IDN], slot, hist)
-            for name in methods:
+            if run["base"] is None:
+                if spend():
+                    self._muse_owe(run, t0)
+                    return
+                run["base"] = self._left(self.gamma.library[IDN], slot, hist)
+            binds = [None] + [x for x in rec.get("slots", ()) if x != slot]
+            while run["j"] < len(methods):
+                name = methods[run["j"]]
                 cap.head()
                 chain = self.gamma.library[name].atoms
-                best = None
-                for bind in [None] + [x for x in rec.get("slots", ()) if x != slot]:
+                while run["b"] < len(binds):
                     cap.head()
-                    cand = Term(chain, operand=bind)
-                    tried += 1
+                    if spend():
+                        self._muse_owe(run, t0)
+                        return
+                    cand = Term(chain, operand=binds[run["b"]])
+                    run["tried"] += 1
                     left = self._left(cand, slot, hist)
-                    if best is None or left < best[0]:
-                        best = (left, cand)
-                left, cand = best
+                    if run["best"] is None or left < run["best"][0]:
+                        run["best"] = (left, cand)
+                    run["b"] += 1
+                left, cand = run["best"]
                 cost = self._bits((cand, ()))
-                if pays(cost, left, base):
-                    paying.append({"parked": key, "method": name, "as": cand.name,
-                                   "cost": round(cost, 3), "left": round(left, 3),
-                                   "base": round(base, 3)})
+                if pays(cost, left, run["base"]):
+                    run["paying"].append({"parked": pk, "method": name, "as": cand.name,
+                                          "cost": round(cost, 3), "left": round(left, 3),
+                                          "base": round(run["base"], 3)})
+                run["j"], run["b"], run["best"] = run["j"] + 1, 0, None
+            run["i"], run["j"], run["base"] = run["i"] + 1, 0, None
+        self._muse_run = None
+        tried, paying, skipped = run["tried"], run["paying"], run["skipped"]
         self.led.record(self.cycle, "IMPORT", "@muse", "muse", level=self.level,
                         targets=sorted(targets), methods=len(methods), tried=tried,
                         paying=paying, skipped=dict(skipped),
                         compute_ms=round(1000 * (time.perf_counter() - t0), 3),
+                        **({"steps": run["steps"],
+                            "compute_ms_all": round(run["ms"] + 1000 * (time.perf_counter()
+                                                                       - t0), 3)}
+                           if _MUSE_BOUND else {}),
                         installed=False,
                         # N1 (the reviewer 00:05Z): as in the sweep, choosing the operand (bare
                         # or one of the record's slots) is not charged; operand-choice pricing
@@ -8395,6 +8557,18 @@ class Agent:
                         binding="unpriced",
                         reads=("a mastered method re-tested on an earlier level's parked "
                                "residual; the gap recorded, nothing installed, no action"))
+
+    def _muse_owe(self, run: dict, t0: float) -> None:
+        """MUSE_BOUND: the step's budget ran out inside a muse; where it stopped is kept and the
+        next quiet step resumes there (a cut, never a verdict: Fig 9 :44, :60)."""
+        ms = 1000 * (time.perf_counter() - t0)
+        run["ms"] += ms
+        self._muse_run = run
+        self.led.record(self.cycle, "IMPORT", "@muse", "muse_owed", level=self.level,
+                        target=run["i"], method=run["j"], binding=run["b"], tried=run["tried"],
+                        steps=run["steps"], compute_ms=round(ms, 3),
+                        reads=("the step's evaluation budget ran out inside a muse; the rest is "
+                               "owed to the next quiet step, never a verdict"))
 
     # ---------------------------------------------------------------- 7c M6, INVENT
     def _inv_holds(self, key: str | None, state: dict) -> bool:
@@ -10441,6 +10615,145 @@ class Agent:
                             rehearsed=len(made), compared=compared, misses=missed,
                             links_held_misses=links)
 
+    def _lookahead_act(self, before: dict) -> str | None:
+        """P3: the held hypothesis's subject read through the settled one-press predictors chained
+        over sequences of intents (lookahead): BECOME the subject +/- and TOUCH each object the
+        predictors read, each realised once by the interface (two intents realised to one press
+        are one unit), each realisation and predicted press paid from the step's evaluation
+        budget. The first intent goes out through _took, as every press does. None when nothing
+        settled predicts the subject, nothing realises, or no sequence ends nearer."""
+        subj = self._hyp["slots"][0]
+        lib = self.gamma.library
+        preds = sorted(s for s, n in self.bound.items()
+                       if n in lib and self.gamma.is_settled(n, s))
+        if subj not in preds:
+            return self._la_none(subj, "no settled predictor reads the subject", 0, 0)
+        if subj not in before:
+            return self._la_none(subj, "slot not on the board", 0, 0)
+        used, unread = [0], set()
+        keep = dict(self._pred_raw)
+
+        def more():
+            return self._spent + used[0] + len(preds) <= STEP_BUDGET
+
+        owners = sorted({o for s in preds for o in self._objs_named(s)})
+        wants = ([IFace.Intent(IFace.BECOME, subj, "+"), IFace.Intent(IFace.BECOME, subj, "-")]
+                 + [IFace.Intent(IFace.TOUCH, object=o) for o in owners])
+        units, pressed = [], set()
+        ctx = IFace.Interface.context(self.env)
+        for w in wants:
+            if not more():
+                break
+            cap.head()
+            used[0] += 1
+            r = self.iface.realise(w, tuple(self.actions), ctx, before, self.env,
+                                   withheld=self._withheld)
+            if r is None or r.unmapped or (r.action, r.coord) in pressed:
+                continue                 # unmapped: pressed to learn, so nothing predicts it
+            pressed.add((r.action, r.coord))
+            units.append((w, r))
+
+        def predict(st, u):
+            out = dict(st)
+            for s in preds:
+                if s not in st:          # r867: off the board is "could not read", never a lookup
+                    unread.add(s)
+                    continue
+                cap.head()
+                used[0] += 1
+                v = self._predict(s, st, u[1].action)
+                if v is not None:
+                    out[s] = v
+            return out
+
+        def gap(st):
+            g = self._discrepancy(subj, st)
+            return g if isinstance(g, int) else None
+
+        try:
+            got = lookahead(dict(before), tuple(units), predict, gap, more)
+        finally:
+            self._pred_raw = keep
+            self._spent += used[0]
+        if got is None:
+            return self._la_none(subj, "no unit realised" if not units else
+                                 "no sequence ends nearer than now", len(units), used[0],
+                                 sorted(unread))
+        (want, real), depth, g_end, g_now, seq = got
+        self.led.record(self.cycle, "PLAN", subj, "lookahead", intent=want.says(),
+                        action=real.action, depth=depth, gap_now=g_now, gap_end=g_end,
+                        plan=[w.says() for w, _r in seq], units=len(units),
+                        evaluations=used[0], unread=sorted(unread),
+                        reads="settled one-press predictors chained over intents in thought; "
+                              "the first intent of the sequence whose end most shrinks the "
+                              "subject's gap (P3)")
+        if _LA_ROUTINE:
+            k = self._hyp["key"]
+            if self._la_trail is None or self._la_trail[0] != k:
+                self._la_trail = (k, [])
+            self._la_trail[1].append(want)
+        return self._took(real, want)
+
+    def _la_none(self, subj: str, why: str, units: int, evaluations: int,
+                 unread: list | None = None) -> None:
+        """P3: look-ahead was reached and chose nothing -- the row that makes reached countable.
+        unread: the predictor slots it could not read because they were off the board."""
+        self.led.record(self.cycle, "PLAN", subj, "lookahead_none", why=why, units=units,
+                        evaluations=evaluations, unread=unread or [])
+
+    @staticmethod
+    def _thought_key(dk: Any, reads: Any) -> str:
+        """M1: a described lookup's key in kind form -- its delta kind and its asked readings."""
+        return json.dumps([list(dk) if dk else None, sorted(str(r) for r in reads if r)],
+                          default=str)
+
+    def _self_read(self) -> dict:
+        """M3: the lineage's record of where its games' chains stopped, read at game start."""
+        got = dict(sorted(self._stopped_in.items(), key=lambda kv: (-kv[1], kv[0])))
+        _c, _s, _lv = self._boundary_key("@lineage")
+        self.led.record(_c, "IMPORT", _s, "self_read", **_lv, stopped_at=got,
+                        games=sum(got.values()),
+                        reads="where this lineage's games stopped (N2's link), read at the start; "
+                              "a reading only, nothing steers by it")
+        return got
+
+    def _thought_note(self, tk: str, tried: list, paid: set) -> None:
+        for fld, es in (("tried", tried), ("paid", paid)):
+            into = self._thought[fld].setdefault(tk, {})
+            for e in es:
+                into[e] = into.get(e, 0) + 1
+
+    def _thought_of(self, fld: str, tk: str) -> dict:
+        """M1: the lineage's count under this key plus this life's."""
+        out = dict(self._thought_in[fld].get(tk, {}))
+        for e, n in self._thought[fld].get(tk, {}).items():
+            out[e] = out.get(e, 0) + n
+        return out
+
+    def _la_routine(self, h: dict, why: str) -> None:
+        """P4: the hypothesis ends; if its look-ahead presses closed its gap, they settle as one
+        routine in kind form (carried by routines_by_kind, offered by _carried_cands)."""
+        trail = self._la_trail[1] if self._la_trail and self._la_trail[0] == h["key"] else []
+        self._la_trail = None
+        if not (_LA_ROUTINE and trail and why in ("level_cleared", "arrived_no_clear")):
+            return
+        r = Rt.Act(trail[-1])
+        for w in reversed(trail[:-1]):
+            r = Rt.Seq(Rt.Act(w), r)
+        form = self._routine_form(r)
+        if form is None or r in self.routines:
+            self.led.record(self.cycle, "PLAN", h["slots"][0], "routine_not_formed",
+                            routine=Rt.render(r), why=why,
+                            reason=("already settled" if form is not None else
+                                    "a step names nothing on another board (no kind form)"))
+            return
+        self.routines.append(r)
+        self.led.record(self.cycle, "PLAN", h["slots"][0], "routine_formed",
+                        routine=Rt.render(r), presses=len(trail), why=why,
+                        form=json.dumps(form, sort_keys=True),
+                        reads="the look-ahead presses that closed the gap, settled as one routine "
+                              "over intents in kind form; carried as a method, never the presses")
+
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
         driving the bet, which is the only way it ever accumulates the held-out evidence
@@ -10706,6 +11019,8 @@ class Agent:
                             reads=("every slot that changed is credited to this press, less "
                                    "what changed anyway (I-B)" if _REAFFERENCE else
                                    "every slot that changed is credited to this press (F1)"))
+        if _TRY_FIRST_PAYS:
+            self._moved_before = frozenset(self._board_moved)   # P2' (i): what is new to the board
         if _GOAL_BY_MOVED and not self._seam_now:
             self._board_moved.update(getattr(self.iface, "last_changed", ()))
         if _GOAL_FROM_ACTUATOR and not self._seam_now and getattr(self.iface, "last_changed", ()):
@@ -13505,6 +13820,12 @@ class Agent:
                 if goal is not None:
                     self._hyp_why = "acted"
                     return goal, "discriminate:goal"
+        if (_LOOKAHEAD and self._hyp is not None and not _touched
+                and not (_BOARD_TRY_FIRST and self._try_first_open())):
+            _la = self._lookahead_act(before)
+            if _la is not None:
+                self._hyp_why = "looked ahead"
+                return _la, "lookahead"
         take, s0_tw, dist_r = None, None, None
         if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
                 self.drive.bored() and not (_STARVED_CONTACT and self._aims())
@@ -14028,7 +14349,41 @@ class Agent:
         untouched kinds. A count."""
         n = self._board_untried_n()
         if _TOUCH_EACH_KIND and getattr(self, "env", None) is not None:
-            n += len(self._untouched_kinds(self.env.observe()))
+            uk = self._untouched_kinds(self.env.observe())
+            if _TRY_FIRST_PAYS:
+                if _TF_PASS and uk and not self.iface.can_touch(tuple(self.actions)):
+                    # r850: no offered action can be aimed at an object, so no kind touch can
+                    # come -- the kinds hold nothing and the pass is spent
+                    if self._tf_left is None:
+                        self.led.record(self.cycle, self._running_step, "@try_first",
+                                        "try_first_no_touch", untouched=len(uk),
+                                        reads="no offered action can be aimed at an object: the "
+                                              "untouched kinds cannot be touched, so they hold "
+                                              "nothing")
+                    self._tf_len = self._tf_left = 0
+                    return n
+                if _TF_PASS and self._tf_left is None:
+                    self._tf_len = self._tf_left = len(uk)   # U0: one touch for each kind
+                if len(uk) > self._kinds_open:
+                    self._kind_unpaid = 0      # more untouched kinds: touching may pay again
+                    if _TF_PASS and self._tf_rel_u is not None and len(uk) > self._tf_rel_u:
+                        # re-opened on a grown count: the new pass is the growth only
+                        self._tf_len = self._tf_left = len(uk) - self._tf_rel_u
+                        self._tf_rel_u = None
+                self._kinds_open = len(uk)     # a count: kind keys churn as slots change
+                if _TF_PASS:
+                    if self._tf_left == 0 and self._kind_unpaid >= min(MIN_REPEAT, self._tf_len):
+                        if self._tf_rel_u is None:
+                            self._tf_rel_u = len(uk)
+                            self.led.record(self.cycle, self._running_step, "@try_first",
+                                            "try_first_released", pass_len=self._tf_len,
+                                            unpaid=self._kind_unpaid, untouched=len(uk),
+                                            reads="one touch for each kind, and the last ones "
+                                                  "changed nothing new: the kinds hold nothing")
+                        return n
+                elif self._kind_unpaid >= MIN_REPEAT:
+                    return n                   # touching kinds stopped paying: they hold nothing
+            n += len(uk)
         return n
 
     def _board_untried_n(self) -> int:
@@ -14569,7 +14924,9 @@ class Agent:
         # point where a PERCEIVE row is already in order.
         self._popped = popped
         h = self._hyp
-        if h is not None:          # GQ2: the held hypothesis's own readings, and its held cycles
+        if h is not None and _HYP_OWN_PRESS and not h.get("own_last"):
+            pass                   # P2' (ii): not its own press, so not its reading
+        elif h is not None:        # GQ2: the held hypothesis's own readings, and its held cycles
             for sl in h["slots"]:
                 if sl in held:
                     h["held_unreadable"] += 1
@@ -16984,6 +17341,11 @@ class Agent:
             if _GOAL_FROM_ACTUATOR and moved_all:
                 self._actuators[pair[0]] = (len(moved_all), len(owners),   # G: an actuator
                                             frozenset(moved_all))
+            if _TRY_FIRST_PAYS:
+                new = set(moved_all) - getattr(self, "_moved_before", frozenset())
+                self._kind_unpaid = 0 if new else self._kind_unpaid + 1
+                if _TF_PASS and self._tf_left:
+                    self._tf_left -= 1         # TF_PASS: one of this pass's touches spent
             self.led.record(self.cycle, "PERCEIVE", pair[0], "contact", pair=list(pair),
                             kind="kind-touch", made=landed or bool(moved_all), landed=landed,
                             moved=moved_all[:8], moved_n=len(moved_all), owners_n=len(owners),
@@ -20347,6 +20709,8 @@ class Agent:
                 self._rt_press = by == "routine"
             if _h is not None:
                 _h["acted"][by] += 1        # GQ2: which exit acted while a hypothesis was held
+                if _HYP_OWN_PRESS:
+                    _h["own_last"] = by in _HYP_OWN_BY
             if (_CONTACT_FIRST or _ROUTE_NAMED) and (by == "routine"
                                                      or self._pred_named == self.cycle):
                 self._act_named = self.cycle

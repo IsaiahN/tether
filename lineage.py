@@ -338,7 +338,8 @@ def _keyed(out: dict, field: str, g: dict, h: str, anc: dict, hist: dict, heads:
     one its generation descends from. Branches that AGREE read the agreed value; book running
     totals (every head an integer at or above the pre-split one) merge as the pre-split value plus
     each head's increment, an absent pre-split value read as 0 (the reviewer 2026-11-02 r800 2,
-    r801 4). Otherwise branches that disagree keep
+    r801 4). A merge generation of FOLD_RULE 2 re-reads equal moving counters as increments
+    (FoldState._merge_point). Otherwise branches that disagree keep
     the value from before the split (absent if there was none) and record both under
     "contested_<field>"."""
     for key, v in g[field].items():
@@ -389,6 +390,8 @@ class FoldState:
     def step(self, h: str, g: dict) -> None:
         rows, out, anc, hist, heads = self.rows, self.out, self.anc, self.hist, self.heads
         anc[h] = {h}.union(*(anc[q] for q in _parents(g)))
+        if len(_parents(g)) > 1:
+            self._merge_point(h, g.get("fold_rule", 1))
         for r in g["terms"]:
             row = {**r, "born": h}
             rows[_rid(row)] = row
@@ -423,6 +426,35 @@ class FoldState:
             out["dormant"].extend(dec(g["dormant"]))
         if g.get("aliases"):
             out.setdefault("aliases", []).extend(g["aliases"])   # (d), in chain order
+
+    def _merge_point(self, h: str, rule: int) -> None:
+        """A merge generation writes nothing, so a key both branches wrote kept two heads past it,
+        and a later fork read p0 as the last RAW write instead of the value the fold holds here
+        (the reviewer 2026-11-03 r881 4 (i); try_first_owed read 746 for 3,232). At every merge,
+        each row and keyed value whose heads all lie under it records the folded value as written
+        by the merge, which becomes its single head; this changes no fold already made. A key a
+        contest left absent is left as it is. At a FOLD_RULE 2 merge only (r882 3), a book counter
+        whose heads all moved from p0 reads p0 + each head's increment even where the heads are
+        equal (r881 4 (ii)); merges written before carry no fold_rule and fold as they did."""
+        anc, out = self.anc[h], self.out
+        for k, hs in self.heads.items():
+            if len(hs) > 1 and hs <= anc:
+                self.hist[k].append((h, self.rows[k].get("admitted")))
+                self.heads[k] = {h}
+        for (field, key), hs in self.kheads.items():
+            if len(hs) < 2 or not hs <= anc:
+                continue
+            kh = self.khist[(field, key)]
+            if rule >= 2 and field == "book":
+                vals = _head_values(kh, hs)
+                common = set.intersection(*(self.anc[q] for q in hs))
+                pre = [x for q, x in kh if q in common]
+                p0 = pre[-1] if pre else 0
+                if _count(p0) and all(_count(x) and x >= p0 for x in vals):
+                    out["book"][key] = p0 + sum(x - p0 for x in vals)
+            if key in out[field]:
+                kh.append((h, out[field][key]))
+                self.kheads[(field, key)] = {h}
 
     def result(self) -> dict:
         self.out["terms"] = list(self.rows.values())
@@ -632,6 +664,18 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                                   for o, n in sorted(c.items())
                                   if n > ag._line_grade_written.get(k, {}).get(o, 0)}
                               for k, c in sorted(ag._line_grade.items())}
+    if tether._THOUGHT_RECORD and hasattr(ag, "_thought"):
+        # M1: each kind-form lookup key's entries tried / paid since the last write; load sums
+        for fld in ("tried", "paid"):
+            w = ag._thought_written[fld]
+            gen["thought_" + fld] = {k: {e: n - w.get(k, {}).get(e, 0) for e, n in sorted(c.items())
+                                         if n > w.get(k, {}).get(e, 0)}
+                                     for k, c in sorted(ag._thought[fld].items())}
+    if tether._SELF_READ and hasattr(ag, "_stopped_written"):
+        # M3: the games' stopped-at links since the last write; load sums
+        now = getattr(getattr(ag.led, "narrator", None), "links", {})
+        w = ag._stopped_written
+        gen["stopped_at"] = {k: n - w.get(k, 0) for k, n in sorted(now.items()) if n > w.get(k, 0)}
     if tether._M7_INV and hasattr(ag, "_inv_carry"):
         # M7-INV: the inventions made since the last write, as their method, with the standing
         # their term holds now (a record of it; the next game starts them on trial)
@@ -728,6 +772,11 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._koff_written = dict(ag._kind_offered_dk)
         if "line_grades" in gen:
             ag._line_grade_written = {k: dict(c) for k, c in ag._line_grade.items()}
+        if "stopped_at" in gen:
+            ag._stopped_written = dict(getattr(getattr(ag.led, "narrator", None), "links", {}))
+        if "thought_tried" in gen:
+            ag._thought_written = {f: {k: dict(c) for k, c in ag._thought[f].items()}
+                                   for f in ("tried", "paid")}
         if "root_grades" in gen:
             ag._root_grade_written = {s: dict(c) for s, c in ag._root_grade.items()}
         if "inventions" in gen:
@@ -1171,6 +1220,14 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         for k, d_ in c.get("line_grades", {}).items():
             ag._line_grade_in.setdefault(k, {}).update(d_)
         rep["line_kinds_in"] = len(ag._line_grade_in)
+    if tether._THOUGHT_RECORD and hasattr(ag, "_thought_in"):
+        for f in ("tried", "paid"):
+            for k, d_ in c.get("thought_" + f, {}).items():
+                ag._thought_in[f].setdefault(k, {}).update(d_)
+        rep["thought_keys_in"] = len(ag._thought_in["tried"])
+    if tether._SELF_READ and hasattr(ag, "_stopped_in"):
+        ag._stopped_in.update(c.get("stopped_at", {}))
+        rep["stopped_at_in"] = ag._self_read()
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade_in"):
         for s, d_ in c.get("root_grades", {}).items():
             ag._root_grade_in.setdefault(s, {}).update(d_)
@@ -1379,6 +1436,21 @@ def load(d: str | Path, ag: Any) -> dict:
                 for o, n in c.items():
                     into[o] = into.get(o, 0) + n
         rep["line_kinds_in"] = len(ag._line_grade_in)
+    if tether._THOUGHT_RECORD and hasattr(ag, "_thought_in"):
+        # M1: every generation's thought record, root to tip
+        for _h, g in chain:
+            for f in ("tried", "paid"):
+                for k, c in g.get("thought_" + f, {}).items():
+                    into = ag._thought_in[f].setdefault(k, {})
+                    for e, n in c.items():
+                        into[e] = into.get(e, 0) + n
+        rep["thought_keys_in"] = len(ag._thought_in["tried"])
+    if tether._SELF_READ and hasattr(ag, "_stopped_in"):
+        # M3: every generation's stopped-at links, root to tip, read into one self_read row
+        for _h, g in chain:
+            for k, n in g.get("stopped_at", {}).items():
+                ag._stopped_in[k] = ag._stopped_in.get(k, 0) + n
+        rep["stopped_at_in"] = ag._self_read()
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade_in"):
         # 7h (a): every generation's root grades, root to tip
         for _h, g in chain:
@@ -1465,6 +1537,11 @@ def _scan(d: Path) -> dict[str, dict]:
     return gens
 
 
+# the fold's rule version a merge generation is written under (the reviewer 2026-11-03 r882 3): 2 =
+# equal moving counters at the merge sum as increments; a merge with no field folds as rule 1
+FOLD_RULE = 2
+
+
 def merge(d: str | Path, tips: list[str] | None = None) -> dict:
     """Join branches: one MERGE generation naming every given tip (default: all of them) as its
     parents and holding nothing else. No tip is picked and nothing is copied or removed; the fold
@@ -1481,7 +1558,7 @@ def merge(d: str | Path, tips: list[str] | None = None) -> dict:
         return {"refused": "nothing to merge", "tips": tips}
     gen = {"lineage": 1, "parents": tips, "merge": True, "game": None, "terms": [], "status": [],
            "evidence": [], "vindication_tail": [], "book": {}, "invented": {}, "dormant": [],
-           "dormant_refused": []}
+           "dormant_refused": [], "fold_rule": FOLD_RULE}
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:

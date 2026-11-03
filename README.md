@@ -14,7 +14,7 @@ grows by mapping a world against a ground it cannot argue with.
 - The figures it is built from are in [`figures/`](figures/), with the formula,
   [`figures/THE_FORMULA.md`](figures/THE_FORMULA.md).
 
-## The three branches
+## The four branches
 
 - **[`core`](https://github.com/IsaiahN/tether/tree/core)**: the minimal kernel. The Tether loop,
   gate and abstention on a toy symbolic world, about 1,600 lines. Read this first to see the
@@ -26,6 +26,9 @@ grows by mapping a world against a ground it cannot argue with.
 - **[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)**:
   `general-agent` plus the ARC-AGI-3 interface and the Kaggle runner. The competition build: it
   receives `general-agent` by merge and adds only what ARC needs.
+- **[`development`](https://github.com/IsaiahN/tether/tree/development)**: the working branch for
+  the competition build, cut from `arc-solver-agent`; refined changes reach `arc-solver-agent` by
+  pull request.
 
 Swap the interface, keep the lineage.
 
