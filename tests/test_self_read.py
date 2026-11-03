@@ -1,5 +1,5 @@
-"""M3 SELF_READ (the reviewer 2026-11-02 r844 3): the narrator's N2 link counted per game, carried by
-the lineage, read at the next game's start.
+"""M3 SELF_READ (the reviewer 2026-11-02 r844 3): the narrator's N2 link counted per game, carried
+by the lineage, read at the next game's start.
   SR-a  a game with a bet and nothing minted ends "vocabulary", one with no bet "perception": the
         narrator counts each (links).
   SR-b  game 1 writes those counts (stopped_at); game 2, a new agent loading the lineage, starts
