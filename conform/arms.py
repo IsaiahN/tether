@@ -1897,6 +1897,13 @@ ARMS: dict[str, str] = {
                         "order through lineage.FoldState, fold's own rule for contested statuses "
                         "and keys. OFF: refused, and the load and save refold the archive. "
                         "default ON",
+    "TETHER_KIND_ALIAS": "K1's ALIAS GENERATION (the reviewer 2026-11-03 r886, r887, r902, "
+                         "r903): a save's form_aliases [as_seen, canonical, pose] join the map in "
+                         "force; the store re-keys every kind, delta, offer, pair and kind-keyed "
+                         "count there (rows that meet: n summed, l_* of the greatest l_seq) and "
+                         "reads later saves through it; the archive load reads the same "
+                         "(alias_chain); a second canonical or a non-idempotent map is refused. "
+                         "OFF: the field is ignored and every code stays as stored. default ON",
     "TETHER_STORE_CONTINUE": "A2c (the reviewer 2026-11-02 r792): under A2, when fold's _topo "
                              "order is the store's chain followed by the new saves, the new "
                              "saves are appended in that order through the rebuild's body, its "

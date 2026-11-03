@@ -1372,6 +1372,8 @@ def load(d: str | Path, ag: Any) -> dict:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
     if not _ONE_PASS:
         chain = _chain(Path(d))
+    import lineage_store
+    chain = lineage_store.alias_chain(chain)      # K1: the saves read as the store reads them
     tip = chain[-1][1] if chain and chain[-1][0] == h else {}
     _note_parent_ended(ag, h, tip if tip.get("ended") else None)
     # the being's seed BEFORE anything is installed, so a handle the load mints is minted under
@@ -1439,9 +1441,9 @@ def load(d: str | Path, ag: Any) -> dict:
     if tether._THOUGHT_RECORD and hasattr(ag, "_thought_in"):
         # M1: every generation's thought record, root to tip
         for _h, g in chain:
-            for f in ("tried", "paid"):
-                for k, c in g.get("thought_" + f, {}).items():
-                    into = ag._thought_in[f].setdefault(k, {})
+            for fld in ("tried", "paid"):     # never `f`, the fold read below (replay)
+                for k, c in g.get("thought_" + fld, {}).items():
+                    into = ag._thought_in[fld].setdefault(k, {})
                     for e, n in c.items():
                         into[e] = into.get(e, 0) + n
         rep["thought_keys_in"] = len(ag._thought_in["tried"])
@@ -1519,9 +1521,9 @@ def load(d: str | Path, ag: Any) -> dict:
             "asked": load_ak(d, ag, chain)}
 
 
-def _scan(d: Path) -> dict[str, dict]:
-    """Every generation's parents, read and hash-checked one file at a time (_read's checks, none
-    of its memory)."""
+def _scan(d: Path, keep: tuple = ()) -> dict[str, dict]:
+    """Every generation's parents (and the `keep` fields it holds), read and hash-checked one file
+    at a time (_read's checks, none of its memory)."""
     import lineage_store as ls
     gens: dict[str, dict] = {}
     for f in sorted(d.glob(f"{PREFIX}*.json")):
@@ -1529,8 +1531,9 @@ def _scan(d: Path) -> dict[str, dict]:
         h = hashlib.sha256(raw).hexdigest()[:16]
         if f.stem != PREFIX + h:
             raise ValueError(f"lineage: {f.name} does not hash to its name ({h})")
-        gens[h] = {"parents": _parents(json.loads(raw))}
-        del raw
+        g = json.loads(raw)
+        gens[h] = {"parents": _parents(g), **{k: g[k] for k in keep if k in g}}
+        del raw, g
     bad = {h: p for h, g in gens.items() for p in g["parents"] if p not in gens}
     if bad:
         raise ValueError(f"lineage: a parent that is not in the chain: {bad}")
@@ -1567,6 +1570,43 @@ def merge(d: str | Path, tips: list[str] | None = None) -> dict:
     except FileExistsError:
         return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parents": tips}
+
+
+# K1's ALIAS GENERATION (the reviewer 2026-11-03 r886, r887, r903): as-seen form codes named as
+# their canonical, [as_seen, canonical, pose], on a generation of their own whose parent is the
+# tip and which holds nothing else; the store re-keys what it holds there (lineage_store._ALIAS).
+# Refused: a code already aliased to another canonical, or a map that would not be idempotent.
+ALIAS_RULE = 1
+
+
+def alias_generation(d: str | Path, pairs: list) -> dict:
+    import lineage_store as ls
+    p = Path(d)
+    gens = _scan(p, keep=("form_aliases",))
+    tips = _tips(gens)
+    if len(tips) != 1:
+        return {"refused": f"{len(tips)} tips; merge them first"}
+    amap: dict = {}
+    for h in _topo(gens):
+        amap = ls.alias_add(amap, gens[h].get("form_aliases", ()))
+    pairs = sorted({(int(a), int(c), int(pose)) for a, c, pose in pairs})
+    why = ls.alias_refusal(amap, pairs)
+    if why:
+        return {"refused": why}
+    pairs = [list(x) for x in pairs if amap.get(x[0]) != x[1]]
+    if not pairs:
+        return {"refused": "every pair is already in force"}
+    gen = {"lineage": 1, "parent": tips[0], "game": None, "terms": [], "status": [],
+           "evidence": [], "vindication_tail": [], "book": {}, "invented": {}, "dormant": [],
+           "dormant_refused": [], "form_aliases": pairs, "alias_rule": ALIAS_RULE}
+    raw = _dumps(gen)
+    h = hashlib.sha256(raw).hexdigest()[:16]
+    try:
+        with open(p / f"{PREFIX}{h}.json", "xb") as fh:
+            fh.write(_store_bytes(raw))
+    except FileExistsError:
+        return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
+    return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": tips[0], "pairs": len(pairs)}
 
 
 
