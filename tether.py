@@ -2514,10 +2514,10 @@ _TOUCH_EACH_KIND = armflag.arm("TETHER_TOUCH_EACH_KIND", default=True)
 # Untried ACTIONS hold as before. OFF: the kinds hold until each is touched
 _TRY_FIRST_PAYS = armflag.arm("TETHER_TRY_FIRST_PAYS", default=True)
 # P2' (ii) HYP_OWN_PRESS (r830; Fig 1): a held goal hypothesis ages, and its trend is read, only on
-# its own presses (a routine, a hold, an actuator press); a press spent elsewhere is counted as such
-# and never ends it. OFF: every cycle ages it
+# its own presses (a routine, a hold, an actuator press, its goal split's press); a press spent
+# elsewhere is counted as such and never ends it. OFF: every cycle ages it
 _HYP_OWN_PRESS = armflag.arm("TETHER_HYP_OWN_PRESS", default=True)
-_HYP_OWN_BY = ("routine", "hold", "actuator")
+_HYP_OWN_BY = ("routine", "hold", "actuator", "discriminate:goal")
 # E, DELTA_TIER_MEMO (the reviewer 2026-11-01 r736): _delta_tier ran once per candidate binding and
 # each call re-walked every slot of every residual observation, the whole owner map and the
 # contact map, which do not change until the trace grows (tn36 profile: route 76% of samples,

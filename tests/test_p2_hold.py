@@ -109,6 +109,9 @@ def main():
                                                                "untested", s_on, e_on)
     assert e_off == [("stalled", "ceiling")], ("P2'-c MUST-FAIL: OFF it is ended", e_off)
     assert e_own == [("stalled", "ceiling")], ("P2'-c: on its own presses it ends", e_own)
+    own = set(tether._HYP_OWN_BY)                   # the exits that press FOR the held hypothesis
+    assert {"routine", "hold", "actuator", "discriminate:goal"} <= own \
+        and not own & {"system0", "probe", "draw", "distinguish"}, ("P2'-c: its own presses", own)
     print(f"test_p2_hold: 10 kinds, {m} unpaid touches -> hold {on[0]} -> {on[-1]} (OFF "
           f"{off[-1]}); a paying touch keeps it ({paid[-1]}); a new kind re-opens it; a hypothesis "
           f"on System 0's presses: steps {s_on}, ended by {e_on[0][1]} (OFF {e_off[0][1]}); on "
