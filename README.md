@@ -12,7 +12,7 @@ It is built on **The Tether** architecture:
   · [Substack](https://adventuresinml.substack.com/p/arrival-of-the-fittest-the-tether)
 - The figures and the formula are in [`figures/`](figures/).
 
-## The three branches
+## The four branches
 
 - **[`core`](https://github.com/IsaiahN/tether/tree/core)**: the minimal kernel. The Tether loop,
   gate and abstention on a toy symbolic world, about 1,600 lines. Read this first to see the
@@ -20,15 +20,35 @@ It is built on **The Tether** architecture:
 - **[`general-agent`](https://github.com/IsaiahN/tether/tree/general-agent)**: the full general
   learning agent. Domain-agnostic: the library of ~4,000 human-prior entries, the lineage
   (generations, merge, graft), search, minting, the narrator. Where general work lands first.
-- **[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)** (this one):
-  `general-agent` plus the ARC-AGI-3 interface and the Kaggle runner. The competition build: it
-  receives `general-agent` by merge and adds only what ARC needs.
+- **[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)**: production.
+  `general-agent` plus the ARC-AGI-3 interface and the Kaggle runner. The competition build, and
+  what a Kaggle submission is built from: it receives `general-agent` by merge and adds only what
+  ARC needs. It changes only by a pull request from `development`.
+- **[`development`](https://github.com/IsaiahN/tether/tree/development)** (this one): the working
+  branch. development = production (783d9f9) + FIN5E, merged; promoted to arc-solver-agent by
+  pull request once its changes are refined. A test bundle built from it is labelled DEV.
 
 Swap the interface, keep the lineage.
 
-**The agent's code is the same as on `general-agent`.** For what the agent is and how it
-reasons, read [that README](https://github.com/IsaiahN/tether/tree/general-agent). What is
-particular to ARC is only the adapter and the harness below.
+**What `development` carries beyond production (FIN5E, all on by default):**
+
+- **P2′**: the try-first hold reads the agent's own record; a hypothesis counts only its own
+  presses.
+- **MUSE_BOUND**: the background re-check after a level clear is paid from each step's budget,
+  cut and resumed, so it can no longer stall a session.
+- **P3 look-ahead**: settled one-press predictions chained over short sequences of intentions;
+  it reads only what is on the board.
+- **P4**: a look-ahead sequence that closes its gap is kept as one routine, in kind form.
+- **M1 + M2, the thought record**: each library lookup remembers what it tried and what paid, by
+  kind of situation, and ranks what paid first.
+- **M3, self-read**: each game's "where the chain stopped" is carried, and read at the next
+  game's start.
+- **TF_PASS**: the try-first sweep gives every untouched kind one touch before it may stop;
+  bounded to boards where an action can be aimed at an object.
+
+**The agent's code is `general-agent`'s plus FIN5E.** For what the agent is and how it reasons,
+read [that README](https://github.com/IsaiahN/tether/tree/general-agent). What is particular to
+ARC is only the adapter and the harness below.
 
 ## How it meets an ARC game
 
