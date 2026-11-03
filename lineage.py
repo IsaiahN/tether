@@ -632,6 +632,18 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                                   for o, n in sorted(c.items())
                                   if n > ag._line_grade_written.get(k, {}).get(o, 0)}
                               for k, c in sorted(ag._line_grade.items())}
+    if tether._THOUGHT_RECORD and hasattr(ag, "_thought"):
+        # M1: each kind-form lookup key's entries tried / paid since the last write; load sums
+        for fld in ("tried", "paid"):
+            w = ag._thought_written[fld]
+            gen["thought_" + fld] = {k: {e: n - w.get(k, {}).get(e, 0) for e, n in sorted(c.items())
+                                         if n > w.get(k, {}).get(e, 0)}
+                                     for k, c in sorted(ag._thought[fld].items())}
+    if tether._SELF_READ and hasattr(ag, "_stopped_written"):
+        # M3: the games' stopped-at links since the last write; load sums
+        now = getattr(getattr(ag.led, "narrator", None), "links", {})
+        w = ag._stopped_written
+        gen["stopped_at"] = {k: n - w.get(k, 0) for k, n in sorted(now.items()) if n > w.get(k, 0)}
     if tether._M7_INV and hasattr(ag, "_inv_carry"):
         # M7-INV: the inventions made since the last write, as their method, with the standing
         # their term holds now (a record of it; the next game starts them on trial)
@@ -728,6 +740,11 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._koff_written = dict(ag._kind_offered_dk)
         if "line_grades" in gen:
             ag._line_grade_written = {k: dict(c) for k, c in ag._line_grade.items()}
+        if "stopped_at" in gen:
+            ag._stopped_written = dict(getattr(getattr(ag.led, "narrator", None), "links", {}))
+        if "thought_tried" in gen:
+            ag._thought_written = {f: {k: dict(c) for k, c in ag._thought[f].items()}
+                                   for f in ("tried", "paid")}
         if "root_grades" in gen:
             ag._root_grade_written = {s: dict(c) for s, c in ag._root_grade.items()}
         if "inventions" in gen:
@@ -1171,6 +1188,14 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         for k, d_ in c.get("line_grades", {}).items():
             ag._line_grade_in.setdefault(k, {}).update(d_)
         rep["line_kinds_in"] = len(ag._line_grade_in)
+    if tether._THOUGHT_RECORD and hasattr(ag, "_thought_in"):
+        for f in ("tried", "paid"):
+            for k, d_ in c.get("thought_" + f, {}).items():
+                ag._thought_in[f].setdefault(k, {}).update(d_)
+        rep["thought_keys_in"] = len(ag._thought_in["tried"])
+    if tether._SELF_READ and hasattr(ag, "_stopped_in"):
+        ag._stopped_in.update(c.get("stopped_at", {}))
+        rep["stopped_at_in"] = ag._self_read()
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade_in"):
         for s, d_ in c.get("root_grades", {}).items():
             ag._root_grade_in.setdefault(s, {}).update(d_)
@@ -1379,6 +1404,21 @@ def load(d: str | Path, ag: Any) -> dict:
                 for o, n in c.items():
                     into[o] = into.get(o, 0) + n
         rep["line_kinds_in"] = len(ag._line_grade_in)
+    if tether._THOUGHT_RECORD and hasattr(ag, "_thought_in"):
+        # M1: every generation's thought record, root to tip
+        for _h, g in chain:
+            for f in ("tried", "paid"):
+                for k, c in g.get("thought_" + f, {}).items():
+                    into = ag._thought_in[f].setdefault(k, {})
+                    for e, n in c.items():
+                        into[e] = into.get(e, 0) + n
+        rep["thought_keys_in"] = len(ag._thought_in["tried"])
+    if tether._SELF_READ and hasattr(ag, "_stopped_in"):
+        # M3: every generation's stopped-at links, root to tip, read into one self_read row
+        for _h, g in chain:
+            for k, n in g.get("stopped_at", {}).items():
+                ag._stopped_in[k] = ag._stopped_in.get(k, 0) + n
+        rep["stopped_at_in"] = ag._self_read()
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade_in"):
         # 7h (a): every generation's root grades, root to tip
         for _h, g in chain:
