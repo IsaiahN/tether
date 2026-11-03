@@ -2108,6 +2108,9 @@ ARMS: dict[str, str] = {
                          "canon() gives its pose. OFF: the cells as they stand. default OFF "
                          "(r808): ON orphans tallies stored under the as-seen code until a "
                          "legacy read exists",
+    "TETHER_LA_ROUTINE": "P4 (the reviewer 2026-11-02 r832 d): the intents look-ahead pressed for "
+                         "a held hypothesis settle as one kind-form routine when its gap closes "
+                         "(arrival or level clear), carried by routines_by_kind. default ON",
     "TETHER_LOOKAHEAD": "P3 (the reviewer 2026-11-02 r832 c): the settled one-press predictors "
                         "chained over press sequences, paid from the step's evaluation budget; "
                         "the first press of the sequence whose end most shrinks the held "

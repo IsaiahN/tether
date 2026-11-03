@@ -2526,6 +2526,13 @@ _HYP_OWN_BY = ("routine", "hold", "actuator", "discriminate:goal", "lookahead")
 # shrinks the held hypothesis's subject gap is pressed (by "lookahead"), re-read every step. A
 # sequence is intents over kinds, never a press replay. OFF: no look-ahead exit
 _LOOKAHEAD = armflag.arm("TETHER_LOOKAHEAD", default=True)
+# P4 LA_ROUTINE (the reviewer 2026-11-02 14:38 plan, r832 d; Fig 4 :25-26, a method carried, never
+# the presses): the intents a held hypothesis pressed by look-ahead are kept; when its gap CLOSES
+# (it arrives, or the level clears) they are settled as one routine in KIND FORM -- Act / Seq over
+# the intents, through _routine_form -- so routines_by_kind carries it and _carried_cands offers it
+# on the next board. A trail with no kind form (an intent naming nothing on another board) is not
+# formed, and says why. OFF: no routine from look-ahead
+_LA_ROUTINE = armflag.arm("TETHER_LA_ROUTINE", default=True)
 
 
 def lookahead(state: dict, actions: tuple, predict, gap, more) -> tuple | None:
@@ -3482,6 +3489,7 @@ class Agent:
         self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
         self._board_touched: set = set()  # C2: objects System 0 touched on this board
         self._kind_unpaid = 0             # P2' (i): kind touches in a row that changed nothing
+        self._la_trail = None             # P4: (hypothesis key, the intents look-ahead pressed)
         self._kinds_open = 0              # P2' (i): the untouched kinds at the last reading
         self._board_moved: set = set()    # G: slots this board's presses moved (credited)
         self._goal_refuted: set = set()   # G: (subject, sign) arrived without a clear, this board
@@ -7702,6 +7710,7 @@ class Agent:
     def _hyp_end(self, why: str, loss: bool = False, won: bool = False,
                  step: str = "PLAN", by: str | None = None) -> None:
         h, self._hyp = self._hyp, None
+        self._la_routine(h, why)
         kept = self._books_kept()
         released = self._release_link(h["key"])
         self._books_back(kept)
@@ -10627,7 +10636,36 @@ class Agent:
                         reads="settled one-press predictors chained over intents in thought; "
                               "the first intent of the sequence whose end most shrinks the "
                               "subject's gap (P3)")
+        if _LA_ROUTINE:
+            k = self._hyp["key"]
+            if self._la_trail is None or self._la_trail[0] != k:
+                self._la_trail = (k, [])
+            self._la_trail[1].append(want)
         return self._took(real, want)
+
+    def _la_routine(self, h: dict, why: str) -> None:
+        """P4: the hypothesis ends; if its look-ahead presses closed its gap, they settle as one
+        routine in kind form (carried by routines_by_kind, offered by _carried_cands)."""
+        trail = self._la_trail[1] if self._la_trail and self._la_trail[0] == h["key"] else []
+        self._la_trail = None
+        if not (_LA_ROUTINE and trail and why in ("level_cleared", "arrived_no_clear")):
+            return
+        r = Rt.Act(trail[-1])
+        for w in reversed(trail[:-1]):
+            r = Rt.Seq(Rt.Act(w), r)
+        form = self._routine_form(r)
+        if form is None or r in self.routines:
+            self.led.record(self.cycle, "PLAN", h["slots"][0], "routine_not_formed",
+                            routine=Rt.render(r), why=why,
+                            reason=("already settled" if form is not None else
+                                    "a step names nothing on another board (no kind form)"))
+            return
+        self.routines.append(r)
+        self.led.record(self.cycle, "PLAN", h["slots"][0], "routine_formed",
+                        routine=Rt.render(r), presses=len(trail), why=why,
+                        form=json.dumps(form, sort_keys=True),
+                        reads="the look-ahead presses that closed the gap, settled as one routine "
+                              "over intents in kind form; carried as a method, never the presses")
 
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
