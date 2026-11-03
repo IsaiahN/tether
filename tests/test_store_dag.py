@@ -316,8 +316,37 @@ def _fold_rules() -> dict:
     f5 = run({"x": {"r": 1}, "y": 7}, {"x": {"r": 2}, "y": 9}, {"y": 3}, "invented")
     assert "x" not in f5["invented"] and f5["invented"]["y"] == 3, ("MF-F5 never summed", f5)
     assert set(f5["contested_invented"]) == {"x", "y"}, ("MF-F5 contested", f5)
+    # MF-F7 (r881 4 (i); the 2026-11-03 re-merge, try_first_owed 746 for 3232): three heads forking
+    # BELOW a prior merge M1 whose counter (145) no generation wrote. Each wrote its running total
+    # from the loaded 145; the sum is 145 + 5 + 10 + 3. RED: p0 is the last raw write (115), and
+    # each head beyond the first adds the gap again (223)
+    g7 = {"R": _gen(None, book={"c": 100}), "A": _gen("R", book={"c": 130}),
+          "B": _gen("R", book={"c": 115}), "M1": _gen(None, parents=["A", "B"]),
+          "X": _gen("M1", book={"c": 150}), "Y": _gen("M1", book={"c": 155}),
+          "Z": _gen("M1", book={"c": 148}), "M2": _gen(None, parents=["X", "Y", "Z"])}
+    f7 = lineage.fold([(h, g7[h]) for h in lineage._topo(g7)])
+    assert f7["book"]["c"] == 163 and "contested_book" not in f7, ("MF-F7 fork below a merge",
+                                                                   f7["book"])
+    # MF-F8 (r881 4 (ii), r882 3): at a merge of fold_rule 2, two lives that each moved a counter
+    # 64 -> 66 are two increments, not one agreement (68; RED 66), and a head that did not move
+    # adds 0 (27 / 28 / 28 -> 29)
+    def equal_moves(books, root, rule):
+        m = _gen(None, parents=[chr(65 + i) for i in range(len(books))])
+        if rule:
+            m["fold_rule"] = rule
+        gs = {"R": _gen(None, book=root), "M": m,
+              **{chr(65 + i): _gen("R", book=b) for i, b in enumerate(books)}}
+        return lineage.fold([(h, gs[h]) for h in lineage._topo(gs)])["book"]["c"]
+    f8 = [equal_moves([{"c": 66}, {"c": 66}], {"c": 64}, lineage.FOLD_RULE),
+          equal_moves([{"c": 28}, {"c": 28}, {"c": 27}], {"c": 27}, lineage.FOLD_RULE)]
+    assert f8 == [68, 29], ("MF-F8 equal moves sum at a fold_rule 2 merge", f8)
+    # MF-F9 (r882 3): a merge written before, with no fold_rule, folds exactly as it did (66), so
+    # central's past fold is unchanged
+    f9 = equal_moves([{"c": 66}, {"c": 66}], {"c": 64}, None)
+    assert f9 == 66, ("MF-F9 a merge without fold_rule folds as before", f9)
     return {"F1": row and f1["terms"][0]["admitted"], "F2": f2["book"]["c"], "F6": f6["book"]["c"],
-            "F4": f4["book"]["c"], "F5": sorted(f5["contested_invented"])}
+            "F4": f4["book"]["c"], "F5": sorted(f5["contested_invented"]), "F7": f7["book"]["c"],
+            "F8": f8, "F9": f9}
 
 
 def _graft_cases(tmp: Path) -> dict:
@@ -391,7 +420,10 @@ def main():
     print(f"  fold rules: MF-F1 agreeing heads -> {fr['F1']!r}, no contest; MF-F2 counter 100 -> "
           f"130 / 115 -> {fr['F2']}; MF-F3 differing statuses -> pre-split + both contested; "
           f"MF-F4 a head below pre -> {fr['F4']}, contested; MF-F5 invented {fr['F5']} contested, "
-          f"never summed; MF-F6 absent pre, 7 / 5 -> {fr['F6']}", flush=True)
+          f"never summed; MF-F6 absent pre, 7 / 5 -> {fr['F6']}; MF-F7 three heads below a merge "
+          f"(145 + 5 + 10 + 3) -> {fr['F7']}; MF-F8 fold_rule 2, equal moves 64 -> 66 / 66 and "
+          f"27 -> 28 / 28 / 27 -> {fr['F8']}; MF-F9 no fold_rule, 64 -> 66 / 66 -> {fr['F9']}",
+          flush=True)
     cc = _continue_cases(Path(tempfile.mkdtemp(prefix="store_cont_")))
     print("  A2c continue: (ii) B after the chain at {}/{} -> paths {}, equal to the rebuild table "
           "by table; (i) B inside at {}/{} -> REFUSED (paths {}), forced continue differs; "
