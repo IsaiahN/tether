@@ -8,6 +8,10 @@ untouched kinds before the novelty release may fire. Game-free stubs (test_p2_ho
           cannot return.
   MF-TF3  after that release the count grows by m: the re-opened pass is m touches, not N + m.
   MF-TF4  OFF: the release at MIN_REPEAT empty touches, as before (test_p2_hold runs OFF).
+  MF-TF5  (r850) N untouched kinds and no offered action can be aimed at an object: the kinds hold
+          nothing (the hold reads the untried actions only, here 0, so try_first refuses no
+          split), one try_first_no_touch row. OFF (b8cca33): the hold reads N on every step and
+          never releases -- RED there.
 
     python tests/test_tf_pass.py
 """
@@ -29,10 +33,23 @@ def arm(on: bool):
     tether._TF_PASS = on
 
 
-def fresh(kinds: int):
+def fresh(kinds: int, aim: bool = True):
     ag = board(kinds)
     ag._tf_len = ag._tf_left = ag._tf_rel_u = None
+    ag.actions = ("A1", "A2")
+    ag._running_step = "PLAN"
+    ag.iface.can_touch = lambda _offered: aim
     return ag
+
+
+def mf5(on: bool) -> tuple:
+    arm(on)
+    try:
+        ag = fresh(4, aim=False)
+        seen = [A._try_first_open(ag) for _ in range(3)]
+        return seen, [r["detail"] for r in ag.led.rows() if r["event"] == "try_first_no_touch"]
+    finally:
+        arm(True)
 
 
 def churn(ag, n: int):
@@ -85,9 +102,15 @@ def main():
     assert seen == [5, 5, 5, 5, 5, 0], ("MF-TF2: released after exactly N empty touches", seen)
     assert again == [8, 8, 8, 0], ("MF-TF3: the re-opened pass is the growth only", again)
     assert [r["pass_len"] for r in rel] == [5, 3], ("one row per release", rel)
+    no, no_rows = mf5(True)
+    no_off, _ = mf5(False)
+    assert no == [0, 0, 0] and len(no_rows) == 1, ("MF-TF5: nothing can touch, kinds hold none",
+                                                   no, no_rows)
+    assert no_off == [4, 4, 4], ("MF-TF5 OFF: the kinds hold forever (b8cca33)", no_off)
     print(f"test_tf_pass: 6 kinds, the 6th pays: ON {on} (actuator {act_on}), OFF {off} (actuator "
           f"{act_off}); churning 5, none pays: {seen}; grown by 3: {again}; released rows "
-          f"pass_len {[r['pass_len'] for r in rel]}")
+          f"pass_len {[r['pass_len'] for r in rel]}; no aimable action: ON {no} ({len(no_rows)} "
+          f"row), OFF {no_off}")
 
 
 if __name__ == "__main__":

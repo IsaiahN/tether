@@ -37,7 +37,7 @@ A = tether.Agent
 def board(kinds: int) -> SimpleNamespace:
     objs = [f"o{i}" for i in range(kinds)]
     ag = SimpleNamespace(_kind_unpaid=0, _kinds_open=0, _board_touched=set(),
-                         _tf_len=None, _tf_left=None, _tf_rel_u=None,
+                         _tf_len=None, _tf_left=None, _tf_rel_u=None, _running_step="PLAN",
                          _board_moved=set(),
                          _seam_now=False, _last_landed=None, _actuators={}, _contact_pending=None,
                          led=ledger.Ledger(None), iface=SimpleNamespace(last_changed=()),

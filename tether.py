@@ -14343,6 +14343,17 @@ class Agent:
         if _TOUCH_EACH_KIND and getattr(self, "env", None) is not None:
             uk = self._untouched_kinds(self.env.observe())
             if _TRY_FIRST_PAYS:
+                if _TF_PASS and uk and not self.iface.can_touch(tuple(self.actions)):
+                    # r850: no offered action can be aimed at an object, so no kind touch can
+                    # come -- the kinds hold nothing and the pass is spent
+                    if self._tf_left is None:
+                        self.led.record(self.cycle, self._running_step, "@try_first",
+                                        "try_first_no_touch", untouched=len(uk),
+                                        reads="no offered action can be aimed at an object: the "
+                                              "untouched kinds cannot be touched, so they hold "
+                                              "nothing")
+                    self._tf_len = self._tf_left = 0
+                    return n
                 if _TF_PASS and self._tf_left is None:
                     self._tf_len = self._tf_left = len(uk)   # U0: one touch for each kind
                 if len(uk) > self._kinds_open:
@@ -14356,7 +14367,7 @@ class Agent:
                     if self._tf_left == 0 and self._kind_unpaid >= min(MIN_REPEAT, self._tf_len):
                         if self._tf_rel_u is None:
                             self._tf_rel_u = len(uk)
-                            self.led.record(self.cycle, "PLAN", "@try_first",
+                            self.led.record(self.cycle, self._running_step, "@try_first",
                                             "try_first_released", pass_len=self._tf_len,
                                             unpaid=self._kind_unpaid, untouched=len(uk),
                                             reads="one touch for each kind, and the last ones "
