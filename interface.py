@@ -215,6 +215,14 @@ _KIND_TEST = armflag.arm("TETHER_KIND_TEST", default=True)
 # it (an action absent from the table stays unmapped, so game 2 still learns its buttons); the kind
 # readers see carried cells under this life's own, and _KIND_TEST presses one as a test first.
 _ACTION_CARRY = armflag.arm("TETHER_ACTION_CARRY", default=True)
+# (7) THE ACTION TABLE WRITTEN AS INCREMENTS (Build 1; the reviewer 2026-11-03 r906 3, MF-K14): a
+# save writes this life's OWN cells' increments since its last write ("action_kinds_d"), never the
+# cumulative carried + own value, and the readers add them to the cell. Two branches' increments
+# then sum at any merge in any order, and a fork's cells under an as-seen code add into the
+# canonical cell through the alias map, so no branch's sightings are picked away by fold order.
+# Saves written before keep their meaning (a cumulative cell, the latest replacing). OFF: the
+# cumulative cells, and an increment field is not read.
+_AK_DELTA = armflag.arm("TETHER_AK_DELTA", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -1707,6 +1715,29 @@ class Interface:
                     if written.get(key) != v:
                         out[key] = v
         return out
+
+    def kind_tables_delta(self, written: dict) -> tuple[dict, dict]:
+        """TETHER_AK_DELTA: this life's OWN cells' increments since `written` (the own values at
+        its last write), keyed as kind_tables_out: [n, total] by subtraction, a landed cell by the
+        values not yet written. (the increments, the own values now)."""
+        out, now = {}, {}
+        for a, tabs in self.table.items():
+            for tab in ("delta_kind", "lands_kind"):
+                for k, o in tabs.get(tab, {}).items():
+                    key = repr((a, tab, k))
+                    w = written.get(key)
+                    if tab == "delta_kind":
+                        now[key] = [o[0], o[1]]
+                        w = w or [0, 0]
+                        d = [o[0] - w[0], o[1] - w[1]]
+                        if d != [0, 0]:
+                            out[key] = d
+                    else:
+                        now[key] = sorted(set(o))
+                        d = sorted(set(o) - set(w or ()))
+                        if d:
+                            out[key] = d
+        return out, now
 
     def kind_tables_in(self, rows: dict) -> int:
         """TETHER_ACTION_CARRY: the lineage's kind cells into `carried_kind`; a row that does not

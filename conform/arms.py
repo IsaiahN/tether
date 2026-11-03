@@ -1929,6 +1929,18 @@ ARMS: dict[str, str] = {
                         "same kind while `.shape` stays the form as seen; `turned` (BOOL) is a "
                         "matched object's pose changing at the same kind. No new type, no shape "
                         "label moved. OFF: neither reading. default ON",
+    "TETHER_AK_DELTA": "(7) THE ACTION TABLE AS INCREMENTS (Build 1; the reviewer 2026-11-03 r906 "
+                       "3, MF-K14): a save writes this life's own action cells' increments since "
+                       "its last write (action_kinds_d) and the store and the archive load add "
+                       "them, so branches' increments sum at any merge in any order and a fork's "
+                       "as-seen cells add into the canonical one; saves written before keep their "
+                       "cumulative meaning. OFF: the cumulative cells; increments not read. "
+                       "default ON",
+    "TETHER_CONTINUE_WAL": "(7) the store CONTINUE's WAL bound (Build 1; REPORT FIN5E section 8, "
+                           "2.14 GB "
+                           "on 2026-11-03): after each continued save above WAL_BOUND_BYTES, a "
+                           "checkpoint, as the rebuild does (r794 3). OFF: no bound in a "
+                           "continue. default ON",
     "TETHER_STORE_CONTINUE": "A2c (the reviewer 2026-11-02 r792): under A2, when fold's _topo "
                              "order is the store's chain followed by the new saves, the new "
                              "saves are appended in that order through the rebuild's body, its "

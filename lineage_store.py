@@ -225,6 +225,8 @@ def _counts_apply(c: dict, g: dict, amap: dict | None = None, k: int = 0) -> dic
     if amap and g.get("action_kinds"):
         alias_actions(c.setdefault("action_kinds", {}), g["action_kinds"], amap)
         g = {x: v for x, v in g.items() if x != "action_kinds"}
+    if _AK_DELTA():
+        add_action_increments(c.setdefault("action_kinds", {}), g.get("action_kinds_d"))
     _add(c.setdefault("unit_used", {}), g.get("unit_used") or {})
     for fld in ("line_grades", "root_grades", "kind_counts", "hazard_3a", "thought_tried",
                 "thought_paid"):
@@ -333,6 +335,18 @@ def alias_actions(into: dict, rows: dict, amap: dict) -> None:
     into.update(seen)
 
 
+def _AK_DELTA() -> bool:
+    import interface
+    return interface._AK_DELTA
+
+
+def add_action_increments(into: dict, rows: dict | None) -> None:
+    """(7) TETHER_AK_DELTA: a save's action-cell increments added into the cells (_ak_meet: counts
+    summed, landed values united); the keys are already read through the alias map (alias_gen)."""
+    for key, v in (rows or {}).items():
+        into[key] = _ak_meet(key, into[key], v) if key in into else v
+
+
 def alias_routines(c: dict, rows: dict, amap: dict, k: int | None) -> None:
     """routines_by_kind through the map (the reviewer 2026-11-03 r904 1), with each key's save
     index in routines_k: `rows` from save k, or k None to re-key what `c` holds. Two pre-images that
@@ -403,6 +417,9 @@ def alias_gen(g: dict, amap: dict) -> dict:
     if "cause_kinds" in g:
         out["cause_kinds"] = {}
         _sum_into(out["cause_kinds"], g["cause_kinds"], amap)
+    if g.get("action_kinds_d"):          # (7): increments meet by sum, as two sightings
+        out["action_kinds_d"] = {}
+        alias_actions(out["action_kinds_d"], g["action_kinds_d"], amap)
     return out
 
 
@@ -993,6 +1010,7 @@ def _rebuild(con: sqlite3.Connection, folder: str | Path, read: Any) -> list:
 # in the rebuild's order. Minutes instead of hours. Otherwise None, and the full rebuild runs.
 # OFF: always the rebuild.
 _CONTINUE = armflag.arm("TETHER_STORE_CONTINUE", default=True)
+_CONTINUE_WAL = armflag.arm("TETHER_CONTINUE_WAL", default=True)
 
 
 def _continue(con: sqlite3.Connection, folder: str | Path, read: Any, ps: dict) -> list | None:
@@ -1012,7 +1030,15 @@ def _continue(con: sqlite3.Connection, folder: str | Path, read: Any, ps: dict) 
     state = lineage.FoldState(lists=False)
     for h in merged:
         state.step(h, read(h))
-    return [{**merge_save(con, folder, h, read(h), state), "dag": "continue"} for h in new]
+    out = []
+    for h in new:
+        out.append({**merge_save(con, folder, h, read(h), state), "dag": "continue"})
+        # the rebuild's WAL bound (r794 3), here too: a continue of many saves grew the WAL to
+        # 2.14 GB on 2026-11-03 (REPORT FIN5E §8). OFF (TETHER_CONTINUE_WAL): no bound, as before
+        if (_CONTINUE_WAL and WAL_BOUND_BYTES is not None
+                and wal_bytes(folder) > WAL_BOUND_BYTES):
+            out[-1]["wal_bound"] = {"wal_bytes": wal_bytes(folder), **checkpoint(con)}
+    return out
 
 
 def catch_up(con: sqlite3.Connection, folder: str | Path) -> list:

@@ -733,9 +733,14 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     if tether.IFace._ACTION_CARRY and hasattr(ag, "iface"):
         # r688 STORAGE: the action table by kind (carried + own), the cells that moved since the
         # last write; absent when none, so a generation with nothing new is written as before
-        ak = ag.iface.kind_tables_out(getattr(ag, "_ak_written", {}))
-        if ak:
-            gen["action_kinds"] = ak
+        if tether.IFace._AK_DELTA:      # (7): this life's own increments, summed by the readers
+            akd, ak_now = ag.iface.kind_tables_delta(getattr(ag, "_ak_own_written", {}))
+            if akd:
+                gen["action_kinds_d"] = akd
+        else:
+            ak = ag.iface.kind_tables_out(getattr(ag, "_ak_written", {}))
+            if ak:
+                gen["action_kinds"] = ak
     if _RESOLVE_ONCE:
         # r695 1: this life's matched resolves not yet in the lineage
         ro = {k: v for k, v in _RESOLVE_NEW.items() if _RESOLVE_OK.get(k) != v}
@@ -796,6 +801,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._rk_written.update({r["key"]: r["standing"] for r in gen["routines_by_kind"]})
         if "action_kinds" in gen:
             ag._ak_written = {**getattr(ag, "_ak_written", {}), **gen["action_kinds"]}
+        if "action_kinds_d" in gen:
+            ag._ak_own_written = ak_now
         if "resolve_ok" in gen:
             _RESOLVE_OK.update(gen["resolve_ok"])
         if "form_aliases" in gen:
@@ -1550,6 +1557,9 @@ def load(d: str | Path, ag: Any) -> dict:
         ag._ak_written = {}                                     # r688 RECALL: root to tip, latest
         for _h, g in chain:
             ag._ak_written.update(g.get("action_kinds", {}))
+        if tether.IFace._AK_DELTA:      # (7): and every save's increments, added
+            for _h, g in chain:
+                lineage_store.add_action_increments(ag._ak_written, g.get("action_kinds_d"))
         rep["action_kinds_in"] = ag.iface.kind_tables_in(ag._ak_written)
     if _RESOLVE_ONCE:
         for _h, g in chain:                                     # r695 1: verdicts per lineage

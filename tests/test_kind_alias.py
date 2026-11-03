@@ -442,8 +442,10 @@ def mf_k9(tmp: Path) -> dict:
     g = lineage._read(d)[out["hash"]]
     assert g.get("form_aliases") == [[11, 10, 1]], ("MF-K9c the pairs written",
                                                     g.get("form_aliases"))
-    assert g["action_kinds"].get(_cell("A1", "delta_kind", 10)) == [5, 7], (
-        "MF-K9c the action cell", g.get("action_kinds"))
+    # under TETHER_AK_DELTA the save writes only this life's own increments (none here), so the
+    # carried cells never overwrite the store's re-keyed sum
+    assert "action_kinds" not in g and not g.get("action_kinds_d"), (
+        "MF-K9c no carried cell is written", g.get("action_kinds"), g.get("action_kinds_d"))
     _catch(d)
     t = _decoded(d)
     assert t["counts"]["action_kinds"][_cell("A1", "delta_kind", 10)] == [5, 7], (
@@ -453,7 +455,52 @@ def mf_k9(tmp: Path) -> dict:
     snap = getattr(ag, "_dk_snap", None)
     if snap is not None:
         snap.close()
-    return {"pairs": g["form_aliases"], "cell": g["action_kinds"][_cell("A1", "delta_kind", 10)]}
+    return {"pairs": g["form_aliases"],
+            "cell": t["counts"]["action_kinds"][_cell("A1", "delta_kind", 10)]}
+
+
+def mf_k14(tmp: Path) -> dict:
+    """r906 3, (7): (a) R holds the action cell under 11 at [1, 1] (a cumulative save, as before);
+    A1 aliases 11 -> 10; A2 adds [2, 2] under 10; B1, forked from R BEFORE the alias, adds [1, 1]
+    under 11; a merge joins A2 and B1. The cell under 10 reads 1 + 2 + 1 = [4, 4] in the store
+    (built save by save and from nothing) and in the archive load, and nothing stays under 11.
+    (b) the writer: an IFace's own cell (3, 5) writes [3, 5]; at (4, 7) the next write is [1, 2];
+    a landed cell writes only the values not yet written."""
+    d = tmp / "k14"
+    d.mkdir()
+    c10, c11 = _cell("A1", "delta_kind", 10), _cell("A1", "delta_kind", 11)
+    r = _put(d, _gen(None, action_kinds={c11: [1, 1]}))
+    a1 = _put(d, _alias_gen(r, [[11, 10, 1], [10, 10, 0]]))
+    _put(d, _gen(a1, action_kinds_d={c10: [2, 2]}))
+    _put(d, _gen(r, game="b", action_kinds_d={c11: [1, 1]}))
+    m = lineage.merge(d)
+    assert m.get("hash"), ("K14 merge", m)
+    _catch(d)
+    cell = _decoded(d)["counts"]["action_kinds"]
+    assert cell == {c10: [4, 4]}, ("MF-K14a the store", cell)
+    d2 = _fresh(d, tmp, "k14_fresh")
+    assert _decoded(d2)["counts"]["action_kinds"] == cell, "MF-K14a built from nothing"
+    st, ar = _installed(d, True), _installed(d, False)
+    assert st["action"] == ar["action"] and "(4, 4)" in "".join(st["action"]), (
+        "MF-K14a the archive load", st["action"], ar["action"])
+    import gamma
+    import gridworld
+    import ledger
+    import tether
+    import world
+    env = world.bind(gridworld.family("default", 0))
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="fam_default_0"), tether.Config(),
+                      ledger.Ledger())
+    k = "('COLOUR', 'form=10')"
+    ag.iface.table = {"A1": {"delta_kind": {k: (3, 5)}, "lands_kind": {k: {"x"}}}}
+    d1, now = ag.iface.kind_tables_delta({})
+    ag.iface.table = {"A1": {"delta_kind": {k: (4, 7)}, "lands_kind": {k: {"x", "y"}}}}
+    d2_, _now = ag.iface.kind_tables_delta(now)
+    want1 = {repr(("A1", "delta_kind", k)): [3, 5], repr(("A1", "lands_kind", k)): ["x"]}
+    want2 = {repr(("A1", "delta_kind", k)): [1, 2], repr(("A1", "lands_kind", k)): ["y"]}
+    assert (d1, d2_) == (want1, want2), ("MF-K14b the writer", d1, d2_)
+    return {"cell": cell[c10], "writes": [d1[repr(("A1", "delta_kind", k))],
+                                          d2_[repr(("A1", "delta_kind", k))]]}
 
 
 def main():
@@ -478,8 +525,12 @@ def main():
         print(f"  MF-K12 refused: {k12['refused']}; the store: {k12['store']}")
         k9 = mf_k9(tmp)
         print(f"  MF-K9 code_pair = form_code OFF / ON, pose = canon's; shape_code keeps the "
-              f"turned shape's pair; the save writes {k9['pairs']} (33 not stored), its action "
-              f"cell 4 + 1 / 4 + 3 = {k9['cell']}, and the store holds it")
+              f"turned shape's pair; the save writes {k9['pairs']} (33 not stored), the store's "
+              f"cell 4 + 1 / 4 + 3 = {k9['cell']}, and no carried cell is written")
+        k14 = mf_k14(tmp)
+        print(f"  MF-K14 a fork before the alias, merged after it: the cell under 10 reads 1 + 2 "
+              f"+ 1 = {k14['cell']} (store save by save, from nothing, archive load); the writer "
+              f"writes increments {k14['writes']}")
         k13 = mf_k13(tmp)
         print(f"  MF-K13 store load = archive load: {k13['fields']} installed fields, "
               f"{k13['rows']} rows; routines 11 (settled) and 12 (candidate) contested, both "
