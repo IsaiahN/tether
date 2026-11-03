@@ -338,7 +338,8 @@ def _keyed(out: dict, field: str, g: dict, h: str, anc: dict, hist: dict, heads:
     one its generation descends from. Branches that AGREE read the agreed value; book running
     totals (every head an integer at or above the pre-split one) merge as the pre-split value plus
     each head's increment, an absent pre-split value read as 0 (the reviewer 2026-11-02 r800 2,
-    r801 4). Otherwise branches that disagree keep
+    r801 4). A merge generation of FOLD_RULE 2 re-reads equal moving counters as increments
+    (FoldState._merge_point). Otherwise branches that disagree keep
     the value from before the split (absent if there was none) and record both under
     "contested_<field>"."""
     for key, v in g[field].items():
@@ -389,6 +390,8 @@ class FoldState:
     def step(self, h: str, g: dict) -> None:
         rows, out, anc, hist, heads = self.rows, self.out, self.anc, self.hist, self.heads
         anc[h] = {h}.union(*(anc[q] for q in _parents(g)))
+        if len(_parents(g)) > 1:
+            self._merge_point(h, g.get("fold_rule", 1))
         for r in g["terms"]:
             row = {**r, "born": h}
             rows[_rid(row)] = row
@@ -423,6 +426,35 @@ class FoldState:
             out["dormant"].extend(dec(g["dormant"]))
         if g.get("aliases"):
             out.setdefault("aliases", []).extend(g["aliases"])   # (d), in chain order
+
+    def _merge_point(self, h: str, rule: int) -> None:
+        """A merge generation writes nothing, so a key both branches wrote kept two heads past it,
+        and a later fork read p0 as the last RAW write instead of the value the fold holds here
+        (the reviewer 2026-11-03 r881 4 (i); try_first_owed read 746 for 3,232). At every merge,
+        each row and keyed value whose heads all lie under it records the folded value as written
+        by the merge, which becomes its single head; this changes no fold already made. A key a
+        contest left absent is left as it is. At a FOLD_RULE 2 merge only (r882 3), a book counter
+        whose heads all moved from p0 reads p0 + each head's increment even where the heads are
+        equal (r881 4 (ii)); merges written before carry no fold_rule and fold as they did."""
+        anc, out = self.anc[h], self.out
+        for k, hs in self.heads.items():
+            if len(hs) > 1 and hs <= anc:
+                self.hist[k].append((h, self.rows[k].get("admitted")))
+                self.heads[k] = {h}
+        for (field, key), hs in self.kheads.items():
+            if len(hs) < 2 or not hs <= anc:
+                continue
+            kh = self.khist[(field, key)]
+            if rule >= 2 and field == "book":
+                vals = _head_values(kh, hs)
+                common = set.intersection(*(self.anc[q] for q in hs))
+                pre = [x for q, x in kh if q in common]
+                p0 = pre[-1] if pre else 0
+                if _count(p0) and all(_count(x) and x >= p0 for x in vals):
+                    out["book"][key] = p0 + sum(x - p0 for x in vals)
+            if key in out[field]:
+                kh.append((h, out[field][key]))
+                self.kheads[(field, key)] = {h}
 
     def result(self) -> dict:
         self.out["terms"] = list(self.rows.values())
@@ -1505,6 +1537,11 @@ def _scan(d: Path) -> dict[str, dict]:
     return gens
 
 
+# the fold's rule version a merge generation is written under (the reviewer 2026-11-03 r882 3): 2 =
+# equal moving counters at the merge sum as increments; a merge with no field folds as rule 1
+FOLD_RULE = 2
+
+
 def merge(d: str | Path, tips: list[str] | None = None) -> dict:
     """Join branches: one MERGE generation naming every given tip (default: all of them) as its
     parents and holding nothing else. No tip is picked and nothing is copied or removed; the fold
@@ -1521,7 +1558,7 @@ def merge(d: str | Path, tips: list[str] | None = None) -> dict:
         return {"refused": "nothing to merge", "tips": tips}
     gen = {"lineage": 1, "parents": tips, "merge": True, "game": None, "terms": [], "status": [],
            "evidence": [], "vindication_tail": [], "book": {}, "invented": {}, "dormant": [],
-           "dormant_refused": []}
+           "dormant_refused": [], "fold_rule": FOLD_RULE}
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     try:
