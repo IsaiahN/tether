@@ -2128,6 +2128,10 @@ ARMS: dict[str, str] = {
                          "step's budget (STEP_BUDGET), checked between bindings and methods; what "
                          "it does not finish is owed to the next quiet step (muse_owed). OFF: "
                          "unbounded but for the run's deadline. default ON",
+    "TETHER_TF_PASS": "TF_PASS (the reviewer 2026-11-02 r849 2): inside TRY_FIRST_PAYS, the "
+                      "try-first sweep releases only after one touch for each kind the board "
+                      "showed when the hold opened; a re-opened pass is the growth only. "
+                      "default ON",
     "TETHER_TRY_FIRST_PAYS": "P2' (i) (the reviewer 2026-11-02 r830): an untouched kind holds "
                              "the mint and the split only while kind touches still change "
                              "something (the contact row's felt change); MIN_REPEAT unpaid "

@@ -13,6 +13,8 @@ methods on stubs holding only the state they read.
          "elsewhere" (r834), kept on the shelf by UNTESTED_KEEP. On its own presses it ends at
          its budget.
          OFF (today): System 0's presses age it and end it "stalled" by the ceiling.
+  P2'-a/a2/b test the novelty release alone, so they run with TF_PASS OFF (the one-pass budget
+  is test_tf_pass's).
 
     python tests/test_p2_hold.py
 """
@@ -35,6 +37,7 @@ A = tether.Agent
 def board(kinds: int) -> SimpleNamespace:
     objs = [f"o{i}" for i in range(kinds)]
     ag = SimpleNamespace(_kind_unpaid=0, _kinds_open=0, _board_touched=set(),
+                         _tf_len=None, _tf_left=None, _tf_rel_u=None,
                          _board_moved=set(),
                          _seam_now=False, _last_landed=None, _actuators={}, _contact_pending=None,
                          led=ledger.Ledger(None), iface=SimpleNamespace(last_changed=()),
@@ -57,7 +60,7 @@ def touch(ag, o: str, changed: tuple = ()) -> None:
 
 
 def held_after(on: bool, changes: list) -> list:
-    tether._TRY_FIRST_PAYS = on
+    tether._TRY_FIRST_PAYS, tether._TF_PASS = on, False
     try:
         ag = board(10)
         seen = [A._try_first_open(ag)]
@@ -66,7 +69,7 @@ def held_after(on: bool, changes: list) -> list:
             seen.append(A._try_first_open(ag))
         return seen, ag
     finally:
-        tether._TRY_FIRST_PAYS = True
+        tether._TRY_FIRST_PAYS, tether._TF_PASS = True, True
 
 
 def hyp_ends(on: bool, own: bool, cycles: int = 4) -> tuple:
@@ -101,7 +104,11 @@ def main():
     assert same[-1] == 0, ("P2'-a2: a change already shown does not pay", same)
     rel, ag = held_after(True, [()] * m)
     ag.objs = ag.objs + ["o99"]                           # a kind newly on the board
-    assert A._try_first_open(ag) == 10 - m + 1, "P2'-b: a new kind re-opens the hold"
+    tether._TF_PASS = False
+    try:
+        assert A._try_first_open(ag) == 10 - m + 1, "P2'-b: a new kind re-opens the hold"
+    finally:
+        tether._TF_PASS = True
     s_on, e_on = hyp_ends(True, own=False)
     s_off, e_off = hyp_ends(False, own=False)
     s_own, e_own = hyp_ends(True, own=True)

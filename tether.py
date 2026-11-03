@@ -2513,6 +2513,12 @@ _TOUCH_EACH_KIND = armflag.arm("TETHER_TOUCH_EACH_KIND", default=True)
 # MIN_REPEAT unpaid in a row release the kinds' hold; a kind newly on the board re-opens it.
 # Untried ACTIONS hold as before. OFF: the kinds hold until each is touched
 _TRY_FIRST_PAYS = armflag.arm("TETHER_TRY_FIRST_PAYS", default=True)
+# TF_PASS (the reviewer 2026-11-02 r849 2; Fig 8 :39, "a search that finds nothing is never a proof
+# of absence"; Fig 9 :60, a cut, never a verdict): inside TRY_FIRST_PAYS, the sweep's budget is the
+# board's own count of untouched kinds when the hold opens (U0), one touch each; the novelty release
+# fires only once that pass is done. A re-opened pass is the growth since the last release. A board
+# where nothing pays still releases after its pass. OFF: the release at MIN_REPEAT empty touches
+_TF_PASS = armflag.arm("TETHER_TF_PASS", default=True)
 # P2' (ii) HYP_OWN_PRESS (r830; Fig 1): a held goal hypothesis ages, and its trend is read, only on
 # its own presses (a routine, a hold, an actuator press, its goal split's press); a press spent
 # elsewhere is counted as such and never ends it. OFF: every cycle ages it
@@ -3510,6 +3516,8 @@ class Agent:
         self._kind_unpaid = 0             # P2' (i): kind touches in a row that changed nothing
         self._la_trail = None             # P4: (hypothesis key, the intents look-ahead pressed)
         self._kinds_open = 0              # P2' (i): the untouched kinds at the last reading
+        self._tf_len = self._tf_left = None   # TF_PASS: this pass's touches, and those still owed
+        self._tf_rel_u = None             # TF_PASS: the untouched count at the last release
         self._board_moved: set = set()    # G: slots this board's presses moved (credited)
         self._goal_refuted: set = set()   # G: (subject, sign) arrived without a clear, this board
         self._actuators: dict = {}        # G: object -> (credited change, owners) of its touch
@@ -4570,6 +4578,7 @@ class Agent:
         if how != "death":
             self._board_touched.clear()    # C2: a new board's objects are touched once here
             self._kind_unpaid, self._kinds_open = 0, 0
+            self._tf_len = self._tf_left = self._tf_rel_u = None   # TF_PASS: the next board's pass
             self._board_moved.clear()      # G: what this board's presses moved
             self._goal_refuted.clear()     # G: the refuted signs are this board's
             self._actuators, self._act_seen, self._act_pending = {}, {}, None   # G: this board's
@@ -14334,10 +14343,26 @@ class Agent:
         if _TOUCH_EACH_KIND and getattr(self, "env", None) is not None:
             uk = self._untouched_kinds(self.env.observe())
             if _TRY_FIRST_PAYS:
+                if _TF_PASS and self._tf_left is None:
+                    self._tf_len = self._tf_left = len(uk)   # U0: one touch for each kind
                 if len(uk) > self._kinds_open:
                     self._kind_unpaid = 0      # more untouched kinds: touching may pay again
+                    if _TF_PASS and self._tf_rel_u is not None and len(uk) > self._tf_rel_u:
+                        # re-opened on a grown count: the new pass is the growth only
+                        self._tf_len = self._tf_left = len(uk) - self._tf_rel_u
+                        self._tf_rel_u = None
                 self._kinds_open = len(uk)     # a count: kind keys churn as slots change
-                if self._kind_unpaid >= MIN_REPEAT:
+                if _TF_PASS:
+                    if self._tf_left == 0 and self._kind_unpaid >= min(MIN_REPEAT, self._tf_len):
+                        if self._tf_rel_u is None:
+                            self._tf_rel_u = len(uk)
+                            self.led.record(self.cycle, "PLAN", "@try_first",
+                                            "try_first_released", pass_len=self._tf_len,
+                                            unpaid=self._kind_unpaid, untouched=len(uk),
+                                            reads="one touch for each kind, and the last ones "
+                                                  "changed nothing new: the kinds hold nothing")
+                        return n
+                elif self._kind_unpaid >= MIN_REPEAT:
                     return n                   # touching kinds stopped paying: they hold nothing
             n += len(uk)
         return n
@@ -17300,6 +17325,8 @@ class Agent:
             if _TRY_FIRST_PAYS:
                 new = set(moved_all) - getattr(self, "_moved_before", frozenset())
                 self._kind_unpaid = 0 if new else self._kind_unpaid + 1
+                if _TF_PASS and self._tf_left:
+                    self._tf_left -= 1         # TF_PASS: one of this pass's touches spent
             self.led.record(self.cycle, "PERCEIVE", pair[0], "contact", pair=list(pair),
                             kind="kind-touch", made=landed or bool(moved_all), landed=landed,
                             moved=moved_all[:8], moved_n=len(moved_all), owners_n=len(owners),
