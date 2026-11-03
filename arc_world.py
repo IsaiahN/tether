@@ -69,7 +69,8 @@ _OBJ_DERIVED = {"h": ("shape",), "w": ("shape",), "dh": ("shape",), "dw": ("shap
                 "dcells": ("shape",), "dholes": ("shape",), "dperimeter": ("shape",),
                 "drow": ("row",), "dcol": ("col",), "speed": ("row", "col"),
                 "colour_changed": ("colour",),
-                "scale": ("shape",), "grew": ("shape",), "shrank": ("shape",)}
+                "scale": ("shape",), "grew": ("shape",), "shrank": ("shape",),
+                "kind": ("shape",), "turned": ("shape",)}
 # E0b: the observer-item-4 pair slots (_relation_slots), each a function of both parties' cells
 _OBS_PAIR = ("contact", "bbox", "inside")
 
@@ -96,6 +97,7 @@ ALPHABET: dict[str, Callable[[int, int, dict], int]] = {
     # (5) SCALE: a scale divides both bbox sides; grew / shrank BOOL
     "scale": lambda h, w, _d: max(h, w) + 1,
     "grew": lambda _h, _w, _d: 2, "shrank": lambda _h, _w, _d: 2,
+    "turned": lambda _h, _w, _d: 2,                                     # the pose, readable
     # FRAMES, which no board quantity bounds: no object is older than the oldest, and
     # `stability` (frames unchanged) never exceeds its `age`. Varies per call, as `shape` does.
     "age": lambda _h, _w, d: _oldest(d) + 1, "stability": lambda _h, _w, d: _oldest(d) + 1,
@@ -681,7 +683,7 @@ class ArcWorld:
                 # not a constant chosen here. `+1` because 0 completed is a value.
                 out[s] = max(1, int(getattr(self._frame, "win_levels", 0) or 1)) + 1
                 continue
-            if key == "shape":
+            if key in ("shape", "kind"):     # `kind` labels in the shape table (r915)
                 # THE COUNT OF LABELS, NOT THE SPACE OF SHAPES. The slot holds an ID, and an
                 # id is a label -- arbitrary, comparable, never orderable -- so its alphabet
                 # is the number of labels, exactly as `colour`'s is the palette. `2**(h*w)`
@@ -993,15 +995,22 @@ class ArcWorld:
                 continue
             out[f"{o}.h"] = max(r for r, _c in key) + 1
             out[f"{o}.w"] = max(c for _r, c in key) + 1
+            e = arc_percept._entry(key)
             if arc_percept._KIND_SCALE:     # (5): the tracker's own scale rule
-                e = arc_percept._entry(key)
                 out[f"{o}.scale"] = e[4]
+            if arc_percept._POSE_READ:      # r915: the kind's first-seen member's label, if held
+                lab_k = (getattr(self._decompose, "_kind_label", None) or {}).get(e[2])
+                if lab_k is not None:
+                    out[f"{o}.kind"] = lab_k
             if before is None:
                 continue
             bkey = self._shape_key(before.get(k))
             if arc_percept._KIND_SCALE and bkey is not None:
                 bs = arc_percept._entry(bkey)[4]
                 out[f"{o}.grew"], out[f"{o}.shrank"] = int(e[4] > bs), int(e[4] < bs)
+            if arc_percept._POSE_READ and bkey is not None:
+                e0, e1 = arc_percept._entry(bkey), arc_percept._entry(key)
+                out[f"{o}.turned"] = int(e0[2] == e1[2] and e0[1] != e1[1])
             if bkey is not None:
                 bh, bw = max(r for r, _c in bkey) + 1, max(c for _r, c in bkey) + 1
                 out[f"{o}.dh"], out[f"{o}.dw"] = out[f"{o}.h"] - bh, out[f"{o}.w"] - bw

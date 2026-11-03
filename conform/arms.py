@@ -1924,6 +1924,11 @@ ARMS: dict[str, str] = {
                          "(EXTENT), grew and "
                          "shrank (BOOL) are published by the tracker and _obj_derive. OFF: a "
                          "shape's own size is its kind, no scale readings. default ON",
+    "TETHER_POSE_READ": "THE POSE, READABLE (the reviewer 2026-11-03 r915): `kind` (SHAPE) is the "
+                        "shape label of the kind's first-seen member, so `same` over `.kind` says "
+                        "same kind while `.shape` stays the form as seen; `turned` (BOOL) is a "
+                        "matched object's pose changing at the same kind. No new type, no shape "
+                        "label moved. OFF: neither reading. default ON",
     "TETHER_STORE_CONTINUE": "A2c (the reviewer 2026-11-02 r792): under A2, when fold's _topo "
                              "order is the store's chain followed by the new saves, the new "
                              "saves are appended in that order through the rebuild's body, its "

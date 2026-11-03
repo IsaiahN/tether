@@ -36,7 +36,7 @@ from dataclasses import replace
 from typing import Any
 
 import armflag
-from arc_percept import _CELL_CHANGE, _KIND_SCALE, holes_of, perimeter_of
+from arc_percept import _CELL_CHANGE, _KIND_SCALE, _POSE_READ, holes_of, perimeter_of
 from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx, declare_turns
 from sensors import (
     BOOL,
@@ -195,6 +195,10 @@ if _CELL_CHANGE:
 # `colour_changed`. Types every object already carries, so no kind tuple moves. Under the arm only.
 if _KIND_SCALE:
     ATTRIBUTE_TYPE.update({"scale": EXTENT, "grew": BOOL, "shrank": BOOL})
+# THE POSE, READABLE -- arm `TETHER_POSE_READ` (`arc_percept`, r915): `kind` is the shape label of
+# the kind's first-seen member, SHAPE like `shape`; `turned` a matched object's pose changing, BOOL.
+if _POSE_READ:
+    ATTRIBUTE_TYPE.update({"kind": SHAPE, "turned": BOOL})
 
 # AN ATTRIBUTE'S ATOM EXISTS ONLY WHERE ITS ARM PUBLISHES IT -- F503, the reviewer 2026-10-07. Every
 # key above becomes an atom, and each atom widens the alphabet every term is priced over; on the
@@ -207,6 +211,7 @@ ATTRIBUTE_ARM = {
     **dict.fromkeys(("dholes", "dperimeter"), ("arc_percept", "_SHAPE_DELTA")),
     **dict.fromkeys(("age", "speed", "stability"), ("arc_percept", "_INSTRUMENTS")),
     **dict.fromkeys(("scale", "grew", "shrank"), ("arc_percept", "_KIND_SCALE")),
+    **dict.fromkeys(("kind", "turned"), ("arc_percept", "_POSE_READ")),
 }
 
 
@@ -368,6 +373,7 @@ CLAUSE_ONE = frozenset({
     # perception's own readings -- what a slot IS. `ATTRIBUTE_TYPE`'s keys become atoms.
     "row", "col", "colour", "h", "w", "bbox", "shape", "age", "speed", "stability",
     "completed", "colour_changed", "contact", "touching", "scale", "grew", "shrank",
+    "kind", "turned",
     # the deltas -- what CHANGED. Without them there is no residual to price.
     "drow", "dcol", "dh", "dw", "dcells", "dholes", "dperimeter",
     "add_n", "rem_n", "add_row", "add_col", "rem_row", "rem_col",

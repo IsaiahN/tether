@@ -157,6 +157,13 @@ def canon_reset() -> None:
 # kind tuple; it stays in _entry and the alias pairs. OFF: a shape's own size is its kind, and the
 # three readings are not published.
 _KIND_SCALE = armflag.arm("TETHER_KIND_SCALE", default=True)
+# THE POSE, READABLE (the reviewer 2026-11-03 r915; Symbols Table F: "the frame transform ... Cannot
+# be run without a pose"): under K1 an upright and a turned L are one kind, so two readings keep the
+# turn sayable without a new type. `kind` (SHAPE, like `shape`) is the shape label of the kind's
+# first-seen member, in the same table -- so `same` over `.kind` says same kind and over `.shape`
+# (the form as seen, unchanged by K1) same as seen; `turned` (BOOL) is a matched object's pose
+# changing at the same kind (a size change alone is grew / shrank). OFF: neither reading.
+_POSE_READ = armflag.arm("TETHER_POSE_READ", default=True)
 
 
 def descale(cells: Any) -> tuple[frozenset, int]:
@@ -1004,6 +1011,9 @@ class Objects:
                     # answer at birth and it is none, where *how far did it move* has no answer
                     # because there was nothing to move from.
                     obj = {**obj, "stability": 0}
+            if _POSE_READ and prev is not None:
+                e0, e1 = _entry(prev["shape"]), _entry(obj["shape"])
+                obj = {**obj, "turned": int(e0[2] == e1[2] and e0[1] != e1[1])}
             if _KIND_SCALE:
                 # (5): how large it is, beside its kind; grew / shrank only on a matched object
                 # (a birth gets no change, as the deltas above)
@@ -1120,11 +1130,18 @@ class Objects:
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
                          "dh", "dw", "dcells", "colour_changed",
                          "dholes", "dperimeter", "age", "speed", "stability", *_CHANGE_ATTRS,
-                         "scale", "grew", "shrank"):
+                         "scale", "grew", "shrank", "turned"):
                 if attr in obj:
                     state[f"{name}.{attr}"] = (NOT_RESOLVED if covered or obj[attr] is None
                                                else int(obj[attr]))
             state[f"{name}.shape"] = (
                 NOT_RESOLVED if covered
                 else self._shapes.setdefault(obj["shape"], len(self._shapes)))
+            if _POSE_READ:
+                # the shape label of the kind's FIRST-SEEN member: a member of the kind, decoded
+                # by the same table, and no new label, so every `shape` label stays as it was
+                kl = self.__dict__.setdefault("_kind_label", {})
+                state[f"{name}.kind"] = (
+                    NOT_RESOLVED if covered
+                    else kl.setdefault(_entry(obj["shape"])[2], state[f"{name}.shape"]))
         return state
