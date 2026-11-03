@@ -2508,8 +2508,9 @@ _S0_BEFORE_BORED = armflag.arm("TETHER_S0_BEFORE_BORED", default=True)
 _TOUCH_EACH_KIND = armflag.arm("TETHER_TOUCH_EACH_KIND", default=True)
 # P2' (i) TRY_FIRST_PAYS (the reviewer 2026-11-02 r830; Fig 9 :60, Fig 5 :15-17): an untouched kind
 # holds the mint and the split only while touching kinds still PAYS by the agent's own record -- a
-# kind touch whose felt change (the contact row's moved, net of I-B) is empty does not pay, and
-# MIN_REPEAT of those in a row release the kinds' hold; a kind newly on the board re-opens it.
+# kind touch pays only if its felt change (the contact row's moved, net of I-B) holds a slot no
+# earlier press on this board moved (_board_moved before it: the bin is new, Fig 5 :15-17), and
+# MIN_REPEAT unpaid in a row release the kinds' hold; a kind newly on the board re-opens it.
 # Untried ACTIONS hold as before. OFF: the kinds hold until each is touched
 _TRY_FIRST_PAYS = armflag.arm("TETHER_TRY_FIRST_PAYS", default=True)
 # P2' (ii) HYP_OWN_PRESS (r830; Fig 1): a held goal hypothesis ages, and its trend is read, only on
@@ -3432,7 +3433,7 @@ class Agent:
         self._pressed_seen: set = set()   # TETHER_COUNTERS: (action, cell) pressed on this board
         self._board_touched: set = set()  # C2: objects System 0 touched on this board
         self._kind_unpaid = 0             # P2' (i): kind touches in a row that changed nothing
-        self._kinds_known: set = set()    # P2' (i): the kinds this board has shown
+        self._kinds_open = 0              # P2' (i): the untouched kinds at the last reading
         self._board_moved: set = set()    # G: slots this board's presses moved (credited)
         self._goal_refuted: set = set()   # G: (subject, sign) arrived without a clear, this board
         self._actuators: dict = {}        # G: object -> (credited change, owners) of its touch
@@ -4491,7 +4492,7 @@ class Agent:
             self._pressed_seen.clear()
         if how != "death":
             self._board_touched.clear()    # C2: a new board's objects are touched once here
-            self._kind_unpaid, self._kinds_known = 0, set()
+            self._kind_unpaid, self._kinds_open = 0, 0
             self._board_moved.clear()      # G: what this board's presses moved
             self._goal_refuted.clear()     # G: the refuted signs are this board's
             self._actuators, self._act_seen, self._act_pending = {}, {}, None   # G: this board's
@@ -7605,11 +7606,11 @@ class Agent:
             return
         if _HYP_OWN_PRESS and not h.get("own_last"):
             # P2' (ii): the last press was not its own. Its budget passing with none of its own
-            # ends it with steps 0 -- UNTESTED_KEEP's "untested", kept, never "stalled" -- so a
-            # hypothesis the board never presses for cannot hold the goal slot forever
+            # ends it "untested" (r834; Fig 9 :44, :60: a budget hands no verdict), kept on the
+            # shelf by UNTESTED_KEEP, so one the board never presses for cannot hold the goal slot
             h["elsewhere"] = h.get("elsewhere", 0) + 1
             if h["elsewhere"] > h["budget"]:
-                self._hyp_end("stalled", by="elsewhere")
+                self._hyp_end("untested", by="elsewhere")
             return
         h["steps"] += 1
         sers = [self._res.get(sl) for sl in h["slots"]]
@@ -10729,6 +10730,8 @@ class Agent:
                             reads=("every slot that changed is credited to this press, less "
                                    "what changed anyway (I-B)" if _REAFFERENCE else
                                    "every slot that changed is credited to this press (F1)"))
+        if _TRY_FIRST_PAYS:
+            self._moved_before = frozenset(self._board_moved)   # P2' (i): what is new to the board
         if _GOAL_BY_MOVED and not self._seam_now:
             self._board_moved.update(getattr(self.iface, "last_changed", ()))
         if _GOAL_FROM_ACTUATOR and not self._seam_now and getattr(self.iface, "last_changed", ()):
@@ -14053,10 +14056,9 @@ class Agent:
         if _TOUCH_EACH_KIND and getattr(self, "env", None) is not None:
             uk = self._untouched_kinds(self.env.observe())
             if _TRY_FIRST_PAYS:
-                ks = {self._kind(ms[0]) for ms in uk}
-                if ks - self._kinds_known:
-                    self._kind_unpaid = 0      # a kind newly on the board: touching may pay again
-                self._kinds_known |= ks
+                if len(uk) > self._kinds_open:
+                    self._kind_unpaid = 0      # more untouched kinds: touching may pay again
+                self._kinds_open = len(uk)     # a count: kind keys churn as slots change
                 if self._kind_unpaid >= MIN_REPEAT:
                     return n                   # touching kinds stopped paying: they hold nothing
             n += len(uk)
@@ -17018,7 +17020,8 @@ class Agent:
                 self._actuators[pair[0]] = (len(moved_all), len(owners),   # G: an actuator
                                             frozenset(moved_all))
             if _TRY_FIRST_PAYS:
-                self._kind_unpaid = 0 if moved_all else self._kind_unpaid + 1
+                new = set(moved_all) - getattr(self, "_moved_before", frozenset())
+                self._kind_unpaid = 0 if new else self._kind_unpaid + 1
             self.led.record(self.cycle, "PERCEIVE", pair[0], "contact", pair=list(pair),
                             kind="kind-touch", made=landed or bool(moved_all), landed=landed,
                             moved=moved_all[:8], moved_n=len(moved_all), owners_n=len(owners),
