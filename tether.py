@@ -2558,6 +2558,12 @@ def lookahead(state: dict, actions: tuple, predict, gap, more) -> tuple | None:
     if best is None or best[0] >= now:
         return None
     return best[2][0], best[1], best[0], now
+# MUSE_BOUND (the reviewer 2026-11-02 r841; Fig 12 :126-127): _muse re-tests every settled method
+# on every residual parked on an earlier level, and its only stop was the RUN's deadline -- after a
+# level clear one step ran over an hour. Each of its evaluations (_left) is charged to the step's
+# evaluation budget (STEP_BUDGET), checked between bindings and methods; what it does not finish is
+# OWED to the next quiet step and resumes where it stopped. OFF: unbounded, as before
+_MUSE_BOUND = armflag.arm("TETHER_MUSE_BOUND", default=True)
 # E, DELTA_TIER_MEMO (the reviewer 2026-11-01 r736): _delta_tier ran once per candidate binding and
 # each call re-walked every slot of every residual observation, the whole owner map and the
 # contact map, which do not change until the trace grows (tn36 profile: route 76% of samples,
@@ -3575,6 +3581,7 @@ class Agent:
         self._inv_seen: dict = {}     # M6: slot -> history length last tried
         self._step_row0 = 0           # MC6: the ledger length when this step began
         self._muse_last = None        # MC6 N2: (targets, methods) last tested, and its cycle
+        self._muse_run = None         # MUSE_BOUND: a muse the step's budget cut, resumed next
         self._deg_prev = None         # the completion sweep: the world's degree last step
         self._sweep_from = (0, 0, set(), set())   # (seq, cycle, settled, owed) at segment start
         self._reach_hist: list = []   # build 2: (after-state, world reached?) per step, this level
@@ -8415,43 +8422,78 @@ class Agent:
                          if not self.gamma.is_atom(t) and self.gamma.is_settled(n))
         # N2 (the reviewer 00:05Z): nothing changed since the last muse, nothing is re-tested
         key = (tuple(sorted(targets)), tuple(methods))
-        if self._muse_last is not None and self._muse_last[0] == key:
+        run = self._muse_run if (_MUSE_BOUND and self._muse_run is not None
+                                 and self._muse_run["key"] == key) else None
+        if run is None and self._muse_last is not None and self._muse_last[0] == key:
             self.led.record(self.cycle, "IMPORT", "@muse", "muse", level=self.level,
                             unchanged_since=self._muse_last[1], tried=0, paying=[],
                             compute_ms=round(1000 * (time.perf_counter() - t0), 3),
                             installed=False,
                             reads="the same targets and settled methods as that cycle's muse")
             return
-        self._muse_last = (key, self.cycle)
-        tried, paying, skipped = 0, [], Counter()
-        for key, rec in sorted(targets.items()):
+        if run is None:
+            self._muse_last = (key, self.cycle)
+            run = {"key": key, "i": 0, "j": 0, "b": 0, "best": None, "base": None, "tried": 0,
+                   "paying": [], "skipped": Counter(), "steps": 0, "ms": 0.0}
+        run["steps"] += 1
+        items = sorted(targets.items())
+
+        def spend() -> bool:
+            # MUSE_BOUND: one evaluation per _left, charged to the step; True when spent out
+            if not _MUSE_BOUND:
+                return False
+            if self._spent >= STEP_BUDGET:
+                return True
+            self._spent += 1
+            return False
+
+        while run["i"] < len(items):
+            pk, rec = items[run["i"]]
             cap.head()
             slot, hist = rec["slot"], rec["hist"]
             if slot not in self.alphabet:
-                skipped["slot has no alphabet this level"] += 1
+                run["skipped"]["slot has no alphabet this level"] += 1
+                run["i"], run["j"], run["base"] = run["i"] + 1, 0, None
                 continue
-            base = self._left(self.gamma.library[IDN], slot, hist)
-            for name in methods:
+            if run["base"] is None:
+                if spend():
+                    self._muse_owe(run, t0)
+                    return
+                run["base"] = self._left(self.gamma.library[IDN], slot, hist)
+            binds = [None] + [x for x in rec.get("slots", ()) if x != slot]
+            while run["j"] < len(methods):
+                name = methods[run["j"]]
                 cap.head()
                 chain = self.gamma.library[name].atoms
-                best = None
-                for bind in [None] + [x for x in rec.get("slots", ()) if x != slot]:
+                while run["b"] < len(binds):
                     cap.head()
-                    cand = Term(chain, operand=bind)
-                    tried += 1
+                    if spend():
+                        self._muse_owe(run, t0)
+                        return
+                    cand = Term(chain, operand=binds[run["b"]])
+                    run["tried"] += 1
                     left = self._left(cand, slot, hist)
-                    if best is None or left < best[0]:
-                        best = (left, cand)
-                left, cand = best
+                    if run["best"] is None or left < run["best"][0]:
+                        run["best"] = (left, cand)
+                    run["b"] += 1
+                left, cand = run["best"]
                 cost = self._bits((cand, ()))
-                if pays(cost, left, base):
-                    paying.append({"parked": key, "method": name, "as": cand.name,
-                                   "cost": round(cost, 3), "left": round(left, 3),
-                                   "base": round(base, 3)})
+                if pays(cost, left, run["base"]):
+                    run["paying"].append({"parked": pk, "method": name, "as": cand.name,
+                                          "cost": round(cost, 3), "left": round(left, 3),
+                                          "base": round(run["base"], 3)})
+                run["j"], run["b"], run["best"] = run["j"] + 1, 0, None
+            run["i"], run["j"], run["base"] = run["i"] + 1, 0, None
+        self._muse_run = None
+        tried, paying, skipped = run["tried"], run["paying"], run["skipped"]
         self.led.record(self.cycle, "IMPORT", "@muse", "muse", level=self.level,
                         targets=sorted(targets), methods=len(methods), tried=tried,
                         paying=paying, skipped=dict(skipped),
                         compute_ms=round(1000 * (time.perf_counter() - t0), 3),
+                        **({"steps": run["steps"],
+                            "compute_ms_all": round(run["ms"] + 1000 * (time.perf_counter()
+                                                                       - t0), 3)}
+                           if _MUSE_BOUND else {}),
                         installed=False,
                         # N1 (the reviewer 00:05Z): as in the sweep, choosing the operand (bare
                         # or one of the record's slots) is not charged; operand-choice pricing
@@ -8459,6 +8501,18 @@ class Agent:
                         binding="unpriced",
                         reads=("a mastered method re-tested on an earlier level's parked "
                                "residual; the gap recorded, nothing installed, no action"))
+
+    def _muse_owe(self, run: dict, t0: float) -> None:
+        """MUSE_BOUND: the step's budget ran out inside a muse; where it stopped is kept and the
+        next quiet step resumes there (a cut, never a verdict: Fig 9 :44, :60)."""
+        ms = 1000 * (time.perf_counter() - t0)
+        run["ms"] += ms
+        self._muse_run = run
+        self.led.record(self.cycle, "IMPORT", "@muse", "muse_owed", level=self.level,
+                        target=run["i"], method=run["j"], binding=run["b"], tried=run["tried"],
+                        steps=run["steps"], compute_ms=round(ms, 3),
+                        reads=("the step's evaluation budget ran out inside a muse; the rest is "
+                               "owed to the next quiet step, never a verdict"))
 
     # ---------------------------------------------------------------- 7c M6, INVENT
     def _inv_holds(self, key: str | None, state: dict) -> bool:
