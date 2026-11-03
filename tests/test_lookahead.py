@@ -43,12 +43,13 @@ def main():
     greedy, g_calls = run(2)
     deep, d_calls = run(10_000)
     assert greedy is None, ("P-a MUST-FAIL: one press deep finds nothing nearer", greedy)
-    assert deep == ("a", 3, 0, 3), ("P-a: three deep reaches the goal through a worse first", deep)
+    assert deep == ("a", 3, 0, 3, ("a", "b", "b")), ("P-a: three deep, through a worse first",
+                                                      deep)
     none, _ = run(10_000, predict=lambda _st, _a: None)
     assert none is None, ("P-b: nothing predicted, nothing chosen", none)
     assert g_calls <= 2 and d_calls <= 10_000, ("P-c: the budget bounds the presses", g_calls)
     print(f"test_lookahead: greedy ({g_calls} presses) -> None; look-ahead ({d_calls} presses) -> "
-          f"{deep}; nothing predicted -> None")
+          f"{deep[:4]} by {deep[4]}; nothing predicted -> None")
 
 
 if __name__ == "__main__":

@@ -2519,18 +2519,21 @@ _TRY_FIRST_PAYS = armflag.arm("TETHER_TRY_FIRST_PAYS", default=True)
 _HYP_OWN_PRESS = armflag.arm("TETHER_HYP_OWN_PRESS", default=True)
 _HYP_OWN_BY = ("routine", "hold", "actuator", "discriminate:goal", "lookahead")
 # P3 LOOK-AHEAD (the reviewer 2026-11-02 14:38 plan, r832 c; Fig 12 :107-108, rehearsal over a
-# sequence): the settled one-press predictors chained over press sequences in thought, paid from the
-# step's evaluation budget (STEP_BUDGET), so the depth is what the budget reaches, never a constant;
-# the first press of the sequence whose predicted end most shrinks the held hypothesis's subject gap
-# is pressed (by "lookahead"), the plan re-read every step. OFF: no look-ahead exit
+# sequence): the settled one-press predictors chained over sequences of INTENTS in thought (r841 4:
+# BECOME the subject +/-, TOUCH an object the predictors read, each realised by the interface as
+# every press is), paid from the step's evaluation budget (STEP_BUDGET), so the depth is what the
+# budget reaches, never a constant; the first intent of the sequence whose predicted end most
+# shrinks the held hypothesis's subject gap is pressed (by "lookahead"), re-read every step. A
+# sequence is intents over kinds, never a press replay. OFF: no look-ahead exit
 _LOOKAHEAD = armflag.arm("TETHER_LOOKAHEAD", default=True)
 
 
 def lookahead(state: dict, actions: tuple, predict, gap, more) -> tuple | None:
-    """P3: breadth first over press sequences while more() allows. predict(state, a) is the next
-    state or None; gap(state) an int or None. (first press, depth, gap at its end, gap now) of
-    the sequence with the least gap at its end (then the shortest, then action order); None if no
-    sequence ends nearer than now. A state already reached is not extended twice."""
+    """P3: breadth first over sequences of units (intents) while more() allows. predict(state, a)
+    is the next state or None; gap(state) an int or None. (first unit, depth, gap at its end, gap
+    now, the sequence) of the sequence with the least gap at its end (then the shortest, then unit
+    order); None if no sequence ends nearer than now. A state already reached is not extended
+    twice."""
     now = gap(state)
     if now is None or now == 0 or not actions:
         return None
@@ -2557,7 +2560,7 @@ def lookahead(state: dict, actions: tuple, predict, gap, more) -> tuple | None:
         frontier = nxt
     if best is None or best[0] >= now:
         return None
-    return best[2][0], best[1], best[0], now
+    return best[2][0], best[1], best[0], now, best[2]
 # MUSE_BOUND (the reviewer 2026-11-02 r841; Fig 12 :126-127): _muse re-tests every settled method
 # on every residual parked on an earlier level, and its only stop was the RUN's deadline -- after a
 # level clear one step ran over an hour. Each of its evaluations (_left) is charged to the step's
@@ -10561,8 +10564,11 @@ class Agent:
 
     def _lookahead_act(self, before: dict) -> str | None:
         """P3: the held hypothesis's subject read through the settled one-press predictors chained
-        over press sequences (lookahead), each predicted press paid from the step's evaluation
-        budget. None when nothing settled predicts the subject or no sequence ends nearer."""
+        over sequences of intents (lookahead): BECOME the subject +/- and TOUCH each object the
+        predictors read, each realised once by the interface (two intents realised to one press
+        are one unit), each realisation and predicted press paid from the step's evaluation
+        budget. The first intent goes out through _took, as every press does. None when nothing
+        settled predicts the subject, nothing realises, or no sequence ends nearer."""
         subj = self._hyp["slots"][0]
         lib = self.gamma.library
         preds = sorted(s for s, n in self.bound.items()
@@ -10572,12 +10578,32 @@ class Agent:
         used = [0]
         keep = dict(self._pred_raw)
 
-        def predict(st, a):
+        def more():
+            return self._spent + used[0] + len(preds) <= STEP_BUDGET
+
+        owners = sorted({o for s in preds for o in self._objs_named(s)})
+        wants = ([IFace.Intent(IFace.BECOME, subj, "+"), IFace.Intent(IFace.BECOME, subj, "-")]
+                 + [IFace.Intent(IFace.TOUCH, object=o) for o in owners])
+        units, pressed = [], set()
+        ctx = IFace.Interface.context(self.env)
+        for w in wants:
+            if not more():
+                break
+            cap.head()
+            used[0] += 1
+            r = self.iface.realise(w, tuple(self.actions), ctx, before, self.env,
+                                   withheld=self._withheld)
+            if r is None or r.unmapped or (r.action, r.coord) in pressed:
+                continue                 # unmapped: pressed to learn, so nothing predicts it
+            pressed.add((r.action, r.coord))
+            units.append((w, r))
+
+        def predict(st, u):
             out = dict(st)
             for s in preds:
                 cap.head()
                 used[0] += 1
-                v = self._predict(s, st, a)
+                v = self._predict(s, st, u[1].action)
                 if v is not None:
                     out[s] = v
             return out
@@ -10586,22 +10612,22 @@ class Agent:
             g = self._discrepancy(subj, st)
             return g if isinstance(g, int) else None
 
-        def more():
-            return self._spent + used[0] + len(preds) <= STEP_BUDGET
-
         try:
-            got = lookahead(dict(before), tuple(self.actions), predict, gap, more)
+            got = lookahead(dict(before), tuple(units), predict, gap, more)
         finally:
             self._pred_raw = keep
             self._spent += used[0]
         if got is None:
             return None
-        act, depth, g_end, g_now = got
-        self.led.record(self.cycle, "PLAN", subj, "lookahead", action=act, depth=depth,
-                        gap_now=g_now, gap_end=g_end, evaluations=used[0],
-                        reads="settled one-press predictors chained in thought; the first press "
-                              "of the sequence whose end most shrinks the subject's gap (P3)")
-        return act
+        (want, real), depth, g_end, g_now, seq = got
+        self.led.record(self.cycle, "PLAN", subj, "lookahead", intent=want.says(),
+                        action=real.action, depth=depth, gap_now=g_now, gap_end=g_end,
+                        plan=[w.says() for w, _r in seq], units=len(units),
+                        evaluations=used[0],
+                        reads="settled one-press predictors chained over intents in thought; "
+                              "the first intent of the sequence whose end most shrinks the "
+                              "subject's gap (P3)")
+        return self._took(real, want)
 
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
