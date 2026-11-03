@@ -2533,6 +2533,14 @@ _LOOKAHEAD = armflag.arm("TETHER_LOOKAHEAD", default=True)
 # on the next board. A trail with no kind form (an intent naming nothing on another board) is not
 # formed, and says why. OFF: no routine from look-ahead
 _LA_ROUTINE = armflag.arm("TETHER_LA_ROUTINE", default=True)
+# M1 + M2 THE THOUGHT RECORD (the reviewer 2026-11-02 14:38 plan, r828 f; Fig 12 :107-108, "where
+# the arrangement is recorded, re-deriving it is a lookup"): each described lookup counts, under its
+# key in KIND FORM (the delta kind and the asked readings, no slot names), the entries it judged
+# (tried) and the entries that offered (paid); carried by the lineage like the 7h line grades
+# (thought_tried / thought_paid deltas, summed at load). S2's cheap rank reads it: within a tier, an
+# entry that paid under this key first, one tried and never paid after the untried -- a cut, never a
+# verdict, so it stays reachable. OFF: S2's order, no record
+_THOUGHT_RECORD = armflag.arm("TETHER_THOUGHT_RECORD", default=True)
 
 
 def lookahead(state: dict, actions: tuple, predict, gap, more) -> tuple | None:
@@ -3466,6 +3474,9 @@ class Agent:
         self._line_grade: dict = {}
         self._line_grade_in: dict = {}
         self._line_grade_written: dict = {}
+        self._thought: dict = {"tried": {}, "paid": {}}       # M1: key -> entry -> n, this life
+        self._thought_in: dict = {"tried": {}, "paid": {}}    # M1: the same, carried in
+        self._thought_written: dict = {"tried": {}, "paid": {}}
         self._lib_won: set = set()       # 7h (d) by route: library-route wins at a mint
         self._contra_q: list = []        # 3a: this step's contradictions, for perception
         self._obj_pick: dict = {}                                     # A1: this cycle's
@@ -6062,6 +6073,12 @@ class Agent:
                             reads=("the library lit by this residual's description; the distinct "
                                    "views and CAUSE then-sides that compile onto this slot, tested "
                                    "and recorded, each with the count of entries that offered it"))
+        if _THOUGHT_RECORD and dl_key is not None:
+            # M1: this lookup's judged entries and the ones that offered, under its kind-form key
+            paid = {(o_.get("prov") or {}).get("library") for m in tg
+                    for o_ in self._lib_offers.get(m, ()) if o_.get("offered")} - {None}
+            self._thought_note(self._thought_key(dl_key[1], {att.get(s) for s in tg}),
+                               [k for k, _w in lit], paid)
         if dl_key is not None and not self._k1_trunc and not self._walk_cut \
                 and not any(self._lib_offers.get(m) for m in tg) \
                 and self._tk_after(dl_key, tk_next):
@@ -6079,8 +6096,18 @@ class Agent:
             i += c
         reads = {att.get(s) for s in tg}
         post = _posting_reads()
-        ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)),
-                                            -len(post.get(e[0], frozenset()) & reads)))
+        if _THOUGHT_RECORD:
+            tk = self._thought_key(key[1], reads)
+            tried, paid = self._thought_of("tried", tk), self._thought_of("paid", tk)
+
+            def order(e):
+                p = paid.get(e[0], 0)
+                return (tier_of.get(e[0], len(tiers)), -p, bool(tried.get(e[0]) and not p),
+                        -len(post.get(e[0], frozenset()) & reads))
+            ranked = sorted(lit, key=order)
+        else:
+            ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)),
+                                                -len(post.get(e[0], frozenset()) & reads)))
         if _SERP_CACHE:
             # S3: what this key already judged no-fit is skipped; the window is the next unjudged
             seen = self._tk_nofit.get(key, ())
@@ -10642,6 +10669,25 @@ class Agent:
                 self._la_trail = (k, [])
             self._la_trail[1].append(want)
         return self._took(real, want)
+
+    @staticmethod
+    def _thought_key(dk: Any, reads: Any) -> str:
+        """M1: a described lookup's key in kind form -- its delta kind and its asked readings."""
+        return json.dumps([list(dk) if dk else None, sorted(str(r) for r in reads if r)],
+                          default=str)
+
+    def _thought_note(self, tk: str, tried: list, paid: set) -> None:
+        for fld, es in (("tried", tried), ("paid", paid)):
+            into = self._thought[fld].setdefault(tk, {})
+            for e in es:
+                into[e] = into.get(e, 0) + 1
+
+    def _thought_of(self, fld: str, tk: str) -> dict:
+        """M1: the lineage's count under this key plus this life's."""
+        out = dict(self._thought_in[fld].get(tk, {}))
+        for e, n in self._thought[fld].get(tk, {}).items():
+            out[e] = out.get(e, 0) + n
+        return out
 
     def _la_routine(self, h: dict, why: str) -> None:
         """P4: the hypothesis ends; if its look-ahead presses closed its gap, they settle as one
