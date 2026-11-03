@@ -106,10 +106,11 @@ _KIND_CARRY = armflag.arm("TETHER_KIND_CARRY", default=True)
 # color, position or rotation/orientation changes"): the form code is taken over the LEAST of the
 # shape's 8 rotations and mirrors, so a turned or mirrored object is the same kind; which way it
 # faces is the pose (canon's second value), a reading beside the kind. OFF: the cells as they
-# stand, so a turn is a different kind. DEFAULT OFF (the reviewer 2026-11-02 r808): every kind
-# tally is stored under the as-seen code (7,981,124 kind rows carry it), so ON orphans the rows of
-# every shape not in its least orientation until a legacy read (both keys, summed) exists.
-_KIND_CANON = armflag.arm("TETHER_KIND_CANON")
+# stand, so a turn is a different kind. DEFAULT ON since Build 1 (6) (the reviewer 2026-11-03 r915):
+# the stored as-seen rows are re-keyed by an alias generation (TETHER_KIND_ALIAS), the codes met
+# later by the alias at arrival (TETHER_FORM_PAIRS), and the pose stays readable (TETHER_POSE_READ).
+# It was OFF (r808) while ON would have orphaned the rows of every shape not in its least pose.
+_KIND_CANON = armflag.arm("TETHER_KIND_CANON", default=True)
 # K3a, A TURN IS NOT A DEATH (r797, r808): the tracker's shape fallback matches the same KIND (any
 # rotation or mirror) when no exact shape matches, by kind_code, whatever _KIND_CANON publishes.
 # OFF: an exact shape match only, so a turned object is a birth.

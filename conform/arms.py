@@ -2137,9 +2137,10 @@ ARMS: dict[str, str] = {
     "TETHER_KIND_CANON": "K1 (the reviewer 2026-11-02 r797; Isaiah 10:12): arc_percept.form_code, "
                          "and arc_world.shape_code through it, hash the LEAST of a shape's 8 "
                          "rotations and mirrors, so a turned or mirrored object is one kind and "
-                         "canon() gives its pose. OFF: the cells as they stand. default OFF "
-                         "(r808): ON orphans tallies stored under the as-seen code until a "
-                         "legacy read exists",
+                         "canon() gives its pose. OFF: the cells as they stand. default ON since "
+                         "Build 1 (6) (r915): the as-seen rows are re-keyed by an alias generation "
+                         "(TETHER_KIND_ALIAS) and the codes met later at arrival "
+                         "(TETHER_FORM_PAIRS); the pose stays readable (TETHER_POSE_READ)",
     "TETHER_SELF_READ": "M3 (the reviewer 2026-11-02 r844 3): each game's N2 stopped-at link is "
                         "counted and carried; the next game starts with a self_read row of the "
                         "lineage's counts. A record and a reading; nothing steers by it. "
