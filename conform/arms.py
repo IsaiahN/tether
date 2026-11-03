@@ -1916,6 +1916,14 @@ ARMS: dict[str, str] = {
                          "(arc_percept._entry; canon_reset at each ArcWorld), read by canon, "
                          "kind_code (the tracker's K3a), form_code under K1 and code_pair. OFF: "
                          "computed at every call. default ON",
+    "TETHER_KIND_SCALE": "(5) SCALE (Build 1; Isaiah 2026-11-03 14:29 \"the same kind at a "
+                         "different size\"; the reviewer r911): a k-fold blow-up of a shape "
+                         "(every k x k block of its bounding box full or empty, k dividing both "
+                         "sides, the largest k) is that shape's kind at scale k: kind_code and "
+                         "the K1 form code hash canon(descale(cells)); the readings scale "
+                         "(EXTENT), grew and "
+                         "shrank (BOOL) are published by the tracker and _obj_derive. OFF: a "
+                         "shape's own size is its kind, no scale readings. default ON",
     "TETHER_STORE_CONTINUE": "A2c (the reviewer 2026-11-02 r792): under A2, when fold's _topo "
                              "order is the store's chain followed by the new saves, the new "
                              "saves are appended in that order through the rebuild's body, its "

@@ -28,6 +28,7 @@ TWO CHOICES THE CORPUS DOES NOT SETTLE, MADE HERE AND STATED:
 from __future__ import annotations
 
 import copy
+import math
 import sys
 from typing import Any
 
@@ -145,6 +146,32 @@ def canon_reset() -> None:
     _CANON.clear()
 
 
+# (5) SCALE (Build 1; Isaiah 2026-11-03 14:29, "the same kind at a different size"; the reviewer
+# r911): a shape that is a k-fold blow-up of a smaller one -- every k x k block of its bounding box,
+# aligned to the box's corner, full or empty, k dividing both sides, the largest such k -- is the
+# smaller shape's kind at scale k. A shape's cells carry no colour (components() is one hue per
+# object), so a two-colour block is never one object to descale. `scale` (EXTENT) is a reading
+# beside the kind (the tracker's and _obj_derive's), and grew / shrank (BOOL) are its changes; both
+# types every object already carries, so no kind tuple moves. The pose is NOT a slot: no type in
+# the set is a categorical label that is not a colour or a shape, and a new type would move every
+# kind tuple; it stays in _entry and the alias pairs. OFF: a shape's own size is its kind, and the
+# three readings are not published.
+_KIND_SCALE = armflag.arm("TETHER_KIND_SCALE", default=True)
+
+
+def descale(cells: Any) -> tuple[frozenset, int]:
+    """(the least shape this one is a blow-up of, the factor k); (its normalised cells, 1) when
+    none."""
+    n = _norm(cells)
+    g = math.gcd(max(r for r, _ in n) + 1, max(c for _, c in n) + 1)
+    for k in range(g, 1, -1):
+        if g % k == 0:
+            small = frozenset((r // k, c // k) for r, c in n)
+            if len(small) * k * k == len(n):
+                return small, k
+    return n, 1
+
+
 def _canon(cells: Any) -> tuple[frozenset, int]:
     best = min(_images(cells), key=sorted)
     here = _norm(cells)
@@ -152,16 +179,21 @@ def _canon(cells: Any) -> tuple[frozenset, int]:
 
 
 def _entry(cells: Any) -> tuple:
-    """(canonical form, pose, canonical code, as-seen code), once per cell set under the memo."""
+    """(canonical form, pose, canonical code, as-seen code, scale), once per cell set under the
+    memo."""
     if not _CANON_MEMO:
-        best, pose = _canon(cells)
-        return best, pose, _hash(best), _hash(cells)
+        return _compute(cells)
     key = cells if isinstance(cells, frozenset) else frozenset(tuple(c) for c in cells)
     got = _CANON.get(key)
     if got is None:
-        best, pose = _canon(key)
-        got = _CANON[key] = (best, pose, _hash(best), _hash(key))
+        got = _CANON[key] = _compute(key)
     return got
+
+
+def _compute(cells: Any) -> tuple:
+    small, k = descale(cells) if _KIND_SCALE else (cells, 1)
+    best, pose = _canon(small)
+    return best, pose, _hash(best), _hash(cells), k
 
 
 def canon(cells: Any) -> tuple[frozenset, int]:
@@ -972,6 +1004,14 @@ class Objects:
                     # answer at birth and it is none, where *how far did it move* has no answer
                     # because there was nothing to move from.
                     obj = {**obj, "stability": 0}
+            if _KIND_SCALE:
+                # (5): how large it is, beside its kind; grew / shrank only on a matched object
+                # (a birth gets no change, as the deltas above)
+                e = _entry(obj["shape"])
+                obj = {**obj, "scale": e[4]}
+                if prev is not None and "scale" in prev:
+                    obj = {**obj, "grew": int(e[4] > prev["scale"]),
+                           "shrank": int(e[4] < prev["scale"])}
             fresh[best] = obj
 
         # DEATH ONLY ON EVIDENCE. An unmatched tracked object keeps its slots unless another
@@ -1079,7 +1119,8 @@ class Objects:
             # same rule `drow`/`dcol` state above.
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
                          "dh", "dw", "dcells", "colour_changed",
-                         "dholes", "dperimeter", "age", "speed", "stability", *_CHANGE_ATTRS):
+                         "dholes", "dperimeter", "age", "speed", "stability", *_CHANGE_ATTRS,
+                         "scale", "grew", "shrank"):
                 if attr in obj:
                     state[f"{name}.{attr}"] = (NOT_RESOLVED if covered or obj[attr] is None
                                                else int(obj[attr]))

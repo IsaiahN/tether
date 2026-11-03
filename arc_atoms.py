@@ -36,7 +36,7 @@ from dataclasses import replace
 from typing import Any
 
 import armflag
-from arc_percept import _CELL_CHANGE, holes_of, perimeter_of
+from arc_percept import _CELL_CHANGE, _KIND_SCALE, holes_of, perimeter_of
 from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx, declare_turns
 from sensors import (
     BOOL,
@@ -190,6 +190,11 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
 if _CELL_CHANGE:
     ATTRIBUTE_TYPE.update({"add_n": EXTENT, "rem_n": EXTENT, "add_row": POSITION,
                            "add_col": POSITION, "rem_row": POSITION, "rem_col": POSITION})
+# (5) SCALE -- arm `TETHER_KIND_SCALE` (`arc_percept`): how many times larger than its kind's least
+# form an object is, EXTENT like `h`/`w`; grew / shrank its change on a matched object, BOOL like
+# `colour_changed`. Types every object already carries, so no kind tuple moves. Under the arm only.
+if _KIND_SCALE:
+    ATTRIBUTE_TYPE.update({"scale": EXTENT, "grew": BOOL, "shrank": BOOL})
 
 # AN ATTRIBUTE'S ATOM EXISTS ONLY WHERE ITS ARM PUBLISHES IT -- F503, the reviewer 2026-10-07. Every
 # key above becomes an atom, and each atom widens the alphabet every term is priced over; on the
@@ -201,6 +206,7 @@ ATTRIBUTE_ARM = {
     **dict.fromkeys(("contact", "bbox", "inside"), ("arc_world", "_OBSERVER")),
     **dict.fromkeys(("dholes", "dperimeter"), ("arc_percept", "_SHAPE_DELTA")),
     **dict.fromkeys(("age", "speed", "stability"), ("arc_percept", "_INSTRUMENTS")),
+    **dict.fromkeys(("scale", "grew", "shrank"), ("arc_percept", "_KIND_SCALE")),
 }
 
 
@@ -361,7 +367,7 @@ def _fold_admissions() -> dict[str, str]:
 CLAUSE_ONE = frozenset({
     # perception's own readings -- what a slot IS. `ATTRIBUTE_TYPE`'s keys become atoms.
     "row", "col", "colour", "h", "w", "bbox", "shape", "age", "speed", "stability",
-    "completed", "colour_changed", "contact", "touching",
+    "completed", "colour_changed", "contact", "touching", "scale", "grew", "shrank",
     # the deltas -- what CHANGED. Without them there is no residual to price.
     "drow", "dcol", "dh", "dw", "dcells", "dholes", "dperimeter",
     "add_n", "rem_n", "add_row", "add_col", "rem_row", "rem_col",
