@@ -154,6 +154,7 @@ class ArcWorld:
         self._contacts: dict[str, list[str]] | None = None
         self._contact_pts: list | None = None
         self._shape_codes: dict = {}   # 3c-CANON: normalised cells -> their stable code
+        self.form_pairs: dict = {}     # K4: as-seen code -> (canonical code, pose), under K1
         self._prev_contacts: dict[str, list[str]] | None = None
         self._actors: frozenset = frozenset()          # ARC B2: set by the agent's `relate`
         self._pair_read: dict[str, int] | None = None  # ARC B2: this frame's pair slots
@@ -516,7 +517,13 @@ class ArcWorld:
             return None
         code = self._shape_codes.get(cells)
         if code is None:     # arc_percept's one rule, the canonical form's under K1
-            code = self._shape_codes[cells] = arc_percept.form_code(cells)
+            if arc_percept._KIND_CANON and arc_percept._FORM_PAIRS:
+                seen, code, pose = arc_percept.code_pair(cells)
+                if seen != code:     # K4: the pose's own code, named as its kind's
+                    self.form_pairs.setdefault(seen, (code, pose))
+            else:
+                code = arc_percept.form_code(cells)
+            self._shape_codes[cells] = code
         return code
 
     def contact_points(self) -> list[tuple[str, str, str]]:

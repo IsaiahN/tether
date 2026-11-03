@@ -142,11 +142,15 @@ def canon(cells: Any) -> tuple[frozenset, int]:
     return best, next(i for i, x in enumerate(_images(best)) if x == here)
 
 
+def _hash(cells: Any) -> int:
+    import hashlib
+    raw = repr(sorted(tuple(c) for c in cells)).encode()
+    return int.from_bytes(hashlib.blake2b(raw, digest_size=6).digest(), "big")
+
+
 def kind_code(cells: Any) -> int:
     """The canonical form's code, always: the tracker's kind (K3a), independent of _KIND_CANON."""
-    import hashlib
-    raw = repr(sorted(tuple(c) for c in canon(cells)[0])).encode()
-    return int.from_bytes(hashlib.blake2b(raw, digest_size=6).digest(), "big")
+    return _hash(canon(cells)[0])
 
 
 def form_code(cells: Any) -> int | None:
@@ -155,11 +159,21 @@ def form_code(cells: Any) -> int | None:
     cells."""
     if not cells:
         return None
-    import hashlib
-    if _KIND_CANON:
-        cells = canon(cells)[0]
-    raw = repr(sorted(tuple(c) for c in cells)).encode()
-    return int.from_bytes(hashlib.blake2b(raw, digest_size=6).digest(), "big")
+    return _hash(canon(cells)[0] if _KIND_CANON else cells)
+
+
+# K4, THE ALIAS AT ARRIVAL (the reviewer 2026-11-03 r886, r888, r903, r906): under K1 a shape met
+# for the first time gives BOTH its codes, the as-seen (its cells as they stand: form_code with K1
+# OFF) and the canonical, with its pose; arc_world keeps as_seen -> (canonical, pose), and the save
+# writes the pairs whose as-seen code names rows the lineage stores (lineage._write), re-keyed by
+# the store there (TETHER_KIND_ALIAS). OFF: the canonical code only.
+_FORM_PAIRS = armflag.arm("TETHER_FORM_PAIRS", default=True)
+
+
+def code_pair(cells: Any) -> tuple[int, int, int]:
+    """(as-seen code, canonical code, pose), one canon."""
+    best, pose = canon(cells)
+    return _hash(cells), _hash(best), pose
 BREAK_MEDIAN, BREAK_COLOUR = 0.71, 0.42
 
 

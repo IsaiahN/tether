@@ -1904,6 +1904,13 @@ ARMS: dict[str, str] = {
                          "reads later saves through it; the archive load reads the same "
                          "(alias_chain); a second canonical or a non-idempotent map is refused. "
                          "OFF: the field is ignored and every code stays as stored. default ON",
+    "TETHER_FORM_PAIRS": "K4, THE ALIAS AT ARRIVAL (the reviewer 2026-11-03 r888, r903, r906): "
+                         "under K1, ArcWorld.shape_code gives a new shape's as-seen and canonical "
+                         "codes at once (arc_percept.code_pair) and keeps as_seen -> (canonical, "
+                         "pose); the save writes the pairs whose as-seen code names stored kinds "
+                         "and are not in force, after the life's carried action cells and "
+                         "routines under them meet their canonical ones. OFF: the canonical code "
+                         "only, no pairs. default ON",
     "TETHER_STORE_CONTINUE": "A2c (the reviewer 2026-11-02 r792): under A2, when fold's _topo "
                              "order is the store's chain followed by the new saves, the new "
                              "saves are appended in that order through the rebuild's body, its "

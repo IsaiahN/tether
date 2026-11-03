@@ -224,7 +224,25 @@ def mf_k7(tmp: Path) -> dict:
         con.close()
     chain = lineage._chain(d)
     assert lineage_store.alias_chain(chain) is chain, "MF-K7 OFF: alias_chain changed the chain"
-    return {"forms_kept": sorted(_forms(t))}
+    import arc_percept as ap
+    import arc_world
+    assert not ap._FORM_PAIRS, "the child runs TETHER_FORM_PAIRS OFF"
+    turned = ap._images(frozenset({(0, 0), (1, 0), (2, 0), (2, 1)}))[1]
+
+    class Dec:
+        tracked = {"o1": {"shape": turned}}
+
+    class Stub:
+        _decompose, _shape_codes, form_pairs = Dec(), {}, {}
+    st, was = Stub(), ap._KIND_CANON
+    try:
+        ap._KIND_CANON = True
+        code = arc_world.ArcWorld.shape_code(st, "o1")
+    finally:
+        ap._KIND_CANON = was
+    assert code == ap.kind_code(turned) and st.form_pairs == {}, (
+        "MF-K7 FORM_PAIRS OFF", st.form_pairs)
+    return {"forms_kept": sorted(_forms(t)), "pairs_kept_off": 0}
 
 
 def mf_k8(tmp: Path) -> dict:
@@ -355,6 +373,89 @@ def mf_k13(tmp: Path) -> dict:
     return {"fields": len(st), "rows": sum(len(v) for v in st.values())}
 
 
+def mf_k9(tmp: Path) -> dict:
+    """K4, the alias at arrival (r888, r903, r906). (a) code_pair: the as-seen code is form_code
+    with K1 OFF, the canonical is kind_code and form_code with K1 ON, the pose is canon's. (b)
+    ArcWorld.shape_code under K1 keeps as_seen -> (canonical, pose) for a turned shape, nothing for
+    one in its canonical pose. (c) the save: a gridworld agent loaded from a lineage storing kinds
+    under 11, perception having met 11 (stored) and 33 (not stored), writes form_aliases [[11, 10,
+    1]] only, and its action cell under 10 is the carried 10 and 11 summed; the store then holds
+    that cell and no row under 11."""
+    import arc_percept as ap
+    import arc_world
+    ell = frozenset({(0, 0), (1, 0), (2, 0), (2, 1)})
+    seen, canon_c, pose = ap.code_pair(ell)
+    best, pose0 = ap.canon(ell)
+    was = ap._KIND_CANON
+    try:
+        ap._KIND_CANON = False
+        off = ap.form_code(ell)
+        ap._KIND_CANON = True
+        on = ap.form_code(ell)
+    finally:
+        ap._KIND_CANON = was
+    assert (seen, canon_c, pose) == (off, ap.kind_code(ell), pose0) and on == canon_c, (
+        "MF-K9a code_pair", seen, canon_c, pose, off, on)
+    turned = ap._images(ell)[1]
+    if ap._hash(turned) == ap._hash(best):
+        turned = ap._images(ell)[2]
+
+    class Dec:
+        tracked = {"o1": {"shape": turned}, "o2": {"shape": best}, "o3": {"shape": turned}}
+
+    class Stub:
+        _decompose, _shape_codes, form_pairs = Dec(), {}, {}
+    st = Stub()
+    calls = [0]
+    real = ap.canon
+
+    def spy(cells):
+        calls[0] += 1
+        return real(cells)
+    try:
+        ap._KIND_CANON, ap.canon = True, spy
+        c1, c2, c3 = (arc_world.ArcWorld.shape_code(st, o) for o in ("o1", "o2", "o3"))
+        c1b = arc_world.ArcWorld.shape_code(st, "o1")
+    finally:
+        ap._KIND_CANON, ap.canon = was, real
+    assert c1 == c2 == c3 == c1b == canon_c and st.form_pairs == {
+        ap._hash(turned): (canon_c, ap.canon(turned)[1])}, ("MF-K9b shape_code", st.form_pairs)
+    assert calls[0] == 2, ("MF-K9b (r909) a cell set seen again computes canon once", calls[0])
+    d = tmp / "k9"
+    d.mkdir()
+    root = _root()
+    root["action_kinds"][_cell("A1", "delta_kind", 10)] = [4, 4]
+    _put(d, root)
+    _catch(d)
+    import gamma
+    import gridworld
+    import ledger
+    import tether
+    import world
+    env = world.bind(gridworld.family("default", 0))
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="fam_default_0"), tether.Config(),
+                      ledger.Ledger())
+    lineage.load(d, ag)
+    assert 11 in ag._stored_forms and 33 not in ag._stored_forms, ("K9 load", ag._stored_forms)
+    ag.env.form_pairs = {11: (10, 1), 33: (30, 2)}
+    out = lineage.write(d, ag, "k9")
+    g = lineage._read(d)[out["hash"]]
+    assert g.get("form_aliases") == [[11, 10, 1]], ("MF-K9c the pairs written",
+                                                    g.get("form_aliases"))
+    assert g["action_kinds"].get(_cell("A1", "delta_kind", 10)) == [5, 7], (
+        "MF-K9c the action cell", g.get("action_kinds"))
+    _catch(d)
+    t = _decoded(d)
+    assert t["counts"]["action_kinds"][_cell("A1", "delta_kind", 10)] == [5, 7], (
+        "MF-K9c the store's cell: the re-keyed 4 + 1, replaced by the save's equal sum",
+        t["counts"]["action_kinds"])
+    assert not any("form=11" in x for r in t["kind"] for x in r if isinstance(x, str)), t["kind"]
+    snap = getattr(ag, "_dk_snap", None)
+    if snap is not None:
+        snap.close()
+    return {"pairs": g["form_aliases"], "cell": g["action_kinds"][_cell("A1", "delta_kind", 10)]}
+
+
 def main():
     if "--off" in sys.argv:
         assert not lineage_store._ALIAS, "the child runs OFF"
@@ -375,11 +476,16 @@ def main():
               f"save by save = from nothing")
         k12 = mf_k12(tmp)
         print(f"  MF-K12 refused: {k12['refused']}; the store: {k12['store']}")
+        k9 = mf_k9(tmp)
+        print(f"  MF-K9 code_pair = form_code OFF / ON, pose = canon's; shape_code keeps the "
+              f"turned shape's pair; the save writes {k9['pairs']} (33 not stored), its action "
+              f"cell 4 + 1 / 4 + 3 = {k9['cell']}, and the store holds it")
         k13 = mf_k13(tmp)
         print(f"  MF-K13 store load = archive load: {k13['fields']} installed fields, "
               f"{k13['rows']} rows; routines 11 (settled) and 12 (candidate) contested, both "
               f"kept, the later save's read")
-    env = {**os.environ, "TETHER_KIND_ALIAS": "0", "PYTHONDONTWRITEBYTECODE": "1"}
+    env = {**os.environ, "TETHER_KIND_ALIAS": "0", "TETHER_FORM_PAIRS": "0",
+           "PYTHONDONTWRITEBYTECODE": "1"}
     out = subprocess.run([sys.executable, "-B", __file__, "--off"], env=env, capture_output=True,
                          text=True, timeout=120)
     assert out.returncode == 0, ("MF-K7 OFF child", out.stdout[-2000:], out.stderr[-2000:])

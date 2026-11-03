@@ -720,6 +720,9 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                                   for k, n in sorted(c.items())
                                   if n > ag._3a_written.get(fam, {}).get(k, 0)}
                             for fam, c in _hazard_families(ag._3a_hazard).items()}
+    pairs = _new_form_pairs(ag)        # K4: before the cumulative fields below are read
+    if pairs:
+        gen["form_aliases"], gen["alias_rule"] = pairs, ALIAS_RULE
     if tether._ROUTINE_CARRY and hasattr(ag, "routines_by_kind"):
         # (6c): the settled routines in kind form not yet in the lineage; absent when none, so a
         # generation with nothing to carry is written exactly as before
@@ -795,6 +798,10 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._ak_written = {**getattr(ag, "_ak_written", {}), **gen["action_kinds"]}
         if "resolve_ok" in gen:
             _RESOLVE_OK.update(gen["resolve_ok"])
+        if "form_aliases" in gen:
+            ag._form_aliases = {**getattr(ag, "_form_aliases", {}),
+                                **{a: c for a, c, _p in gen["form_aliases"]}}
+            ag._stored_forms = getattr(ag, "_stored_forms", set()) - set(ag._form_aliases)
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -853,6 +860,61 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, **counts,
             "index": idx, "memo": memo,
             "slot_memo": slot_memo, "asked": asked, **({"store": store} if store else {})}
+
+
+def _alias_tuple(x: Any, amap: dict) -> Any:
+    import lineage_store as ls
+    if isinstance(x, tuple):
+        return tuple(_alias_tuple(y, amap) for y in x)
+    return ls.alias_text(x, amap)
+
+
+def _new_form_pairs(ag: Any) -> list:
+    """K4 at the save (the reviewer 2026-11-03 r888, r903, r906): the pairs perception met
+    (arc_world.form_pairs) whose as-seen code names kinds the lineage stores and which are not in
+    force. First the life's carried action cells and routines under those codes meet their
+    canonical ones (two sightings: counts summed, landed values united), so the cumulative cells
+    this save writes hold both poses' sightings and never replace the store's re-keyed sum. A pair
+    against one in force is a defect, never written: one alias_conflict row."""
+    import arc_percept
+    import lineage_store as ls
+    if not (ls._ALIAS and arc_percept._FORM_PAIRS):
+        return []
+    have = getattr(ag, "_form_aliases", {})
+    stored = getattr(ag, "_stored_forms", set())
+    seen = getattr(ag.env, "form_pairs", None) or {}
+    bad = sorted([a, have[a], c] for a, (c, _p) in seen.items() if a in have and have[a] != c)
+    if bad:
+        _c, _s, _lv = ag._boundary_key("@lineage")
+        ag.led.record(_c, "SETTLE", _s, "alias_conflict", **_lv, pairs=bad[:20], n=len(bad),
+                      reads="perception named a code's kind differently from the alias in force")
+    new = sorted([a, c, p] for a, (c, p) in seen.items() if a in stored and a not in have)
+    amap = {a: c for a, c, _p in new}
+    if not amap:
+        return []
+    for tabs in getattr(getattr(ag, "iface", None), "carried_kind", {}).values():
+        for tab, cells in tabs.items():
+            out: dict = {}
+            for k, v in cells.items():
+                k2 = _alias_tuple(k, amap)
+                if k2 not in out:
+                    out[k2] = v
+                elif tab == "delta_kind":
+                    out[k2] = (out[k2][0] + v[0], out[k2][1] + v[1])
+                else:
+                    out[k2] = set(out[k2]) | set(v)
+            tabs[tab] = out
+    for name in ("_routines_in", "_rk_written"):
+        rows = getattr(ag, name, None)
+        if rows:
+            out = {k: v for k, v in rows.items() if ls.alias_text(k, amap) == k}  # kept on a meet
+            for k, v in rows.items():
+                k2 = ls.alias_text(k, amap)
+                v2 = {**ls._alias_val(v, amap), "key": k2} if isinstance(v, dict) else v
+                out.setdefault(k2, v2)
+            rows.clear()
+            rows.update(out)
+    return new
 
 
 def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
@@ -1123,12 +1185,17 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         seeds = [json.loads(s_) for (s_,) in con.execute("SELECT seed FROM seeds ORDER BY k")]
         end_path = ls.read_end_path(con)
         ended = con.execute("SELECT v FROM meta WHERE k='ended'").fetchone()
+        # K4: the alias map in force and every form code the store's kinds name
+        amap = ls.alias_map(con)
+        forms = {int(x) for (s_,) in con.execute("SELECT s FROM sym WHERE s LIKE '%form=%'")
+                 for x in ls._FORM.findall(s_)} - set(amap)
     finally:
         con.close()
     return {"tip": tip and tip[0], "fold": f, "counts": c, "merged": merged, "healed": healed,
             "sig": sig, "end_path": end_path, "ended": ended and json.loads(ended[0]),
             "atoms": atoms, "folder": str(p.resolve()),
             "evidence": evidence, "vindication": vindication, "seeds": seeds,
+            "form_aliases": amap, "stored_forms": forms,
             "pairs": {(tuple(json.loads(sym[o])), tuple(json.loads(sym[x]))): (n, max(last, 0))
                       for o, x, n, last in pairs},
             "nocount": {key((2, 3), e, r, ko, kx) for e, r, ko, kx in nocount},
@@ -1163,6 +1230,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     v = _store_view(d, ag)
     h, f, c = v["tip"], v["fold"], v["counts"]
     ag.lineage_parent = h
+    ag._form_aliases = dict(v.get("form_aliases") or {})     # K4
+    ag._stored_forms = set(v.get("stored_forms") or ())
     if tether._END_RESERVE and v.get("end_path") is not None:
         # C1 (A)'s reserve: the predecessor's measured end-path wall (the reviewer 2026-10-22 14:27)
         ag._end_reserve = v["end_path"]["s"]
@@ -1374,6 +1443,14 @@ def load(d: str | Path, ag: Any) -> dict:
         chain = _chain(Path(d))
     import lineage_store
     chain = lineage_store.alias_chain(chain)      # K1: the saves read as the store reads them
+    if lineage_store._ALIAS:
+        # K4: the alias map in force and the form codes the saves' kinds name, as the store's
+        ag._form_aliases = {}
+        for _h, g in chain:
+            ag._form_aliases = lineage_store.alias_add(ag._form_aliases, g.get("form_aliases", ()))
+        ag._stored_forms = {int(x) for _h, g in chain for fld in lineage_store._KIND_AT
+                            if fld in g for x in lineage_store._FORM.findall(json.dumps(g[fld]))
+                            } - set(ag._form_aliases)
     tip = chain[-1][1] if chain and chain[-1][0] == h else {}
     _note_parent_ended(ag, h, tip if tip.get("ended") else None)
     # the being's seed BEFORE anything is installed, so a handle the load mints is minted under
