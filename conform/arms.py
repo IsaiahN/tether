@@ -2108,6 +2108,10 @@ ARMS: dict[str, str] = {
                          "canon() gives its pose. OFF: the cells as they stand. default OFF "
                          "(r808): ON orphans tallies stored under the as-seen code until a "
                          "legacy read exists",
+    "TETHER_LOOKAHEAD": "P3 (the reviewer 2026-11-02 r832 c): the settled one-press predictors "
+                        "chained over press sequences, paid from the step's evaluation budget; "
+                        "the first press of the sequence whose end most shrinks the held "
+                        "hypothesis's subject gap (by lookahead). default ON",
     "TETHER_TRY_FIRST_PAYS": "P2' (i) (the reviewer 2026-11-02 r830): an untouched kind holds "
                              "the mint and the split only while kind touches still change "
                              "something (the contact row's felt change); MIN_REPEAT unpaid "

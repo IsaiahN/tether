@@ -2517,7 +2517,47 @@ _TRY_FIRST_PAYS = armflag.arm("TETHER_TRY_FIRST_PAYS", default=True)
 # its own presses (a routine, a hold, an actuator press, its goal split's press); a press spent
 # elsewhere is counted as such and never ends it. OFF: every cycle ages it
 _HYP_OWN_PRESS = armflag.arm("TETHER_HYP_OWN_PRESS", default=True)
-_HYP_OWN_BY = ("routine", "hold", "actuator", "discriminate:goal")
+_HYP_OWN_BY = ("routine", "hold", "actuator", "discriminate:goal", "lookahead")
+# P3 LOOK-AHEAD (the reviewer 2026-11-02 14:38 plan, r832 c; Fig 12 :107-108, rehearsal over a
+# sequence): the settled one-press predictors chained over press sequences in thought, paid from the
+# step's evaluation budget (STEP_BUDGET), so the depth is what the budget reaches, never a constant;
+# the first press of the sequence whose predicted end most shrinks the held hypothesis's subject gap
+# is pressed (by "lookahead"), the plan re-read every step. OFF: no look-ahead exit
+_LOOKAHEAD = armflag.arm("TETHER_LOOKAHEAD", default=True)
+
+
+def lookahead(state: dict, actions: tuple, predict, gap, more) -> tuple | None:
+    """P3: breadth first over press sequences while more() allows. predict(state, a) is the next
+    state or None; gap(state) an int or None. (first press, depth, gap at its end, gap now) of
+    the sequence with the least gap at its end (then the shortest, then action order); None if no
+    sequence ends nearer than now. A state already reached is not extended twice."""
+    now = gap(state)
+    if now is None or now == 0 or not actions:
+        return None
+    best, frontier, seen, depth = None, [((), state)], set(), 0
+    while frontier and more():
+        depth += 1
+        nxt = []
+        for seq, st in frontier:
+            for a in actions:
+                if not more():
+                    break
+                s2 = predict(st, a)
+                g = gap(s2) if s2 is not None else None
+                if g is None:
+                    continue
+                if best is None or (g, depth) < best[:2]:
+                    best = (g, depth, seq + (a,))
+                key = tuple(sorted(s2.items()))
+                if g and key not in seen:
+                    seen.add(key)
+                    nxt.append((seq + (a,), s2))
+        if best is not None and best[0] == 0:
+            break
+        frontier = nxt
+    if best is None or best[0] >= now:
+        return None
+    return best[2][0], best[1], best[0], now
 # E, DELTA_TIER_MEMO (the reviewer 2026-11-01 r736): _delta_tier ran once per candidate binding and
 # each call re-walked every slot of every residual observation, the whole owner map and the
 # contact map, which do not change until the trace grows (tn36 profile: route 76% of samples,
@@ -10465,6 +10505,50 @@ class Agent:
                             rehearsed=len(made), compared=compared, misses=missed,
                             links_held_misses=links)
 
+    def _lookahead_act(self, before: dict) -> str | None:
+        """P3: the held hypothesis's subject read through the settled one-press predictors chained
+        over press sequences (lookahead), each predicted press paid from the step's evaluation
+        budget. None when nothing settled predicts the subject or no sequence ends nearer."""
+        subj = self._hyp["slots"][0]
+        lib = self.gamma.library
+        preds = sorted(s for s, n in self.bound.items()
+                       if n in lib and self.gamma.is_settled(n, s))
+        if subj not in preds:
+            return None
+        used = [0]
+        keep = dict(self._pred_raw)
+
+        def predict(st, a):
+            out = dict(st)
+            for s in preds:
+                cap.head()
+                used[0] += 1
+                v = self._predict(s, st, a)
+                if v is not None:
+                    out[s] = v
+            return out
+
+        def gap(st):
+            g = self._discrepancy(subj, st)
+            return g if isinstance(g, int) else None
+
+        def more():
+            return self._spent + used[0] + len(preds) <= STEP_BUDGET
+
+        try:
+            got = lookahead(dict(before), tuple(self.actions), predict, gap, more)
+        finally:
+            self._pred_raw = keep
+            self._spent += used[0]
+        if got is None:
+            return None
+        act, depth, g_end, g_now = got
+        self.led.record(self.cycle, "PLAN", subj, "lookahead", action=act, depth=depth,
+                        gap_now=g_now, gap_end=g_end, evaluations=used[0],
+                        reads="settled one-press predictors chained in thought; the first press "
+                              "of the sequence whose end most shrinks the subject's gap (P3)")
+        return act
+
     def _standing(self, slot: str) -> None:
         """HELD AND CITED ARE TWO ROWS, not one. A candidate may be held -- bound, and
         driving the bet, which is the only way it ever accumulates the held-out evidence
@@ -13531,6 +13615,12 @@ class Agent:
                 if goal is not None:
                     self._hyp_why = "acted"
                     return goal, "discriminate:goal"
+        if (_LOOKAHEAD and self._hyp is not None and not _touched
+                and not (_BOARD_TRY_FIRST and self._try_first_open())):
+            _la = self._lookahead_act(before)
+            if _la is not None:
+                self._hyp_why = "looked ahead"
+                return _la, "lookahead"
         take, s0_tw, dist_r = None, None, None
         if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
                 self.drive.bored() and not (_STARVED_CONTACT and self._aims())
