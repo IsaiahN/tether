@@ -1999,7 +1999,8 @@ ARMS: dict[str, str] = {
                                "arrangement. NEEDS TETHER_DERIVED_LIFT (the node rides 8c's "
                                "_lift_branches; with it off no two-slot tree is built) and "
                                "TETHER_SUBTRACT (translate and subtract held, else counted). OFF: "
-                               "a tree reads its operand's own value, nothing is seeded. default ON",
+                               "a tree reads its operand's own value, nothing is seeded. "
+                               "default ON",
     "TETHER_SUBTRACT": "BUILD 3 ITEM 8b' (the reviewer 2026-11-04 r1141, r1142; Isaiah 15:31: "
                        "− is subtraction): the atom subtract, v − operand, joins ARC's atoms, "
                        "typed per target like translate (POSITION − DELTA -> POSITION, DELTA − "
