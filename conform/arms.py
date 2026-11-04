@@ -1968,6 +1968,11 @@ ARMS: dict[str, str] = {
                              "entry, each tested on its own, coinciding readings merged, the "
                              "molecule's domain first; a view with no condition is unreachable. "
                              "OFF: 'ambiguous' unreachable, 'no condition' refused. default ON",
+    "TETHER_CONTACT_SEED": "BUILD 4 ITEM 13 (the reviewer 2026-11-03 r978): the step's mint slots "
+                           "ordered by seeds -- contact slots that changed this step, and settled "
+                           "residual-lit → junctions with no term (a site R, operand L first) -- "
+                           "seen first, then the old order; nothing dropped; mint_seeds rows. "
+                           "OFF: the old order. default ON",
     "TETHER_MOLECULE_APPLY": "BUILD 2 MOLECULE APPLY (the reviewer 2026-11-03 r962, r963): once "
                              "per grown window, a lit molecule whose junction settles on operands "
                              "resolved on this board, its bond a chain (grammar.json "

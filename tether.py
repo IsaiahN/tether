@@ -1198,6 +1198,13 @@ _BOND_DISJOINT = armflag.arm("TETHER_BOND_DISJOINT", default=True)
 # more library offer, priced by the one loop and never trusted; only a bond whose implementation
 # is a chain composes here (grammar.json implemented_by). OFF: no pass, no offers.
 _MOLECULE_APPLY = armflag.arm("TETHER_MOLECULE_APPLY", default=True)
+# BUILD 4 ITEM 13, CONTACT-SEEDED CANDIDATE GENERATION (the reviewer 2026-11-03 r978; Isaiah
+# 11-01, "not blind enumeration"): the step's mint slots are ordered by two seeds ranked together
+# -- (a) the contact slots whose value changed this step, (b) a settled residual-lit → junction
+# whose readings carry no term, a mint SITE at its right reading with OPERAND its left -- seen on
+# this object first, then the old order; at a seeded slot its operands come first among the binds.
+# Order, never exclude: an unrouted seed is counted, never forced. OFF: the old order.
+_CONTACT_SEED = armflag.arm("TETHER_CONTACT_SEED", default=True)
 
 
 @cache
@@ -3896,6 +3903,11 @@ class Agent:
         self._mol_paid: dict = {}                # (slot, offer, operand) -> pays' verdict
         self._mol_key = None                     # the window the last pass read
         self._read_terms: dict = {}              # a compiled reading -> the term that reads it
+        self._mint_seeds: dict = {}              # r978 (b): slot R -> {operand L: seen here}
+        self._seed_ops: dict = {}                # slot -> its seeded operands, seen first
+        self._seed_bind: dict = {"used": set(), "not_a_bind": set()}
+        self._seeded_now: set = set()            # this step's seeded routed slots
+        self._seed_outcome: collections.Counter = collections.Counter()   # r979: the mint's own
         self._dl_missed: dict = {}         # 20: a described key with no offer -> its miss's cycle
         self._tk_off: dict = {}            # TK: a described key -> where its next window starts
         self._tk_nofit: dict = {}          # S3: a key -> entries its windows judged no-fit
@@ -9710,6 +9722,68 @@ class Agent:
         a = best and next((a for a in self.gamma.atoms if _norm_name(a.name) == best[1]), None)
         return Term((a,)) if a else None
 
+    def _seed_order(self, routed: list) -> list:
+        """ITEM 13 (r978): the routed slots, stable-sorted by their seeds -- a junction seed seen
+        on this object first, then every other seed (contact, junction) together, then the old
+        order; nothing dropped. (a) CONTACT: the contact slots (S1) whose value changed across this
+        step. (b) JUNCTION: the molecule pass's settled residual-lit → junctions whose readings
+        carry no term (run here, before the step mints; memoised, so _mint's call is a no-op). A
+        seed with no routed slot has no residual there and is counted, never forced."""
+        if _MOLECULE_APPLY:
+            self._molecule_pass()
+        last = self.trace[-1] if self.trace else None
+        cs = getattr(self, "_contact_slots", None) or ()
+        changed = ({s for s in cs if last[0].get(s) != last[2].get(s)} if last else set())
+        rank = {s: 0 if any(d.values()) else 1 for s, d in self._mint_seeds.items()}
+        for s in changed:
+            rank.setdefault(s, 1)
+        self._seed_ops = {s: sorted(d, key=lambda x, d=d: (not d[x], x))
+                          for s, d in self._mint_seeds.items()}
+        self._seeded_now = set()
+        if not rank:
+            return routed
+        names = {r[0] for r in routed}
+        out = sorted(routed, key=lambda r: rank.get(r[0], 2))
+        self._seeded_now = {r[0] for r in out if r[0] in rank}
+        used, miss = self._seed_bind["used"], self._seed_bind["not_a_bind"]
+        self.led.record(self.cycle, "ACCEPT", "@seed", "mint_seeds",
+                        contact=len(changed), junction=len(self._mint_seeds),
+                        seeded_routed=[r[0] for r in out if r[0] in rank][:20],
+                        unrouted=len([s for s in rank if s not in names]),
+                        seeded_bins=dict(collections.Counter(r[1] for r in out if r[0] in rank)),
+                        junction_sample={s: self._seed_ops[s][:3]
+                                         for s in sorted(self._seed_ops)[:8]},
+                        operands={"used": len(used), "not_a_bind": len(miss - used)},
+                        reads="the mint's sites seeded by contact and by settled residual-lit "
+                              "junctions; order, never exclude (r978)")
+        used.clear()
+        miss.clear()
+        return out
+
+    def _mint_at(self, slot: str, b: str) -> None:
+        """_mint_in_step, and at a SEEDED slot (r979) the mint's own outcome read off the rows it
+        wrote there: minted, its park verdict, deferred, or no outcome row."""
+        if not (_CONTACT_SEED and slot in self._seeded_now):
+            self._mint_in_step(slot, b)
+            return
+        n0 = len(self.led)
+        self._mint_in_step(slot, b)
+        evs = [r for r in self.led.rows(n0) if r.get("slot") == slot]
+        got = next(("minted" for r in evs if r.get("event") == "mint"), None)
+        if got is None:
+            got = next((f"park: {(r.get('detail') or r).get('verdict')}" for r in evs
+                        if r.get("event") == "park"), None)
+        if got is None:
+            got = next((r.get("event") for r in evs), "no outcome row")   # its own refusal row
+        self._seed_outcome[got] += 1
+
+    def _seed_binds(self, slot: str, binds: list) -> list:
+        """r978 (b): at a seeded slot its seeded operands first among the fitting binds; one that
+        is not a bind here is counted."""
+        sd = [x for x in self._seed_ops.get(slot, ()) if x in binds]
+        self._seed_bind["used" if sd else "not_a_bind"].add(slot)
+        return sd + [x for x in binds if x not in sd] if sd else binds
+
     def _mol_flush(self) -> dict:
         """the last pass's offers, what became of them: typed into a stream, reached pays, paid."""
         offered = {(s, o_["term"].name) for s, os_ in self._mol_offers.items() for o_ in os_}
@@ -9741,6 +9815,7 @@ class Agent:
         t0 = time.perf_counter()
         prev = self._mol_flush()
         self._mol_offers, self._mol_names, self._mol_typed, self._mol_paid = {}, {}, set(), {}
+        self._mint_seeds = {}
         self._mol_minted = set()
         tr = self.trace[w:] if w else self.trace
         why: collections.Counter = collections.Counter()
@@ -9816,6 +9891,12 @@ class Agent:
                         differ.append({"molecule": p["molecule"], "left": x, "right": y,
                                        "read_pairs": list(p.get("held") or ()),
                                        "window_test": got, "why": jwhy})
+                    if (_CONTACT_SEED and got is not None and chained(got)
+                            and (self._slot_term(x) is None or self._slot_term(y) is None)):
+                        # r978 (b): a SITE and an OPERAND, never an offer -- the mint builds
+                        # and the bargain prices; so a junction of several seeds too
+                        d_ = self._mint_seeds.setdefault(y, {})
+                        d_[x] = d_.get(x, False) or o in held[got]
                     if njs.get(p["molecule"], 0) != 1:
                         why["lookup: a junction of a several-junction molecule"] += 1
                         continue
@@ -19327,6 +19408,8 @@ class Agent:
                         binds = [next(_it) if x in _cp else x for x in binds]
                     elif _lf_first:                              # the offered operands first
                         binds = _lf_first + [x for x in binds if x not in _lf_first]
+                    if _CONTACT_SEED and slot in self._seed_ops:
+                        binds = self._seed_binds(slot, binds)    # r978: operand L first
                     # HOISTED so the guard PRICE can read how many were on offer -- the
                     # denominator `log2(G+1)` is over, and it must be the same set the loop
                     # walks or the price is charged against a population that was not offered.
@@ -21567,6 +21650,8 @@ class Agent:
         with self._step_scope("ACCEPT"):
             if _OWED_REJUDGE:
                 routed = self._rank_mints(routed, _split_now)    # 1d: rank, not age or code order
+            if _CONTACT_SEED:
+                routed = self._seed_order(routed)    # r978: seeded sites first, then the rest
             for _i, (slot, b, fit, _why) in enumerate(routed):
                 if slot in _split_now:
                     continue
@@ -21579,6 +21664,9 @@ class Agent:
                     continue
                 if b in (MECHANISM, REFUTED) and self._cap_due():
                     # before this mint: the slots whose mint was not run say so, then the step ends
+                    if _CONTACT_SEED:     # r979: the seeded slots the cap cut
+                        self._seed_outcome["cap_unminted"] += sum(
+                            1 for s_, b_, _f, _w in routed[_i:] if s_ in self._seeded_now)
                     for s_, b_, f_, _w in routed[_i:]:
                         if s_ in self._own_now:
                             continue
@@ -21624,10 +21712,16 @@ class Agent:
                                         note=("the bound term was refused here; this is its "
                                               "competitor"))
                     else:
-                        self._mint_in_step(slot, b)
+                        self._mint_at(slot, b)
                 elif b == MECHANISM:
-                    self._mint_in_step(slot, b)
+                    self._mint_at(slot, b)
                 self._turn_ahead.discard(slot)
+            if _CONTACT_SEED and self._seed_outcome:
+                self.led.record(self.cycle, "ACCEPT", "@seed", "mint_seed_outcome",
+                                outcomes=dict(self._seed_outcome),
+                                reads="what the mint did at the seeded slots it reached, in its "
+                                      "own terms: minted, or its park verdict (r979)")
+                self._seed_outcome.clear()
             if _STEP_MINT:
                 sm = self._sm
                 was = getattr(self, "_mint_owed", None) or {}
