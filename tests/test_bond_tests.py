@@ -95,13 +95,15 @@ def main():
     d = rows[0]["detail"] if "detail" in rows[0] else rows[0]
     per = {b: sum(v.values()) for b, v in d["tally"].items()}
     assert all(n == d["tested"] for n in per.values()), ("MF-Brow tally", per, d["tested"])
+    side = d["unbound_by_side"]
+    assert side["names_no_atom"] + side["atom_bound_nowhere"] == d["unbound"], ("MF-Brow sides", d)
     print(f"  MF-B {len(want)} windows: conjunction / sequence / production / subtraction decide "
           f"where the window discriminates, None otherwise; comparison and disjunction None "
           f"(settled at the bargain); mixed None; not specific None; a reset frame skipped")
     print("  MF-Bamb conjunction and sequence both True -> UNKNOWN, ambiguous; one -> settled; "
           "MF-Bev the row's evidence: occasions, deciding frames, the specific ones")
     print(f"  MF-Brow gridworld 12 steps: {d['junctions']} junctions, {d['tested']} tested, "
-          f"{d['unbound']} with an operand bound nowhere; outcome {d['junction_outcome']}")
+          f"{d['unbound']} untestable {d['unbound_by_side']}; outcome {d['junction_outcome']}")
     print("test_bond_tests OK")
 
 

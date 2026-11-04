@@ -9439,6 +9439,7 @@ class Agent:
         tally = {b: {"true": 0, "false": 0, "FIELD": 0, "TEST": 0} for b in composer.WINDOW_BONDS}
         outcome = {"settled": 0, "ambiguous": 0, "none": 0}
         seen, sample, unbound = set(), [], 0
+        missing = {"names_no_atom": 0, "atom_bound_nowhere": 0}     # r937: which side is missing
         for m in composer.candidates({a.name for a in self.gamma.atoms}, partial=True):
             cap.head()
             stack = [m["node"]]
@@ -9458,6 +9459,7 @@ class Agent:
                 seen.add(key)
                 if not ends[0] or not ends[1]:
                     unbound += 1
+                    missing["names_no_atom" if None in ends else "atom_bound_nowhere"] += 1
                     continue
                 av = [tuple(f.get(s) for s in ends[0]) for f in frames]
                 bv = [tuple(f.get(s) for s in ends[1]) for f in frames]
@@ -9483,7 +9485,8 @@ class Agent:
                                        "specific_cycles": [cyc0 + t for t in ev["specific"]][:10]})
         self.led.record(self.cycle, self._running_step, "@bond", "bond_tests",
                         frames=len(frames), resets=len(skip), junctions=len(seen),
-                        unbound=unbound, tested=len(seen) - unbound, tally=tally,
+                        unbound=unbound, unbound_by_side=missing,
+                        tested=len(seen) - unbound, tally=tally,
                         junction_outcome=outcome, decided_sample=sample,
                         reads="record only (r897, r934): which bond each lit junction's window "
                               "decides; nothing reads it, and no molecule becomes applicable here")
