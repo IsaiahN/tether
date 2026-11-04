@@ -115,6 +115,27 @@ def t4():
     assert starts == {False: False, True: True}, ("MF-T4: closure at POSITION", starts)
     print(f"  MF-T4 a template row moves the signature (ON != OFF, OFF == today's); "
           f"closure at POSITION starts with translate: {starts}")
+    t5(g, tr, atoms["inc"])
+
+
+def t5(g, tr, inc):
+    """MF-T5: a SETTLED unit headed by translate whose fold the walk refuses at POSITION
+    (translate . inc: a POSITION into an atom taking 'val' only) is not a start. Before, the head
+    check admitted it and enumerate_closure raised unpacking _iter_step's None (8c A/B, arm B)."""
+    unit = Term((tr, inc))
+    assert gamma.accepts_type(unit, "POSITION") and gamma.Gamma._iter_step(
+        "POSITION", None, unit) is None, "MF-T5 premise: the head admits, the fold refuses"
+    held = g.units()
+    g.units = lambda: [*held, unit]
+    try:
+        got = [t.name for t in g.enumerate_closure("POSITION", "POSITION", 2, 500)]
+    except TypeError as e:
+        raise AssertionError(("MF-T5: enumerate_closure raised at a POSITION start", e)) from e
+    finally:
+        del g.units
+    assert got and not any(n.startswith(unit.name) for n in got), ("MF-T5", unit.name, got[:5])
+    print(f"  MF-T5 {unit.name} at POSITION: head admits, fold refuses, not a start "
+          f"({len(got)} chains yielded, none from it)")
 
 
 if __name__ == "__main__":

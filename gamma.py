@@ -2163,7 +2163,11 @@ class Gamma:
             stats["units"] = len(units)
             stats["estimate"] = self.space_exact(units, in_type, out_type, max_depth)
             stats["seen"] = 0
-        start = [u for u in units if accepts_type(u, in_type)]
+        # a start is one the WALK accepts too, as space_exact counts it: a settled term headed by
+        # an atom with a declared target (translate . inc at POSITION) passes the head check and
+        # its fold refuses it (r1116's A/B arm B, 2 faults)
+        start = [u for u in units
+                 if accepts_type(u, in_type) and Gamma._iter_step(in_type, None, u) is not None]
         # §23.5's PREREQUISITE, and it is not a new judgement. *Loading generously requires
         # retrieval-by-characterised-residual, not enumeration -- a big library is an asset
         # when you look things up by the shape of your gap and a liability when you walk it in
