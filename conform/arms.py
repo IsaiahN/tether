@@ -1968,6 +1968,12 @@ ARMS: dict[str, str] = {
                              "entry, each tested on its own, coinciding readings merged, the "
                              "molecule's domain first; a view with no condition is unreachable. "
                              "OFF: 'ambiguous' unreachable, 'no condition' refused. default ON",
+    "TETHER_OPERAND_VIEWS": "BUILD 3 ITEM 8a (the reviewer 2026-11-04 r1085): an entry's operand "
+                            "reads every held view -- its own role first, then the other held "
+                            "roles, then the CAUSE then-sides -- so its change readings reach the "
+                            "operand and _read_terms; first-seen terms stay; the union orders and "
+                            "never gates (the gap chooses at the offer). OFF: one role, its first "
+                            "side. default ON",
     "TETHER_NSM_DEDUPE": "7c (a) (the reviewer 2026-11-04 r1050, r1052, r1070, r1073): nsm.log "
                           "says a slot's line only when its text differs from that slot's last "
                           "said line of the kind, across cycles, and ONE count line per (kind, "

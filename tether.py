@@ -1213,6 +1213,17 @@ _OPERAND_EVIDENCE = armflag.arm("TETHER_OPERAND_EVIDENCE", default=True)
 # library_runtime: "ORDER, NEVER EXCLUDE"); an entry whose view holds no condition is unreachable
 # "no condition". OFF: "ambiguous" is unreachable and "no condition" refused, as before.
 _OPERAND_FAMILY = armflag.arm("TETHER_OPERAND_FAMILY", default=True)
+# BUILD 3 ITEM 8a (the reviewer 2026-11-04 r1085; Fig 9 :49, LIBRARY_RETRIEVAL 2.3 item 2 "The
+# change is what lights candidate atoms"): an entry's operand reads EVERY held view, not one role's
+# first side -- its own role first (as before), then the other held roles, then the CAUSE
+# then-sides -- so the change readings its PROCESS and CAUSE views carry reach the operand and
+# _read_terms. ORDER, NEVER EXCLUDE: the union decides nothing; the gap chooses downstream, at the
+# offer (a junction is offered only where it separates R, r1060). A term an extra view set never
+# pre-empts an own-role one (r1085 b), so a reading keeps the term it has with the arm OFF. Refusal
+# reasons are the own role's when it has any (r1085); when it has none and nothing compiles, the
+# other walked views' refusals are the verdict ("refused", tallied), and "unreachable: no condition"
+# is kept for an entry with no condition in ANY walked view (r1090). OFF: one role, its first side.
+_OPERAND_VIEWS = armflag.arm("TETHER_OPERAND_VIEWS", default=True)
 # (r946 5) A WINDOW SCORES ITS OWN BOARD: a bond_tests row at each retarget (a death, a level, a new
 # board), from the frames of the board being left, before its trace clears; the run-end row stays.
 # OFF: one row, at the run's end.
@@ -3970,6 +3981,7 @@ class Agent:
         self._mol_paid: dict = {}                # (slot, offer, operand) -> pays' verdict
         self._mol_key = None                     # the window the last pass read
         self._read_terms: dict = {}              # a compiled reading -> the term that reads it
+        self._read_extra: set = set()            # 8a: readings whose term an extra view set
         self._mint_seeds: dict = {}              # r978 (b): slot R -> {operand L: seen here}
         self._seed_ops: dict = {}                # slot -> its seeded operands, seen first
         self._seed_bind: dict = {"used": set(), "not_a_bind": set()}
@@ -9798,25 +9810,45 @@ class Agent:
                        sig: tuple) -> tuple:
         """One library entry (its case variants read together) -> ({object: slots}, how, why):
         compiled, compiled_off_board, refused with compile_term's reasons, or (r946 3)
-        unreachable when its view holds no condition at all."""
+        unreachable when its view holds no condition at all. 8a: every held view is read, the
+        entry's own role first; the union only orders -- the gap chooses at the offer."""
         key = refs[0]
-        reads, reasons = set(), collections.Counter()
+        reads, reasons, others = set(), collections.Counter(), collections.Counter()
         for k in refs:
             role = (lib.get(k) or {}).get("role_of", {}).get("role") or "STATE"
             if role in ("RESULT", "AGENT", "INSTRUMENT"):
                 role = "PROCESS"     # an if/then role: its readings are its change of o
-            for _cand, c, _c2 in self._held_index(lib, k, role, atoms, sig):
-                if isinstance(c, compile_term.Compiled):
-                    # the reading it reads on its object; a template comparing it across two
-                    # objects (PHo.r > PHx.r) reads the same reading r, so on o it is o's own r
-                    for s in (c.slot, c.operand):
-                        if s and s.split(".", 1)[0] in (PH_O, PH_X) and "." in s:
-                            reads.add(s.split(".", 1)[1])
-                            if _MOLECULE_APPLY:
-                                self._read_terms.setdefault(s.split(".", 1)[1], c.term)
-                elif c is not None:
-                    reasons[c.reason] += 1
+            walk = [(role, 0)]
+            if _OPERAND_VIEWS:
+                walk += [(r, 0) for r in _HELD_ROLES if r != role] + [("CAUSE", 1)]
+            for r_, side in walk:
+                for got_ in self._held_index(lib, k, r_, atoms, sig):
+                    c = got_[1 + side]
+                    if isinstance(c, compile_term.Compiled):
+                        # the reading it reads on its object; a template comparing it across two
+                        # objects (PHo.r > PHx.r) reads the same reading r, so on o it is o's own r
+                        for s in (c.slot, c.operand):
+                            if s and s.split(".", 1)[0] in (PH_O, PH_X) and "." in s:
+                                rd = s.split(".", 1)[1]
+                                reads.add(rd)
+                                if not _MOLECULE_APPLY:
+                                    continue
+                                if (r_, side) != (role, 0):        # 8a: never pre-empts
+                                    if rd not in self._read_terms:
+                                        self._read_terms[rd] = c.term
+                                        self._read_extra.add(rd)
+                                elif rd in self._read_extra:       # an own-role term outranks it
+                                    self._read_terms[rd] = c.term
+                                    self._read_extra.discard(rd)
+                                else:
+                                    self._read_terms.setdefault(rd, c.term)
+                    elif c is not None:
+                        (reasons if (r_, side) == (role, 0) else others)[c.reason] += 1
         if not reads:
+            if not reasons:
+                # 8a (r1090 b): the own role refused nothing, but other walked views held
+                # conditions the closure refused -- refused, not "no condition" (Fig 8 :39)
+                reasons = others
             if not reasons and _OPERAND_FAMILY:
                 return None, "unreachable", f"{key}: no condition"
             why = "; ".join(f"{r} ({k})" for r, k in reasons.most_common(2)) or "no condition"

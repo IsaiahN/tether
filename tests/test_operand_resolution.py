@@ -16,7 +16,15 @@ MF-B2  a held atom no bound term names, TRIED at a slot, binds there under the a
 MF-F1  (r946 3) a name in two domains whose entries compile to different readings is a FAMILY of 2
        candidates (Autocatalysis: CHEMICAL / MORPHOGENETIC); RED on HEAD ("ambiguous", unreachable)
 MF-F2  two domains compiling to the same readings merge to 1 (Agency: ACTION / EMBODIMENT)
-MF-F3  an entry whose view holds no condition is UNREACHABLE "no condition" (was refused)
+MF-F3  an entry whose view holds no condition is UNREACHABLE "no condition" (was refused) --
+       with TETHER_OPERAND_VIEWS off inside its block (Chladni pattern: its RULE view)
+MF-F3' (8a, the reviewer 2026-11-04) under the default: an entry with no condition in ANY held
+       view (AGENT|add_col) is unreachable "no condition"; Chladni pattern, whose STATE / TEST /
+       PROCESS / CAUSE views hold conditions, is compiled (8a's named change)
+MF-F5  (8a, the reviewer r1090 b) an entry whose own role holds no condition and whose other
+       views hold only conditions the closure refuses (AGENT|age on gridworld's atoms: no sign)
+       is REFUSED with those reasons under the default, unreachable "no condition" with the
+       arm off
 MF-F4  end to end: a junction Autocatalysis ? Agency is 2 tested candidates and Agency ? Arbitrage
        1, over a hand-built window -- families 1, candidates 3, tested 2; family arm OFF: tested 0
        (both names "ambiguous")
@@ -196,9 +204,28 @@ def main():
         "MF-F1 family", how_f, fam, why_f)
     one, how_s, why_s = ag._ingredient_operand("ZZZ|X", "Agency", held, wide, lib, atoms, sig)
     assert how_s == "compiled" and isinstance(one, dict), ("MF-F2 merged", how_s, one, why_s)
-    _g, how_n, why_n = ag._ingredient_operand("ACOUSTIC|X", "Chladni pattern", held, wide, lib,
-                                              atoms, sig)
+    was = tether._OPERAND_VIEWS
+    try:
+        tether._OPERAND_VIEWS = False
+        _g, how_n, why_n = ag._ingredient_operand("ACOUSTIC|X", "Chladni pattern", held, wide,
+                                                  lib, atoms, sig)
+    finally:
+        tether._OPERAND_VIEWS = was
     assert how_n == "unreachable" and "no condition" in why_n, ("MF-F3", how_n, why_n)
+    _g, how_e, why_e = ag._ingredient_operand("AGENT|X", "add_col", held, wide, lib, atoms, sig)
+    assert how_e == "unreachable" and "no condition" in why_e, ("MF-F3'", how_e, why_e)
+    _g, how_c, _w = ag._ingredient_operand("ACOUSTIC|X", "Chladni pattern", held, wide, lib,
+                                           atoms, sig)
+    assert how_c == ("compiled" if tether._OPERAND_VIEWS else "unreachable"), ("MF-F3'", how_c)
+    _g, how_a, why_a = ag._ingredient_operand("AGENT|X", "age", held, wide, lib, atoms, sig)
+    try:
+        tether._OPERAND_VIEWS = False
+        _g, how_a0, why_a0 = ag._ingredient_operand("AGENT|X", "age", held, wide, lib, atoms,
+                                                    sig)
+    finally:
+        tether._OPERAND_VIEWS = was
+    assert how_a == "refused" and "Gamma holds no atom" in why_a, ("MF-F5", how_a, why_a)
+    assert how_a0 == "unreachable" and "no condition" in why_a0, ("MF-F5 OFF", how_a0, why_a0)
     f4 = family_row(ag, True)
     f4_off = family_row(ag, False)
     assert (f4["families"], f4["candidates"], f4["tested"]) == (1, 3, 2), ("MF-F4", f4)
@@ -242,7 +269,9 @@ def main():
     print(f"  MF-A3 refusals by missing piece: {sorted(tally)[:4]}")
     print(f"  MF-A4 'Lived Meaning' / 'Lived meaning' (one domain) resolve as one entry: {how4}")
     print(f"  MF-F1 Autocatalysis: a family of {len(fam)} ({why_f})")
-    print(f"  MF-F2 Agency: one candidate {sorted(one['o1'])}; MF-F3 {why_n}")
+    print(f"  MF-F2 Agency: one candidate {sorted(one['o1'])}; MF-F3 {why_n}; MF-F3' {why_e}, "
+          f"Chladni pattern {how_c}")
+    print(f"  MF-F5 AGENT|age: {how_a} ({why_a}); arm off {how_a0}")
     print(f"  MF-F4 ON families {f4['families']}, candidates {f4['candidates']}, tested "
           f"{f4['tested']}; family OFF tested {f4_off['tested']}")
     print(f"  MF-P (at, board, frames) ON {p_on}; OFF {p_off}")
