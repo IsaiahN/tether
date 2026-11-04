@@ -1991,6 +1991,12 @@ ARMS: dict[str, str] = {
                         "source, the seed moves there too (operands merged, seen OR-ed), so the "
                         "existing seeded order walks that source first; seeds of unlifted offers "
                         "stay, counted. OFF: the seed stays at the derived slot. default ON",
+    "TETHER_LIT_COVER": "BUILD 3, CUT B (the reviewer 2026-11-04 r1130): a several-junction "
+                        "molecule the residuals lit is also walked by the cover route -- before "
+                        "the partial-cover candidates, once, only when every ingredient resolves "
+                        "this pass -- and judged WHOLE, offered only when every junction settles "
+                        "(r966); otherwise counted under 'lit: '. OFF: such a molecule is only "
+                        "counted at the lookup. default ON",
     "TETHER_DERIVED_LIFT": "BUILD 3 ITEM 8c, CUT C (the reviewer 2026-11-04 r1100, r1103): a "
                            "molecule offer at a derived slot is re-filed once at its single "
                            "source as the instrument (by Gamma's typing) over the offered chain, "

@@ -1244,6 +1244,12 @@ _DERIVED_LIFT = armflag.arm("TETHER_DERIVED_LIFT", default=True)
 # offer at a derived slot y to its source X, the seed _mint_seeds[y] moves to X (operands merged,
 # "seen" OR-ed), so the existing seeded order puts X first. Seeds of unlifted offers stay, counted.
 _SEED_LIFT = armflag.arm("TETHER_SEED_LIFT", default=True)
+# r1130 (the reviewer 2026-11-04; Fig 12 :123 "functional group. A substructure whose presence fixes
+# the outcome."): a several-junction molecule the residuals LIT is also walked by the cover route,
+# before the partial-cover candidates and once, only when every ingredient resolves this pass, and
+# judged WHOLE -- offered only when every junction settles (r966). composer.candidates admits by
+# held atom NAMES, so the lit ones (disjoint on ls20) were only ever counted.
+_LIT_COVER = armflag.arm("TETHER_LIT_COVER", default=True)
 # (r946 5) A WINDOW SCORES ITS OWN BOARD: a bond_tests row at each retarget (a death, a level, a new
 # board), from the frames of the board being left, before its trace clears; the run-end row stays.
 # OFF: one row, at the run's end.
@@ -10058,6 +10064,7 @@ class Agent:
         self._mol_minted = set()
         tr = self.trace[w:] if w else self.trace
         why: collections.Counter = collections.Counter()
+        lit_n: collections.Counter = collections.Counter()      # r1130 (c): the lit walk, counted
         order: list = []
         if tr:
             frames = [b for b, *_r in tr] + [tr[-1][2]]
@@ -10103,6 +10110,7 @@ class Agent:
             # never exclude. A lit pair is one junction: offered only when it is its molecule's
             # whole (r966: the term carries every settled bond), else counted.
             njs, seen_lk = _mol_junctions(), set()
+            lit_sev: list = []                  # r1130: lit several-junction molecules
             agree: collections.Counter = collections.Counter()   # r973 4, record only
             differ: list = []
             for _rs, pairs in self._lookup_pairs.items():
@@ -10138,6 +10146,8 @@ class Agent:
                         d_[x] = d_.get(x, False) or o in held[got]
                     if njs.get(p["molecule"], 0) != 1:
                         why["lookup: a junction of a several-junction molecule"] += 1
+                        if _LIT_COVER and p["molecule"] not in lit_sev:
+                            lit_sev.append(p["molecule"])   # r1130: judged whole by cover below
                         continue
                     if got is None:
                         why["lookup: " + ("ambiguous" if jwhy.startswith("ambig")
@@ -10164,8 +10174,30 @@ class Agent:
                         {"term": chain, "operand": x, "prov": prov, "offered": True,
                          "why": "molecule"})
                     order.append(prov)
-            for m in composer.candidates({a.name for a in self.gamma.atoms}, partial=True):
+            walk = composer.candidates({a.name for a in self.gamma.atoms}, partial=True)
+            if _LIT_COVER and lit_sev:
+                # r1130 (b): the lit first (r972's order), each once; a lit cover candidate moves up
+                byname, rows_ = {c["molecule"]: c for c in walk}, composer.recipe_rows()
+                lit = [{**byname[m], "lit": True} if m in byname
+                       else {"molecule": m, "node": composer.light(rows_[m]), "lit": True}
+                       for m in lit_sev if m in byname or m in rows_]
+                walk = lit + [c for c in walk if c["molecule"] not in set(lit_sev)]
+            for m in walk:
                 cap.head()
+                if m.get("lit"):
+                    # r1130 (a): RESOLVE FIRST -- never a whole built on an unresolved part
+                    unres = None
+                    for x in composer.leaves(m["node"]):
+                        got_, how_, _w = self._operand(m["molecule"], [x], frame_slots, lib, atoms,
+                                                       sig)
+                        if got_ is None:
+                            unres = f"lit: an ingredient does not resolve: {x} ({how_})"
+                            break
+                    if unres is not None:
+                        why[unres] += 1
+                        lit_n["unresolved"] += 1
+                        continue
+                    lit_n["walked"] += 1
                 juncs, stack = [], [m["node"]]
                 while stack:
                     n = stack.pop()
@@ -10177,6 +10209,10 @@ class Agent:
                 judged = [judge(n, m["molecule"]) for n in juncs]
                 bad = next((j for j in judged if isinstance(j, str)), None)
                 if bad is not None:
+                    if m.get("lit"):       # r1130 (b): counted with the junction that failed
+                        k = next(i for i, j in enumerate(judged) if isinstance(j, str))
+                        why[f"lit: junction {k + 1} of {len(juncs)}: {bad}"] += 1
+                        continue
                     why[bad if len(juncs) == 1 else f"a junction of several: {bad}"] += 1
                     continue
                 inner = next((j for j in judged[1:] if not any(c[3] == "→" for c in j)), None)
@@ -10209,11 +10245,14 @@ class Agent:
                                     "seen": o in held_on, "left": path[0], "right": path[-1],
                                     "leaves": list(path), "occasions": occ,
                                     "junctions": len(juncs), "source": "cover",
-                                    "offer": chain.name, "entries": 1}
+                                    "offer": chain.name, "entries": 1,
+                                    **({"lit": True} if m.get("lit") else {})}
                             self._mol_offers.setdefault(path[-1], []).append(
                                 {"term": chain, "operand": path[0], "prov": prov,
                                  "offered": True, "why": "molecule"})
                             order.append(prov)
+                            if m.get("lit"):
+                                lit_n["offers"] += 1
             if _DERIVED_LIFT:
                 self._lift_derived()            # 8c (r1100): a derived slot's offers to its source
             for s in self._mol_offers:
@@ -10227,6 +10266,7 @@ class Agent:
                         generalised=sum(not p["seen"] for p in order), slots=len(self._mol_offers),
                         not_offered=dict(why.most_common()), previous=prev,
                         **({"lift": dict(self._lift_n)} if _DERIVED_LIFT and self._lift_n else {}),
+                        **({"lit_cover": dict(lit_n)} if _LIT_COVER and lit_n else {}),
                         lookup=sum(p["source"] == "lookup" for p in order),
                         **({"lookup_vs_window": {**agree, "differ_sample": differ}}
                            if tr and (agree or differ) else {}),

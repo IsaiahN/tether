@@ -162,8 +162,14 @@ def main():
         and rl3["lookup_vs_window"]["differ_sample"][0]["read_pairs"] == ["+"], (
         "MF-L3", rl.get("lookup_vs_window"), rl3.get("lookup_vs_window"))
     _a, ol2, rl2 = lookup_run(many)
-    assert not ol2 and rl2["not_offered"] == {
-        "lookup: a junction of a several-junction molecule": 1}, ("MF-L2", rl2)
+    # r1130: under TETHER_LIT_COVER the lit molecule is ALSO walked whole by cover, and its own
+    # reasons are counted under "lit: "; the lookup's count and "never offered alone" are unchanged
+    lk = "lookup: a junction of a several-junction molecule"
+    extra = {k for k in rl2["not_offered"] if k != lk}
+    assert not ol2 and rl2["not_offered"].get(
+        "lookup: a junction of a several-junction molecule") == 1 and (
+        all(k.startswith("lit: ") for k in extra) if tether._LIT_COVER else not extra), (
+        "MF-L2", rl2)
     stats, ops = {"yielded": 0, "beyond_depth": 0}, {}
     chains = ag._library_chains("o1.col", "val", "val", stats, ops)
     mol = [c.name for c in chains]
