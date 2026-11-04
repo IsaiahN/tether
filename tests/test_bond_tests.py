@@ -96,7 +96,7 @@ def main():
     per = {b: sum(v.values()) for b, v in d["tally"].items()}
     assert all(n == d["tested"] for n in per.values()), ("MF-Brow tally", per, d["tested"])
     side = d["unbound_by_side"]
-    assert side["names_no_atom"] + side["atom_bound_nowhere"] == d["unbound"], ("MF-Brow sides", d)
+    assert sum(side.values()) == d["unbound"], ("MF-Brow sides", d)
     print(f"  MF-B {len(want)} windows: conjunction / sequence / production / subtraction decide "
           f"where the window discriminates, None otherwise; comparison and disjunction None "
           f"(settled at the bargain); mixed None; not specific None; a reset frame skipped")

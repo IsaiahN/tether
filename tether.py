@@ -1166,6 +1166,17 @@ _SITUATED_REACH = armflag.arm("TETHER_SITUATED_REACH", default=True)
 # one row per live situation answering what is shown, what is expected, what is still open,
 # graded at the next boundary by the ground's ending -- a record only, read by no chooser (A1)
 _7H_TRIED = armflag.arm("TETHER_7H_TRIED", default=True)
+# BUILD 2, OPERAND RESOLUTION (the reviewer 2026-11-03 r940; Fig 6 :21 "MINT composes inside the
+# closure and can never add an atom", Fig 13 :134 "Unreachable is a verdict here, not a
+# silence"), RECORD ONLY, read by the bond_tests row: (A) a junction ingredient that names no held
+# atom resolves through its library entry's view, compiled by compile_term under the placeholders
+# -- compiled (the one-object readings it reads) or refused with compile_term's own reason, or
+# unreachable (no entry, or an ambiguous name); never a stub. OFF: names_no_atom, as before.
+_OPERAND_COMPILE = armflag.arm("TETHER_OPERAND_COMPILE", default=True)
+# (B) a HELD atom bound nowhere resolves by the agent's own evidence at the bargain: the slots where
+# a term containing it PAID the bargain, else where one was TRIED there (reached pays); bound stays
+# the strongest. OFF: atom_bound_nowhere, as before, and nothing is noted at the bargain.
+_OPERAND_EVIDENCE = armflag.arm("TETHER_OPERAND_EVIDENCE", default=True)
 _7H_SHOWN = armflag.arm("TETHER_7H_SHOWN", default=True)
 _7H_ROOT = armflag.arm("TETHER_7H_ROOT", default=True)
 # 7j (the reviewer 2026-10-15 17:32, 20:27): a choice made to test a held hypothesis -- the goal
@@ -3531,6 +3542,7 @@ class Agent:
         # 7h: tries per (level, slot, operand); the root of this situation's chain, and the
         # last root's shown scene (for what was added or is gone)
         self._tried: collections.Counter = collections.Counter()
+        self._atom_ev: dict = {}       # r940 (B): atom -> {slot: 2 paid / 1 tried} at the bargain
         self._root_id: str | None = None
         self._root_held: list = []
         self._root_shown: dict | None = None
@@ -9420,6 +9432,136 @@ class Agent:
                                         "why": m["why"]}
                                        for m in mols if not m["expressible"]])
 
+    def _pays_ev(self, slot: str, term: Any, cost: float, left: float, base: float) -> bool:
+        """`pays`, and under TETHER_OPERAND_EVIDENCE (r940 B) the term's atoms noted at this slot:
+        2 where it paid the bargain, 1 where it only reached it. The verdict is `pays`'s alone."""
+        ok = pays(cost, left, base)
+        if _OPERAND_EVIDENCE:
+            parts = list(term.atoms) + list(getattr(getattr(term, "operand_term", None),
+                                                    "atoms", ()) or ())
+            for a in parts:
+                d = self._atom_ev.setdefault(_norm_name(a.name), {})
+                d[slot] = max(d.get(slot, 0), 2 if ok else 1)
+        return ok
+
+    def _operand(self, molecule: str, names: list, frame_slots: set, lib: Any, atoms: dict,
+                 sig: tuple) -> tuple:
+        """r940: one junction operand -> ({object: [slots]}, how, why). Each ingredient resolves
+        the strongest way it can: a held atom by its BOUND slots, else (B) by the bargain's evidence
+        (paid, else tried); an ingredient no atom names (A) through its library entry's view,
+        compiled -- the one-object readings its compiled terms read, on every object that has them.
+        An operand of several ingredients is their union; the weakest way names it."""
+        held = {_norm_name(a.name) for a in self.gamma.atoms}
+        rank = {"bound": 4, "paid": 3, "tried": 2, "compiled": 1}
+        out: dict = {}
+        hows = []
+        for name in names:
+            got, how, why = self._ingredient_operand(molecule, name, held, frame_slots, lib,
+                                                     atoms, sig)
+            if got is None:
+                return None, how, why
+            for o, ss in got.items():
+                out.setdefault(o, set()).update(ss)
+            hows.append(how)
+        how = min(hows, key=lambda h: rank.get(h, 0))
+        return ({o: sorted(ss) for o, ss in sorted(out.items())}, how, "")
+
+    def _ingredient_operand(self, molecule: str, name: str, held: set, frame_slots: set,
+                            lib: Any, atoms: dict, sig: tuple) -> tuple:
+        def by_owner(slots):
+            out: dict = {}
+            for s in slots:
+                o = s.split(".", 1)[0]
+                if "~" not in o:
+                    out.setdefault(o, set()).add(s)
+            return out
+        n = _norm_name(name)
+        if n in held:
+            bound = self._ingredient_slots(name) or ()
+            if bound:
+                return by_owner(bound), "bound", ""
+            if not _OPERAND_EVIDENCE:
+                return None, "atom_bound_nowhere", "the atom is held and no bound term names it"
+            ev = self._atom_ev.get(n, {})
+            for level, lv in (("paid", 2), ("tried", 1)):
+                ss = [s for s, r in ev.items() if r >= lv and s in frame_slots]
+                if ss:
+                    return by_owner(ss), level, ""
+            return None, "atom_bound_nowhere", "held; no bound term, and none paid or tried it"
+        if not _OPERAND_COMPILE or lib is None:
+            return None, "names_no_atom", "no atom this agent holds"
+        e = lib.get(molecule) or {}
+        refs = [o.get("ref") for o in (e.get("run") or {}).get("operands") or ()
+                if _norm_name(str(o.get("ref", "")).split("|")[-1]) == n]
+        if not refs:
+            keys = [k for k in self._lib_keys(lib) if _norm_name(k.split("|")[-1]) == n]
+            dom = molecule.split("|")[0] + "|"
+            mine = [k for k in keys if k.startswith(dom)]
+            refs = mine if mine else keys
+        if not refs:
+            return None, "unreachable", "no library entry names it"
+        if len(refs) > 1:
+            return None, "unreachable", "ambiguous: " + ", ".join(sorted(refs)[:4])
+        key = refs[0]
+        role = (lib.get(key) or {}).get("role_of", {}).get("role") or "STATE"
+        if role in ("RESULT", "AGENT", "INSTRUMENT"):
+            role = "PROCESS"     # an if/then role: its readings are its change of o
+        reads, reasons = set(), collections.Counter()
+        for _cand, c, _c2 in self._held_index(lib, key, role, atoms, sig):
+            if isinstance(c, compile_term.Compiled):
+                # the reading it reads on its object; a template comparing it across two objects
+                # (PHo.r > PHx.r) reads the same reading r, so the operand on o is o's own r
+                for s in (c.slot, c.operand):
+                    if s and s.split(".", 1)[0] in (PH_O, PH_X) and "." in s:
+                        reads.add(s.split(".", 1)[1])
+            elif c is not None:
+                reasons[c.reason] += 1
+        if not reads:
+            why = "; ".join(f"{r} ({k})" for r, k in reasons.most_common(2)) or "no condition"
+            return None, "refused", f"{key}: {why}"
+        objs = {s.split(".", 1)[0] for s in frame_slots if "~" not in s.split(".", 1)[0]}
+        got = {o: {f"{o}.{r}" for r in reads if f"{o}.{r}" in frame_slots} for o in objs}
+        got = {o: ss for o, ss in got.items() if ss}
+        if not got:
+            return (None, "compiled_off_board",
+                    f"{key}: reads {sorted(reads)[:6]}, none on this board")
+        return got, "compiled", key
+
+    @staticmethod
+    def _lib_keys(lib: Any) -> list:
+        return [*lib.seed, *lib.runtime, *lib.learnings]
+
+    @staticmethod
+    def _per_object(bond: str, left: dict, right: dict, objs: list, frames: list, bound: list,
+                    skip: tuple) -> tuple:
+        """r940 (B): the junction tested ON EACH SHARED OBJECT -- o's left slots against o's own
+        right slots, never another object's -- and the objects' verdicts read by the same rule
+        as a window's occasions: True on some and False on none (or the reverse), else None."""
+        vs, evs, whys, kinds = [], [], [], []
+        for o in objs:
+            av = [tuple(f.get(s) for s in left[o]) for f in frames]
+            bv = [tuple(f.get(s) for s in right[o]) for f in frames]
+            others = [s for s in bound if s not in left[o] and s not in right[o]]
+            still = [False] + [any(frames[t - 1].get(s) is not None
+                                   and frames[t - 1].get(s) == frames[t].get(s) for s in others)
+                               for t in range(1, len(frames))]
+            v, why, kind, ev = composer.window_test(bond, av, bv, still, skip)
+            vs.append(v)
+            whys.append(f"{o}: {why}")
+            kinds.append(kind)
+            if v is not None:
+                evs.append(ev)
+        ev = {"occasions": sum(e["occasions"] for e in evs),
+              "deciding": sorted({t for e in evs for t in e["deciding"]}),
+              "specific": sorted({t for e in evs for t in e["specific"]})}
+        if True in vs and False not in vs:
+            return (True, f"{bond}: {vs.count(True)} objects for, none against", "", ev)
+        if False in vs and True not in vs:
+            return (False, f"{bond}: {vs.count(False)} objects against, none for", "", ev)
+        if True in vs:
+            return (None, f"{bond}: mixed across objects", "TEST", ev)
+        return (None, whys[0], kinds[0] or "TEST", ev)
+
     def _bond_tests(self) -> None:
         """BUILD 2 item 1, RECORD ONLY (the reviewer 2026-11-03 r897, r934): every lit molecule's
         junctions (partial cover: a junction both of whose operands' ingredients this agent holds)
@@ -9440,6 +9582,14 @@ class Agent:
         outcome = {"settled": 0, "ambiguous": 0, "none": 0}
         seen, sample, unbound = set(), [], 0
         missing = {"names_no_atom": 0, "atom_bound_nowhere": 0}     # r937: which side is missing
+        resolve = _OPERAND_COMPILE or _OPERAND_EVIDENCE                # r940: operand resolution
+        if resolve:
+            lib = _library()
+            atoms = {a.name: a for a in self.gamma.atoms}
+            sig = compile_term.signature(atoms)
+            frame_slots = set().union(*(f.keys() for f in frames)) if frames else set()
+            resolved_by: collections.Counter = collections.Counter()
+            refusals: collections.Counter = collections.Counter()
         for m in composer.candidates({a.name for a in self.gamma.atoms}, partial=True):
             cap.head()
             stack = [m["node"]]
@@ -9448,6 +9598,48 @@ class Agent:
                 if not isinstance(n, composer.Bonded):
                     continue
                 stack += [n.left, n.right]
+                if resolve:
+                    key = (tuple(composer.leaves(n.left)), tuple(composer.leaves(n.right)))
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    ops = [self._operand(m["molecule"], list(k), frame_slots, lib, atoms, sig)
+                           for k in key]
+                    bad = next((o for o in ops if o[0] is None), None)
+                    if bad is not None:
+                        unbound += 1
+                        missing[bad[1]] = missing.get(bad[1], 0) + 1
+                        if bad[1] in ("refused", "unreachable", "compiled_off_board"):
+                            refusals[bad[2][:120]] += 1
+                        continue
+                    for o in ops:
+                        resolved_by[o[1]] += 1
+                    objs = sorted(set(ops[0][0]) & set(ops[1][0]))
+                    if not objs:
+                        unbound += 1
+                        missing["no_shared_object"] = missing.get("no_shared_object", 0) + 1
+                        continue
+                    res = {}
+                    for bond in composer.WINDOW_BONDS:
+                        res[bond] = self._per_object(bond, ops[0][0], ops[1][0], objs, frames,
+                                                     bound, skip)
+                        v, _why, kind, _ev = res[bond]
+                        tally[bond]["true" if v is True else "false" if v is False
+                                    else kind] += 1
+                    got, jwhy = composer.junction_verdict(res)
+                    outcome["settled" if got else "ambiguous" if jwhy.startswith("ambig")
+                            else "none"] += 1
+                    for bond, (v, why, _kind, ev) in res.items():
+                        if v is not None and len(sample) < 20:
+                            sample.append({"molecule": m["molecule"], "left": list(key[0]),
+                                           "right": list(key[1]), "bond": bond, "verdict": v,
+                                           "why": why, "junction": jwhy,
+                                           "by": [ops[0][1], ops[1][1]],
+                                           "occasions": ev["occasions"],
+                                           "cycles": [cyc0 + t for t in ev["deciding"]][:10],
+                                           "specific_cycles": [cyc0 + t
+                                                               for t in ev["specific"]][:10]})
+                    continue
                 ends = []
                 for side in (n.left, n.right):
                     sl = [self._ingredient_slots(i) for i in composer.leaves(side)]
@@ -9486,6 +9678,9 @@ class Agent:
         self.led.record(self.cycle, self._running_step, "@bond", "bond_tests",
                         frames=len(frames), resets=len(skip), junctions=len(seen),
                         unbound=unbound, unbound_by_side=missing,
+                        **({"resolved_by": dict(resolved_by),
+                            "refused_or_unreachable": dict(refusals.most_common(12))}
+                           if resolve else {}),
                         tested=len(seen) - unbound, tally=tally,
                         junction_outcome=outcome, decided_sample=sample,
                         reads="record only (r897, r934): which bond each lit junction's window "
@@ -18918,7 +19113,7 @@ class Agent:
                                     continue
                                 bleft = self._left(bt, slot, hist, base, bcost)
                                 _sh["pays_called"] += 1
-                                if not pays(bcost, bleft, base):
+                                if not self._pays_ev(slot, bt, bcost, bleft, base):
                                     continue
                                 btotal = bcost + bleft
                                 # THE TREE ARM WINS THE BARGAIN TOO AND RECORDED NEITHER.
@@ -19000,7 +19195,7 @@ class Agent:
                                 continue
                             bleft = self._left(bt, slot, hist, base, bcost)
                             _sh["pays_called"] += 1
-                            if not pays(bcost, bleft, base):
+                            if not self._pays_ev(slot, bt, bcost, bleft, base):
                                 continue
                             btotal = bcost + bleft
                             # THE TREE ARM WINS THE BARGAIN TOO AND RECORDED NEITHER.
@@ -19027,7 +19222,7 @@ class Agent:
                                 best = (btotal, bleft, bcost, bt)
                                 _best_rank = rank
                         _sh["pays_called"] += 1
-                        if not pays(cost, left, base):
+                        if not self._pays_ev(slot, term, cost, left, base):
                             cut_n["does-not-pay"] += 1
                             if len(cuts) < 12:
                                 cuts.append({"name": term.name, "rank": rank, "reversible": True,

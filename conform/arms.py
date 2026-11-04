@@ -1952,6 +1952,17 @@ ARMS: dict[str, str] = {
                         "window discriminates, + and → only with a specific frame, a reset is no "
                         "occasion, two True bonds are ambiguous; RECORD ONLY: one bond_tests row "
                         "at the run's end, read by nothing. OFF: no row. default ON",
+    "TETHER_OPERAND_COMPILE": "BUILD 2 OPERAND RESOLUTION (A) (the reviewer 2026-11-03 r940; Fig "
+                              "6 :21): a junction ingredient that names no held atom resolves "
+                              "through its library entry's view compiled by compile_term (the "
+                              "readings its compiled terms read, per object on the board), or is "
+                              "refused with compile_term's own reason, or unreachable; never a "
+                              "stub. Record only (bond_tests). OFF: names_no_atom. default ON",
+    "TETHER_OPERAND_EVIDENCE": "BUILD 2 OPERAND RESOLUTION (B) (the reviewer 2026-11-03 r940): "
+                               "the bargain notes each term's atoms at its slot (paid / tried at "
+                               "pays); a held atom bound nowhere resolves to where it paid, else "
+                               "where it was tried; junction operands pair per object. Record "
+                               "only. OFF: atom_bound_nowhere, nothing noted. default ON",
     "TETHER_CONTINUE_WAL":"(7) the store CONTINUE's WAL bound (Build 1; REPORT FIN5E section 8, "
                            "2.14 GB "
                            "on 2026-11-03): after each continued save above WAL_BOUND_BYTES, a "
