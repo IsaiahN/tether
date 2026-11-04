@@ -409,13 +409,26 @@ def axis_forms(condition: str) -> list[str]:
     at the destination; the ground there decides which holds. Scale needs nothing: the templates
     compare
     objects with each other, never with a size."""
+    return list(dict.fromkeys([condition, *(c for _n, c in axis_forms_named(condition))]))
+
+
+def axis_forms_named(condition: str) -> list[tuple[str, str]]:
+    """axis_forms' three other readings, each with its name -- "turned" (axes swapped), "mirrored"
+    (orderings reversed), "turned+mirrored" -- dropping any that reads as the condition itself or as
+    an earlier form (Build 3 item 11: each is offered as its own entry, named)."""
     names = sorted(_AXIS_SWAP, key=len, reverse=True)
     swap = lambda c: _re.sub(r"\b(" + "|".join(names) + r")\b", lambda m: _AXIS_SWAP[m.group(1)], c)  # noqa: E731
 
     def flip(c: str) -> str:
         return _re.sub(r"(?<![<>=!])([<>])(?!=)", lambda m: "<" if m.group(1) == ">" else ">", c)
 
-    return list(dict.fromkeys([condition, swap(condition), flip(condition), flip(swap(condition))]))
+    out, seen = [], {condition}
+    for name, c in (("turned", swap(condition)), ("mirrored", flip(condition)),
+                    ("turned+mirrored", flip(swap(condition)))):
+        if c not in seen:
+            seen.add(c)
+            out.append((name, c))
+    return out
 
 
 _ID_EDGE = r"[A-Za-z0-9_~]"

@@ -1367,6 +1367,12 @@ _7H_REHEARSE = armflag.arm("TETHER_7H_REHEARSE", default=True)
 # never a recording). Re-invented on load into the agent's private library, on trial; the library
 # route reads that private copy, its invented keys carrying a content hash as their version
 _M7_INV = armflag.arm("TETHER_M7_INV", default=True)
+# Build 3 item 11 (the reviewer 2026-11-04 r1152): a carried rule is also re-invented in its TURNED
+# and MIRRORED forms (library_runtime.axis_forms_named: axes swapped, orderings reversed, both),
+# each its own entry on trial with its form named; the ground at the destination decides which holds
+# (Isaiah 2026-10-08: boards may be rearranged, rotated). axis_forms was written for this and only
+# Library.carry, which no agent path calls, ever produced the forms.
+_CARRY_FORMS = armflag.arm("TETHER_CARRY_FORMS", default=True)
 # S6 (v), THE FACTORED PRICING (the reviewer 2026-10-19 15:35 item 3): an invention's (condition,
 # then-term) pair costs the then-term's symbols, then the condition's, then END, folded left to
 # right (Code.bits), so each part is walked once and a pair is a float fold bit-equal to _inv_cost;
@@ -9091,6 +9097,21 @@ class Agent:
             except ValueError as e:
                 refused.append({"name": rec["name"], "why": str(e)[:120]})
                 continue
+            if _CARRY_FORMS:
+                import library_runtime
+                for form, cond in library_runtime.axis_forms_named(rec["template"]):
+                    name2 = f"{rec['name']}~{form}"
+                    if lib.get(f"AGENT-INVENTED|{name2}"):
+                        continue
+                    try:
+                        lib.invent_atom(name2, cond, game=self.gamma.game, cycle=self.cycle,
+                                        receipt={"carried": True, "form": form,
+                                                 "form_of": rec["name"],
+                                                 "from_game": rec.get("game")},
+                                        affects=rec.get("affects") or [])
+                        made.append(name2)
+                    except ValueError as e:
+                        refused.append({"name": name2, "why": str(e)[:120]})
             if _LEVEL_GOAL and rec.get("kind") == "goal":
                 # GQ1: a carried goal seeds the shelf, ON TRIAL, with its provenance
                 self._goal_shelf[rec["name"]] = {

@@ -1995,6 +1995,11 @@ ARMS: dict[str, str] = {
                         "source, the seed moves there too (operands merged, seen OR-ed), so the "
                         "existing seeded order walks that source first; seeds of unlifted offers "
                         "stay, counted. OFF: the seed stays at the derived slot. default ON",
+    "TETHER_CARRY_FORMS": "BUILD 3 ITEM 11 (the reviewer 2026-11-04 r1152): a carried rule "
+                          "(M7-INV) is also re-invented in its turned / mirrored / both forms "
+                          "(library_runtime.axis_forms_named), each its own entry on trial named "
+                          "<name>~<form>, receipt naming its form; the destination's ground "
+                          "decides. OFF: the carried rule alone, as written. default ON",
     "TETHER_ATTR_BRIDGE": "BUILD 3 ITEM 9, the A4.6 attribute bridge (the reviewer 2026-11-04 "
                           "r1151; r793): a PERCEPT atom gains the readings its ATTRIBUTE_INDEX "
                           "clusters name (by_cluster, hash-checked; K1's reading -> cluster table "

@@ -204,7 +204,11 @@ def main() -> int:
     assert r["head"] == r["gen_hash"], ("C3: the generation with real plants must load", r)
     assert r["lib_terms"] == [pl["before"]], ("C3: a fresh load holds the earlier term only", r)
     ic = r["inv_carried"]
-    assert len(ic) == 1 and ic[0]["reinvented"] == ["planted_before"], (
+    # Build 3 item 11 (TETHER_CARRY_FORMS, default ON): the carried rule also re-invents its
+    # turned / mirrored forms, each named planted_before~<form>; the rule itself comes first
+    re_ = ic[0]["reinvented"] if len(ic) == 1 else []
+    assert re_[:1] == ["planted_before"] and all(
+        x.startswith("planted_before~") for x in re_[1:]), (
         "C3: the carried invention (a real template) must re-invent", ic, r["plants"])
     bad = ic[0]["refused"]
     assert [b["name"] for b in bad] == ["planted_bad"] and "names no reading" in bad[0]["why"], (
