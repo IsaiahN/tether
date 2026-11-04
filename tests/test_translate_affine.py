@@ -9,6 +9,12 @@ MF-T1  translate<o0.drow> binds at o0.row: the head accepts POSITION and the ope
 MF-T2  translate<o1.row> at o0.row is REFUSED (point + point), and the reason is recorded
 MF-T3  every other target keeps today's rule: the 'val' head check and the operand check at
        non-POSITION targets read the same with the arm on and off (> 0 cases)
+MF-T4  (r1108) a TARGET_OPERAND row on a TEMPLATE atom enters compile_term.signature, so compiles
+       made with the arm on and off cannot share a key: with a row declared on `above` (inside the
+       test, restored after) the signature differs ON vs OFF, and with none it is today's tuple;
+       and, asserted as the observed fact (no closure cache exists), enumerate_closure at a
+       POSITION input starts a translate chain with the arm ON and none OFF. RED: the signature
+       without the rows (52a642e) reads the same ON and OFF
 The red is behavioural, the arm OFF on this tree: TETHER_TRANSLATE_AFFINE=0 fails MF-T1 at the head.
 
     python tests/test_translate_affine.py
@@ -71,7 +77,44 @@ def main():
     print(f"  MF-T2 translate<o1.row> at o0.row refused: {why}")
     print(f"  MF-T3 {len(cases)} non-POSITION (target, operand) cases read the same on and off; "
           f"'val' accepted both ways")
+    t4()
     print("test_translate_affine OK")
+
+
+def t4():
+    import compile_term
+    env = world.bind(gridworld.family("default", 0))
+    tr = next(a for a in arc_predict.predict() if a.name == "translate")
+    g = gamma.Gamma([*env.atoms(), tr], game="fam_default_0")
+    atoms = {a.name: a for a in g.atoms}
+    above = atoms["above"]
+    plain = compile_term.signature(atoms)
+    was, had = gamma._TRANSLATE_AFFINE, above.fn in gamma.TARGET_OPERAND
+    try:
+        gamma.TARGET_OPERAND.setdefault(above.fn, {})["EXTENT"] = "DELTA"
+        gamma._TRANSLATE_AFFINE = True
+        s_on = compile_term.signature(atoms)
+        gamma._TRANSLATE_AFFINE = False
+        s_off = compile_term.signature(atoms)
+    finally:
+        gamma._TRANSLATE_AFFINE = was
+        if had:
+            gamma.TARGET_OPERAND[above.fn].pop("EXTENT", None)
+        else:
+            gamma.TARGET_OPERAND.pop(above.fn, None)
+    assert s_on != s_off and s_off == plain and compile_term.signature(atoms) == plain, (
+        "MF-T4: a template atom's TARGET_OPERAND row does not enter the signature", s_on == s_off)
+    starts = {}
+    try:
+        for flag in (False, True):
+            gamma._TRANSLATE_AFFINE = flag
+            starts[flag] = any(t.atoms[0] is tr for t in g.enumerate_closure(
+                "POSITION", "POSITION", 1, 500))
+    finally:
+        gamma._TRANSLATE_AFFINE = was
+    assert starts == {False: False, True: True}, ("MF-T4: closure at POSITION", starts)
+    print(f"  MF-T4 a template row moves the signature (ON != OFF, OFF == today's); "
+          f"closure at POSITION starts with translate: {starts}")
 
 
 if __name__ == "__main__":

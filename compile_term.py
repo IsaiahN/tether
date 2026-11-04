@@ -101,10 +101,18 @@ TEMPLATE_ATOMS = frozenset(
 
 def signature(atoms: dict) -> tuple:
     """What a compile can read of the atoms: each template atom present, with every field the
-    typing reads (all but `fn`), and the arm. An atom outside T never changes it."""
-    return (_RELATION_SET, tuple(sorted(
+    typing reads (all but `fn`), and the arm. An atom outside T never changes it. r1108: also any
+    EFFECTIVE gamma.TARGET_OPERAND row of a template atom (the typing reads it, off the Atom) --
+    appended only when there is one, so with none (today, and always with the arm OFF) the key is
+    byte-identical and no persisted memo goes cold."""
+    base = (_RELATION_SET, tuple(sorted(
         (n, a.in_type, a.out_type, a.reads_operand, a.operand_type, a.also_accepts,
          a.polymorphic, a.elem_type) for n, a in atoms.items() if n in TEMPLATE_ATOMS)))
+    rows = tuple(sorted((n, tuple(sorted(gamma.TARGET_OPERAND[a.fn].items())))
+                        for n, a in atoms.items()
+                        if n in TEMPLATE_ATOMS and gamma._TRANSLATE_AFFINE
+                        and gamma.TARGET_OPERAND.get(a.fn)))
+    return (*base, rows) if rows else base
 # 7d, THE EVENT ROUTE (the reviewer 2026-10-16 11:56, 12:00; 10-11 14:17: an event is a transition,
 # carried by the change readings): a frame event is compiled onto a change reading the agent
 # ALREADY carries, on the role's subject. frame.came > 0 (some object appeared) -> {subject}.age

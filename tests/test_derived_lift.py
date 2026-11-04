@@ -89,6 +89,10 @@ def main():
     flat = Term((tr,), operand="o0.dcol_o1")
     b_tree, b_flat = ag._bind_bits(lifted[0], "o0.row"), ag._bind_bits(flat, "o0.row")
     assert b_tree > b_flat, ("MF-L4: the operand tree is not priced", b_tree, b_flat)
+    code = ag.gamma.code()          # r1108: the chain's own bits alone, as _bind_bits prices a tree
+    b_chain = code.bits((Term(chain.atoms), ()))[0] - code.end
+    assert b_tree > b_chain, ("MF-L4: the tree costs no more than the chain it carries", b_tree,
+                              b_chain)
     lifted_left = [s for s in DERIVED for o_ in ag._mol_offers.get(s, ())
                    if "lifted_from" in o_["prov"]]
     assert not (set(DERIVED) & set(ag.bound)) and not lifted_left, (
@@ -97,7 +101,8 @@ def main():
     print(f"  MF-L2 stayed: o0.speed, o0.dh -- {reasons}")
     print(f"  MF-L3 _trees {lifted[0].name}; _library_chains yields translate with o0.dcol_o1; "
           f"molecule_offer row pays={mo[0]['detail']['pays']}")
-    print(f"  MF-L4 bind bits: the lifted tree {b_tree:.3f} > flat translate<x> {b_flat:.3f}")
+    print(f"  MF-L4 bind bits: the lifted tree {b_tree:.3f} > flat translate<x> {b_flat:.3f}; "
+          f"> the chain's own bits alone ({chain.name}(o0.dcol_o1)) {b_chain:.3f}")
     print("  MF-L5 no derived slot bound, no lifted offer left at one")
     print("test_derived_lift OK")
 
