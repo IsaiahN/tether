@@ -220,6 +220,15 @@ _RECIPE_DEDUP = armflag.arm("TETHER_RECIPE_DEDUP", default=True)
 # charged a try first (ls20: 2090-4971 of 5000 tries a mint). Tested once per chain, before its
 # instances are generated, as the cost bound is: no rank, no try. OFF: per instance, as before.
 _RECIPE_HELD_FREE = armflag.arm("TETHER_RECIPE_HELD_FREE", default=True)
+# THE PARK ROW SAYS WHICH ABSENCE IT IS (the reviewer 2026-11-04 r992 2, r994 3; Fig 13 :134
+# "Unreachable is a verdict here, not a silence"; Fig 8 :39-43 "Underivable-in-principle and
+# unreachable-at-this-budget are different facts, and they issue different instructions"): a mint
+# that priced candidates and sent none to pays -- every one proven by _cannot_pay -- is "not found
+# within budget" when a budget stopped it (the remedy is more search), "closure cannot cover R" when
+# it enumerated to its affordable depth with no budget cut (the remedy is to go outside), with the
+# best candidate (the one that read furthest into R). RECORD ONLY: every reader of the verdict
+# inside the agent sees the old one. OFF: the row is as before.
+_CLOSURE_VERDICT = armflag.arm("TETHER_CLOSURE_VERDICT", default=True)
 
 # ARM G -- REBIND WHAT IS HELD. `_rebindings` returns early for any term that already carries an
 # operand, so only IMPORTS (which arrive unbound, `save` drops it) are ever re-bound. A term the
@@ -3480,6 +3489,10 @@ class Agent:
         """_in_step for an inline phase of step() or an entry point: the step running for
         the block, restored after (the reviewer 2026-10-16 09:23)."""
         prev, self._running_step = self._running_step, step
+        pipe = getattr(getattr(self, "led", None), "pipe", None)
+        if pipe is not None and pipe.on:
+            pipe.enter(step, getattr(self, "cycle", 0))      # 7d: the stage line opens
+        cut = False
         stk = self._clk_stack if _STEP_CLOCK else None
         if stk is not None:     # the step clock: time is the innermost scope's, never counted twice
             t = time.perf_counter()
@@ -3490,9 +3503,12 @@ class Agent:
             yield
         except cap.CapReached:
             self._cut_scope = self._cut_scope or step     # the innermost scope a cut left
+            cut = True
             raise
         finally:
             self._running_step = prev
+            if pipe is not None and pipe.on:
+                pipe.exit(step, getattr(self, "cycle", 0), cut)   # 7d: the stage line written
             if stk is not None and stk:
                 t = time.perf_counter()
                 lab, s = stk.pop()
@@ -14215,6 +14231,42 @@ class Agent:
                 out.append((state, action, actual, intent, landed))
         return out
 
+    def _cp_note(self, term: Term, rows: int, of: int, cost: float, base: float,
+                 unit: float) -> None:
+        """r992 rider: the candidate _cannot_pay proved unable to pay after reading furthest into
+        R (ties: the cheaper) -- how close the closure came on this slot."""
+        best = getattr(self, "_cp_best", None)
+        if best is None or (rows, -cost) > (best["rows_read"], -best["cost_bits"]):
+            self._cp_best = {"term": term.name, "rows_read": rows, "of_rows": of,
+                             "cost_bits": round(cost, 3),
+                             "misses_allowed": max(0, int((base - cost) // unit))}
+
+    def _closure_verdict(self, detail: dict, priced0: int, share: dict) -> dict:
+        """r992 / r994, RECORD ONLY: the park row's own copy of `detail` when candidates were priced
+        and none reached pays -- every one proven by _cannot_pay. A BUDGET stopped it (the try
+        budget, or the closure's enumeration budget): "not found within budget", Fig 8's
+        unreachable-at-this-budget. It enumerated to its affordable depth with no budget cut (the
+        cost bound is the depth, not a budget): "closure cannot cover R", Fig 8's underivable.
+        stopped_by keeps the old verdict, which every reader inside the agent still sees."""
+        old = detail.get("verdict")
+        if not (_CLOSURE_VERDICT and old in ("budget_spent", "depth_exhausted",
+                                             "priced_out_at_depth")):
+            return detail
+        priced = self._priced - priced0
+        reached = sum(s.get("pays_called", 0) for s in share.values() if isinstance(s, dict))
+        if priced <= 0 or reached:
+            return detail
+        found = old == "budget_spent"
+        return {**detail, "verdict": "not found within budget" if found else
+                "closure cannot cover R", "stopped_by": old, "priced": priced,
+                "best_candidate": getattr(self, "_cp_best", None),
+                "note": ("every priced candidate was proven by _cannot_pay unable to pay, but a "
+                         "budget stopped the search before the closure was enumerated: more "
+                         "search, not another atom (Fig 8)" if found else
+                         "the closure was enumerated to its affordable depth and every priced "
+                         "candidate was proven unable to pay: nothing this vocabulary composes "
+                         "explains what changed here, go outside (Fig 8)")}
+
     def _cannot_pay(self, term: Term, slot: str, robs: list, cost: float,
                     base: float, rkey: dict | None = None) -> bool:
         """A BOUND FROM THE RESIDUAL, not a guess about which atoms are needed.
@@ -14272,6 +14324,8 @@ class Agent:
                         self._dv_answered = True
                         if self._dv is not None:
                             self._dv["answered"] += 1
+                    if _CLOSURE_VERDICT:
+                        self._cp_note(term, start, len(robs), cost, base, unit)
                     return True             # the stored prefix already proves it
         for i in range(start, len(robs)):
             cap.head()
@@ -14284,6 +14338,8 @@ class Agent:
                 if cell is not None:
                     cell[term] = (self._divide_cell(term, i + 1, wrong, ref, start, was, e0,
                                                     cost) if _DIVIDE else (i + 1, wrong))
+                if _CLOSURE_VERDICT:
+                    self._cp_note(term, i + 1, len(robs), cost, base, unit)
                 return True          # `wrong` only grows; the rest of R adds nothing
         if cell is not None:
             cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was, e0, cost)
@@ -19038,6 +19094,7 @@ class Agent:
 
     def _mint(self, slot: str) -> None:
         _clk0 = time.perf_counter() if _STEP_CLOCK else None   # the step clock: park rows' wall_s
+        self._cp_best = None                # r992 rider: this mint's best proven-unpayable one
         if _MOLECULE_APPLY:
             self._molecule_pass()           # r962: once per grown window, before any mint reads
             self._mol_minted.add(slot)
@@ -20034,7 +20091,8 @@ class Agent:
                 # bound_at_park says one is bound
                 detail["bound_at_park"] = slot in self.bound
                 self._retain_unpaid_want(slot, wanted, detail)
-            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,), **detail,
+            self.led.record(self.cycle, "MINT", slot, "park", of=(slot,),
+                            **self._closure_verdict(detail, _priced0, _share),
                             **self._clock_since(_clk0))
             if _ds_wo:
                 return              # DS (4): the want is written; the slot is never bound

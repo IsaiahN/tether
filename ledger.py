@@ -17,6 +17,7 @@ from typing import Any
 
 import armflag
 import narrate
+import pipelog
 
 sys.dont_write_bytecode = True
 
@@ -176,6 +177,7 @@ class Ledger:
         self._path = Path(path) if path else None
         self._fh = None
         self.narrator = narrate.Narrator(self._path, (WIN, ADVANCE))   # N1: says key rows aloud
+        self.pipe = pipelog.PipeLog(self._path, (WIN, ADVANCE))        # 7d: the stage lines
         if self._path is not None:
             self._path.parent.mkdir(parents=True, exist_ok=True)
             self._path.write_text("", encoding="utf-8")
@@ -241,6 +243,8 @@ class Ledger:
                     fh.write(line)
         if self.narrator.on:
             self.narrator.see(cycle, step, slot, event, detail)
+        if self.pipe.on:
+            self.pipe.see(cycle, step, slot, event, detail)
         return e
 
     def narrate(self, cycle: int, kind: str, slot: str, text: str) -> None:

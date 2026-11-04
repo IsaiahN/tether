@@ -1968,6 +1968,17 @@ ARMS: dict[str, str] = {
                              "entry, each tested on its own, coinciding readings merged, the "
                              "molecule's domain first; a view with no condition is unreachable. "
                              "OFF: 'ambiguous' unreachable, 'no condition' refused. default ON",
+    "TETHER_PIPELINE_LOG": "BUILD 2 7d, THE PIPELINE LOG (Isaiah 2026-11-03 15:29; the reviewer "
+                           "r895 4, r992 3): one stage line per _step_scope exit to pipeline.log "
+                           "beside the ledger (rows by event, slots, ms, stop); deep mode by "
+                           "window; gzip rotation with pins; nothing written into the ledger. "
+                           "Item 38's one logging switch. OFF: no file. default ON",
+    "TETHER_CLOSURE_VERDICT": "the reviewer 2026-11-04 r992 2, r994 3 (Fig 13 :134, Fig 8 "
+                              ":39-43): a park whose priced candidates all failed _cannot_pay "
+                              "records 'not found within budget' (a budget stopped it) or "
+                              "'closure cannot cover R' (enumerated to its affordable depth), with "
+                              "the best candidate; record only, the agent's readers keep the old "
+                              "verdict. OFF: the row as before. default ON",
     "TETHER_RECIPE_HELD_FREE": "the reviewer 2026-11-04 r985 (Fig 12 :107-108): under "
                                "RECIPE_DEDUP a chain held as a recipe is tested once, before its "
                                "instances are generated, and takes no try (it was B x G tries, "
@@ -2815,7 +2826,13 @@ _NO_ENV = type("armflag", (), {"arm": staticmethod(lambda _name, default=False: 
 
 # VALUES, NOT SWITCHES: read raw because they are not on/off. Data, so a new one is a visible
 # edit here rather than a quiet exemption in logic.
-VALUES = {"TETHER_SEED_FROM": "a REPLAY: the path of a record (a ledger or a lineage generation) "
+VALUES = {"TETHER_PIPELINE_DEEP": "a WINDOW of cycles, 'c<a>-c<b>', for the pipeline log's "
+                                  "function-level timing (7d deep mode); never on/off",
+          "TETHER_PIPELINE_SEG_MB": "a SIZE: the pipeline log's segment, about 100 MB (r895 4); "
+                                    "never on/off",
+          "TETHER_PIPELINE_CAP_MB": "a SIZE: the pipeline log's cap, 2048 MB to start, raised as "
+                                    "needed (Isaiah, r895 4); never on/off",
+          "TETHER_SEED_FROM": "a REPLAY: the path of a record (a ledger or a lineage generation) "
                               "whose recorded seed and generation the agent reads; never a seed "
                               "value (HOLD_SEED, the reviewer 2026-10-15 15:04)",
           "TETHER_RUNS_DIR": "a PATH: the runs folder (the run index, its pins and removals, the "
