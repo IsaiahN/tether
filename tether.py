@@ -1201,6 +1201,12 @@ _MOLECULE_APPLY = armflag.arm("TETHER_MOLECULE_APPLY", default=True)
 
 
 @cache
+def _mol_junctions() -> dict:
+    """each recipe's junction count (one per adjacent ingredient pair, composer.recipe_rows)."""
+    return {m: len(r["junctions"]) for m, r in composer.recipe_rows().items()}
+
+
+@cache
 def _bond_impl() -> dict:
     """each bond's implemented_by, read from grammar.json's operators table through the door."""
     return {k: list(v.get("implemented_by") or ())
@@ -3880,6 +3886,8 @@ class Agent:
         # WHAT THE LIBRARY NAMED FOR EACH SLOT'S LAST RESIDUAL: partner reading -> molecules
         # relating it to the target. Read by `_bindings` as an ORDER, never a filter.
         self._named: dict[str, dict[str, list]] = {}
+        self._lookup_pairs: dict[str, list] = {}   # r972: each residual slot's lit pairs
+        self._mol_minted: set = set()              # r972 3: the slots the mint visited since
         self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
         self._mol_offers: dict[str, list] = {}   # r962: settled molecules offered at each slot
@@ -4612,6 +4620,7 @@ class Agent:
         self._held_level = ({"bound": dict(self.bound), "route_refused": dict(self._route_refused)}
                             if how == "death" and _DEATH_KEEPS else None)
         self.bound, self.trace = {}, []
+        self._lookup_pairs = {}    # r972: lit by this board's residuals, so this board's
         self._reaff_at = {}        # L1: keyed by trace index, so it restarts with the trace
         self._window_at = 0        # C: the trace restarts, so does its window
         self._served = {}          # (iv): a served binding does not cross the boundary either
@@ -5600,6 +5609,8 @@ class Agent:
                 named_of[m] = named
             offered, held_n = len(found["pairs"]), len(held)
         self._named[slot] = named_of[slot]
+        if _MOLECULE_APPLY:
+            self._lookup_pairs[slot] = held     # r972: MOLECULE APPLY's first source
         self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
                         described=sorted(described), junctions=found["junctions"],
                         **({"own_clock_out": held_out} if held_out else {}),
@@ -9491,6 +9502,7 @@ class Agent:
                 self._mol_paid[k] = ok          # r962 (c): the offer's verdict is pays' own
                 self.led.record(self.cycle, self._running_step, slot, "molecule_offer",
                                 molecule=prov["molecule"], bond=prov["bond"],
+                                source=prov["source"],
                                 object=prov["object"], seen=prov["seen"], left=prov["left"],
                                 right=prov["right"], operand=term.operand, term=term.name,
                                 occasions=prov["occasions"], cost=round(cost, 3),
@@ -9704,6 +9716,7 @@ class Agent:
         if not offered:
             return {}
         return {"offered": len(offered), "typed": len(self._mol_typed & offered),
+                "at_minted_slot": sum(1 for s, _n in offered if s in self._mol_minted),
                 "reached_pays": len({(s, n) for s, n, _o in self._mol_paid}),
                 "paid": sum(1 for v in self._mol_paid.values() if v),
                 "not_paid": sum(1 for v in self._mol_paid.values() if not v)}
@@ -9728,6 +9741,7 @@ class Agent:
         t0 = time.perf_counter()
         prev = self._mol_flush()
         self._mol_offers, self._mol_names, self._mol_typed, self._mol_paid = {}, {}, set(), {}
+        self._mol_minted = set()
         tr = self.trace[w:] if w else self.trace
         why: collections.Counter = collections.Counter()
         order: list = []
@@ -9770,6 +9784,63 @@ class Agent:
 
             def chained(b):
                 return any("chain" in x for x in impl.get(b, ()))
+            # r972: FIRST the molecules the residuals lit (the LOOKUP's pairs, whose readings
+            # are the surprised slot's own and what varied with it), then partial cover -- order,
+            # never exclude. A lit pair is one junction: offered only when it is its molecule's
+            # whole (r966: the term carries every settled bond), else counted.
+            njs, seen_lk = _mol_junctions(), set()
+            agree: collections.Counter = collections.Counter()   # r973 4, record only
+            differ: list = []
+            for _rs, pairs in self._lookup_pairs.items():
+                for p in pairs:
+                    cap.head()
+                    x, y = p["left_reading"], p["right_reading"]
+                    o = x.split(".", 1)[0]
+                    if (x, y, p["molecule"]) in seen_lk:
+                        continue
+                    seen_lk.add((x, y, p["molecule"]))
+                    if "~" in o or y.split(".", 1)[0] != o:
+                        why["lookup: the readings are not one object's"] += 1
+                        continue
+                    res, held = {}, {}
+                    for bond in composer.WINDOW_BONDS:
+                        held[bond] = []
+                        res[bond] = self._per_object(bond, {o: [x]}, {o: [y]}, [o], frames,
+                                                     bound, skip, held[bond])
+                    got, jwhy = composer.junction_verdict(res)
+                    # r973 4: settled by OUR window_test; read_pairs' own "held" (before r934's
+                    # guards) only compared, as a count
+                    same = set(p.get("held") or ()) == ({got} if got else set())
+                    agree["agree" if same else "differ"] += 1
+                    if not same and len(differ) < 5:
+                        differ.append({"molecule": p["molecule"], "left": x, "right": y,
+                                       "read_pairs": list(p.get("held") or ()),
+                                       "window_test": got, "why": jwhy})
+                    if njs.get(p["molecule"], 0) != 1:
+                        why["lookup: a junction of a several-junction molecule"] += 1
+                        continue
+                    if got is None:
+                        why["lookup: " + ("ambiguous" if jwhy.startswith("ambig")
+                                          else "not settled")] += 1
+                        continue
+                    if not chained(got):
+                        why[f"lookup: {got}: bond has no atom (r896)" if not impl.get(got) else
+                            f"lookup: bond {got}: implemented_by {impl[got][0]} not wired as a "
+                            "term"] += 1
+                        continue
+                    ta, tb = self._slot_term(x), self._slot_term(y)
+                    if ta is None or tb is None:
+                        why["lookup: a reading has no term"] += 1
+                        continue
+                    chain = Term(tuple(ta.atoms) + tuple(tb.atoms))
+                    prov = {"molecule": p["molecule"], "bond": got, "object": o,
+                            "seen": o in held[got], "left": x, "right": y, "leaves": [x, y],
+                            "occasions": res[got][3]["occasions"], "junctions": 1,
+                            "source": "lookup", "offer": chain.name, "entries": 1}
+                    self._mol_offers.setdefault(y, []).append(
+                        {"term": chain, "operand": x, "prov": prov, "offered": True,
+                         "why": "molecule"})
+                    order.append(prov)
             for m in composer.candidates({a.name for a in self.gamma.atoms}, partial=True):
                 cap.head()
                 juncs, stack = [], [m["node"]]
@@ -9814,22 +9885,28 @@ class Agent:
                             prov = {"molecule": m["molecule"], "bond": got, "object": o,
                                     "seen": o in held_on, "left": path[0], "right": path[-1],
                                     "leaves": list(path), "occasions": occ,
-                                    "junctions": len(juncs), "offer": chain.name, "entries": 1}
+                                    "junctions": len(juncs), "source": "cover",
+                                    "offer": chain.name, "entries": 1}
                             self._mol_offers.setdefault(path[-1], []).append(
                                 {"term": chain, "operand": path[0], "prov": prov,
                                  "offered": True, "why": "molecule"})
                             order.append(prov)
             for s in self._mol_offers:
-                self._mol_offers[s].sort(key=lambda o_: not o_["prov"]["seen"])
-        order.sort(key=lambda p: not p["seen"])
+                self._mol_offers[s].sort(key=lambda o_: (o_["prov"]["source"] != "lookup",
+                                                         not o_["prov"]["seen"]))
+        order.sort(key=lambda p: (p["source"] != "lookup", not p["seen"]))
         self._mol_order = order
         self.led.record(self.cycle, self._running_step, "@molecule", "molecule_apply",
                         frames=len(tr) + 1 if tr else 0, offers=len(order),
                         seen=sum(p["seen"] for p in order),
                         generalised=sum(not p["seen"] for p in order), slots=len(self._mol_offers),
                         not_offered=dict(why.most_common()), previous=prev,
+                        lookup=sum(p["source"] == "lookup" for p in order),
+                        **({"lookup_vs_window": {**agree, "differ_sample": differ}}
+                           if tr and (agree or differ) else {}),
                         sample=[{k: p[k] for k in ("molecule", "bond", "object", "seen", "left",
-                                                   "right", "offer")} for p in order[:12]],
+                                                   "right", "offer", "source")}
+                                for p in order[:12]],
                         cost_ms=round((time.perf_counter() - t0) * 1000, 1),
                         reads="settled molecules offered to the bargain, seen objects first; "
                               "pays decides each (molecule_offer rows)")
@@ -18876,6 +18953,7 @@ class Agent:
         _clk0 = time.perf_counter() if _STEP_CLOCK else None   # the step clock: park rows' wall_s
         if _MOLECULE_APPLY:
             self._molecule_pass()           # r962: once per grown window, before any mint reads
+            self._mol_minted.add(slot)
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
         _lf_stats = {"yielded": 0, "beyond_depth": 0}   # M4 library-first, read only when ON
         self._window_info.pop(slot, None)

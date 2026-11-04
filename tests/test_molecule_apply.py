@@ -18,6 +18,13 @@ MF-M5  several junctions, every one settled: (inc → dec) → neg offers exactl
        dec . neg (r966); with the inner junction settled on + it is not offered, "inner bond +
        has no term form"
 MF-M6  one inner junction not settled: nothing offered, "a junction of several: not settled"
+MF-L   (r972) the residual-lit source comes FIRST: a LOOKUP pair on the residual slot o1.col
+       (left reading o1.row, right reading o1.col) of a one-junction recipe, settled → over the
+       window, is offered at o1.col with source "lookup", ahead of partial cover, and
+       _library_chains type-walks it; RED on HEAD (the lookup's pairs reach no pass)
+MF-L2  a lit junction of a several-junction recipe is counted, never offered alone
+MF-L3  (r973 4) read_pairs' "held" against window_test's verdict, one count per lookup pair:
+       held ["→"] and → settled agree; held ["+"] against → settled differs, and is sampled
 MF-OFF the arm OFF: no pass, no offers, no molecule rows
 
     python tests/test_molecule_apply.py
@@ -49,13 +56,32 @@ def agent():
     return ag, led
 
 
+def lookup_run(molecule, held=("→",)):
+    """the pass with only a LOOKUP pair on o1.col (no partial cover) -> (agent, order, row)."""
+    ag, led = agent()
+    was = composer.candidates
+    try:
+        composer.candidates = lambda *_a, **_k: []
+        ag.trace = [(FR[t], "ACTION1", FR[t + 1]) for t in range(4)]
+        ag._window_at, ag._mol_key = 0, None
+        ag.bound = {"o1.row": "inc", "o1.col": "dec", "o3.x": "idn"}
+        ag._lookup_pairs = {"o1.col": [{"molecule": molecule, "left": "a", "right": "b",
+                                        "left_reading": "o1.row", "right_reading": "o1.col",
+                                        "held": list(held), "via": [], "occasions": {}}]}
+        ag._molecule_pass()
+    finally:
+        composer.candidates = was
+    row = [r.get("detail", r) for r in led.rows() if r.get("event") == "molecule_apply"][-1]
+    return ag, getattr(ag, "_mol_order", []), row
+
+
 def run(per_object=None, node=None):
     """the pass over the hand-built window with one molecule (inc ? dec unless given) -> (agent,
     the offers in order, the pass's row)."""
     ag, led = agent()
     mols = [{"molecule": "ZZZ|M",
              "node": node or composer.Bonded(composer.UNKNOWN, "inc", "dec")}]
-    was = (composer.candidates, tether.Agent._per_object)
+    was = (composer.candidates, tether.Agent.__dict__["_per_object"])   # the staticmethod itself
     try:
         composer.candidates = lambda *_a, **_k: mols
         if per_object is not None:
@@ -122,6 +148,22 @@ def main():
     assert not o5b and r5b["not_offered"] == {"inner bond + has no term form": 1}, ("MF-M5b", r5b)
     _a, o6, r6 = run(only({"→"}, unless="o1.col"), two)
     assert not o6 and r6["not_offered"] == {"a junction of several: not settled": 1}, ("MF-M6", r6)
+    rows_ = composer.recipe_rows()
+    one = next(m for m, r in rows_.items() if len(r["junctions"]) == 1)
+    many = next(m for m, r in rows_.items() if len(r["junctions"]) > 1)
+    agl, ol, rl = lookup_run(one)
+    gotl = [(p["source"], p["left"], p["right"], p["offer"]) for p in ol]
+    lst = {"yielded": 0, "beyond_depth": 0}
+    ychains = [c.name for c in agl._library_chains("o1.col", "val", "val", lst, {})]
+    assert gotl == [("lookup", "o1.row", "o1.col", "inc . dec")] and rl["lookup"] == 1 \
+        and ychains == ["inc . dec"], ("MF-L", gotl, rl, ychains)
+    _a, _o3, rl3 = lookup_run(one, held=("+",))
+    assert rl["lookup_vs_window"]["agree"] == 1 and rl3["lookup_vs_window"]["differ"] == 1 \
+        and rl3["lookup_vs_window"]["differ_sample"][0]["read_pairs"] == ["+"], (
+        "MF-L3", rl.get("lookup_vs_window"), rl3.get("lookup_vs_window"))
+    _a, ol2, rl2 = lookup_run(many)
+    assert not ol2 and rl2["not_offered"] == {
+        "lookup: a junction of a several-junction molecule": 1}, ("MF-L2", rl2)
     stats, ops = {"yielded": 0, "beyond_depth": 0}, {}
     chains = ag._library_chains("o1.col", "val", "val", stats, ops)
     mol = [c.name for c in chains]
@@ -140,11 +182,16 @@ def main():
     assert out.returncode == 0, out.stderr[-2000:]
     print(f"  MF-M1 offers in order: {got}; pass {row['cost_ms']} ms")
     print(f"  MF-M2 ambiguous: {r2['not_offered']}")
-    print(f"  MF-M3 => settled: {list(r3['not_offered'])}".encode("ascii", "replace").decode())
+    print(f"  MF-M3 => settled: {list(r3['not_offered'])}".encode("unicode_escape").decode())
     print(f"  MF-M3b + settled: {r3b['not_offered']}")
     print(f"  MF-M4 library stream yields {mol} (plain offer {plain}), operand {ops['inc . dec']}")
     print(f"  MF-M5 two junctions, both settled: {got5}; inner + : {r5b['not_offered']}")
     print(f"  MF-M6 the inner one not settled: {r6['not_offered']}")
+    print(f"  MF-L lookup source ({one!r}, one junction): {gotl}; typed {ychains}")
+    print(f"  MF-L2 {many!r}: {rl2['not_offered']}")
+    print(f"  MF-L3 agree {rl['lookup_vs_window']}; differ "
+          f"{ {k: v for k, v in rl3['lookup_vs_window'].items() if k != 'differ_sample'} }"
+          .encode("unicode_escape").decode())
     print(f"  MF-OFF {out.stdout.strip().splitlines()[-1]}")
     print("test_molecule_apply OK")
 
