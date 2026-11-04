@@ -9672,6 +9672,7 @@ class Agent:
             resolved_by: collections.Counter = collections.Counter()
             refusals: collections.Counter = collections.Counter()
             families, n_cands = 0, 0
+            read_sets: list = []        # r954 4a: how coarse the corpus-to-board bridge is
         for m in composer.candidates({a.name for a in self.gamma.atoms}, partial=True):
             cap.head()
             stack = [m["node"]]
@@ -9687,6 +9688,11 @@ class Agent:
                     seen.add(key)
                     ops = [self._operand(m["molecule"], list(k), frame_slots, lib, atoms, sig)
                            for k in key]
+                    for o in ops:
+                        if o[1] == "compiled":
+                            for alt in (o[0] if isinstance(o[0], list) else [o[0]]):
+                                read_sets.append(frozenset(s.split(".", 1)[1]
+                                                           for ss in alt.values() for s in ss))
                     bad = next((o for o in ops if o[0] is None), None)
                     if bad is not None:
                         unbound += 1
@@ -9772,6 +9778,9 @@ class Agent:
                         **({"resolved_by": dict(resolved_by),
                             "refused_or_unreachable": dict(refusals.most_common(12)),
                             "refused_by_missing": dict(self._refusal_tally.most_common(20))}
+                           if resolve else {}),
+                        **({"compiled_reading_sets": {"operands": len(read_sets),
+                                                      "distinct": len(set(read_sets))}}
                            if resolve else {}),
                         **({"families": families, "candidates": n_cands}
                            if resolve and _OPERAND_FAMILY else {}),

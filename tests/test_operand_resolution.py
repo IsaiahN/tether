@@ -27,6 +27,8 @@ MF-P2  a frame ARRIVING with no action (a one-shot env.frame_breaks) after six s
        window first: frames 0)
 MF-D1  (r954 2) TETHER_BOND_DISJOINT: Initiation + Agency (Agency's readings inside Initiation's)
        over a moving window: + True OFF, None "the operands read the same slots" ON; RED on HEAD
+MF-R   (r954 4a) the row counts the compiled operands' reading sets and the distinct ones: the
+       family window's 5 (Autocatalysis' two candidates, Agency twice, Arbitrage) are 2 distinct
 MF-D2  must-stay: operands with disjoint slots give the same verdicts, every bond, ON and OFF
 MF-OFF both arms OFF (a child process): the gridworld bond_tests row is bd4acfd's -- 17
        names_no_atom + 1 atom_bound_nowhere, no resolved_by -- and nothing is noted at the bargain
@@ -200,6 +202,8 @@ def main():
     f4 = family_row(ag, True)
     f4_off = family_row(ag, False)
     assert (f4["families"], f4["candidates"], f4["tested"]) == (1, 3, 2), ("MF-F4", f4)
+    rs = f4["compiled_reading_sets"]
+    assert rs == {"operands": 5, "distinct": 2}, ("MF-R", rs)
     assert f4_off["tested"] == 0 and "families" not in f4_off, ("MF-F4 OFF", f4_off)
     p_on, p_off = per_board(True), per_board(False)
     assert p_on[0][:2] == ("new_board", 0) and p_on[0][2] > 0 and p_on[-1][:2] == ("run", 1) \
@@ -244,6 +248,7 @@ def main():
     print(f"  MF-P (at, board, frames) ON {p_on}; OFF {p_off}")
     print(f"  MF-P2 an arrival after six steps: {p2}, the old board's own frames {own}")
     print(f"  MF-D1 Initiation + Agency, +: OFF {d_off['+']}, ON {d_on['+']}")
+    print(f"  MF-R compiled reading sets in the family window: {rs}")
     print(f"  MF-D2 disjoint operands, ON == OFF on {len(same[0])} bonds")
     print(f"  MF-B1 cross-object co-movement: per object + {paired[0]}, the union + {union[0]}")
     print(f"  MF-B2 {free!r} tried at o1.row: {how_b} ON, {how_off} OFF")
