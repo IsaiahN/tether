@@ -9,7 +9,9 @@ ON or OFF (Fig 13: "That record is not documentation of the term. It is the term
          the mint's hold (mint_deferred / try_first / contact_first), else -.
   DEEP   TETHER_PIPELINE_DEEP="c<a>-c<b>": inside those cycles, function-level timing
          (sys.setprofile) under each outermost stage: "  fn <module>.<function> calls=<n>
-         ms=<x>", the slowest first.
+         ms=<x> self=<y>", ms inclusive (a caller holds its callees') and self its own body
+         only, the largest self first (r999: an inclusive list names the wrapper, never where
+         the time goes).
   ROTATE segments of TETHER_PIPELINE_SEG_MB (about 100); a closed one is gzipped; past
          TETHER_PIPELINE_CAP_MB (2048 to start; Isaiah "increase the cap as needed") the oldest
          unpinned segment is dropped, and the drop is a line. A segment covering a level won, a
@@ -95,7 +97,7 @@ class PipeLog:
     def _enter(self, step: str, cycle: int) -> None:
         if (not self._stack and self._deep is not None and self._prof is None
                 and self._deep[0] <= cycle <= self._deep[1]):
-            self._prof = {"stack": [], "fn": collections.defaultdict(lambda: [0, 0.0])}
+            self._prof = {"stack": [], "fn": collections.defaultdict(lambda: [0, 0.0, 0.0])}
             sys.setprofile(self._profile)
         self._stack.append([step, cycle, time.perf_counter(), collections.Counter(), set(),
                             None])
@@ -105,12 +107,16 @@ class PipeLog:
         if p is None:
             return
         if event == "call":
-            p["stack"].append((frame.f_code, time.perf_counter()))
+            p["stack"].append([frame.f_code, time.perf_counter(), 0.0])
         elif event == "return" and p["stack"]:
-            code, t0 = p["stack"].pop()
+            code, t0, inner = p["stack"].pop()
+            dt = time.perf_counter() - t0
             f = p["fn"][(code.co_filename, code.co_name)]
             f[0] += 1
-            f[1] += time.perf_counter() - t0
+            f[1] += dt
+            f[2] += dt - inner
+            if p["stack"]:
+                p["stack"][-1][2] += dt
 
     def exit(self, _step: str, _cycle: int, cut: bool) -> None:
         self._guard(self._exit, cut)
@@ -127,13 +133,14 @@ class PipeLog:
                f"stop={'cut' if cut else stop or '-'}\n"]
         if not self._stack and self._prof is not None:
             sys.setprofile(None)
-            fns = sorted(self._prof["fn"].items(), key=lambda kv: -kv[1][1])
-            for (fname, name), (n, s) in fns[:DEEP_TOP]:
-                out.append(f"  fn {Path(fname).stem}.{name} calls={n} ms={s * 1000:.1f}\n")
+            fns = sorted(self._prof["fn"].items(), key=lambda kv: -kv[1][2])
+            for (fname, name), (n, s, own) in fns[:DEEP_TOP]:
+                out.append(f"  fn {Path(fname).stem}.{name} calls={n} ms={s * 1000:.1f} "
+                           f"self={own * 1000:.1f}\n")
             if len(fns) > DEEP_TOP:
                 rest = fns[DEEP_TOP:]
                 out.append(f"  fn +{len(rest)} more calls={sum(v[0] for _k, v in rest)} "
-                           f"ms={sum(v[1] for _k, v in rest) * 1000:.1f}\n")
+                           f"self={sum(v[2] for _k, v in rest) * 1000:.1f}\n")
             self._prof = None
         self._write("".join(out))
 

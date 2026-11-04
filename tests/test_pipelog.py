@@ -6,7 +6,8 @@ MF-P1  a gridworld agent with a ledger path writes pipeline.log: one line per st
        the cycles the agent ran; RED on HEAD (no pipeline.log)
 MF-P2  the ledger is the same ON and OFF (identity_mod_rows: only the arms row differs)
 MF-P3  deep mode over one cycle (TETHER_PIPELINE_DEEP=c1-c1) writes function lines, and only
-       under that cycle's stage lines
+       under that cycle's stage lines; each with its self time (r999: the inclusive list names
+       the wrapper), self <= ms, the largest self first
 MF-P4  rotation at a tiny segment and cap: closed segments are gzipped, the oldest unpinned is
        dropped past the cap (a "rotation: dropped" line), a segment covering a planted game_win
        ending is pinned and survives
@@ -37,6 +38,7 @@ import pipelog  # noqa: E402
 
 HERE = Path(__file__).resolve()
 LINE = re.compile(r"^c(\d+) ([A-Z]+) [\d.]+ms rows=\S+ slots=\d+ stop=\S+$")
+FN = re.compile(r"^  fn \S+ calls=\d+ ms=([\d.]+) self=([\d.]+)$")
 
 
 def child(out: str, env_extra: dict, steps: int = 4) -> None:
@@ -86,14 +88,22 @@ def main():
         diff = identity_mod_rows.compare(rows(off / "run.jsonl"), rows(on / "run.jsonl"), set())
         assert all(d.startswith("seq 0 (arms)") for d in diff), ("MF-P2", diff[:3])
         dl = (deep / "pipeline.log").read_text(encoding="utf-8").splitlines()
-        cyc, fn_cycles = None, set()
+        cyc, fn_cycles, blocks = None, set(), []
         for x in dl:
             m = LINE.match(x)
             if m:
                 cyc = int(m.group(1))
+                blocks.append([])
             elif x.startswith("  fn "):
                 fn_cycles.add(cyc)
+                f = FN.match(x)
+                if f:
+                    blocks[-1].append((float(f.group(1)), float(f.group(2))))
+        selfs = [s for b in blocks for s in b]
         assert fn_cycles == {1}, ("MF-P3", fn_cycles)
+        assert selfs and all(own <= inc + 0.05 for inc, own in selfs) and all(
+            [own for _i, own in b] == sorted((own for _i, own in b), reverse=True)
+            for b in blocks), ("MF-P3 self", [b[:4] for b in blocks if b][:3])
         assert not (off / "pipeline.log").exists(), "MF-P5"
         n_lines = len(log)
     with tempfile.TemporaryDirectory() as td:
@@ -135,7 +145,8 @@ def main():
         and d["verdict"] == "budget_spent", ("MF-V", v1, v2, v3)
     print(f"  MF-P1 {n_lines} stage lines, stages {sorted(stages)}, cycles {cycles}")
     print(f"  MF-P2 the ledger ON vs OFF: {len(diff)} difference(s), the arms row only")
-    print(f"  MF-P3 deep mode c1-c1: function lines under cycles {sorted(fn_cycles)}")
+    print(f"  MF-P3 deep mode c1-c1: function lines under cycles {sorted(fn_cycles)}, "
+          f"{len(selfs)} with self <= ms, largest self first")
     print(f"  MF-P4 rotation: {segs}; the pinned segment kept")
     print("  MF-P5 OFF: no pipeline.log")
     print(f"  MF-V budget_spent -> {v1['verdict']!r}; depth_exhausted -> {v4['verdict']!r}; "

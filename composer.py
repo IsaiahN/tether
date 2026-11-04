@@ -552,6 +552,21 @@ def lookup_iter(described: dict, link: bool = True):
                        "right_reading": y, "via": via}
 
 
+def lookup_junctions(described: dict, link: bool = True):
+    """lookup_iter's junctions, each ONCE with its reading lists: (molecule, left, right, left
+    readings, right readings, via), in lookup_iter's order -- whose pairs are the product of the
+    two lists without x == y (TETHER_LOOKUP_FOLD reads the product without a dict per pair)."""
+    as_enc: dict = {}
+    for reading, t in described.items():
+        cap.head()
+        for e in (t,) + (NOTE_LINK.get(t, ()) if link else ()):
+            as_enc.setdefault(e, set()).add(reading)
+    for mol, a, b, ea, eb in _lit(frozenset(as_enc)):
+        cap.head()
+        yield (mol, a, b, sorted({r for e in ea for r in as_enc[e]}),
+               sorted({r for e in eb for r in as_enc[e]}), sorted(ea | eb))
+
+
 def read_iter(pairs, frames: list, cache: dict):
     """read_pairs' rows, YIELDED one at a time (L). A row's reading depends on its two readings
     and the frames ONLY (read_pairs: left_reading, right_reading, frames, READ_ON_TWO, holds), so

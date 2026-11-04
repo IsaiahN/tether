@@ -1425,6 +1425,13 @@ _EVENT_SHARED = armflag.arm("TETHER_EVENT_SHARED", default=True)
 # dedupe set grows with the pair product (P3's o6.add_n: 1,315,061 pairs, +2.1 GB, 50 s).
 # The record and every decision are the same. OFF: the lists, as before
 _LOOKUP_STREAM = armflag.arm("TETHER_LOOKUP_STREAM", default=True)
+# THE LOOKUP FOLDED BY READING PAIR (the reviewer 2026-11-04 r999 2b; the ls20 deep profile, c8:
+# _lookup_stream 177 of ROUTE's 253 s, 2.74M pairs each built as a dict, copied, walked for named
+# and json-dumped for the digest, while the bond reading is per READING PAIR): the lookup walks
+# each junction's product of readings in the same order, reads each reading pair once, and builds
+# a row only for the first 50 held; held_n, offered, junctions, named and the digest's bytes are
+# the stream's own. Decisions and rows unchanged. OFF: _lookup_stream.
+_LOOKUP_FOLD = armflag.arm("TETHER_LOOKUP_FOLD", default=True)
 LOOKUP_HELD_KEYS = ("molecule", "left", "right", "left_reading", "right_reading", "held", "via",
                     "occasions")
 # G1, RELATIONAL WANTS PER EVENT (the reviewer 2026-10-17 15:30, 23:04, 23:17): since E0b a derived
@@ -5591,7 +5598,8 @@ class Agent:
                     cap.head()
                     d_.pop(s, None)
         if _LOOKUP_STREAM:
-            q_, offered, n_jun, held_n, dig, held, named_of = self._lookup_stream(
+            q_, offered, n_jun, held_n, dig, held, named_of = (
+                self._lookup_fold if _LOOKUP_FOLD else self._lookup_stream)(
                 ev, members, described, desc_of, hist, slot=slot)
             found = {"query": q_, "junctions": n_jun}
         elif ev is None:
@@ -5720,6 +5728,89 @@ class Agent:
         self._lookup_set = (len(seen_p), sys.getsizeof(seen_p)
                             + sum(sys.getsizeof(k_) for k_ in seen_p))
         return sorted(query), n[0], len(jun), held_n, dig, sample, named_of
+
+    def _lookup_fold(self, ev: Any, members: tuple, described: dict, desc_of: dict,
+                     hist: list, slot: str | None = None) -> tuple:
+        """TETHER_LOOKUP_FOLD: _lookup_stream's return, the same values, read per junction. Each
+        junction's pairs are the product of its two reading lists in lookup_iter's order (x != y;
+        an event's deduped by the same 5-tuple); each reading pair is read once (fold_two under
+        TETHER_BOND_INC, else _read_two) with its JSON pieces; a held pair's digest line is put
+        together from them, so the bytes are json.dumps(sort_keys=True)'s."""
+        if _BOND_INC_CHECK:                 # the equality arm reads every fold: the stream's path
+            return self._lookup_stream(ev, members, described, desc_of, hist, slot=slot)
+        srcs = [described] if ev is None else [desc_of[m] for m in members]
+        query: set = set()
+        jun: set = set()
+        seen_p: set = set()
+        named_of: dict = {m: {} for m in members}
+        frames = [b for b, _act, _val, _intent, _landed in hist]
+        inc = _BOND_INC and slot is not None
+        if inc:
+            ids = [id(f) for f in frames]
+            st = self._bond_inc.get(slot)
+            if st is None or len(st["ids"]) > len(ids) or ids[:len(st["ids"])] != st["ids"]:
+                st = self._bond_inc[slot] = {"ids": ids, "pairs": {}}
+            else:
+                st["ids"] = ids
+            state = st["pairs"]
+        js = partial(json.dumps, ensure_ascii=False)
+        cache: dict = {}
+        dig, n, held_n, sample = hashlib.sha256(), 0, 0, []
+
+        def read(x: str, y: str) -> tuple:
+            got = cache.get((x, y))
+            if got is None:
+                if inc:
+                    state[(x, y)], r = composer.fold_two(state.get((x, y)), frames, x, y)
+                else:
+                    r = composer._read_two(x, y, frames)
+                occ, held = r
+                got = cache[(x, y)] = (occ, held, js(list(held)), js(occ, sort_keys=True))
+            return got
+        for d_ in srcs:
+            cap.head()
+            query.update(composer.lookup_query(d_))
+            for mol, a, b, ra, rb, via in composer.lookup_junctions(d_):
+                cap.head()
+                head = f'"left": {js(a)}, "left_reading": '
+                mid = f', "molecule": {js(mol)}, "occasions": '
+                tail = f', "right": {js(b)}, "right_reading": '
+                end = f', "via": {js(via)}}}'
+                any_ = False
+                for x in ra:
+                    cap.head()
+                    jx = js(x)
+                    for y in rb:
+                        if x == y:
+                            continue
+                        if ev is not None:
+                            k_ = (mol, a, b, x, y)
+                            if k_ in seen_p:
+                                continue
+                            seen_p.add(k_)
+                        n += 1
+                        any_ = True
+                        for m in members:
+                            if m in (x, y):
+                                got = named_of[m].setdefault(y if m == x else x, [])
+                                if mol not in got:
+                                    got.append(mol)
+                        occ, held, jh, jo = read(x, y)
+                        if held:
+                            held_n += 1
+                            dig.update((f'{{"held": {jh}, {head}{jx}{mid}{jo}{tail}{js(y)}'
+                                        f'{end}').encode())
+                            dig.update(b"\n")
+                            if len(sample) < 50:
+                                sample.append({"molecule": mol, "left": a, "right": b,
+                                               "left_reading": x, "right_reading": y,
+                                               "held": list(held), "via": via,
+                                               "occasions": dict(occ)})
+                if any_:
+                    jun.add((mol, a, b))
+        self._lookup_set = (len(seen_p), sys.getsizeof(seen_p)
+                            + sum(sys.getsizeof(k_) for k_ in seen_p))
+        return sorted(query), n, len(jun), held_n, dig, sample, named_of
 
     def _bond_read(self, slot: str, pairs: Any, frames: list):
         """TETHER_BOND_INC (r681): the reach's bond readings folded over this slot's frames, each

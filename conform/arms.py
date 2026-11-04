@@ -2448,6 +2448,12 @@ ARMS: dict[str, str] = {
                            "stated once -- its cost plus each member's binding and leftover -- "
                            "and admitted below the covered members' joint price; guarded chains "
                            "are not priced shared yet. OFF: gate-only. default ON",
+    "TETHER_LOOKUP_FOLD": "the reviewer 2026-11-04 r999 2b, r1003 2 (the ls20 deep profile: "
+                          "_lookup_stream 177 of ROUTE's 253 s at c8, one dict per (junction x "
+                          "reading pair), 2.74M): the lookup read per junction, each reading "
+                          "pair once, rows only for the first 50 held; held_n, offered, "
+                          "junctions, named and the digest's bytes are the stream's own. Pure "
+                          "speed. OFF: _lookup_stream. default ON",
     "TETHER_LOOKUP_STREAM": "L (the reviewer 2026-10-19 20:34-20:40; P3: o6.add_n's lookup held "
                             "1,315,061 pairs as lists, +2.1 GB for 50 s): _lookup's pairs in one "
                             "pass in the lists' order (composer.lookup_iter), each READING PAIR's "
