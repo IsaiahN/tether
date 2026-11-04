@@ -96,7 +96,7 @@ def _late_lookup(walk: bool) -> tuple:
     left = {id(held): 5.0, id(a): 0.0, id(b): 10.0}
     called: list = []
 
-    def _left(term, _slot, _hist):
+    def _left(term, _slot, _hist, **_k):
         if term is not held:
             called.append(term.name)
         return left.get(id(term), 5.0)

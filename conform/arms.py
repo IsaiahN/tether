@@ -1980,6 +1980,12 @@ ARMS: dict[str, str] = {
                                "point plus a point is refused for typing with its reason; every "
                                "other target keeps the 'val' rule. OFF: translate accepts 'val' "
                                "only, as before. default ON",
+    "TETHER_LATE_DECLARED": "BUILD 3 (the reviewer 2026-11-04 r1121): _library_fit's L3 late "
+                            "round keeps deferring a head whose typing is not known, but a head "
+                            "gamma.TARGET_OPERAND DECLARES (translate) that does not accept the "
+                            "slot is refused with its reason, never walked late -- its "
+                            "declaration says where its warrant reaches. OFF: every mismatched "
+                            "head is deferred, as L3 has it. default ON",
     "TETHER_DERIVED_LIFT": "BUILD 3 ITEM 8c, CUT C (the reviewer 2026-11-04 r1100, r1103): a "
                            "molecule offer at a derived slot is re-filed once at its single "
                            "source as the instrument (by Gamma's typing) over the offered chain, "

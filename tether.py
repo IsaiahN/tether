@@ -67,6 +67,7 @@ from gamma import (
     Standing,
     Term,
     accepts_type,
+    declared,
     shared_token,
     target_operand,
 )
@@ -150,6 +151,10 @@ def _may_bind(cand: Any, slot_type: str | None) -> bool:
 # L3, ON AS AN ORDERING (Isaiah 2026-10-26 08:24; the reviewer 08:30): a binding whose head
 # does not accept the slot type is walked LAST, in its own late round -- never refused.
 _TYPED_BIND = armflag.arm("TETHER_TYPED_BIND", default=True)
+# r1121 (the reviewer 2026-11-04): L3 defers a head whose typing is not known; a head that
+# gamma.TARGET_OPERAND DECLARES has stated where its warrant reaches, so a mismatch there is
+# refused, with its reason, never walked late (translate at add_n). Undeclared heads keep L3.
+_LATE_DECLARED = armflag.arm("TETHER_LATE_DECLARED", default=True)
 # F130 arm C: supply `_library_fit`'s retrieval the relation channel its two
 # sibling call sites already pass. Seat-side, off by default.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -12812,6 +12817,12 @@ class Agent:
             # `none` bound an EXTENT slot and read `int(not width)`. L3: such a head is DEFERRED
             # (None) to the late round, never refused; `late` is that round's own judging.
             if _TYPED_BIND and not late and not _head_accepts(cand, _st):
+                if _LATE_DECLARED and declared(cand):
+                    why = f"declared head: {cand.atoms[0].name} takes no {_st}"
+                    self.__dict__.setdefault("_late_refused", collections.Counter())[why] += 1
+                    self.led.record(self.cycle, "ROUTE", slot, "late_refused", term=cand.name,
+                                    why=why, reads="a declared head refused, not walked late")
+                    return False, None, None, _since(_n0)
                 return None, None, None, _since(_n0)
             if not price:
                 return True, None, None, _since(_n0)

@@ -195,6 +195,14 @@ def target_operand(unit: Any, ty: str | None) -> str | None:
     return TARGET_OPERAND.get(getattr(head, "fn", None), {}).get(ty)
 
 
+def declared(unit: Any) -> bool:
+    """Does this unit's head declare its typing per target (always False with the arm OFF)?"""
+    if not _TRANSLATE_AFFINE:
+        return False
+    head = unit.atoms[0] if getattr(unit, "atoms", None) else unit
+    return getattr(head, "fn", None) in TARGET_OPERAND
+
+
 # **THE RELATIVE GUARD, A SENTINEL AND NEVER A NAME -- the reviewer, 2026-10-01.** A guard
 # naming an OBJECT could not transfer: `o0` means nothing on the next board. This names the
 # RELATION between the slot being explained and the object the press LANDED ON.
