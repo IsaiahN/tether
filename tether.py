@@ -1187,6 +1187,11 @@ _OPERAND_FAMILY = armflag.arm("TETHER_OPERAND_FAMILY", default=True)
 # board), from the frames of the board being left, before its trace clears; the run-end row stays.
 # OFF: one row, at the run's end.
 _BOND_PER_BOARD = armflag.arm("TETHER_BOND_PER_BOARD", default=True)
+# (r954 2) TWO OPERANDS ARE TWO QUANTITIES: per object each operand is tested on its OWN slots, the
+# slots both read removed from both (the Operators Table: the bond "carries information the
+# operands do not"; Fig 2, two reads of one event are one report); a side left empty is None TEST
+# "the operands read the same slots". OFF: overlapping slots tested as they are.
+_BOND_DISJOINT = armflag.arm("TETHER_BOND_DISJOINT", default=True)
 _7H_SHOWN = armflag.arm("TETHER_7H_SHOWN", default=True)
 _7H_ROOT = armflag.arm("TETHER_7H_ROOT", default=True)
 # 7j (the reviewer 2026-10-15 17:32, 20:27): a choice made to test a held hypothesis -- the goal
@@ -4429,7 +4434,8 @@ class Agent:
         Everything still owed is parked WITH its history, which is the only way a term
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
-        if _BOND_PER_BOARD and composer._BOND_TEST and self.trace:
+        if (_BOND_PER_BOARD and composer._BOND_TEST and self.trace
+                and not (how == NEW_BOARD and getattr(self, "_bond_at", None) == self.cycle)):
             self._bond_tests(how)               # r946 5: the board being left, before it clears
         if how == NEW_BOARD:
             self._bond_board = getattr(self, "_bond_board", 0) + 1
@@ -9604,8 +9610,16 @@ class Agent:
         as a window's occasions: True on some and False on none (or the reverse), else None."""
         vs, evs, whys, kinds = [], [], [], []
         for o in objs:
-            av = [tuple(f.get(s) for s in left[o]) for f in frames]
-            bv = [tuple(f.get(s) for s in right[o]) for f in frames]
+            lo, ro = left[o], right[o]
+            if _BOND_DISJOINT:
+                lo, ro = [s for s in lo if s not in ro], [s for s in ro if s not in lo]
+                if not lo or not ro:
+                    vs.append(None)
+                    whys.append(f"{o}: the operands read the same slots")
+                    kinds.append("TEST")
+                    continue
+            av = [tuple(f.get(s) for s in lo) for f in frames]
+            bv = [tuple(f.get(s) for s in ro) for f in frames]
             others = [s for s in bound if s not in left[o] and s not in right[o]]
             still = [False] + [any(frames[t - 1].get(s) is not None
                                    and frames[t - 1].get(s) == frames[t].get(s) for s in others)
@@ -20778,6 +20792,11 @@ class Agent:
         if _ARRIVAL_GAP:
             _head_brk = _head_brk + self._arrival_gap()
         if _head_brk:                   # read as PERCEIVE, so its rows carry the step running
+            if _BOARD_BOUNDARY and _BOND_PER_BOARD and composer._BOND_TEST and self.trace:
+                # r946 5: the board being left is scored here, BEFORE the break below cuts its
+                # window; the retarget it ends in does not score it again
+                self._bond_tests(NEW_BOARD)
+                self._bond_at = self.cycle
             with self._step_scope("PERCEIVE"):
                 for _b in _head_brk:
                     self._window_at = len(self.trace)

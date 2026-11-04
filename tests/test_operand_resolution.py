@@ -22,6 +22,12 @@ MF-F4  end to end: a junction Autocatalysis ? Agency is 2 tested candidates and 
        (both names "ambiguous")
 MF-P   (r946 5) a retarget writes a bond_tests row of the board being left (at, board), the run's
        end another; RED on HEAD (no row at the retarget); arm OFF: the run-end row only, no at
+MF-P2  a frame ARRIVING with no action (a one-shot env.frame_breaks) after six steps: the new-board
+       row scores the board being left (frames > 0), once; RED on 8cce83a (the break had cut the
+       window first: frames 0)
+MF-D1  (r954 2) TETHER_BOND_DISJOINT: Initiation + Agency (Agency's readings inside Initiation's)
+       over a moving window: + True OFF, None "the operands read the same slots" ON; RED on HEAD
+MF-D2  must-stay: operands with disjoint slots give the same verdicts, every bond, ON and OFF
 MF-OFF both arms OFF (a child process): the gridworld bond_tests row is bd4acfd's -- 17
        names_no_atom + 1 atom_bound_nowhere, no resolved_by -- and nothing is noted at the bargain
 
@@ -104,6 +110,38 @@ def per_board(on: bool) -> list:
     return [(d.get("at"), d.get("board"), d["frames"]) for d in rows]
 
 
+def per_board_arrival() -> list:
+    """r946 5 through the agent's own boundary: six steps, then a frame arriving with no action."""
+    ag, led = agent(6)
+    w = ag._window_at if tether._BREAK_WINDOW else 0
+    own = len(ag.trace[w:] if w else ag.trace) + 1      # r953 2: the old board's own frames
+    shot = [[{}]]
+    ag.env.frame_breaks = lambda: shot.pop() if shot else []
+    for _ in range(3):
+        ag.step()
+    rows = [r.get("detail", r) for r in led.rows() if r.get("event") == "bond_tests"]
+    return [(d.get("at"), d.get("board"), d["frames"]) for d in rows], own
+
+
+def disjoint(ag, on: bool, names: tuple) -> dict:
+    """r954 2: one junction over the hand-built window -> the row's tally per bond."""
+    frames = [{f"o1.{r}": (t * (i + 1)) % 3 for i, r in enumerate(READS)} | {"o3.col": 0}
+              for t in range(5)]
+    tr = [(frames[t], "ACTION1", frames[t + 1]) for t in range(4)]
+    mols = [{"molecule": "ACTION|Release", "node": composer.Bonded(composer.UNKNOWN, *names)}]
+    was = (composer.candidates, getattr(tether, "_BOND_DISJOINT", None), ag.trace,
+           ag._window_at, ag.bound)
+    try:
+        composer.candidates = lambda *_a, **_k: mols
+        tether._BOND_DISJOINT = on
+        ag.trace, ag._window_at, ag.bound = tr, 0, {"o3.col": None}
+        ag._bond_tests()
+    finally:
+        composer.candidates, tether._BOND_DISJOINT, ag.trace, ag._window_at, ag.bound = was
+    d = [r for r in ag.led.rows() if r.get("event") == "bond_tests"][-1]
+    return d.get("detail", d)["tally"]
+
+
 def main():
     if "--off" in sys.argv:
         assert not (tether._OPERAND_COMPILE or tether._OPERAND_EVIDENCE), "the child runs OFF"
@@ -167,6 +205,26 @@ def main():
     assert p_on[0][:2] == ("new_board", 0) and p_on[0][2] > 0 and p_on[-1][:2] == ("run", 1) \
         and len(p_on) == 2, ("MF-P", p_on)
     assert p_off == [(None, None, p_off[0][2])], ("MF-P OFF", p_off)
+    d_off = disjoint(ag, False, ("Initiation", "Agency"))
+    d_on = disjoint(ag, True, ("Initiation", "Agency"))
+    assert d_off["+"]["true"] == 1 and d_on["+"]["true"] == 0 and d_on["+"]["TEST"] == 1, (
+        "MF-D1", d_off["+"], d_on["+"])
+    left = {"o1": ["o1.age", "o1.h"]}
+    right = {"o1": ["o1.w", "o1.filled"]}
+    wf = [{f"o1.{r}": (t * (i + 1)) % 3 for i, r in enumerate(READS)} | {"o3.col": 0}
+          for t in range(5)]
+    was = getattr(tether, "_BOND_DISJOINT", None)
+    try:
+        same = []
+        for flag in (False, True):
+            tether._BOND_DISJOINT = flag
+            same.append([tether.Agent._per_object(b, left, right, ["o1"], wf, ["o3.col"], ())[:3]
+                         for b in composer.WINDOW_BONDS])
+    finally:
+        tether._BOND_DISJOINT = was
+    assert same[0] == same[1], ("MF-D2 must-stay", same)
+    p2, own = per_board_arrival()
+    assert len(p2) == 1 and p2[0] == ("new_board", 0, own) and own > 1, ("MF-P2", p2, own)
     env = {**os.environ, "TETHER_OPERAND_COMPILE": "0", "TETHER_OPERAND_EVIDENCE": "0",
            "PYTHONDONTWRITEBYTECODE": "1"}
     out = subprocess.run([sys.executable, "-B", __file__, "--off"], env=env, capture_output=True,
@@ -184,6 +242,9 @@ def main():
     print(f"  MF-F4 ON families {f4['families']}, candidates {f4['candidates']}, tested "
           f"{f4['tested']}; family OFF tested {f4_off['tested']}")
     print(f"  MF-P (at, board, frames) ON {p_on}; OFF {p_off}")
+    print(f"  MF-P2 an arrival after six steps: {p2}, the old board's own frames {own}")
+    print(f"  MF-D1 Initiation + Agency, +: OFF {d_off['+']}, ON {d_on['+']}")
+    print(f"  MF-D2 disjoint operands, ON == OFF on {len(same[0])} bonds")
     print(f"  MF-B1 cross-object co-movement: per object + {paired[0]}, the union + {union[0]}")
     print(f"  MF-B2 {free!r} tried at o1.row: {how_b} ON, {how_off} OFF")
     print(f"  MF-OFF the gridworld row as at bd4acfd: {o}")

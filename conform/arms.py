@@ -1968,6 +1968,10 @@ ARMS: dict[str, str] = {
                              "entry, each tested on its own, coinciding readings merged, the "
                              "molecule's domain first; a view with no condition is unreachable. "
                              "OFF: 'ambiguous' unreachable, 'no condition' refused. default ON",
+    "TETHER_BOND_DISJOINT": "BUILD 2 (the reviewer 2026-11-03 r954 2): per object each junction "
+                            "operand is tested on its own slots, the shared ones removed from "
+                            "both; a side left empty is None TEST 'the operands read the same "
+                            "slots'. OFF: overlapping slots tested as they are. default ON",
     "TETHER_BOND_PER_BOARD": "BUILD 2 (the reviewer 2026-11-03 r946 5): a bond_tests row at each "
                              "retarget, from the frames of the board being left, with at / board "
                              "(the agent's own new-board count, never a game id); the run-end row "
