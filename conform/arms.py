@@ -1991,6 +1991,13 @@ ARMS: dict[str, str] = {
                         "source, the seed moves there too (operands merged, seen OR-ed), so the "
                         "existing seeded order walks that source first; seeds of unlifted offers "
                         "stay, counted. OFF: the seed stays at the derived slot. default ON",
+    "TETHER_TWO_SLOT_OPERAND": "BUILD 3 ITEM 8b' (the reviewer 2026-11-04 r1145): an operand-"
+                               "tree node slot_a − slot_b (the tree's own term names the second "
+                               "slot), typed affinely, seeded ONLY from a settled junction whose "
+                               "two readings are termless pair offsets, offered as translate<"
+                               "subtract<x>(y)> at the one source that moved, priced as a bonded "
+                               "arrangement. OFF: a tree reads its operand's own value, nothing "
+                               "is seeded. default ON",
     "TETHER_SUBTRACT": "BUILD 3 ITEM 8b' (the reviewer 2026-11-04 r1141, r1142; Isaiah 15:31: "
                        "− is subtraction): the atom subtract, v − operand, joins ARC's atoms, "
                        "typed per target like translate (POSITION − DELTA -> POSITION, DELTA − "

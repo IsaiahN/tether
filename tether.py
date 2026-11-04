@@ -1250,6 +1250,15 @@ _SEED_LIFT = armflag.arm("TETHER_SEED_LIFT", default=True)
 # judged WHOLE -- offered only when every junction settles (r966). composer.candidates admits by
 # held atom NAMES, so the lit ones (disjoint on ls20) were only ever counted.
 _LIT_COVER = armflag.arm("TETHER_LIT_COVER", default=True)
+# r1145 (the reviewer 2026-11-04; Fig 12 :46 "A bond is the typed relation between two operands"):
+# an operand-tree node whose value is slot_a − slot_b -- the tree's own term names the second slot
+# -- seeded ONLY from the two pair readings of a settled junction no existing shape can express,
+# lifted to the one source that moved, priced as a bonded arrangement. Depth one: leaves are slots.
+_TWO_SLOT_OPERAND = armflag.arm("TETHER_TWO_SLOT_OPERAND", default=True)
+# the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
+# less a displacement is a displacement, a point less a displacement is a point; nothing else
+_NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
+              ("POSITION", "DELTA"): "POSITION"}
 # (r946 5) A WINDOW SCORES ITS OWN BOARD: a bond_tests row at each retarget (a death, a level, a new
 # board), from the frames of the board being left, before its trace clears; the run-end row stays.
 # OFF: one row, at the run's end.
@@ -5561,7 +5570,13 @@ class Agent:
             o_p, _, a_p = base_op.rpartition(".")
             if not (o_p == o_m and a_p in (a_m, "d" + a_m)):
                 bits += math.log2(len(self.slots) + 1)
-        if term.operand_term is not None:
+        if term.operand_term is not None and _TWO_SLOT_OPERAND and term.operand_term.operand:
+            # r1145 (Fig 12 :42): the node is a bonded arrangement of k = 2 leaves, priced
+            # (k+1)·log2(|atoms|+1) + (k−1)·log2(|bonds|), and its second slot is chosen too
+            k = 2
+            bits += ((k + 1) * math.log2(len(self.gamma.atoms) + 1)
+                     + (k - 1) * math.log2(len(composer.BONDS)) + math.log2(len(self.slots) + 1))
+        elif term.operand_term is not None:
             c = self.gamma.code()
             b, _k = c.bits((Term(term.operand_term.atoms), ()))
             bits += b - c.end
@@ -9260,7 +9275,14 @@ class Agent:
         value = (self._operand_value(op, state) if "~" in op
                  else state.get(op, NOT_RESOLVED))
         if term.operand_term is not None:
-            value = term.operand_term.apply(value, Ctx(operands=(value,)))
+            b = term.operand_term.operand if _TWO_SLOT_OPERAND else None
+            if b is not None:
+                # r1145: the node slot_a − slot_b -- its second leaf is a slot, read in this state
+                vb = self._operand_value(b, state) if "~" in b else state.get(b, NOT_RESOLVED)
+                value = (NOT_RESOLVED if NOT_RESOLVED in (value, vb)
+                         else term.operand_term.apply(value, Ctx(operands=(vb,))))
+            else:
+                value = term.operand_term.apply(value, Ctx(operands=(value,)))
         got: tuple | None = (value,)
         if term.operand_term is not None and value is NOT_RESOLVED:
             # `None`, NOT `()` -- RULED 2026-09-21. The docstring above argued an
@@ -10080,6 +10102,7 @@ class Agent:
         tr = self.trace[w:] if w else self.trace
         why: collections.Counter = collections.Counter()
         lit_n: collections.Counter = collections.Counter()      # r1130 (c): the lit walk, counted
+        two_n: collections.Counter = collections.Counter()      # r1145: the two-slot seeds
         order: list = []
         if tr:
             frames = [b for b, *_r in tr] + [tr[-1][2]]
@@ -10153,6 +10176,7 @@ class Agent:
                         differ.append({"molecule": p["molecule"], "left": x, "right": y,
                                        "read_pairs": list(p.get("held") or ()),
                                        "window_test": got, "why": jwhy})
+                    self._two_slot_seed(p, x, y, o, got, res, held, frames, atoms, two_n)
                     if (_CONTACT_SEED and got is not None and chained(got)
                             and (self._slot_term(x) is None or self._slot_term(y) is None)):
                         # r978 (b): a SITE and an OPERAND, never an offer -- the mint builds
@@ -10284,6 +10308,7 @@ class Agent:
                         not_offered=dict(why.most_common()), previous=prev,
                         **({"lift": dict(self._lift_n)} if _DERIVED_LIFT and self._lift_n else {}),
                         **({"lit_cover": dict(lit_n)} if _LIT_COVER and lit_n else {}),
+                        **({"two_slot": dict(two_n)} if _TWO_SLOT_OPERAND and two_n else {}),
                         lookup=sum(p["source"] == "lookup" for p in order),
                         **({"lookup_vs_window": {**agree, "differ_sample": differ}}
                            if tr and (agree or differ) else {}),
@@ -10293,6 +10318,49 @@ class Agent:
                         cost_ms=round((time.perf_counter() - t0) * 1000, 1),
                         reads="settled molecules offered to the bargain, seen objects first; "
                               "pays decides each (molecule_offer rows)")
+
+    def _two_slot_seed(self, p: dict, x: str, y: str, o: str, got: Any, res: dict, held: dict,
+                       frames: list, atoms: dict, n: collections.Counter) -> None:
+        """r1145: a SETTLED junction whose two readings are termless pair offsets (o.dcol_ox ->
+        o.dcol_oy) is offered as translate<subtract<x>(y)> -- the node y − x, typed affinely -- at
+        the ONE source of y that moved over the window; both static or both moving are counted,
+        never offered. Seeded, never enumerated: nothing else creates a two-slot node."""
+        if not _TWO_SLOT_OPERAND or got is None:
+            return
+        rels = [relations.pair_attr(s.split(".", 1)[1]) for s in (x, y)]
+        if not all(r in ("dcol", "drow") for r in rels):
+            return
+        if self._slot_term(x) is not None or self._slot_term(y) is not None:
+            return
+        tr, sb = atoms.get("translate"), atoms.get("subtract")
+        if tr is None or sb is None:
+            n["Gamma holds no translate or subtract"] += 1
+            return
+        node = _NODE_TYPE.get((self.slot_types.get(y), self.slot_types.get(x)))
+        if node is None:
+            n[f"{self.slot_types.get(y)} − {self.slot_types.get(x)} is not defined"] += 1
+            return
+        base, partner = rels[1][1:], y.split(".", 1)[1].rsplit("_", 1)[1]
+        moved = [s for s in (f"{o}.{base}", f"{partner}.{base}")
+                 if len({f.get(s) for f in frames if f.get(s) is not None}) > 1]
+        if len(moved) != 1:
+            n["both sources static" if not moved else "both sources move"] += 1
+            return
+        m_ = moved[0]
+        want = target_operand(Term((tr,)), self.slot_types.get(m_))
+        if want is not None and want != node:
+            n[f"the mover takes {want}; the node is {node}"] += 1
+            return
+        if any(o_["prov"].get("two_slot") == [y, x] for o_ in self._mol_offers.get(m_, ())):
+            return
+        prov = {"molecule": p["molecule"], "bond": got, "object": o, "seen": o in held[got],
+                "left": x, "right": y, "leaves": [x, y], "occasions": res[got][3]["occasions"],
+                "junctions": _mol_junctions().get(p["molecule"], 1), "source": "two_slot",
+                "two_slot": [y, x], "offer": f"translate<subtract<{x}>({y})>", "entries": 1}
+        self._mol_offers.setdefault(m_, []).append(
+            {"term": Term((tr,)), "operand": y, "prov": prov, "offered": True, "why": "molecule"})
+        self._lift_branches.setdefault(m_, {}).setdefault(y, []).append(Term((sb,), operand=x))
+        n["offered"] += 1
 
     def _lift_derived(self) -> None:
         """8c (r1100): each offer at a derived slot y is RE-FILED once at its single source X, as
