@@ -1968,6 +1968,14 @@ ARMS: dict[str, str] = {
                              "entry, each tested on its own, coinciding readings merged, the "
                              "molecule's domain first; a view with no condition is unreachable. "
                              "OFF: 'ambiguous' unreachable, 'no condition' refused. default ON",
+    "TETHER_NSM_DEDUPE": "7c (a) (the reviewer 2026-11-04 r1050, r1052, r1070, r1073): nsm.log "
+                          "says a slot's line only when its text differs from that slot's last "
+                          "said line of the kind, across cycles, and ONE count line per (kind, "
+                          "cycle) "
+                          "(n slots, k said, m the same as before); LOOKUP once per (slot, cycle) "
+                          "per offer (held_digest), its first held bond and the count; the ledger "
+                          "is untouched. OFF: one line per kind per cycle, LOOKUP every held "
+                          "bond. default ON",
     "TETHER_NSM_SPEAK": "BUILD 2 7 / 7b, THE NSM TRACE (the reviewer r894 2, r895 1-2, r953 4; "
                         "Isaiah 2026-11-03 15:34): key rows said in grammar.json's NSM words "
                         "to nsm.log beside the ledger, each citing its row's seq; a 0-frame "

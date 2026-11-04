@@ -112,17 +112,34 @@ def main():
     ag5 = agent()
     ag5._route_junction("⋛", X, Y)
     assert ag5._junction_of[Y] == {f"⋛:{X}|{Y}", f"⋛:{Y}|{X}"}, ("⋛ two keys", ag5._junction_of)
+    # ∥ (r1073; mechanics only, no game occasion yet): a condition only between two truth-typed
+    # readings, canonical (one key either order), offered where it separates R
+    ag6 = agent()
+    ag6.slot_types = {**ag6.slot_types, X: "PRED", Y: "PRED"}
+    phist = [row(0, 0), row(0, 0), row(1, 0), row(0, 1)]
+    ag6.history = lambda slot: phist if slot == Y else []
+    r6 = ag6._route_junction("∥", X, Y)
+    ag6._route_junction("∥", Y, X)
+    pk = f"∥:{min(X, Y)}|{max(X, Y)}"
+    assert r6 == f"condition: routed to the guard offer for {Y}" and \
+        set(ag6._junction_conds) == {pk}, ("∥ routed, one key", r6, ag6._junction_conds)
+    off6 = ag6._guards_once(phist[:2], Y, [])
+    assert off6[6] == [pk] and off6[1][-1] == gamma.JUNCTION_GUARD, ("∥ offered", off6)
+    ag7 = agent()
+    r7 = ag7._route_junction("∥", X, Y)
+    assert "not conditions (typing)" in r7 and not ag7._junction_of, ("∥ typing", r7)
     # B2: the translator's wording
     atoms = {a.name: a for a in ag.gamma.atoms}
     st = nsm.say_term(gamma.Term((inc,)))
     reasons = {}
-    for bond in ("≡", "⋛", "+", "¬", "−", "⇒"):
+    for bond in ("≡", "⋛", "+", "∥", "¬", "−", "⇒"):
         # the bond's symbol as the word: ¬ and − share the NSM word NOT, and ¬ is unary
         got = nsm.read_node(f"([{st}] {bond} [{st}])", atoms)
         assert isinstance(got, compile_term.Refusal), (bond, got)
         reasons[bond] = got.reason
         assert nsm.listed(got.reason), ("MF-B2 unlisted", bond, got.reason)
-    assert all("a condition, routed to the guard offer" in reasons[b] for b in ("≡", "⋛", "+"))
+    assert all("a condition, routed to the guard offer" in reasons[b]
+               for b in ("≡", "⋛", "+", "∥"))
     assert "not wired as a term" in reasons["¬"], reasons["¬"]
     assert "has no atom" in reasons["−"] and "has no atom" in reasons["⇒"], reasons
     assert not any("has no atom" in reasons[b] for b in ("≡", "⋛", "+", "¬")), reasons
@@ -135,6 +152,8 @@ def main():
     print(f"  MF-B6 JUNCTION {jb:.4f} = log2(G) + log2(k+1) over {len(after[6])} key; "
           f"ACTED {ab:.4f} over its own 3 refs")
     print(f"  + value-typed: {r4!r}; ⋛ two keys {sorted(ag5._junction_of[Y])}")
+    print(f"  ∥ between PRED readings: one key {pk} either order, offered where it separates R; "
+          f"value-typed: {r7!r}")
     print("test_bond_terms OK")
 
 

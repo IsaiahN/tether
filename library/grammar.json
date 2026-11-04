@@ -24,7 +24,8 @@
    "symmetric": true,
    "means": "either suffices; not both required",
    "test": "remove one. Does it still work? Yes.",
-   "nsm": "(none -- MAYBE this / MAYBE that; open item)",
+   "nsm": "MAYBE",
+   "nsm_note": "Isaiah 2026-11-04 08:51 (\"add the nsm equivalents\"); reviewer r1072: MAYBE this / MAYBE that, the prime the explication uses; NSM has no OR",
    "note": "not concurrency",
    "implemented_by": [
     "AGENT|either"
@@ -72,7 +73,8 @@
    "symmetric": false,
    "means": "A with B removed or absent",
    "test": "is the second operand's absence the point? Yes.",
-   "nsm": "NOT (of an operand)",
+   "nsm": "THERE IS NOT",
+   "nsm_note": "Isaiah 2026-11-04 08:51 (\"add the nsm equivalents\"); reviewer r1072: absence (the test: the second operand's absence is the point), the existential prime negated; NOT stays negation (falsity)",
    "note": "progress is a subtraction",
    "implemented_by": [],
    "implemented_by_note": "no executable form yet: subtraction is TESTED over frames (composer.holds), not computed"

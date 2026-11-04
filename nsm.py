@@ -27,6 +27,13 @@ import armflag
 import store
 
 _NSM = armflag.arm("TETHER_NSM_SPEAK", default=True)
+# 7c (a) (the reviewer 2026-11-04 r1050, r1052, r1070, r1073 "describe only what varied"): a slot's
+# line is said only when its text differs from that slot's last said line of the same kind, across
+# cycles, and every (kind, cycle) gets ONE count line ("n slots, k said, m the same as before")
+# citing its seq range, so every row is either said or counted; LOOKUP one line per (slot, cycle)
+# per offer (its held_digest), its first held bond and the count. The row and pipeline.log keep the
+# detail. OFF: one line per kind per cycle, LOOKUP every held bond.
+_DEDUPE = armflag.arm("TETHER_NSM_DEDUPE", default=True)
 SAMPLE = 50           # the LOOKUP row keeps its first 50 held bonds (b2, 10-18); never widened here
 WIDTH = 240
 UNKNOWN = "?"
@@ -184,8 +191,6 @@ def read_node(sentence: str, atoms: dict):
         bond = by_word.get(w, w)
         if bond == UNKNOWN:
             raise Refused("an unknown bond is not a term")
-        if bond == "∥":
-            raise Refused("∥ has no NSM word (open item)")
         if bond == "⇒":
             raise Refused("⇒ BECAUSE has no atom (r896)")
         if bond == "−":
@@ -194,7 +199,7 @@ def read_node(sentence: str, atoms: dict):
             impl = (store.grammar().get("operators") or {}).get(bond, {}).get("implemented_by")
             if not impl:
                 raise Refused(f"{bond} has no atom")
-            if bond in ("≡", "⋛", "+"):
+            if bond in ("≡", "⋛", "+", "∥"):
                 raise Refused(f"{bond} implemented_by {impl[0]}: a condition, routed to the "
                               "guard offer")
             raise Refused(f"{bond}: implemented_by {impl[0]} not wired as a term")
@@ -291,6 +296,9 @@ class Speaker:
         self._cyc = None
         self._said: set = set()
         self._over: dict = collections.defaultdict(list)
+        self._last: dict = {}                              # 7c: (kind, slot) -> last said text
+        self._offer: dict = {}                             # 7c: slot -> its said LOOKUP digest
+        self._cnt: dict = {}                               # 7c: kind -> this cycle's tally
         self.counts: collections.Counter = collections.Counter()
         self.faults = 0
         self.fault: str | None = None
@@ -311,9 +319,14 @@ class Speaker:
             fh.write(line + "\n")
 
     def _flush(self) -> None:
+        for kind, c in sorted(self._cnt.items()):
+            self._emit(f"c{self._cyc} #{c['seqs'][0]}..#{c['seqs'][-1]} {kind} @: "
+                       f"{len(c['slots'])} slots, {c['said']} said, {c['same']} the same as before")
+        self._cnt = {}
         for kind, seqs in sorted(self._over.items()):
             self._emit(f"c{self._cyc} #{seqs[0]}..#{seqs[-1]} {kind} @: +{len(seqs)} MORE")
         self._said, self._over = set(), collections.defaultdict(list)
+        self._offer = {}
 
     def _see(self, seq: int, cycle: int, _step: str, slot: str, event: str, d: dict) -> None:
         said = say_row(event, d, self._ends)
@@ -322,6 +335,9 @@ class Speaker:
         if cycle != self._cyc:
             self._flush()
             self._cyc = cycle
+        if _DEDUPE:
+            self._dedupe(seq, cycle, slot, event, d, said)
+            return
         for kind, text in said:
             self.counts[kind] += 1
             if kind in self._said and kind != "LOOKUP":
@@ -330,10 +346,45 @@ class Speaker:
             self._said.add(kind)
             self._emit(f"c{cycle} #{seq} {kind} {slot}: {text}")
 
+    def _dedupe(self, seq: int, cycle: int, slot: str, event: str, d: dict, said: list) -> None:
+        """7c: a slot's line only when its text changed since its last said line of the kind
+        (r1073), every row tallied into its (kind, cycle) count line; LOOKUP one line per (slot,
+        cycle) per offer: its first held bond and how many more the row holds."""
+        def tally(kind: str, said_it: bool) -> None:
+            c = self._cnt.setdefault(kind, {"slots": set(), "said": 0, "same": 0, "seqs": []})
+            c["slots"].add(slot)
+            c["seqs"].append(seq)
+            c["said" if said_it else "same"] += 1
+        if event == "lookup":
+            n = sum(1 for k, _t in said if k == "LOOKUP")
+            self.counts["LOOKUP"] += n
+            dig = d.get("held_digest")
+            if slot in self._offer and self._offer[slot] == dig:
+                tally("LOOKUP", False)
+                return
+            self._offer[slot] = dig
+            tally("LOOKUP", True)
+            held = int(d.get("held_n") or 0)
+            text = said[0][1]
+            if held > 1:
+                text += f"; +{held - 1} MORE ({_f(f'held_n {held}, the row keeps {SAMPLE}')})"
+            self._emit(f"c{cycle} #{seq} LOOKUP {slot}: {text}")
+            return
+        for kind, text in said:
+            self.counts[kind] += 1
+            key = (kind, slot)
+            if self._last.get(key) == text:
+                tally(kind, False)
+                continue
+            self._last[key] = text
+            tally(kind, True)
+            self._emit(f"c{cycle} #{seq} {kind} {slot}: {text}")
+
     def close(self) -> None:
         if self.on:
             try:
                 self._flush()
+                self._last = {}          # a game's last lines do not silence the next game's
             except Exception as e:
                 self.on = False
                 self.faults += 1

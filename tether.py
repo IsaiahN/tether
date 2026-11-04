@@ -1235,7 +1235,7 @@ _MOLECULE_APPLY = armflag.arm("TETHER_MOLECULE_APPLY", default=True)
 # two truth-typed readings. A key is offered where it separates R and priced over the junction
 # keys on offer. OFF: refused as "not wired as a term", as before.
 _BOND_TERMS = armflag.arm("TETHER_BOND_TERMS", default=True)
-_GUARD_BONDS = ("≡", "⋛", "+")
+_GUARD_BONDS = ("≡", "⋛", "+", "∥")   # ∥ (r1073): either suffices
 # BUILD 4 ITEM 13, CONTACT-SEEDED CANDIDATE GENERATION (the reviewer 2026-11-03 r978; Isaiah
 # 11-01, "not blind enumeration"): the step's mint slots are ordered by two seeds ranked together
 # -- (a) the contact slots whose value changed this step, (b) a settled residual-lit → junction
@@ -18673,8 +18673,11 @@ class Agent:
         if u is None or v is None or u is NOT_RESOLVED or v is NOT_RESOLVED:
             return False
         try:
-            return bool(u == v) if bond == "≡" else bool(u > v) if bond == "⋛" else (
-                bool(u) and bool(v))
+            if bond == "≡":
+                return bool(u == v)
+            if bond == "⋛":
+                return bool(u > v)
+            return (bool(u) or bool(v)) if bond == "∥" else (bool(u) and bool(v))
         except TypeError:
             return False
 
@@ -18696,9 +18699,10 @@ class Agent:
         """BOND TERMS (r1059): a settled ≡ / ⋛ / + junction between readings a and b, a CONDITION,
         routed to b's guard offer: ≡ one canonical key (symmetric, Operators Table :26, :59-60), ⋛
         both orders (:50), + only between two truth-typed readings (r1057). The reason, counted."""
-        if bond == "+" and not all(str(self.slot_types.get(s)) in ("PRED", "BOOL")
-                                   for s in (a, b)):
-            return "bond +: both: the operands are not conditions (typing)"
+        if bond in ("+", "∥") and not all(str(self.slot_types.get(s)) in ("PRED", "BOOL")
+                                          for s in (a, b)):
+            atom = "both" if bond == "+" else "either"
+            return f"bond {bond}: {atom}: the operands are not conditions (typing)"
         p, q = sorted((a, b))
         pairs = [(a, b), (b, a)] if bond == "⋛" else [(p, q)]
         for u, v in pairs:
