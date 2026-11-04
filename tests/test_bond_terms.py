@@ -52,7 +52,8 @@ def row(y, x):
 
 
 def main():
-    assert tether._BOND_TERMS, "TETHER_BOND_TERMS ON by default"
+    # no arm assert here: with TETHER_BOND_TERMS=0 this test must fail BY BEHAVIOUR at B1'
+    # (no JUNCTION guard offered), the red for a new arm (the reviewer r1064)
     ag = agent()
     # R: the rows where o0.row equals o1.row; outside R they differ, so ≡ separates R
     hist = [row(1, 1), row(2, 2), row(3, 5), row(4, 7)]
