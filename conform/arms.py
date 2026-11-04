@@ -335,8 +335,12 @@ ARMS: dict[str, str] = {
                                   "_goal_target and _term_of read a retained want ONLY where "
                                   "_want_scope names it (a goal-condition want); every own want "
                                   "keeps the masked lookup. With TETHER_WANT_TARGET also ON, the "
-                                  "full unmask subsumes it. 7.5: OFF PENDING READING (B); "
-                                  "habitat arc_s1 at 120; reader the goal exit; gate (B)",
+                                  "full unmask subsumes it. Build 4 item 12 (the reviewer "
+                                  "2026-11-04 r1152): default ON; SUBSUMED while "
+                                  "TETHER_WANT_TARGET is ON -- all three _target_lookup callers "
+                                  "(the bet, _term_of, _goal_target) sit behind 'if _WANT_TARGET "
+                                  "else' -- so it is the dormant fallback. OFF: own and subject "
+                                  "wants both masked in _target_lookup (was 7.5's OFF)",
     "TETHER_WANT_TARGET": "F2, one lookup for a slot's objective (the reviewer 2026-10-11 "
                           "05:38Z): ON, _goal_target and _term_of read _objective_of -- the bound "
                           "term if it is an objective, else the retained want -- the order "

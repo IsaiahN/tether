@@ -1763,9 +1763,11 @@ _GOAL_PAIR = armflag.arm("TETHER_GOAL_PAIR", default=True)
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _WANT_TARGET = armflag.arm("TETHER_WANT_TARGET", default=True)
 # F2's fallback (the reviewer 2026-10-11 07:20Z): the target reads a retained want ONLY where it is
-# subject-scoped (a goal-condition want); every own want keeps the masked lookup. OFF; reason in
-# conform/arms.py. With TETHER_WANT_TARGET also ON, the full unmask subsumes it.
-_WANT_TARGET_SUBJECT = armflag.arm("TETHER_WANT_TARGET_SUBJECT")
+# subject-scoped (a goal-condition want); every own want keeps the masked lookup. With
+# TETHER_WANT_TARGET also ON, the full unmask subsumes it. Default ON (Build 4 item 12, the reviewer
+# 2026-11-04 r1152): all three _target_lookup callers sit behind "if _WANT_TARGET else", so it is
+# the dormant fallback for the day TETHER_WANT_TARGET is off, and changes nothing while it is on.
+_WANT_TARGET_SUBJECT = armflag.arm("TETHER_WANT_TARGET_SUBJECT", default=True)
 # R-dir (ii) (the reviewer 2026-10-11 10:39Z): a held routine whose live comparison now reads the
 # OPPOSITE sign to the one it was minted with ends "stale" before pressing. ON; reason in
 # conform/arms.py.
