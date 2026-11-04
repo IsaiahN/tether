@@ -34,6 +34,9 @@ def run(code: int) -> tuple[int, dict]:
 
 
 def main():
+    if os.name != "nt":         # r1102: supervise.py binds kernel32 (a job object); Windows only
+        print("SKIPPED: supervise.py needs Windows (kernel32)")
+        return
     rc3, sup3 = run(3)
     assert (rc3, sup3["rc"], sup3["ending"]) == (3, 3, "EXIT"), ("MF-S1", rc3, sup3)
     rc0, sup0 = run(0)

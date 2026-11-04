@@ -68,6 +68,7 @@ from gamma import (
     Term,
     accepts_type,
     shared_token,
+    target_operand,
 )
 from gamma import SAME_AS_TARGET as G_SAME
 from gamma import VALUE_TURNS as G_VALUE_TURNS
@@ -18853,6 +18854,15 @@ class Agent:
                 got = a.out_type
         if want is None:
             return True
+        exact = target_operand(cand, self.slot_types.get(target))
+        if exact is not None:
+            # r1103 (TETHER_TRANSLATE_AFFINE): at a declared target the operand is that ONE type --
+            # a point plus a displacement, never a point plus a point; no COMMENSURABLE widening
+            ok = got is None or got == exact
+            if not ok:
+                self.__dict__.setdefault("_affine_refused", collections.Counter())[
+                    f"{self.slot_types.get(target)} + {got}: the target takes {exact} only"] += 1
+            return ok
         if want == G_SAME:
             want = self.slot_types.get(target)
         return (want is None or got is None or want == got

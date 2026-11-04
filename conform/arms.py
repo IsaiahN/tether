@@ -1974,6 +1974,12 @@ ARMS: dict[str, str] = {
                             "operand and _read_terms; first-seen terms stay; the union orders and "
                             "never gates (the gap chooses at the offer). OFF: one role, its first "
                             "side. default ON",
+    "TETHER_TRANSLATE_AFFINE": "BUILD 3 (the reviewer 2026-11-04 r1103): translate at a POSITION "
+                               "target takes a DELTA operand ONLY -- a point plus a displacement "
+                               "(gamma.TARGET_OPERAND, declared by arc_predict, off the Atom); a "
+                               "point plus a point is refused for typing with its reason; every "
+                               "other target keeps the 'val' rule. OFF: translate accepts 'val' "
+                               "only, as before. default ON",
     "TETHER_NSM_DEDUPE": "7c (a) (the reviewer 2026-11-04 r1050, r1052, r1070, r1073): nsm.log "
                           "says a slot's line only when its text differs from that slot's last "
                           "said line of the kind, across cycles, and ONE count line per (kind, "

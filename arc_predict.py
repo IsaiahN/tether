@@ -56,8 +56,8 @@ from __future__ import annotations
 
 import sys
 
-from gamma import SAME_AS_TARGET, Atom, Ctx
-from sensors import COLOUR
+from gamma import SAME_AS_TARGET, Atom, Ctx, declare_target_operand
+from sensors import COLOUR, DELTA, POSITION
 
 sys.dont_write_bytecode = True
 
@@ -118,12 +118,16 @@ def predict() -> list[Atom]:
     # TRIGGER TO REVISIT (reviewer, sharpened): **build the type variable when a BINDING exists
     # with it that cannot exist without it** -- not a chain count, not a pair count. A BINDING.
     # Today nothing qualifies, and that is measured rather than assumed.
+    # `v + operand` is meaningful only between commensurable quantities, so the
+    # operand must be whatever the target is. A row plus a colour is arithmetic
+    # that type-checks and means nothing.
+    translate = Atom("translate", _translate, "val", "val", reads_operand=True,
+                     operand_type=SAME_AS_TARGET, reads_ctx=("operands",))
+    # r1103: at a POSITION target the operand is a DELTA only -- a point plus a displacement
+    # (gamma.TARGET_OPERAND, under TETHER_TRANSLATE_AFFINE); off the Atom, so its token holds
+    declare_target_operand(translate, {POSITION: DELTA})
     return [Atom("idn", _idn, "val", "val"),                       # reads nothing
-            # `v + operand` is meaningful only between commensurable quantities, so the
-            # operand must be whatever the target is. A row plus a colour is arithmetic
-            # that type-checks and means nothing.
-            Atom("translate", _translate, "val", "val", reads_operand=True,
-                 operand_type=SAME_AS_TARGET, reads_ctx=("operands",)),
+            translate,
             # `v -> operand` puts the operand IN the slot, so it must be a colour whatever
             # the target is. THIS IS THE DEFECT'S OWN SITE: `idn . recolour<o11.h>`.
             Atom("recolour", _recolour, "val", "val", reads_operand=True,

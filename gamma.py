@@ -167,7 +167,32 @@ def accepts_type(unit: Any, ty: str | None) -> bool:
         return True
     if getattr(unit, "polymorphic", False):
         return True
+    if _TRANSLATE_AFFINE and target_operand(unit, ty) is not None:
+        return True             # r1103: a declared target type (its operand typed per target)
     return ty in unit.accepts
+
+
+# r1103 (the reviewer 2026-11-04; TETHER_TRANSLATE_AFFINE): an atom whose operand is typed PER
+# TARGET, registered by the world that builds it and keyed by its FUNCTION, off the Atom -- whose
+# fields feed the atoms token (the interval declarations below are the precedent). {target type:
+# the ONE operand type it takes there}: `translate` at a POSITION takes a DELTA only, a point plus
+# a displacement; a point plus a point is not defined (arc_atoms.py:882's own warrant). Other
+# targets keep their rule.
+_TRANSLATE_AFFINE = armflag.arm("TETHER_TRANSLATE_AFFINE", default=True)
+TARGET_OPERAND: dict = {}
+
+
+def declare_target_operand(atom: Any, table: dict) -> None:
+    TARGET_OPERAND.setdefault(atom.fn, {}).update(table)
+
+
+def target_operand(unit: Any, ty: str | None) -> str | None:
+    """The operand type declared for this unit's head at a target of type `ty`, or None (always
+    None with the arm OFF, so neither the head check nor the operand check moves)."""
+    if not (_TRANSLATE_AFFINE and ty):
+        return None
+    head = unit.atoms[0] if getattr(unit, "atoms", None) else unit
+    return TARGET_OPERAND.get(getattr(head, "fn", None), {}).get(ty)
 
 
 # **THE RELATIVE GUARD, A SENTINEL AND NEVER A NAME -- the reviewer, 2026-10-01.** A guard
@@ -2110,6 +2135,8 @@ class Gamma:
                     return None
                 cur, elem = CELLS, a.out_type              # mapped: the ELEMENT type moves
                 continue
+            if target_operand(a, cur) is not None:
+                continue        # r1103: a point plus a displacement is a point -- the type holds
             if not (a.polymorphic or cur in a.accepts):
                 return None
             cur = a.out_type
