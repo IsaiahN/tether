@@ -214,6 +214,12 @@ _AIMED_CURIOSITY = armflag.arm("TETHER_AIMED_CURIOSITY", default=True)
 # WAS DEFAULT OFF, like every other arm, so the baseline it is measured against is preserved.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _RECIPE_DEDUP = armflag.arm("TETHER_RECIPE_DEDUP", default=True)
+# A HELD RECIPE IS A LOOKUP, NOT WORK (the reviewer 2026-11-04 r985; Fig 12 :107-108 "where the
+# arrangement is recorded, re-deriving it is a lookup and the actions were spent once"): under
+# RECIPE_DEDUP every instance of a chain the agent holds as a recipe is skipped, and each was
+# charged a try first (ls20: 2090-4971 of 5000 tries a mint). Tested once per chain, before its
+# instances are generated, as the cost bound is: no rank, no try. OFF: per instance, as before.
+_RECIPE_HELD_FREE = armflag.arm("TETHER_RECIPE_HELD_FREE", default=True)
 
 # ARM G -- REBIND WHAT IS HELD. `_rebindings` returns early for any term that already carries an
 # operand, so only IMPORTS (which arrive unbound, `save` drops it) are ever re-bound. A term the
@@ -19465,6 +19471,11 @@ class Agent:
                         cut_n["chain bounded out on cost: instances not generated"] += _n
                         if _WINDOW:
                             _win_reached.update(b for b in binds if lag_of(b))
+                        continue
+                    if (_RECIPE_HELD_FREE and _RECIPE_DEDUP and _n
+                            and cand.name in self._held_chains):
+                        # r985: recorded, so a lookup -- its instances are not generated
+                        cut_n["recipe-held: instances not generated"] += _n
                         continue
                     for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
                         cap.head()
