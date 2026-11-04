@@ -847,6 +847,7 @@ def _merge_body(con: sqlite3.Connection, h: str, k: int, g: dict, aks: list, idx
                 files: list, state: Any = None) -> dict:
     """merge_save's statements, inside its transaction."""
     s = Syms(con)
+    g_raw = g      # the save as written: the fold reads it, and translates through its own map
     amap: dict = {}
     if _ALIAS:
         if g.get("form_aliases"):
@@ -874,9 +875,15 @@ def _merge_body(con: sqlite3.Connection, h: str, k: int, g: dict, aks: list, idx
     if state is None:
         f = _fold_apply(_get_blob(con, "fold", {}), h, g)
     else:
-        state.step(h, g)
+        state.step(h, g_raw)
         f = _state_fold(state)
     c = _counts_apply(_get_blob(con, "counts", {}), g, amap, k)
+    if state is not None and getattr(state, "ak", None) is not None:
+        # MF-K16: on a branched lineage the action cells are the fold's (a cumulative branch
+        # converted to its increments), never the last save's in fold order
+        c["action_kinds"], ca = state.ak.value()
+        if ca:
+            c["contested_action_kinds"] = ca
     c["n_saves"] = k
     con.execute("INSERT OR REPLACE INTO blob VALUES ('fold', ?)", (json.dumps(f),))
     con.execute("INSERT OR REPLACE INTO blob VALUES ('counts', ?)", (json.dumps(c),))

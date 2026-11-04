@@ -386,6 +386,7 @@ class FoldState:
         self.heads: dict[tuple, set] = {}
         self.khist: dict[tuple, list] = {}     # the same, for book keys and invented names
         self.kheads: dict[tuple, set] = {}
+        self.ak = AkFold() if _AK_CONVERT else None     # (7) MF-K16: the action cells
 
     def step(self, h: str, g: dict) -> None:
         rows, out, anc, hist, heads = self.rows, self.out, self.anc, self.hist, self.heads
@@ -426,6 +427,8 @@ class FoldState:
             out["dormant"].extend(dec(g["dormant"]))
         if g.get("aliases"):
             out.setdefault("aliases", []).extend(g["aliases"])   # (d), in chain order
+        if self.ak is not None:
+            self.ak.step(h, anc, g)
 
     def _merge_point(self, h: str, rule: int) -> None:
         """A merge generation writes nothing, so a key both branches wrote kept two heads past it,
@@ -458,7 +461,119 @@ class FoldState:
 
     def result(self) -> dict:
         self.out["terms"] = list(self.rows.values())
+        if self.ak is not None and self.ak.ent:
+            self.out["action_kinds"], self.out["contested_action_kinds"] = self.ak.value()
         return self.out
+
+
+# (7) MF-K16, A CUMULATIVE BRANCH IS CONVERTED AT A MERGE OF FOLD_RULE 3 (the reviewer 2026-11-03
+# r924 2, r927 3): each action cell keeps its saves' entries per RAW key (the code it was written
+# under, so two poses that an alias joins stay two sub-counters, and the cell is their sum). An
+# increment save (action_kinds_d) adds what it wrote. A CUMULATIVE save (action_kinds, older code)
+# supersedes the entries of its raw key in its VIEW: every earlier one, except an entry on a branch
+# whose FIRST join with it is a merge of fold_rule >= 3, where it sees only its own ancestors -- so
+# an old-code branch merged at such a merge adds only its own increments. Below rule 3 (every merge
+# written before) this is the save-order fold it always was: a cumulative cell replaced, a sum where
+# an alias joins keys. A value below its view's under a rule-3 view is a contest: recorded, never
+# taken.
+# OFF: the fold reads no action cells, and the store and the load read them in save order.
+_AK_CONVERT = armflag.arm("TETHER_AK_CONVERT", default=True)
+
+
+class AkFold:
+    def __init__(self) -> None:
+        self.ent: dict[str, list] = {}      # cell -> [(index, save, raw key, cumulative, value)]
+        self.amap: dict = {}
+        self.order: dict[str, int] = {}
+        self.anc: dict = {}
+        self.merges: list = []              # (save, fold_rule), in fold order
+        self.cache: dict[str, tuple] = {}   # cell -> (value, contests)
+        self.dirty: set = set()
+        self.first: dict[str, int] = {}     # cell -> its first entry's number: the output's order
+
+    @staticmethod
+    def _lands(key: str) -> bool:
+        return "'lands_kind'" in key
+
+    def step(self, h: str, anc: dict, g: dict) -> None:
+        import lineage_store as ls
+        self.anc = anc
+        self.order[h] = i = len(self.order)
+        if len(_parents(g)) > 1:
+            self.merges.append((h, g.get("fold_rule", 1)))
+            if g.get("fold_rule", 1) >= 3:
+                self.dirty |= set(self.ent)
+        if g.get("form_aliases") and ls._ALIAS:
+            self.amap = ls.alias_add(self.amap, g["form_aliases"])
+            joined: dict[str, list] = {}
+            for key, xs in self.ent.items():
+                joined.setdefault(ls.alias_text(key, self.amap), []).extend(xs)
+            self.ent = {k: sorted(xs, key=lambda e: e[0]) for k, xs in joined.items()}
+            first: dict[str, int] = {}
+            for key, n in self.first.items():
+                k2 = ls.alias_text(key, self.amap)
+                first[k2] = min(first.get(k2, n), n)
+            self.first = first
+            self.cache, self.dirty = {}, set(self.ent)
+        for fld, cum in (("action_kinds_d", False), ("action_kinds", True)):
+            for key, v in (g.get(fld) or {}).items():
+                k = ls.alias_text(key, self.amap)
+                self.ent.setdefault(k, []).append((i, h, key, cum, v))
+                self.first.setdefault(k, len(self.first))
+                self.dirty.add(k)
+
+    def _joined3(self, a: str, b: str) -> bool:
+        """Whether the first merge that descends from both saves is of fold_rule >= 3."""
+        for m, rule in self.merges:
+            got = self.anc[m]
+            if a in got and b in got:
+                return rule >= 3
+        return False
+
+    def _cell(self, key: str) -> tuple:
+        es, lands = self.ent[key], self._lands(key)
+        c: dict = {}
+        active: list = []
+        contests: list = []
+        for n, (_i, h, rk, cum, v) in enumerate(es):
+            if not cum:
+                c[n] = v
+                active.append(n)
+                continue
+            prior = [m for m in range(n) if es[m][2] == rk and m in c]
+            view = [m for m in prior
+                    if es[m][1] in self.anc[h] or not self._joined3(es[m][1], h)]
+            converted = len(view) < len(prior)
+            if lands:
+                active = [m for m in active if m not in view]
+                c[n] = v
+                active.append(n)
+                continue
+            x = [v[0] - sum(c[m][0] for m in view), v[1] - sum(c[m][1] for m in view)]
+            if converted and (x[0] < 0 or x[1] < 0):
+                contests.append({"gen": h, "value": list(v),
+                                 "view_holds": [sum(c[m][0] for m in view),
+                                                sum(c[m][1] for m in view)]})
+                continue
+            c[n] = x
+        if lands:
+            if len(active) == 1:
+                return list(es[active[0]][4]), contests
+            return [json.loads(s) for s in sorted({_j_(y) for m in active
+                                                    for y in es[m][4]})], contests
+        return [sum(x[0] for x in c.values()), sum(x[1] for x in c.values())], contests
+
+    def value(self) -> tuple[dict, dict]:
+        for k in self.dirty:
+            self.cache[k] = self._cell(k)
+        self.dirty = set()
+        keys = sorted(self.cache, key=lambda k: self.first[k])
+        return ({k: self.cache[k][0] for k in keys},
+                {k: self.cache[k][1] for k in keys if self.cache[k][1]})
+
+
+def _j_(v: Any) -> str:
+    return json.dumps(v, sort_keys=True)
 
 
 def fold(chain: list[tuple[str, dict]]) -> dict:
@@ -1555,11 +1670,14 @@ def load(d: str | Path, ag: Any) -> dict:
         rep["routines_in"] = ag._carry_routines_in(list(rk.values()))
     if tether.IFace._ACTION_CARRY and hasattr(ag, "iface"):
         ag._ak_written = {}                                     # r688 RECALL: root to tip, latest
-        for _h, g in chain:
-            ag._ak_written.update(g.get("action_kinds", {}))
-        if tether.IFace._AK_DELTA:      # (7): and every save's increments, added
+        if _AK_CONVERT and "action_kinds" in f and any(len(_parents(g)) > 1 for _h, g in chain):
+            ag._ak_written = dict(f["action_kinds"])     # MF-K16: a branched chain, the fold's
+        else:
             for _h, g in chain:
-                lineage_store.add_action_increments(ag._ak_written, g.get("action_kinds_d"))
+                ag._ak_written.update(g.get("action_kinds", {}))
+            if tether.IFace._AK_DELTA:      # (7): and every save's increments, added
+                for _h, g in chain:
+                    lineage_store.add_action_increments(ag._ak_written, g.get("action_kinds_d"))
         rep["action_kinds_in"] = ag.iface.kind_tables_in(ag._ak_written)
     if _RESOLVE_ONCE:
         for _h, g in chain:                                     # r695 1: verdicts per lineage
@@ -1628,8 +1746,10 @@ def _scan(d: Path, keep: tuple = ()) -> dict[str, dict]:
 
 
 # the fold's rule version a merge generation is written under (the reviewer 2026-11-03 r882 3): 2 =
-# equal moving counters at the merge sum as increments; a merge with no field folds as rule 1
-FOLD_RULE = 2
+# equal moving counters at the merge sum as increments; 3 = a cumulative action cell from a branch
+# converts to its own increments at the merge (r927 3, MF-K16); a merge with no field folds as
+# rule 1
+FOLD_RULE = 3
 
 
 def merge(d: str | Path, tips: list[str] | None = None) -> dict:

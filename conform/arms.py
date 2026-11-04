@@ -1936,7 +1936,16 @@ ARMS: dict[str, str] = {
                        "as-seen cells add into the canonical one; saves written before keep their "
                        "cumulative meaning. OFF: the cumulative cells; increments not read. "
                        "default ON",
-    "TETHER_CONTINUE_WAL": "(7) the store CONTINUE's WAL bound (Build 1; REPORT FIN5E section 8, "
+    "TETHER_AK_CONVERT": "(7) MF-K16, A CUMULATIVE BRANCH IS CONVERTED AT A FOLD_RULE 3 MERGE (the "
+                         "reviewer 2026-11-03 r924 2, r927 3): lineage.AkFold keeps each action "
+                         "cell's entries per raw key; a cumulative save supersedes the entries in "
+                         "its view, which leaves out a branch first joined to it by a merge of "
+                         "fold_rule >= 3 (lineage.merge writes 3), so such a branch adds only its "
+                         "own increments; below rule 3 it is the save-order fold, as at af6cdd2; "
+                         "a value below its view's under rule 3 is contested and not taken; the "
+                         "store's branched path and a branched archive load read the fold's cells. "
+                         "OFF: save order, as before. default ON",
+    "TETHER_CONTINUE_WAL":"(7) the store CONTINUE's WAL bound (Build 1; REPORT FIN5E section 8, "
                            "2.14 GB "
                            "on 2026-11-03): after each continued save above WAL_BOUND_BYTES, a "
                            "checkpoint, as the rebuild does (r794 3). OFF: no bound in a "

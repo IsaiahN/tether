@@ -503,6 +503,48 @@ def mf_k14(tmp: Path) -> dict:
                                           d2_[repr(("A1", "delta_kind", k))]]}
 
 
+def mf_k16(tmp: Path) -> dict:
+    """r924 2: (a) R holds the cell at [1, 1] (cumulative); A1, on the increments line, adds
+    [2, 2]; B1, an old-code branch forked from R, writes its CUMULATIVE [3, 3] (its own + 2), and
+    folds AFTER A1; a merge. The cell reads 1 + 2 + 2 = [5, 5] in the store (save by save, from
+    nothing) and the archive load, not B1's [3, 3]. (b) B1 writes [0, 0], below what its fork
+    holds: a contest, recorded, and the cell reads 1 + 2 = [3, 3]."""
+    c10 = _cell("A1", "delta_kind", 10)
+    out = {}
+    # c (r927 c): the same branch joined by a fold_rule 2 merge reads as at af6cdd2: B1 replaces
+    for tag, bval, want in (("a", [3, 3], [5, 5]), ("b", [0, 0], [3, 3]), ("c", [3, 3], [3, 3])):
+        d = tmp / f"k16{tag}"
+        d.mkdir()
+        r = _put(d, _gen(None, action_kinds={c10: [1, 1]}))
+        a1 = _put(d, _gen(r, action_kinds_d={c10: [2, 2]}))
+        for salt in range(64):          # B1 folds after A1, where fold order would pick B1's
+            b1g = _gen(r, game=f"old{salt}", action_kinds={c10: bval})
+            b1 = hashlib.sha256(json.dumps(b1g, sort_keys=True, indent=1).encode()).hexdigest()[:16]
+            order = lineage._topo({r: {"parents": []}, a1: {"parents": [r]}, b1: {"parents": [r]}})
+            if order.index(b1) > order.index(a1):
+                break
+        assert order.index(b1) > order.index(a1), "K16 precondition: B1 after A1"
+        _put(d, b1g)
+        if tag == "c":
+            _put(d, {**_gen(None), "parents": sorted([a1, b1]), "merge": True, "game": None,
+                     "fold_rule": 2})
+        else:
+            assert lineage.merge(d).get("hash"), "K16 merge"
+        _catch(d)
+        t = _decoded(d)["counts"]
+        assert t["action_kinds"] == {c10: want}, (f"MF-K16{tag} the store", t["action_kinds"])
+        d2 = _fresh(d, tmp, f"k16{tag}_fresh")
+        assert _decoded(d2)["counts"]["action_kinds"] == {c10: want}, f"MF-K16{tag} from nothing"
+        st, ar = _installed(d, True), _installed(d, False)
+        got = "".join(st["action"])
+        assert st["action"] == ar["action"] and f"({want[0]}, {want[1]})" in got, (
+            f"MF-K16{tag} the archive load", st["action"], ar["action"])
+        if tag == "b":
+            assert list(t.get("contested_action_kinds", {})) == [c10], ("MF-K16b contest", t)
+        out[tag] = want
+    return out
+
+
 def main():
     if "--off" in sys.argv:
         assert not lineage_store._ALIAS, "the child runs OFF"
@@ -531,6 +573,10 @@ def main():
         print(f"  MF-K14 a fork before the alias, merged after it: the cell under 10 reads 1 + 2 "
               f"+ 1 = {k14['cell']} (store save by save, from nothing, archive load); the writer "
               f"writes increments {k14['writes']}")
+        k16 = mf_k16(tmp)
+        print(f"  MF-K16 a cumulative branch folded after increments: 1 + 2 + 2 = {k16['a']}; "
+              f"one below its fork point: contested, the cell {k16['b']}; at a fold_rule 2 merge "
+              f"as at af6cdd2, {k16['c']}")
         k13 = mf_k13(tmp)
         print(f"  MF-K13 store load = archive load: {k13['fields']} installed fields, "
               f"{k13['rows']} rows; routines 11 (settled) and 12 (candidate) contested, both "
