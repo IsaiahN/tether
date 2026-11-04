@@ -1432,6 +1432,13 @@ _LOOKUP_STREAM = armflag.arm("TETHER_LOOKUP_STREAM", default=True)
 # a row only for the first 50 held; held_n, offered, junctions, named and the digest's bytes are
 # the stream's own. Decisions and rows unchanged. OFF: _lookup_stream.
 _LOOKUP_FOLD = armflag.arm("TETHER_LOOKUP_FOLD", default=True)
+# THE MINT'S PER-CANDIDATE WORK THAT IS FIXED FOR THE MINT, DONE ONCE (the reviewer 2026-11-04
+# r1012; the ls20 self-time profile, c3/c4: _operand_fits 14.9M calls 73 s self, _guard_refs
+# 34,637 calls 28 s, _round_of 44.8M calls 20 s, _separates 2.29M calls 13 s of a 306 s mint):
+# _guard_refs, _guards (its hold counters still advanced per candidate) and the separating refs
+# once per mint; the bind list per pass once; the operand-typed bind list once per candidate
+# typing signature. Same values, same order, same books. OFF: per candidate, as before.
+_MINT_HOIST = armflag.arm("TETHER_MINT_HOIST", default=True)
 LOOKUP_HELD_KEYS = ("molecule", "left", "right", "left_reading", "right_reading", "held", "via",
                     "occasions")
 # G1, RELATIONAL WANTS PER EVENT (the reviewer 2026-10-17 15:30, 23:04, 23:17): since E0b a derived
@@ -14345,8 +14352,19 @@ class Agent:
             return detail
         priced = self._priced - priced0
         reached = sum(s.get("pays_called", 0) for s in share.values() if isinstance(s, dict))
-        if priced <= 0 or reached:
+        if reached:
             return detail
+        if priced <= 0:
+            # r1010 2: nothing priced because the budget went on chains the cost bound refused --
+            # the same fact, "not found within budget", with nothing to show for how close
+            bounded = (detail.get("cut_counts") or {}).get(
+                "chain bounded out on cost: instances not generated", 0)
+            if old != "budget_spent" or not bounded:
+                return detail
+            return {**detail, "verdict": "not found within budget", "stopped_by": old,
+                    "priced": 0, "best_candidate": None,
+                    "note": ("the budget was spent on chains the cost bound refused before any "
+                             "was priced: more search, not another atom (Fig 8)")}
         found = old == "budget_spent"
         return {**detail, "verdict": "not found within budget" if found else
                 "closure cannot cover R", "stopped_by": old, "priced": priced,
@@ -18585,6 +18603,30 @@ class Agent:
         out_false = (len(hist) - h_true) - (len(robs) - r_true)
         return r_true in (0, len(robs)) and (out_true if r_true == 0 else out_false) > 0
 
+    def _guards_once(self, robs: list, slot: str, binds) -> tuple:
+        """TETHER_MINT_HOIST: the guard offer of this mint, once -- (refs, guards, the separating
+        refs, the hold occasion this call books) -- for _guards_again to replay per candidate."""
+        refs = self._guard_refs(slot, binds)
+        e0, w0 = self._hold_eligible, self._hold_withheld
+        gs = self._guards(robs, slot, refs)
+        sep = ([r for r in refs if self._separates(robs, slot, r)]
+               if any(x in (ACTED_SELF, ACTED_ON) for x in gs) else [])
+        return [refs, gs, sep, self._hold_eligible - e0, self._hold_withheld - w0, True]
+
+    def _guards_again(self, hz: list, slot: str) -> tuple:
+        """The once-computed offer for this candidate, booking the hold counters as the per-
+        candidate _guards call did (the first candidate's were booked by _guards_once)."""
+        refs, gs, sep, de, dw, first = hz
+        if first:
+            hz[5] = False
+        elif de:
+            self._hold_eligible += de
+            self._hold_keys.add((self.cycle, slot))
+            if dw:
+                self._hold_withheld += dw
+                self._hold_keys_held.add((self.cycle, slot))
+        return list(refs), list(gs), sep
+
     def _guard_refs(self, slot: str | None, binds) -> list[str]:
         """Which objects a guard may point at. **READ OFF THE WORLD, NEVER INVENTED.**
 
@@ -19406,6 +19448,9 @@ class Agent:
             # with their no-evidence lags. One round otherwise, so OFF is the old loop exactly.
             _rec2: dict = {}
             _lf_of: dict = {}
+            _hz_pass: dict = {}                  # TETHER_MINT_HOIST: fixed for this mint
+            _hz_fit: dict = {}
+            _hz_g = None
 
             def _stream_open(_si, _round):
                 in_t, out_t = streams[_si]
@@ -19537,7 +19582,13 @@ class Agent:
                         # PASS 1 walks what the window-OFF search walks plus the evidence lags;
                         # PASS 2 only the no-evidence lags, PASS 3 only the derived binds, so
                         # nothing is charged twice.
-                        binds = [x for x in binds if _round_of(x) == _pass]
+                        if _MINT_HOIST:
+                            _bk = (cand.reads_operand, _pass)
+                            if _bk not in _hz_pass:
+                                _hz_pass[_bk] = [x for x in binds if _round_of(x) == _pass]
+                            binds = _hz_pass[_bk]
+                        else:
+                            binds = [x for x in binds if _round_of(x) == _pass]
                         if _pass > 1 and not binds:
                             continue
                         _pass2_chains += _pass == 2
@@ -19547,7 +19598,16 @@ class Agent:
                     else:
                         _chain_incs: list[str] = []
                         priced[(_si, cand.name)] = _chain_incs
-                    binds = [x for x in binds if self._operand_fits(cand, slot, x)]
+                    if _MINT_HOIST:
+                        _ot = getattr(cand, "operand_term", None)
+                        _fk = (getattr(cand, "operand_type", None), cand.reads_operand, _pass,
+                               tuple((a.in_type, a.out_type, frozenset(a.accepts))
+                                     for a in getattr(_ot, "atoms", ())))
+                        if _fk not in _hz_fit:
+                            _hz_fit[_fk] = [x for x in binds if self._operand_fits(cand, slot, x)]
+                        binds = list(_hz_fit[_fk])
+                    else:
+                        binds = [x for x in binds if self._operand_fits(cand, slot, x)]
                     _lf_first = [x for x in _lf_ops.get(cand.name, ()) if x in binds]
                     if _lf_first and _A1_LOOKUP and slot in self._bind_key:
                         # A1 site 7: the same key as site 8, with THIS chain's library offers as
@@ -19567,8 +19627,13 @@ class Agent:
                     # HOISTED so the guard PRICE can read how many were on offer -- the
                     # denominator `log2(G+1)` is over, and it must be the same set the loop
                     # walks or the price is charged against a population that was not offered.
-                    _cand_refs = self._guard_refs(slot, operand_binds)
-                    _gs = self._guards(robs, slot, _cand_refs)
+                    if _MINT_HOIST:
+                        if _hz_g is None:
+                            _hz_g = self._guards_once(robs, slot, operand_binds)
+                        _cand_refs, _gs, _hz_refs = self._guards_again(_hz_g, slot)
+                    else:
+                        _cand_refs = self._guard_refs(slot, operand_binds)
+                        _gs = self._guards(robs, slot, _cand_refs)
                     if _GUARD_PRICE:
                         self._offered_now = len(_gs) - 1
                     # **THE REFERENT IS PAIRED WITH THE GUARD, NOT WITH THE BIND.** Hoisted
@@ -19585,7 +19650,8 @@ class Agent:
                     # offers, not from what this candidate's computation happens to take.
                     # ONLY THE REFERENTS THAT SEPARATE are walked -- and so priced, because the
                     # price denominator is the set the loop walks (the hoist's own rule).
-                    _refs = ([r for r in _cand_refs if self._separates(robs, slot, r)]
+                    _refs = (list(_hz_refs) if _MINT_HOIST else
+                             [r for r in _cand_refs if self._separates(robs, slot, r)]
                              if any(x in (ACTED_SELF, ACTED_ON) for x in _gs) else [])
                     _pairs = [(g, r) for g in _gs
                               for r in (_refs if g in (ACTED_SELF, ACTED_ON) else [None])]

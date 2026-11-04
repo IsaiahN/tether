@@ -15,7 +15,9 @@ MF-P5  OFF: no pipeline.log
 MF-V   the rider, split by Fig 8 (r994): candidates priced and none at pays reads "not found
        within budget" when a budget stopped it (budget_spent) and "closure cannot cover R" when it
        enumerated to its depth (depth_exhausted), each with stopped_by and the best candidate; with
-       a pays call, or the arm OFF, the verdict is the old one
+       a pays call, or the arm OFF, the verdict is the old one; priced 0 with the budget spent
+       on cost-bounded chains also reads "not found within budget", priced 0 (r1010 2), and
+       priced 0 with no such cut keeps the old verdict
 
     python tests/test_pipelog.py
 """
@@ -133,6 +135,13 @@ def main():
     v1 = ag._closure_verdict(d, 0, {0: {"pays_called": 0}})
     v4 = ag._closure_verdict({**d, "verdict": "depth_exhausted"}, 0, {0: {"pays_called": 0}})
     v2 = ag._closure_verdict(d, 0, {0: {"pays_called": 1}})
+    ag._priced = 0                    # r1010 2: nothing priced
+    bounded = {**d, "cut_counts": {"chain bounded out on cost: instances not generated": 9}}
+    v5 = ag._closure_verdict(bounded, 0, {0: {"pays_called": 0}})
+    v6 = ag._closure_verdict(d, 0, {0: {"pays_called": 0}})
+    assert v5["verdict"] == "not found within budget" and v5["priced"] == 0 \
+        and v5["stopped_by"] == "budget_spent" and v6 is d, ("MF-V priced 0", v5, v6)
+    ag._priced = 12
     was = tether._CLOSURE_VERDICT
     try:
         tether._CLOSURE_VERDICT = False
