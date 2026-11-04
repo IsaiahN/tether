@@ -17,6 +17,7 @@ from typing import Any
 
 import armflag
 import narrate
+import nsm
 import pipelog
 
 sys.dont_write_bytecode = True
@@ -178,6 +179,7 @@ class Ledger:
         self._fh = None
         self.narrator = narrate.Narrator(self._path, (WIN, ADVANCE))   # N1: says key rows aloud
         self.pipe = pipelog.PipeLog(self._path, (WIN, ADVANCE))        # 7d: the stage lines
+        self.speaker = nsm.Speaker(self._path, (WIN, ADVANCE))         # 7: the NSM trace
         if self._path is not None:
             self._path.parent.mkdir(parents=True, exist_ok=True)
             self._path.write_text("", encoding="utf-8")
@@ -245,6 +247,8 @@ class Ledger:
             self.narrator.see(cycle, step, slot, event, detail)
         if self.pipe.on:
             self.pipe.see(cycle, step, slot, event, detail)
+        if self.speaker.on:
+            self.speaker.see(e.seq, cycle, step, slot, event, detail)
         return e
 
     def narrate(self, cycle: int, kind: str, slot: str, text: str) -> None:
@@ -254,6 +258,7 @@ class Ledger:
     def end_game(self, cycle: int, label: str) -> None:
         """N2: this game's "stopped at link X because ..." line, then its counts restart."""
         self.narrator.end_game(cycle, label)
+        self.speaker.close()                 # 7: the cycle's "+n more" lines said
 
     def close(self) -> None:
         """R2: close the held handle (end_run, and at exit); a later row reopens it."""

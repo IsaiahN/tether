@@ -64,15 +64,19 @@ def _form(c):
 
 
 def _named(lib, key, role, o, x, atoms):
-    """Today's compile of the named text, fresh (no cache)."""
-    def comp(cond):
-        return compile_term.compile_candidate({"condition": cond}, atoms)
+    """Today's compile of the named text, fresh (no cache), as the agent compiles it: a frame event
+    on its subject under TETHER_LIBRARY_ABDUCE (7d's event route; the agent's comp in
+    _index_reach and _held_index), so a refusal's reason is the agent's own (r917 X1)."""
+    def comp(cond, subject):
+        subj = subject if tether._LIBRARY_ABDUCE and cond.startswith("frame.") else None
+        return compile_term.compile_candidate({"condition": cond}, atoms, subject=subj)
     out = []
     for cand in lib.view(key, role, o, x):
         if role == "CAUSE":
-            out.append((cand, comp(cand["if"]), comp(cand["then"])))
+            out.append((cand, comp(cand["if"], o), comp(cand["then"], x)))
         else:
-            out.append((cand, None if "quantifier" in cand else comp(cand["condition"]), None))
+            out.append((cand, None if "quantifier" in cand else comp(cand["condition"], o),
+                        None))
     return out
 
 
@@ -158,9 +162,10 @@ def main() -> None:
     k = next(k for k in keys if lib.view(k, "STATE", "o1", "o2"))
     calls = []
     real = compile_term.compile_candidate
-    compile_term.compile_candidate = lambda c, a: calls.append(1) or real(c, a)
+    compile_term.compile_candidate = lambda *a, **k: calls.append(1) or real(*a, **k)
     try:
         tether._INDEX_STORE.clear()
+        tether._HELD_COMPILE.clear()   # 18's process memo (1e9d4d5) serves held compiles (r1004)
         _real(ag, lib, k, "o1", "o2", atoms, sig)
         first = len(calls)
         _real(ag, lib, k, "o3", "o4", atoms, sig)
@@ -191,6 +196,7 @@ def main() -> None:
     tether._bound = lambda *a: nb.append(1) or real_bound(*a)
     try:
         ag._bound_cache.clear()
+        tether._BOUND_MEMO.clear()   # under TETHER_ATOMS_ONCE the process memo serves (r1047)
         hits = tether._INDEX_N["bound_memo_hit"]
         r1 = _real(ag, lib, k, "o1", "o2", atoms, sig)
         assert nb, ("M1: the first ask bound nothing", len(nb))

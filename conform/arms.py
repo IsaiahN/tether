@@ -1968,6 +1968,12 @@ ARMS: dict[str, str] = {
                              "entry, each tested on its own, coinciding readings merged, the "
                              "molecule's domain first; a view with no condition is unreachable. "
                              "OFF: 'ambiguous' unreachable, 'no condition' refused. default ON",
+    "TETHER_NSM_SPEAK": "BUILD 2 7 / 7b, THE NSM TRACE (the reviewer r894 2, r895 1-2, r953 4; "
+                        "Isaiah 2026-11-03 15:34): key rows said in grammar.json's NSM words "
+                        "to nsm.log beside the ledger, each citing its row's seq; a 0-frame "
+                        "window is said 'no window'; nsm.say_term / read_term translate a "
+                        "Term both ways. Record only, nothing written into the ledger. OFF: "
+                        "no file. default ON",
     "TETHER_PIPELINE_LOG": "BUILD 2 7d, THE PIPELINE LOG (Isaiah 2026-11-03 15:29; the reviewer "
                            "r895 4, r992 3): one stage line per _step_scope exit to pipeline.log "
                            "beside the ledger (rows by event, slots, ms, stop); deep mode by "
