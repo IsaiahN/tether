@@ -1192,6 +1192,19 @@ _BOND_PER_BOARD = armflag.arm("TETHER_BOND_PER_BOARD", default=True)
 # operands do not"; Fig 2, two reads of one event are one report); a side left empty is None TEST
 # "the operands read the same slots". OFF: overlapping slots tested as they are.
 _BOND_DISJOINT = armflag.arm("TETHER_BOND_DISJOINT", default=True)
+# MOLECULE APPLY (the reviewer 2026-11-03 r962, r963; Fig 12 "A settled molecule becomes an atom
+# for whatever composes over it", "Actions price finding out whether it holds"): a lit molecule
+# whose junction is settled on operands resolved on this board is OFFERED to the bargain as one
+# more library offer, priced by the one loop and never trusted; only a bond whose implementation
+# is a chain composes here (grammar.json implemented_by). OFF: no pass, no offers.
+_MOLECULE_APPLY = armflag.arm("TETHER_MOLECULE_APPLY", default=True)
+
+
+@cache
+def _bond_impl() -> dict:
+    """each bond's implemented_by, read from grammar.json's operators table through the door."""
+    return {k: list(v.get("implemented_by") or ())
+            for k, v in (door.grammar().get("operators") or {}).items()}
 _7H_SHOWN = armflag.arm("TETHER_7H_SHOWN", default=True)
 _7H_ROOT = armflag.arm("TETHER_7H_ROOT", default=True)
 # 7j (the reviewer 2026-10-15 17:32, 20:27): a choice made to test a held hypothesis -- the goal
@@ -3869,6 +3882,12 @@ class Agent:
         self._named: dict[str, dict[str, list]] = {}
         self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
+        self._mol_offers: dict[str, list] = {}   # r962: settled molecules offered at each slot
+        self._mol_names: dict[str, dict] = {}    # slot -> chain name -> the offer's provenance
+        self._mol_typed: set = set()             # (slot, offer) the library stream yielded
+        self._mol_paid: dict = {}                # (slot, offer, operand) -> pays' verdict
+        self._mol_key = None                     # the window the last pass read
+        self._read_terms: dict = {}              # a compiled reading -> the term that reads it
         self._dl_missed: dict = {}         # 20: a described key with no offer -> its miss's cycle
         self._tk_off: dict = {}            # TK: a described key -> where its next window starts
         self._tk_nofit: dict = {}          # S3: a key -> entries its windows judged no-fit
@@ -4305,6 +4324,9 @@ class Agent:
         self._note_ending(how, "run")
         if composer._BOND_TEST:
             self._bond_tests("run" if _BOND_PER_BOARD else None)    # Build 2 item 1 (r897)
+        if _MOLECULE_APPLY and self._mol_offers:
+            self.led.record(self.cycle, self._running_step, "@molecule", "molecule_apply",
+                            at="run", previous=self._mol_flush())
         self.led.end_game(self.cycle, f"end {how}")      # N2: where this game's chain stopped
         self._resolve_signals("game", how)
         if _D13:
@@ -7402,7 +7424,10 @@ class Agent:
         yielded and is counted, the bound the closure itself obeys."""
         out, seen = [], set()
         close = next((a for a in self.gamma.atoms if a.name == "all"), None)
-        for o_ in self._lib_offers.get(slot, ()):
+        offers = self._lib_offers.get(slot, ())
+        if _MOLECULE_APPLY and self._mol_offers.get(slot):
+            offers = list(offers) + self._mol_offers[slot]   # r962: the same door, after them
+        for o_ in offers:
             cap.head()
             atoms = tuple(o_["term"].atoms)
             if out_t == OBJ_TYPE and atoms and atoms[-1].out_type != OBJ_TYPE and close:
@@ -7421,6 +7446,9 @@ class Agent:
             else:
                 chain = Term(atoms)
                 if cur == out_t and elem is None:
+                    if _MOLECULE_APPLY and "molecule" in o_["prov"]:
+                        self._mol_typed.add((slot, o_["term"].name))
+                        self._mol_names.setdefault(slot, {}).setdefault(chain.name, o_["prov"])
                     if chain.name not in seen:
                         seen.add(chain.name)
                         out.append(chain)
@@ -9456,6 +9484,18 @@ class Agent:
         """`pays`, and under TETHER_OPERAND_EVIDENCE (r940 B) the term's atoms noted at this slot:
         2 where it paid the bargain, 1 where it only reached it. The verdict is `pays`'s alone."""
         ok = pays(cost, left, base)
+        if _MOLECULE_APPLY:
+            prov = self._mol_names.get(slot, {}).get(Term(term.atoms).name)
+            k = prov and (slot, prov["offer"], term.operand)
+            if prov is not None and k not in self._mol_paid:
+                self._mol_paid[k] = ok          # r962 (c): the offer's verdict is pays' own
+                self.led.record(self.cycle, self._running_step, slot, "molecule_offer",
+                                molecule=prov["molecule"], bond=prov["bond"],
+                                object=prov["object"], seen=prov["seen"], left=prov["left"],
+                                right=prov["right"], operand=term.operand, term=term.name,
+                                occasions=prov["occasions"], cost=round(cost, 3),
+                                left_bits=round(left, 3), base=round(base, 3), pays=ok,
+                                reads="a settled molecule offered to the bargain; pays decides")
         if _OPERAND_EVIDENCE:
             parts = list(term.atoms) + list(getattr(getattr(term, "operand_term", None),
                                                     "atoms", ()) or ())
@@ -9576,6 +9616,8 @@ class Agent:
                     for s in (c.slot, c.operand):
                         if s and s.split(".", 1)[0] in (PH_O, PH_X) and "." in s:
                             reads.add(s.split(".", 1)[1])
+                            if _MOLECULE_APPLY:
+                                self._read_terms.setdefault(s.split(".", 1)[1], c.term)
                 elif c is not None:
                     reasons[c.reason] += 1
         if not reads:
@@ -9604,7 +9646,7 @@ class Agent:
 
     @staticmethod
     def _per_object(bond: str, left: dict, right: dict, objs: list, frames: list, bound: list,
-                    skip: tuple) -> tuple:
+                    skip: tuple, seen: list | None = None) -> tuple:
         """r940 (B): the junction tested ON EACH SHARED OBJECT -- o's left slots against o's own
         right slots, never another object's -- and the objects' verdicts read by the same rule
         as a window's occasions: True on some and False on none (or the reverse), else None."""
@@ -9625,6 +9667,8 @@ class Agent:
                                    and frames[t - 1].get(s) == frames[t].get(s) for s in others)
                                for t in range(1, len(frames))]
             v, why, kind, ev = composer.window_test(bond, av, bv, still, skip)
+            if seen is not None and v is True:
+                seen.append(o)                  # r963: the objects whose own window held it
             vs.append(v)
             whys.append(f"{o}: {why}")
             kinds.append(kind)
@@ -9640,6 +9684,155 @@ class Agent:
         if True in vs:
             return (None, f"{bond}: mixed across objects", "TEST", ev)
         return (None, whys[0], kinds[0] or "TEST", ev)
+
+    def _slot_term(self, slot: str) -> Any:
+        """r962: the term an operand slot contributes to a molecule's chain -- the term bound there,
+        else the compiled term that reads its reading, else the held atom tried or paid there."""
+        if slot in self.bound:
+            return self.gamma.library.get(self.bound[slot])
+        t = self._read_terms.get(slot.split(".", 1)[1]) if "." in slot else None
+        if t is not None:
+            return t
+        best = max(((r.get(slot, 0), n) for n, r in self._atom_ev.items() if r.get(slot)),
+                   default=None)
+        a = best and next((a for a in self.gamma.atoms if _norm_name(a.name) == best[1]), None)
+        return Term((a,)) if a else None
+
+    def _mol_flush(self) -> dict:
+        """the last pass's offers, what became of them: typed into a stream, reached pays, paid."""
+        offered = {(s, o_["term"].name) for s, os_ in self._mol_offers.items() for o_ in os_}
+        if not offered:
+            return {}
+        return {"offered": len(offered), "typed": len(self._mol_typed & offered),
+                "reached_pays": len({(s, n) for s, n, _o in self._mol_paid}),
+                "paid": sum(1 for v in self._mol_paid.values() if v),
+                "not_paid": sum(1 for v in self._mol_paid.values() if not v)}
+
+    def _molecule_pass(self) -> None:
+        """MOLECULE APPLY (the reviewer 2026-11-03 r962, r963): once per step, when the window has
+        grown, the lit molecules' junctions are tested as the bond_tests row tests them; a molecule
+        is APPLICABLE when its junction settles (exactly one bond True) on operands resolved on
+        this board, and its bond composes as a chain (grammar.json implemented_by). Per object o
+        where both operands resolve: the left operand's term, then the right's, offered at the
+        right slot on o, read from the left slot on o -- "A then B predicts B". The objects whose
+        own window held the bond come first (seen), the others after (generalised). A molecule of
+        several junctions applies when EVERY junction settles, each on its own operands, and its
+        term carries every settled bond (r966; the Operators Table: "a term that names only its
+        ingredients has recorded half of itself"): (inc → dec) → neg is the one chain
+        inc . dec . neg, at the last leaf's slot on o, read from the first leaf's."""
+        w = self._window_at if _BREAK_WINDOW else 0
+        key = (id(self.trace), w, len(self.trace))
+        if key == self._mol_key:
+            return
+        self._mol_key = key
+        t0 = time.perf_counter()
+        prev = self._mol_flush()
+        self._mol_offers, self._mol_names, self._mol_typed, self._mol_paid = {}, {}, set(), {}
+        tr = self.trace[w:] if w else self.trace
+        why: collections.Counter = collections.Counter()
+        order: list = []
+        if tr:
+            frames = [b for b, *_r in tr] + [tr[-1][2]]
+            skip = tuple(t + 1 for t, r in enumerate(tr) if str(r[1]).upper().endswith("RESET"))
+            bound = sorted(self.bound)
+            lib = _library()
+            atoms = {a.name: a for a in self.gamma.atoms}
+            sig = compile_term.signature(atoms)
+            frame_slots = set().union(*(f.keys() for f in frames))
+            impl = _bond_impl()
+
+            def alts(x):
+                return x if isinstance(x, list) else [x]
+
+            def judge(n, m):
+                """one junction -> its settled candidates [(lo, ro, objs, bond, held, occasions)],
+                or the reason it has none."""
+                ops = [self._operand(m, list(composer.leaves(s)), frame_slots, lib, atoms, sig)
+                       for s in (n.left, n.right)]
+                if any(o[0] is None for o in ops):
+                    return "an operand unresolved"
+                out, reason = [], "no shared object"
+                for lo, ro in ((a, b) for a in alts(ops[0][0]) for b in alts(ops[1][0])):
+                    objs = sorted(set(lo) & set(ro))
+                    if not objs:
+                        continue
+                    res, held = {}, {}
+                    for bond in composer.WINDOW_BONDS:
+                        held[bond] = []
+                        res[bond] = self._per_object(bond, lo, ro, objs, frames, bound, skip,
+                                                     held[bond])
+                    got, jwhy = composer.junction_verdict(res)
+                    if got is None:
+                        reason = "ambiguous" if jwhy.startswith("ambig") else "not settled"
+                    else:
+                        out.append((lo, ro, objs, got, held[got], res[got][3]["occasions"]))
+                return out or reason
+
+            def chained(b):
+                return any("chain" in x for x in impl.get(b, ()))
+            for m in composer.candidates({a.name for a in self.gamma.atoms}, partial=True):
+                cap.head()
+                juncs, stack = [], [m["node"]]
+                while stack:
+                    n = stack.pop()
+                    if isinstance(n, composer.Bonded):
+                        juncs.append(n)
+                        stack += [n.left, n.right]
+                if not juncs:
+                    continue
+                judged = [judge(n, m["molecule"]) for n in juncs]
+                bad = next((j for j in judged if isinstance(j, str)), None)
+                if bad is not None:
+                    why[bad if len(juncs) == 1 else f"a junction of several: {bad}"] += 1
+                    continue
+                inner = next((j for j in judged[1:] if not any(c[3] == "→" for c in j)), None)
+                if inner is not None:          # r966: never the leaves instead
+                    why[f"inner bond {inner[0][3]} has no term form"] += 1
+                    continue
+                top = [c for c in judged[0] if chained(c[3])]
+                if not top:
+                    b0 = judged[0][0][3]
+                    why[f"{b0}: bond has no atom (r896)" if not impl.get(b0) else
+                        f"bond {b0}: implemented_by {impl[b0][0]} not wired as a term"] += 1
+                    continue
+                leaves = [self._operand(m["molecule"], [x], frame_slots, lib, atoms, sig)[0]
+                          for x in composer.leaves(m["node"])]
+                if any(x is None for x in leaves):
+                    why["a leaf unresolved"] += 1
+                    continue
+                for _lo, _ro, objs, got, held_on, occ in top:
+                    for o in sorted(objs, key=lambda o, h=held_on: o not in h):
+                        per = [sorted({s for a in alts(x) for s in a.get(o, ())}) for x in leaves]
+                        for path in itertools.product(*per):
+                            if _BOND_DISJOINT and len(set(path)) < len(path):
+                                continue                # one slot read twice is one quantity
+                            ts = [self._slot_term(s) for s in path]
+                            if any(t is None for t in ts):
+                                why["a leaf slot has no term"] += 1
+                                continue
+                            chain = Term(tuple(a for t in ts for a in t.atoms))
+                            prov = {"molecule": m["molecule"], "bond": got, "object": o,
+                                    "seen": o in held_on, "left": path[0], "right": path[-1],
+                                    "leaves": list(path), "occasions": occ,
+                                    "junctions": len(juncs), "offer": chain.name, "entries": 1}
+                            self._mol_offers.setdefault(path[-1], []).append(
+                                {"term": chain, "operand": path[0], "prov": prov,
+                                 "offered": True, "why": "molecule"})
+                            order.append(prov)
+            for s in self._mol_offers:
+                self._mol_offers[s].sort(key=lambda o_: not o_["prov"]["seen"])
+        order.sort(key=lambda p: not p["seen"])
+        self._mol_order = order
+        self.led.record(self.cycle, self._running_step, "@molecule", "molecule_apply",
+                        frames=len(tr) + 1 if tr else 0, offers=len(order),
+                        seen=sum(p["seen"] for p in order),
+                        generalised=sum(not p["seen"] for p in order), slots=len(self._mol_offers),
+                        not_offered=dict(why.most_common()), previous=prev,
+                        sample=[{k: p[k] for k in ("molecule", "bond", "object", "seen", "left",
+                                                   "right", "offer")} for p in order[:12]],
+                        cost_ms=round((time.perf_counter() - t0) * 1000, 1),
+                        reads="settled molecules offered to the bargain, seen objects first; "
+                              "pays decides each (molecule_offer rows)")
 
     def _bond_tests(self, at: Any = None) -> None:
         """BUILD 2 item 1, RECORD ONLY (the reviewer 2026-11-03 r897, r934): every lit molecule's
@@ -18681,6 +18874,8 @@ class Agent:
 
     def _mint(self, slot: str) -> None:
         _clk0 = time.perf_counter() if _STEP_CLOCK else None   # the step clock: park rows' wall_s
+        if _MOLECULE_APPLY:
+            self._molecule_pass()           # r962: once per grown window, before any mint reads
         _priced0 = self._priced              # every candidate priced in THIS mint, trees included
         _lf_stats = {"yielded": 0, "beyond_depth": 0}   # M4 library-first, read only when ON
         self._window_info.pop(slot, None)

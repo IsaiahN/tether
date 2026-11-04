@@ -1968,6 +1968,12 @@ ARMS: dict[str, str] = {
                              "entry, each tested on its own, coinciding readings merged, the "
                              "molecule's domain first; a view with no condition is unreachable. "
                              "OFF: 'ambiguous' unreachable, 'no condition' refused. default ON",
+    "TETHER_MOLECULE_APPLY": "BUILD 2 MOLECULE APPLY (the reviewer 2026-11-03 r962, r963): once "
+                             "per grown window, a lit molecule whose junction settles on operands "
+                             "resolved on this board, its bond a chain (grammar.json "
+                             "implemented_by), is offered at the right slot per object (seen "
+                             "first, then generalised) as a library offer the one loop prices; "
+                             "molecule_apply and molecule_offer rows. OFF: no pass. default ON",
     "TETHER_BOND_DISJOINT": "BUILD 2 (the reviewer 2026-11-03 r954 2): per object each junction "
                             "operand is tested on its own slots, the shared ones removed from "
                             "both; a side left empty is None TEST 'the operands read the same "

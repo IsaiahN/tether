@@ -64,7 +64,8 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
            ("stop_read", "reprice_s"),         # 1c's per-step re-price of every open space (r361)
            ("remainder", "wall_s"),           # 1e's remainder row (r364)
            ("plan_episode", "s"),             # FIN5E P2': the planning seconds (r669 8)
-           ("muse_owed", "compute_ms"))       # MUSE_BOUND: the muse's seconds at the budget
+           ("muse_owed", "compute_ms"),       # MUSE_BOUND: the muse's seconds at the budget
+           ("molecule_apply", "cost_ms"))     # r962: the molecule pass's milliseconds
 
 
 # The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One
