@@ -1986,6 +1986,11 @@ ARMS: dict[str, str] = {
                             "slot is refused with its reason, never walked late -- its "
                             "declaration says where its warrant reaches. OFF: every mismatched "
                             "head is deferred, as L3 has it. default ON",
+    "TETHER_SEED_LIFT": "BUILD 3 (the reviewer 2026-11-04 r1126): r978's junction seed follows "
+                        "its offer -- when 8c re-files an offer at a derived slot to its single "
+                        "source, the seed moves there too (operands merged, seen OR-ed), so the "
+                        "existing seeded order walks that source first; seeds of unlifted offers "
+                        "stay, counted. OFF: the seed stays at the derived slot. default ON",
     "TETHER_DERIVED_LIFT": "BUILD 3 ITEM 8c, CUT C (the reviewer 2026-11-04 r1100, r1103): a "
                            "molecule offer at a derived slot is re-filed once at its single "
                            "source as the instrument (by Gamma's typing) over the offered chain, "

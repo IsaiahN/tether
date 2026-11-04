@@ -903,8 +903,9 @@ _THINK_OR_ACT = armflag.arm("TETHER_THINK_OR_ACT", default=True)
 _STEP_ACT = armflag.arm("TETHER_STEP_ACT", default=True)
 # B1, WHOLE MINTS PER STEP (the reviewer 2026-10-26 14:20, (b')): a mint runs as today, but once one
 # mint this step ends with its search stopped at a bound, the step's remaining MECHANISM / REFUTED
-# mints are OWED (mint_deferred) and minted first next step. The unit is the mint's own stop; no
-# constant. ON; conform/arms.py
+# mints are OWED (mint_deferred) and minted first next step -- under TETHER_OWED_REJUDGE (ON) they
+# are re-ranked by _understanding instead (r1126). The unit is the mint's own stop; no constant. ON;
+# conform/arms.py
 _STEP_MINT = armflag.arm("TETHER_STEP_MINT", default=True)
 # 40, THE NOMINAL REACH GATE (the reviewer 2026-11-01 r706, r707 (ii)): a slot whose declared type
 # is nominal (not ordered) is not minted when no residual row's new value is in reach -- the old
@@ -1239,6 +1240,10 @@ _OPERAND_VIEWS = armflag.arm("TETHER_OPERAND_VIEWS", default=True)
 # it is, counted with its reason (two sources; no instrument). Nothing is ever bet at the derived
 # slot.
 _DERIVED_LIFT = armflag.arm("TETHER_DERIVED_LIFT", default=True)
+# r1126 (the reviewer 2026-11-04): r978's junction seed follows its offer -- when 8c re-files an
+# offer at a derived slot y to its source X, the seed _mint_seeds[y] moves to X (operands merged,
+# "seen" OR-ed), so the existing seeded order puts X first. Seeds of unlifted offers stay, counted.
+_SEED_LIFT = armflag.arm("TETHER_SEED_LIFT", default=True)
 # (r946 5) A WINDOW SCORES ITS OWN BOARD: a bond_tests row at each retarget (a death, a level, a new
 # board), from the frames of the board being left, before its trace clears; the run-end row stays.
 # OFF: one row, at the run's end.
@@ -3996,6 +4001,7 @@ class Agent:
         self._mol_names: dict[str, dict] = {}    # slot -> chain name -> the offer's provenance
         self._mol_typed: set = set()             # (slot, offer) the library stream yielded
         self._mol_paid: dict = {}                # (slot, offer, operand) -> pays' verdict
+        self._mol_out: dict = {}                 # r1121 (4): offer slot -> its mint's outcome
         self._mol_key = None                     # the window the last pass read
         self._read_terms: dict = {}              # a compiled reading -> the term that reads it
         self._read_extra: set = set()            # 8a: readings whose term an extra view set
@@ -9984,7 +9990,9 @@ class Agent:
     def _mint_at(self, slot: str, b: str) -> None:
         """_mint_in_step, and at a SEEDED slot (r979) the mint's own outcome read off the rows it
         wrote there: minted, its park verdict, deferred, or no outcome row."""
-        if not (_CONTACT_SEED and slot in self._seeded_now):
+        seeded = _CONTACT_SEED and slot in self._seeded_now
+        offered = _MOLECULE_APPLY and slot in self._mol_offers   # r1121 (4): the flush's outcome
+        if not (seeded or offered):
             self._mint_in_step(slot, b)
             return
         n0 = len(self.led)
@@ -9996,7 +10004,10 @@ class Agent:
                         if r.get("event") == "park"), None)
         if got is None:
             got = next((r.get("event") for r in evs), "no outcome row")   # its own refusal row
-        self._seed_outcome[got] += 1
+        if seeded:
+            self._seed_outcome[got] += 1
+        if offered:
+            self._mol_out[slot] = got
 
     def _seed_binds(self, slot: str, binds: list) -> list:
         """r978 (b): at a seeded slot its seeded operands first among the fitting binds; one that
@@ -10010,7 +10021,12 @@ class Agent:
         offered = {(s, o_["term"].name) for s, os_ in self._mol_offers.items() for o_ in os_}
         if not offered:
             return {}
-        return {"offered": len(offered), "typed": len(self._mol_typed & offered),
+        # r1121 (4), RECORD ONLY: each offer slot the step's mint reached, and what the mint did
+        # there (minted / park: verdict / mint_deferred / ...); a slot never reached is absent
+        out = {s: self._mol_out[s] for s in sorted({s for s, _n in offered})
+               if s in self._mol_out}
+        return {**({"outcome": out} if out else {}),
+                "offered": len(offered), "typed": len(self._mol_typed & offered),
                 "at_minted_slot": sum(1 for s, _n in offered if s in self._mol_minted),
                 "reached_pays": len({(s, n) for s, n, _o in self._mol_paid}),
                 "paid": sum(1 for v in self._mol_paid.values() if v),
@@ -10036,6 +10052,7 @@ class Agent:
         t0 = time.perf_counter()
         prev = self._mol_flush()
         self._mol_offers, self._mol_names, self._mol_typed, self._mol_paid = {}, {}, set(), {}
+        self._mol_out = {}
         self._lift_branches, self._lift_n = {}, collections.Counter()
         self._mint_seeds = {}
         self._mol_minted = set()
@@ -10247,6 +10264,11 @@ class Agent:
             if inst is None:
                 self._lift_n[why] += len(self._mol_offers[y])
                 continue
+            if _SEED_LIFT and y in self._mint_seeds:
+                d_ = self._mint_seeds.setdefault(src[0], {})
+                for x_, seen in self._mint_seeds.pop(y).items():
+                    d_[x_] = d_.get(x_, False) or seen
+                self._lift_n["seed lifted"] += 1
             for o_ in self._mol_offers.pop(y):
                 prov = {**o_["prov"], "lifted_from": y, "offer": f"{inst.name}<{o_['term'].name}>"}
                 lifted.setdefault(src[0], []).append(
@@ -10257,6 +10279,10 @@ class Agent:
                 self._lift_n["lifted"] += 1
         for x, os_ in lifted.items():
             self._mol_offers.setdefault(x, []).extend(os_)
+        if _SEED_LIFT:
+            left_ = sum(1 for s in self._mint_seeds if s in der)
+            if left_:
+                self._lift_n["seed left at a derived slot"] += left_
 
     def _bond_tests(self, at: Any = None) -> None:
         """BUILD 2 item 1, RECORD ONLY (the reviewer 2026-11-03 r897, r934): every lit molecule's
@@ -19108,16 +19134,20 @@ class Agent:
     def _mint_in_step(self, slot: str, b: str) -> None:
         """B1 (TETHER_STEP_MINT; the reviewer 2026-10-26 14:20, (b')): the step's mint for `slot`;
         or, once a mint this step has parked with its search stopped at a bound, the slot OWED --
-        a mint_deferred row, minted first next step. Unreached at this budget, never a verdict."""
+        a mint_deferred row, minted first next step (re-ranked under _OWED_REJUDGE, r1126).
+        Unreached at this budget, never a verdict."""
         sm = self._sm
         if _STEP_MINT and sm is not None and sm["stop"] is not None:
             self.owed_import.add(slot)
             sm["deferred"].append(slot)
+            # r1126: under _OWED_REJUDGE an owed slot is re-ranked next step, not minted first
             self.led.record(self.cycle, "ACCEPT", slot, "mint_deferred", bin=b, owes=True,
                             after=sm["stop"],
                             reads="not minted this step: a mint this step already stopped at its "
-                                  "bound; it owes and is minted first next step -- unreached at "
-                                  "this budget, never a verdict")
+                                  "bound; it owes and is "
+                                  + ("re-ranked next step by _understanding" if _OWED_REJUDGE
+                                     else "minted first next step")
+                                  + " -- unreached at this budget, never a verdict")
             return
         if _BOARD_TRY_FIRST and self._try_first_open():
             self.owed_import.add(slot)
