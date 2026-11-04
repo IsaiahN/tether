@@ -1225,6 +1225,15 @@ _OPERAND_FAMILY = armflag.arm("TETHER_OPERAND_FAMILY", default=True)
 # other walked views' refusals are the verdict ("refused", tallied), and "unreachable: no condition"
 # is kept for an entry with no condition in ANY walked view (r1090). OFF: one role, its first side.
 _OPERAND_VIEWS = armflag.arm("TETHER_OPERAND_VIEWS", default=True)
+# BUILD 3 ITEM 8c, CUT C (the reviewer 2026-11-04 r1100, r1103; B2b read both ways, Fig 9 :53 "the
+# gap does", Fig 12 :72): a molecule offer at a DERIVED slot (env.derived(): a change reading, never
+# bet on) is RE-FILED, never copied, at its single source X when an instrument from its type to X's
+# is in Gamma's typing (a held atom reading a SAME_AS_TARGET operand that accepts X's type and
+# yields it: translate at a POSITION takes a DELTA, r1103) -- as the instrument over the offered
+# chain, X + chain(x), priced by the bargain like any tree. Every other derived offer stays where
+# it is, counted with its reason (two sources; no instrument). Nothing is ever bet at the derived
+# slot.
+_DERIVED_LIFT = armflag.arm("TETHER_DERIVED_LIFT", default=True)
 # (r946 5) A WINDOW SCORES ITS OWN BOARD: a bond_tests row at each retarget (a death, a level, a new
 # board), from the frames of the board being left, before its trace clears; the run-end row stays.
 # OFF: one row, at the run's end.
@@ -3977,6 +3986,8 @@ class Agent:
         self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
         self._mol_offers: dict[str, list] = {}   # r962: settled molecules offered at each slot
+        self._lift_branches: dict = {}            # 8c: source slot -> {operand: [lifted chains]}
+        self._lift_n: collections.Counter = collections.Counter()   # 8c: lifted / unlifted
         self._mol_names: dict[str, dict] = {}    # slot -> chain name -> the offer's provenance
         self._mol_typed: set = set()             # (slot, offer) the library stream yielded
         self._mol_paid: dict = {}                # (slot, offer, operand) -> pays' verdict
@@ -10020,6 +10031,7 @@ class Agent:
         t0 = time.perf_counter()
         prev = self._mol_flush()
         self._mol_offers, self._mol_names, self._mol_typed, self._mol_paid = {}, {}, set(), {}
+        self._lift_branches, self._lift_n = {}, collections.Counter()
         self._mint_seeds = {}
         self._mol_minted = set()
         tr = self.trace[w:] if w else self.trace
@@ -10180,6 +10192,8 @@ class Agent:
                                 {"term": chain, "operand": path[0], "prov": prov,
                                  "offered": True, "why": "molecule"})
                             order.append(prov)
+            if _DERIVED_LIFT:
+                self._lift_derived()            # 8c (r1100): a derived slot's offers to its source
             for s in self._mol_offers:
                 self._mol_offers[s].sort(key=lambda o_: (o_["prov"]["source"] != "lookup",
                                                          not o_["prov"]["seen"]))
@@ -10190,6 +10204,7 @@ class Agent:
                         seen=sum(p["seen"] for p in order),
                         generalised=sum(not p["seen"] for p in order), slots=len(self._mol_offers),
                         not_offered=dict(why.most_common()), previous=prev,
+                        **({"lift": dict(self._lift_n)} if _DERIVED_LIFT and self._lift_n else {}),
                         lookup=sum(p["source"] == "lookup" for p in order),
                         **({"lookup_vs_window": {**agree, "differ_sample": differ}}
                            if tr and (agree or differ) else {}),
@@ -10199,6 +10214,44 @@ class Agent:
                         cost_ms=round((time.perf_counter() - t0) * 1000, 1),
                         reads="settled molecules offered to the bargain, seen objects first; "
                               "pays decides each (molecule_offer rows)")
+
+    def _lift_derived(self) -> None:
+        """8c (r1100): each offer at a derived slot y is RE-FILED once at its single source X, as
+        the instrument over the offered chain (the chain held as X's operand branch for _trees);
+        the others stay at y, counted with their reason. Every offer is counted once."""
+        if not _DERIVED_LIFT:
+            return
+        der = getattr(self.env, "derived", None)
+        der = der() if der is not None else {}
+        lifted: dict = {}
+        for y in [s for s in self._mol_offers if s in der]:
+            src, yt = der[y], self.slot_types.get(y)
+            inst = None
+            if len(src) != 1:
+                why = "unlifted: two or more sources"
+            else:
+                xt = self.slot_types.get(src[0])
+                why = f"unlifted: no instrument from {yt} to {xt}"
+                if xt is not None and yt is not None:
+                    inst = next((a for a in sorted(self.gamma.atoms, key=lambda a: a.name)
+                                 if a.reads_operand and a.operand_type == G_SAME
+                                 and a.out_type in ("val", xt) and accepts_type(a, xt)
+                                 and (target_operand(a, xt) == yt if target_operand(a, xt)
+                                      else yt == xt or frozenset((xt, yt)) in COMMENSURABLE)),
+                                None)
+            if inst is None:
+                self._lift_n[why] += len(self._mol_offers[y])
+                continue
+            for o_ in self._mol_offers.pop(y):
+                prov = {**o_["prov"], "lifted_from": y, "offer": f"{inst.name}<{o_['term'].name}>"}
+                lifted.setdefault(src[0], []).append(
+                    {"term": Term((inst,)), "operand": o_["operand"], "prov": prov,
+                     "offered": True, "why": "molecule (lifted)"})
+                self._lift_branches.setdefault(src[0], {}).setdefault(
+                    o_["operand"], []).append(o_["term"])
+                self._lift_n["lifted"] += 1
+        for x, os_ in lifted.items():
+            self._mol_offers.setdefault(x, []).extend(os_)
 
     def _bond_tests(self, at: Any = None) -> None:
         """BUILD 2 item 1, RECORD ONLY (the reviewer 2026-11-03 r897, r934): every lit molecule's
@@ -10419,8 +10472,14 @@ class Agent:
         """
         if bind is None or not cand.reads_operand:
             return ()
+        branches = self._branches()
+        if _DERIVED_LIFT and target in self._lift_branches and len(cand.atoms) == 1:
+            # 8c: the chains lifted to this source for this operand join the branches
+            have = {b.name for b in branches}
+            branches = branches + tuple(b for b in self._lift_branches[target].get(bind, ())
+                                        if b.name not in have)
         trees = (Term(cand.atoms, operand=bind, guard=g, operand_term=br)
-                 for br in self._branches())
+                 for br in branches)
         return tuple(t for t in trees
                      if target is None or self._operand_fits(t, target, bind))
 

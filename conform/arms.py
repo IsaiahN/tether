@@ -1980,6 +1980,13 @@ ARMS: dict[str, str] = {
                                "point plus a point is refused for typing with its reason; every "
                                "other target keeps the 'val' rule. OFF: translate accepts 'val' "
                                "only, as before. default ON",
+    "TETHER_DERIVED_LIFT": "BUILD 3 ITEM 8c, CUT C (the reviewer 2026-11-04 r1100, r1103): a "
+                           "molecule offer at a derived slot is re-filed once at its single "
+                           "source as the instrument (by Gamma's typing) over the offered chain, "
+                           "held as that source's operand branch for _trees and priced by the "
+                           "bargain; two-source and no-instrument offers stay, counted with their "
+                           "reason; no bet at the derived slot. OFF: offers stay where filed. "
+                           "default ON",
     "TETHER_NSM_DEDUPE": "7c (a) (the reviewer 2026-11-04 r1050, r1052, r1070, r1073): nsm.log "
                           "says a slot's line only when its text differs from that slot's last "
                           "said line of the kind, across cycles, and ONE count line per (kind, "
