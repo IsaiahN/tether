@@ -73,8 +73,8 @@
    "symmetric": false,
    "means": "A with B removed or absent",
    "test": "is the second operand's absence the point? Yes.",
-   "nsm": "THERE IS NOT",
-   "nsm_note": "Isaiah 2026-11-04 08:51 (\"add the nsm equivalents\"); reviewer r1072: absence (the test: the second operand's absence is the point), the existential prime negated; NOT stays negation (falsity)",
+   "nsm": "LESS",
+   "nsm_note": "Isaiah 2026-11-04 15:48 (the reviewer r1143): LESS, the counterpart of the comparison's MORE -- − is subtraction, A with B removed (Operators Table :41-46), never a complement of NOT; replaces THERE IS NOT (r1072), which read it as absence-as-negation; NOT stays negation (falsity)",
    "note": "progress is a subtraction",
    "implemented_by": ["AGENT|subtract (v − operand on commensurable quantities, TETHER_SUBTRACT, r1142)"],
    "implemented_by_note": "the atom subtract computes A with B removed on commensurable quantities (POSITION − DELTA -> POSITION, DELTA − DELTA -> DELTA; r1142); over frames the junction is still TESTED as removal, a set difference of frame-sets (composer.holds); − as a term-forming two-operand bond is roadmap (r1052)"
