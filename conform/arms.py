@@ -1995,6 +1995,13 @@ ARMS: dict[str, str] = {
                         "source, the seed moves there too (operands merged, seen OR-ed), so the "
                         "existing seeded order walks that source first; seeds of unlifted offers "
                         "stay, counted. OFF: the seed stays at the derived slot. default ON",
+    "TETHER_ATTR_BRIDGE": "BUILD 3 ITEM 9, the A4.6 attribute bridge (the reviewer 2026-11-04 "
+                          "r1151; r793): a PERCEPT atom gains the readings its ATTRIBUTE_INDEX "
+                          "clusters name (by_cluster, hash-checked; K1's reading -> cluster table "
+                          "inverted) at weight 0.5, never over a held reading; derived only, "
+                          "nothing imported; the arm enters compile_term.signature so no compile "
+                          "made without it is served with it. OFF: the library as built. "
+                          "default ON",
     "TETHER_TWO_SLOT_OPERAND": "BUILD 3 ITEM 8b' (the reviewer 2026-11-04 r1145): an operand-"
                                "tree node slot_a − slot_b (the tree's own term names the second "
                                "slot), typed affinely, seeded ONLY from a settled junction whose "

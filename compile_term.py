@@ -34,6 +34,10 @@ SAME = gamma.SAME_AS_TARGET
 # "o0.dist_o3 < o0.dist_o3~1", away the converse. ON; reason in conform/arms.py.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
+# Build 3 item 9 (the reviewer 2026-11-04 r1151): the attribute bridge adds readings to library
+# entries, and an entry's views come from its reads, so a compile made without it must not be served
+# with it: the arm enters the signature (one cold recompile, named)
+_ATTR_BRIDGE = armflag.arm("TETHER_ATTR_BRIDGE", default=True)
 
 # (op, right side) -> (atom chain run on the target slot, operand side or None[, operand chain]).
 # right side: "zero" / "one" for a constant, "slot" for another object's same reading.
@@ -112,7 +116,8 @@ def signature(atoms: dict) -> tuple:
                         for n, a in atoms.items()
                         if n in TEMPLATE_ATOMS and gamma._TRANSLATE_AFFINE
                         and gamma.TARGET_OPERAND.get(a.fn)))
-    return (*base, rows) if rows else base
+    out = (*base, rows) if rows else base
+    return (*out, ("ATTR_BRIDGE",)) if _ATTR_BRIDGE else out
 # 7d, THE EVENT ROUTE (the reviewer 2026-10-16 11:56, 12:00; 10-11 14:17: an event is a transition,
 # carried by the change readings): a frame event is compiled onto a change reading the agent
 # ALREADY carries, on the role's subject. frame.came > 0 (some object appeared) -> {subject}.age

@@ -2311,7 +2311,51 @@ def _library():
     if root not in sys.path:
         sys.path.insert(0, root)
     import library_runtime
-    return library_runtime.Library(root).load()
+    lib = library_runtime.Library(root).load()
+    if _ATTR_BRIDGE:
+        _attr_bridge(lib)
+    return lib
+
+
+# BUILD 3 ITEM 9, THE A4.6 ATTRIBUTE BRIDGE (the reviewer 2026-11-04 r1151; r793): a PERCEPT atom
+# gains the readings its index clusters name -- ATTRIBUTE_INDEX.by_cluster (Isaiah's, hash-checked
+# by inherited.by_cluster) through K1's reading -> cluster table inverted -- at the tags' weak
+# weight 0.5, never over a reading it holds. Derived only: no corpus text, no new entry, nothing
+# imported. The signature carries the arm (compile_term), so no compile made without it is served
+# with it.
+_ATTR_BRIDGE = armflag.arm("TETHER_ATTR_BRIDGE", default=True)
+
+
+def _attr_bridge(lib) -> None:
+    bc, why = inherited.by_cluster()
+    n: collections.Counter = collections.Counter()
+    if not bc:
+        lib.attr_bridge = {"skipped": why}
+        return
+    inv: dict = collections.defaultdict(set)
+    for r, cs in inherited.READING_CLUSTER.items():
+        for c in cs:
+            inv[c].add(r)
+    gained = set()
+    for c, keys in sorted(bc.items()):
+        reads = sorted(r for r in inv.get(c, ()) if r in lib.readings)
+        if not reads:
+            n[f"cluster with no reading: {c}"] += len(keys)
+            continue
+        for k in keys:
+            e = lib.get(k)
+            if not e or e.get("kind") != "PERCEPT":
+                continue
+            w = e.setdefault("reads_weight", dict.fromkeys(e.get("reads") or [], 1.0))
+            for r in reads:
+                if r not in w:
+                    w[r] = 0.5
+                    e.setdefault("reads", []).append(r)
+                    lib.by_reading[r].append((k, 0.5))
+                    n["readings added"] += 1
+                    gained.add(k)
+    n["atoms gaining"] = len(gained)
+    lib.attr_bridge = dict(n)
 
 
 def _ph_sub(s: Any, o: str, x: str) -> Any:
