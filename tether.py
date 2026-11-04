@@ -1057,6 +1057,20 @@ TOPK_K = 32
 # unjudged window. Cleared on a level or game reset; a changed description is a new key. OFF: the
 # offset alone, as SERP has it.
 _SERP_CACHE = armflag.arm("TETHER_SERP_CACHE", default=True)
+# BUILD 3 item 10, THE BACK-OFF (the reviewer 2026-11-04 r1045; Fig 8 :39 "a search that finds
+# nothing is never a proof of absence"): a window that keeps 0 is followed, in the same ask, by
+# the next ranked window until one keeps > 0, the list ends, or the step's budget is spent. The
+# description key moves between asks (delta sign, contact, target order), so an owed window left
+# for the next ask was never reached: gridworld asked the same first 32 of 1716 six times. OFF:
+# one window per ask, as before.
+_WINDOW_BACKOFF = armflag.arm("TETHER_WINDOW_BACKOFF", default=True)
+# BUILD 3 item 10 (b), THE NO-FIT SET KEYED BY WHAT THE JUDGMENT READS (the reviewer 2026-11-04
+# r1053; Fig 12 :104-108 "where the arrangement is recorded, re-deriving it is a lookup"): an
+# entry outside the head tiers fits iff its held views read an asked reading or come through an
+# event route (_described_lit), a function of (signature, entry, reads) alone, so the set is
+# keyed by (signature, reads) and kept past the list's end; a head entry of THIS ask is never
+# skipped, since the head is kept as it stands. OFF: keyed by the whole description.
+_NOFIT_BY_READS = armflag.arm("TETHER_NOFIT_BY_READS", default=True)
 
 
 _POSTING: dict = {}
@@ -3955,7 +3969,7 @@ class Agent:
         self._dl_missed: dict = {}         # 20: a described key with no offer -> its miss's cycle
         self._tk_off: dict = {}            # TK: a described key -> where its next window starts
         self._tk_nofit: dict = {}          # S3: a key -> entries its windows judged no-fit
-        self._tk_win: tuple = (None, ())   # S3: the last window taken (its key, its entries)
+        self._tk_win: tuple = (None, (), None)   # S3: the last window (key, entries, no-fit key)
         self._dl_owed = False              # 20: this lookup was due from the owed queue
         self._dl_n: Counter = Counter()    # 20: this step's described-lookup counts
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
@@ -6128,8 +6142,16 @@ class Agent:
                 # the cheap rank and the cut first; the held-index filter then reads the window only
                 head = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c", "T2"))
                 head_keys = frozenset(k for k, _w in lit[:head])
-                lit, tk_next = self._topk(lit, lit, tiers, att, tg, dl_key)
+                full = lit
+                lit, tk_next = self._topk(full, full, tiers, att, tg, dl_key)
                 lit = self._described_lit(lib, lit, tiers, att, tg, head_keys)
+                while (_WINDOW_BACKOFF and not lit and tk_next is not None
+                       and not (_STEP_BUDGET and self._spent >= STEP_BUDGET)):
+                    cap.head()
+                    self._tk_after(dl_key, tk_next)
+                    self._dl_n["backoff"] += 1
+                    lit, tk_next = self._topk(full, full, tiers, att, tg, dl_key)
+                    lit = self._described_lit(lib, lit, tiers, att, tg, head_keys)
             else:
                 lit = self._described_lit(lib, lit, tiers, att, tg)
             self._dl_n["asked"] += 1
@@ -6137,7 +6159,8 @@ class Agent:
             self._dl_n["kept"] += len(lit)
             if not lit:
                 if self._tk_after(dl_key, tk_next):
-                    self._dl_miss(dl_key, tiers, 0, n_lit)
+                    # under the back-off the list's end was reached by asking it: all judged
+                    self._dl_miss(dl_key, tiers, *((n_lit, 0) if _WINDOW_BACKOFF else (0, n_lit)))
                 return
             dl_cut = n_lit - len(lit)
         if not lit:
@@ -6334,15 +6357,23 @@ class Agent:
                                                 -len(post.get(e[0], frozenset()) & reads)))
         if _SERP_CACHE:
             # S3: what this key already judged no-fit is skipped; the window is the next unjudged
-            seen = self._tk_nofit.get(key, ())
-            ranked = [e for e in ranked if e[0] not in seen]
+            nk = key
+            hk: frozenset = frozenset()
+            if _NOFIT_BY_READS:
+                nk = (compile_term.signature({a.name: a for a in self.gamma.atoms}),
+                      frozenset(reads))
+                head = sum(tiers.get(t, 0) for t in ("T1a", "T1b", "T1c", "T2"))
+                hk = frozenset(k for k, _w in full[:head])
+            seen = self._tk_nofit.get(nk, ())
+            ranked = [e for e in ranked if e[0] not in seen or e[0] in hk]
             self._tk_off.pop(key, None)
         off = self._tk_off.get(key, 0)
         if off >= len(ranked):
             off = 0
         self._dl_n["topk_cut"] += len(ranked) - min(TOPK_K, len(ranked) - off)
         nxt = off + TOPK_K
-        self._tk_win = (key, tuple(k for k, _w in ranked[off:nxt]))
+        self._tk_win = (key, tuple(k for k, _w in ranked[off:nxt]),
+                        nk if _SERP_CACHE else None)
         return ranked[off:nxt], (nxt if nxt < len(ranked) else None)
 
     def _tk_after(self, key: tuple, nxt: int | None) -> bool:
@@ -6351,7 +6382,7 @@ class Agent:
         end the offset resets and the miss is recorded as before (True)."""
         if _SERP_CACHE and self._tk_win[0] == key:
             # S3: the window offered nothing -- every entry in it is judged no-fit under this key
-            self._tk_nofit.setdefault(key, set()).update(self._tk_win[1])
+            self._tk_nofit.setdefault(self._tk_win[2], set()).update(self._tk_win[1])
         if nxt is not None:
             if not _SERP_CACHE:
                 self._tk_off[key] = nxt
@@ -6360,7 +6391,8 @@ class Agent:
                              f"a window of {TOPK_K} offered nothing; the next is asked, no verdict")
             return False
         self._tk_off.pop(key, None)
-        self._tk_nofit.pop(key, None)
+        if not _NOFIT_BY_READS:
+            self._tk_nofit.pop(key, None)
         return True
 
     def _described_lit(self, lib: Any, lit: list, tiers: dict, att: dict, tg: tuple,

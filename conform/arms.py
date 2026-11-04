@@ -2260,6 +2260,17 @@ ARMS: dict[str, str] = {
                       "says its key rows aloud, one line per event kind per cycle (more counted), "
                       "copied to narrate.log, and each game's 'stopped at link X'. Writes nothing "
                       "back: the ledger is the same OFF. default ON",
+    "TETHER_WINDOW_BACKOFF": "BUILD 3 item 10 (the reviewer 2026-11-04 r1045; Fig 8 :39): a "
+                             "described-lookup window that keeps 0 is followed in the same ask "
+                             "by the next ranked window until one keeps > 0, the list ends or "
+                             "the step budget is spent; the description key moves between "
+                             "asks, so an owed window was never reached. OFF: one window per "
+                             "ask. default ON",
+    "TETHER_NOFIT_BY_READS": "BUILD 3 item 10 (b) (the reviewer 2026-11-04 r1053; Fig 12 "
+                             ":104-108): the SERP no-fit set keyed by (signature, the asked "
+                             "readings), what the fit judgment reads, and kept past the list's "
+                             "end; this ask's head entries are never skipped. OFF: keyed by the "
+                             "whole description and dropped at its end. default ON",
     "TETHER_SERP_CACHE": "S3 (the reviewer 2026-11-02 r816): under SERP, a description key "
                          "remembers the entries its windows offered nothing from this life and "
                          "its next ask skips them (the next unjudged window); cleared on a level "
