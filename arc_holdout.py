@@ -244,7 +244,8 @@ def wire_agent(env, game: str, cfg: Any, led, library: str | None, lineage_dir: 
     # 4 widens the whole ARC search, not only the folds, and the run that would price it is
     # still prohibited.
     if cfg is None:
-        cfg = tether.Config(max_depth=4, work_budget=ARC_WORK_BUDGET)
+        cfg = tether.Config(max_depth=4, work_budget=ARC_WORK_BUDGET,
+                            budget=ARC_CLOSURE_BUDGET)
     # THE AGENT IS NEVER TOLD A GAME'S NAME, in any mode (Isaiah 2026-10-25 07:16: "it might try to
     # match the learning to the game and i need the learning to transfer across games"); one
     # constant, the stream's, so every mode writes the same scope. `game` stays the harness's.
@@ -452,6 +453,9 @@ def save_only(ag: Any, out_dir: str | None, game: str, led_path: str | None) -> 
 # 15000 restores the old pacing (317879c). MAGIC: a seat-authored constant (Fig 10 :48),
 # replaced post-submission by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 ARC_WORK_BUDGET = int(os.environ.get("TETHER_WORK_BUDGET_N", "5000"))
+# THE WALK'S YIELD BUDGET ON THE ARC PATH (the reviewer 2026-11-04 r1025 2): Config's own default,
+# 4000, made settable so a same-memory A/B can let the closure enumerate to depth. A VALUE.
+ARC_CLOSURE_BUDGET = int(os.environ.get("TETHER_CLOSURE_BUDGET_N", "4000"))
 # What Gamma is told the game is, for every game and every mode: the stream's constant
 # (harness/mem_store/e4_stream.py wires under "stream"). Isaiah 2026-10-25 07:16.
 AGENT_GAME = "stream"

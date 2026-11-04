@@ -2105,7 +2105,8 @@ class Gamma:
 
     def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
                           stats: dict | None = None,
-                          order: Callable[[Term], float] | None = None) -> Iterator[Term]:
+                          order: Callable[[Term], float] | None = None,
+                          prune: Callable[[tuple], bool] | None = None) -> Iterator[Term]:
         """Type-valid pipelines over UNITS, shortest first, capped by budget.
 
         Yielding a term is a WITNESS that it is reachable. Stopping is one of two facts and
@@ -2148,6 +2149,13 @@ class Gamma:
         while frontier and depth <= max_depth:
             nxt: list[tuple] = []
             for chain, cur, elem in frontier:
+                # TETHER_PREFIX_PRUNE (the caller's): a chain whose cost alone already reaches
+                # what it must explain is neither yielded nor extended -- an extension never costs
+                # less -- and is not counted against the budget
+                if prune is not None and prune(chain):
+                    if stats is not None:
+                        stats["pruned"] = stats.get("pruned", 0) + 1
+                    continue
                 # AN UNCLOSED ITERATION IS NOT A TERM. Its value is a `Cells`, whatever the
                 # last atom's `out_type` says -- so it may only be emitted once a reducer has
                 # closed it, which is exactly `elem is None`.

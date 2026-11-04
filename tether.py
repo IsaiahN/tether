@@ -1439,6 +1439,14 @@ _LOOKUP_FOLD = armflag.arm("TETHER_LOOKUP_FOLD", default=True)
 # once per mint; the bind list per pass once; the operand-typed bind list once per candidate
 # typing signature. Same values, same order, same books. OFF: per candidate, as before.
 _MINT_HOIST = armflag.arm("TETHER_MINT_HOIST", default=True)
+# THE WALK SPENDS ITS BUDGET ONLY ON CHAINS THAT CAN STILL PAY (the reviewer 2026-11-04 r1010 3,
+# r1012 4; Fig 8 :41-42 "more search, not another atom"): pays needs cost + left < base and
+# left >= 0, so a chain whose cost ALONE with the cheapest guard already reaches base can never
+# pay, nor can any extension (the code length only grows). The mint hands enumerate_closure that
+# test; such a chain is not yielded, not extended and not counted against the walk's budget, and
+# the walk's budget reaches further. Counted in cut_counts as "pruned at the prefix: not
+# generated". OFF: every chain is walked and cut after, as before.
+_PREFIX_PRUNE = armflag.arm("TETHER_PREFIX_PRUNE", default=True)
 LOOKUP_HELD_KEYS = ("molecule", "left", "right", "left_reading", "right_reading", "held", "via",
                     "occasions")
 # G1, RELATIONAL WANTS PER EVENT (the reviewer 2026-10-17 15:30, 23:04, 23:17): since E0b a derived
@@ -19448,6 +19456,17 @@ class Agent:
             # with their no-evidence lags. One round otherwise, so OFF is the old loop exactly.
             _rec2: dict = {}
             _lf_of: dict = {}
+            _pg: list = []                       # TETHER_PREFIX_PRUNE: the cheapest guard bits
+
+            def _prune(atoms: tuple) -> bool:
+                if not _pg:
+                    _gs0 = self._guards_once(robs, slot, operand_binds)
+                    _pg.append(min(_guard_bits(g, len(_gs0[1]) - 1, len(_gs0[2]))
+                                   for g in _gs0[1]))
+                    self._hold_eligible -= _gs0[3]    # the probe books no hold occasion
+                    self._hold_withheld -= _gs0[4]
+                return self._bits((Term(atoms), _units)) + _pg[0] >= base
+
             _hz_pass: dict = {}                  # TETHER_MINT_HOIST: fixed for this mint
             _hz_fit: dict = {}
             _hz_g = None
@@ -19484,7 +19503,8 @@ class Agent:
                 _lf_of[_si] = _lf_names          # CREDIT: a library chain took no yield
                 _lf_seen.update(tuple(a.name for a in c.atoms) for c in _lf)
                 _clo = (c for c in self.gamma.enumerate_closure(
-                            in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit)
+                            in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit,
+                            prune=_prune if _PREFIX_PRUNE and robs else None)
                         if c.name not in _lf_names)
                 _stream = (_merge_by_depth(_lf, _clo, _lf_ev, f"{self.cycle}:{slot}:library:{_si}",
                                            self.draw_seed)
@@ -19507,6 +19527,8 @@ class Agent:
             def _stop(_s, _open, _live):
                 _live.remove(_s)
                 _st = _open[_s][1]
+                if _st.get("pruned"):
+                    cut_n["pruned at the prefix: not generated"] += _st.pop("pruned")
                 stats["seen"] += _st["seen"]
                 stats["estimate"] += _st["estimate"]
                 stats["budget_spent"] = stats["budget_spent"] or _st["budget_spent"]

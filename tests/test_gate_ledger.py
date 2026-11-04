@@ -216,9 +216,11 @@ def main() -> int:
             # B1, and B1's labels are checked by G2 with B1 ON (the reviewer 2026-10-26 r250)
             # AND THE THREE r726 ARMS (r736): C1 keeps System 0 pressing each untried action and
             # TRY_FIRST owes the mint until each is pressed, so the sweep falls later still; G2
-            # checks their rows with them ON
+            # checks their rows with them ON. AND TETHER_PREFIX_PRUNE (r1025): the walk's budget
+            # reaches other chains, so the sweep falls outside the 11 steps; the label does not
+            # depend on it, and G2 checks its rows with it ON
             c5 = ("_PREV_OFFER", "_CARRY_PRICE", "_BUDGET_GENERATED", "_STEP_MINT",
-                  "_BOARD_TRY_FIRST", "_TOUCH_EACH_OBJECT")
+                  "_BOARD_TRY_FIRST", "_TOUCH_EACH_OBJECT", "_PREFIX_PRUNE")
             c5_was = {f: getattr(tether, f) for f in c5}
             for f in c5:
                 setattr(tether, f, False)

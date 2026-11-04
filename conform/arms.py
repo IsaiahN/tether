@@ -2448,7 +2448,14 @@ ARMS: dict[str, str] = {
                            "stated once -- its cost plus each member's binding and leftover -- "
                            "and admitted below the covered members' joint price; guarded chains "
                            "are not priced shared yet. OFF: gate-only. default ON",
-    "TETHER_MINT_HOIST": "the reviewer 2026-11-04 r1012 2 (the ls20 self-time profile, c3/c4: "
+    "TETHER_PREFIX_PRUNE": "the reviewer 2026-11-04 r1010 3, r1012 4, r1023 3 (Fig 8 :41-42): "
+                           "the mint hands enumerate_closure the test 'cost alone with the "
+                           "cheapest guard reaches base'; such a chain can never pay nor can an "
+                           "extension, so it is not yielded, extended or counted against the "
+                           "walk's budget, which reaches further (behavioural by design); counted "
+                           "'pruned at the prefix: not generated'. OFF: walked and cut after. "
+                           "default ON",
+    "TETHER_MINT_HOIST":"the reviewer 2026-11-04 r1012 2 (the ls20 self-time profile, c3/c4: "
                          "_operand_fits 14.9M calls, _guard_refs 34,637, _round_of 44.8M, "
                          "_separates 2.29M in a 306 s mint, all fixed for the mint): the guard "
                          "offer, the separating refs and the per-pass bind list once per mint; "
@@ -2861,6 +2868,11 @@ VALUES = {"TETHER_PIPELINE_DEEP": "a WINDOW of cycles, 'c<a>-c<b>', for the pipe
                                   "K-W, the per-step lookup budget tether.STEP_BUDGET "
                                   "(default 50,000, Isaiah 2026-10-21 18:58; 1000000 restores "
                                   "the old pacing); never on/off",
+          "TETHER_CLOSURE_BUDGET_N": "a COUNT: the ARC path's closure-walk yield budget "
+                                     "(arc_holdout.ARC_CLOSURE_BUDGET, default 4000 = "
+                                     "Config.budget); "
+                                     "the reviewer 2026-11-04 r1025 2, for the ample-budget "
+                                     "A/B; never on/off",
           "TETHER_WORK_BUDGET_N": "a COUNT, MAGIC (an interim constant authored by the seats, Fig "
                                   "10 :48; B1-B5 replaces it after the competition entry): "
                                   "K-M, the ARC path's mint work budget "
