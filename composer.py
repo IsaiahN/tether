@@ -39,6 +39,7 @@ import re
 import sys
 from dataclasses import dataclass
 
+import armflag
 import cap
 import inherited
 
@@ -279,6 +280,120 @@ def settle(bond: str, left: object, right: object, delta: dict) -> tuple:
     if not have:
         return (None, NEEDS[bond])
     return (None, f"{NEEDS[bond]} -- present but no test is written yet")
+
+
+# BUILD 2 item 1, THE BOND TESTS OVER A WINDOW (the reviewer 2026-11-03 r897; the Operators Table's
+# tests): each reads two operands' values over the agent's own frames -- an operand is the slots
+# its ingredients are bound to, a frame's value the tuple of those slots' values -- asked only on
+# the test's own occasions, and decides ONLY where the window discriminates: True on some occasion
+# and False on none, or the reverse; mixed evidence, no occasion, or a window that cannot separate
+# the readings is None with its reason, tagged FIELD (no operand or quantity) or TEST (this window
+# cannot decide it). ⋛ and ∥ need the RESULT (UNDECIDED_HERE); ≡ is the library's (ruling 4). OFF:
+# settle as before, None for every bond.
+_BOND_TEST = armflag.arm("TETHER_BOND_TEST", default=True)
+WINDOW_BONDS = ("+", "→", "⇒", "−", "⋛", "∥")
+
+
+def leaves(node: object) -> list:
+    """The ingredient names under a junction operand, left to right."""
+    if isinstance(node, Bonded):
+        return leaves(node.left) + leaves(node.right)
+    return [getattr(node, "name", node)]
+
+
+def _series(vals: list) -> tuple[list, list, list]:
+    """Per frame: changed (None where unreadable), present (a slot holds a value), came."""
+    ch, pr, came = [None], [], [False]
+    for t, v in enumerate(vals):
+        pr.append(any(x is not None for x in v))
+        if t:
+            u = vals[t - 1]
+            known = [(a, b) for a, b in zip(u, v, strict=True) if a is not None and b is not None]
+            ch.append(None if not known else any(a != b for a, b in known))
+            came.append(any(a is None and b is not None for a, b in zip(u, v, strict=True)))
+    return ch, pr, came
+
+
+def window_test(bond: str, a_vals: list, b_vals: list, still: list | None = None,
+                skip: tuple = ()) -> tuple:
+    """`(verdict, why, kind, evidence)` for `A bond B` over a window: `a_vals` / `b_vals` hold, per
+    frame, the tuple of the operand's slot values (None where absent); kind is "" when decided.
+    `still[t]`: some OTHER bound slot of the board did not change at frame t (r934 a); `skip`:
+    frames that are no occasion (a reset). evidence: the occasions, the deciding frames, and for
+    + / → the specific ones among them."""
+    ev = {"occasions": 0, "deciding": [], "specific": []}
+    if bond in UNDECIDED_HERE:
+        return (None, f"{bond}: settled {UNDECIDED_HERE[bond]}", "TEST", ev)
+    if bond not in ("+", "→", "⇒", "−"):
+        return (None, f"{bond!r} has no window test", "TEST", ev)
+    if not a_vals or len(a_vals) != len(b_vals) or len(a_vals) < 2:
+        return (None, "a window of fewer than two frames", "FIELD", ev)
+    ca, pa, _ka = _series(a_vals)
+    cb, pb, kb = _series(b_vals)
+    if a_vals == b_vals:
+        return (None, "the operands read the same values: the window cannot separate them",
+                "TEST", ev)
+    seen: list = []
+    frames = [t for t in range(1, len(a_vals)) if t not in skip]
+    if bond == "+":
+        for t in frames:
+            if ca[t] is True or cb[t] is True:
+                seen.append((t, None if ca[t] is None or cb[t] is None else ca[t] and cb[t]))
+    elif bond == "→":
+        if ca == cb:
+            return (None, "A and B only move together: + and → are not separable here", "TEST",
+                    ev)
+        for t in frames:
+            if cb[t] is True:
+                before = [ca[s] for s in range(1, t) if s not in skip]
+                seen.append((t, True if True in before else (None if None in before else False)))
+    elif bond == "⇒":
+        if True not in kb:
+            return (None, "came -- B never comes (null->value) in the window", "FIELD", ev)
+        first_a = next((t for t in frames if ca[t] is True), None)
+        for t in frames:
+            if kb[t]:
+                if first_a is None or first_a > t:
+                    seen.append((t, False))   # B came with A not yet fired: A did not produce it
+                else:
+                    seen.append((t, not any(pb[:first_a])))
+    else:                                            # −
+        if all(pb):
+            return (None, "gone -- B is never absent in the window, so absence cannot be the "
+                          "point", "TEST", ev)
+        for t in frames:
+            if ca[t] is True:
+                seen.append((t, not pb[t]))
+    vals = [v for _t, v in seen]
+    ev["occasions"] = len(seen)
+    if not seen:
+        return (None, f"{bond}: no occasion in the window", "TEST", ev)
+    if True in vals and False in vals:
+        return (None, f"{bond}: mixed ({vals.count(True)} for, {vals.count(False)} against)",
+                "TEST", ev)
+    if True not in vals and False not in vals:
+        return (None, f"{bond}: every occasion unreadable", "TEST", ev)
+    verdict = True in vals
+    ev["deciding"] = [t for t, v in seen if v is verdict]
+    if bond in ("+", "→"):
+        ev["specific"] = [t for t in ev["deciding"] if still is not None and still[t]]
+        if not ev["specific"]:
+            return (None, f"{bond}: not specific -- on every deciding frame every other bound "
+                          f"slot changed too", "TEST", ev)
+    n = len(ev["deciding"])
+    return (verdict, f"{bond}: {n} occasions {'for' if verdict else 'against'}, none the other way",
+            "", ev)
+
+
+def junction_verdict(results: dict) -> tuple:
+    """(the bond, why) when exactly one bond reads True for a junction; (None, why) otherwise --
+    two or more True is AMBIGUOUS and the junction stays UNKNOWN, never one picked (r934 b)."""
+    trues = [b for b, r in results.items() if r[0] is True]
+    if len(trues) == 1:
+        return (trues[0], f"settled: {trues[0]}")
+    if trues:
+        return (None, "ambiguous: " + ", ".join(trues))
+    return (None, "no bond decided")
 
 
 def bond_field(bond: str) -> str:

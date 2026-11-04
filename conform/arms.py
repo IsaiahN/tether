@@ -1945,6 +1945,13 @@ ARMS: dict[str, str] = {
                          "a value below its view's under rule 3 is contested and not taken; the "
                          "store's branched path and a branched archive load read the fold's cells. "
                          "OFF: save order, as before. default ON",
+    "TETHER_BOND_TEST": "BUILD 2 item 1, THE BOND TESTS OVER A WINDOW (the reviewer 2026-11-03 "
+                        "r897, r934): composer.window_test reads two junction operands' slot "
+                        "values over the agent's own frames (+, →, ⇒, − on their own occasions; ⋛ "
+                        "and ∥ need the result; ≡ the library's); it decides only where the "
+                        "window discriminates, + and → only with a specific frame, a reset is no "
+                        "occasion, two True bonds are ambiguous; RECORD ONLY: one bond_tests row "
+                        "at the run's end, read by nothing. OFF: no row. default ON",
     "TETHER_CONTINUE_WAL":"(7) the store CONTINUE's WAL bound (Build 1; REPORT FIN5E section 8, "
                            "2.14 GB "
                            "on 2026-11-03): after each continued save above WAL_BOUND_BYTES, a "
