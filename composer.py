@@ -432,6 +432,9 @@ def holds(bond: str, a: list, b: list) -> tuple:
         elif bond == "∥":                      # either suffices; not both required
             v = True if x is True or y is True else (False if x is False and y is False else None)
         elif bond == "−":                      # A with B removed or absent
+            # r1142: removal -- the frames where A held with B's frames taken out, a set
+            # difference of frame-sets (Operators Table :43), NOT negation (:73); _not is how
+            # "taken out" is computed pointwise, never ¬'s refusal of a claim
             v = _and(x, _not(y))
         elif bond == "→":                      # A then B; B needs A to have happened
             v = False if y is False else (None if y is None else (True if seen_a else None if

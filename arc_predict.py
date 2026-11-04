@@ -56,10 +56,19 @@ from __future__ import annotations
 
 import sys
 
+import armflag
 from gamma import SAME_AS_TARGET, Atom, Ctx, declare_target_operand
 from sensors import COLOUR, DELTA, POSITION
 
 sys.dont_write_bytecode = True
+
+# r1142 (the reviewer 2026-11-04, on Isaiah's 15:31 correction): − is subtraction, "A with B removed
+# or absent" (Operators Table :41-46), never ¬. Its atom `subtract` (v − operand) joins the set,
+# typed per target like translate (POSITION − DELTA -> POSITION; DELTA − DELTA -> DELTA).
+_SUBTRACT = armflag.arm("TETHER_SUBTRACT", default=True)
+# the predict atoms that exist only under their arm: arc_atoms reads an OFF one as gated (F498's
+# rule for attribute atoms), never as an admission for a thing never built
+GATED = {"subtract": _SUBTRACT}
 
 
 def _idn(v: int, _c: Ctx) -> int:
@@ -79,6 +88,11 @@ def _idn(v: int, _c: Ctx) -> int:
 def _translate(v: int, c: Ctx) -> int:
     """`v + operand`. The displacement is another slot's value, never a constant here."""
     return v + c.operands[0] if c.operands else v
+
+
+def _subtract(v: int, c: Ctx) -> int:
+    """`v − operand`: A with B removed (Operators Table :43), on commensurable quantities only."""
+    return v - c.operands[0] if c.operands else v
 
 
 def _recolour(v: int, c: Ctx) -> int:
@@ -126,12 +140,20 @@ def predict() -> list[Atom]:
     # r1103: at a POSITION target the operand is a DELTA only -- a point plus a displacement
     # (gamma.TARGET_OPERAND, under TETHER_TRANSLATE_AFFINE); off the Atom, so its token holds
     declare_target_operand(translate, {POSITION: DELTA})
-    return [Atom("idn", _idn, "val", "val"),                       # reads nothing
-            translate,
-            # `v -> operand` puts the operand IN the slot, so it must be a colour whatever
-            # the target is. THIS IS THE DEFECT'S OWN SITE: `idn . recolour<o11.h>`.
-            Atom("recolour", _recolour, "val", "val", reads_operand=True,
-                 operand_type=COLOUR, reads_ctx=("operands",))]
+    out = [Atom("idn", _idn, "val", "val"),                        # reads nothing
+           translate,
+           # `v -> operand` puts the operand IN the slot, so it must be a colour whatever
+           # the target is. THIS IS THE DEFECT'S OWN SITE: `idn . recolour<o11.h>`.
+           Atom("recolour", _recolour, "val", "val", reads_operand=True,
+                operand_type=COLOUR, reads_ctx=("operands",))]
+    if _SUBTRACT:
+        # r1142: − wired as subtraction, translate's dual -- a point less a displacement is a
+        # point, a displacement less a displacement is a displacement (affine; r1103)
+        subtract = Atom("subtract", _subtract, "val", "val", reads_operand=True,
+                        operand_type=SAME_AS_TARGET, reads_ctx=("operands",))
+        declare_target_operand(subtract, {POSITION: DELTA, DELTA: DELTA})
+        out.append(subtract)
+    return out
 
 
 def unexpressible() -> dict[str, str]:

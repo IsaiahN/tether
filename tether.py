@@ -1290,9 +1290,14 @@ def _mol_junctions() -> dict:
 
 @cache
 def _bond_impl() -> dict:
-    """each bond's implemented_by, read from grammar.json's operators table through the door."""
-    return {k: list(v.get("implemented_by") or ())
+    """each bond's implemented_by, read from grammar.json's operators table through the door;
+    the subtract atom's entry (r1142) only while its arm is on, so OFF reads as before."""
+    return {k: [x for x in (v.get("implemented_by") or ())
+                if _SUBTRACT_ATOM or "TETHER_SUBTRACT" not in x]
             for k, v in (door.grammar().get("operators") or {}).items()}
+
+
+_SUBTRACT_ATOM = armflag.arm("TETHER_SUBTRACT", default=True)   # arc_predict's arm, read here
 _7H_SHOWN = armflag.arm("TETHER_7H_SHOWN", default=True)
 _7H_ROOT = armflag.arm("TETHER_7H_ROOT", default=True)
 # 7j (the reviewer 2026-10-15 17:32, 20:27): a choice made to test a held hypothesis -- the goal
@@ -19008,8 +19013,9 @@ class Agent:
             # a point plus a displacement, never a point plus a point; no COMMENSURABLE widening
             ok = got is None or got == exact
             if not ok:
-                self.__dict__.setdefault("_affine_refused", collections.Counter())[
-                    f"{self.slot_types.get(target)} + {got}: the target takes {exact} only"] += 1
+                sym = "−" if cand.atoms[0].name == "subtract" else "+"     # r1142: its own op
+                why = f"{self.slot_types.get(target)} {sym} {got}: the target takes {exact} only"
+                self.__dict__.setdefault("_affine_refused", collections.Counter())[why] += 1
             return ok
         if want == G_SAME:
             want = self.slot_types.get(target)

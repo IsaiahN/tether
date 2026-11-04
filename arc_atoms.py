@@ -297,6 +297,11 @@ ADMITTED = {
              "reading be used where a predicate is wanted. Ruled by the reviewer 2026-10-08 "
              "23:54Z over blanket widening: +183,415 rows for x1.02-1.04 search, against "
              "+139,293 for x1.11-1.18",
+    "subtract": "handed-2026-11-04: the Tether's own bond, wired -- − is subtraction, A with B "
+                "removed (Operators Table :41-46; Isaiah 15:31, the reviewer r1141, r1142), and "
+                "grammar.json held it with no executable form; translate's dual, v less an "
+                "operand, typed per target (TETHER_SUBTRACT). No chain of the held atoms yields "
+                "it: none negates a DELTA (the 8b typing check, r1138)",
     "touches": "handed-2026-10-08: the agent's own machinery named the gap -- 171,809 library "
                "compile refusals name a missing pairwise atom (compile_census, M3); contact is "
                "a core prior (objects interact by contact); a human arrives holding it. "
@@ -1194,6 +1199,7 @@ _W_CELL = "reads a cell collection, not the slot's value"
 VALUE_TURNS = {
     "idn": ("identity", "returns its input"),
     "translate": ("walk", "v plus an operand: a later comparison turns at a shifted value"),
+    "subtract": ("walk", "v less an operand: a later comparison turns at a shifted value"),
     "recolour": ("walk", "takes the operand's value, not decided by the input's pieces"),
     "owner": ("walk", "reads ctx.obj and returns an object"),
     "rotate": ("walk", _W_SHAPE), "reflect": ("walk", _W_SHAPE), "holes": ("walk", _W_SHAPE),
@@ -1280,8 +1286,10 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
             f"a thing in and that cannot be rebuilt afterwards.")
     # AN ATTRIBUTE ATOM WHOSE ARM IS OFF IS GATED, NOT PHANTOM (F498): it is declared and built
     # whenever its arm publishes it. A name with no construction anywhere still fires here.
+    import arc_predict  # the predict set's own arm-gated atoms (subtract, r1142)
     phantom = sorted(n for n in _admitted if n not in seen
-                     and not (n in ATTRIBUTE_TYPE and n in ATTRIBUTE_ARM and not _published(n)))
+                     and not (n in ATTRIBUTE_TYPE and n in ATTRIBUTE_ARM and not _published(n))
+                     and arc_predict.GATED.get(n, True))
     if phantom:
         raise ValueError(
             f"`ADMITTED` names atoms that were never built: {phantom}. `inside` sat here for "

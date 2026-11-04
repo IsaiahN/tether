@@ -1991,6 +1991,11 @@ ARMS: dict[str, str] = {
                         "source, the seed moves there too (operands merged, seen OR-ed), so the "
                         "existing seeded order walks that source first; seeds of unlifted offers "
                         "stay, counted. OFF: the seed stays at the derived slot. default ON",
+    "TETHER_SUBTRACT": "BUILD 3 ITEM 8b' (the reviewer 2026-11-04 r1141, r1142; Isaiah 15:31: "
+                       "− is subtraction): the atom subtract, v − operand, joins ARC's atoms, "
+                       "typed per target like translate (POSITION − DELTA -> POSITION, DELTA − "
+                       "DELTA -> DELTA; anything else refused); grammar.json's − implemented_by "
+                       "names it. OFF: no such atom, and the entry is not read. default ON",
     "TETHER_LIT_COVER": "BUILD 3, CUT B (the reviewer 2026-11-04 r1130): a several-junction "
                         "molecule the residuals lit is also walked by the cover route -- before "
                         "the partial-cover candidates, once, only when every ingredient resolves "
