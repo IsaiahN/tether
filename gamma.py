@@ -192,6 +192,12 @@ ACTED_ON = "ACTED_ON"
 # 7c M6 (the reviewer 2026-10-10 23:14Z): a guard whose truth is the agent's own INVENTED
 # condition, `guard_ref` naming it. Resolved per state by the caller into `Ctx.cond_holds`.
 INVENTED_GUARD = "INVENTED"
+# BUILD 3, THE BOND TERMS (the reviewer 2026-11-04 r1059, r1060; Fig 12 :112, :123): a guard whose
+# truth is a SETTLED ≡ / ⋛ junction between two of this board's slots, `guard_ref` naming it
+# ("≡:<a>|<b>", "⋛:<a>|<b>" = a above b). Resolved per state by the caller into
+# `Ctx.junction_holds`. A condition, never a value predictor; it names this board's slots, so it
+# does not cross.
+JUNCTION_GUARD = "JUNCTION"
 
 
 @dataclass(frozen=True)
@@ -219,6 +225,8 @@ class Ctx:
     acted_self: bool = False
     # 7c M6: the invented condition named by the term's `guard_ref`, read on the BEFORE state.
     cond_holds: bool = False
+    # BOND TERMS: the settled junction named by the term's `guard_ref`, read on the BEFORE state.
+    junction_holds: bool = False
     operands: tuple = ()          # other slots' values, in the term's binding order
     # SENSOR 8's SECOND OPERAND, resolved PER SLOT by the caller. `_extract` wrapped the
     # one-place sensors eight times and nothing wrapped a two-place one: an atom receives one
@@ -684,6 +692,9 @@ class Term:
                 return value
         elif self.guard == INVENTED_GUARD:
             if not ctx.cond_holds:
+                return value
+        elif self.guard == JUNCTION_GUARD:
+            if not ctx.junction_holds:
                 return value
         elif self.guard is not None and ctx.intent != self.guard:
             return value
@@ -1568,6 +1579,8 @@ class Gamma:
                 continue          # an atom was not minted; there is nothing to carry
             if t.guard == INVENTED_GUARD:
                 continue          # 7c M6: an invention does not cross; carry is M7, gated
+            if t.guard == JUNCTION_GUARD:
+                continue          # BOND TERMS: it names this board's slots, so it does not cross
             st = self.stamps.get(name)
             # **THE GUARD CROSSES AND THE OPERAND'S BINDING DOES NOT -- the reviewer,
             # 2026-10-03.** A guard is a CONDITION and game-agnostic: `?ACTED_SELF` is a

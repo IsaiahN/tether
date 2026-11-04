@@ -59,6 +59,7 @@ from gamma import (
     ACTED_SELF,
     IMPORTED,
     INVENTED_GUARD,
+    JUNCTION_GUARD,
     MINTED,
     REJECTION_HALFLIFE,
     Ctx,
@@ -1227,6 +1228,14 @@ _BOND_DISJOINT = armflag.arm("TETHER_BOND_DISJOINT", default=True)
 # more library offer, priced by the one loop and never trusted; only a bond whose implementation
 # is a chain composes here (grammar.json implemented_by). OFF: no pass, no offers.
 _MOLECULE_APPLY = armflag.arm("TETHER_MOLECULE_APPLY", default=True)
+# BUILD 3, THE BOND TERMS (the reviewer 2026-11-04 r1052, r1055, r1059, r1060; Fig 12 :112 "A plan
+# is a sequence. A goal is a comparison", :123): a settled ≡ / ⋛ / + junction is a CONDITION
+# (same, above and both give PRED), never a value predictor, so MOLECULE_APPLY routes it to the
+# mint's guard offer for its right reading: ≡ one canonical key, ⋛ both orders, + only between
+# two truth-typed readings. A key is offered where it separates R and priced over the junction
+# keys on offer. OFF: refused as "not wired as a term", as before.
+_BOND_TERMS = armflag.arm("TETHER_BOND_TERMS", default=True)
+_GUARD_BONDS = ("≡", "⋛", "+")
 # BUILD 4 ITEM 13, CONTACT-SEEDED CANDIDATE GENERATION (the reviewer 2026-11-03 r978; Isaiah
 # 11-01, "not blind enumeration"): the step's mint slots are ordered by two seeds ranked together
 # -- (a) the contact slots whose value changed this step, (b) a settled residual-lit → junction
@@ -3091,7 +3100,7 @@ def _guard_bits(guard: Any, offered: int, refs: int = 0) -> float:
     """
     if guard is None or offered <= 0:
         return 0.0
-    if guard not in (ACTED_SELF, ACTED_ON):
+    if guard not in (ACTED_SELF, ACTED_ON, JUNCTION_GUARD):
         # F408 under TETHER_GUARD_PRICE: the choice it records, among the G on offer.
         return math.log2(offered + 1) if _GUARD_PRICE else 0.0
     # **THE KIND, PLUS THE CHOICE OF REFERENT -- the reviewer, 2026-10-04.** Naming WHICH
@@ -3969,6 +3978,8 @@ class Agent:
         self._dl_missed: dict = {}         # 20: a described key with no offer -> its miss's cycle
         self._tk_off: dict = {}            # TK: a described key -> where its next window starts
         self._tk_nofit: dict = {}          # S3: a key -> entries its windows judged no-fit
+        self._junction_conds: dict = {}    # BOND TERMS: a junction key -> (bond, a, b)
+        self._junction_of: dict = {}       # BOND TERMS: a slot -> its routed junction keys
         self._tk_win: tuple = (None, (), None)   # S3: the last window (key, entries, no-fit key)
         self._dl_owed = False              # 20: this lookup was due from the owed queue
         self._dl_n: Counter = Counter()    # 20: this step's described-lookup counts
@@ -4799,6 +4810,7 @@ class Agent:
         self._dl_missed = {}               # 20: its keys name slots, so the same rule
         self._tk_off = {}
         self._tk_nofit = {}
+        self._junction_conds, self._junction_of = {}, {}   # their keys name slots too
         if _NOOP_WITHHOLD:
             self._noops.clear()            # 23: the level's own boards
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
@@ -10065,6 +10077,9 @@ class Agent:
                                           else "not settled")] += 1
                         continue
                     if not chained(got):
+                        if _BOND_TERMS and got in _GUARD_BONDS:
+                            why["lookup: " + self._route_junction(got, x, y)] += 1
+                            continue
                         why[f"lookup: {got}: bond has no atom (r896)" if not impl.get(got) else
                             f"lookup: bond {got}: implemented_by {impl[got][0]} not wired as a "
                             "term"] += 1
@@ -13052,6 +13067,8 @@ class Agent:
                              "acted_self": _same_object(landed, guard_ref or slot),
                              "cond_holds": bool(self._invented) and self._inv_holds(guard_ref,
                                                                                     state),
+                             "junction_holds": bool(self._junction_conds)
+                             and self._jc_holds(guard_ref, state),
                              "shapes": self._shapes_now() if shapes else None},
                             lambda: self._group(slot, state), lambda: self._record(slot, state))
             if key is not None:
@@ -13065,6 +13082,8 @@ class Agent:
                    # comparison is needed and no name crosses into the chain.
                    acted_self=_same_object(landed, guard_ref or slot),
                    cond_holds=bool(self._invented) and self._inv_holds(guard_ref, state),
+                   junction_holds=bool(self._junction_conds) and self._jc_holds(guard_ref,
+                                                                                state),
                    group=self._group(slot, state), obj=self._record(slot, state),
                    shapes=self._shapes_now() if shapes else None)
         if key is not None:
@@ -18643,20 +18662,69 @@ class Agent:
         out_false = (len(hist) - h_true) - (len(robs) - r_true)
         return r_true in (0, len(robs)) and (out_true if r_true == 0 else out_false) > 0
 
+    def _jc_holds(self, key: str | None, state: dict) -> bool:
+        """BOND TERMS: the routed junction `key` read on `state`; a missing or unresolved reading,
+        or one that does not compare, is False -- never an exception."""
+        c = self._junction_conds.get(key) if key else None
+        if c is None:
+            return False
+        bond, a, b = c
+        u, v = state.get(a), state.get(b)
+        if u is None or v is None or u is NOT_RESOLVED or v is NOT_RESOLVED:
+            return False
+        try:
+            return bool(u == v) if bond == "≡" else bool(u > v) if bond == "⋛" else (
+                bool(u) and bool(v))
+        except TypeError:
+            return False
+
+    def _jc_separates(self, robs: list, slot: str, key: str) -> bool:
+        """_separates for a junction key (r1060 1): constant on R, the other value outside R."""
+        hist = self.history(slot)
+        h_true = sum(1 for s, *_r in hist if self._jc_holds(key, s))
+        r_true = sum(1 for s, *_r in robs if self._jc_holds(key, s))
+        out_true = h_true - r_true
+        out_false = (len(hist) - h_true) - (len(robs) - r_true)
+        return r_true in (0, len(robs)) and (out_true if r_true == 0 else out_false) > 0
+
+    def _jk_offer(self, robs: list, slot: str) -> list:
+        """BOND TERMS: the slot's routed junction keys that separate R (r1060 1), sorted."""
+        return [k for k in sorted(self._junction_of.get(slot, ()))
+                if self._jc_separates(robs, slot, k)] if _BOND_TERMS else []
+
+    def _route_junction(self, bond: str, a: str, b: str) -> str:
+        """BOND TERMS (r1059): a settled ≡ / ⋛ / + junction between readings a and b, a CONDITION,
+        routed to b's guard offer: ≡ one canonical key (symmetric, Operators Table :26, :59-60), ⋛
+        both orders (:50), + only between two truth-typed readings (r1057). The reason, counted."""
+        if bond == "+" and not all(str(self.slot_types.get(s)) in ("PRED", "BOOL")
+                                   for s in (a, b)):
+            return "bond +: both: the operands are not conditions (typing)"
+        p, q = sorted((a, b))
+        pairs = [(a, b), (b, a)] if bond == "⋛" else [(p, q)]
+        for u, v in pairs:
+            k = f"{bond}:{u}|{v}"
+            self._junction_conds[k] = (bond, u, v)
+            self._junction_of.setdefault(b, set()).add(k)
+        return f"condition: routed to the guard offer for {b}"
+
     def _guards_once(self, robs: list, slot: str, binds) -> tuple:
         """TETHER_MINT_HOIST: the guard offer of this mint, once -- (refs, guards, the separating
-        refs, the hold occasion this call books) -- for _guards_again to replay per candidate."""
+        refs, the hold occasion this call books, first, the separating junction keys) -- for
+        _guards_again to replay per candidate."""
         refs = self._guard_refs(slot, binds)
         e0, w0 = self._hold_eligible, self._hold_withheld
         gs = self._guards(robs, slot, refs)
         sep = ([r for r in refs if self._separates(robs, slot, r)]
                if any(x in (ACTED_SELF, ACTED_ON) for x in gs) else [])
-        return [refs, gs, sep, self._hold_eligible - e0, self._hold_withheld - w0, True]
+        jk = self._jk_offer(robs, slot)
+        if jk:
+            gs = [*gs, JUNCTION_GUARD]
+        return [refs, gs, sep, self._hold_eligible - e0, self._hold_withheld - w0, True, jk]
 
     def _guards_again(self, hz: list, slot: str) -> tuple:
         """The once-computed offer for this candidate, booking the hold counters as the per-
         candidate _guards call did (the first candidate's were booked by _guards_once)."""
-        refs, gs, sep, de, dw, first = hz
+        refs, gs, sep, de, dw, first, _jk = hz
         if first:
             hz[5] = False
         elif de:
@@ -19493,7 +19561,8 @@ class Agent:
             def _prune(atoms: tuple, depth: int, closed: bool) -> bool:
                 if not _pg:
                     _gs0 = self._guards_once(robs, slot, operand_binds)
-                    _pg.append(min(_guard_bits(g, len(_gs0[1]) - 1, len(_gs0[2]))
+                    _pg.append(min(_guard_bits(g, len(_gs0[1]) - 1, len(_gs0[6]) if
+                                               g == JUNCTION_GUARD else len(_gs0[2]))
                                    for g in _gs0[1]))
                     _pg.append(_gs0)
                     self._hold_eligible -= _gs0[3]    # the probe books no hold occasion
@@ -19514,7 +19583,8 @@ class Agent:
                         gs, sep = _pg[1][1], _pg[1][2]
                         acted = any(x in (ACTED_SELF, ACTED_ON) for x in gs)
                         prs = [(g, r) for g in gs
-                               for r in (sep if acted and g in (ACTED_SELF, ACTED_ON) else [None])]
+                               for r in (sep if acted and g in (ACTED_SELF, ACTED_ON) else
+                                         _pg[1][6] if g == JUNCTION_GUARD else [None])]
                         bs = [x for x in (operand_binds if cand.reads_operand else [None])
                               if self._operand_fits(cand, slot, x)]
                         lib = not _sep_free or cand.name in self._held_chains
@@ -19712,9 +19782,13 @@ class Agent:
                         if _hz_g is None:
                             _hz_g = self._guards_once(robs, slot, operand_binds)
                         _cand_refs, _gs, _hz_refs = self._guards_again(_hz_g, slot)
+                        _jk = _hz_g[6]
                     else:
                         _cand_refs = self._guard_refs(slot, operand_binds)
                         _gs = self._guards(robs, slot, _cand_refs)
+                        _jk = self._jk_offer(robs, slot)
+                        if _jk:
+                            _gs = [*_gs, JUNCTION_GUARD]
                     if _GUARD_PRICE:
                         self._offered_now = len(_gs) - 1
                     # **THE REFERENT IS PAIRED WITH THE GUARD, NOT WITH THE BIND.** Hoisted
@@ -19735,7 +19809,9 @@ class Agent:
                              [r for r in _cand_refs if self._separates(robs, slot, r)]
                              if any(x in (ACTED_SELF, ACTED_ON) for x in _gs) else [])
                     _pairs = [(g, r) for g in _gs
-                              for r in (_refs if g in (ACTED_SELF, ACTED_ON) else [None])]
+                              for r in (_refs if g in (ACTED_SELF, ACTED_ON) else
+                                        _jk if g == JUNCTION_GUARD else [None])]
+                    _nr = {JUNCTION_GUARD: len(_jk)}.get     # a guard kind's referent count
                     # PRICED ONCE PER (CHAIN, GUARD), NOT PER CANDIDATE -- 2026-10-06.
                     # `gamma.length` reads only a term's atoms and operand tree, so every
                     # binding of this chain costs the same, and every tree under it too
@@ -19751,7 +19827,7 @@ class Agent:
                     _n = len(binds) * len(_pairs)
                     if _n and robs and ((self._divide_chain(cand, _units, base) if _DIVIDE
                                          else self._bits((Term(cand.atoms), _units)))
-                               + min(_guard_bits(g, len(_gs) - 1, len(_refs)) for g in _gs)
+                               + min(_guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))) for g in _gs)
                                >= base):
                         if not guards["novelty"]:
                             for bind, (g, gref) in ((b, p) for b in binds for p in _pairs):
@@ -19818,7 +19894,7 @@ class Agent:
                         cost = _price.get(g)
                         if cost is None:
                             cost = _price[g] = (self._bits((term, _units))
-                                                + _guard_bits(g, len(_gs) - 1, len(_refs)))
+                                                + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
                         # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
                         # every candidate is exhaustive search; R already names the
                         # observations that need fixing, and a term that cannot fix enough of
@@ -19875,7 +19951,7 @@ class Agent:
                                 if bcost is None:
                                     bcost = _price[_bk] = (
                                         self._bits((bt, _units))
-                                        + _guard_bits(g, len(_gs) - 1, len(_refs)))
+                                        + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
                                 bleft = self._left(bt, slot, hist, base, bcost)
@@ -19952,7 +20028,7 @@ class Agent:
                             if bcost is None:
                                 bcost = _price[_bk] = (
                                     self._bits((bt, _units))
-                                    + _guard_bits(g, len(_gs) - 1, len(_refs)))
+                                    + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
                             # **THE SAME BOUND HERE, AND IT CHANGES NO OUTCOME.** `_cannot_pay`
                             # PROVES `cost + left >= base`, which is exactly `not pays` -- so
                             # anything it refuses, `pays` refuses too. A short-circuit, not a

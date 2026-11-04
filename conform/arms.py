@@ -1994,6 +1994,14 @@ ARMS: dict[str, str] = {
                            "residual-lit → junctions with no term (a site R, operand L first) -- "
                            "seen first, then the old order; nothing dropped; mint_seeds rows. "
                            "OFF: the old order. default ON",
+    "TETHER_BOND_TERMS": "BUILD 3 BOND TERMS (the reviewer 2026-11-04 r1052, r1055, r1059, r1060; "
+                         "Fig 12 :112, :123): a settled ≡ / ⋛ / + junction is a CONDITION, routed "
+                         "by "
+                         "MOLECULE_APPLY to the mint's guard offer for its right reading as a "
+                         "JUNCTION guard (≡ one canonical key, ⋛ both orders, + only between two "
+                         "truth-typed readings), offered where it separates R and priced over "
+                         "the junction keys; never a value predictor; never crosses. OFF: "
+                         "refused as not wired. default ON",
     "TETHER_MOLECULE_APPLY": "BUILD 2 MOLECULE APPLY (the reviewer 2026-11-03 r962, r963): once "
                              "per grown window, a lit molecule whose junction settles on operands "
                              "resolved on this board, its bond a chain (grammar.json "

@@ -33,9 +33,12 @@ UNKNOWN = "?"
 # Inflections said for a prime (NSM's allolexes); each maps to the primes it inflects.
 ALLOLEX = {"HAPPENED": ("HAPPEN",), "SAW": ("SEE",), "WAS": ("BE",), "CAN'T": ("CAN", "NOT")}
 # The listed refusals of read_node / read_term; a reason outside this list is a defect (MF-T).
+# r1052 (b), r1059: "has no atom" only where implemented_by is empty; a condition bond (≡ ⋛ +) says
+# where it is routed; ¬ (AGENT|negate) is not wired as a term.
 REFUSALS = ("has no NSM word (open item)", "BECAUSE has no atom (r896)", "has no atom",
-            "is AGENT|both, not wired as a term", "Gamma holds no atom", "does not accept",
-            "the sentence does not parse", "an unknown bond is not a term")
+            "not wired as a term", "a condition, routed to the guard offer",
+            "Gamma holds no atom", "does not accept", "the sentence does not parse",
+            "an unknown bond is not a term")
 CAPS = re.compile(r"\b[A-Z][A-Z']*\b")
 
 
@@ -187,10 +190,14 @@ def read_node(sentence: str, atoms: dict):
             raise Refused("⇒ BECAUSE has no atom (r896)")
         if bond == "−":
             raise Refused("− has no atom")
-        if bond == "+":
-            raise Refused("+ is AGENT|both, not wired as a term")
         if bond != "→":
-            raise Refused(f"{bond} has no atom")
+            impl = (store.grammar().get("operators") or {}).get(bond, {}).get("implemented_by")
+            if not impl:
+                raise Refused(f"{bond} has no atom")
+            if bond in ("≡", "⋛", "+"):
+                raise Refused(f"{bond} implemented_by {impl[0]}: a condition, routed to the "
+                              "guard offer")
+            raise Refused(f"{bond}: implemented_by {impl[0]} not wired as a term")
         a, b = walk(left), walk(right)
         if a.operand is not None or a.guard is not None:
             raise Refused(f"{b.atoms[0].name} does not accept a chain that carries an operand "
