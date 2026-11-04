@@ -19458,14 +19458,41 @@ class Agent:
             _lf_of: dict = {}
             _pg: list = []                       # TETHER_PREFIX_PRUNE: the cheapest guard bits
 
-            def _prune(atoms: tuple) -> bool:
+            def _prune(atoms: tuple, depth: int, closed: bool) -> bool:
                 if not _pg:
                     _gs0 = self._guards_once(robs, slot, operand_binds)
                     _pg.append(min(_guard_bits(g, len(_gs0[1]) - 1, len(_gs0[2]))
                                    for g in _gs0[1]))
+                    _pg.append(_gs0)
                     self._hold_eligible -= _gs0[3]    # the probe books no hold occasion
                     self._hold_withheld -= _gs0[4]
-                return self._bits((Term(atoms), _units)) + _pg[0] >= base
+                if self._bits((Term(atoms), _units)) + _pg[0] < base:
+                    return False
+                if not guards["novelty"]:
+                    # r1029: a pruned chain still READS NOVELTY, as the bounded-out cut does
+                    # before its continue -- else an exhausted mint whose novel terms were all too
+                    # dear parks "not_novel" where it is "priced_out_at_depth". Its extensions
+                    # are never generated, so a chain below max_depth (the walk's own depth, in
+                    # units) stands for new terms; at max_depth an unclosed iteration is not a
+                    # term (r1030) and reads nothing
+                    if depth < self.cfg.max_depth:
+                        guards["novelty"] = True
+                    elif closed:
+                        cand = Term(atoms)
+                        gs, sep = _pg[1][1], _pg[1][2]
+                        acted = any(x in (ACTED_SELF, ACTED_ON) for x in gs)
+                        prs = [(g, r) for g in gs
+                               for r in (sep if acted and g in (ACTED_SELF, ACTED_ON) else [None])]
+                        bs = [x for x in (operand_binds if cand.reads_operand else [None])
+                              if self._operand_fits(cand, slot, x)]
+                        lib = not _sep_free or cand.name in self._held_chains
+                        for bind, (g, gref) in ((b, p) for b in bs for p in prs):
+                            t = Term(atoms, operand=bind, guard=g, guard_ref=gref)
+                            if not (self.gamma.is_atom(t) or (lib and t.name
+                                                              in self.gamma.library)):
+                                guards["novelty"] = True
+                                break
+                return True
 
             _hz_pass: dict = {}                  # TETHER_MINT_HOIST: fixed for this mint
             _hz_fit: dict = {}

@@ -2106,7 +2106,8 @@ class Gamma:
     def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
                           stats: dict | None = None,
                           order: Callable[[Term], float] | None = None,
-                          prune: Callable[[tuple], bool] | None = None) -> Iterator[Term]:
+                          prune: Callable[[tuple, int, bool], bool] | None = None,
+                          ) -> Iterator[Term]:
         """Type-valid pipelines over UNITS, shortest first, capped by budget.
 
         Yielding a term is a WITNESS that it is reachable. Stopping is one of two facts and
@@ -2151,8 +2152,9 @@ class Gamma:
             for chain, cur, elem in frontier:
                 # TETHER_PREFIX_PRUNE (the caller's): a chain whose cost alone already reaches
                 # what it must explain is neither yielded nor extended -- an extension never costs
-                # less -- and is not counted against the budget
-                if prune is not None and prune(chain):
+                # less -- and is not counted against the budget. It is told the walk's own depth
+                # (in units) and whether the chain is CLOSED (a term), for its novelty read
+                if prune is not None and prune(chain, depth, elem is None):
                     if stats is not None:
                         stats["pruned"] = stats.get("pruned", 0) + 1
                     continue

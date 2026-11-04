@@ -8,6 +8,9 @@ MF-P1  MUST-STAY at an ample budget (work budget 15000): the minted terms are id
        and there are some
 MF-P2  EXACTNESS by brute force: every chain the predicate pruned (the first 60 per mint), extended
        by every unit to the walk's max depth, is pruned too -- 0 counterexamples
+MF-P4  (r1029) at an AMPLE budget the park VERDICT per slot is the same ON and OFF, on the demo
+       world and gridworld: a pruned chain still reads novelty, so a mint whose novel terms were
+       all too dear parks "priced_out_at_depth" ON as OFF does, never "not_novel"; RED on 21726d3
 MF-P3  at a small walk budget, ON prices strictly more candidates than OFF in the same work budget,
        and the park rows count "pruned at the prefix: not generated"; RED on HEAD (no arm: equal)
 
@@ -15,6 +18,7 @@ MF-P3  at a small walk budget, ON prices strictly more candidates than OFF in th
 """
 from __future__ import annotations
 
+import collections
 import json
 import os
 import subprocess
@@ -35,12 +39,15 @@ import world  # noqa: E402
 HERE = Path(__file__).resolve()
 
 
-def run(work: int, walk: int | None, spy: bool) -> dict:
-    env = world.bind(world.Transitions())
+def run(work: int, walk: int | None, spy: bool, which: str = "demo") -> dict:
+    import gridworld
+    env = world.bind(world.Transitions() if which == "demo" else gridworld.family("default", 0))
     led = ledger.Ledger()
     cfg = tether.Config(work_budget=work, **({"budget": walk} if walk else {}))
-    g = gamma.Gamma(env.atoms())
+    g = gamma.Gamma(env.atoms()) if which == "demo" else gamma.Gamma(env.atoms(),
+                                                                       game="fam_default_0")
     pruned: list = []
+    seen_args: list = []          # the (depth, closed) each pruned chain was walked at
     if spy:
         real = gamma.Gamma.enumerate_closure
 
@@ -48,8 +55,10 @@ def run(work: int, walk: int | None, spy: bool) -> dict:
             if prune is None:
                 return real(self, *a, **k)
 
-            def p(chain, _p=prune):
-                hit = _p(chain)
+            def p(chain, *rest, _p=prune):
+                hit = _p(chain, *rest)
+                if hit:
+                    seen_args.append(rest)
                 if hit and len(pruned) < 60 * 40:
                     pruned.append((chain, _p, a[2]))
                 return hit
@@ -57,7 +66,11 @@ def run(work: int, walk: int | None, spy: bool) -> dict:
         gamma.Gamma.enumerate_closure = wrapped
     try:
         ag = tether.Agent(env, g, cfg, led)
-        ag.run(16)
+        if which == "demo":
+            ag.run(16)
+        else:
+            for _ in range(12):
+                ag.step()
     finally:
         if spy:
             gamma.Gamma.enumerate_closure = real
@@ -81,12 +94,20 @@ def run(work: int, walk: int | None, spy: bool) -> dict:
                         if len(ext) > depth:
                             continue
                         checked += 1
-                        if not p(ext):
+                        try:                    # the cost test alone: beyond max depth, open
+                            ok = p(ext, 10 ** 9, False)
+                        except TypeError:       # a one-argument predicate (before r1030)
+                            ok = p(ext)
+                        if not ok:
                             bad += 1
                         nxt.append(ext)
                 frontier = nxt[:200]
+    parks = [(r["cycle"], r.get("slot"), r["detail"].get("verdict")) for r in rows
+             if r["event"] == "park"]
+    unclosed = sum(1 for r in seen_args if len(r) == 2 and r[0] == cfg.max_depth and not r[1])
     return {"minted": minted, "priced": priced, "cut": cut, "pruned": len(pruned),
-            "checked": checked, "bad": bad}
+            "checked": checked, "bad": bad, "parks": parks, "unclosed_at_max": unclosed,
+            "pruned_all": len(seen_args)}
 
 
 def child(extra: dict, *args) -> dict:
@@ -102,7 +123,8 @@ def main():
     if "--run" in sys.argv:
         i = sys.argv.index("--run")
         work, walk, spy = int(sys.argv[i + 1]), int(sys.argv[i + 2]), sys.argv[i + 3] == "1"
-        print(json.dumps(run(work, walk or None, spy)))
+        which = sys.argv[i + 4] if len(sys.argv) > i + 4 else "demo"
+        print(json.dumps(run(work, walk or None, spy, which)))
         return
     on1, off1 = child({}, 15000, 0, 0), child({"TETHER_PREFIX_PRUNE": "0"}, 15000, 0, 0)
     assert on1["minted"] and on1["minted"] == off1["minted"], ("MF-P1", on1["minted"],
@@ -112,9 +134,21 @@ def main():
     on3, off3 = child({}, 400, 40, 0), child({"TETHER_PREFIX_PRUNE": "0"}, 400, 40, 0)
     assert on3["priced"] > off3["priced"] and on3["cut"] > 0 and off3["cut"] == 0, (
         "MF-P3", on3, off3)
+    p4 = {}
+    for which in ("demo", "grid"):
+        on4 = child({}, 10 ** 6, 10 ** 6, 0, which)
+        off4 = child({"TETHER_PREFIX_PRUNE": "0"}, 10 ** 6, 10 ** 6, 0, which)
+        assert on4["parks"] == off4["parks"], ("MF-P4", which, [
+            (x, y) for x, y in zip(off4["parks"], on4["parks"], strict=False) if x != y][:3],
+            len(on4["parks"]), len(off4["parks"]))
+        p4[which] = collections.Counter(v for _c, _s, v in off4["parks"])
+    assert any(c.get("priced_out_at_depth") for c in p4.values()), ("MF-P4 has no occasion", p4)
     print(f"  MF-P1 budget 15000: minted identical ON and OFF, {on1['minted']}")
+    print(f"  MF-P4 ample budget 10^6: park verdicts identical ON and OFF per slot: "
+          f"{ {k: dict(v) for k, v in p4.items()} }")
     print(f"  MF-P2 {p2['pruned']} pruned chains seen, {p2['checked']} extensions checked, "
-          f"{p2['bad']} affordable")
+          f"{p2['bad']} affordable; of {p2['pruned_all']} pruned, {p2['unclosed_at_max']} were "
+          f"unclosed at max_depth (r1030: they read no novelty)")
     print(f"  MF-P3 walk budget 40, work 400: priced ON {on3['priced']} vs OFF {off3['priced']}; "
           f"pruned at the prefix ON {on3['cut']}")
     print("test_prefix_prune OK")
