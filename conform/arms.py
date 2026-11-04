@@ -1963,6 +1963,15 @@ ARMS: dict[str, str] = {
                                "pays); a held atom bound nowhere resolves to where it paid, else "
                                "where it was tried; junction operands pair per object. Record "
                                "only. OFF: atom_bound_nowhere, nothing noted. default ON",
+    "TETHER_OPERAND_FAMILY": "BUILD 2 OPERAND RESOLUTION (the reviewer 2026-11-03 r946 3): a "
+                             "name resolving in several domains is a FAMILY, one candidate per "
+                             "entry, each tested on its own, coinciding readings merged, the "
+                             "molecule's domain first; a view with no condition is unreachable. "
+                             "OFF: 'ambiguous' unreachable, 'no condition' refused. default ON",
+    "TETHER_BOND_PER_BOARD": "BUILD 2 (the reviewer 2026-11-03 r946 5): a bond_tests row at each "
+                             "retarget, from the frames of the board being left, with at / board "
+                             "(the agent's own new-board count, never a game id); the run-end row "
+                             "stays. OFF: one row at the run's end. default ON",
     "TETHER_CONTINUE_WAL":"(7) the store CONTINUE's WAL bound (Build 1; REPORT FIN5E section 8, "
                            "2.14 GB "
                            "on 2026-11-03): after each continued save above WAL_BOUND_BYTES, a "

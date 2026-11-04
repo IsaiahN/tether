@@ -1177,6 +1177,16 @@ _OPERAND_COMPILE = armflag.arm("TETHER_OPERAND_COMPILE", default=True)
 # a term containing it PAID the bargain, else where one was TRIED there (reached pays); bound stays
 # the strongest. OFF: atom_bound_nowhere, as before, and nothing is noted at the bargain.
 _OPERAND_EVIDENCE = armflag.arm("TETHER_OPERAND_EVIDENCE", default=True)
+# (r946 3) A NAME IN SEVERAL DOMAINS IS A FAMILY, never picked and never "unreachable": one
+# candidate per resolving entry, each tested on its own, candidates whose readings coincide
+# merged, the molecule's own domain first (composer: "A recipe is a FAMILY of candidates";
+# library_runtime: "ORDER, NEVER EXCLUDE"); an entry whose view holds no condition is unreachable
+# "no condition". OFF: "ambiguous" is unreachable and "no condition" refused, as before.
+_OPERAND_FAMILY = armflag.arm("TETHER_OPERAND_FAMILY", default=True)
+# (r946 5) A WINDOW SCORES ITS OWN BOARD: a bond_tests row at each retarget (a death, a level, a new
+# board), from the frames of the board being left, before its trace clears; the run-end row stays.
+# OFF: one row, at the run's end.
+_BOND_PER_BOARD = armflag.arm("TETHER_BOND_PER_BOARD", default=True)
 _7H_SHOWN = armflag.arm("TETHER_7H_SHOWN", default=True)
 _7H_ROOT = armflag.arm("TETHER_7H_ROOT", default=True)
 # 7j (the reviewer 2026-10-15 17:32, 20:27): a choice made to test a held hypothesis -- the goal
@@ -4289,7 +4299,7 @@ class Agent:
         self._intent_verdict(how)
         self._note_ending(how, "run")
         if composer._BOND_TEST:
-            self._bond_tests()                  # Build 2 item 1: record only (r897)
+            self._bond_tests("run" if _BOND_PER_BOARD else None)    # Build 2 item 1 (r897)
         self.led.end_game(self.cycle, f"end {how}")      # N2: where this game's chain stopped
         self._resolve_signals("game", how)
         if _D13:
@@ -4419,6 +4429,10 @@ class Agent:
         Everything still owed is parked WITH its history, which is the only way a term
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
+        if _BOND_PER_BOARD and composer._BOND_TEST and self.trace:
+            self._bond_tests(how)               # r946 5: the board being left, before it clears
+        if how == NEW_BOARD:
+            self._bond_board = getattr(self, "_bond_board", 0) + 1
         if _MEMO_CLEAR:
             # R4: the agent-level instance memos are this board's and are cleared here; the asked
             # keys, the kind stores, the record and the carried bound memos stay
@@ -9453,18 +9467,25 @@ class Agent:
         An operand of several ingredients is their union; the weakest way names it."""
         held = {_norm_name(a.name) for a in self.gamma.atoms}
         rank = {"bound": 4, "paid": 3, "tried": 2, "compiled": 1}
-        out: dict = {}
+        alts: list = [{}]
         hows = []
         for name in names:
             got, how, why = self._ingredient_operand(molecule, name, held, frame_slots, lib,
                                                      atoms, sig)
             if got is None:
                 return None, how, why
-            for o, ss in got.items():
-                out.setdefault(o, set()).update(ss)
+            alts = [{o: set(a.get(o, ())) | set(g.get(o, ())) for o in set(a) | set(g)}
+                    for a in alts for g in (got if isinstance(got, list) else [got])]
             hows.append(how)
         how = min(hows, key=lambda h: rank.get(h, 0))
-        return ({o: sorted(ss) for o, ss in sorted(out.items())}, how, "")
+        fam, seen = [], set()
+        for a in alts:                  # r946 3: family candidates whose readings coincide merge
+            d = {o: sorted(ss) for o, ss in sorted(a.items())}
+            k = tuple((o, tuple(ss)) for o, ss in d.items())
+            if k not in seen:
+                seen.add(k)
+                fam.append(d)
+        return (fam if len(fam) > 1 else fam[0], how, "")
 
     def _ingredient_operand(self, molecule: str, name: str, held: set, frame_slots: set,
                             lib: Any, atoms: dict, sig: tuple) -> tuple:
@@ -9500,24 +9521,68 @@ class Agent:
             refs = mine if mine else keys
         if not refs:
             return None, "unreachable", "no library entry names it"
-        if len(refs) > 1:
+        # r944 (b): keys one name spells in two cases within one domain ("Lived Meaning",
+        # "Lived meaning") are ONE entry, read together
+        groups: dict = {}
+        for r in refs:
+            groups.setdefault(_norm_name(r), []).append(r)
+        if len(groups) == 1:
+            return self._entry_operand(sorted(refs), frame_slots, lib, atoms, sig)
+        if not _OPERAND_FAMILY:
             return None, "unreachable", "ambiguous: " + ", ".join(sorted(refs)[:4])
+        # r946 3: several DOMAINS are a family -- each entry its own candidate, the molecule's own
+        # domain first; a candidate that does not resolve drops out, and with none the strongest
+        # failure names the ingredient
+        dom = molecule.split("|")[0].lower() + "|"
+        fam, fails, seen = [], [], set()
+        for g in sorted(groups.values(), key=lambda g: (not g[0].lower().startswith(dom),
+                                                          sorted(g))):
+            got, how, why = self._entry_operand(sorted(g), frame_slots, lib, atoms, sig)
+            if got is None:
+                fails.append((how, why))
+                continue
+            k = tuple(sorted((o, tuple(sorted(ss))) for o, ss in got.items()))
+            if k not in seen:
+                seen.add(k)
+                fam.append((got, why))
+        if len(fam) == 1:
+            return fam[0][0], "compiled", fam[0][1]
+        if fam:
+            return [g for g, _k in fam], "compiled", "family: " + ", ".join(k for _g, k in fam)
+        order = ("compiled_off_board", "refused", "unreachable")
+        return (None, *min(fails, key=lambda f: order.index(f[0])))
+
+    def _entry_operand(self, refs: list, frame_slots: set, lib: Any, atoms: dict,
+                       sig: tuple) -> tuple:
+        """One library entry (its case variants read together) -> ({object: slots}, how, why):
+        compiled, compiled_off_board, refused with compile_term's reasons, or (r946 3)
+        unreachable when its view holds no condition at all."""
         key = refs[0]
-        role = (lib.get(key) or {}).get("role_of", {}).get("role") or "STATE"
-        if role in ("RESULT", "AGENT", "INSTRUMENT"):
-            role = "PROCESS"     # an if/then role: its readings are its change of o
         reads, reasons = set(), collections.Counter()
-        for _cand, c, _c2 in self._held_index(lib, key, role, atoms, sig):
-            if isinstance(c, compile_term.Compiled):
-                # the reading it reads on its object; a template comparing it across two objects
-                # (PHo.r > PHx.r) reads the same reading r, so the operand on o is o's own r
-                for s in (c.slot, c.operand):
-                    if s and s.split(".", 1)[0] in (PH_O, PH_X) and "." in s:
-                        reads.add(s.split(".", 1)[1])
-            elif c is not None:
-                reasons[c.reason] += 1
+        for k in refs:
+            role = (lib.get(k) or {}).get("role_of", {}).get("role") or "STATE"
+            if role in ("RESULT", "AGENT", "INSTRUMENT"):
+                role = "PROCESS"     # an if/then role: its readings are its change of o
+            for _cand, c, _c2 in self._held_index(lib, k, role, atoms, sig):
+                if isinstance(c, compile_term.Compiled):
+                    # the reading it reads on its object; a template comparing it across two
+                    # objects (PHo.r > PHx.r) reads the same reading r, so on o it is o's own r
+                    for s in (c.slot, c.operand):
+                        if s and s.split(".", 1)[0] in (PH_O, PH_X) and "." in s:
+                            reads.add(s.split(".", 1)[1])
+                elif c is not None:
+                    reasons[c.reason] += 1
         if not reads:
+            if not reasons and _OPERAND_FAMILY:
+                return None, "unreachable", f"{key}: no condition"
             why = "; ".join(f"{r} ({k})" for r, k in reasons.most_common(2)) or "no condition"
+            # r944 (a): what the closure lacks, per refused ingredient -- each missing atom
+            # once, else each typing reason once (Fig 13 :137, characterise what is missing)
+            tally = self.__dict__.setdefault("_refusal_tally", collections.Counter())
+            for r in reasons:
+                miss = re.findall(r"'([^']+)'", r) if r.startswith("Gamma holds no atom") else []
+                for x in (miss or [r]):
+                    tally[f"atom {x}" if miss else x] += 1
             return None, "refused", f"{key}: {why}"
         objs = {s.split(".", 1)[0] for s in frame_slots if "~" not in s.split(".", 1)[0]}
         got = {o: {f"{o}.{r}" for r in reads if f"{o}.{r}" in frame_slots} for o in objs}
@@ -9562,7 +9627,7 @@ class Agent:
             return (None, f"{bond}: mixed across objects", "TEST", ev)
         return (None, whys[0], kinds[0] or "TEST", ev)
 
-    def _bond_tests(self) -> None:
+    def _bond_tests(self, at: Any = None) -> None:
         """BUILD 2 item 1, RECORD ONLY (the reviewer 2026-11-03 r897, r934): every lit molecule's
         junctions (partial cover: a junction both of whose operands' ingredients this agent holds)
         tested by composer.window_test over the agent's own frames since the last break -- an
@@ -9571,7 +9636,8 @@ class Agent:
         junction with two bonds True is AMBIGUOUS, never one picked. One bond_tests row: per bond,
         decided True / False and None by kind (FIELD / TEST), per junction settled / ambiguous /
         none, and each decided bond's evidence (cycles, occasions, specific frames); nothing reads
-        it yet, and no molecule becomes applicable here."""
+        it yet, and no molecule becomes applicable here. `at` (r946 5): the retarget's how, or
+        "run", and the board's ordinal by the agent's own new-board count -- never a game id."""
         w = self._window_at if _BREAK_WINDOW else 0
         tr = self.trace[w:] if w else self.trace
         frames = [b for b, *_r in tr] + ([tr[-1][2]] if tr else [])
@@ -9588,8 +9654,10 @@ class Agent:
             atoms = {a.name: a for a in self.gamma.atoms}
             sig = compile_term.signature(atoms)
             frame_slots = set().union(*(f.keys() for f in frames)) if frames else set()
+            self._refusal_tally = collections.Counter()      # r944 (a), this row's
             resolved_by: collections.Counter = collections.Counter()
             refusals: collections.Counter = collections.Counter()
+            families, n_cands = 0, 0
         for m in composer.candidates({a.name for a in self.gamma.atoms}, partial=True):
             cap.head()
             stack = [m["node"]]
@@ -9614,31 +9682,40 @@ class Agent:
                         continue
                     for o in ops:
                         resolved_by[o[1]] += 1
-                    objs = sorted(set(ops[0][0]) & set(ops[1][0]))
-                    if not objs:
+                    # r946 3: a family operand is several candidates; each pairing is tested on
+                    # its own window, and the tally and outcomes count candidates
+                    cands = [(lo, ro, sorted(set(lo) & set(ro)))
+                             for lo in (ops[0][0] if isinstance(ops[0][0], list) else [ops[0][0]])
+                             for ro in (ops[1][0] if isinstance(ops[1][0], list) else [ops[1][0]])]
+                    fam = len(cands) > 1
+                    cands = [c for c in cands if c[2]]
+                    if not cands:
                         unbound += 1
                         missing["no_shared_object"] = missing.get("no_shared_object", 0) + 1
                         continue
-                    res = {}
-                    for bond in composer.WINDOW_BONDS:
-                        res[bond] = self._per_object(bond, ops[0][0], ops[1][0], objs, frames,
-                                                     bound, skip)
-                        v, _why, kind, _ev = res[bond]
-                        tally[bond]["true" if v is True else "false" if v is False
-                                    else kind] += 1
-                    got, jwhy = composer.junction_verdict(res)
-                    outcome["settled" if got else "ambiguous" if jwhy.startswith("ambig")
-                            else "none"] += 1
-                    for bond, (v, why, _kind, ev) in res.items():
-                        if v is not None and len(sample) < 20:
-                            sample.append({"molecule": m["molecule"], "left": list(key[0]),
-                                           "right": list(key[1]), "bond": bond, "verdict": v,
-                                           "why": why, "junction": jwhy,
-                                           "by": [ops[0][1], ops[1][1]],
-                                           "occasions": ev["occasions"],
-                                           "cycles": [cyc0 + t for t in ev["deciding"]][:10],
-                                           "specific_cycles": [cyc0 + t
-                                                               for t in ev["specific"]][:10]})
+                    families += fam
+                    n_cands += len(cands)
+                    for ci, (lo, ro, objs) in enumerate(cands):
+                        res = {}
+                        for bond in composer.WINDOW_BONDS:
+                            res[bond] = self._per_object(bond, lo, ro, objs, frames, bound, skip)
+                            v, _why, kind, _ev = res[bond]
+                            tally[bond]["true" if v is True else "false" if v is False
+                                        else kind] += 1
+                        got, jwhy = composer.junction_verdict(res)
+                        outcome["settled" if got else "ambiguous" if jwhy.startswith("ambig")
+                                else "none"] += 1
+                        for bond, (v, why, _kind, ev) in res.items():
+                            if v is not None and len(sample) < 20:
+                                sample.append({"molecule": m["molecule"], "left": list(key[0]),
+                                               "right": list(key[1]), "bond": bond,
+                                               "verdict": v, "why": why, "junction": jwhy,
+                                               "by": [ops[0][1], ops[1][1]],
+                                               **({"candidate": ci} if fam else {}),
+                                               "occasions": ev["occasions"],
+                                               "cycles": [cyc0 + t for t in ev["deciding"]][:10],
+                                               "specific_cycles": [cyc0 + t for t
+                                                                   in ev["specific"]][:10]})
                     continue
                 ends = []
                 for side in (n.left, n.right):
@@ -9679,8 +9756,13 @@ class Agent:
                         frames=len(frames), resets=len(skip), junctions=len(seen),
                         unbound=unbound, unbound_by_side=missing,
                         **({"resolved_by": dict(resolved_by),
-                            "refused_or_unreachable": dict(refusals.most_common(12))}
+                            "refused_or_unreachable": dict(refusals.most_common(12)),
+                            "refused_by_missing": dict(self._refusal_tally.most_common(20))}
                            if resolve else {}),
+                        **({"families": families, "candidates": n_cands}
+                           if resolve and _OPERAND_FAMILY else {}),
+                        **({"at": at, "board": getattr(self, "_bond_board", 0)}
+                           if at is not None else {}),
                         tested=len(seen) - unbound, tally=tally,
                         junction_outcome=outcome, decided_sample=sample,
                         reads="record only (r897, r934): which bond each lit junction's window "
