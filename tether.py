@@ -1536,6 +1536,16 @@ _DERIVED_SUBJECT = armflag.arm("TETHER_DERIVED_SUBJECT", default=True)
 _CUE_NORM = armflag.arm("TETHER_CUE_NORM", default=True)
 
 
+def _no_term_why(base: str, termless: list) -> str:
+    """8b (r1135, r1138): a pair offset (dcol_oN, ...) gets no term of its own -- the base's
+    motion term is a different quantity (A6i), and Gamma composes no two-source offset."""
+    if any(relations.pair_attr(s.split(".", 1)[1]) for s in termless if "." in s):
+        return (f"{base} -- pair offset: no term of its own (the base's motion term is not "
+                "borrowed: A6i, r1135; and no instrument in Gamma composes a two-source "
+                "offset, r1138)")
+    return base
+
+
 def cue_attr(a: str | None, known) -> str | None:
     """A "<reading>_oN" name whose base is a known reading reads as that base; else unchanged."""
     base, _, who = (a or "").rpartition("_")
@@ -10163,7 +10173,8 @@ class Agent:
                         continue
                     ta, tb = self._slot_term(x), self._slot_term(y)
                     if ta is None or tb is None:
-                        why["lookup: a reading has no term"] += 1
+                        why[_no_term_why("lookup: a reading has no term",
+                                         [s for s, t in ((x, ta), (y, tb)) if t is None])] += 1
                         continue
                     chain = Term(tuple(ta.atoms) + tuple(tb.atoms))
                     prov = {"molecule": p["molecule"], "bond": got, "object": o,
@@ -10238,7 +10249,8 @@ class Agent:
                                 continue                # one slot read twice is one quantity
                             ts = [self._slot_term(s) for s in path]
                             if any(t is None for t in ts):
-                                why["a leaf slot has no term"] += 1
+                                why[_no_term_why("a leaf slot has no term", [
+                                    s for s, t in zip(path, ts, strict=True) if t is None])] += 1
                                 continue
                             chain = Term(tuple(a for t in ts for a in t.atoms))
                             prov = {"molecule": m["molecule"], "bond": got, "object": o,
