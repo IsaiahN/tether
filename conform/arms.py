@@ -2174,6 +2174,13 @@ ARMS: dict[str, str] = {
                           "in-game), with the reads its text does not name (count: came/gone), "
                           "passed to invent_atom at re-invention. One M7 path. OFF: only the "
                           "library's own templates carry. default ON",
+    "TETHER_TALLY_CARRY": "BUILD 5 ITEM 20 (r1232 Q1, Q2): at a clear credited to a held shape's "
+                          "family Y, a tally record joins the ONE M7 path: (reading, Y) won under "
+                          "each reading that held, and this board's stall losses (reading, X), X "
+                          "!= Y, under those readings -- a loss crosses only when the ground "
+                          "witnessed the contrast; on load the wins seed _desc_paid and the losses "
+                          "a carried count the same p sums with the board's. OFF: nothing "
+                          "tallied. default ON",
     "TETHER_SLOTLESS_TOUCH": "BUILD 5 ITEM 19 Q2 (the reviewer 2026-11-05 r1216): a completion-"
                              "held goal that names no slot (count NONE, connected) is pressed for "
                              "through 16b's formed / tried machinery: _untried_ready offers its "

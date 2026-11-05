@@ -2165,6 +2165,12 @@ _GOAL_UNBUNDLE = armflag.arm("TETHER_GOAL_UNBUNDLE", default=True)
 # name (count: came/gone; connected: touching), passed at re-invention. One M7 path. OFF: only the
 # library's own templates carry, as before
 _SHAPE_CARRY = armflag.arm("TETHER_SHAPE_CARRY", default=True)
+# Build 5 item 20, THE TALLIES CARRY (r1232 Q1, Q2): at a clear credited to a held shape's family Y,
+# a tally record joins the ONE M7 path -- (reading, Y) won under each reading that held, and this
+# board's stall losses (reading, X) for X != Y under those readings: a loss crosses only when the
+# ground witnessed the contrast. On load it seeds the wins and a carried-loss count the same p sums
+# with this board's. A board that never clears carries no loss. OFF: nothing tallied, as before
+_TALLY_CARRY = armflag.arm("TETHER_TALLY_CARRY", default=True)
 
 
 @dataclass(frozen=True)
@@ -4680,6 +4686,9 @@ class Agent:
         # contact by kind, the most owners one press moved by action; what paid per reading
         if _BOARD_DESC:
             self._desc_paid: Counter = Counter()
+            if _TALLY_CARRY:          # item 20: losses witnessed by a clear, carried in
+                self._desc_lost_carried: Counter = Counter()
+                self._tally_n = 0
         self._desc_level()
         self._desc_board()
         # B: (slot -> (action, ctx) -> signs seen). Agency's lifetime, never the trace's: the
@@ -8528,6 +8537,8 @@ class Agent:
         if _BOARD_DESC and won and "family" in h:    # item 18: the record that outweighs a seed
             for r in h["desc"] or ["none"]:
                 self._desc_paid[(r, h["family"])] += 1
+            if _TALLY_CARRY and _M7_INV:
+                self._tally_carry(h)
         if (_DESC_DEMOTE or _STALL_SURFACE) and "family" in h and not won and (
                 loss or why == "stalled"):
             self._desc_against(h, why, step)
@@ -8653,6 +8664,11 @@ class Agent:
                         cap.head()
                         text = t.format(o=o, x=x)
                         src[text], tpl[text] = skey, t
+        carried_grp = {}                        # item 20 (iii): a carried group, rebuilt by form
+        if _SHAPE_CARRY:
+            carried_grp = {t: s for t, s in src.items() if t.startswith("ALL kind(")}
+            for t in carried_grp:
+                del src[t]
         refused: Counter = Counter()
         cands = []
         _smw: dict = {}                         # R4 record: the clock verdict per subject
@@ -8766,6 +8782,8 @@ class Agent:
         cands = _admit(phases[0])
         if _GROUP_PROPOSE:                      # box 3: the group row's FORM, priced by bits
             cands += self._group_cands(phases[0], before, atoms)
+        if carried_grp:
+            cands += self._carried_groups(carried_grp, before, atoms)
         if _GOAL_UNBUNDLE and self._hyp_split is not None:
             cands += self._compounds(cands)     # item 19 (c): kept AND c, in the same sort
         cands = _priced(cands)
@@ -9368,8 +9386,10 @@ class Agent:
 
         if _DESC_DEMOTE:
             seed = {f: sum(_DESC_SEED.get(r) == f for r in rs) for f in fams}
+            carried = self._desc_lost_carried if _TALLY_CARRY else Counter()   # item 20, summed
             p = {f: (1 + seed[f] + count(f, self._desc_paid))
-                 / (2 + seed[f] + count(f, self._desc_paid) + count(f, self._desc_lost))
+                 / (2 + seed[f] + count(f, self._desc_paid) + count(f, self._desc_lost)
+                    + count(f, carried))
                  for f in fams}
             return {f: round(-math.log2(v), 6) for f, v in p.items()}
         mass = {f: 1 + sum((_DESC_SEED.get(r) == f) + self._desc_paid[(r, f)] for r in rs)
@@ -9486,6 +9506,19 @@ class Agent:
                                 if _DESC_DEMOTE else None),
                         reads="evidence against this family on this board, never a refutation")
 
+    def _carried_groups(self, items: dict, before: dict, atoms: dict) -> list:
+        """Item 20 (iii), proposer-side: a carried "ALL kind(...): member" text, which the compiler
+        refuses, rebuilt BY FORM -- its member condition through _group_cands / _group_form, the
+        one group form -- and ranked by its shelf record like any shelf entry (won, progress)."""
+        members = {t.split(": ", 1)[1]: s for t, s in items.items() if ": " in t}
+        out = []
+        for k, t, c, tk, s in self._group_cands(members, before, atoms):
+            rec = self._goal_shelf.get(s, {}).get("record", {})
+            rank = (0 if rec.get("won") else
+                    1 if _PROGRESS_SHELF and rec.get("progress") else k[0])
+            out.append(((rank, *k[1:]), t, c, tk, s))
+        return out
+
     def _group_cands(self, items: dict, before: dict, atoms: dict) -> list:
         """Box 3 (r1218): the proposer's group candidates -- the FORM over its own texts (compiled
         through the same cache), not holding now, not tried this level, ranked by bits at the
@@ -9599,8 +9632,8 @@ class Agent:
                         "met_state": detail.get("met_state"), "level": self.level,
                         "templates": self._goal_templates(parts, tpl, lib), "parts": parts,
                         "affects": list(self._affects(lib, "completed") or ())}
-                    if _SHAPE_CARRY and isinstance(c, (_Count, _Connect)):
-                        self._goal_meta[key]["reads"] = list(c.reads)   # item 20 (ii)
+                    if _SHAPE_CARRY and (rd := self._goal_reads(c, text, lib)):
+                        self._goal_meta[key]["reads"] = rd      # item 20 (ii), (C8)
                 if _GOAL_LINK:
                     detail["link"] = self._link_goal(key, c)
                 if _SLOTLESS_TOUCH and isinstance(c, (_Count, _Connect)):
@@ -10058,26 +10091,61 @@ class Agent:
             self._inv_lib = _replace_lib(lib)
         return self._inv_lib
 
+    def _tally_carry(self, h: dict) -> None:
+        """Item 20: at a clear credited to the held family Y, the tallies as a carried record --
+        (reading, Y) won under each reading that held, and this board's stall losses (reading, X),
+        X != Y, under those readings: the contrast the ground witnessed (Fig 4 :9, :22)."""
+        y, rs = h["family"], h["desc"] or ["none"]
+        lost = ([[r, f, n] for (r, f), n in sorted(self._desc_lost.items())
+                 if n and f != y and r in rs] if _DESC_DEMOTE else [])
+        self._tally_n += 1
+        name = f"{self.gamma.game}_tally_{self._tally_n}"
+        self._inv_carry.append({"name": name, "term": name, "kind": "tally",
+                                "game": self.gamma.game, "born": self.cycle, "level": self.level,
+                                "won": [[r, y, 1] for r in rs], "lost": lost})
+
     def _goal_templates(self, parts: list, tpl: dict, lib: Any) -> list:
         """GQ1's templates for a held condition's parts: the library's own, else (item 20) the
-        part's METHOD form."""
-        return [tpl.get(p) or (self._method_form(p, lib) if _SHAPE_CARRY else None)
-                for p in parts]
+        part's METHOD form; item 20 (C8): a library template that still names one of this board's
+        objects (a pair reading's partner, "{o}.touches_o2") is a recording, so the method form."""
+        if not _SHAPE_CARRY:
+            return [tpl.get(p) for p in parts]
+        return [t if t and not self._form_owners(t) else self._method_form(p, lib)
+                for p, t in ((p, tpl.get(p)) for p in parts)]
+
+    def _form_owners(self, text: str) -> list:
+        """This board's objects a text names, in order of first appearance -- whole tokens, a pair
+        reading's partner included (touches_o2 names o2)."""
+        owners = {s.split(".", 1)[0] for s in self.slots if "~" not in s.split(".", 1)[0]}
+        return list(dict.fromkeys(w for w in re.findall(r"[A-Za-z0-9~]+", text) if w in owners))
 
     def _method_form(self, text: str, lib: Any) -> str | None:
         """Item 20 (i): a shape's METHOD -- this board's objects as {o} then {x}, in order of first
         appearance; kinds and readings as they are. None where it names more objects than the
         instantiation has places (two), or carry_check refuses it (a constant: a recording)."""
-        owners = {s.split(".", 1)[0] for s in self.slots if "~" not in s.split(".", 1)[0]}
-        found = list(dict.fromkeys(w for w in re.findall(r"[A-Za-z0-9_~]+", text)
-                                   if w in owners))
+        found = self._form_owners(text)
         if len(found) > 2 or "{" in text:
             return None
         form = text
         for ph, o in zip(("{o}", "{x}"), found, strict=False):
-            form = re.sub(rf"(?<![A-Za-z0-9_~]){re.escape(o)}(?![A-Za-z0-9_~])", ph, form)
+            form = re.sub(rf"(?<![A-Za-z0-9~]){re.escape(o)}(?![A-Za-z0-9~])", ph, form)
         safe, _why = sys.modules["library_runtime"].carry_check(form, lib.readings)
         return form if safe else None
+
+    def _goal_reads(self, c: Any, text: str, lib: Any) -> list | None:
+        """Item 20 (ii): the reads a carried shape's text cannot name -- a count's or a connection's
+        own (came/gone, touching), a pair reading's (C8) beside the ones its text names."""
+        if isinstance(c, (_Count, _Connect)):
+            return list(c.reads)
+        fr = self._form_reads(text)
+        return list(dict.fromkeys(lib.reads_of(text) + fr)) if fr else None
+
+    @staticmethod
+    def _form_reads(text: str) -> list:
+        """Item 20 (C8): the library readings a pair-reading text names by its slot attribute
+        (touches -> touching, compile_term.PAIR), which its own text cannot name."""
+        rels = {relations.pair_attr(w) for w in re.findall(r"[A-Za-z0-9_]+", text)} - {None}
+        return [k for k, v in compile_term.PAIR.items() if v in rels]
 
     def _reinvent_carried(self, carried: list[dict]) -> dict:
         """M7-INV (iii): the lineage's inventions re-invented in this agent's private library,
@@ -10086,8 +10154,16 @@ class Agent:
         and its provenance in the receipt. ON TRIAL: an entry's standing is earned from this
         game's ground, never carried in as settled (the reviewer 2026-10-16 19:01 Q3)."""
         lib = self._inv_library() if carried else None
-        made, refused = [], []
+        made, refused, tallied = [], [], []
         for rec in carried:
+            if rec.get("kind") == "tally":      # item 20: the tallies seed the prior, no entry
+                if _TALLY_CARRY and _BOARD_DESC:
+                    for r, f, n in rec.get("won", ()):
+                        self._desc_paid[(r, f)] += n
+                    for r, f, n in rec.get("lost", ()):
+                        self._desc_lost_carried[(r, f)] += n
+                    tallied.append(rec["name"])
+                continue
             if lib is None or lib.get(f"AGENT-INVENTED|{rec['name']}"):
                 continue
             try:
@@ -10127,6 +10203,7 @@ class Agent:
         if carried:
             self.led.record(self.cycle, self._running_step, "@lineage", "invention_carried",
                             carried=len(carried), reinvented=made, refused=refused,
+                            **({"tallied": tallied} if tallied else {}),
                             reads=("inventions carried as their method, re-invented on trial in "
                                    "the private library; standing is earned here"))
         return {"carried": len(carried), "reinvented": len(made), "refused": len(refused)}
