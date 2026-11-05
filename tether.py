@@ -2111,6 +2111,19 @@ class _Pair:
         return all(compile_term.run(c, state) is True for c in self.parts)
 
 
+@dataclass(frozen=True)
+class _Group(_Pair):
+    """Item 17 (B), a GROUP GOAL (r1201): every member of the scope's kind, fixed when formed, meets
+    the member condition. Its parts are that condition bound to each member then present, wanted
+    one per member as a pair's conjuncts; it holds by the agent's own kinds on the state."""
+    group: Any = None
+    kind: tuple = ()
+    check: Any = field(default=None, compare=False, repr=False)
+
+    def holds(self, state: dict) -> bool:
+        return self.check(self.group, state, self.kind) is True
+
+
 def _confirm_actions(r: Any) -> int | None:
     """The actions until a plan has been SEEN TO HOLD (Fig 12 :126, "Actions price finding out
     whether it holds"). A routine is confirmed only by running it, so this is its length in
@@ -8813,6 +8826,8 @@ class Agent:
         world's readings and the world's verdict. Listing occasions one by one pays for every
         one (M6-a)."""
         def size(c: Any) -> int:      # a pair is both parts plus the `both` joiner
+            if isinstance(c, _Group):   # the member condition plus its quantifier
+                return self.gamma.length(c.group.member.term) + 1
             return (sum(self.gamma.length(x.term) for x in c.parts) + 1 if isinstance(c, _Pair)
                     else self.gamma.length(c.term))
 
@@ -8856,6 +8871,36 @@ class Agent:
                 pair = _Pair((a[5], b[5]))
                 cost, left, e = self._goal_price([pair], rows)
                 out.append((cost + left, cost, left, e, f"{a[4]} and {b[4]}", pair))
+        return out
+
+    def _goal_groups(self, singles: list, rows: list) -> list:
+        """Item 17 (B) (r1201): ALL of a kind (7l) meets a single's condition, written on its
+        subject, priced by `_goal_price`. Formed only from singles true on every step where the
+        objective held (a group is false wherever its scope's member is), once per (kind, the
+        condition with its subject as a placeholder), and only over two or more members."""
+        reached = [st for st, hit in rows if hit]
+        now = rows[-1][0]
+        out, seen = [], set()
+        for x in singles:
+            cap.head()
+            c = x[5]
+            if not isinstance(c, compile_term.Compiled) or c.parties or "~" in c.slot:
+                continue
+            scope = c.slot.split(".", 1)[0]
+            kind = self._kind(scope)
+            k = (kind, re.sub(rf"\b{scope}\b", "{o}", x[4]))
+            if k in seen or not all(compile_term.run(c, st) is True for st in reached):
+                continue
+            seen.add(k)
+            members = [o for o in self._owners(now) if self._kind(o) == kind]
+            if len(members) < 2:
+                continue                        # a group of one is its single
+            bound = (compile_term.bind(c, scope, m) for m in members)
+            grp = _Group(tuple(p for p in bound if p.slot != p.operand),   # never itself
+                         group=compile_term.Group("ALL", scope, c), kind=kind,
+                         check=self._group_holds)
+            cost, left, e = self._goal_price([grp], rows)
+            out.append((cost + left, cost, left, e, f"ALL kind({scope}): {x[4]}", grp))
         return out
 
     @_in_step("IMPORT")
@@ -8948,8 +8993,14 @@ class Agent:
             cost, left, e = self._goal_price([c], rows)
             cands.append((cost + left, cost, left, e, text, c))
         n_plain, self._pair_bounded = len(cands), 0
+        singles = list(cands)
         if _GOAL_PAIR and not (_PAIRS_FALLBACK and any(pays(x[1], x[2], base) for x in cands)):
             cands += self._goal_pairs(cands, rows)
+        n_group = 0
+        if compile_term._GROUP_ROW:
+            groups = self._goal_groups(singles, rows)
+            cands += groups
+            n_group = len(groups)
         lag = sum(1 for x in cands if any(lag_of(t) for t in re.findall(r"[\w.]+~\d+", x[4])))
         cands.sort(key=lambda x: (x[0], x[4]))
         if _A1_TIES and cands:          # A1: an exact tie in total, never by condition text
@@ -8959,7 +9010,8 @@ class Agent:
                 cands.insert(0, cands.pop(next(i for i, x in enumerate(cands) if x[4] == _a1k)))
         detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
                   "conditions": len(cands), "refused": dict(refused),
-                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain, "lag": lag,
+                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain - n_group, "lag": lag,
+                              **({"group": n_group} if compile_term._GROUP_ROW else {}),
                               **({"pair_bounded": self._pair_bounded}
                                  if _PAIR_BOUND and _GOAL_PAIR else {})},
                   "cheapest": [{"if": x[4], "cost": round(x[1], 3), "left": round(x[2], 3),

@@ -10,6 +10,9 @@ MF-G2  NONE (presence alone) of a held kind whose members are gone holds; of a k
        is NOT_RESOLVED (None), never satisfied; with members present it is false; NONE of a
        member condition with one member unreadable and none true is None, not true (r1201)
 MF-G3  ALL of a kind with no members is NOT_RESOLVED (None), never a vacuous true
+MF-G4  (B, reach) a history where the objective held exactly when every member was level: the
+       completion offers group goals, reads them through holds(), the exact one is the cheapest
+       that pays and links one want per member but its anchor. OFF: no group offered
 The red is behavioural: TETHER_GROUP_ROW=0 refuses the compile, and every MF fails.
 
     python tests/test_group_row.py
@@ -95,9 +98,44 @@ def main():
 
     assert ag._group_holds(g, gone, kind=kind) is None, "MF-G3: ALL of no members is not None"
     assert ag._group_holds(g, st, kind=never) is None, "MF-G3: ALL of an empty kind is not None"
+    # MF-G4 (r1201, reach): a history where the objective held exactly when every member was
+    # level with o1; the single "o0.row == o1.row" also holds where another member is off
+    rows = []
+    for i in range(36):
+        off = [o for o in members if o not in ("o0", "o1")][i % 4] if i % 3 else None
+        s = dict(level) if off is None else {**level, f"{off}.row": st["o1.row"] + 1}
+        rows.append((s, off is None))
+    rows.append((dict(level), True))
+    calls = []
+    real = tether._Group.holds
+
+    def spy(self, state):
+        calls.append(1)
+        return real(self, state)
+    tether._Group.holds = spy
+    try:
+        best, detail = ag._goal_candidates(rows)
+    finally:
+        tether._Group.holds = real
+    assert detail["offered"].get("group", 0) >= 1 and calls, ("MF-G4: no group goal offered "
+                                                             "or never checked", detail["offered"])
+    assert best is not None and isinstance(best[5], tether._Group) and best[3] == 0, (
+        "MF-G4: the exact group goal is not the cheapest that pays", detail["cheapest"])
+    link = ag._link_goal("@group", best[5])
+    assert link["linked"] and len(link["slots"]) == len(members) - 1, (   # the anchor is not
+        "MF-G4: not wanted per member", link)                              # wanted on itself
+    C._GROUP_ROW = False
+    try:
+        b_off, d_off = ag._goal_candidates(rows)
+    finally:
+        C._GROUP_ROW = True
+    assert "group" not in d_off["offered"] and not isinstance((b_off or [None] * 6)[5],
+                                                              tether._Group), ("MF-G4 OFF", d_off)
     print(f"test_group_row: pass (MF-G1 ALL per member over {len(members)} of kind {kind}, OFF "
-          f"QUANTIFIED; MF-G2 NONE held-and-gone True, never-held None, present False; MF-G3 "
-          f"ALL of none None)")
+          f"QUANTIFIED; MF-G2 NONE held-and-gone True, never-held None, present False, one "
+          f"unreadable None; MF-G3 ALL of none None; MF-G4 {best[4]!r} the cheapest that pays, "
+          f"{detail['offered']['group']} group(s) offered, holds() read {len(calls)}x, wanted on "
+          f"{len(link['slots'])} slots; OFF none)")
 
 
 if __name__ == "__main__":

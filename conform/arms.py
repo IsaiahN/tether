@@ -2124,8 +2124,11 @@ ARMS: dict[str, str] = {
                         "quantified candidate compiles to a Group (ALL / NONE, its scope, the "
                         "member condition) evaluated per member over the owners whose kind (7l) "
                         "is the scope's; kinds seen are recorded at perception. NONE of a kind "
-                        "never held and ALL of no members read NOT_RESOLVED (Fig 8 :39). OFF: "
-                        "Refusal(QUANTIFIED), as before. default ON",
+                        "never held and ALL of no members read NOT_RESOLVED (Fig 8 :39). (B, "
+                        "r1201): the completion also offers ALL-of-a-kind group goals from the "
+                        "necessary singles, priced by the one bargain and linked one want per "
+                        "member. OFF: Refusal(QUANTIFIED) and no group offered, as before. "
+                        "default ON",
     "TETHER_LA_LANDING": "BUILD 4 ITEM 14c (the reviewer 2026-11-05 r1189): a look-ahead press "
                          "carries its realisation's coordinate and reads its landing "
                          "(iface._acted) on the SIMULATED state; every predictor on that press is "
