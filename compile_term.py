@@ -48,6 +48,12 @@ _GROUP_ROW = armflag.arm("TETHER_GROUP_ROW", default=True)
 # (so a colour takes ==/!= only). The operand is the constant itself, CONST + its value. OFF:
 # "no template compares colour with the constant 3", as before
 _SLOT_CONSTANT = armflag.arm("TETHER_SLOT_CONSTANT", default=True)
+# Build 5 item 17 (v) (a), CHAIN-CONNECTED (the reviewer 2026-11-05 r1208; Fig 6 :29-32):
+# connected(o, x) compiles onto o.connected_x, a BOOL DERIVED in run() from the frame's own
+# *.touches_* slots (the touch graph's components), never added to perception. It reads whatever
+# touches the world publishes (gridworld's box touches count corners). OFF: "no pairwise atom"
+_CONNECTED = armflag.arm("TETHER_CONNECTED", default=True)
+CONNECTED_VIA = "derived:connected"
 CONST = "#"
 CONST_TYPES = {"COLOUR", "SHAPE", "POSITION", "EXTENT", "DELTA"}
 CONST_FIRST = {"COLOUR", "SHAPE", "POSITION"}   # no 0 / 1 template types on these
@@ -268,6 +274,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom],
     if (_RELATION_SET and isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call)
             and node.left.name in OBSERVER_PAIR):
         return _observer_pair(node, atoms)
+    if (_CONNECTED and isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call)
+            and node.left.name == "connected"):
+        return _connected(node, atoms)
     if isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call):
         # a pair reading names TWO objects; the atoms read one slot each (`touching` reads
         # whether its object touches ANY object), so no chain says "this pair"
@@ -404,6 +413,49 @@ def run_group(g: Group, frame: dict[str, Any], members: list[str], held: bool) -
     return False if True in vals else (None if None in vals else True)
 
 
+def _connected(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
+    """connected(o, x) == 1 / > 0 / != 0 -> holds, == 0 -> holds . negate, on o.connected_x."""
+    call = node.left
+    if len(call.args) != 2 or not all(isinstance(a, condition.Slot) for a in call.args):
+        return Refusal(f"no template for {call} {node.op} {node.right}")
+    names = OBSERVER_PAIR["inside"].get((node.op, node.right))     # a BOOL, read as inside's
+    if names is None:
+        return Refusal("a BOOL is 0 or 1")
+    missing = [n for n in names if n not in atoms]
+    if missing:
+        return Refusal(f"Gamma holds no atom {missing}")
+    chain = tuple(atoms[n] for n in names)
+    why = _typed(chain, "BOOL", None)
+    if why:
+        return Refusal(why)
+    o, x = (a.name for a in call.args)
+    return Compiled(f"{o}.connected_{x}", gamma.Term(chain), None, parties=(o, x),
+                    via=CONNECTED_VIA)
+
+
+def connected(frame: dict[str, Any], o: str, x: str) -> int | None:
+    """1 when a chain of touching objects joins o and x in this frame, 0 when none does, None when
+    either is absent: the touch graph read off the frame's own *.touches_* slots."""
+    owners = {k.split(".", 1)[0] for k in frame if "." in k}
+    if o not in owners or x not in owners:
+        return None
+    adj: dict = {}
+    for k, v in frame.items():
+        a, sep, b = k.partition(".touches_")
+        if sep and v and "~" not in a:
+            adj.setdefault(a, set()).add(b)
+            adj.setdefault(b, set()).add(a)
+    seen, todo = {o}, [o]
+    while todo:
+        for n in adj.get(todo.pop(), ()):
+            if n == x:
+                return 1
+            if n not in seen:
+                seen.add(n)
+                todo.append(n)
+    return int(o == x)
+
+
 def const_of(name: str | None) -> int | None:
     """The value of a constant operand (CONST + an int), else None."""
     return int(name[1:]) if name and name[0] == CONST else None
@@ -521,6 +573,11 @@ def run(c: Compiled, frame: dict[str, Any]) -> bool | None:
     if frame.get(c.slot) is None and c.absent is not None and c.parties and all(
             any(k.startswith(p + ".") for k in frame) for p in c.parties):
         frame = {**frame, c.slot: c.absent}      # a sparse pair, both objects present: absent IS 0
+    if c.via == CONNECTED_VIA and frame.get(c.slot) is None:
+        v = connected(frame, *c.parties)        # (v): derived here, never perceived
+        if v is None:
+            return None
+        frame = {**frame, c.slot: v}
     k = const_of(c.operand)
     if frame.get(c.slot) is None or (c.operand and k is None and frame.get(c.operand) is None):
         return None

@@ -2129,6 +2129,15 @@ ARMS: dict[str, str] = {
                         "necessary singles, priced by the one bargain and linked one want per "
                         "member. OFF: Refusal(QUANTIFIED) and no group offered, as before. "
                         "default ON",
+    "TETHER_CONNECTED": "BUILD 5 ITEM 17 (v) (a) (the reviewer 2026-11-05 r1208; Fig 6 :29-32): "
+                        "connected(o, x) compiles onto o.connected_x, a BOOL derived where "
+                        "conditions are read from the frame's own *.touches_* slots (the touch "
+                        "graph's components), never added to perception; it reads whatever "
+                        "touches the world publishes (gridworld's box touches count corners). "
+                        "The completion offers connected(a, b) == 1 for pairs joined at the last "
+                        "met row; held, it names no single slot to want. (b), a path through "
+                        "free cells, is owed as a new sensor. OFF: refused 'no pairwise atom', "
+                        "none offered. default ON",
     "TETHER_GOAL_ORDER": "BUILD 5 ITEM 17 (iv) (the reviewer 2026-11-05 r1206; Fig 12 :112): the "
                          "completion also offers 'A then B', true at a row where B holds and A "
                          "held at an earlier row, read in one pass over each single's truths; "

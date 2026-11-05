@@ -2149,6 +2149,16 @@ class _Order(_Pair):
 
 
 @dataclass(frozen=True)
+class _Connect(_Pair):
+    """Item 17 (v) (a) (r1208): connected(a, b) == 1 -- parts (the compiled pair condition,), its
+    reading derived from the frame's touches. It names no single slot to want, as a count."""
+    reads: tuple = ("touching",)
+
+    def holds(self, state: dict) -> bool:
+        return compile_term.run(self.parts[0], state) is True
+
+
+@dataclass(frozen=True)
 class _Count(_Pair):
     """Item 17 (iii), A COUNT-OF-KIND GOAL (r1203, r1205): NONE of one held kind remain (count 0),
     or two held kinds' counts equal. It names no slot to want (no parts); it holds by the members
@@ -8068,6 +8078,8 @@ class Agent:
         composed is not this item's to decide."""
         if isinstance(c, _Count):
             return {"linked": False, "why": "a count of a kind names no slot to want"}
+        if isinstance(c, _Connect):
+            return {"linked": False, "why": "a connection names no single slot to want"}
         if isinstance(c, _Order):
             return self._link_order(key, c)
         parts = list(c.parts) if isinstance(c, _Pair) else [c]
@@ -9014,6 +9026,53 @@ class Agent:
                 out.append((cost + left, cost, left, e, f"{a[4]} then {b[4]}", c))
         return out
 
+    def _goal_connected(self, rows: list) -> list:
+        """Item 17 (v) (a) (r1208): connected(a, b) == 1 for each pair joined by a touch chain at
+        the last met row. Each row's touch components are labelled ONCE; a pair's truth per row is
+        its two labels' equality; priced by `_goal_price` on that truth."""
+        met = [st for st, hit in rows if hit]
+        if not met:
+            return []
+        atoms = {a.name: a for a in self.gamma.atoms}
+
+        def labels(st: dict) -> dict:     # one search per component, as compile_term.connected
+            adj: dict = {o: set() for o in self._owners(st)}
+            for k, v in st.items():
+                a, sep, b = k.partition(".touches_")
+                if sep and v and a in adj and b in adj:
+                    adj[a].add(b)
+                    adj[b].add(a)
+            out: dict = {}
+            for o in adj:
+                if o in out:
+                    continue
+                out[o], todo = o, [o]
+                while todo:
+                    for n in adj[todo.pop()]:
+                        if n not in out:
+                            out[n] = o
+                            todo.append(n)
+            return out
+        per = [labels(st) for st, _h in rows]
+        last = labels(met[-1])
+        out = []
+        for a, b in itertools.combinations(sorted(last), 2):
+            cap.head()
+            if last[a] != last[b]:
+                continue
+            text = f"connected({a}, {b}) == 1"
+            c = self._compile_cache.get(text)
+            if c is None:
+                c = self._compile_cache[text] = compile_term.compile_candidate(
+                    {"condition": text}, atoms)
+            if not isinstance(c, compile_term.Compiled):
+                continue
+            t = [a in lb and b in lb and lb[a] == lb[b] for lb in per]
+            g = _Connect((c,))
+            cost, left, e = self._goal_price([g], rows, truth=t)
+            out.append((cost + left, cost, left, e, text, g))
+        return out
+
     def _count_holds(self, kinds: tuple, state: dict) -> bool | None:
         """Item 17 (iii): one kind -> NONE remain (the group row's guarded NONE, r1200: a kind
         never held is None); two -> their counts equal, None unless both were held."""
@@ -9119,7 +9178,8 @@ class Agent:
                 self._goal_n += 1
                 _gi = self._goal_n if _LEVEL_GOAL else len(self._goal_conds) + 1
                 key = lib.invent_atom(f"{self.gamma.game}_goal_{_gi}",
-                                      text, list(c.reads) if isinstance(c, _Count) else None,
+                                      text, (list(c.reads) if isinstance(c, (_Count, _Connect))
+                                             else None),
                                       game=self.gamma.game, cycle=self.cycle,
                                       receipt={"completion": self.cycle, "steps": n,
                                                "reached": k, "errors": e},
@@ -9184,6 +9244,11 @@ class Agent:
             orders = self._goal_orders(singles, rows)
             cands += orders
             n_order = len(orders)
+        n_conn = 0
+        if compile_term._CONNECTED:
+            conns = self._goal_connected(rows)
+            cands += conns
+            n_conn = len(conns)
         lag = sum(1 for x in cands if any(lag_of(t) for t in re.findall(r"[\w.]+~\d+", x[4])))
         cands.sort(key=lambda x: (x[0], x[4]))
         if _A1_TIES and cands:          # A1: an exact tie in total, never by condition text
@@ -9194,11 +9259,13 @@ class Agent:
         detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
                   "conditions": len(cands), "refused": dict(refused),
                   "offered": {"plain": n_plain,
-                              "pair": len(cands) - n_plain - n_group - n_count - n_order,
+                              "pair": (len(cands) - n_plain - n_group - n_count - n_order
+                                       - n_conn),
                               "lag": lag,
                               **({"group": n_group} if compile_term._GROUP_ROW else {}),
                               **({"count": n_count} if _COUNT_KIND else {}),
                               **({"order": n_order} if _GOAL_ORDER else {}),
+                              **({"connected": n_conn} if compile_term._CONNECTED else {}),
                               **({"pair_bounded": self._pair_bounded}
                                  if _PAIR_BOUND and _GOAL_PAIR else {})},
                   "cheapest": [{"if": x[4], "cost": round(x[1], 3), "left": round(x[2], 3),
