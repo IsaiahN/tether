@@ -196,6 +196,77 @@ def check_m5_test_press() -> None:
           f"bound's value: muse against {against}, test withdrawn")
 
 
+def _owing_step(ag, park_gain: float, debt_out: float) -> tuple:
+    """An owing step: one park from an earlier level (product park_gain x 1), one owed slot
+    (outstanding debt_out, need 0 + 1 for being owed here now)."""
+    col = sorted(s for s in ag.slots if s.endswith(".col") and not s.startswith("@"))[0]
+    row = sorted(s for s in ag.slots if s.endswith(".row") and not s.startswith("@"))[0]
+    ag._kind_key = lambda s: ("K", s.rsplit(".", 1)[-1])
+    ag._hyp = {"slots": [col], "key": "planted"}
+    ag.parked.clear()
+    rec = _park(ag, "L-1:" + col, col, park_gain, level=ag.level - 1)
+    rec["hist"] = ag.history(col) or [{}]
+    ag.owed_import = {row}
+    ag._owed_q = {}
+    ag._outstanding[row] = debt_out
+    ag._muse_last = ag._muse_run = None
+    ag._spent = 0                                      # a fresh step's purse
+    return col, row
+
+
+def _muse_rows(ag) -> tuple:
+    muses = [r for r in ag.led.rows() if r["event"] == "muse"]
+    chosen = [r["detail"] for r in ag.led.rows() if r["event"] == "muse_chosen"]
+    return len(muses), (chosen[-1] if chosen else None)
+
+
+def check_m7_owing_step_muses() -> None:
+    import tether
+    ag = _agent()
+    _owing_step(ag, 48.0, 6.0)
+    assert not ag._owes_nothing(), "PRECONDITION: the step owes something"
+    ag._muse()
+    n_on, row = _muse_rows(ag)
+    assert n_on == 1 and row and row["quiet"] is False and row["debt_larger"] is False, row
+    ag2 = _agent()
+    _owing_step(ag2, 48.0, 6.0)
+    tether._MUSING_CHOSEN = False                      # MUST-FAIL: today's gate
+    ag2._muse()
+    n_off, _r = _muse_rows(ag2)
+    assert n_off == 0, n_off
+    print(f"  owing step, park {row['park_product']} vs debt {row['debt_product']}: ON mused "
+          f"({n_on} muse row), OFF {n_off}")
+
+
+def check_m7b_debt_larger_still_muses() -> None:
+    ag = _agent()
+    _owing_step(ag, 48.0, 96.0)
+    ag._muse()
+    n_on, row = _muse_rows(ag)
+    assert n_on == 1 and row["debt_larger"] is True, row
+    assert row["debt_product"]["product"] == 96.0 and row["park_product"]["product"] == 48.0, row
+    print(f"  debt {row['debt_product']['product']} > park {row['park_product']['product']}: "
+          f"still mused (spare has no other taker), debt_larger={row['debt_larger']}")
+
+
+def check_m8_habituates() -> None:
+    ag = _agent()
+    col = sorted(s for s in ag.slots if s.endswith(".col") and not s.startswith("@"))[0]
+    rec = _park(ag, "L-1:" + col, col, 10.0, level=ag.level - 1)
+    st = ag._rf_standing("muse", (rec["kind"],))
+    ag._muse_quiet = True
+    st["against"] = 1.0
+    one = ag._muse_skip(rec)
+    st["against"] = 2.0
+    two = ag._muse_skip(rec)
+    ag._muse_quiet = False
+    st["against"] = 1.0
+    owing_one = ag._muse_skip(rec)
+    assert one is None and two == "the muse weight is under its witnesses", (one, two)
+    assert owing_one == "the muse weight is under its witnesses", owing_one
+    print(f"  quiet: 1 empty muse -> walked; 2 -> '{two}'; owing (seed 0): 1 empty -> stopped")
+
+
 def check_m6_no_identity() -> None:
     import ast
     import inspect

@@ -4664,6 +4664,7 @@ class Agent:
         self._muse_tests: dict = {}         # 24 (i): host slot -> (rival, kind), test pending
         self._muse_test_open: tuple | None = None   # 24 (i): (host, rival, bound, kind, n0)
         self._muse_test_best = None
+        self._muse_quiet = True             # 24 (r1257): this step owed nothing (the seed prior)
         self._loss_rel: dict = {}     # 23: vote key -> Counter of (loss kind, frame, relation)
         self._hs_open: list = []      # 23: course readings awaiting their verdict at j + lag
         self._hs_read: tuple | None = None   # 23: (cycle, course, reading) -- one per cycle
@@ -9975,8 +9976,12 @@ class Agent:
         taken. The gap and the time spent are recorded."""
         targets = {k: r for k, r in self.parked.items() if r.get("level") != self.level
                    and r.get("hist")}
-        if not targets or not self._owes_nothing():
+        quiet = self._owes_nothing()
+        # item 24 (r1257, r1259): quiet is a PRIOR, not a gate -- ON a step that owes something
+        # may muse too, its weight starting a seed lower; OFF: today's gate
+        if not targets or not (quiet or _MUSING_CHOSEN):
             return
+        self._muse_quiet = quiet
         t0 = time.perf_counter()
         methods = sorted(n for n, t in self.gamma.library.items()
                          if not self.gamma.is_atom(t) and self.gamma.is_settled(n))
@@ -10112,9 +10117,26 @@ class Agent:
         if self._muse_host(rec) is None:
             return "no slot of this kind here"
         st = self._rf_standing("muse", (rec.get("kind"),))
-        if 1 + self._rf_in("muse", (rec.get("kind"),)) + st["paid"] < st["against"]:
+        seed = 1 if getattr(self, "_muse_quiet", True) else 0    # r1257: quiet is the prior
+        if seed + self._rf_in("muse", (rec.get("kind"),)) + st["paid"] < st["against"]:
             return "the muse weight is under its witnesses"
         return None
+
+    def _muse_debt(self) -> dict:
+        """Item 24 (r1257, r1259): today's debt in the muse's own unit -- for each slot owed now
+        (owed_import, the lookups left unasked), outstanding x (its kind's demand count + 1, the
+        one demand of being owed here now); the largest, with its parts. Recorded, not acted on:
+        only item 25 may hold spare purse back, because only it can hand that purse to a taker."""
+        best = {"product": 0.0}
+        for s in sorted(set(self.owed_import) | set(self._owed_q)):
+            if s not in self.slots:
+                continue
+            rec = {"kind": self._kind_key(s), "owner_kind": self._kind_str(s.split(".", 1)[0])}
+            out, need = self.outstanding(s), self._muse_need(rec) + 1
+            if out * need > best["product"]:
+                best = {"slot": s, "outstanding": round(out, 6), "need": need,
+                        "product": round(out * need, 6)}
+        return best
 
     def _muse_choose(self, run: dict, targets: dict) -> None:
         """Item 24 (r1252 4, 5): of this pass's paying entries, the ONE with the largest gain x need
@@ -10148,9 +10170,16 @@ class Agent:
             offered = {"park": pk, "host": host, "method": e["method"], "as": cand.name,
                        "gain": rec.get("gain"), "need": self._muse_need(rec),
                        "product": round(prod, 3)}
+        park = max(((rec.get("gain", 0.0) * self._muse_need(rec), rec) for rec in targets.values()),
+                   key=lambda x: x[0], default=(0.0, {}))
+        debt = self._muse_debt()
         self.led.record(self.cycle, self._running_step, "@muse", "muse_chosen",
                         offered=offered, walked=len(run.get("walked", ())),
                         paying=len(run["paying"]), against_kinds=against,
+                        quiet=getattr(self, "_muse_quiet", True),
+                        park_product={"product": round(park[0], 6), "gain": park[1].get("gain"),
+                                      "need": self._muse_need(park[1]) if park[1] else 0},
+                        debt_product=debt, debt_larger=debt["product"] > park[0],
                         reads="the paying entry with the largest gain x need, offered as a "
                               "by=muse rival on today's slot of its kind; nothing installed")
 
