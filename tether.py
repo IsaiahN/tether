@@ -9322,10 +9322,12 @@ class Agent:
 
     def _desc_note(self, action: str, moved: set, slots: list) -> None:
         """Item 18: this level's sensor 3, and the most owners one press moved (a bar that ticks
-        on any press, indifferent(), not counted: r674 1); a row when the description changes."""
+        on any press, indifferent(), not counted: r674 1); a row when the description changes.
+        An owner moved only by its OWN slots: a pair slot derived from another object's move is
+        not a change of this owner (the reviewer 2026-11-05 r1238; _stall_surfaced's rule)."""
         ag = self._lv_agency
         ag.note(action, moved, slots)
-        bar = set(ag.indifferent())
+        bar = set(ag.indifferent()) | self._derived_slots()
         got = frozenset(s.split(".", 1)[0] for s in moved
                         if s not in bar and "." in s and "~" not in s.split(".", 1)[0])
         if len(got) > len(self._lv_breadth.get(action, ())):
@@ -9369,12 +9371,19 @@ class Agent:
 
     def _desc_self(self, cont: list) -> list:
         """Item 18: what I steer -- an owner whose contingent slots two or more of my actions
-        move (a body or a car answers several controls; a lamp one press flips answers one)."""
+        move (a body or a car answers several controls; a lamp one press flips answers one);
+        by its OWN slots, never a pair slot derived from another's move (r1238)."""
         acts: dict = {}
+        der = self._derived_slots()
         for (s, a), n in self._lv_agency.moved.items():
-            if n and s in cont and "~" not in s.split(".", 1)[0]:
+            if n and s in cont and s not in der and "~" not in s.split(".", 1)[0]:
                 acts.setdefault(s.split(".", 1)[0], set()).add(a)
         return sorted(o for o, a in acts.items() if len(a) >= 2)
+
+    def _derived_slots(self) -> set:
+        """The slots the world derives from others (pair relations, percept-computed readings):
+        not an owner's own change (r1238; the rule _stall_surfaced reads)."""
+        return set(self.env.derived()) if hasattr(self.env, "derived") else set()
 
     def _desc_family(self, c: Any, ctrl: set) -> str:
         """Item 18: the shape family of a candidate's FORM -- a count of a kind, a group of a

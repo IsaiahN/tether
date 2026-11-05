@@ -14,6 +14,11 @@ MF-B5  the prior: silent, every family the same price; avatar holding, navigate 
 MF-B6  AST GUARD: no test (if / elif / ternary / comprehension filter / while) in tether.py names a
        description reading or the seed table -- the description feeds only the price; a planted
        `if reads["avatar"]:` is caught
+MF-B7  (r1238) ls20's shape: every press moves the avatar o0 and, through derivation, three
+       other owners' pair slots relative to o0 (and one derived slot only up/down move): toggle
+       does not hold and avatar reads [o0] -- an owner moves only by its OWN slots. RED FIRST in
+       the same test: with the derived slots not excluded, toggle reads 3 and avatar takes the
+       derived slot's owner too
 MF-18a (r1221) the description (avatar o0) ranks X "o0.row == o4.row" (navigate) over Y
        "o1.colour == o3.colour" (placement), both moved this board (one G tier), same bits: X is
        held; X's goal residual reads flat, _hyp_check ends it "stalled" by the trend, and the next
@@ -163,6 +168,32 @@ def main():
         ag._desc_note(a, m, ["o0.row", "o5.row", "o1.colour", "o2.colour", "o3.colour"])
     tog = ag._board_desc()["reads"]["toggle"]
     assert tog == {"left": 3}, ("MF-B4", tog, ag._lv_breadth)
+
+    der = sorted(s for s in ag._derived_slots() if s.endswith("_o0") and not s.startswith("o0."))
+    owners = list(dict.fromkeys(s.split(".", 1)[0] for s in der))
+    assert len(owners) >= 4, ("the panel: derived slots of four owners relative to o0", der)
+    d3 = [next(s for s in der if s.startswith(o + ".")) for o in owners[:3]]
+    dc = next(s for s in der if s.startswith(owners[3] + "."))
+
+    def b7(own_only: bool) -> dict:
+        ag._desc_level()
+        ag.actions = ("up", "down", "left")
+        was = ag._derived_slots
+        if not own_only:
+            ag._derived_slots = set       # the red: derived slots counted as an owner's own
+        try:
+            for a, m in (("up", {"o0.row", *d3, dc}), ("down", {"o0.row", *d3, dc}),
+                         ("left", {"o0.col", *d3})):
+                ag._desc_note(a, m, ["o0.row", "o0.col", *d3, dc])
+            return ag._board_desc()["reads"]
+        finally:
+            ag._derived_slots = was
+
+    red = b7(False)
+    assert red["toggle"] and owners[3] in (red["avatar"] or {}).get("owners", []), (
+        "MF-B7 (red first): the derived-slot artifact", red)
+    b7r = b7(True)
+    assert b7r["toggle"] is None and b7r["avatar"]["owners"] == ["o0"], ("MF-B7", b7r)
 
     silent = ag._desc_prior([])
     assert len(set(silent.values())) == 1, ("MF-B5: silent is not uniform", silent)
