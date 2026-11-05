@@ -2112,6 +2112,13 @@ ARMS: dict[str, str] = {
                              "PLAN intent_predict row with its ms; no row where nothing is "
                              "weighed. Record-only until 15b reads it. OFF: never computed. "
                              "default ON",
+    "TETHER_LA_LANDING": "BUILD 4 ITEM 14c (the reviewer 2026-11-05 r1189): a look-ahead press "
+                         "carries its realisation's coordinate and reads its landing "
+                         "(iface._acted) on the SIMULATED state; every predictor on that press is "
+                         "evaluated with it, not the last real press's; _sim_parent keeps it and "
+                         "a held latch cause advances on it in thought; 15a and 15c pass their "
+                         "realisation's landing, and a recorded row keeps its own (None stays "
+                         "None). OFF: the live step's landing, as before. default ON",
     "TETHER_GOAL_BOTH_SIDES": "BUILD 4 ITEM 16c (the reviewer 2026-11-05 r1189; Fig 12 :112; the "
                               "Operators Table's symmetry test): a held hypothesis whose one "
                               "comparison is symmetric (its atom is its own swap: same, other) "

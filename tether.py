@@ -1396,6 +1396,15 @@ _UNTRIED_INTENT = armflag.arm("TETHER_UNTRIED_INTENT", default=True)
 # of the part, linked only where its slot holds no want. An asymmetric one keeps today's link.
 # OFF: one side, as before.
 _GOAL_BOTH_SIDES = armflag.arm("TETHER_GOAL_BOTH_SIDES", default=True)
+# BUILD 4 ITEM 14c, THE LANDING IN THOUGHT (the reviewer 2026-11-05 r1189): a press's landing is
+# iface._acted(its coordinate, the state, cell_of) -- the landed object needs no board after the
+# press -- so a look-ahead press carries its realisation's coordinate and reads its landing on the
+# SIMULATED state: every predictor on that press is evaluated with it (not the last REAL press's),
+# _sim_parent keeps it, and a held latch cause (14a) advances on it in thought. 15a and 15c pass
+# their realisation's landing; a recorded row read by 15c keeps its own (None stays None). A press
+# with no coordinate lands nowhere. OFF: the live step's landing, as before.
+_LA_LANDING = armflag.arm("TETHER_LA_LANDING", default=True)
+_LIVE_LANDING = object()     # 14c: "the live step's landing" (the default of _predict_term)
 
 
 @cache
@@ -9125,10 +9134,11 @@ class Agent:
         n, latch, cur = 0, False, state
         sim = getattr(self, "_sim_parent", None) or {}
         while id(cur) in sim:       # 14b: a simulated press (look-ahead), newest first
-            _out, par, a = sim[id(cur)]
+            _out, par, a, *land = sim[id(cur)]
             if c.slot in cur and c.slot in par and cur[c.slot] != par[c.slot]:
                 break
             n += str(a) == c.what
+            latch = latch or (bool(land) and str(land[0]) == c.what)   # 14c: landed in thought
             cur = par
         else:
             for b, a, af, _i, land in reversed(self.trace[:self._cause_pos(cur)]):
@@ -12034,7 +12044,8 @@ class Agent:
             return objective_step(_sat, state[slot], ordered, self._domain(slot, state, ctx))
         return term.apply(state[slot], ctx)
 
-    def _predict(self, slot: str, state: dict[str, int], action: str) -> int | None:
+    def _predict(self, slot: str, state: dict[str, int], action: str,
+                 landed: Any = _LIVE_LANDING) -> int | None:
         """`None` is THE INSTRUMENT COULD NOT READ, and it is not a prediction of anything.
 
         TWO ARMS, ONE RULE. A `val` term IS the prediction; an `OBJ` term is a WANT, and what
@@ -12042,12 +12053,13 @@ class Agent:
         `out_type` and `slot_types` -- are already here.
         """
         return self._predict_term(self.gamma.library[self.bound.get(slot, IDN)], slot, state,
-                                  action)
+                                  action, landed=landed)
 
     def _predict_term(self, term: Any, slot: str, state: dict[str, int], action: str,
-                      intent: Any = None, landed: Any = None) -> int | None:
+                      intent: Any = None, landed: Any = _LIVE_LANDING) -> int | None:
         """_predict for a given term (15c: a rival, not the bound one); `intent` / `landed` read a
-        recorded row instead of the live step."""
+        recorded row or a simulated press instead of the live step (14c: None is "landed
+        nowhere"; OFF, None is the live step's, as before)."""
         # AND AN UNREADABLE OPERAND IS AN INAPPLICABLE TERM -- `_applies` already says so
         # ("cannot be applied where that operand did not exist"), and a COVERED object is
         # absent for exactly that reason. `_left` and `_residual_obs` consult it and the
@@ -12066,7 +12078,8 @@ class Agent:
                 self._intent_now.kind if self._intent_now is not None else NO_INTENT)
         ctx = self._eval_ctx(slot, state, action=action, operands=ops, intent=_now,
                              touching=self._touching(slot),
-                             landed=self._last_landed if landed is None else landed,
+                             landed=(self._last_landed if landed is _LIVE_LANDING
+                                     or (landed is None and not _LA_LANDING) else landed),
                              guard_ref=term.guard_ref)
         got = self._value_of(term, slot, state, ctx)
         if got is NOT_RESOLVED:
@@ -12176,7 +12189,7 @@ class Agent:
             units.append((w, r))
 
         def predict(st, u):
-            return self._la_predict(st, u[1].action, preds, unread, used)
+            return self._la_predict(st, u[1].action, preds, unread, used, u[1].coord)
 
         def gap(st):
             g = self._discrepancy(subj, st)
@@ -12281,10 +12294,18 @@ class Agent:
             return
         yield from rec(0, (), ("val", None, False), {ty: (ty, None, False) for ty in types}, None)
 
-    def _la_predict(self, st: dict, action: Any, preds: list, unread: set, used: list) -> dict:
+    def _la_landing(self, coord: Any, st: dict) -> Any:
+        """14c: where a press at `coord` lands on `st` (None: aimed nowhere); OFF, the live
+        step's landing."""
+        return self.iface._acted(coord, st, self.iface.cell_of) if _LA_LANDING else _LIVE_LANDING
+
+    def _la_predict(self, st: dict, action: Any, preds: list, unread: set, used: list,
+                    coord: Any = None) -> dict:
         """P3: one press in thought -- each settled predictor's value after `action` from `st`.
         14b (TETHER_INFERRED_CAUSE): the new state remembers its parent and press, so a held
-        cause read on the next press counts this one."""
+        cause read on the next press counts this one. 14c: the press lands where its `coord`
+        lands on `st`, and every predictor reads that landing."""
+        landed = self._la_landing(coord, st)
         out = dict(st)
         for s in preds:
             if s not in st:          # r867: off the board is "could not read", never a lookup
@@ -12292,11 +12313,12 @@ class Agent:
                 continue
             cap.head()
             used[0] += 1
-            v = self._predict(s, st, action)
+            v = self._predict(s, st, action, landed)
             if v is not None:
                 out[s] = v
         if _INFERRED_CAUSE:
-            self.__dict__.setdefault("_sim_parent", {})[id(out)] = (out, st, action)
+            self.__dict__.setdefault("_sim_parent", {})[id(out)] = (
+                (out, st, action, landed) if _LA_LANDING else (out, st, action))
         return out
 
     def _rivals(self, slot: str, hyp: set, guarded: dict) -> dict:
@@ -12412,7 +12434,9 @@ class Agent:
                                            withheld=self._withheld)
                     if r is None or getattr(r, "unmapped", False):
                         continue
-                    pred = {n: self._predict_term(t, s, before, r.action) for n, t in rv.items()}
+                    ld = self._la_landing(r.coord, before)        # 14c: this press's landing
+                    pred = {n: self._predict_term(t, s, before, r.action, landed=ld)
+                            for n, t in rv.items()}
                     spread = len({v for v in pred.values() if v is not None})
                     if spread >= 2 and (best is None or spread > best[0]):
                         best = (spread, s, w, r, pred)
@@ -12448,7 +12472,7 @@ class Agent:
         unread: set = set()
         keep = dict(self._pred_raw)
         try:
-            out = self._la_predict(dict(before), r.action, preds, unread, [0])
+            out = self._la_predict(dict(before), r.action, preds, unread, [0], r.coord)
         finally:
             self._pred_raw = keep
             self._sim_parent = {}

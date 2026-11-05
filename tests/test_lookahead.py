@@ -90,11 +90,12 @@ def covered():
         iface=SimpleNamespace(realise=lambda w, *_a, **_k: SimpleNamespace(
             action="A", coord=(w.kind, w.subject, w.object), unmapped=False)))
     ag._objs_named = lambda s: [s.split(".")[0]]
-    ag._predict = lambda s, st, _a: st[s] - 1
+    ag._predict = lambda s, st, _a, *_landed: st[s] - 1      # 14c: the press's landing rides along
     ag._discrepancy = lambda s, st: abs(st[s]) if s in st else tether.NOT_RESOLVED
     ag._took = lambda real, _want: real.action
     ag._la_none = lambda *a: tether.Agent._la_none(ag, *a)
     ag._la_predict = lambda *a: tether.Agent._la_predict(ag, *a)   # 14b: the per-press step
+    ag._la_landing = lambda *_a: None        # 14c: these presses carry no coordinate
     return ag
 
 
