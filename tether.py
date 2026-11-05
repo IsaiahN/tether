@@ -437,6 +437,7 @@ PHASE_OF: dict[str, str] = {
     "probe:3a": I.DIRECTED,    # 16: the act a slip's diagnosis names, repeated (r1184)
     "untried:goal": I.DIRECTED,   # 16b: a formed intent not yet pressed here, at a static goal
     "reflex": I.DIRECTED,      # 22: a stored When(reading, intent) its witnesses let fire (r1243)
+    "muse_test": I.DIRECTED,   # 24 (i): a muse rival's discriminating press (r1252)
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
@@ -4654,6 +4655,15 @@ class Agent:
                 "form": Rt.When("this step owes nothing", Rt.Act("muse")),
                 "consequence": "a paying entry on a park of this kind", "origin": "prior",
                 "clause": "r1252, the whether-to-muse weight", "standing": {}}
+            self._reflexes["muse_test"] = {
+                "form": Rt.When("a muse rival and the bound term disagree on a press",
+                                Rt.Act("muse_test")),
+                "consequence": "the press refutes one of the two", "origin": "prior",
+                "clause": "r1252 4, the test press's weight", "standing": {}}
+        self._muse_offered: dict = {}       # 24 (iii): offered rival name -> its park's kind
+        self._muse_tests: dict = {}         # 24 (i): host slot -> (rival, kind), test pending
+        self._muse_test_open: tuple | None = None   # 24 (i): (host, rival, bound, kind, n0)
+        self._muse_test_best = None
         self._loss_rel: dict = {}     # 23: vote key -> Counter of (loss kind, frame, relation)
         self._hs_open: list = []      # 23: course readings awaiting their verdict at j + lag
         self._hs_read: tuple | None = None   # 23: (cycle, course, reading) -- one per cycle
@@ -5156,6 +5166,8 @@ class Agent:
                         if t_ is None or self.gamma.is_atom(t_):
                             continue
                         self.gamma.settle(nm_, where=self._scope, slot=s_)
+                        if _MUSING_CHOSEN:
+                            self._muse_paid(nm_, "win_credit")    # item 24 (iii)
                         n_ += 1
                     self.gamma.book["win_credit"] = self.gamma.book.get("win_credit", 0) + n_
                     self.led.record(_cc, "SETTLE", _cs, "win_credit", **_clv, how=how,
@@ -10127,6 +10139,8 @@ class Agent:
         if best is not None:
             (prod, _kn, pk), e, rec = best
             cand, host = terms[(pk, e["method"])]
+            self._muse_offered[cand.name] = rec.get("kind")     # (iii): its settle pays the kind
+            self._muse_tests[host] = (cand, rec.get("kind"))     # (i): its test press may compete
             self._mol_offers.setdefault(host, []).append(
                 {"term": cand, "operand": getattr(cand, "operand", None), "offered": True,
                  "why": "muse", "prov": {"source": "muse", "by": "muse", "park": pk,
@@ -10139,6 +10153,61 @@ class Agent:
                         paying=len(run["paying"]), against_kinds=against,
                         reads="the paying entry with the largest gain x need, offered as a "
                               "by=muse rival on today's slot of its kind; nothing installed")
+
+    def _muse_paid(self, name: str, how: str) -> None:
+        """Item 24 (iii) (r1258): a by=muse rival that settles (or is credited at a clear) pays
+        its kind's muse weight -- the weight can rise again, not only fall. One row."""
+        kind = self._muse_offered.pop(name, None)
+        if kind is None:
+            return
+        st = self._rf_standing("muse", (kind,))
+        st["paid"] += 1
+        self.led.record(self.cycle, self._running_step, "@muse", "muse_paid", term=name, how=how,
+                        kind=str(kind), paid=st["paid"], against=round(st["against"], 3))
+
+    def _muse_test_ready(self, before: dict) -> tuple | None:
+        """Item 24 (i) (r1252 4): a muse rival's discriminating press -- an offered, unpositioned
+        press on which the rival and the bound term predict different values -- under its own
+        weight per ("muse_test", kind). (host, press, rival's value, bound's value, kind)."""
+        for host, (cand, kind) in sorted(self._muse_tests.items(), key=lambda x: x[0]):
+            if host not in before:
+                continue
+            st = self._rf_standing("muse_test", (kind,))
+            if 1 + self._rf_in("muse_test", (kind,)) + st["paid"] < st["against"]:
+                continue
+            for a in sorted(x for x in self.actions
+                            if x != IFace.RESET and x not in IFace.POSITIONED):
+                pc = self._predict_term(cand, host, before, a)
+                pb = self._predict(host, before, a)
+                if pc is not None and pb is not None and pc != pb:
+                    return host, a, pc, pb, kind
+        return None
+
+    def _muse_test_take(self) -> str:
+        host, a, pc, pb, kind = self._muse_test_best
+        self._muse_test_open = (host, pc, pb, kind, self._act_n())
+        self.led.record(self.cycle, "PLAN", host, "muse_test", action=a, rival=pc, bound=pb,
+                        kind=str(kind), reads="the press on which the muse rival and the bound "
+                                              "term disagree; its outcome refutes one")
+        return a
+
+    def _muse_test_settle(self, before: dict) -> None:
+        """Item 24 (i): the test's outcome, read on the next step -- it discriminated (the
+        observed value is exactly one of the two predictions) pays the test weight; neither is
+        against; the rival refuted (the bound's value came) is one witness against the muse
+        weight of its kind, and the test leaves."""
+        host, pc, pb, kind, n0 = self._muse_test_open
+        if self._act_n() <= n0:
+            return
+        self._muse_test_open = None
+        got = before.get(host)
+        hit = (got == pc) != (got == pb)
+        self._rf_standing("muse_test", (kind,))["paid" if hit else "against"] += 1
+        if got == pb and got != pc:
+            self._rf_standing("muse", (kind,))["against"] += 1
+            self._muse_tests.pop(host, None)
+        self.led.record(self.cycle, self._running_step, host, "muse_test_settled", got=got,
+                        rival=pc, bound=pb, discriminated=hit, kind=str(kind))
 
     def _muse_close_parks(self, how: str) -> None:
         """Item 24 (r1252 5(1)): parks are this GAME's gaps -- at a game switch or the game's end
@@ -16767,6 +16836,8 @@ class Agent:
             self._reflex_settle()               # 22: last step's fires and quiet guards, judged
         if _HOW_SOON:
             self._hs_settle()                   # 23: open course readings, judged at j + lag
+        if _MUSING_CHOSEN and self._muse_test_open is not None:
+            self._muse_test_settle(before)      # 24 (i): the test press's outcome, judged
         if _GOAL_FROM_ACTUATOR and _ACTUATOR_ROUTINE and self._alive and (
                 self._act_rt is not None or self._actuators and not self._try_first_open()):
             # a held actuator routine's END is read every cycle (a board that grows reopens
@@ -17043,6 +17114,8 @@ class Agent:
             return self._untried_take(), "untried:goal"
         if take == "probe:3a":                  # 16: the act 3a's diagnosis named
             return self._probe_take(), "probe:3a"
+        if take == "muse_test":                 # 24 (i): a muse rival's discriminating press
+            return self._muse_test_take(), "muse_test"
         if take == "discriminate":              # 15c: it returns here, at the intent level
             return self._discriminate(self._disc_best), "discriminate:intent"
         # SYSTEM 0 -- Isaiah: start random, then jump to strategy. While the agent lacks the
@@ -18974,6 +19047,11 @@ class Agent:
             if self._disc_best is not None:
                 opts.append("discriminate")
                 res["discriminate"] = self.outstanding(self._disc_best[1])
+            # item 24 (i) (r1252 4): a muse rival's test press enters by the same rule
+            self._muse_test_best = self._muse_test_ready(before) if _MUSING_CHOSEN else None
+            if self._muse_test_best is not None:
+                opts.append("muse_test")
+                res["muse_test"] = self.outstanding(self._muse_test_best[0])
         if not opts:
             return None, s0_tw, dist_r
         fixed = ("probe" if starved else "system0" if s0 else "distinguish" if dist_r is not None
@@ -23684,6 +23762,8 @@ class Agent:
             if self._cand_level.get(name) != self.level:
                 continue
             self.gamma.settle(name, where=self._scope, slot=slot)
+            if _MUSING_CHOSEN:
+                self._muse_paid(name, "settle")           # item 24 (iii)
             if _COUNTERS:     # r692 4 (Q8, Q21): what settles, by where it came from
                 bk = self.gamma.book
                 if (self.gamma.stamps.get(name) or {}).get("origin") == MINTED:

@@ -117,6 +117,85 @@ def check_m4_rival() -> None:
           f"with nothing paying: against {st['against']}")
 
 
+def check_m7_paid_witness() -> None:
+    import ast
+    import inspect
+
+    import tether
+    ag = _agent()
+    ag._muse_offered["planted_rival"] = "K"
+    ag._muse_paid("planted_rival", "settle")
+    st = ag._rf_standing("muse", ("K",))
+    ag._muse_paid("planted_rival", "settle")          # once only: the name left the record
+    rows = [r["detail"] for r in ag.led.rows() if r["event"] == "muse_paid"]
+    assert st["paid"] == 1 and len(rows) == 1, (st, rows)
+    src = inspect.getsource(tether.Agent)
+    calls = [n for n in ast.walk(ast.parse(inspect.cleandoc(chr(10) + src)))
+             if isinstance(n, ast.Call) and getattr(n.func, "attr", "") == "_muse_paid"]
+    assert len(calls) >= 2, len(calls)                  # the settle site and win_credit's
+    print(f"  a by=muse rival settled: muse paid {st['paid']} (once); {len(calls)} sites")
+
+
+def check_m9_cadence_carries() -> None:
+    import json
+    import tempfile
+    from pathlib import Path
+
+    import lineage
+    a = _agent()
+    st = a._rf_standing("muse", ("K",))
+    st["paid"], st["against"] = 2, 1.5
+    with tempfile.TemporaryDirectory() as d:
+        lineage._write(d, a, "g", False, [])
+        gens = lineage._read(Path(d))
+    recs = [r for g in gens.values() for r in g.get("inventions", ())
+            if r.get("kind") == "reflex"]
+    assert recs and "against" not in json.dumps(recs), recs
+    b = _agent()
+    b._reinvent_carried(json.loads(json.dumps(recs)))
+    sb = b._rf_standing("muse", ("K",))
+    assert b._rf_in("muse", ("K",)) == 2 and sb["against"] == 0.0, (b._rf_carried, sb)
+    print(f"  game A muse paid 2 -> game B carried {b._rf_in('muse', ('K',))}, against "
+          f"{sb['against']} (did not cross)")
+
+
+def check_m5_test_press() -> None:
+    from gamma import Term
+    ag = _agent()
+    host = sorted(s for s in ag.slots if s.endswith(".col") and not s.startswith("@"))[0]
+    cand = Term(ag.gamma.library[sorted(ag.gamma.library)[0]].atoms)
+    ag._muse_tests[host] = (cand, "K")
+    ag._predict_term = lambda _t, s, st, a, **_k: st[s] + (1 if a == "right" else 0)
+    ag._predict = lambda s, st, _a, *_x, **_k: st[s]
+    before = dict(ag.env.observe())
+    best = ag._muse_test_ready(before)
+    assert best is not None and best[1] == "right", best
+    seen, real = [], ag._choice
+
+    def spy(site, slot, options, *a, **k):
+        if site == "exit":
+            seen.append([o[0] for o in options])
+        return real(site, slot, options, *a, **k)
+    ag._choice = spy
+    ag._exit_choice(before)
+    opts = seen[-1] if seen else None
+    assert opts and "muse_test" in opts, opts           # it competes; the contest may pick another
+    ag._muse_test_best = best
+    a = ag._muse_test_take()
+    ag._acts[a] = ag._acts.get(a, 0) + 1
+    after = dict(before, **{host: best[2]})            # the rival's value came
+    ag._muse_test_settle(after)
+    ok = ag._rf_standing("muse_test", ("K",))["paid"]
+    ag._muse_test_best = best
+    ag._muse_test_take()
+    ag._acts[a] += 1
+    ag._muse_test_settle(dict(before, **{host: best[3]}))   # the bound's value: rival refuted
+    against = ag._rf_standing("muse", ("K",))["against"]
+    assert ok == 2 - 1 and against == 1.0 and host not in ag._muse_tests, (ok, against)
+    print(f"  test press {a} on {host}; contest options {opts}; rival's value: test paid {ok}; "
+          f"bound's value: muse against {against}, test withdrawn")
+
+
 def check_m6_no_identity() -> None:
     import ast
     import inspect
