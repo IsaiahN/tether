@@ -435,6 +435,7 @@ PHASE_OF: dict[str, str] = {
     "actuator": I.DIRECTED,    # TETHER_GOAL_FROM_ACTUATOR: CONTINUE <actuator> (r746)
     "discriminate:intent": I.DIRECTED,   # 15c: the intent the held rivals disagree on (r1184)
     "probe:3a": I.DIRECTED,    # 16: the act a slip's diagnosis names, repeated (r1184)
+    "untried:goal": I.DIRECTED,   # 16b: a formed intent not yet pressed here, at a static goal
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
@@ -1380,6 +1381,13 @@ _INTENT_DISCRIMINATE = armflag.arm("TETHER_INTENT_DISCRIMINATE", default=True)
 # press (Q2 (a); Fig 9 :53 "Nobody chooses. The gap does."); the rest are their routes' own (mint,
 # scope, resolve), recorded as routed. Needs TETHER_3A_DIAGNOSE. OFF: 3a only names it.
 _3A_PROBE = armflag.arm("TETHER_3A_PROBE", default=True)
+# BUILD 4 ITEM 16b, THE UNTRIED FORMED INTENT (the reviewer 2026-11-05 r1189; Fig 8 :39 "So a search
+# that finds nothing is never a proof of absence."): the agent's own record of the intents it formed
+# (at _took, in the order formed) and the situations (R-B's key) each was pressed in. Where the held
+# hypothesis's slot reads no residual (item 13) and 15c finds no rival there, the first formed
+# intent not yet pressed in this situation enters 7h's exit contest as "untried:goal"; with every
+# one tried here it says so once. Needs TETHER_GOAL_MINT_FIRST. OFF: no record, no offer.
+_UNTRIED_INTENT = armflag.arm("TETHER_UNTRIED_INTENT", default=True)
 
 
 @cache
@@ -4343,6 +4351,13 @@ class Agent:
         self._3a_seen: set = set()
         self._probe_best: Any = None
         self._probe_taken: Any = None
+        # 16b: the formed intents (words -> (cycle first formed, the intent)), the situations each
+        # was pressed in, the held goal's static slots (item 13's last reading), the pending offer
+        self._formed: dict = {}
+        self._tried_in: dict = {}
+        self._goal_static: set = set()
+        self._untried_best: Any = None
+        self._untried_done: set = set()
         self._kinds_was: dict[tuple, str] = {}
         # (5c) A12: presses and deaths by (goal slot kind, action, situation kinds) -- kinds, so
         # they cross levels; the press last counted, and the goal exit's situation for it
@@ -4984,6 +4999,8 @@ class Agent:
         self._route_stale = {}                       # (3c): this level's, like the refusals
         self._route_lifted = {}                      # 15b: likewise
         self._3a_probes, self._probe_taken = [], None   # 16: slot names do not cross
+        self._formed, self._tried_in, self._goal_static = {}, {}, set()   # 16b: likewise
+        self._untried_done = set()
         self._3a_seen = set()
         self._subgoal = None                         # (4g): slot names do not cross
         self._unreachable = {}                       # (6a): nor intents that name them
@@ -10315,6 +10332,7 @@ class Agent:
         out = sorted(routed, key=lambda r: not site(r))
         first = [r[0] for r in out if site(r)]
         still = [s for s in hyp if s not in first]
+        self._goal_static = set(still)          # 16b: read at the next choice
         self.led.record(self.cycle, "ACCEPT", "@goal_mint", "goal_mint_first", first=first,
                         no_residual=still,
                         reads="the goal's slots with a residual mint first (r1162); a goal slot "
@@ -12283,6 +12301,68 @@ class Agent:
                 out[t.name] = t
         return out
 
+    def _cause_guarded(self) -> dict:
+        """15c / 16b: slot -> the library terms guarded by a Cause (14a) on it."""
+        guarded: dict = {}
+        for n, t in self.gamma.library.items():
+            c = self._invented.get(t.guard_ref) if t.guard_ref else None
+            if isinstance(c, Cause):
+                guarded.setdefault(c.slot, []).append(n)
+        return guarded
+
+    def _note_formed(self, want: Any) -> None:
+        """16b: a taken intent, recorded in the order formed with the situation it was pressed in,
+        on each of the held hypothesis's slots (R-B's own key)."""
+        said = self._route_said(want)
+        self._formed.setdefault(said, (self.cycle, want))
+        if self._hyp is not None:
+            ctx = IFace.Interface.context(self.env)
+            for s in self._hyp["slots"]:
+                self._tried_in.setdefault(said, set()).add((s, self._situation(s, ctx)))
+
+    def _untried_ready(self, before: dict) -> tuple | None:
+        """16b (r1189): at a held hypothesis's slot that reads no residual (item 13) and has no
+        rival (15c), the first formed intent, in the order formed, not yet pressed in this
+        situation, realised by the interface. Every one tried here: said once, None."""
+        if self._hyp is None or not self._formed:
+            return None
+        hyp, guarded = set(self._hyp["slots"]), None
+        ctx = IFace.Interface.context(self.env)
+        for s in self._hyp["slots"]:
+            if s not in self._goal_static or s not in before:
+                continue
+            guarded = self._cause_guarded() if guarded is None else guarded
+            if len(self._rivals(s, hyp, guarded)) >= 2:
+                continue                        # 15c separates them; nothing to add here
+            sit = self._situation(s, ctx)
+            untried = [(said, aw) for said, aw in self._formed.items()
+                       if (s, sit) not in self._tried_in.get(said, ())]
+            for said, (at, w) in untried:
+                r = self.iface.realise(w, tuple(self.actions), ctx, before, self.env,
+                                       withheld=self._withheld)
+                if r is not None and not getattr(r, "unmapped", False):
+                    return s, said, w, r, at, sit
+            # an untried one that does not realise is still untried: said only when none is
+            if not untried and (s, sit) not in self._untried_done:
+                self._untried_done.add((s, sit))
+                self.led.record(self.cycle, "PLAN", s, "untried_intent", intent=None,
+                                formed=list(self._formed), context=[list(c) for c in sit],
+                                reads="every formed intent tried here, the slot still static: "
+                                      "the search's scope, not a proof of absence (Fig 8 :39)")
+        return None
+
+    def _untried_take(self) -> str:
+        """16b: the contest took the untried formed intent -- a PLAN untried_intent row, the press
+        through _took and the ordinary bet path."""
+        s, said, w, r, at, sit = self._untried_best
+        self.led.record(self.cycle, "PLAN", s, "untried_intent", intent=said, action=r.action,
+                        formed_at=at, context=[list(c) for c in sit],
+                        tried_in=sorted(([x, [list(c) for c in y]]
+                                         for x, y in self._tried_in.get(said, ())), key=repr),
+                        reads="the goal slot is static under the presses tried; this formed "
+                              "intent has not been pressed here (16b)")
+        return self._took(r, w)
+
     def _discrim_best(self, before: dict) -> tuple | None:
         """15c (r1184): the intent the held rivals disagree on, read without acting. Per slot with
         >= 2 rivals, each of its intents (BECOME it +/- on an ordered slot, TOUCH its owner) is
@@ -12291,11 +12371,7 @@ class Agent:
         realisation, predictions, ms). None: nothing to separate."""
         t0 = time.perf_counter()
         hyp = set(self._hyp["slots"]) if self._hyp is not None else set()
-        guarded: dict = {}
-        for n, t in self.gamma.library.items():
-            c = self._invented.get(t.guard_ref) if t.guard_ref else None
-            if isinstance(c, Cause):
-                guarded.setdefault(c.slot, []).append(n)
+        guarded = self._cause_guarded()
         ctx, best, keep = IFace.Interface.context(self.env), None, dict(self._pred_raw)
         try:
             for s in sorted(before):
@@ -15645,6 +15721,8 @@ class Agent:
         self._gamma_read = {"owed": len(owed), "entered": False,
                             "note": "the spread branch is deleted; discrimination returns at "
                                     "the intent level"}
+        if take == "untried:goal":              # 16b: the formed intent not yet pressed here
+            return self._untried_take(), "untried:goal"
         if take == "probe:3a":                  # 16: the act 3a's diagnosis named
             return self._probe_take(), "probe:3a"
         if take == "discriminate":              # 15c: it returns here, at the intent level
@@ -17293,6 +17371,11 @@ class Agent:
             if gslot is not None and self._goal_split(before, commit=False) is not None:
                 opts.append("goal")
                 res["goal"] = self.outstanding(gslot)
+            # 16b (r1189): a formed intent never pressed here, at a static goal slot, same rule
+            self._untried_best = self._untried_ready(before) if _UNTRIED_INTENT else None
+            if self._untried_best is not None:
+                opts.append("untried:goal")
+                res["untried:goal"] = self.outstanding(self._untried_best[0])
             # 16 (r1184): a slip's named probe, the act meant, enters it by the same rule
             self._probe_best = self._probe_ready(before) if _3A_PROBE else None
             if self._probe_best is not None:
@@ -18566,6 +18649,8 @@ class Agent:
         if want is not None:
             self._intent_kinds.add(want.kind)
             self._note_decision(want, r)
+            if _UNTRIED_INTENT:
+                self._note_formed(want)
         if _COUNTERS and getattr(r, "mode", None) == "kind_test":   # r692 4 (Q16)
             self.gamma.book["press_carried"] = self.gamma.book.get("press_carried", 0) + 1
         return r.action

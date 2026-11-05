@@ -2112,6 +2112,14 @@ ARMS: dict[str, str] = {
                              "PLAN intent_predict row with its ms; no row where nothing is "
                              "weighed. Record-only until 15b reads it. OFF: never computed. "
                              "default ON",
+    "TETHER_UNTRIED_INTENT": "BUILD 4 ITEM 16b (the reviewer 2026-11-05 r1189; Fig 8 :39): the "
+                             "agent's record of its formed intents (at _took, in the order "
+                             "formed) and the situations each was pressed in; at a held "
+                             "hypothesis's slot with no residual (item 13) and no rival (15c), "
+                             "the first formed intent not yet pressed in this situation enters "
+                             "7h's exit contest as untried:goal (DIRECTED; untried_intent rows); "
+                             "every one tried here is said once. Needs TETHER_GOAL_MINT_FIRST. "
+                             "OFF: no record, no offer. default ON",
     "TETHER_3A_PROBE": "BUILD 4 ITEM 16, 3a-PROBE (the reviewer 2026-11-04 r1184; Fig 5 :12): 3a's "
                        "named probe acted on once per (slot, diagnosis) -- a slip's 'repeat the "
                        "intended act' enters 7h's exit contest as TOUCH the object meant "
