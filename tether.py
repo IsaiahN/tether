@@ -1281,6 +1281,12 @@ _COVER_DEDUPE = armflag.arm("TETHER_COVER_DEDUPE", default=True)
 # with its reason, never offered. Chain typing stays at the mint, whose streams decide it. OFF: no
 # check here.
 _COVER_TYPED = armflag.arm("TETHER_COVER_TYPED", default=True)
+# r1169, THE COVER'S CHAIN TYPING, AS A UNION: a cover chain is refused only if NO stream the mint
+# would walk at its slot types it -- the val stream (val -> val) and every stream that starts at
+# the slot's own type (the OBJ stream, closed with `all`, and the widened ones, whose end types the
+# cover cannot know, so any walk from the slot's type admits). Counted, never offered. OFF: no
+# chain typing at the cover.
+_COVER_CHAIN_TYPED = armflag.arm("TETHER_COVER_CHAIN_TYPED", default=True)
 # r1145 (the reviewer 2026-11-04; Fig 12 :46 "A bond is the typed relation between two operands"):
 # an operand-tree node whose value is slot_a − slot_b -- the tree's own term names the second slot
 # -- seeded ONLY from the two pair readings of a settled junction no existing shape can express,
@@ -10532,6 +10538,11 @@ class Agent:
                                         f"not {got_t}"] += 1
                                     lit_n["refused for typing"] += 1
                                     continue
+                            if _COVER_CHAIN_TYPED and not self._chain_streams(chain, path[-1]):
+                                why[f"cover: no stream types a {chain.atoms[0].name}-headed "
+                                    f"chain at {self.slot_types.get(path[-1])}"] += 1
+                                lit_n["refused for chain typing"] += 1
+                                continue
                             prov = {"molecule": m["molecule"], "bond": got, "object": o,
                                     "seen": o in held_on, "left": path[0], "right": path[-1],
                                     "leaves": list(path), "occasions": occ,
@@ -12085,6 +12096,28 @@ class Agent:
                 self._la_trail = (k, [])
             self._la_trail[1].append(want)
         return self._took(real, want)
+
+    def _chain_streams(self, chain: Term, slot: str) -> bool:
+        """r1169: could ANY stream _library_chains walks at `slot` type this chain? The val stream
+        as it checks it (first atom accepts val, each step walks, ends at val, iteration closed),
+        or a walk from the slot's own type to any end (the OBJ stream closes it with `all`; a
+        widened stream's end type is the gap's). False only when neither can."""
+        atoms = tuple(chain.atoms)
+        if not atoms:
+            return True
+        for in_t, any_end in (("val", False), (self.slot_types.get(slot), True)):
+            if in_t is None or not accepts_type(Term((atoms[0],)), in_t):
+                continue
+            cur, elem = in_t, None
+            for a in atoms:
+                step = Gamma._iter_step(cur, elem, Term((a,)))
+                if step is None:
+                    break
+                cur, elem = step
+            else:
+                if any_end or (cur == "val" and elem is None):
+                    return True
+        return False
 
     def _la_predict(self, st: dict, action: Any, preds: list, unread: set, used: list) -> dict:
         """P3: one press in thought -- each settled predictor's value after `action` from `st`.

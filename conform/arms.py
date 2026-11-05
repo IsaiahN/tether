@@ -2041,6 +2041,12 @@ ARMS: dict[str, str] = {
                        "typed per target like translate (POSITION − DELTA -> POSITION, DELTA − "
                        "DELTA -> DELTA; anything else refused); grammar.json's − implemented_by "
                        "names it. OFF: no such atom, and the entry is not read. default ON",
+    "TETHER_COVER_CHAIN_TYPED": "r1169: a cover chain is refused only if NO stream the mint "
+                                "would walk at its slot types it -- the val stream (val -> val) "
+                                "or any walk from the slot's own type (the OBJ stream closed "
+                                "with all, and the widened streams); counted 'cover: no stream "
+                                "types a <head>-headed chain at <type>', never offered. OFF: no "
+                                "chain typing at the cover. default ON",
     "TETHER_COVER_TYPED": "r1166 (r1103, r1142): before the cover offers, a declared head's "
                           "operand is typed by the bind's own rule (gamma.target_operand at the "
                           "target's type); a mismatch is counted 'cover: <head> takes <T> at "
