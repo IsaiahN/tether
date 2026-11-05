@@ -64,6 +64,8 @@ def played():
     ag, _atoms, _st = G.agent()
     for _ in range(10):
         ag.step()
+    if hasattr(ag, "_desc_board"):
+        ag._desc_board()    # item 19: the board's own stalls cleared; the description alone
     return ag
 
 

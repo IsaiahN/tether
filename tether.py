@@ -2139,7 +2139,20 @@ _GROUP_PROPOSE = armflag.arm("TETHER_GROUP_PROPOSE", default=True)
 _BOARD_DESC = armflag.arm("TETHER_BOARD_DESC", default=True)
 _DESC_FAMILIES = ("navigate", "placement", "collect", "toggle")
 _DESC_SEED = {"avatar": "navigate", "click_only": "placement", "collect": "collect",
-              "toggle": "toggle"}
+              "toggle": "toggle", "stall_untouched": "contact", "stall_unmoved": "contact",
+              "stall_flat": "placement"}
+# Build 5 item 19 (a) (the reviewer 2026-11-05 r1227 Q1, Q3): a stall or a loss is evidence
+# AGAINST the held shape's family under each reading that held, scoped to the board the agent
+# detects (new_board); the price becomes the family's rule-of-succession estimate of paying,
+# (1 + seed + wins) / (2 + seed + wins + losses), so a demotion is reversible by construction; a
+# family_demoted row. OFF: item 18's normalised share, no losses
+_DESC_DEMOTE = armflag.arm("TETHER_DESC_DEMOTE", default=True)
+# Build 5 item 19 (b) (r1227 Q2): what a stall surfaced -- never touched, a party never moved on
+# this board, moved and flat -- becomes a board-scoped reading of the description, seeded toward the
+# family that does not need what failed; and a fifth family, "contact", read off the FORM (a
+# pair relation whose route is a TOUCH). OFF: four families, no stall readings
+_STALL_SURFACE = armflag.arm("TETHER_STALL_SURFACE", default=True)
+_STALL_READS = ("stall_untouched", "stall_unmoved", "stall_flat")
 
 
 @dataclass(frozen=True)
@@ -4656,6 +4669,7 @@ class Agent:
         if _BOARD_DESC:
             self._desc_paid: Counter = Counter()
         self._desc_level()
+        self._desc_board()
         # B: (slot -> (action, ctx) -> signs seen). Agency's lifetime, never the trace's: the
         # trace clears at retarget, these do not, so the two movability readings cover one history.
         self._dir: dict = {}
@@ -5099,6 +5113,7 @@ class Agent:
             self._tf_len = self._tf_left = self._tf_rel_u = None   # TF_PASS: the next board's pass
             self._board_moved.clear()      # G: what this board's presses moved
             self._goal_refuted.clear()     # G: the refuted signs are this board's
+            self._desc_board()             # item 19: this board's losses and stall readings
             self._actuators, self._act_seen, self._act_pending = {}, {}, None   # G: this board's
             self._act_rt, self._act_rt_acts = None, 0
             self._press_every = None
@@ -8500,6 +8515,9 @@ class Agent:
         if _BOARD_DESC and won and "family" in h:    # item 18: the record that outweighs a seed
             for r in h["desc"] or ["none"]:
                 self._desc_paid[(r, h["family"])] += 1
+        if (_DESC_DEMOTE or _STALL_SURFACE) and "family" in h and not won and (
+                loss or why == "stalled"):
+            self._desc_against(h, why, step)
         self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
                         **({"ended_by": ended_by} if ended_by is not None else {}),
                         text=h["text"], why=why, steps=h["steps"], released=released,
@@ -9281,7 +9299,9 @@ class Agent:
                  "click_only": IFace.Interface.touch_only(moved),
                  "collect": dict(sorted(self._lv_collect.items())) or None,
                  "toggle": {a: n for a, n in wide.items() if n >= 2} or None}
-        return {"reads": reads, "holding": [r for r in _DESC_SEED if reads[r]],
+        if _STALL_SURFACE:                      # item 19 (b): what this board's stalls surfaced
+            reads.update({k: self._bd_stall[k] or None for k in _STALL_READS})
+        return {"reads": reads, "holding": [r for r in _DESC_SEED if reads.get(r)],
                 "scope": {"level": self.level, "since": self._lv_since, "presses": ag.steps}}
 
     def _desc_self(self, cont: list) -> list:
@@ -9293,14 +9313,17 @@ class Agent:
                 acts.setdefault(s.split(".", 1)[0], set()).add(a)
         return sorted(o for o, a in acts.items() if len(a) >= 2)
 
-    @staticmethod
-    def _desc_family(c: Any, ctrl: set) -> str:
+    def _desc_family(self, c: Any, ctrl: set) -> str:
         """Item 18: the shape family of a candidate's FORM -- a count of a kind, a group of a
-        kind, a want on an owner the presses steer, a want on anything else."""
+        kind, a want on an owner the presses steer, a want on anything else; item 19 (b): a pair
+        relation whose route is a TOUCH (REL_TOUCH's form) is "contact"."""
         if isinstance(c, _Count):
             return "collect"
         if isinstance(c, _Group):
             return "toggle"
+        if (_STALL_SURFACE and isinstance(c, compile_term.Compiled) and c.term.name == "holds"
+                and self._rel_partner(c.slot) is not None):
+            return "contact"
         try:
             owner = c.slot.split(".", 1)[0]
         except (AttributeError, IndexError):
@@ -9311,12 +9334,75 @@ class Agent:
         """Item 18 (r1223 Q1): each family's price in bits under this description (Fig 12 :126,
         "Bits price the description"), -log2 of its weight: one pseudo-count per family so every
         family stays reachable, one more where a holding reading's seed points, plus every win
-        recorded under that reading (the rule of succession: the record outweighs the seed)."""
+        recorded under that reading (the rule of succession: the record outweighs the seed).
+        Item 19 (a): each family's own estimate of paying, wins and this board's losses as
+        symmetric evidence, (1 + seed + wins) / (2 + seed + wins + losses)."""
         rs = holding or ["none"]
+        fams = _DESC_FAMILIES + (("contact",) if _STALL_SURFACE else ())
+
+        def count(f: str, book: Counter) -> int:
+            return sum(book[(r, f)] for r in rs)
+
+        if _DESC_DEMOTE:
+            seed = {f: sum(_DESC_SEED.get(r) == f for r in rs) for f in fams}
+            p = {f: (1 + seed[f] + count(f, self._desc_paid))
+                 / (2 + seed[f] + count(f, self._desc_paid) + count(f, self._desc_lost))
+                 for f in fams}
+            return {f: round(-math.log2(v), 6) for f, v in p.items()}
         mass = {f: 1 + sum((_DESC_SEED.get(r) == f) + self._desc_paid[(r, f)] for r in rs)
-                for f in _DESC_FAMILIES}
+                for f in fams}
         tot = sum(mass.values())
         return {f: round(-math.log2(m / tot), 6) for f, m in mass.items()}
+
+    def _desc_board(self) -> None:
+        """Item 19 (r1227 Q3): the losses and the stall readings are this board's (new_board)."""
+        if _BOARD_DESC and (_DESC_DEMOTE or _STALL_SURFACE):
+            self._desc_lost: Counter = Counter()
+            self._bd_stall: Counter = Counter()
+
+    def _stall_surfaced(self, h: dict) -> list:
+        """Item 19 (b): what a stalled shape's own record surfaced -- never touched; a party (an
+        operand's owner, a relation's partner) none of whose own slots this board's presses
+        moved; its subject moved and the residual stayed flat."""
+        cond = h.get("cond")
+        parts = list(cond.parts) if isinstance(cond, _Pair) else [cond]
+        der = self.env.derived() if hasattr(self.env, "derived") else {}
+        parties = set()
+        for p in parts:
+            op = getattr(p, "operand", None)
+            if isinstance(op, str) and op in self.slots:
+                parties.add(op.split(".", 1)[0])
+            sl = getattr(p, "slot", None)
+            if sl and (partner := self._rel_partner(sl)) is not None:
+                parties.add(partner)
+        own = {o: [s for s in self.slots if s.split(".", 1)[0] == o and s not in der]
+               for o in parties}
+        out = []
+        if not h.get("touches"):
+            out.append("stall_untouched")
+        if any(sl and not any(s in self._board_moved for s in sl) for sl in own.values()):
+            out.append("stall_unmoved")
+        if any(s in self._board_moved for s in h["slots"]):
+            out.append("stall_flat")
+        return out
+
+    def _desc_against(self, h: dict, why: str, step: str) -> None:
+        """Item 19: a stall or a loss is evidence AGAINST the held family under each reading that
+        held (a), and what it surfaced becomes this board's readings (b); a family_demoted row,
+        the refusal kept on the record (Fig 6 :46)."""
+        rs = h["desc"] or ["none"]
+        if _DESC_DEMOTE:
+            for r in rs:
+                self._desc_lost[(r, h["family"])] += 1
+        surfaced = self._stall_surfaced(h) if _STALL_SURFACE else []
+        for k in surfaced:
+            self._bd_stall[k] += 1
+        self.led.record(self.cycle, step, h["slots"][0], "family_demoted", text=h["text"],
+                        why=why, family=h["family"], under=rs, surfaced=surfaced,
+                        wins={r: self._desc_paid[(r, h["family"])] for r in rs},
+                        losses=({r: self._desc_lost[(r, h["family"])] for r in rs}
+                                if _DESC_DEMOTE else None),
+                        reads="evidence against this family on this board, never a refutation")
 
     def _group_cands(self, items: dict, before: dict, atoms: dict) -> list:
         """Box 3 (r1218): the proposer's group candidates -- the FORM over its own texts (compiled

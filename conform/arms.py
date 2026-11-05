@@ -2146,6 +2146,19 @@ ARMS: dict[str, str] = {
                          "holding reading's seed points, plus wins recorded under the reading, "
                          "so the record outweighs the seed (class (a), r1222). OFF: none of it. "
                          "default ON",
+    "TETHER_DESC_DEMOTE": "BUILD 5 ITEM 19 (a) (the reviewer 2026-11-05 r1227 Q1, Q3): a stall or "
+                          "a loss is evidence AGAINST the held family under each reading that "
+                          "held, scoped to the board the agent detects (new_board); the price is "
+                          "the family's rule-of-succession estimate of paying, (1 + seed + wins) "
+                          "/ (2 + seed + wins + losses), replacing item 18's share, so a demotion "
+                          "is reversible by construction; a family_demoted row. OFF: the share, "
+                          "no losses. default ON",
+    "TETHER_STALL_SURFACE": "BUILD 5 ITEM 19 (b) (r1227 Q2): what a stall surfaced (never touched; "
+                            "a party never moved on this board; moved and flat) becomes a board-"
+                            "scoped reading of the description, seeded toward the family that does "
+                            "not need what failed; a fifth family, contact, read off the FORM (a "
+                            "pair relation whose route is a TOUCH; a touches_ want on the self was "
+                            "navigate). OFF: four families, no stall readings. default ON",
     "TETHER_SLOTLESS_TOUCH": "BUILD 5 ITEM 19 Q2 (the reviewer 2026-11-05 r1216): a completion-"
                              "held goal that names no slot (count NONE, connected) is pressed for "
                              "through 16b's formed / tried machinery: _untried_ready offers its "
