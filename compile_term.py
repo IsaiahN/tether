@@ -198,6 +198,7 @@ class Group:
     quant: str                # "ALL" / "NONE"
     scope: str                # the object the member condition is written on
     member: Compiled | None
+    exclude: tuple = ()       # r1219: a pair reading's PARTNER, held fixed and never a member
 
     @property
     def slot(self) -> str | None:
@@ -401,6 +402,8 @@ def run_group(g: Group, frame: dict[str, Any], members: list[str], held: bool) -
     """The group row on one frame, per member: True / False, or None for could not tell. NONE of
     a kind never held and ALL of no members are None (r1200 MF-G2, MF-G3): an unmet goal never
     reads as met, and a search that finds nothing is not a proof of absence (Fig 8 :39)."""
+    if g.exclude:
+        members = [m for m in members if m not in g.exclude]
     if g.quant == "NONE" and not held:
         return None
     if g.quant == "ALL" and not members:

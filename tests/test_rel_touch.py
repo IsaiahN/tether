@@ -45,8 +45,13 @@ def propose(text: str, on: bool | None):
 def main():
     want = "o0.touches_o2 == 1"
     _ag, _b, off = propose(want, on=False)
+    # the single's refusal, red first; and since r1219 (pair groups restored, partner held fixed)
+    # the legitimate group "ALL kind(o0): o0.touches_o2 == 1" is also proposed, and with no TOUCH
+    # route OFF it is refused "no hold: no route" -- the tally names both rather than drop it
     assert off.get("pick") is None and off.get("refused") == {
-        "route first: no slot of it has an entry": 1}, ("MF-R1 (red first): OFF refusal", off)
+        "route first: no slot of it has an entry": 1, "no hold: no route": 1} and [
+        x["if"] for x in off.get("ranked", [])] == ["ALL kind(o0): o0.touches_o2 == 1"], (
+        "MF-R1 (red first): OFF refusal", off)
 
     ag, before, on = propose(want, on=None)
     touch = ag.iface.realise(tether.IFace.Intent(tether.IFace.TOUCH, object="o2"),

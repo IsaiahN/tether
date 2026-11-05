@@ -8497,6 +8497,9 @@ class Agent:
         """The action the interface knows moves the subject toward its target (the route
         _goal_split takes), or None: GQ2's CAN, from the agent's own delta table."""
         partner = self._rel_partner(slot) if _REL_TOUCH else None
+        wt = self._want_terms.get(slot) if partner is not None else None
+        if wt is not None and any(a.name == "negate" for a in wt.atoms):
+            partner = None              # wanted FALSE: a touch makes it true, so it is no route
         if partner is not None:         # Q3 (ii): a relation is reached by touching its partner
             r = self.iface.realise(IFace.Intent(IFace.TOUCH, object=partner), tuple(self.actions),
                                    IFace.Interface.context(self.env), before, self.env,
@@ -9219,22 +9222,26 @@ class Agent:
         single's condition, over the members present on `state` -- with no PRICE. Once per (kind,
         the condition with its subject as a placeholder), over two or more members; the
         completion prices it on the met rows, the proposer by bits. (text, _Group) or None."""
-        if (not isinstance(c, compile_term.Compiled) or c.parties or "~" in c.slot
-                or relations.pair_attr(c.slot.split(".", 1)[1]) is not None):
-            return None                         # a pair reading names a partner, not an attribute
-        scope = c.slot.split(".", 1)[0]
+        if not isinstance(c, compile_term.Compiled) or c.parties or "~" in c.slot:
+            return None
+        scope, reading = c.slot.split(".", 1)
+        # r1219: a pair reading (o0.touches_o2) is bound on its SUBJECT only -- its PARTNER held
+        # fixed and never a member ("every piece touches the frame" is a real universal)
+        partner = (reading.split("_", 1)[1] if relations.pair_attr(reading) is not None
+                   else None)
         kind = self._kind(scope)
         k = (kind, re.sub(rf"\b{scope}\b", "{o}", text))
         if k in seen:
             return None
         seen.add(k)
-        members = [o for o in self._owners(state) if self._kind(o) == kind]
+        members = [o for o in self._owners(state) if self._kind(o) == kind and o != partner]
         if len(members) < 2:
             return None                         # a group of one is its single
         bound = (compile_term.bind(c, scope, m) for m in members)
         grp = _Group(tuple(p for p in bound if p.slot != p.operand),   # never itself
-                     group=compile_term.Group("ALL", scope, c), kind=kind,
-                     check=self._group_holds)
+                     group=compile_term.Group("ALL", scope, c,
+                                              exclude=(partner,) if partner else ()),
+                     kind=kind, check=self._group_holds)
         return f"ALL kind({scope}): {text}", grp
 
     @_in_step("IMPORT")

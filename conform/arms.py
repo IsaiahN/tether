@@ -2134,8 +2134,9 @@ ARMS: dict[str, str] = {
                             "copy: the completion prices it on the met rows); the goal proposer "
                             "offers it over its own candidate texts, not holding now and not "
                             "tried this level, ranked by bits (member + 1), so an ALL-of-a-kind "
-                            "goal is proposable before any win; held one want per member. OFF: "
-                            "none offered. default ON",
+                            "goal is proposable before any win; held one want per member. A pair "
+                            "reading's group binds its subject only, the partner held fixed and "
+                            "never a member (r1219). OFF: none offered. default ON",
     "TETHER_SLOTLESS_TOUCH": "BUILD 5 ITEM 19 Q2 (the reviewer 2026-11-05 r1216): a completion-"
                              "held goal that names no slot (count NONE, connected) is pressed for "
                              "through 16b's formed / tried machinery: _untried_ready offers its "

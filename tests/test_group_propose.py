@@ -61,8 +61,29 @@ def main():
     assert row_off.get("pick") is None and not any(
         str(x.get("if", "")).startswith("ALL kind") for x in row_off.get("ranked", [])), (
         "MF-P2: a group offered OFF", row_off)
+    # MF-P3 (r1219): a PAIR reading's group binds the subject only -- the partner o2 held fixed and
+    # never a member -- and the completion forms it as it did at 30746eb
+    ag3, atoms3, _st3 = G.agent()
+    st3 = dict(ag3.trace[-1][2])
+    pair = "o0.touches_o2 == 1"
+    c = tether.compile_term.compile_candidate({"condition": pair}, atoms3)
+    formed = ag3._group_form(pair, c, st3, set())
+    assert formed is not None, "MF-P3: no pair group formed"
+    ptext, pgrp = formed
+    assert ptext == f"ALL kind(o0): {pair}" and pgrp.group.exclude == ("o2",) and all(
+        p.slot.endswith(".touches_o2") and not p.slot.startswith("o2.") for p in pgrp.parts), (
+        "MF-P3: the partner is not held fixed", ptext, [p.slot for p in pgrp.parts])
+    near = {**st3, **{f"{m}.touches_o2": 1 for m in ("o0", "o1", "o3", "o4", "o5")}}
+    assert ag3._group_holds(pgrp.group, near, pgrp.kind) is True, "MF-P3: all touch o2, not held"
+    assert ag3._group_holds(pgrp.group, {**near, "o3.touches_o2": 0}, pgrp.kind) is False, (
+        "MF-P3: one member off, still held")
+    rows = [(near, True)] * 3 + [({**near, "o3.touches_o2": 0}, False)] * 3
+    single = (0, 0, 0, 0, pair, c)
+    assert any(x[4] == ptext for x in ag3._goal_groups([single], rows)), (
+        "MF-P3: the completion does not form the pair group")
     print(f"test_group_propose: pass (MF-P1 the single refused route-first; {want!r} held on "
-          f"{len(slots)} member slots, route {row['route']!r}; MF-P2 OFF none)")
+          f"{len(slots)} member slots, route {row['route']!r}; MF-P2 OFF none; MF-P3 {ptext!r} "
+          f"with o2 fixed and excluded, held / not per member, formed at the completion)")
 
 
 if __name__ == "__main__":
