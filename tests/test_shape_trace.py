@@ -1,0 +1,80 @@
+"""BUILD 5 ITEM 21, THE INSTRUMENT (TETHER_SHAPE_TRACE; the reviewer 2026-11-05 r1234). Record-only
+fields (family, board, per-slot trend) on goal_hypotheses / goal_hypothesis_end, read per board by
+shape_trace.py. Seconds: test_desc_demote's played gridworld agent.
+
+MF-T4  RED FIRST: with the arm OFF the rows carry no board, and the reader prints "no shape trace"
+       -- it never invents a hold
+MF-T1  ON: X "o0.row == o4.row" stalls flat, then Y "o1.colour == o3.colour" is held, on ONE
+       board: the reader prints X's span, family navigate, trend fell=False, the switch line
+       "switch +k cycles -> 'o1.colour == o3.colour'" and the family_demoted row under X
+MF-T2  the same holds with the board counter moved between them print under TWO boards
+The red is behavioural: TETHER_SHAPE_TRACE=0 fails MF-T1.
+
+    python tests/test_shape_trace.py
+"""
+from __future__ import annotations
+
+import sys
+
+import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
+
+sys.dont_write_bytecode = True
+
+import shape_trace  # noqa: E402
+import test_board_desc as B  # noqa: E402
+import test_desc_demote as D  # noqa: E402
+
+tether = B.tether
+X, Y = "o0.row == o4.row", "o1.colour == o3.colour"
+
+
+def run(on: bool | None, new_board: bool = False) -> list:
+    was = tether._SHAPE_TRACE
+    tether._SHAPE_TRACE = was if on is None else on
+    try:
+        ag = B.played()
+        assert D.propose(ag, [X]).get("pick") == X, "the hold of X"
+        B.stall(ag)
+        if new_board:
+            ag.iface.board_n += 1
+        ag.cycle += 3
+        assert D.propose(ag, [Y]).get("pick") == Y, "the hold of Y"
+        return shape_trace.trace(ag.led.rows())
+    finally:
+        tether._SHAPE_TRACE = was
+
+
+def section(lines: list, text: str) -> list:
+    """The lines of the board whose last holds include `text`."""
+    out, cur = {}, None
+    for ln in lines:
+        if ln.startswith("board "):
+            cur = ln
+            out[cur] = []
+        elif cur:
+            out[cur].append(ln)
+    return [ln for b, ls in out.items() if any(text in x for x in ls) for ln in [b, *ls]]
+
+
+def main():
+    assert run(False) == ["no shape trace"], "MF-T4 (red first): OFF invented a trace"
+
+    lines = run(None)
+    sec = section(lines, repr(Y))
+    x_line = next((ln for ln in sec if repr(X) in ln and "family=navigate" in ln), None)
+    assert x_line and "ended stalled" in x_line, ("MF-T1: X's hold", sec)
+    assert any("fell=False" in ln for ln in sec), ("MF-T1: the flat trend", sec)
+    assert any(ln.strip().startswith("switch +") and repr(Y) in ln for ln in sec), (
+        "MF-T1: the switch", sec)
+    assert any("family_demoted" in ln for ln in sec), ("MF-T1: the demotion row", sec)
+
+    two = run(None, new_board=True)
+    bx = [ln for ln in section(two, repr(X)) if ln.startswith("board ")]
+    by = [ln for ln in section(two, repr(Y)) if ln.startswith("board ")]
+    assert bx and by and bx[0] != by[0], ("MF-T2: one board", two)
+    print("test_shape_trace: pass (MF-T4 OFF: 'no shape trace'; MF-T1 one board:\n  "
+          + "\n  ".join(sec) + f"\n MF-T2 X on {bx[0]!r}, Y on {by[0]!r})")
+
+
+if __name__ == "__main__":
+    main()

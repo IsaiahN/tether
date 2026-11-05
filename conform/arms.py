@@ -2181,6 +2181,12 @@ ARMS: dict[str, str] = {
                           "witnessed the contrast; on load the wins seed _desc_paid and the losses "
                           "a carried count the same p sums with the board's. OFF: nothing "
                           "tallied. default ON",
+    "TETHER_SHAPE_TRACE": "BUILD 5 ITEM 21 (the reviewer 2026-11-05 r1234): RECORD-ONLY fields, "
+                          "read by no decision -- family and board (iface.board_n) on "
+                          "goal_hypotheses; family, board and the per-slot trend {first, last, "
+                          "fell, n} (stuck()'s own predicate) on goal_hypothesis_end -- read per "
+                          "board by shape_trace.py, which prints 'no shape trace' on a ledger "
+                          "without them. OFF: the rows as before. default ON",
     "TETHER_SLOTLESS_TOUCH": "BUILD 5 ITEM 19 Q2 (the reviewer 2026-11-05 r1216): a completion-"
                              "held goal that names no slot (count NONE, connected) is pressed for "
                              "through 16b's formed / tried machinery: _untried_ready offers its "

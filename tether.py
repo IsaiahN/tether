@@ -2171,6 +2171,11 @@ _SHAPE_CARRY = armflag.arm("TETHER_SHAPE_CARRY", default=True)
 # ground witnessed the contrast. On load it seeds the wins and a carried-loss count the same p sums
 # with this board's. A board that never clears carries no loss. OFF: nothing tallied, as before
 _TALLY_CARRY = armflag.arm("TETHER_TALLY_CARRY", default=True)
+# Build 5 item 21, THE INSTRUMENT (the reviewer 2026-11-05 r1234): RECORD-ONLY fields, read by no
+# decision -- the held shape's family and board (iface.board_n) on goal_hypotheses, and family,
+# board and per-slot trend {first, last, fell, n} (stuck()'s own predicate) on
+# goal_hypothesis_end; shape_trace.py reads them per board. OFF: the rows as before
+_SHAPE_TRACE = armflag.arm("TETHER_SHAPE_TRACE", default=True)
 
 
 @dataclass(frozen=True)
@@ -8554,7 +8559,24 @@ class Agent:
                         **({"elsewhere": h.get("elsewhere", 0)} if _HYP_OWN_PRESS else {}),
                         reads="a goal hypothesis ended; the next must differ (Fig 7 :36)",
                         **({"tests": dict(h.get("tests", {})),
-                            "tests_read_by": None} if _R4_RECORD else {}))
+                            "tests_read_by": None} if _R4_RECORD else {}),
+                        **({"family": h.get("family"),
+                            "board": getattr(self.iface, "board_n", None),
+                            "trend": self._hyp_trend(h)} if _SHAPE_TRACE else {}))
+
+    @staticmethod
+    def _hyp_trend(h: dict) -> dict:
+        """Item 21: per held slot, its readings since its approach opened -- first, last, n, and
+        fell (stuck()'s own predicate: shrinking over MIN_REPEAT + 1; None with fewer)."""
+        out = {}
+        for sl in h["slots"]:
+            at = h["seg"].get(sl, 0)
+            seg = h["reads"].get(sl, [])[at:]
+            tseg = trend_of(seg, h.get("gaps", {}).get(sl, [])[at:])
+            out[sl] = {"first": round(seg[0], 6) if seg else None,
+                       "last": round(seg[-1], 6) if seg else None, "n": len(seg),
+                       "fell": shrinking(tseg) if len(tseg) >= MIN_REPEAT + 1 else None}
+        return out
 
     def _hyp_route(self, slot: str, before: dict) -> str | None:
         """The action the interface knows moves the subject toward its target (the route
@@ -8921,7 +8943,10 @@ class Agent:
         self.led.record(self.cycle, "PLAN", sl, "goal_hypotheses", pick=x[1], key=key,
                         slots=link["slots"], route=link["route"],
                         displaced=link["displaced"], r_goal=rg, budget=self._hyp["budget"],
-                        source=self._hyp["source"], **detail)
+                        source=self._hyp["source"], **detail,
+                        **({"family": self._hyp.get("family"),
+                            "board": getattr(self.iface, "board_n", None)} if _SHAPE_TRACE
+                           else {}))
 
     def _withhold_platform(self) -> None:
         """While a held hypothesis is touched the platform's own actions (RESET) are withheld on
