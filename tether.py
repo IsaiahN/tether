@@ -433,6 +433,7 @@ PHASE_OF: dict[str, str] = {
     "given": I.PROBE,          # handed in by the caller: not a choice this loop made
     "terminal": I.DIRECTED,    # TETHER_TERMINAL_RESET: a dead board, the restart (r669 1)
     "actuator": I.DIRECTED,    # TETHER_GOAL_FROM_ACTUATOR: CONTINUE <actuator> (r746)
+    "discriminate:intent": I.DIRECTED,   # 15c: the intent the held rivals disagree on (r1184)
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
@@ -1360,6 +1361,15 @@ _INTENT_PREDICT = armflag.arm("TETHER_INTENT_PREDICT", default=True)
 # lifted, kept in _route_lifted and rowed. A ground refusal has no support. Needs
 # TETHER_INTENT_PREDICT. OFF: as before.
 _INTENT_WEIGH = armflag.arm("TETHER_INTENT_WEIGH", default=True)
+# BUILD 4 ITEM 15c, INTENT-LEVEL DISCRIMINATION (the reviewer 2026-11-04 r1184; the spread branch's
+# own successor, deleted 09-28 option A; Fig 2 :46 "Each frame is corrected by it separately"): a
+# slot's held rivals -- its bound term while a candidate (or, on the held hypothesis's own slots,
+# settled too: Fig 8 :39), its offers that fit the trace, its cause-guarded terms (14a) -- each
+# predict the slot after the press each of its intents realises to (15a's step); the intent with
+# the most distinct predictions is taken, only where they differ (>= 2), by the existing order on
+# ties. The agent never ranks a button; the ground grades every rival. Needs TETHER_INTENT_PREDICT.
+# OFF: today's exits.
+_INTENT_DISCRIMINATE = armflag.arm("TETHER_INTENT_DISCRIMINATE", default=True)
 
 
 @cache
@@ -11970,7 +11980,13 @@ class Agent:
         wanting predicts is `objective_step`'s. The type decides, and both facts it reads --
         `out_type` and `slot_types` -- are already here.
         """
-        term = self.gamma.library[self.bound.get(slot, IDN)]
+        return self._predict_term(self.gamma.library[self.bound.get(slot, IDN)], slot, state,
+                                  action)
+
+    def _predict_term(self, term: Any, slot: str, state: dict[str, int], action: str,
+                      intent: Any = None, landed: Any = None) -> int | None:
+        """_predict for a given term (15c: a rival, not the bound one); `intent` / `landed` read a
+        recorded row instead of the live step."""
         # AND AN UNREADABLE OPERAND IS AN INAPPLICABLE TERM -- `_applies` already says so
         # ("cannot be applied where that operand did not exist"), and a COVERED object is
         # absent for exactly that reason. `_left` and `_residual_obs` consult it and the
@@ -11985,9 +12001,11 @@ class Agent:
         # **`_predict` IS THE CURRENT STEP, NOT A REPLAY ROW**, so its intent is the live one
         # rather than a row's. `NO_INTENT` when none was formed -- the explicit reading, so a
         # guard compares against a value instead of an absence.
-        _now = self._intent_now.kind if self._intent_now is not None else NO_INTENT
+        _now = (intent if intent is not None else
+                self._intent_now.kind if self._intent_now is not None else NO_INTENT)
         ctx = self._eval_ctx(slot, state, action=action, operands=ops, intent=_now,
-                             touching=self._touching(slot), landed=self._last_landed,
+                             touching=self._touching(slot),
+                             landed=self._last_landed if landed is None else landed,
                              guard_ref=term.guard_ref)
         got = self._value_of(term, slot, state, ctx)
         if got is NOT_RESOLVED:
@@ -12219,6 +12237,80 @@ class Agent:
         if _INFERRED_CAUSE:
             self.__dict__.setdefault("_sim_parent", {})[id(out)] = (out, st, action)
         return out
+
+    def _rivals(self, slot: str, hyp: set, guarded: dict) -> dict:
+        """15c (r1184): the slot's held rivals, name -> term. Its bound term while a candidate; on
+        the held hypothesis's own slots the settled one too (Fig 8 :39); elsewhere a settled slot
+        has none. Its offers whose prediction matches every readable recorded row; its library
+        terms guarded by a Cause (14a) on it."""
+        lib, name = self.gamma.library, self.bound.get(slot)
+        settled = name is not None and self.gamma.is_settled(name, slot)
+        if settled and slot not in hyp:
+            return {}
+        out = {name: lib[name]} if name in lib else {}
+        for n in guarded.get(slot, ()):
+            out.setdefault(n, lib[n])
+        offers = self._mol_offers.get(slot, ())
+        rows = ([(b, a, af, i, ld) for b, a, af, i, ld in self.trace if slot in b and slot in af]
+                if offers else [])
+        for o in offers:
+            t = o["term"]
+            if t.name in out:
+                continue
+            got = [self._predict_term(t, slot, b, a, intent=i, landed=ld)
+                   for b, a, _af, i, ld in rows]
+            if any(v is not None for v in got) and all(
+                    v is None or v == af[slot] % self.alphabet[slot]
+                    for v, (_b, _a, af, _i, _l) in zip(got, rows, strict=True)):
+                out[t.name] = t
+        return out
+
+    def _discrim_best(self, before: dict) -> tuple | None:
+        """15c (r1184): the intent the held rivals disagree on, read without acting. Per slot with
+        >= 2 rivals, each of its intents (BECOME it +/- on an ordered slot, TOUCH its owner) is
+        realised by the interface and every rival predicts the slot after that press; the most
+        distinct predictions (>= 2), the first in that order on a tie: (spread, slot, intent,
+        realisation, predictions, ms). None: nothing to separate."""
+        t0 = time.perf_counter()
+        hyp = set(self._hyp["slots"]) if self._hyp is not None else set()
+        guarded: dict = {}
+        for n, t in self.gamma.library.items():
+            c = self._invented.get(t.guard_ref) if t.guard_ref else None
+            if isinstance(c, Cause):
+                guarded.setdefault(c.slot, []).append(n)
+        ctx, best, keep = IFace.Interface.context(self.env), None, dict(self._pred_raw)
+        try:
+            for s in sorted(before):
+                rv = self._rivals(s, hyp, guarded)
+                if len(rv) < 2:
+                    continue
+                wants = ([IFace.Intent(IFace.BECOME, s, d) for d in ("+", "-")]
+                         if self.slot_types.get(s) in ORDERED_TYPES else [])
+                if "." in s:
+                    wants.append(IFace.Intent(IFace.TOUCH, object=s.split(".")[0]))
+                for w in wants:
+                    r = self.iface.realise(w, tuple(self.actions), ctx, before, self.env,
+                                           withheld=self._withheld)
+                    if r is None or getattr(r, "unmapped", False):
+                        continue
+                    pred = {n: self._predict_term(t, s, before, r.action) for n, t in rv.items()}
+                    spread = len({v for v in pred.values() if v is not None})
+                    if spread >= 2 and (best is None or spread > best[0]):
+                        best = (spread, s, w, r, pred)
+        finally:
+            self._pred_raw = keep
+        return None if best is None else (*best, round((time.perf_counter() - t0) * 1000, 3))
+
+    def _discriminate(self, best: tuple) -> str:
+        """15c: the exit contest picked it -- a PLAN discriminate row, and the press through _took
+        and the ordinary bet path, so the ground grades every rival separately."""
+        spread, s, w, r, pred, ms = best
+        hyp = set(self._hyp["slots"]) if self._hyp is not None else set()
+        self.led.record(self.cycle, "PLAN", s, "discriminate", intent=w.says(), action=r.action,
+                        rivals=pred, spread=spread, hyp_slot=s in hyp, ms=ms,
+                        reads="the held rivals predict differently after this intent's press, so "
+                              "the ground corrects each separately (15c)")
+        return self._took(r, w)
 
     def _intent_predict(self, before: dict, intent: Any, r: Any = None) -> dict | None:
         """ITEM 15a: (before, intent, after) -- the intent's press (`r`, else the interface's
@@ -15535,6 +15627,8 @@ class Agent:
         self._gamma_read = {"owed": len(owed), "entered": False,
                             "note": "the spread branch is deleted; discrimination returns at "
                                     "the intent level"}
+        if take == "discriminate":              # 15c: it returns here, at the intent level
+            return self._discriminate(self._disc_best), "discriminate:intent"
         # SYSTEM 0 -- Isaiah: start random, then jump to strategy. While the agent lacks the
         # contingency evidence to be strategic -- a surfaced action not yet tried at >=2 distinct
         # states, probe.py's `never_live` anchor -- draw variously INSTEAD of exploiting the
@@ -17179,6 +17273,13 @@ class Agent:
             if gslot is not None and self._goal_split(before, commit=False) is not None:
                 opts.append("goal")
                 res["goal"] = self.outstanding(gslot)
+            # 15c (r1184): the held rivals' disagreement enters the same contest, read by the same
+            # rule (the outstanding of the slot it aims at)
+            self._disc_best = (self._discrim_best(before)
+                               if _INTENT_DISCRIMINATE and _INTENT_PREDICT else None)
+            if self._disc_best is not None:
+                opts.append("discriminate")
+                res["discriminate"] = self.outstanding(self._disc_best[1])
         if not opts:
             return None, s0_tw, dist_r
         fixed = ("probe" if starved else "system0" if s0 else "distinguish" if dist_r is not None

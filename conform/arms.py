@@ -2112,6 +2112,16 @@ ARMS: dict[str, str] = {
                              "PLAN intent_predict row with its ms; no row where nothing is "
                              "weighed. Record-only until 15b reads it. OFF: never computed. "
                              "default ON",
+    "TETHER_INTENT_DISCRIMINATE": "BUILD 4 ITEM 15c (the reviewer 2026-11-04 r1184; the spread "
+                                  "branch's successor at its own site): a slot's held rivals (its "
+                                  "bound term while a candidate, or settled on the held "
+                                  "hypothesis's own slots, Fig 8 :39; its offers fitting the "
+                                  "trace; its Cause-guarded terms, 14a) each predict the slot "
+                                  "after the press its intents realise to; the intent with the "
+                                  "most distinct predictions (>= 2) is taken, a PLAN discriminate "
+                                  "row, the exit discriminate:intent (DIRECTED). Never ranks a "
+                                  "button. Needs TETHER_INTENT_PREDICT. OFF: today's exits. "
+                                  "default ON",
     "TETHER_INTENT_WEIGH": "BUILD 4 ITEM 15b (the reviewer 2026-11-04 r1181; Fig 12 :126): the "
                            "met-goal conflict reads 15a -- where the settled predictor on the met "
                            "slot reads it, predicted to disturb refuses the route through R-B "
