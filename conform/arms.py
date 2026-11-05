@@ -2112,6 +2112,14 @@ ARMS: dict[str, str] = {
                              "PLAN intent_predict row with its ms; no row where nothing is "
                              "weighed. Record-only until 15b reads it. OFF: never computed. "
                              "default ON",
+    "TETHER_INTENT_WEIGH": "BUILD 4 ITEM 15b (the reviewer 2026-11-04 r1181; Fig 12 :126): the "
+                           "met-goal conflict reads 15a -- where the settled predictor on the met "
+                           "slot reads it, predicted to disturb refuses the route through R-B "
+                           "(predicted_to_undo_met_goal, support (term, slot)), predicted to keep "
+                           "is recorded kept, unread waits for MIN_REPEAT ground undos; the "
+                           "decision row names the prediction. When settle demotes the support "
+                           "the refusal is lifted (Fig 6 :44-45), kept in _route_lifted and rowed "
+                           "route_lifted. Needs TETHER_INTENT_PREDICT. OFF: as before. default ON",
     "TETHER_GOAL_MINT_FIRST": "BUILD 4 ITEM 13 (the reviewer 2026-11-04 r1161, r1162): the held "
                               "hypothesis's slots routed MECHANISM / REFUTED-with-no-fit go first "
                               "in the step's mint order, then the seeded / _understanding order "

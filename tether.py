@@ -1351,6 +1351,15 @@ _GOAL_MINT_FIRST = armflag.arm("TETHER_GOAL_MINT_FIRST", default=True)
 # where the plan is already weighing an intent (the met-goal conflict, _note_decision), its ms on
 # the row; no row where nothing is weighed. Record-only until 15b reads it. OFF: never computed.
 _INTENT_PREDICT = armflag.arm("TETHER_INTENT_PREDICT", default=True)
+# BUILD 4 ITEM 15b, THE MET-GOAL CONFLICT READS 15a (the reviewer 2026-11-04 r1181; Fig 12 :126
+# "Bits price the description. Actions price finding out whether it holds."): where the settled
+# predictor on the met slot reads it, its verdict weighs the conflict -- predicted to disturb
+# refuses the route through R-B's store ("predicted_to_undo_met_goal", support (term, slot));
+# predicted to keep is recorded kept; unread waits for MIN_REPEAT ground undos as before. The
+# refusal is derived from its support (Fig 6 :44-45): when settle demotes the term there, it is
+# lifted, kept in _route_lifted and rowed. A ground refusal has no support. Needs
+# TETHER_INTENT_PREDICT. OFF: as before.
+_INTENT_WEIGH = armflag.arm("TETHER_INTENT_WEIGH", default=True)
 
 
 @cache
@@ -4307,6 +4316,7 @@ class Agent:
         # (3c): refusals set aside when the board's affordance changed (kept, never removed), and
         # the last (action, context) -> kind reading, so a change is what gets rowed
         self._route_stale: dict[tuple, tuple[str, int]] = {}
+        self._route_lifted: dict[tuple, tuple[str, int]] = {}   # 15b: support demoted (kept)
         self._kinds_was: dict[tuple, str] = {}
         # (5c) A12: presses and deaths by (goal slot kind, action, situation kinds) -- kinds, so
         # they cross levels; the press last counted, and the goal exit's situation for it
@@ -4946,6 +4956,7 @@ class Agent:
         # death, so a carry across tries is R-D's, open (the reviewer 2026-10-23 22:12)
         self._gap, self._route_refused, self._route_run = {}, {}, {}
         self._route_stale = {}                       # (3c): this level's, like the refusals
+        self._route_lifted = {}                      # 15b: likewise
         self._subgoal = None                         # (4g): slot names do not cross
         self._unreachable = {}                       # (6a): nor intents that name them
         self._rk_bound = None                        # (6c): bound again on the new board
@@ -18483,6 +18494,7 @@ class Agent:
             return
         _slot, _n = max(live, key=lambda kv: kv[1])
         _ctx = self._situation(_slot, IFace.Interface.context(self.env))   # (4d) as R-B's key
+        got = None
         if _INTENT_PREDICT and self.trace:     # 15a: the intent being weighed, predicted
             got = self._intent_predict(self.trace[-1][2], want, r)
             if got is not None:
@@ -18495,6 +18507,13 @@ class Agent:
         # route is refused through R-B's own store, which choosing reads; the intent stays and
         # asks for another route. Below the repeat bar it stays a recorded conflict
         weighed = bool(_UNDO_WEIGHED and r is not None and _n >= MIN_REPEAT)
+        # 15b: the settled predictor on the met slot, where it read the slot, weighs it below the
+        # bar: its verdict is description already paid for (Fig 12 :126)
+        term = self.bound.get(_slot)
+        verdict = None
+        if (_INTENT_WEIGH and got is not None and r is not None and term is not None
+                and self.gamma.is_settled(term, _slot) and _slot not in got["unread"]):
+            verdict = "disturb" if _slot in got["changed"] else "keep"
         if weighed:
             route = self._route_key(want, r, _ctx)
             if route not in self._route_refused:
@@ -18504,6 +18523,17 @@ class Agent:
                                 context=[list(c) for c in _ctx], why="undoes_met_goal",
                                 outcomes=[], reads="this way undoes an objective that holds, "
                                                    "repeatedly; refused here, the intent stays")
+        elif verdict == "disturb":
+            route = self._route_key(want, r, _ctx)
+            if route not in self._route_refused:
+                self._route_refused[route] = ("predicted_to_undo_met_goal", self.cycle,
+                                              (term, _slot))
+                self.led.record(self.cycle, "SETTLE", _slot, "route_refused", intent=said,
+                                action=r.action, coord=list(r.coord) if r.coord else None,
+                                context=[list(c) for c in _ctx],
+                                why="predicted_to_undo_met_goal", support=term, outcomes=[],
+                                reads="a settled predictor says this way undoes an objective "
+                                      "that holds; refused here while it stands, the intent stays")
         self.led.record(self.cycle, "PLAN", _slot, "decision",
                         chose=said,
                         # **THE ALTERNATIVE IS THE ABSTENTION, AND IT IS THE HONEST ONE.** At
@@ -18513,13 +18543,39 @@ class Agent:
                         instead_of=("hold off -- leave the met objective alone",),
                         because={"undone_here": _n,
                                  "across": self._undone_across.get((said, _slot), 0),
-                                 "repeated": _n >= MIN_REPEAT},
+                                 "repeated": _n >= MIN_REPEAT,
+                                 **({"predicted": {"changed": got["changed"],
+                                                   "disturbs_met": _slot in got["changed"],
+                                                   "read": verdict is not None, "by": term,
+                                                   "ms": got["ms"]}}
+                                    if _INTENT_WEIGH and got is not None else {})},
                         at=_ctx,
                         status=("weighed: this route refused here (R-B), the intent stays"
-                                if weighed else "conflict, not yet weighed"),
+                                if weighed else
+                                "weighed by prediction: route refused here, the intent stays"
+                                if verdict == "disturb" else "weighed by prediction: kept"
+                                if verdict == "keep" else "conflict, not yet weighed"),
                         reads="I have undone this objective with this intent before and it "
                               "holds right now -- recorded as a CONFLICT I was in, not a "
                               "decision I made: nothing read this before the choice")
+
+    def _lift_unsupported(self) -> None:
+        """15b (r1181): a route refused by PREDICTION is derived from its predicting term (Fig 6
+        :44-45), so once settle has demoted that term on its slot the refusal's support is gone and
+        the route is open again. Kept in _route_lifted and rowed (Fig 6 :45-46); a ground refusal
+        has no support and is never lifted here."""
+        gone = {k: v for k, v in self._route_refused.items()
+                if len(v) > 2 and not self.gamma.is_settled(*v[2])}
+        for k, v in gone.items():
+            self._route_refused.pop(k)
+            self._route_run.pop(k, None)
+            term, slot = v[2]
+            self._route_lifted[k] = (f"lifted: support {term} demoted at {self.cycle}", v[1])
+            self.led.record(self.cycle, "SETTLE", slot, "route_lifted", intent=k[0], action=k[1],
+                            coord=list(k[2]) if k[2] else None, context=[list(c) for c in k[3]],
+                            why=v[0], support=term, refused_at=v[1],
+                            reads="the term that predicted this way undoes the met objective "
+                                  "is demoted here, so its refusal falls; the record keeps it")
 
     def _realise_step(self, emit: Any, before: dict[str, int]) -> str | None:
         """A routine step is an INTENT. Turn it into a button, or `None` if nothing serves it.
@@ -18944,7 +19000,8 @@ class Agent:
         switched = sum(1 for k in moved.values() if k == IFace.SWITCH)
         if not (cap_.opened or switched):
             return
-        stale = {r: v for r, v in self._route_refused.items() if v[0] != "undoes_met_goal"}
+        stale = {r: v for r, v in self._route_refused.items()
+                 if v[0] not in ("undoes_met_goal", "predicted_to_undo_met_goal")}
         if not stale:
             return
         self._route_stale.update(stale)
@@ -22885,6 +22942,8 @@ class Agent:
                                 remedy="step 7 INWARD: a slot set that reaches what moves",
                                 built=False)
         self.settle(res)
+        if _INTENT_WEIGH and self._route_refused:
+            self._lift_unsupported()        # 15b: a demoted support lifts its refusal
         if self._test is not None:
             # 7j's grade, written in SETTLE time after the slot's ROUTE and MINT rows (moved from
             # right after perceive, where it broke the ladder; the reviewer 2026-10-16 10:56)
