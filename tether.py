@@ -1255,6 +1255,13 @@ _LIT_COVER = armflag.arm("TETHER_LIT_COVER", default=True)
 # operand), one offer repeated up to 822 times. An identical offer adds no candidate, so the cover
 # keeps the first and counts the copies on it ("copies"); seen if any copy was. OFF: every copy.
 _COVER_DEDUPE = armflag.arm("TETHER_COVER_DEDUPE", default=True)
+# r1166, THE COVER TYPES A DECLARED HEAD'S OPERAND BEFORE IT OFFERS (r1103, r1142): the census's top
+# re-offer was subtract<o2.add_n> at o2.col -- POSITION - EXTENT, which subtract's declared typing
+# refuses at the bind, after the offer was carried and priced (A/B: 64,737 offers reached the mint,
+# 14 typed). The bind's own rule (gamma.target_operand), applied at the cover; each refusal counted
+# with its reason, never offered. Chain typing stays at the mint, whose streams decide it. OFF: no
+# check here.
+_COVER_TYPED = armflag.arm("TETHER_COVER_TYPED", default=True)
 # r1145 (the reviewer 2026-11-04; Fig 12 :46 "A bond is the typed relation between two operands"):
 # an operand-tree node whose value is slot_a − slot_b -- the tree's own term names the second slot
 # -- seeded ONLY from the two pair readings of a settled junction no existing shape can express,
@@ -10409,6 +10416,16 @@ class Agent:
                                     hit["copies"] += 1
                                     hit["seen"] = hit["seen"] or o in held_on
                                     lit_n["collapsed"] += 1
+                                    continue
+                            if _COVER_TYPED and self.slot_types:
+                                tt = self.slot_types.get(path[-1])
+                                exact = target_operand(chain, tt)
+                                lg_ = lag_of(path[0])
+                                got_t = self.slot_types.get(lg_[0] if lg_ is not None else path[0])
+                                if exact is not None and got_t is not None and got_t != exact:
+                                    why[f"cover: {chain.atoms[0].name} takes {exact} at {tt}, "
+                                        f"not {got_t}"] += 1
+                                    lit_n["refused for typing"] += 1
                                     continue
                             prov = {"molecule": m["molecule"], "bond": got, "object": o,
                                     "seen": o in held_on, "left": path[0], "right": path[-1],

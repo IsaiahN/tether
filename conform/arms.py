@@ -2034,6 +2034,11 @@ ARMS: dict[str, str] = {
                        "typed per target like translate (POSITION − DELTA -> POSITION, DELTA − "
                        "DELTA -> DELTA; anything else refused); grammar.json's − implemented_by "
                        "names it. OFF: no such atom, and the entry is not read. default ON",
+    "TETHER_COVER_TYPED": "r1166 (r1103, r1142): before the cover offers, a declared head's "
+                          "operand is typed by the bind's own rule (gamma.target_operand at the "
+                          "target's type); a mismatch is counted 'cover: <head> takes <T> at "
+                          "<type>, not <got>' and never offered. Chain typing stays at the "
+                          "mint. OFF: no check at the cover. default ON",
     "TETHER_COVER_DEDUPE": "r1163 FIX 2 (Fig 12 :126 \"Bits price the description\"): the cover "
                            "route keeps one offer per (slot, term, operand) in a pass and counts "
                            "its copies on it (prov copies; lit_cover collapsed), seen if any copy "
