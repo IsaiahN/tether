@@ -14006,7 +14006,7 @@ class Agent:
                 # route only files the slot; `_price_refusal` takes it from `_refuted_slot`.
                 self._refuted_slot[slot] = was_refused
                 self._fit_none.pop(slot, None)     # S2a: a refuted bet reopens it
-                fit = self._library_fit(slot, was_refused)
+                fit = self._fit_counted(slot, was_refused)
                 # AND ZERO SUPPORT FALLS THROUGH TO MINT -- ruled 2026-09-22 on B5.
                 # *Support at zero is an INSTRUCTION, not a stop: perturb.* A rebind changes
                 # what the agent BELIEVES and does not touch the world, so it cannot discharge
@@ -14034,7 +14034,7 @@ class Agent:
                 # revisited.
                 b, fit = MECHANISM, (None if self._defer_lookup(slot)
                                      else self._fit_tier0(slot, self.bound.get(slot)) if _FIT_TIER0
-                                     else self._library_fit(slot, self.bound.get(slot)))
+                                     else self._fit_counted(slot, self.bound.get(slot)))
                 if fit:
                     b = REBIND
             elif len(self.trace) < 2:
@@ -14047,7 +14047,7 @@ class Agent:
             else:
                 self._fit_none.pop(slot, None)     # S2a: a row the bound term missed reopens it
                 fit = (None if self._defer_lookup(slot)
-                       else self._library_fit(slot, self.bound.get(slot)))
+                       else self._fit_counted(slot, self.bound.get(slot)))
                 b = REBIND if fit else MECHANISM
                 if _MISS_GRADE:
                     _grade = "broken_after_hold" if slot in self._miss_held else "searched"
