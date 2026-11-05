@@ -17534,6 +17534,13 @@ class Agent:
                             situation=list(e["situ"]))
         self._hs_open = keep
 
+    def _lk(self) -> Any:
+        """Item 24 (C2) (r1251): the level part of _exit_n's and _tried's keys -- (game, level),
+        the game being the count of NEW_BOARD boundaries (_bond_board, the agent's own reading
+        of a game switch), so two games' level 0 never share a count. Earlier games' counts are
+        kept as records, never cleared. OFF: the level alone, as before."""
+        return (getattr(self, "_bond_board", 0), self.level) if _NEW_BOARD_LEVEL else self.level
+
     def _new_board_level(self) -> int:
         """Item 24 (C) (r1250): the level a new board starts at -- the world's own count
         (env.levels()[0]), never the previous game's number run on. OFF: self.level, as before."""
@@ -18848,10 +18855,10 @@ class Agent:
         fixed = ("probe" if starved else "system0" if s0 else "distinguish" if dist_r is not None
                  else "goal")
         pick = self._choice("exit", None, [(e, None, 1) for e in opts], res,
-                            {e: self._exit_n[(self.level, e)] for e in opts},
+                            {e: self._exit_n[(self._lk(), e)] for e in opts},
                             extra={"s0_defer": s0, "fixed_would": fixed,
                                    **({"s0_contest": True} if s0 and _S0_CONTEST else {})})
-        self._exit_n[(self.level, pick)] += 1
+        self._exit_n[(self._lk(), pick)] += 1
         return pick, s0_tw, dist_r
 
     def _kind_key(self, slot: str) -> str:
@@ -21427,7 +21434,7 @@ class Agent:
                         *(tuple(-v for v in _pairs.get((_mine, self._kind(s.split(".")[0])),
                                                        (0, 0)))
                           if _7M_ANALOGY and _CONSOLIDATE else ()),
-                        *((self._tried[(self.level, slot, s)],) if _7H_TRIED else ()))
+                        *((self._tried[(self._lk(), slot, s)],) if _7H_TRIED else ()))
                     for s in others}
             self._bind_key[slot] = (dk, comp)
             out = [None] + _lookup_order(others, comp, dk, seed=self.draw_seed)
@@ -21696,7 +21703,7 @@ class Agent:
             return
         bk = self._bind_key.get(slot) if _7H_TRIED else None
         closure = sorted(bk[1]) if bk else []
-        tried = [self._tried[(self.level, slot, s)] for s in closure]
+        tried = [self._tried[(self._lk(), slot, s)] for s in closure]
         if not closure or min(tried) < 1:
             return
         rec = self._line_record(slot) if _7H_TRACE and hasattr(self, "_line_grade") else None
@@ -22379,7 +22386,7 @@ class Agent:
                                 _win_reached.add(bind)
                         rank += 1
                         if _7H_TRIED and bind is not None:
-                            self._tried[(self.level, slot, bind)] += 1
+                            self._tried[(self._lk(), slot, bind)] += 1
                         term = Term(cand.atoms, operand=bind, guard=g, guard_ref=gref)
                         if self.gamma.is_atom(term) or (_maybe_lib
                                                         and term.name in self.gamma.library):
@@ -22425,7 +22432,7 @@ class Agent:
                                 # :108), so it takes no rank and counts as no try
                                 rank -= 1
                                 if _7H_TRIED and bind is not None:
-                                    _tk = (self.level, slot, bind)
+                                    _tk = (self._lk(), slot, bind)
                                     self._tried[_tk] -= 1
                                     if not self._tried[_tk]:
                                         del self._tried[_tk]

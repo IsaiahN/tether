@@ -53,6 +53,43 @@ def check_l2_site() -> None:
     print("  the one NEW_BOARD retarget reads _new_board_level()")
 
 
+def check_l3_game_keys() -> None:
+    import ast
+    import inspect
+
+    import gamma
+    import gridworld
+    import ledger
+    import tether
+    import world
+    assert tether._NEW_BOARD_LEVEL, "TETHER_NEW_BOARD_LEVEL is OFF"
+    tether._AGENT_SEED = False
+    env = world.bind(gridworld.family("default", 0))
+    ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="g"), tether.Config(), ledger.Ledger())
+
+    def two_games() -> tuple:
+        ag._tried.clear()
+        ag._exit_n.clear()
+        ag._bond_board, ag.level = 0, 0             # game A, level 0
+        ag._tried[(ag._lk(), "o0.col", "t")] += 1
+        ag._exit_n[(ag._lk(), "probe")] += 1
+        ag._bond_board, ag.level = 1, 0             # game B (one NEW_BOARD later), level 0
+        return ag._tried[(ag._lk(), "o0.col", "t")], ag._exit_n[(ag._lk(), "probe")]
+    on = two_games()
+    kept = len(ag._tried)
+    tether._NEW_BOARD_LEVEL = False                 # MUST-FAIL: shared, as before
+    off = two_games()
+    assert on == (0, 0) and kept == 1 and off == (1, 1), (on, kept, off)
+    src = inspect.getsource(tether.Agent)
+    lv = [n for n in ast.walk(ast.parse(inspect.cleandoc("\n" + src)))
+          if isinstance(n, ast.Subscript) and getattr(n.value, "attr", "") in ("_tried", "_exit_n")
+          and isinstance(n.slice, ast.Tuple) and isinstance(n.slice.elts[0], ast.Attribute)
+          and n.slice.elts[0].attr == "level"]
+    assert not lv, len(lv)
+    print(f"  game B level 0 reads its own counts ON {on} (A's kept: {kept}); OFF shared {off}; "
+          "no key site reads self.level bare")
+
+
 def main() -> int:
     want = sys.argv[1:]
     names = [k for k in globals() if k.startswith("check_") and (not want or k in want)]
