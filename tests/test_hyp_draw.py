@@ -127,6 +127,8 @@ def propose(on, routable):
 
 
 _d, pool = propose(False, set())                 # every open condition, checked
+# the draw is among SINGLE candidates: a group (box 3) or a pair has no compiled text here
+pool = [t for t in pool if t is not None]
 bits = {}
 for t in pool:
     c = ag._compile_cache[t]

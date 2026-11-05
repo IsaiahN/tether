@@ -79,9 +79,14 @@ def strip(rows: list) -> list:
         # the compile memo's size, ONE key on the end:cap memo_sizes row (the reviewer 00:18):
         # tether.py:3829 len(self._compile_cache), a pure function's memo, read only as
         # get-or-compile, so its size is work not done (refused before compiled), like spent
+        # and the walk memo's the same way (the red window, r1236): _WALK_MEMO is get-or-compute,
+        # a hit merging as a walk would and charging the same (tether.py, the (A) arm comment)
+        # and the held views' calls served (_view_hold, a pure function's memo, tether.py:8053)
         if r.get("event") == "memo_sizes" and r["detail"].get("at") == "end:cap":
             r = {**r, "detail": {**r["detail"], "agent": {
-                k: v for k, v in r["detail"]["agent"].items() if k != "compile"}}}
+                k: v for k, v in r["detail"]["agent"].items() if k not in ("compile", "walk")},
+                **({"view_hold": {k: v for k, v in r["detail"]["view_hold"].items()
+                                  if k != "served"}} if "view_hold" in r["detail"] else {})}}
         if r.get("event") in ("header", "arms") or r.get("slot") == "@run":
             continue
         out.append(r)

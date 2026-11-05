@@ -99,13 +99,19 @@ def test_each_named_refusal_is_refused_with_its_reason():
                  "o1.colour_changed == 0"):
         assert isinstance(C.compile_candidate({"condition": cond}, atoms), C.Compiled), cond
     for cond, reason in [
-                         ("contact(o1, o2) == 1", "no pairwise atom"),
-                         ("frame.came > 0", "events are not slots"),
+                         # refused either way; under TETHER_OBSERVER (default ON) by the face
+                         # count's held-back pair part, before the pairwise-atom check
+                         ("contact(o1, o2) == 1", ("no pairwise atom",
+                                                   "the face count's pair part is held back")),
+                         ("frame.came > 0", ("events are not slots",
+                                             "no change reading for came without a subject")),
                          ("board.completed > 0", "not an object slot"),
                          ("@goal.row < o2.row", "@goal is the board's progress marker"),
                          ("o1.row > @goal.row", "@goal is the board's progress marker")]:
         got = C.compile_candidate({"condition": cond}, atoms)
-        assert isinstance(got, C.Refusal) and reason in got.reason, (cond, got)
+        assert isinstance(got, C.Refusal) and any(
+            r in got.reason for r in (reason if isinstance(reason, tuple) else (reason,))), (
+            cond, got)
 
 
 def test_a_rule_candidate_is_refused_as_quantified():
@@ -176,12 +182,16 @@ def test_down_as_the_plain_chain_is_caught_at_zero():
 def test_a_swapped_binding_is_caught():
     """MUST-FAIL: "less" compiled with the binding NOT reversed means "more"; it must disagree."""
     atoms = _atoms()
-    keep = C.TABLE[("<", "slot")]
-    C.TABLE[("<", "slot")] = (("above",), "x")
+    # the row the compiler reads: CONVERSE's when its atoms are held (it overrides TABLE)
+    key = ("<", "slot")
+    book = (C.CONVERSE if key in C.CONVERSE and all(n in atoms for n in C.CONVERSE[key][0])
+            else C.TABLE)
+    keep = book[key]
+    book[key] = (("above",), "x")
     try:
         bad, _n, _r = disagreements(atoms)
     finally:
-        C.TABLE[("<", "slot")] = keep
+        book[key] = keep
     assert bad, "the swapped binding in the 'less' row was not caught"
     return bad
 
