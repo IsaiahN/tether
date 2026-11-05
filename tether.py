@@ -8461,12 +8461,52 @@ class Agent:
         # exhausted means "none routable AT THIS KNOWLEDGE": a route comes from the agent's own
         # delta table, so a new effect learned (a new delta key) reopens the proposal
         known = sum(len(v.get("delta", {})) for v in self.iface.table.values())
-        if (self._hyp is None and self._hyp_exhausted != known and self.routine is None
-                and self._goal_choice() is None):
+        if self._hyp is not None:
+            return
+        # the same order of reads as ever (goal_choice is asked only when the rest let it)
+        gc = None
+        if self._hyp_exhausted == known:
+            holder = "exhausted"
+        elif self.routine is not None:
+            holder = "routine"
+        else:
+            gc = self._goal_choice()
+            holder = "goal_choice" if gc is not None else None
+        if holder is None:
             self._hyp_known = known
+            self.__dict__["_gated_last"] = None
             kept = self._books_kept()
             self._hyp_propose(before)
             self._books_back(kept)
+        elif _SHAPE_TRACE:
+            self._proposal_gated(holder, gc)
+
+    def _family_counts(self, ranked: list, ctrl: set) -> dict:
+        """Item 21 (r1239), record-only: the proposal's OPEN candidates per shape family, each
+        family's count and its cheapest text at its price -- "was contact admitted, and at what
+        price" read, never inferred (r1211)."""
+        out: dict = {}
+        for k, t, c, _tk, _s in ranked:
+            f = self._desc_family(c, ctrl)
+            e = out.setdefault(f, {"n": 0, "cheapest": t, "bits": k[-1]})
+            e["n"] += 1
+            if k[-1] < e["bits"]:
+                e["cheapest"], e["bits"] = t, k[-1]
+        return dict(sorted(out.items()))
+
+    def _proposal_gated(self, holder: str, gc: Any = None) -> None:
+        """Item 21 (r1239), record-only: the proposer skipped because something else holds the
+        turn -- an actuator or plan routine, the selector's pick, or the proposal exhausted at
+        this knowledge -- one row per change of holder (A1 (2): the gate's order, not a price)."""
+        what = (Rt.render(self.routine)[:120] if holder == "routine" else
+                str(gc)[:120] if holder == "goal_choice" else None)
+        key = (holder, what)
+        if key == self.__dict__.get("_gated_last"):
+            return
+        self.__dict__["_gated_last"] = key
+        self.led.record(self.cycle, self._running_step, "@goal", "proposal_gated", holder=holder,
+                        what=what, board=getattr(self.iface, "board_n", None),
+                        reads="the proposer's turn held by another holder, by order (A1 (2))")
 
     def _hyp_check(self) -> None:
         h = self._hyp
@@ -8909,6 +8949,8 @@ class Agent:
         if pick is None:
             pick = self._hyp_pair(before, detail)
         detail.update(checked=checked, refused=dict(refused))
+        if _SHAPE_TRACE:        # item 21 (r1239): every open candidate by family, record-only
+            detail["families"] = self._family_counts(ranked_all, ctrl)
         if _PLAN_NARROW:
             detail.update(compile_reads=compiled[0], not_admitted=sum(len(p) for p in pending),
                           phases=self._hyp_phases, wall_s=round(time.perf_counter() - t0, 4))

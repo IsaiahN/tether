@@ -29,12 +29,14 @@ def trace(rows: list) -> list[str]:
     open_: dict = {}            # board -> the hold not yet ended
     board_at = []               # (cycle, board): which board a side row falls on
     for r in sorted((r for r in rows if r.get("event") in (
-            "goal_hypotheses", "goal_hypothesis_end", "family_demoted", "goal_unbundled")),
+            "goal_hypotheses", "goal_hypothesis_end", "family_demoted", "goal_unbundled",
+            "proposal_gated")),
             key=lambda r: r.get("cycle", 0)):
         d, cy = r["detail"], r.get("cycle", 0)
         if r["event"] == "goal_hypotheses" and d.get("pick") and "board" in d:
             h = {"held": cy, "text": d["pick"], "family": d.get("family"),
-                 "under": (d.get("desc") or {}).get("holding"), "side": []}
+                 "under": (d.get("desc") or {}).get("holding"), "side": [],
+                 "families": d.get("families")}
             holds.setdefault(d["board"], []).append(h)
             open_[d["board"]] = h
             board_at.append((cy, d["board"]))
@@ -42,11 +44,12 @@ def trace(rows: list) -> list[str]:
             h = open_.pop(d["board"], None)
             if h is not None and h["text"] == d.get("text"):
                 h.update(ended=cy, why=d.get("why"), by=d.get("by"), trend=d.get("trend"))
-        elif r["event"] in ("family_demoted", "goal_unbundled") and board_at:
-            b = [bd for c, bd in board_at if c <= cy]
+        elif r["event"] in ("family_demoted", "goal_unbundled", "proposal_gated") and board_at:
+            b = ([d["board"]] if r["event"] == "proposal_gated" and d.get("board") in holds
+                 else [bd for c, bd in board_at if c <= cy])
             hs = holds.get(b[-1], []) if b else []
             if hs:
-                hs[-1]["side"].append((r["event"], {k: v for k, v in d.items()
+                hs[-1]["side"].append((f"c{cy} {r['event']}", {k: v for k, v in d.items()
                                                     if k not in ("text", "reads")}))
     out = []
     for b in sorted(holds, key=lambda x: (x is None, x)):
@@ -55,6 +58,10 @@ def trace(rows: list) -> list[str]:
             span = f"c{h['held']}-c{h['ended']}" if "ended" in h else f"c{h['held']}-(held)"
             out.append(f"  {span} {h['text']!r} family={h['family']} under={h['under']}"
                        + (f" ended {h['why']}/{h['by']}" if "ended" in h else ""))
+            if h.get("families"):
+                out.append("    open by family " + "; ".join(
+                    f"{f} {e['n']} cheapest {e['cheapest']!r} @{e['bits']}"
+                    for f, e in sorted(h["families"].items())))
             if h.get("trend"):
                 out.append(f"    trend {_trend(h['trend'])}")
             for ev, d in h["side"]:
