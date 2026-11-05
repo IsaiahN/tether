@@ -1287,6 +1287,14 @@ _COVER_TYPED = armflag.arm("TETHER_COVER_TYPED", default=True)
 # cover cannot know, so any walk from the slot's type admits). Counted, never offered. OFF: no
 # chain typing at the cover.
 _COVER_CHAIN_TYPED = armflag.arm("TETHER_COVER_CHAIN_TYPED", default=True)
+# r1178, THE COVER'S PRODUCT PRUNED BY TYPING (the r1176 probe: 3,598,710 paths built, then refused
+# by the chain typing): a stream's walk is prefix-closed, so the cover walks its leaves depth-first
+# in the product's own order and drops a prefix the moment no stream (the val stream, or the slot's
+# own type for any type the target leaf can have) can walk it. The survivors are exactly the
+# product's, in its order, and every check still runs on them. A pruned subtree is counted at its
+# full size as chain-typing refusals ("pruned" on lit_cover). Needs TETHER_COVER_CHAIN_TYPED. OFF:
+# the full product.
+_COVER_PRUNE = armflag.arm("TETHER_COVER_PRUNE", default=True)
 # r1145 (the reviewer 2026-11-04; Fig 12 :46 "A bond is the typed relation between two operands"):
 # an operand-tree node whose value is slot_a − slot_b -- the tree's own term names the second slot
 # -- seeded ONLY from the two pair readings of a settled junction no existing shape can express,
@@ -10349,6 +10357,7 @@ class Agent:
         two_n: collections.Counter = collections.Counter()      # r1145: the two-slot seeds
         order: list = []
         cov_seen: dict = {}            # r1163 FIX 2: (slot, term, operand) -> its first prov
+        pruned: collections.Counter = collections.Counter()   # r1178: (head, type) -> paths
         if tr:
             frames = [b for b, *_r in tr] + [tr[-1][2]]
             skip = tuple(t + 1 for t, r in enumerate(tr) if str(r[1]).upper().endswith("RESET"))
@@ -10518,7 +10527,9 @@ class Agent:
                 for _lo, _ro, objs, got, held_on, occ in top:
                     for o in sorted(objs, key=lambda o, h=held_on: o not in h):
                         per = [sorted({s for a in alts(x) for s in a.get(o, ())}) for x in leaves]
-                        for path in itertools.product(*per):
+                        for path in (self._cover_paths(per, pruned)
+                                     if _COVER_PRUNE and _COVER_CHAIN_TYPED
+                                     else itertools.product(*per)):
                             if _BOND_DISJOINT and len(set(path)) < len(path):
                                 continue                # one slot read twice is one quantity
                             ts = [self._slot_term(s) for s in path]
@@ -10564,6 +10575,10 @@ class Agent:
                             order.append(prov)
                             if m.get("lit"):
                                 lit_n["offers"] += 1
+            for (h_, ty_), n_ in sorted(pruned.items(), key=str):   # r1178: at full size
+                why[f"cover: no stream types a {h_}-headed chain at {ty_}"] += n_
+                lit_n["refused for chain typing"] += n_
+                lit_n["pruned"] += n_
             if _DERIVED_LIFT:
                 self._lift_derived()            # 8c (r1100): a derived slot's offers to its source
             for s in self._mol_offers:
@@ -12124,6 +12139,57 @@ class Agent:
                 if any_end or (cur == "val" and elem is None):
                     return True
         return False
+
+    def _cover_paths(self, per: list, pruned: collections.Counter):
+        """r1178: itertools.product(*per)'s paths, in its order, less every path whose chain no
+        stream can walk -- found at the first leaf where every stream is dead, so the subtree is
+        never built; `pruned` counts it by (head atom, target type) at its full size. A slot with
+        no term is never pruned through (its own refusal names it)."""
+        k = len(per)
+        types = sorted({self.slot_types.get(t) for t in per[-1]} - {None}, key=str)
+        tail = [1] * (k + 1)        # tail[j]: how many paths the leaves j..k-2 make
+        for j in range(k - 2, -1, -1):
+            tail[j] = tail[j + 1] * len(per[j])
+
+        def adv(st, atoms):
+            if st is None:
+                return None
+            cur, elem, started = st
+            for a in atoms:
+                if not started:
+                    if not accepts_type(Term((a,)), cur):
+                        return None
+                    started = True
+                step = Gamma._iter_step(cur, elem, Term((a,)))
+                if step is None:
+                    return None
+                cur, elem = step
+            return cur, elem, started
+
+        def rec(i, prefix, s1, s2, head):
+            for x in per[i]:
+                t = self._slot_term(x)
+                if t is None:
+                    for rest in itertools.product(*per[i + 1:]):
+                        yield (*prefix, x, *rest)
+                    continue
+                h = head or (t.atoms[0].name if t.atoms else None)
+                n1 = adv(s1, t.atoms)
+                if i == k - 1:
+                    if n1 is None and adv(s2.get(self.slot_types.get(x)), t.atoms) is None:
+                        pruned[(h, self.slot_types.get(x))] += 1
+                        continue
+                    yield (*prefix, x)
+                    continue
+                n2 = {ty: adv(v, t.atoms) for ty, v in s2.items()}
+                if n1 is None and all(v is None for v in n2.values()):
+                    for y in per[-1]:
+                        pruned[(h, self.slot_types.get(y))] += tail[i + 1]
+                    continue
+                yield from rec(i + 1, (*prefix, x), n1, n2, h)
+        if any(not leaf for leaf in per):
+            return
+        yield from rec(0, (), ("val", None, False), {ty: (ty, None, False) for ty in types}, None)
 
     def _la_predict(self, st: dict, action: Any, preds: list, unread: set, used: list) -> dict:
         """P3: one press in thought -- each settled predictor's value after `action` from `st`.

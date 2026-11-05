@@ -2041,6 +2041,12 @@ ARMS: dict[str, str] = {
                        "typed per target like translate (POSITION − DELTA -> POSITION, DELTA − "
                        "DELTA -> DELTA; anything else refused); grammar.json's − implemented_by "
                        "names it. OFF: no such atom, and the entry is not read. default ON",
+    "TETHER_COVER_PRUNE": "r1178: the cover walks its leaves depth-first in the product's own "
+                          "order and drops a prefix the moment no stream can walk it (a walk is "
+                          "prefix-closed), so the survivors are exactly the product's in its "
+                          "order; a pruned subtree is counted at full size as chain-typing "
+                          "refusals (lit_cover pruned). Needs TETHER_COVER_CHAIN_TYPED. OFF: "
+                          "the full product. default ON",
     "TETHER_COVER_CHAIN_TYPED": "r1169: a cover chain is refused only if NO stream the mint "
                                 "would walk at its slot types it -- the val stream (val -> val) "
                                 "or any walk from the slot's own type (the OBJ stream closed "
