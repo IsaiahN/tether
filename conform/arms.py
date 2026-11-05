@@ -2188,6 +2188,12 @@ ARMS: dict[str, str] = {
                        "None not read -- read by DODGE (furthest offer, strictly further than "
                        "the course) and by _urgent at the mint (not inf); witnessed at j + lag. "
                        "OFF: none. default ON",
+    "TETHER_REFLEX_CARRY": "BUILD 6, THE REFLEX CARRY (owed r1244; the reviewer 2026-11-05 r1248, "
+                           "r1248a): at the lineage boundary, on the invention channel, the reflex "
+                           "standing's paid increments (never against) and item 23's terminal-"
+                           "frame loss relations, kind-level keys only (freeze drops its button); "
+                           "seeded in _reinvent_carried; fire iff 1 + carried_paid + paid >= "
+                           "against. OFF: nothing carried. default ON",
     "TETHER_REFLEX": "BUILD 6 ITEM 22 (the reviewer 2026-11-05 r1242, r1243): the reflex tier -- "
                      "stored When(reading, intent) forms (orient, freeze) read in choose after "
                      "the dead-board exit and before the held routine, paused never consumed; "

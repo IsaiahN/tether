@@ -791,6 +791,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         now = getattr(getattr(ag.led, "narrator", None), "links", {})
         w = ag._stopped_written
         gen["stopped_at"] = {k: n - w.get(k, 0) for k, n in sorted(now.items()) if n > w.get(k, 0)}
+    if tether._REFLEX_CARRY and tether._M7_INV and hasattr(ag, "_reflex_carry"):
+        ag._reflex_carry()     # the reflex carry (r1248): its increments ride the inventions below
     if tether._M7_INV and hasattr(ag, "_inv_carry"):
         # M7-INV: the inventions made since the last write, as their method, with the standing
         # their term holds now (a record of it; the next game starts them on trial)

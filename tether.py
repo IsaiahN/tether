@@ -2190,6 +2190,13 @@ _REFLEX = armflag.arm("TETHER_REFLEX", default=True)
 # the roll repeats the course press through the settled terms, as deep as the step's purse pays,
 # and reads each predicted state's contacts (contact_points_at). Witnessed at j + lag. OFF: none
 _HOW_SOON = armflag.arm("TETHER_HOW_SOON", default=True)
+# Build 6, THE REFLEX CARRY (owed from r1244; the reviewer 2026-11-05 r1248, r1248a): at the
+# lineage boundary, on the invention channel, the reflex standing's paid counts (never `against`:
+# forgiveness is this life's clock) and item 23's terminal-frame loss relations cross, as the
+# increments since the last write, under kind-level keys only (freeze drops its button). In the
+# next game a reflex fires iff 1 + carried_paid + paid >= against, and a carried loss relation is
+# a weight the game's own witness can put under. OFF: nothing carried, as before
+_REFLEX_CARRY = armflag.arm("TETHER_REFLEX_CARRY", default=True)
 
 
 @dataclass(frozen=True)
@@ -2287,6 +2294,11 @@ _BOUNDARY_CHAIN = True
 # is paid per use, log2(H+1) over the H held terms (the corpus's +log2(k+1), as `_guard_bits`).
 # False removes it, for must-fail (r) only.
 _CARRY_REF = True
+
+
+def _tup(x: Any) -> Any:
+    """A carried key back from JSON: every list a tuple again, so it meets the in-game key."""
+    return tuple(_tup(v) for v in x) if isinstance(x, list | tuple) else x
 
 
 def _kind_of(out_t: str) -> str:
@@ -4627,6 +4639,9 @@ class Agent:
         self._loss_rel: dict = {}     # 23: vote key -> Counter of (loss kind, frame, relation)
         self._hs_open: list = []      # 23: course readings awaiting their verdict at j + lag
         self._hs_read: tuple | None = None   # 23: (cycle, course, reading) -- one per cycle
+        self._rf_carried: Counter = Counter()      # carry: (form, kind-level key) -> paid in
+        self._loss_carried: Counter = Counter()    # carry: (loss kind, frame, relation) -> n in
+        self._rfc_written: dict = {}               # carry: what the last write already sent
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
         self._overrides: list[tuple[float, bool, int]] = []
@@ -10287,6 +10302,14 @@ class Agent:
                         self._desc_lost_carried[(r, f)] += n
                     tallied.append(rec["name"])
                 continue
+            if rec.get("kind") == "reflex":     # the reflex carry: paid and loss relations
+                if _REFLEX_CARRY:
+                    for form, key, n in rec.get("paid", ()):
+                        self._rf_carried[(form, _tup(key))] += n
+                    for lk, frame, rel, n in rec.get("loss", ()):
+                        self._loss_carried[(lk, frame, _tup(rel))] += n
+                    tallied.append(rec["name"])
+                continue
             if lib is None or lib.get(f"AGENT-INVENTED|{rec['name']}"):
                 continue
             try:
@@ -15241,7 +15264,7 @@ class Agent:
         if read is None or read[1] == math.inf:
             return False
         st = self._rf_standing("dodge", read[3])
-        return 1 + st["paid"] >= st["against"]
+        return 1 + self._rf_in("dodge", read[3]) + st["paid"] >= st["against"]
 
     def explain(self, slot: str, bits: float) -> tuple[float, float]:
         """Reduce OUTSTANDING only. The integral is untouched.
@@ -17410,8 +17433,11 @@ class Agent:
     def _hs_fatal(self) -> list:
         """23 (r1247): FATAL, the loss-voted relations -- (loss kind, frame, relation, vote key) per
         recorded loss with a non-empty relation; a death is the loss kind this board reports."""
-        return [(lk, f, rel, k) for k, c in self._loss_rel.items() if self._death_n[k] > 0
-                for lk, f, rel in sorted(c) if rel]
+        own = [(lk, f, rel, k) for k, c in self._loss_rel.items() if self._death_n[k] > 0
+               for lk, f, rel in sorted(c) if rel]
+        # the carry (r1248): a relation the lineage brought, a weight with no vote key here
+        return own + ([(lk, f, rel, None) for (lk, f, rel), n in sorted(self._loss_carried.items())
+                       if n and rel] if _REFLEX_CARRY else [])
 
     def _hs_kinds(self) -> set:
         return {kind for _lk, _f, rel, _k in self._hs_fatal() for kind, _c in rel}
@@ -17434,6 +17460,8 @@ class Agent:
         kinds = self._hs_kinds()
         objs = subj | {s.split(".", 1)[0] for s in before if s.split(".", 1)[0][:1] not in "@"
                        and "~" not in s and self._kind_str(s.split(".", 1)[0]) in kinds}
+        if objs <= subj:
+            return math.inf, 0, None, math.inf   # no partner of a loss-voted kind on this board
         slots = sorted(s for s in before if s.split(".", 1)[0] in objs)
         lib = self.gamma.library
         if not slots or not all(self.bound.get(s, IDN) in lib
@@ -17501,6 +17529,45 @@ class Agent:
                             course=e["course"], j=e["j"], w=e["w"], presses=n, verdict=verdict,
                             situation=list(e["situ"]))
         self._hs_open = keep
+
+    @staticmethod
+    def _rf_carry_key(form: str, situ: tuple) -> tuple:
+        """The carry: a situation's kind-level key -- freeze leaves its button home (r1248 3)."""
+        return tuple(situ[:2]) if form == "freeze" else tuple(situ)
+
+    def _rf_in(self, form: str, situ: tuple) -> int:
+        """The carry: the paid count the lineage brought for this (form, situation); 0 OFF."""
+        return self._rf_carried[(form, self._rf_carry_key(form, situ))] if _REFLEX_CARRY else 0
+
+    def _reflex_carry(self) -> dict | None:
+        """The carry, at the lineage boundary (r1248 3(2)): the paid counts and the terminal-frame
+        loss relations since the last write, under kind-level keys; `against` never crosses. A
+        pre-press loss relation stays home: it is met only with its voted press, a button."""
+        paid: Counter = Counter()
+        for form, r in self._reflexes.items():
+            for situ, st in r["standing"].items():
+                paid[(form, self._rf_carry_key(form, situ))] += st["paid"]
+        loss: Counter = Counter()
+        for c in self._loss_rel.values():
+            for (lk, frame, rel), n in c.items():
+                if frame == "terminal" and rel:
+                    loss[(lk, frame, rel)] += n
+        was = self._rfc_written
+        dp = [[f, list(k), n - was.get(("p", f, k), 0)] for (f, k), n in sorted(paid.items(),
+              key=repr) if n > was.get(("p", f, k), 0)]
+        dl = [[lk, fr, [list(p) for p in rel], n - was.get(("l", lk, fr, rel), 0)]
+              for (lk, fr, rel), n in sorted(loss.items(), key=repr)
+              if n > was.get(("l", lk, fr, rel), 0)]
+        if not dp and not dl:
+            return None
+        was.update({("p", f, k): n for (f, k), n in paid.items()})
+        was.update({("l", lk, fr, rel): n for (lk, fr, rel), n in loss.items()})
+        self._tally_n = getattr(self, "_tally_n", 0) + 1
+        name = f"{self.gamma.game}_reflex_{self._tally_n}"
+        rec = {"name": name, "term": name, "kind": "reflex", "game": self.gamma.game,
+               "born": self.cycle, "level": self.level, "paid": dp, "loss": dl}
+        self._inv_carry.append(rec)
+        return rec
 
     def _rf_standing(self, form: str, situ: tuple) -> dict:
         """22: one (situation, form)'s record, `against` decayed to now on the logical clock --
@@ -17577,8 +17644,9 @@ class Agent:
         read = []
         for form, situ, slot, want, offer in cands:
             st = self._rf_standing(form, situ)
-            read.append(((2 + st["paid"]) / (3 + st["paid"] + st["against"]),
-                         1 + st["paid"] >= st["against"], form, situ, slot, want, offer, st))
+            c = self._rf_in(form, situ)      # the carry: paid the lineage brought (r1248)
+            read.append(((2 + c + st["paid"]) / (3 + c + st["paid"] + st["against"]),
+                         1 + c + st["paid"] >= st["against"], form, situ, slot, want, offer, st))
         read.sort(key=lambda x: (-x[0], x[2]))
         took = None
         ctx = IFace.Interface.context(self.env)
