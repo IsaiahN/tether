@@ -48,7 +48,7 @@ sys.dont_write_bytecode = True
 BASE = "2a8045c"      # wip/ask-stop after 1b, the tree before the arm
 
 
-def _agent():
+def _agent(budget: int = 40):
     import gamma
     import gridworld
     import ledger
@@ -57,7 +57,7 @@ def _agent():
     tether._AGENT_SEED = False
     env = world.bind(gridworld.family("default", 0, 4))
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="owed_rejudge_fixture"),
-                      tether.Config(budget=40), ledger.Ledger())
+                      tether.Config(budget=budget), ledger.Ledger())
     ag._ds_echo = lambda _d: []
     return env, ag
 
@@ -120,8 +120,8 @@ def check_a_mustfail_r281_guard() -> None:
           "the sources' guard releases 0 on the same frame")
 
 
-def _run(steps: int, probe=None, ag_hook=None):
-    env, ag = _agent()
+def _run(steps: int, probe=None, ag_hook=None, budget: int = 40):
+    env, ag = _agent(budget)
     if ag_hook is not None:
         ag_hook(ag)
     for _ in range(steps):
@@ -333,7 +333,9 @@ def _tie(skip_plain: bool) -> tuple:
                 1 for r in new
                 if r["event"] == "derived_deferred" and r["detail"]["after"] in plain)
             out["derived_run_after_skip"] += sum(x["derived_run"] for x in sd)
-    _run(8, probe, ag_hook=hook)
+    # budget 5, was 40 (r1167): under TETHER_PREFIX_PRUNE (21726d3) the plain mint no longer
+    # stops at its bound at 40, so no derived ask was owed after it and the tie had no occasion
+    _run(8, probe, ag_hook=hook, budget=5)
     return out
 
 

@@ -99,7 +99,9 @@ def _small_budget_run(on: bool) -> tuple:
     keep = tether._STEP_MINT
     try:
         tether._STEP_MINT = on
-        ag = _agent(steps=0, budget=40)
+        # budget 5, was 40 (r1167): TETHER_PREFIX_PRUNE (21726d3) spends the walk only on chains
+        # that can still pay, so at 40 no mint stopped at its bound and checks b / c went vacuous
+        ag = _agent(steps=0, budget=5)
         n0 = len(ag.led.rows())
         for _ in range(8):
             ag.step()
@@ -124,6 +126,11 @@ def _normalised(rows: list) -> list:
     """The ledger with B1's own record rows and the per-process fields taken out (the reviewer
     2026-10-26 14:35 item 3): row 0 (the header, naming the entry and the arm lists), seq,
     detail.wall_s, the step_mint rows, and completion_sweep's segment_rows (a row count)."""
+    # r1167: and every timing field the identity checks mask (conform/identity_mod_rows.TIMINGS),
+    # since r962's molecule_apply cost_ms made ON != OFF by milliseconds alone
+    sys.path.insert(0, os.path.join(str(_repo.ROOT), "conform"))
+    from identity_mod_rows import mask_timings
+    rows = mask_timings(json.loads(json.dumps(rows, default=str)))
     out = []
     for r in rows[1:]:
         if r.get("event") == "step_mint":
