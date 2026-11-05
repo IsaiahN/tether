@@ -2197,6 +2197,10 @@ _HOW_SOON = armflag.arm("TETHER_HOW_SOON", default=True)
 # next game a reflex fires iff 1 + carried_paid + paid >= against, and a carried loss relation is
 # a weight the game's own witness can put under. OFF: nothing carried, as before
 _REFLEX_CARRY = armflag.arm("TETHER_REFLEX_CARRY", default=True)
+# Build 6 item 24 (C), THE LEVEL AT A GAME SWITCH (the reviewer 2026-11-05 r1250): the agent's own
+# board boundary (NEW_BOARD) retargets at the world's level (env.levels()[0]), so the previous
+# game's level number does not run on into the next. OFF: self.level carried over, as before
+_NEW_BOARD_LEVEL = armflag.arm("TETHER_NEW_BOARD_LEVEL", default=True)
 
 
 @dataclass(frozen=True)
@@ -17530,6 +17534,12 @@ class Agent:
                             situation=list(e["situ"]))
         self._hs_open = keep
 
+    def _new_board_level(self) -> int:
+        """Item 24 (C) (r1250): the level a new board starts at -- the world's own count
+        (env.levels()[0]), never the previous game's number run on. OFF: self.level, as before."""
+        fn = getattr(self.env, "levels", None)
+        return fn()[0] if _NEW_BOARD_LEVEL and fn is not None else self.level
+
     @staticmethod
     def _rf_carry_key(form: str, situ: tuple) -> tuple:
         """The carry: a situation's kind-level key -- freeze leaves its button home (r1248 3)."""
@@ -24079,7 +24089,7 @@ class Agent:
                     # r696 row 1 (a): a frame that ARRIVED with no action is a new board -- the
                     # agent's own reading (R9: 24 of 24 game switches, none within a level). Its
                     # board-named state resets; the library and the lineage carry. Never a game id.
-                    self.retarget(self.env, self.level, how=NEW_BOARD)
+                    self.retarget(self.env, self._new_board_level(), how=NEW_BOARD)
         if _W_EVICT_EVERY_STEP:
             self._w_evict(hard=True, why="every step (W-2's check)")
         if _CONSOLIDATE:

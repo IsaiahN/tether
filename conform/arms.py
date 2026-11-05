@@ -2188,6 +2188,10 @@ ARMS: dict[str, str] = {
                        "None not read -- read by DODGE (furthest offer, strictly further than "
                        "the course) and by _urgent at the mint (not inf); witnessed at j + lag. "
                        "OFF: none. default ON",
+    "TETHER_NEW_BOARD_LEVEL": "BUILD 6 ITEM 24 (C) (the reviewer 2026-11-05 r1250): at the "
+                              "agent's own board boundary (NEW_BOARD) the level is the world's "
+                              "own count (env.levels()[0]), never the previous game's number run "
+                              "on. OFF: self.level carried over, as before. default ON",
     "TETHER_REFLEX_CARRY": "BUILD 6, THE REFLEX CARRY (owed r1244; the reviewer 2026-11-05 r1248, "
                            "r1248a): at the lineage boundary, on the invention channel, the reflex "
                            "standing's paid increments (never against) and item 23's terminal-"
