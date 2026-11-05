@@ -413,6 +413,13 @@ ARMS: dict[str, str] = {
                   "no consumer yet (D1-D3 are named to read it)"
                   ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
                   "record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_INFERRED_CAUSE": "BUILD 4 ITEM 14a (the reviewer 2026-11-04 r1171; Isaiah 11-03 "
+                             "14:29): where an invention holds no visible condition on its moved "
+                             "rows, hidden causes read from the agent's own trace -- a COUNT of "
+                             "presses of an action since the slot last changed (== n) or a LATCH "
+                             "(a press landed on an object since) -- seeded from the trace only, "
+                             "priced by the invention's bargain, held only if it pays; evaluated "
+                             "per row through the trace. OFF: no cause is formed. default ON",
     "TETHER_M6_INVENT": "7c M6 invent (ISAIAH_RULINGS 'Mint, invent, import'; the reviewer "
                         "2026-10-10 23:14Z): ON, at a budget_spent or priced_out_at_depth park "
                         "where the change recurred and nothing lit, the agent names a condition "

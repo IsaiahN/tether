@@ -700,6 +700,25 @@ _TWO_READINGS = armflag.arm("TETHER_TWO_READINGS", default=True)
 # default (the reviewer 2026-10-11 02:55Z); reason in conform/arms.py. Not the retired
 # TETHER_INVENT: it names a COMPOSITION, priced by the bargain.
 _M6_INVENT = armflag.arm("TETHER_M6_INVENT", default=True)
+# BUILD 4 ITEM 14a, INFERRED CAUSES (the reviewer 2026-11-04 r1171; Isaiah 11-03 14:29 "born in the
+# hypothesis stage and used by planning"; Fig 6 :29-32, Fig 8 :40-41): where an invention finds NO
+# visible condition (conditions_held 0 on >= 2 moved rows), candidate HIDDEN causes are read from
+# the agent's own record -- a COUNT (presses of action a since the slot last changed, this press
+# included, == n) or a LATCH (a press landed on object x since then) -- seeded only from the trace,
+# priced by the same invention bargain, held only if it pays. OFF: no cause is ever formed.
+_INFERRED_CAUSE = armflag.arm("TETHER_INFERRED_CAUSE", default=True)
+
+
+@dataclass(frozen=True)
+class Cause:
+    """ITEM 14a: an inferred cause of `slot`'s change, read from the trace (never from the board).
+    kind "count": presses of action `what` since `slot` last changed, this press included, == n;
+    kind "latch": a press landed on object `what` since `slot` last changed (this press too)."""
+
+    kind: str
+    slot: str
+    what: str
+    n: int = 0
 # 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). ON; reason in conform/arms.py.
 # Compute only: no action, no bet, nothing installed -- a MUSE row is all it writes.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -8992,6 +9011,67 @@ class Agent:
                                "owed to the next quiet step, never a verdict"))
 
     # ---------------------------------------------------------------- 7c M6, INVENT
+    def _cause_pos(self, state: dict) -> int:
+        """The trace index whose before-state is `state` (by identity), else the live position."""
+        tp = getattr(self, "_tpos", None)
+        if tp is None or tp[0] != len(self.trace):
+            tp = self._tpos = (len(self.trace), {id(t[0]): i for i, t in enumerate(self.trace)})
+        return tp[1].get(id(state), len(self.trace))
+
+    def _cause_holds(self, c: Cause, state: dict, action: Any, landed: Any) -> bool:
+        """ITEM 14a: the cause read at `state` from the trace before it, back to the slot's last
+        change, with this press (action, landed) included."""
+        n, latch = 0, False
+        for b, a, af, _i, land in reversed(self.trace[:self._cause_pos(state)]):
+            if c.slot in af and c.slot in b and af[c.slot] != b[c.slot]:
+                break
+            n += str(a) == c.what
+            latch = latch or str(land) == c.what
+        if c.kind == "count":
+            return n + (str(action) == c.what) == c.n
+        return latch or str(landed) == c.what
+
+    def _cond_holds(self, key: str | None, state: dict, action: Any, landed: Any) -> bool:
+        c = self._invented.get(key) if key else None
+        if _INFERRED_CAUSE and isinstance(c, Cause):
+            return self._cause_holds(c, state, action, landed)
+        return self._inv_holds(key, state)
+
+    def _cause_candidates(self, slot: str, hist: list, moved: list) -> tuple[list, int]:
+        """ITEM 14a: the causes whose truth holds on every moved row and not on every row --
+        SEEDED from the trace (r1171 guard 3): the actions pressed, the counts observed at the
+        changes, the objects pressed on; nothing walked beyond it. Each with its description's bits
+        (its kind, its referent among the seeds, its n), the way a guard's referent is priced."""
+        changed = [r[2] != r[0].get(slot) for r in hist]
+        acts = sorted({str(r[1]) for r in hist})
+        objs = sorted({str(r[4]) for r in hist if r[4] is not None})
+
+        def walk(hit):
+            out, c = [], 0
+            for i, r in enumerate(hist):
+                v = c + hit(r)
+                out.append(v)
+                c = 0 if changed[i] else v
+            return out
+        cands, tried = [], 0
+        for a in acts:
+            cs = walk(lambda r, a=a: int(str(r[1]) == a))
+            ns = sorted({cs[i] for i in moved if cs[i] > 0})
+            for n in ns:
+                tried += 1
+                truth = [v == n for v in cs]
+                if all(truth[i] for i in moved) and not all(truth):
+                    bits = 1.0 + math.log2(len(acts) + 1) + math.log2(max(ns) + 1)
+                    cands.append((f"presses of action {a} since {slot} changed == {n}",
+                                  Cause("count", slot, a, n), truth, bits))
+        for x in objs:
+            tried += 1
+            truth = [v > 0 for v in walk(lambda r, x=x: int(str(r[4]) == x))]
+            if all(truth[i] for i in moved) and not all(truth):
+                cands.append((f"press landed on {x} since {slot} changed",
+                              Cause("latch", slot, x), truth, 1.0 + math.log2(len(objs) + 1)))
+        return cands, tried
+
     def _inv_holds(self, key: str | None, state: dict) -> bool:
         c = self._invented.get(key) if key else None
         return c is not None and compile_term.run(c, state) is True
@@ -9224,12 +9304,14 @@ class Agent:
                 never_false += 1          # holds everywhere: the unguarded term, searched
                 continue
             conds.append((text, c, truth))
+        causes, tried = (self._cause_candidates(slot, hist, moved)
+                         if _INFERRED_CAUSE and not conds else ([], 0))
         units = self._units_for(slot)
         idn = self.gamma.library[IDN]
         idb = [self._left(idn, slot, [r]) for r in hist]
         robs = self._residual_obs(slot, self.gamma.library[self.bound.get(slot, IDN)], hist)
         fs = []
-        if conds:
+        if conds or causes:
             for ch in self.gamma.enumerate_closure("val", "val", 1, self.cfg.budget, {}):
                 cap.head()
                 for b in (self._bindings(slot, robs) if ch.reads_operand else [None]):
@@ -9238,7 +9320,18 @@ class Agent:
                     fb = [self._left(f, slot, [r]) for r in hist]
                     if any(fb[i] == 0.0 for i in moved):
                         fs.append((f, fb))
-        if _INV_FACTOR and G_PRIOR_CODE:
+        if causes:          # ITEM 14a: priced as the invention is, the cause's description added
+            cands = []
+            for text, cz, truth, cbits in causes:
+                cap.head()
+                for f, fb in fs:
+                    cap.head()
+                    left = sum(fb[i] if truth[i] else idb[i] for i in range(len(hist)))
+                    cost = self._inv_cost(f, [], units) + cbits
+                    cands.append((cost + left, cost, left, text, cz, f))
+            cands.sort(key=lambda x: (x[0], x[1], x[3], x[5].name))
+            priced, top, tied = len(cands), cands[:5], None
+        elif _INV_FACTOR and G_PRIOR_CODE:
             priced, top, tied = self._inv_pick(conds, fs, idb, units, hist)
         else:
             cands = []
@@ -9257,6 +9350,8 @@ class Agent:
                   "base_bits": round(base, 3), "conditions_held": len(conds),
                   "conditions_never_false": never_false, "refused": dict(refused),
                   "then_terms": len(fs), "priced": priced,
+                  **({"causes": {"candidates": tried, "held_on_moved": len(causes)}}
+                     if _INFERRED_CAUSE and not conds else {}),
                   "cheapest": [{"if": x[3], "then": x[5].name, "cost": round(x[1], 3),
                                 "left": round(x[2], 3)} for x in top]}
         first = top[0] if top else None
@@ -13491,8 +13586,8 @@ class Agent:
             ctx = _lazy_ctx({"action": action, "intent": intent, "operands": operands,
                              "touching": touching,
                              "acted_self": _same_object(landed, guard_ref or slot),
-                             "cond_holds": bool(self._invented) and self._inv_holds(guard_ref,
-                                                                                    state),
+                             "cond_holds": bool(self._invented) and self._cond_holds(
+                                 guard_ref, state, action, landed),
                              "junction_holds": bool(self._junction_conds)
                              and self._jc_holds(guard_ref, state),
                              "shapes": self._shapes_now() if shapes else None},
@@ -13507,7 +13602,8 @@ class Agent:
                    # referent. `_same_object` reduces both sides to their owner, so no new
                    # comparison is needed and no name crosses into the chain.
                    acted_self=_same_object(landed, guard_ref or slot),
-                   cond_holds=bool(self._invented) and self._inv_holds(guard_ref, state),
+                   cond_holds=bool(self._invented) and self._cond_holds(guard_ref, state,
+                                                                        action, landed),
                    junction_holds=bool(self._junction_conds) and self._jc_holds(guard_ref,
                                                                                 state),
                    group=self._group(slot, state), obj=self._record(slot, state),
