@@ -1337,6 +1337,12 @@ _CONTACT_SEED = armflag.arm("TETHER_CONTACT_SEED", default=True)
 # _understanding order unchanged; a goal slot with no residual is counted ("static under the
 # presses tried"), never a site. Order, never exclude. OFF: the order as before.
 _GOAL_MINT_FIRST = armflag.arm("TETHER_GOAL_MINT_FIRST", default=True)
+# BUILD 4 ITEM 15a, INTENT-LEVEL PREDICTION (the reviewer 2026-11-04 r1177; Isaiah 09-29): the
+# (before, intent, after) the plan needs, lifted from look-ahead's own chain -- the intent's press
+# (the interface's realisation) through the settled per-slot predictors (_la_predict). Computed only
+# where the plan is already weighing an intent (the met-goal conflict, _note_decision), its ms on
+# the row; no row where nothing is weighed. Record-only until 15b reads it. OFF: never computed.
+_INTENT_PREDICT = armflag.arm("TETHER_INTENT_PREDICT", default=True)
 
 
 @cache
@@ -12137,6 +12143,32 @@ class Agent:
             self.__dict__.setdefault("_sim_parent", {})[id(out)] = (out, st, action)
         return out
 
+    def _intent_predict(self, before: dict, intent: Any, r: Any = None) -> dict | None:
+        """ITEM 15a: (before, intent, after) -- the intent's press (`r`, else the interface's
+        realisation of it) through every settled predictor reading the board: {action, changed
+        {slot: [before, after]}, unread, ms}. None when nothing realises it."""
+        t0 = time.perf_counter()
+        if r is None:
+            ctx = IFace.Interface.context(self.env)
+            r = self.iface.realise(intent, tuple(self.actions), ctx, before, self.env,
+                                   withheld=self._withheld)
+        if r is None or getattr(r, "unmapped", False):
+            return None
+        lib = self.gamma.library
+        preds = sorted(s for s, n in self.bound.items()
+                       if n in lib and self.gamma.is_settled(n, s))
+        unread: set = set()
+        keep = dict(self._pred_raw)
+        try:
+            out = self._la_predict(dict(before), r.action, preds, unread, [0])
+        finally:
+            self._pred_raw = keep
+            self._sim_parent = {}
+        changed = {s: [before.get(s), out[s]] for s in preds
+                   if s in out and out[s] != before.get(s)}
+        return {"action": r.action, "changed": changed, "unread": sorted(unread),
+                "ms": round((time.perf_counter() - t0) * 1000, 3)}
+
     def _la_none(self, subj: str, why: str, units: int, evaluations: int,
                  unread: list | None = None) -> None:
         """P3: look-ahead was reached and chose nothing -- the row that makes reached countable.
@@ -18385,6 +18417,13 @@ class Agent:
             return
         _slot, _n = max(live, key=lambda kv: kv[1])
         _ctx = self._situation(_slot, IFace.Interface.context(self.env))   # (4d) as R-B's key
+        if _INTENT_PREDICT and self.trace:     # 15a: the intent being weighed, predicted
+            got = self._intent_predict(self.trace[-1][2], want, r)
+            if got is not None:
+                self.led.record(self.cycle, "PLAN", _slot, "intent_predict", intent=said,
+                                **got, disturbs_met=_slot in got["changed"],
+                                reads="(before, intent, after): the weighed intent's press "
+                                      "through the settled predictors (15a)")
         # (4h) WEIGHED: a repeated undo of a met objective is the ground's vote against this route
         # here (WATSON case 7; R-B "any farther reading refuses that route in that context"). The
         # route is refused through R-B's own store, which choosing reads; the intent stays and

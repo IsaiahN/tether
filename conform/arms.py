@@ -2099,6 +2099,13 @@ ARMS: dict[str, str] = {
                                "RECIPE_DEDUP a chain held as a recipe is tested once, before its "
                                "instances are generated, and takes no try (it was B x G tries, "
                                "2090-4971 of 5000 a mint on ls20). OFF: per instance. default ON",
+    "TETHER_INTENT_PREDICT": "BUILD 4 ITEM 15a (the reviewer 2026-11-04 r1177; Isaiah 09-29): "
+                             "(before, intent, after) -- the weighed intent's press through the "
+                             "settled per-slot predictors (_la_predict), computed only where the "
+                             "plan weighs an intent (the met-goal conflict, _note_decision), a "
+                             "PLAN intent_predict row with its ms; no row where nothing is "
+                             "weighed. Record-only until 15b reads it. OFF: never computed. "
+                             "default ON",
     "TETHER_GOAL_MINT_FIRST": "BUILD 4 ITEM 13 (the reviewer 2026-11-04 r1161, r1162): the held "
                               "hypothesis's slots routed MECHANISM / REFUTED-with-no-fit go first "
                               "in the step's mint order, then the seeded / _understanding order "
