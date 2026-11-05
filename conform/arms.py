@@ -2112,6 +2112,15 @@ ARMS: dict[str, str] = {
                              "PLAN intent_predict row with its ms; no row where nothing is "
                              "weighed. Record-only until 15b reads it. OFF: never computed. "
                              "default ON",
+    "TETHER_3A_PROBE": "BUILD 4 ITEM 16, 3a-PROBE (the reviewer 2026-11-04 r1184; Fig 5 :12): 3a's "
+                       "named probe acted on once per (slot, diagnosis) -- a slip's 'repeat the "
+                       "intended act' enters 7h's exit contest as TOUCH the object meant "
+                       "(probe:3a, DIRECTED; probe_taken, probe_result rows: landed as meant or "
+                       "slipped again); 'watch the actor' / 're-observe' set the focal slot once "
+                       "(System 2, after the selector, before the cue; probe_attend), never a "
+                       "press; the "
+                       "rest are their routes' own (probe_queued how routed). Needs "
+                       "TETHER_3A_DIAGNOSE. OFF: 3a only names it. default ON",
     "TETHER_INTENT_DISCRIMINATE": "BUILD 4 ITEM 15c (the reviewer 2026-11-04 r1184; the spread "
                                   "branch's successor at its own site): a slot's held rivals (its "
                                   "bound term while a candidate, or settled on the held "

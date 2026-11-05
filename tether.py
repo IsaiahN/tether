@@ -434,6 +434,7 @@ PHASE_OF: dict[str, str] = {
     "terminal": I.DIRECTED,    # TETHER_TERMINAL_RESET: a dead board, the restart (r669 1)
     "actuator": I.DIRECTED,    # TETHER_GOAL_FROM_ACTUATOR: CONTINUE <actuator> (r746)
     "discriminate:intent": I.DIRECTED,   # 15c: the intent the held rivals disagree on (r1184)
+    "probe:3a": I.DIRECTED,    # 16: the act a slip's diagnosis names, repeated (r1184)
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
@@ -1370,6 +1371,15 @@ _INTENT_WEIGH = armflag.arm("TETHER_INTENT_WEIGH", default=True)
 # ties. The agent never ranks a button; the ground grades every rival. Needs TETHER_INTENT_PREDICT.
 # OFF: today's exits.
 _INTENT_DISCRIMINATE = armflag.arm("TETHER_INTENT_DISCRIMINATE", default=True)
+# BUILD 4 ITEM 16, 3a-PROBE: ACTING ON THE NAMED PROBE (the reviewer 2026-11-04 r1184; Fig 5 :12
+# "aim the probe here"). 3a's diagnosis names its next probe; once per (slot, diagnosis) the agent
+# acts on it: a slip's "repeat the intended act" enters 7h's exit contest as TOUCH the object meant
+# (read by the outstanding of the slot), its result whether the press landed as meant; "watch the
+# actor" /
+# "re-observe" set what is ATTENDED TO next (System 2, after the selector, before the cue), never a
+# press (Q2 (a); Fig 9 :53 "Nobody chooses. The gap does."); the rest are their routes' own (mint,
+# scope, resolve), recorded as routed. Needs TETHER_3A_DIAGNOSE. OFF: 3a only names it.
+_3A_PROBE = armflag.arm("TETHER_3A_PROBE", default=True)
 
 
 @cache
@@ -4327,6 +4337,12 @@ class Agent:
         # the last (action, context) -> kind reading, so a change is what gets rowed
         self._route_stale: dict[tuple, tuple[str, int]] = {}
         self._route_lifted: dict[tuple, tuple[str, int]] = {}   # 15b: support demoted (kept)
+        # 16: the named probes queued (once per (slot, diagnosis)), the slip probe the contest may
+        # take, the one taken (read after settle)
+        self._3a_probes: list = []
+        self._3a_seen: set = set()
+        self._probe_best: Any = None
+        self._probe_taken: Any = None
         self._kinds_was: dict[tuple, str] = {}
         # (5c) A12: presses and deaths by (goal slot kind, action, situation kinds) -- kinds, so
         # they cross levels; the press last counted, and the goal exit's situation for it
@@ -4967,6 +4983,8 @@ class Agent:
         self._gap, self._route_refused, self._route_run = {}, {}, {}
         self._route_stale = {}                       # (3c): this level's, like the refusals
         self._route_lifted = {}                      # 15b: likewise
+        self._3a_probes, self._probe_taken = [], None   # 16: slot names do not cross
+        self._3a_seen = set()
         self._subgoal = None                         # (4g): slot names do not cross
         self._unreachable = {}                       # (6a): nor intents that name them
         self._rk_bound = None                        # (6c): bound again on the new board
@@ -15627,6 +15645,8 @@ class Agent:
         self._gamma_read = {"owed": len(owed), "entered": False,
                             "note": "the spread branch is deleted; discrimination returns at "
                                     "the intent level"}
+        if take == "probe:3a":                  # 16: the act 3a's diagnosis named
+            return self._probe_take(), "probe:3a"
         if take == "discriminate":              # 15c: it returns here, at the intent level
             return self._discriminate(self._disc_best), "discriminate:intent"
         # SYSTEM 0 -- Isaiah: start random, then jump to strategy. While the agent lacks the
@@ -17273,6 +17293,11 @@ class Agent:
             if gslot is not None and self._goal_split(before, commit=False) is not None:
                 opts.append("goal")
                 res["goal"] = self.outstanding(gslot)
+            # 16 (r1184): a slip's named probe, the act meant, enters it by the same rule
+            self._probe_best = self._probe_ready(before) if _3A_PROBE else None
+            if self._probe_best is not None:
+                opts.append("probe:3a")
+                res["probe:3a"] = self.outstanding(self._probe_best[0]["slot"])
             # 15c (r1184): the held rivals' disagreement enters the same contest, read by the same
             # rule (the outstanding of the slot it aims at)
             self._disc_best = (self._discrim_best(before)
@@ -18659,6 +18684,80 @@ class Agent:
                         reads="I have undone this objective with this intent before and it "
                               "holds right now -- recorded as a CONFLICT I was in, not a "
                               "decision I made: nothing read this before the choice")
+
+    _PROBE_ACT = ("repeat the intended act",)
+    _PROBE_ATTEND = ("watch the actor; re-observe what it reached", "re-observe what the actor "
+                     "reached", "re-observe the slot before betting on memory")
+
+    def _probe_queue(self, slot: str, d: dict) -> None:
+        """16 (r1184): 3a's named probe queued once per (slot, diagnosis), with how it is handled:
+        act (a slip: TOUCH the object meant at its first slipped row), attend (re-observe the
+        slot), or routed (its route is the mint / scope / resolve's own)."""
+        probe = d.get("next_probe")
+        key = (slot, d.get("verdict"), d.get("t_last"))
+        if probe is None or key in self._3a_seen:
+            return
+        self._3a_seen.add(key)
+        aim = None
+        if probe in self._PROBE_ACT and d.get("rows"):
+            aim = self._3a_aim.get((self._trace_epoch, d["rows"][0]))
+        how = ("act" if aim is not None else "attend" if probe in self._PROBE_ATTEND
+               else "routed")
+        if how != "routed":
+            self._3a_probes.append({"slot": slot, "verdict": d.get("verdict"), "probe": probe,
+                                    "how": how, "aim": aim, "at": self.cycle})
+        self.led.record(self.cycle - 1, self._running_step, "@vector", "probe_queued",
+                        at=slot, verdict=d.get("verdict"), probe=probe, how=how, aim=aim,
+                        reads=("3a's named probe is its route's own (mint, scope, resolve)"
+                               if how == "routed" else "3a's named probe, acted on once (16)"))
+
+    def _probe_ready(self, before: dict) -> tuple | None:
+        """16: the first queued act whose slot is on the board, realised by the interface as TOUCH
+        the object meant; None when none realises."""
+        for p in self._3a_probes:
+            if p["how"] != "act" or p["slot"] not in before:
+                continue
+            w = IFace.Intent(IFace.TOUCH, object=p["aim"])
+            r = self.iface.realise(w, tuple(self.actions), IFace.Interface.context(self.env),
+                                   before, self.env, withheld=self._withheld)
+            if r is not None and not getattr(r, "unmapped", False):
+                return p, r, w
+        return None
+
+    def _probe_take(self) -> str:
+        """16: the contest took the slip's probe -- the act meant, through _took; read after
+        settle by _probe_result."""
+        p, r, w = self._probe_best
+        self._3a_probes.remove(p)
+        self._probe_taken = {**p, "action": r.action}
+        self.led.record(self.cycle, "PLAN", p["slot"], "probe_taken", verdict=p["verdict"],
+                        probe=p["probe"], aim=p["aim"], action=r.action,
+                        reads="3a said the intention was right and the execution wrong: the "
+                              "intended act, repeated (16)")
+        return self._took(r, w)
+
+    def _probe_attend(self, before: dict, ind: set) -> str | None:
+        """16: the first queued re-observe whose slot is readable sets the focal slot, once."""
+        for p in self._3a_probes:
+            if p["how"] == "attend" and p["slot"] in before and p["slot"] not in ind:
+                self._3a_probes.remove(p)
+                self.led.record(self.cycle, "PLAN", p["slot"], "probe_attend",
+                                verdict=p["verdict"], probe=p["probe"],
+                                reads="3a named a re-observation: attended to, no press of "
+                                      "its own (16, Q2 (a))")
+                return p["slot"]
+        return None
+
+    def _probe_result(self) -> None:
+        """16: the repeated act read after settle -- did the press land on the object meant."""
+        p, self._probe_taken = self._probe_taken, None
+        landed = self._last_landed
+        self.led.record(self.cycle, "SETTLE", p["slot"], "probe_result", verdict=p["verdict"],
+                        probe=p["probe"], aim=p["aim"], landed=landed, action=p["action"],
+                        outcome=("not read: the press names no landing" if landed is None
+                                 else "landed as meant" if landed == p["aim"]
+                                 else "slipped again"),
+                        reads="the slip's probe graded by where the press landed (16)")
 
     def _lift_unsupported(self) -> None:
         """15b (r1181): a route refused by PREDICTION is derived from its predicting term (Fig 6
@@ -22611,9 +22710,13 @@ class Agent:
         _want_slot = self._goal_choice()
         if _G1_WANT and _want_slot in self._g1:
             self._g1[_want_slot]["pursued"] += 1        # G1's outcome: the selector chose it
+        _pf = (self._probe_attend(before, _ind)
+               if _3A_PROBE and not (_want_slot is not None and _want_slot in before) else None)
         if _want_slot is not None and _want_slot in before:
             focal = _want_slot
             self.gamma.book["focus_by_want"] = self.gamma.book.get("focus_by_want", 0) + 1
+        elif _pf is not None:
+            focal = _pf                 # 16: 3a's re-observe sets what is attended to (System 2)
         elif self.cue is not None:
             # **SURPRISE DRIVES ATTENTION -- Berlyne 1960, in `ARC_HUMAN_PRIORS` §8's own
             # table, and a prior we are entitled to frontload.** A mutation IS a surprise: the
@@ -23045,6 +23148,8 @@ class Agent:
         self.settle(res)
         if _INTENT_WEIGH and self._route_refused:
             self._lift_unsupported()        # 15b: a demoted support lifts its refusal
+        if _3A_PROBE and self._probe_taken is not None:
+            self._probe_result()            # 16: did the repeated act land as meant
         if self._test is not None:
             # 7j's grade, written in SETTLE time after the slot's ROUTE and MINT rows (moved from
             # right after perceive, where it broke the ladder; the reviewer 2026-10-16 10:56)
@@ -23089,9 +23194,12 @@ class Agent:
                     # E2: each contradiction diagnosed before anything is blamed; the row sits
                     # at the same non-slot key, so no slot's ladder sees PERCEIVE after SETTLE
                     for c in q:
+                        _dg = self._diagnose_one(c)
                         self.led.record(self.cycle - 1, self._running_step, "@vector",
                                         "contradiction_diagnosed", term=c["term"],
-                                        trigger=c["kind"], **self._diagnose_one(c))
+                                        trigger=c["kind"], **_dg)
+                        if _3A_PROBE:
+                            self._probe_queue(c["slot"], _dg)
         if _FED:
             for _e in self._gamma_read.get("fed", ()):
                 if _e["name"] is None:
