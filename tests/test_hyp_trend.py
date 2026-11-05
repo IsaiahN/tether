@@ -59,7 +59,9 @@ def trend(on, reads):
     ag = fresh()
     h, sl = ag._hyp, ag._hyp["slots"][0]
     n0 = len(ends(ag))
-    h.update(steps=0, budget=99, reads={s: list(reads) for s in h["slots"]}, seg={})
+    # Build 5 red window: the last press was the hypothesis's OWN (P2' (ii), _HYP_OWN_PRESS) --
+    # else _hyp_check counts it "elsewhere" and returns before the trend is read
+    h.update(steps=0, budget=99, reads={s: list(reads) for s in h["slots"]}, seg={}, own_last=True)
     for s in h["slots"]:
         ag._res[s] = [reads[-1]]            # open: neither touched nor confirmed
     tether._GOAL_HYP = on
@@ -74,6 +76,7 @@ def trend(on, reads):
 def hold(on):
     ag = fresh()
     h, sl = ag._hyp, ag._hyp["slots"][0]
+    h["own_last"] = True        # the hypothesis's own press: note_goals reads only those (P2' (ii))
     ag._res[sl] = [0.5, 0.4]
     orig = ag.goal_residual
 
@@ -101,6 +104,7 @@ def order(on):
     ag._res[sl] = [0.6, 0.5]
     route = ag._hyp_route(sl, before)
     ag.routine, ag._routine_next = None, None
+    ag._try_first_open = lambda: 0    # the board's TRY_FIRST hold would defer the goal exit first
     ag._system0_active = lambda: True
     ag._exit_choice = lambda b: ("system0", None, None)
     tether._GOAL_HYP = on
