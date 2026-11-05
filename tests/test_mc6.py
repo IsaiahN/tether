@@ -1,4 +1,5 @@
-"""7a(10) MC6 muse (TETHER_MC6; R3 part 2; the reviewer 2026-10-10 23:50Z). On a step that owes
+"""THE MUSING TEST (MUSING, formerly MC6; r1253).
+7a(10) MC6 muse (TETHER_MC6; R3 part 2; the reviewer 2026-10-10 23:50Z). On a step that owes
 nothing, the settled methods are re-tested as chains on an earlier level's parked residuals and a
 MUSE row records the gap and the compute spent. snaps.ladder seed 7 (levels 5, steps 60, 4 slots)
 is the habitat: its level 4 owes nothing on 42 steps with level 1's death parked.
@@ -61,13 +62,13 @@ def _muse_checked(self):
 
 
 def _ladder(on: bool) -> list:
-    was = tether._MC6
-    tether._MC6 = on
+    was = tether._MUSING
+    tether._MUSING = on
     made.clear()
     try:
         snaps.ladder(7, levels=5, steps=60, n_slots=4)
     finally:
-        tether._MC6 = was
+        tether._MUSING = was
     return made[0].led.rows()
 
 
@@ -106,7 +107,7 @@ if __name__ == "__main__":
     assert a == b, next(i for i, (x, y) in enumerate(zip(a, b, strict=False)) if x != y)
     print(f"  MC6-a: ON and OFF ledgers identical but for the MUSE rows ({len(a)} rows)")
     tether.Agent.__init__ = real_init
-    tether._MC6 = True
+    tether._MUSING = True
     env = world.bind(gridworld.family("default", 0, 4))
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="mc6"), tether.Config(), ledger.Ledger())
     ag.step()
@@ -125,5 +126,5 @@ if __name__ == "__main__":
     assert ag.bound == bound0
     print("  MC6-c: the parked slot's binding is untouched; methods are chains re-bound on its "
           "own history")
-    tether._MC6 = False
+    tether._MUSING = False
     print("ok")

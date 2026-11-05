@@ -404,7 +404,11 @@ ARMS: dict[str, str] = {
                                ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording "
                                "above is the record; the switch is kept for the checklist's "
                                "culprit isolation",
-    "TETHER_MC6": "7a(10) MC6 muse (R3 part 2; the reviewer 2026-10-10 23:50Z): ON, on a step "
+    "TETHER_MUSING": "7a(10) MUSING (formerly MC6; renamed r1253, Isaiah 2026-11-05) -- the "
+                     "primary switch; TETHER_MC6 below is its alias (either honoured, MUSING "
+                     "wins when both are set). default ON",
+    "TETHER_MC6": "ALIAS of TETHER_MUSING (r1253). 7a(10) MC6 muse (R3 part 2; the reviewer "
+                  "2026-10-10 23:50Z): ON, on a step "
                   "that owes nothing (owed_import empty, under_floor included, and this "
                   "step's bets paying), the settled methods are re-tested as chains on an "
                   "earlier level's parked residuals, priced as the sweep prices them, and a "

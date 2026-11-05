@@ -723,10 +723,12 @@ class Cause:
     slot: str
     what: str
     n: int = 0
-# 7a(10) MC6 MUSE (R3 part 2; the reviewer 2026-10-10 23:50Z). ON; reason in conform/arms.py.
-# Compute only: no action, no bet, nothing installed -- a MUSE row is all it writes.
-# default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
-_MC6 = armflag.arm("TETHER_MC6", default=True)
+# 7a(10) MUSING (formerly MC6, R3 part 2; the reviewer 2026-10-10 23:50Z; renamed Isaiah
+# 2026-11-05 r1253 "rebrand it as musing so we know"). ON; reason in conform/arms.py. Compute
+# only: no action, no bet, nothing installed -- a MUSE row is all it writes. default ON (Isaiah
+# 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation. TETHER_MC6 stays
+# readable as an ALIAS: either is honoured, and TETHER_MUSING wins when both are set
+_MUSING = armflag.arm("TETHER_MUSING", default=armflag.arm("TETHER_MC6", default=True))
 # 7e THE VIEW HOLD (Fig 12 :107-108; the reviewer 2026-10-14 00:49, 00:57). ON by default
 # (Isaiah 2026-10-14 06:07: "the library never resets"); reason in conform/arms.py. A cost
 # change only: the same views, looked up rather than re-derived. 0 is the one-flag control.
@@ -4152,8 +4154,8 @@ class Agent:
         self._inv_carried_in: list[dict] = []
         self._inv_seen: dict = {}     # M6: slot -> history length last tried
         self._step_row0 = 0           # MC6: the ledger length when this step began
-        self._muse_last = None        # MC6 N2: (targets, methods) last tested, and its cycle
-        self._muse_run = None         # MUSE_BOUND: a muse the step's budget cut, resumed next
+        self._muse_last = None        # MUSING (ex-MC6) N2: (targets, methods) last tested, cycle
+        self._muse_run = None         # MUSING (formerly MC6), MUSE_BOUND: a muse the budget cut
         self._deg_prev = None         # the completion sweep: the world's degree last step
         self._sweep_from = (0, 0, set(), set())   # (seq, cycle, settled, owed) at segment start
         self._reach_hist: list = []   # build 2: (after-state, world reached?) per step, this level
@@ -9921,9 +9923,10 @@ class Agent:
 
     # ---------------------------------------------------------------- 7a(10) MC6, MUSE
     def _owes_nothing(self) -> bool:
-        """MC6's mastery (R3 part 2): no residual outstanding on the level -- owed_import empty,
-        an under_floor slot included ("the search is skipped; the debt is not"; the reviewer
-        23:50Z) -- and this step's bets paying: at least one, none carrying mass."""
+        """MUSING's (formerly MC6's, R3 part 2) mastery: no residual outstanding on the level --
+        owed_import empty, an under_floor slot included ("the search is skipped; the debt is
+        not"; the reviewer 23:50Z) -- and this step's bets paying: at least one, none carrying
+        mass."""
         if self.owed_import:
             return False
         bets = [r for r in self.led.rows(self._step_row0) if r["event"] == "bet"]
@@ -9931,12 +9934,12 @@ class Agent:
 
     @_in_step("IMPORT")
     def _muse(self) -> None:
-        """MC6 (R3 part 2; the reviewer 2026-10-10 23:50Z). On a step that owes nothing, the
-        mastered methods (settled, non-atom terms) are re-tested against the residuals an
-        EARLIER level left parked (Fig 8, then Fig 7's room, then Fig 4's round trip), priced as
-        the sweep prices them. Compute only: a METHOD is its chain, re-bound on the parked slot's
-        own history; no binding crosses, nothing is installed, no action is taken. The gap and
-        the time spent are recorded."""
+        """MUSING (formerly MC6, R3 part 2; the reviewer 2026-10-10 23:50Z). On a step that owes
+        nothing, the mastered methods (settled, non-atom terms) are re-tested against the
+        residuals an EARLIER level left parked (Fig 8, then Fig 7's room, then Fig 4's round
+        trip), priced as the sweep prices them. Compute only: a METHOD is its chain, re-bound
+        on the parked slot's own history; no binding crosses, nothing is installed, no action is
+        taken. The gap and the time spent are recorded."""
         targets = {k: r for k, r in self.parked.items() if r.get("level") != self.level
                    and r.get("hist")}
         if not targets or not self._owes_nothing():
@@ -10027,8 +10030,9 @@ class Agent:
                                "residual; the gap recorded, nothing installed, no action"))
 
     def _muse_owe(self, run: dict, t0: float) -> None:
-        """MUSE_BOUND: the step's budget ran out inside a muse; where it stopped is kept and the
-        next quiet step resumes there (a cut, never a verdict: Fig 9 :44, :60)."""
+        """MUSING (formerly MC6), MUSE_BOUND: the step's budget ran out inside a muse; where it
+        stopped is kept and the next quiet step resumes there (a cut, never a verdict: Fig 9
+        :44, :60)."""
         ms = 1000 * (time.perf_counter() - t0)
         run["ms"] += ms
         self._muse_run = run
@@ -24111,7 +24115,7 @@ class Agent:
                 _rel({_own[s] for s in self.agency.contingent() if s in _own})
             if self._goal_links:
                 self._respell_goals()
-        if _MC6:
+        if _MUSING:
             self._step_row0 = len(self.led)
         if _COMPLETION_SWEEP and self._deg_prev is None:
             self._deg_prev = self.env.objective()[1]     # the world's degree before acting
@@ -24718,7 +24722,7 @@ class Agent:
                 return self._cap_end("tail", "SETTLE")
         self._settle_routine()
         self._promote()
-        if _MC6:
+        if _MUSING:
             self._muse()
         _, degree = self.env.objective()
         if _COMPLETION_SWEEP:
