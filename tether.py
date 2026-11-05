@@ -12876,6 +12876,22 @@ class Agent:
                 ((self._term_gkey(slot), sum(len(v) for v in self._not.values()))
                  if self._not else None))
 
+    def _fit_counted(self, slot: str, exclude: str | None) -> str | None:
+        """_library_fit, its LATE_DECLARED refusals written as ONE late_refused row per declared
+        head with its count n when the fit ends (r1163 FIX 1: one row per refused candidate wrote
+        280,725 rows on ls20). The tally (_late_refused) is unchanged."""
+        if not _LATE_DECLARED:
+            return self._library_fit(slot, exclude)
+        self._late_now = collections.Counter()
+        try:
+            return self._library_fit(slot, exclude)
+        finally:
+            now, self._late_now = self._late_now, None
+            for (head, why), n in sorted(now.items()):
+                self.led.record(self.cycle, "ROUTE", slot, "late_refused", head=head, n=n,
+                                why=why, reads="declared heads refused, not walked late: one row "
+                                               "per head per fit, n counted (r1163)")
+
     def _fit_tier0(self, slot: str, exclude: str | None) -> str | None:
         """S2a (the reviewer 2026-10-20 19:54): an OWED slot whose bet held this step. A row the
         bound term predicted adds 0 to base_bits and never less than 0 to any candidate's left
@@ -12891,14 +12907,14 @@ class Agent:
             if not _FIT_TIER0_CHECK:
                 return None
             lib0 = tuple(sorted(self.gamma.library))
-            real = self._library_fit(slot, exclude)
+            real = self._fit_counted(slot, exclude)
             agree = real is None and tuple(sorted(self.gamma.library)) == lib0
             _book_add(self.gamma.book, "fit_tier0_agree" if agree else "fit_tier0_disagree")
             self.led.record(self.cycle, "ROUTE", slot, "tier0_check", agree=agree, fit=real,
                             reads="the skipped fit, run anyway: the same None, the library unmoved")
             return real
         asked = self._asked
-        fit = self._library_fit(slot, exclude)
+        fit = self._fit_counted(slot, exclude)
         if (fit is None and self._asked > asked
                 and not (_STEP_BUDGET and self._spent >= STEP_BUDGET)):
             self._fit_none[slot] = (self._fit_key(slot, exclude), self.cycle)
@@ -13061,8 +13077,13 @@ class Agent:
                 if _LATE_DECLARED and declared(cand):
                     why = f"declared head: {cand.atoms[0].name} takes no {_st}"
                     self.__dict__.setdefault("_late_refused", collections.Counter())[why] += 1
-                    self.led.record(self.cycle, "ROUTE", slot, "late_refused", term=cand.name,
-                                    why=why, reads="a declared head refused, not walked late")
+                    now = getattr(self, "_late_now", None)
+                    if now is not None:     # r1163 FIX 1: counted, one row per head per fit
+                        now[(cand.atoms[0].name, why)] += 1
+                    else:
+                        self.led.record(self.cycle, "ROUTE", slot, "late_refused",
+                                        term=cand.name, why=why,
+                                        reads="a declared head refused, not walked late")
                     return False, None, None, _since(_n0)
                 return None, None, None, _since(_n0)
             if not price:
