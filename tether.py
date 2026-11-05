@@ -436,6 +436,7 @@ PHASE_OF: dict[str, str] = {
     "discriminate:intent": I.DIRECTED,   # 15c: the intent the held rivals disagree on (r1184)
     "probe:3a": I.DIRECTED,    # 16: the act a slip's diagnosis names, repeated (r1184)
     "untried:goal": I.DIRECTED,   # 16b: a formed intent not yet pressed here, at a static goal
+    "reflex": I.DIRECTED,      # 22: a stored When(reading, intent) its witnesses let fire (r1243)
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
@@ -2176,6 +2177,13 @@ _TALLY_CARRY = armflag.arm("TETHER_TALLY_CARRY", default=True)
 # board and per-slot trend {first, last, fell, n} (stuck()'s own predicate) on
 # goal_hypothesis_end; shape_trace.py reads them per board. OFF: the rows as before
 _SHAPE_TRACE = armflag.arm("TETHER_SHAPE_TRACE", default=True)
+# Build 6 item 22, THE REFLEX TIER (the reviewer 2026-11-05 r1242, r1243): a stored When(reading,
+# intent), read in choose after the dead-board exit and before the held routine (paused, never
+# consumed). It fires iff seed + paid >= against, per (situation, form): seed 1 for a wired form,
+# against = fired and its predicted consequence failed next step (or a death followed), decayed
+# on the logical clock; paid = the consequence held, or a death with the guard met and no fire,
+# never decayed (Symbols w; Fig 9 :41, :60). Seeds: orient, freeze. OFF: no reflex read
+_REFLEX = armflag.arm("TETHER_REFLEX", default=True)
 
 
 @dataclass(frozen=True)
@@ -4589,6 +4597,20 @@ class Agent:
         self._mint_owed: dict = {}    # B1: slot -> the cycle its mint was deferred; minted first
         self._mint_exhausted = False  # B1: the last mint parked with its search stopped at a bound
         self._urgent_wait: dict = {}  # the governor: slot -> (cycle, urgent / urgent_declined)
+        # 22: the reflex store, wired forms stamped prior with their admitting clause (r1243)
+        self._reflexes: dict = {
+            "orient": {"form": Rt.When("a change on a slot with no own cause",
+                                       Rt.Act(IFace.ELICIT)),
+                       "consequence": "the slot's outstanding falls next step",
+                       "origin": "prior", "clause": "r1242 seed set, a wired orienting form",
+                       "standing": {}},
+            "freeze": {"form": Rt.When("the last press's kind carries a death vote here",
+                                       Rt.Act(IFace.ELICIT)),
+                       "consequence": "no death next step",
+                       "origin": "prior", "clause": "r1242 seed set, a wired inhibiting form",
+                       "standing": {}}}
+        self._rf_pending: list = []   # 22: (form, situation, slot, outstanding then, fired)
+        self._rf_out: dict | None = None   # 22: outstanding at the last read
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
         self._overrides: list[tuple[float, bool, int]] = []
@@ -16554,6 +16576,8 @@ class Agent:
         # routine or probe exit carried the PREVIOUS cycle's value onto its REPEAT row.
         self._gamma_read = {}
         self._split_term, self._routine_fed, self._last_real = None, [], None
+        if _REFLEX:
+            self._reflex_settle()               # 22: last step's fires and quiet guards, judged
         if _GOAL_FROM_ACTUATOR and _ACTUATOR_ROUTINE and self._alive and (
                 self._act_rt is not None or self._actuators and not self._try_first_open()):
             # a held actuator routine's END is read every cycle (a board that grows reopens
@@ -16572,6 +16596,11 @@ class Agent:
                                 reads="the board is dead: the episode ended and only a restart "
                                       "is open here (r669 1)")
                 return _open[0], "terminal"
+        if _REFLEX and self._alive:
+            # 22: looked at first, before the held routine, which is paused and never consumed
+            _rf = self._reflex(before)
+            if _rf is not None:
+                return _rf, "reflex"
         # why a held hypothesis did or did not act this cycle, for the repeat row (18:40 (iii))
         self._hyp_why = (None if not _GOAL_HYP or self._hyp is None
                          else "a held routine acted first")
@@ -17321,6 +17350,83 @@ class Agent:
         interface's count; the names stay below the seam (r727)."""
         iface = getattr(self, "iface", None)
         return iface.untried_here(tuple(self.actions)) if iface is not None else 0
+
+    def _rf_standing(self, form: str, situ: tuple) -> dict:
+        """22: one (situation, form)'s record, `against` decayed to now on the logical clock --
+        decaying failures is forgiveness, decaying confirmations amnesia (Standing, r1243)."""
+        st = self._reflexes[form]["standing"].setdefault(
+            situ, {"paid": 0, "against": 0.0, "tick": self.cycle})
+        if st["against"]:
+            st["against"] *= 0.5 ** ((self.cycle - st["tick"])
+                                     / (self.gamma.halflife or REJECTION_HALFLIFE))
+        st["tick"] = self.cycle
+        return st
+
+    def _reflex_settle(self) -> None:
+        """22: last step's reads judged. A fire whose predicted consequence failed, or that a death
+        followed, is one witness against; one whose consequence held is paid. A guard met without
+        a fire that a death followed is paid (sensitization). Nothing else counts (r1243 4)."""
+        pend, self._rf_pending = self._rf_pending, []
+        for form, situ, slot, was, fired in pend:
+            if not fired and self._alive:
+                continue
+            held = (not fired or self._alive and (
+                form != "orient" or self._outstanding.get(slot, 0.0) < was))
+            st = self._rf_standing(form, situ)
+            st["paid" if held else "against"] += 1
+            self.led.record(self.cycle, self._running_step, slot or "@reflex", "reflex_settled",
+                            form=form,
+                            situation=list(situ), fired=fired, held=held, paid=st["paid"],
+                            against=round(st["against"], 3),
+                            reads=self._reflexes[form]["consequence"])
+
+    def _reflex(self, before: dict) -> str | None:
+        """22: the stored forms whose guard holds this step, each weighed against its witnesses:
+        it fires iff seed + paid >= against (seed 1, the wired form; a tie to the reflex). Among
+        those that fire, the larger p takes the turn. Every guard met is a row, fired or not."""
+        out, self._rf_out = self._rf_out, {s: v for s, v in self._outstanding.items() if v > 0}
+        cands = []
+        k = self._last_press_key if _DEATH_VOTE else None
+        if k is not None and self._danger(k) > 0:
+            safe = tuple(a for a in self.actions
+                         if a != IFace.RESET and not self._danger((k[0], a, k[2])))
+            if 0 < len(safe) < len(self.actions):
+                cands.append(("freeze", (k[0], "freeze", k[1]), None,
+                              IFace.Intent(IFace.ELICIT), safe))
+        if out is not None:
+            mine = set(getattr(self.iface, "last_changed", ()))
+            grew = sorted((s for s, v in self._rf_out.items()
+                           if not s.startswith("@") and v > out.get(s, 0.0) and s not in mine),
+                          key=lambda s: (out.get(s, 0.0) - self._rf_out[s], s))
+            if grew:
+                cands.append(("orient", (self._kind_key(grew[0]), "orient"), grew[0],
+                              IFace.Intent(IFace.ELICIT, subject=grew[0]), tuple(self.actions)))
+        if not cands:
+            return None
+        read = []
+        for form, situ, slot, want, offer in cands:
+            st = self._rf_standing(form, situ)
+            read.append(((2 + st["paid"]) / (3 + st["paid"] + st["against"]),
+                         1 + st["paid"] >= st["against"], form, situ, slot, want, offer, st))
+        read.sort(key=lambda x: (-x[0], x[2]))
+        took = None
+        ctx = IFace.Interface.context(self.env)
+        for p, fire, form, situ, slot, want, offer, st in read:
+            act = None
+            if fire and took is None:
+                r = self.iface.realise(want, offer, ctx, before, self.env,
+                                       withheld=self._withheld, asker="reflex")
+                act = took = self._took(r, want) if r is not None else None
+            self._rf_pending.append((form, situ, slot,
+                                     self._outstanding.get(slot, 0.0) if slot else 0.0,
+                                     act is not None))
+            self.led.record(self.cycle, "PLAN", slot or "@reflex", "reflex", form=form,
+                            situation=list(situ), paid=st["paid"],
+                            against=round(st["against"], 3), p=round(p, 3), fires=fire,
+                            fired=act is not None, action=act,
+                            routine_paused=act is not None and self.routine is not None,
+                            reads=self._reflexes[form]["consequence"])
+        return took
 
     def _system0_active(self) -> bool:
         """UNEXPLORED CONTACT COUNT, with the action-effect coverage it replaces kept as the

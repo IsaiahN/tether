@@ -2181,6 +2181,12 @@ ARMS: dict[str, str] = {
                           "witnessed the contrast; on load the wins seed _desc_paid and the losses "
                           "a carried count the same p sums with the board's. OFF: nothing "
                           "tallied. default ON",
+    "TETHER_REFLEX": "BUILD 6 ITEM 22 (the reviewer 2026-11-05 r1242, r1243): the reflex tier -- "
+                     "stored When(reading, intent) forms (orient, freeze) read in choose after "
+                     "the dead-board exit and before the held routine, paused never consumed; "
+                     "one fires iff seed 1 + paid >= against per (situation, form), against "
+                     "decayed on the logical clock and paid kept; rows reflex, reflex_settled. "
+                     "OFF: no reflex read. default ON",
     "TETHER_SHAPE_TRACE": "BUILD 5 ITEM 21 (the reviewer 2026-11-05 r1234): RECORD-ONLY fields, "
                           "read by no decision -- family and board (iface.board_n) on "
                           "goal_hypotheses; family, board and the per-slot trend {first, last, "
