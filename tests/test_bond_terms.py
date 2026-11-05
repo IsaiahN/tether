@@ -124,7 +124,9 @@ def main():
     assert r6 == f"condition: routed to the guard offer for {Y}" and \
         set(ag6._junction_conds) == {pk}, ("∥ routed, one key", r6, ag6._junction_conds)
     off6 = ag6._guards_once(phist[:2], Y, [])
-    assert off6[6] == [pk] and off6[1][-1] == gamma.JUNCTION_GUARD, ("∥ offered", off6)
+    # ∥ is false on R here, so under TETHER_NEGATE_GUARD its negation is offered beside it
+    want6 = [pk, "¬" + pk] if tether._NEGATE_GUARD else [pk]
+    assert off6[6] == want6 and off6[1][-1] == gamma.JUNCTION_GUARD, ("∥ offered", off6)
     ag7 = agent()
     r7 = ag7._route_junction("∥", X, Y)
     assert "not conditions (typing)" in r7 and not ag7._junction_of, ("∥ typing", r7)
@@ -140,7 +142,8 @@ def main():
         assert nsm.listed(got.reason), ("MF-B2 unlisted", bond, got.reason)
     assert all("a condition, routed to the guard offer" in reasons[b]
                for b in ("≡", "⋛", "+", "∥"))
-    assert "not wired as a term" in reasons["¬"], reasons["¬"]
+    assert ("a negated condition, routed to the guard offer" if tether._NEGATE_GUARD
+            else "not wired as a term") in reasons["¬"], reasons["¬"]   # r1055: ¬ wired
     assert "has no atom" in reasons["−"] and "has no atom" in reasons["⇒"], reasons
     assert not any("has no atom" in reasons[b] for b in ("≡", "⋛", "+", "¬")), reasons
     print(f"  MF-B1' {key} routed to {Y}; offered where it separates R: G {g0} -> {g1}; "

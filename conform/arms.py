@@ -2007,6 +2007,12 @@ ARMS: dict[str, str] = {
                           "nothing imported; the arm enters compile_term.signature so no compile "
                           "made without it is served with it. OFF: the library as built. "
                           "default ON",
+    "TETHER_NEGATE_GUARD": "BUILD 3, ¬ WIRED (the reviewer 2026-11-04 r1055; Operators Table :58): "
+                           "a routed junction key k is a PRED and ¬k holds where k is resolved "
+                           "and false (unresolved is not a negation); ¬k joins the guard offer "
+                           "only where it holds throughout R and separates it; nsm says ¬ is a "
+                           "negated condition routed to the guard offer. NEEDS "
+                           "TETHER_BOND_TERMS. OFF: no ¬ key; ¬ not wired. default ON",
     "TETHER_ATTR_GROUP": "BUILD 3 ITEM 9b (the reviewer 2026-11-04 r1157): the bridge also reads "
                          "FORCE / SIGNAL (inherited.READING_CLUSTER_DERIVED, from the members' "
                          "own attributes, existing readings only) and the build's grouping of the "

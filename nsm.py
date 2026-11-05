@@ -34,6 +34,7 @@ _NSM = armflag.arm("TETHER_NSM_SPEAK", default=True)
 # per offer (its held_digest), its first held bond and the count. The row and pipeline.log keep the
 # detail. OFF: one line per kind per cycle, LOOKUP every held bond.
 _DEDUPE = armflag.arm("TETHER_NSM_DEDUPE", default=True)
+_NEGATE_GUARD = armflag.arm("TETHER_NEGATE_GUARD", default=True)   # ¬ wired (tether's arm)
 SAMPLE = 50           # the LOOKUP row keeps its first 50 held bonds (b2, 10-18); never widened here
 WIDTH = 240
 UNKNOWN = "?"
@@ -44,6 +45,7 @@ ALLOLEX = {"HAPPENED": ("HAPPEN",), "SAW": ("SEE",), "WAS": ("BE",), "CAN'T": ("
 # where it is routed; ¬ (AGENT|negate) is not wired as a term.
 REFUSALS = ("has no NSM word (open item)", "BECAUSE has no atom (r896)", "has no atom",
             "not wired as a term", "a condition, routed to the guard offer",
+            "a negated condition, routed to the guard offer",
             "Gamma holds no atom", "does not accept", "the sentence does not parse",
             "an unknown bond is not a term")
 CAPS = re.compile(r"\b[A-Z][A-Z']*\b")
@@ -201,6 +203,9 @@ def read_node(sentence: str, atoms: dict):
                 raise Refused(f"{bond} has no atom")
             if bond in ("≡", "⋛", "+", "∥"):
                 raise Refused(f"{bond} implemented_by {impl[0]}: a condition, routed to the "
+                              "guard offer")
+            if bond == "¬" and _NEGATE_GUARD:
+                raise Refused(f"¬ implemented_by {impl[0]}: a negated condition, routed to the "
                               "guard offer")
             raise Refused(f"{bond}: implemented_by {impl[0]} not wired as a term")
         a, b = walk(left), walk(right)
