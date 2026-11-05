@@ -2121,6 +2121,11 @@ _FOCUS_UNMOVED = armflag.arm("TETHER_FOCUS_UNMOVED", default=True)
 # TOUCH is formed for 16b. OFF: refused, as before
 _REL_TOUCH = armflag.arm("TETHER_REL_TOUCH", default=True)
 _REL_TOUCH_RELS = ("touches", "inside")
+# Build 5 item 19 Q2 (the reviewer 2026-11-05 r1216): a completion-held goal that names no slot
+# (count NONE, connected) gets TOUCH intents through 16b's formed / tried machinery, keyed (goal
+# key, situation), pressed when no hypothesis drives; count NONE's TOUCH is an ATTEMPT ("contact
+# may be how a member leaves", r1217). OFF: held, never pressed for, as before
+_SLOTLESS_TOUCH = armflag.arm("TETHER_SLOTLESS_TOUCH", default=True)
 
 
 @dataclass(frozen=True)
@@ -9251,6 +9256,8 @@ class Agent:
                         "affects": list(self._affects(lib, "completed") or ())}
                 if _GOAL_LINK:
                     detail["link"] = self._link_goal(key, c)
+                if _SLOTLESS_TOUCH and isinstance(c, (_Count, _Connect)):
+                    self.__dict__.setdefault("_slotless", {})[key] = c    # Q2: 16b presses for it
                 safe, why = sys.modules["library_runtime"].carry_check(text, lib.readings)
                 detail.update(pick=text, key=key, carry=("may carry when M7 opens" if safe
                                                          else f"refused: {why}"))
@@ -12758,10 +12765,45 @@ class Agent:
             for s in self._hyp["slots"]:
                 self._tried_in.setdefault(said, set()).add((s, self._situation(s, ctx)))
 
+    def _slotless_touches(self, c: Any, state: dict) -> tuple[list, str]:
+        """Q2 (r1216): a slotless goal's TOUCH targets on `state`, with what pressing one means.
+        count NONE: each present member (an ATTEMPT -- contact may not be how a member leaves);
+        connected: the objects of the far component, nearest the mover first."""
+        if isinstance(c, _Count) and len(c.kinds) == 1:
+            return ([o for o in self._owners(state) if self._kind(o) == c.kinds[0]],
+                    "an attempt: contact may be how a member leaves (r1216, r1217)")
+        if isinstance(c, _Connect):
+            a, b = c.parts[0].parties
+            if compile_term.connected(state, a, b) != 0:
+                return [], ""
+            far = [o for o in self._owners(state) if compile_term.connected(state, b, o)]
+            movers = sorted({s.split(".", 1)[0] for s in self.agency.contingent() if "." in s})
+            m = movers[0] if movers else a
+            far.sort(key=lambda o: (state.get(f"{m}.dist_{o}", 1 << 30), o))
+            return far, "the chain's missing link: the mover touches the far component"
+        return [], ""
+
     def _untried_ready(self, before: dict) -> tuple | None:
         """16b (r1189): at a held hypothesis's slot that reads no residual (item 13) and has no
         rival (15c), the first formed intent, in the order formed, not yet pressed in this
-        situation, realised by the interface. Every one tried here: said once, None."""
+        situation, realised by the interface. Every one tried here: said once, None. Q2: with no
+        hypothesis held, a slotless completion goal's TOUCH targets, keyed (goal key, situation)."""
+        if self._hyp is None and _SLOTLESS_TOUCH and self.__dict__.get("_slotless"):
+            ctx = IFace.Interface.context(self.env)
+            for key, c in sorted(self._slotless.items()):
+                cap.head()
+                targets, why = self._slotless_touches(c, before)
+                for o in targets:
+                    w = IFace.Intent(IFace.TOUCH, object=o)
+                    said = self._route_said(w)
+                    if (key, ctx) in self._tried_in.get(said, ()):
+                        continue
+                    r = self.iface.realise(w, tuple(self.actions), ctx, before, self.env,
+                                           withheld=self._withheld)
+                    if r is not None and not getattr(r, "unmapped", False):
+                        self._form_touch(o, key, o, why)
+                        return key, said, w, r, self.cycle, ctx
+            return None
         if self._hyp is None or not self._formed:
             return None
         hyp, guarded = set(self._hyp["slots"]), None
@@ -12857,12 +12899,18 @@ class Agent:
         """16b: the contest took the untried formed intent -- a PLAN untried_intent row, the press
         through _took and the ordinary bet path."""
         s, said, w, r, at, sit = self._untried_best
+        slotless = s in self.__dict__.get("_slotless", {})
         self.led.record(self.cycle, "PLAN", s, "untried_intent", intent=said, action=r.action,
                         formed_at=at, context=[list(c) for c in sit],
                         tried_in=sorted(([x, [list(c) for c in y]]
                                          for x, y in self._tried_in.get(said, ())), key=repr),
-                        reads="the goal slot is static under the presses tried; this formed "
-                              "intent has not been pressed here (16b)")
+                        **({"slotless": True} if slotless else {}),
+                        reads=("a held goal that names no slot: this TOUCH has not been pressed "
+                               "here (Q2, r1216)" if slotless else
+                               "the goal slot is static under the presses tried; this formed "
+                               "intent has not been pressed here (16b)"))
+        if slotless:            # Q2: tried here, keyed by the goal (no hypothesis slot records it)
+            self._tried_in.setdefault(said, set()).add((s, sit))
         return self._took(r, w)
 
     def _discrim_best(self, before: dict) -> tuple | None:

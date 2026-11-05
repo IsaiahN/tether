@@ -2129,6 +2129,13 @@ ARMS: dict[str, str] = {
                         "necessary singles, priced by the one bargain and linked one want per "
                         "member. OFF: Refusal(QUANTIFIED) and no group offered, as before. "
                         "default ON",
+    "TETHER_SLOTLESS_TOUCH": "BUILD 5 ITEM 19 Q2 (the reviewer 2026-11-05 r1216): a completion-"
+                             "held goal that names no slot (count NONE, connected) is pressed for "
+                             "through 16b's formed / tried machinery: _untried_ready offers its "
+                             "TOUCH targets (count NONE: a present member, an ATTEMPT; connected: "
+                             "the far component, nearest the mover first) when no hypothesis "
+                             "drives, keyed (goal key, situation) in _tried_in; _form_touch "
+                             "records each. OFF: held, never pressed for, as before. default ON",
     "TETHER_REL_TOUCH": "BUILD 5 ITEM 19 Q3 (ii) (the reviewer 2026-11-05 r1216): a goal "
                         "hypothesis wanting a declared-derived pair relation TRUE (oA.touches_oB / "
                         "inside_oB == 1) is admitted past 'route first' and the derived-slot "
