@@ -2129,6 +2129,14 @@ ARMS: dict[str, str] = {
                         "necessary singles, priced by the one bargain and linked one want per "
                         "member. OFF: Refusal(QUANTIFIED) and no group offered, as before. "
                         "default ON",
+    "TETHER_NO_LEVER": "BUILD 5 ITEM 18, DETECTION (the reviewer 2026-11-05 r1210, r1212, r1213; "
+                       "Fig 8 :39-42): Agency counts each held slot's presses per context "
+                       "(_situation + level) beside its run-wide counts, read by the siblings "
+                       "unmoved() / unmoved_here(); a no_lever row when no action tried HERE moved "
+                       "the slot ('these actions, in this context', never 'unmovable'), rewritten "
+                       "only when a new action is tried there; when the moving side reads it and "
+                       "its partner never moved, TOUCH(partner) is formed for 16b. OFF: none of "
+                       "it. default ON",
     "TETHER_CONNECTED": "BUILD 5 ITEM 17 (v) (a) (the reviewer 2026-11-05 r1208; Fig 6 :29-32): "
                         "connected(o, x) compiles onto o.connected_x, a BOOL derived where "
                         "conditions are read from the frame's own *.touches_* slots (the touch "

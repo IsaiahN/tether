@@ -2105,6 +2105,11 @@ _COUNT_KIND = armflag.arm("TETHER_COUNT_KIND", default=True)
 # holds and A held at an earlier row, read in one pass; held, A is adopted as the 4g subgoal of B.
 # OFF: no order offered
 _GOAL_ORDER = armflag.arm("TETHER_GOAL_ORDER", default=True)
+# Build 5 item 18, DETECTION (the reviewer 2026-11-05 r1210, r1212, r1213; Fig 8 :39-42): per held
+# slot, presses counted per context (_situation + level) on Agency; a no_lever row when no action
+# tried HERE moved it ("these actions, in this context", never "unmovable"); when the moving side
+# reads it and its partner never moved, TOUCH(partner) is formed for 16b. OFF: none of it
+_NO_LEVER = armflag.arm("TETHER_NO_LEVER", default=True)
 
 
 @dataclass(frozen=True)
@@ -12759,6 +12764,53 @@ class Agent:
                                       "the search's scope, not a proof of absence (Fig 8 :39)")
         return None
 
+    def _lever_note(self, action: str, res: Any, before: dict, after: dict) -> None:
+        """Item 18: this press counted per held slot in the context it was made in, then read."""
+        if not _NO_LEVER or not self.__dict__.get("_press_here"):
+            return
+        moved = self._moved(res, before, after)
+        for s, here in self._press_here.items():
+            if s in res:
+                self.agency.note_here(s, action, here, s in moved)
+        self._no_lever()
+
+    def _no_lever(self) -> None:
+        """Item 18 (r1213): per held slot, a no_lever row when no action tried in this step's
+        context moved it -- written when it first holds there and again only when its denominator
+        grows. The moving side's verdict, with a partner no action ever moved, forms
+        TOUCH(partner) for 16b: more search, not another atom (Fig 8 :40-42)."""
+        held = list(self._hyp["slots"]) if self._hyp is not None else []
+        everywhere = self.agency.unmoved()
+        seen = self.__dict__.setdefault("_nolever_seen", {})
+        for s in held:
+            cap.head()
+            here = self._press_here.get(s)
+            acts = self.agency.unmoved_here(s, here) if here is not None else None
+            if acts is None or seen.get((s, here)) == set(acts):
+                continue                        # rewritten only when a new action is tried here
+            seen[(s, here)] = set(acts)
+            self.led.record(self.cycle, "PERCEIVE", s, "no_lever",
+                            actions=dict(sorted(acts.items())),
+                            level=here[0], situation=[list(c) for c in here[1]],
+                            everywhere=s in everywhere, scope="these actions, in this context",
+                            reads="no lever found among these actions here; a search that finds "
+                                  "nothing is not a proof of absence (Fig 8 :39)")
+            if s in everywhere:
+                continue                        # the static side itself: no partner to move
+            for p in held:
+                owner = p.split(".", 1)[0]
+                if p == s or p not in everywhere or "~" in owner or owner == s.split(".", 1)[0]:
+                    continue
+                w = IFace.Intent(IFace.TOUCH, object=owner)
+                said = self._route_said(w)
+                if said in self._formed:
+                    continue
+                self._formed[said] = (self.cycle, w)
+                self.led.record(self.cycle, "PERCEIVE", s, "lever_formed", intent=said, partner=p,
+                                reads="the moving side has no lever here and its partner never "
+                                      "moved: an indirect lever, the mover's contact with the "
+                                      "static one -- more search, not another atom (Fig 8 :40-42)")
+
     def _untried_take(self) -> str:
         """16b: the contest took the untried formed intent -- a PLAN untried_intent row, the press
         through _took and the ordinary bet path."""
@@ -13343,6 +13395,8 @@ class Agent:
             self.agency.note(action, self._moved(res, before, after), sorted(res))
             if _DISCRIMINATE:
                 self.agency.note_delta(action, before, after, sorted(res))
+            if _NO_LEVER and self.__dict__.get("_press_here"):
+                self._lever_note(action, res, before, after)
         self._charge(res)
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
@@ -23085,6 +23139,10 @@ class Agent:
             self._note_kinds(before)
         if _GOAL_ORDER and self.__dict__.get("_order_next"):
             self._order_advance(before)
+        if _NO_LEVER:       # item 18: each held slot's context, read BEFORE this step's press
+            _ctx = IFace.Interface.context(self.env) if self._hyp is not None else None
+            self._press_here = ({s: (self.level, self._situation(s, _ctx))
+                                 for s in self._hyp["slots"]} if _ctx is not None else None)
         if _RUIN_RECORD:
             self._ruin_step, self._ending_counted = None, None
             # ONE reading of this board, before anything is chosen: B's key and C's lookup

@@ -370,6 +370,10 @@ class Agency:
     # r674 1: (slot, action) -> the distinct changes seen (at most two kept); indifferent()'s memo
     deltas: dict = field(default_factory=dict, repr=False, compare=False)
     _i_memo: tuple | None = field(default=None, repr=False, compare=False)
+    # item 18 (r1213): (slot, action, here) -> presses / changes, for HELD slots, so a stall that
+    # happens only HERE is not diluted by the run-wide counts
+    tried_here: Counter = field(default_factory=Counter, repr=False, compare=False)
+    moved_here: Counter = field(default_factory=Counter, repr=False, compare=False)
 
     def retire(self, board: set, alias: dict, token: Any) -> Counter:
         """10 ARRIVAL_ALIAS: a (slot, action) count whose slot names an object not in `board`
@@ -434,6 +438,28 @@ class Agency:
                 out.append(s)
         self._i_memo = (key, tuple(sorted(out)))
         return list(self._i_memo[1])
+
+    def unmoved(self) -> dict[str, dict]:
+        """Item 18 (r1212): slots NO action tried has moved -> {slot: {action: presses}}. A sibling
+        of contingent() / indifferent() on the same counters: the search's scope, never a proof
+        of absence (Fig 8 :39)."""
+        by: dict[str, dict] = {}
+        for (s, a), n in self.tried.items():
+            by.setdefault(s, {})[a] = n
+        return {s: acts for s, acts in by.items() if not any(self.moved[(s, a)] for a in acts)}
+
+    def note_here(self, slot: str, action: str, here: Any, moved: bool) -> None:
+        self.tried_here[(slot, action, here)] += 1
+        if moved:
+            self.moved_here[(slot, action, here)] += 1
+
+    def unmoved_here(self, slot: str, here: Any) -> dict | None:
+        """Item 18 (r1213): {action: presses} when no action tried on `slot` in context `here` has
+        moved it there, else None."""
+        acts = {a: n for (s, a, h), n in self.tried_here.items() if s == slot and h == here}
+        if not acts or any(self.moved_here[(slot, a, here)] for a in acts):
+            return None
+        return acts
 
     def note(self, action: str, changed: set[str], slots: list[str]) -> None:
         self.steps += 1
