@@ -2992,6 +2992,12 @@ _GOAL_FROM_ACTUATOR = armflag.arm("TETHER_GOAL_FROM_ACTUATOR", default=True)
 # deadline cut the sweep (no step after it). A pair whose cost alone exceeds the cheapest single's
 # total can neither be the pick nor tie it, so it is not priced; the pick is identical. OFF: all
 _PAIR_BOUND = armflag.arm("TETHER_PAIR_BOUND", default=True)
+# THE RED WINDOW (the reviewer 2026-11-05 r1192, r1194, r1195), test_goal_pair: the bound keyed a
+# necessary condition's size by its TEXT, so two identical conditions were ONE key and the two
+# smallest sizes could not be read (ValueError). Each part is keyed by its POSITION -- two
+# identical parts are two parts -- and the text stays for the record; the loop's own rule
+# ("identical parts are not a pair") still forms none of them. OFF: the text key, and the raise.
+_PAIR_DISTINCT = armflag.arm("TETHER_PAIR_DISTINCT", default=True)
 # (i) PAIRS_FALLBACK (the reviewer 2026-11-01 r747; Fig 9 :60, "Use filters for the budget and
 # witnesses for the verdict"): singles first, pairs only when no single pays. OFF: pairs always
 _PAIRS_FALLBACK = armflag.arm("TETHER_PAIRS_FALLBACK", default=True)
@@ -8811,18 +8817,21 @@ class Agent:
         self._pair_bounded = 0
         if _PAIR_BOUND and singles and len(nec) >= 2:
             best = min(x[0] for x in singles)
-            size = {x[4]: self.gamma.length(x[5].term) for x in nec}
+            size = ({i: self.gamma.length(x[5].term) for i, x in enumerate(nec)}
+                    if _PAIR_DISTINCT else {x[4]: self.gamma.length(x[5].term) for x in nec})
             s1, s2 = sorted(size.values())[:2]
             if term_bits(s1 + s2 + 1, self.gamma.alphabet) > best:
                 self._pair_bounded = len(nec) * (len(nec) - 1) // 2   # none can beat a single
                 return out
         for i, a in enumerate(nec):
             cap.head()
-            for b in nec[i + 1:]:
+            for j in range(i + 1, len(nec)):
                 cap.head()
+                b = nec[j]
                 if a[4] == b[4]:
                     continue                    # identical parts are not a pair
-                if _PAIR_BOUND and term_bits(size[a[4]] + size[b[4]] + 1,
+                ka, kb = (i, j) if _PAIR_DISTINCT else (a[4], b[4])
+                if _PAIR_BOUND and term_bits(size[ka] + size[kb] + 1,
                                              self.gamma.alphabet) > best:
                     self._pair_bounded += 1     # its cost alone exceeds the cheapest single
                     continue

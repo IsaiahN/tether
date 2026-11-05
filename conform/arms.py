@@ -2112,6 +2112,14 @@ ARMS: dict[str, str] = {
                              "PLAN intent_predict row with its ms; no row where nothing is "
                              "weighed. Record-only until 15b reads it. OFF: never computed. "
                              "default ON",
+    "TETHER_PAIR_DISTINCT": "THE RED WINDOW (the reviewer 2026-11-05 r1192, r1194; "
+                            "test_goal_pair; r1195): _goal_pairs' bound keyed a necessary "
+                            "condition's size by its text, so identical conditions were one key "
+                            "and the two smallest sizes could not be read (ValueError); each part "
+                            "is keyed by its POSITION (two identical parts are two parts), the "
+                            "text kept for the record, and the loop's own rule (identical parts "
+                            "are not a pair) still forms none. OFF: the text key, the raise. "
+                            "default ON",
     "TETHER_LA_LANDING": "BUILD 4 ITEM 14c (the reviewer 2026-11-05 r1189): a look-ahead press "
                          "carries its realisation's coordinate and reads its landing "
                          "(iface._acted) on the SIMULATED state; every predictor on that press is "
