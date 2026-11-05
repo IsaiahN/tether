@@ -1299,6 +1299,12 @@ _NEGATE_GUARD = armflag.arm("TETHER_NEGATE_GUARD", default=True)
 # this object first, then the old order; at a seeded slot its operands come first among the binds.
 # Order, never exclude: an unrouted seed is counted, never forced. OFF: the old order.
 _CONTACT_SEED = armflag.arm("TETHER_CONTACT_SEED", default=True)
+# BUILD 4 ITEM 13, THE GOAL'S SLOT MINTS FIRST (the reviewer 2026-11-04 r1162; Fig 12 :112 "A goal
+# is a comparison", Fig 9 :53 "Nobody chooses. The gap does"): the held hypothesis's slots that are
+# routed MECHANISM / REFUTED-with-no-fit go first in the step's mint order, then the seeded /
+# _understanding order unchanged; a goal slot with no residual is counted ("static under the
+# presses tried"), never a site. Order, never exclude. OFF: the order as before.
+_GOAL_MINT_FIRST = armflag.arm("TETHER_GOAL_MINT_FIRST", default=True)
 
 
 @cache
@@ -10123,6 +10129,25 @@ class Agent:
                               "junctions; order, never exclude (r978)")
         used.clear()
         miss.clear()
+        return out
+
+    def _goal_first(self, routed: list) -> list:
+        """ITEM 13 (r1162): the held hypothesis's slots routed MECHANISM / REFUTED-with-no-fit
+        first (stable), the rest in their order. Its slots with no such route are counted as
+        having no residual. One row when a hypothesis is held; unchanged without one."""
+        hyp = list(self._hyp["slots"]) if self._hyp is not None else []
+        if not hyp:
+            return routed
+
+        def site(r):
+            return r[0] in hyp and (r[1] == MECHANISM or (r[1] == REFUTED and not r[2]))
+        out = sorted(routed, key=lambda r: not site(r))
+        first = [r[0] for r in out if site(r)]
+        still = [s for s in hyp if s not in first]
+        self.led.record(self.cycle, "ACCEPT", "@goal_mint", "goal_mint_first", first=first,
+                        no_residual=still,
+                        reads="the goal's slots with a residual mint first (r1162); a goal slot "
+                              "with none is static under the presses tried, never a site")
         return out
 
     def _mint_at(self, slot: str, b: str) -> None:
@@ -19423,6 +19448,8 @@ class Agent:
                                   "bound; it owes and is "
                                   + ("re-ranked next step by _understanding" if _OWED_REJUDGE
                                      else "minted first next step")
+                                  + (" (first if it is the goal's slot, GOAL_MINT_FIRST)"
+                                     if _GOAL_MINT_FIRST else "")
                                   + " -- unreached at this budget, never a verdict")
             return
         if _BOARD_TRY_FIRST and self._try_first_open():
@@ -22457,6 +22484,8 @@ class Agent:
                 routed = self._rank_mints(routed, _split_now)    # 1d: rank, not age or code order
             if _CONTACT_SEED:
                 routed = self._seed_order(routed)    # r978: seeded sites first, then the rest
+            if _GOAL_MINT_FIRST:
+                routed = self._goal_first(routed)    # r1162: the goal's own residual slots first
             for _i, (slot, b, fit, _why) in enumerate(routed):
                 if slot in _split_now:
                     continue

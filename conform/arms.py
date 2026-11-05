@@ -2081,6 +2081,12 @@ ARMS: dict[str, str] = {
                                "RECIPE_DEDUP a chain held as a recipe is tested once, before its "
                                "instances are generated, and takes no try (it was B x G tries, "
                                "2090-4971 of 5000 a mint on ls20). OFF: per instance. default ON",
+    "TETHER_GOAL_MINT_FIRST": "BUILD 4 ITEM 13 (the reviewer 2026-11-04 r1161, r1162): the held "
+                              "hypothesis's slots routed MECHANISM / REFUTED-with-no-fit go first "
+                              "in the step's mint order, then the seeded / _understanding order "
+                              "unchanged; a goal slot with no residual is counted (static under "
+                              "the presses tried), never a site; the deferral says so. OFF: the "
+                              "order as before. default ON",
     "TETHER_CONTACT_SEED": "BUILD 4 ITEM 13 (the reviewer 2026-11-03 r978): the step's mint slots "
                            "ordered by seeds -- contact slots that changed this step, and settled "
                            "residual-lit → junctions with no term (a site R, operand L first) -- "
