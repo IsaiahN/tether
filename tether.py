@@ -1250,6 +1250,11 @@ _SEED_LIFT = armflag.arm("TETHER_SEED_LIFT", default=True)
 # judged WHOLE -- offered only when every junction settles (r966). composer.candidates admits by
 # held atom NAMES, so the lit ones (disjoint on ls20) were only ever counted.
 _LIT_COVER = armflag.arm("TETHER_LIT_COVER", default=True)
+# r1163 FIX 2, THE COVER'S IDENTICAL OFFERS COLLAPSED (Fig 12 :126 "Bits price the description"):
+# the end-of-Build-3 A/B's cover made 1,709,234 offers in one step, 75,871 distinct (slot, term,
+# operand), one offer repeated up to 822 times. An identical offer adds no candidate, so the cover
+# keeps the first and counts the copies on it ("copies"); seen if any copy was. OFF: every copy.
+_COVER_DEDUPE = armflag.arm("TETHER_COVER_DEDUPE", default=True)
 # r1145 (the reviewer 2026-11-04; Fig 12 :46 "A bond is the typed relation between two operands"):
 # an operand-tree node whose value is slot_a − slot_b -- the tree's own term names the second slot
 # -- seeded ONLY from the two pair readings of a settled junction no existing shape can express,
@@ -10194,6 +10199,7 @@ class Agent:
         lit_n: collections.Counter = collections.Counter()      # r1130 (c): the lit walk, counted
         two_n: collections.Counter = collections.Counter()      # r1145: the two-slot seeds
         order: list = []
+        cov_seen: dict = {}            # r1163 FIX 2: (slot, term, operand) -> its first prov
         if tr:
             frames = [b for b, *_r in tr] + [tr[-1][2]]
             skip = tuple(t + 1 for t, r in enumerate(tr) if str(r[1]).upper().endswith("RESET"))
@@ -10372,12 +10378,22 @@ class Agent:
                                     s for s, t in zip(path, ts, strict=True) if t is None])] += 1
                                 continue
                             chain = Term(tuple(a for t in ts for a in t.atoms))
+                            if _COVER_DEDUPE:
+                                hit = cov_seen.get((path[-1], chain.name, path[0]))
+                                if hit is not None:      # the same offer again: counted on it
+                                    hit["copies"] += 1
+                                    hit["seen"] = hit["seen"] or o in held_on
+                                    lit_n["collapsed"] += 1
+                                    continue
                             prov = {"molecule": m["molecule"], "bond": got, "object": o,
                                     "seen": o in held_on, "left": path[0], "right": path[-1],
                                     "leaves": list(path), "occasions": occ,
                                     "junctions": len(juncs), "source": "cover",
                                     "offer": chain.name, "entries": 1,
-                                    **({"lit": True} if m.get("lit") else {})}
+                                    **({"lit": True} if m.get("lit") else {}),
+                                    **({"copies": 1} if _COVER_DEDUPE else {})}
+                            if _COVER_DEDUPE:
+                                cov_seen[(path[-1], chain.name, path[0])] = prov
                             self._mol_offers.setdefault(path[-1], []).append(
                                 {"term": chain, "operand": path[0], "prov": prov,
                                  "offered": True, "why": "molecule"})
@@ -12882,15 +12898,17 @@ class Agent:
         280,725 rows on ls20). The tally (_late_refused) is unchanged."""
         if not _LATE_DECLARED:
             return self._library_fit(slot, exclude)
-        self._late_now = collections.Counter()
+        self._late_now = {}
+        self._late_n = collections.Counter()
         try:
             return self._library_fit(slot, exclude)
         finally:
             now, self._late_now = self._late_now, None
-            for (head, why), n in sorted(now.items()):
-                self.led.record(self.cycle, "ROUTE", slot, "late_refused", head=head, n=n,
-                                why=why, reads="declared heads refused, not walked late: one row "
-                                               "per head per fit, n counted (r1163)")
+            for (head, why), names in sorted(now.items()):
+                self.led.record(self.cycle, "ROUTE", slot, "late_refused", head=head,
+                                n=self._late_n[(head, why)], terms=sorted(names), why=why,
+                                reads="declared heads refused, not walked late: one row per head "
+                                      "per fit, n counted, the distinct terms kept (r1163, r1164)")
 
     def _fit_tier0(self, slot: str, exclude: str | None) -> str | None:
         """S2a (the reviewer 2026-10-20 19:54): an OWED slot whose bet held this step. A row the
@@ -13079,7 +13097,8 @@ class Agent:
                     self.__dict__.setdefault("_late_refused", collections.Counter())[why] += 1
                     now = getattr(self, "_late_now", None)
                     if now is not None:     # r1163 FIX 1: counted, one row per head per fit
-                        now[(cand.atoms[0].name, why)] += 1
+                        now.setdefault((cand.atoms[0].name, why), set()).add(cand.name)
+                        self._late_n[(cand.atoms[0].name, why)] += 1
                     else:
                         self.led.record(self.cycle, "ROUTE", slot, "late_refused",
                                         term=cand.name, why=why,

@@ -4,7 +4,7 @@ Now a fit's refusals are counted and written as ONE row per declared head, with 
 (_late_refused) is unchanged. Seconds: test_late_declared's fixture holding THREE translate terms.
 
 MF-L1  three translate<x> terms refused at an add_n slot in one fit write ONE late_refused row,
-       head translate, n 3; the tally counts 3
+       head translate, n 3, terms the three names (r1164: which, not only how many); tally 3
 The red is behavioural on 58b843a's tether.py (swapped in, run, restored): three rows, no n.
 
     python tests/test_late_rows.py
@@ -62,6 +62,7 @@ def main():
     assert tally == 3, ("MF-L1 premise: three refusals", tally, rows)
     assert len(rows) == 1 and rows[0].get("head") == "translate" and rows[0].get("n") == 3, (
         "MF-L1: N refusals write N rows, not one row with n", rows)
+    assert rows[0].get("terms") == sorted(t.name for t in terms), ("MF-L1 terms (r1164)", rows)
     print(f"  MF-L1 3 refusals in one fit -> 1 row {{head {rows[0]['head']}, n {rows[0]['n']}}}; "
           f"tally +{tally}")
     print("test_late_rows OK")

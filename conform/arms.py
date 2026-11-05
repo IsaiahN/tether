@@ -2034,6 +2034,11 @@ ARMS: dict[str, str] = {
                        "typed per target like translate (POSITION − DELTA -> POSITION, DELTA − "
                        "DELTA -> DELTA; anything else refused); grammar.json's − implemented_by "
                        "names it. OFF: no such atom, and the entry is not read. default ON",
+    "TETHER_COVER_DEDUPE": "r1163 FIX 2 (Fig 12 :126 \"Bits price the description\"): the cover "
+                           "route keeps one offer per (slot, term, operand) in a pass and counts "
+                           "its copies on it (prov copies; lit_cover collapsed), seen if any copy "
+                           "was -- on ls20 one step made 1,709,313 offers, 75,871 distinct. OFF: "
+                           "every copy offered. default ON",
     "TETHER_LIT_COVER": "BUILD 3, CUT B (the reviewer 2026-11-04 r1130): a several-junction "
                         "molecule the residuals lit is also walked by the cover route -- before "
                         "the partial-cover candidates, once, only when every ingredient resolves "
