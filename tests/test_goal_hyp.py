@@ -78,7 +78,9 @@ def _on_holds(r: dict) -> list[str]:
     chk(first is None or first["pick"] or "System 0" in str(first["why"]),
         "H1 an unroutable start says System 0")
     chk(r["scoped"] and all(r["scoped"]), "H2 the held hypothesis is a subject-scoped want")
-    chk(r["ends"] and all(e["why"] in ("arrived_no_clear", "stalled", "lost") for e in r["ends"]),
+    # "untested" since UNTESTED_KEEP (r392): an end on a board that could not host the test
+    chk(r["ends"] and all(e["why"] in ("arrived_no_clear", "stalled", "lost", "untested")
+                          for e in r["ends"]),
         "H2 a hypothesis ended (arrived without a clear, or stalled)")
     seq = [(p["pick"], p["slot"]) for p in picks]
     chk(len(seq) >= 2 and all(a != b for a, b in zip(seq, seq[1:], strict=False)),
