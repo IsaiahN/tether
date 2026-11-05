@@ -2167,6 +2167,13 @@ ARMS: dict[str, str] = {
                             "bits(c) - gain(kept) (the kept fall in bits, floored at 0; its "
                             "description was paid at its hold); a goal_unbundled row with fell, "
                             "flat, gain and kept_bits. OFF: none of it. default ON",
+    "TETHER_SHAPE_CARRY": "BUILD 5 ITEM 20 (the reviewer 2026-11-05 r1231, r1232; Fig 4 :22-24): "
+                          "every completion producer's shape is shelved as its METHOD form "
+                          "(_method_form: this board's objects as {o}/{x}, kinds as they are; none "
+                          "past two objects; a form carry_check refuses, a constant, stays "
+                          "in-game), with the reads its text does not name (count: came/gone), "
+                          "passed to invent_atom at re-invention. One M7 path. OFF: only the "
+                          "library's own templates carry. default ON",
     "TETHER_SLOTLESS_TOUCH": "BUILD 5 ITEM 19 Q2 (the reviewer 2026-11-05 r1216): a completion-"
                              "held goal that names no slot (count NONE, connected) is pressed for "
                              "through 16b's formed / tried machinery: _untried_ready offers its "

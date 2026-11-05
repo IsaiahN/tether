@@ -2159,6 +2159,12 @@ _STALL_READS = ("stall_untouched", "stall_unmoved", "stall_flat")
 # owner of a different template, priced bits(c) - gain(kept), the kept fall in bits (its
 # description was paid at its hold; Fig 12 :112, :126); a goal_unbundled row. OFF: none of it
 _GOAL_UNBUNDLE = armflag.arm("TETHER_GOAL_UNBUNDLE", default=True)
+# Build 5 item 20, CARRY (the reviewer 2026-11-05 r1231, r1232; Fig 4 :22-24): every completion
+# producer's shape is shelved as its METHOD form (this board's objects as {o}/{x}, kinds as they
+# are; a form carry_check refuses -- a constant -- stays in-game), with the reads its text does not
+# name (count: came/gone; connected: touching), passed at re-invention. One M7 path. OFF: only the
+# library's own templates carry, as before
+_SHAPE_CARRY = armflag.arm("TETHER_SHAPE_CARRY", default=True)
 
 
 @dataclass(frozen=True)
@@ -8416,7 +8422,8 @@ class Agent:
                     "name": name, "template": tpl, "affects": meta.get("affects", []),
                     "reading": "completed", "term": name, "then": [],
                     "game": self.gamma.game, "born": self.cycle, "kind": "goal",
-                    "level": rec["level"], "met_state": rec["met_state"], "part": part})
+                    "level": rec["level"], "met_state": rec["met_state"], "part": part,
+                    **({"reads": meta["reads"]} if _SHAPE_CARRY and meta.get("reads") else {})})
                 carried.append(name)
         self.led.record(self.cycle, "IMPORT", "@completion", "goal_shelved", key=key,
                         condition=rec["text"], level=rec["level"], how=how,
@@ -9590,8 +9597,10 @@ class Agent:
                     parts = text.split(" and ") if isinstance(c, _Pair) else [text]
                     self._goal_meta[key] = {
                         "met_state": detail.get("met_state"), "level": self.level,
-                        "templates": [tpl.get(p) for p in parts], "parts": parts,
+                        "templates": self._goal_templates(parts, tpl, lib), "parts": parts,
                         "affects": list(self._affects(lib, "completed") or ())}
+                    if _SHAPE_CARRY and isinstance(c, (_Count, _Connect)):
+                        self._goal_meta[key]["reads"] = list(c.reads)   # item 20 (ii)
                 if _GOAL_LINK:
                     detail["link"] = self._link_goal(key, c)
                 if _SLOTLESS_TOUCH and isinstance(c, (_Count, _Connect)):
@@ -10049,6 +10058,27 @@ class Agent:
             self._inv_lib = _replace_lib(lib)
         return self._inv_lib
 
+    def _goal_templates(self, parts: list, tpl: dict, lib: Any) -> list:
+        """GQ1's templates for a held condition's parts: the library's own, else (item 20) the
+        part's METHOD form."""
+        return [tpl.get(p) or (self._method_form(p, lib) if _SHAPE_CARRY else None)
+                for p in parts]
+
+    def _method_form(self, text: str, lib: Any) -> str | None:
+        """Item 20 (i): a shape's METHOD -- this board's objects as {o} then {x}, in order of first
+        appearance; kinds and readings as they are. None where it names more objects than the
+        instantiation has places (two), or carry_check refuses it (a constant: a recording)."""
+        owners = {s.split(".", 1)[0] for s in self.slots if "~" not in s.split(".", 1)[0]}
+        found = list(dict.fromkeys(w for w in re.findall(r"[A-Za-z0-9_~]+", text)
+                                   if w in owners))
+        if len(found) > 2 or "{" in text:
+            return None
+        form = text
+        for ph, o in zip(("{o}", "{x}"), found, strict=False):
+            form = re.sub(rf"(?<![A-Za-z0-9_~]){re.escape(o)}(?![A-Za-z0-9_~])", ph, form)
+        safe, _why = sys.modules["library_runtime"].carry_check(form, lib.readings)
+        return form if safe else None
+
     def _reinvent_carried(self, carried: list[dict]) -> dict:
         """M7-INV (iii): the lineage's inventions re-invented in this agent's private library,
         each under its carried name (so a carried question about it resolves), its template as
@@ -10061,8 +10091,8 @@ class Agent:
             if lib is None or lib.get(f"AGENT-INVENTED|{rec['name']}"):
                 continue
             try:
-                lib.invent_atom(rec["name"], rec["template"], game=self.gamma.game,
-                                cycle=self.cycle,
+                lib.invent_atom(rec["name"], rec["template"], rec.get("reads"),
+                                game=self.gamma.game, cycle=self.cycle,
                                 receipt={"carried": True, "from_game": rec.get("game"),
                                          "born": rec.get("born"), "then": rec.get("then"),
                                          "standing_then": rec.get("standing")},
@@ -10078,8 +10108,8 @@ class Agent:
                     if lib.get(f"AGENT-INVENTED|{name2}"):
                         continue
                     try:
-                        lib.invent_atom(name2, cond, game=self.gamma.game, cycle=self.cycle,
-                                        receipt={"carried": True, "form": form,
+                        lib.invent_atom(name2, cond, rec.get("reads"), game=self.gamma.game,
+                                        cycle=self.cycle, receipt={"carried": True, "form": form,
                                                  "form_of": rec["name"],
                                                  "from_game": rec.get("game")},
                                         affects=rec.get("affects") or [])
