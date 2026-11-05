@@ -35,6 +35,7 @@ _NSM = armflag.arm("TETHER_NSM_SPEAK", default=True)
 # detail. OFF: one line per kind per cycle, LOOKUP every held bond.
 _DEDUPE = armflag.arm("TETHER_NSM_DEDUPE", default=True)
 _NEGATE_GUARD = armflag.arm("TETHER_NEGATE_GUARD", default=True)   # ¬ wired (tether's arm)
+_SUBTRACT = armflag.arm("TETHER_SUBTRACT", default=True)   # − is AGENT|subtract (r1160)
 SAMPLE = 50           # the LOOKUP row keeps its first 50 held bonds (b2, 10-18); never widened here
 WIDTH = 240
 UNKNOWN = "?"
@@ -195,7 +196,7 @@ def read_node(sentence: str, atoms: dict):
             raise Refused("an unknown bond is not a term")
         if bond == "⇒":
             raise Refused("⇒ BECAUSE has no atom (r896)")
-        if bond == "−":
+        if bond == "−" and not _SUBTRACT:
             raise Refused("− has no atom")
         if bond != "→":
             impl = (store.grammar().get("operators") or {}).get(bond, {}).get("implemented_by")

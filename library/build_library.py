@@ -723,15 +723,20 @@ def build(check_only: bool = False) -> dict:
 # BUILD 3 ITEM 9b (the reviewer 2026-11-04 r1157): the PERCEPT atoms Isaiah's ATTRIBUTE_INDEX files
 # under no cluster, grouped by their own attributes. Additions only; the corpus file is read, never
 # written, and its sha256 is recorded so the reader serves the grouping only against that file.
+# r1159: an atom is ASSIGNED only on MIN_SHARED attributes (one shared word is a single source,
+# Fig 2); one shared is kept as a recorded CANDIDATE with its reason, never read by the bridge.
+MIN_SHARED = 2
 CORPUS_INDEX = Path(os.environ.get("ATTRIBUTE_INDEX") or Path(__file__).resolve().parent.parent
                     / "docs" / "corpus" / "ATTRIBUTE_INDEX.json")
 
 
 def _cluster_derived(atoms: dict, mols: dict) -> dict:
-    """{sha256, assigned {atom: [cluster, reason]}, new {ATTR:<a>: [atoms]}, unshared, bare}. An
-    unclustered atom joins the existing cluster whose members' attributes share the most of its own
-    (ties by name); with none shared, atoms sharing an attribute form a cluster named by it (the
-    attribute held by most of them, ties by name); the rest are unshared or carry no attribute."""
+    """{sha256, assigned {atom: [cluster, reason]}, candidate {atom: [cluster, reason]}, new
+    {ATTR:<a>: [atoms]}, unshared, bare}. An unclustered atom joins the existing cluster whose
+    members' attributes share the most of its own (ties by name) when MIN_SHARED or more are
+    shared, and is a candidate of it on fewer; with none shared, atoms sharing an attribute form a
+    cluster named by it (the attribute held by most of them, ties by name); the rest are unshared
+    or carry no attribute."""
     import hashlib
     try:
         raw = CORPUS_INDEX.read_bytes()
@@ -742,8 +747,8 @@ def _cluster_derived(atoms: dict, mols: dict) -> dict:
     prof = {c: {a for k in ks for a in (every.get(k) or {}).get("attributes") or []}
             for c, ks in sorted(by_cluster.items())}
     filed = {k for ks in by_cluster.values() for k in ks}
-    out: dict = {"sha256": hashlib.sha256(raw).hexdigest(), "assigned": {}, "new": {},
-                 "unshared": [], "bare": []}
+    out: dict = {"sha256": hashlib.sha256(raw).hexdigest(), "min_shared": MIN_SHARED,
+                 "assigned": {}, "candidate": {}, "new": {}, "unshared": [], "bare": []}
     loose = {}
     for k in sorted(atoms):
         if k in filed:
@@ -754,8 +759,10 @@ def _cluster_derived(atoms: dict, mols: dict) -> dict:
             continue
         n, c = max((len(own & prof[c]), -i) for i, c in enumerate(prof)) if prof else (0, 0)
         c = list(prof)[-c] if n else None
-        if n:
+        if n >= MIN_SHARED:
             out["assigned"][k] = [c, f"shares {sorted(own & prof[c])} with {c}'s members"]
+        elif n:
+            out["candidate"][k] = [c, f"candidate ({n} shared: {', '.join(sorted(own & prof[c]))})"]
         else:
             loose[k] = own
     held = collections.Counter(a for own in loose.values() for a in own)

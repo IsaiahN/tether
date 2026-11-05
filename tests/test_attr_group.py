@@ -5,10 +5,11 @@ Seconds: the real library, loaded through tether._library with the arm as set.
 
 MF-G1  a FORCE member gains "contact" and a SIGNAL member gains "press" -- readings item 9 could not
        give them, since K1's table names no reading for either cluster
-MF-G2  a formerly unclustered atom is grouped into a cluster with its reason, and gains a reading
-       of that cluster
-MF-G3  the grouping accounts for every unclustered PERCEPT atom once (assigned + new clusters +
-       unshared + no attribute) and was derived from the hash-checked corpus file
+MF-G2  a formerly unclustered atom is grouped into a cluster with its reason (two or more shared
+       attributes, r1159), and gains a reading of that cluster
+MF-G3  the grouping accounts for every unclustered PERCEPT atom once (assigned + candidates + new
+       clusters + unshared + no attribute) and was derived from the hash-checked corpus file
+MF-G4  a candidate (one shared attribute, r1159) is recorded with its reason and gains no reading
 The red is behavioural, the arm OFF on this tree: TETHER_ATTR_GROUP=0 fails MF-G1.
 
     python tests/test_attr_group.py
@@ -48,16 +49,25 @@ def main():
     d = lib.cluster_derived
     bc, _why = inherited.by_cluster()
     filed = {k for ks in bc.values() for k in ks}
-    k, (c, why) = next((k, v) for k, v in sorted(d["assigned"].items())
-                       if v[0] == "POSITION" and "row" not in (raw.get(k).get("reads") or []))
-    assert k not in filed and why.startswith("shares ") and "row" in lib.get(k)["reads"], (
-        "MF-G2", k, c, why, lib.get(k).get("reads"))
-    print(f"  MF-G2 {k} -> {c} ({why}); reads row")
+    cr = {c: {r for r, cs in inherited.READING_CLUSTER.items() if c in cs}
+          | {r for r, (c2, _w) in inherited.READING_CLUSTER_DERIVED.items() if c2 == c}
+          for c, _w in d["assigned"].values()}
+    k, c, why, r = next((k, c, why, r) for k, (c, why) in sorted(d["assigned"].items())
+                        for r in sorted(cr[c]) if r not in (raw.get(k).get("reads") or []))
+    assert k not in filed and why.startswith("shares ") and why.count(",") >= 1 and \
+        r in lib.get(k)["reads"], ("MF-G2", k, c, why, lib.get(k).get("reads"))
+    print(f"  MF-G2 {k} -> {c} ({why}); reads {r}")
+    cand = d["candidate"]
+    assert cand and all(w.startswith("candidate (1 shared: ") for _c, w in cand.values()) and all(
+        (lib.get(k).get("reads") or []) == (raw.get(k).get("reads") or []) for k in cand), (
+        "MF-G4", len(cand))
+    print(f"  MF-G4 {len(cand)} candidates recorded (one shared), none gains a reading")
     loose = sorted(k for k, e in lib.seed.items() if e.get("kind") == "PERCEPT" and k not in filed)
-    seen = sorted([*d["assigned"], *(x for v in d["new"].values() for x in v), *d["unshared"],
-                   *d["bare"]])
+    seen = sorted([*d["assigned"], *d["candidate"], *(x for v in d["new"].values() for x in v),
+                   *d["unshared"], *d["bare"]])
     assert seen == loose and d["sha256"] == inherited.INDEX_SHA, ("MF-G3", len(seen), len(loose))
-    print(f"  MF-G3 {len(loose)} unclustered: assigned {len(d['assigned'])}, new clusters "
+    print(f"  MF-G3 {len(loose)} unclustered: assigned {len(d['assigned'])}, candidates "
+          f"{len(d['candidate'])}, new clusters "
           f"{len(d['new'])} holding {sum(map(len, d['new'].values()))}, unshared "
           f"{len(d['unshared'])}, no attribute {len(d['bare'])}; tally {tally}")
     print("test_attr_group OK")

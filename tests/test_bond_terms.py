@@ -124,8 +124,8 @@ def main():
     assert r6 == f"condition: routed to the guard offer for {Y}" and \
         set(ag6._junction_conds) == {pk}, ("∥ routed, one key", r6, ag6._junction_conds)
     off6 = ag6._guards_once(phist[:2], Y, [])
-    # ∥ is false on R here, so under TETHER_NEGATE_GUARD its negation is offered beside it
-    want6 = [pk, "¬" + pk] if tether._NEGATE_GUARD else [pk]
+    # ∥ is false on R here, so under TETHER_NEGATE_GUARD its negation is offered in its place
+    want6 = ["¬" + pk] if tether._NEGATE_GUARD else [pk]
     assert off6[6] == want6 and off6[1][-1] == gamma.JUNCTION_GUARD, ("∥ offered", off6)
     ag7 = agent()
     r7 = ag7._route_junction("∥", X, Y)
@@ -144,7 +144,12 @@ def main():
                for b in ("≡", "⋛", "+", "∥"))
     assert ("a negated condition, routed to the guard offer" if tether._NEGATE_GUARD
             else "not wired as a term") in reasons["¬"], reasons["¬"]   # r1055: ¬ wired
-    assert "has no atom" in reasons["−"] and "has no atom" in reasons["⇒"], reasons
+    assert "has no atom" in reasons["⇒"], reasons
+    # r1160: − is implemented_by AGENT|subtract while TETHER_SUBTRACT is on (685b015)
+    r_sub = reasons["−"]
+    assert (r_sub.startswith("−: implemented_by AGENT|subtract") and
+            r_sub.endswith("not wired as a term")) if nsm._SUBTRACT else \
+        "− has no atom" in r_sub, r_sub
     assert not any("has no atom" in reasons[b] for b in ("≡", "⋛", "+", "¬")), reasons
     print(f"  MF-B1' {key} routed to {Y}; offered where it separates R: G {g0} -> {g1}; "
           f"JUNCTION-guarded {inc.name}: holds -> {v_hold}, not -> {v_not} (identity)")

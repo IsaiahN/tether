@@ -125932,14 +125932,11 @@
   },
   "by_cluster_derived": {
    "sha256": "fa95115c17b5880a96aaed48b379f1a4282090d0ca9396eb3cc2a924a0e3c645",
+   "min_shared": 2,
    "assigned": {
     "ACOUSTIC|Beat": [
      "TIME",
      "shares ['f1', 'f2'] with TIME's members"
-    ],
-    "ACOUSTIC|Timbre": [
-     "CONTACT",
-     "shares ['decay'] with CONTACT's members"
     ],
     "ACTION|Agency": [
      "ACTION",
@@ -125957,10 +125954,6 @@
      "FORCE",
      "shares ['effort', 'persistence'] with FORCE's members"
     ],
-    "ADHERENCE|Covenant": [
-     "SPEED",
-     "shares ['exchange'] with SPEED's members"
-    ],
     "ADHERENCE|Discipline": [
      "ACTION",
      "shares ['consistency', 'routine'] with ACTION's members"
@@ -125969,53 +125962,9 @@
      "FORCE",
      "shares ['choice', 'persistence'] with FORCE's members"
     ],
-    "ADVERSARIAL|Level-1 perspective": [
-     "POSITION",
-     "shares ['agentView'] with POSITION's members"
-    ],
-    "ADVERSARIAL|Level-2 perspective": [
-     "SHAPE",
-     "shares ['objectAppearance'] with SHAPE's members"
-    ],
-    "AESTHETIC|Gestalt": [
-     "CHANGE",
-     "shares ['emergence'] with CHANGE's members"
-    ],
-    "ALEATORY|Distribution": [
-     "CHANGE",
-     "shares ['probabilities'] with CHANGE's members"
-    ],
-    "ALEATORY|Luck": [
-     "ACTION",
-     "shares ['outcome'] with ACTION's members"
-    ],
-    "ALEATORY|Pseudo-random": [
-     "CHANGE",
-     "shares ['sequence'] with CHANGE's members"
-    ],
-    "ALEATORY|Randomness": [
-     "CHANGE",
-     "shares ['sequence'] with CHANGE's members"
-    ],
-    "ATMOSPHERIC|Front": [
-     "MOTION",
-     "shares ['temperatureGradient'] with MOTION's members"
-    ],
-    "ATMOSPHERIC|Temperature": [
-     "FORCE",
-     "shares ['thermometer'] with FORCE's members"
-    ],
     "AUTOMATON|Program": [
      "STRUCTURE",
      "shares ['rules', 'sequence'] with STRUCTURE's members"
-    ],
-    "CELLULAR|Biofilm": [
-     "EXTENT",
-     "shares ['coordination'] with EXTENT's members"
-    ],
-    "CELLULAR|Cell": [
-     "FORCE",
-     "shares ['membrane'] with FORCE's members"
     ],
     "CELLULAR|Eukaryote": [
      "EXTENT",
@@ -126025,101 +125974,9 @@
      "FORCE",
      "shares ['ATP', 'product'] with FORCE's members"
     ],
-    "CHARACTER|Authenticity": [
-     "STRUCTURE",
-     "shares ['coherence'] with STRUCTURE's members"
-    ],
-    "CHARACTER|Identity": [
-     "CHANGE",
-     "shares ['continuity'] with CHANGE's members"
-    ],
-    "CHARACTER|Moral Framework": [
-     "ACTION",
-     "shares ['consistency'] with ACTION's members"
-    ],
-    "CHARACTER|Narrative Identity": [
-     "STRUCTURE",
-     "shares ['coherence'] with STRUCTURE's members"
-    ],
-    "CHOICE|Constraint": [
-     "ACTION",
-     "shares ['rules'] with ACTION's members"
-    ],
-    "CHOICE|Decision Basis": [
-     "TIME",
-     "shares ['strategy'] with TIME's members"
-    ],
-    "CHOICE|Post-hoc rationalisation": [
-     "ACTION",
-     "shares ['rationalisation'] with ACTION's members"
-    ],
-    "CHOICE|Preference": [
-     "ACTION",
-     "shares ['utility'] with ACTION's members"
-    ],
-    "CHOICE|Risk": [
-     "SIGNAL",
-     "shares ['variance'] with SIGNAL's members"
-    ],
-    "CONNECTION|Entanglement": [
-     "CONTACT",
-     "shares ['correlation'] with CONTACT's members"
-    ],
-    "CONNECTION|Nexus": [
-     "POSITION",
-     "shares ['degree'] with POSITION's members"
-    ],
-    "CONNECTION|Wholeness": [
-     "CHANGE",
-     "shares ['emergence'] with CHANGE's members"
-    ],
-    "CURIOSITY|Discovery": [
-     "CONTACT",
-     "shares ['search'] with CONTACT's members"
-    ],
-    "CURIOSITY|Novelty": [
-     "ACTION",
-     "shares ['attention'] with ACTION's members"
-    ],
-    "CURIOSITY|Surprise": [
-     "SPEED",
-     "shares ['predictionError'] with SPEED's members"
-    ],
-    "CURIOSITY|Wonder": [
-     "EXTENT",
-     "shares ['physiology'] with EXTENT's members"
-    ],
     "CYBERNETIC|Homeostasis": [
      "ACTION",
      "shares ['error', 'setpoint'] with ACTION's members"
-    ],
-    "DESIRE|Craving": [
-     "ACTION",
-     "shares ['overrideOther'] with ACTION's members"
-    ],
-    "DESIRE|Frustration": [
-     "ACTION",
-     "shares ['persistence'] with ACTION's members"
-    ],
-    "DESIRE|Liking": [
-     "ACTION",
-     "shares ['reward'] with ACTION's members"
-    ],
-    "DESIRE|Need": [
-     "ACTION",
-     "shares ['consequence'] with ACTION's members"
-    ],
-    "DESIRE|Want": [
-     "FORCE",
-     "shares ['choice'] with FORCE's members"
-    ],
-    "DESIRE|Wanting": [
-     "FORCE",
-     "shares ['effort'] with FORCE's members"
-    ],
-    "DYNAMIC|Coupling": [
-     "CONTACT",
-     "shares ['correlation'] with CONTACT's members"
     ],
     "ECONOMIC|Game": [
      "SIGNAL",
@@ -126129,209 +125986,41 @@
      "SIGNAL",
      "shares ['demand', 'price'] with SIGNAL's members"
     ],
-    "ELECTRICAL|Capacitance": [
-     "MOTION",
-     "shares ['voltage'] with MOTION's members"
-    ],
-    "ELECTRICAL|Magnetic field": [
-     "ACTION",
-     "shares ['current'] with ACTION's members"
-    ],
-    "ELECTRICAL|Resistance": [
-     "ACTION",
-     "shares ['current'] with ACTION's members"
-    ],
-    "EMOTION|Anger": [
-     "EXTENT",
-     "shares ['physiology'] with EXTENT's members"
-    ],
-    "EMOTION|Fear": [
-     "EXTENT",
-     "shares ['physiology'] with EXTENT's members"
-    ],
-    "EMOTION|Surprise": [
-     "SPEED",
-     "shares ['predictionError'] with SPEED's members"
-    ],
-    "EMOTION|Valence": [
-     "EXTENT",
-     "shares ['physiology'] with EXTENT's members"
-    ],
-    "EXCHANGE|Debt": [
-     "ACTION",
-     "shares ['promise'] with ACTION's members"
-    ],
-    "EXCHANGE|Medium of Exchange": [
-     "CHANGE",
-     "shares ['acceptance'] with CHANGE's members"
-    ],
-    "EXCHANGE|Offer": [
-     "ACTION",
-     "shares ['statement'] with ACTION's members"
-    ],
-    "EXCHANGE|Reciprocity": [
-     "POSITION",
-     "shares ['balance'] with POSITION's members"
-    ],
     "HABIT|Reward": [
      "ACTION",
      "shares ['outcome', 'reinforcement'] with ACTION's members"
-    ],
-    "HABIT|Strength": [
-     "ACTION",
-     "shares ['interruption'] with ACTION's members"
     ],
     "HABIT|The self-correcting": [
      "ACTION",
      "shares ['correction', 'improvement'] with ACTION's members"
     ],
-    "HUMAN|Cohesion": [
-     "DIRECTION",
-     "shares ['parts'] with DIRECTION's members"
-    ],
-    "INFORMATION|Search": [
-     "ACTION",
-     "shares ['target'] with ACTION's members"
-    ],
-    "LARGE-SCALE|Curvature": [
-     "DIRECTION",
-     "shares ['parallelTransport'] with DIRECTION's members"
-    ],
-    "LEARNING|Application": [
-     "TIME",
-     "shares ['taskPerformance'] with TIME's members"
-    ],
     "LEARNING|Reflection": [
      "SIGNAL",
      "shares ['insight', 'metacognition'] with SIGNAL's members"
-    ],
-    "LEARNING|Transfer": [
-     "EXTENT",
-     "shares ['performance'] with EXTENT's members"
-    ],
-    "LINEAGE|Fruit": [
-     "ACTION",
-     "shares ['products'] with ACTION's members"
-    ],
-    "LINEAGE|Inheritance": [
-     "POSITION",
-     "shares ['offspring'] with POSITION's members"
-    ],
-    "LINEAGE|Matrilineal-patrilineal": [
-     "ACTION",
-     "shares ['focus'] with ACTION's members"
-    ],
-    "LINEAGE|Root": [
-     "CONTACT",
-     "shares ['source'] with CONTACT's members"
-    ],
-    "LINEAGE|Seed": [
-     "DIRECTION",
-     "shares ['growth'] with DIRECTION's members"
     ],
     "LINGUISTIC|Metaphor": [
      "STRUCTURE",
      "shares ['sourceDomain', 'targetDomain'] with STRUCTURE's members"
     ],
-    "LINGUISTIC|Morpheme": [
-     "CONTACT",
-     "shares ['root'] with CONTACT's members"
-    ],
-    "LINGUISTIC|Phoneme": [
-     "SIGNAL",
-     "shares ['sound'] with SIGNAL's members"
-    ],
     "LINGUISTIC|Pragmatics": [
      "ACTION",
      "shares ['context', 'utterance'] with ACTION's members"
-    ],
-    "LINGUISTIC|Signified": [
-     "SHAPE",
-     "shares ['concept'] with SHAPE's members"
-    ],
-    "LINGUISTIC|Signifier": [
-     "SIGNAL",
-     "shares ['sound'] with SIGNAL's members"
-    ],
-    "LIVING|Code": [
-     "CHANGE",
-     "shares ['DNAsequence'] with CHANGE's members"
-    ],
-    "LIVING|Ecology": [
-     "CHANGE",
-     "shares ['environment'] with CHANGE's members"
     ],
     "LIVING|Feedback loop": [
      "ACTION",
      "shares ['error', 'setpoint'] with ACTION's members"
     ],
-    "LOGISTICAL|Edge": [
-     "ACTION",
-     "shares ['cost'] with ACTION's members"
-    ],
-    "LOGISTICAL|Just-in-case": [
-     "ACTION",
-     "shares ['uncertainty'] with ACTION's members"
-    ],
-    "LOGISTICAL|Just-in-time": [
-     "SIGNAL",
-     "shares ['demand'] with SIGNAL's members"
-    ],
-    "LOGISTICAL|Supply Chain": [
-     "SPEED",
-     "shares ['inventory'] with SPEED's members"
-    ],
-    "LUDIC / ABSURDIST|Absurd": [
-     "TIME",
-     "shares ['surprise'] with TIME's members"
-    ],
-    "LUDIC / ABSURDIST|Incongruity": [
-     "CHANGE",
-     "shares ['expectation'] with CHANGE's members"
-    ],
     "LUDIC / ABSURDIST|Irony": [
      "ACTION",
      "shares ['context', 'statement'] with ACTION's members"
-    ],
-    "LUDIC / ABSURDIST|Joke": [
-     "TIME",
-     "shares ['surprise'] with TIME's members"
     ],
     "LUDIC / ABSURDIST|Satire": [
      "ACTION",
      "shares ['exaggeration', 'target'] with ACTION's members"
     ],
-    "LUDOLOGICAL|Magic Circle": [
-     "ACTION",
-     "shares ['context'] with ACTION's members"
-    ],
-    "MEDICAL|Infection": [
-     "ACTION",
-     "shares ['damage'] with ACTION's members"
-    ],
-    "MEDICAL|Inflammation": [
-     "CHANGE",
-     "shares ['temperature'] with CHANGE's members"
-    ],
-    "MEDICAL|Pathogen": [
-     "DIRECTION",
-     "shares ['growth'] with DIRECTION's members"
-    ],
-    "MEDICAL|Toxin": [
-     "CHANGE",
-     "shares ['symptom'] with CHANGE's members"
-    ],
-    "MEDICAL|Wound": [
-     "FORCE",
-     "shares ['bleeding'] with FORCE's members"
-    ],
     "MNEMONIC|Encoding": [
      "SPEED",
      "shares ['attention', 'stimulus'] with SPEED's members"
-    ],
-    "MNEMONIC|Memory-attention": [
-     "ACTION",
-     "shares ['attention'] with ACTION's members"
     ],
     "MORPHOGENETIC|Buckling": [
      "FORCE",
@@ -126341,125 +126030,9 @@
      "CONTACT",
      "shares ['betweenClusters', 'removalDisconnects'] with CONTACT's members"
     ],
-    "NETWORK|Centrality": [
-     "POSITION",
-     "shares ['degree'] with POSITION's members"
-    ],
-    "NETWORK|Clustering": [
-     "STRUCTURE",
-     "shares ['transitivity'] with STRUCTURE's members"
-    ],
-    "NETWORK|Hub": [
-     "SIGNAL",
-     "shares ['influence'] with SIGNAL's members"
-    ],
-    "NETWORK|Topology (Network)": [
-     "CONTACT",
-     "shares ['adjacencyMatrix'] with CONTACT's members"
-    ],
-    "NOETIC|Dissolution": [
-     "CONTACT",
-     "shares ['agency'] with CONTACT's members"
-    ],
-    "NOETIC|Mindfulness": [
-     "ACTION",
-     "shares ['attentionFocus'] with ACTION's members"
-    ],
-    "NUTRITIONAL|ATP": [
-     "FORCE",
-     "shares ['work'] with FORCE's members"
-    ],
-    "NUTRITIONAL|Energy Balance": [
-     "FORCE",
-     "shares ['expenditure'] with FORCE's members"
-    ],
-    "NUTRITIONAL|Metabolism": [
-     "DIRECTION",
-     "shares ['growth'] with DIRECTION's members"
-    ],
-    "ONTOLOGICAL|Axiom": [
-     "CHANGE",
-     "shares ['acceptance'] with CHANGE's members"
-    ],
-    "ONTOLOGICAL|Reality": [
-     "ACTION",
-     "shares ['consistency'] with ACTION's members"
-    ],
-    "OPTICAL|Absorption": [
-     "DIRECTION",
-     "shares ['transmittedIntensity'] with DIRECTION's members"
-    ],
     "OPTICAL|Dispersion": [
      "EXTENT",
      "shares ['refractiveIndex', 'wavelength'] with EXTENT's members"
-    ],
-    "OPTICAL|Opacity": [
-     "DIRECTION",
-     "shares ['transmittedIntensity'] with DIRECTION's members"
-    ],
-    "OPTICAL|Transmission": [
-     "DIRECTION",
-     "shares ['transmittedIntensity'] with DIRECTION's members"
-    ],
-    "PATHOLOGICAL|Grief": [
-     "FORCE",
-     "shares ['withdrawal'] with FORCE's members"
-    ],
-    "PATHOLOGICAL|Mortality": [
-     "SIGNAL",
-     "shares ['behaviour'] with SIGNAL's members"
-    ],
-    "PATHOLOGICAL|Trauma": [
-     "CHANGE",
-     "shares ['event'] with CHANGE's members"
-    ],
-    "PHENOMENOLOGICAL|Horizon": [
-     "ACTION",
-     "shares ['focus'] with ACTION's members"
-    ],
-    "PHENOMENOLOGICAL|Intentionality": [
-     "ACTION",
-     "shares ['attention'] with ACTION's members"
-    ],
-    "PHENOMENOLOGICAL|Lived Meaning": [
-     "COLOUR",
-     "shares ['situation'] with COLOUR's members"
-    ],
-    "PHENOMENOLOGICAL|Mood": [
-     "COLOUR",
-     "shares ['atmosphere'] with COLOUR's members"
-    ],
-    "PHENOMENOLOGICAL|Temporality": [
-     "TIME",
-     "shares ['retention'] with TIME's members"
-    ],
-    "PSYCHOLOGICAL|Memory": [
-     "TIME",
-     "shares ['recallAccuracy'] with TIME's members"
-    ],
-    "QUANTUM|Entanglement": [
-     "CONTACT",
-     "shares ['correlation'] with CONTACT's members"
-    ],
-    "QUANTUM|Tunnelling": [
-     "EXTENT",
-     "shares ['transmissionProbability'] with EXTENT's members"
-    ],
-    "REBELLION|Dissent": [
-     "ACTION",
-     "shares ['statement'] with ACTION's members"
-    ],
-    "REBELLION|Heresy": [
-     "ACTION",
-     "shares ['belief'] with ACTION's members"
-    ],
-    "REBELLION|Nonconformity": [
-     "SIGNAL",
-     "shares ['behaviour'] with SIGNAL's members"
-    ],
-    "SKILL|Adaptability": [
-     "CHANGE",
-     "shares ['flexibility'] with CHANGE's members"
     ],
     "SKILL|Economy of Motion": [
      "SPEED",
@@ -126469,38 +126042,6 @@
      "SIGNAL",
      "shares ['error', 'variance'] with SIGNAL's members"
     ],
-    "SKILL|Style": [
-     "ACTION",
-     "shares ['consistency'] with ACTION's members"
-    ],
-    "SOCIAL|Network": [
-     "CONTACT",
-     "shares ['adjacencyMatrix'] with CONTACT's members"
-    ],
-    "SOCIAL|Trust": [
-     "ACTION",
-     "shares ['risk'] with ACTION's members"
-    ],
-    "SOMNIAL|Circadian Rhythm": [
-     "CHANGE",
-     "shares ['temperature'] with CHANGE's members"
-    ],
-    "SOMNIAL|Hypnagogia": [
-     "CHANGE",
-     "shares ['EEG'] with CHANGE's members"
-    ],
-    "SOMNIAL|Nightmare": [
-     "ACTION",
-     "shares ['fear'] with ACTION's members"
-    ],
-    "SOMNIAL|Restorative": [
-     "IDENTITY",
-     "shares ['memory'] with IDENTITY's members"
-    ],
-    "TEMPORAL|Retrospection": [
-     "CHANGE",
-     "shares ['emotion'] with CHANGE's members"
-    ],
     "THAUMATURGICAL|Incantation": [
      "ACTION",
      "shares ['belief', 'context', 'utterance'] with ACTION's members"
@@ -126509,30 +126050,6 @@
      "DIRECTION",
      "shares ['source', 'target'] with DIRECTION's members"
     ],
-    "THOUGHT|Imagination": [
-     "TIME",
-     "shares ['simulation'] with TIME's members"
-    ],
-    "THOUGHT|Inference": [
-     "CHANGE",
-     "shares ['logic'] with CHANGE's members"
-    ],
-    "THOUGHT|Logic": [
-     "ACTION",
-     "shares ['consistency'] with ACTION's members"
-    ],
-    "THOUGHT|Meta-Thought": [
-     "IDENTITY",
-     "shares ['reflection'] with IDENTITY's members"
-    ],
-    "THOUGHT|Proposition": [
-     "ACTION",
-     "shares ['belief'] with ACTION's members"
-    ],
-    "THOUGHT|Rhetoric": [
-     "STRUCTURE",
-     "shares ['argument'] with STRUCTURE's members"
-    ],
     "TOPOLOGICAL|Dimensionality": [
      "DIRECTION",
      "shares ['coordinates', 'degreesOfFreedom'] with DIRECTION's members"
@@ -126540,22 +126057,508 @@
     "TOPOLOGICAL|Genus": [
      "CONTACT",
      "shares ['holes', 'surface'] with CONTACT's members"
+    ]
+   },
+   "candidate": {
+    "ACOUSTIC|Timbre": [
+     "CONTACT",
+     "candidate (1 shared: decay)"
+    ],
+    "ADHERENCE|Covenant": [
+     "SPEED",
+     "candidate (1 shared: exchange)"
+    ],
+    "ADVERSARIAL|Level-1 perspective": [
+     "POSITION",
+     "candidate (1 shared: agentView)"
+    ],
+    "ADVERSARIAL|Level-2 perspective": [
+     "SHAPE",
+     "candidate (1 shared: objectAppearance)"
+    ],
+    "AESTHETIC|Gestalt": [
+     "CHANGE",
+     "candidate (1 shared: emergence)"
+    ],
+    "ALEATORY|Distribution": [
+     "CHANGE",
+     "candidate (1 shared: probabilities)"
+    ],
+    "ALEATORY|Luck": [
+     "ACTION",
+     "candidate (1 shared: outcome)"
+    ],
+    "ALEATORY|Pseudo-random": [
+     "CHANGE",
+     "candidate (1 shared: sequence)"
+    ],
+    "ALEATORY|Randomness": [
+     "CHANGE",
+     "candidate (1 shared: sequence)"
+    ],
+    "ATMOSPHERIC|Front": [
+     "MOTION",
+     "candidate (1 shared: temperatureGradient)"
+    ],
+    "ATMOSPHERIC|Temperature": [
+     "FORCE",
+     "candidate (1 shared: thermometer)"
+    ],
+    "CELLULAR|Biofilm": [
+     "EXTENT",
+     "candidate (1 shared: coordination)"
+    ],
+    "CELLULAR|Cell": [
+     "FORCE",
+     "candidate (1 shared: membrane)"
+    ],
+    "CHARACTER|Authenticity": [
+     "STRUCTURE",
+     "candidate (1 shared: coherence)"
+    ],
+    "CHARACTER|Identity": [
+     "CHANGE",
+     "candidate (1 shared: continuity)"
+    ],
+    "CHARACTER|Moral Framework": [
+     "ACTION",
+     "candidate (1 shared: consistency)"
+    ],
+    "CHARACTER|Narrative Identity": [
+     "STRUCTURE",
+     "candidate (1 shared: coherence)"
+    ],
+    "CHOICE|Constraint": [
+     "ACTION",
+     "candidate (1 shared: rules)"
+    ],
+    "CHOICE|Decision Basis": [
+     "TIME",
+     "candidate (1 shared: strategy)"
+    ],
+    "CHOICE|Post-hoc rationalisation": [
+     "ACTION",
+     "candidate (1 shared: rationalisation)"
+    ],
+    "CHOICE|Preference": [
+     "ACTION",
+     "candidate (1 shared: utility)"
+    ],
+    "CHOICE|Risk": [
+     "SIGNAL",
+     "candidate (1 shared: variance)"
+    ],
+    "CONNECTION|Entanglement": [
+     "CONTACT",
+     "candidate (1 shared: correlation)"
+    ],
+    "CONNECTION|Nexus": [
+     "POSITION",
+     "candidate (1 shared: degree)"
+    ],
+    "CONNECTION|Wholeness": [
+     "CHANGE",
+     "candidate (1 shared: emergence)"
+    ],
+    "CURIOSITY|Discovery": [
+     "CONTACT",
+     "candidate (1 shared: search)"
+    ],
+    "CURIOSITY|Novelty": [
+     "ACTION",
+     "candidate (1 shared: attention)"
+    ],
+    "CURIOSITY|Surprise": [
+     "SPEED",
+     "candidate (1 shared: predictionError)"
+    ],
+    "CURIOSITY|Wonder": [
+     "EXTENT",
+     "candidate (1 shared: physiology)"
+    ],
+    "DESIRE|Craving": [
+     "ACTION",
+     "candidate (1 shared: overrideOther)"
+    ],
+    "DESIRE|Frustration": [
+     "ACTION",
+     "candidate (1 shared: persistence)"
+    ],
+    "DESIRE|Liking": [
+     "ACTION",
+     "candidate (1 shared: reward)"
+    ],
+    "DESIRE|Need": [
+     "ACTION",
+     "candidate (1 shared: consequence)"
+    ],
+    "DESIRE|Want": [
+     "FORCE",
+     "candidate (1 shared: choice)"
+    ],
+    "DESIRE|Wanting": [
+     "FORCE",
+     "candidate (1 shared: effort)"
+    ],
+    "DYNAMIC|Coupling": [
+     "CONTACT",
+     "candidate (1 shared: correlation)"
+    ],
+    "ELECTRICAL|Capacitance": [
+     "MOTION",
+     "candidate (1 shared: voltage)"
+    ],
+    "ELECTRICAL|Magnetic field": [
+     "ACTION",
+     "candidate (1 shared: current)"
+    ],
+    "ELECTRICAL|Resistance": [
+     "ACTION",
+     "candidate (1 shared: current)"
+    ],
+    "EMOTION|Anger": [
+     "EXTENT",
+     "candidate (1 shared: physiology)"
+    ],
+    "EMOTION|Fear": [
+     "EXTENT",
+     "candidate (1 shared: physiology)"
+    ],
+    "EMOTION|Surprise": [
+     "SPEED",
+     "candidate (1 shared: predictionError)"
+    ],
+    "EMOTION|Valence": [
+     "EXTENT",
+     "candidate (1 shared: physiology)"
+    ],
+    "EXCHANGE|Debt": [
+     "ACTION",
+     "candidate (1 shared: promise)"
+    ],
+    "EXCHANGE|Medium of Exchange": [
+     "CHANGE",
+     "candidate (1 shared: acceptance)"
+    ],
+    "EXCHANGE|Offer": [
+     "ACTION",
+     "candidate (1 shared: statement)"
+    ],
+    "EXCHANGE|Reciprocity": [
+     "POSITION",
+     "candidate (1 shared: balance)"
+    ],
+    "HABIT|Strength": [
+     "ACTION",
+     "candidate (1 shared: interruption)"
+    ],
+    "HUMAN|Cohesion": [
+     "DIRECTION",
+     "candidate (1 shared: parts)"
+    ],
+    "INFORMATION|Search": [
+     "ACTION",
+     "candidate (1 shared: target)"
+    ],
+    "LARGE-SCALE|Curvature": [
+     "DIRECTION",
+     "candidate (1 shared: parallelTransport)"
+    ],
+    "LEARNING|Application": [
+     "TIME",
+     "candidate (1 shared: taskPerformance)"
+    ],
+    "LEARNING|Transfer": [
+     "EXTENT",
+     "candidate (1 shared: performance)"
+    ],
+    "LINEAGE|Fruit": [
+     "ACTION",
+     "candidate (1 shared: products)"
+    ],
+    "LINEAGE|Inheritance": [
+     "POSITION",
+     "candidate (1 shared: offspring)"
+    ],
+    "LINEAGE|Matrilineal-patrilineal": [
+     "ACTION",
+     "candidate (1 shared: focus)"
+    ],
+    "LINEAGE|Root": [
+     "CONTACT",
+     "candidate (1 shared: source)"
+    ],
+    "LINEAGE|Seed": [
+     "DIRECTION",
+     "candidate (1 shared: growth)"
+    ],
+    "LINGUISTIC|Morpheme": [
+     "CONTACT",
+     "candidate (1 shared: root)"
+    ],
+    "LINGUISTIC|Phoneme": [
+     "SIGNAL",
+     "candidate (1 shared: sound)"
+    ],
+    "LINGUISTIC|Signified": [
+     "SHAPE",
+     "candidate (1 shared: concept)"
+    ],
+    "LINGUISTIC|Signifier": [
+     "SIGNAL",
+     "candidate (1 shared: sound)"
+    ],
+    "LIVING|Code": [
+     "CHANGE",
+     "candidate (1 shared: DNAsequence)"
+    ],
+    "LIVING|Ecology": [
+     "CHANGE",
+     "candidate (1 shared: environment)"
+    ],
+    "LOGISTICAL|Edge": [
+     "ACTION",
+     "candidate (1 shared: cost)"
+    ],
+    "LOGISTICAL|Just-in-case": [
+     "ACTION",
+     "candidate (1 shared: uncertainty)"
+    ],
+    "LOGISTICAL|Just-in-time": [
+     "SIGNAL",
+     "candidate (1 shared: demand)"
+    ],
+    "LOGISTICAL|Supply Chain": [
+     "SPEED",
+     "candidate (1 shared: inventory)"
+    ],
+    "LUDIC / ABSURDIST|Absurd": [
+     "TIME",
+     "candidate (1 shared: surprise)"
+    ],
+    "LUDIC / ABSURDIST|Incongruity": [
+     "CHANGE",
+     "candidate (1 shared: expectation)"
+    ],
+    "LUDIC / ABSURDIST|Joke": [
+     "TIME",
+     "candidate (1 shared: surprise)"
+    ],
+    "LUDOLOGICAL|Magic Circle": [
+     "ACTION",
+     "candidate (1 shared: context)"
+    ],
+    "MEDICAL|Infection": [
+     "ACTION",
+     "candidate (1 shared: damage)"
+    ],
+    "MEDICAL|Inflammation": [
+     "CHANGE",
+     "candidate (1 shared: temperature)"
+    ],
+    "MEDICAL|Pathogen": [
+     "DIRECTION",
+     "candidate (1 shared: growth)"
+    ],
+    "MEDICAL|Toxin": [
+     "CHANGE",
+     "candidate (1 shared: symptom)"
+    ],
+    "MEDICAL|Wound": [
+     "FORCE",
+     "candidate (1 shared: bleeding)"
+    ],
+    "MNEMONIC|Memory-attention": [
+     "ACTION",
+     "candidate (1 shared: attention)"
+    ],
+    "NETWORK|Centrality": [
+     "POSITION",
+     "candidate (1 shared: degree)"
+    ],
+    "NETWORK|Clustering": [
+     "STRUCTURE",
+     "candidate (1 shared: transitivity)"
+    ],
+    "NETWORK|Hub": [
+     "SIGNAL",
+     "candidate (1 shared: influence)"
+    ],
+    "NETWORK|Topology (Network)": [
+     "CONTACT",
+     "candidate (1 shared: adjacencyMatrix)"
+    ],
+    "NOETIC|Dissolution": [
+     "CONTACT",
+     "candidate (1 shared: agency)"
+    ],
+    "NOETIC|Mindfulness": [
+     "ACTION",
+     "candidate (1 shared: attentionFocus)"
+    ],
+    "NUTRITIONAL|ATP": [
+     "FORCE",
+     "candidate (1 shared: work)"
+    ],
+    "NUTRITIONAL|Energy Balance": [
+     "FORCE",
+     "candidate (1 shared: expenditure)"
+    ],
+    "NUTRITIONAL|Metabolism": [
+     "DIRECTION",
+     "candidate (1 shared: growth)"
+    ],
+    "ONTOLOGICAL|Axiom": [
+     "CHANGE",
+     "candidate (1 shared: acceptance)"
+    ],
+    "ONTOLOGICAL|Reality": [
+     "ACTION",
+     "candidate (1 shared: consistency)"
+    ],
+    "OPTICAL|Absorption": [
+     "DIRECTION",
+     "candidate (1 shared: transmittedIntensity)"
+    ],
+    "OPTICAL|Opacity": [
+     "DIRECTION",
+     "candidate (1 shared: transmittedIntensity)"
+    ],
+    "OPTICAL|Transmission": [
+     "DIRECTION",
+     "candidate (1 shared: transmittedIntensity)"
+    ],
+    "PATHOLOGICAL|Grief": [
+     "FORCE",
+     "candidate (1 shared: withdrawal)"
+    ],
+    "PATHOLOGICAL|Mortality": [
+     "SIGNAL",
+     "candidate (1 shared: behaviour)"
+    ],
+    "PATHOLOGICAL|Trauma": [
+     "CHANGE",
+     "candidate (1 shared: event)"
+    ],
+    "PHENOMENOLOGICAL|Horizon": [
+     "ACTION",
+     "candidate (1 shared: focus)"
+    ],
+    "PHENOMENOLOGICAL|Intentionality": [
+     "ACTION",
+     "candidate (1 shared: attention)"
+    ],
+    "PHENOMENOLOGICAL|Lived Meaning": [
+     "COLOUR",
+     "candidate (1 shared: situation)"
+    ],
+    "PHENOMENOLOGICAL|Mood": [
+     "COLOUR",
+     "candidate (1 shared: atmosphere)"
+    ],
+    "PHENOMENOLOGICAL|Temporality": [
+     "TIME",
+     "candidate (1 shared: retention)"
+    ],
+    "PSYCHOLOGICAL|Memory": [
+     "TIME",
+     "candidate (1 shared: recallAccuracy)"
+    ],
+    "QUANTUM|Entanglement": [
+     "CONTACT",
+     "candidate (1 shared: correlation)"
+    ],
+    "QUANTUM|Tunnelling": [
+     "EXTENT",
+     "candidate (1 shared: transmissionProbability)"
+    ],
+    "REBELLION|Dissent": [
+     "ACTION",
+     "candidate (1 shared: statement)"
+    ],
+    "REBELLION|Heresy": [
+     "ACTION",
+     "candidate (1 shared: belief)"
+    ],
+    "REBELLION|Nonconformity": [
+     "SIGNAL",
+     "candidate (1 shared: behaviour)"
+    ],
+    "SKILL|Adaptability": [
+     "CHANGE",
+     "candidate (1 shared: flexibility)"
+    ],
+    "SKILL|Style": [
+     "ACTION",
+     "candidate (1 shared: consistency)"
+    ],
+    "SOCIAL|Network": [
+     "CONTACT",
+     "candidate (1 shared: adjacencyMatrix)"
+    ],
+    "SOCIAL|Trust": [
+     "ACTION",
+     "candidate (1 shared: risk)"
+    ],
+    "SOMNIAL|Circadian Rhythm": [
+     "CHANGE",
+     "candidate (1 shared: temperature)"
+    ],
+    "SOMNIAL|Hypnagogia": [
+     "CHANGE",
+     "candidate (1 shared: EEG)"
+    ],
+    "SOMNIAL|Nightmare": [
+     "ACTION",
+     "candidate (1 shared: fear)"
+    ],
+    "SOMNIAL|Restorative": [
+     "IDENTITY",
+     "candidate (1 shared: memory)"
+    ],
+    "TEMPORAL|Retrospection": [
+     "CHANGE",
+     "candidate (1 shared: emotion)"
+    ],
+    "THOUGHT|Imagination": [
+     "TIME",
+     "candidate (1 shared: simulation)"
+    ],
+    "THOUGHT|Inference": [
+     "CHANGE",
+     "candidate (1 shared: logic)"
+    ],
+    "THOUGHT|Logic": [
+     "ACTION",
+     "candidate (1 shared: consistency)"
+    ],
+    "THOUGHT|Meta-Thought": [
+     "IDENTITY",
+     "candidate (1 shared: reflection)"
+    ],
+    "THOUGHT|Proposition": [
+     "ACTION",
+     "candidate (1 shared: belief)"
+    ],
+    "THOUGHT|Rhetoric": [
+     "STRUCTURE",
+     "candidate (1 shared: argument)"
     ],
     "TRANSFORMATION|Emergence": [
      "DIRECTION",
-     "shares ['parts'] with DIRECTION's members"
+     "candidate (1 shared: parts)"
     ],
     "TRANSFORMATION|Mutation": [
      "CHANGE",
-     "shares ['genotype'] with CHANGE's members"
+     "candidate (1 shared: genotype)"
     ],
     "ZOOLOGICAL|Predation": [
      "MOTION",
-     "shares ['predator'] with MOTION's members"
+     "candidate (1 shared: predator)"
     ],
     "ZOOLOGICAL|Predator-prey arms race": [
      "CHANGE",
-     "shares ['adaptation'] with CHANGE's members"
+     "candidate (1 shared: adaptation)"
     ]
    },
    "new": {

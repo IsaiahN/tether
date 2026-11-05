@@ -9,6 +9,8 @@ MF-N1  R is where o0.row and o1.row DIFFER: the routed ≡ key is false on R, so
        the same, and the identity where a reading is unresolved (an unknown is not a negation)
 MF-N2  R is where they are the SAME: ≡ itself is offered and ¬≡ is not
 MF-N3  nsm.read_node says "a negated condition, routed to the guard offer" for ¬, a listed reason
+MF-N4  (r1160) in MF-N1's case ≡ is false on R, so ¬≡ is offered IN PLACE of ≡, and ≡ is recorded
+       on a ROUTE "polarity" row ("false on R -> offered as ¬k"), not offered
 The red is behavioural, the arm OFF on this tree: TETHER_NEGATE_GUARD=0 fails MF-N1.
 
     python tests/test_negate_guard.py
@@ -55,6 +57,9 @@ def main():
     off = ag._guards_once(hist[:2], Y, [])
     assert "¬" + KEY in off[6] and off[1][-1] == gamma.JUNCTION_GUARD, (
         "MF-N1: the ¬ key is not offered", off[6])
+    pol = [e.detail for e in ag.led._entries if e.event == "polarity"]
+    assert off[6] == ["¬" + KEY] and [(d["key"], d["offered"]) for d in pol] == [
+        (KEY, "¬" + KEY)], ("MF-N4: k is offered beside ¬k, or not recorded", off[6], pol)
     inc = next(a for a in ag.gamma.atoms if a.in_type == a.out_type and a.name != "idn")
     t = gamma.Term((inc,), guard=gamma.JUNCTION_GUARD, guard_ref="¬" + KEY)
 
@@ -70,6 +75,7 @@ def main():
     on = agent(hist2)._guards_once(hist2[:2], Y, [])
     assert on[6] == [KEY], ("MF-N2", on[6])
     print(f"  MF-N2 R where they are the same: offered {on[6]} only")
+    print(f"  MF-N4 ≡ false on R: offered {off[6]} in its place; recorded {pol[0]['reads']!r}")
     atoms = {a.name: a for a in ag.gamma.atoms}
     st = nsm.say_term(gamma.Term((inc,)))
     got = nsm.read_node(f"([{st}] ¬ [{st}])", atoms)

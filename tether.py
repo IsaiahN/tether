@@ -2364,6 +2364,7 @@ def _attr_bridge(lib) -> None:
             bc.update(d["new"])
             n["grouped atoms"] = len(d["assigned"]) + sum(map(len, d["new"].values()))
             n["unshared"], n["no attribute"] = len(d["unshared"]), len(d["bare"])
+            n["candidate (not read)"] = len(d.get("candidate") or {})
     gained = set()
     for c, keys in sorted(bc.items()):
         reads = sorted(r for r in inv.get(c, ()) if r in lib.readings)
@@ -19041,11 +19042,21 @@ class Agent:
         if not _BOND_TERMS:
             return []
         keys = sorted(self._junction_of.get(slot, ()))
-        out = [k for k in keys if self._jc_separates(robs, slot, k)]
-        if _NEGATE_GUARD:
-            out += [n for n in ("¬" + k for k in keys)
-                    if all(self._jc_holds(n, s) for s, *_r in robs)
-                    and self._jc_separates(robs, slot, n)]
+        if not _NEGATE_GUARD:
+            return [k for k in keys if self._jc_separates(robs, slot, k)]
+        out = []
+        for k in keys:
+            n = "¬" + k
+            if all(self._jc_holds(n, s) for s, *_r in robs) and self._jc_separates(robs, slot, n):
+                out.append(n)
+                # r1160: k false on R is offered as ¬k IN PLACE of k; k recorded, not offered
+                seen = self.__dict__.setdefault("_jk_polarity", set())
+                if self._jc_separates(robs, slot, k) and (self.cycle, slot, k) not in seen:
+                    seen.add((self.cycle, slot, k))
+                    self.led.record(self.cycle, "ROUTE", slot, "polarity", key=k, offered=n,
+                                    reads="polarity: false on R -> offered as ¬k (r1160)")
+            elif self._jc_separates(robs, slot, k):
+                out.append(k)
         return out
 
     def _route_junction(self, bond: str, a: str, b: str) -> str:
