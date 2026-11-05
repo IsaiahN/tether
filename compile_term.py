@@ -43,6 +43,14 @@ _ATTR_GROUP = armflag.arm("TETHER_ATTR_GROUP", default=True)  # 9b: the bridge r
 # compiles to a Group over the members of a kind the agent holds (7l), never a list we hand it
 # (Fig 11 :48). OFF: Refusal(QUANTIFIED), as before
 _GROUP_ROW = armflag.arm("TETHER_GROUP_ROW", default=True)
+# Build 5 item 17 (ii), A SLOT AGAINST A CONSTANT (the reviewer 2026-11-05 r1200, r1203): "o1.colour
+# == 3" compiles, the constant typed by the slot's own reading type through the slot-to-slot row
+# (so a colour takes ==/!= only). The operand is the constant itself, CONST + its value. OFF:
+# "no template compares colour with the constant 3", as before
+_SLOT_CONSTANT = armflag.arm("TETHER_SLOT_CONSTANT", default=True)
+CONST = "#"
+CONST_TYPES = {"COLOUR", "SHAPE", "POSITION", "EXTENT", "DELTA"}
+CONST_FIRST = {"COLOUR", "SHAPE", "POSITION"}   # no 0 / 1 template types on these
 
 # (op, right side) -> (atom chain run on the target slot, operand side or None[, operand chain]).
 # right side: "zero" / "one" for a constant, "slot" for another object's same reading.
@@ -283,6 +291,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom],
     right = node.right
     if reading in CHANGE_OF:
         return _change(obj, reading, node.op, right, atoms)
+    if (_SLOT_CONSTANT and isinstance(right, int) and not isinstance(right, bool)
+            and (right not in (0, 1) or rtype in CONST_FIRST)):
+        return _constant(target, rtype, node.op, right, atoms)
     if isinstance(right, condition.Slot):
         kind, other = "slot", right.name
         if "~" in other and not (_RELATION_SET and other == target + PREV):
@@ -393,6 +404,33 @@ def run_group(g: Group, frame: dict[str, Any], members: list[str], held: bool) -
     return False if True in vals else (None if None in vals else True)
 
 
+def const_of(name: str | None) -> int | None:
+    """The value of a constant operand (CONST + an int), else None."""
+    return int(name[1:]) if name and name[0] == CONST else None
+
+
+def _constant(target: str, rtype: str, op: str, value: int,
+              atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
+    if rtype not in CONST_TYPES:
+        return Refusal(f"no constant of a {rtype}")
+    if value < 0 and rtype != "DELTA":
+        return Refusal(f"a {rtype} is never negative")
+    row = TABLE.get((op, "slot"))
+    if (op, "slot") in CONVERSE and all(n in atoms for n in CONVERSE[(op, "slot")][0]):
+        row = CONVERSE[(op, "slot")]
+    if row is None or row[1] != "x":
+        return Refusal(f"no template for {op} against a constant")
+    missing = [n for n in row[0] if n not in atoms]
+    if missing:
+        return Refusal(f"Gamma holds no atom {missing}")
+    chain = tuple(atoms[n] for n in row[0])
+    why = _typed(chain, rtype, rtype)
+    if why:
+        return Refusal(why)
+    operand = f"{CONST}{value}"
+    return Compiled(target, gamma.Term(chain, operand=operand), operand)
+
+
 def _change(obj: str, reading: str, op: str, right: Any,
             atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
     if isinstance(right, condition.Slot):
@@ -483,11 +521,12 @@ def run(c: Compiled, frame: dict[str, Any]) -> bool | None:
     if frame.get(c.slot) is None and c.absent is not None and c.parties and all(
             any(k.startswith(p + ".") for k in frame) for p in c.parties):
         frame = {**frame, c.slot: c.absent}      # a sparse pair, both objects present: absent IS 0
-    if frame.get(c.slot) is None or (c.operand and frame.get(c.operand) is None):
+    k = const_of(c.operand)
+    if frame.get(c.slot) is None or (c.operand and k is None and frame.get(c.operand) is None):
         return None
     ops: tuple = ()
     if c.operand:
-        o = frame[c.operand]
+        o = frame[c.operand] if k is None else k
         if c.term.operand_term is not None:      # a tree: the operand is computed
             o = c.term.operand_term.apply(o, Ctx())
             if o is NOT_RESOLVED:

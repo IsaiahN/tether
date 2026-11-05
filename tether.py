@@ -8873,6 +8873,19 @@ class Agent:
                 out.append((cost + left, cost, left, e, f"{a[4]} and {b[4]}", pair))
         return out
 
+    def _const_conditions(self, rows: list) -> list[str]:
+        """Item 17 (ii) (r1203): "slot == v", v the slot's value on the last step where the
+        objective held, for the readings with no 0 / 1 template (compile_term.CONST_FIRST): read
+        off the agent's own history. In-episode only: carry_check refuses a raw value."""
+        met = [st for st, hit in rows if hit]
+        if not met:
+            return []
+        rd = compile_term.readings()
+        return [f"{k} == {v}" for k, v in sorted(met[-1].items())
+                if isinstance(v, int) and not isinstance(v, bool) and v >= 0 and "." in k
+                and "~" not in k and "@" not in k
+                and (rd.get(k.split(".", 1)[1]) or {}).get("type") in compile_term.CONST_FIRST]
+
     def _goal_groups(self, singles: list, rows: list) -> list:
         """Item 17 (B) (r1201): ALL of a kind (7l) meets a single's condition, written on its
         subject, priced by `_goal_price`. Formed only from singles true on every step where the
@@ -8981,7 +8994,10 @@ class Agent:
         atoms = {a.name: a for a in self.gamma.atoms}
         refused: Counter = Counter()
         cands = []
-        for text in self._inv_conditions(rows[-1][0]):
+        texts = self._inv_conditions(rows[-1][0])
+        if compile_term._SLOT_CONSTANT:
+            texts = texts + self._const_conditions(rows)
+        for text in texts:
             cap.head()
             c = self._compile_cache.get(text)
             if c is None:
@@ -9675,7 +9691,7 @@ class Agent:
             if hit is not None and hit[0] is state:
                 return hit[1]
         op = term.operand
-        value = (self._operand_value(op, state) if "~" in op
+        value = (self._operand_value(op, state) if "~" in op or op[0] == compile_term.CONST
                  else state.get(op, NOT_RESOLVED))
         if term.operand_term is not None:
             b = term.operand_term.operand if _TWO_SLOT_OPERAND else None
@@ -11476,6 +11492,8 @@ class Agent:
 
     def _operand_value(self, name: str, state: dict):
         """The operand's reading on this frame, or NOT_RESOLVED where it did not exist."""
+        if name[:1] == compile_term.CONST:          # item 17 (ii): a constant reads itself
+            return compile_term.const_of(name)
         lag = lag_of(name)
         if lag is not None:
             prev = self._prev_of(state, lag[1])
@@ -11504,7 +11522,7 @@ class Agent:
             return True
         # THE PLAIN READ INLINE: this runs on every candidate and every history row, and the
         # method call it replaces was ~15% of the prev operand's measured cost on gridworld s2.
-        if "~" not in op:
+        if "~" not in op and op[0] != compile_term.CONST:
             return state.get(op, NOT_RESOLVED) is not NOT_RESOLVED
         return self._operand_value(op, state) is not NOT_RESOLVED
 

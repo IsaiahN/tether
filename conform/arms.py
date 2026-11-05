@@ -2129,6 +2129,14 @@ ARMS: dict[str, str] = {
                         "necessary singles, priced by the one bargain and linked one want per "
                         "member. OFF: Refusal(QUANTIFIED) and no group offered, as before. "
                         "default ON",
+    "TETHER_SLOT_CONSTANT": "BUILD 5 ITEM 17 (ii) (the reviewer 2026-11-05 r1200, r1203): a slot "
+                            "against a constant compiles through the slot-to-slot row, typed by "
+                            "the slot's own reading (a colour takes == / != only; never negative "
+                            "but a DELTA), the operand the constant itself (#v, read by _ops, "
+                            "_applies, _operand_value and run); the completion offers 'slot == v' "
+                            "for colour / shape / position, v from the last step the objective "
+                            "held. OFF: no template compares a reading with a constant, as "
+                            "before. default ON",
     "TETHER_LA_LANDING": "BUILD 4 ITEM 14c (the reviewer 2026-11-05 r1189): a look-ahead press "
                          "carries its realisation's coordinate and reads its landing "
                          "(iface._acted) on the SIMULATED state; every predictor on that press is "
