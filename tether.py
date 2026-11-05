@@ -2100,6 +2100,11 @@ _DIRECTION_MOVABLE = armflag.arm("TETHER_DIRECTION_MOVABLE", default=True)
 # Build 5 item 17 (iii), COUNT-OF-KIND (the reviewer 2026-11-05 r1203, r1205): the completion also
 # offers NONE of a held kind remain and two held kinds' counts equal (_goal_counts). OFF: neither
 _COUNT_KIND = armflag.arm("TETHER_COUNT_KIND", default=True)
+# Build 5 item 17 (iv), ORDER AS A PLAN (the reviewer 2026-11-05 r1206; Fig 12 :112 "A plan is a
+# sequence. A goal is a comparison."): the completion also offers "A then B", true at a row where B
+# holds and A held at an earlier row, read in one pass; held, A is adopted as the 4g subgoal of B.
+# OFF: no order offered
+_GOAL_ORDER = armflag.arm("TETHER_GOAL_ORDER", default=True)
 
 
 @dataclass(frozen=True)
@@ -2127,6 +2132,20 @@ class _Group(_Pair):
 
     def holds(self, state: dict) -> bool:
         return self.check(self.group, state, self.kind) is True
+
+
+@dataclass(frozen=True)
+class _Order(_Pair):
+    """Item 17 (iv) (r1206): "A then B" -- parts (A, B). True on a history, never on one state:
+    at a row where B holds and A held at an earlier row (`_goal_price` reads it in one pass)."""
+
+    @property
+    def first(self) -> Any:
+        return self.parts[0]
+
+    @property
+    def then(self) -> Any:
+        return self.parts[1]
 
 
 @dataclass(frozen=True)
@@ -8049,6 +8068,8 @@ class Agent:
         composed is not this item's to decide."""
         if isinstance(c, _Count):
             return {"linked": False, "why": "a count of a kind names no slot to want"}
+        if isinstance(c, _Order):
+            return self._link_order(key, c)
         parts = list(c.parts) if isinstance(c, _Pair) else [c]
         if _RELATION_SET:
             parts = [self._movable_spelling(p) for p in parts]
@@ -8081,6 +8102,25 @@ class Agent:
         return {"linked": True, "slots": [sl for sl, _t in terms],
                 "want": [t.name for _sl, t in terms], "scope": "subject",
                 **({"mirror": mirror.slot} if mirror is not None else {})}
+
+    def _link_order(self, key: str, c: Any) -> dict:
+        """Item 17 (iv) (r1206): B is wanted as any held goal is; A too where its slot wants
+        nothing; A is adopted as the 4g subgoal of B, so the plan reaches A first. A first step
+        with no slot (a group or count goal) is recorded, never dropped (r1206 (b))."""
+        link = self._link_goal(key, c.then)
+        if not isinstance(c.first, compile_term.Compiled):
+            return {**link, "order": "the order's first step names no slot to want"}
+        first = (self._link_goal(f"{key}|first", c.first) if c.first.slot not in self.wants
+                 else {"linked": False, "why": "the slot already wants"})
+        out = {**link, "first": first}
+        if _SUBGOAL and link.get("linked") and c.first.slot != c.then.slot:
+            parent = (link.get("slots") or [c.then.slot])[0]
+            self._subgoal = {"parent": parent, "sub": c.first.slot}
+            self.led.record(self.cycle, "PLAN", c.first.slot, "subgoal_adopted", parent=parent,
+                            read="ordered goal",
+                            reads="the held order's first step, pursued before its second (iv)")
+            out["subgoal"] = c.first.slot
+        return out
 
     def _goal_mirror(self, parts: list) -> Any:
         """16c (r1189): the other spelling of a held goal's ONE symmetric comparison (its atom is
@@ -8838,7 +8878,8 @@ class Agent:
                             base_bits=round(base, 3), want_released=released,
                             reads="the held goal condition no longer pays on the longer history")
 
-    def _goal_price(self, conds: list, rows: list) -> tuple[float, float, int]:
+    def _goal_price(self, conds: list, rows: list,
+                    truth: list | None = None) -> tuple[float, float, int]:
         """The one bargain on a 1-bit history (Fig 5 :42-44), as two-part description length,
         positions named at log2 N bits each: with no term, naming each step where the world's
         objective held; with Q (any listed condition true), cost(Q) plus naming each step Q
@@ -8856,7 +8897,20 @@ class Agent:
         def true(c: Any, st: dict) -> bool:
             return c.holds(st) if isinstance(c, _Pair) else compile_term.run(c, st) is True
         cost = term_bits(sum(size(c) for c in conds), self.gamma.alphabet)
-        e = sum(1 for st, hit in rows if any(true(c, st) for c in conds) != hit)
+        if truth is None and any(isinstance(c, _Order) for c in conds):
+            truth = [False] * len(rows)     # (iv): an order reads its prefix, in one pass
+            for c in conds:
+                seen = False
+                for i, (st, _hit) in enumerate(rows):
+                    if isinstance(c, _Order):
+                        truth[i] = truth[i] or (seen and true(c.then, st))
+                        seen = seen or true(c.first, st)
+                    else:
+                        truth[i] = truth[i] or true(c, st)
+        if truth is not None:               # the condition's truth per row, given
+            e = sum(1 for t, (_st, hit) in zip(truth, rows, strict=True) if t != hit)
+        else:
+            e = sum(1 for st, hit in rows if any(true(c, st) for c in conds) != hit)
         return cost, e * math.log2(len(rows)), e
 
     def _goal_pairs(self, singles: list, rows: list) -> list:
@@ -8907,6 +8961,58 @@ class Agent:
                 if isinstance(v, int) and not isinstance(v, bool) and v >= 0 and "." in k
                 and "~" not in k and "@" not in k
                 and (rd.get(k.split(".", 1)[1]) or {}).get("type") in compile_term.CONST_FIRST]
+
+    def _goal_orders(self, singles: list, rows: list) -> list:
+        """Item 17 (iv) (r1206): "A then B" over B necessary at every met row (the pair's bound)
+        and A first held before the first met row, so before every one. Each single's truth per
+        row is read ONCE; an order's is one pass over those (A held strictly before, B now), then
+        priced by `_goal_price` at |A| + |B| + 1, cut as pairs are when that alone exceeds the
+        cheapest single."""
+        met = [i for i, (_st, hit) in enumerate(rows) if hit]
+        if not met or not singles:
+            return []
+        vec: dict = {}
+
+        def truth(x: tuple) -> list:
+            got = vec.get(x[4])
+            if got is None:
+                got = vec[x[4]] = [compile_term.run(x[5], st) is True for st, _h in rows]
+            return got
+        plain = [x for x in singles if isinstance(x[5], compile_term.Compiled)]
+        nec = [x for x in plain if all(truth(x)[i] for i in met)]
+        # an order's truth is B's, cut where A has not yet held: it depends on B and on A's FIRST
+        # row only. So per first row only the shortest A's are kept (ties all kept, for A1's draw),
+        # and an order whose B never held at or before that row says what B says -- not offered
+        firsts: dict = {}
+        for x in plain:
+            k = next((i for i, v in enumerate(truth(x)) if v), None)
+            if k is not None and k < met[0]:
+                firsts.setdefault(k, []).append(x)
+        early = []
+        for k, xs in sorted(firsts.items()):
+            short = min(self.gamma.length(x[5].term) for x in xs)
+            early += [(k, x) for x in xs if self.gamma.length(x[5].term) == short]
+        best = min(x[0] for x in singles)
+        out = []
+        for k, a in early:
+            cap.head()
+            for b in nec:
+                cap.head()
+                cut = sum(truth(b)[:k + 1])     # B's rows the order drops, all unmet (k < met)
+                if not cut or a[4] == b[4]:
+                    continue                    # B never held before A first did
+                bits = term_bits(self.gamma.length(a[5].term) + self.gamma.length(b[5].term) + 1,
+                                 self.gamma.alphabet)
+                if bits > best or bits + (b[3] - cut) * math.log2(len(rows)) >= b[0]:
+                    continue                    # the one bargain: B alone is no dearer
+                ta, tb, seen, t = truth(a), truth(b), False, []
+                for i in range(len(rows)):
+                    t.append(seen and tb[i])
+                    seen = seen or ta[i]
+                c = _Order((a[5], b[5]))
+                cost, left, e = self._goal_price([c], rows, truth=t)
+                out.append((cost + left, cost, left, e, f"{a[4]} then {b[4]}", c))
+        return out
 
     def _count_holds(self, kinds: tuple, state: dict) -> bool | None:
         """Item 17 (iii): one kind -> NONE remain (the group row's guarded NONE, r1200: a kind
@@ -9073,6 +9179,11 @@ class Agent:
             counts = self._goal_counts(rows)
             cands += counts
             n_count = len(counts)
+        n_order = 0
+        if _GOAL_ORDER:
+            orders = self._goal_orders(singles, rows)
+            cands += orders
+            n_order = len(orders)
         lag = sum(1 for x in cands if any(lag_of(t) for t in re.findall(r"[\w.]+~\d+", x[4])))
         cands.sort(key=lambda x: (x[0], x[4]))
         if _A1_TIES and cands:          # A1: an exact tie in total, never by condition text
@@ -9082,10 +9193,12 @@ class Agent:
                 cands.insert(0, cands.pop(next(i for i, x in enumerate(cands) if x[4] == _a1k)))
         detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
                   "conditions": len(cands), "refused": dict(refused),
-                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain - n_group - n_count,
+                  "offered": {"plain": n_plain,
+                              "pair": len(cands) - n_plain - n_group - n_count - n_order,
                               "lag": lag,
                               **({"group": n_group} if compile_term._GROUP_ROW else {}),
                               **({"count": n_count} if _COUNT_KIND else {}),
+                              **({"order": n_order} if _GOAL_ORDER else {}),
                               **({"pair_bounded": self._pair_bounded}
                                  if _PAIR_BOUND and _GOAL_PAIR else {})},
                   "cheapest": [{"if": x[4], "cost": round(x[1], 3), "left": round(x[2], 3),

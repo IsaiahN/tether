@@ -2129,6 +2129,13 @@ ARMS: dict[str, str] = {
                         "necessary singles, priced by the one bargain and linked one want per "
                         "member. OFF: Refusal(QUANTIFIED) and no group offered, as before. "
                         "default ON",
+    "TETHER_GOAL_ORDER": "BUILD 5 ITEM 17 (iv) (the reviewer 2026-11-05 r1206; Fig 12 :112): the "
+                         "completion also offers 'A then B', true at a row where B holds and A "
+                         "held at an earlier row, read in one pass over each single's truths; "
+                         "priced by the one bargain at |A| + |B| + 1, offered only where it beats "
+                         "B alone; held, A is adopted as the 4g subgoal of B (row "
+                         "subgoal_adopted, read 'ordered goal'), a slotless first step recorded. "
+                         "OFF: no order offered, as before. default ON",
     "TETHER_COUNT_KIND": "BUILD 5 ITEM 17 (iii) (the reviewer 2026-11-05 r1203, r1205): the "
                          "completion also offers NONE of a held kind remain (count 0, the group "
                          "row's guarded NONE) and two held kinds' counts equal, over the kinds the "
