@@ -2126,6 +2126,10 @@ _REL_TOUCH_RELS = ("touches", "inside")
 # key, situation), pressed when no hypothesis drives; count NONE's TOUCH is an ATTEMPT ("contact
 # may be how a member leaves", r1217). OFF: held, never pressed for, as before
 _SLOTLESS_TOUCH = armflag.arm("TETHER_SLOTLESS_TOUCH", default=True)
+# Build 5 item 19 box 3, Q3 (i) (the reviewer 2026-11-05 r1216, r1218): the goal proposer offers the
+# group row's FORM (_group_form, one copy) over its own candidate texts, priced by bits like every
+# other candidate, so an ALL-of-a-kind goal is proposable before any win. OFF: none offered
+_GROUP_PROPOSE = armflag.arm("TETHER_GROUP_PROPOSE", default=True)
 
 
 @dataclass(frozen=True)
@@ -8693,6 +8697,8 @@ class Agent:
             return out
 
         cands = _admit(phases[0])
+        if _GROUP_PROPOSE:                      # box 3: the group row's FORM, priced by bits
+            cands += self._group_cands(phases[0], before, atoms)
         cands.sort(key=lambda x: x[0])
         ranked_all = list(cands)                # the pick's rank is read against this order
         self._hyp_open = len(cands)              # C1 item 1: a cut's record counts against it
@@ -9173,24 +9179,63 @@ class Agent:
         for x in singles:
             cap.head()
             c = x[5]
-            if not isinstance(c, compile_term.Compiled) or c.parties or "~" in c.slot:
+            if not isinstance(c, compile_term.Compiled) or not all(
+                    compile_term.run(c, st) is True for st in reached):
                 continue
-            scope = c.slot.split(".", 1)[0]
-            kind = self._kind(scope)
-            k = (kind, re.sub(rf"\b{scope}\b", "{o}", x[4]))
-            if k in seen or not all(compile_term.run(c, st) is True for st in reached):
+            formed = self._group_form(x[4], c, now, seen)     # FORM; the PRICE is below
+            if formed is None:
                 continue
-            seen.add(k)
-            members = [o for o in self._owners(now) if self._kind(o) == kind]
-            if len(members) < 2:
-                continue                        # a group of one is its single
-            bound = (compile_term.bind(c, scope, m) for m in members)
-            grp = _Group(tuple(p for p in bound if p.slot != p.operand),   # never itself
-                         group=compile_term.Group("ALL", scope, c), kind=kind,
-                         check=self._group_holds)
+            text, grp = formed
             cost, left, e = self._goal_price([grp], rows)
-            out.append((cost + left, cost, left, e, f"ALL kind({scope}): {x[4]}", grp))
+            out.append((cost + left, cost, left, e, text, grp))
         return out
+
+    def _group_cands(self, items: dict, before: dict, atoms: dict) -> list:
+        """Box 3 (r1218): the proposer's group candidates -- the FORM over its own texts (compiled
+        through the same cache), not holding now, not tried this level, ranked by bits at the
+        member condition plus its quantifier, after a won or progressed shelf entry."""
+        out, seen = [], set()
+        for text, s in items.items():
+            cap.head()
+            c = self._compile_cache.get(text)
+            if c is None:
+                c = self._compile_cache[text] = compile_term.compile_candidate(
+                    {"condition": text}, atoms)
+            formed = self._group_form(text, c, before, seen)
+            if formed is None:
+                continue
+            gtext, grp = formed
+            if not grp.parts:                   # every member was the anchor: nothing to want
+                continue
+            tk = (gtext, grp.slot, None)
+            if grp.holds(before) or tk in self._hyp_tried:
+                continue
+            bits = term_bits(self.gamma.length(c.term) + 1, self.gamma.alphabet)
+            out.append(((2 if _PROGRESS_SHELF else 1, 1, 1, round(bits, 6)), gtext, grp, tk, s))
+        return out
+
+    def _group_form(self, text: str, c: Any, state: dict, seen: set) -> tuple | None:
+        """Box 3 (r1216, r1218): the group row's FORM -- ALL of the scope's kind (7l) meeting a
+        single's condition, over the members present on `state` -- with no PRICE. Once per (kind,
+        the condition with its subject as a placeholder), over two or more members; the
+        completion prices it on the met rows, the proposer by bits. (text, _Group) or None."""
+        if (not isinstance(c, compile_term.Compiled) or c.parties or "~" in c.slot
+                or relations.pair_attr(c.slot.split(".", 1)[1]) is not None):
+            return None                         # a pair reading names a partner, not an attribute
+        scope = c.slot.split(".", 1)[0]
+        kind = self._kind(scope)
+        k = (kind, re.sub(rf"\b{scope}\b", "{o}", text))
+        if k in seen:
+            return None
+        seen.add(k)
+        members = [o for o in self._owners(state) if self._kind(o) == kind]
+        if len(members) < 2:
+            return None                         # a group of one is its single
+        bound = (compile_term.bind(c, scope, m) for m in members)
+        grp = _Group(tuple(p for p in bound if p.slot != p.operand),   # never itself
+                     group=compile_term.Group("ALL", scope, c), kind=kind,
+                     check=self._group_holds)
+        return f"ALL kind({scope}): {text}", grp
 
     @_in_step("IMPORT")
     def _goal_condition(self) -> None:
