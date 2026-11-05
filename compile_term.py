@@ -39,6 +39,10 @@ _RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
 # with it: the arm enters the signature (one cold recompile, named)
 _ATTR_BRIDGE = armflag.arm("TETHER_ATTR_BRIDGE", default=True)
 _ATTR_GROUP = armflag.arm("TETHER_ATTR_GROUP", default=True)  # 9b: the bridge reads more
+# Build 5 item 17 (i), THE GROUP ROW (the reviewer 2026-11-05 r1200): a quantified candidate
+# compiles to a Group over the members of a kind the agent holds (7l), never a list we hand it
+# (Fig 11 :48). OFF: Refusal(QUANTIFIED), as before
+_GROUP_ROW = armflag.arm("TETHER_GROUP_ROW", default=True)
 
 # (op, right side) -> (atom chain run on the target slot, operand side or None[, operand chain]).
 # right side: "zero" / "one" for a constant, "slot" for another object's same reading.
@@ -173,6 +177,19 @@ class Refusal:
     reason: str
 
 
+@dataclass(frozen=True)
+class Group:
+    """The group row: `member` (written on `scope`) for ALL members of the scope's kind, or for
+    NONE of them; NONE with no member condition is presence alone ("none of K remain")."""
+    quant: str                # "ALL" / "NONE"
+    scope: str                # the object the member condition is written on
+    member: Compiled | None
+
+    @property
+    def slot(self) -> str | None:
+        return None if self.member is None else self.member.slot
+
+
 @cache
 def readings() -> dict[str, dict]:
     # an absent library is the ablation (tether._LIBRARY_REQUIRED OFF; wire() refuses it ON): no
@@ -218,13 +235,15 @@ def _typed(chain: tuple[gamma.Atom, ...], slot_type: str, operand_type: str | No
 # A RULE candidate holds of EVERY object in scope; one slot's chain says nothing about the group
 # (the reviewer 2026-10-09 00:42Z: refused until a group row -- all_same / all_of -- is ruled)
 QUANTIFIED = "quantified over the group: needs a group row (not ruled)"
+# the quantifier's first word -> the row; the library's RULE view writes "ALL objects, every frame"
+GROUP_QUANT = {"all": "ALL", "every": "ALL", "each": "ALL", "none": "NONE", "no": "NONE"}
 
 
 def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom],
-                      subject: str | None = None) -> Compiled | Refusal:
+                      subject: str | None = None) -> Compiled | Group | Refusal:
     """One candidate (`{"condition": "o1.drow > 0", ...}`), compiled or refused with a reason."""
     if "quantifier" in cand:
-        return Refusal(QUANTIFIED)
+        return _group(cand, atoms, subject) if _GROUP_ROW else Refusal(QUANTIFIED)
     for name, why in NOT_SLOTS.items():
         if name.startswith("@") and re.search(re.escape(name) + r"\b", cand["condition"]):
             return Refusal(why)
@@ -320,6 +339,58 @@ def converse(c: Compiled, atoms: dict[str, gamma.Atom]) -> Compiled | None:
     if name is None or name not in atoms:
         return None
     return Compiled(c.operand, gamma.Term((atoms[name],), operand=c.slot), c.slot)
+
+
+def _group(cand: dict, atoms: dict[str, gamma.Atom], subject: str | None) -> Group | Refusal:
+    q = GROUP_QUANT.get(str(cand["quantifier"]).split(" ", 1)[0].strip(",").lower())
+    if q is None:
+        return Refusal(f"no group row for the quantifier {cand['quantifier']!r}")
+    text = cand.get("condition")
+    if not text:
+        if q != "NONE":
+            return Refusal("ALL needs a member condition")
+        if not cand.get("scope"):
+            return Refusal("a group row names its scope object")
+        return Group(q, cand["scope"], None)
+    scope = cand.get("scope") or (re.findall(r"\bo\d+\b", text) or [None])[0]
+    if scope is None:
+        return Refusal("a group row names its scope object")
+    got = compile_candidate({"condition": text}, atoms, subject)
+    if isinstance(got, Refusal):
+        return got
+    if not any(re.search(rf"\b{re.escape(scope)}\b", s or "")
+               for s in (got.slot, got.operand, *got.parties)):
+        return Refusal(f"the member condition does not read its scope {scope}")
+    return Group(q, scope, got)
+
+
+def bind(c: Compiled, scope: str, member: str) -> Compiled:
+    """`c` with the scope object renamed to `member` in its slot, operand and parties."""
+    pat = re.compile(rf"\b{re.escape(scope)}\b")
+
+    def sub(s: str | None) -> str | None:
+        return None if s is None else pat.sub(member, s)
+    term = c.term
+    if term.operand is not None:
+        term = replace(term, operand=sub(term.operand))
+    return replace(c, slot=sub(c.slot), term=term, operand=sub(c.operand),
+                   parties=tuple(sub(p) for p in c.parties))
+
+
+def run_group(g: Group, frame: dict[str, Any], members: list[str], held: bool) -> bool | None:
+    """The group row on one frame, per member: True / False, or None for could not tell. NONE of
+    a kind never held and ALL of no members are None (r1200 MF-G2, MF-G3): an unmet goal never
+    reads as met, and a search that finds nothing is not a proof of absence (Fig 8 :39)."""
+    if g.quant == "NONE" and not held:
+        return None
+    if g.quant == "ALL" and not members:
+        return None
+    if g.member is None:                      # presence alone: none of K remain
+        return not members
+    vals = [run(bind(g.member, g.scope, m), frame) for m in members]
+    if g.quant == "ALL":
+        return False if False in vals else (None if None in vals else True)
+    return False if True in vals else (None if None in vals else True)
 
 
 def _change(obj: str, reading: str, op: str, right: Any,

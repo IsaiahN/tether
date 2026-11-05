@@ -7611,6 +7611,24 @@ class Agent:
             self._kind_cache[k] = got
         return got
 
+    def _owners(self, state: dict) -> list[str]:
+        return sorted({k.split(".", 1)[0] for k in state
+                       if "." in k and "~" not in k.split(".", 1)[0] and "@" not in k})
+
+    def _note_kinds(self, state: dict) -> None:
+        """Item 17 (i): each kind seen with a member, so NONE can tell held-and-gone from never
+        held (r1200; Fig 6 :46)."""
+        held = self.__dict__.setdefault("_kinds_held", set())
+        held.update(self._kind(o) for o in self._owners(state))
+
+    def _group_holds(self, g: Any, state: dict, kind: tuple | None = None) -> bool | None:
+        """Item 17 (i): the group row on `state`, its members the owners present whose kind (7l)
+        is the scope's; `kind` fixed at binding, else read off the scope now."""
+        kind = kind if kind is not None else self._kind(g.scope)
+        members = [o for o in self._owners(state) if self._kind(o) == kind]
+        held = kind in self.__dict__.get("_kinds_held", ()) or bool(members)
+        return compile_term.run_group(g, state, members, held)
+
     def _use(self, key: str | None, what: str, last: bool = False) -> None:
         """1b: one use of a library entry, counted; `last` stamps (generation, cycle)."""
         if key is None:
@@ -22729,6 +22747,8 @@ class Agent:
         # fire. The declaration is still the domain's; only when it is read has moved.
         self.alphabet = self._with_last(self._alphabets(self.env))
         before = self.env.observe()
+        if compile_term._GROUP_ROW:
+            self._note_kinds(before)
         if _RUIN_RECORD:
             self._ruin_step, self._ending_counted = None, None
             # ONE reading of this board, before anything is chosen: B's key and C's lookup

@@ -109,7 +109,8 @@ def test_each_named_refusal_is_refused_with_its_reason():
 
 
 def test_a_rule_candidate_is_refused_as_quantified():
-    """A RULE candidate from the library's own view is refused as quantified over the group;
+    """A RULE candidate from the library's own view is refused as quantified over the group with
+    the group row OFF, and ON compiles to a Group over the same member (item 17 (i), r1200);
     MUST-FAIL: the same candidate without its quantifier compiles, so the quantifier is what
     refuses it."""
     atoms = _atoms()
@@ -118,8 +119,15 @@ def test_a_rule_candidate_is_refused_as_quantified():
         for cand in lib.view(key, "RULE"):
             bare = {k: v for k, v in cand.items() if k not in ("quantifier", "scope")}
             if isinstance(C.compile_candidate(bare, atoms), C.Compiled):
-                got = C.compile_candidate(cand, atoms)
+                C._GROUP_ROW = False
+                try:
+                    got = C.compile_candidate(cand, atoms)
+                finally:
+                    C._GROUP_ROW = True
                 assert isinstance(got, C.Refusal) and got.reason == C.QUANTIFIED, (cand, got)
+                on = C.compile_candidate(cand, atoms)
+                assert isinstance(on, C.Group) and on.member == C.compile_candidate(
+                    bare, atoms), (cand, on)
                 return cand["condition"]
     raise AssertionError("no RULE candidate in the library compiles without its quantifier")
 
