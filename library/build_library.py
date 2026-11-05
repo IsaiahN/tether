@@ -682,6 +682,7 @@ def build(check_only: bool = False) -> dict:
         "same_name_across_domains": collisions,
         "name_match": dict(sorted(matched.items())),
     }
+    index["by_cluster_derived"] = _cluster_derived(atoms["atoms"], mols["molecules"])
 
     # --- every entry's ROLE table (Isaiah 2026-10-08: state, process, cause ... for ALL atoms)
     # Written after the files, because the views are computed by library_runtime over them.
@@ -717,6 +718,55 @@ def build(check_only: bool = False) -> dict:
         (LIB / "BUILD_REPORT.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
         _write_roles(atoms, mols, agent, rels, index)
     return {"counts": counts, "report": {k: len(v) for k, v in report.items()}}
+
+
+# BUILD 3 ITEM 9b (the reviewer 2026-11-04 r1157): the PERCEPT atoms Isaiah's ATTRIBUTE_INDEX files
+# under no cluster, grouped by their own attributes. Additions only; the corpus file is read, never
+# written, and its sha256 is recorded so the reader serves the grouping only against that file.
+CORPUS_INDEX = Path(os.environ.get("ATTRIBUTE_INDEX") or Path(__file__).resolve().parent.parent
+                    / "docs" / "corpus" / "ATTRIBUTE_INDEX.json")
+
+
+def _cluster_derived(atoms: dict, mols: dict) -> dict:
+    """{sha256, assigned {atom: [cluster, reason]}, new {ATTR:<a>: [atoms]}, unshared, bare}. An
+    unclustered atom joins the existing cluster whose members' attributes share the most of its own
+    (ties by name); with none shared, atoms sharing an attribute form a cluster named by it (the
+    attribute held by most of them, ties by name); the rest are unshared or carry no attribute."""
+    import hashlib
+    try:
+        raw = CORPUS_INDEX.read_bytes()
+    except OSError as e:
+        return {"skipped": f"absent: {type(e).__name__}"}
+    by_cluster = json.loads(raw)["by_cluster"]
+    every = {**mols, **atoms}
+    prof = {c: {a for k in ks for a in (every.get(k) or {}).get("attributes") or []}
+            for c, ks in sorted(by_cluster.items())}
+    filed = {k for ks in by_cluster.values() for k in ks}
+    out: dict = {"sha256": hashlib.sha256(raw).hexdigest(), "assigned": {}, "new": {},
+                 "unshared": [], "bare": []}
+    loose = {}
+    for k in sorted(atoms):
+        if k in filed:
+            continue
+        own = set(atoms[k].get("attributes") or [])
+        if not own:
+            out["bare"].append(k)
+            continue
+        n, c = max((len(own & prof[c]), -i) for i, c in enumerate(prof)) if prof else (0, 0)
+        c = list(prof)[-c] if n else None
+        if n:
+            out["assigned"][k] = [c, f"shares {sorted(own & prof[c])} with {c}'s members"]
+        else:
+            loose[k] = own
+    held = collections.Counter(a for own in loose.values() for a in own)
+    for k, own in loose.items():
+        shared = [a for a in own if held[a] > 1]
+        if shared:
+            a = min(shared, key=lambda a: (-held[a], a))
+            out["new"].setdefault(f"ATTR:{a}", []).append(k)
+        else:
+            out["unshared"].append(k)
+    return out
 
 
 def _name_match(atoms: dict, mols: dict) -> dict:
@@ -939,7 +989,7 @@ def check() -> int:
             shutil.copy(f, tmp / f.name)
     subprocess.run(
         [sys.executable, str(tmp / "build_library.py")],
-        env={**os.environ, "LIBRARY_DIR": str(tmp)},
+        env={**os.environ, "LIBRARY_DIR": str(tmp), "ATTRIBUTE_INDEX": str(CORPUS_INDEX)},
         check=True,
         capture_output=True,
     )

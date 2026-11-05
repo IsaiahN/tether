@@ -2330,6 +2330,10 @@ def _library():
 # imported. The signature carries the arm (compile_term), so no compile made without it is served
 # with it.
 _ATTR_BRIDGE = armflag.arm("TETHER_ATTR_BRIDGE", default=True)
+# ITEM 9b (r1157): the bridge also reads FORCE / SIGNAL through inherited.READING_CLUSTER_DERIVED,
+# and the unclustered atoms through the build's grouping (index by_cluster_derived), served only
+# against the corpus file it was derived from.
+_ATTR_GROUP = armflag.arm("TETHER_ATTR_GROUP", default=True)
 
 
 def _attr_bridge(lib) -> None:
@@ -2342,6 +2346,19 @@ def _attr_bridge(lib) -> None:
     for r, cs in inherited.READING_CLUSTER.items():
         for c in cs:
             inv[c].add(r)
+    if _ATTR_GROUP:
+        for r, (c, _why) in inherited.READING_CLUSTER_DERIVED.items():
+            inv[c].add(r)
+        d = getattr(lib, "cluster_derived", None) or {}
+        if d.get("sha256") != inherited.INDEX_SHA:
+            n["grouping skipped: " + (d.get("skipped") or "not derived from this corpus file")] += 1
+        else:
+            bc = {c: list(ks) for c, ks in bc.items()}
+            for k, (c, _why) in d["assigned"].items():
+                bc.setdefault(c, []).append(k)
+            bc.update(d["new"])
+            n["grouped atoms"] = len(d["assigned"]) + sum(map(len, d["new"].values()))
+            n["unshared"], n["no attribute"] = len(d["unshared"]), len(d["bare"])
     gained = set()
     for c, keys in sorted(bc.items()):
         reads = sorted(r for r in inv.get(c, ()) if r in lib.readings)

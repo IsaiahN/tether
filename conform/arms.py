@@ -2007,6 +2007,12 @@ ARMS: dict[str, str] = {
                           "nothing imported; the arm enters compile_term.signature so no compile "
                           "made without it is served with it. OFF: the library as built. "
                           "default ON",
+    "TETHER_ATTR_GROUP": "BUILD 3 ITEM 9b (the reviewer 2026-11-04 r1157): the bridge also reads "
+                         "FORCE / SIGNAL (inherited.READING_CLUSTER_DERIVED, from the members' "
+                         "own attributes, existing readings only) and the build's grouping of the "
+                         "unclustered PERCEPT atoms (index by_cluster_derived, served only against "
+                         "the corpus file it was derived from); enters compile_term.signature. "
+                         "NEEDS TETHER_ATTR_BRIDGE. OFF: item 9's bridge as it was. default ON",
     "TETHER_TWO_SLOT_OPERAND": "BUILD 3 ITEM 8b' (the reviewer 2026-11-04 r1145): an operand-"
                                "tree node slot_a − slot_b (the tree's own term names the second "
                                "slot), typed affinely, seeded ONLY from a settled junction whose "

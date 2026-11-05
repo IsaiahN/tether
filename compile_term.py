@@ -38,6 +38,7 @@ _RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
 # entries, and an entry's views come from its reads, so a compile made without it must not be served
 # with it: the arm enters the signature (one cold recompile, named)
 _ATTR_BRIDGE = armflag.arm("TETHER_ATTR_BRIDGE", default=True)
+_ATTR_GROUP = armflag.arm("TETHER_ATTR_GROUP", default=True)  # 9b: the bridge reads more
 
 # (op, right side) -> (atom chain run on the target slot, operand side or None[, operand chain]).
 # right side: "zero" / "one" for a constant, "slot" for another object's same reading.
@@ -117,7 +118,8 @@ def signature(atoms: dict) -> tuple:
                         if n in TEMPLATE_ATOMS and gamma._TRANSLATE_AFFINE
                         and gamma.TARGET_OPERAND.get(a.fn)))
     out = (*base, rows) if rows else base
-    return (*out, ("ATTR_BRIDGE",)) if _ATTR_BRIDGE else out
+    out = (*out, ("ATTR_BRIDGE",)) if _ATTR_BRIDGE else out
+    return (*out, ("ATTR_GROUP",)) if _ATTR_BRIDGE and _ATTR_GROUP else out
 # 7d, THE EVENT ROUTE (the reviewer 2026-10-16 11:56, 12:00; 10-11 14:17: an event is a transition,
 # carried by the change readings): a frame event is compiled onto a change reading the agent
 # ALREADY carries, on the role's subject. frame.came > 0 (some object appeared) -> {subject}.age

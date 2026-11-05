@@ -58,7 +58,7 @@ def main():
         s_off = compile_term.signature({})
     finally:
         compile_term._ATTR_BRIDGE = was
-    assert s_on != s_off and s_on[-1] == ("ATTR_BRIDGE",), ("MF-B3", s_on, s_off)
+    assert s_on != s_off and ("ATTR_BRIDGE",) in s_on, ("MF-B3", s_on, s_off)
     print("  MF-B3 the signature carries the arm (ON != OFF)")
     print("test_attr_bridge OK")
 

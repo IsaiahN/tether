@@ -450,6 +450,7 @@ class Library:
         self.by_reading: dict[str, list] = defaultdict(list)
         self.by_affects: dict[str, list] = defaultdict(list)  # v7: reading -> entries producing it
         self.ingredient_of: dict[str, list] = defaultdict(list)
+        self.cluster_derived: dict = {}  # 9b: the build's grouping of the unclustered atoms
         self.partner_named = _names  # v9: the RELATION/MEASURE partner test (a whole id)
 
     # ---------------------------------------------------------------- loading
@@ -473,6 +474,7 @@ class Library:
             self.by_affects[r] = list(keys)
         for k, rows in idx["ingredient_of"].items():
             self.ingredient_of[k] = list(rows)
+        self.cluster_derived = idx.get("by_cluster_derived") or {}
         for layer, name in ((self.runtime, "runtime.json"), (self.learnings, "learnings.json")):
             p = self.root / name
             if p.exists():
