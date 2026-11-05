@@ -2184,6 +2184,12 @@ _SHAPE_TRACE = armflag.arm("TETHER_SHAPE_TRACE", default=True)
 # on the logical clock; paid = the consequence held, or a death with the guard met and no fire,
 # never decayed (Symbols w; Fig 9 :41, :60). Seeds: orient, freeze. OFF: no reflex read
 _REFLEX = armflag.arm("TETHER_REFLEX", default=True)
+# Build 6 item 23, THE HOW-SOON READING (the reviewer 2026-11-05 r1245, r1246): one reading,
+# _how_soon(press), read by DODGE (a reflex form) and by _urgent at the mint. A death records the
+# subject's contact relation, kind-level, on the vote's own key, with the frame it was read on;
+# the roll repeats the course press through the settled terms, as deep as the step's purse pays,
+# and reads each predicted state's contacts (contact_points_at). Witnessed at j + lag. OFF: none
+_HOW_SOON = armflag.arm("TETHER_HOW_SOON", default=True)
 
 
 @dataclass(frozen=True)
@@ -4611,6 +4617,16 @@ class Agent:
                        "standing": {}}}
         self._rf_pending: list = []   # 22: (form, situation, slot, outstanding then, fired)
         self._rf_out: dict | None = None   # 22: outstanding at the last read
+        if _HOW_SOON:
+            # 23: DODGE, a wired form read on the how-soon reading (r1245, r1246)
+            self._reflexes["dodge"] = {
+                "form": Rt.When("the course reads a loss-voted relation within the horizon",
+                                Rt.Act(IFace.ELICIT)),
+                "consequence": "no loss next step", "origin": "prior",
+                "clause": "r1245 seed set, declared on the how-soon reading", "standing": {}}
+        self._loss_rel: dict = {}     # 23: vote key -> Counter of (loss kind, frame, relation)
+        self._hs_open: list = []      # 23: course readings awaiting their verdict at j + lag
+        self._hs_read: tuple | None = None   # 23: (cycle, course, reading) -- one per cycle
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
         # cycle of every commitment. The commitment bar and the relief rate are read from these.
         self._overrides: list[tuple[float, bool, int]] = []
@@ -4997,9 +5013,18 @@ class Agent:
             # (5c) A12: the ground's vote on the press last taken toward the goal held then
             k = self._last_press_key
             self._death_n[k] += 1
+            _hs = {}
+            if _HOW_SOON:
+                # 23 (r1246 D, r1247): a death is the loss kind this board reports; the subject's
+                # relation on the frame held now: pre-press where the engine kept it, else terminal
+                fn = getattr(env, "contact_points", None)
+                rel = self._hs_rel(fn() if fn is not None else (), self._hs_subject())
+                frame = "pre-press" if getattr(env, "frame_kept", False) else "terminal"
+                self._loss_rel.setdefault(k, Counter())[(how, frame, rel)] += 1
+                _hs = {"loss_kind": how, "rel": [list(p) for p in rel], "frame": frame}
             self.led.record(self.cycle, "SETTLE", "@death", "death_vote", goal_kind=k[0],
                             action=k[1], situation=[list(p) for p in k[2]],
-                            deaths=self._death_n[k], presses=self._press_n[k],
+                            deaths=self._death_n[k], presses=self._press_n[k], **_hs,
                             reads="a death votes against this press, toward this goal, in this "
                                   "kind of situation; read as a share, so it decays as such "
                                   "presses survive, and it removes no action (A12)")
@@ -15145,7 +15170,7 @@ class Agent:
                 return True
         return False
 
-    def _rank_by_consequence(self, by_kind: dict, best):
+    def _rank_by_consequence(self, by_kind: dict, best, slot: str | None = None):
         """Order the kinds by HOW SOON NOT-ACTING COSTS, and keep the losers. Isaiah, 2026-09-24.
 
         **RETURNS THE QUEUE, HEAD FIRST. The head is installed; the tail is RECORDED rather than
@@ -15183,7 +15208,7 @@ class Agent:
         rows = []
         for kind, v in by_kind.items():
             soon = self.consequence_in(kind) if speaks else None
-            rows.append(((0 if self._urgent(kind) else 1),
+            rows.append(((0 if self._urgent(kind, slot) else 1),
                          (soon if soon is not None else 0.0), v[0], kind, v))
         rows.sort(key=lambda r: (r[0], r[1], r[2]))
         self._queue_kinds = [(r[3], r[4][0]) for r in rows]
@@ -15201,11 +15226,22 @@ class Agent:
         got = getattr(self.gamma, "consequence", None)
         return (got or {}).get(kind)
 
-    def _urgent(self, _kind: str) -> bool:
-        """**PREEMPTION, DECLARED AND UNFED.** *A faster hazard always moves to the front.* What
-        makes a kind urgent on a given board is the agent's to read; nothing sets it, so this is
-        False for every kind and the queue is ordered by consequence alone."""
-        return False
+    def _urgent(self, _kind: str, slot: str | None = None) -> bool:
+        """**PREEMPTION.** *A faster hazard always moves to the front.* Item 23 (r1246 C) feeds it
+        from the one how-soon reading (_how_soon's docstring): a predictor for a slot of the
+        subject or of a FATAL-kind partner is urgent while the course reading is not inf --
+        finite, or None, since the thing that kills me and that I cannot yet predict is the case
+        this exists for (Fig 8 :39). OFF, or no death record: False, as before."""
+        if not _HOW_SOON or _kind != "predictor" or slot is None or not self._hs_fatal():
+            return False
+        own = slot.split(".", 1)[0]
+        if own not in self._hs_subject() and self._kind_str(own) not in self._hs_kinds():
+            return False
+        read = self._hs_course(self.env.observe())
+        if read is None or read[1] == math.inf:
+            return False
+        st = self._rf_standing("dodge", read[3])
+        return 1 + st["paid"] >= st["against"]
 
     def explain(self, slot: str, bits: float) -> tuple[float, float]:
         """Reduce OUTSTANDING only. The integral is untouched.
@@ -16578,6 +16614,8 @@ class Agent:
         self._split_term, self._routine_fed, self._last_real = None, [], None
         if _REFLEX:
             self._reflex_settle()               # 22: last step's fires and quiet guards, judged
+        if _HOW_SOON:
+            self._hs_settle()                   # 23: open course readings, judged at j + lag
         if _GOAL_FROM_ACTUATOR and _ACTUATOR_ROUTINE and self._alive and (
                 self._act_rt is not None or self._actuators and not self._try_first_open()):
             # a held actuator routine's END is read every cycle (a board that grows reopens
@@ -17351,6 +17389,119 @@ class Agent:
         iface = getattr(self, "iface", None)
         return iface.untried_here(tuple(self.actions)) if iface is not None else 0
 
+    def _hs_subject(self) -> set:
+        """23: what the agent steers -- item 18's self, else the owners of the last press's
+        credited slots."""
+        ag = getattr(self, "_lv_agency", None)
+        own = set(self._desc_self(ag.contingent())) if ag is not None else set()
+        return own or {s.split(".", 1)[0] for s in getattr(self.iface, "last_changed", ())
+                       if "~" not in s.split(".", 1)[0]}
+
+    def _hs_rel(self, pts: Any, subj: set) -> tuple:
+        """23: the subject's contact relation, kind-level -- (partner kind, contact kind) for
+        every contact a subject object holds with a non-subject one; never a position."""
+        out = set()
+        for a, b, kind in pts:
+            for me, it in ((a, b), (b, a)):
+                if me in subj and it not in subj:
+                    out.add((self._kind_str(it), kind))
+        return tuple(sorted(out))
+
+    def _hs_fatal(self) -> list:
+        """23 (r1247): FATAL, the loss-voted relations -- (loss kind, frame, relation, vote key) per
+        recorded loss with a non-empty relation; a death is the loss kind this board reports."""
+        return [(lk, f, rel, k) for k, c in self._loss_rel.items() if self._death_n[k] > 0
+                for lk, f, rel in sorted(c) if rel]
+
+    def _hs_kinds(self) -> set:
+        return {kind for _lk, _f, rel, _k in self._hs_fatal() for kind, _c in rel}
+
+    def _how_soon(self, press: str, before: dict) -> tuple:
+        """THE HOW-SOON READING (item 23; r1245-r1247), the one both readers cite: presses until a
+        predicted LOSS of a recorded kind, if this press is kept, within the horizon the budget
+        reached; inf = read, no loss within the horizon; None = not read. A loss is met as a
+        loss-voted relation (FATAL); a death is the loss kind this board reports.
+        (reading, lag w, the relation met, presses rolled h): a non-hit is "none within h", h
+        inf where the state stops moving, and nothing rolled is None. A pre-press record is met
+        only while the course press is the voted one (r1246 D). The purse is the horizon."""
+        fatal = self._hs_fatal()
+        if not fatal:
+            return math.inf, 0, None, math.inf
+        subj = self._hs_subject()
+        fn = getattr(self.env, "contact_points_at", None)
+        if not subj or fn is None:
+            return None, 0, None, 0
+        kinds = self._hs_kinds()
+        objs = subj | {s.split(".", 1)[0] for s in before if s.split(".", 1)[0][:1] not in "@"
+                       and "~" not in s and self._kind_str(s.split(".", 1)[0]) in kinds}
+        slots = sorted(s for s in before if s.split(".", 1)[0] in objs)
+        lib = self.gamma.library
+        if not slots or not all(self.bound.get(s, IDN) in lib
+                                and self.gamma.is_settled(self.bound.get(s, IDN), s)
+                                for s in slots):
+            return None, 0, None, 0
+        w = max(self._effect_window(s) for s in slots)
+        st, unread, used, j = dict(before), set(), [0], 0
+        keep, sim = dict(self._pred_raw), getattr(self, "_sim_parent", {})
+        try:
+            while self._spent + used[0] + len(slots) <= STEP_BUDGET:
+                cap.head()
+                nxt = self._la_predict(st, press, slots, unread, used)
+                if unread:
+                    return None, w, None, j
+                j += 1
+                rel = set(self._hs_rel(fn(nxt), subj))
+                for _lk, frame, frel, k in fatal:
+                    if set(frel) <= rel and (frame == "terminal" or k[1] == press):
+                        return j, w, frel, j
+                if nxt == st:
+                    return math.inf, w, None, math.inf   # nothing moves: none at any depth
+                st = nxt
+        finally:
+            self._pred_raw, self._sim_parent = keep, sim
+            self._spent += used[0]
+        return (math.inf, w, None, j) if j else (None, w, None, 0)
+
+    def _hs_course(self, before: dict) -> tuple | None:
+        """23: the course reading -- _how_soon on the last press repeated, once per cycle --
+        (course, reading, w, situation); a finite one opens its witness (r1246 A)."""
+        course = self._last_action
+        if course is None or course == IFace.RESET or course not in self.actions:
+            return None
+        if self._hs_read is not None and self._hs_read[:2] == (self.cycle, course):
+            return self._hs_read[2]
+        j, w, rel, _h = self._how_soon(course, before)
+        subj = sorted(self._hs_subject())
+        out = (course, j, w, (self._kind_str(subj[0]) if subj else None, "dodge", rel))
+        self._hs_read = (self.cycle, course, out)
+        if j is not None and j != math.inf and all(e["situ"] != out[3] for e in self._hs_open):
+            self._hs_open.append({"situ": out[3], "course": course, "j": j, "w": w,
+                                  "n0": self._act_n()})
+        return out
+
+    def _hs_settle(self) -> None:
+        """23 (r1246 A): each open course reading judged at j + lag -- a death in presses j..j+w
+        is paid; a death before j or after j+w, or the course kept through j+w with no death,
+        is against; the course broken first is no verdict. One row, read by both readers."""
+        keep = []
+        for e in self._hs_open:
+            n = self._act_n() - e["n0"]
+            if not self._alive:
+                verdict = "paid" if e["j"] <= n <= e["j"] + e["w"] else "against"
+            elif n and self._last_action != e["course"]:
+                verdict = "course not kept"
+            elif n >= e["j"] + e["w"]:
+                verdict = "against"
+            else:
+                keep.append(e)
+                continue
+            if verdict != "course not kept":
+                self._rf_standing("dodge", e["situ"])[verdict] += 1
+            self.led.record(self.cycle, self._running_step, "@how_soon", "how_soon_settled",
+                            course=e["course"], j=e["j"], w=e["w"], presses=n, verdict=verdict,
+                            situation=list(e["situ"]))
+        self._hs_open = keep
+
     def _rf_standing(self, form: str, situ: tuple) -> dict:
         """22: one (situation, form)'s record, `against` decayed to now on the logical clock --
         decaying failures is forgiveness, decaying confirmations amnesia (Standing, r1243)."""
@@ -17393,6 +17544,26 @@ class Agent:
             if 0 < len(safe) < len(self.actions):
                 cands.append(("freeze", (k[0], "freeze", k[1]), None,
                               IFace.Intent(IFace.ELICIT), safe))
+        if _HOW_SOON and "dodge" in self._reflexes:
+            # 23 (r1246 B): the furthest non-None reading over the offers, by comparison; ties
+            # by name. It fires only when strictly further than the course; None is never safe
+            read = self._hs_course(before)
+            if read is not None and read[1] is not None and read[1] != math.inf:
+                course, jc, _w, situ = read
+                best = None
+                for a in sorted(x for x in self.actions if x != IFace.RESET):
+                    ja, _wa, _ra, ha = (jc, 0, None, jc) if a == course else self._how_soon(
+                        a, before)
+                    # a non-hit proves "further than the course" only rolled at least as deep
+                    if ja is not None and (ja != math.inf or ha >= jc) and (
+                            best is None or ja > best[0]):
+                        best = (ja, a)
+                if best is not None and best[0] > jc:
+                    cands.append(("dodge", situ, None, IFace.Intent(IFace.ELICIT), (best[1],)))
+                else:
+                    self.led.record(self.cycle, "PLAN", "@reflex", "reflex", form="dodge",
+                                    situation=list(situ), course=course, j=jc, fires=False,
+                                    fired=False, reads="no offer further than the course")
         if out is not None:
             mine = set(getattr(self.iface, "last_changed", ()))
             grew = sorted((s for s, v in self._rf_out.items()
@@ -22707,7 +22878,7 @@ class Agent:
         # falls back to `total`, which is **exactly what `best` already chose**, so this installs
         # the mechanism and changes NO run. The queue exists, the preemption path exists, and
         # both are inert until the board fills the dial -- the same shape as `REJECTION_CEILING`.
-        queue = self._rank_by_consequence(by_kind, best)
+        queue = self._rank_by_consequence(by_kind, best, slot)
         if queue:
             best = queue[0]
             detail["queued"] = [k for k, _v in self._queue_kinds]

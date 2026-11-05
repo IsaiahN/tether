@@ -2181,6 +2181,13 @@ ARMS: dict[str, str] = {
                           "witnessed the contrast; on load the wins seed _desc_paid and the losses "
                           "a carried count the same p sums with the board's. OFF: nothing "
                           "tallied. default ON",
+    "TETHER_HOW_SOON": "BUILD 6 ITEM 23 (the reviewer 2026-11-05 r1245, r1246): one how-soon "
+                       "reading, _how_soon(press) -- presses until a predicted LOSS of a recorded "
+                       "kind (a loss-voted relation, kind-level, on the vote's key, its frame) if "
+                       "the press is kept, as deep as the step's purse pays; inf none within, "
+                       "None not read -- read by DODGE (furthest offer, strictly further than "
+                       "the course) and by _urgent at the mint (not inf); witnessed at j + lag. "
+                       "OFF: none. default ON",
     "TETHER_REFLEX": "BUILD 6 ITEM 22 (the reviewer 2026-11-05 r1242, r1243): the reflex tier -- "
                      "stored When(reading, intent) forms (orient, freeze) read in choose after "
                      "the dead-board exit and before the held routine, paused never consumed; "

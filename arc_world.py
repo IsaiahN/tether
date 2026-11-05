@@ -559,6 +559,28 @@ class ArcWorld:
             self._contact_pts = out
         return self._contact_pts
 
+    def contact_points_at(self, state: dict) -> list[tuple[str, str, str]]:
+        """`contact_points` over a given state (item 23: a predicted one): each tracked object's
+        cells moved by its row/col change from the observed values, then the same contact_kind;
+        a zero move is the live call."""
+        now = self.observe()
+        tr = {}
+        for a, o in self._decompose.tracked.items():
+            dr = state.get(f"{a}.row", now.get(f"{a}.row", 0)) - now.get(f"{a}.row", 0)
+            dc = state.get(f"{a}.col", now.get(f"{a}.col", 0)) - now.get(f"{a}.col", 0)
+            tr[a] = o if not (dr or dc) else {**o, "cells": {(r + dr, c + dc)
+                                                            for r, c in o["cells"]}}
+        names = sorted(tr)
+        out = []
+        for i, a in enumerate(names):
+            cap.head()
+            for b in names[i + 1:]:
+                cap.head()
+                k = arc_percept.contact_kind(tr[a], tr[b])
+                if k is not None:
+                    out.append((a, b, k))
+        return out
+
     def relational_slots(self) -> tuple[str, ...]:
         """WHICH ATTRIBUTES ARE A RELATION TO ANOTHER OBJECT. See `gridworld`'s.
 
@@ -1147,6 +1169,9 @@ class ArcWorld:
             keep = self._frame.model_copy()
             keep.state = nxt.state
             nxt = keep
+            self.frame_kept = True       # item 23: the death record's frame is the pre-press one
+        else:
+            self.frame_kept = False
         self._take_frame(nxt)
         now = self.board()
         if self.on_frame is not None:

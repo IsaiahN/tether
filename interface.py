@@ -1685,6 +1685,12 @@ class Interface:
         except Exception as e:                             # noqa: BLE001
             CONTEXT_FAULTS[type(e).__name__] += 1          # r696 row 14: booked, never silent
             return ()
+        return Interface.context_of(pts, actor)
+
+    @staticmethod
+    def context_of(pts: Any, actor: str | None = None) -> tuple:
+        """`context`'s count over given contact points: the live call is this over the live
+        points, and item 23 (TETHER_HOW_SOON) reads a predicted state's points through it."""
         kinds: dict[str, int] = {}
         for a, b, kind in pts:
             # THE ACTOR'S OWN CONTACTS, not the board's. *`left` while against the wall* and
