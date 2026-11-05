@@ -81,8 +81,8 @@ def main():
         B.stall(ag)
     rows = demoted(ag)[n0:]
     after = ag._desc_prior(["avatar"])
-    assert len(rows) == 2 and all(r["family"] == "navigate" for r in rows) and (
-        rows[-1]["losses"]["avatar"] == 2), ("MF-D1: rows", rows)
+    assert len(rows) == 2 and all(r["family"] == "navigate" for r in rows), ("MF-D1: rows", rows)
+    assert (rows[-1]["losses"] or {}).get("avatar") == 2, ("MF-D1: no losses recorded", rows[-1])
     assert after["navigate"] > after["placement"] and after["navigate"] > seed["navigate"], (
         "MF-D1: navigate not demoted", seed, after)
 

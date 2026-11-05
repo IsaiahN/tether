@@ -2153,6 +2153,12 @@ _DESC_DEMOTE = armflag.arm("TETHER_DESC_DEMOTE", default=True)
 # pair relation whose route is a TOUCH). OFF: four families, no stall readings
 _STALL_SURFACE = armflag.arm("TETHER_STALL_SURFACE", default=True)
 _STALL_READS = ("stall_untouched", "stall_unmoved", "stall_flat")
+# Build 5 item 19 (c), COMPOUNDS FROM UNBUNDLING (the reviewer 2026-11-05 r1229, r1230): a stalled
+# hold of two or more parts whose parts split by stuck()'s own predicate (some FELL, some FLAT)
+# keeps the part that fell; the next proposal offers kept AND c for a candidate c on a flat part's
+# owner of a different template, priced bits(c) - gain(kept), the kept fall in bits (its
+# description was paid at its hold; Fig 12 :112, :126); a goal_unbundled row. OFF: none of it
+_GOAL_UNBUNDLE = armflag.arm("TETHER_GOAL_UNBUNDLE", default=True)
 
 
 @dataclass(frozen=True)
@@ -8518,6 +8524,8 @@ class Agent:
         if (_DESC_DEMOTE or _STALL_SURFACE) and "family" in h and not won and (
                 loss or why == "stalled"):
             self._desc_against(h, why, step)
+        if _GOAL_UNBUNDLE and why == "stalled" and not won:
+            self._goal_unbundle(h, step)
         self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
                         **({"ended_by": ended_by} if ended_by is not None else {}),
                         text=h["text"], why=why, steps=h["steps"], released=released,
@@ -8751,6 +8759,8 @@ class Agent:
         cands = _admit(phases[0])
         if _GROUP_PROPOSE:                      # box 3: the group row's FORM, priced by bits
             cands += self._group_cands(phases[0], before, atoms)
+        if _GOAL_UNBUNDLE and self._hyp_split is not None:
+            cands += self._compounds(cands)     # item 19 (c): kept AND c, in the same sort
         cands = _priced(cands)
         cands.sort(key=lambda x: x[0])
         ranked_all = list(cands)                # the pick's rank is read against this order
@@ -8771,7 +8781,10 @@ class Agent:
             if not cands:
                 if not pending:
                     break
-                cands = _priced(_admit(pending.pop(0)))   # 4: the won group held no route
+                cands = _admit(pending.pop(0))   # 4: the won group held no route
+                if _GOAL_UNBUNDLE and self._hyp_split is not None:
+                    cands += self._compounds(cands)
+                cands = _priced(cands)
                 cands.sort(key=lambda x: x[0])
                 ranked_all += cands
                 self._hyp_open += len(cands)
@@ -9316,7 +9329,10 @@ class Agent:
     def _desc_family(self, c: Any, ctrl: set) -> str:
         """Item 18: the shape family of a candidate's FORM -- a count of a kind, a group of a
         kind, a want on an owner the presses steer, a want on anything else; item 19 (b): a pair
-        relation whose route is a TOUCH (REL_TOUCH's form) is "contact"."""
+        relation whose route is a TOUCH (REL_TOUCH's form) is "contact"; item 19 (c): a
+        compound's family is its new shape's, its first part."""
+        if _GOAL_UNBUNDLE and type(c) is _Pair and c.parts:
+            c = c.parts[0]
         if isinstance(c, _Count):
             return "collect"
         if isinstance(c, _Group):
@@ -9359,6 +9375,65 @@ class Agent:
         if _BOARD_DESC and (_DESC_DEMOTE or _STALL_SURFACE):
             self._desc_lost: Counter = Counter()
             self._bd_stall: Counter = Counter()
+        if _GOAL_UNBUNDLE:
+            self._hyp_split: dict | None = None    # item 19 (c): the kept part is this board's
+
+    def _goal_unbundle(self, h: dict, step: str) -> None:
+        """Item 19 (c) (r1229, r1230): a stalled hold of two or more parts, read part by part with
+        stuck()'s own predicate (FELL: shrinking over MIN_REPEAT + 1 readings; FLAT: as many, not
+        shrinking) is a union when both are non-empty; the parts that fell are KEPT, with their
+        fall in bits, log2(r0 / r_now) floored at 0 (a part that reached 0 is fully paid)."""
+        cond = h.get("cond")
+        if type(cond) not in (_Pair, _Group) or len(cond.parts) < 2:
+            return
+        fell, flat, gain = [], [], 0.0
+        for p in cond.parts:
+            at = h["seg"].get(p.slot, 0)
+            seg = h["reads"].get(p.slot, [])[at:]
+            tseg = trend_of(seg, h.get("gaps", {}).get(p.slot, [])[at:])
+            if len(tseg) < MIN_REPEAT + 1:
+                continue
+            if shrinking(tseg):
+                fell.append(p)
+                gain += (math.inf if seg[-1] <= 0 else
+                         max(0.0, math.log2(seg[0] / seg[-1])) if seg[0] > 0 else 0.0)
+            else:
+                flat.append(p)
+        if not fell or not flat:
+            return
+        alpha = self.gamma.alphabet
+        if isinstance(cond, _Group):
+            kept_bits = term_bits(self.gamma.length(cond.parts[0].term) + 1, alpha)
+            form = (f"{h['text']} except "
+                    f"{','.join(sorted({p.slot.split('.', 1)[0] for p in flat}))}")
+        else:
+            kept_bits = term_bits(sum(self.gamma.length(p.term) for p in fell)
+                                  + len(fell) - 1, alpha)
+            form = " and ".join(p.slot for p in fell)
+        self._hyp_split = {"kept": tuple(fell), "text": form, "gain": gain,
+                           "rest": {p.slot.split(".", 1)[0] for p in flat},
+                           "tpl": h["tkey"][0], "fell": {p.slot for p in fell}}
+        self.led.record(self.cycle, step, h["slots"][0], "goal_unbundled", text=h["text"],
+                        kept=form, fell=[p.slot for p in fell], flat=[p.slot for p in flat],
+                        gain=round(gain, 6) if gain != math.inf else "paid",
+                        kept_bits=round(kept_bits, 6),
+                        reads="the part that fell is kept; the rest is a different question")
+
+    def _compounds(self, xs: list) -> list:
+        """Item 19 (c): kept AND c for each admitted candidate c on a flat part's owner, of a
+        different template from the stalled hold, priced bits(c) - gain(kept), floored at 0."""
+        sp = self._hyp_split
+        out = []
+        for k, t, c, tk, s in xs:
+            if (not isinstance(c, compile_term.Compiled) or tk[0] == sp["tpl"]
+                    or c.slot.split(".", 1)[0] not in sp["rest"] or c.slot in sp["fell"]):
+                continue
+            ctk = ("unbundled", sp["text"], tk)
+            if ctk in self._hyp_tried:
+                continue
+            out.append(((*k[:-1], round(max(0.0, k[-1] - sp["gain"]), 6)),
+                        f"{t} and kept({sp['text']})", _Pair((c, *sp["kept"])), ctk, s))
+        return out
 
     def _stall_surfaced(self, h: dict) -> list:
         """Item 19 (b): what a stalled shape's own record surfaced -- never touched; a party (an

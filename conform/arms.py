@@ -2159,6 +2159,14 @@ ARMS: dict[str, str] = {
                             "not need what failed; a fifth family, contact, read off the FORM (a "
                             "pair relation whose route is a TOUCH; a touches_ want on the self was "
                             "navigate). OFF: four families, no stall readings. default ON",
+    "TETHER_GOAL_UNBUNDLE": "BUILD 5 ITEM 19 (c) (the reviewer 2026-11-05 r1229, r1230): a stalled "
+                            "hold of two or more parts whose parts split by stuck()'s own "
+                            "predicate (some fell, some flat) keeps the part that fell, board-"
+                            "scoped; the next proposal offers kept AND c for an admitted c on a "
+                            "flat part's owner of a different template, held as one _Pair, priced "
+                            "bits(c) - gain(kept) (the kept fall in bits, floored at 0; its "
+                            "description was paid at its hold); a goal_unbundled row with fell, "
+                            "flat, gain and kept_bits. OFF: none of it. default ON",
     "TETHER_SLOTLESS_TOUCH": "BUILD 5 ITEM 19 Q2 (the reviewer 2026-11-05 r1216): a completion-"
                              "held goal that names no slot (count NONE, connected) is pressed for "
                              "through 16b's formed / tried machinery: _untried_ready offers its "
