@@ -2110,6 +2110,11 @@ _GOAL_ORDER = armflag.arm("TETHER_GOAL_ORDER", default=True)
 # tried HERE moved it ("these actions, in this context", never "unmovable"); when the moving side
 # reads it and its partner never moved, TOUCH(partner) is formed for 16b. OFF: none of it
 _NO_LEVER = armflag.arm("TETHER_NO_LEVER", default=True)
+# Build 5 item 19 (d), FOCUS OFF AN UNMOVED SLOT (the reviewer 2026-11-05 r1215): the mirror of
+# r674 1's indifferent() filter at the focal pick -- a slot no press has moved, under EVERY action
+# the agent has tried (>= 2), is not what a press is made for; booked once per slot (row
+# focus_unmoved), eligible again the step it moves. OFF: as before
+_FOCUS_UNMOVED = armflag.arm("TETHER_FOCUS_UNMOVED", default=True)
 
 
 @dataclass(frozen=True)
@@ -13585,6 +13590,29 @@ class Agent:
         return (rg is not None and slot not in self._miss_held and isinstance(r.actual, int)
                 and rg[0] <= r.actual <= rg[1])
 
+    def _focus_off_unmoved(self, readable: list) -> list:
+        """Item 19 (d) (r1215): `readable` without the slots no action has moved, under EVERY action
+        the agent has tried and at least two -- only when something readable remains. Each such
+        slot booked once (row focus_unmoved, its denominator); re-read every step."""
+        if not _FOCUS_UNMOVED:
+            return readable
+        allacts = {a for _s, a in self.agency.tried}
+        if len(allacts) < 2:
+            return readable
+        um = {s: acts for s, acts in self.agency.unmoved().items()
+              if set(acts) == allacts and s in readable}
+        if not um or all(s in um for s in readable):
+            return readable
+        booked = self.__dict__.setdefault("_focus_unmoved_seen", set())
+        for s in sorted(um):
+            if s not in booked:
+                booked.add(s)
+                self.led.record(self.cycle, self._running_step or "PLAN", s, "focus_unmoved",
+                                actions=dict(sorted(um[s].items())),
+                                reads="no press has moved this slot under any action tried: not "
+                                      "what a press is made for, among these actions (Fig 8 :39)")
+        return [s for s in readable if s not in um]
+
     def _indiff_book(self) -> None:
         """r674 1: one refusal of a slot whose change does not depend on the action (undeclared in
         BOOKS, so OFF stays exact)."""
@@ -23242,6 +23270,7 @@ class Agent:
             if any(s in _ind for s in readable):
                 self._indiff_book()
             readable = [s for s in readable if s not in _ind]
+        readable = self._focus_off_unmoved(readable)
         focal = max(readable,
                     key=lambda s: (self._last_mass.get(s, 0.0), s in self.owed_import))
         # **SYSTEM 2 SETS WHAT TO ATTEND TO; SYSTEM 1 EXECUTES -- Isaiah, 2026-09-25, and it is

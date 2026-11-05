@@ -2129,6 +2129,12 @@ ARMS: dict[str, str] = {
                         "necessary singles, priced by the one bargain and linked one want per "
                         "member. OFF: Refusal(QUANTIFIED) and no group offered, as before. "
                         "default ON",
+    "TETHER_FOCUS_UNMOVED": "BUILD 5 ITEM 19 (d) (the reviewer 2026-11-05 r1215): at the focal "
+                            "pick, the mirror of r674 1's indifferent() filter -- a readable slot "
+                            "no press has moved under EVERY action the agent has tried (at least "
+                            "two) leaves the set while something readable remains; booked once "
+                            "per slot (row focus_unmoved, its denominator); eligible again the "
+                            "step it moves. Attention only. OFF: as before. default ON",
     "TETHER_NO_LEVER": "BUILD 5 ITEM 18, DETECTION (the reviewer 2026-11-05 r1210, r1212, r1213; "
                        "Fig 8 :39-42): Agency counts each held slot's presses per context "
                        "(_situation + level) beside its run-wide counts, read by the siblings "
