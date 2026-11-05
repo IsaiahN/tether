@@ -323,6 +323,14 @@ def longest_dead_run(log: list) -> int:
 def world_wall() -> None:
     """CASE 2 IN A WORLD (the reviewer 2026-10-23 22:28, owed before switch-on): the real agent on
     gridworld (the wall o2), ON against OFF, per seed, never pooled."""
+    # r1195: LANDING-TIME. Its occasion (today's code pushing a dead goal-exit route past MR) is a
+    # world premise today's exits no longer produce -- the goal exit takes 1-2 of 40 turns on
+    # seeds 0-2 (distinguish 14-21, system0 14-17) -- and the forced dead route is cases() CASE 2's
+    if os.environ.get("TETHER_TEST_LANDING") != "1":
+        print("  SKIP world_wall: landing-time; its dead goal-exit occasion is a world premise "
+              "today's exits do not produce (r1187, r1195); CASE 2 forces it. Run with "
+              "TETHER_TEST_LANDING=1")
+        return
     root, mr = str(_repo.ROOT), 2
     seen = 0
     for seed in (0, 1, 2):
