@@ -2129,10 +2129,18 @@ ARMS: dict[str, str] = {
                         "necessary singles, priced by the one bargain and linked one want per "
                         "member. OFF: Refusal(QUANTIFIED) and no group offered, as before. "
                         "default ON",
-    "TETHER_FOCUS_UNMOVED": "BUILD 5 ITEM 19 (d) (the reviewer 2026-11-05 r1215): at the focal "
-                            "pick, the mirror of r674 1's indifferent() filter -- a readable slot "
-                            "no press has moved under EVERY action the agent has tried (at least "
-                            "two) leaves the set while something readable remains; booked once "
+    "TETHER_REL_TOUCH": "BUILD 5 ITEM 19 Q3 (ii) (the reviewer 2026-11-05 r1216): a goal "
+                        "hypothesis wanting a declared-derived pair relation TRUE (oA.touches_oB / "
+                        "inside_oB == 1) is admitted past 'route first' and the derived-slot "
+                        "refusal with TOUCH(partner) as its route (_hyp_route), held, and the "
+                        "TOUCH formed for 16b (_form_touch, shared with item 18). The relation "
+                        "wanted false is refused as before. OFF: refused 'route first', as before. "
+                        "default ON",
+    "TETHER_FOCUS_UNMOVED": "BUILD 5 ITEM 19 (d) (the reviewer 2026-11-05 r1215, r1216): at the "
+                            "focal pick, the mirror of r674 1's indifferent() filter -- a readable "
+                            "slot no press has moved under EVERY action AVAILABLE this level "
+                            "(self.actions), each tried on it, leaves the set while something "
+                            "readable remains; booked once "
                             "per slot (row focus_unmoved, its denominator); eligible again the "
                             "step it moves. Attention only. OFF: as before. default ON",
     "TETHER_NO_LEVER": "BUILD 5 ITEM 18, DETECTION (the reviewer 2026-11-05 r1210, r1212, r1213; "

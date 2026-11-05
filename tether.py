@@ -2115,6 +2115,12 @@ _NO_LEVER = armflag.arm("TETHER_NO_LEVER", default=True)
 # the agent has tried (>= 2), is not what a press is made for; booked once per slot (row
 # focus_unmoved), eligible again the step it moves. OFF: as before
 _FOCUS_UNMOVED = armflag.arm("TETHER_FOCUS_UNMOVED", default=True)
+# Build 5 item 19 Q3 (ii), A RELATION'S ROUTE IS A TOUCH (the reviewer 2026-11-05 r1216): a
+# hypothesis candidate wanting a declared-derived pair relation true (oA.touches_oB / inside_oB
+# == 1) is admitted with TOUCH(partner) as its route, instead of refused "route first"; held, the
+# TOUCH is formed for 16b. OFF: refused, as before
+_REL_TOUCH = armflag.arm("TETHER_REL_TOUCH", default=True)
+_REL_TOUCH_RELS = ("touches", "inside")
 
 
 @dataclass(frozen=True)
@@ -8481,6 +8487,16 @@ class Agent:
     def _hyp_route(self, slot: str, before: dict) -> str | None:
         """The action the interface knows moves the subject toward its target (the route
         _goal_split takes), or None: GQ2's CAN, from the agent's own delta table."""
+        partner = self._rel_partner(slot) if _REL_TOUCH else None
+        if partner is not None:         # Q3 (ii): a relation is reached by touching its partner
+            r = self.iface.realise(IFace.Intent(IFace.TOUCH, object=partner), tuple(self.actions),
+                                   IFace.Interface.context(self.env), before, self.env,
+                                   withheld=self._withheld, asker="hyp_route")
+            if r is not None and not getattr(r, "unmapped", False):
+                self._form_touch(partner, slot, partner,
+                                 "a held relation is reached by touching its partner (r1216)")
+                return r.action
+            return None
         tgt = self._goal_target(slot, before)
         if tgt is None or slot not in before:
             return None
@@ -8608,7 +8624,9 @@ class Agent:
                     named = _SLOT_IN_TEXT.findall(text) if "(" not in text else ()
                     if (named and all(n in before and n.rsplit(".", 1)[1]
                                       not in compile_term.CHANGE_OF for n in named)
-                            and not any(n in routable_slots for n in named)):
+                            and not any(n in routable_slots for n in named)
+                            and not (_REL_TOUCH and text.endswith(("== 1", "> 0", "!= 0"))
+                                     and any(self._rel_partner(n) for n in named))):
                         HYP_ROUTE_FIRST_N["dropped"] += 1
                         if not _HYP_ROUTE_FIRST_CHECK:
                             refused["route first: no slot of it has an entry"] += 1
@@ -8635,7 +8653,9 @@ class Agent:
                         assert in_slots == (c.slot in self.slots), \
                             "TETHER_HYP_SLOTSET_CHECK: the set and the list differ"
                         HYP_SLOTSET_N["checked"] += 1
-                if c.slot not in before or not in_slots or c.slot in der:
+                rel = (_REL_TOUCH and c.slot in before and c.term.name == "holds"
+                       and self._rel_partner(c.slot) is not None)      # Q3 (ii): routed by TOUCH
+                if not rel and (c.slot not in before or not in_slots or c.slot in der):
                     refused["subject not a movable slot"] += 1
                     continue
                 if clock and clock & self._named_slots(text, c):
@@ -12769,6 +12789,28 @@ class Agent:
                                       "the search's scope, not a proof of absence (Fig 8 :39)")
         return None
 
+    @staticmethod
+    def _rel_partner(slot: str) -> str | None:
+        """Q3 (ii): the partner object a touches / inside pair reading names (o0.touches_o2 ->
+        o2), else None."""
+        obj, _sep, reading = slot.partition(".")
+        rel, sep, partner = reading.partition("_")
+        if (not sep or "~" in obj or rel not in _REL_TOUCH_RELS
+                or relations.pair_attr(reading) != rel):
+            return None
+        return partner if partner[:1] == "o" and partner[1:].isdigit() else None
+
+    def _form_touch(self, owner: str, slot: str, partner: str, reads: str) -> None:
+        """TOUCH(owner) formed for 16b, once: the route for a goal with no lever of its own (items
+        18 and 19 share it; r1216: built once, used twice). Row lever_formed."""
+        w = IFace.Intent(IFace.TOUCH, object=owner)
+        said = self._route_said(w)
+        if said in self._formed:
+            return
+        self._formed[said] = (self.cycle, w)
+        self.led.record(self.cycle, self._running_step or "PLAN", slot, "lever_formed",
+                        intent=said, partner=partner, reads=reads)
+
     def _lever_note(self, action: str, res: Any, before: dict, after: dict) -> None:
         """Item 18: this press counted per held slot in the context it was made in, then read."""
         if not _NO_LEVER or not self.__dict__.get("_press_here"):
@@ -12806,15 +12848,10 @@ class Agent:
                 owner = p.split(".", 1)[0]
                 if p == s or p not in everywhere or "~" in owner or owner == s.split(".", 1)[0]:
                     continue
-                w = IFace.Intent(IFace.TOUCH, object=owner)
-                said = self._route_said(w)
-                if said in self._formed:
-                    continue
-                self._formed[said] = (self.cycle, w)
-                self.led.record(self.cycle, "PERCEIVE", s, "lever_formed", intent=said, partner=p,
-                                reads="the moving side has no lever here and its partner never "
-                                      "moved: an indirect lever, the mover's contact with the "
-                                      "static one -- more search, not another atom (Fig 8 :40-42)")
+                self._form_touch(owner, s, p, "the moving side has no lever here and its partner "
+                                              "never moved: an indirect lever, the mover's contact "
+                                              "with the static one -- more search, not another "
+                                              "atom (Fig 8 :40-42)")
 
     def _untried_take(self) -> str:
         """16b: the contest took the untried formed intent -- a PLAN untried_intent row, the press
@@ -13591,16 +13628,16 @@ class Agent:
                 and rg[0] <= r.actual <= rg[1])
 
     def _focus_off_unmoved(self, readable: list) -> list:
-        """Item 19 (d) (r1215): `readable` without the slots no action has moved, under EVERY action
-        the agent has tried and at least two -- only when something readable remains. Each such
-        slot booked once (row focus_unmoved, its denominator); re-read every step."""
+        """Item 19 (d) (r1215, r1216): `readable` without the slots no action has moved, every
+        action available this level (self.actions) tried on each -- only while something remains.
+        Each such slot booked once (row focus_unmoved, its denominator); re-read every step."""
         if not _FOCUS_UNMOVED:
             return readable
-        allacts = {a for _s, a in self.agency.tried}
-        if len(allacts) < 2:
+        avail = set(self.actions)   # r1216: every action AVAILABLE this level, each tried on it
+        if not avail:
             return readable
         um = {s: acts for s, acts in self.agency.unmoved().items()
-              if set(acts) == allacts and s in readable}
+              if avail <= set(acts) and s in readable}
         if not um or all(s in um for s in readable):
             return readable
         booked = self.__dict__.setdefault("_focus_unmoved_seen", set())
