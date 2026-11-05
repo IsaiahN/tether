@@ -55,11 +55,12 @@ def plant_touch(ag):
     orig = ag.goal_residual
 
     def gr(slot, state, counts=None, why=None):
-        if slot == sl:
+        if slot in h["slots"]:      # r1191 (a): a symmetric goal held on both sides (16c)
             return 0.0 if (state.get(sl), state.get(op)) == vals else 0.5
         return orig(slot, state, counts, why)
     ag.goal_residual = gr
-    ag._res[sl] = [0.5]
+    for s in h["slots"]:
+        ag._res[s] = [0.5]
     return sl, op, vals
 
 

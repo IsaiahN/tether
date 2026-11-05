@@ -2112,6 +2112,14 @@ ARMS: dict[str, str] = {
                              "PLAN intent_predict row with its ms; no row where nothing is "
                              "weighed. Record-only until 15b reads it. OFF: never computed. "
                              "default ON",
+    "TETHER_GOAL_BOTH_SIDES": "BUILD 4 ITEM 16c (the reviewer 2026-11-05 r1189; Fig 12 :112; the "
+                              "Operators Table's symmetry test): a held hypothesis whose one "
+                              "comparison is symmetric (its atom is its own swap: same, other) "
+                              "is linked as a want on BOTH operands' slots -- the mirror is "
+                              "compile_term.converse of the part, only where that slot holds no "
+                              "want; the existing want / target / goal-exit path forms its "
+                              "intent kinds on each. Asymmetric: today's link. OFF: one side. "
+                              "default ON",
     "TETHER_UNTRIED_INTENT": "BUILD 4 ITEM 16b (the reviewer 2026-11-05 r1189; Fig 8 :39): the "
                              "agent's record of its formed intents (at _took, in the order "
                              "formed) and the situations each was pressed in; at a held "

@@ -95,7 +95,9 @@ def hold(on):
 def order(on):
     ag = fresh()
     before = ag.env.observe()
-    sl = ag._hyp["slots"][0]
+    # r1191 (b): the held slot with a route (16c holds a symmetric goal through the side that has
+    # one), the first held slot when none has
+    sl = next((s for s in ag._hyp["slots"] if ag._hyp_route(s, before)), ag._hyp["slots"][0])
     ag._res[sl] = [0.6, 0.5]
     route = ag._hyp_route(sl, before)
     ag.routine, ag._routine_next = None, None

@@ -1388,6 +1388,14 @@ _3A_PROBE = armflag.arm("TETHER_3A_PROBE", default=True)
 # intent not yet pressed in this situation enters 7h's exit contest as "untried:goal"; with every
 # one tried here it says so once. Needs TETHER_GOAL_MINT_FIRST. OFF: no record, no offer.
 _UNTRIED_INTENT = armflag.arm("TETHER_UNTRIED_INTENT", default=True)
+# BUILD 4 ITEM 16c, BOTH SIDES OF A SYMMETRIC GOAL (the reviewer 2026-11-05 r1189; Fig 12 :112 "A
+# goal is a comparison"; the Operators Table: swap the operands, does the meaning change -- No): a
+# held hypothesis whose one comparison is symmetric (its atom is its own swap: same, other) states
+# no side that moves, so its link wants it on BOTH operands' slots -- the existing want / target /
+# goal-exit path then forms its existing intent kinds on each. The mirror is compile_term.converse
+# of the part, linked only where its slot holds no want. An asymmetric one keeps today's link.
+# OFF: one side, as before.
+_GOAL_BOTH_SIDES = armflag.arm("TETHER_GOAL_BOTH_SIDES", default=True)
 
 
 @cache
@@ -7968,7 +7976,7 @@ class Agent:
         assert not any(lag_of(k) for k in after), "a slot name already carries a lag suffix"
         return {**after, **{k + PREV: v for k, v in before.items()}}
 
-    def _link_goal(self, key: str, c: Any) -> dict:
+    def _link_goal(self, key: str, c: Any, both: bool = False) -> dict:
         """Objective build 3: a held goal condition becomes one of the agent's COMPOSED
         objectives, so `_goal_choice` and `_mint_routine` can pick it -- through a term the
         agent minted, never a goal we publish. The condition (a predicate on its slot) is closed
@@ -7978,6 +7986,9 @@ class Agent:
         parts = list(c.parts) if isinstance(c, _Pair) else [c]
         if _RELATION_SET:
             parts = [self._movable_spelling(p) for p in parts]
+        mirror = self._goal_mirror(parts) if both and _GOAL_BOTH_SIDES else None
+        if mirror is not None:
+            parts.append(mirror)            # 16c: the symmetric goal wanted on both operands
         close = next((a for a in self.gamma.atoms if a.name == "all"), None)
         if close is None:
             return {"linked": False, "why": "no `all` atom to close the condition"}
@@ -8002,7 +8013,21 @@ class Agent:
         self._goal_links[key] = tuple((sl, t.name) for sl, t in terms)
         _book_add(self.gamma.book, "goal_link_made")                    # L2
         return {"linked": True, "slots": [sl for sl, _t in terms],
-                "want": [t.name for _sl, t in terms], "scope": "subject"}
+                "want": [t.name for _sl, t in terms], "scope": "subject",
+                **({"mirror": mirror.slot} if mirror is not None else {})}
+
+    def _goal_mirror(self, parts: list) -> Any:
+        """16c (r1189): the other spelling of a held goal's ONE symmetric comparison (its atom is
+        its own swap), on the other operand's slot, where that slot holds no want; else None."""
+        if len(parts) != 1 or len(parts[0].term.atoms) != 1:
+            return None
+        name = parts[0].term.atoms[0].name
+        if compile_term.SWAP.get(name) != name:
+            return None                     # asymmetric: the goal says which side moves
+        m = compile_term.converse(parts[0], {a.name: a for a in self.gamma.atoms})
+        if m is None or m.slot == parts[0].slot or m.slot in self.wants:
+            return None
+        return m
 
     def _movable_spelling(self, part: Any) -> Any:
         """BOTH SPELLINGS (TETHER_RELATION_SET; the reviewer 2026-10-11): a comparison of two slots
@@ -8329,7 +8354,7 @@ class Agent:
                 else:
                     self._hyp_restore(displaced)
                     return None, "the subject holds a composed or learned want"
-        link = self._link_goal(key, c)
+        link = self._link_goal(key, c, both=True)
         if not link.get("linked"):
             self._hyp_restore(displaced)
             return None, link.get("why")
