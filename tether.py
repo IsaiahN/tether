@@ -2130,6 +2130,16 @@ _SLOTLESS_TOUCH = armflag.arm("TETHER_SLOTLESS_TOUCH", default=True)
 # group row's FORM (_group_form, one copy) over its own candidate texts, priced by bits like every
 # other candidate, so an ALL-of-a-kind goal is proposable before any win. OFF: none offered
 _GROUP_PROPOSE = armflag.arm("TETHER_GROUP_PROPOSE", default=True)
+# Build 5 item 18, THE BOARD'S DESCRIPTION (the reviewer 2026-11-05 r1221, r1222, r1223; Isaiah
+# 07:13, 07:14): the agent's own per-level readings of what its acting does (what responds to me,
+# whether my presses take a position, what leaves on contact, how many things one press changes),
+# each with its scope, a PERCEIVE row when it changes. It feeds ONLY the proposer's price: a prior
+# in bits over shape families, seeded by the four roadmap mappings as pseudo-counts that the
+# record of what PAID outweighs (class (a), r1222). Never a branch. OFF: none of it
+_BOARD_DESC = armflag.arm("TETHER_BOARD_DESC", default=True)
+_DESC_FAMILIES = ("navigate", "placement", "collect", "toggle")
+_DESC_SEED = {"avatar": "navigate", "click_only": "placement", "collect": "collect",
+              "toggle": "toggle"}
 
 
 @dataclass(frozen=True)
@@ -4641,6 +4651,11 @@ class Agent:
         self._not: dict[tuple, list[tuple]] = {}
         self._digests: dict[str, frozenset] = {}
         self.agency = I.Agency()       # §16.8 sensor 3, a per-step read
+        # item 18: the same sensor per LEVEL beside the lifetime one (r1223 Q2), what left on
+        # contact by kind, the most owners one press moved by action; what paid per reading
+        if _BOARD_DESC:
+            self._desc_paid: Counter = Counter()
+        self._desc_level()
         # B: (slot -> (action, ctx) -> signs seen). Agency's lifetime, never the trace's: the
         # trace clears at retarget, these do not, so the two movability readings cover one history.
         self._dir: dict = {}
@@ -5048,6 +5063,7 @@ class Agent:
         self.alphabet = self._with_last(self._alphabets(env))   # a new level may re-value slots
         self.slot_types = self._slot_types(env)   # and may type them differently
         self._kind_cache = {}   # 7l: kinds read fresh
+        self._desc_level()
         if _D5:
             self._d5_level_end()
         if _LINEAGE_HOLD:
@@ -8481,6 +8497,9 @@ class Agent:
                 self._goal_refuted.add(sg)      # G: arrived without a clear, or lost
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
+        if _BOARD_DESC and won and "family" in h:    # item 18: the record that outweighs a seed
+            for r in h["desc"] or ["none"]:
+                self._desc_paid[(r, h["family"])] += 1
         self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
                         **({"ended_by": ended_by} if ended_by is not None else {}),
                         text=h["text"], why=why, steps=h["steps"], released=released,
@@ -8699,9 +8718,22 @@ class Agent:
                 out.append(((rank, flip, mv, round(bits, 6)), text, c, tk, s))
             return out
 
+        desc = self._board_desc() if _BOARD_DESC else None
+        prior = self._desc_prior(desc["holding"]) if desc is not None else {}
+        ctrl = set((desc["reads"]["avatar"] or {}).get("owners", ())) if desc is not None else set()
+
+        def _priced(xs: list) -> list:
+            """Item 18: the description's prior added to each candidate's bits (a price term,
+            never a branch: every family stays reachable and the residual can overturn it)."""
+            if desc is None:
+                return xs
+            return [((*k[:-1], round(k[-1] + prior[self._desc_family(c, ctrl)], 6)), t, c, tk, s)
+                    for k, t, c, tk, s in xs]
+
         cands = _admit(phases[0])
         if _GROUP_PROPOSE:                      # box 3: the group row's FORM, priced by bits
             cands += self._group_cands(phases[0], before, atoms)
+        cands = _priced(cands)
         cands.sort(key=lambda x: x[0])
         ranked_all = list(cands)                # the pick's rank is read against this order
         self._hyp_open = len(cands)              # C1 item 1: a cut's record counts against it
@@ -8712,6 +8744,8 @@ class Agent:
                               "source": x[4]} for x in cands[:5]]}
         if _R4_RECORD:
             detail["self_moving"] = dict(sorted(_smw.items()))
+        if desc is not None:
+            detail["desc"] = {"holding": desc["holding"], "prior": prior}
         pick = None
         checked = 0
         group_n = None
@@ -8719,7 +8753,7 @@ class Agent:
             if not cands:
                 if not pending:
                     break
-                cands = _admit(pending.pop(0))  # 4: the won group held no route; the rest now
+                cands = _priced(_admit(pending.pop(0)))   # 4: the won group held no route
                 cands.sort(key=lambda x: x[0])
                 ranked_all += cands
                 self._hyp_open += len(cands)
@@ -8819,6 +8853,8 @@ class Agent:
                      "born": self.cycle, "displaced": link["_held"],
                      "reads": {}, "seg": {}, "touches": 0, "losses": 0,
                      "held_unreadable": 0, "acted": Counter()}
+        if desc is not None:                    # item 18: what a win is credited to
+            self._hyp.update(desc=desc["holding"], family=self._desc_family(x[2], ctrl))
         if _UNTESTED_KEEP and x[3] in self._untested:
             since, ended_by = self._untested.pop(x[3])
             self.led.record(self.cycle, "PLAN", sl, "goal_hypothesis_reopened", text=x[1],
@@ -9192,6 +9228,95 @@ class Agent:
             cost, left, e = self._goal_price([grp], rows)
             out.append((cost + left, cost, left, e, text, grp))
         return out
+
+    def _desc_level(self) -> None:
+        """Item 18 (r1223 Q2): the per-level readings start fresh; the lifetime Agency stays."""
+        if not _BOARD_DESC:
+            return
+        self._lv_agency = I.Agency()
+        self._lv_collect: Counter = Counter()
+        self._lv_breadth: dict = {}
+        self._lv_since = getattr(self, "cycle", 0)
+        self._desc_last = None
+
+    def _desc_note(self, action: str, moved: set, slots: list) -> None:
+        """Item 18: this level's sensor 3, and the most owners one press moved (a bar that ticks
+        on any press, indifferent(), not counted: r674 1); a row when the description changes."""
+        ag = self._lv_agency
+        ag.note(action, moved, slots)
+        bar = set(ag.indifferent())
+        got = frozenset(s.split(".", 1)[0] for s in moved
+                        if s not in bar and "." in s and "~" not in s.split(".", 1)[0])
+        if len(got) > len(self._lv_breadth.get(action, ())):
+            self._lv_breadth[action] = got
+        desc = self._board_desc()
+        key = json.dumps(desc["reads"], sort_keys=True)
+        if key != self._desc_last:
+            self._desc_last = key
+            self.led.record(self.cycle, "PERCEIVE", "@board", "board_desc", **desc,
+                            reads_as="a description that orders by price, never a label")
+
+    def _desc_collect(self, gone: list, now: tuple, before: dict) -> None:
+        """Item 18: an owner that left at the press where an owner the presses steer touched it,
+        by kind, never pooled (sensor 3 and the derived pair slots)."""
+        left = {s.split(".", 1)[0] for s in gone} - {s.split(".", 1)[0] for s in now}
+        ctrl = set(self._desc_self(self._lv_agency.contingent()))
+        for x in sorted(left - ctrl):
+            if "~" not in x and any(before.get(f"{c}.touches_{x}") == 1
+                                    or before.get(f"{x}.touches_{c}") == 1 for c in ctrl):
+                self._lv_collect[",".join(self._kind(x))] += 1
+
+    def _board_desc(self) -> dict:
+        """Item 18 (r1221, r1223): the agent's own description of this level from what its acting
+        did -- readings with evidence and scope, never a label (THE_MISSION: it blends mid-game).
+        Owners, not slots: a two-axis avatar is one owner, where mode() reads "coupled"."""
+        ag = self._lv_agency
+        cont = ag.contingent()
+        ctrl = self._desc_self(cont)
+        moved = {a for (_s, a), n in ag.moved.items() if n and a in self.actions}
+        wide = {a: len(o - set(ctrl)) for a, o in sorted(self._lv_breadth.items())}
+        reads = {"avatar": {"owners": ctrl, "slots": [s for s in cont
+                                                      if s.split(".", 1)[0] in ctrl]}
+                 if ctrl else None,
+                 "click_only": IFace.Interface.touch_only(moved),
+                 "collect": dict(sorted(self._lv_collect.items())) or None,
+                 "toggle": {a: n for a, n in wide.items() if n >= 2} or None}
+        return {"reads": reads, "holding": [r for r in _DESC_SEED if reads[r]],
+                "scope": {"level": self.level, "since": self._lv_since, "presses": ag.steps}}
+
+    def _desc_self(self, cont: list) -> list:
+        """Item 18: what I steer -- an owner whose contingent slots two or more of my actions
+        move (a body or a car answers several controls; a lamp one press flips answers one)."""
+        acts: dict = {}
+        for (s, a), n in self._lv_agency.moved.items():
+            if n and s in cont and "~" not in s.split(".", 1)[0]:
+                acts.setdefault(s.split(".", 1)[0], set()).add(a)
+        return sorted(o for o, a in acts.items() if len(a) >= 2)
+
+    @staticmethod
+    def _desc_family(c: Any, ctrl: set) -> str:
+        """Item 18: the shape family of a candidate's FORM -- a count of a kind, a group of a
+        kind, a want on an owner the presses steer, a want on anything else."""
+        if isinstance(c, _Count):
+            return "collect"
+        if isinstance(c, _Group):
+            return "toggle"
+        try:
+            owner = c.slot.split(".", 1)[0]
+        except (AttributeError, IndexError):
+            owner = None
+        return "navigate" if owner in ctrl else "placement"
+
+    def _desc_prior(self, holding: list) -> dict:
+        """Item 18 (r1223 Q1): each family's price in bits under this description (Fig 12 :126,
+        "Bits price the description"), -log2 of its weight: one pseudo-count per family so every
+        family stays reachable, one more where a holding reading's seed points, plus every win
+        recorded under that reading (the rule of succession: the record outweighs the seed)."""
+        rs = holding or ["none"]
+        mass = {f: 1 + sum((_DESC_SEED.get(r) == f) + self._desc_paid[(r, f)] for r in rs)
+                for f in _DESC_FAMILIES}
+        tot = sum(mass.values())
+        return {f: round(-math.log2(m / tot), 6) for f, m in mass.items()}
 
     def _group_cands(self, items: dict, before: dict, atoms: dict) -> list:
         """Box 3 (r1218): the proposer's group candidates -- the FORM over its own texts (compiled
@@ -13539,6 +13664,8 @@ class Agent:
                 self.agency.note_delta(action, before, after, sorted(res))
             if _NO_LEVER and self.__dict__.get("_press_here"):
                 self._lever_note(action, res, before, after)
+            if _BOARD_DESC:
+                self._desc_note(action, self._moved(res, before, after), sorted(res))
         self._charge(res)
         live = any(r.mass > 0 for r in res.values())
         self.drive.note_step(live)      # once per step: SUPPORT is over slots, not per slot
@@ -20191,6 +20318,8 @@ class Agent:
         gone = sorted(set(self.slots) - set(now))
         came = sorted(set(now) - set(self.slots))
         self._came, self._gone = tuple(came), tuple(gone)
+        if _BOARD_DESC and gone and self.trace:
+            self._desc_collect(gone, now, self.trace[-1][0])
         if _KIND_CARRY and succ:
             self._kind_carry(gone, now, succ, forms or {}, old_form)
         # WHAT A DEPARTURE COSTS IS HOW MANY OF THEM WERE BOUND, AND THAT WAS NOT PUBLISHED.

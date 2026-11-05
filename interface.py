@@ -1216,6 +1216,12 @@ class Interface:
         is possible at all. The names stay on this side of the seam."""
         return any(a in POSITIONED for a in offered)
 
+    @staticmethod
+    def touch_only(moved: set) -> bool | None:
+        """Item 18 (r1223): every action seen to move something takes a position; None while
+        nothing has moved. The names stay on this side of the seam."""
+        return all(a in POSITIONED for a in moved) if moved else None
+
     def untried_here(self, offered: tuple[str, ...]) -> int:
         """C1: how many offered actions are not yet realised on this board, RESET left out while
         alive (known a priori). A count: the names stay on this side of the seam."""

@@ -2137,6 +2137,15 @@ ARMS: dict[str, str] = {
                             "goal is proposable before any win; held one want per member. A pair "
                             "reading's group binds its subject only, the partner held fixed and "
                             "never a member (r1219). OFF: none offered. default ON",
+    "TETHER_BOARD_DESC": "BUILD 5 ITEM 18 (the reviewer 2026-11-05 r1221, r1222, r1223; Isaiah "
+                         "07:13, 07:14): the agent's own per-level description (a second Agency "
+                         "per level beside the lifetime one; avatar by OWNERS, click-only, what "
+                         "left on contact by kind, the most owners one press moved), a PERCEIVE "
+                         "board_desc row when it changes. It feeds only the proposer's PRICE: "
+                         "-log2 of a family's weight, one pseudo-count each, one more where a "
+                         "holding reading's seed points, plus wins recorded under the reading, "
+                         "so the record outweighs the seed (class (a), r1222). OFF: none of it. "
+                         "default ON",
     "TETHER_SLOTLESS_TOUCH": "BUILD 5 ITEM 19 Q2 (the reviewer 2026-11-05 r1216): a completion-"
                              "held goal that names no slot (count NONE, connected) is pressed for "
                              "through 16b's formed / tried machinery: _untried_ready offers its "
