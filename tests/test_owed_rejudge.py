@@ -417,6 +417,12 @@ def _off_identity(w: str) -> None:
 
 
 def check_off_identity_grid() -> None:
+    # r1170: a LANDING-TIME check. Its base is pinned to the tree before the arm (10-29), and
+    # every default-ON arm since moves that ledger; each item's own OFF identity is the live check
+    if os.environ.get("TETHER_TEST_LANDING") != "1":
+        print(f"  SKIP check_off_identity_grid: landing-time identity vs {BASE} (r1170); run with "
+              "TETHER_TEST_LANDING=1")
+        return
     _off_identity("grid")
 
 

@@ -2974,7 +2974,10 @@ _NO_ENV = type("armflag", (), {"arm": staticmethod(lambda _name, default=False: 
 
 # VALUES, NOT SWITCHES: read raw because they are not on/off. Data, so a new one is a visible
 # edit here rather than a quiet exemption in logic.
-VALUES = {"TETHER_PIPELINE_DEEP": "a WINDOW of cycles, 'c<a>-c<b>', for the pipeline log's "
+VALUES = {"TETHER_TEST_LANDING": "a TEST selector, never read by the agent: '1' runs the "
+                                 "landing-time identity checks pinned to a past base "
+                                 "(test_owed_rejudge check_off_identity_grid, r1170)",
+          "TETHER_PIPELINE_DEEP": "a WINDOW of cycles, 'c<a>-c<b>', for the pipeline log's "
                                   "function-level timing (7d deep mode); never on/off",
           "TETHER_PIPELINE_SEG_MB": "a SIZE: the pipeline log's segment, about 100 MB (r895 4); "
                                     "never on/off",
