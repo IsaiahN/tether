@@ -65,7 +65,7 @@
    "nsm": "BECAUSE",
    "note": "the second operand is absent until the first fires",
    "implemented_by": [],
-   "implemented_by_note": "no executable form yet: production is TESTED over frames (composer.holds: is there a B before A fires?), not computed"
+   "implemented_by_note": "no executable form yet: production is TESTED over frames (composer.holds: is there a B before A fires?), not computed. An inferred cause held by the agent (TETHER_INFERRED_CAUSE, Build 4 item 14; the reviewer r1171) is SAID with it, \"(A) BECAUSE (B)\": the change A did not happen before the cause B fired"
   },
   "−": {
    "name": "subtraction",

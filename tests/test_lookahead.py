@@ -94,6 +94,7 @@ def covered():
     ag._discrepancy = lambda s, st: abs(st[s]) if s in st else tether.NOT_RESOLVED
     ag._took = lambda real, _want: real.action
     ag._la_none = lambda *a: tether.Agent._la_none(ag, *a)
+    ag._la_predict = lambda *a: tether.Agent._la_predict(ag, *a)   # 14b: the per-press step
     return ag
 
 

@@ -36,6 +36,7 @@ _NSM = armflag.arm("TETHER_NSM_SPEAK", default=True)
 _DEDUPE = armflag.arm("TETHER_NSM_DEDUPE", default=True)
 _NEGATE_GUARD = armflag.arm("TETHER_NEGATE_GUARD", default=True)   # ¬ wired (tether's arm)
 _SUBTRACT = armflag.arm("TETHER_SUBTRACT", default=True)   # − is AGENT|subtract (r1160)
+_INFERRED_CAUSE = armflag.arm("TETHER_INFERRED_CAUSE", default=True)   # 14b: BECAUSE (tether's)
 SAMPLE = 50           # the LOOKUP row keeps its first 50 held bonds (b2, 10-18); never widened here
 WIDTH = 240
 UNKNOWN = "?"
@@ -256,6 +257,9 @@ def say_row(event: str, d: dict, ends: tuple) -> list:
         return [("REFUTE", f"I DON'T THINK {_f(d.get('term') or d.get('asked'))} IS TRUE NOW")]
     if event == "mint":
         return [("MINT", f"SOMETHING HAPPENED HERE; I THINK {_f(d.get('term'))} CAN SAY THIS")]
+    if event == "invent" and d.get("cause") and _INFERRED_CAUSE:
+        return [("CAUSE", f"({_f(d.get('pick'))}) {w.get('⇒') or 'BECAUSE'} "
+                          f"({_f(d.get('condition'))})")]
     if event == "molecule_offer":
         bond = w.get(d.get("bond")) or d.get("bond")
         out = [("COMPOSE", f"I THINK PART AND PART CAN BE ONE THING: {_f(d.get('term'))} "

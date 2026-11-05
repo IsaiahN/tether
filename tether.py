@@ -9021,12 +9021,20 @@ class Agent:
     def _cause_holds(self, c: Cause, state: dict, action: Any, landed: Any) -> bool:
         """ITEM 14a: the cause read at `state` from the trace before it, back to the slot's last
         change, with this press (action, landed) included."""
-        n, latch = 0, False
-        for b, a, af, _i, land in reversed(self.trace[:self._cause_pos(state)]):
-            if c.slot in af and c.slot in b and af[c.slot] != b[c.slot]:
+        n, latch, cur = 0, False, state
+        sim = getattr(self, "_sim_parent", None) or {}
+        while id(cur) in sim:       # 14b: a simulated press (look-ahead), newest first
+            _out, par, a = sim[id(cur)]
+            if c.slot in cur and c.slot in par and cur[c.slot] != par[c.slot]:
                 break
             n += str(a) == c.what
-            latch = latch or str(land) == c.what
+            cur = par
+        else:
+            for b, a, af, _i, land in reversed(self.trace[:self._cause_pos(cur)]):
+                if c.slot in af and c.slot in b and af[c.slot] != b[c.slot]:
+                    break
+                n += str(a) == c.what
+                latch = latch or str(land) == c.what
         if c.kind == "count":
             return n + (str(action) == c.what) == c.n
         return latch or str(landed) == c.what
@@ -9407,6 +9415,8 @@ class Agent:
                                     "reading": slot.rsplit(".", 1)[-1], "term": term.name,
                                     "then": [a.name for a in f.atoms], "game": self.gamma.game,
                                     "born": self.cycle})
+        if isinstance(c, Cause):   # 14b: said as (A) BECAUSE (B) by the narrator
+            detail["cause"] = {"kind": c.kind, "what": c.what, "n": c.n}
         detail.update(pick=term.name, condition=text, key=key, term_bits=round(cost, 3),
                       left_bits=round(left, 3),
                       carry=("M7-INV: carried as its template" if tpl is not None
@@ -12044,27 +12054,19 @@ class Agent:
             units.append((w, r))
 
         def predict(st, u):
-            out = dict(st)
-            for s in preds:
-                if s not in st:          # r867: off the board is "could not read", never a lookup
-                    unread.add(s)
-                    continue
-                cap.head()
-                used[0] += 1
-                v = self._predict(s, st, u[1].action)
-                if v is not None:
-                    out[s] = v
-            return out
+            return self._la_predict(st, u[1].action, preds, unread, used)
 
         def gap(st):
             g = self._discrepancy(subj, st)
             return g if isinstance(g, int) else None
 
+        self._sim_parent = {}
         try:
             got = lookahead(dict(before), tuple(units), predict, gap, more)
         finally:
             self._pred_raw = keep
             self._spent += used[0]
+            self._sim_parent = {}
         if got is None:
             return self._la_none(subj, "no unit realised" if not units else
                                  "no sequence ends nearer than now", len(units), used[0],
@@ -12083,6 +12085,24 @@ class Agent:
                 self._la_trail = (k, [])
             self._la_trail[1].append(want)
         return self._took(real, want)
+
+    def _la_predict(self, st: dict, action: Any, preds: list, unread: set, used: list) -> dict:
+        """P3: one press in thought -- each settled predictor's value after `action` from `st`.
+        14b (TETHER_INFERRED_CAUSE): the new state remembers its parent and press, so a held
+        cause read on the next press counts this one."""
+        out = dict(st)
+        for s in preds:
+            if s not in st:          # r867: off the board is "could not read", never a lookup
+                unread.add(s)
+                continue
+            cap.head()
+            used[0] += 1
+            v = self._predict(s, st, action)
+            if v is not None:
+                out[s] = v
+        if _INFERRED_CAUSE:
+            self.__dict__.setdefault("_sim_parent", {})[id(out)] = (out, st, action)
+        return out
 
     def _la_none(self, subj: str, why: str, units: int, evaluations: int,
                  unread: list | None = None) -> None:
