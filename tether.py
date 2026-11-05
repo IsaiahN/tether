@@ -2203,6 +2203,12 @@ _REFLEX_CARRY = armflag.arm("TETHER_REFLEX_CARRY", default=True)
 # board boundary (NEW_BOARD) retargets at the world's level (env.levels()[0]), so the previous
 # game's level number does not run on into the next. OFF: self.level carried over, as before
 _NEW_BOARD_LEVEL = armflag.arm("TETHER_NEW_BOARD_LEVEL", default=True)
+# Build 6 item 24, MUSING CHOSEN (the reviewer 2026-11-05 r1250-r1252): MUSING (formerly MC6) keeps
+# walking every park, now in gain x need order (gain = the park's recorded outstanding, need = the
+# live demands on its kind), reads an earlier level's park through today's slot of its kind, and
+# offers the best paying entry as a by=muse rival; parks are the game's and close at a switch;
+# a muse weight per kind (seed 1, paid kept, against decayed). OFF: MUSING as before
+_MUSING_CHOSEN = armflag.arm("TETHER_MUSING_CHOSEN", default=True)
 
 
 @dataclass(frozen=True)
@@ -4642,6 +4648,12 @@ class Agent:
                                 Rt.Act(IFace.ELICIT)),
                 "consequence": "no loss next step", "origin": "prior",
                 "clause": "r1245 seed set, declared on the how-soon reading", "standing": {}}
+        if _MUSING_CHOSEN:
+            # item 24: the muse weight per kind rides the reflex standing (r1243's rule)
+            self._reflexes["muse"] = {
+                "form": Rt.When("this step owes nothing", Rt.Act("muse")),
+                "consequence": "a paying entry on a park of this kind", "origin": "prior",
+                "clause": "r1252, the whether-to-muse weight", "standing": {}}
         self._loss_rel: dict = {}     # 23: vote key -> Counter of (loss kind, frame, relation)
         self._hs_open: list = []      # 23: course readings awaiting their verdict at j + lag
         self._hs_read: tuple | None = None   # 23: (cycle, course, reading) -- one per cycle
@@ -4887,6 +4899,8 @@ class Agent:
             self.led.record(self.cycle, self._running_step, "@molecule", "molecule_apply",
                             at="run", previous=self._mol_flush())
         self.led.end_game(self.cycle, f"end {how}")      # N2: where this game's chain stopped
+        if _MUSING_CHOSEN and self.parked:
+            self._muse_close_parks(how)          # item 24: the game's parks close with it
         self._resolve_signals("game", how)
         if _D13:
             self._settle_process("game", how)
@@ -5020,6 +5034,8 @@ class Agent:
             self._bond_tests(how)               # r946 5: the board being left, before it clears
         if how == NEW_BOARD:
             self._bond_board = getattr(self, "_bond_board", 0) + 1
+            if _MUSING_CHOSEN and self.parked:
+                self._muse_close_parks(how)     # item 24: parks are the game's, never the next's
         if _MEMO_CLEAR:
             # R4: the agent-level instance memos are this board's and are cleared here; the asked
             # keys, the kind stores, the record and the carried bound memos stay
@@ -5063,6 +5079,11 @@ class Agent:
             rec = dict(self.abstained.get(slot, {}))
             rec.update(slot=slot, level=self.level, hist=self.history(slot),
                        slots=list(self.slots))
+            if _MUSING_CHOSEN:
+                # item 24 (r1252 3): the gain recorded at the park (outstanding, the bargain's
+                # units) and the kinds a later level reads it by -- slot names cross nothing
+                rec.update(gain=round(self.outstanding(slot), 6), kind=self._kind_key(slot),
+                           owner_kind=self._kind_str(slot.split(".", 1)[0]))
             self.parked[f"L{self.level}:{slot}"] = rec
         # NO BOUNDARY REVERT. Reverting unpromoted terms to candidate here was built,
         # measured on two independent panels, and cost opportunity, uptake and carried in
@@ -9963,7 +9984,12 @@ class Agent:
             run = {"key": key, "i": 0, "j": 0, "b": 0, "best": None, "base": None, "tried": 0,
                    "paying": [], "skipped": Counter(), "steps": 0, "ms": 0.0}
         run["steps"] += 1
-        items = sorted(targets.items())
+        if _MUSING_CHOSEN:
+            # item 24 (r1252 4): gain x need ORDERS the iteration; every park is still walked
+            run.setdefault("order", [pk for pk, _r in self._muse_order(targets)])
+            items = [(pk, targets[pk]) for pk in run["order"] if pk in targets]
+        else:
+            items = sorted(targets.items())
 
         def spend() -> bool:
             # MUSE_BOUND: one evaluation per _left, charged to the step; True when spent out
@@ -9978,8 +10004,15 @@ class Agent:
             pk, rec = items[run["i"]]
             cap.head()
             slot, hist = rec["slot"], rec["hist"]
-            if slot not in self.alphabet:
-                run["skipped"]["slot has no alphabet this level"] += 1
+            if _MUSING_CHOSEN:
+                # item 24 (r1252 3): the park's OWN recorded hist; the current slot of its kind
+                # gives the alphabet and hosts the rival -- none here: skipped, never refuted
+                why = self._muse_skip(rec)
+                slot = self._muse_host(rec) if why is None else slot
+            else:
+                why = None if slot in self.alphabet else "slot has no alphabet this level"
+            if why is not None:
+                run["skipped"][why] += 1
                 run["i"], run["j"], run["base"] = run["i"] + 1, 0, None
                 continue
             if run["base"] is None:
@@ -10009,9 +10042,15 @@ class Agent:
                     run["paying"].append({"parked": pk, "method": name, "as": cand.name,
                                           "cost": round(cost, 3), "left": round(left, 3),
                                           "base": round(run["base"], 3)})
+                    if _MUSING_CHOSEN:
+                        run.setdefault("terms", {})[(pk, name)] = (cand, slot)
                 run["j"], run["b"], run["best"] = run["j"] + 1, 0, None
+            if _MUSING_CHOSEN:
+                run.setdefault("walked", []).append(pk)
             run["i"], run["j"], run["base"] = run["i"] + 1, 0, None
         self._muse_run = None
+        if _MUSING_CHOSEN:
+            self._muse_choose(run, targets)
         tried, paying, skipped = run["tried"], run["paying"], run["skipped"]
         self.led.record(self.cycle, "IMPORT", "@muse", "muse", level=self.level,
                         targets=sorted(targets), methods=len(methods), tried=tried,
@@ -10028,6 +10067,87 @@ class Agent:
                         binding="unpriced",
                         reads=("a mastered method re-tested on an earlier level's parked "
                                "residual; the gap recorded, nothing installed, no action"))
+
+    def _muse_need(self, rec: dict) -> int:
+        """Item 24: the live demands on a park's kind -- the held hypothesis's comparison slots
+        of that slot kind, plus the loss-voted relations (item 23) whose partner is its owner's
+        kind. A count: demanded twice ranks above once; demanded by nothing is 0."""
+        kind, okind = rec.get("kind"), rec.get("owner_kind")
+        hyp = self._hyp["slots"] if (_GOAL_HYP and self._hyp is not None) else ()
+        n = sum(1 for s in hyp if kind is not None and self._kind_key(s) == kind)
+        if _HOW_SOON and okind is not None:
+            n += sum(1 for _lk, _f, rel, _k in self._hs_fatal() for pk_, _c in rel if pk_ == okind)
+        return n
+
+    def _muse_order(self, targets: dict) -> list:
+        """Item 24 (r1252 4): the parks by gain x need, highest first; ties by kind, then key."""
+        def key(item):
+            pk, rec = item
+            return (-(rec.get("gain", 0.0) * self._muse_need(rec)), str(rec.get("kind")), pk)
+        return sorted(targets.items(), key=key)
+
+    def _muse_host(self, rec: dict) -> str | None:
+        """Item 24 (r1251 A, r1252 3): today's slot of the park's kind -- it gives the alphabet
+        and hosts the rival; the largest outstanding, then the name. None: no slot of that kind."""
+        kind = rec.get("kind")
+        here = [s for s in self.slots if s in self.alphabet and kind is not None
+                and self._kind_key(s) == kind]
+        return max(here, key=lambda s: (self.outstanding(s), s)) if here else None
+
+    def _muse_skip(self, rec: dict) -> str | None:
+        """Item 24: why a park is not walked this step, or None -- its kind absent here (never a
+        refutation; it stays parked for the game), or its muse weight under its witnesses."""
+        if self._muse_host(rec) is None:
+            return "no slot of this kind here"
+        st = self._rf_standing("muse", (rec.get("kind"),))
+        if 1 + self._rf_in("muse", (rec.get("kind"),)) + st["paid"] < st["against"]:
+            return "the muse weight is under its witnesses"
+        return None
+
+    def _muse_choose(self, run: dict, targets: dict) -> None:
+        """Item 24 (r1252 4, 5): of this pass's paying entries, the ONE with the largest gain x need
+        is offered as a held rival on its host slot, by="muse" (nothing is installed); a kind
+        walked with nothing paying is one witness against its muse weight. One row."""
+        terms = run.get("terms", {})
+        ranked = sorted(((rec.get("gain", 0.0) * self._muse_need(rec), str(rec.get("kind")),
+                          e["parked"], e, rec)
+                         for e in run["paying"] for rec in [targets.get(e["parked"])]
+                         if rec is not None and (e["parked"], e["method"]) in terms),
+                        key=lambda x: (-x[0], x[1], x[2], x[3]["method"]))
+        best = ((ranked[0][0], ranked[0][1], ranked[0][2]), ranked[0][3], ranked[0][4]) \
+            if ranked else None
+        paid_kinds = {targets[e["parked"]].get("kind") for e in run["paying"]
+                      if e["parked"] in targets}
+        against = sorted({str(targets[pk].get("kind")) for pk in run.get("walked", ())
+                          if pk in targets and targets[pk].get("kind") not in paid_kinds})
+        for kind in {targets[pk].get("kind") for pk in run.get("walked", ()) if pk in targets}:
+            if kind not in paid_kinds:
+                self._rf_standing("muse", (kind,))["against"] += 1
+        offered = None
+        if best is not None:
+            (prod, _kn, pk), e, rec = best
+            cand, host = terms[(pk, e["method"])]
+            self._mol_offers.setdefault(host, []).append(
+                {"term": cand, "operand": getattr(cand, "operand", None), "offered": True,
+                 "why": "muse", "prov": {"source": "muse", "by": "muse", "park": pk,
+                                         "method": e["method"], "level": rec.get("level")}})
+            offered = {"park": pk, "host": host, "method": e["method"], "as": cand.name,
+                       "gain": rec.get("gain"), "need": self._muse_need(rec),
+                       "product": round(prod, 3)}
+        self.led.record(self.cycle, self._running_step, "@muse", "muse_chosen",
+                        offered=offered, walked=len(run.get("walked", ())),
+                        paying=len(run["paying"]), against_kinds=against,
+                        reads="the paying entry with the largest gain x need, offered as a "
+                              "by=muse rival on today's slot of its kind; nothing installed")
+
+    def _muse_close_parks(self, how: str) -> None:
+        """Item 24 (r1252 5(1)): parks are this GAME's gaps -- at a game switch or the game's end
+        each is closed with a row naming it, and the store empties (Fig 4 :22: gaps never cross)."""
+        for pk, rec in sorted(self.parked.items()):
+            self.led.record(self.cycle, self._running_step, "@muse", "muse_park_closed", park=pk,
+                            level=rec.get("level"), kind=str(rec.get("kind")),
+                            gain=rec.get("gain"), how=how)
+        self.parked.clear()
 
     def _muse_owe(self, run: dict, t0: float) -> None:
         """MUSING (formerly MC6), MUSE_BOUND: the step's budget ran out inside a muse; where it

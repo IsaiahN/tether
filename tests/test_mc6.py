@@ -73,6 +73,11 @@ def _ladder(on: bool) -> list:
 
 
 if __name__ == "__main__":
+    # the birth seed pinned, or ON and OFF are two different agents (r1255 census: the flake)
+    tether._AGENT_SEED = False
+    # MC6-a is MUSING's own claim (compute only); item 24 offers a rival by design and is
+    # tested in test_musing_chosen, so it is held off here
+    tether._MUSING_CHOSEN = False
     tether.Agent.__init__ = _init
     tether.Agent._muse = _muse_checked
     on = _ladder(True)
@@ -100,7 +105,9 @@ if __name__ == "__main__":
             if r["event"] in ("muse", "arms"):
                 continue
             r = {k: v for k, v in r.items() if k != "seq"}
-            r["detail"] = {k: v for k, v in r["detail"].items() if k != "seq"}
+            # and the row-index references the MUSE rows shift the same way (r1255 census)
+            r["detail"] = {k: v for k, v in r["detail"].items()
+                           if k not in ("seq", "signal_seq", "bet_seq", "plan_seq")}
             out.append(json.dumps(r, sort_keys=True, default=str))
         return out
     a, b = strip(on), strip(off)

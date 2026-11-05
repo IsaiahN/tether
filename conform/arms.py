@@ -2192,6 +2192,13 @@ ARMS: dict[str, str] = {
                        "None not read -- read by DODGE (furthest offer, strictly further than "
                        "the course) and by _urgent at the mint (not inf); witnessed at j + lag. "
                        "OFF: none. default ON",
+    "TETHER_MUSING_CHOSEN": "BUILD 6 ITEM 24 (the reviewer 2026-11-05 r1250-r1252): MUSING "
+                            "(formerly MC6) walks every park in gain x need order (gain = the "
+                            "park's recorded outstanding; need = live demands on its kind), reads "
+                            "an earlier level's park through today's slot of its kind, offers the "
+                            "best paying entry as a by=muse rival, weighs musing per kind (seed 1, "
+                            "paid kept, against decayed); parks close at a game switch. OFF: "
+                            "MUSING as before. default ON",
     "TETHER_NEW_BOARD_LEVEL": "BUILD 6 ITEM 24 (C) (the reviewer 2026-11-05 r1250): at the "
                               "agent's own board boundary (NEW_BOARD) the level is the world's "
                               "own count (env.levels()[0]), never the previous game's number run "
