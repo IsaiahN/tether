@@ -2097,6 +2097,11 @@ _TIERS_DRAW = armflag.arm("TETHER_TIERS_DRAW", default=True)
 _DIRECTION_MOVABLE = armflag.arm("TETHER_DIRECTION_MOVABLE", default=True)
 
 
+# Build 5 item 17 (iii), COUNT-OF-KIND (the reviewer 2026-11-05 r1203, r1205): the completion also
+# offers NONE of a held kind remain and two held kinds' counts equal (_goal_counts). OFF: neither
+_COUNT_KIND = armflag.arm("TETHER_COUNT_KIND", default=True)
+
+
 @dataclass(frozen=True)
 class _Pair:
     """Two compiled goal conditions held together: true only when both are (the `both` atom's
@@ -2122,6 +2127,19 @@ class _Group(_Pair):
 
     def holds(self, state: dict) -> bool:
         return self.check(self.group, state, self.kind) is True
+
+
+@dataclass(frozen=True)
+class _Count(_Pair):
+    """Item 17 (iii), A COUNT-OF-KIND GOAL (r1203, r1205): NONE of one held kind remain (count 0),
+    or two held kinds' counts equal. It names no slot to want (no parts); it holds by the members
+    present, read through the agent's own kinds (7l)."""
+    kinds: tuple = ()
+    check: Any = field(default=None, compare=False, repr=False)
+    reads: tuple = ("came", "gone")     # a kind's count moves only by these events
+
+    def holds(self, state: dict) -> bool:
+        return self.check(self.kinds, state) is True
 
 
 def _confirm_actions(r: Any) -> int | None:
@@ -8029,6 +8047,8 @@ class Agent:
         into the objective stream with `all`, as the library-first path closes a view. Linked
         only where the slot holds no want: one want per slot, and replacing one the agent
         composed is not this item's to decide."""
+        if isinstance(c, _Count):
+            return {"linked": False, "why": "a count of a kind names no slot to want"}
         parts = list(c.parts) if isinstance(c, _Pair) else [c]
         if _RELATION_SET:
             parts = [self._movable_spelling(p) for p in parts]
@@ -8826,6 +8846,8 @@ class Agent:
         world's readings and the world's verdict. Listing occasions one by one pays for every
         one (M6-a)."""
         def size(c: Any) -> int:      # a pair is both parts plus the `both` joiner
+            if isinstance(c, _Count):   # one count per kind plus the comparison
+                return len(c.kinds) + 1
             if isinstance(c, _Group):   # the member condition plus its quantifier
                 return self.gamma.length(c.group.member.term) + 1
             return (sum(self.gamma.length(x.term) for x in c.parts) + 1 if isinstance(c, _Pair)
@@ -8885,6 +8907,34 @@ class Agent:
                 if isinstance(v, int) and not isinstance(v, bool) and v >= 0 and "." in k
                 and "~" not in k and "@" not in k
                 and (rd.get(k.split(".", 1)[1]) or {}).get("type") in compile_term.CONST_FIRST]
+
+    def _count_holds(self, kinds: tuple, state: dict) -> bool | None:
+        """Item 17 (iii): one kind -> NONE remain (the group row's guarded NONE, r1200: a kind
+        never held is None); two -> their counts equal, None unless both were held."""
+        if len(kinds) == 1:
+            return self._group_holds(compile_term.Group("NONE", "", None), state, kinds[0])
+        held = self.__dict__.get("_kinds_held", ())
+        if any(k not in held for k in kinds):
+            return None
+        n = [sum(1 for o in self._owners(state) if self._kind(o) == k) for k in kinds]
+        return n[0] == n[1]
+
+    def _goal_counts(self, rows: list) -> list:
+        """Item 17 (iii) (r1205): over the HELD kinds only, NONE of each remain and each pair's
+        counts equal, priced by `_goal_price`. A kind never held is not offered."""
+        kinds = sorted(self.__dict__.get("_kinds_held", ()), key=repr)
+        out = []
+        for i, a in enumerate(kinds):
+            cap.head()
+            for ks in [(a,)] + [(a, b) for b in kinds[i + 1:]]:
+                cap.head()
+                c = _Count(parts=(), kinds=ks, check=self._count_holds)
+                cost, left, e = self._goal_price([c], rows)
+                name = ["/".join(k) for k in ks]
+                text = (f"NONE of kind {name[0]} remain" if len(ks) == 1
+                        else f"count(kind {name[0]}) == count(kind {name[1]})")
+                out.append((cost + left, cost, left, e, text, c))
+        return out
 
     def _goal_groups(self, singles: list, rows: list) -> list:
         """Item 17 (B) (r1201): ALL of a kind (7l) meets a single's condition, written on its
@@ -8963,7 +9013,8 @@ class Agent:
                 self._goal_n += 1
                 _gi = self._goal_n if _LEVEL_GOAL else len(self._goal_conds) + 1
                 key = lib.invent_atom(f"{self.gamma.game}_goal_{_gi}",
-                                      text, game=self.gamma.game, cycle=self.cycle,
+                                      text, list(c.reads) if isinstance(c, _Count) else None,
+                                      game=self.gamma.game, cycle=self.cycle,
                                       receipt={"completion": self.cycle, "steps": n,
                                                "reached": k, "errors": e},
                                       affects=self._affects(lib, "completed"))
@@ -9017,6 +9068,11 @@ class Agent:
             groups = self._goal_groups(singles, rows)
             cands += groups
             n_group = len(groups)
+        n_count = 0
+        if _COUNT_KIND:
+            counts = self._goal_counts(rows)
+            cands += counts
+            n_count = len(counts)
         lag = sum(1 for x in cands if any(lag_of(t) for t in re.findall(r"[\w.]+~\d+", x[4])))
         cands.sort(key=lambda x: (x[0], x[4]))
         if _A1_TIES and cands:          # A1: an exact tie in total, never by condition text
@@ -9026,8 +9082,10 @@ class Agent:
                 cands.insert(0, cands.pop(next(i for i, x in enumerate(cands) if x[4] == _a1k)))
         detail = {"steps": n, "reached": k, "base_bits": round(base, 3),
                   "conditions": len(cands), "refused": dict(refused),
-                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain - n_group, "lag": lag,
+                  "offered": {"plain": n_plain, "pair": len(cands) - n_plain - n_group - n_count,
+                              "lag": lag,
                               **({"group": n_group} if compile_term._GROUP_ROW else {}),
+                              **({"count": n_count} if _COUNT_KIND else {}),
                               **({"pair_bounded": self._pair_bounded}
                                  if _PAIR_BOUND and _GOAL_PAIR else {})},
                   "cheapest": [{"if": x[4], "cost": round(x[1], 3), "left": round(x[2], 3),

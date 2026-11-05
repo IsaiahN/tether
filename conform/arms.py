@@ -2129,6 +2129,12 @@ ARMS: dict[str, str] = {
                         "necessary singles, priced by the one bargain and linked one want per "
                         "member. OFF: Refusal(QUANTIFIED) and no group offered, as before. "
                         "default ON",
+    "TETHER_COUNT_KIND": "BUILD 5 ITEM 17 (iii) (the reviewer 2026-11-05 r1203, r1205): the "
+                         "completion also offers NONE of a held kind remain (count 0, the group "
+                         "row's guarded NONE) and two held kinds' counts equal, over the kinds the "
+                         "agent held (7l) only, priced by the one bargain at one count per kind "
+                         "plus the comparison; invented on came / gone; held with no slot to "
+                         "want. OFF: neither offered, as before. default ON",
     "TETHER_SLOT_CONSTANT": "BUILD 5 ITEM 17 (ii) (the reviewer 2026-11-05 r1200, r1203): a slot "
                             "against a constant compiles through the slot-to-slot row, typed by "
                             "the slot's own reading (a colour takes == / != only; never negative "
