@@ -8119,6 +8119,15 @@ class Agent:
         """Item 17 (iv) (r1206): B is wanted as any held goal is; A too where its slot wants
         nothing; A is adopted as the 4g subgoal of B, so the plan reaches A first. A first step
         with no slot (a group or count goal) is recorded, never dropped (r1206 (b))."""
+        if (isinstance(c.first, compile_term.Compiled) and isinstance(c.then, compile_term.Compiled)
+                and c.first.slot == c.then.slot):
+            # MF-O4 (r1208): one slot, two targets -- A's is wanted first; B waits on A, keyed by
+            # the goal, and _order_advance switches the want when A holds
+            link = self._link_goal(key, c.first)
+            if link.get("linked"):
+                self.__dict__.setdefault("_order_next", {})[key] = (c.first, c.then)
+                return {**link, "order": "one slot: A's target first, then B's"}
+            return link
         link = self._link_goal(key, c.then)
         if not isinstance(c.first, compile_term.Compiled):
             return {**link, "order": "the order's first step names no slot to want"}
@@ -8133,6 +8142,23 @@ class Agent:
                             reads="the held order's first step, pursued before its second (iv)")
             out["subgoal"] = c.first.slot
         return out
+
+    def _order_advance(self, state: dict) -> None:
+        """MF-O4 (r1208): a held one-slot order whose first step holds on `state` has its want
+        switched to the second step's target (row order_next); the goal's key is kept."""
+        for key, (first, then) in list(self._order_next.items()):
+            cap.head()
+            if compile_term.run(first, state) is not True:
+                continue
+            del self._order_next[key]
+            for sl, _n in self._goal_links.pop(key, ()):
+                self.wants.pop(sl, None)
+                self._want_terms.pop(sl, None)
+                self._want_scope.pop(sl, None)
+            link = self._link_goal(key, then)
+            self.led.record(self.cycle, "PLAN", then.slot, "order_next", key=key,
+                            linked=link.get("linked"), want=link.get("want"),
+                            reads="the order's first step held; its second step is now wanted")
 
     def _goal_mirror(self, parts: list) -> Any:
         """16c (r1189): the other spelling of a held goal's ONE symmetric comparison (its atom is
@@ -23057,6 +23083,8 @@ class Agent:
         before = self.env.observe()
         if compile_term._GROUP_ROW:
             self._note_kinds(before)
+        if _GOAL_ORDER and self.__dict__.get("_order_next"):
+            self._order_advance(before)
         if _RUIN_RECORD:
             self._ruin_step, self._ending_counted = None, None
             # ONE reading of this board, before anything is chosen: B's key and C's lookup

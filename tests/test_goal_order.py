@@ -77,6 +77,26 @@ def main():
     ag._hyp = None
     pick = ag._goal_choice()
     assert pick == order.first.slot, ("MF-O2: the first step is not selected first", pick)
+    parent = link["slots"][0]
+    ag._res = {order.first.slot: [2, 1, 0], parent: [3, 2, 1]}     # A arrives
+    pick2 = ag._goal_choice()
+    assert ag._subgoal is None and parent in ag.wants and pick2 == parent, (
+        "MF-O4 (ii): ending the sub ended or dropped the parent", ag._subgoal, pick2)
+
+    # MF-O4 (i) (r1208): one slot, two targets -- "become same, then different"
+    same = tether._Order((ag._compile_cache["o3.colour == o4.colour"],
+                          ag._compile_cache["o3.colour != o4.colour"]))
+    ag.wants.clear()
+    ag._subgoal = None
+    link1 = ag._link_order("@one-slot", same)
+    sl = link1["slots"][0]
+    assert link1.get("linked") and "same" in ag.wants[sl], (
+        "MF-O4 (i): A's target is not wanted first", link1, ag.wants)
+    ag._order_advance({**st, "o3.colour": 1, "o4.colour": 1})                 # A holds
+    nxt = [r for r in ag.led.rows() if r["event"] == "order_next"]
+    assert nxt and "other" in ag.wants.get(nxt[-1]["slot"], ""), (
+        "MF-O4 (i): the want did not switch to B's target when A held", ag.wants)
+    assert "@one-slot" in ag._goal_links, "MF-O4 (i): the goal's key was dropped"
 
     never = history(st, a_row=None)
     never[-1] = (never[-1][0], True)                    # one met row, A never held at all
@@ -92,8 +112,9 @@ def main():
         " then " in x["if"] for x in d_off["cheapest"]), ("OFF: an order offered", d_off)
     print(f"test_goal_order: pass (MF-O1 '{A} then {B}' errors 0, the single B errs {single_b}, "
           f"best {best[4]!r} of {detail['offered']['order']} orders; MF-O2 subgoal "
-          f"{ag._subgoal} adopted 'ordered goal', selected {pick}; MF-O3 none with A never "
-          f"first; OFF none offered)")
+          f"adopted 'ordered goal', selected {pick}; MF-O4 sub ended on arrival, parent {pick2} "
+          f"kept and selected, one-slot want switched to {ag.wants[nxt[-1]['slot']]!r}; MF-O3 "
+          f"none with A never first; OFF none offered)")
 
 
 if __name__ == "__main__":
