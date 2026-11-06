@@ -2199,6 +2199,13 @@ ARMS: dict[str, str] = {
                             "best paying entry as a by=muse rival, weighs musing per kind (seed 1, "
                             "paid kept, against decayed); parks close at a game switch. OFF: "
                             "MUSING as before. default ON",
+    "TETHER_GAME_QUIT": "BUILD 7 ITEM 31 (the reviewer 2026-11-06 r1291; Isaiah r892 (2)): the "
+                        "game-level quit, offered only while the runner says games wait and a "
+                        "run rate exists; weighed in levels -- stay = max(the best open line's "
+                        "chance of a level in the slice, the game's level rate x wall), go = "
+                        "run_rate x wall, quit iff p x go > stay (p the quit standing's, seed "
+                        "against); witnessed both ways on a second meeting; nothing in the game "
+                        "is booked. OFF: never offered. default ON",
     "TETHER_SPREAD": "BUILD 7 ITEM 30 (the reviewer 2026-11-05 r1285, r1286): personalized "
                      "spreading activation seeded at the lookup's lit entries, over ingredient_of "
                      "both ways, each hop split 1 / degree at the edge's own r1243 p (the "

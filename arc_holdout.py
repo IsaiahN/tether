@@ -351,6 +351,22 @@ def end_path(ag: Any, env: Any, game: str, library: str | None, save_only_dir: s
     return rows, saved, saved_only, lineage_gen
 
 
+def games_waiting(left: int, share: bool, deadline: float | None, slice_end: float,
+                  fixed_s: float | None) -> int | None:
+    """Item 31 (r1291, r1292): the games a quit's seconds could reach, for the agent to read
+    (`left` counts this game). Under a share every later slice grows by them: left - 1. Under
+    fixed slices, only while the whole-run deadline binds -- the later games' fixed slices do not
+    all fit after this one's end -- else None: a quit would hand its seconds to nobody."""
+    n = left - 1
+    if n <= 0:
+        return None
+    if share:
+        return n
+    if deadline is None or fixed_s is None:
+        return None
+    return n if n * fixed_s > deadline - slice_end else None
+
+
 def step_or_recover(env: Any, ag: Any, ctx: dict) -> tuple:
     """(B), IN-GAME RECOVERY AFTER AN AGENT FAULT (Isaiah 2026-10-22 12:36-12:37; the design post
     15:13, approved 15:17 with (C3), (C4)). One ag.step(). An Exception from the agent's own code

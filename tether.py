@@ -2277,6 +2277,15 @@ _FIELD_CLASS = armflag.arm("TETHER_FIELD_CLASS", default=True)
 # window's order. One more term in the cheap rank's key (4), held apart from item 29's classes;
 # a partial molecule joins the tail below every tier. Edge paid crosses (r1248). OFF: no spread
 _SPREAD = armflag.arm("TETHER_SPREAD", default=True)
+# Build 7 item 31, THE GAME-LEVEL QUIT (the reviewer 2026-11-06 r1291; Isaiah r892 (2): "Quitting
+# is the last resort, and only where an external budget exists"): offered only while the runner
+# says games wait and a run rate exists (games_waiting, run_rate; never inferred). Weighed in
+# levels, the ground's currency: stay = max(the best open escalation line's chance of a level in
+# the slice, this game's own level rate x wall); go = run_rate x wall; quit iff p x go > stay,
+# p the ("quit", description) standing's (seed against). Witnessed both ways on a second meeting
+# (met_again, runner-supplied). A budget filter, never a verdict: nothing in the game is booked.
+# OFF: never offered
+_GAME_QUIT = armflag.arm("TETHER_GAME_QUIT", default=True)
 
 
 @dataclass(frozen=True)
@@ -4020,6 +4029,11 @@ class Agent:
     _reach_wall = 0.0          # 18: _library_reach's seconds this step, for reach_s
     # item 25: the game's clocks, set by the runner each step (None: that clock does not exist)
     actions_left = actions_cap = slice_from = slice_until = None
+    # item 31: the run's budget, set by the runner (None: no external budget, no quit)
+    games_waiting = run_rate = met_again = None
+    _quit = False              # item 31: this game was quit; the runner reads it and ends the game
+    _quit_last = None          # item 31: {"desc", "slice_s"} of the last quit, for the runner
+    _game_levels = 0           # item 31: levels advanced in this game (reset at a game switch)
     _tc_focal = None           # item 25: this step's focal slot, need(focal) prices a press
     _tc_refuted_at = -1        # item 25: the last cycle a slot routed REFUTED (the ground refused)
     _s0_int0 = 0.0             # item 28: pe_integral at this board's (or level's) start
@@ -4794,6 +4808,13 @@ class Agent:
             self._sa_into: dict = {}      # entry -> the seed edges that carried activation to it
             self._sa_cache = None         # ((seeds, cycle), activation)
             self._sa_n: Counter = Counter()   # lookups, cache hits, hops, edges, ms
+        if _GAME_QUIT:
+            # item 31: the quit's weight per board description, witnessed on a second meeting
+            self._reflexes["quit"] = {
+                "form": Rt.When("the game's levels per second fall under the run's",
+                                Rt.Act("quit")),
+                "consequence": "the game, met again, does not advance", "origin": "prior",
+                "clause": "r1291, the game-level quit", "standing": {}}
         self._muse_offered: dict = {}       # 24 (iii): offered rival name -> its park's kind
         self._muse_tests: dict = {}         # 24 (i): host slot -> (rival, kind), test pending
         self._muse_test_open: tuple | None = None   # 24 (i): (host, rival, bound, kind, n0)
@@ -5180,6 +5201,11 @@ class Agent:
             else:
                 self._s0_close(f"level end ({how})")   # item 28 (r1279): no pay followed
             self._s0_int0 = self._integral      # item 28: this board's explained share starts
+        if _GAME_QUIT:
+            if how in (WIN, ADVANCE):
+                self._game_levels += 1          # item 31: this game's own level count
+            elif how == NEW_BOARD:
+                self._game_levels = 0
         if (_BOND_PER_BOARD and composer._BOND_TEST and self.trace
                 and not (how == NEW_BOARD and getattr(self, "_bond_at", None) == self.cycle)):
             self._bond_tests(how)               # r946 5: the board being left, before it clears
@@ -7146,6 +7172,100 @@ class Agent:
         self._sa_n["lookups"] += 1
         self._sa_n["ms"] += 1000 * (time.perf_counter() - t0)
         return act
+
+    def _quit_desc(self) -> tuple:
+        """Item 31: the board description at kind level -- the readings it holds, no names."""
+        return tuple(sorted(self._board_desc()["holding"]))
+
+    def _quit_p(self, desc: tuple) -> float:
+        """Item 31: the ("quit", description) weight in r1243's p-form, the lineage's paid count
+        carried in as a seed. A read never writes a standing (r1291: the OFF-store lesson)."""
+        situ = (desc,)
+        st = (self._rf_standing("quit", situ) if situ in self._reflexes["quit"]["standing"]
+              else {"paid": 0, "against": 0.0})
+        c = self._rf_in("quit", situ)
+        return (2 + c + st["paid"]) / (3 + c + st["paid"] + st["against"])
+
+    def _quit_stay_line(self, presses: float | None) -> tuple[float, str]:
+        """Item 31: the best open escalation line's chance of a level within the slice. The held
+        hypothesis: r1243's seed p (no standing of its own records a level; the steer has its one
+        reader, item 27) x the share of its expected presses (its slots' outstanding / its own
+        rate, item 26) the slice can pay; no rate yet, p alone (no reading cuts toward staying,
+        Fig 8 :39); a rate <= 0, none. No hypothesis held and the proposer not exhausted at this
+        knowledge: its next line, at the seed."""
+        h = self._hyp
+        if h is not None:
+            p = 2 / 3
+            rate = self._tc_line_rate(h.get("out0") or {}, h["steps"])
+            if rate is None or presses is None:
+                return p, "hyp"
+            need = sum(self.outstanding(s) for s in h["slots"])
+            if rate <= 0:
+                return 0.0, "hyp"
+            return (p * min(1.0, presses * rate / need) if need > 0 else p), "hyp"
+        known = sum(len(v.get("delta", {})) for v in self.iface.table.values())
+        return (2 / 3, "proposer") if self._hyp_exhausted != known else (0.0, "none")
+
+    def _quit_weigh(self) -> None:
+        """Item 31 (r1291), at the step's end: while the runner says games wait and a run rate
+        exists, staying and going are weighed in levels over the slice's remaining wall -- stay =
+        max(the best open line's chance of a level, this game's level rate x wall), go = run_rate
+        x wall -- and the game is quit iff p x go > stay. One game_quit row; nothing in the game
+        is booked (a budget filter, never a verdict: Fig 9 :60)."""
+        if self._quit or not self.games_waiting or self.run_rate is None:
+            return
+        ends = [x for x in (self.slice_until, self._think_until()) if x is not None]
+        if not ends:
+            return
+        now = time.time()
+        wall = max(0.0, min(ends) - now)
+        s_step = self._tc_rates()[0] if _THINK_CHOOSER else None
+        line_p, line = self._quit_stay_line(wall / s_step if s_step else None)
+        since = now - self.slice_from if self.slice_from is not None else None
+        g_rate = self._game_levels / since if since else 0.0
+        stay, go = max(line_p, g_rate * wall), self.run_rate * wall
+        desc = self._quit_desc()
+        p = self._quit_p(desc)
+        if p * go <= stay:
+            return
+        self._quit = True
+        span = (min(ends) - self.slice_from) if self.slice_from is not None else None
+        self._quit_last = {"desc": list(desc), "slice_s": span}
+        known = sum(len(v.get("delta", {})) for v in self.iface.table.values())
+        self.led.record(self.cycle, "SETTLE", "@run", "game_quit", stay=round(stay, 6),
+                        go=round(go, 6), p=round(p, 4), run_rate=self.run_rate,
+                        games_waiting=self.games_waiting, wall_s=round(wall, 3), line=line,
+                        line_p=round(line_p, 6), game_rate=round(g_rate, 6),
+                        game_levels=self._game_levels, desc=list(desc),
+                        escalation={"hyp": self._hyp is not None,
+                                    "routine": self.routine is not None,
+                                    "proposer_exhausted": self._hyp_exhausted == known},
+                        reads="unreached at this budget: this game's levels in the slice, its "
+                              "open lines weighed, under the run's; its seconds go to the games "
+                              "waiting -- a budget filter, never a verdict")
+
+    def quit_met_close(self) -> None:
+        """Item 31 (r1291 (3)), called by the runner at a game's end: a game the runner says was
+        quit before (met_again: {"desc", "slice_s"}) and met again with the same or larger slice
+        is one witness on its ("quit", description) -- against if it advanced a level (the quit
+        gave up something reachable), paid if not. Weak both ways (carried learning confounds
+        the second meeting); none within a run that meets each game once."""
+        m, self.met_again = self.met_again, None
+        if not _GAME_QUIT or not m:
+            return
+        span = (self.slice_until - self.slice_from if None not in (self.slice_until,
+                                                                    self.slice_from) else None)
+        if span is None or m.get("slice_s") is None or span < m["slice_s"]:
+            return
+        desc = tuple(m["desc"])
+        st = self._rf_standing("quit", (desc,))
+        verdict = "against" if self._game_levels > 0 else "paid"
+        st[verdict] += 1
+        self.led.record(self.cycle, "SETTLE", "@run", "quit_settled", desc=list(desc),
+                        verdict=verdict, levels=self._game_levels, paid=st["paid"],
+                        against=round(st["against"], 3),
+                        reads="a quit game met again: advanced, the quit gave up something "
+                              "reachable; not, the time was better spent elsewhere")
 
     def _gcw_p(self, cls: str) -> float:
         """Item 29: a class's weight on this board -- r1243's p over its (class, board) standing,
@@ -25141,6 +25261,8 @@ class Agent:
             cap.AT = None
             if _THINK_CHOOSER:
                 self._tc_note_step()
+            if _GAME_QUIT:
+                self._quit_weigh()      # item 31: at the step's end, stay against go in levels
             self._clk_stack = None      # the step clock closes with the step
             self.led.flush_tally(c0)    # the choice tally's per-step rows, at the step's end
 

@@ -204,6 +204,7 @@ if CH:
 endings_all = collections.Counter()
 budget_unreached = []
 no_answer, gone = [], False   # r563
+run_levels, run_secs, run_games = 0, 0.0, 0   # item 31: the finished games, for run_rate
 for i, g in enumerate(order):
     if gone:
         log(f"# {i}\t{g}\tnot played: the card is gone (the gateway's 404)")
@@ -240,6 +241,11 @@ for i, g in enumerate(order):
             ag.slice_from = t_start
             ag.slice_until = t_start + (A.slice_max_s if A.slice_min_s is not None
                                         else A.slice_s)
+            # item 31 (r1291): the games still waiting and the run's levels per second (a wall
+            # slice only: a turn count has no seconds to hand on)
+            ag.games_waiting = arc_holdout.games_waiting(len(order) - i, False, A.deadline_at,
+                                                         ag.slice_until, ag.slice_until - t_start)
+            ag.run_rate = run_levels / run_secs if run_games and run_secs > 0 else None
         try:
             env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
         except NoAnswer:   # r563: the game ends here, no retry; the agent cut inside its step is replaced
@@ -284,10 +290,18 @@ for i, g in enumerate(order):
         if getattr(ag, "_cut", False):
             ending = "cut"
             break
+        if getattr(ag, "_quit", False):     # item 31: the agent quit; its seconds go on
+            ag._quit = False
+            ending = "quit"
+            break
         if CH and n_steps and steps < n_steps:       # between steps; the last step's point is the switch below
             CH.point(f"after_step{steps}", ag, A.out)
     endings_all.update(endings)
     wall_end, commit_end = round(time.time() - t_start, 1), commit_mb()   # read BEFORE the switch's census
+    if hasattr(ag, "quit_met_close"):
+        ag.quit_met_close()               # item 31: a second meeting's witness (none here)
+    run_levels, run_secs, run_games = (run_levels + lv_seen - (lv_start or 0), run_secs + wall_end,
+                                       run_games + 1)
     if CH:
         CH.point("switch", ag, A.out)
     mn, mx = A.slice_min_s, A.slice_max_s

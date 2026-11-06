@@ -329,6 +329,7 @@ ag.deadline = DL
 T0 = time.time()
 endings_all = collections.Counter()
 budget_unreached, taken, longest = [], [], 0.0
+run_levels, run_secs, run_games = 0, 0.0, 0   # item 31: this worker's finished games, for run_rate
 grow_max = None                           # B_MEM_GUARD: this worker's largest one-game commit growth, MB
 nxt = first
 while nxt is not None:
@@ -388,6 +389,11 @@ while nxt is not None:
         steps_life += 1
         # item 25 (r1265): this game's slice, read by the agent as its wall clock (no turn count)
         ag.slice_from, ag.slice_until = t_start, t_start + mx
+        # item 31 (r1291, r1292): the run's budget as readings -- the games a quit's seconds would
+        # reach (by the share, or under fixed slices only while the run deadline binds) and levels
+        # per second over this worker's finished games
+        ag.games_waiting = arc_holdout.games_waiting(left, SHARE, DL, t_start + mx, FIXED_MAX_S)
+        ag.run_rate = run_levels / run_secs if run_games and run_secs > 0 else None
         try:
             env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)
         except NoAnswer:                  # r563: the game ends here, no retry; the cut agent is replaced
@@ -427,9 +433,17 @@ while nxt is not None:
         if getattr(ag, "_cut", False):
             ending = "cut"
             break
+        if getattr(ag, "_quit", False):     # item 31: the agent quit; its seconds go on
+            ag._quit = False
+            ending = "quit"
+            break
     endings_all.update(endings)
     ag.led.end_game(ag.cycle, g)          # N2 (r824): this game's "stopped at link X"
+    if hasattr(ag, "quit_met_close"):
+        ag.quit_met_close()               # item 31: a second meeting's witness (none here)
     wall_end, (commit_end, peak) = round(time.time() - t_start, 1), commit_mb()
+    run_levels, run_secs, run_games = (run_levels + lv_seen - (lv_start or 0), run_secs + wall_end,
+                                       run_games + 1)
     if c_game0 is not None:
         grow_max = max(grow_max or 0, commit_end - c_game0)
     extended = first_act_s is None or first_act_s > mn
