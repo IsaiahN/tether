@@ -13,6 +13,14 @@ captured. Each check its own process.
   check_l6_wrong_leave      a left mint line that reopens and pays, and a left routine that is
                             DONE, each write wrong_leave and lower their leave weight
   check_l7_inside_chooser   the leave is a reading inside the chooser: no new exit (AST)
+  check_l8_routine_own_slots  a routine's rate reads the slots its guards and intents name: a
+                            guard on o0.col is credited o0.col's fall, not another's; naming
+                            none, it pools and the row says so (r1270 (c))
+  check_l9_leave_not_ban    a rate-left hypothesis stays re-offerable, priced -log2(1 - p) of its
+                            leave standing; a witness-ended one stays barred; re-held and won, it
+                            writes wrong_leave and re-offering gets cheaper (r1270 (e))
+  check_l10_leave_paid      re-held and failed again: leave_paid, the leave standing paid, and
+                            re-offering costs more (1.585 -> 2.000 bits; r1271)
     python tests/test_leave_rate.py [check ...]
 """
 from __future__ import annotations
@@ -102,7 +110,7 @@ def check_l4_routine_verdict() -> None:
     slot = next(s for s in sorted(before) if not s.startswith("@"))
     ag.routine = Rt.Act("x")
     ag._expect = (slot, before[slot], 0)
-    ag._lr_rt0 = (ag.outstanding() + 5.0, ag._tc_presses - 2, "planted-form")
+    ag._lr_rt0 = ({slot: ag.outstanding(slot) + 5.0}, ag._tc_presses - 2, "planted-form", False)
     done = ag._check_expectation(before, step="SETTLE")
     row = _rows(ag, "routine_abandoned")[-1]
     assert done and row["line_rate"] == 2.5 and row["line_presses"] == 2, row
@@ -137,7 +145,7 @@ def check_l6_wrong_leave() -> None:
     ag.bound.pop(slot, None)
     a0 = ag._rf_standing("leave", ("mint", kind))["against"]
     ag._leave_check(slot, 10.0)
-    ag._lr_rt0 = (ag.outstanding(), ag._tc_presses, "planted-form")
+    ag._lr_rt0 = ({}, ag._tc_presses, "planted-form", True)
     ag._lr_left[("routine", "planted-form")] = ag.cycle - 2
     ag._lr_routine_end(Rt.DONE)
     rows = _rows(ag, "wrong_leave")
@@ -162,6 +170,86 @@ def check_l7_inside_chooser() -> None:
         if isinstance(n, ast.If) and "_tc_line" in ast.unparse(n.test):
             assert all(isinstance(b, ast.Assign) for b in n.body), ast.unparse(n)
     print("  _tc_line: one exit; in the walk a line under rho only replaces the gain")
+
+
+def check_l8_routine_own_slots() -> None:
+    import routine as Rt
+    ag = _agent()
+    obj = sorted({s.split(".", 1)[0] for s in ag.slots if s[:1] == "o" and "~" not in s})
+    a = next(s for s in sorted(ag.slots) if s.startswith(obj[0] + "."))
+    b = next(s for s in sorted(ag.slots) if s.startswith(obj[1] + "."))
+    ag._outstanding[a], ag._outstanding[b] = 10.0, 20.0
+    ag.routine = Rt.When(f"{a} rises", Rt.Act("x"))
+    ag._lr_adopt()
+    ag._outstanding[a], ag._outstanding[b] = 6.0, 10.0      # a fell 4, b fell 10
+    ag._tc_presses += 2
+    f = ag._lr_routine_end(Rt.DONE)
+    assert f["line_slots"] == [a] and f["line_rate"] == 2.0, f
+    ag.routine = Rt.Act("x")                                # names no slot: pooled, said so
+    ag._lr_adopt()
+    ag._tc_presses += 1
+    g = ag._lr_routine_end(Rt.DONE)
+    assert g["line_slots"] == "pooled: the routine names no slot", g
+    print(f"  a guard reading {a}: credited {a}'s fall only (rate {f['line_rate']}, not {b}'s); "
+          f"no slot named: '{g['line_slots']}'")
+
+
+def check_l9_leave_not_ban() -> None:
+    import ast
+    import inspect
+
+    import tether
+    ag = _agent()
+    slot = max((s for s in ag.slots if not s.startswith("@")), key=ag.outstanding)
+    kind = ag._kind_key(slot)
+    tk, gone = ("tpl", slot, None), ("tpl2", slot, None)
+    ag._hyp_tried[tk] = ("left_rate", None, "planted", kind)
+    ag._hyp_tried[gone] = ("arrived_no_clear", None, "planted")
+    p0 = ag._lr_price(tk)
+    assert not ag._hyp_barred(tk) and ag._hyp_barred(gone) and abs(p0 - 1.585) < 1e-3, p0
+    src = inspect.getsource(tether.Agent)
+    sites = [n for n in ast.walk(ast.parse(inspect.cleandoc("\n" + src)))
+             if isinstance(n, ast.Call) and "_hyp_barred" in ast.unparse(n.func)]
+    priced = src.count("self._lr_price(")
+    assert len(sites) >= 4 and priced >= 3, (len(sites), priced)
+    # re-held, it wins: a wrong-leave row, and re-offering that kind gets cheaper
+    ag._lr_left[("hyp", tk)] = ag.cycle - 4
+    ag._hyp = {"key": ("planted",), "tkey": tk, "slots": [slot], "steps": 3, "touches": 1,
+               "losses": 0, "held_unreadable": 0, "reads": {}, "acted": tether.Counter(),
+               "text": "planted", "source": "library", "displaced": {}, "seg": {},
+               "reopened": ag.cycle - 4}
+    ag._goal_links[("planted",)] = ()
+    ag._hyp_end("level_cleared", won=True, step="IMPORT")
+    w = _rows(ag, "wrong_leave")[-1]
+    ag._hyp_tried[tk] = ("left_rate", None, "planted", kind)
+    p1 = ag._lr_price(tk)
+    assert w["line"] == "hyp" and p1 < p0, (w, p0, p1)
+    print(f"  left_rate re-offerable (price {p0:.3f} bits), arrived_no_clear barred; "
+          f"{len(sites)} exclusion sites read _hyp_barred; re-held and won: wrong_leave, "
+          f"price now {p1:.3f}")
+
+
+def check_l10_leave_paid() -> None:
+    import tether
+    ag = _agent()
+    slot = max((s for s in ag.slots if not s.startswith("@")), key=ag.outstanding)
+    kind = ag._kind_key(slot)
+    tk = ("tpl", slot, None)
+    ag._hyp_tried[tk] = ("left_rate", None, "planted", kind)
+    p0 = ag._lr_price(tk)
+    ag._lr_left[("hyp", tk)] = ag.cycle - 4
+    ag._hyp = {"key": ("planted",), "tkey": tk, "slots": [slot], "steps": 3, "touches": 1,
+               "losses": 0, "held_unreadable": 0, "reads": {}, "acted": tether.Counter(),
+               "text": "planted", "source": "library", "displaced": {}, "seg": {},
+               "reopened": ag.cycle - 4}
+    ag._goal_links[("planted",)] = ()
+    ag._hyp_end("stalled", by="trend")                 # held again, failed again
+    r = _rows(ag, "leave_paid")[-1]
+    ag._hyp_tried[tk] = ("left_rate", None, "planted", kind)
+    p1 = ag._lr_price(tk)
+    assert r["weight_paid"] == 1 and abs(p0 - 1.585) < 1e-3 and abs(p1 - 2.0) < 1e-9, (r, p0, p1)
+    assert not _rows(ag, "wrong_leave")
+    print(f"  re-held and failed again: leave_paid, re-offer price {p0:.3f} -> {p1:.3f} bits")
 
 
 def main() -> int:

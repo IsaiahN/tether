@@ -8731,12 +8731,21 @@ class Agent:
             why, ended_by = "untested", why
         else:
             self._hyp_tried[h["tkey"]] = (why, h.get("cond"), h["text"])
+            if _LEAVE_RATE and by == "rate":
+                # item 26 (r1270 (e)): LEFT, not refuted -- re-offerable, priced by its leave
+                self._hyp_tried[h["tkey"]] = ("left_rate", h.get("cond"), h["text"],
+                                              self._kind_key(h["slots"][0]))
             if _GOAL_SIGN_FLIP and loss and not won and (sg := _goal_sign(h["text"])):
                 self._goal_refuted.add(sg)      # G: arrived without a clear, or lost
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
-        if _LEAVE_RATE and won and h.get("reopened") is not None:
-            self._tc_wrong_leave("hyp", h["tkey"], self._kind_key(h["slots"][0]), h["reopened"])
+        if _LEAVE_RATE and h.get("reopened") is not None:
+            if won:
+                self._tc_wrong_leave("hyp", h["tkey"], self._kind_key(h["slots"][0]),
+                                     h["reopened"])
+            else:
+                self._lr_leave_paid("hyp", h["tkey"], self._kind_key(h["slots"][0]),
+                                    h["reopened"], why)
         if _BOARD_DESC and won and "family" in h:    # item 18: the record that outweighs a seed
             for r in h["desc"] or ["none"]:
                 self._desc_paid[(r, h["family"])] += 1
@@ -8970,11 +8979,13 @@ class Agent:
                     refused["holds now or unreadable"] += 1
                     continue
                 tk = (tpl.get(text, text), c.slot, c.operand)
-                if tk in self._hyp_tried:
+                if self._hyp_barred(tk) if _LEAVE_RATE else tk in self._hyp_tried:
                     refused["tried this level"] += 1
                     continue
                 won = self._goal_shelf.get(s, {}).get("record", {}).get("won", 0) if s else 0
                 bits = term_bits(self.gamma.length(c.term), self.gamma.alphabet)
+                if _LEAVE_RATE:
+                    bits += self._lr_price(tk)     # item 26: a left line, re-offered, priced
                 rank = 0 if won else 1
                 if _PROGRESS_SHELF and not won:     # won, then progress, then the rest: ordinal
                     rec = self._goal_shelf.get(s, {}).get("record", {}) if s else {}
@@ -9232,7 +9243,8 @@ class Agent:
             cap.head()
             for tb, cb, kb in arrived[i + 1:]:
                 cap.head()
-                if ca.slot == cb.slot or ("pair", ka, kb) in self._hyp_tried:
+                if ca.slot == cb.slot or (self._hyp_barred(("pair", ka, kb)) if _LEAVE_RATE
+                                          else ("pair", ka, kb) in self._hyp_tried):
                     continue
                 self._hyp_n += 1
                 key = f"@hyp{self._hyp_n}"
@@ -9694,9 +9706,10 @@ class Agent:
                     or c.slot.split(".", 1)[0] not in sp["rest"] or c.slot in sp["fell"]):
                 continue
             ctk = ("unbundled", sp["text"], tk)
-            if ctk in self._hyp_tried:
+            if self._hyp_barred(ctk) if _LEAVE_RATE else ctk in self._hyp_tried:
                 continue
-            out.append(((*k[:-1], round(max(0.0, k[-1] - sp["gain"]), 6)),
+            out.append(((*k[:-1], round(max(0.0, k[-1] - sp["gain"])
+                                        + (self._lr_price(ctk) if _LEAVE_RATE else 0.0), 6)),
                         f"{t} and kept({sp['text']})", _Pair((c, *sp["kept"])), ctk, s))
         return out
 
@@ -9775,9 +9788,12 @@ class Agent:
             if not grp.parts:                   # every member was the anchor: nothing to want
                 continue
             tk = (gtext, grp.slot, None)
-            if grp.holds(before) or tk in self._hyp_tried:
+            if grp.holds(before) or (self._hyp_barred(tk) if _LEAVE_RATE
+                                     else tk in self._hyp_tried):
                 continue
             bits = term_bits(self.gamma.length(c.term) + 1, self.gamma.alphabet)
+            if _LEAVE_RATE:
+                bits += self._lr_price(tk)         # item 26: a left line, re-offered, priced
             out.append(((2 if _PROGRESS_SHELF else 1, 1, 1, round(bits, 6)), gtext, grp, tk, s))
         return out
 
@@ -20036,9 +20052,25 @@ class Agent:
             self._lr_left[("hyp", h["tkey"])] = self.cycle
             self._hyp_end("stalled", by="rate")
 
+    def _lr_routine_slots(self, form: str) -> list:
+        """Item 26 (r1270 (c)): the slots a routine reads in its own grammar -- every slot its
+        guards name, and every slot of an object its intents target (a bare object id). Empty:
+        it names none (the rate then pools every slot, and the row says so)."""
+        named = [s for s in self.slots if re.search(
+            r"(?<![\w.~@])" + re.escape(s) + r"(?![\w])", form)]
+        rest = form
+        for s in named:
+            rest = rest.replace(s, " ")
+        ids = set(re.findall(r"(?<![\w.~@])(o\d+)(?![\w.~])", rest))
+        return sorted(set(named) | {s for s in self.slots if s.split(".", 1)[0] in ids})
+
     def _lr_adopt(self) -> None:
-        """Item 26: a routine adopted -- the base of its rate (outstanding, presses, its form)."""
-        self._lr_rt0 = (self.outstanding(), self._tc_presses, Rt.render(self.routine))
+        """Item 26: a routine adopted -- the base of its rate: its own slots' outstanding (all
+        slots, pooled, when it names none), the presses so far, its form."""
+        form = Rt.render(self.routine)
+        own = self._lr_routine_slots(form)
+        self._lr_rt0 = ({s: self.outstanding(s) for s in (own or self.slots)},
+                        self._tc_presses, form, not own)
 
     def _lr_routine_end(self, why: str | None) -> dict:
         """Item 26: a held routine's line ends -- abandoned on divergence (why None; the VERDICT
@@ -20047,15 +20079,48 @@ class Agent:
         base, self._lr_rt0 = self._lr_rt0, None
         if base is None:
             return {}
-        out0, p0, form = base
-        rate = self._tc_line_rate({None: out0}, self._tc_presses - p0) \
+        out0, p0, form, pooled = base
+        rate = self._tc_line_rate(out0, self._tc_presses - p0) \
             if self._tc_presses > p0 else None
         if why is None:
             self._lr_left[("routine", form)] = self.cycle
         elif why == Rt.DONE and ("routine", form) in self._lr_left:
             self._tc_wrong_leave("routine", form, None, self._lr_left[("routine", form)])
         return {"line_rate": None if rate is None else round(rate, 6),
-                "line_presses": self._tc_presses - p0, "rho": round(self._tc_rho(), 6)}
+                "line_presses": self._tc_presses - p0, "rho": round(self._tc_rho(), 6),
+                "line_slots": "pooled: the routine names no slot" if pooled else sorted(out0)}
+
+    def _hyp_barred(self, tk) -> bool:
+        """Item 26 (r1270 (e)): "tried this level" bars a hypothesis -- unless it was LEFT by its
+        rate. A leave is never a ban: that one stays re-offerable, priced by _lr_price. A
+        witness-ended one (refuted, lost, arrived_no_clear) stays barred: those are verdicts."""
+        v = self._hyp_tried.get(tk)
+        return v is not None and v[0] != "left_rate"
+
+    def _lr_price(self, tk) -> float:
+        """Item 26 (r1270 (e)): the bits a rate-left hypothesis carries when re-offered: -log2 of
+        the chance its leave was wrong, 1 - p of its ("leave", ("hyp", kind)) standing in r1243's
+        p-form, so every wrong leave makes re-offering that kind cheaper. 0 for any other."""
+        v = self._hyp_tried.get(tk)
+        if v is None or v[0] != "left_rate":
+            return 0.0
+        situ = ("hyp", v[3])
+        st, c = self._rf_standing("leave", situ), self._rf_in("leave", situ)
+        p = (2 + c + st["paid"]) / (3 + c + st["paid"] + st["against"])
+        return -math.log2(1.0 - p)
+
+    def _lr_leave_paid(self, line: str, key, kind, left_at: int, why: str) -> None:
+        """Item 26 (r1271): a line LEFT, held again, and ended again without paying -- the leave
+        was right: its ("leave", (line, kind)) standing is paid, so re-offering costs more. A
+        weight that only fell would be a ratchet (r1258). One row."""
+        self._lr_left.pop((line, key), None)
+        st = self._rf_standing("leave", (line, kind))
+        st["paid"] += 1
+        self.led.record(self.cycle, self._running_step, "@line", "leave_paid", line=line,
+                        key=str(key), kind=str(kind), left_at=left_at, ended=why,
+                        weight_paid=st["paid"], weight_against=round(st["against"], 3),
+                        reads="a line left, held again, and ended again unpaid: the leave was "
+                              "right")
 
     def _tc_wrong_leave(self, line: str, key, kind, left_at: int) -> None:
         """Item 26: a line LEFT, reopened, and then paid -- the leave was wrong: one witness
