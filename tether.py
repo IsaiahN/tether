@@ -15097,8 +15097,9 @@ class Agent:
         _oc = getattr(self.env, "own_counted", None) if _OWN_COUNTERS_DERIVED else None
         own = _oc() if _oc is not None else frozenset()
         if own and any(s in own for s in new):
-            self.gamma.book["first_contact_own_counted"] = (
-                self.gamma.book.get("first_contact_own_counted", 0) + sum(s in own for s in new))
+            # per ASKING, not per slot: a skipped own slot never enters _fc_seen (r1323)
+            self.gamma.book["first_contact_own_askings"] = (
+                self.gamma.book.get("first_contact_own_askings", 0) + sum(s in own for s in new))
             new = [s for s in new if s not in own]
         if not new:
             return
@@ -16227,6 +16228,12 @@ class Agent:
             elif self._owed_q:
                 res = {**{s: res[s] for s in self._owed_q if s in res},
                        **{s: r for s, r in res.items() if s not in self._owed_q}}
+        elif self._owed_q:
+            # (2b) (the reviewer 2026-11-06 r1317, r1323): the governor's and the walk's deferrals
+            # write _owed_q in every arm and promise "asked first next step"; budget OFF, it held
+            # nowhere. Owed slots first, the rest in today's order, as the budget's own branch does
+            res = {**{s: res[s] for s in self._owed_q if s in res},
+                   **{s: r for s, r in res.items() if s not in self._owed_q}}
         self._route_order, self._route_at = list(res), 0   # where a cap mid-route lands
         if _OBJ_EVENT:
             self._events_now(res)

@@ -8,7 +8,7 @@ level's first step. About a minute (the su15 run is 8 cycles, offline).
 MF-R5b    a fresh gridworld agent, a carried kind planted as settled on two slots' forms, one of
           them own-counted through env.own_counted() (never by writing _own_now), on the level's
           FIRST step (_own_now empty): no first_contact bind on the own slot, and the skip is
-          booked (first_contact_own_counted). RED at 02bc3f0.
+          booked (first_contact_own_askings, per asking). RED at 02bc3f0.
 CONTROL   the uncounted slot with the same plant still binds by first_contact
 CONTROL   TETHER_OWN_COUNTERS_DERIVED off: the own slot binds as before (the filter is (B)'s)
 INVARIANT su15, 8 cycles: no first_contact / pull / reuse_install / rebind row on an own slot
@@ -63,7 +63,7 @@ def _planted_first_step(own_on: bool) -> tuple:
     finally:
         tether._OWN_COUNTERS_DERIVED = keep
     fc = {r["slot"] for r in ag.led.rows() if r["event"] == "first_contact"}
-    return own, ctl, fc, ag.gamma.book.get("first_contact_own_counted", 0)
+    return own, ctl, fc, ag.gamma.book.get("first_contact_own_askings", 0)
 
 
 def check_first_contact() -> None:
@@ -82,8 +82,14 @@ def check_invariant_su15() -> None:
     with tempfile.TemporaryDirectory() as d:
         led = os.path.join(d, "su15.jsonl")
         arc_holdout.play("su15", 8, led_path=led)
+        if not os.path.exists(led):     # the game is not fetched here: say so, never a pass
+            print("  INVARIANT su15: UNWITNESSED here (game not fetched)")
+            return
         with open(led, encoding="utf-8") as fh:
             rows = [json.loads(x) for x in fh]
+    if not rows:
+        print("  INVARIANT su15: UNWITNESSED here (an empty ledger)")
+        return
     kinds = ("first_contact", "pull", "reuse_install", "rebind")
     occ = collections.Counter(r["event"] for r in rows if r["event"] in kinds)
     bad = [(r["cycle"], r["event"], r["slot"]) for r in rows if r["event"] in kinds

@@ -95,6 +95,54 @@ def body(rows: list) -> list:
     return [r for r in rows if r.get("event") not in ("header", "arms")]
 
 
+OWERS = ("budget_owed", "walk_cut", "lookup_deferred", "route_named")   # every _owed_q writer
+
+
+def live_owed(rows: list, c: int) -> set:
+    """The slots _owed_q holds at c+1's entry: written by a named writer (OWERS, the reviewer
+    2026-11-06 r1323) at a cycle <= c, and not asked (route's lookup row) nor closed (owed_closed
+    naming it) after that write and before c+1 (r1324: the LIVE set, so the check cannot go
+    vacuous). Measured equal to the agent's own _owed_q at route's entry on this fixture."""
+    live: dict = {}
+    for r in rows:
+        if r["cycle"] > c:
+            continue
+        ev, s = r.get("event"), r.get("slot")
+        if ev in OWERS:
+            live[s] = r["seq"]
+        elif ev == "lookup":           # route's own ask (_lookup), which pops _owed_q
+            live.pop(s, None)
+        elif ev == "owed_closed":
+            for m in r["detail"].get("unasked", ()):
+                live.pop(m, None)
+    return set(live)
+
+
+def check_c(rows: list) -> list:
+    """C: the owed slots are ASKED FIRST at c+1 -- route's rows at c+1 (written in its order; the
+    "@" rows aside) open with every live owed slot route reaches, before any slot not owed. The
+    owed slots' own fate there (looked up, held, deferred again) is not C's: an owed slot the
+    governor defers again leaves no lookup, so "the first LOOKUP is owed" read the wrong row (r1324;
+    the per-slot promise is A7's). Returns the (c, first routed slot at c+1) pairs; raises with the
+    whole list otherwise."""
+    routed: dict = {}
+    for r in rows:
+        if r.get("event") == "route" and not r["slot"].startswith("@"):
+            routed.setdefault(r["cycle"], []).append(r["slot"])
+    carried, bad = [], []
+    for c in sorted({r["cycle"] for r in rows}):
+        live = live_owed(rows, c)
+        order = routed.get(c + 1, [])
+        reached = [s for s in order if s in live]
+        if not reached:
+            continue
+        carried.append((c, order[0]))
+        if order[:len(reached)] != reached:
+            bad.append((c, order[:len(reached) + 2], sorted(reached)[:6]))
+    assert carried and not bad, ("C", carried, bad[:3])                                     # C
+    return carried
+
+
 def main() -> int:
     pin = {"TETHER_THINK_CHOOSER": "0",      # E's subject is the budget alone (docstring, r1312,
            "TETHER_STEP_ACT": "0"}           # r1317)
@@ -116,17 +164,9 @@ def main() -> int:
                                   and x["slot"].rsplit(".", 1)[0] == r["detail"]["question"][1]
                                   for x in libs)]
     assert cut, ("no question cut partway", [(r["cycle"], r["slot"]) for r in owed][:6])
-    firsts = {}
-    for r in libs:
-        firsts.setdefault(r["cycle"], r["slot"])
-    owed_by = {}
-    for r in owed:
-        owed_by.setdefault(r["cycle"], []).append(r["slot"])
-    carried = [(c, firsts[c + 1]) for c in owed_by if c + 1 in firsts]
-    assert carried and all(s in {x for c2, ss in owed_by.items() if c2 <= c for x in ss}
-                           for c, s in carried), carried                                     # C
+    carried = check_c(one)
     print("C cut partway:", [(r["cycle"], r["slot"], r["detail"]["question"]) for r in cut[:2]],
-          "; next step's first lookup is owed:", carried[:3])
+          "; owed slots routed first at the next step:", carried[:3])
     rk = child("1")
     ro = [r for r in rk if r.get("event") == "budget_owed"]
     q_end = [r for r in rk if r.get("event") == "budget"][-1]["detail"]["owed_lookups"]
