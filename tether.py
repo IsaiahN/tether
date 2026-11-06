@@ -2232,6 +2232,13 @@ _LEAVE_RATE = armflag.arm("TETHER_LEAVE_RATE", default=True)
 # read by ONE reader, the option of the line kind that stopped: a goal shape's proposer price, a
 # slot kind's walk weight, a routine form's order. Within a game; nothing crosses. OFF: no steer
 _SELF_STEER = armflag.arm("TETHER_SELF_STEER", default=True)
+# Build 7 item 28, SYSTEM 0 HANDS OFF BY UNDERSTANDING (the reviewer 2026-11-05 r1277, r1278):
+# System 0 is always an option in the exit contest, weighed by what its target hides x the board's
+# UNexplained share (1 at a board's start) x its ("system0", kind) standing's p; with every drive
+# exhausted it aims at the least-touched contact; its four drives are readings on the row; choose's
+# fallback reads the same option. A stall, then a System 0 turn that found something new, then a pay
+# is paid; a turn that found nothing new is against. OFF: the exhaustion gate, as before
+_S0_HANDOFF = armflag.arm("TETHER_S0_HANDOFF", default=True)
 
 
 @dataclass(frozen=True)
@@ -3977,6 +3984,9 @@ class Agent:
     actions_left = actions_cap = slice_from = slice_until = None
     _tc_focal = None           # item 25: this step's focal slot, need(focal) prices a press
     _tc_refuted_at = -1        # item 25: the last cycle a slot routed REFUTED (the ground refused)
+    _s0_int0 = 0.0             # item 28: pe_integral at this board's (or level's) start
+    _s0_turn = None            # item 28: (cycle, kind, drives before) of the last System 0 turn
+    _s0_stall_at = None        # item 28: the cycle directed work last stalled
 
     @contextmanager
     def _step_scope(self, step: str):
@@ -4722,6 +4732,14 @@ class Agent:
                 "form": Rt.When("a line keeps stopping at the same link", Rt.Act("steer")),
                 "consequence": "the line, at that link, pays again", "origin": "prior",
                 "clause": "r1273, the self-read steer", "standing": {}}
+        if _S0_HANDOFF:
+            # item 28: System 0's weight per target kind -- paid when a turn found what stalled
+            # directed work needed, against when a turn found nothing new
+            self._reflexes["system0"] = {
+                "form": Rt.When("the board is still partly unexplained", Rt.Act("system0")),
+                "consequence": "a System 0 turn finds a new contact or kind", "origin": "prior",
+                "clause": "r1278, the orienting drive's weight", "standing": {}}
+            self._s0_await: set = set()
         self._muse_offered: dict = {}       # 24 (iii): offered rival name -> its park's kind
         self._muse_tests: dict = {}         # 24 (i): host slot -> (rival, kind), test pending
         self._muse_test_open: tuple | None = None   # 24 (i): (host, rival, bound, kind, n0)
@@ -5102,6 +5120,12 @@ class Agent:
         Everything still owed is parked WITH its history, which is the only way a term
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
+        if _S0_HANDOFF:
+            if how in (WIN, ADVANCE):
+                self._s0_pay()                  # item 28: the stalled line's level paid
+            else:
+                self._s0_close(f"level end ({how})")   # item 28 (r1279): no pay followed
+            self._s0_int0 = self._integral      # item 28: this board's explained share starts
         if (_BOND_PER_BOARD and composer._BOND_TEST and self.trace
                 and not (how == NEW_BOARD and getattr(self, "_bond_at", None) == self.cycle)):
             self._bond_tests(how)               # r946 5: the board being left, before it clears
@@ -8769,6 +8793,13 @@ class Agent:
             elif won:
                 for lk in ("plan", "objective"):
                     self._ss_pay(lk, "hyp", sk)
+        if _S0_HANDOFF:
+            if by == "rate":
+                self._s0_close("the stalled line was left")   # item 28 (r1279), before re-stall
+            if why == "stalled":
+                self._s0_stall_at = self.cycle      # item 28: directed work stalled here
+            elif won:
+                self._s0_pay()
         if _BOARD_DESC and won and "family" in h:    # item 18: the record that outweighs a seed
             for r in h["desc"] or ["none"]:
                 self._desc_paid[(r, h["family"])] += 1
@@ -16995,6 +17026,8 @@ class Agent:
             self._muse_test_settle(before)      # 24 (i): the test press's outcome, judged
         if _THINK_CHOOSER and self._tc_pending:
             self._tc_settle()                   # 25: last step's think-vs-act choices, judged
+        if _S0_HANDOFF and self._s0_turn is not None:
+            self._s0_settle()                   # 28: last System 0 turn, judged
         if _GOAL_FROM_ACTUATOR and _ACTUATOR_ROUTINE and self._alive and (
                 self._act_rt is not None or self._actuators and not self._try_first_open()):
             # a held actuator routine's END is read every cycle (a board that grows reopens
@@ -17283,8 +17316,16 @@ class Agent:
         # learned arm, so it generates the (before, action, after) evidence binding needs. The
         # switch is state-derived (coverage), never a cycle constant -- and ALWAYS ON as of
         # Isaiah's 2026-09-29 ruling, so the only gate left is whether the state calls for it.
-        if (take is None and self._system0_active()) or take == "system0":
+        if _S0_HANDOFF and take is None:
+            # item 28 (r1278 (4)): no take -- the contest's System 0 option, read the same way;
+            # weight 0, and today's draw follows
+            _s0f = self._s0_weight(before)
+            if _s0f[1] > 0:
+                take, s0_tw = "system0", _s0f[0]
+        if (take is None and not _S0_HANDOFF and self._system0_active()) or take == "system0":
             target, why = s0_tw if s0_tw is not None else self._contact_target(before)
+            if _S0_HANDOFF:
+                self._s0_take(target)
             _kt = None
             self._s0_target = target
             act = self._undirected(before)
@@ -19166,7 +19207,14 @@ class Agent:
         if starved:
             opts.append("probe")
             res["probe"] = max(self.outstanding(s) for s in self._aims())
-        if s0:
+        s0_reads = None
+        if _S0_HANDOFF:
+            # item 28: always an option while it has a target, weighed down by understanding
+            s0_tw, _w, s0_reads = self._s0_weight(before)
+            if s0_tw[0] is not None:
+                opts.append("system0")
+                res["system0"] = _w
+        elif s0:
             s0_tw = self._contact_target(before)
             opts.append("system0")
             res["system0"] = max((self.outstanding(s) for s in self.slots
@@ -19220,7 +19268,8 @@ class Agent:
         pick = self._choice("exit", None, [(e, None, 1) for e in opts], res,
                             {e: self._exit_n[(self._lk(), e)] for e in opts},
                             extra={"s0_defer": s0, "fixed_would": fixed,
-                                   **({"s0_contest": True} if s0 and _S0_CONTEST else {})})
+                                   **({"s0_contest": True} if s0 and _S0_CONTEST else {}),
+                                   **({"s0": s0_reads} if s0_reads else {})})
         self._exit_n[(self._lk(), pick)] += 1
         return pick, s0_tw, dist_r
 
@@ -20222,6 +20271,106 @@ class Agent:
                         reads="a routine form that kept stopping carries (1 - p) / p expected "
                               "failures more in the paths ordering")
         return [c for _s, c in sorted(zip(score, cands, strict=True), key=lambda x: x[0])]
+
+    def _s0_unexplained(self) -> tuple[float, str]:
+        """Item 28 (r1278 (1)): the board's UNexplained share -- the current slots' outstanding
+        over the surprise charged since this board's start. At the start the denominator is 0:
+        read as nothing explained yet (1.0), said so, never divided into "understood"."""
+        denom = self._integral - self._s0_int0
+        if denom <= 0:
+            return 1.0, "board start: nothing explained yet"
+        return min(1.0, sum(self.outstanding(s) for s in self.slots) / denom), "read"
+
+    def _s0_drives(self, before: dict) -> dict:
+        """Item 28: System 0's four drives, as readings (the exhaustion test's own clauses)."""
+        return {"untried_action": bool(IFace._BOARD_UNTRIED and self._board_untried_n()),
+                "untouched_kind": bool(_TOUCH_EACH_KIND and self._untouched_kinds(before)),
+                "coverage_open": not self.drive.covered(len(self.actions)),
+                "contact_open": any(k not in self._contact_seen
+                                    for k in self._contact_keys(before))}
+
+    def _s0_aim(self, before: dict) -> tuple:
+        """Item 28 (r1278 (2)): System 0's aim -- _contact_target's, and with every contact
+        explored the least-touched object (fewest seen contacts, then the name), so it always
+        has a target while anything is on the board."""
+        tw = self._contact_target(before)
+        if tw[0] is not None:
+            return tw
+        keys = self._contact_keys(before)
+        objs = sorted({x.rsplit(".", 1)[0] for x in before if "." in x and x[:1] == "o"})
+        if not objs:
+            return tw
+        seen = {o: sum(1 for k in self._contact_seen if k in keys and o in keys[k])
+                for o in objs}
+        return min(objs, key=lambda o: (seen[o], o)), "least-touched"
+
+    def _s0_weight(self, before: dict) -> tuple:
+        """Item 28: System 0's weight in the contest -- what its target hides (the max outstanding
+        of the target's slots, today's res) x the board's unexplained share x its ("system0",
+        kind) standing's p. Two readings and a witness weight, multiplied (Fig 1 :22).
+        (target, weight, the readings for the row)."""
+        tw = self._s0_aim(before)
+        if tw[0] is None:
+            return tw, 0.0, {}
+        aim = max((self.outstanding(s) for s in self.slots if s.split(".")[0] == tw[0]),
+                  default=0)
+        un, how = self._s0_unexplained()
+        kind = repr(self._kind(tw[0]))
+        st = self._rf_standing("system0", (kind,))
+        p = (2 + st["paid"]) / (3 + st["paid"] + st["against"])
+        return tw, aim * un * p, {"aim": aim, "unexplained": round(un, 4), "unexplained_is": how,
+                                  "p": round(p, 4), "aim_why": tw[1], **self._s0_drives(before)}
+
+    def _s0_take(self, target: str | None) -> None:
+        """Item 28: a System 0 turn is taken -- what the drives read before it, judged next step."""
+        before = self.env.observe()
+        self._s0_turn = (self.cycle, repr(self._kind(target)) if target else None,
+                         (len(self._contact_seen), self._board_untried_n(),
+                          len(self._untouched_kinds(before)) if _TOUCH_EACH_KIND else 0))
+
+    def _s0_settle(self) -> None:
+        """Item 28 (r1278 (3)): last System 0 turn judged -- it found something NEW (a contact
+        seen, an action pressed, a kind touched): after a stall, that kind awaits the pay; it
+        found nothing new: one witness against its kind. One row."""
+        c0, kind, (n_seen, n_untried, n_kinds) = self._s0_turn
+        if self.cycle <= c0:
+            return
+        self._s0_turn = None
+        before = self.env.observe()
+        new = (len(self._contact_seen) > n_seen or self._board_untried_n() < n_untried
+               or (_TOUCH_EACH_KIND and len(self._untouched_kinds(before)) < n_kinds))
+        if kind is None:
+            return
+        if new:
+            if self._s0_stall_at is not None and self._s0_stall_at <= c0:
+                self._s0_await.add(kind)
+        else:
+            self._rf_standing("system0", (kind,))["against"] += 1
+        st = self._rf_standing("system0", (kind,))
+        self.led.record(self.cycle, self._running_step, "@system0", "s0_settled", at=c0,
+                        kind=kind, found_new=new, awaits_pay=kind in self._s0_await,
+                        paid=st["paid"], against=round(st["against"], 3))
+
+    def _s0_close(self, why: str) -> None:
+        """Item 28 (r1279): a kind awaiting a pay closes with NO verdict -- finding something new
+        is not a failure, so it is neither paid nor against. One row each."""
+        for kind in sorted(self._s0_await):
+            self.led.record(self.cycle, self._running_step, "@system0", "s0_await_closed",
+                            kind=kind, why=why, reads="found new, no pay followed")
+        self._s0_await.clear()
+
+    def _s0_pay(self) -> None:
+        """Item 28: the stalled line paid (a hypothesis won, the level advanced) after a System 0
+        turn found something new -- each such kind's System 0 standing is paid. One row each."""
+        for kind in sorted(self._s0_await):
+            st = self._rf_standing("system0", (kind,))
+            st["paid"] += 1
+            self.led.record(self.cycle, self._running_step, "@system0", "s0_paid", kind=kind,
+                            paid=st["paid"], against=round(st["against"], 3),
+                            reads="directed work stalled, System 0 found something new, and "
+                                  "then it paid")
+        self._s0_await.clear()
+        self._s0_stall_at = None
 
     def _tc_wrong_leave(self, line: str, key, kind, left_at: int) -> None:
         """Item 26: a line LEFT, reopened, and then paid -- the leave was wrong: one witness

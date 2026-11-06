@@ -2199,6 +2199,13 @@ ARMS: dict[str, str] = {
                             "best paying entry as a by=muse rival, weighs musing per kind (seed 1, "
                             "paid kept, against decayed); parks close at a game switch. OFF: "
                             "MUSING as before. default ON",
+    "TETHER_S0_HANDOFF": "BUILD 7 ITEM 28 (the reviewer 2026-11-05 r1277, r1278): System 0 is "
+                         "always an option in the exit contest, weighed by what its target hides "
+                         "x the board's unexplained share (1 at a board's start) x its "
+                         "(system0, kind) standing's p; exhausted, it aims at the least-touched "
+                         "contact; its drives are readings; choose's fallback reads the same "
+                         "option; stall -> new find -> pay is paid, a turn with nothing new is "
+                         "against. OFF: the exhaustion gate. default ON",
     "TETHER_SELF_STEER": "BUILD 7 ITEM 27 (the reviewer 2026-11-05 r1272, r1273): where a line "
                          "stopped is counted by the agent at the stop, keyed (link, line kind, "
                          "kind), as an r1243 standing; while 1 + paid < against it is read by "
