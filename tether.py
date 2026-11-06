@@ -2226,6 +2226,12 @@ _TC_IDLE_SCOPES = ("PERCEIVE", "ACCEPT", "SETTLE", "REPEAT")
 # rho is 0); the routine's divergence abandon and 7f's exhaustion stay verdicts; a left line that
 # reopens and pays writes wrong_leave, one witness against its ("leave", line) weight. OFF: today
 _LEAVE_RATE = armflag.arm("TETHER_LEAVE_RATE", default=True)
+# Build 7 item 27, SELF-READ STEERS (M3; the reviewer 2026-11-05 r1272, r1273): where a line STOPPED
+# is counted by the agent at the stop, keyed (link, line kind, kind) -- link one of N2's five --
+# as an r1243 standing (a stop is `against`, a pay after it `paid`); while 1 + paid < against it is
+# read by ONE reader, the option of the line kind that stopped: a goal shape's proposer price, a
+# slot kind's walk weight, a routine form's order. Within a game; nothing crosses. OFF: no steer
+_SELF_STEER = armflag.arm("TETHER_SELF_STEER", default=True)
 
 
 @dataclass(frozen=True)
@@ -4710,6 +4716,12 @@ class Agent:
                                 Rt.Act("leave")),
                 "consequence": "the line, left, does not pay when reopened", "origin": "prior",
                 "clause": "r1269, the weight of leaving a line", "standing": {}}
+        if _SELF_STEER:
+            # item 27: where this game's lines stopped, per (link, line kind, kind)
+            self._reflexes["steer"] = {
+                "form": Rt.When("a line keeps stopping at the same link", Rt.Act("steer")),
+                "consequence": "the line, at that link, pays again", "origin": "prior",
+                "clause": "r1273, the self-read steer", "standing": {}}
         self._muse_offered: dict = {}       # 24 (iii): offered rival name -> its park's kind
         self._muse_tests: dict = {}         # 24 (i): host slot -> (rival, kind), test pending
         self._muse_test_open: tuple | None = None   # 24 (i): (host, rival, bound, kind, n0)
@@ -5099,6 +5111,8 @@ class Agent:
                 self._muse_close_parks(how)     # item 24: parks are the game's, never the next's
             if _LEAVE_RATE:
                 self._lr_left.clear()           # item 26: a left line is this game's
+            if _SELF_STEER:
+                self._reflexes["steer"]["standing"].clear()   # item 27: within a game only
         if _MEMO_CLEAR:
             # R4: the agent-level instance memos are this board's and are cleared here; the asked
             # keys, the kind stores, the record and the carried bound memos stay
@@ -8746,6 +8760,15 @@ class Agent:
             else:
                 self._lr_leave_paid("hyp", h["tkey"], self._kind_key(h["slots"][0]),
                                     h["reopened"], why)
+        if _SELF_STEER:
+            # item 27: a stall stops at "plan", an arrival without a clear at "objective"
+            sk = (self._ss_form(h["tkey"][0]), self._kind_key(h["slots"][0]))
+            link = {"stalled": "plan", "arrived_no_clear": "objective"}.get(why)
+            if link is not None:
+                self._ss_stop(link, "hyp", sk)
+            elif won:
+                for lk in ("plan", "objective"):
+                    self._ss_pay(lk, "hyp", sk)
         if _BOARD_DESC and won and "family" in h:    # item 18: the record that outweighs a seed
             for r in h["desc"] or ["none"]:
                 self._desc_paid[(r, h["family"])] += 1
@@ -8986,6 +9009,8 @@ class Agent:
                 bits = term_bits(self.gamma.length(c.term), self.gamma.alphabet)
                 if _LEAVE_RATE:
                     bits += self._lr_price(tk)     # item 26: a left line, re-offered, priced
+                if _SELF_STEER:
+                    bits += self._ss_hyp_price(tk[0], c.slot)   # item 27: the proposer's price
                 rank = 0 if won else 1
                 if _PROGRESS_SHELF and not won:     # won, then progress, then the rest: ordinal
                     rec = self._goal_shelf.get(s, {}).get("record", {}) if s else {}
@@ -9794,6 +9819,8 @@ class Agent:
             bits = term_bits(self.gamma.length(c.term) + 1, self.gamma.alphabet)
             if _LEAVE_RATE:
                 bits += self._lr_price(tk)         # item 26: a left line, re-offered, priced
+            if _SELF_STEER:
+                bits += self._ss_hyp_price(tk[0], grp.slot)    # item 27: the proposer's price
             out.append(((2 if _PROGRESS_SHELF else 1, 1, 1, round(bits, 6)), gtext, grp, tk, s))
         return out
 
@@ -11092,6 +11119,9 @@ class Agent:
                         "routine_end",
                         outcome=why, routine=Rt.render(self.routine), **extra,
                         **(self._lr_routine_end(why) if _LEAVE_RATE else {}))
+        if _SELF_STEER and why == Rt.DONE and (self._routine_adopted or self.routine) is not None:
+            self._ss_pay("plan", "routine",           # item 27: the form paid where it stopped
+                         self._ss_form(Rt.render(self._routine_adopted or self.routine)))
         if _PLAN_EPISODES:
             self._episode_why.append(f"the plan ended ({why})")
         _ac = self._act_commit
@@ -11204,6 +11234,9 @@ class Agent:
                         held_plan=self._plan_no if self._routine_adopted is not None else None,
                         set_on_act=set_on, judged_after_act=self._act_n(),
                         **(self._lr_routine_end(None) if _LEAVE_RATE else {}))
+        if _SELF_STEER and (self._routine_adopted or self.routine) is not None:
+            self._ss_stop("plan", "routine",          # item 27: a divergence stops at "plan"
+                          self._ss_form(Rt.render(self._routine_adopted or self.routine)))
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
         return True
@@ -17885,6 +17918,8 @@ class Agent:
         pre-press loss relation stays home: it is met only with its voted press, a button."""
         paid: Counter = Counter()
         for form, r in self._reflexes.items():
+            if form == "steer":
+                continue                        # item 27: a steer is this game's; nothing crosses
             for situ, st in r["standing"].items():
                 paid[(form, self._rf_carry_key(form, situ))] += st["paid"]
         loss: Counter = Counter()
@@ -19952,6 +19987,10 @@ class Agent:
         why0 = ("closer_found" if closer else "under_witnesses"
                 if 1 + self._rf_in("walk", (kind,)) + st["paid"] < st["against"] else None)
         gain = 0.0 if why0 else self.outstanding(slot) * self._tc_need(slot)
+        if _SELF_STEER and not why0:
+            p = self._ss_reads("vocabulary", "mint", kind)
+            if p is not None:
+                gain *= p           # item 27: a slot kind whose mints kept stopping walks less
         ln = self._leave_line.get(slot) if (_LEAVE_RATE and _7F_LEAVE) else None
         if ln is not None and not why0 and ln.get("presses", 0) > 0:
             # item 26: a mint line that has displaced presses (a clock binds) is weighed by its
@@ -20121,6 +20160,68 @@ class Agent:
                         weight_paid=st["paid"], weight_against=round(st["against"], 3),
                         reads="a line left, held again, and ended again unpaid: the leave was "
                               "right")
+
+    @staticmethod
+    def _ss_form(text: Any) -> str:
+        """Item 27: a goal shape or routine form in KIND form -- object ids dropped, so no key
+        carries a board name."""
+        return re.sub(r"o\d+", "o", str(text))
+
+    def _ss_stop(self, link: str, line: str, kind) -> None:
+        """Item 27 (r1273): a line stopped at `link` -- one witness against its (link, line,
+        kind) steer, written by the agent at the stop (never by the narrator). One row."""
+        st = self._rf_standing("steer", (link, line, kind))
+        st["against"] += 1
+        self.led.record(self.cycle, self._running_step, "@self", "self_stop", link=link,
+                        line=line, kind=str(kind), against=round(st["against"], 3),
+                        paid=st["paid"], reads="where this line stopped, counted by the agent")
+
+    def _ss_pay(self, link: str, line: str, kind) -> None:
+        """Item 27: a line paid at a key it had stopped at -- `paid` on that steer. One row."""
+        situ = (link, line, kind)
+        if situ not in self._reflexes["steer"]["standing"]:
+            return
+        st = self._rf_standing("steer", situ)
+        st["paid"] += 1
+        self.led.record(self.cycle, self._running_step, "@self", "self_stop_paid", link=link,
+                        line=line, kind=str(kind), against=round(st["against"], 3),
+                        paid=st["paid"], reads="a line paid where it had stopped")
+
+    def _ss_reads(self, link: str, line: str, kind) -> float | None:
+        """Item 27: the steer's reading at (link, line, kind) -- while 1 + paid < against, its
+        r1243 p, the chance a further try there pays; else None (nothing to read)."""
+        situ = (link, line, kind)
+        if situ not in self._reflexes["steer"]["standing"]:
+            return None
+        st = self._rf_standing("steer", situ)
+        if 1 + st["paid"] >= st["against"]:
+            return None
+        return (2 + st["paid"]) / (3 + st["paid"] + st["against"])
+
+    def _ss_hyp_price(self, tpl: Any, slot: str) -> float:
+        """Item 27, the hypothesis reader: a goal shape on a slot kind that kept stopping is
+        priced up by -log2 p of its steer (plan or objective), so another shape, a group or a
+        split can win the proposer's comparison. 0 when nothing reads."""
+        kind = (self._ss_form(tpl), self._kind_key(slot))
+        ps = [p for p in (self._ss_reads(lk, "hyp", kind) for lk in ("plan", "objective"))
+              if p is not None]
+        return -math.log2(min(ps)) if ps else 0.0
+
+    def _ss_routine_order(self, cands: list, failed) -> list:
+        """Item 27 (r1274), the routine reader as a WEIGHT on the paths ordering's own quantity,
+        failures of the form against this gap shape: a form whose steer reads p carries (1 - p)
+        / p more expected failures (a geometric count, in the paths unit), so a form strongly
+        better on that record still goes first; equal otherwise, the unstopped one does."""
+        ps = [self._ss_reads("plan", "routine", self._ss_form(Rt.render(c))) for c in cands]
+        if all(p is None for p in ps):
+            return cands
+        score = [failed(c) + ((1 - p) / p if p is not None else 0.0) for c, p in zip(
+            cands, ps, strict=True)]
+        self.led.record(self.cycle, "PLAN", "@self", "self_steer_read", line="routine",
+                        weighed=sum(p is not None for p in ps), considered=len(cands),
+                        reads="a routine form that kept stopping carries (1 - p) / p expected "
+                              "failures more in the paths ordering")
+        return [c for _s, c in sorted(zip(score, cands, strict=True), key=lambda x: x[0])]
 
     def _tc_wrong_leave(self, line: str, key, kind, left_at: int) -> None:
         """Item 26: a line LEFT, reopened, and then paid -- the leave was wrong: one witness
@@ -20473,6 +20574,11 @@ class Agent:
                                      if k2 not in ("varies", "invariant")},
                                 deprioritised=sum(1 for f, _ in scored if f),
                                 considered=len(cands))
+        if _SELF_STEER:
+            # item 27: the steer weighs the same failure count the paths ordering ranks by
+            _gk = self._gap_key(gap) if (gap is not None and self.paths) else None
+            cands = self._ss_routine_order(cands, lambda c: self.paths.get(
+                (_gk, self._step_ids(c), Rt.guards(c)), {}).get("failed", 0) if _gk else 0)
         # `left` IS WHAT THE CANDIDATE CANNOT REACH, NOT ZERO. See `routine.reach`.
         # THE BARGAIN IS TWO-PART AND STAYS TWO-PART ON THE ROW. These were folded into one
         # number and handed to `pays` as `cost` with `left = 0` -- arithmetically identical and
@@ -22342,6 +22448,8 @@ class Agent:
         now = self.outstanding(slot)
         if self.bound.get(slot) is not None or now < ln["first"]:
             self._leave_line.pop(slot, None)     # a child moved: the line goes on
+            if _SELF_STEER:
+                self._ss_pay("vocabulary", "mint", self._kind_key(slot))   # item 27
             if _LEAVE_RATE and ("mint", slot) in self._lr_left:
                 # item 26: this line was left, reopened, and has now paid
                 self._tc_wrong_leave("mint", slot, self._kind_key(slot),
@@ -22376,6 +22484,8 @@ class Agent:
                                   "seen": set(), "upto": 0}
         if _LEAVE_RATE:
             self._lr_left[("mint", slot)] = self.cycle   # item 26: tagged LEFT (the verdict stays)
+        if _SELF_STEER:
+            self._ss_stop("vocabulary", "mint", self._kind_key(slot))     # item 27: the stop
         self._transitions(slot, self._leave_held[slot])
         self.led.record(self.cycle, self._running_step, slot, "leave", root=self._root_id,
                         level=self.level, verdict="unreachable at this budget",
@@ -23553,6 +23663,9 @@ class Agent:
                 self._space[slot]["verdict"] = (detail["verdict"], detail.get("note"), self.cycle)
             if detail["verdict"] == "no_support":
                 self._starved.add(slot)
+            if _SELF_STEER and detail["verdict"] == "priced_out_at_depth":
+                # item 27 (r1274): a price-out is the mint line stopping at "vocabulary"
+                self._ss_stop("vocabulary", "mint", self._kind_key(slot))
             # `under_floor` OWES LIKE THE OTHER TWO, and the write site at `accept` is what
             # decides it: *the slot keeps owing until something closes R* -- a fact about the
             # SLOT, not about the search. Its residual is unclosed, so it owes. Leaving it out

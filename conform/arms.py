@@ -2199,6 +2199,12 @@ ARMS: dict[str, str] = {
                             "best paying entry as a by=muse rival, weighs musing per kind (seed 1, "
                             "paid kept, against decayed); parks close at a game switch. OFF: "
                             "MUSING as before. default ON",
+    "TETHER_SELF_STEER": "BUILD 7 ITEM 27 (the reviewer 2026-11-05 r1272, r1273): where a line "
+                         "stopped is counted by the agent at the stop, keyed (link, line kind, "
+                         "kind), as an r1243 standing; while 1 + paid < against it is read by "
+                         "one reader, the option of the line kind that stopped (a goal shape's "
+                         "proposer price, a slot kind's walk weight, a routine form's order); "
+                         "within a game, nothing crosses. OFF: no steer. default ON",
     "TETHER_LEAVE_RATE": "BUILD 7 ITEM 26 (the reviewer 2026-11-05 r1268, r1269): patch-leaving "
                          "inside item 25's chooser -- a goal hypothesis (and a mint line under a "
                          "clock) is left when its own rate (bits explained on its slots since its "
