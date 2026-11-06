@@ -2199,6 +2199,12 @@ ARMS: dict[str, str] = {
                             "best paying entry as a by=muse rival, weighs musing per kind (seed 1, "
                             "paid kept, against decayed); parks close at a game switch. OFF: "
                             "MUSING as before. default ON",
+    "TETHER_FIELD_CLASS": "BUILD 7 ITEM 29 (the reviewer 2026-11-05 r1280, r1281): the cheap "
+                          "rank's last key is a weighted overlap of verb / noun / filler matches, "
+                          "each class read off the grammar (the entry's default role), each "
+                          "weight an r1243 standing per (class, board), paid by M1, against by "
+                          "S3's no-fit, the paid count crossing at class level. OFF: the bare "
+                          "reading count. default ON",
     "TETHER_S0_HANDOFF": "BUILD 7 ITEM 28 (the reviewer 2026-11-05 r1277, r1278): System 0 is "
                          "always an option in the exit contest, weighed by what its target hides "
                          "x the board's unexplained share (1 at a board's start) x its "

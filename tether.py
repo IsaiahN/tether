@@ -1119,6 +1119,28 @@ def _posting_reads() -> dict:
             for e in names:
                 _POSTING.setdefault(e[0] if isinstance(e, list) else e, set()).add(r)
     return _POSTING
+
+
+_GCW: dict = {}
+
+
+def _gcw_classes() -> dict:
+    """Item 29: each library entry's grammatical class, read off the grammar, once. Its default
+    role (index.json by_default_role) is a VERB when grammar.json's own account of what that role
+    reads names a change (PROCESS, CAUSE, INSTRUMENT), FILLER for RULE (its candidates carry the
+    one quantifier string, library_runtime.py's RULE), a NOUN otherwise."""
+    if not _GCW:
+        from pathlib import Path
+        root = Path(__file__).parent / "library"
+        roles = json.loads(door.read_bytes(root / "grammar.json"))["roles"]
+        verbs = {r for r, v in roles.items()
+                 if isinstance(v, dict) and "change" in v.get("reads", "")}
+        for role, names in json.loads(door.read_bytes(root / "index.json"))["index"][
+                "by_default_role"].items():
+            cls = "verb" if role in verbs else "filler" if role == "RULE" else "noun"
+            for e in names:
+                _GCW[e[0] if isinstance(e, list) else e] = cls
+    return _GCW
 # 22 INCREMENTAL_JUDGE (the reviewer r571; Fig 9 :38-39, Fig 12 :108-109, Fig 6 :50): 16's stored
 # prefixes are voided by the slot's peers or its owner's attributes moving only for a term whose
 # atoms declare they read them (reads_ctx "group" / "obj", the only fields _eval_ctx fills from
@@ -2239,6 +2261,14 @@ _SELF_STEER = armflag.arm("TETHER_SELF_STEER", default=True)
 # fallback reads the same option. A stall, then a System 0 turn that found something new, then a pay
 # is paid; a turn that found nothing new is against. OFF: the exhaustion gate, as before
 _S0_HANDOFF = armflag.arm("TETHER_S0_HANDOFF", default=True)
+# Build 7 item 29, GRAMMATICAL CLASS WEIGHTS (the reviewer 2026-11-05 r1280, r1281): the cheap
+# rank's last key, the bare overlap of asked readings, becomes a weighted overlap -- p_verb x [a
+# change entry, the key has a delta kind] + p_noun x |readings matched| + p_filler x [a RULE
+# entry] -- each class read off the grammar (an entry's default role), each p an r1243 standing
+# per (class, board): paid when an offered entry later paid (M1), against when it was judged
+# no-fit (S3); the paid count crosses at class level (r1248). Tier and M1's keys stay above it.
+# OFF: the bare count
+_FIELD_CLASS = armflag.arm("TETHER_FIELD_CLASS", default=True)
 
 
 @dataclass(frozen=True)
@@ -4740,6 +4770,13 @@ class Agent:
                 "consequence": "a System 0 turn finds a new contact or kind", "origin": "prior",
                 "clause": "r1278, the orienting drive's weight", "standing": {}}
             self._s0_await: set = set()
+        if _FIELD_CLASS:
+            # item 29: a grammatical class's weight in the cheap rank, per (class, board)
+            self._reflexes["gcw"] = {
+                "form": Rt.When("a lookup's offered entry matched on this class", Rt.Act("rank")),
+                "consequence": "the entry offered pays", "origin": "prior",
+                "clause": "r1281, the grammatical class weight", "standing": {}}
+            self._gcw_win: dict = {}
         self._muse_offered: dict = {}       # 24 (iii): offered rival name -> its park's kind
         self._muse_tests: dict = {}         # 24 (i): host slot -> (rival, kind), test pending
         self._muse_test_open: tuple | None = None   # 24 (i): (host, rival, bound, kind, n0)
@@ -6971,6 +7008,17 @@ class Agent:
             i += c
         reads = {att.get(s) for s in tg}
         post = _posting_reads()
+        # item 29: an Agent built without the store (a stand-in) ranks by the bare count
+        fc = _FIELD_CLASS and "gcw" in getattr(self, "_reflexes", {})
+        if fc:
+            self._gcw_win = {}
+            ps = {c: self._gcw_p(c) for c in ("verb", "noun", "filler")}   # read once per rank
+
+        def overlap(e) -> float:
+            # item 29: the weighted overlap (verb, noun, filler); OFF the bare reading count
+            if fc:
+                return self._gcw_score(e[0], reads, post, key[1] is not None, ps)
+            return len(post.get(e[0], frozenset()) & reads)
         if _THOUGHT_RECORD:
             tk = self._thought_key(key[1], reads)
             tried, paid = self._thought_of("tried", tk), self._thought_of("paid", tk)
@@ -6978,11 +7026,10 @@ class Agent:
             def order(e):
                 p = paid.get(e[0], 0)
                 return (tier_of.get(e[0], len(tiers)), -p, bool(tried.get(e[0]) and not p),
-                        -len(post.get(e[0], frozenset()) & reads))
+                        -overlap(e))
             ranked = sorted(lit, key=order)
         else:
-            ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)),
-                                                -len(post.get(e[0], frozenset()) & reads)))
+            ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)), -overlap(e)))
         if _SERP_CACHE:
             # S3: what this key already judged no-fit is skipped; the window is the next unjudged
             nk = key
@@ -7004,6 +7051,58 @@ class Agent:
                         nk if _SERP_CACHE else None)
         return ranked[off:nxt], (nxt if nxt < len(ranked) else None)
 
+    def _gcw_p(self, cls: str) -> float:
+        """Item 29: a class's weight on this board -- r1243's p over its (class, board) standing,
+        the lineage's paid count for the class carried in as a seed (r1248)."""
+        situ = (cls, getattr(self, "_bond_board", 0))
+        st, c = self._rf_standing("gcw", situ), self._rf_in("gcw", situ)
+        return (2 + c + st["paid"]) / (3 + c + st["paid"] + st["against"])
+
+    def _gcw_score(self, e: str, reads: set, post: dict, has_dk: bool, ps: dict) -> float:
+        """Item 29 (r1281): the weighted overlap -- each class the entry matches on, times that
+        class's weight. A verb (a change entry) matches when the key carries a delta kind; the
+        nouns are the asked readings the entry reads; a filler is a RULE entry. The classes
+        matched are kept for the credit. A naive independent credit: an entry matched on verb
+        and noun teaches both."""
+        cls = _gcw_classes().get(e, "noun")
+        n = len(post.get(e, frozenset()) & reads)
+        hit = {c for c, on in (("verb", cls == "verb" and has_dk), ("noun", n > 0),
+                               ("filler", cls == "filler")) if on}
+        self._gcw_win[e] = hit
+        return sum(ps[c] * (n if c == "noun" else 1) for c in hit)
+
+    def _gcw_credit(self, entries, field: str) -> None:
+        """Item 29 (r1284, the window grain): a PAID is one witness per paid entry for each class
+        it matched on; a no-fit WINDOW is ONE witness per class its entries matched (its entries
+        share one residual at one step: one piece of evidence, Fig 2 :31, Fig 9 :60), so the
+        window size never sets the verdicts. In one window a class that paid is never also
+        against: a pay after an against takes that against back. One row."""
+        n: Counter = Counter()
+        board = getattr(self, "_bond_board", 0)
+        win = getattr(self, "_gcw_book", None)
+        if win is None or win[0] is not self._gcw_win:
+            win = self._gcw_book = (self._gcw_win, set(), set())     # (window, paid, against)
+        if field == "paid":
+            for e in entries:
+                for c in self._gcw_win.get(e, ()):
+                    st = self._rf_standing("gcw", (c, board))
+                    st["paid"] += 1
+                    n[c] += 1
+                    win[1].add(c)
+                    if c in win[2]:
+                        win[2].discard(c)
+                        st["against"] = max(0.0, st["against"] - 1)
+        else:
+            for c in sorted(set().union(*(self._gcw_win.get(e, set()) for e in entries))
+                            - win[1] - win[2]):
+                self._rf_standing("gcw", (c, board))["against"] += 1
+                win[2].add(c)
+                n[c] += 1
+        if n:
+            self.led.record(self.cycle, self._running_step, "@rank", "field_class", field=field,
+                            classes=dict(n), board=board,
+                            weights={c: round(self._gcw_p(c), 4) for c in sorted(n)})
+
     def _tk_after(self, key: tuple, nxt: int | None) -> bool:
         """TK: a window that offered nothing. Short of the list's end it is "not yet": the next
         lookup of this description continues from nxt, and no verdict is recorded (False). At the
@@ -7011,6 +7110,8 @@ class Agent:
         if _SERP_CACHE and self._tk_win[0] == key:
             # S3: the window offered nothing -- every entry in it is judged no-fit under this key
             self._tk_nofit.setdefault(self._tk_win[2], set()).update(self._tk_win[1])
+            if _FIELD_CLASS and "gcw" in getattr(self, "_reflexes", {}):
+                self._gcw_credit(self._tk_win[1], "against")   # item 29
         if nxt is not None:
             if not _SERP_CACHE:
                 self._tk_off[key] = nxt
@@ -13977,6 +14078,8 @@ class Agent:
             into = self._thought[fld].setdefault(tk, {})
             for e in es:
                 into[e] = into.get(e, 0) + 1
+        if _FIELD_CLASS and paid and "gcw" in getattr(self, "_reflexes", {}):
+            self._gcw_credit(paid, "paid")      # item 29: the classes those entries matched on
 
     def _thought_of(self, fld: str, tk: str) -> dict:
         """M1: the lineage's count under this key plus this life's."""
@@ -17946,8 +18049,10 @@ class Agent:
 
     @staticmethod
     def _rf_carry_key(form: str, situ: tuple) -> tuple:
-        """The carry: a situation's kind-level key -- freeze leaves its button home (r1248 3)."""
-        return tuple(situ[:2]) if form == "freeze" else tuple(situ)
+        """The carry: a situation's kind-level key -- freeze leaves its button home (r1248 3); a
+        grammatical class weight (item 29) leaves its board home and crosses as the class."""
+        return (tuple(situ[:2]) if form == "freeze" else tuple(situ[:1]) if form == "gcw"
+                else tuple(situ))
 
     def _rf_in(self, form: str, situ: tuple) -> int:
         """The carry: the paid count the lineage brought for this (form, situation); 0 OFF."""
