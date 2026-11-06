@@ -5352,7 +5352,7 @@ class Agent:
             # boundary closes it; the new level's board is proposed afresh
             if self._hyp is not None:
                 self._hyp_end("level_cleared" if how in (WIN, ADVANCE) else f"closed_{how}",
-                              won=how in (WIN, ADVANCE), step="IMPORT")
+                              won=how in (WIN, ADVANCE), step="IMPORT", boundary=True)
             self._hyp_tried, self._hyp_exhausted = {}, None
             if _UNTESTED_KEEP:
                 self._untested = {}
@@ -9088,7 +9088,7 @@ class Agent:
                 self.gamma.book[k] = v
 
     def _hyp_end(self, why: str, loss: bool = False, won: bool = False,
-                 step: str = "PLAN", by: str | None = None) -> None:
+                 step: str = "PLAN", by: str | None = None, boundary: bool = False) -> None:
         h, self._hyp = self._hyp, None
         self._la_routine(h, why)
         kept = self._books_kept()
@@ -9144,7 +9144,12 @@ class Agent:
             self._desc_against(h, why, step)
         if _GOAL_UNBUNDLE and why == "stalled" and not won:
             self._goal_unbundle(h, step)
-        self.led.record(self.cycle, step, h["slots"][0], "goal_hypothesis_end",
+        # R1 (r1294): closed BY a boundary, the row joins retarget's own chain on "@boundary"
+        # (_BOUNDARY_CHAIN), the object in a field -- on the object's slot it sat at IMPORT ahead
+        # of the next step's PERCEIVE in the same cycle, and the gate refused the ledger
+        self.led.record(self.cycle, step, "@boundary" if boundary else h["slots"][0],
+                        "goal_hypothesis_end",
+                        **({"hyp_slot": h["slots"][0]} if boundary else {}),
                         **({"ended_by": ended_by} if ended_by is not None else {}),
                         text=h["text"], why=why, steps=h["steps"], released=released,
                         source=h["source"], by=by, held_unreadable=h["held_unreadable"],
