@@ -15090,6 +15090,16 @@ class Agent:
         operand, one other slot of that operand's form, type-fitting; anything else is left to
         the residual and route, as before."""
         new = [s for s in betting if s not in self.bound and s not in self._fc_seen]
+        # R5b (the reviewer 2026-11-06 r1322): (B) -- a slot the world's own clock writes is never
+        # bound, here as at ACCEPT and route. Read at this site, never self._own_now: this runs in
+        # PERCEIVE before the step's _charge, so that set is the last step's (empty on a level's
+        # first step, when first contact happens)
+        _oc = getattr(self.env, "own_counted", None) if _OWN_COUNTERS_DERIVED else None
+        own = _oc() if _oc is not None else frozenset()
+        if own and any(s in own for s in new):
+            self.gamma.book["first_contact_own_counted"] = (
+                self.gamma.book.get("first_contact_own_counted", 0) + sum(s in own for s in new))
+            new = [s for s in new if s not in own]
         if not new:
             return
         self._fc_seen.update(new)
