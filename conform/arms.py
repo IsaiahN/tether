@@ -2199,6 +2199,12 @@ ARMS: dict[str, str] = {
                             "best paying entry as a by=muse rival, weighs musing per kind (seed 1, "
                             "paid kept, against decayed); parks close at a game switch. OFF: "
                             "MUSING as before. default ON",
+    "TETHER_SPREAD": "BUILD 7 ITEM 30 (the reviewer 2026-11-05 r1285, r1286): personalized "
+                     "spreading activation seeded at the lookup's lit entries, over ingredient_of "
+                     "both ways, each hop split 1 / degree at the edge's own r1243 p (the "
+                     "damping), stopping when the window's order holds; one more term in the "
+                     "cheap rank's key (4); a partial molecule joins the tail; edge paid crosses. "
+                     "OFF: no spread. default ON",
     "TETHER_FIELD_CLASS": "BUILD 7 ITEM 29 (the reviewer 2026-11-05 r1280, r1281): the cheap "
                           "rank's last key is a weighted overlap of verb / noun / filler matches, "
                           "each class read off the grammar (the entry's default role), each "

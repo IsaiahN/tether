@@ -154,8 +154,11 @@ def check_g6_no_board_names() -> None:
     ag = _agent()
     ag._gcw_win = {"e": {"verb", "noun"}}
     ag._gcw_credit(["e"], "paid")
+    import tether
     keys = list(ag._reflexes["gcw"]["standing"])
-    assert keys and all(len(k) == 2 and k[0] in ("verb", "noun", "filler")
+    # item 30 (TETHER_SPREAD): the spread's own weight shares the store, keyed the same way
+    cls = ("verb", "noun", "filler") + (("spread",) if tether._SPREAD else ())
+    assert keys and all(len(k) == 2 and k[0] in cls
                         and isinstance(k[1], int) for k in keys), keys
     print(f"  keys {sorted(keys)}: a class and a board index, no name")
 

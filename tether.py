@@ -1122,6 +1122,7 @@ def _posting_reads() -> dict:
 
 
 _GCW: dict = {}
+_SA_DOWN: dict = {}     # item 30: id(library) -> molecule -> its operands (ingredient_of inverted)
 
 
 def _gcw_classes() -> dict:
@@ -2269,6 +2270,13 @@ _S0_HANDOFF = armflag.arm("TETHER_S0_HANDOFF", default=True)
 # no-fit (S3); the paid count crosses at class level (r1248). Tier and M1's keys stay above it.
 # OFF: the bare count
 _FIELD_CLASS = armflag.arm("TETHER_FIELD_CLASS", default=True)
+# Build 7 item 30, SPREADING ACTIVATION (the reviewer 2026-11-05 r1285, r1286): personalized, seeded
+# at the lookup's lit entries, over ingredient_of both ways (an atom to its molecules, a molecule
+# to its operands), each hop an entry's share split 1 / degree and passed at that edge's own r1243
+# p (the damping, read from the record; no constant), stopping when a hop no longer changes the
+# window's order. One more term in the cheap rank's key (4), held apart from item 29's classes;
+# a partial molecule joins the tail below every tier. Edge paid crosses (r1248). OFF: no spread
+_SPREAD = armflag.arm("TETHER_SPREAD", default=True)
 
 
 @dataclass(frozen=True)
@@ -4777,6 +4785,15 @@ class Agent:
                 "consequence": "the entry offered pays", "origin": "prior",
                 "clause": "r1281, the grammatical class weight", "standing": {}}
             self._gcw_win: dict = {}
+        if _SPREAD:
+            # item 30: an ingredient edge's weight per (from, to, board) -- the spread's damping
+            self._reflexes["sa_edge"] = {
+                "form": Rt.When("activation passes along this ingredient edge", Rt.Act("rank")),
+                "consequence": "the entry it reaches pays", "origin": "prior",
+                "clause": "r1286, the spreading-activation edge", "standing": {}}
+            self._sa_into: dict = {}      # entry -> the seed edges that carried activation to it
+            self._sa_cache = None         # ((seeds, cycle), activation)
+            self._sa_n: Counter = Counter()   # lookups, cache hits, hops, edges, ms
         self._muse_offered: dict = {}       # 24 (iii): offered rival name -> its park's kind
         self._muse_tests: dict = {}         # 24 (i): host slot -> (rival, kind), test pending
         self._muse_test_open: tuple | None = None   # 24 (i): (host, rival, bound, kind, n0)
@@ -7010,14 +7027,37 @@ class Agent:
         post = _posting_reads()
         # item 29: an Agent built without the store (a stand-in) ranks by the bare count
         fc = _FIELD_CLASS and "gcw" in getattr(self, "_reflexes", {})
+        sp = fc and _SPREAD and "sa_edge" in self._reflexes
+        act: dict = {}
         if fc:
             self._gcw_win = {}
-            ps = {c: self._gcw_p(c) for c in ("verb", "noun", "filler")}   # read once per rank
+            ps = {c: self._gcw_p(c)
+                  for c in ("verb", "noun", "filler") + (("spread",) if sp else ())}
+        if sp:
+            # item 30: the activation, seeded at this lookup's lit entries and M1's paid ones
+            libr = self._inv_lib if _M7_INV and self._inv_lib is not None else _library()
+            m1 = (self._thought_of("paid", self._thought_key(key[1], reads))
+                  if _THOUGHT_RECORD else {})
+            seeds = frozenset(k for k, _w in full) | frozenset(e for e, n in m1.items() if n)
+            if libr is not None and seeds:
+                act = self._sa_spread(libr, seeds)
+                have = {k for k, _w in lit}
+                # a partial molecule (an operand lit, not all): the tail, below every tier
+                lit = list(lit) + sorted(((m, 0.0) for m in self._sa_into
+                                          if m not in have and m in _SA_DOWN[id(libr)]),
+                                         key=lambda e: (-act.get(e[0], 0.0), e[0]))
+        amax = max(act.values(), default=0.0)
 
         def overlap(e) -> float:
             # item 29: the weighted overlap (verb, noun, filler); OFF the bare reading count
             if fc:
-                return self._gcw_score(e[0], reads, post, key[1] is not None, ps)
+                s = self._gcw_score(e[0], reads, post, key[1] is not None, ps)
+                a = act.get(e[0], 0.0)
+                if a > 0 and amax > 0:
+                    # item 30: the spread term, held apart from the classes (its own weight)
+                    self._gcw_win[e[0]].add("spread")
+                    s += ps["spread"] * a / amax
+                return s
             return len(post.get(e[0], frozenset()) & reads)
         if _THOUGHT_RECORD:
             tk = self._thought_key(key[1], reads)
@@ -7051,6 +7091,62 @@ class Agent:
                         nk if _SERP_CACHE else None)
         return ranked[off:nxt], (nxt if nxt < len(ranked) else None)
 
+    def _sa_edge_p(self, a: str, b: str, board: int) -> float:
+        """Item 30: an edge's r1243 p, read WITHOUT creating a standing (an unseen edge reads its
+        seed and the lineage's carried paid)."""
+        st = self._reflexes["sa_edge"]["standing"].get((a, b, board))
+        c = self._rf_in("sa_edge", (a, b, board))
+        if st is None:
+            return (2 + c) / (3 + c)
+        st = self._rf_standing("sa_edge", (a, b, board))
+        return (2 + c + st["paid"]) / (3 + c + st["paid"] + st["against"])
+
+    def _sa_spread(self, lib: Any, seeds: frozenset) -> dict:
+        """Item 30 (r1286): personalized spreading activation. Each seed holds 1 / |seeds|; each
+        hop passes an entry's activation, split 1 / degree over its ingredient edges (up to the
+        molecules it bonds into, down to a molecule's operands), at each edge's own p -- the
+        damping is the record, so the total stays under 1 / (1 - max p). Hops are summed and
+        stop when a hop leaves the TOPK_K order unchanged. Cached per (seeds, step). The seed
+        edges into each reached entry are kept for the credit."""
+        key = (seeds, self.cycle)
+        if self._sa_cache is not None and self._sa_cache[0] == key:
+            self._sa_n["cache_hits"] += 1
+            return self._sa_cache[1]
+        t0 = time.perf_counter()
+        down = _SA_DOWN.get(id(lib))
+        if down is None:
+            down = collections.defaultdict(list)
+            for k, ms in lib.ingredient_of.items():
+                for m in ms:
+                    down[m].append(k)
+            _SA_DOWN[id(lib)] = down
+        board = getattr(self, "_bond_board", 0)
+        act = {s: 1.0 / len(seeds) for s in seeds}
+        front, prev, into = dict(act), None, {}
+        while front:
+            cap.head()
+            nxt: dict = {}
+            for k, a in front.items():
+                nbrs = list(lib.ingredient_of.get(k, ())) + down.get(k, [])
+                for m in nbrs:
+                    add = a / len(nbrs) * self._sa_edge_p(k, m, board)
+                    nxt[m] = nxt.get(m, 0.0) + add
+                    if k in seeds and m not in seeds:
+                        into.setdefault(m, set()).add((k, m))
+                    self._sa_n["edges"] += 1
+            for m, a in nxt.items():
+                act[m] = act.get(m, 0.0) + a
+            self._sa_n["hops"] += 1
+            order = tuple(heapq.nsmallest(TOPK_K, act, key=lambda e: (-act[e], e)))
+            if order == prev:
+                break
+            prev, front = order, nxt
+        self._sa_into = into
+        self._sa_cache = (key, act)
+        self._sa_n["lookups"] += 1
+        self._sa_n["ms"] += 1000 * (time.perf_counter() - t0)
+        return act
+
     def _gcw_p(self, cls: str) -> float:
         """Item 29: a class's weight on this board -- r1243's p over its (class, board) standing,
         the lineage's paid count for the class carried in as a seed (r1248)."""
@@ -7081,7 +7177,11 @@ class Agent:
         board = getattr(self, "_bond_board", 0)
         win = getattr(self, "_gcw_book", None)
         if win is None or win[0] is not self._gcw_win:
-            win = self._gcw_book = (self._gcw_win, set(), set())     # (window, paid, against)
+            # (window, paid classes, against classes, paid edges, against edges)
+            win = self._gcw_book = (self._gcw_win, set(), set(), set(), set())
+        # item 30: the seed edges that carried activation to these entries, booked alike
+        sa = _SPREAD and "sa_edge" in self._reflexes
+        into = getattr(self, "_sa_into", {}) if sa else {}
         if field == "paid":
             for e in entries:
                 for c in self._gcw_win.get(e, ()):
@@ -7092,16 +7192,29 @@ class Agent:
                     if c in win[2]:
                         win[2].discard(c)
                         st["against"] = max(0.0, st["against"] - 1)
+                for ed in into.get(e, ()):
+                    st = self._rf_standing("sa_edge", (*ed, board))
+                    st["paid"] += 1
+                    n["edge"] += 1
+                    win[3].add(ed)
+                    if ed in win[4]:
+                        win[4].discard(ed)
+                        st["against"] = max(0.0, st["against"] - 1)
         else:
             for c in sorted(set().union(*(self._gcw_win.get(e, set()) for e in entries))
                             - win[1] - win[2]):
                 self._rf_standing("gcw", (c, board))["against"] += 1
                 win[2].add(c)
                 n[c] += 1
+            for ed in sorted(set().union(*(into.get(e, set()) for e in entries))
+                             - win[3] - win[4]):
+                self._rf_standing("sa_edge", (*ed, board))["against"] += 1
+                win[4].add(ed)
+                n["edge"] += 1
         if n:
             self.led.record(self.cycle, self._running_step, "@rank", "field_class", field=field,
                             classes=dict(n), board=board,
-                            weights={c: round(self._gcw_p(c), 4) for c in sorted(n)})
+                            weights={c: round(self._gcw_p(c), 4) for c in sorted(n) if c != "edge"})
 
     def _tk_after(self, key: tuple, nxt: int | None) -> bool:
         """TK: a window that offered nothing. Short of the list's end it is "not yet": the next
@@ -18051,8 +18164,8 @@ class Agent:
     def _rf_carry_key(form: str, situ: tuple) -> tuple:
         """The carry: a situation's kind-level key -- freeze leaves its button home (r1248 3); a
         grammatical class weight (item 29) leaves its board home and crosses as the class."""
-        return (tuple(situ[:2]) if form == "freeze" else tuple(situ[:1]) if form == "gcw"
-                else tuple(situ))
+        return (tuple(situ[:2]) if form in ("freeze", "sa_edge") else tuple(situ[:1])
+                if form == "gcw" else tuple(situ))
 
     def _rf_in(self, form: str, situ: tuple) -> int:
         """The carry: the paid count the lineage brought for this (form, situation); 0 OFF."""
