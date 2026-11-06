@@ -7,7 +7,10 @@
         children pin item 25's chooser (TETHER_THINK_CHOOSER=0): it reads the purse by design
         (evals = budget - spent prices a think), so with it on a 10^12 budget is a different
         agent from OFF; E's subject is the budget alone, and the chooser's dependence on the purse
-        is test_think_chooser's (the reviewer 2026-11-06 r1312)
+        is test_think_chooser's (the reviewer 2026-11-06 r1312). Both also pin A1's governor
+        (TETHER_STEP_ACT=0): its deferrals write the owed queue in either arm, but route asks owed
+        slots first only under the budget, so the budget-OFF arm reorders them (r1317; the
+        ordering's move out of the budget branch is a fidelity item of its own)
   C     a budget of 1 evaluation (one lookup per step, checked between lookups), TETHER_STEP_RANK=0:
         a question cut partway -- one of its lookups run, another not asked -- carries its unasked
         member under the question's id ("budget_owed"), and the next step's first lookup is an
@@ -39,7 +42,7 @@ import subprocess
 import sys
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
-from conform.identity_mod_rows import TIMINGS
+from conform.identity_mod_rows import compare
 
 sys.dont_write_bytecode = True
 
@@ -85,24 +88,22 @@ def child(budget: str, extra: dict | None = None, mode: str = "") -> list:
     return [json.loads(x) for x in open(led, encoding="utf-8") if x.strip()]
 
 
-def strip(rows: list) -> list:
-    # seq and the detail's seq pointers (signal_seq) shift by the inserted "@budget" rows
-    keep = ("header", "arms")
-    return [{**{k: v for k, v in r.items() if k != "seq"},
-             "detail": {k: v for k, v in (r.get("detail") or {}).items()
-                        if not k.endswith("seq") and (r.get("event"), k) not in TIMINGS}}
-            for r in rows if r.get("slot") != "@budget" and r.get("event") not in keep
-            and r.get("slot") != "@run"]
+def body(rows: list) -> list:
+    # the header and the @run arms row are set by the children's arms (the budget, the pins), so
+    # they are named out; every other row goes to identity_mod_rows.compare, which drops the
+    # budget's own rows and maps every position field through the shift (r1318)
+    return [r for r in rows if r.get("event") not in ("header", "arms")]
 
 
 def main() -> int:
-    pin = {"TETHER_THINK_CHOOSER": "0"}      # E's subject is the budget alone (docstring, r1312)
+    pin = {"TETHER_THINK_CHOOSER": "0",      # E's subject is the budget alone (docstring, r1312,
+           "TETHER_STEP_ACT": "0"}           # r1317)
     off = child("-", {"TETHER_STEP_BUDGET": "0", **pin})
     assert not [r for r in off if r.get("event") in ("budget", "budget_owed")]           # MF
     big = child(str(10 ** 12), {"TETHER_STEP_RANK": "0", **pin})
-    a, b = strip(big), strip(off)
-    diff = [(i, x, y) for i, (x, y) in enumerate(zip(a, b, strict=False)) if x != y]
-    assert len(a) == len(b) and not diff, (len(a), len(b), diff[:2])                       # E
+    a = body(off)
+    diff = compare(a, body(big), {"budget", "budget_owed"})
+    assert not diff, diff[:3]                                                               # E
     assert not [r for r in big if r.get("event") == "budget_owed"]
     print("E", len(a), "rows identical to OFF with the budget above any step's work; MF OFF: no "
           "budget rows")
