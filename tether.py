@@ -1672,6 +1672,27 @@ _MINT_HOIST = armflag.arm("TETHER_MINT_HOIST", default=True)
 _PREFIX_PRUNE = armflag.arm("TETHER_PREFIX_PRUNE", default=True)
 LOOKUP_HELD_KEYS = ("molecule", "left", "right", "left_reading", "right_reading", "held", "via",
                     "occasions")
+# R3 (the reviewer 2026-11-06 r1311): the fold's JSON pieces through ONE reused encoder per argument
+# set (json.dumps builds a new JSONEncoder per call when ensure_ascii or sort_keys is set), and a
+# str's JSON memoised for the fold -- js(y) ran per held pair, 18.9M times in one bp35 lookup over
+# 1,145 distinct strings. The same bytes: json.dumps(v, ensure_ascii=False[, sort_keys=True]).
+_JS_ENC = json.JSONEncoder(ensure_ascii=False)
+_JS_ENC_SORTED = json.JSONEncoder(ensure_ascii=False, sort_keys=True)
+
+
+def _fold_js() -> tuple:
+    """(js, js_sorted) for one _lookup_fold: js memoises str values for that fold only."""
+    memo: dict = {}
+    enc = _JS_ENC.encode
+
+    def js(v: Any) -> str:
+        if type(v) is str:
+            got = memo.get(v)
+            if got is None:
+                got = memo[v] = enc(v)
+            return got
+        return enc(v)
+    return js, _JS_ENC_SORTED.encode
 # G1, RELATIONAL WANTS PER EVENT (the reviewer 2026-10-17 15:30, 23:04, 23:17): since E0b a derived
 # slot has no residual, so the mint never writes a want on it -- seen, never wanted. Per event, ONE
 # objective-only question over the derived slots it changed; the want is the library condition the
@@ -6491,7 +6512,7 @@ class Agent:
             else:
                 st["ids"] = ids
             state = st["pairs"]
-        js = partial(json.dumps, ensure_ascii=False)
+        js, js_sorted = _fold_js()
         cache: dict = {}
         dig, n, held_n, sample = hashlib.sha256(), 0, 0, []
 
@@ -6503,7 +6524,7 @@ class Agent:
                 else:
                     r = composer._read_two(x, y, frames)
                 occ, held = r
-                got = cache[(x, y)] = (occ, held, js(list(held)), js(occ, sort_keys=True))
+                got = cache[(x, y)] = (occ, held, js(list(held)), js_sorted(occ))
             return got
         for d_ in srcs:
             cap.head()
