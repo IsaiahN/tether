@@ -2219,6 +2219,13 @@ _MUSING_CHOSEN = armflag.arm("TETHER_MUSING_CHOSEN", default=True)
 _THINK_CHOOSER = armflag.arm("TETHER_THINK_CHOOSER", default=True)
 # the step-clock scopes that evaluate nothing: the rest of a step's wall is charged to its purse
 _TC_IDLE_SCOPES = ("PERCEIVE", "ACCEPT", "SETTLE", "REPEAT")
+# Build 7 item 26, THE LEAVE RULE (the reviewer 2026-11-05 r1268, r1269): patch-leaving inside
+# item 25's chooser -- a line (a goal hypothesis; a mint line under a clock) is left when its own
+# rate (bits explained on its slots since its birth, per press of its effort) falls under rho, the
+# agent's own average; the hypothesis ceiling and trend become readings (the ceiling the seed while
+# rho is 0); the routine's divergence abandon and 7f's exhaustion stay verdicts; a left line that
+# reopens and pays writes wrong_leave, one witness against its ("leave", line) weight. OFF: today
+_LEAVE_RATE = armflag.arm("TETHER_LEAVE_RATE", default=True)
 
 
 @dataclass(frozen=True)
@@ -4446,6 +4453,11 @@ class Agent:
         self._tc_presses = 0
         self._tc_pending: list = []
         self._tc_choose_spent = 0
+        # item 26: lines left, (line, key) -> the cycle; the held routine's (outstanding, presses,
+        # render) at adoption; the presses item 25 last displaced
+        self._lr_left: dict = {}
+        self._lr_rt0: tuple | None = None
+        self._tc_last_disp = 0.0
         self._route_cls: dict = {}         # C1b: this step's slot -> rank class
         self._class_n: dict = {}           # C1b: class -> [asked, not asked] this step
         self._units_for_memo: dict = {}    # R1: _units_for's refusal-filtered units
@@ -4691,6 +4703,13 @@ class Agent:
                                 Rt.Act(IFace.ELICIT)),
                 "consequence": "the press progresses by the next step", "origin": "prior",
                 "clause": "r1264, the weight of a press over a walk", "standing": {}}
+        if _LEAVE_RATE:
+            # item 26: the leave weight per (line, kind); a wrong leave is one witness against
+            self._reflexes["leave"] = {
+                "form": Rt.When("a line's rate falls under the agent's own average",
+                                Rt.Act("leave")),
+                "consequence": "the line, left, does not pay when reopened", "origin": "prior",
+                "clause": "r1269, the weight of leaving a line", "standing": {}}
         self._muse_offered: dict = {}       # 24 (iii): offered rival name -> its park's kind
         self._muse_tests: dict = {}         # 24 (i): host slot -> (rival, kind), test pending
         self._muse_test_open: tuple | None = None   # 24 (i): (host, rival, bound, kind, n0)
@@ -5078,6 +5097,8 @@ class Agent:
             self._bond_board = getattr(self, "_bond_board", 0) + 1
             if _MUSING_CHOSEN and self.parked:
                 self._muse_close_parks(how)     # item 24: parks are the game's, never the next's
+            if _LEAVE_RATE:
+                self._lr_left.clear()           # item 26: a left line is this game's
         if _MEMO_CLEAR:
             # R4: the agent-level instance memos are this board's and are cleared here; the asked
             # keys, the kind stores, the record and the carried bound memos stay
@@ -8669,7 +8690,9 @@ class Agent:
                 seg = h["reads"].get(sl, [])[at:]
                 seg = trend_of(seg, h.get("gaps", {}).get(sl, [])[at:])      # R-A
                 return len(seg) >= MIN_REPEAT + 1 and not shrinking(seg)
-            if h["steps"] > h["budget"]:
+            if _LEAVE_RATE and self._tc_rho() > 0:
+                self._lr_hyp(h, stuck)          # item 26: the ceiling and trend are readings
+            elif h["steps"] > h["budget"]:
                 self._hyp_end("stalled", by="ceiling")
             elif all(stuck(sl) for sl in h["slots"]):
                 self._hyp_end("stalled", by="trend")
@@ -8712,6 +8735,8 @@ class Agent:
                 self._goal_refuted.add(sg)      # G: arrived without a clear, or lost
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
+        if _LEAVE_RATE and won and h.get("reopened") is not None:
+            self._tc_wrong_leave("hyp", h["tkey"], self._kind_key(h["slots"][0]), h["reopened"])
         if _BOARD_DESC and won and "family" in h:    # item 18: the record that outweighs a seed
             for r in h["desc"] or ["none"]:
                 self._desc_paid[(r, h["family"])] += 1
@@ -9106,6 +9131,10 @@ class Agent:
                      "born": self.cycle, "displaced": link["_held"],
                      "reads": {}, "seg": {}, "touches": 0, "losses": 0,
                      "held_unreadable": 0, "acted": Counter()}
+        if _LEAVE_RATE:
+            # item 26: its slots' outstanding at birth (its rate's base); a left line held again
+            self._hyp["out0"] = {sl: self.outstanding(sl) for sl in link["slots"]}
+            self._hyp["reopened"] = self._lr_left.get(("hyp", x[3]))
         if desc is not None:                    # item 18: what a win is credited to
             self._hyp.update(desc=desc["holding"], family=self._desc_family(x[2], ctrl))
         if _UNTESTED_KEEP and x[3] in self._untested:
@@ -10937,6 +10966,8 @@ class Agent:
             return
         if self._routine_adopted is None:
             self._routine_adopted, self._plan_no = self.routine, self._plan_no + 1
+            if _LEAVE_RATE:
+                self._lr_adopt()
         self.routine_state.pop("expect", None)
         emit, rest = Rt.advance(self.routine, self._holds(state, "SETTLE"),
                                 self.routine_lib, self.routine_state)
@@ -11043,7 +11074,8 @@ class Agent:
             extra.update(detail)
         self.led.record(self.cycle, step or self._running_step, self.routine_for or "*",
                         "routine_end",
-                        outcome=why, routine=Rt.render(self.routine), **extra)
+                        outcome=why, routine=Rt.render(self.routine), **extra,
+                        **(self._lr_routine_end(why) if _LEAVE_RATE else {}))
         if _PLAN_EPISODES:
             self._episode_why.append(f"the plan ended ({why})")
         _ac = self._act_commit
@@ -11154,7 +11186,8 @@ class Agent:
                         set_by=Rt.render(setter) if setter is not None else None,
                         set_by_plan=setter_no,
                         held_plan=self._plan_no if self._routine_adopted is not None else None,
-                        set_on_act=set_on, judged_after_act=self._act_n())
+                        set_on_act=set_on, judged_after_act=self._act_n(),
+                        **(self._lr_routine_end(None) if _LEAVE_RATE else {}))
         self.routine, self.routine_for = None, None
         self._routine_adopted = None
         return True
@@ -16975,6 +17008,8 @@ class Agent:
             # object is still the plan rather than a remainder.
             if self._routine_adopted is None:
                 self._routine_adopted, self._plan_no = self.routine, self._plan_no + 1
+                if _LEAVE_RATE:
+                    self._lr_adopt()
             if _next is not None:
                 _, emit, rest = _next         # advanced at its deciding cycle's end (F501)
             else:
@@ -19873,6 +19908,7 @@ class Agent:
         disp, rho = self._tc_displaced(evals, c), self._tc_rho()
         need, urg, parts = self._tc_act_side(kind, slot)
         cost = disp * rho * need * urg
+        self._tc_last_disp = disp
         think = why0 is None and gain > cost
         chosen = "think" if think else "act"
         self.led.record(self.cycle, self._running_step, slot or "@think", "think_choice",
@@ -19900,7 +19936,19 @@ class Agent:
         why0 = ("closer_found" if closer else "under_witnesses"
                 if 1 + self._rf_in("walk", (kind,)) + st["paid"] < st["against"] else None)
         gain = 0.0 if why0 else self.outstanding(slot) * self._tc_need(slot)
+        ln = self._leave_line.get(slot) if (_LEAVE_RATE and _7F_LEAVE) else None
+        if ln is not None and not why0 and ln.get("presses", 0) > 0:
+            # item 26: a mint line that has displaced presses (a clock binds) is weighed by its
+            # own rate; under rho its gain is that rate x the presses this walk would displace
+            c = self._tc_clocks()
+            disp = self._tc_displaced(max(0, STEP_BUDGET - self._spent) if _STEP_BUDGET else 0,
+                                      c)
+            rate = self._tc_line_rate({slot: ln["first"]}, ln["presses"])
+            if not self._tc_line("mint", slot, kind, rate, disp, mints=ln["mints"]):
+                gain = rate * disp
         think = self._tc_choose("walk", slot, kind, gain, why0)
+        if ln is not None and think:
+            ln["presses"] = ln.get("presses", 0) + self._tc_last_disp
         return think, (why0 or ("think" if think else "act"))
 
     def _tc_muse(self, targets: dict) -> bool:
@@ -19946,6 +19994,79 @@ class Agent:
                             weight=form, weight_paid=st["paid"],
                             weight_against=round(st["against"], 3), window=win)
         self._tc_pending = keep
+
+    def _tc_line_rate(self, out0: dict, presses: float) -> float | None:
+        """Item 26: a line's rate -- bits explained on its own slots since its birth (the
+        outstanding then less now; Fig 12 :112, "Progress is a subtraction"), per press of its
+        own effort. None before any effort."""
+        if presses <= 0:
+            return None
+        return sum(v - self.outstanding(s) for s, v in out0.items()) / presses
+
+    def _tc_line(self, line: str, slot: str | None, kind, rate: float | None, effort: float,
+                 **reads) -> bool:
+        """Item 26 (r1269), patch-leaving read inside the chooser: a line is KEPT unless its gain
+        (its own rate x the effort it would spend) is under rho x that effort, rho > 0, and its
+        ("leave", (line, kind)) weight is over its witnesses (a wrong leave is one against). One
+        line_choice row."""
+        rho = self._tc_rho()
+        st = self._rf_standing("leave", (line, kind))
+        may = 1 + self._rf_in("leave", (line, kind)) + st["paid"] >= st["against"]
+        gain = None if rate is None else rate * effort
+        keep = gain is None or rho <= 0 or not may or gain >= rho * effort
+        self.led.record(self.cycle, self._running_step, slot or "@line", "line_choice",
+                        line=line, kind=str(kind), kept=keep,
+                        rate=None if rate is None else round(rate, 6), rho=round(rho, 6),
+                        effort=round(effort, 6), weight_ok=may, **reads,
+                        reads="a line is left when its own rate falls under the agent's average")
+        return keep
+
+    def _lr_hyp(self, h: dict, stuck) -> None:
+        """Item 26: the held hypothesis under rho > 0. The ceiling and the trend are READINGS on
+        the row; from the trend's own judgeable length (MIN_REPEAT + 1 own presses) the line is
+        weighed, rate against rho, and left (ended "stalled" by "rate", its record and shelf kept)
+        when the chooser says so."""
+        reads = [w for w, hit in (("ceiling", h["steps"] > h["budget"]),
+                                  ("trend", all(stuck(sl) for sl in h["slots"]))) if hit]
+        if h["steps"] < MIN_REPEAT + 1 and not reads:
+            return
+        rate = self._tc_line_rate(h.get("out0") or {}, h["steps"])
+        if not self._tc_line("hyp", h["slots"][0], self._kind_key(h["slots"][0]), rate, 1.0,
+                             readings=reads, steps=h["steps"], budget=h["budget"]):
+            self._lr_left[("hyp", h["tkey"])] = self.cycle
+            self._hyp_end("stalled", by="rate")
+
+    def _lr_adopt(self) -> None:
+        """Item 26: a routine adopted -- the base of its rate (outstanding, presses, its form)."""
+        self._lr_rt0 = (self.outstanding(), self._tc_presses, Rt.render(self.routine))
+
+    def _lr_routine_end(self, why: str | None) -> dict:
+        """Item 26: a held routine's line ends -- abandoned on divergence (why None; the VERDICT
+        stays, the line is tagged LEFT) or by its own outcome. Its rate is a reading on the row;
+        a routine left before and now DONE is a wrong leave. The row's fields."""
+        base, self._lr_rt0 = self._lr_rt0, None
+        if base is None:
+            return {}
+        out0, p0, form = base
+        rate = self._tc_line_rate({None: out0}, self._tc_presses - p0) \
+            if self._tc_presses > p0 else None
+        if why is None:
+            self._lr_left[("routine", form)] = self.cycle
+        elif why == Rt.DONE and ("routine", form) in self._lr_left:
+            self._tc_wrong_leave("routine", form, None, self._lr_left[("routine", form)])
+        return {"line_rate": None if rate is None else round(rate, 6),
+                "line_presses": self._tc_presses - p0, "rho": round(self._tc_rho(), 6)}
+
+    def _tc_wrong_leave(self, line: str, key, kind, left_at: int) -> None:
+        """Item 26: a line LEFT, reopened, and then paid -- the leave was wrong: one witness
+        against its ("leave", (line, kind)) weight, and one row."""
+        self._lr_left.pop((line, key), None)
+        st = self._rf_standing("leave", (line, kind))
+        st["against"] += 1
+        self.led.record(self.cycle, self._running_step, "@line", "wrong_leave", line=line,
+                        key=str(key), kind=str(kind), left_at=left_at,
+                        weight_paid=st["paid"], weight_against=round(st["against"], 3),
+                        reads="a line left, reopened and then paid: the leave was wrong")
 
     @staticmethod
     def _gap_key(gap: dict) -> tuple:
@@ -22156,6 +22277,10 @@ class Agent:
         now = self.outstanding(slot)
         if self.bound.get(slot) is not None or now < ln["first"]:
             self._leave_line.pop(slot, None)     # a child moved: the line goes on
+            if _LEAVE_RATE and ("mint", slot) in self._lr_left:
+                # item 26: this line was left, reopened, and has now paid
+                self._tc_wrong_leave("mint", slot, self._kind_key(slot),
+                                     self._lr_left[("mint", slot)])
             if _7H_TRACE and began and hasattr(self, "_line_grade"):
                 g = self._line_grade.setdefault(self._kind_key(slot), collections.Counter())
                 g["paid"] += 1
@@ -22184,6 +22309,8 @@ class Agent:
         self._leave_held[slot] = {"level": self.level, "root": self._root_id,
                                   "cycle": self.cycle, "slots": set(self.slots), "skipped": 0,
                                   "seen": set(), "upto": 0}
+        if _LEAVE_RATE:
+            self._lr_left[("mint", slot)] = self.cycle   # item 26: tagged LEFT (the verdict stays)
         self._transitions(slot, self._leave_held[slot])
         self.led.record(self.cycle, self._running_step, slot, "leave", root=self._root_id,
                         level=self.level, verdict="unreachable at this budget",

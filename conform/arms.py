@@ -2199,6 +2199,14 @@ ARMS: dict[str, str] = {
                             "best paying entry as a by=muse rival, weighs musing per kind (seed 1, "
                             "paid kept, against decayed); parks close at a game switch. OFF: "
                             "MUSING as before. default ON",
+    "TETHER_LEAVE_RATE": "BUILD 7 ITEM 26 (the reviewer 2026-11-05 r1268, r1269): patch-leaving "
+                         "inside item 25's chooser -- a goal hypothesis (and a mint line under a "
+                         "clock) is left when its own rate (bits explained on its slots since its "
+                         "birth, per press) falls under rho; the ceiling and trend become "
+                         "readings, the ceiling the seed while rho is 0; the routine's divergence "
+                         "abandon and 7f's exhaustion stay verdicts; a left line that reopens and "
+                         "pays writes wrong_leave, against its leave weight. OFF: as before. "
+                         "default ON",
     "TETHER_THINK_CHOOSER": "BUILD 7 ITEM 25 (the reviewer 2026-11-05 r1261-r1265, Isaiah 17:26): "
                             "one purse per step from before choose; the runners hand the game's "
                             "clocks (actions_left, slice_until); a walk or a muse is taken iff its "
