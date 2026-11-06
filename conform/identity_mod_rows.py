@@ -68,7 +68,9 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
            ("molecule_apply", "cost_ms"),     # r962: the molecule pass's milliseconds
            ("think_choice", "clocks"),        # item 25: the game's clocks and the step clock's
            ("think_choice", "displaced"),     # s_step / s_per_eval, and what they price
-           ("think_choice", "cost"))
+           ("think_choice", "cost"),
+           ("think_choice", "evals"))         # the purse left, STEP_BUDGET - spent: displaced's
+                                              # input, a price as cost is (r1312)
 
 
 # The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One

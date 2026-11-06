@@ -1,8 +1,9 @@
 """THINK OR ACT AT THE STEP (Isaiah 2026-10-26 11:25; the reviewer 11:33): A1 TETHER_STEP_ACT and
 A2 TETHER_WALK_BUDGET, on a stepped gridworld agent.
 
-  (a) A1: with an untried action, route defers the slot's lookup (lookup_deferred probe_first), the
-      slot is owed, and the next cycle with the same untried set walks it (probe_declined);
+  (a) A1: with an untried action, route defers the slot's lookup (lookup_deferred probe_first, or
+      "act" where item 25's chooser decides it), the slot is owed, and the next cycle with the same
+      untried set walks it (probe_declined);
   (b) A1 MUST-FAIL: with the arm OFF the lookup runs at once;
   (c) A2: with STEP_BUDGET forced to 1 the index walk stops at an entry boundary (walk_cut), the
       truncated index is not memoised, the slot is owed, and the next route asks it first;
@@ -77,7 +78,9 @@ def _gate_case(on: bool) -> tuple:
 def check_a_untried_action_defers_then_probe_declined_walks() -> None:
     slot, (calls1, rows1, owed, owes), (calls2, rows2, act2) = _gate_case(True)
     assert calls1 == [], calls1                                  # not looked up this step
-    assert [r["detail"]["why"] for r in rows1] == ["probe_first"], rows1
+    # item 25's chooser (default ON) gives the governor's reason "act" where it decides first; the
+    # reasons are named, so a new one still fails (the reviewer 2026-11-06 r1312)
+    assert len(rows1) == 1 and rows1[0]["detail"]["why"] in ("probe_first", "act"), rows1
     assert owed and owes, (owed, owes)                           # owed, asked first next step
     assert len(calls2) == 1 and calls2[0][1] == slot, calls2     # the next cycle walks it
     assert rows2 == [], rows2

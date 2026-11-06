@@ -3,7 +3,11 @@
 
   E     a budget above any step's work, TETHER_STEP_RANK=0: the ledger is the arm-OFF ledger row
         for row, the "@budget" rows aside (the budget never fires, so nothing changes; C1b's rank
-        order, ffbdf14, reorders the step's lookups by design and is test_step_rank's)
+        order, ffbdf14, reorders the step's lookups by design and is test_step_rank's). Both
+        children pin item 25's chooser (TETHER_THINK_CHOOSER=0): it reads the purse by design
+        (evals = budget - spent prices a think), so with it on a 10^12 budget is a different
+        agent from OFF; E's subject is the budget alone, and the chooser's dependence on the purse
+        is test_think_chooser's (the reviewer 2026-11-06 r1312)
   C     a budget of 1 evaluation (one lookup per step, checked between lookups), TETHER_STEP_RANK=0:
         a question cut partway -- one of its lookups run, another not asked -- carries its unasked
         member under the question's id ("budget_owed"), and the next step's first lookup is an
@@ -92,9 +96,10 @@ def strip(rows: list) -> list:
 
 
 def main() -> int:
-    off = child("-", {"TETHER_STEP_BUDGET": "0"})
+    pin = {"TETHER_THINK_CHOOSER": "0"}      # E's subject is the budget alone (docstring, r1312)
+    off = child("-", {"TETHER_STEP_BUDGET": "0", **pin})
     assert not [r for r in off if r.get("event") in ("budget", "budget_owed")]           # MF
-    big = child(str(10 ** 12), {"TETHER_STEP_RANK": "0"})
+    big = child(str(10 ** 12), {"TETHER_STEP_RANK": "0", **pin})
     a, b = strip(big), strip(off)
     diff = [(i, x, y) for i, (x, y) in enumerate(zip(a, b, strict=False)) if x != y]
     assert len(a) == len(b) and not diff, (len(a), len(b), diff[:2])                       # E

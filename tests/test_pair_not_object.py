@@ -75,7 +75,8 @@ def strip(rows: list) -> list:
         if r.get("event") in ("library", "abduce"):    # abduce carries the refusal total
             r = {**r, "detail": {k: v for k, v in r["detail"].items() if k != "refused"}}
         if r.get("event") == "budget":                 # the budget row's spent (tether.py, route)
-            r = {**r, "detail": {k: v for k, v in r["detail"].items() if k != "spent"}}
+            r = {**r, "detail": {k: v for k, v in r["detail"].items()   # and its split (r1312)
+                                 if k not in ("spent", "spent_route", "spent_choose")}}
         # the compile memo's size, ONE key on the end:cap memo_sizes row (the reviewer 00:18):
         # tether.py:3829 len(self._compile_cache), a pure function's memo, read only as
         # get-or-compile, so its size is work not done (refused before compiled), like spent
