@@ -4038,6 +4038,7 @@ class Agent:
     _tc_refuted_at = -1        # item 25: the last cycle a slot routed REFUTED (the ground refused)
     _s0_int0 = 0.0             # item 28: pe_integral at this board's (or level's) start
     _s0_turn = None            # item 28: (cycle, kind, drives before) of the last System 0 turn
+    _own_pass = None           # R2: (state, owners) for one _group_cands pass over that state
     _s0_stall_at = None        # item 28: the cycle directed work last stalled
 
     @contextmanager
@@ -8280,6 +8281,9 @@ class Agent:
         return got
 
     def _owners(self, state: dict) -> list[str]:
+        m = self._own_pass
+        if m is not None and m[0] is state:
+            return m[1]                 # R2: the pass's own state, read once
         return sorted({k.split(".", 1)[0] for k in state
                        if "." in k and "~" not in k.split(".", 1)[0] and "@" not in k})
 
@@ -10168,10 +10172,33 @@ class Agent:
     def _group_cands(self, items: dict, before: dict, atoms: dict) -> list:
         """Box 3 (r1218): the proposer's group candidates -- the FORM over its own texts (compiled
         through the same cache), not holding now, not tried this level, ranked by bits at the
-        member condition plus its quantifier, after a won or progressed shelf entry."""
+        member condition plus its quantifier, after a won or progressed shelf entry.
+        R2 (r1297): the owners of `before` are read once for the pass, and a text whose (kind,
+        template) key a formed text already took is skipped before it is compiled -- `seen` is
+        still marked only inside _group_form, so a text that fails to form never blocks one
+        that would."""
         out, seen = [], set()
+        self._own_pass = (before, self._owners(before))
+        try:
+            return self._group_cands_pass(items, before, atoms, out, seen)
+        finally:
+            self._own_pass = None
+
+    def _group_key(self, text: str) -> tuple | None:
+        """R2: _group_form's (kind, template) key read off the text's leading slot, the scope a
+        comparison compiles to; None when the text does not lead with an object slot."""
+        m = re.match(r"\s*(o\d+)\.", text)
+        if m is None:
+            return None
+        scope = m.group(1)
+        return (self._kind(scope), re.sub(rf"\b{scope}\b", "{o}", text))
+
+    def _group_cands_pass(self, items: dict, before: dict, atoms: dict, out: list,
+                          seen: set) -> list:
         for text, s in items.items():
             cap.head()
+            if self._group_key(text) in seen:
+                continue                        # R2: its key is taken; it would form nothing
             c = self._compile_cache.get(text)
             if c is None:
                 c = self._compile_cache[text] = compile_term.compile_candidate(
