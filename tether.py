@@ -1665,6 +1665,15 @@ _LOOKUP_FOLD = armflag.arm("TETHER_LOOKUP_FOLD", default=True)
 # r1331): it stays while it holds in any frame or changes, static partner or not.
 # A behaviour choice (what the library is asked). OFF: every derived reading that varied enters.
 _DESCRIBE_BY_SOURCE = armflag.arm("TETHER_DESCRIBE_BY_SOURCE", default=True)
+# THE LOOKUP'S HELD GROUPS (the reviewer 2026-11-06 r1313, r1336; Isaiah 11:18 "include when it was
+# matched along with what"; Fig 10 :63, Fig 12 :5): the lookup row also carries held_groups -- WHAT,
+# each held distinct reading pair and its bonds in first-meet order; WHEN, each of their readings'
+# changed frame indices (_read_two's moved); WHERE, the description's types and, for an event, each
+# member's readings -- from which the per-junction lines and held_digest rebuild exactly. A record
+# only; held_digest and held_sample unchanged. A row whose field passes HELD_GROUPS_WATCH bytes says
+# so (held_groups_bytes), never cut. OFF: no field
+_HELD_GROUPS = armflag.arm("TETHER_HELD_GROUPS", default=True)
+HELD_GROUPS_WATCH = 64 * 1024     # r1336: a watch for budget census (iv), not a cap
 # THE MINT'S PER-CANDIDATE WORK THAT IS FIXED FOR THE MINT, DONE ONCE (the reviewer 2026-11-04
 # r1012; the ls20 self-time profile, c3/c4: _operand_fits 14.9M calls 73 s self, _guard_refs
 # 34,637 calls 28 s, _round_of 44.8M calls 20 s, _separates 2.29M calls 13 s of a 306 s mint):
@@ -4504,6 +4513,7 @@ class Agent:
         # relating it to the target. Read by `_bindings` as an ORDER, never a filter.
         self._named: dict[str, dict[str, list]] = {}
         self._lookup_pairs: dict[str, list] = {}   # r972: each residual slot's lit pairs
+        self._lookup_held: dict = {}    # TETHER_HELD_GROUPS: the last lookup's held distinct pairs
         self._mol_minted: set = set()              # r972 3: the slots the mint visited since
         self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
@@ -6385,6 +6395,8 @@ class Agent:
                 for d_ in desc_of.values():
                     cap.head()
                     d_.pop(s, None)
+        if _HELD_GROUPS:
+            self._lookup_held = {}
         if _LOOKUP_STREAM:
             q_, offered, n_jun, held_n, dig, held, named_of = (
                 self._lookup_fold if _LOOKUP_FOLD else self._lookup_stream)(
@@ -6416,6 +6428,10 @@ class Agent:
             read = composer.read_pairs(found["pairs"],
                                        [b for b, _act, _val, _intent, _landed in hist])
             held = [{k: r[k] for k in LOOKUP_HELD_KEYS} for r in read if r["held"]]
+            if _HELD_GROUPS:
+                for h_ in held:
+                    self._lookup_held.setdefault((h_["left_reading"], h_["right_reading"]),
+                                                 tuple(h_["held"]))
             # (b2) (the reviewer 2026-10-18 02:28): the row carries the held bonds' COUNT, a DIGEST
             # and the first 50, never the whole list -- the pairs are derived, rebuilt from the
             # description and the frames (Fig 6), and no reader needs more (test_obj_event:188
@@ -6441,12 +6457,15 @@ class Agent:
         self._named[slot] = named_of[slot]
         if _MOLECULE_APPLY:
             self._lookup_pairs[slot] = held     # r972: MOLECULE APPLY's first source
+        hg = (self._held_groups(ev, members, described, desc_of, hist) if _HELD_GROUPS
+              else None)
         self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
                         described=sorted(described), junctions=found["junctions"],
                         **({"own_clock_out": held_out} if held_out else {}),
                         **({"by_source_dropped": by_src} if by_src else {}),
                         offered=offered, held_n=held_n,
                         held_digest=dig.hexdigest()[:16], held_sample=held[:50],
+                        **(hg or {}),
                         named=sorted(named_of[slot]),
                         **({"obj_event": ev, "members": sorted(members)} if ev is not None else {}),
                         reads=("the library looked up by this residual's own description; "
@@ -6492,6 +6511,26 @@ class Agent:
         for r in drop:
             del desc[r]
         return len(drop)
+
+    def _held_groups(self, ev: Any, members: tuple, described: dict, desc_of: dict,
+                     hist: list) -> dict:
+        """TETHER_HELD_GROUPS (r1313, r1336): the row's held_groups -- the held distinct pairs
+        (_lookup_held, first-meet order), each of their readings' changed frame indices as
+        composer._read_two's moved() reads them, the description's types and, for an event, each
+        member's readings. Over HELD_GROUPS_WATCH bytes the row also says held_groups_bytes."""
+        frames = [b for b, *_r in hist]
+        rd = sorted({r for k in self._lookup_held for r in k})
+        chg = {}
+        for r in rd:
+            v = [f.get(r) for f in frames]
+            chg[r] = [t - 1 for t in range(1, len(v))
+                      if v[t] is not None and v[t - 1] is not None and v[t] != v[t - 1]]
+        g = {"pairs": [[x, y, list(h)] for (x, y), h in self._lookup_held.items()],
+             "changed": chg, "types": {r: described[r] for r in sorted(described)}}
+        if ev is not None:
+            g["members"] = {m: sorted(desc_of[m]) for m in members}
+        n = len(json.dumps(g, ensure_ascii=False).encode())
+        return {"held_groups": g, **({"held_groups_bytes": n} if n > HELD_GROUPS_WATCH else {})}
 
     def _lookup_stream(self, ev: Any, members: tuple, described: dict, desc_of: dict,
                        hist: list, slot: str | None = None) -> tuple:
@@ -6543,6 +6582,9 @@ class Agent:
                 dig.update(b"\n")
                 if len(sample) < 50:
                     sample.append(h_)
+                if _HELD_GROUPS:
+                    self._lookup_held.setdefault((r["left_reading"], r["right_reading"]),
+                                                 tuple(r["held"]))
         self._lookup_set = (len(seen_p), sys.getsizeof(seen_p)
                             + sum(sys.getsizeof(k_) for k_ in seen_p))
         return sorted(query), n[0], len(jun), held_n, dig, sample, named_of
@@ -6626,6 +6668,8 @@ class Agent:
                                                "occasions": dict(occ)})
                 if any_:
                     jun.add((mol, a, b))
+        if _HELD_GROUPS:
+            self._lookup_held = {k: g[1] for k, g in cache.items() if g[1]}
         self._lookup_set = (len(seen_p), sys.getsizeof(seen_p)
                             + sum(sys.getsizeof(k_) for k_ in seen_p))
         return sorted(query), n, len(jun), held_n, dig, sample, named_of

@@ -2891,6 +2891,13 @@ ARMS: dict[str, str] = {
                                  "always stays. bp35 c4: 188 o191.dcol_oN readings dropped, 19.03M "
                                  "-> 17,691 pairs, a 76 s fold -> 0.15 s. A behaviour choice. "
                                  "OFF: every derived reading that varied enters. default ON",
+    "TETHER_HELD_GROUPS": "the reviewer 2026-11-06 r1313, r1336 (Isaiah 11:18: include when it "
+                          "was matched along with what; Fig 10 :63, Fig 12 :5): the lookup row "
+                          "carries held_groups -- the held distinct pairs (WHAT), their "
+                          "readings' changed frame indices (WHEN), the description's types and "
+                          "an event's member readings (WHERE) -- from which the per-junction "
+                          "lines and held_digest rebuild exactly. Record only; held_digest and "
+                          "held_sample unchanged. OFF: no field. default ON",
     "TETHER_LOOKUP_FOLD":"the reviewer 2026-11-04 r999 2b, r1003 2 (the ls20 deep profile: "
                           "_lookup_stream 177 of ROUTE's 253 s at c8, one dict per (junction x "
                           "reading pair), 2.74M): the lookup read per junction, each reading "
