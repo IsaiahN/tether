@@ -1655,6 +1655,14 @@ _LOOKUP_STREAM = armflag.arm("TETHER_LOOKUP_STREAM", default=True)
 # a row only for the first 50 held; held_n, offered, junctions, named and the digest's bytes are
 # the stream's own. Decisions and rows unchanged. OFF: _lookup_stream.
 _LOOKUP_FOLD = armflag.arm("TETHER_LOOKUP_FOLD", default=True)
+# THE LOOKUP DESCRIBES BY SOURCE (the reviewer 2026-11-06 r1326-r1328; Fig 13: "a member that
+# draws on the same evidence as others carries no information of its own", which E0b applies to
+# bets): a derived reading (env.derived()) enters a lookup's description only if a source outside
+# the described object changed across its frames, or it is a relational surprise. bp35 c4's o191
+# event held 188 o191.dcol_oN pair readings that all moved because o191 did: 19.03M pairs, a 76 s
+# fold; by source 17,691 pairs, 0.15 s, no pair or named partner lost but on a dropped reading.
+# A behaviour choice (what the library is asked). OFF: every derived reading that varied enters.
+_DESCRIBE_BY_SOURCE = armflag.arm("TETHER_DESCRIBE_BY_SOURCE", default=True)
 # THE MINT'S PER-CANDIDATE WORK THAT IS FIXED FOR THE MINT, DONE ONCE (the reviewer 2026-11-04
 # r1012; the ls20 self-time profile, c3/c4: _operand_fits 14.9M calls 73 s self, _guard_refs
 # 34,637 calls 28 s, _round_of 44.8M calls 20 s, _separates 2.29M calls 13 s of a 306 s mint):
@@ -6352,6 +6360,9 @@ class Agent:
         described: dict = {}
         desc_of: dict = {}
         held_out = []
+        der = (self.env.derived() if _DESCRIBE_BY_SOURCE and hasattr(self.env, "derived")
+               else {})
+        by_src = 0
         for m in members:
             # each member described by its own residual, scoped to its own object; the event's
             # description is their union (E2: one question per event)
@@ -6361,6 +6372,8 @@ class Agent:
             gap = retrieval.characterise(hm, m, list(self.alphabet), self.slot_types, scope=sc)
             desc_of[m] = {s: self.slot_types[s] for s in (m, *gap["varies"])
                           if s in self.slot_types}
+            if der:
+                by_src += self._by_source(m, desc_of[m], hm, der)
             described.update(desc_of[m])
         if _CLOCK_DESC:
             held_out = sorted(s for s in described if s not in members and s in self._own_quiet)
@@ -6429,6 +6442,7 @@ class Agent:
         self.led.record(self.cycle, "ROUTE", slot, "lookup", query=found["query"],
                         described=sorted(described), junctions=found["junctions"],
                         **({"own_clock_out": held_out} if held_out else {}),
+                        **({"by_source_dropped": by_src} if by_src else {}),
                         offered=offered, held_n=held_n,
                         held_digest=dig.hexdigest()[:16], held_sample=held[:50],
                         named=sorted(named_of[slot]),
@@ -6447,6 +6461,35 @@ class Agent:
         self._reach_timed(slot, mine, own, described, dk=dk, members=answer, dks=dks)
         self._ev_done[ev] = {"offers": {m: list(self._lib_offers.get(m, [])) for m in answer},
                              "named": named_of}
+
+    def _by_source(self, m: str, desc: dict, hm: list, der: dict) -> int:
+        """TETHER_DESCRIBE_BY_SOURCE (the reviewer 2026-11-06 r1326-r1328; Fig 13, as E0b reads it
+        for bets): a derived reading in m's description stays only if a source outside m's object
+        changed across m's frames (its other party moved), or it is a relational surprise; else
+        m's own readings already account for its change. m itself is the subject, never dropped.
+        A CONTACT relation (relations.PAIR_RELATIONS kind BOOL: inside, touches) is the habitat,
+        not evidence (Fig 11 :44-45, what acts on it; r1331): it stays whenever it holds in any
+        of m's frames or changes across them, static partner or not; it drops only at 0 throughout.
+        Drops in place; returns how many."""
+        own = m.split(".", 1)[0]
+        frames = [b for b, *_r in hm]
+        drop = []
+        for r in desc:
+            if r == m or r not in der or (_RELATION_BET and r in self._rel_subjects):
+                continue
+            rel = relations.pair_attr(r.split(".", 1)[1]) if "." in r else None
+            if rel is not None and relations.PAIR_RELATIONS[rel] == "BOOL":
+                vals = [f.get(r) for f in frames]
+                if any(v == 1 for v in vals) or len(set(map(repr, vals))) > 1:
+                    continue
+                drop.append(r)
+                continue
+            other = [s for s in der[r] if s.split(".", 1)[0] != own]
+            if not any(f.get(s) != frames[0].get(s) for s in other for f in frames[1:]):
+                drop.append(r)
+        for r in drop:
+            del desc[r]
+        return len(drop)
 
     def _lookup_stream(self, ev: Any, members: tuple, described: dict, desc_of: dict,
                        hist: list, slot: str | None = None) -> tuple:

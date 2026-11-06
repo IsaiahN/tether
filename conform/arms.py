@@ -2884,6 +2884,13 @@ ARMS: dict[str, str] = {
                          "the operand-typed bind list once per typing signature; the hold "
                          "counters still booked per candidate. Pure speed. OFF: per candidate. "
                          "default ON",
+    "TETHER_DESCRIBE_BY_SOURCE": "the reviewer 2026-11-06 r1326-r1328 (Fig 13, as E0b reads it for "
+                                 "bets): a derived reading enters a lookup's description only if "
+                                 "a source outside the described object changed across its "
+                                 "frames, or it is a relational surprise; the member's own slot "
+                                 "always stays. bp35 c4: 188 o191.dcol_oN readings dropped, 19.03M "
+                                 "-> 17,691 pairs, a 76 s fold -> 0.15 s. A behaviour choice. "
+                                 "OFF: every derived reading that varied enters. default ON",
     "TETHER_LOOKUP_FOLD":"the reviewer 2026-11-04 r999 2b, r1003 2 (the ls20 deep profile: "
                           "_lookup_stream 177 of ROUTE's 253 s at c8, one dict per (junction x "
                           "reading pair), 2.74M): the lookup read per junction, each reading "
