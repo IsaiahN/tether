@@ -2210,6 +2210,15 @@ _NEW_BOARD_LEVEL = armflag.arm("TETHER_NEW_BOARD_LEVEL", default=True)
 # offers the best paying entry as a by=muse rival; parks are the game's and close at a switch;
 # a muse weight per kind (seed 1, paid kept, against decayed). OFF: MUSING as before
 _MUSING_CHOSEN = armflag.arm("TETHER_MUSING_CHOSEN", default=True)
+# Build 7 item 25, THE ONE THINK-VS-ACT CHOOSER (the reviewer 2026-11-05 r1261-r1264, Isaiah 17:26):
+# one purse per step from before choose; the runners hand the game's clocks (actions_left,
+# slice_until); a think (a walk, a muse) is taken iff its gain beats the presses it displaces x rho
+# x need(focal) -- the clocks say how many presses, the life's bits per press prices them, the
+# press still goes out; the governor's readings are inputs, its exit order gone; think_choice /
+# think_settled witness each. OFF: route resets the purse, the governor's cascade, as before
+_THINK_CHOOSER = armflag.arm("TETHER_THINK_CHOOSER", default=True)
+# the step-clock scopes that evaluate nothing: the rest of a step's wall is charged to its purse
+_TC_IDLE_SCOPES = ("PERCEIVE", "ACCEPT", "SETTLE", "REPEAT")
 
 
 @dataclass(frozen=True)
@@ -3951,6 +3960,10 @@ class Agent:
     _fault_cycle = None        # item 4: the cycle an agent fault was raised in (None: none)
     _fault_text = None         # item 4: the fault, type and message
     _reach_wall = 0.0          # 18: _library_reach's seconds this step, for reach_s
+    # item 25: the game's clocks, set by the runner each step (None: that clock does not exist)
+    actions_left = actions_cap = slice_from = slice_until = None
+    _tc_focal = None           # item 25: this step's focal slot, need(focal) prices a press
+    _tc_refuted_at = -1        # item 25: the last cycle a slot routed REFUTED (the ground refused)
 
     @contextmanager
     def _step_scope(self, step: str):
@@ -4427,6 +4440,12 @@ class Agent:
         self._route_at = 0
         self._owed_q: dict = {}            # C1: slot -> question id, the lookups left unasked
         self._spent = self._asked = self._not_asked = 0   # C1: this step's evaluations, lookups
+        # item 25: per step (wall, evaluating wall, evaluations); presses this life; the choices
+        # awaiting their witness; the purse choose spent before route
+        self._tc_steps: list = []
+        self._tc_presses = 0
+        self._tc_pending: list = []
+        self._tc_choose_spent = 0
         self._route_cls: dict = {}         # C1b: this step's slot -> rank class
         self._class_n: dict = {}           # C1b: class -> [asked, not asked] this step
         self._units_for_memo: dict = {}    # R1: _units_for's refusal-filtered units
@@ -4660,6 +4679,18 @@ class Agent:
                                 Rt.Act("muse_test")),
                 "consequence": "the press refutes one of the two", "origin": "prior",
                 "clause": "r1252 4, the test press's weight", "standing": {}}
+        if _THINK_CHOOSER:
+            # item 25: the think-vs-act weights per kind ride the same standing (r1243's rule)
+            self._reflexes["walk"] = {
+                "form": Rt.When("a slot's stake beats the presses its walk displaces",
+                                Rt.Act("walk")),
+                "consequence": "the slot's outstanding falls by the next step", "origin": "prior",
+                "clause": "r1264, the whether-to-walk weight", "standing": {}}
+            self._reflexes["act"] = {
+                "form": Rt.When("the presses a walk displaces outweigh its stake",
+                                Rt.Act(IFace.ELICIT)),
+                "consequence": "the press progresses by the next step", "origin": "prior",
+                "clause": "r1264, the weight of a press over a walk", "standing": {}}
         self._muse_offered: dict = {}       # 24 (iii): offered rival name -> its park's kind
         self._muse_tests: dict = {}         # 24 (i): host slot -> (rival, kind), test pending
         self._muse_test_open: tuple | None = None   # 24 (i): (host, rival, bound, kind, n0)
@@ -9995,6 +10026,10 @@ class Agent:
                             compute_ms=round(1000 * (time.perf_counter() - t0), 3),
                             installed=False,
                             reads="the same targets and settled methods as that cycle's muse")
+            return
+        if _THINK_CHOOSER and _MUSING_CHOSEN and not self._tc_muse(targets):
+            # item 25: the presses this muse displaces outweigh its park (the park's gain is
+            # item 24's reading; without it the muse is not weighed)
             return
         if run is None:
             self._muse_last = (key, self.cycle)
@@ -15651,8 +15686,12 @@ class Agent:
         self._dl_n = Counter()
         if _STEP_BUDGET:
             # C1: this step's budget starts at zero; the slots a budget left unasked go first,
-            # the rest keep today's order (so a budget that never binds changes nothing)
-            self._spent = self._asked = self._not_asked = 0
+            # the rest keep today's order (so a budget that never binds changes nothing).
+            # Item 25 ON: the purse started before choose; what choose spent stays charged
+            self._tc_choose_spent = self._spent if _THINK_CHOOSER else 0
+            if not _THINK_CHOOSER:
+                self._spent = 0
+            self._asked = self._not_asked = 0
             self._late = (0, 0)
             self._class_n = {c: [0, 0] for c in RANK_CLASSES}
             if _STEP_RANK:
@@ -15725,6 +15764,8 @@ class Agent:
                 if slot in self._starved:
                     fit, _dropped = None, "starved"   # let mint park it; the probe is what perturbs
                 b = REFUTED
+                if _THINK_CHOOSER:
+                    self._tc_refuted_at = self.cycle   # item 25: a press found something out
             elif r.mass == 0.0 and slot not in self.owed_import:
                 b, fit = HELD, None
                 self._miss_held.discard(slot)      # MISS_GRADE: predicted, so a new miss is first
@@ -15769,6 +15810,9 @@ class Agent:
         if _STEP_BUDGET:
             self.led.record(self.cycle, "ROUTE", "@budget", "budget", budget=STEP_BUDGET,
                             spent=self._spent, asked=self._asked, not_asked=self._not_asked,
+                            **({"spent_choose": self._tc_choose_spent,
+                                "spent_route": self._spent - self._tc_choose_spent}
+                               if _THINK_CHOOSER else {}),
                             owed_questions=len(set(self._owed_q.values())),
                             owed_lookups=len(self._owed_q),
                             **({"classes": {c: v for c, v in self._class_n.items() if any(v)}}
@@ -16867,6 +16911,8 @@ class Agent:
             self._hs_settle()                   # 23: open course readings, judged at j + lag
         if _MUSING_CHOSEN and self._muse_test_open is not None:
             self._muse_test_settle(before)      # 24 (i): the test press's outcome, judged
+        if _THINK_CHOOSER and self._tc_pending:
+            self._tc_settle()                   # 25: last step's think-vs-act choices, judged
         if _GOAL_FROM_ACTUATOR and _ACTUATOR_ROUTINE and self._alive and (
                 self._act_rt is not None or self._actuators and not self._try_first_open()):
             # a held actuator routine's END is read every cycle (a board that grows reopens
@@ -19690,6 +19736,8 @@ class Agent:
           ok            none of these: walk."""
         if not _THINK_OR_ACT:
             return True, "ok"
+        if _THINK_CHOOSER:
+            return self._tc_walk(slot, closer)
         if closer:
             return False, "closer_found"
         idle = self.cycle - (self._last_progress if _URGENCY_PROGRESS else self._last_commit)
@@ -19716,6 +19764,188 @@ class Agent:
                 self._probe_wait[slot] = (self.cycle, open_)
             return False, "probe_first"
         return True, "ok"
+
+    # ---------------------------------------------------------------- item 25, THINK OR ACT
+    def _tc_note_step(self) -> None:
+        """Item 25: a step that pressed counts toward rho's presses; under the step clock, the
+        step's wall, its evaluating wall (less _TC_IDLE_SCOPES) and its purse spent."""
+        if self._pressed:
+            self._tc_presses += 1
+        if not _STEP_CLOCK or self._clk_stack is None:
+            return
+        total = time.perf_counter() - self._clk_t0
+        idle = sum(self._clk.get(k, 0.0) for k in _TC_IDLE_SCOPES)
+        self._tc_steps.append((total, max(0.0, total - idle), self._spent))
+
+    def _tc_rates(self) -> tuple:
+        """Item 25: (s_step, s_per_eval) -- medians over this life's clocked steps of the step's
+        wall and of evaluating wall / evaluations; None unread. Read once per cycle."""
+        at = getattr(self, "_tc_rates_at", None)
+        if at is not None and at[0] == self.cycle and at[1] == len(self._tc_steps):
+            return at[2]
+        st = self._tc_steps
+        walls = sorted(t for t, _e, _n in st)
+        per = sorted(e / n for _t, e, n in st if n)
+
+        def med(xs):
+            return (xs[len(xs) // 2] + xs[(len(xs) - 1) // 2]) / 2 if xs else None
+        out = (med(walls), med(per))
+        self._tc_rates_at = (self.cycle, len(st), out)
+        return out
+
+    def _tc_clocks(self) -> dict:
+        """Item 25 (r1263, r1264): the game's clocks read off the world. wall = min(slice_until,
+        _think_until) - now; s_per_press = wall / actions_left with both clocks, s_step with the
+        wall only, None with no wall (a count alone: thinking displaces no press)."""
+        s_step, s_eval = self._tc_rates()
+        ends = [x for x in (self.slice_until, self._think_until()) if x is not None]
+        now = time.time()
+        wall = max(0.0, min(ends) - now) if ends else None
+        al = self.actions_left
+        if wall is None or s_step is None:
+            per = None
+        elif al is None:
+            per = s_step
+        else:
+            per = wall / al if al > 0 else 0.0
+        span = (min(ends) - self.slice_from) if (ends and self.slice_from is not None) else None
+        return {"wall_s": None if wall is None else round(wall, 3), "actions_left": al,
+                "a_frac": round(al / self.actions_cap, 4) if (al is not None
+                                                              and self.actions_cap) else None,
+                "w_frac": round(wall / span, 4) if (span and wall is not None) else None,
+                "s_step": s_step, "s_per_eval": s_eval, "s_per_press": per}
+
+    @staticmethod
+    def _tc_displaced(evals: float, c: dict) -> float:
+        """Item 25 (r1264): the presses a think of `evals` evaluations displaces. Wall only: every
+        think-second is a step not taken (think_s / s_step). Both clocks: only the excess over
+        the wall's rate per remaining press. No wall, or no rate read: 0."""
+        per, s_eval = c["s_per_press"], c["s_per_eval"]
+        if per is None or s_eval is None:
+            return 0.0
+        think_s = evals * s_eval
+        excess = think_s if c["actions_left"] is None else max(0.0, c["s_step"] + think_s - per)
+        if excess <= 0:
+            return 0.0
+        return excess / per if per > 0 else math.inf
+
+    def _tc_rho(self) -> float:
+        """Item 25: this life's bits explained per press -- the integral less what is still
+        outstanding, over the presses taken; 0.0 before the first press."""
+        n = self._tc_presses
+        return (self.pe_integral() - self.outstanding()) / n if n else 0.0
+
+    def _tc_need(self, slot: str | None) -> int:
+        """Item 25: the live demands on a slot's kind (item 24's count) + 1, the one of being
+        asked here now (_muse_debt's +1). No slot: 1."""
+        if slot is None:
+            return 1
+        return self._muse_need({"kind": self._kind_key(slot),
+                                "owner_kind": self._kind_str(slot.split(".", 1)[0])}) + 1
+
+    def _tc_act_side(self, kind, slot: str | None) -> tuple[float, float, dict]:
+        """Item 25: what one displaced press is worth -- need of what it serves (the focal slot,
+        and `slot` too while a probe for its object is open: the governor's probe_first, as an
+        input), raised by urgency (idle / relief rate, never below 1: the governor's urgent, as an
+        input); 0 while the ("act", kind) weight is under its witnesses. (need, urgency, parts)"""
+        need = self._tc_need(self._tc_focal)
+        probe = getattr(self, "_can_probe", None)
+        held = (probe if slot is not None and _CAN_PROBE and probe is not None
+                and probe in self._objs_named(slot) else None)
+        untried = any(a != IFace.RESET and a not in self.iface.table for a in self.actions)
+        if slot is not None and (held is not None or untried):
+            need += self._tc_need(slot)
+        idle = self.cycle - (self._last_progress if _URGENCY_PROGRESS else self._last_commit)
+        rate, _earned = self._relief_rate()
+        urgency = max(1.0, idle / rate)
+        st = self._rf_standing("act", (kind,))
+        if 1 + self._rf_in("act", (kind,)) + st["paid"] < st["against"]:
+            need = 0
+        return need, urgency, {"probe_open": held is not None or untried, "idle": idle,
+                               "relief_rate": round(rate, 4)}
+
+    def _tc_choose(self, option: str, slot: str | None, kind, gain: float, why0: str | None,
+                   ) -> bool:
+        """Item 25 (r1264), the corrected (a'): think iff gain > displaced x rho x need x urgency.
+        The press goes out either way. One think_choice row; the choice awaits its witness."""
+        evals = max(0, STEP_BUDGET - self._spent) if _STEP_BUDGET else 0
+        c = self._tc_clocks()
+        disp, rho = self._tc_displaced(evals, c), self._tc_rho()
+        need, urg, parts = self._tc_act_side(kind, slot)
+        cost = disp * rho * need * urg
+        think = why0 is None and gain > cost
+        chosen = "think" if think else "act"
+        self.led.record(self.cycle, self._running_step, slot or "@think", "think_choice",
+                        option=option, kind=str(kind), chosen=chosen, why=why0,
+                        gain=round(gain, 6), cost=round(cost, 6) if cost != math.inf else "inf",
+                        displaced=round(disp, 6) if disp != math.inf else "inf",
+                        rho=round(rho, 6), need=need, urgency=round(urg, 4), evals=evals,
+                        clocks={k: (round(v, 6) if isinstance(v, float) else v)
+                                for k, v in c.items()}, **parts,
+                        reads="think iff its gain beats the presses it displaces x rho x need; "
+                              "the press goes out either way")
+        # the window both sides are judged in (r1266): the slot's effect window, at least one settle
+        win = max(1, self._effect_window(slot)) if slot in self.slots else 1
+        self._tc_pending.append((self.cycle, option, slot, kind, chosen,
+                                 self.outstanding(slot) if slot is not None else 0.0,
+                                 self.bound.get(slot) if slot is not None else None, win))
+        return think
+
+    def _tc_walk(self, slot: str, closer: bool) -> tuple[bool, str]:
+        """Item 25: the governor's question under the one rule. The walk's gain is the slot's
+        stake, outstanding x need; a present-frame binding that closed it (closer_found, as an
+        input) or its ("walk", kind) weight under its witnesses makes it 0."""
+        kind = self._kind_key(slot)
+        st = self._rf_standing("walk", (kind,))
+        why0 = ("closer_found" if closer else "under_witnesses"
+                if 1 + self._rf_in("walk", (kind,)) + st["paid"] < st["against"] else None)
+        gain = 0.0 if why0 else self.outstanding(slot) * self._tc_need(slot)
+        think = self._tc_choose("walk", slot, kind, gain, why0)
+        return think, (why0 or ("think" if think else "act"))
+
+    def _tc_muse(self, targets: dict) -> bool:
+        """Item 25: whether the muse spends this step's remaining purse -- its gain is the best
+        park's gain x need (+1, as the walk's); its own per-kind weight stays _muse_skip's."""
+        best = max(targets.values(), key=lambda r: r.get("gain", 0.0) * (self._muse_need(r) + 1))
+        gain = best.get("gain", 0.0) * (self._muse_need(best) + 1)
+        return self._tc_choose("muse", None, best.get("kind"), gain, None)
+
+    def _tc_settle(self) -> None:
+        """Item 25 (r1266): earlier steps' choices judged, the last per (cycle, option, slot), one
+        think_settled row each, within the choice's window (the slot's effect window, at least one
+        settle). A walk taken is PAID once its slot was bound by that mint (a new bound term) or its
+        outstanding fell; a press preferred is PAID once progress was noted or a slot routed
+        REFUTED (a press that found something out) after the choice. AGAINST only when the window
+        passes with neither; until then it waits. A muse taken is judged by its own weight
+        (muse_chosen, muse_paid), not here."""
+        last: dict = {}
+        for e in self._tc_pending:
+            last[(e[0], e[1], e[2])] = e
+        keep = []
+        prog = self._last_progress if _URGENCY_PROGRESS else self._last_commit
+        for (c0, option, slot), (_c, _o, _s, kind, chosen, out0, b0, win) in sorted(
+                last.items(), key=lambda x: (x[0][0], x[0][1], str(x[0][2]))):
+            if c0 >= self.cycle or chosen == "think" and option == "muse":
+                if c0 >= self.cycle:
+                    keep.append(last[(c0, option, slot)])
+                continue
+            if chosen == "think":
+                form = "walk"
+                paid = slot is not None and (self.bound.get(slot) != b0
+                                             or self.outstanding(slot) < out0)
+            else:
+                form = "act"
+                paid = (prog is not None and prog > c0) or self._tc_refuted_at > c0
+            if not paid and self.cycle < c0 + win:
+                keep.append(last[(c0, option, slot)])
+                continue
+            st = self._rf_standing(form, (kind,))
+            st["paid" if paid else "against"] += 1
+            self.led.record(self.cycle, self._running_step, slot or "@think", "think_settled",
+                            option=option, chosen=chosen, kind=str(kind), at=c0, paid=paid,
+                            weight=form, weight_paid=st["paid"],
+                            weight_against=round(st["against"], 3), window=win)
+        self._tc_pending = keep
 
     @staticmethod
     def _gap_key(gap: dict) -> tuple:
@@ -24237,6 +24467,8 @@ class Agent:
             return self._cut_step(cut)
         finally:
             cap.AT = None
+            if _THINK_CHOOSER:
+                self._tc_note_step()
             self._clk_stack = None      # the step clock closes with the step
             self.led.flush_tally(c0)    # the choice tally's per-step rows, at the step's end
 
@@ -24282,6 +24514,8 @@ class Agent:
         # PER STEP (the reviewer 2026-10-25 22:46): choose() resets these too, but a GIVEN action
         # never reaches choose, so its rows read the last chosen step's -- or, never set, raised.
         self._split_term, self._routine_fed, self._last_real = None, [], None
+        if _THINK_CHOOSER and _STEP_BUDGET:
+            self._spent = 0       # item 25 (1): one purse per step, choose's thinking charged to it
         if _7H_ROOT and self._root_id is None and self._alive:
             self._intent_root()   # 7h: the first step of every live situation
         self._touch_cache = None      # a new step is a new frame, so contact and owners go
@@ -24547,6 +24781,8 @@ class Agent:
                     focal = _hit[0]
                     self.gamma.book["focus_by_cue"] = self.gamma.book.get("focus_by_cue", 0) + 1
         by = "given"
+        if _THINK_CHOOSER:
+            self._tc_focal = focal
         self._intent_now = None
         # PER STEP. A coordinate is a property of THIS cycle's realisation, and leaving it would
         # aim a later positioned action at where something used to be -- the stale-state defect
@@ -25060,7 +25296,8 @@ class Agent:
         return {} if t0 is None else {"wall_s": round(time.perf_counter() - t0, 4)}
 
     def _clock_row(self) -> dict:
-        """The step clock's REPEAT fields (r263 (b)): written, never read by the agent. wall_s is
+        """The step clock's REPEAT fields (r263 (b)): written, never read by the agent (item 25 ON
+        reads the same clock, not these rows: _tc_note_step's s_step and s_per_eval). wall_s is
         exclusive seconds per step scope so far this step, plus "other" (outside any scope) and
         "total"; the scope still open (REPEAT) is counted up to this row."""
         t = time.perf_counter()

@@ -519,7 +519,10 @@ def play(game: str, cycles: int = 40, library: str | None = None,
     fault = None           # item 4: an agent fault ends the loop into a guarded end path
     ctx = {"game": game, "cfg": cfg, "library": library, "lineage_dir": lineage_dir,
            "led_path": led_path, "save_only_dir": save_only_dir, "palette": palette}
-    for _ in range(cycles):
+    for i_ in range(cycles):
+        # item 25 (r1265): turns left that the habitat allows; a turn that presses nothing still
+        # spends one
+        ag.actions_left, ag.actions_cap = cycles - i_, cycles
         state = env.observe()
         # THE UNIT. `step` returns False when no action was proposed, and after the first
         # GAME_OVER that is every cycle -- so a 1000-CYCLE run is a ~140-ACTION run followed

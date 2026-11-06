@@ -7,7 +7,12 @@ test_entry's isolation check needs.
 STANDING RULE (the reviewer 2026-11-05 r1258): every behavioural ON/OFF must-fail that replays a
 habitat PINS THE BIRTH SEED -- tether._AGENT_SEED = False in-script, or TETHER_AGENT_SEED=0 for a
 child -- or ON and OFF are two different agents (each birth draws its own seed; PYTHONHASHSEED
-does not touch it) and the comparison flakes, as test_mc6 did (r1255, r1256)."""
+does not touch it) and the comparison flakes, as test_mc6 did (r1255, r1256).
+
+ITS SIBLING (the reviewer 2026-11-05 r1263): wall time enters a decision under item 25 (the
+think-vs-act chooser reads the game's clocks), so every behavioural must-fail of it PLANTS the
+timing -- s_step and s_per_eval (Agent._tc_rates) and the clocks -- and never reads them live, or
+the result depends on the machine's speed."""
 import os
 import sys
 

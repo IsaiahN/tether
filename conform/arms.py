@@ -2199,6 +2199,14 @@ ARMS: dict[str, str] = {
                             "best paying entry as a by=muse rival, weighs musing per kind (seed 1, "
                             "paid kept, against decayed); parks close at a game switch. OFF: "
                             "MUSING as before. default ON",
+    "TETHER_THINK_CHOOSER": "BUILD 7 ITEM 25 (the reviewer 2026-11-05 r1261-r1265, Isaiah 17:26): "
+                            "one purse per step from before choose; the runners hand the game's "
+                            "clocks (actions_left, slice_until); a walk or a muse is taken iff its "
+                            "gain beats the presses it displaces x rho (this life's bits per "
+                            "press) x need, the press going out either way; the governor's "
+                            "readings are inputs, its exit order gone; think_choice / "
+                            "think_settled witness each. OFF: route resets the purse, the "
+                            "governor's cascade, as before. default ON",
     "TETHER_NEW_BOARD_LEVEL": "BUILD 6 ITEM 24 (C) (the reviewer 2026-11-05 r1250): at the "
                               "agent's own board boundary (NEW_BOARD) the level is the world's "
                               "own count (env.levels()[0]), never the previous game's number run "

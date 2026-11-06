@@ -41,7 +41,9 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     # the boundary edges' level and the write's reports; with both arms OFF nothing new is read
     lv_seen = env.levels()[0] if (lineage._BOUNDARY or tether._LEVEL_EDGE) else 0
     bounds = []
-    for _ in range(max_actions):
+    for i_ in range(max_actions):
+        # item 25 (r1265): turns left that the habitat allows, read by the agent as a clock
+        ag.actions_left, ag.actions_cap = max_actions - i_, max_actions
         # A WALL-CLOCK BOUND, like the step cap: the runner's per-game allowance, never a prior.
         if deadline is not None and time.time() >= deadline:
             end = end or "time"

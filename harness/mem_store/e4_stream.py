@@ -232,6 +232,14 @@ for i, g in enumerate(order):
     n_steps = STEPS[min(i, len(STEPS) - 1)] if STEPS else None
     acts, first_act_s = 0, None
     while going(steps, n_steps, t_start, acts):
+        # item 25 (r1265): this game's clock as the slice rule reads it -- N steps is a turn count
+        # (one step, one press), the seconds modes a wall
+        if n_steps:
+            ag.actions_left, ag.actions_cap = n_steps - steps, n_steps
+        else:
+            ag.slice_from = t_start
+            ag.slice_until = t_start + (A.slice_max_s if A.slice_min_s is not None
+                                        else A.slice_s)
         try:
             env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
         except NoAnswer:   # r563: the game ends here, no retry; the agent cut inside its step is replaced

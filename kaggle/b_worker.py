@@ -386,6 +386,8 @@ while nxt is not None:
         if FAULT_AT is not None and steps_life == FAULT_AT:
             inject(ag)
         steps_life += 1
+        # item 25 (r1265): this game's slice, read by the agent as its wall clock (no turn count)
+        ag.slice_from, ag.slice_until = t_start, t_start + mx
         try:
             env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)
         except NoAnswer:                  # r563: the game ends here, no retry; the cut agent is replaced
