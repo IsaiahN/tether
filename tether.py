@@ -5069,6 +5069,20 @@ class Agent:
                             reads="owed_closed: the level ended before this question was asked")
         self._owed_q = {}
 
+    def _own_close(self, slot: str) -> None:
+        """R5 (the reviewer 2026-11-06 r1319): a slot owed before it was read as own-counted is
+        CLOSED with one row naming (B), never dropped silently -- an owed entry leaves only by being
+        asked or closed (test_step_budget C-RANK's rule)."""
+        q = self._owed_q.pop(slot, None)
+        if q is None and slot not in self.owed_import:
+            return
+        self.owed_import.discard(slot)
+        self.led.record(self.cycle, self._running_step, slot, "owed_closed",
+                        question=list(q) if q is not None else None, unasked=[slot],
+                        how="own_counted",
+                        reads="R5: (B) -- the world's own clock writes this slot, so nothing is "
+                              "owed on it; the earlier debt is closed, not dropped")
+
     def _boundary_key(self, slot: str) -> tuple[int, str, dict]:
         """(cycle, slot, extra fields) for a boundary row: its own chain at the real cycle with the
         level as a field, or -- _BOUNDARY_CHAIN False, the must-fail -- the old @loop keying."""
@@ -16217,7 +16231,9 @@ class Agent:
                                 why_not=LEFT_BOARD, support=len(self.trace),
                                 **({"refusal_not_priced": filed} if filed else {}))
                 continue
-            _dropped, _grade = None, None
+            _dropped, _grade, _own = None, None, slot in self._own_now
+            if _own:
+                self._own_close(slot)              # R5: (B) owes nothing; an old debt is closed
             was_refused = self._refuted_slot.pop(slot, None)
             # ONLY WHILE THE REFUSED TERM'S RESIDUAL PERSISTS -- the reviewer 2026-10-07 14:58Z
             # (F498), superseding 13:06Z's "while this cycle's residual is nonzero", which could
@@ -16289,6 +16305,11 @@ class Agent:
                 # mint; settle still judges the bound term. Missed again, the search is owed.
                 self._miss_held.add(slot)
                 b, fit, _grade = HELD, None, "in_range_hold"
+            elif _own:
+                # R5 (the reviewer 2026-11-06 r1319): the world's own clock writes this slot, so by
+                # (B) its miss is never charged nor minted for (ACCEPT, the event route) -- neither
+                # deferred nor looked up here, or the chooser books a debt nobody can pay
+                b, fit = MECHANISM, None
             else:
                 self._fit_none.pop(slot, None)     # S2a: a row the bound term missed reopens it
                 fit = (None if self._defer_lookup(slot)
@@ -16303,7 +16324,9 @@ class Agent:
                             # WHY THE BIN DROPPED ITS COMPETITOR, so the cause is read, not
                             # inferred (F497): a starved slot.
                             **({"competitor_dropped": _dropped} if _dropped else {}),
-                            **({"miss_grade": _grade} if _grade else {}))
+                            **({"miss_grade": _grade} if _grade else {}),
+                            **({"own_counted": "written by the world's own clock; nothing owed"}
+                               if _own and b == MECHANISM else {}))
         if _MISS_GRADE:
             for slot, r in res.items():            # the slot's own range, after this step's grade
                 if isinstance(r.actual, int) and not r.gone:
