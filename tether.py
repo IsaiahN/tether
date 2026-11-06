@@ -1661,6 +1661,8 @@ _LOOKUP_FOLD = armflag.arm("TETHER_LOOKUP_FOLD", default=True)
 # the described object changed across its frames, or it is a relational surprise. bp35 c4's o191
 # event held 188 o191.dcol_oN pair readings that all moved because o191 did: 19.03M pairs, a 76 s
 # fold; by source 17,691 pairs, 0.15 s, no pair or named partner lost but on a dropped reading.
+# A CONTACT relation (inside, touches) is the habitat, what acts on the residual (Fig 11 :44-45,
+# r1331): it stays while it holds in any frame or changes, static partner or not.
 # A behaviour choice (what the library is asked). OFF: every derived reading that varied enters.
 _DESCRIBE_BY_SOURCE = armflag.arm("TETHER_DESCRIBE_BY_SOURCE", default=True)
 # THE MINT'S PER-CANDIDATE WORK THAT IS FIXED FOR THE MINT, DONE ONCE (the reviewer 2026-11-04

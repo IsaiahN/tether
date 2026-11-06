@@ -12,7 +12,8 @@ check_unit (seconds)  a stepped gridworld agent's _by_source on a planted derive
 check_lookup (seconds)  the MF through _lookup itself (r1329): one slot's description planted to
   vary with 12 pair readings of its object, only one other party (x0) changing across the frames:
   ON keeps that pair and the member's own slot, and the lookup row's by_source_dropped is 11;
-  OFF keeps all 12 and writes no new field. RED at f33ac6e (all 12 kept, no field)
+  OFF keeps all 12 and writes no new field. RED at f33ac6e (all 12 kept, no field). MUST-HOLD
+  (r1333), read at the fold: every dropped reading's changed sources are in the description
 bp35 c4, the slow step the arm was built for, is the WITNESS run (minutes, the game's files), in
 the commit body, not a gate test (r1329)
 
@@ -65,6 +66,14 @@ def check_unit() -> None:
           "a.touches_e (static partner, in contact once), a.speed (the member) kept")
 
 
+def must_hold(desc: dict, der: dict, frames: list) -> None:
+    """r1333: every dropped reading's sources that changed across the frames are in desc."""
+    for r in set(der) - set(desc):
+        moved = [s for s in der[r] if any(f.get(s) != frames[0].get(s) for f in frames[1:])]
+        assert all(s in desc for s in moved), ("MUST-HOLD: a dropped reading's changed source "
+                                               "is not in the description", r, moved)
+
+
 def check_lookup() -> None:
     """The MF through _lookup itself (r1329: a short forcing fixture): a stepped gridworld agent,
     one slot whose description is planted to vary with N pair readings of its object (env.derived
@@ -88,7 +97,14 @@ def check_lookup() -> None:
     tether.retrieval.characterise = lambda *_a, **_k: {"arity": 2, "varies": tuple(pairs),
                                                      "invariant": (), "n": 4}
     ag._reach_timed = lambda *_a, **_k: None
-    rows = {}
+    rows, at_fold = {}, {}
+    def spy_on(real):                                    # desc_of as the fold reads it (r1333)
+        def spy(ev, members, described, desc_of, h, slot=None):
+            at_fold.update({m: dict(d) for m, d in desc_of.items()})
+            return real(ev, members, described, desc_of, h, slot=slot)
+        return spy
+    for name in ("_lookup_fold", "_lookup_stream"):
+        setattr(ag, name, spy_on(getattr(ag, name)))
     keep = getattr(tether, "_DESCRIBE_BY_SOURCE", True)   # set, never read, at f33ac6e
     try:
         for on in (True, False):
@@ -97,7 +113,11 @@ def check_lookup() -> None:
             n0 = len(ag.led.rows())
             ag._lookup(slot, hist)
             rows[on] = [r["detail"] for r in ag.led.rows()[n0:] if r["event"] == "lookup"][-1]
+            if on:
+                d_on = dict(at_fold[slot])
     finally:
+        for name in ("_lookup_fold", "_lookup_stream"):
+            delattr(ag, name)
         tether._DESCRIBE_BY_SOURCE = keep
         tether.retrieval.characterise = real_char
         env.slot_owner = real_owner
@@ -112,6 +132,7 @@ def check_lookup() -> None:
     assert on.get("by_source_dropped") == len(pairs) - 1, ("MF: by_source_dropped", on)
     assert sorted(r for r in off["described"] if r in pairs) == sorted(pairs), "OFF: not all kept"
     assert "by_source_dropped" not in off, ("OFF wrote the new field", off)
+    must_hold(d_on, pairs, [b for b, *_r in hist])
     print(f"  lookup: ON kept {kept} + {slot}, by_source_dropped {on['by_source_dropped']}; "
           f"OFF kept all {len(pairs)}, no new field")
 
