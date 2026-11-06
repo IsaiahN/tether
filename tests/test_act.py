@@ -181,23 +181,30 @@ def check_e_urgent_defers_then_urgent_declined_walks() -> None:
     ag._relief_rate = lambda: (1.0, 0)             # idle / 1 >= _QUORUM_HALF: urgent
     calls: list = []
     ag._library_fit = lambda s, _ex: calls.append((ag.cycle, s)) or None
-    keep = tether._STEP_ACT, tether._THINK_OR_ACT
+    # (e) is the governor's own check: item 25's chooser pinned off here only; each asking's miss
+    # is a distinct far value, so r674's miss grade is met and passes, never holds (r1326)
+    keep = tether._STEP_ACT, tether._THINK_OR_ACT, tether._THINK_CHOOSER
     try:
         tether._STEP_ACT = tether._THINK_OR_ACT = True
+        tether._THINK_CHOOSER = False
         c = ag.cycle = 100
-        whys = []
+        whys, grades = [], []
         for k in range(3):
             ag.cycle = c + k
             n0 = len(ag.led.rows())
-            ag.route(_res(slot))
+            ag.route({slot: tether.SlotResidual(slot, "x", 0, 10 ** 6 + k, 1.0)})
             whys.append([r["detail"]["why"] for r in _rows(ag, n0, "lookup_deferred")])
+            grades += [r["detail"].get("miss_grade") for r in _rows(ag, n0, "route")
+                       if r["slot"] == slot]
+        assert len(grades) == 3 and all(g in ("searched", "broken_after_hold")
+                                        for g in grades), grades
         assert whys == [["urgent"], [], ["urgent"]], whys            # every other step
         assert calls == [(c + 1, slot)], calls                       # walked at c+1 only
         ag.cycle = c + 1
         ag._urgent_wait[slot] = (c + 1, "urgent_declined")
         assert ag._think_or_act(slot, closer=False) == (True, "urgent_declined")  # same cycle
     finally:
-        tether._STEP_ACT, tether._THINK_OR_ACT = keep
+        tether._STEP_ACT, tether._THINK_OR_ACT, tether._THINK_CHOOSER = keep
 
 
 def check_f_route_runs_in_the_route_step() -> None:
@@ -208,11 +215,22 @@ def check_f_route_runs_in_the_route_step() -> None:
     keep = tether._STEP_ACT
     try:
         tether._STEP_ACT = False                   # the lookup runs, so the spy is reached
+
+        def grade(n0: int) -> list:
+            return [r["detail"].get("miss_grade") for r in ag.led.rows()[n0:]
+                    if r["event"] == "route" and r["slot"] == slot]
+        n0 = len(ag.led.rows())
         ag.route(_res(slot))
         assert seen == ["ROUTE"], seen
+        assert grade(n0) == ["searched"], grade(n0)
         seen.clear()
-        tether.Agent.route.__wrapped__(ag, _res(slot))   # MUST-FAIL: route without its scope
+        # the first call put _res's value into the slot's range; a distinct far miss passes r674's
+        # miss grade, so the must-fail reaches the lookup (r1326)
+        n0 = len(ag.led.rows())
+        far = {slot: tether.SlotResidual(slot, "x", 0, 10 ** 6, 1.0)}
+        tether.Agent.route.__wrapped__(ag, far)           # MUST-FAIL: route without its scope
         assert seen and seen != ["ROUTE"], seen
+        assert grade(n0) and grade(n0)[0] in ("searched", "broken_after_hold"), grade(n0)
     finally:
         tether._STEP_ACT = keep
 
