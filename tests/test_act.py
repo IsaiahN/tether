@@ -115,6 +115,10 @@ def check_b_must_fail_arm_off_looks_up_at_once() -> None:
 
 def check_c_walk_budget_cuts_at_an_entry_and_owes() -> None:
     ag = _agent()
+    # the FORCING FIXTURE (the reviewer 2026-11-06 r1325, r1187): under arm 20 a cold 3-step agent's
+    # described tier is empty, every lookup ends no_entry and no walk runs. A warm life's tier lists
+    # entries, so here it lists the whole lit list; arm 20's own key and miss memo still run
+    ag._described_lit = lambda _lib, lit, *_a, **_k: lit
     keep = tether.STEP_BUDGET, tether._STEP_ACT
     try:
         tether._STEP_ACT = False                   # the walk is the subject here
