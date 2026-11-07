@@ -14,6 +14,9 @@ position moved by one:
      beside it still differs (the reviewer 2026-10-21 23:16: one list, every comparer imports it).
   k. choice_tally's ref is a position (the reviewer 2026-10-23 19:10): shifted, it is identical;
      MUST-FAIL: a ref left unshifted is a difference.
+  l. intent_predict's ms and the decision row's because.predicted.ms (r1388) are masked, each
+     by its exact path; m. MUST-FAIL: a sibling of either (predicted.by, intent_predict's changed)
+     still differs, so the mask did not go wide.
     python tests/test_identity_mod_rows.py
 """
 from __future__ import annotations
@@ -120,3 +123,17 @@ if __name__ == "__main__":
     tn[2]["detail"]["ref"] = 0
     assert compare(tb, tn, {"audit"}), "k: an unshifted ref passed"
     print("k. choice_tally's ref is mapped as a position, and an unshifted ref fails: ok")
+    pa = [_row(0, "intent_predict", intent="x", ms=0.745, changed={"o1.row": [1, 2]}),
+          _row(1, "decision", chose="x", because={"undone_here": 1, "predicted": {
+              "changed": {"o1.row": [1, 2]}, "by": "t", "ms": 0.745}})]
+    pb = copy.deepcopy(pa)
+    pb[0]["detail"]["ms"], pb[1]["detail"]["because"]["predicted"]["ms"] = 0.659, 0.659
+    assert compare(pa, pb, set()) == [], "l: the two predict timings alone failed"
+    print("l. ledgers differing only in intent_predict's ms and the decision row's "
+          "because.predicted.ms (r1388) are identical: ok")
+    pb[1]["detail"]["because"]["predicted"]["by"] = "u"
+    pb[0]["detail"]["changed"] = {"o1.row": [1, 3]}
+    bad = compare(pa, pb, set())
+    assert len(bad) == 2, f"m: a sibling of a masked timing passed: {bad}"
+    print("m. MUST-FAIL: siblings of the masked ms (predicted.by, intent_predict's changed) "
+          "are differences: ok")

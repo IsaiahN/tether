@@ -69,8 +69,12 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
            ("think_choice", "clocks"),        # item 25: the game's clocks and the step clock's
            ("think_choice", "displaced"),     # s_step / s_per_eval, and what they price
            ("think_choice", "cost"),
-           ("think_choice", "evals"))         # the purse left, STEP_BUDGET - spent: displaced's
+           ("think_choice", "evals"),         # the purse left, STEP_BUDGET - spent: displaced's
                                               # input, a price as cost is (r1312)
+           ("intent_predict", "ms"),          # r1388: 15a's predict wall (tether 14551, 21743)
+           ("decision", ("because", "predicted", "ms")))   # the same value, copied (21779)
+# A field is a key under detail, or a tuple path to one nested key (r1388): exactly that leaf is
+# removed, never a name wherever it appears.
 
 
 # The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One
@@ -98,7 +102,11 @@ def mask_timings(rows: list[dict]) -> list[dict]:
     for r in rows:
         for event, field in TIMINGS:
             if r.get("event") == event and isinstance(r.get("detail"), dict):
-                r["detail"].pop(field, None)
+                node, *path = (r["detail"], *(field if isinstance(field, tuple) else (field,)))
+                for k in path[:-1]:
+                    node = node.get(k) if isinstance(node, dict) else None
+                if isinstance(node, dict):
+                    node.pop(path[-1], None)
     return rows
 
 
