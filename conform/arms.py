@@ -2841,7 +2841,10 @@ ARMS: dict[str, str] = {
                                 "reviewer 2026-11-01 r710, r712): system0's ELICIT leaves RESET "
                                 "out while the board is live and RESET_REASON holds, so the "
                                 "target touch (the CAN-unknown probe) runs; booked "
-                                "elicit_reset_left_out. OFF: RESET offered (0dcbd70). default ON",
+                                "elicit_reset_left_out. Since r1386 (2026-11-07) the class: the "
+                                "orient reflex's, _explore's and the unaimed re-realise's ELICIT "
+                                "offers leave it out too (unless nothing else is offered). OFF: "
+                                "RESET offered at every site (0dcbd70). default ON",
     "TETHER_REACH_GATE": "40, THE NOMINAL REACH GATE (the reviewer 2026-11-01 r706, r707 (ii)): "
                          "a nominal-typed slot is not minted when no residual row's new value is "
                          "in reach (the old value, any same-typed slot's value in its history, "

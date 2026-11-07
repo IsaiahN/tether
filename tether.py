@@ -18707,7 +18707,8 @@ class Agent:
                           key=lambda s: (out.get(s, 0.0) - self._rf_out[s], s))
             if grew:
                 cands.append(("orient", (self._kind_key(grew[0]), "orient"), grew[0],
-                              IFace.Intent(IFace.ELICIT, subject=grew[0]), tuple(self.actions)))
+                              IFace.Intent(IFace.ELICIT, subject=grew[0]),
+                              self._elicit_offer(tuple(self.actions))))
         if not cands:
             return None
         read = []
@@ -21638,6 +21639,19 @@ class Agent:
                 self.gamma.book.get("probe_restart_withheld", 0) + 1)
             return keep
         return offered
+
+    def _elicit_offer(self, offered: tuple) -> tuple:
+        """41 (3) at every ELICIT offer (r1386): while the board is live and RESET_REASON holds, a
+        RESET offered to ELICIT is refused anyway, so it is never pressed and its destination stays
+        unrecorded -- Design A's reach reads it as 1 against a known no-change's 0, and it wins
+        again. Left out, unless nothing else is offered, and booked elicit_reset_left_out."""
+        if not (_ELICIT_NO_REFUSED and _RESET_REASON and self._alive) or IFace.RESET not in offered:
+            return offered
+        keep = tuple(a for a in offered if a != IFace.RESET)
+        if not keep:
+            return offered
+        _book_add(self.gamma.book, "elicit_reset_left_out")
+        return keep
 
     def _took(self, r: Any, want: Any = None) -> str:
         """Accept a `Realisation`: keep its aim and its INTENT, return its action. **One door,
@@ -25915,8 +25929,8 @@ class Agent:
                 # r669 1: a positioned action never leaves without an aim; it is re-realised among
                 # the unpositioned offers (the same ELICIT intent the probe exits ask for)
                 _was, _want = action, IFace.Intent(IFace.ELICIT)
-                _r = self.iface.realise(_want, tuple(a for a in self.actions
-                                                     if a not in IFace.POSITIONED),
+                _r = self.iface.realise(_want, self._elicit_offer(tuple(
+                                            a for a in self.actions if a not in IFace.POSITIONED)),
                                         IFace.Interface.context(self.env), before, self.env,
                                         withheld=self._withheld)
                 action, by = (self._took(_r, _want), "probe") if _r is not None else (None, by)
