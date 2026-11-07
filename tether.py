@@ -7311,7 +7311,7 @@ class Agent:
                     down[m].append(k)
             _SA_DOWN[id(lib)] = down
         board = getattr(self, "_bond_board", 0)
-        act = {s: 1.0 / len(seeds) for s in seeds}
+        act = {s: 1.0 / len(seeds) for s in sorted(seeds)}   # r1371: no hash order in rows or sums
         front, prev, into = dict(act), None, {}
         while front:
             cap.head()
@@ -7469,8 +7469,8 @@ class Agent:
         sa = _SPREAD and "sa_edge" in self._reflexes
         into = getattr(self, "_sa_into", {}) if sa else {}
         if field == "paid":
-            for e in entries:
-                for c in self._gcw_win.get(e, ()):
+            for e in sorted(entries):          # r1371: sets iterate in a per-process hash order
+                for c in sorted(self._gcw_win.get(e, ())):
                     st = self._rf_standing("gcw", (c, board))
                     st["paid"] += 1
                     n[c] += 1
@@ -7479,7 +7479,7 @@ class Agent:
                         win[2].discard(c)
                         st["against"] = max(0.0, st["against"] - 1)
                         back.append(c)
-                for ed in into.get(e, ()):
+                for ed in sorted(into.get(e, ())):
                     st = self._rf_standing("sa_edge", (*ed, board))
                     st["paid"] += 1
                     n["edge"] += 1
