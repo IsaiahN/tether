@@ -7450,7 +7450,8 @@ class Agent:
         hit = {c for c, on in (("verb", cls == "verb" and has_dk), ("noun", n > 0),
                                ("filler", cls == "filler")) if on}
         self._gcw_win[e] = hit
-        return sum(ps[c] * (n if c == "noun" else 1) for c in hit)
+        return sum(ps[c] * (n if c == "noun" else 1) for c in ("verb", "noun", "filler")
+                   if c in hit)
 
     def _gcw_credit(self, entries, field: str) -> None:
         """Item 29 (r1284, the window grain): a PAID is one witness per paid entry for each class
@@ -10856,7 +10857,9 @@ class Agent:
                       if e["parked"] in targets}
         against = sorted({str(targets[pk].get("kind")) for pk in run.get("walked", ())
                           if pk in targets and targets[pk].get("kind") not in paid_kinds})
-        for kind in {targets[pk].get("kind") for pk in run.get("walked", ()) if pk in targets}:
+        walked = {targets[pk].get("kind") for pk in run.get("walked", ()) if pk in targets}
+        # r1375: sorted, so the standing reads (and any standing_freed rows) keep one order
+        for kind in sorted(walked, key=lambda k: (k is None, str(k))):
             if kind not in paid_kinds:
                 self._rf_standing("muse", (kind,))["against"] += 1
         offered = None
