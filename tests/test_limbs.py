@@ -36,9 +36,12 @@ def _agent() -> tether.Agent:
 
 def check_gate() -> None:
     ag = _agent()
-    keep = tether._THINK_OR_ACT
+    keep, keep_tc = tether._THINK_OR_ACT, tether._THINK_CHOOSER
     try:
         tether._THINK_OR_ACT = True
+        # the cascade checked here is the OFF path of item 25's chooser (r1376): with it on,
+        # _think_or_act hands the slot to _tc_walk, as test_act pins for its (a) and (e)
+        tether._THINK_CHOOSER = False
         ag._can_probe = None
         ag.actions = ("A1", "A2")
         ag.iface.table = {"A1": {}}
@@ -61,7 +64,7 @@ def check_gate() -> None:
         ag.iface.table = {}
         assert ag._think_or_act("s", closer=True) == (True, "ok")
     finally:
-        tether._THINK_OR_ACT = keep
+        tether._THINK_OR_ACT, tether._THINK_CHOOSER = keep, keep_tc
 
 
 def check_l2_the_order_keeps_every_candidate() -> None:
