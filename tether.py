@@ -12101,7 +12101,7 @@ class Agent:
         refs = [o.get("ref") for o in (e.get("run") or {}).get("operands") or ()
                 if _norm_name(str(o.get("ref", "")).split("|")[-1]) == n]
         if not refs:
-            keys = [k for k in self._lib_keys(lib) if _norm_name(k.split("|")[-1]) == n]
+            keys = self._keys_named(lib, n)
             dom = molecule.split("|")[0] + "|"
             mine = [k for k in keys if k.startswith(dom)]
             refs = mine if mine else keys
@@ -12203,6 +12203,22 @@ class Agent:
     @staticmethod
     def _lib_keys(lib: Any) -> list:
         return [*lib.seed, *lib.runtime, *lib.learnings]
+
+    @staticmethod
+    def _keys_named(lib: Any, n: str) -> list:
+        """r1362 (B): the _lib_keys whose normalised tail is n, in _lib_keys order, from an index on
+        lib rebuilt when a key layer is replaced or grows. Keys are only added (library_runtime
+        loads seed and learnings and writes runtime[key]; nothing deletes one), so the lengths and
+        the layers' identities (_replace_lib gives a copy its own runtime) decide."""
+        sig = (id(lib.seed), len(lib.seed), id(lib.runtime), len(lib.runtime),
+               id(lib.learnings), len(lib.learnings))
+        got = getattr(lib, "_tail_index", None)
+        if got is None or got[0] != sig:
+            idx: dict = {}
+            for k in Agent._lib_keys(lib):
+                idx.setdefault(_norm_name(k.split("|")[-1]), []).append(k)
+            got = lib._tail_index = (sig, idx)
+        return list(got[1].get(n, ()))
 
     @staticmethod
     def _per_object(bond: str, left: dict, right: dict, objs: list, frames: list, bound: list,
