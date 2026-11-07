@@ -12,6 +12,9 @@ check_rebuild  every lookup row with held lines, round-tripped: the lines rebuil
 check_paths    the stream path (TETHER_LOOKUP_FOLD off) and the list path (TETHER_LOOKUP_STREAM off)
                write the same held_groups as the fold
 check_off      OFF: no held_groups field, and every row is otherwise the ON row
+check_unseen   r1343: a lookup row whose held lines pass the 50 MOLECULE APPLY's first source keeps
+               says how many it never sees (held_unseen = held_n - 50: the c2 event, 68 -> 18); none
+               where all are kept, on the list path, or with TETHER_MOLECULE_APPLY off
 
     python tests/test_held_groups.py [check ...]
 """
@@ -144,9 +147,26 @@ def check_off() -> None:
           "(identity_mod_rows.compare: timings masked, the arms row apart)")
 
 
+def check_unseen() -> None:
+    lk = lookups(run())
+    cut = [r for r in lk if r["detail"]["held_n"] > 50]
+    assert cut, "no lookup past 50 held lines: the check reaches nothing"
+    for r in lk:
+        d = r["detail"]
+        want = d["held_n"] - 50 if d["held_n"] > 50 else None
+        assert d.get("held_unseen") == want, ("MF: held_unseen", r["cycle"], r["slot"],
+                                               d["held_n"], d.get("held_unseen"))
+    for flags in ({"_LOOKUP_STREAM": False}, {"_MOLECULE_APPLY": False}):
+        assert not any("held_unseen" in r["detail"] for r in lookups(run(**flags))), flags
+    print(f"  {len(cut)} lookup row(s) past 50: "
+          + ", ".join(f"c{r['cycle']} {r['slot']} held_n {r['detail']['held_n']} unseen "
+                      f"{r['detail']['held_unseen']}" for r in cut)
+          + "; none on the rest, the list path, or MOLECULE APPLY off")
+
+
 def main() -> int:
     want = set(sys.argv[1:])
-    for c in (check_rebuild, check_paths, check_off):
+    for c in (check_rebuild, check_paths, check_off, check_unseen):
         if not want or c.__name__ in want:
             c()
             print("ok  ", c.__name__)

@@ -6466,6 +6466,10 @@ class Agent:
                         **({"by_source_dropped": by_src} if by_src else {}),
                         offered=offered, held_n=held_n,
                         held_digest=dig.hexdigest()[:16], held_sample=held[:50],
+                        # r1343: MOLECULE APPLY's first source keeps the first 50 held lines on
+                        # the stream / fold paths; how many it never sees (Fig 9 :41)
+                        **({"held_unseen": held_n - len(held)}
+                           if _MOLECULE_APPLY and held_n > len(held) else {}),
                         **(hg or {}),
                         named=sorted(named_of[slot]),
                         **({"obj_event": ev, "members": sorted(members)} if ev is not None else {}),
