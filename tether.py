@@ -23138,25 +23138,29 @@ class Agent:
             self.owed_import.add(slot)
             sm["deferred"].append(slot)
             # r1126: under _OWED_REJUDGE an owed slot is re-ranked next step, not minted first
-            self.led.record(self.cycle, "ACCEPT", slot, "mint_deferred", bin=b, owes=True,
-                            after=sm["stop"],
-                            reads="not minted this step: a mint this step already stopped at its "
-                                  "bound; it owes and is "
-                                  + ("re-ranked next step by _understanding" if _OWED_REJUDGE
-                                     else "minted first next step")
-                                  + (" (first if it is the goal's slot, GOAL_MINT_FIRST)"
-                                     if _GOAL_MINT_FIRST else "")
-                                  + " -- unreached at this budget, never a verdict")
+            with self._step_scope("MINT"):      # r1410: the mint's own hold (Fig 3 :20)
+                self.led.record(self.cycle, self._running_step, slot, "mint_deferred", bin=b,
+                                owes=True, after=sm["stop"],
+                                reads="not minted this step: a mint this step already stopped "
+                                      "at its bound; it owes and is "
+                                      + ("re-ranked next step by _understanding" if _OWED_REJUDGE
+                                         else "minted first next step")
+                                      + (" (first if it is the goal's slot, GOAL_MINT_FIRST)"
+                                         if _GOAL_MINT_FIRST else "")
+                                      + " -- unreached at this budget, never a verdict")
             return
         if _BOARD_TRY_FIRST and self._try_first_open():
             self.owed_import.add(slot)
             _book_add(self.gamma.book, "try_first_owed")
-            self.led.record(self.cycle, "ACCEPT", slot, "try_first", bin=b, owes=True,
-                            untried=self._board_untried_n(),
-                            untouched_kinds=(len(self._untouched_kinds(self.env.observe()))
-                                             if _TOUCH_EACH_KIND else None),
-                            reads="not minted this step: an offered action is not yet pressed on "
-                                  "this board; owed, and minted once each has been")
+            untried = self._board_untried_n()        # read where the row read them (r1411)
+            kinds = (len(self._untouched_kinds(self.env.observe())) if _TOUCH_EACH_KIND
+                     else None)
+            with self._step_scope("MINT"):      # r1410: the mint's own hold
+                self.led.record(self.cycle, self._running_step, slot, "try_first", bin=b,
+                                owes=True, untried=untried, untouched_kinds=kinds,
+                                reads="not minted this step: an offered action is not yet "
+                                      "pressed on this board; owed, and minted once each has "
+                                      "been")
             return
         fp = self._contact_fp(slot) if _CONTACT_FIRST else None
         if _CONTACT_FIRST:
@@ -23167,14 +23171,15 @@ class Agent:
                 self.owed_import.add(slot)
                 if why == "named":
                     self._cf_owed[slot] = self.cycle
-                self.led.record(self.cycle, "ACCEPT", slot, "contact_first", bin=b, why=why,
-                                owes=True,
-                                reads=("not minted this step: the act was already named, so the "
-                                       "next fact is on the board; minted at the next step"
-                                       if why == "named" else
-                                       "not minted this step: the same rows under the same key "
-                                       "and library as its last walk; owed until a new row "
-                                       "arrives"))
+                with self._step_scope("MINT"):      # r1410: the mint's own hold
+                    self.led.record(self.cycle, self._running_step, slot, "contact_first", bin=b,
+                                    why=why, owes=True,
+                                    reads=("not minted this step: the act was already named, so "
+                                           "the next fact is on the board; minted at the next "
+                                           "step" if why == "named" else
+                                           "not minted this step: the same rows under the same "
+                                           "key and library as its last walk; owed until a new "
+                                           "row arrives"))
                 return
             self._cf_owed.pop(slot, None)
         gated = _REACH_GATE and self._out_of_reach(slot)
