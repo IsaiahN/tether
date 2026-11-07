@@ -1889,6 +1889,16 @@ _STEP_RANK = armflag.arm("TETHER_STEP_RANK", default=True)
 RANK_CLASSES = ("owed_changed", "changed", "own_act", "owed_still", "rest")
 
 
+def _owed_next() -> str:
+    """What an owed slot gets at its next asking, for the four _owed_q writers' reads (the
+    reviewer 2026-11-07 r1355, item 4 (a)): the order route() gives it, then the same governor and
+    budget as any slot. Text only."""
+    order = ("ranked with the owed slots (owed and changed first; owed and still after the changed "
+             "and own-act slots)" if _STEP_BUDGET and _STEP_RANK else "routed ahead of the un-owed "
+             "slots")
+    return f"{order} at its next asking, where the governor and the step's budget decide again"
+
+
 class _Alphabet(dict):
     """The per-slot alphabet, whose missing key is the size that slot last had (ALPHA-LAST). `in`,
     get(), iteration and items() never call __missing__, so they see the current slots only; a
@@ -15570,8 +15580,7 @@ class Agent:
             self.owed_import.add(slot)
             self.led.record(self.cycle, "ROUTE", slot, "budget_owed", question=list(qid),
                             spent=self._spent, budget=STEP_BUDGET,
-                            reads="not asked: the step's budget was spent; owed, asked first next "
-                                  "step")
+                            reads="not asked: the step's budget was spent; owed, " + _owed_next())
         else:
             self._dl_owed = self._owed_q.pop(slot, None) is not None
             self._asked += 1
@@ -15589,7 +15598,7 @@ class Agent:
                 self.led.record(self.cycle, "ROUTE", slot, "walk_cut", question=list(qid),
                                 unreached=self._walk_cut, spent=self._spent, budget=STEP_BUDGET,
                                 reads="unreached at this budget, never absent: the index walk "
-                                      "stopped between entries; owed, asked first next step")
+                                      "stopped between entries; owed, " + _owed_next())
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
         # `rejection_of`, so the order reads evidence of the current age rather than a total
         # frozen at whatever tick it was last touched.
@@ -16300,7 +16309,7 @@ class Agent:
                 self._rn_owed[slot] = self.cycle
                 self.led.record(self.cycle, "ROUTE", slot, "route_named", owes=True,
                                 reads="the act was already named, so the next fact is on the "
-                                      "board: the library lookup is owed, asked at the next step")
+                                      "board: the library lookup is owed, " + _owed_next())
                 return "named"
             self._rn_owed.pop(slot, None)
         if not _STEP_ACT:
@@ -16316,8 +16325,9 @@ class Agent:
         self._step_act[why] += 1
         self.led.record(self.cycle, "ROUTE", slot, "lookup_deferred", why=why,
                         question=list(qid),
-                        reads="deferred by the governor, never not found: owed, asked first next "
-                              "step")
+                        reads="deferred by the governor, never not found: owed, " + _owed_next()
+                              + ("; looked up when its kind's walk weight frees"
+                                 if why == "under_witnesses" else ""))
         return why
 
     @_in_step("ROUTE")
