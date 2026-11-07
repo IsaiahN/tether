@@ -4099,6 +4099,9 @@ class Agent:
     _clk_stack = None          # the step clock: open scopes (label, start); None outside a step
     _clk: dict = {}            # the step clock: seconds per scope this step (replaced per step)
     _clk_t0 = 0.0              # the step clock: the step's start
+    _clk_h: dict = {}          # r1404: loop heads (cap.HEADS) per scope this step, beside _clk
+    _clk_hs = None             # r1404: each open scope's heads mark, parallel to _clk_stack
+    _clk_h0 = 0                # r1404: cap.HEADS at the step's start
     _dw_stop = None            # B2: the slot whose mint this step stopped at a bound, if any
     _end_reserve = None        # the end-path reserve R, s (None: unmeasured, none taken)
     _end_sleep_s = None        # the carried end path's sleep part (checkpoint + quick_check), s
@@ -4130,11 +4133,17 @@ class Agent:
             pipe.enter(step, getattr(self, "cycle", 0))      # 7d: the stage line opens
         cut = False
         stk = self._clk_stack if _STEP_CLOCK else None
+        hs = self._clk_hs if stk is not None else None
         if stk is not None:     # the step clock: time is the innermost scope's, never counted twice
             t = time.perf_counter()
             if stk:
                 self._clk[stk[-1][0]] = self._clk.get(stk[-1][0], 0.0) + t - stk[-1][1]
             stk.append((step, t))
+            if hs is not None:  # r1404: the same for loop heads, counted
+                h = cap.HEADS
+                if hs:
+                    self._clk_h[stk[-2][0]] = self._clk_h.get(stk[-2][0], 0) + h - hs[-1]
+                hs.append(h)
         try:
             yield
         except cap.CapReached:
@@ -4151,6 +4160,11 @@ class Agent:
                 self._clk[lab] = self._clk.get(lab, 0.0) + t - s
                 if stk:
                     stk[-1] = (stk[-1][0], t)
+                if hs:
+                    h = cap.HEADS
+                    self._clk_h[lab] = self._clk_h.get(lab, 0) + h - hs.pop()
+                    if hs:
+                        hs[-1] = h
 
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
@@ -25625,6 +25639,7 @@ class Agent:
         c0 = self.cycle
         if _STEP_CLOCK:
             self._clk, self._clk_stack, self._clk_t0 = {}, [], time.perf_counter()
+            self._clk_h, self._clk_hs, self._clk_h0 = {}, [], cap.HEADS
             self._reach_wall = 0.0
         try:
             return self._step_body(action)
@@ -25636,8 +25651,29 @@ class Agent:
                 self._tc_note_step()
             if _GAME_QUIT:
                 self._quit_weigh()      # item 31: at the step's end, stay against go in levels
-            self._clk_stack = None      # the step clock closes with the step
+            if self._clk_hs is not None:
+                self._heads_body(c0)
+            self._clk_stack = self._clk_hs = None      # the step clock closes with the step
             self.led.flush_tally(c0)    # the choice tally's per-step rows, at the step's end
+
+    def _heads_body(self, c0: int) -> None:
+        """r1404 1: the step's loop heads by scope -- the innermost scope's, never counted twice;
+        "unscoped" is what ran outside every scope -- to the @body side file, never a ledger row:
+        an instrument nothing reads (r1297)."""
+        path = getattr(self.led, "_path", None)
+        if path is None:
+            return
+        total = cap.HEADS - self._clk_h0
+        body = {"slot": "@body", "event": "heads", "cycle": c0, "game": self.gamma.game,
+                "total": total, "unscoped": total - sum(self._clk_h.values()),
+                "scopes": dict(sorted(self._clk_h.items()))}
+        # the side file starts with its ledger (TETHER_BODY_APPEND): a heads line written before
+        # the first fold opens it, so the fold appends rather than truncating
+        fresh = _BODY_APPEND and not getattr(self.led, "_body_opened", False)
+        if _BODY_APPEND:
+            self.led._body_opened = True
+        with open(f"{path}.body.jsonl", "w" if fresh else "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(body) + "\n")
 
     def _note_boundary_wall(self, wall_s: float) -> None:
         """A level boundary's write, timed by the loop: this life's own measurement of its write at
