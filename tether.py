@@ -23326,11 +23326,14 @@ class Agent:
                 route = self._route_of(slot) if _7H_ROUTE_GRADE else None
                 if route is not None:
                     g["paid_by_" + route] += 1
-                # (5) iv (r1357): the paid at its own moment, not only at the kind's next leave
-                self.led.record(self.cycle, self._running_step, slot, "line_paid",
-                                kind=str(self._kind_key(slot)), route=route, paid=g["paid"],
-                                left=g["left"], grade=dict(g),
-                                reads="a line under way bound its slot or lowered its outstanding")
+                # (5) iv (r1357): the paid at its own moment, not only at the kind's next leave;
+                # written under ACCEPT, whose outcome it reads (r1406: never MINT after ACCEPT)
+                with self._step_scope("ACCEPT"):
+                    self.led.record(self.cycle, self._running_step, slot, "line_paid",
+                                    kind=str(self._kind_key(slot)), route=route, paid=g["paid"],
+                                    left=g["left"], grade=dict(g),
+                                    reads="a line under way bound its slot or lowered its "
+                                          "outstanding")
             return
         bk = self._bind_key.get(slot) if _7H_TRIED else None
         closure = sorted(bk[1]) if bk else []
@@ -23359,19 +23362,20 @@ class Agent:
         if _SELF_STEER:
             self._ss_stop("vocabulary", "mint", self._kind_key(slot))     # item 27: the stop
         self._transitions(slot, self._leave_held[slot])
-        self.led.record(self.cycle, self._running_step, slot, "leave", root=self._root_id,
-                        level=self.level, verdict="unreachable at this budget",
-                        **({"line_grade": dict(self._line_grade[self._kind_key(slot)])}
-                           if rec is not None else {}),
-                        scope=(f"the {len(closure)} operands of this slot's lookup closure at "
-                               "this level, each tried at least once"),
-                        closure=len(closure), tried_min=min(tried), tried_max=max(tried),
-                        outstanding_first=ln["first"], outstanding_now=now,
-                        mints=ln["mints"],
-                        **({"unbundled": unb} if _7H_UNBUNDLE else {}),
-                        **({"kind_record": rec} if rec is not None else {}),
-                        reopen=("a level boundary, a new root, a new transition of the slot, "
-                                "or a new operand in the closure"))
+        with self._step_scope("ACCEPT"):   # it reads the accept's outcome, as line_paid does
+            self.led.record(self.cycle, self._running_step, slot, "leave", root=self._root_id,
+                            level=self.level, verdict="unreachable at this budget",
+                            **({"line_grade": dict(self._line_grade[self._kind_key(slot)])}
+                               if rec is not None else {}),
+                            scope=(f"the {len(closure)} operands of this slot's lookup closure "
+                                   "at this level, each tried at least once"),
+                            closure=len(closure), tried_min=min(tried), tried_max=max(tried),
+                            outstanding_first=ln["first"], outstanding_now=now,
+                            mints=ln["mints"],
+                            **({"unbundled": unb} if _7H_UNBUNDLE else {}),
+                            **({"kind_record": rec} if rec is not None else {}),
+                            reopen=("a level boundary, a new root, a new transition of the "
+                                    "slot, or a new operand in the closure"))
 
     def _route_of(self, slot: str) -> str:
         """7h (d) by route: which way of thinking bound the slot -- an invention, a carried term,
