@@ -55,6 +55,9 @@ print(json.dumps({
 '''
 
 
+ENDS = ("arrived_no_clear", "stalled", "lost", "untested", "parked")
+
+
 def _run(arm: str) -> dict:
     here = _repo.ROOT
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
@@ -78,9 +81,9 @@ def _on_holds(r: dict) -> list[str]:
     chk(first is None or first["pick"] or "System 0" in str(first["why"]),
         "H1 an unroutable start says System 0")
     chk(r["scoped"] and all(r["scoped"]), "H2 the held hypothesis is a subject-scoped want")
-    # "untested" since UNTESTED_KEEP (r392): an end on a board that could not host the test
-    chk(r["ends"] and all(e["why"] in ("arrived_no_clear", "stalled", "lost", "untested")
-                          for e in r["ends"]),
+    # "untested" since UNTESTED_KEEP (r392): an end on a board that could not host the test;
+    # "parked" since ROAD CLOSED (r1379, 2d48ff1): a budget ending, shelved, never a verdict
+    chk(r["ends"] and all(e["why"] in ENDS for e in r["ends"]),
         "H2 a hypothesis ended (arrived without a clear, or stalled)")
     seq = [(p["pick"], p["slot"]) for p in picks]
     chk(len(seq) >= 2 and all(a != b for a, b in zip(seq, seq[1:], strict=False)),
@@ -94,6 +97,11 @@ def main() -> None:
     assert on["arm"] is True and off["arm"] is False, (on["arm"], off["arm"])
     bad_on = _on_holds(on)
     assert not bad_on, f"ON: {bad_on}\n{json.dumps(on, indent=1)}"
+    # MUST-FAIL (r1420): an ending outside the five still fails H2
+    planted = json.loads(json.dumps(on))
+    planted["ends"] = planted["ends"] + [{"c": 0, "why": "refuted", "text": "planted"}]
+    assert "H2 a hypothesis ended (arrived without a clear, or stalled)" in _on_holds(planted), \
+        "MUST-FAIL H2: a planted 'refuted' ending passed"
     bad_off = _on_holds(off)
     assert len(bad_off) >= 4 and not off["proposals"] and not off["ends"], \
         f"MUST-FAIL OFF: {bad_off}\n{json.dumps(off, indent=1)}"
