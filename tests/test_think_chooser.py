@@ -7,7 +7,7 @@ r1261-r1265). gridworld default seed 0, the agent seed pinned, 6 steps; the timi
                           rows read actions_left = max_actions - taken
   check_c3_worked_step    the worked step (r1262): far, 48 vs 0.47 x 2.0 -> think; near, small
                           park 0.5 vs 0.1 x 2.0 -> think; 0.1 -> act
-  check_c4_governor_inputs  closer_found zeroes the walk's gain; urgency raises the act side and
+  check_c4_gate_inputs  closer_found zeroes the walk's gain; urgency raises the act side and
                           flips a choice; no fixed exit order left in the chooser (AST)
   check_c5_witness        a walk taken whose slot's outstanding fell is paid (think_settled, the
                           walk weight +1); a press preferred with no progress is one against
@@ -120,7 +120,7 @@ def check_c3_worked_step() -> None:
           f"(costs {[r['cost'] for r in rows]})")
 
 
-def check_c4_governor_inputs() -> None:
+def check_c4_gate_inputs() -> None:
     import ast
     import inspect
 

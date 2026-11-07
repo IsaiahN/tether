@@ -598,7 +598,7 @@ _UNSEAL_START = armflag.arm("TETHER_UNSEAL_START", default=True)
 # THE HISTORY WINDOW (R3 item 2; Isaiah's H1; the reviewer 18:10Z, 18:15Z), REVAMPED AS THE
 # LOOK-BACK (L1; Isaiah 2026-10-26 08:24 "revamp the history window to work better with the new
 # system and not overpower"; the reviewer 08:30): evidence lags only, depth-bounded, walked in a
-# round of their own after the present frame's, and only when the governor says think. ON; see
+# round of their own after the present frame's, and only when the gate says think. ON; see
 # conform/arms.py.
 _WINDOW = armflag.arm("TETHER_WINDOW", default=True)
 # B2b's round 3 (the reviewer 2026-10-11 10:57 CDT): derived binds walked last; reason in
@@ -920,12 +920,12 @@ _REENGAGE = armflag.arm("TETHER_REENGAGE", default=True)
 # at load each is bound per level where every kind has exactly ONE slot here, and offered to the
 # routine mint as a CANDIDATE -- on trial, never settled. OFF: none of it, as before
 _ROUTINE_CARRY = armflag.arm("TETHER_ROUTINE_CARRY", default=True)
-# THE GOVERNOR, THINK OR ACT (Isaiah 2026-10-26 08:24; the reviewer 08:30): one function,
+# THE GATE, THINK OR ACT (Isaiah 2026-10-26 08:24; the reviewer 08:30): one function,
 # Agent._think_or_act, read by the look-back (L1), the typed-late round (L3) and the widened streams
 # (L4) before each walks: closer_found / urgent / urgent_declined / probe_first / probe_declined /
 # ok. OFF: they walk without the gate
 _THINK_OR_ACT = armflag.arm("TETHER_THINK_OR_ACT", default=True)
-# A1, THE GOVERNOR AT THE STEP (Isaiah 2026-10-26 11:25; the reviewer 11:33): route asks
+# A1, THE GATE AT THE STEP (Isaiah 2026-10-26 11:25; the reviewer 11:33): route asks
 # Agent._think_or_act before a slot's library lookup; "urgent" or "probe_first" defers it, OWED
 # through C1's queue and asked first next step, recorded as deferred and never as not found. The
 # refuted-bin lookup is not gated. ON; conform/arms.py
@@ -1909,12 +1909,13 @@ def _standing_of(form: dict, keys, *rest) -> dict:
 
 def _owed_next() -> str:
     """What an owed slot gets at its next asking, for the four _owed_q writers' reads (the
-    reviewer 2026-11-07 r1355, item 4 (a)): the order route() gives it, then the same governor and
-    budget as any slot. Text only."""
+    reviewer 2026-11-07 r1355, item 4 (a)): the order route() gives it, then the same think-or-act
+    gate and budget as any slot. Text only."""
     order = ("ranked with the owed slots (owed and changed first; owed and still after the changed "
              "and own-act slots)" if _STEP_BUDGET and _STEP_RANK else "routed ahead of the un-owed "
              "slots")
-    return f"{order} at its next asking, where the governor and the step's budget decide again"
+    return (f"{order} at its next asking, where the think-or-act gate and the step's budget "
+            "decide again")
 
 
 class _Alphabet(dict):
@@ -2306,8 +2307,8 @@ _MUSING_CHOSEN = armflag.arm("TETHER_MUSING_CHOSEN", default=True)
 # one purse per step from before choose; the runners hand the game's clocks (actions_left,
 # slice_until); a think (a walk, a muse) is taken iff its gain beats the presses it displaces x rho
 # x need(focal) -- the clocks say how many presses, the life's bits per press prices them, the
-# press still goes out; the governor's readings are inputs, its exit order gone; think_choice /
-# think_settled witness each. OFF: route resets the purse, the governor's cascade, as before
+# press still goes out; the gate's readings are inputs, its exit order gone; think_choice /
+# think_settled witness each. OFF: route resets the purse, the gate's cascade, as before
 _THINK_CHOOSER = armflag.arm("TETHER_THINK_CHOOSER", default=True)
 # the step-clock scopes that evaluate nothing: the rest of a step's wall is charged to its purse
 _TC_IDLE_SCOPES = ("PERCEIVE", "ACCEPT", "SETTLE", "REPEAT")
@@ -3004,7 +3005,7 @@ def _replace_lib(lib: Any) -> Any:
 # arrivals do not -> OFF; calls-per-cycle growth steepens against the control -> OFF; binds
 # per candidate rises -> OFF. Each is a RESULT, not a failure.
 # L4, ON UNDER THE SHARE (Isaiah 2026-10-26 08:24; the reviewer 08:30): the widened streams draw
-# only after every base stream has stopped in the round, and only if the governor says think.
+# only after every base stream has stopped in the round, and only if the gate says think.
 _STREAM_WIDEN = armflag.arm("TETHER_STREAM_WIDEN", default=True)
 # D2, STREAM SHARE (the reviewer 2026-10-12 05:43, 06:19 CDT): within a round, the stream that has
 # spent the least rank takes the next candidate (Fig 6: distribute the search, keep the searchers
@@ -4795,10 +4796,10 @@ class Agent:
         # spent its whole life not acting.
         self._last_commit = 0
         self._last_progress = 0   # (6d): the cycle an objective gap last shrank
-        self._probe_wait: dict = {}   # the governor: slot -> (cycle, what could be probed then)
+        self._probe_wait: dict = {}   # _think_or_act's: slot -> (cycle, what could be probed then)
         self._mint_owed: dict = {}    # B1: slot -> the cycle its mint was deferred; minted first
         self._mint_exhausted = False  # B1: the last mint parked with its search stopped at a bound
-        self._urgent_wait: dict = {}  # the governor: slot -> (cycle, urgent / urgent_declined)
+        self._urgent_wait: dict = {}  # _think_or_act's: slot -> (cycle, urgent / urgent_declined)
         # 22: the reflex store, wired forms stamped prior with their admitting clause (r1243)
         self._reflexes: dict = {
             "orient": {"form": Rt.When("a change on a slot with no own cause",
@@ -15769,7 +15770,7 @@ class Agent:
             return cost
 
         # L3's late round: what `_judge` deferred is walked after every typed candidate, once
-        # per candidate, if the governor says think; `typed_late` records walked and closed.
+        # per candidate, if the gate says think; `typed_late` records walked and closed.
         _late: dict = {}
         _late_keys: set = set()
         _lw: dict = {}
@@ -16368,7 +16369,7 @@ class Agent:
         return total
 
     def _defer_lookup(self, slot: str) -> str | None:
-        """A1 (TETHER_STEP_ACT; Isaiah 2026-10-26 11:25, the reviewer 11:33): the governor at the
+        """A1 (TETHER_STEP_ACT; Isaiah 2026-10-26 11:25, the reviewer 11:33): the gate at the
         step. The why when the slot's library lookup is deferred this step -- owed through C1's
         queue, asked first next step -- else None, and the lookup runs as today."""
         if _ROUTE_NAMED:
@@ -16395,7 +16396,8 @@ class Agent:
         self._step_act[why] += 1
         self.led.record(self.cycle, "ROUTE", slot, "lookup_deferred", why=why,
                         question=list(qid),
-                        reads="deferred by the governor, never not found: owed, " + _owed_next()
+                        reads="deferred by the think-or-act gate, never not found: owed, "
+                              + _owed_next()
                               + ("; looked up when its kind's walk weight frees"
                                  if why == "under_witnesses" else ""))
         return why
@@ -16425,7 +16427,7 @@ class Agent:
                 res = {**{s: res[s] for s in self._owed_q if s in res},
                        **{s: r for s, r in res.items() if s not in self._owed_q}}
         elif self._owed_q:
-            # (2b) (the reviewer 2026-11-06 r1317, r1323): the governor's and the walk's deferrals
+            # (2b) (the reviewer 2026-11-06 r1317, r1323): the gate's and the walk's deferrals
             # write _owed_q in every arm and promise "asked first next step"; budget OFF, it held
             # nowhere. Owed slots first, the rest in today's order, as the budget's own branch does
             res = {**{s: res[s] for s in self._owed_q if s in res},
@@ -16564,8 +16566,8 @@ class Agent:
                             lookups_walked=self._step_act["walked"],
                             lookups_deferred={k: v for k, v in self._step_act.items()
                                               if k != "walked"},
-                            reads="A1: this step's lookups the governor let run, and those it "
-                                  "deferred by why")
+                            reads="A1: this step's lookups the think-or-act gate let run, and "
+                                  "those it deferred by why")
         if _DESCRIBED_LOOKUP and self._dl_n:
             self.led.record(self.cycle, "ROUTE", "@described_lookup", "described_lookup",
                             **dict(sorted(self._dl_n.items())),
@@ -20498,7 +20500,7 @@ class Agent:
         return max(1.0, (cs[-1] - cs[0]) / (len(cs) - 1)), True
 
     def _think_or_act(self, slot: str, closer: bool) -> tuple[bool, str]:
-        """THE GOVERNOR, think or act (Isaiah 2026-10-26 08:24: "its in a similar position to
+        """THE GATE, think or act (Isaiah 2026-10-26 08:24: "its in a similar position to
         overthinking versus when action is better, and some sort of reasoning in that vein should
         hamper it"; the reviewer 08:30). Whether a description-side extension of the search (the
         look-back, the typed-late round, the widened streams) is walked for `slot` in this mint,
@@ -20628,8 +20630,8 @@ class Agent:
 
     def _tc_act_side(self, kind, slot: str | None) -> tuple[float, float, dict]:
         """Item 25: what one displaced press is worth -- need of what it serves (the focal slot,
-        and `slot` too while a probe for its object is open: the governor's probe_first, as an
-        input), raised by urgency (idle / relief rate, never below 1: the governor's urgent, as an
+        and `slot` too while a probe for its object is open: the gate's probe_first, as an
+        input), raised by urgency (idle / relief rate, never below 1: the gate's urgent, as an
         input); 0 while the ("act", kind) weight is under its witnesses. (need, urgency, parts)"""
         need = self._tc_need(self._tc_focal)
         probe = getattr(self, "_can_probe", None)
@@ -20676,7 +20678,7 @@ class Agent:
         return think
 
     def _tc_walk(self, slot: str, closer: bool) -> tuple[bool, str]:
-        """Item 25: the governor's question under the one rule. The walk's gain is the slot's
+        """Item 25: the gate's question under the one rule. The walk's gain is the slot's
         stake, outstanding x need; a present-frame binding that closed it (closer_found, as an
         input) or its ("walk", kind) weight under its witnesses makes it 0."""
         kind = self._kind_key(slot)
@@ -23518,7 +23520,7 @@ class Agent:
         wanted: tuple[float, Term, int] | None = None
         rank = 0
         _share: dict = {}        # D2: per-stream rank/pays/turns, recorded under the arm
-        _widen: dict = {}        # L4: the widened streams' kinds and the governor's gate per round
+        _widen: dict = {}        # L4: the widened streams' kinds and the gate's answer per round
         _skey = _hit = None
         priced, _skipped = {}, 0
 
@@ -23589,7 +23591,7 @@ class Agent:
             # RELEVANT NOW. Widening to the graph's capacity would rebuild the enumeration
             # explosion deliberately.
             # L4: streams from _nbase on are the widened ones; each round holds them back until
-            # every base stream has stopped, then the governor decides whether they draw.
+            # every base stream has stopped, then the think-or-act gate decides whether they draw.
             _nbase = len(streams)
             if _STREAM_WIDEN and stype:
                 seen_out = {o for _i, o in streams}
@@ -23758,7 +23760,7 @@ class Agent:
 
             for _round in _rounds:
                 if _round == 2 and _WINDOW and slot in self._window_info:
-                    # L1's gate: the look-back is walked only when the governor says think
+                    # L1's gate: the look-back is walked only when the think-or-act gate says think
                     _walk, _why = self._think_or_act(slot, closer=best is not None)
                     self._window_info[slot]["gate"] = _why
                     if not _walk:

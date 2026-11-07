@@ -7,7 +7,7 @@
         children pin item 25's chooser (TETHER_THINK_CHOOSER=0): it reads the purse by design
         (evals = budget - spent prices a think), so with it on a 10^12 budget is a different
         agent from OFF; E's subject is the budget alone, and the chooser's dependence on the purse
-        is test_think_chooser's (the reviewer 2026-11-06 r1312). Both also pin A1's governor
+        is test_think_chooser's (the reviewer 2026-11-06 r1312). Both also pin A1's gate
         (TETHER_STEP_ACT=0): its deferrals write the owed queue in either arm, but route asks owed
         slots first only under the budget, so the budget-OFF arm reorders them (r1317; the
         ordering's move out of the budget branch is a fidelity item of its own)
@@ -122,7 +122,7 @@ def check_c(rows: list) -> list:
     """C: the owed slots are ASKED FIRST at c+1 -- route's rows at c+1 (written in its order; the
     "@" rows aside) open with every live owed slot route reaches, before any slot not owed. The
     owed slots' own fate there (looked up, held, deferred again) is not C's: an owed slot the
-    governor defers again leaves no lookup, so "the first LOOKUP is owed" read the wrong row (r1324;
+    gate defers again leaves no lookup, so "the first LOOKUP is owed" read the wrong row (r1324;
     the per-slot promise is A7's). Returns the (c, first routed slot at c+1) pairs; raises with the
     whole list otherwise."""
     routed: dict = {}

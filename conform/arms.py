@@ -548,7 +548,7 @@ ARMS: dict[str, str] = {
                      "~1 when it had no evidence); "
                      "every lag walked in a round of its own AFTER the present frame's, so it "
                      "never takes rank from a present binding; that round runs only when the "
-                     "governor (TETHER_THINK_OR_ACT) says think, and the mint row's window "
+                     "gate (TETHER_THINK_OR_ACT) says think, and the mint row's window "
                      "record carries gate / beyond_depth / no_evidence_not_walked. WHY ON: the "
                      "measured harm below was crowding by no-evidence lags inside round 1; "
                      "this removes both. WAS (OFF): "
@@ -1196,7 +1196,7 @@ ARMS: dict[str, str] = {
                             "routine_bound: carried, bound, unbound) and the routine mint offers "
                             "the bound ones as CANDIDATES (on trial, never settled). An older "
                             "store without the field loads as none. OFF: none of it. default ON",
-    "TETHER_THINK_OR_ACT": "THE GOVERNOR, THINK OR ACT (Isaiah 2026-10-26 08:24 'similar position "
+    "TETHER_THINK_OR_ACT": "THE GATE, THINK OR ACT (Isaiah 2026-10-26 08:24 'similar position "
                            "to overthinking versus when action is better'; the reviewer 08:30; "
                            "Fig 12 :125-130, two currencies read apart): Agent._think_or_act "
                            "(slot, closer) -> (walk, why), read by the look-back (L1), the "
@@ -1213,8 +1213,9 @@ ARMS: dict[str, str] = {
                            "for this slot and none was taken since: the agent chose not to act, "
                            "so it may think; the reviewer 08:47, no constant) / ok. "
                            "Agent units only, no wall clock. OFF: the three walk ungated. "
-                           "default ON",
-    "TETHER_STEP_ACT": "A1, THE GOVERNOR AT THE STEP (Isaiah 2026-10-26 11:25 'still sounds like "
+                           "Called 'the governor' in ledgers written before the rename after "
+                           "9bfce45 (r1374, 2026-11-07). default ON",
+    "TETHER_STEP_ACT": "A1, THE GATE AT THE STEP (Isaiah 2026-10-26 11:25 'still sounds like "
                        "that think act fix isnt in place yet'; the reviewer 11:33; Fig 12 "
                        ":125-129, two currencies, act when an action is cheaper; Fig 5 :12, aim "
                        "the probe): Agent.route asks Agent._think_or_act(slot, closer=False) "
@@ -1222,7 +1223,7 @@ ARMS: dict[str, str] = {
                        "lookup). urgent / probe_first -> Agent._defer_lookup: the lookup is not "
                        "run this step, the slot is OWED through C1's queue (at its next asking "
                        "ranked with the owed slots, or ahead of the un-owed with the budget "
-                       "or rank off; the governor and budget decide again; _owed_next), the "
+                       "or rank off; the gate and budget decide again; _owed_next), the "
                        "ROUTE row lookup_deferred names the why, and the bin falls "
                        "through as a lookup that found nothing does (MECHANISM) -- recorded as "
                        "deferred, never as not found (Fig 9 :60). ok / probe_declined / "
@@ -1325,7 +1326,7 @@ ARMS: dict[str, str] = {
                           "was not already owed for it, the library lookup is not walked -- the "
                           "slot is owed through C1's queue (_owed_q, owed_import) with a "
                           "route_named row; at its next asking it is ranked with the owed slots "
-                          "(_owed_next) and the governor and budget decide again. No number. "
+                          "(_owed_next) and the gate and budget decide again. No number. "
                           "OFF: the "
                           "lookup as before. default ON",
     "TETHER_PROGRESS_SHELF": "3 PROGRESS_SHELF (the reviewer r392). At _note_progress's progress "
@@ -2249,10 +2250,10 @@ ARMS: dict[str, str] = {
                             "one purse per step from before choose; the runners hand the game's "
                             "clocks (actions_left, slice_until); a walk or a muse is taken iff its "
                             "gain beats the presses it displaces x rho (this life's bits per "
-                            "press) x need, the press going out either way; the governor's "
+                            "press) x need, the press going out either way; the gate's "
                             "readings are inputs, its exit order gone; think_choice / "
                             "think_settled witness each. OFF: route resets the purse, the "
-                            "governor's cascade, as before. default ON",
+                            "gate's cascade, as before. default ON",
     "TETHER_NEW_BOARD_LEVEL": "BUILD 6 ITEM 24 (C) (the reviewer 2026-11-05 r1250): at the "
                               "agent's own board boundary (NEW_BOARD) the level is the world's "
                               "own count (env.levels()[0]), never the previous game's number run "

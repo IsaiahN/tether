@@ -49,7 +49,7 @@ def _miss(slot: str) -> tether.SlotResidual:
 
 
 def main() -> int:
-    assert tether._THINK_CHOOSER and tether._STEP_ACT, "precondition: the chooser and governor"
+    assert tether._THINK_CHOOSER and tether._STEP_ACT, "precondition: the chooser and the gate"
     ag = _agent()
     assert len(ag.trace) >= 2, "precondition: past the NOVEL bin"
     slots = sorted(s for s in ag.slots if not s.startswith("@"))

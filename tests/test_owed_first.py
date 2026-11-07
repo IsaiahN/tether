@@ -1,5 +1,5 @@
 """(2b) (the reviewer 2026-11-06 r1317, r1323): "owed, asked first next step" holds in every arm.
-The governor (A1) and the walk budget (A2) write _owed_q whether or not the step budget is on, but
+The gate (A1) and the walk budget (A2) write _owed_q whether or not the step budget is on, but
 route's owed-first order sat inside the budget branch, so with TETHER_STEP_BUDGET=0 a deferred slot
 kept its old place. A stepped gridworld agent, seed pinned; seconds.
 

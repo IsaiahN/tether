@@ -2,8 +2,8 @@
 A2 TETHER_WALK_BUDGET, on a stepped gridworld agent.
 
   (a) A1: with an untried action, route defers the slot's lookup (lookup_deferred probe_first), the
-      slot is owed, and the governor's next asking with the same untried set walks it
-      (probe_declined); item 25's chooser is pinned off in (a) only, since (a) is the governor's
+      slot is owed, and the gate's next asking with the same untried set walks it
+      (probe_declined); item 25's chooser is pinned off in (a) only, since (a) is the gate's
       own check (r1317). The "very next cycle" premise predates r674: the miss grade holds the
       in-range miss at cycle+1 first (asserted by name), and the walk is at cycle+2 (r1318);
   (b) A1 MUST-FAIL: with the arm OFF the lookup runs at once;
@@ -84,7 +84,7 @@ def _gate_case(on: bool) -> tuple:
 
 
 def check_a_untried_action_defers_then_probe_declined_walks() -> None:
-    # (a) is the A1 governor's own defer-then-walk, so item 25's chooser is pinned off here only:
+    # (a) is the A1 gate's own defer-then-walk, so item 25's chooser is pinned off here only:
     # with it on, _think_or_act hands the slot to _tc_walk, which has no probe_declined path (the
     # reviewer 2026-11-06 r1317; the chooser's starvation of an owed slot is R5's)
     keep = tether._THINK_CHOOSER
@@ -96,11 +96,11 @@ def check_a_untried_action_defers_then_probe_declined_walks() -> None:
     assert calls1 == [], calls1                                  # not looked up this step
     assert [r["detail"]["why"] for r in rows1] == ["probe_first"], rows1
     assert owed and owes, (owed, owes)                           # owed, asked first next step
-    # the next cycle: r674's miss grade holds an in-range miss first, before the governor
+    # the next cycle: r674's miss grade holds an in-range miss first, before the think-or-act gate
     assert hold[0] == [] and hold[1] == [], hold[:2]
     assert [(r["detail"]["bin"], r["detail"].get("miss_grade")) for r in hold[3]] == [
         ("held", "in_range_hold")], hold[3]
-    # the one after: broken after the hold, asked, and the governor walks it (probe_declined)
+    # the one after: broken after the hold, asked, and the gate walks it (probe_declined)
     assert [r["detail"].get("miss_grade") for r in rt3] == ["broken_after_hold"], rt3
     assert len(calls3) == 1 and calls3[0][1] == slot, calls3
     assert rows3 == [], rows3
@@ -181,7 +181,7 @@ def check_e_urgent_defers_then_urgent_declined_walks() -> None:
     ag._relief_rate = lambda: (1.0, 0)             # idle / 1 >= _QUORUM_HALF: urgent
     calls: list = []
     ag._library_fit = lambda s, _ex: calls.append((ag.cycle, s)) or None
-    # (e) is the governor's own check: item 25's chooser pinned off here only; each asking's miss
+    # (e) is the gate's own check: item 25's chooser pinned off here only; each asking's miss
     # is a distinct far value, so r674's miss grade is met and passes, never holds (r1326)
     keep = tether._STEP_ACT, tether._THINK_OR_ACT, tether._THINK_CHOOSER
     try:

@@ -2,13 +2,13 @@
 
 Each shows the new behaviour fires and the old failure cannot recur, on a gridworld agent with the
 one site under test isolated:
-  - THE GOVERNOR: closer_found; urgent past the commit bar (must-fail: idle 0 is not urgent);
+  - THE GATE: closer_found; urgent past the commit bar (must-fail: idle 0 is not urgent);
     probe_first while an action is untried, the same answer within one cycle, probe_declined at a
     later cycle with the same open set, probe_first again when the set changes; OFF walks;
   - L2: the delta order keeps EVERY candidate (the cut that lost a closing term cannot recur), on
     every slot of a stepped agent, with occasions counted;
   - L3: a type-mismatched closer is deferred, walked late after the typed candidates, and closes
-    (typed_late closed 1); MUST-FAIL: with the governor saying act, the same lookup finds nothing;
+    (typed_late closed 1); MUST-FAIL: with the gate saying act, the same lookup finds nothing;
   - L4: in a real mint with a widened stream, no base stream draws after the first widened draw,
     and the widened stream did draw (occasions > 0).
 
@@ -34,7 +34,7 @@ def _agent() -> tether.Agent:
                         tether.Config(), ledger.Ledger())
 
 
-def check_governor() -> None:
+def check_gate() -> None:
     ag = _agent()
     keep = tether._THINK_OR_ACT
     try:
