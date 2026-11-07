@@ -293,7 +293,60 @@ def say_row(event: str, d: dict, ends: tuple) -> list:
         return [("PLAN", f"I WANT THIS: I DO {_f(d.get('routine'))}")]
     if event == "ending" and d.get("how") in (win, advance):
         return [("WIN" if d["how"] == win else "LEVEL", "SOMETHING GOOD HAPPENED: I WANT THIS")]
+    if event in WEIGHT_ROWS:
+        return [("WEIGHT", _say_weight(event, d))]
     return []
+
+
+# (5) v (the reviewer 2026-11-07 r1356; Isaiah 07:56 "log that event and console it"): every row a
+# standing or the halflife changes on, one WEIGHT line; the detail in plain words as the filler
+WEIGHT_ROWS = ("halflife_moved", "standing_freed", "think_settled", "reflex_settled",
+               "quit_settled", "muse_paid", "muse_test_settled", "leave_paid", "wrong_leave",
+               "self_stop", "self_stop_paid", "s0_settled", "s0_paid", "field_class")
+_KIND_TAIL = re.compile(r", '([^']+)'\)$")
+
+
+def _kind(v) -> str:
+    """A kind key's last reading ("((...), 'EXTENT')" -> EXTENT), else the key as written."""
+    s = str(v)
+    m = _KIND_TAIL.search(s)
+    return m.group(1) if m else s
+
+
+def _pa_words(d: dict) -> str:
+    p = d.get("weight_paid", d.get("paid"))
+    a = d.get("weight_against", d.get("against"))
+    return f"paid {p}, against {a}"
+
+
+def _say_weight(event: str, d: dict) -> str:
+    if event == "halflife_moved":
+        return ("I KNOW MORE NOW: " + _f(f"the halflife every against decays by moved "
+                                        f"{d.get('old_effective')} -> {d.get('new_effective')} "
+                                        f"({d.get('vindications')} vindications)"))
+    if event == "standing_freed":
+        what = f"the {d.get('form')} weight for {_kind((d.get('situation') or ['?'])[0])}"
+        tail = (f"against {d.get('against')}, 1 + carried {d.get('carried')} + paid "
+                f"{d.get('paid')}, by {d.get('by')}")
+        if d.get("to") == "free":
+            return f"I CAN DO THIS NOW: {_f(f'{what} freed ({tail})')}"
+        return f"I CAN'T DO THIS NOW: {_f(f'{what} is under its witnesses ({tail})')}"
+    if event == "think_settled":
+        good = "GOOD" if d.get("paid") else "NOT GOOD"
+        return (f"THIS WAS {good}: " + _f(f"{d.get('chosen')} on the {d.get('weight')} weight for "
+                                          f"{_kind(d.get('kind'))}, now {_pa_words(d)}"))
+    if event == "reflex_settled":
+        good = "GOOD" if d.get("held") else "NOT GOOD"
+        return f"THIS WAS {good}: " + _f(f"the {d.get('form')} reflex, now {_pa_words(d)}")
+    if event == "field_class":
+        return ("NOW I THINK THIS: "
+                + _f(f"{d.get('field')} on {d.get('classes')}, weights {d.get('weights')}"))
+    if event == "muse_test_settled":
+        st = next(iter((d.get("standing") or {}).values()), None)
+        return ("NOW I THINK THIS: " + _f(f"muse_test for {_kind(d.get('kind'))} "
+                                          f"discriminated {d.get('discriminated')}, now {st}"))
+    what = d.get("kind") or d.get("line") or d.get("desc") or d.get("term")
+    return f"NOW I THINK THIS: {_f(f'{event} {_kind(what)}, now {_pa_words(d)}')}"
 
 
 class Speaker:

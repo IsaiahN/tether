@@ -1889,6 +1889,21 @@ _STEP_RANK = armflag.arm("TETHER_STEP_RANK", default=True)
 RANK_CLASSES = ("owed_changed", "changed", "own_act", "owed_still", "rest")
 
 
+def _pa(form: dict, situ: tuple) -> list:
+    """(5) iii: a standing's [paid, against] as the record holds it, read WITHOUT the decay
+    (a read through _rf_standing moves its tick); [0, 0.0] where none was made."""
+    st = form["standing"].get(situ)
+    return [0, 0.0] if st is None else [st["paid"], round(st["against"], 4)]
+
+
+def _standing_of(form: dict, keys, *rest) -> dict:
+    """(5) iii: {key: [paid, against]} for the (key, *rest) situations whose str(key) is named."""
+    want = {str(k) for k in keys}
+    out = {str(s[0]): _pa(form, s) for s in form["standing"] if str(s[0]) in want
+           and tuple(s[1:]) == tuple(rest)}
+    return {k: out.get(k, [0, 0.0]) for k in sorted(want)}
+
+
 def _owed_next() -> str:
     """What an owed slot gets at its next asking, for the four _owed_q writers' reads (the
     reviewer 2026-11-07 r1355, item 4 (a)): the order route() gives it, then the same governor and
@@ -4878,6 +4893,7 @@ class Agent:
         self._hs_open: list = []      # 23: course readings awaiting their verdict at j + lag
         self._hs_read: tuple | None = None   # 23: (cycle, course, reading) -- one per cycle
         self._rf_carried: Counter = Counter()      # carry: (form, kind-level key) -> paid in
+        self._rf_side: dict = {}   # (5) ii, r1356: (form, situation) -> under at its last read
         self._loss_carried: Counter = Counter()    # carry: (loss kind, frame, relation) -> n in
         self._rfc_written: dict = {}               # carry: what the last write already sent
         # ADD-ONLY: (total committed at, ended tested_yes, cycle it ended) per OVERRIDE; and the
@@ -7439,6 +7455,8 @@ class Agent:
         window size never sets the verdicts. In one window a class that paid is never also
         against: a pay after an against takes that against back. One row."""
         n: Counter = Counter()
+        back: list = []        # (5) iii: what a pay took back
+        edges: set = set()
         board = getattr(self, "_bond_board", 0)
         win = getattr(self, "_gcw_book", None)
         if win is None or win[0] is not self._gcw_win:
@@ -7457,14 +7475,17 @@ class Agent:
                     if c in win[2]:
                         win[2].discard(c)
                         st["against"] = max(0.0, st["against"] - 1)
+                        back.append(c)
                 for ed in into.get(e, ()):
                     st = self._rf_standing("sa_edge", (*ed, board))
                     st["paid"] += 1
                     n["edge"] += 1
+                    edges.add(ed)
                     win[3].add(ed)
                     if ed in win[4]:
                         win[4].discard(ed)
                         st["against"] = max(0.0, st["against"] - 1)
+                        back.append(list(ed))
         else:
             for c in sorted(set().union(*(self._gcw_win.get(e, set()) for e in entries))
                             - win[1] - win[2]):
@@ -7474,12 +7495,24 @@ class Agent:
             for ed in sorted(set().union(*(into.get(e, set()) for e in entries))
                              - win[3] - win[4]):
                 self._rf_standing("sa_edge", (*ed, board))["against"] += 1
+                edges.add(ed)
                 win[4].add(ed)
                 n["edge"] += 1
         if n:
             self.led.record(self.cycle, self._running_step, "@rank", "field_class", field=field,
                             classes=dict(n), board=board,
-                            weights={c: round(self._gcw_p(c), 4) for c in sorted(n) if c != "edge"})
+                            weights={c: round(self._gcw_p(c), 4) for c in sorted(n) if c != "edge"},
+                            standing={c: _standing_of(self._reflexes["gcw"], [c], board)[c]
+                                      for c in sorted(n) if c != "edge"},
+                            # the edges counted, not listed (109 KB on gridworld's 12 steps); an
+                            # edge that crosses has its own standing_freed row
+                            **({"edge_standing": {"touched": len(edges), "under": sum(
+                                1 for ed in edges
+                                if 1 + self._rf_in("sa_edge", (*ed, board))
+                                + _pa(self._reflexes["sa_edge"], (*ed, board))[0]
+                                < _pa(self._reflexes["sa_edge"], (*ed, board))[1])}}
+                               if edges else {}),
+                            **({"taken_back": back} if back else {}))
 
     def _tk_after(self, key: tuple, nxt: int | None) -> bool:
         """TK: a window that offered nothing. Short of the list's end it is "not yet": the next
@@ -10841,6 +10874,7 @@ class Agent:
         self.led.record(self.cycle, self._running_step, "@muse", "muse_chosen",
                         offered=offered, walked=len(run.get("walked", ())),
                         paying=len(run["paying"]), against_kinds=against,
+                        against_standing=_standing_of(self._reflexes["muse"], against),
                         quiet=getattr(self, "_muse_quiet", True),
                         park_product={"product": round(park[0], 6), "gain": park[1].get("gain"),
                                       "need": self._muse_need(park[1]) if park[1] else 0},
@@ -10901,7 +10935,10 @@ class Agent:
             self._rf_standing("muse", (kind,))["against"] += 1
             self._muse_tests.pop(host, None)
         self.led.record(self.cycle, self._running_step, host, "muse_test_settled", got=got,
-                        rival=pc, bound=pb, discriminated=hit, kind=str(kind))
+                        rival=pc, bound=pb, discriminated=hit, kind=str(kind),
+                        standing=_standing_of(self._reflexes["muse_test"], [str(kind)]),
+                        **({"muse_standing": _standing_of(self._reflexes["muse"], [str(kind)])}
+                           if got == pb and got != pc else {}))
 
     def _muse_close_parks(self, how: str) -> None:
         """Item 24 (r1252 5(1)): parks are this GAME's gaps -- at a game switch or the game's end
@@ -11184,6 +11221,7 @@ class Agent:
         game's ground, never carried in as settled (the reviewer 2026-10-16 19:01 Q3)."""
         lib = self._inv_library() if carried else None
         made, refused, tallied = [], [], []
+        rf_in: list = []       # (5) iii: the paid counts carried in, per (form, key)
         for rec in carried:
             if rec.get("kind") == "tally":      # item 20: the tallies seed the prior, no entry
                 if _TALLY_CARRY and _BOARD_DESC:
@@ -11197,6 +11235,7 @@ class Agent:
                 if _REFLEX_CARRY:
                     for form, key, n in rec.get("paid", ()):
                         self._rf_carried[(form, _tup(key))] += n
+                        rf_in.append([form, [str(k) for k in key], n])
                     for lk, frame, rel, n in rec.get("loss", ()):
                         self._loss_carried[(lk, frame, _tup(rel))] += n
                     tallied.append(rec["name"])
@@ -11241,6 +11280,7 @@ class Agent:
             self.led.record(self.cycle, self._running_step, "@lineage", "invention_carried",
                             carried=len(carried), reinvented=made, refused=refused,
                             **({"tallied": tallied} if tallied else {}),
+                            **({"reflex_paid_in": rf_in} if rf_in else {}),
                             reads=("inventions carried as their method, re-invented on trial in "
                                    "the private library; standing is earned here"))
         return {"carried": len(carried), "reinvented": len(made), "refused": len(refused)}
@@ -11893,9 +11933,19 @@ class Agent:
         # how long a refutation should keep counting for THIS agent on THIS board. Until it
         # has one, `halflife` stays `None` and `gamma`'s seed applies, MARKED UNEARNED below
         # so an unearned value is never mistaken for a decision.
+        h0 = self.gamma.halflife
         if self.gamma.vindication:
             self.gamma.halflife = (sum(self.gamma.vindication)
                                    / len(self.gamma.vindication))
+        if self.gamma.halflife != h0:
+            # (5) i (r1356): the one number every against-decay reads moved
+            self.led.record(self.cycle, self._running_step, "@weight", "halflife_moved",
+                            old=h0, new=self.gamma.halflife,
+                            old_effective=h0 or REJECTION_HALFLIFE,
+                            new_effective=self.gamma.halflife or REJECTION_HALFLIFE,
+                            vindications=len(self.gamma.vindication),
+                            earned=bool(self.gamma.vindication),
+                            reads="the mean cycles a demoted term took to come good")
         lv = getattr(self.env, "levels", None)
         done, win = lv() if lv else (0, 0)
         self.led.record(self.cycle, self._running_step, "*", "books",
@@ -11924,6 +11974,7 @@ class Agent:
                         settled=len(self.settled), demoted=len(self.demoted),
                         watching=len(self._demoted_watch),
                         halflife=self.gamma.halflife,
+                        halflife_effective=self.gamma.halflife or REJECTION_HALFLIFE,
                         halflife_earned=bool(self.gamma.vindication),
                         vindications=len(self.gamma.vindication), **self.gamma.book)
 
@@ -18547,11 +18598,32 @@ class Agent:
         decaying failures is forgiveness, decaying confirmations amnesia (Standing, r1243)."""
         st = self._reflexes[form]["standing"].setdefault(
             situ, {"paid": 0, "against": 0.0, "tick": self.cycle})
+        a0 = st["against"]
         if st["against"]:
             st["against"] *= 0.5 ** ((self.cycle - st["tick"])
                                      / (self.gamma.halflife or REJECTION_HALFLIFE))
         st["tick"] = self.cycle
+        self._rf_crossed(form, situ, st, a0)
         return st
+
+    def _rf_crossed(self, form: str, situ: tuple, st: dict, a0: float) -> None:
+        """(5) ii (r1356; Isaiah 07:56 "log that event and console it"): one standing_freed row
+        when a read finds a (form, situation) on the other side of r1243's threshold (1 + carried
+        + paid < against, p < 1/2) from its last read: by this read's decay, or by the witnesses
+        counted since. Never a row per read; nothing a choice reads is written."""
+        c = self._rf_in(form, situ)
+        under = 1 + c + st["paid"] < st["against"]
+        was = self._rf_side.get((form, situ))
+        self._rf_side[(form, situ)] = under
+        if was is None or was == under:
+            return
+        self.led.record(self.cycle, self._running_step, "@weight", "standing_freed", form=form,
+                        situation=[str(x) for x in situ], to="under" if under else "free",
+                        by="decay" if (1 + c + st["paid"] < a0) == was else "witnesses",
+                        against=round(st["against"], 4), against_before=round(a0, 4),
+                        paid=st["paid"], carried=c,
+                        halflife=self.gamma.halflife or REJECTION_HALFLIFE,
+                        reads="the weight crossed 1 + carried + paid against its witnesses")
 
     def _reflex_settle(self) -> None:
         """22: last step's reads judged. A fire whose predicted consequence failed, or that a death
@@ -23195,6 +23267,8 @@ class Agent:
         self._transitions(slot, self._leave_held[slot])
         self.led.record(self.cycle, self._running_step, slot, "leave", root=self._root_id,
                         level=self.level, verdict="unreachable at this budget",
+                        **({"line_grade": dict(self._line_grade[self._kind_key(slot)])}
+                           if rec is not None else {}),
                         scope=(f"the {len(closure)} operands of this slot's lookup closure at "
                                "this level, each tried at least once"),
                         closure=len(closure), tried_min=min(tried), tried_max=max(tried),
