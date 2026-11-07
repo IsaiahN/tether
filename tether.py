@@ -9526,6 +9526,7 @@ class Agent:
         refused: Counter = Counter()
         cands = []
         _smw: dict = {}                         # R4 record: the clock verdict per subject
+        _smv: dict = {}     # r1416: that verdict once per subject this pass (the trace is fixed)
         slot_set = set(self.slots) if _HYP_SLOTSET else None
         routable_slots = self._route_first_set(before) if _HYP_ROUTE_FIRST else None
         would_drop: set = set()
@@ -9596,8 +9597,10 @@ class Agent:
                     OWN_CLOCK_N["refused"] += 1
                     refused["the own clock moves it"] += 1     # time can make it hold, either side
                     continue
-                if _GOAL_HYP and self._self_moving(
-                        c.slot, _smw.setdefault(c.slot, {}) if _R4_RECORD else None):
+                if _GOAL_HYP and c.slot not in _smv:
+                    _smv[c.slot] = self._self_moving(
+                        c.slot, _smw.setdefault(c.slot, {}) if _R4_RECORD else None)
+                if _GOAL_HYP and _smv[c.slot]:
                     refused["self-moving subject"] += 1     # a clock; it may still be an operand
                     continue
                 if compile_term.run(c, before) is not False:
