@@ -1669,7 +1669,8 @@ _DESCRIBE_BY_SOURCE = armflag.arm("TETHER_DESCRIBE_BY_SOURCE", default=True)
 # matched along with what"; Fig 10 :63, Fig 12 :5): the lookup row also carries held_groups -- WHAT,
 # each held distinct reading pair and its bonds in first-meet order; WHEN, each of their readings'
 # changed frame indices (_read_two's moved); WHERE, the description's types and, for an event, each
-# member's readings -- from which the per-junction lines and held_digest rebuild exactly. A record
+# member's readings, as a list in member order (r1339: the ledger's sort_keys re-sorts a dict) --
+# from which the per-junction lines and held_digest rebuild exactly, from the disk row. A record
 # only; held_digest and held_sample unchanged. A row whose field passes HELD_GROUPS_WATCH bytes says
 # so (held_groups_bytes), never cut. OFF: no field
 _HELD_GROUPS = armflag.arm("TETHER_HELD_GROUPS", default=True)
@@ -6517,7 +6518,11 @@ class Agent:
         """TETHER_HELD_GROUPS (r1313, r1336): the row's held_groups -- the held distinct pairs
         (_lookup_held, first-meet order), each of their readings' changed frame indices as
         composer._read_two's moved() reads them, the description's types and, for an event, each
-        member's readings. Over HELD_GROUPS_WATCH bytes the row also says held_groups_bytes."""
+        member's readings. Over HELD_GROUPS_WATCH bytes the row also says held_groups_bytes.
+        "members" is a LIST in the event's member order (r1339): the event dedupe makes the lines'
+        order depend on it, and the ledger writes rows with sort_keys, which re-sorts a dict. The
+        other orders do not reach the lines: lookup_junctions sorts each reading list and walks the
+        library's junctions (composer.py:563-570), and "pairs" / "changed" are read by key."""
         frames = [b for b, *_r in hist]
         rd = sorted({r for k in self._lookup_held for r in k})
         chg = {}
@@ -6528,7 +6533,7 @@ class Agent:
         g = {"pairs": [[x, y, list(h)] for (x, y), h in self._lookup_held.items()],
              "changed": chg, "types": {r: described[r] for r in sorted(described)}}
         if ev is not None:
-            g["members"] = {m: sorted(desc_of[m]) for m in members}
+            g["members"] = [[m, sorted(desc_of[m])] for m in members]
         n = len(json.dumps(g, ensure_ascii=False).encode())
         return {"held_groups": g, **({"held_groups_bytes": n} if n > HELD_GROUPS_WATCH else {})}
 

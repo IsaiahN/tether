@@ -1,11 +1,14 @@
 """TETHER_HELD_GROUPS (the reviewer 2026-11-06 r1313, r1336): a lookup row's held_groups (WHAT, the
 held distinct pairs; WHEN, their readings' changed frame indices; WHERE, the description's types and
-an event's member readings) rebuild the row's per-junction lines and its EXISTING held_digest
-exactly, with the library. A gridworld agent, seed pinned, 3 steps: c1 o0.col and the c2 o0.row
-event (about 5 s per run).
+an event's member readings, a list in member order) rebuild the row's per-junction lines and its
+EXISTING held_digest exactly, with the library, FROM THE DISK ROW: every row is first round-tripped
+through the ledger's own writer (json.dumps(sort_keys=True), ledger.py:236; r1339). A gridworld
+agent, seed pinned, 3 steps: c1 o0.col and the c2 o0.row event (about 5 s per run).
 
-check_rebuild  every lookup row with held lines: the lines rebuilt from held_groups alone hash to
-               held_digest, and their count is held_n. MF: drop one group and the digest differs
+check_rebuild  every lookup row with held lines, round-tripped: the lines rebuilt from held_groups
+               hash to held_digest, and their count is held_n. MF: drop one group and the digest
+               differs. MF: the event's members as a dict (406d55d's form) differ on disk, since
+               sort_keys re-sorts its member order (o0.row, o0.col)
 check_paths    the stream path (TETHER_LOOKUP_FOLD off) and the list path (TETHER_LOOKUP_STREAM off)
                write the same held_groups as the fold
 check_off      OFF: no held_groups field, and every row is otherwise the ON row
@@ -56,13 +59,20 @@ def lookups(rows: list) -> list:
     return [r for r in rows if r["event"] == "lookup" and "held_digest" in r["detail"]]
 
 
+def disk(row: dict) -> dict:
+    """The row as the ledger writes it (ledger.py:236, sort_keys) and a later reader loads it."""
+    return json.loads(json.dumps(row, sort_keys=True, default=str))
+
+
 def rebuild(g: dict) -> tuple:
     """The per-junction lines from held_groups and the library: (sha256 hex[:16], count)."""
     held = {(x, y): h for x, y, h in g["pairs"]}
     ch = {r: set(v) for r, v in g["changed"].items()}
     types = g["types"]
     srcs = ([types] if "members" not in g
-            else [{r: types[r] for r in rs} for rs in g["members"].values()])
+            else [{r: types[r] for r in rs} for rs in (g["members"].values()
+                                                        if isinstance(g["members"], dict)
+                                                        else (v for _m, v in g["members"]))])
     dig, n, seen = hashlib.sha256(), 0, set()
     for d_ in srcs:
         for mol, a, b, ra, rb, via in composer.lookup_junctions(d_):
@@ -87,9 +97,11 @@ def rebuild(g: dict) -> tuple:
 
 
 def check_rebuild() -> None:
-    lk = [r for r in lookups(run()) if r["detail"]["held_n"]]
+    lk = [disk(r) for r in lookups(run()) if r["detail"]["held_n"]]
     assert lk, "no lookup with held lines: the fixture reaches nothing"
     assert all("held_groups" in r["detail"] for r in lk), "MF: no held_groups (a5d20ac)"
+    ev = [r for r in lk if "members" in r["detail"]["held_groups"]]
+    assert ev, "no event lookup: the member-order MF reaches nothing"
     for r in lk:
         d = r["detail"]
         got = rebuild(d["held_groups"])
@@ -99,8 +111,18 @@ def check_rebuild() -> None:
         assert rebuild(cut)[0] != d["held_digest"], ("MUST-FAIL: a dropped group went unseen",
                                                      r["slot"])
         print(f"  c{r['cycle']} {r['slot']}{' (event)' if 'members' in d['held_groups'] else ''}:"
-              f" {len(d['held_groups']['pairs'])} groups rebuild {d['held_n']} lines, digest "
-              f"{d['held_digest']}; one group dropped -> differs")
+              f" {len(d['held_groups']['pairs'])} groups rebuild {d['held_n']} lines from disk, "
+              f"digest {d['held_digest']}; one group dropped -> differs")
+    for r in ev:
+        d = r["detail"]
+        mem = d["held_groups"]["members"]
+        assert [m for m, _v in mem] != sorted(m for m, _v in mem), ("MF: member order already "
+                                                                    "sorted", r["slot"])
+        as_dict = disk(dict(d["held_groups"], members=dict(mem)))
+        assert rebuild(as_dict)[0] != d["held_digest"], ("MUST-FAIL: the dict form rebuilt on "
+                                                         "disk", r["slot"])
+        print(f"  c{r['cycle']} {r['slot']} (event): members {[m for m, _v in mem]}; as a dict "
+              "on disk (406d55d) -> differs")
 
 
 def check_paths() -> None:
