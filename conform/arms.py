@@ -2668,6 +2668,16 @@ ARMS: dict[str, str] = {
     "TETHER_HYP_OWN_PRESS": "P2' (ii) (r830): a held goal hypothesis ages, and reads its trend, "
                             "only on its own presses (routine, hold, actuator); presses spent "
                             "elsewhere are counted and never end it. default ON",
+    "TETHER_HYP_ROAD_CLOSED": "ROAD CLOSED (the reviewer 2026-11-07 r1379; Fig 9 :60, Fig 8 "
+                              ":40-41): a held goal hypothesis whose route reads None at choose on "
+                              "MIN_REPEAT (2) consecutive reads (a cycle with no read neither "
+                              "breaks nor extends the run) ends 'parked' by 'no_route' "
+                              "(no_route_reads on its goal_hypothesis_end row): on the _untested "
+                              "shelf, never in _hyp_tried, no standing touched. Any 'untested' "
+                              "ending is shelved whatever its steps and touches, and an untested "
+                              "or parked ending books no leave (_lr_leave_paid). OFF: it holds "
+                              "until its elsewhere budget; a stepped one is barred; the leave is "
+                              "booked, as before. default ON",
     "TETHER_NARRATE": "N1 / N2 (the reviewer 2026-11-02 14:38 plan, r822): a ledger with a path "
                       "says its key rows aloud, one line per event kind per cycle (more counted), "
                       "copied to narrate.log, and each game's 'stopped at link X'. Writes nothing "

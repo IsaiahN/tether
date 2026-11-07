@@ -3199,6 +3199,12 @@ _TF_PASS = armflag.arm("TETHER_TF_PASS", default=True)
 # elsewhere is counted as such and never ends it. OFF: every cycle ages it
 _HYP_OWN_PRESS = armflag.arm("TETHER_HYP_OWN_PRESS", default=True)
 _HYP_OWN_BY = ("routine", "hold", "actuator", "discriminate:goal", "lookahead")
+# ROAD CLOSED (the reviewer 2026-11-07 r1379; Fig 9 :60, Fig 8 :40-41): a held hypothesis whose
+# route reads None on MIN_REPEAT consecutive reads is PARKED -- released to the _untested shelf,
+# never refuted, no standing touched -- and any untested ending is shelved whatever its steps and
+# books no leave. OFF: it holds until its elsewhere budget, and a stepped one is barred, as before
+_HYP_ROAD_CLOSED = armflag.arm("TETHER_HYP_ROAD_CLOSED", default=True)
+_ROAD_CLOSED_N = MIN_REPEAT    # a yes/no read repeats as reads (self_family.py:40-45)
 # P3 LOOK-AHEAD (the reviewer 2026-11-02 14:38 plan, r832 c; Fig 12 :107-108, rehearsal over a
 # sequence): the settled one-press predictors chained over sequences of INTENTS in thought (r841 4:
 # BECOME the subject +/-, TOUCH an object the predictors read, each realised by the interface as
@@ -9287,9 +9293,14 @@ class Agent:
         self._hyp_restore({sl: v for sl, v in h.get("displaced", {}).items()
                            if sl not in self.wants})
         ended_by = None
-        if _UNTESTED_KEEP and h["steps"] == 0 and h["touches"] == 0 and not (loss or won):
+        # r1379: a budget ending (untested by elsewhere, or parked) is never a verdict: shelved
+        # whatever its steps, never barred
+        budget_end = _HYP_ROAD_CLOSED and why in ("untested", "parked") and not (loss or won)
+        if (_UNTESTED_KEEP and h["steps"] == 0 and h["touches"] == 0 and not (loss or won)
+                or budget_end):
             self._untested[h["tkey"]] = (self.cycle, why)    # the board could not host its test
-            why, ended_by = "untested", why
+            if why != "parked":
+                why, ended_by = "untested", why
         else:
             self._hyp_tried[h["tkey"]] = (why, h.get("cond"), h["text"])
             if _LEAVE_RATE and by == "rate":
@@ -9304,9 +9315,9 @@ class Agent:
             if won:
                 self._tc_wrong_leave("hyp", h["tkey"], self._kind_key(h["slots"][0]),
                                      h["reopened"])
-            else:
+            elif not (_HYP_ROAD_CLOSED and why in ("untested", "parked")):
                 self._lr_leave_paid("hyp", h["tkey"], self._kind_key(h["slots"][0]),
-                                    h["reopened"], why)
+                                    h["reopened"], why)     # r1379: a budget never books a leave
         if _SELF_STEER:
             # item 27: a stall stops at "plan", an arrival without a clear at "objective"
             sk = (self._ss_form(h["tkey"][0]), self._kind_key(h["slots"][0]))
@@ -9346,6 +9357,7 @@ class Agent:
                         reads_n={sl: len(v) for sl, v in h["reads"].items()},
                         acted=dict(h["acted"]),
                         **({"elsewhere": h.get("elsewhere", 0)} if _HYP_OWN_PRESS else {}),
+                        **({"no_route_reads": h.get("no_route", 0)} if why == "parked" else {}),
                         reads="a goal hypothesis ended; the next must differ (Fig 7 :36)",
                         **({"tests": dict(h.get("tests", {})),
                             "tests_read_by": None} if _R4_RECORD else {}),
@@ -17853,7 +17865,15 @@ class Agent:
                                  else "not chosen: no series")
             elif self._goal_split(before, commit=False) is None:
                 self._hyp_why = "no route"
+                if _HYP_ROAD_CLOSED:
+                    # r1379: read closed _ROAD_CLOSED_N times running, it parks; a cycle with no
+                    # read (a reflex's, an unchosen slot's) neither breaks nor extends the run
+                    n = self._hyp["no_route"] = self._hyp.get("no_route", 0) + 1
+                    if n >= _ROAD_CLOSED_N:
+                        self._hyp_end("parked", by="no_route")
             else:
+                if _HYP_ROAD_CLOSED:
+                    self._hyp["no_route"] = 0
                 goal = self._goal_split(before)
                 if goal is not None:
                     self._hyp_why = "acted"
