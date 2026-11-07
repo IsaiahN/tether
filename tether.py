@@ -2093,6 +2093,12 @@ _SLOT_IN_TEXT = re.compile(r"(?<![A-Za-z0-9_.~])(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-
 # that is counted. OFF: today's proposer, grading and record.
 _OWN_CLOCK_SUBJECT = armflag.arm("TETHER_OWN_CLOCK_SUBJECT", default=True)
 OWN_CLOCK_N: Counter = Counter()        # "refused" / "empty" (proposals); "graded" (tests)
+# r1419 F: a library text's subject read off the text ("o.r", or o.CHANGE_OF[r]) is refused "not a
+# movable slot" BEFORE its compile, when no TOUCH partner can save it. "refused" counts those; under
+# F_PRE_CHECK (a witness, never the agent) each is compiled anyway and "mismatch" counts a compiled
+# subject that is not the one read (the must-hold), "compile_refused" one the compile would refuse
+F_PRE_N: Counter = Counter()
+F_PRE_CHECK = False
 # K2 (Isaiah 2026-10-25 08:40 "fix", 08:19 "thats dementia"; the reviewer 08:43; Fig 10 :68, Fig 12
 # :123): at the turnover after a frame break, what was held on a retired object MOVES to its
 # successor (the world's claim, arc_world.frame_breaks) when the two are of the same KIND (the
@@ -9551,6 +9557,22 @@ class Agent:
                   if won_src and len(won_src) < len(src) else [src])
         compiled = [0]
 
+        def _movable(sl: str) -> bool:
+            """The subject is in the state, in the slots and not derived ("not a movable slot"
+            otherwise): one rule, read before the compile (r1419 F) and after it."""
+            if sl not in before:
+                return False
+            if slot_set is None:
+                in_slots = sl in self.slots
+            else:
+                in_slots = sl in slot_set
+                HYP_SLOTSET_N["asked"] += 1
+                if _HYP_SLOTSET_CHECK:
+                    assert in_slots == (sl in self.slots), \
+                        "TETHER_HYP_SLOTSET_CHECK: the set and the list differ"
+                    HYP_SLOTSET_N["checked"] += 1
+            return in_slots and sl not in der
+
         def _admit(items: dict) -> list:
             out = []
             for text, s in items.items():
@@ -9569,6 +9591,23 @@ class Agent:
                         would_drop.add(text)
                     else:
                         HYP_ROUTE_FIRST_N["kept"] += 1
+                # r1419 F: a "{o}." template's subject is its first slot (o.CHANGE_OF[r] for a
+                # change reading), as compile_candidate reads it; with no TOUCH partner nothing
+                # but the subject decides "not a movable slot", so it is read before the compile
+                t0 = tpl.get(text)
+                if t0 is not None and t0.startswith("{o}.") and "(" not in text:
+                    o, _d, r = text.split(" ", 1)[0].partition(".")
+                    pre = f"{o}.{compile_term.CHANGE_OF.get(r, r)}"
+                    if self._rel_partner(pre) is None and not _movable(pre):
+                        F_PRE_N["refused"] += 1
+                        if F_PRE_CHECK:
+                            cc = compile_term.compile_candidate({"condition": text}, atoms)
+                            if isinstance(cc, compile_term.Refusal):
+                                F_PRE_N["compile_refused"] += 1
+                            elif cc.slot != pre:
+                                F_PRE_N["mismatch"] += 1
+                        refused["subject not a movable slot"] += 1
+                        continue
                 compiled[0] += 1
                 c = self._compile_cache.get(text)
                 if c is None:
@@ -9577,20 +9616,10 @@ class Agent:
                 if isinstance(c, compile_term.Refusal):
                     refused[c.reason] += 1
                     continue
-                if c.slot not in before:
-                    in_slots = True                 # unread: "not in before" refuses first
-                elif slot_set is None:
-                    in_slots = c.slot in self.slots
-                else:
-                    in_slots = c.slot in slot_set
-                    HYP_SLOTSET_N["asked"] += 1
-                    if _HYP_SLOTSET_CHECK:
-                        assert in_slots == (c.slot in self.slots), \
-                            "TETHER_HYP_SLOTSET_CHECK: the set and the list differ"
-                        HYP_SLOTSET_N["checked"] += 1
+                in_slots = _movable(c.slot)
                 rel = (_REL_TOUCH and c.slot in before and c.term.name == "holds"
                        and self._rel_partner(c.slot) is not None)      # Q3 (ii): routed by TOUCH
-                if not rel and (c.slot not in before or not in_slots or c.slot in der):
+                if not rel and not in_slots:
                     refused["subject not a movable slot"] += 1
                     continue
                 if clock and clock & self._named_slots(text, c):
