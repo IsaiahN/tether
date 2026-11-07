@@ -3509,7 +3509,10 @@ BOOKS: tuple[str, ...] = (
     "reach_gate_kept",                  # 40 check run: a gated slot minted anyway accepted nothing
     "reach_gate_lost",                  # 40 check run: a gated slot minted anyway ACCEPTED a term
     "reach_gate_atom_raised",           # 40: a T -> T atom raised on a reach value (booked)
-    "elicit_reset_left_out",            # 41 (3): ELICIT's offer without the live-board RESET
+    "elicit_reset_left_out",            # 41 (3): ELICIT's offer without the live-board RESET;
+                                        # OFFERS BUILT (orient's before it fires), not vetoes saved
+    "reason_reset_left_out",            # r1387: untried:goal's offer without the live-board RESET;
+                                        # offers built (each realise), not vetoes saved (r1390)
     "try_first_owed",                   # TRY_FIRST: a mint owed, an action unpressed here
     "tiers_index_agree",                # (C) check run: the index's rung sums matched the scan
     "tiers_index_disagree",             # (C) check run: they did NOT match
@@ -14364,8 +14367,8 @@ class Agent:
                     said = self._route_said(w)
                     if (key, ctx) in self._tried_in.get(said, ()):
                         continue
-                    r = self.iface.realise(w, tuple(self.actions), ctx, before, self.env,
-                                           withheld=self._withheld)
+                    r = self.iface.realise(w, self._reason_offer(tuple(self.actions)), ctx,
+                                           before, self.env, withheld=self._withheld)
                     if r is not None and not getattr(r, "unmapped", False):
                         self._form_touch(o, key, o, why)
                         return key, said, w, r, self.cycle, ctx
@@ -14384,8 +14387,8 @@ class Agent:
             untried = [(said, aw) for said, aw in self._formed.items()
                        if (s, sit) not in self._tried_in.get(said, ())]
             for said, (at, w) in untried:
-                r = self.iface.realise(w, tuple(self.actions), ctx, before, self.env,
-                                       withheld=self._withheld)
+                r = self.iface.realise(w, self._reason_offer(tuple(self.actions)), ctx, before,
+                                       self.env, withheld=self._withheld)
                 if r is not None and not getattr(r, "unmapped", False):
                     return s, said, w, r, at, sit
             # an untried one that does not realise is still untried: said only when none is
@@ -21651,6 +21654,19 @@ class Agent:
         if not keep:
             return offered
         _book_add(self.gamma.book, "elicit_reset_left_out")
+        return keep
+
+    def _reason_offer(self, offered: tuple) -> tuple:
+        """RESET_REASON before the press (r1387): on a live board only terminal or a routine may
+        press RESET, so a chooser with no booked reason (untried:goal) is not offered it -- it would
+        be refused and re-realised after the press. Left out unless nothing else is offered, and
+        booked reason_reset_left_out. The veto stays: this moves the rule upstream, not away."""
+        if not (_RESET_REASON and self._alive) or IFace.RESET not in offered:
+            return offered
+        keep = tuple(a for a in offered if a != IFace.RESET)
+        if not keep:
+            return offered
+        _book_add(self.gamma.book, "reason_reset_left_out")
         return keep
 
     def _took(self, r: Any, want: Any = None) -> str:
