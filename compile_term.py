@@ -450,7 +450,7 @@ def connected(frame: dict[str, Any], o: str, x: str) -> int | None:
             adj.setdefault(b, set()).add(a)
     seen, todo = {o}, [o]
     while todo:
-        for n in adj.get(todo.pop(), ()):
+        for n in sorted(adj.get(todo.pop(), ())):    # r1400: one order for every seed
             if n == x:
                 return 1
             if n not in seen:

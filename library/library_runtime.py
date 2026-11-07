@@ -560,7 +560,7 @@ class Library:
         while frontier:
             _cap_head()
             nxt = set()
-            for k in frontier:
+            for k in sorted(frontier):     # r1400: one order for every hash seed
                 _cap_head()
                 for m in self.ingredient_of.get(k, ()):
                     _cap_head()

@@ -168,7 +168,7 @@ def _routing(rows: list[dict]) -> dict | None:
                 return _v("routing", DOUBLE_ROUTED, r.get("seq"), slot)
             if not d.get("why_not"):
                 return _v("routing", NO_DISCRIMINATOR, r.get("seq"), slot)
-    for k in live:
+    for k in sorted(live, key=str):         # r1400: the first unrouted, one order
         if k not in routed:
             return _v("routing", UNROUTED, None, f"cycle {k[0]} slot {k[1]}")
     return None
