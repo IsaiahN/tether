@@ -4515,6 +4515,7 @@ class Agent:
         self._named: dict[str, dict[str, list]] = {}
         self._lookup_pairs: dict[str, list] = {}   # r972: each residual slot's lit pairs
         self._lookup_held: dict = {}    # TETHER_HELD_GROUPS: the last lookup's held distinct pairs
+        self._route_memo: dict | None = None   # r1348: _hyp_propose's failed route reads
         self._mol_minted: set = set()              # r972 3: the slots the mint visited since
         self._bind_key: dict = {}          # A1 sites 7-8: per slot, (draw key, its readings)
         self._lib_offers: dict[str, list] = {}   # M4: what the library offers each slot's mint
@@ -9337,8 +9338,22 @@ class Agent:
         want = (IFace.Intent(IFace.BECOME, slot, "+" if tgt > before[slot] else "-")
                 if self.slot_types.get(slot) in ORDERED_TYPES
                 else IFace.Intent(IFace.BECOME, slot, value=tgt))
-        r = self.iface.realise(want, tuple(self.actions), IFace.Interface.context(self.env),
-                               before, self.env, withheld=self._withheld, asker="hyp_route")
+        acts, ctx = tuple(self.actions), IFace.Interface.context(self.env)
+        # r1348: within one proposing pass a FAILED read is a function of these; a repeat replays
+        # its unrealised record through the same writer (_none), so the REPEAT row is unchanged.
+        # A success is read every time (it writes tally_note)
+        mk = (None if self._route_memo is None else
+              (want, self._withheld, acts, ctx, id(before), self.iface._last_was_reset))
+        if mk is not None and mk in self._route_memo:
+            u = self._route_memo[mk]
+            self.iface.unrealised = None
+            if u is not None:
+                self.iface._none(u["kind"], u["why"], u["asker"])
+            return None
+        r = self.iface.realise(want, acts, ctx, before, self.env, withheld=self._withheld,
+                               asker="hyp_route")
+        if mk is not None and r is None:
+            self._route_memo[mk] = self.iface.unrealised
         return None if r is None else r.action
 
     def _hyp_hold(self, key: str, c: Any, before: dict) -> tuple:
@@ -9385,6 +9400,7 @@ class Agent:
         {at, checked, unreached}, "unreached at this budget"; never _hyp_exhausted, never System 0's
         why. Then the cut goes on to step."""
         n0, self._hyp_open, self._hyp_phases = self._hyp_n, None, 0
+        self._route_memo = {}               # r1348: one pass's failed route reads, never carried
         try:
             return self._hyp_propose_body(before)
         except cap.CapReached:
@@ -9396,6 +9412,8 @@ class Agent:
                                     "unreached": None if opened is None else opened - checked,
                                     **({"phases": self._hyp_phases} if _PLAN_NARROW else {})})
             raise
+        finally:
+            self._route_memo = None
 
     def _hyp_propose_body(self, before: dict) -> None:
         """The supply (Fig 11 :43-48, read off THIS board): the library's own condition grammar
