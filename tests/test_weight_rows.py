@@ -10,6 +10,8 @@ check_crossed   12 steps: standing_freed rows, each on the side of 1 + carried +
 check_halflife  a forcing fixture: one vindication planted at c2; one halflife_moved row there (None
                 -> 1.0, effective 8.0 -> 1.0) and the books row's halflife_effective 1.0
 check_carried   _reinvent_carried with a reflex record: invention_carried names its paid counts
+check_line_paid a line under way that pays writes line_paid at the increment (r1357), one WEIGHT
+                line. MUST-FAIL: no line under way, no row
 check_nsm       every weight row of the run, and a halflife_moved row, said as one WEIGHT line in
                 listed NSM words; the Speaker writes them to nsm.log
 
@@ -116,6 +118,25 @@ def check_carried() -> None:
     print("  invention_carried reflex_paid_in", ic[0].get("reflex_paid_in"))
 
 
+def check_line_paid() -> None:
+    ag = agent()
+    for _ in range(3):
+        ag.step()
+    slot = "o0.row"
+    n0 = len(ag.led.rows())
+    ag._leave_check(slot, ag.outstanding(slot) + 1.0)        # no line under way: no paid
+    assert not [r for r in ag.led.rows()[n0:] if r["event"] == "line_paid"]               # MF
+    ag._leave_line[slot] = {"key": (ag.level, ag._root_id), "first": ag.outstanding(slot) + 1.0,
+                            "mints": 0}
+    ag._leave_check(slot, ag.outstanding(slot) + 1.0)
+    lp = [r["detail"] for r in ag.led.rows()[n0:] if r["event"] == "line_paid"]
+    g = ag._line_grade[ag._kind_key(slot)]
+    assert len(lp) == 1 and lp[0]["paid"] == g["paid"] == 1 and lp[0]["grade"] == dict(g), lp
+    said = nsm.say_row("line_paid", lp[0], (ledger.WIN, ledger.ADVANCE))
+    assert said and said[0][0] == "WEIGHT" and not nsm.unlisted(said[0][1]), said
+    print("  line_paid at the increment:", lp[0]["route"], lp[0]["paid"], "|", said[0][1][:120])
+
+
 def check_nsm() -> None:
     rows = [r for r in run() if r["event"] in nsm.WEIGHT_ROWS]
     rows.append({"seq": 0, "cycle": 0, "step": "PLAN", "slot": "@weight",
@@ -142,7 +163,7 @@ def check_nsm() -> None:
 
 def main() -> int:
     want = set(sys.argv[1:])
-    for c in (check_crossed, check_halflife, check_carried, check_nsm):
+    for c in (check_crossed, check_halflife, check_carried, check_line_paid, check_nsm):
         if not want or c.__name__ in want:
             c()
             print("ok  ", c.__name__)

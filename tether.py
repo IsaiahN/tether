@@ -23235,8 +23235,14 @@ class Agent:
             if _7H_TRACE and began and hasattr(self, "_line_grade"):
                 g = self._line_grade.setdefault(self._kind_key(slot), collections.Counter())
                 g["paid"] += 1
-                if _7H_ROUTE_GRADE:
-                    g["paid_by_" + self._route_of(slot)] += 1
+                route = self._route_of(slot) if _7H_ROUTE_GRADE else None
+                if route is not None:
+                    g["paid_by_" + route] += 1
+                # (5) iv (r1357): the paid at its own moment, not only at the kind's next leave
+                self.led.record(self.cycle, self._running_step, slot, "line_paid",
+                                kind=str(self._kind_key(slot)), route=route, paid=g["paid"],
+                                left=g["left"], grade=dict(g),
+                                reads="a line under way bound its slot or lowered its outstanding")
             return
         bk = self._bind_key.get(slot) if _7H_TRIED else None
         closure = sorted(bk[1]) if bk else []

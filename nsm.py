@@ -302,7 +302,7 @@ def say_row(event: str, d: dict, ends: tuple) -> list:
 # standing or the halflife changes on, one WEIGHT line; the detail in plain words as the filler
 WEIGHT_ROWS = ("halflife_moved", "standing_freed", "think_settled", "reflex_settled",
                "quit_settled", "muse_paid", "muse_test_settled", "leave_paid", "wrong_leave",
-               "self_stop", "self_stop_paid", "s0_settled", "s0_paid", "field_class")
+               "self_stop", "self_stop_paid", "s0_settled", "s0_paid", "field_class", "line_paid")
 _KIND_TAIL = re.compile(r", '([^']+)'\)$")
 
 
@@ -325,12 +325,19 @@ def _say_weight(event: str, d: dict) -> str:
                                         f"{d.get('old_effective')} -> {d.get('new_effective')} "
                                         f"({d.get('vindications')} vindications)"))
     if event == "standing_freed":
-        what = f"the {d.get('form')} weight for {_kind((d.get('situation') or ['?'])[0])}"
+        # r1357: muse decides with its own seed (0 when the step was not quiet), said first
+        common = " (by the common threshold)" if d.get("form") == "muse" else ""
+        what = (f"the {d.get('form')} weight{common} for "
+                f"{_kind((d.get('situation') or ['?'])[0])}")
         tail = (f"against {d.get('against')}, 1 + carried {d.get('carried')} + paid "
                 f"{d.get('paid')}, by {d.get('by')}")
         if d.get("to") == "free":
             return f"I CAN DO THIS NOW: {_f(f'{what} freed ({tail})')}"
         return f"I CAN'T DO THIS NOW: {_f(f'{what} is under its witnesses ({tail})')}"
+    if event == "line_paid":
+        return "THIS WAS GOOD: " + _f(f"the mint line for {_kind(d.get('kind'))} paid"
+                                      f" ({d.get('route')}), now paid {d.get('paid')}, "
+                                      f"left {d.get('left')}")
     if event == "think_settled":
         good = "GOOD" if d.get("paid") else "NOT GOOD"
         return (f"THIS WAS {good}: " + _f(f"{d.get('chosen')} on the {d.get('weight')} weight for "
