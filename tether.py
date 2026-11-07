@@ -27,7 +27,7 @@ from collections.abc import Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field, fields, is_dataclass
 from dataclasses import replace as _replace
-from functools import cache, partial, wraps
+from functools import cache, lru_cache, partial, wraps
 from typing import Any
 
 import armflag
@@ -385,6 +385,9 @@ def _cache() -> dict:
 _RESUME = not armflag.arm("TETHER_NO_RESUME")
 
 
+# r1361 (A): a pure function of its string, memoised -- MOLECULE APPLY's operand walk called it
+# 667,705 times a step (one re.sub per library key); bounded, as any caller may pass any string
+@lru_cache(maxsize=65536)
 def _norm_name(x: str) -> str:
     """The join between the CORPUS's names and the REGISTRY's. Same normalisation
     `composer.candidates` uses, and it exists for the same measured reason: the corpus writes
