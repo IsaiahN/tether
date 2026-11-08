@@ -114,8 +114,11 @@ def _aliases(d):
 
 def _child(*args, **arms):
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
+    # r1496: the birth seed pinned, as test_lineage_carry's child does (r1450); stripped, every run
+    # drew a fresh entropy seed and played a different game. A part's own arms still win (MF-D ON)
     env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_BOUNDARY="1", TETHER_INDEX_HOLD="1",
-               **arms)
+               TETHER_AGENT_SEED="0")
+    env.update(arms)
     return subprocess.run([sys.executable, "-B", __file__, "--role", *map(str, args)], env=env,
                           stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)
 
@@ -164,6 +167,9 @@ def main(parts=PARTS):
 def _part_l1(tmp):
     """L1, L2, L3 and L3's must-fail."""
     out = _out(_child("game", tmp / "full", -1, "none"), "REPORT")
+    assert sum(r["terms"] or 0 for r in out["reps"]), (
+        "fixture: the pinned seed-0 run wrote no term in K boundaries -- the forcing occasion "
+        "(a term installed by c16) is gone; not a lineage failure", out["reps"])
     hs = [r["hash"] for r in out["reps"]]
     gens = sorted(Path(tmp / "full").glob(f"{lineage.PREFIX}*.json"))
     assert len(gens) == K + 1 and all(hs), ("L1", len(gens), out["reps"])
