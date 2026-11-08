@@ -526,6 +526,7 @@ class Interface:
         # (4b): the last None realise's reason, and every one since the agent last drained them
         self.unrealised: dict | None = None
         self.unrealised_log: list = []
+        self.unrealised_dropped = 0     # r1431: reasons the log's cap refused since the drain
         # (4a) I-A: (intent said, ctx) -> {(action, coord): [on course, off course]}, the agent's
         # verdicts; and what the last audited press MEANT (intent, why, mode)
         self.served: dict = {}
@@ -668,6 +669,8 @@ class Interface:
             self.unrealised = {"kind": kind, "why": why, "asker": asker}
             if len(self.unrealised_log) < 256:
                 self.unrealised_log.append(self.unrealised)
+            else:
+                self.unrealised_dropped += 1
 
     def _tried(self, offered: tuple[str, ...], subject: str | None) -> str:
         """(4b): TRIED when an offered action's table already holds a cell on `subject` (it was
@@ -707,6 +710,12 @@ class Interface:
     def take_unrealised(self) -> list:
         """(4b): the reasons recorded since the last call; the agent's REPEAT row drains them."""
         out, self.unrealised_log = self.unrealised_log, []
+        return out
+
+    def take_unrealised_dropped(self) -> int:
+        """r1431: how many reasons the log's 256 cap refused since the last call; the REPEAT row
+        drains it beside take_unrealised."""
+        out, self.unrealised_dropped = self.unrealised_dropped, 0
         return out
 
     def _withhold(self, w: Withheld, offered: tuple[str, ...], state: dict | None,

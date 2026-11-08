@@ -21790,12 +21790,15 @@ class Agent:
         realisation the press came from with the table evidence it read (None where no exit
         went through _took this cycle)."""
         r = self._last_real
+        dropped = self.iface.take_unrealised_dropped() if IFace._UNREALISED_WHY else 0
         return {"offered": list(self.actions),
                 "withheld": None if r is None else getattr(self, "_r4_withheld", None),
                 "realised": None if r is None else {"why": r.why, **dict(r.evidence)},
                 # (4b): every realisation that failed this step, with its kind and why
                 **({"unrealised": self.iface.take_unrealised()} if IFace._UNREALISED_WHY
-                   else {})}
+                   else {}),
+                # r1431, r1432: the reasons past the log's cap; ABSENT MEANS 0 DROPPED
+                **({"unrealised_dropped": dropped} if dropped else {})}
 
     def _note_decision(self, want: Any, r: Any = None) -> None:
         """**A CONFLICT THE AGENT WAS IN -- NOT YET A DECISION IT MADE.**
