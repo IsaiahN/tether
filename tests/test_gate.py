@@ -141,6 +141,46 @@ def test_a_reuse_install_after_the_settle_is_not_an_acceptance():
     _refuses(r, gate.MISSING_INPUT)
 
 
+def _pulled(term, admitted, seq=2):
+    d = {"term": term} if admitted is None else {"term": term, "admitted": admitted}
+    return {"mode": "specified", "seq": seq, "cycle": 0, "step": "ROUTE", "slot": "s",
+            "event": "pull", "detail": d}
+
+
+def test_a_settle_with_no_arrival_refuses():
+    """r1490 (i): no accept, no reuse_install and no pull."""
+    _refuses([x for x in valid() if x["event"] not in ("mint", "accept")], gate.MISSING_INPUT)
+
+
+def test_a_pull_not_imported_is_not_an_arrival():
+    """r1490 (ii): an in-life term's pull is not its acceptance -- admitted "accepted", or none."""
+    for adm in ("accepted", None):
+        r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+        r.insert(2, _pulled("a . b", adm))
+        _refuses(r, gate.MISSING_INPUT)
+
+
+def test_an_imported_pull_is_the_terms_arrival():
+    """r1490 (iii): an inherited term's arrival is its inheritance, recorded on its pull."""
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r.insert(2, _pulled("a . b", gate.IMPORTED_STAMP))
+    assert gate.check(r)["verdict"] == gate.PASS, gate.check(r)
+
+
+def test_the_imported_stamp_is_the_builds():
+    """r1490: the gate imports nothing from the build, so the one token it shares is pinned here.
+    MF: a gate whose stamp drifted refuses the build's inherited pull."""
+    import gamma
+    assert gate.IMPORTED_STAMP == gamma.IMPORTED, (gate.IMPORTED_STAMP, gamma.IMPORTED)
+    saved, gate.IMPORTED_STAMP = gate.IMPORTED_STAMP, gamma.IMPORTED + "-drifted"
+    try:
+        r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+        r.insert(2, _pulled("a . b", gamma.IMPORTED))
+        _refuses(r, gate.MISSING_INPUT)
+    finally:
+        gate.IMPORTED_STAMP = saved
+
+
 def test_a_candidates_refuted_bet_is_a_row_the_gate_accepts():
     """P3: a candidate the ground refuted before it ever settled is recorded, as a SETTLE row."""
     r = valid()

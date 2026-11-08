@@ -22,6 +22,7 @@ PASS, REFUSE = "pass", "refuse"
 NO_STEP = "no-step"
 STEP_ORDER = "step-order"
 MISSING_INPUT = "missing-input"
+IMPORTED_STAMP = "imported"     # an inherited term's pull "admitted"; test_gate pins it
 UNROUTED = "unrouted"
 DOUBLE_ROUTED = "double-routed"
 NO_DISCRIMINATOR = "no-discriminator"
@@ -142,6 +143,11 @@ def _inputs(rows: list[dict]) -> dict | None:
             # a reuse enters Gamma on the same bargain as a mint; its row is labelled with the
             # step running (ROUTE from the library pull, MINT from the sweep, which runs inside
             # mint; the reviewer 2026-10-16 09:14); since P1 it is a candidate, so it may settle
+            accepted.add(str(r.get("detail", {}).get("term")))
+        elif ev == "pull" and r.get("detail", {}).get("admitted") == IMPORTED_STAMP:
+            # r1490 (the reviewer 2026-11-08): an inherited term's arrival is its inheritance,
+            # recorded on its pull; an in-life term keeps its own accept. The reuse_install
+            # clause above (2026-10-16 09:14) reads a library pull the same way
             accepted.add(str(r.get("detail", {}).get("term")))
         elif ev == "settle" and str(r.get("detail", {}).get("term")) not in accepted:
             return _v("inputs", MISSING_INPUT, r.get("seq"), "settle without accept")
