@@ -205,9 +205,13 @@ def _part_l1(tmp):
 
 def _part_l4(tmp):
     """L4."""
-    k = 1
+    # r1498: stop after the boundary that WRITES seed 0's term (installed c16, written at the c24
+    # boundary, k = 2); at k = 1 the stop came before it and L4 compared 0 terms with 0
+    k = 2
     out = _out(_child("game", tmp / "stop", k, "none"), "REPORT")
     assert len(out["reps"]) == k + 1, ("L4: boundaries written before the stop", out["reps"])
+    assert sum(r["terms"] or 0 for r in out["reps"]), (
+        "fixture: the term this stop depends on was not written; occasion gone", out["reps"])
     got = _out(_child("load", tmp / "stop"), "LOAD")
     assert got["parent"] == out["reps"][-1]["hash"], ("L4: the tip is not boundary k", got)
     _l3(tmp / "stop", out["evidence"])   # the stop came right after boundary k
