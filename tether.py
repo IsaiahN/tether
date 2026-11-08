@@ -9493,27 +9493,45 @@ class Agent:
     def _b1_decided(by_text: dict, order: list, n: int, tiers: tuple, key, cues: tuple) -> dict:
         """r1475/r1478: the tier that put the pick ahead of the candidate checked next ("alone"
         in a group of one, "last" when nothing follows; Take The Best names its cue), the checks
-        before it, and when the draw decided, the size of the equal-and-untried tie (r1477)."""
+        before it, and when the draw decided, the size of the equal-and-untried tie (r1477).
+        r1485: the round rank breaks a subject's equal-checked candidates by the draw, so a round
+        step between the same subject at equal counts is the draw's, rowed "explore" (draw_in)."""
         out: dict = {"preceded": n - 1}
         if n >= len(order):
             out["decided_by"] = "alone" if len(order) == 1 else "last"
             return out
-        a, b = key(by_text[order[n - 1]]), key(by_text[order[n]])
+        xa, xb = by_text[order[n - 1]], by_text[order[n]]
+        a, b = key(xa), key(xb)
         i = next((j for j in range(len(tiers)) if a[j] != b[j]), None)
         out["decided_by"] = ("equal" if i is None else tiers[i] if tiers[i] != "ttb" else
                              "ttb:" + cues[next(j for j in range(len(a[1])) if a[1][j] != b[1][j])])
+        if out["decided_by"] == "round" and xa[2].slot == xb[2].slot and a[6] == b[6]:
+            out["decided_by"], out["draw_in"] = "explore", "round"
         if out["decided_by"] == "explore":
-            out["tie"] = sum(1 for t in order if key(by_text[t])[:-1] == a[:-1])
+            out["tie"] = len(Agent._b1_tie_set(by_text, a, xa, out.get("draw_in"), key))
         return out
 
     @staticmethod
-    def _b1_tied(by_text: dict, order: list, n: int, key) -> dict:
+    def _b1_tie_set(by_text: dict, a: tuple, xa, draw_in, key) -> list:
+        """The draw's tie: equal on every tier but the draw, or (draw_in "round") the same block
+        and subject at equal checked counts, whose round ranks the draw set."""
+        if draw_in == "round":
+            return [k for x, k in ((x, key(x)) for x in by_text.values())
+                    if k[:4] == a[:4] and x[2].slot == xa[2].slot and k[6] == a[6]]
+        return [k for k in map(key, by_text.values()) if k[:-1] == a[:-1]]
+
+    @staticmethod
+    def _b1_tied(by_text: dict, order: list, n: int, key, draw_in=None) -> dict:
         """r1483, record-only: each tied member's [subject tried, checked] and the least of those
-        among the candidates still unchecked at the pick in the same block and round."""
-        a = key(by_text[order[n - 1]])
-        rest = [key(by_text[t]) for t in order[n - 1:]]
-        return {"tied": [list(k[5:7]) for k in map(key, by_text.values()) if k[:-1] == a[:-1]],
-                "least": list(min(k[5:7] for k in rest if k[:5] == a[:5]))}
+        among the candidates still unchecked at the pick in the same block and round (draw_in
+        "round": the same block and subject)."""
+        xa = by_text[order[n - 1]]
+        a = key(xa)
+        rest = [(x, key(x)) for x in (by_text[t] for t in order[n - 1:])]
+        same = ([k for x, k in rest if k[:4] == a[:4] and x[2].slot == xa[2].slot]
+                if draw_in == "round" else [k for _x, k in rest if k[:5] == a[:5]])
+        return {"tied": [list(k[5:7]) for k in Agent._b1_tie_set(by_text, a, xa, draw_in, key)],
+                "least": list(min(k[5:7] for k in same))}
 
     def _family_counts(self, ranked: list, ctrl: set) -> dict:
         """Item 21 (r1239), record-only: the proposal's OPEN candidates per shape family, each
@@ -10252,7 +10270,8 @@ class Agent:
                                            if cues else {}),
                                         **({"tried": [self._subj_tried[x[2].slot] - 1,
                                                       self._cand_checked[x[3]] - 1],
-                                            **self._b1_tied(by_text, order, n, _key)}
+                                            **self._b1_tied(by_text, order, n, _key,
+                                                            dec.get("draw_in"))}
                                            if dec.get("decided_by") == "explore" else {})}
                                        if _HYP_ORDER else {}),
                                     **({"contingent_first": _cfirst,
