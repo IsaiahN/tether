@@ -66,9 +66,14 @@ X, Y = "o0.row == o4.row", "o1.colour == o3.colour"
 
 
 def played():
-    ag, _atoms, _st = G.agent()
-    for _ in range(10):
-        ag.step()
+    was = tether._HYP_ORDER
+    tether._HYP_ORDER = False   # the panel's board is the one the draw's walk leaves (B1 moves it)
+    try:
+        ag, _atoms, _st = G.agent()
+        for _ in range(10):
+            ag.step()
+    finally:
+        tether._HYP_ORDER = was
     if hasattr(ag, "_desc_board"):
         ag._desc_board()    # item 19: the board's own stalls cleared; the description alone
     return ag

@@ -73,6 +73,7 @@ from gamma import (
 )
 from gamma import SAME_AS_TARGET as G_SAME
 from gamma import VALUE_TURNS as G_VALUE_TURNS
+from gamma import mix_w as G_MIX_W
 from ledger import (
     ADVANCE,
     CHANNEL_CLOSED,
@@ -3232,6 +3233,24 @@ _FOLD_TPL = re.compile(r"\{o\}\.\{r\} (==|!=|<|>) \{x\}\.\{r\}")
 # clock, read as _admit reads them, through the same pass cache -- or the WHOLE ROW is refused
 # ("ALL of kind" minus the clocked members would be another term). OFF: groups read neither
 _GROUP_SUBJECT = armflag.arm("TETHER_GROUP_SUBJECT", default=True)
+# B1, THE ORDER INSIDE A KEY GROUP (the reviewer 2026-11-08 r1469, r1470, r1471; Isaiah 10:57, no
+# leaning on randomness): the key-group cut stays; inside the group the walk is S-class (r1443),
+# then times parked this life (r1473), then contingent-first (r678 b), then the smaller text -- no
+# draw. B2's learned score goes after the class. OFF: the hash draw, then contingent-first
+_HYP_ORDER = armflag.arm("TETHER_HYP_ORDER", default=True)
+# B2, THE LEARNED ORDER (r1446, r1471, r1474, r1475; Isaiah 09:54 "try for efficacy"): inside B1's
+# class, the learned score (per-(slot kind, reading) standings from endings, mixed with the prior
+# band by w in CARRY_W's form, Symbols :20-26), then contact strength (distinct contact kinds, Fig
+# 2). The readings are contact_probe's, ported. OFF: B1's order, and no reading or record is kept
+_HYP_LEARN = armflag.arm("TETHER_HYP_LEARN", default=True)
+_B2_RANK = {v: i for i, v in enumerate(("L0", "L1", "L1b", "L2", "L2b", "L3", "L4", "L5+"))}
+_B2_RANK.update({"L3a": _B2_RANK["L3"], "L3b": _B2_RANK["L3"], "L3c": _B2_RANK["L3"]})
+_B2_CUES = ("L0", "L1", "L1b", "L2", "L2b", "L3a", "L3b", "L3c", "L4", "L5+")   # the levels
+_B2_MIN_EVIDENCE = 3    # r1481: ended holds a kind needs before validity, not its level, places it
+_B2_OBJ = re.compile(r"\bo\d+\b")
+_B2_OBJ_FULL = re.compile(r"^o\d+$")
+_B2_REL = re.compile(r"^([a-z]+)_(o\d+)$")
+_B2_CLOCKS = ("age", "stability")   # arc_world's per-object clocks: time passed, not x acting
 
 
 def _term_choice(sides: list) -> list:
@@ -4414,6 +4433,21 @@ class Agent:
         self._hyp: dict | None = None  # GQ2: the goal hypothesis held now
         self._hyp_tried: dict = {}    # GQ2: (template, subject, operand) -> how it ended (level)
         self._untested: dict = {}     # UNTESTED_KEEP: tkey -> (cycle, the check that ended it)
+        self._parked_n: Counter = Counter()   # B1 (r1473): tkey -> budget endings, this life
+        self._subj_tried: Counter = Counter()   # B1 (r1478): subject slot -> its checks, this life
+        self._cand_checked: Counter = Counter()  # B1 (r1478): tkey -> its checks, this life
+        # B2 (r1471, r1476, r1479, r1480): written only under TETHER_HYP_LEARN. Slot -> values
+        # predicted for it / targets aimed for it (L3b, L3c); (slot kind, reading) cells and the
+        # pooled contact kinds -> [holds, parked, untested, paid], own this life and inherited
+        # through the lineage (deltas, like unit_used); kind -> [held, failed] of the inherited call
+        self._b2_pred: dict = {}
+        self._b2_aimed: dict = {}
+        self._b2_cells: dict = {}
+        self._b2_kinds: dict = {}
+        self._b2_cells_inh: dict = {}
+        self._b2_kinds_inh: dict = {}
+        self._b2_wk: dict = {}
+        self._b2_evidenced: list = []   # r1481: the kinds placed by validity, at the last cue order
         self._indist_key = None       # INDIST_ON_CHANGE: the last grouping computed
         self._indist_at = None        # INDIST_ON_CHANGE: the cycle of the last indistinct row
         self._hyp_n = 0               # GQ2: hypotheses held, for their link keys
@@ -9278,6 +9312,209 @@ class Agent:
         elif _SHAPE_TRACE:
             self._proposal_gated(holder, gc)
 
+    def _b2_ctx(self, before: dict) -> dict:
+        """B2 (r1471 A): one pass's contact readings, as contact_probe's ctx builds them -- the
+        pair contacts now, each object's value-change steps over the trace (clocks and attributes
+        common to every present object dropped), and the objects the bound and want terms name."""
+        dd = collections.defaultdict
+        l1, l1b = dd(set), dd(set)
+        for k, v in before.items():
+            cap.head()
+            if not isinstance(v, int) or isinstance(v, bool) or v == 0 or "." not in k:
+                continue
+            o, reading = k.split(".", 1)
+            if "~" in o:
+                a, b = o.split("~", 1)
+                if reading in ("contact", "inside"):
+                    l1[a].add(b)
+                    l1[b].add(a)
+                elif reading == "bbox":
+                    l1b[a].add(b)
+                    l1b[b].add(a)
+            else:
+                m = _B2_REL.match(reading)
+                if m and m.group(1) in _REL_TOUCH_RELS and _B2_OBJ_FULL.match(o):
+                    l1[o].add(m.group(2))
+                    l1[m.group(2)].add(o)
+        chg_obj, chg_slot = dd(set), dd(set)
+        for i, t in enumerate(self.trace):
+            cap.head()
+            b, af = t[0], t[2]
+            ch = [k for k in b if k in af and b[k] != af[k] and "." in k
+                  and k.split(".", 1)[1] not in _B2_CLOCKS]
+            present = {k.split(".", 1)[0] for k in b
+                       if k in af and _B2_OBJ_FULL.match(k.split(".", 1)[0])}
+            by_attr = dd(set)
+            for k in ch:
+                o = k.split(".", 1)[0]
+                if _B2_OBJ_FULL.match(o):
+                    by_attr[k.split(".", 1)[1]].add(o)
+            drop = {r for r, os_ in by_attr.items() if present and os_ >= present}
+            for k in ch:
+                o, r = k.split(".", 1)
+                if r in drop:
+                    continue
+                chg_slot[k].add(i)
+                for oo in (o.split("~", 1) if "~" in o else (o,)):
+                    if _B2_OBJ_FULL.match(oo):
+                        chg_obj[oo].add(i)
+        terms: dict = {}
+        for sl, name in self.bound.items():
+            terms.setdefault(sl, set()).update(_B2_OBJ.findall(str(name)))
+            t = self.gamma.library.get(name)
+            if t is not None:
+                terms[sl].update(_B2_OBJ.findall(str(t)))
+        for sl, t in self._want_terms.items():
+            terms.setdefault(sl, set()).update(_B2_OBJ.findall(str(t)))
+        return {"l1": l1, "l1b": l1b, "chg_obj": chg_obj, "chg_slot": chg_slot,
+                "objs": {k.split(".", 1)[0] for k in before
+                         if _B2_OBJ_FULL.match(k.split(".", 1)[0])},
+                "terms": terms, "before": before, "lv": {}, "held": {}}
+
+    def _b2_near(self, c: dict, s: str, x: str) -> tuple:
+        """contact_probe's near: (the lowest of L1..L3, the readings x passes, co-changes)."""
+        cap.head()
+        o, r = s.split(".", 1)[0], (s.split(".", 1)[1] if "." in s else "")
+        sc, xc = c["chg_slot"].get(s, set()), c["chg_obj"].get(x, set())
+        n2 = len(sc & xc) + len({i + 1 for i in sc} & xc) + len({i + 1 for i in xc} & sc)
+        rd = []
+        if x in c["l1"].get(o, ()):
+            rd.append("L1")
+        if x in c["l1b"].get(o, ()):
+            rd.append("L1b")
+        if n2 > 0:
+            rd.append("L2")
+        if x in c["terms"].get(s, ()):
+            rd.append("L2b")
+        xs = f"{x}.{r}"
+        if r and xs in c["before"]:
+            v = c["before"][xs]
+            held = c["held"].get(s)
+            if held is None:
+                held = c["held"][s] = ({st[s] for t in self.trace for st in (t[0], t[2])
+                                         if s in st} | ({c["before"][s]} if s in c["before"]
+                                                        else set()))
+            if v in held:
+                rd.append("L3a")
+            if v in self._b2_pred.get(s, ()):
+                rd.append("L3b")
+            if v in self._b2_aimed.get(s, ()):
+                rd.append("L3c")
+        lo = min(rd, key=_B2_RANK.get) if rd else None
+        return ("L3" if lo in ("L3a", "L3b", "L3c") else lo), rd, n2
+
+    def _b2_level(self, c: dict, s: str, x: str, outward: bool) -> tuple:
+        """contact_probe's level: the near reading, or one hop through a y near both (L4)."""
+        key = (s, x, outward)
+        got = c["lv"].get(key)
+        if got is not None:
+            return got
+        lo, rd, _n2 = self._b2_near(c, s, x)
+        if lo is None and outward:
+            r = s.split(".", 1)[1] if "." in s else ""
+            for y in sorted(c["objs"]):
+                if y in (x, s.split(".", 1)[0]) or self._b2_near(c, s, y)[0] is None:
+                    continue
+                ys = f"{y}.{r}"
+                if ys in c["before"] and self._b2_near(c, ys, x)[0] is not None:
+                    lo, rd = "L4", ["L4"]
+                    break
+        got = c["lv"][key] = (lo or "L5+", rd)
+        return got
+
+    def _b2_text(self, c: dict, text: str, cls: int) -> tuple:
+        """contact_probe's text_level for one candidate, read per object it names besides its
+        subject's owner: (its reading cells, their union -- what its ending credits, r1446 point
+        3 -- and the contact kinds it HAS for Take The Best, those EVERY object shows, r1479)."""
+        slots = _SLOT_IN_TEXT.findall(text)
+        if not slots:
+            return ("unparsed",), frozenset()
+        s = slots[0]
+        xs = set(_B2_OBJ.findall(text)) - set(s.split(".", 1)[0].split("~"))
+        if not xs:              # r1481: about the subject itself -- L0, the closest contact
+            return ("L0",), frozenset(("L0",))
+        per = [frozenset(rd) or frozenset((lv,))
+               for lv, rd in (self._b2_level(c, s, x, cls != 2) for x in sorted(xs))]
+        return tuple(sorted(frozenset().union(*per))), frozenset.intersection(*per)
+
+    def _b2_cues(self) -> tuple:
+        """r1479-r1481: the contact kinds in cue order. A kind's validity mixes its inherited and
+        own (paid, unpaid) by w -- how far the inherited call, "pays" at or above the mean
+        inherited validity, has held in this life's holds; one side empty, the other's Laplace;
+        both, 0.5. THE MERGE (r1481, Fig 2: one witness is not triangulation): a kind with fewer
+        than _B2_MIN_EVIDENCE ended holds (own, plus inherited weighted by w as the mix weights
+        it) keeps ITS LEVEL'S SLOT; the evidenced kinds, by validity (the level breaking ties),
+        fill the slots of the evidenced kinds. self._b2_evidenced names them, for the row."""
+        def lap(st):
+            return (st[3] + 1.0) / (st[0] + 2.0)
+        inh = {k: lap(st) for k, st in self._b2_kinds_inh.items() if st[0]}
+        val, n = {}, {}
+        for k in _B2_CUES:
+            own, ih = self._b2_kinds.get(k), self._b2_kinds_inh.get(k)
+            h, f = self._b2_wk.get(k, (0, 0))
+            on = own[0] if own else 0
+            if k not in inh:
+                val[k], n[k] = (lap(own) if on else 0.5), on
+            elif not on or not h + f:
+                val[k], n[k] = inh[k], ih[0]
+            else:
+                w = h / (h + f)
+                val[k] = G_MIX_W(w, (ih[3], ih[0] - ih[3]), (own[3], own[0] - own[3]))
+                n[k] = on + w * ih[0]
+        ev = [k for k in _B2_CUES if n[k] >= _B2_MIN_EVIDENCE]
+        self._b2_evidenced = ev
+        placed = iter(sorted(ev, key=lambda k: (-val[k], _B2_CUES.index(k))))
+        return tuple(next(placed) if k in ev else k for k in _B2_CUES)
+
+    @staticmethod
+    def _b2_ttb_key(has, cues: tuple) -> tuple:
+        """r1479 TAKE THE BEST as a sort key: 0 where the candidate has the kind, 1 where it
+        lacks it, in cue order -- so the first cue on which two candidates differ decides, and
+        no count of kinds (a tally) ever enters."""
+        return tuple(0 if k in has else 1 for k in cues)
+
+    def _b2_credit(self, cells, paid: bool, why: str) -> None:
+        """B2 (r1446 point 3, r1480): one hold's ending credited to every reading it carried --
+        its (slot kind, reading) cell and the pooled kind -- and, where the inherited side calls
+        that kind ("pays" at or above the mean inherited validity), whether the call held."""
+        col = 3 if paid else {"parked": 1, "untested": 2}.get(why)
+        inh = {k: (st[3] + 1.0) / (st[0] + 2.0) for k, st in self._b2_kinds_inh.items() if st[0]}
+        mean = sum(inh.values()) / len(inh) if inh else None
+        kinds = {r for _sk, r in cells}
+        for st in ([self._b2_cells.setdefault(tuple(cell), [0, 0, 0, 0]) for cell in cells]
+                   + [self._b2_kinds.setdefault(k, [0, 0, 0, 0]) for k in kinds]):
+            st[0] += 1
+            if col is not None:
+                st[col] += 1
+        for k in kinds & inh.keys():
+            self._b2_wk.setdefault(k, [0, 0])[0 if paid == (inh[k] >= mean) else 1] += 1
+
+    @staticmethod
+    def _b1_decided(by_text: dict, order: list, n: int, tiers: tuple, key, cues: tuple) -> dict:
+        """r1475/r1478: the tier that put the pick ahead of the candidate checked next ("alone"
+        in a group of one, "last" when nothing follows; Take The Best names its cue), the checks
+        before it, and when the draw decided, the size of the equal-and-untried tie (r1477)."""
+        out: dict = {"preceded": n - 1}
+        if n >= len(order):
+            out["decided_by"] = "alone" if len(order) == 1 else "last"
+            return out
+        a, b = key(by_text[order[n - 1]]), key(by_text[order[n]])
+        i = next((j for j in range(len(tiers)) if a[j] != b[j]), None)
+        out["decided_by"] = ("equal" if i is None else tiers[i] if tiers[i] != "ttb" else
+                             "ttb:" + cues[next(j for j in range(len(a[1])) if a[1][j] != b[1][j])])
+        if out["decided_by"] == "explore":
+            out["tie"] = sum(1 for t in order if key(by_text[t])[:-1] == a[:-1])
+        return out
+
+    @staticmethod
+    def _b1_tied(by_text: dict, order: list, n: int, key) -> dict:
+        """r1483, record-only: each tied member's [subject tried, checked] and the least of those
+        among the candidates still unchecked at the pick in the same block and round."""
+        a = key(by_text[order[n - 1]])
+        rest = [key(by_text[t]) for t in order[n - 1:]]
+        return {"tied": [list(k[5:7]) for k in map(key, by_text.values()) if k[:-1] == a[:-1]],
+                "least": list(min(k[5:7] for k in rest if k[:5] == a[:5]))}
+
     def _family_counts(self, ranked: list, ctrl: set) -> dict:
         """Item 21 (r1239), record-only: the proposal's OPEN candidates per shape family, each
         family's count and its cheapest text at its price -- "was contact admitted, and at what
@@ -9375,6 +9612,8 @@ class Agent:
         if (_UNTESTED_KEEP and h["steps"] == 0 and h["touches"] == 0 and not (loss or won)
                 or budget_end):
             self._untested[h["tkey"]] = (self.cycle, why)    # the board could not host its test
+            if _HYP_ORDER:
+                self._parked_n[h["tkey"]] += 1      # B1 (r1473): offered still, searched past
             if why != "parked":
                 why, ended_by = "untested", why
         else:
@@ -9385,6 +9624,11 @@ class Agent:
                                               self._kind_key(h["slots"][0]))
             if _GOAL_SIGN_FLIP and loss and not won and (sg := _goal_sign(h["text"])):
                 self._goal_refuted.add(sg)      # G: arrived without a clear, or lost
+        if _HYP_LEARN and h.get("b2"):
+            # B2 (r1446 point 3, Fig 7 :35): the ending is the ground's vote, credited to every
+            # reading the hold carried at its pick; paid is P1's word (an arrival, a win, a touch)
+            self._b2_credit(h["b2"]["cells"],
+                            won or why == "arrived_no_clear" or h.get("touches", 0) > 0, why)
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
         if _LEAVE_RATE and h.get("reopened") is not None:
@@ -9656,7 +9900,8 @@ class Agent:
         # "alternates": pairs whose two parties both passed the subject checks, before admission
         alt: dict = {}
         one: Counter = Counter()
-        live = {k for k, v in self._outstanding.items() if v > 0} if alt_of else set()
+        live = ({k for k, v in self._outstanding.items() if v > 0} if alt_of or _HYP_ORDER
+                else set())             # B1's tier 1 reads it with no pair in the pass too
         below = all(n in atoms for n in compile_term.CONVERSE[("<", "slot")][0])
 
         def _subject(text: str) -> tuple:
@@ -9687,6 +9932,21 @@ class Agent:
                 return "tried this level: its converse arrived"
             return None
 
+        def _cls(sl: str) -> int:
+            """r1443's S-class of one party: 0 a live residual, 1 routable, 2 the rest."""
+            return 0 if sl in live else (
+                1 if routable_slots is not None and sl in routable_slots else 2)
+
+        def _xcls(x: tuple) -> int:
+            """B1 tier 1: a candidate's class, the better of its subject-side parties -- the
+            subject and, for a two-slot order or mirror comparison, the operand."""
+            c = x[2]
+            cl = _cls(c.slot)
+            if cl and isinstance(c, compile_term.Compiled) and c.operand \
+                    and len(c.term.atoms) == 1 and c.term.atoms[0].name in compile_term.SWAP:
+                cl = min(cl, _cls(c.operand))
+            return cl
+
         def _one_term(text: str) -> str | None:
             """r1453 (c): the pair's subject chosen by the grammar -- the better class (a live
             residual, then routable, then the rest) among the parties passing _side, a tie to the
@@ -9695,10 +9955,7 @@ class Agent:
             sides = []
             for sp, ot in ((text, other), (other, text)):
                 cap.head()
-                sl = _subject(sp)[0]
-                cls = 0 if sl in live else (
-                    1 if routable_slots is not None and sl in routable_slots else 2)
-                sides.append((cls, sp, _side(sp, ot)))
+                sides.append((_cls(_subject(sp)[0]), sp, _side(sp, ot)))
             sides = _term_choice(sides)
             fine = [z[1] for z in sides if z[2] is None]
             if not fine:
@@ -9883,6 +10140,7 @@ class Agent:
         pick = None
         checked = 0
         group_n = None
+        b2ctx: list = [None]            # B2: this pass's readings, built on first need
         while pick is None:
             if not cands:
                 if not pending:
@@ -9906,12 +10164,58 @@ class Agent:
             if _HYP_DRAW:
                 # S0: the draw first, one hash per candidate, then the routes in that order -- the
                 # first routable is the lowest-hash routable, so the rest need no check
-                dkey = f"{self.cycle}:goal_hypothesis:None"
-                order = FR.draw_order([x[1] for x in group], dkey, self.draw_seed)
                 by_text = {x[1]: x for x in group}
-                if _cfirst:
-                    order = ([t for t in order if by_text[t][2].slot in _cset]
-                             + [t for t in order if by_text[t][2].slot not in _cset])
+                if _HYP_ORDER:      # B1 (r1470-r1478), B2 (r1479): no name decides anything
+                    pk, st_, ck = self._parked_n, self._subj_tried, self._cand_checked
+                    # r1477: the draw decides only among the equal and equally untried -- the key's
+                    # last element, rowed as "explore" when it is what picked
+                    dpos = {t: i for i, t in enumerate(FR.draw_order(
+                        [x[1] for x in group], f"{self.cycle}:goal_hypothesis:explore",
+                        self.draw_seed))}
+                    ttb: dict = {}
+                    cues: tuple = ()
+                    if _HYP_LEARN:  # r1479 TAKE THE BEST: a has-set as 0/1 in cue order sorts
+                        ncls = Counter(_xcls(x) for x in group)   # as the first cue that differs
+                        for x in group:
+                            if ncls[_xcls(x)] < 2:      # a class of one: tier 1 decided it
+                                continue
+                            if b2ctx[0] is None:
+                                b2ctx[0] = self._b2_ctx(before)
+                                b2ctx.append(self._b2_cues())
+                            cues = b2ctx[1]
+                            ttb[id(x)] = self._b2_ttb_key(
+                                self._b2_text(b2ctx[0], x[1], _xcls(x))[1], cues)
+                    tiers = ("class", "ttb", "parked", "turnable", "round", "subject_tried",
+                             "checked", "explore")
+
+                    def _pre(x, pk=pk, cs=_cset, ttb=ttb):
+                        return (_xcls(x), ttb.get(id(x), ()), pk[x[3]], x[2].slot not in cs)
+                    # r1474/r1478 (Fig 6 :49-50, distribute the search): inside a block equal on
+                    # the tiers above, each subject's least-checked candidate, then each one's
+                    # next, ...; inside a round the least-tried subject first
+                    seen_n: Counter = Counter()
+                    rr = {}
+                    for x in sorted(group, key=lambda x: (_pre(x), x[2].slot, ck[x[3]],
+                                                          dpos[x[1]])):
+                        k = (_pre(x), x[2].slot)
+                        rr[id(x)] = seen_n[k]
+                        seen_n[k] += 1
+
+                    # the keys are taken once: the walk below moves the tried counts
+                    kk = {id(x): (*_pre(x), rr[id(x)], st_[x[2].slot], ck[x[3]], dpos[x[1]])
+                          for x in group}
+
+                    def _key(x, kk=kk):
+                        return kk[id(x)]
+                    ranked = sorted(group, key=_key)
+                    order = [x[1] for x in ranked]
+                    _ocls = Counter(_xcls(x) for x in group)
+                else:
+                    dkey = f"{self.cycle}:goal_hypothesis:None"
+                    order = FR.draw_order([x[1] for x in group], dkey, self.draw_seed)
+                    if _cfirst:
+                        order = ([t for t in order if by_text[t][2].slot in _cset]
+                                 + [t for t in order if by_text[t][2].slot not in _cset])
                 for n, text in enumerate(order, 1):
                     cap.head()
                     x = by_text[text]
@@ -9919,6 +10223,9 @@ class Agent:
                     self._hyp_n += 1
                     key = f"@hyp{self._hyp_n}"
                     link, why = self._hyp_hold(key, x[2], before, routable_slots)
+                    if _HYP_ORDER:                      # r1478: how much each has been tried
+                        self._subj_tried[x[2].slot] += 1
+                        self._cand_checked[x[3]] += 1
                     if link is None and why in _SUBJECT_SIDE and x[1] in alt:
                         x, link, why = _try_alt(x, key, why)
                         text = x[1]
@@ -9929,10 +10236,25 @@ class Agent:
                         HYP_ROUTE_FIRST_N["dropped_holds"] += 1
                         raise AssertionError(f"TETHER_HYP_ROUTE_FIRST_CHECK: {text!r} holds")
                     pick, routable, group_n = (x, key, link), 1, len(group)
+                    dec = (self._b1_decided(by_text, order, n, tiers, _key, cues)
+                           if _HYP_ORDER else {})
                     self.led.record(self.cycle, "PLAN", "@choice", "choice",
                                     site="goal_hypothesis", in_step=self._running_step,
                                     options=len(group), checked=n, pick=repr(text),
-                                    by="draw_each",
+                                    by=("explore" if dec.get("decided_by") == "explore" else
+                                        "order" if _HYP_ORDER else "draw_each"),
+                                    **({"order_class": {f"S{k}": v for k, v
+                                                        in sorted(_ocls.items())},
+                                        "pick_class": f"S{_xcls(x)}",
+                                        "pick_parked": self._parked_n[x[3]], **dec,
+                                        **({"cues": list(cues),
+                                            "cue_evidenced": list(self._b2_evidenced)}
+                                           if cues else {}),
+                                        **({"tried": [self._subj_tried[x[2].slot] - 1,
+                                                      self._cand_checked[x[3]] - 1],
+                                            **self._b1_tied(by_text, order, n, _key)}
+                                           if dec.get("decided_by") == "explore" else {})}
+                                       if _HYP_ORDER else {}),
                                     **({"contingent_first": _cfirst,
                                         "pick_contingent": x[2].slot in _cset}
                                        if _GOAL_CONTINGENT else {}))
@@ -10008,6 +10330,12 @@ class Agent:
             self._hyp["reopened"] = self._lr_left.get(("hyp", x[3]))
         if desc is not None:                    # item 18: what a win is credited to
             self._hyp.update(desc=desc["holding"], family=self._desc_family(x[2], ctrl))
+        if _HYP_ORDER and _HYP_LEARN and isinstance(getattr(x[2], "slot", None), str):
+            if b2ctx[0] is None:                # B2: the reading cells this hold's ending votes
+                b2ctx[0] = self._b2_ctx(before)
+            cells, _has = self._b2_text(b2ctx[0], x[1], _xcls(x))
+            kind = x[2].slot.split(".", 1)[1] if "." in x[2].slot else x[2].slot
+            self._hyp["b2"] = {"cells": [(kind, c) for c in cells]}
         if _UNTESTED_KEEP and x[3] in self._untested:
             since, ended_by = self._untested.pop(x[3])
             self.led.record(self.cycle, "PLAN", sl, "goal_hypothesis_reopened", text=x[1],
@@ -15377,6 +15705,10 @@ class Agent:
         # term's rejection froze at every boundary, while the halflife it decays at is in cycles.
         self.gamma.tick = self.cycle
         self._prev_pred = pred
+        if _HYP_LEARN:                  # B2: L3b's record, every value predicted for a slot
+            for s, v in (pred or {}).items():
+                if isinstance(v, int) and not isinstance(v, bool):
+                    self._b2_pred.setdefault(s, set()).add(v)
         self._last_mass = {s: r.mass for s, r in res.items()}
         if not self._seam_now:          # B: no progress or goal-choice note across a seam
             self._note_progress(after)
@@ -21894,6 +22226,8 @@ class Agent:
             # GQ3: the SUBJECT is at its target -- a means read, never an arrival verdict
             self._gt_which = "subject_met" if _ARRIVAL else "already_holds"
             return None
+        if _HYP_LEARN and isinstance(tgt, int) and not isinstance(tgt, bool):
+            self._b2_aimed.setdefault(slot, set()).add(tgt)     # B2: L3c's record
         return tgt
 
     def _undirected(self, before: dict[str, int]) -> str | None:

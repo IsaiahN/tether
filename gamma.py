@@ -477,6 +477,15 @@ _DECAY_NEW_LIFE = armflag.arm("TETHER_DECAY_NEW_LIFE", default=True)
 # outcomes of carried terms of that kind (replay excluded). No outcome for the kind: w = 1, today's
 # track_of exactly. Orders retrieval only; settled is untouched. ON; conform/arms.py
 _CARRY_W = armflag.arm("TETHER_CARRY_W", default=True)
+
+
+def mix_w(w: float, inherited, life) -> float:
+    """Symbols :20-26: a belief formed from what it inherited and from its own history, mixed by
+    w -- each side a Laplace estimate of its (held, failed) counts. CARRY_W and tether's B2 (r1471
+    (B)) both read it here, so the form is one."""
+    (c0, r0), (c1, r1) = inherited, life
+    return w * (c0 + 1.0) / (c0 + r0 + 2.0) + (1 - w) * (c1 + 1.0) / (c1 + r1 + 2.0)
+
 # L1b (the reviewer 2026-10-17 19:06, 19:33): Rank.used crosses the lineage. It lived on the Agent,
 # so every process re-earned that half of its preparedness; Standing.paid already crosses, by 7i's
 # replay of the carried settle rows. Carried per UNIT (the atom sequence), never per binding.
@@ -1506,10 +1515,8 @@ class Gamma:
                 k = self._carry_w_kinds[name] = self.kind_of(self.library[name]).name
             h, f = self.carry_w_kind.get(k, (0, 0))
             if h + f:                        # outcomes for the kind: mix (Symbols :20-26)
-                w = h / (h + f)
-                c0, r0 = self.carry_w_base[name]
-                c1, r1 = self.carry_w_life.get(name, (0, 0))
-                return w * (c0 + 1.0) / (c0 + r0 + 2.0) + (1 - w) * (c1 + 1.0) / (c1 + r1 + 2.0)
+                return mix_w(h / (h + f), self.carry_w_base[name],
+                             self.carry_w_life.get(name, (0, 0)))
         return (st.confirmations + 1.0) / (st.confirmations + st.refusals + 2.0)
 
     def youth_of(self, name: str) -> float:

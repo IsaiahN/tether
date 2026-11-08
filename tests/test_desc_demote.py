@@ -40,12 +40,13 @@ def propose(ag, texts: list) -> dict:
     ag._inv_conditions = lambda _b, **_k: list(texts)
     ag._hyp_route = lambda *_a: "a route"
     ag._route_first_set = lambda _b: None
-    was = tether._GROUP_PROPOSE
+    was = tether._GROUP_PROPOSE, tether._HYP_ORDER
     tether._GROUP_PROPOSE = False
+    tether._HYP_ORDER = False   # MF-S1's tie is the draw's; B1's class order breaks it apart
     try:
         ag._hyp_propose(before)
     finally:
-        tether._GROUP_PROPOSE = was
+        tether._GROUP_PROPOSE, tether._HYP_ORDER = was
     return [r for r in ag.led.rows() if r["event"] == "goal_hypotheses"][-1]["detail"]
 
 

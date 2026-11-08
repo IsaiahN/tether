@@ -40,6 +40,23 @@ import sensors
 
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _CARRY = armflag.arm("TETHER_LINEAGE_CARRY", default=True)   # _UPPER, so the @run header records it
+_B2_FIELDS = ("holds", "parked", "untested", "paid")   # tether's B2 counts, in their list order
+
+
+def _b2_inherit(ag: Any, gens) -> int:
+    """B2 (r1476, r1480): the inherited side -- every earlier generation's contact-kind and
+    reading-cell counts, summed (the store path hands one folded record, the chain path each)."""
+    kinds: dict = {}
+    cells: dict = {}
+    for g in gens:
+        for fld, into, keyf in (("b2_kinds", kinds, lambda k: k),
+                                ("b2_cells", cells, lambda k: tuple(k.split("|", 1)))):
+            for k, d in (g.get(fld) or {}).items():
+                st = into.setdefault(keyf(k), [0, 0, 0, 0])
+                for i, f in enumerate(_B2_FIELDS):
+                    st[i] += d.get(f, 0)
+    ag._b2_kinds_inh, ag._b2_cells_inh = kinds, cells
+    return len(kinds)
 # THE BOUNDARY WRITE (the reviewer 2026-10-15 06:46, 07:23, 07:32; Isaiah 06:20): under the carry,
 # a generation at every level clear and death too, so a stop loses at most the current level.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -779,6 +796,20 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                                   for o, n in sorted(c.items())
                                   if n > ag._line_grade_written.get(k, {}).get(o, 0)}
                               for k, c in sorted(ag._line_grade.items())}
+    if tether._HYP_LEARN and hasattr(ag, "_b2_kinds"):
+        # B2 (r1476, r1480): the contact kinds' and reading cells' own counts since the last
+        # write; the load sums the chain into the inherited side
+        for fld, own, mark in (("b2_kinds", ag._b2_kinds, "_b2k_written"),
+                               ("b2_cells", ag._b2_cells, "_b2c_written")):
+            was = getattr(ag, mark, {})
+            gen[fld] = {}
+            for key, st in own.items():
+                name = key if isinstance(key, str) else "|".join(key)
+                w0 = was.get(name, (0, 0, 0, 0))
+                d = {f: st[i] - w0[i] for i, f in enumerate(_B2_FIELDS) if st[i] > w0[i]}
+                if d:
+                    gen[fld][name] = d
+            gen[fld] = dict(sorted(gen[fld].items()))
     if tether._THOUGHT_RECORD and hasattr(ag, "_thought"):
         # M1: each kind-form lookup key's entries tried / paid since the last write; load sums
         for fld in ("tried", "paid"):
@@ -897,6 +928,9 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._koff_written = dict(ag._kind_offered_dk)
         if "line_grades" in gen:
             ag._line_grade_written = {k: dict(c) for k, c in ag._line_grade.items()}
+        if "b2_kinds" in gen:
+            ag._b2k_written = {k: list(st) for k, st in ag._b2_kinds.items()}
+            ag._b2c_written = {"|".join(k): list(st) for k, st in ag._b2_cells.items()}
         if "stopped_at" in gen:
             ag._stopped_written = dict(getattr(getattr(ag.led, "narrator", None), "links", {}))
         if "thought_tried" in gen:
@@ -1413,6 +1447,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         for k, d_ in c.get("line_grades", {}).items():
             ag._line_grade_in.setdefault(k, {}).update(d_)
         rep["line_kinds_in"] = len(ag._line_grade_in)
+    if tether._HYP_LEARN and hasattr(ag, "_b2_kinds_inh"):
+        rep["b2_kinds_in"] = _b2_inherit(ag, [c])
     if tether._THOUGHT_RECORD and hasattr(ag, "_thought_in"):
         for f in ("tried", "paid"):
             for k, d_ in c.get("thought_" + f, {}).items():
@@ -1639,6 +1675,8 @@ def load(d: str | Path, ag: Any) -> dict:
                 for o, n in c.items():
                     into[o] = into.get(o, 0) + n
         rep["line_kinds_in"] = len(ag._line_grade_in)
+    if tether._HYP_LEARN and hasattr(ag, "_b2_kinds_inh"):
+        rep["b2_kinds_in"] = _b2_inherit(ag, [g for _h, g in chain])
     if tether._THOUGHT_RECORD and hasattr(ag, "_thought_in"):
         # M1: every generation's thought record, root to tip
         for _h, g in chain:
