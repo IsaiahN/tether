@@ -9740,6 +9740,8 @@ class Agent:
                         would_drop.add(text)
                     else:
                         HYP_ROUTE_FIRST_N["kept"] += 1
+                # a change reading's pair (colour_changed: BOOL, only "==") is refused at compile
+                # in either spelling (compile_term._change: "compared across objects"): no choice
                 if (text in alt_of and text.split(" ", 1)[0].split(".", 1)[1]
                         not in compile_term.CHANGE_OF):
                     w, text = text, _one_term(text)
