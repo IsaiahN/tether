@@ -144,7 +144,7 @@ def _inputs(rows: list[dict]) -> dict | None:
             # step running (ROUTE from the library pull, MINT from the sweep, which runs inside
             # mint; the reviewer 2026-10-16 09:14); since P1 it is a candidate, so it may settle
             accepted.add(str(r.get("detail", {}).get("term")))
-        elif ev == "pull" and r.get("detail", {}).get("admitted") == IMPORTED_STAMP:
+        elif ev == "pull" and _bound_stamp(r.get("detail", {})) == IMPORTED_STAMP:
             # r1490 (the reviewer 2026-11-08): an inherited term's arrival is its inheritance,
             # recorded on its pull; an in-life term keeps its own accept. The reuse_install
             # clause above (2026-10-16 09:14) reads a library pull the same way
@@ -152,6 +152,12 @@ def _inputs(rows: list[dict]) -> dict | None:
         elif ev == "settle" and str(r.get("detail", {}).get("term")) not in accepted:
             return _v("inputs", MISSING_INPUT, r.get("seq"), "settle without accept")
     return None
+
+
+def _bound_stamp(d: dict):
+    """r1493: a pull's "admitted" is the HELD name's stamp; "term_admitted", when the row has it,
+    is the stamp of the name it binds, and that is the one that arrived. Older rows lack it."""
+    return d["term_admitted"] if "term_admitted" in d else d.get("admitted")
 
 
 def _routing(rows: list[dict]) -> dict | None:

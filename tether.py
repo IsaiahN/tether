@@ -16008,6 +16008,8 @@ class Agent:
                         rebound=held != n,
                         origin=(st or {}).get("origin"),
                         admitted=(st or {}).get("admitted"),
+                        # r1493: the stamp of the name it BINDS (admitted is held's), record only
+                        term_admitted=(self.gamma.stamps.get(n) or {}).get("admitted"),
                         **({"carry": carry} if carry is not None else {}),
                         reads="a library entry REACHED FOR -- 14.7's bench pull")
         return n

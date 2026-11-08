@@ -181,6 +181,38 @@ def test_the_imported_stamp_is_the_builds():
         gate.IMPORTED_STAMP = saved
 
 
+def _rebound(held_admitted, term_admitted=None, seq=2):
+    r = _pulled("a . b", held_admitted, seq=seq)
+    r["detail"].update(held="a", rebound=True)
+    if term_admitted is not None:
+        r["detail"]["term_admitted"] = term_admitted
+    return r
+
+
+def test_an_imported_rebound_arrives_by_its_reuse_install():
+    """r1493 (i): a rebound import's new name arrives by its own reuse_install."""
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r[2:2] = [_reused("a . b"), _rebound(gate.IMPORTED_STAMP, "accepted", seq=3)]
+    assert gate.check(r)["verdict"] == gate.PASS, gate.check(r)
+
+
+def test_a_rebound_onto_an_inherited_name_arrives():
+    """r1493 (ii): held "necessary", the bound name inherited, no reuse_install: its arrival is its
+    pull's term_admitted. MF: the field removed, the row's admitted (held's) does not carry it."""
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r.insert(2, _rebound("necessary", gate.IMPORTED_STAMP))
+    assert gate.check(r)["verdict"] == gate.PASS, gate.check(r)
+    del r[2]["detail"]["term_admitted"]
+    _refuses(r, gate.MISSING_INPUT)
+
+
+def test_term_admitted_is_not_overridden_by_admitted():
+    """r1493 (iii): the bound name's own stamp not imported, held's imported: no arrival."""
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r.insert(2, _rebound(gate.IMPORTED_STAMP, "accepted"))
+    _refuses(r, gate.MISSING_INPUT)
+
+
 def test_a_candidates_refuted_bet_is_a_row_the_gate_accepts():
     """P3: a candidate the ground refuted before it ever settled is recorded, as a SETTLE row."""
     r = valid()
