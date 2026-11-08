@@ -2678,6 +2678,13 @@ ARMS: dict[str, str] = {
                        "pairs whose two parties both passed the subject checks, before admission "
                        "(not alternates admitted). OFF: every pair written both ways, as before. "
                        "default ON",
+    "TETHER_GROUP_SUBJECT": "G1, THE GROUP'S SUBJECTS (the reviewer 2026-11-08 r1460, r1464, "
+                            "r1465): a group row wants every member, so each part's subject passes "
+                            "the singles' two subject checks (self-moving; the own clock), read as "
+                            "_admit reads them through the same pass cache, or the whole row is "
+                            "refused ('group: self-moving subject', 'group: the own clock moves "
+                            "it'); never a member dropped. OFF: group rows read neither. "
+                            "default ON",
     "TETHER_HYP_ROAD_CLOSED": "ROAD CLOSED (the reviewer 2026-11-07 r1379; Fig 9 :60, Fig 8 "
                               ":40-41): a held goal hypothesis whose route reads None at choose on "
                               "MIN_REPEAT (2) consecutive reads (a cycle with no read neither "

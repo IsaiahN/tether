@@ -120,7 +120,7 @@ def order(on):
     return {"route": route, "act": act, "by": by}
 
 
-def clock(on, one=False, stub=False):
+def clock(on, one=False, stub=False, group=False):
     ag = fresh()
     ag._hyp_end("lost")
     before = ag.env.observe()
@@ -140,8 +140,8 @@ def clock(on, one=False, stub=False):
                         for x in ranked)
         return real_fc(ranked, *a, **k)
     ag._family_counts = fc
-    was = tether._GOAL_HYP, tether._ONE_TERM
-    tether._GOAL_HYP, tether._ONE_TERM = on, one
+    was = tether._GOAL_HYP, tether._ONE_TERM, tether._GROUP_SUBJECT
+    tether._GOAL_HYP, tether._ONE_TERM, tether._GROUP_SUBJECT = on, one, group
     try:
         out = {"col": ag._self_moving("o0.col"), "row": ag._self_moving("o0.row")}
         if stub:                       # the must-fail: the self-moving check passes everything
@@ -149,7 +149,7 @@ def clock(on, one=False, stub=False):
         ag._hyp_tried = {}
         ag._hyp_propose(before)
     finally:
-        tether._GOAL_HYP, tether._ONE_TERM = was
+        tether._GOAL_HYP, tether._ONE_TERM, tether._GROUP_SUBJECT = was
     row = [r["detail"] for r in ag.led.rows() if r["event"] == "goal_hypotheses"][-1]
     out["refused"] = row["refused"].get("self-moving subject", 0)
     out["open"] = row["open"]
@@ -160,6 +160,7 @@ def clock(on, one=False, stub=False):
     out["clock_subject"] = sum(1 for s, grp in admitted if s == "o0.col" and not grp)
     out["clock_group"] = sum(1 for s, grp in admitted if s == "o0.col" and grp)
     out["other_spelling"] = (row.get("one_term") or {}).get("subject from the other spelling", 0)
+    out["group_refused"] = {k: v for k, v in row["refused"].items() if k.startswith("group:")}
     return out
 
 
@@ -188,8 +189,9 @@ print(json.dumps({
     "t2_on": hold(True), "t2_off": hold(False),
     "t3_on": order(True), "t3_off": order(False),
     "t4_on": clock(True), "t4_off": clock(False),
-    "t4_one": clock(True, one=True), "t4_one_unchecked": clock(False, one=True),
-    "t4_one_mf": clock(True, one=True, stub=True), "t5": click()}, default=str))
+    "t4_one": clock(True, one=True, group=True), "t4_one_ungrouped": clock(True, one=True),
+    "t4_one_unchecked": clock(False, one=True, group=True),
+    "t4_one_mf": clock(True, one=True, stub=True, group=True), "t5": click()}, default=str))
 '''
 
 
@@ -227,8 +229,14 @@ def main() -> None:
           f"T2 series ON {r['t2_on']}, OFF {r['t2_off']}; T3 ON {r['t3_on']}, OFF {r['t3_off']}; "
           f"T4 ON {r['t4_on']}, OFF {r['t4_off']}; T4 ONE TERM {one}, unchecked {nv}, "
           f"MUST-FAIL {mf}; T5 click board {r['t5']})")
-    # clock_group is printed, never asserted: the group path reads no self-moving check
-    print(f"KNOWN GAP: G1 (r1460) -- group rows with the clock as subject: {one['clock_group']}")
+    # G1 (r1465): under TETHER_GROUP_SUBJECT no admitted group row has the clock as subject --
+    # each refused "group: self-moving subject" -- and the pick holds; the arm OFF still admits them
+    ug = r["t4_one_ungrouped"]
+    assert one["clock_group"] == 0 and ug["clock_group"] > 0, (one, ug)
+    assert one["group_refused"].get("group: self-moving subject", 0) >= ug["clock_group"], (one, ug)
+    assert one["pick"] == ug["pick"], (one, ug)
+    print(f"G1 (r1465): clock group rows {one['clock_group']} under the arm, "
+          f"{ug['clock_group']} with it OFF; refused {one['group_refused']}")
 
 
 if __name__ == "__main__":

@@ -3227,6 +3227,13 @@ _FOLD_OP = {">": "<", "<": ">", "==": "==", "!=": "!="}
 _FOLD_TPL = re.compile(r"\{o\}\.\{r\} (==|!=|<|>) \{x\}\.\{r\}")
 
 
+# G1, THE GROUP'S SUBJECTS (the reviewer 2026-11-08 r1460, r1464, r1465): a group row wants every
+# member, so each PART's subject passes the singles' two subject checks -- self-moving and the own
+# clock, read as _admit reads them, through the same pass cache -- or the WHOLE ROW is refused
+# ("ALL of kind" minus the clocked members would be another term). OFF: groups read neither
+_GROUP_SUBJECT = armflag.arm("TETHER_GROUP_SUBJECT", default=True)
+
+
 def _term_choice(sides: list) -> list:
     """r1453 (c): a pair's (class, text, refusal) parties in choice order -- the better class, then
     the smaller text. No draw."""
@@ -9704,6 +9711,25 @@ class Agent:
                 alt[fine[0]] = fine[1]
             return fine[0]
 
+        def _group_guard(gtext: str, grp: Any) -> bool:
+            """G1 (r1465): every part of a group row through the singles' own clock and
+            self-moving checks (the body's clock, _smv, _smw); one failing part refuses the row."""
+            for q in grp.parts:
+                cap.head()
+                if clock and clock & self._named_slots(gtext, q):
+                    refused["group: the own clock moves it"] += 1
+                    return False
+                if _GOAL_HYP:
+                    if q.slot not in _smv:
+                        _smv[q.slot] = self._self_moving(
+                            q.slot, _smw.setdefault(q.slot, {}) if _R4_RECORD else None)
+                    if _smv[q.slot]:
+                        refused["group: self-moving subject"] += 1
+                        return False
+            return True
+
+        gguard = _group_guard if _GROUP_SUBJECT else None
+
         def _try_alt(x: tuple, key: str, why: str) -> tuple:
             """r1453 (c): the chosen spelling's hold failed on the subject side -- its other one,
             text until now, is compiled (the same cache) and held. (x, link, why)."""
@@ -9836,9 +9862,9 @@ class Agent:
                     gitems[t] = s
                     if t in alt_of:
                         gitems.setdefault(alt_of[t][0], s)
-            cands += self._group_cands(gitems, before, atoms)
+            cands += self._group_cands(gitems, before, atoms, guard=gguard)
         if carried_grp:
-            cands += self._carried_groups(carried_grp, before, atoms)
+            cands += self._carried_groups(carried_grp, before, atoms, guard=gguard)
         if _GOAL_UNBUNDLE and self._hyp_split is not None:
             cands += self._compounds(cands)     # item 19 (c): kept AND c, in the same sort
         cands = _priced(cands)
@@ -10591,31 +10617,31 @@ class Agent:
                                 if _DESC_DEMOTE else None),
                         reads="evidence against this family on this board, never a refutation")
 
-    def _carried_groups(self, items: dict, before: dict, atoms: dict) -> list:
+    def _carried_groups(self, items: dict, before: dict, atoms: dict, guard: Any = None) -> list:
         """Item 20 (iii), proposer-side: a carried "ALL kind(...): member" text, which the compiler
         refuses, rebuilt BY FORM -- its member condition through _group_cands / _group_form, the
         one group form -- and ranked by its shelf record like any shelf entry (won, progress)."""
         members = {t.split(": ", 1)[1]: s for t, s in items.items() if ": " in t}
         out = []
-        for k, t, c, tk, s in self._group_cands(members, before, atoms):
+        for k, t, c, tk, s in self._group_cands(members, before, atoms, guard=guard):
             rec = self._goal_shelf.get(s, {}).get("record", {})
             rank = (0 if rec.get("won") else
                     1 if _PROGRESS_SHELF and rec.get("progress") else k[0])
             out.append(((rank, *k[1:]), t, c, tk, s))
         return out
 
-    def _group_cands(self, items: dict, before: dict, atoms: dict) -> list:
+    def _group_cands(self, items: dict, before: dict, atoms: dict, guard: Any = None) -> list:
         """Box 3 (r1218): the proposer's group candidates -- the FORM over its own texts (compiled
         through the same cache), not holding now, not tried this level, ranked by bits at the
         member condition plus its quantifier, after a won or progressed shelf entry.
         R2 (r1297): the owners of `before` are read once for the pass, and a text whose (kind,
         template) key a formed text already took is skipped before it is compiled -- `seen` is
         still marked only inside _group_form, so a text that fails to form never blocks one
-        that would."""
+        that would. G1 (r1465): `guard`, the body's subject checks, refuses a formed row."""
         out, seen = [], set()
         self._own_pass = (before, self._owners(before))
         try:
-            return self._group_cands_pass(items, before, atoms, out, seen)
+            return self._group_cands_pass(items, before, atoms, out, seen, guard)
         finally:
             self._own_pass = None
 
@@ -10629,7 +10655,7 @@ class Agent:
         return (self._kind(scope), re.sub(rf"\b{scope}\b", "{o}", text))
 
     def _group_cands_pass(self, items: dict, before: dict, atoms: dict, out: list,
-                          seen: set) -> list:
+                          seen: set, guard: Any = None) -> list:
         for text, s in items.items():
             cap.head()
             if self._group_key(text) in seen:
@@ -10644,6 +10670,8 @@ class Agent:
             gtext, grp = formed
             if not grp.parts:                   # every member was the anchor: nothing to want
                 continue
+            if guard is not None and not guard(gtext, grp):
+                continue                        # G1: a part's subject is a clock
             tk = (gtext, grp.slot, None)
             if grp.holds(before) or (self._hyp_barred(tk) if _LEAVE_RATE
                                      else tk in self._hyp_tried):
