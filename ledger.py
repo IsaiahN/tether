@@ -47,7 +47,8 @@ _CHOICE_TALLY_CHECK = armflag.arm("TETHER_CHOICE_TALLY_CHECK")
 # order (c2ddc5a).
 _CHOICE_TALLY_ORDER = armflag.arm("TETHER_CHOICE_TALLY_ORDER", default=True)
 TALLY_SITE = "objective_domain"
-TALLY_FIELDS = ("site", "options", "frontier", "pick", "by", "root", "residual", "seen")
+# "at": a tail row on "@vector" names its slot here, so its tally key keeps the slot (r1448)
+TALLY_FIELDS = ("site", "options", "frontier", "pick", "by", "root", "residual", "seen", "at")
 
 
 def _tally_key(slot: str, step: str, detail: dict, fields: tuple) -> str:

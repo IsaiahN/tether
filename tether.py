@@ -4130,6 +4130,28 @@ class Agent:
     _own_pass = None           # R2: (state, owners) for one _group_cands pass over that state
     _s0_stall_at = None        # item 28: the cycle directed work last stalled
 
+    def _book_cycle(self) -> int:
+        """The cycle a row is booked under (r1440, r1441): self.cycle, except in a step's
+        TAIL -- the PERCEIVE scope after the counter advances -- whose rows belong to the cycle
+        being closed, as the tail's own rows (self.cycle - 1) already say. A writer a tail can
+        reach calls this, so its row never lands in the next cycle ahead of that cycle's PLAN."""
+        return self.cycle if self._booking is None else self._booking
+
+    def _book_key(self, slot: str) -> str:
+        """The key a slot's row is booked under (r1448): the slot, except in the TAIL, where a
+        PERCEIVE row on a slot would sit after that slot's ACCEPT in the cycle being closed; there
+        it goes on the tail's own non-slot key, "@vector", its slot named in the row ("at")."""
+        return slot if self._booking is None else "@vector"
+
+    @contextmanager
+    def _tail_booking(self):
+        """The tail's booking scope: _book_cycle() reads the cycle being closed while it runs."""
+        self._booking = self.cycle - 1
+        try:
+            yield
+        finally:
+            self._booking = None
+
     @contextmanager
     def _step_scope(self, step: str):
         """_in_step for an inline phase of step() or an entry point: the step running for
@@ -5103,6 +5125,7 @@ class Agent:
         self._view: tuple = ("full", dict)
         self._prev_bet: str | None = None
         self._prev_pred: dict[str, int] | None = None
+        self._booking: int | None = None    # r1441: the cycle the tail's rows belong to
         self.refusals: list[str] = []
 
     def _cap_due(self) -> bool:
@@ -7748,7 +7771,8 @@ class Agent:
             if reached:
                 self._3a_hazard.unseen(slot, kind, -1)
                 self._3a_unseen[key] = None
-                self.led.record(self.cycle, self._running_step, "@vector", "unseen_withdrawn",
+                self.led.record(self._book_cycle(), self._running_step, "@vector",
+                                "unseen_withdrawn",
                                 at=slot, kind=kind, row=i,
                                 reads="part 2's unseen-actor credit withdrawn: the agent's own act "
                                       "reached this change")
@@ -13558,7 +13582,9 @@ class Agent:
 
     def _domain_row(self, slot: str, opts: list, pick: int, by: str, front: list) -> None:
         """A1 site 9's A2 row: both values on the frontier, their readings, the pick, its step."""
-        self.led.record(self.cycle, self._running_step, slot, "choice", site="objective_domain",
+        at = self._book_key(slot)
+        self.led.record(self._book_cycle(), self._running_step, at, "choice",
+                        site="objective_domain", **({"at": slot} if at != slot else {}),
                         options=len(opts), frontier=[[repr(v), b, a] for v, b, a in opts
                                                      if v in set(front)],
                         residual=None, seen=None, pick=repr(pick), by=by,
@@ -26462,7 +26488,7 @@ class Agent:
         # §12.4's trigger is a PERCEPTION reading -- the vocabulary failing to resolve two
         # things the world distinguishes -- so it is recorded, not acted on here.
         indist = self.indistinguishable()
-        with self._step_scope("PERCEIVE"):
+        with self._step_scope("PERCEIVE"), self._tail_booking():
             if indist is not None:              # INDIST_ON_CHANGE: None = the grouping unchanged
                 self.led.record(self.cycle - 1, "PERCEIVE", "@vector", "indistinct",
                                 pairs=len(indist), top=indist[:3],
