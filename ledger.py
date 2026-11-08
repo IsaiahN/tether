@@ -283,6 +283,20 @@ class Ledger:
         so a reader of the tail no longer converts the whole ledger."""
         return [self._row(e) for e in self._entries[start:]]
 
+    def wrote(self, cycle: int, step: str, slot: str) -> bool:
+        """r1442: whether a row on `slot` under `step` was written in `cycle`. A backwards scan
+        that stops below the cycle before it, so a caller that asks rarely pays rarely. It reads
+        THROUGH cycle - 1 rows (a closing row of the cycle before -- repeat, carry_w, the tail's
+        rows -- carries cycle - 1; r1449) so that no such row can cut the scan short, and it
+        matches only e.cycle == cycle, so an ACCEPT of cycle - 1 never counts. ACCEPT rows are
+        never tallied (only site objective_domain choice rows are), so _entries holds them all."""
+        for e in reversed(self._entries):
+            if e.cycle < cycle - 1:
+                return False
+            if e.cycle == cycle and e.step == step and e.slot == slot:
+                return True
+        return False
+
     def by_event(self, event: str) -> list[Entry]:
         return [e for e in self._entries if e.event == event]
 

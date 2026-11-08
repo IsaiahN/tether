@@ -6149,7 +6149,11 @@ class Agent:
                 self._dw_tried[d].discard(t)
                 self._dw_owed[d] = (owed[d][0] if d in owed else self.cycle, t)
                 b2["deferred"] += 1
-                self.led.record(self.cycle, "MINT", d, "derived_deferred", owes=True,
+                # r1442 (a): E0-W runs after the ACCEPT loop, so on a slot ACCEPTed this cycle its
+                # note goes on "@derived" (as "@owed" does), the slot named in the row
+                at = "@derived" if self.led.wrote(self.cycle, "ACCEPT", d) else d
+                self.led.record(self.cycle, "MINT", at, "derived_deferred", owes=True,
+                                **({"derived": d} if at != d else {}),
                                 after=b2["stop"], transition=list(t),
                                 since=self._dw_owed[d][0],
                                 reads="B2: not minted this step: a mint this step already stopped "

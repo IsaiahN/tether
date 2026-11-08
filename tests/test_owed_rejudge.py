@@ -214,8 +214,9 @@ def check_f_reraised() -> None:
     for _ in range(6):
         n0 = len(ag.led.rows())
         ag.step()
-        back |= {r["slot"] for r in ag.led.rows()[n0:]
-                 if r["event"] in ("derived_asked", "derived_deferred") and r["slot"] in rel}
+        back |= {r["detail"].get("derived", r["slot"]) for r in ag.led.rows()[n0:]
+                 if r["event"] in ("derived_asked", "derived_deferred")
+                 and r["detail"].get("derived", r["slot"]) in rel}     # r1442: "@derived"
         if back:
             break
     assert back, ("a released ask raised again by a later frame", len(rel))
