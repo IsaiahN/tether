@@ -1462,7 +1462,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
             ag._root_grade_in.setdefault(s, {}).update(d_)
         rep["root_shapes_in"] = len(ag._root_grade_in)
     if tether._M7_INV and hasattr(ag, "_reinvent_carried"):
-        rep["inventions_in"] = ag._reinvent_carried(list(c.get("inventions", [])))
+        with ag._step_scope("IMPORT"):      # r1488: its row is the load's, booked as the load's
+            rep["inventions_in"] = ag._reinvent_carried(list(c.get("inventions", [])))
     if tether._ROUTINE_CARRY and hasattr(ag, "_carry_routines_in"):
         # (6c): one row per kind form (the store's fold); absent in an older store: none
         rep["routines_in"] = ag._carry_routines_in(list(c.get("routines_by_kind", {}).values()))
@@ -1702,8 +1703,9 @@ def load(d: str | Path, ag: Any) -> dict:
         rep["root_shapes_in"] = len(ag._root_grade_in)
     if tether._M7_INV and hasattr(ag, "_reinvent_carried"):
         # M7-INV: every generation's inventions, root to tip, re-invented on trial
-        rep["inventions_in"] = ag._reinvent_carried(
-            [r for _h, g in chain for r in g.get("inventions", ())])
+        with ag._step_scope("IMPORT"):      # r1488: as in _load_from_store
+            rep["inventions_in"] = ag._reinvent_carried(
+                [r for _h, g in chain for r in g.get("inventions", ())])
     if tether._ROUTINE_CARRY and hasattr(ag, "_carry_routines_in"):
         # (6c): root to tip, one row per kind form, the latest standing kept
         rk = {r["key"]: r for _h, g in chain for r in g.get("routines_by_kind", ())}
