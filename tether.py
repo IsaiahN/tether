@@ -2093,6 +2093,7 @@ _SLOT_IN_TEXT = re.compile(r"(?<![A-Za-z0-9_.~])(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-
 # that is counted. OFF: today's proposer, grading and record.
 _OWN_CLOCK_SUBJECT = armflag.arm("TETHER_OWN_CLOCK_SUBJECT", default=True)
 OWN_CLOCK_N: Counter = Counter()        # "refused" / "empty" (proposals); "graded" (tests)
+HOLD_SKIP_N: Counter = Counter()        # r1419 E: "skipped" -- groups not linked (no route)
 # r1419 F: a library text's subject read off the text ("o.r", or o.CHANGE_OF[r]) is refused "not a
 # movable slot" BEFORE its compile, when no TOUCH partner can save it. "refused" counts those; under
 # F_PRE_CHECK (a witness, never the agent) each is compiled anyway and "mismatch" counts a compiled
@@ -9439,11 +9440,14 @@ class Agent:
             self._route_memo[mk] = self.iface.unrealised
         return None if r is None else r.action
 
-    def _hyp_hold(self, key: str, c: Any, before: dict) -> tuple:
+    def _hyp_hold(self, key: str, c: Any, before: dict, routable: set | None = None) -> tuple:
         """Link one candidate as its subject's want and read its route; kept only with a route.
         A no-search (G1 / echo) want on the subject is displaced -- a state the agent passed
         through is not an end while a hypothesis is held (the reviewer 14:27 (c)); a composed
-        or learned want is never displaced."""
+        or learned want is never displaced. r1419 E: a GROUP none of whose member subjects can
+        route (routable, the route-first superset; no TOUCH partner) is not linked or read --
+        its displaced wants are restored as a failed hold restores them, so the wants keep the
+        same order (r1424), and it ends "no route"."""
         parts = list(c.parts) if isinstance(c, _Pair) else [c]
         linked = {sl for v in self._goal_links.values() for sl, _n in v}
         displaced = {}
@@ -9456,6 +9460,19 @@ class Agent:
                 else:
                     self._hyp_restore(displaced)
                     return None, "the subject holds a composed or learned want"
+        if routable is not None and isinstance(c, _Group):
+            # the slots the link would write: each member as spelled, and the 16c mirror the
+            # link would append (r1427: the same calls, the same `both`)
+            spelled = [self._movable_spelling(q) for q in parts] if _RELATION_SET else parts
+            mirror = self._goal_mirror(spelled) if _GOAL_BOTH_SIDES else None
+            slots = [q.slot for q in spelled] + ([mirror.slot] if mirror is not None else [])
+            if not any(sl in routable or (_REL_TOUCH and self._rel_partner(sl) is not None)
+                       for sl in slots):
+                HOLD_SKIP_N["skipped"] += 1
+                if mirror is not None:
+                    HOLD_SKIP_N["skipped_with_mirror"] += 1
+                self._hyp_restore(displaced)
+                return None, "no route"
         link = self._link_goal(key, c, both=True)
         if not link.get("linked"):
             self._hyp_restore(displaced)
@@ -9727,7 +9744,7 @@ class Agent:
                     checked += 1
                     self._hyp_n += 1
                     key = f"@hyp{self._hyp_n}"
-                    link, why = self._hyp_hold(key, x[2], before)
+                    link, why = self._hyp_hold(key, x[2], before, routable_slots)
                     if link is None:
                         refused[f"no hold: {why}"] += 1
                         continue
@@ -9750,7 +9767,7 @@ class Agent:
                 checked += 1
                 self._hyp_n += 1
                 key = f"@hyp{self._hyp_n}"
-                link, why = self._hyp_hold(key, x[2], before)
+                link, why = self._hyp_hold(key, x[2], before, routable_slots)
                 if link is None:
                     refused[f"no hold: {why}"] += 1
                     continue
