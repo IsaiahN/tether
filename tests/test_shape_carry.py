@@ -59,7 +59,7 @@ def propose(ag, on: bool) -> dict:
     before = ag.trace[-1][2]
     ag.wants.clear()
     ag._hyp, ag._hyp_exhausted, ag._hyp_tried = None, None, {}
-    ag._inv_conditions = lambda _b: []
+    ag._inv_conditions = lambda _b, **_k: []
     ag._hyp_route = lambda *_a: "a route"
     ag._route_first_set = lambda _b: None
     was = tether._SHAPE_CARRY, tether._GROUP_PROPOSE

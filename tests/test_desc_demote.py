@@ -37,7 +37,7 @@ def propose(ag, texts: list) -> dict:
     before = ag.trace[-1][2]
     ag.wants.clear()
     ag._hyp, ag._hyp_exhausted = None, None
-    ag._inv_conditions = lambda _b: list(texts)
+    ag._inv_conditions = lambda _b, **_k: list(texts)
     ag._hyp_route = lambda *_a: "a route"
     ag._route_first_set = lambda _b: None
     was = tether._GROUP_PROPOSE

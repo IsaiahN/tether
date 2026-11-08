@@ -58,7 +58,7 @@ def offer(ag, slots: list) -> tuple:
     c = f"{owner}.col == {other}.col"
     ag.wants.clear()
     ag._hyp, ag._hyp_exhausted = None, None
-    ag._inv_conditions = lambda _b: [c]
+    ag._inv_conditions = lambda _b, **_k: [c]
     ag._route_first_set = lambda _b: None
     was = tether._GROUP_PROPOSE
     tether._GROUP_PROPOSE = False

@@ -31,7 +31,7 @@ def propose(text: str, on: bool | None):
     assert ag._rel_partner("o0.touches_o2") == "o2" and before.get("o0.touches_o2") == 0, (
         "the panel: o0 does not touch o2")
     ag._hyp, ag._hyp_tried, ag._hyp_exhausted = None, {}, None
-    ag._inv_conditions = lambda _b: [text]
+    ag._inv_conditions = lambda _b, **_k: [text]
     was = tether._REL_TOUCH
     tether._REL_TOUCH = was if on is None else on
     try:

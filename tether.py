@@ -2094,6 +2094,7 @@ _SLOT_IN_TEXT = re.compile(r"(?<![A-Za-z0-9_.~])(o\d+(?:~o\d+)*\.[A-Za-z_][A-Za-
 _OWN_CLOCK_SUBJECT = armflag.arm("TETHER_OWN_CLOCK_SUBJECT", default=True)
 OWN_CLOCK_N: Counter = Counter()        # "refused" / "empty" (proposals); "graded" (tests)
 HOLD_SKIP_N: Counter = Counter()        # r1419 E: "skipped" -- groups not linked (no route)
+ONE_TERM_N: Counter = Counter()         # r1453 (c): per pass counts, summed over the run
 # r1419 F: a library text's subject read off the text ("o.r", or o.CHANGE_OF[r]) is refused "not a
 # movable slot" BEFORE its compile, when no TOUCH partner can save it. "refused" counts those; under
 # F_PRE_CHECK (a witness, never the agent) each is compiled anyway and "mismatch" counts a compiled
@@ -3212,6 +3213,24 @@ _HYP_OWN_BY = ("routine", "hold", "actuator", "discriminate:goal", "lookahead")
 # books no leave. OFF: it holds until its elsewhere budget, and a stepped one is barred, as before
 _HYP_ROAD_CLOSED = armflag.arm("TETHER_HYP_ROAD_CLOSED", default=True)
 _ROAD_CLOSED_N = MIN_REPEAT    # a yes/no read repeats as reads (self_family.py:40-45)
+# ONE TERM (the reviewer 2026-11-08 r1453 (c); Fig 12 :23-27, "the four are one term"): the
+# library writes ONE spelling per unordered pair -- "{a} > {b}" and "{b} < {a}" (or "{a} == {b}"
+# and "{b} == {a}") are one term -- and the proposal pass CHOOSES its subject before any compile:
+# the party with the better class (a live residual, then routable, then the rest) among those
+# passing the subject-side checks, a tie to the smaller text, no draw. The other spelling stays
+# TEXT, compiled only when a hold fails on the subject side; a symmetric one keeps none while the
+# 16c mirror covers it. OFF: every pair written both ways, as before
+_ONE_TERM = armflag.arm("TETHER_ONE_TERM", default=True)
+_SUBJECT_SIDE = frozenset({"no route", "the subject holds a composed or learned want",
+                           "the slot already wants"})      # a hold failure about the subject
+_FOLD_OP = {">": "<", "<": ">", "==": "==", "!=": "!="}
+_FOLD_TPL = re.compile(r"\{o\}\.\{r\} (==|!=|<|>) \{x\}\.\{r\}")
+
+
+def _term_choice(sides: list) -> list:
+    """r1453 (c): a pair's (class, text, refusal) parties in choice order -- the better class, then
+    the smaller text. No draw."""
+    return sorted(sides, key=lambda z: z[:2])
 # P3 LOOK-AHEAD (the reviewer 2026-11-02 14:38 plan, r832 c; Fig 12 :107-108, rehearsal over a
 # sequence): the settled one-press predictors chained over sequences of INTENTS in thought (r841 4:
 # BECOME the subject +/-, TOUCH an object the predictors read, each realised by the interface as
@@ -4367,6 +4386,7 @@ class Agent:
         # M7-INV: condition text -> its template form; the inventions to carry (and the lineage's
         # write mark); the carried ones re-invented at load
         self._inv_tpl: dict[str, str] = {}
+        self._inv_alt: dict[str, tuple] = {}     # r1453 (c): written -> (other spelling, template)
         self._inv_carry: list[dict] = []
         self._inv_carry_written = 0
         self._inv_carried_in: list[dict] = []
@@ -9553,8 +9573,12 @@ class Agent:
         t0 = time.perf_counter()
         atoms = {a.name: a for a in self.gamma.atoms}
         der = self.env.derived() if hasattr(self.env, "derived") else {}
-        src = dict.fromkeys(self._inv_conditions(before), "library")
+        self._inv_alt = {}      # r1453 (c): this call's pairs only; a generator that does not fold
+        src = dict.fromkeys(self._inv_conditions(before, fold=True) if _ONE_TERM
+                            else self._inv_conditions(before), "library")
         tpl = dict(self._inv_tpl) if _M7_INV else {}
+        alt_of = dict(self._inv_alt) if _ONE_TERM else {}  # r1453 (c): written -> (other, tpl)
+        of_alt = {v[0]: w for w, v in alt_of.items()}
         objs = sorted({k.split(".", 1)[0] for k in before
                        if "." in k and "@" not in k and "~" not in k})
         for skey, rec in sorted(self._goal_shelf.items()):
@@ -9568,6 +9592,9 @@ class Agent:
                     for x in ([y for y in objs if y != o] if "{x}" in t else [None]):
                         cap.head()
                         text = t.format(o=o, x=x)
+                        if text in of_alt:      # r1453 (c): one term -- the pair takes the source
+                            src[of_alt[text]], tpl[text] = skey, t
+                            continue
                         src[text], tpl[text] = skey, t
         carried_grp = {}                        # item 20 (iii): a carried group, rebuilt by form
         if _SHAPE_CARRY:
@@ -9618,6 +9645,83 @@ class Agent:
                     HYP_SLOTSET_N["checked"] += 1
             return in_slots and sl not in der
 
+        # r1453 (c): chosen spelling -> the other, TEXT until a hold uses it. Recorded as one_term
+        # "alternates": pairs whose two parties both passed the subject checks, before admission
+        alt: dict = {}
+        one: Counter = Counter()
+        live = {k for k, v in self._outstanding.items() if v > 0} if alt_of else set()
+        below = all(n in atoms for n in compile_term.CONVERSE[("<", "slot")][0])
+
+        def _subject(text: str) -> tuple:
+            """A two-slot comparison's subject and operand as compile_candidate reads them
+            (compile_term.py:326-341): the left slot; the right for "<" with no `below` atom."""
+            a, op, b = text.split(" ")
+            return (b, a) if op == "<" and not below else (a, b)
+
+        def _side(text: str, other: str) -> str | None:
+            """r1453 (c): why this spelling's SUBJECT refuses it, or None -- _admit's subject-side
+            checks read off the text before any compile -- and r1438's bar on the converse."""
+            sl, opnd = _subject(text)
+            if not _movable(sl):
+                return "subject not a movable slot"
+            if clock and clock & {sl, opnd}:
+                return "the own clock moves it"
+            if _GOAL_HYP:
+                if sl not in _smv:
+                    _smv[sl] = self._self_moving(
+                        sl, _smw.setdefault(sl, {}) if _R4_RECORD else None)
+                if _smv[sl]:
+                    return "self-moving subject"
+            tk = (tpl.get(text, text), sl, opnd)
+            if self._hyp_barred(tk) if _LEAVE_RATE else tk in self._hyp_tried:
+                return "tried this level"
+            v = self._hyp_tried.get((tpl.get(other, other), *_subject(other)))
+            if v is not None and v[0] == "arrived_no_clear":
+                return "tried this level: its converse arrived"
+            return None
+
+        def _one_term(text: str) -> str | None:
+            """r1453 (c): the pair's subject chosen by the grammar -- the better class (a live
+            residual, then routable, then the rest) among the parties passing _side, a tie to the
+            smaller text, no draw. None, the pair refused once with the better party's reason."""
+            other = alt_of[text][0]
+            sides = []
+            for sp, ot in ((text, other), (other, text)):
+                cap.head()
+                sl = _subject(sp)[0]
+                cls = 0 if sl in live else (
+                    1 if routable_slots is not None and sl in routable_slots else 2)
+                sides.append((cls, sp, _side(sp, ot)))
+            sides = _term_choice(sides)
+            fine = [z[1] for z in sides if z[2] is None]
+            if not fine:
+                refused[sides[0][2]] += 1
+                one["pair refused"] += 1
+                return None
+            if fine[0] != text:
+                one["subject from the other spelling"] += 1
+            if len(fine) == 2 and not (_GOAL_BOTH_SIDES and text.split(" ")[1] in ("==", "!=")):
+                alt[fine[0]] = fine[1]
+            return fine[0]
+
+        def _try_alt(x: tuple, key: str, why: str) -> tuple:
+            """r1453 (c): the chosen spelling's hold failed on the subject side -- its other one,
+            text until now, is compiled (the same cache) and held. (x, link, why)."""
+            one["alternate tried"] += 1
+            one[f"alternate tried after: {why}"] += 1
+            y = alt[x[1]]
+            c = self._compile_cache.get(y)
+            if c is None:
+                c = self._compile_cache[y] = compile_term.compile_candidate({"condition": y}, atoms)
+            if not isinstance(c, compile_term.Compiled):
+                one["alternate refused at its compile"] += 1
+                return x, None, why
+            link, why_y = self._hyp_hold(key, c, before, routable_slots)
+            if link is None:
+                return x, None, why_y
+            one["alternate routed"] += 1
+            return (x[0], y, c, (tpl.get(y, y), c.slot, c.operand), x[4]), link, None
+
         def _admit(items: dict) -> list:
             out = []
             for text, s in items.items():
@@ -9636,6 +9740,13 @@ class Agent:
                         would_drop.add(text)
                     else:
                         HYP_ROUTE_FIRST_N["kept"] += 1
+                if (text in alt_of and text.split(" ", 1)[0].split(".", 1)[1]
+                        not in compile_term.CHANGE_OF):
+                    w, text = text, _one_term(text)
+                    if text is None:
+                        continue
+                    if w in would_drop:
+                        would_drop.add(text)
                 # r1419 F: a "{o}." template's subject is its first slot (o.CHANGE_OF[r] for a
                 # change reading), as compile_candidate reads it; with no TOUCH partner nothing
                 # but the subject decides "not a movable slot", so it is read before the compile
@@ -9716,7 +9827,14 @@ class Agent:
 
         cands = _admit(phases[0])
         if _GROUP_PROPOSE:                      # box 3: the group row's FORM, priced by bits
-            cands += self._group_cands(phases[0], before, atoms)
+            gitems = phases[0]
+            if alt_of:      # r1453 (c): a group form is keyed by its subject's kind: both spellings
+                gitems = {}
+                for t, s in phases[0].items():
+                    gitems[t] = s
+                    if t in alt_of:
+                        gitems.setdefault(alt_of[t][0], s)
+            cands += self._group_cands(gitems, before, atoms)
         if carried_grp:
             cands += self._carried_groups(carried_grp, before, atoms)
         if _GOAL_UNBUNDLE and self._hyp_split is not None:
@@ -9773,6 +9891,9 @@ class Agent:
                     self._hyp_n += 1
                     key = f"@hyp{self._hyp_n}"
                     link, why = self._hyp_hold(key, x[2], before, routable_slots)
+                    if link is None and why in _SUBJECT_SIDE and x[1] in alt:
+                        x, link, why = _try_alt(x, key, why)
+                        text = x[1]
                     if link is None:
                         refused[f"no hold: {why}"] += 1
                         continue
@@ -9796,6 +9917,8 @@ class Agent:
                 self._hyp_n += 1
                 key = f"@hyp{self._hyp_n}"
                 link, why = self._hyp_hold(key, x[2], before, routable_slots)
+                if link is None and why in _SUBJECT_SIDE and x[1] in alt:
+                    x, link, why = _try_alt(x, key, why)
                 if link is None:
                     refused[f"no hold: {why}"] += 1
                     continue
@@ -9822,6 +9945,11 @@ class Agent:
         if pick is None:
             pick = self._hyp_pair(before, detail)
         detail.update(checked=checked, refused=dict(refused))
+        if _ONE_TERM:
+            detail["one_term"] = {"pairs": len(alt_of), "alternates": len(alt), **dict(one)}
+            ONE_TERM_N.update(one)
+            ONE_TERM_N["pairs"] += len(alt_of)
+            ONE_TERM_N["alternates"] += len(alt)
         if _SHAPE_TRACE:        # item 21 (r1239): every open candidate by family, record-only
             detail["families"] = self._family_counts(ranked_all, ctrl)
         if _PLAN_NARROW:
@@ -11398,9 +11526,13 @@ class Agent:
                                    "the private library; standing is earned here"))
         return {"carried": len(carried), "reinvented": len(made), "refused": len(refused)}
 
-    def _inv_conditions(self, state: dict) -> list[str]:
+    def _inv_conditions(self, state: dict, fold: bool = False) -> list[str]:
         """The library's own condition grammar (`TEMPLATES`, by reading type) filled over the
-        objects and readings in this state: the shapes the library writes, never a list of ours."""
+        objects and readings in this state: the shapes the library writes, never a list of ours.
+        fold (r1453 (c)): a pair both of whose parties carry the reading is written ONCE, from the
+        lower object's key; its other spelling goes to self._inv_alt (text, template), unwritten."""
+        if fold:
+            self._inv_alt = {}
         if _library() is None:
             return []
         templates = sys.modules["library_runtime"].TEMPLATES
@@ -11408,19 +11540,32 @@ class Agent:
         keys = sorted(k for k, v in state.items()
                       if isinstance(v, int) and "." in k and "~" not in k and "@" not in k)
         objs = sorted({k.split(".", 1)[0] for k in keys})
+        keyset = set(keys) if fold else ()
         out = []
         if _M7_INV:     # this call's texts only, never accumulated (read by _hold_invention)
             self._inv_tpl = {}
         for k in keys:
             cap.head()
             o, r = k.split(".", 1)
-            for _label, t in templates.get((rd.get(r) or {}).get("type"), ()):
-                for x in ([x for x in objs if x != o] if "{x}" in t else [None]):
+            tl = templates.get((rd.get(r) or {}).get("type"), ())
+            for _label, t in tl:
+                sw = None
+                if fold and (m := _FOLD_TPL.fullmatch(t)):
+                    sw = next((u for _l, u in tl
+                               if u == f"{{o}}.{{r}} {_FOLD_OP[m.group(1)]} {{x}}.{{r}}"), None)
+                for x in ([x for x in objs if x != o
+                           and not (sw and x < o and f"{x}.{r}" in keyset)]
+                          if "{x}" in t else [None]):
                     cap.head()
                     text = t.format(o=o, x=x, r=r)
                     out.append(text)
                     if _M7_INV:     # the method behind the text, objects as placeholders
                         self._inv_tpl[text] = t.format(o="{o}", x="{x}", r=r)
+                    if sw and f"{x}.{r}" in keyset:
+                        other = sw.format(o=x, x=o, r=r)
+                        self._inv_alt[text] = (other, sw.format(o="{o}", x="{x}", r=r))
+                        if _M7_INV:
+                            self._inv_tpl[other] = self._inv_alt[text][1]
         return out
 
     def _invent(self, slot: str, hist: list, base: float, base_held: float, verdict: str) -> None:

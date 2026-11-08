@@ -2668,6 +2668,16 @@ ARMS: dict[str, str] = {
     "TETHER_HYP_OWN_PRESS": "P2' (ii) (r830): a held goal hypothesis ages, and reads its trend, "
                             "only on its own presses (routine, hold, actuator); presses spent "
                             "elsewhere are counted and never end it. default ON",
+    "TETHER_ONE_TERM": "ONE TERM (the reviewer 2026-11-08 r1453 (c); Fig 12 :23-27): the library "
+                       "writes one spelling per unordered pair (A > B / B < A, A == B / B == A), "
+                       "its subject chosen before any compile by the better class (live "
+                       "residual, routable, the rest) among the parties passing the subject-side "
+                       "checks, a tie to the smaller text, no draw; the other spelling stays text, "
+                       "compiled only when a hold fails on the subject side (none for a symmetric "
+                       "one under the 16c mirror). The record's one_term \"alternates\" counts the "
+                       "pairs whose two parties both passed the subject checks, before admission "
+                       "(not alternates admitted). OFF: every pair written both ways, as before. "
+                       "default ON",
     "TETHER_HYP_ROAD_CLOSED": "ROAD CLOSED (the reviewer 2026-11-07 r1379; Fig 9 :60, Fig 8 "
                               ":40-41): a held goal hypothesis whose route reads None at choose on "
                               "MIN_REPEAT (2) consecutive reads (a cycle with no read neither "

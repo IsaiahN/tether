@@ -34,7 +34,7 @@ def propose(on: bool | None):
     assert before["o5.row"] == before["o1.row"] != before["o0.row"], "the panel"
     ag.wants.clear()
     ag._hyp, ag._hyp_tried, ag._hyp_exhausted = None, {}, None
-    ag._inv_conditions = lambda _b: [TEXT]
+    ag._inv_conditions = lambda _b, **_k: [TEXT]
     ag._hyp_route = lambda *_a: "a route"
     # the two stubs must agree: _route_first_set is "A superset of the slots that route", the
     # invariant E's group skip rests on (r1419 E(a), r1429) -- o0.row (a member) has an entry;

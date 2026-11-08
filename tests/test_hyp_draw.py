@@ -64,8 +64,8 @@ def wrapped(self, before):
     seen = {}
     real_hold = cp._hyp_hold
 
-    def hold(key, c, b):
-        link, why = real_hold(key, c, b)
+    def hold(key, c, b, *rt):        # _hyp_hold(key, c, before, routable=None) since de70db0
+        link, why = real_hold(key, c, b, *rt)
         seen[text_of(cp)(c)] = link is not None
         return link, why
     cp._hyp_hold = hold
@@ -103,7 +103,7 @@ calls = []
 def stub(routable):
     tx = text_of(ag)
 
-    def hold(key, c, b):
+    def hold(key, c, b, *_rt):       # _hyp_hold's signature since de70db0
         t = tx(c)
         calls.append(t)
         if t in routable:
@@ -134,7 +134,7 @@ for t in pool:
     c = ag._compile_cache[t]
     bits.setdefault(round(term_bits(ag.gamma.length(c.term), ag.gamma.alphabet), 6), []).append(t)
 big = sorted(max(bits.values(), key=len))[:50]
-ag._inv_conditions = lambda _b: list(big)
+ag._inv_conditions = lambda _b, **_k: list(big)
 routable = set(big[::10])
 on, on_calls = propose(True, routable)
 off, off_calls = propose(False, routable)
