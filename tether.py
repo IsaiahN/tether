@@ -51,6 +51,7 @@ from gamma import _CARRY_W as G_CARRY_W
 from gamma import _FIRST_CONTACT as G_FIRST_CONTACT
 from gamma import _KIND_ATTR as G_KIND_ATTR
 from gamma import _KIND_REL as G_KIND_REL
+from gamma import _OPERAND_REFUSE as G_OPERAND_REFUSE
 from gamma import _PRIOR_CODE as G_PRIOR_CODE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import _UNITS_MEMO as G_UNITS_MEMO
@@ -12557,7 +12558,8 @@ class Agent:
                 self._demoted_watch.pop(name, None)
                 continue
             ops = self._ops(term, before)
-            if ops is None:
+            if ops is None or (G_OPERAND_REFUSE and not self._applies(term, before)):
+                # r1545 (A): inapplicable here, as every other evaluating caller reads it
                 self._demoted_watch.pop(name, None)
                 continue
             got = self._value_of(term, slot, before,

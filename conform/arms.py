@@ -3205,6 +3205,12 @@ ARMS: dict[str, str] = {
                           "window: the current goal's search. A write point only: nothing "
                           "reaches the agent: a readout, never a change of live state (r1534, "
                           "r1536). OFF: as 8db0a33. default ON (r1539)",
+    "TETHER_OPERAND_REFUSE": "AN UNREADABLE OPERAND IS NEVER CONSUMED AS A VALUE (the "
+                             "reviewer 2026-11-09 r1544, r1545): gamma.apply returns "
+                             "NOT_RESOLVED before the first atom when any ctx operand is "
+                             "NOT_RESOLVED, and _read_books' Book 2 gates on _applies like "
+                             "every other evaluating caller. OFF: as 604ce53. default ON "
+                             "(Isaiah 06:17, r1546)",
     "TETHER_SAVE_READOUT": "SAVES BECOME READOUTS, part 1 (the reviewer 2026-11-09 r1535, "
                            "r1542): Agent._3a_settle runs at the top of retarget (while the "
                            "old epoch's trace exists) and in end_run; the edge and end saves "

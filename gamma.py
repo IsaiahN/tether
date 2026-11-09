@@ -497,6 +497,11 @@ _USED_CARRY = armflag.arm("TETHER_USED_CARRY", default=True)
 # installed from that row; the replay applies each row to that term. The method crosses, the
 # binding does not. OFF: by name, as before (ffb365c)
 _REPLAY_UNIT = armflag.arm("TETHER_REPLAY_UNIT", default=True)
+# AN UNREADABLE OPERAND IS NEVER CONSUMED AS A VALUE (the reviewer 2026-11-09 r1544, r1545):
+# §12.2's non-reading propagates through ctx.operands as it does through the value, so an
+# operand-reading atom never sees NOT_RESOLVED (+ raised; == and != answered 0/1). OFF: as
+# 604ce53. default ON (Isaiah 2026-11-09 06:17; the reviewer r1546)
+_OPERAND_REFUSE = armflag.arm("TETHER_OPERAND_REFUSE", default=True)
 
 
 def unit_key(atoms: tuple) -> str:
@@ -740,6 +745,8 @@ class Term:
                 return value
         elif self.guard is not None and ctx.intent != self.guard:
             return value
+        if _OPERAND_REFUSE and any(o is NOT_RESOLVED for o in ctx.operands or ()):
+            return NOT_RESOLVED     # r1545 (B): an unreadable operand reads as nothing
         for a in self.atoms:
             # ELEMENTWISE WHEN THE CHAIN IS MID-ITERATION -- §12.2.1. An atom typed `CELL` sees
             # ONE cell and is mapped across the collection; an atom typed `CELLS` consumes the
