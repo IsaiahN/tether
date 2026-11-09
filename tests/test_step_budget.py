@@ -145,7 +145,8 @@ def check_c(rows: list) -> list:
 
 def main() -> int:
     pin = {"TETHER_THINK_CHOOSER": "0",      # E's subject is the budget alone (docstring, r1312,
-           "TETHER_STEP_ACT": "0"}           # r1317)
+           "TETHER_STEP_ACT": "0",           # r1317)
+           "TETHER_STEP_RANK": "0"}          # both arms: route's mint order reads it (r1556)
     off = child("-", {"TETHER_STEP_BUDGET": "0", **pin})
     assert not [r for r in off if r.get("event") in ("budget", "budget_owed")]           # MF
     big = child(str(10 ** 12), {"TETHER_STEP_RANK": "0", **pin})
