@@ -923,6 +923,13 @@ class Standing:
     # one quantity with a total and a breakdown, which is the shape this class already has
     # on the failure side, written at ONE site in one statement block so they cannot disagree.
     confirmations: float = 0.0                     # the success total, on the same clock
+    # C1 PART 1 (the reviewer 2026-11-09 r1584 1, r1591): the settle row's "risky" (r288, item 6:
+    # persistence would have been wrong) tallied per term: beat_null where it was true, tied_null
+    # where "no change" was equally right. Counted from _settle_pred's reading, so with or without
+    # TETHER_SETTLE_PRED. Settles with no single occasion (win credit, replay) count in neither, so
+    # beat_null + tied_null <= confirmations. Record only: nothing reads them
+    beat_null: float = 0.0
+    tied_null: float = 0.0
 
     def refute(self, tick: int, halflife: float | None = None,
                ceiling: float | None = None, where: Any = None,
@@ -1353,8 +1360,11 @@ class Gamma:
 
     # -- standing: the ground's verdict, defeasibly ----------------------------------
 
-    def settle(self, name: str, where: Any = None, slot: str | None = None) -> None:
-        """The ground paid on evidence the term was never fitted to.
+    def settle(self, name: str, where: Any = None, slot: str | None = None,
+               null: str | None = None) -> None:
+        """The ground paid on evidence the term was never fitted to. `null`, when the caller read
+        one occasion: "beat" (no change would have missed) or "tied" (C1 part 1, record only).
+        Settles with no single occasion pass none, so beat_null + tied_null <= confirmations.
 
         `where` records WHERE it paid, the mirror of `refute`'s. Without it a track record has
         a denominator and no numerator, and ordering by it sorts the most-tried term last.
@@ -1381,6 +1391,10 @@ class Gamma:
         # THE TOTAL, UNCONDITIONAL -- and the breakdown BESIDE it, never instead of it. The
         # same two lines `refute` writes, in the same order, so the pair cannot drift apart.
         st.confirmations += 1.0
+        if null == "beat":
+            st.beat_null += 1.0
+        elif null == "tied":
+            st.tied_null += 1.0
         self._paid_ver += 1
         if where is not None:
             st.paid[where] = st.paid.get(where, 0) + 1

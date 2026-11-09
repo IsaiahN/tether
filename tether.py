@@ -15391,6 +15391,11 @@ class Agent:
                  coord: tuple[int, int] | None = None,
                  intent: Any = None) -> dict[str, SlotResidual]:
         before = self.env.observe()
+        # C1 part 6 (a): the board the bets are made on, read before the action. A record: the hash
+        # orders nothing and decides nothing (r1590)
+        board_fp = IFace.fingerprint(self.env, before)[0]
+        acted = {"action": action, "board_fp": board_fp,
+                 **({"coord": list(coord)} if coord is not None else {})}
         # A BET CAN ONLY BE MADE ON A SLOT THAT WAS THERE. With perception the slot set can
         # move WITHIN a step -- an object dies between the bet and the reading -- and
         # `_present` only catches that at step boundaries. So the bet is over `before`.
@@ -15612,7 +15617,7 @@ class Agent:
                                 of=(s,), from_value=before[s], predicted=raw.get(s),
                                 predicted_code=pred[s], suspended=True, mass=0.0, seam=True,
                                 bound=self.bound.get(s, NO_CHANGE),
-                                meant=(intent.says() if intent is not None else None))
+                                meant=(intent.says() if intent is not None else None), **acted)
                 continue
             # A READING THE CHANNEL COULD NOT TAKE IS SUSPENDED, NOT CHARGED -- Fig 10, the
             # reviewer 2026-10-07 (F493). The key is still listed, so the object is here and only
@@ -15623,7 +15628,7 @@ class Agent:
                                 of=(s,), from_value=before[s], predicted=raw.get(s),
                                 predicted_code=pred[s], suspended=True, mass=0.0,
                                 bound=self.bound.get(s, NO_CHANGE),
-                                meant=(intent.says() if intent is not None else None))
+                                meant=(intent.says() if intent is not None else None), **acted)
                 continue
             # A SLOT THAT VANISHED UNDER THE BET IS UNEXPLAINED, not absent. The object was
             # there when the bet was made and is gone now, which is a full code's worth of
@@ -15657,7 +15662,7 @@ class Agent:
                             # own record could not say what the prediction was made under.
                             # `None` where the action was handed in rather than asked for.
                             meant=(intent.says() if intent is not None else None),
-                            )
+                            **acted)
             if _MC_SIGNAL:
                 self._signals.append((_bet.seq, s, self.bound.get(s, NO_CHANGE)))
             self._standing(s)
@@ -25896,7 +25901,12 @@ class Agent:
             # settlement, and nothing is deleted either way.
             if self._cand_level.get(name) != self.level:
                 continue
-            self.gamma.settle(name, where=self._scope, slot=slot)
+            # C1 part 1 (record only): would "no change" have missed this occasion? Item 6's own
+            # reading, risky (r288), in the code space the ground judged in
+            sp = self._settle_pred(slot, r)
+            null = (None if sp["from_code"] is None or sp["predicted_code"] is None
+                    else "beat" if sp["risky"] else "tied")
+            self.gamma.settle(name, where=self._scope, slot=slot, null=null)
             if _MUSING_CHOSEN:
                 self._muse_paid(name, "settle")           # item 24 (iii)
             if _COUNTERS:     # r692 4 (Q8, Q21): what settles, by where it came from
