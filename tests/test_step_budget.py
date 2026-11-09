@@ -203,11 +203,14 @@ def main() -> int:
           "; the first step after carries none:", [r["slot"] for r in first][:3])
     n = child("1", mode="noclose")
     nb = max(r["cycle"] for r in n if r.get("event") == "budget" and r["cycle"] <= bc)
-    crossed = [r for r in n if r.get("event") == "budget_owed" and r["cycle"] > bc
-               and r["detail"]["question"][0] <= nb]
+    # every owed writer, as live_owed reads them: since c450e8d the question crosses on
+    # lookup_deferred, not budget_owed (r1560)
+    crossed = [r for r in n if r.get("event") in OWERS and r["cycle"] > bc
+               and (r["detail"].get("question") or [nb + 1])[0] <= nb]
     assert crossed, "MF-D: no owed question crossed the boundary with the close removed"   # MF-D
     print("MF-D close removed:", len(crossed), "owed rows after the death carry a question from "
-          "before it, e.g.", [(r["cycle"], r["detail"]["question"]) for r in crossed[:2]])
+          "before it, e.g.", [(r["cycle"], r["event"], r["detail"]["question"])
+                              for r in crossed[:2]])
     v = child("1", mode="level_advance")
     vc = [r for r in v if r.get("event") == "owed_closed"]
     hows = {r["detail"]["how"] for r in vc}
