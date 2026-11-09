@@ -11859,6 +11859,10 @@ class Agent:
                     tallied.append(rec["name"])
                 continue
             if rec.get("kind") == "reflex":     # the reflex carry: paid and loss relations
+                # r1536 (1): a readout save's reflex names continue the chain's own sequence
+                self._rfc_names = getattr(self, "_rfc_names", set()) | {rec["name"]}
+                if m_ := re.search(r"_reflex_e(\d+)$", rec["name"]):
+                    self._rfc_n = max(getattr(self, "_rfc_n", 0), int(m_.group(1)))
                 if _REFLEX_CARRY:
                     for form, key, n in rec.get("paid", ()):
                         self._rf_carried[(form, _tup(key))] += n
@@ -19238,7 +19242,7 @@ class Agent:
         """The carry: the paid count the lineage brought for this (form, situation); 0 OFF."""
         return self._rf_carried[(form, self._rf_carry_key(form, situ))] if _REFLEX_CARRY else 0
 
-    def _reflex_carry(self) -> dict | None:
+    def _reflex_carry(self, readout: bool = False) -> dict | None:
         """The carry, at the lineage boundary (r1248 3(2)): the paid counts and the terminal-frame
         loss relations since the last write, under kind-level keys; `against` never crosses. A
         pre-press loss relation stays home: it is met only with its voted press, a button."""
@@ -19263,8 +19267,16 @@ class Agent:
             return None
         was.update({("p", f, k): n for (f, k), n in paid.items()})
         was.update({("l", lk, fr, rel): n for (lk, fr, rel), n in loss.items()})
-        self._tally_n = getattr(self, "_tally_n", 0) + 1
-        name = f"{self.gamma.game}_reflex_{self._tally_n}"
+        if readout:
+            # r1536 (1): a save-own sequence, seeded at load from the carried "_reflex_e" records,
+            # so play's _tally_n never depends on when a save runs
+            self._rfc_n = getattr(self, "_rfc_n", 0) + 1
+            name = f"{self.gamma.game}_reflex_e{self._rfc_n}"
+            assert name not in getattr(self, "_rfc_names", set()), ("reflex name reused", name)
+            self._rfc_names = getattr(self, "_rfc_names", set()) | {name}
+        else:
+            self._tally_n = getattr(self, "_tally_n", 0) + 1
+            name = f"{self.gamma.game}_reflex_{self._tally_n}"
         rec = {"name": name, "term": name, "kind": "reflex", "game": self.gamma.game,
                "born": self.cycle, "level": self.level, "paid": dp, "loss": dl}
         self._inv_carry.append(rec)

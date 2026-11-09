@@ -19,6 +19,10 @@ runners do at a level clear or a terminal edge.
        loaded + already_held == the terms the ending saves wrote. A real occasion: gridworld_arc_s4,
        found by a search on the occasion only (r1532 4). MF-LE: the arm OFF, the same stop -> the
        term is not loaded.
+  RO   (r1536 (2)) a goal-ending save meeting a pending form pair is skipped ("form pairs
+       pending"), writes no generation, and leaves the live carried cells, routines and aliases
+       equal. Constructed (no 40-cycle game meets one: wa30, vc33), so it proves wiring (Fig 11
+       :70). MF-RO: the live meet the skip defers re-keys the carried cell 11 -> 10.
 
     python tests/test_lineage_boundary.py
 """
@@ -185,7 +189,7 @@ def _l3(d, evidence):
     return chain
 
 
-PARTS = ("l1", "l4", "mfl", "mfd", "mfdon", "le")   # by name, one process each, under 5 min (r299)
+PARTS = ("l1", "l4", "mfl", "mfd", "mfdon", "le", "ro")   # by name, one process each, under 5 min
 
 
 def main(parts=PARTS):
@@ -339,6 +343,41 @@ def _part_le(tmp):
           f"held {got['already_held']}); MF-LE arm OFF, the same stop: {lo['loaded']} loaded")
 
 
+def role_readout(d):
+    """RO: a constructed pending form pair (as-seen 11, canonical 10, stored by the lineage) at a
+    goal ending, after an earlier save in this life; then the live meet (MF-RO)."""
+    import copy
+    ag = _agent(0)
+    lineage.load(d, ag)
+    for _ in range(N):
+        ag.step()
+    lineage.boundary(d, ag, "default", "level")
+    ag.env.form_pairs = {11: (10, 1)}
+    ag._stored_forms = {11}
+    ag.iface.carried_kind = {"A1": {"delta_kind": {("k|form=11",): (3, 4)}}}
+
+    def live():
+        return copy.deepcopy((ag.iface.carried_kind, getattr(ag, "_routines_in", None),
+                              ag._rk_written, getattr(ag, "_form_aliases", {}), ag._stored_forms))
+    before, gens = live(), len(lineage._chain(Path(d)))
+    r = lineage.boundary(d, ag, "default", "goal_ending")
+    out = {"skipped": r.get("skipped"), "same": live() == before,
+           "gens_same": len(lineage._chain(Path(d))) == gens}
+    lineage._new_form_pairs(ag)
+    out["met"] = list(ag.iface.carried_kind["A1"]["delta_kind"])
+    print("READOUT " + json.dumps(out), flush=True)
+
+
+def _part_ro(tmp):
+    """RO and MF-RO."""
+    got = _out(_child("readout", tmp / "ro", TETHER_ENDING_SAVE="1"), "READOUT")
+    assert got["skipped"] == "form pairs pending", ("RO: the ending save was not skipped", got)
+    assert got["same"] and got["gens_same"], ("RO: the skipped save changed live state", got)
+    assert got["met"] == [["k|form=10"]], ("MF-RO: the live meet did not re-key 11 -> 10", got)
+    print(f"  RO a pending form pair: the ending save skipped ({got['skipped']}), no generation, "
+          f"live cells, routines and aliases equal; MF-RO the live meet re-keys to {got['met']}")
+
+
 if __name__ == "__main__":
     if "--role" in sys.argv:
         a = sys.argv[sys.argv.index("--role") + 1:]
@@ -346,6 +385,8 @@ if __name__ == "__main__":
             role_game(a[1], int(a[2]), a[3], int(a[4]) if len(a) > 4 else N)
         elif a[0] == "ending":
             role_ending(a[1], int(a[2]))
+        elif a[0] == "readout":
+            role_readout(a[1])
         else:
             role_load(a[1], arc=len(a) > 2)
     else:

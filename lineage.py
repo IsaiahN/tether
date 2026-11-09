@@ -686,6 +686,10 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
            readout: bool = False) -> dict:
     # readout: a goal ending's save (r1530-r1534) -- not written when nothing is new, and it
     # changes no live state
+    if readout and any(_form_pairs_pending(ag) or ()):
+        # r1536 (2): a readout cannot meet form pairs in place; the next edge or end save meets
+        # them, and this one is skipped, counted in the boundary report
+        return {"skipped": "form pairs pending"}
     p = Path(d)
     p.mkdir(parents=True, exist_ok=True)
     parent = getattr(ag, "lineage_parent", None)
@@ -843,7 +847,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         w = ag._stopped_written
         gen["stopped_at"] = {k: n - w.get(k, 0) for k, n in sorted(now.items()) if n > w.get(k, 0)}
     if tether._REFLEX_CARRY and tether._M7_INV and hasattr(ag, "_reflex_carry"):
-        ag._reflex_carry()     # the reflex carry (r1248): its increments ride the inventions below
+        # the reflex carry (r1248): its increments ride the inventions below
+        ag._reflex_carry(readout=True) if readout else ag._reflex_carry()
     if tether._M7_INV and hasattr(ag, "_inv_carry"):
         # M7-INV: the inventions made since the last write, as their method, with the standing
         # their term holds now (a record of it; the next game starts them on trial)
@@ -1063,6 +1068,21 @@ def _alias_tuple(x: Any, amap: dict) -> Any:
     return ls.alias_text(x, amap)
 
 
+def _form_pairs_pending(ag: Any) -> tuple[list, list] | None:
+    """K4's read, no change: (new pairs to meet, pairs against one in force); None with the arms
+    OFF. _new_form_pairs acts on it; a readout save is skipped when either is non-empty (r1536)."""
+    import arc_percept
+    import lineage_store as ls
+    if not (ls._ALIAS and arc_percept._FORM_PAIRS):
+        return None
+    have = getattr(ag, "_form_aliases", {})
+    stored = getattr(ag, "_stored_forms", set())
+    seen = getattr(ag.env, "form_pairs", None) or {}
+    bad = sorted([a, have[a], c] for a, (c, _p) in seen.items() if a in have and have[a] != c)
+    new = sorted([a, c, p] for a, (c, p) in seen.items() if a in stored and a not in have)
+    return new, bad
+
+
 def _new_form_pairs(ag: Any) -> list:
     """K4 at the save (the reviewer 2026-11-03 r888, r903, r906): the pairs perception met
     (arc_world.form_pairs) whose as-seen code names kinds the lineage stores and which are not in
@@ -1070,19 +1090,15 @@ def _new_form_pairs(ag: Any) -> list:
     canonical ones (two sightings: counts summed, landed values united), so the cumulative cells
     this save writes hold both poses' sightings and never replace the store's re-keyed sum. A pair
     against one in force is a defect, never written: one alias_conflict row."""
-    import arc_percept
     import lineage_store as ls
-    if not (ls._ALIAS and arc_percept._FORM_PAIRS):
+    pending = _form_pairs_pending(ag)
+    if pending is None:
         return []
-    have = getattr(ag, "_form_aliases", {})
-    stored = getattr(ag, "_stored_forms", set())
-    seen = getattr(ag.env, "form_pairs", None) or {}
-    bad = sorted([a, have[a], c] for a, (c, _p) in seen.items() if a in have and have[a] != c)
+    new, bad = pending
     if bad:
         _c, _s, _lv = ag._boundary_key("@lineage")
         ag.led.record(_c, "SETTLE", _s, "alias_conflict", **_lv, pairs=bad[:20], n=len(bad),
                       reads="perception named a code's kind differently from the alias in force")
-    new = sorted([a, c, p] for a, (c, p) in seen.items() if a in stored and a not in have)
     amap = {a: c for a, c, _p in new}
     if not amap:
         return []
@@ -1122,8 +1138,12 @@ def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
     # TETHER_LEVEL_EDGE (F1); the 'how' field is the true label of the write
     if _ENDING_SAVE:
         ag._ending_due = False      # any write covers the endings before it
-    return {"how": how, "agent_level": ag.level,
-            **write(d, ag, game, sleep=False, readout=how == "goal_ending")}
+    if how == "goal_ending":
+        # r1536 (3): a readout cannot cut the agent; the end path's reserve budgets the write
+        with cap.hold():
+            return {"how": how, "agent_level": ag.level, **write(d, ag, game, sleep=False,
+                                                                 readout=True)}
+    return {"how": how, "agent_level": ag.level, **write(d, ag, game, sleep=False)}
 
 
 def _heal(p: Path, ok: bool, why: str) -> tuple[bool, str, dict]:
