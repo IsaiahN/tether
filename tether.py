@@ -5259,6 +5259,8 @@ class Agent:
     def end_run(self, how: str = "cap") -> None:
         """The run ends with this level still open: its signals resolve at the GAME (MC2). The loops
         call it after their last step; `retarget` never sees a cap or a timeout."""
+        if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
+            self._3a_settle()     # r1542: at the game's own end, not at its save
         self._intent_verdict(how)
         self._note_ending(how, "run")
         if composer._BOND_TEST:
@@ -5397,6 +5399,8 @@ class Agent:
         Everything still owed is parked WITH its history, which is the only way a term
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
+        if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
+            self._3a_settle()     # r1542: while this epoch's trace still exists
         if _S0_HANDOFF:
             if how in (WIN, ADVANCE):
                 self._s0_pay()                  # item 28: the stalled line's level paid

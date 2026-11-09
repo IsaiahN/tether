@@ -67,6 +67,11 @@ _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
 # steps through boundary(how="goal_ending"); a save with nothing new is not written. A cut-off
 # loses at most the current goal's search. OFF: as 8db0a33. default ON (r1539)
 _ENDING_SAVE = armflag.arm("TETHER_ENDING_SAVE", default=True)
+# SAVES BECOME READOUTS, part 1 (the reviewer 2026-11-09 r1535, r1542): the agent settles its
+# reached unseen credits at its own events (Agent.retarget's top, end_run), and the edge and end
+# saves take the readout hazard view, save-own reflex names and cap.hold(), as the goal-ending
+# save does; the form-pair meet stays in the edge and end saves. OFF: as 604ce53
+_SAVE_READOUT = armflag.arm("TETHER_SAVE_READOUT", default=False)
 _GEN_HEADER = ("lineage", "parent", "game", "seed", "generation", "alias_rule")
 # (c) THE DORMANT ITEM WRITTEN WHOLE (the reviewer 2026-10-22 20:57): a boundary item holds live
 # Terms (its want_terms copy), which enc has no form for, so one Term cost the generation the WHOLE
@@ -666,6 +671,9 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True, readout: bool =
     if sleep and snap is not None:
         snap.close()    # W-4: the snapshot's reader ends before the game's checkpoint
     try:
+        if _SAVE_READOUT:
+            with cap.hold():     # a readout cannot cut the agent (r1536 (3))
+                return _write(d, ag, game, sleep, held, readout)
         return _write(d, ag, game, sleep, held, readout)
     finally:    # the store's connection is closed on every path, an error's included
         for con in held:
@@ -848,7 +856,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         gen["stopped_at"] = {k: n - w.get(k, 0) for k, n in sorted(now.items()) if n > w.get(k, 0)}
     if tether._REFLEX_CARRY and tether._M7_INV and hasattr(ag, "_reflex_carry"):
         # the reflex carry (r1248): its increments ride the inventions below
-        ag._reflex_carry(readout=True) if readout else ag._reflex_carry()
+        ag._reflex_carry(readout=True) if readout or _SAVE_READOUT else ag._reflex_carry()
     if tether._M7_INV and hasattr(ag, "_inv_carry"):
         # M7-INV: the inventions made since the last write, as their method, with the standing
         # their term holds now (a record of it; the next game starts them on trial)
@@ -888,7 +896,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         # E2: the hazard by KIND and by ACTOR (templates, never a board's spots), since the last
         # write; the load adds them back as a head start. Pending unseen credits the agent's own
         # act reached are settled first, so a lineage never carries one (the reviewer 09:40)
-        if readout:
+        if readout or _SAVE_READOUT:
             # r1534: a goal ending's save is a readout -- what _3a_settle would withdraw is left
             # out of what is written, on a copy; the live hazard and its pending credits stay
             hz3a = copy.deepcopy(ag._3a_hazard)

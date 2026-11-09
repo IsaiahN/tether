@@ -3205,6 +3205,12 @@ ARMS: dict[str, str] = {
                           "window: the current goal's search. A write point only: nothing "
                           "reaches the agent: a readout, never a change of live state (r1534, "
                           "r1536). OFF: as 8db0a33. default ON (r1539)",
+    "TETHER_SAVE_READOUT": "SAVES BECOME READOUTS, part 1 (the reviewer 2026-11-09 r1535, "
+                           "r1542): Agent._3a_settle runs at the top of retarget (while the "
+                           "old epoch's trace exists) and in end_run; the edge and end saves "
+                           "write the settled hazard view on a copy, name reflex records from "
+                           "the save-own sequence and run under cap.hold(); the form-pair meet "
+                           "stays in those saves. OFF: as 604ce53. default OFF until verified",
     "TETHER_STORE_HEAL":"S6 H (the reviewer 2026-10-19; the K crash runs): under "
                          "TETHER_MEMORY_STORE, a store failing its cheap check at load WITH a WAL "
                          "is checkpointed "
