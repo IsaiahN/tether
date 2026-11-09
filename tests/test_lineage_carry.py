@@ -558,9 +558,23 @@ def _part_d(tmp):
     b = arc_holdout.play("fake", 5, arc=Arc(), lineage_dir=str(pd))["persistence"]
     assert a["lineage"]["written"] and b["loaded"]["lineage"]["parent"] == a["lineage"]["hash"], (
         "ONE PATH", a["lineage"], b["loaded"])
-    assert b["lineage"]["parent"] == a["lineage"]["hash"], ("ONE PATH parent", b["lineage"])
+    # r1541: under TETHER_ENDING_SAVE play 2's goal-ending saves extend its chain before its end
+    # write (F2), so play 1's save parents play 2's FIRST written generation, and the end write's
+    # chain reaches it; OFF, the first written generation is the end write
+    wrote = [x for x in b.get("lineage_bounds") or () if x and x.get("hash")]
+    if lineage._ENDING_SAVE:
+        assert any(x.get("how") == "goal_ending" for x in wrote), (
+            "fixture: play 2 made no goal-ending save under the arm", b.get("lineage_bounds"))
+    first = wrote[0] if wrote else b["lineage"]
+    assert first["parent"] == a["lineage"]["hash"], ("ONE PATH parent", first)
+    par = {h: g.get("parent") for h, g in lineage._chain(Path(pd))}
+    h, back = b["lineage"]["hash"], []
+    while h is not None and h != a["lineage"]["hash"]:
+        back.append(h)
+        h = par.get(h)
+    assert h == a["lineage"]["hash"], ("ONE PATH chain: play 2's end write does not reach a", back)
     print(f"  ONE PATH: play wrote {a['lineage']['hash']}, the next play loaded it and wrote "
-          f"{b['lineage']['hash']}", flush=True)
+          f"{b['lineage']['hash']} ({len(wrote)} earlier save(s) between)", flush=True)
 
 
 def _plant_take(ag, operand):

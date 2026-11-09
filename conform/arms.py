@@ -3203,8 +3203,8 @@ ARMS: dict[str, str] = {
                           "between steps through lineage.boundary(how=\"goal_ending\"), and a "
                           "save with every field beyond the header empty is not written. Loss "
                           "window: the current goal's search. A write point only: nothing "
-                          "reaches the agent. OFF: as 8db0a33. default OFF until the reviewer's "
-                          "verification",
+                          "reaches the agent: a readout, never a change of live state (r1534, "
+                          "r1536). OFF: as 8db0a33. default ON (r1539)",
     "TETHER_STORE_HEAL":"S6 H (the reviewer 2026-10-19; the K crash runs): under "
                          "TETHER_MEMORY_STORE, a store failing its cheap check at load WITH a WAL "
                          "is checkpointed "

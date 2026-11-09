@@ -65,8 +65,8 @@ _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
 # WRITE AT GOAL ENDINGS (the reviewer 2026-11-09 r1530; r1487, r1501): a goal hypothesis's end
 # (Agent._hyp_end, a boundary's close aside) marks a save due, and both runners write it between
 # steps through boundary(how="goal_ending"); a save with nothing new is not written. A cut-off
-# loses at most the current goal's search. OFF: as 8db0a33
-_ENDING_SAVE = armflag.arm("TETHER_ENDING_SAVE", default=False)
+# loses at most the current goal's search. OFF: as 8db0a33. default ON (r1539)
+_ENDING_SAVE = armflag.arm("TETHER_ENDING_SAVE", default=True)
 _GEN_HEADER = ("lineage", "parent", "game", "seed", "generation", "alias_rule")
 # (c) THE DORMANT ITEM WRITTEN WHOLE (the reviewer 2026-10-22 20:57): a boundary item holds live
 # Terms (its want_terms copy), which enc has no form for, so one Term cost the generation the WHOLE
