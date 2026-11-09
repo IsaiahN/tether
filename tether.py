@@ -6231,39 +6231,46 @@ class Agent:
                                       "at its bound; owed, asked first next step -- unreached at "
                                       "this budget, never a verdict")
                 continue
-            if missed:
-                formed, free = self._no_search_want(d, before, after, *ctx) if ctx else (None, 0)
-                self.led.record(self.cycle, "MINT", d, "derived_asked", echo=True, missed=missed,
-                                formed=formed is not None, refused_free=free,
-                                reads="DS (2): an echo (a source missed) is not searched; the "
-                                      "want, if any, by G1's no-search rule")
-                if formed is not None:
-                    self._register_no_search_want(formed)
-                    _d, term, prov, dk = formed
-                    self.led.record(self.cycle, "MINT", d, "echo_want", want=term.name,
-                                    origin="derived-echo", dk=list(dk) if dk else None,
-                                    entry=prov.get("library"),
-                                    reads="DS (alpha): the relational state this step reached, "
-                                          "kept as a want by G1's rule -- never bound, never bet")
-                continue
-            self.led.record(self.cycle, "MINT", d, "derived_asked",     # E4 counts the asks
-                            **({"echo": missed} if _DERIVED_SUBJECT else {}),
-                            **({"owed_since": owed[d][0]} if d in owed else {}))
-            self._want_only = True
-            if b2 is not None:
-                self._mint_exhausted = False
-                t0 = time.perf_counter()
-            try:
-                self.mint(d)
-            finally:
-                self._want_only = False
-            if _OWED_REJUDGE:
-                self._dw_seen[d] += 1            # 1d: A1's learning reading, turns taken
-            if b2 is not None:
-                b2["wall"] += time.perf_counter() - t0
-                b2["run"] += 1
-                if self._mint_exhausted and b2["stop"] is None:
-                    b2["stop"] = d
+            # r1564: the ask and its whole search are a second pass on a slot ACCEPTed this
+            # cycle: the ledger books that slot's rows on "@derived", naming it
+            with self.led.pass_key(d, "@derived",
+                                   on=self.led.wrote(self.cycle, "ACCEPT", d)):
+                if missed:
+                    formed, free = (self._no_search_want(d, before, after, *ctx) if ctx
+                                    else (None, 0))
+                    self.led.record(self.cycle, "MINT", d, "derived_asked", echo=True,
+                                    missed=missed,
+                                    formed=formed is not None, refused_free=free,
+                                    reads="DS (2): an echo (a source missed) is not searched; the "
+                                          "want, if any, by G1's no-search rule")
+                    if formed is not None:
+                        self._register_no_search_want(formed)
+                        _d, term, prov, dk = formed
+                        self.led.record(self.cycle, "MINT", d, "echo_want", want=term.name,
+                                        origin="derived-echo", dk=list(dk) if dk else None,
+                                        entry=prov.get("library"),
+                                        reads="DS (alpha): the relational state this step "
+                                              "reached, kept as a want by G1's rule -- never "
+                                              "bound, never bet")
+                    continue
+                self.led.record(self.cycle, "MINT", d, "derived_asked",     # E4 counts the asks
+                                **({"echo": missed} if _DERIVED_SUBJECT else {}),
+                                **({"owed_since": owed[d][0]} if d in owed else {}))
+                self._want_only = True
+                if b2 is not None:
+                    self._mint_exhausted = False
+                    t0 = time.perf_counter()
+                try:
+                    self.mint(d)
+                finally:
+                    self._want_only = False
+                if _OWED_REJUDGE:
+                    self._dw_seen[d] += 1            # 1d: A1's learning reading, turns taken
+                if b2 is not None:
+                    b2["wall"] += time.perf_counter() - t0
+                    b2["run"] += 1
+                    if self._mint_exhausted and b2["stop"] is None:
+                        b2["stop"] = d
         if b2 is not None and (b2["run"] or b2["deferred"] or b2["dropped"]):
             self.led.record(self.cycle, "MINT", "@step_derived", "step_derived",
                             derived_run=b2["run"], derived_deferred=b2["deferred"],

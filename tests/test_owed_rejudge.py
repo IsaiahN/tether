@@ -29,6 +29,11 @@ birth seed pinned. Each check runs in its own process, under 5 minutes.
                                   writes owed_closed and 'level end' releases on two keys, and
                                   gate._steps passes; MUST-FAIL: the release back on "@owed" is
                                   refused "MINT after IMPORT"
+  check_k_derived_pass            r1564: a derived ask on a slot ACCEPTed this cycle (the ACCEPT
+                                  planted) writes its ask and its whole search on "@derived" naming
+                                  the slot, and gate._steps passes; MUST-FAIL: the pass key off, the
+                                  search lands on the slot, refused "MINT after ACCEPT"; two passes
+                                  on two slots each keep their own choice row
   check_off_identity_grid, check_off_identity_fake   TETHER_OWED_REJUDGE=0 against 2a8045c
     python tests/test_owed_rejudge.py [check ...]
 """
@@ -458,6 +463,46 @@ def check_j_owed_chains_apart() -> None:
     print(f"  one retarget ({how} owed questions): {len(closed)} owed_closed on '@owed', "
           f"{len(rel)} 'level end' "
           f"releases on '@owed_ask'; _steps passes. MUST-FAIL (release on '@owed'): {out['note']}")
+
+
+def _derived_pass(on: bool) -> tuple[list, list, str]:
+    import ledger
+    env, ag = _owed_state()
+    d = sorted(ag._dw_owed)[0]
+    with ag._step_scope("ACCEPT"):       # the occasion, constructed: an ACCEPT on d this cycle
+        ag.led.record(ag.cycle, "ACCEPT", d, "rebind", note="planted by check_k")
+    real = ledger.Ledger.pass_key
+    if not on:
+        ledger.Ledger.pass_key = lambda self, *a, **k: real(self, *a, **{**k, "on": False})
+    try:
+        new = _rejudge(ag)
+    finally:
+        ledger.Ledger.pass_key = real
+    return ag.led.rows(), new, d
+
+
+def check_k_derived_pass() -> None:
+    import gate
+    import ledger
+    rows, new, d = _derived_pass(True)
+    moved = [r for r in new if r["slot"] == "@derived" and r["detail"].get("derived") == d]
+    evs = {r["event"] for r in moved}
+    assert "derived_asked" in evs and evs - {"derived_asked"}, ("occasion: no ask and search", evs)
+    assert not [r for r in new if r["slot"] == d], "a pass row stayed on the slot"
+    out = gate._steps(rows)
+    assert out is None, out
+    rows, _n, _d = _derived_pass(False)
+    out = gate._steps(rows)
+    assert out is not None and "MINT after ACCEPT" in out["note"], ("MUST-FAIL did not fail", out)
+    led = ledger.Ledger()
+    same = {"site": ledger.TALLY_SITE, "options": 2, "pick": "a"}
+    for s in ("o1.row", "o2.row"):
+        with led.pass_key(s, "@derived"):
+            led.record(1, "MINT", s, "choice", **same)
+    kept = sorted(r["detail"]["derived"] for r in led.rows() if r["event"] == "choice")
+    assert kept == ["o1.row", "o2.row"], kept
+    print(f"  {len(moved)} pass rows on '@derived' naming {d} ({sorted(evs)}); _steps passes. "
+          f"MUST-FAIL (key off): {out['note']}. Two slots' choice rows kept apart: {kept}")
 
 
 def check_off_identity_grid() -> None:

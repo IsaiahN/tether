@@ -11,6 +11,7 @@ import bisect
 import json
 import sys
 import weakref
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -176,6 +177,7 @@ class Ledger:
         self._last_step: dict[tuple, str] = {}   # ORDER: (cycle, slot) -> its latest appended step
         self._last_cyc: int | None = None     # ORDER: the highest cycle appended (prunes the above)
         self.tally_full = {"step": 0, "field": 0, "mode": 0}   # ORDER: repeats appended in full
+        self._pass: tuple[str, str, str] | None = None   # r1564: (slot, pass key, naming field)
         self._path = Path(path) if path else None
         self._fh = None
         self.narrator = narrate.Narrator(self._path, (WIN, ADVANCE))   # N1: says key rows aloud
@@ -188,12 +190,28 @@ class Ledger:
     def __len__(self) -> int:
         return len(self._entries)
 
+    @contextmanager
+    def pass_key(self, slot: str, key: str, name: str = "derived", on: bool = True):
+        """r1564: while a second pass runs on a slot already ACCEPTed this cycle, that slot's rows
+        go on the pass's own key, naming the slot -- the ledger, not each writer, decides a row's
+        key, so a writer added to the pass later is covered too. on=False changes nothing."""
+        was = self._pass
+        if on:
+            self._pass = (slot, key, name)
+        try:
+            yield
+        finally:
+            self._pass = was
+
     def record(self, cycle: int, step: str, slot: str, event: str,
                of: tuple[str, ...] | None = None, **detail: Any) -> Entry:
         if step not in STEPS:
             raise ValueError(f"entry names no loop step: {step!r}")
+        named = slot
+        if self._pass is not None and slot == self._pass[0]:
+            slot, detail = self._pass[1], {**detail, self._pass[2]: named}
         if _CHOICE_TALLY and event == "choice" and detail.get("site") == TALLY_SITE:
-            k = _tally_key(slot, step, detail, TALLY_FIELDS)
+            k = _tally_key(named, step, detail, TALLY_FIELDS)   # r1564: the named slot, not merged
             ref = self._tkeys.get(k)
             if ref is not None and _CHOICE_TALLY_ORDER:
                 why = ("step" if self._last_step.get((cycle, slot)) != step
@@ -213,7 +231,7 @@ class Ledger:
                 self._tev.append((self.written, row))
                 self.written += 1
                 if _CHOICE_TALLY_CHECK:
-                    fk = _full_key(slot, step, detail)
+                    fk = _full_key(named, step, detail)
                     self._tchk.setdefault(k, {self._tfull[k]}).add(fk)
                     self._tchk_n[fk] = self._tchk_n.get(fk, 0) + 1
                 return self._entries[ref]
@@ -221,7 +239,7 @@ class Ledger:
                 self._tkeys[k] = len(self._entries)
                 self._tmode[k] = self.mode
                 if _CHOICE_TALLY_CHECK:
-                    self._tfull[k] = _full_key(slot, step, detail)
+                    self._tfull[k] = _full_key(named, step, detail)
         e = Entry(len(self._entries), cycle, step, slot, event, detail, of)
         self._entries.append(e)
         if _CHOICE_TALLY and _CHOICE_TALLY_ORDER:
