@@ -65,6 +65,7 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
            ("remainder", "wall_s"),           # 1e's remainder row (r364)
            ("plan_episode", "s"),             # FIN5E P2': the planning seconds (r669 8)
            ("muse_owed", "compute_ms"),       # MUSE_BOUND: the muse's seconds at the budget
+           ("muse", "compute_ms_all"),        # MUSE_BOUND (1b2507d), r1567
            ("molecule_apply", "cost_ms"),     # r962: the molecule pass's milliseconds
            ("think_choice", "clocks"),        # item 25: the game's clocks and the step clock's
            ("think_choice", "displaced"),     # s_step / s_per_eval, and what they price
