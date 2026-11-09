@@ -2,7 +2,7 @@
 7a(10) MC6 muse (TETHER_MC6; R3 part 2; the reviewer 2026-10-10 23:50Z). On a step that owes
 nothing, the settled methods are re-tested as chains on an earlier level's parked residuals and a
 MUSE row records the gap and the compute spent. snaps.ladder seed 7 (levels 5, steps 60, 4 slots)
-is the habitat: its level 4 owes nothing on 42 steps with level 1's death parked.
+is the habitat: its level 4 owes nothing on 42 steps with level 1's game loss parked.
 
   must-pass: ON, seed 7 writes MUSE rows, each on a step that owed nothing, each carrying
      compute_ms, installed False;

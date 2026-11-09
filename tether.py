@@ -85,6 +85,7 @@ from ledger import (
     SPECIFIED,
     WIN,
     Ledger,
+    game_loss_word,
 )
 from priors import contact_first
 from probe import Drive
@@ -630,10 +631,10 @@ _CARRY_PRICE = armflag.arm("TETHER_CARRY_PRICE", default=True)   # C-HELD-5, 202
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _MC_SIGNAL = armflag.arm("TETHER_MC_SIGNAL", default=True)
 # 7a(5) A + B, THE RUIN RECORD (ARC_AGENT 19.3-19.4; the reviewer 2026-10-10 10:41Z). ON; reason in
-# conform/arms.py. A: every ending reaches `self.term` exactly once. B: a death adds (fingerprint,
-# action, realised coordinate) to `self._vetoes`, which only grows (Fig 6). The fingerprint is the
-# world's BOARD where it gives one, else observe(), which is the whole state there (Fig 1). Record
-# only: nothing reads the vetoes until C, its own arm.
+# conform/arms.py. A: every ending reaches `self.term` exactly once. B: a game loss adds
+# (fingerprint, action, realised coordinate) to `self._vetoes`, which only grows (Fig 6). The
+# fingerprint is the world's BOARD where it gives one, else observe(), which is the whole state
+# there (Fig 1). Record only: nothing reads the vetoes until C, its own arm.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _RUIN_RECORD = armflag.arm("TETHER_RUIN_RECORD", default=True)
 # 7a(5) C, RUIN ORDERED FIRST (R3 Part 1; the reviewer 10:41Z, 11:53Z). ON; reason in
@@ -835,12 +836,13 @@ _BUDGET_GENERATED = armflag.arm("TETHER_BUDGET_GENERATED", default=True)   # C-H
 # (_note_progress, R-A's subtraction), not since the last commitment, so effort spent without
 # progress keeps lowering the bar. OFF: since the last commitment, as before
 _URGENCY_PROGRESS = armflag.arm("TETHER_URGENCY_PROGRESS", default=True)
-# (6b) A DEATH KEEPS THE LEVEL'S BINDINGS AND REFUSALS (Q12 "a death is a game event; the agent
-# persists", Q18 A5 animal filter, R-D carry; Isaiah 2026-10-26 04:51 build order, the reviewer
-# 04:53; AUD link 5): at a death retarget HOLDS self.bound and the refused routes, and restarted()
-# carries back each entry whose objects were all re-found unambiguously (the refutations' rule).
-# OFF: cleared at every boundary, as before
-_DEATH_KEEPS = armflag.arm("TETHER_DEATH_KEEPS", default=True)
+# (6b) A GAME LOSS KEEPS THE LEVEL'S BINDINGS AND REFUSALS (Q12 "a game loss is a game event; the
+# agent persists", Q18 A5 animal filter, R-D carry; Isaiah 2026-10-26 04:51 build order, the
+# reviewer 04:53; AUD link 5): at a game loss retarget HOLDS self.bound and the refused routes, and
+# restarted() carries back each entry whose objects were all re-found unambiguously (the
+# refutations' rule). OFF: cleared at every boundary, as before
+_GAME_LOSS_KEEPS = armflag.arm("TETHER_GAME_LOSS_KEEPS", default=True,
+                               old="TETHER_DEATH_KEEPS")
 # (4h) A MET GOAL UNDONE IS WEIGHED (09-29; Isaiah 2026-10-26 04:51 build order, the reviewer
 # 04:53; AUD link 4): when an intent has undone an objective that holds now MIN_REPEAT times or
 # more, the route this press took is refused in this context through R-B's store, so the next
@@ -897,13 +899,14 @@ _SURPRISE_NOMINATES = armflag.arm("TETHER_SURPRISE_NOMINATES", default=True)
 # is active, distinguish and goal still enter _exit_choice's contest beside it, weighed by A1's
 # readings, instead of deferring. OFF: the goal-directed exits defer to it, as before
 _S0_CONTEST = armflag.arm("TETHER_S0_CONTEST", default=True)
-# (5c) A12, A DEATH VOTES ON THE ROUTE TOWARD THE GOAL (Isaiah 2026-10-25 20:21; Fig 11 :49, :51;
-# Fig 7 :35): presses counted by kind (goal slot kind, action, situation kinds); a death adds a vote
-# to the last press's kind (row death_vote); read as deaths / presses, so it decays as such presses
-# survive. The goal exit asks realise over the never-voted offers first; a want's kind with deaths
-# ranks after in _goal_choice, after A4's nomination. No action is ever removed, RESET included.
-# OFF: deaths are not read, as before
-_DEATH_VOTE = armflag.arm("TETHER_DEATH_VOTE", default=True)
+# (5c) A12, A GAME LOSS VOTES ON THE ROUTE TOWARD THE GOAL (Isaiah 2026-10-25 20:21; Fig 11 :49,
+# :51; Fig 7 :35): presses counted by kind (goal slot kind, action, situation kinds); a game loss
+# adds a vote to the last press's kind (row game_loss_vote); read as game losses / presses, so it
+# decays as such presses survive. The goal exit asks realise over the never-voted offers first; a
+# want's kind with game losses ranks after in _goal_choice, after A4's nomination. No action is ever
+# removed, RESET included. OFF: game losses are not read, as before
+_GAME_LOSS_VOTE = armflag.arm("TETHER_GAME_LOSS_VOTE", default=True,
+                              old="TETHER_DEATH_VOTE")
 # (4g) R-C, SUBGOALS ARE ROUTES (the 10-23 design; the reviewer 2026-10-26 06:19: built only on an
 # enabling reading the code already holds): when an intent's routes are exhausted and the SETTLED
 # term bound on its slot reads another object's slot as its operand, and that slot's want is open,
@@ -1339,9 +1342,9 @@ _TWO_SLOT_OPERAND = armflag.arm("TETHER_TWO_SLOT_OPERAND", default=True)
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
               ("POSITION", "DELTA"): "POSITION"}
-# (r946 5) A WINDOW SCORES ITS OWN BOARD: a bond_tests row at each retarget (a death, a level, a new
-# board), from the frames of the board being left, before its trace clears; the run-end row stays.
-# OFF: one row, at the run's end.
+# (r946 5) A WINDOW SCORES ITS OWN BOARD: a bond_tests row at each retarget (a game loss, a level, a
+# new board), from the frames of the board being left, before its trace clears; the run-end row
+# stays. OFF: one row, at the run's end.
 _BOND_PER_BOARD = armflag.arm("TETHER_BOND_PER_BOARD", default=True)
 # (r954 2) TWO OPERANDS ARE TWO QUANTITIES: per object each operand is tested on its OWN slots, the
 # slots both read removed from both (the Operators Table: the bond "carries information the
@@ -2286,19 +2289,19 @@ _SHAPE_TRACE = armflag.arm("TETHER_SHAPE_TRACE", default=True)
 # Build 6 item 22, THE REFLEX TIER (the reviewer 2026-11-05 r1242, r1243): a stored When(reading,
 # intent), read in choose after the dead-board exit and before the held routine (paused, never
 # consumed). It fires iff seed + paid >= against, per (situation, form): seed 1 for a wired form,
-# against = fired and its predicted consequence failed next step (or a death followed), decayed
-# on the logical clock; paid = the consequence held, or a death with the guard met and no fire,
+# against = fired and its predicted consequence failed next step (or a game loss followed), decayed
+# on the logical clock; paid = the consequence held, or a game loss with the guard met and no fire,
 # never decayed (Symbols w; Fig 9 :41, :60). Seeds: orient, freeze. OFF: no reflex read
 _REFLEX = armflag.arm("TETHER_REFLEX", default=True)
 # Build 6 item 23, THE HOW-SOON READING (the reviewer 2026-11-05 r1245, r1246): one reading,
-# _how_soon(press), read by DODGE (a reflex form) and by _urgent at the mint. A death records the
-# subject's contact relation, kind-level, on the vote's own key, with the frame it was read on;
+# _how_soon(press), read by DODGE (a reflex form) and by _urgent at the mint. A game loss records
+# the subject's contact relation, kind-level, on the vote's own key, with the frame it was read on;
 # the roll repeats the course press through the settled terms, as deep as the step's purse pays,
 # and reads each predicted state's contacts (contact_points_at). Witnessed at j + lag. OFF: none
 _HOW_SOON = armflag.arm("TETHER_HOW_SOON", default=True)
 # Build 6, THE REFLEX CARRY (owed from r1244; the reviewer 2026-11-05 r1248, r1248a): at the
 # lineage boundary, on the invention channel, the reflex standing's paid counts (never `against`:
-# forgiveness is this life's clock) and item 23's terminal-frame loss relations cross, as the
+# forgiveness is this game's clock) and item 23's terminal-frame loss relations cross, as the
 # increments since the last write, under kind-level keys only (freeze drops its button). In the
 # next game a reflex fires iff 1 + carried_paid + paid >= against, and a carried loss relation is
 # a weight the game's own witness can put under. OFF: nothing carried, as before
@@ -2451,13 +2454,13 @@ def _confirm_actions(r: Any) -> int | None:
     return None
 SELF_MOVED, REACTING, MOVES_WITH = "self-moved", "reacting", "controlled"
 # an ending's word -> Termination's kind; the seat's budgets are caps, every other word is its own
-_TERM_KIND = {"death": "death", "cap": "cap", "time": "cap", "run_end": "cap",
+_TERM_KIND = {"game_loss": "game_loss", "cap": "cap", "time": "cap", "run_end": "cap",
               "agent_fault": "cap"}    # item 4: a fault is no fact about the world
 # THE BOUNDARY ROWS' OWN CHAINS (the reviewer 2026-10-10 08:11Z, 09:40Z). retarget's boundary/ending
-# and the death restart go on "@boundary", the 21.3 credit on "@credit", at THE CYCLE with the level
-# as a field: at cycle = self.level on "@loop" they sat behind that cycle's REPEAT row, and credit
-# (SETTLE) sat behind the IMPORT rows, so gate check 1 refused every level end and every restart.
-# False reproduces that keying, for the must-fail only.
+# and the game loss restart go on "@boundary", the 21.3 credit on "@credit", at THE CYCLE with the
+# level as a field: at cycle = self.level on "@loop" they sat behind that cycle's REPEAT row, and
+# credit (SETTLE) sat behind the IMPORT rows, so gate check 1 refused every level end and every
+# restart. False reproduces that keying, for the must-fail only.
 _BOUNDARY_CHAIN = True
 # THE REFERENCE COST (the reviewer 21:55Z): a reused term's DEFINITION is paid once, but NAMING it
 # is paid per use, log2(H+1) over the H held terms (the corpus's +log2(k+1), as `_guard_bits`).
@@ -3095,7 +3098,7 @@ def _seed_at_birth() -> dict:
 _STARVED_CONTACT = armflag.arm("TETHER_STARVED_CONTACT", default=True)
 
 # TERMINAL RESET (Isaiah 2026-11-01 06:47, r669 1, "fix in the agent"): on a dead board (retarget
-# how=death) the episode has ended and only a restart is open, so choose() takes the press whose
+# how=game_loss) the episode has ended and only a restart is open, so choose() takes the press whose
 # known effect is RESTARTS (Interface.restart_open); and a positioned action leaves step only with
 # an aim -- unaimed, the press is re-realised among the unpositioned offers. Through the gateway
 # either press would end the game (HTTP 400 / 500). OFF: as before.
@@ -3360,7 +3363,7 @@ _GOAL_SIGN_FLIP = armflag.arm("TETHER_GOAL_SIGN_FLIP", default=True)
 # credited change (ties: fewer owners): its press is a TOUCH of it (the interface aims the press).
 # A press that yields 0 credited change, or returns the board to a state already seen while
 # continuing it, ARRIVED without a clear and refutes that actuator; the next one follows. No count,
-# no constant. Cleared at new_board, kept at death. OFF: no actuator goal
+# no constant. Cleared at new_board, kept at game loss. OFF: no actuator goal
 _GOAL_FROM_ACTUATOR = armflag.arm("TETHER_GOAL_FROM_ACTUATOR", default=True)
 # E, PAIR_BOUND (lp85's first clear, 2026-11-01): at a completion with one reached step every
 # single is "necessary", so _goal_pairs priced pairs quadratically until the game's thinking
@@ -3406,8 +3409,9 @@ _COUNTERS = armflag.arm("TETHER_COUNTERS", default=True)
 # term can be bound or minted for it; booked relation_subject. Other derived slots: as before (DS).
 _RELATION_BET = armflag.arm("TETHER_RELATION_BET", default=True)
 # A WIN MOVES STANDING (the reviewer 2026-11-01 r694 row 3; Fig 1 "the ground enters as the only
-# metric"): at a level clear (ADVANCE / WIN, never a death) each non-atom term bound on the clearing
-# segment is settled once -- the settle writes evidence, which the next life replays; win_credit.
+# metric"): at a level clear (ADVANCE / WIN, never a game loss) each non-atom term bound on the
+# clearing segment is settled once -- the settle writes evidence,
+# which the next life replays; win_credit.
 _WIN_CREDIT = armflag.arm("TETHER_WIN_CREDIT", default=True)
 # THE BOARD BOUNDARY IS THE AGENT'S OWN (the reviewer 2026-11-01 r696, the deep dive's row 1): a
 # frame that arrives with no action (the head frame break; R9: 24 of 24 game switches, none within
@@ -4838,10 +4842,10 @@ class Agent:
         self._untried_best: Any = None
         self._untried_done: set = set()
         self._kinds_was: dict[tuple, str] = {}
-        # (5c) A12: presses and deaths by (goal slot kind, action, situation kinds) -- kinds, so
-        # they cross levels; the press last counted, and the goal exit's situation for it
+        # (5c) A12: presses and game losses by (goal slot kind, action, situation kinds) -- kinds,
+        # so they cross levels; the press last counted, and the goal exit's situation for it
         self._press_n: Counter = Counter()
-        self._death_n: Counter = Counter()
+        self._game_loss_n: Counter = Counter()
         self._last_press_key: tuple | None = None
         self._press_situ: tuple | None = None
         self._subgoal: dict | None = None   # (4g) R-C: {"parent", "sub"} while a detour is held
@@ -4921,9 +4925,9 @@ class Agent:
                        "consequence": "the slot's outstanding falls next step",
                        "origin": "prior", "clause": "r1242 seed set, a wired orienting form",
                        "standing": {}},
-            "freeze": {"form": Rt.When("the last press's kind carries a death vote here",
+            "freeze": {"form": Rt.When("the last press's kind carries a game loss vote here",
                                        Rt.Act(IFace.ELICIT)),
-                       "consequence": "no death next step",
+                       "consequence": "no game loss next step",
                        "origin": "prior", "clause": "r1242 seed set, a wired inhibiting form",
                        "standing": {}}}
         self._rf_pending: list = []   # 22: (form, situation, slot, outstanding then, fired)
@@ -5075,9 +5079,10 @@ class Agent:
         # unreadable.
         self.refuted: dict[tuple, Standing] = {}
         self.refuted_at: dict[tuple, float] = {}
-        # HELD at a death's boundary, for `restarted` to carry back where identity is sure (F479).
+        # HELD at a game loss's boundary, for `restarted` to carry back where identity is sure
+        # (F479).
         self._held_refutations: tuple[dict, dict] | None = None
-        # (6b): the level's bindings and refused routes, HELD at a death the same way
+        # (6b): the level's bindings and refused routes, HELD at a game loss the same way
         self._held_level: dict | None = None
         self._self_moved_now: frozenset = frozenset()   # (2a): the last cascade's self-movers
         # (2b): the contact pick awaiting its felt outcome, its pair, and the tries per contact key
@@ -5260,6 +5265,7 @@ class Agent:
     def end_run(self, how: str = "cap") -> None:
         """The run ends with this level still open: its signals resolve at the GAME (MC2). The loops
         call it after their last step; `retarget` never sees a cap or a timeout."""
+        how = game_loss_word(how)       # r1571: an old runner's word reads as today's
         if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
             with self._tail_booking():  # r1562: booked to the ended attempt's last cycle
                 self._3a_settle()     # r1542: at the game's own end, not at its save
@@ -5346,7 +5352,7 @@ class Agent:
     def _note_ending(self, how: str, scope: str) -> None:
         """7a(5) A + B: one ending reaches Termination once -- the SAME word again with no step
         between (a WIN retargeted, then ended by the loop) is that ending, another word is another
-        (a death, then the deadline) -- and a death adds its veto. Record only."""
+        (a game loss, then the deadline) -- and a game loss adds its veto. Record only."""
         if _MC34:
             self._mc3_note(how, scope)
         if not _RUIN_RECORD or self._ending_counted == how:
@@ -5358,11 +5364,11 @@ class Agent:
         if self.term.klass() != was:
             self.led.record(_c, "IMPORT", _s, "termination", **_lv, how=how, was=was,
                             **self.term.report())
-        if how != "death":
+        if how != "game_loss":
             return
         if self._ruin_step is None:
             self.led.record(_c, "IMPORT", _s, "veto", **_lv, killing_step=None,
-                            reads="a death with no action taken this step: nothing to veto")
+                            reads="a game loss with no action taken this step: nothing to veto")
             return
         fp, of, act, coord, cyc = self._ruin_step
         key = (fp, act, coord)
@@ -5402,6 +5408,7 @@ class Agent:
         Everything still owed is parked WITH its history, which is the only way a term
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
+        how = game_loss_word(how)       # r1571: an old runner's word reads as today's
         if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
             with self._tail_booking():  # r1562: booked to the ended attempt's last cycle
                 self._3a_settle()     # r1542: while this epoch's trace still exists
@@ -5437,23 +5444,24 @@ class Agent:
                 m.clear()
         if _CONSOLIDATE:
             self._consolidate(how)
-        if _DEATH_VOTE and how == "death" and self._last_press_key is not None:
+        if _GAME_LOSS_VOTE and how == "game_loss" and self._last_press_key is not None:
             # (5c) A12: the ground's vote on the press last taken toward the goal held then
             k = self._last_press_key
-            self._death_n[k] += 1
+            self._game_loss_n[k] += 1
             _hs = {}
             if _HOW_SOON:
-                # 23 (r1246 D, r1247): a death is the loss kind this board reports; the subject's
-                # relation on the frame held now: pre-press where the engine kept it, else terminal
+                # 23 (r1246 D, r1247): a game loss is the loss kind this board reports; the
+                # subject's relation on the frame held now: pre-press where the engine kept it,
+                # else terminal
                 fn = getattr(env, "contact_points", None)
                 rel = self._hs_rel(fn() if fn is not None else (), self._hs_subject())
                 frame = "pre-press" if getattr(env, "frame_kept", False) else "terminal"
                 self._loss_rel.setdefault(k, Counter())[(how, frame, rel)] += 1
                 _hs = {"loss_kind": how, "rel": [list(p) for p in rel], "frame": frame}
-            self.led.record(self.cycle, "SETTLE", "@death", "death_vote", goal_kind=k[0],
+            self.led.record(self.cycle, "SETTLE", "@game_loss", "game_loss_vote", goal_kind=k[0],
                             action=k[1], situation=[list(p) for p in k[2]],
-                            deaths=self._death_n[k], presses=self._press_n[k], **_hs,
-                            reads="a death votes against this press, toward this goal, in this "
+                            game_losses=self._game_loss_n[k], presses=self._press_n[k], **_hs,
+                            reads="a game loss votes against this press, toward this goal, in this "
                                   "kind of situation; read as a share, so it decays as such "
                                   "presses survive, and it removes no action (A12)")
         self._last_press_key = None
@@ -5591,10 +5599,10 @@ class Agent:
             self._d5_level_end()
         if _LINEAGE_HOLD:
             self._hold_lineage(how)
-        # (6b) A DEATH KEEPS THE LEVEL'S BINDINGS AND REFUSED ROUTES: held, for `restarted` to carry
-        # back where identity is sure, as the refutations below are (Q12, Q18, R-D carry)
+        # (6b) A GAME LOSS KEEPS THE LEVEL'S BINDINGS AND REFUSED ROUTES: held, for `restarted` to
+        # carry back where identity is sure, as the refutations below are (Q12, Q18, R-D carry)
         self._held_level = ({"bound": dict(self.bound), "route_refused": dict(self._route_refused)}
-                            if how == "death" and _DEATH_KEEPS else None)
+                            if how == "game_loss" and _GAME_LOSS_KEEPS else None)
         self.bound, self.trace = {}, []
         self._lookup_pairs = {}    # r972: lit by this board's residuals, so this board's
         self._reaff_at = {}        # L1: keyed by trace index, so it restarts with the trace
@@ -5604,19 +5612,19 @@ class Agent:
         self._d5_candidates = {}
         self._d5_rows, self._d5_said = {}, set()   # D5's scope is the level, a world event
         self._attempt_actions = 0
-        # a death is a boundary into a dead situation; any other ending into a live one
-        self._alive, self._epoch = how != "death", self._epoch + 1
+        # a game loss is a boundary into a dead situation; any other ending into a live one
+        self._alive, self._epoch = how != "game_loss", self._epoch + 1
         if _PLAN_EPISODES:
             self._episode_why.append(f"a boundary ({how})")
-        if G_FIRST_CONTACT and how != "death":
+        if G_FIRST_CONTACT and how != "game_loss":
             self._fc_seen.clear()          # a new board: its slots are met for the first time
-        if _ROUTINE_TOUCH and how != "death":
+        if _ROUTINE_TOUCH and how != "game_loss":
             self._empty_pressed.clear()
-        if _BOND_INC and how != "death":
+        if _BOND_INC and how != "game_loss":
             self._bond_inc.clear()         # a new board's slots: their folds start again
-        if _COUNTERS and how != "death":
+        if _COUNTERS and how != "game_loss":
             self._pressed_seen.clear()
-        if how != "death":
+        if how != "game_loss":
             self._board_touched.clear()    # C2: a new board's objects are touched once here
             self._kind_unpaid, self._kinds_open = 0, 0
             self._tf_len = self._tf_left = self._tf_rel_u = None   # TF_PASS: the next board's pass
@@ -5627,11 +5635,11 @@ class Agent:
             self._act_rt, self._act_rt_acts = None, 0
             self._press_every = None
             self._act_refuted.clear()
-        if _RELATION_BET and how != "death":
+        if _RELATION_BET and how != "game_loss":
             self._rel_subjects.clear()
-        if _BOARD_BOUNDARY and how != "death":
+        if _BOARD_BOUNDARY and how != "game_loss":
             self._last_progress = self.cycle   # r696 row 5: a new board does not start "urgent"
-        self.iface.situate(self._epoch, self._alive, new_board=how != "death")   # C1
+        self.iface.situate(self._epoch, self._alive, new_board=how != "game_loss")   # C1
         if _MC34:
             self._level_attempts = 1
         self._trace_epoch += 1          # the tallies summarise a history that is gone
@@ -5642,7 +5650,7 @@ class Agent:
         self._disc, self._res = {}, {}   # the slots did not survive, nor do their trends
         # R-A/R-B: nor their raw gaps, nor the routes keyed by their names -- a scope end, the
         # route_refused rows stay in the ledger (Fig 6 :45). retarget fires on a level edge AND a
-        # death, so a carry across tries is R-D's, open (the reviewer 2026-10-23 22:12)
+        # game loss, so a carry across tries is R-D's, open (the reviewer 2026-10-23 22:12)
         self._gap, self._route_refused, self._route_run = {}, {}, {}
         self._route_stale = {}                       # (3c): this level's, like the refusals
         self._route_lifted = {}                      # 15b: likewise
@@ -5680,9 +5688,9 @@ class Agent:
         # it: every guard is `CAN`-checked at mint, and a guard naming a dead slot reads
         # `unknown`, which the mint refuses. **Checked rather than assumed** -- the shelf needs
         # no rule here precisely because it has one already.
-        # EXCEPT AT A DEATH, WHICH MAY BE FOLLOWED BY A RESTART OF THE SAME LEVEL -- the same
+        # EXCEPT AT A GAME LOSS, WHICH MAY BE FOLLOWED BY A RESTART OF THE SAME LEVEL -- the same
         # objects under the same names (measured, F479). Held, not lost; `restarted` decides.
-        self._held_refutations = ((self.refuted, self.refuted_at) if how == "death" else None)
+        self._held_refutations = ((self.refuted, self.refuted_at) if how == "game_loss" else None)
         self.refuted, self.refuted_at = {}, {}
         # AND `self.paths` IS A THIRD CASE AND STAYS, FOR THE REASON THIS BLOCK JUST GAVE.
         # The autoimmunity argument above is entirely about SLOT NAMES regenerating. `_gap_key`
@@ -11886,7 +11894,7 @@ class Agent:
                         self._rf_carried[(form, _tup(key))] += n
                         rf_in.append([form, [str(k) for k in key], n])
                     for lk, frame, rel, n in rec.get("loss", ()):
-                        self._loss_carried[(lk, frame, _tup(rel))] += n
+                        self._loss_carried[(game_loss_word(lk), frame, _tup(rel))] += n
                     tallied.append(rec["name"])
                 continue
             if lib is None or lib.get(f"AGENT-INVENTED|{rec['name']}"):
@@ -14433,22 +14441,23 @@ class Agent:
         return (gk, action, tuple(p for p in situ if p[0] != "@alive"))
 
     def _danger(self, key: tuple) -> float:
-        """(5c): the share of this kind's presses that ended in a death; 0 with none recorded."""
-        return self._death_n[key] / self._press_n[key] if self._press_n[key] else 0.0
+        """(5c): the share of this kind's presses that ended in a game loss; 0 with none
+        recorded."""
+        return self._game_loss_n[key] / self._press_n[key] if self._press_n[key] else 0.0
 
     def _danger_safe(self, slot: str, offered: tuple, rctx: tuple) -> tuple:
-        """(5c): the offered actions no death has voted against here, toward this goal, when
+        """(5c): the offered actions no game loss has voted against here, toward this goal, when
         some have such a vote and some do not; else () -- an order, never a removal."""
-        if not self._death_n:
+        if not self._game_loss_n:
             return ()
         safe = tuple(a for a in offered
                      if not self._danger(self._press_kind(a, rctx, slot)))
         return safe if 0 < len(safe) < len(offered) else ()
 
     def _subject_danger(self, slot: str) -> float:
-        """(5c): deaths over presses for every press made toward a goal of this slot's kind."""
+        """(5c): game losses over presses for every press made toward a goal of this slot's kind."""
         gk = self._kind_key(slot)
-        d = sum(n for k, n in self._death_n.items() if k[0] == gk)
+        d = sum(n for k, n in self._game_loss_n.items() if k[0] == gk)
         p = sum(n for k, n in self._press_n.items() if k[0] == gk)
         return d / p if p else 0.0
 
@@ -14500,7 +14509,7 @@ class Agent:
         kinds of the slot's OWN objects (Interface.context's actor filter, merged over a compound
         owner) and whether the board is alive -- not the whole board's multiset, which moves with
         any object anywhere, so a refusal held about one press. The table keeps the pooled key.
-        No epoch: R-D carries the refusals across a death (6b). A slot with no object: `ctx`."""
+        No epoch: R-D carries the refusals across a game loss (6b). A slot with no object: `ctx`."""
         if not _SITUATED_REFUSAL:
             return ctx
         owners = sorted(self._objs_named(slot))
@@ -14569,11 +14578,12 @@ class Agent:
         and no win, and a refuted shape that later wins comes back (the counts say so)."""
         n = collections.Counter(self._root_grade_in.get(shape, {}))
         n.update(self._root_grade.get(shape, {}))
-        won, lost = n["game_win"] + n["clear"], n["death"]
+        won, lost = n["game_win"] + n["clear"], n["game_loss"]
         label = ("refuted by level outcomes" if lost >= 2 and not won else
                  "unsupported" if lost and not won else "mixed" if lost else
                  "carried" if won else "ungraded")
-        return {"shape": shape, "wins": n["game_win"], "clears": n["clear"], "deaths": n["death"],
+        return {"shape": shape, "wins": n["game_win"], "clears": n["clear"],
+                "game_losses": n["game_loss"],
                 "label": label}
 
     def _refuted_slots(self) -> dict:
@@ -14634,7 +14644,8 @@ class Agent:
         self.led.record(self.cycle, "SETTLE", "@intent_end", "intent_verdict", root=self._root_id,
                         ending=how, held_in_force=self._held_goal() == self._root_held,
                         held=self._root_held or "none held")
-        out = {WIN: "game_win", ADVANCE: "clear", "death": "death"}.get(how)   # F1b words (W1)
+        # F1b words (W1)
+        out = {WIN: "game_win", ADVANCE: "clear", "game_loss": "game_loss"}.get(how)
         if _7H_ROOT_GRADE and out is not None:
             # graded by the ground's ending only (a cap or a run end grades nothing)
             for s in self._root_shapes:
@@ -15548,8 +15559,8 @@ class Agent:
             self._press_every = _lc if self._press_every is None else self._press_every & _lc
         if _TOUCH_FELT and self._contact_pending is not None:
             self._contact_felt()
-        if _DEATH_VOTE and not self._seam_now:
-            # (5c) A12: every press counted under its kind, so a death's vote is a share of them
+        if _GAME_LOSS_VOTE and not self._seam_now:
+            # (5c) A12: every press counted under its kind, so a game loss's vote is a share of them
             self._last_press_key = self._press_kind(action, self._press_situ or _ctx)
             self._press_n[self._last_press_key] += 1
         self._press_situ = None
@@ -16909,7 +16920,7 @@ class Agent:
         from the one how-soon reading (_how_soon's docstring): a predictor for a slot of the
         subject or of a FATAL-kind partner is urgent while the course reading is not inf --
         finite, or None, since the thing that kills me and that I cannot yet predict is the case
-        this exists for (Fig 8 :39). OFF, or no death record: False, as before."""
+        this exists for (Fig 8 :39). OFF, or no game loss record: False, as before."""
         if not _HOW_SOON or _kind != "predictor" or slot is None or not self._hs_fatal():
             return False
         own = slot.split(".", 1)[0]
@@ -19143,8 +19154,8 @@ class Agent:
 
     def _hs_fatal(self) -> list:
         """23 (r1247): FATAL, the loss-voted relations -- (loss kind, frame, relation, vote key) per
-        recorded loss with a non-empty relation; a death is the loss kind this board reports."""
-        own = [(lk, f, rel, k) for k, c in self._loss_rel.items() if self._death_n[k] > 0
+        recorded loss with a non-empty relation; a game loss is the loss kind this board reports."""
+        own = [(lk, f, rel, k) for k, c in self._loss_rel.items() if self._game_loss_n[k] > 0
                for lk, f, rel in sorted(c) if rel]
         # the carry (r1248): a relation the lineage brought, a weight with no vote key here
         return own + ([(lk, f, rel, None) for (lk, f, rel), n in sorted(self._loss_carried.items())
@@ -19157,7 +19168,7 @@ class Agent:
         """THE HOW-SOON READING (item 23; r1245-r1247), the one both readers cite: presses until a
         predicted LOSS of a recorded kind, if this press is kept, within the horizon the budget
         reached; inf = read, no loss within the horizon; None = not read. A loss is met as a
-        loss-voted relation (FATAL); a death is the loss kind this board reports.
+        loss-voted relation (FATAL); a game loss is the loss kind this board reports.
         (reading, lag w, the relation met, presses rolled h): a non-hit is "none within h", h
         inf where the state stops moving, and nothing rolled is None. A pre-press record is met
         only while the course press is the voted one (r1246 D). The purse is the horizon."""
@@ -19219,8 +19230,9 @@ class Agent:
         return out
 
     def _hs_settle(self) -> None:
-        """23 (r1246 A): each open course reading judged at j + lag -- a death in presses j..j+w
-        is paid; a death before j or after j+w, or the course kept through j+w with no death,
+        """23 (r1246 A): each open course reading judged at j + lag -- a game loss in presses j..j+w
+        is paid; a game loss before j or after j+w, or the course kept through j+w
+        with no game loss,
         is against; the course broken first is no verdict. One row, read by both readers."""
         keep = []
         for e in self._hs_open:
@@ -19338,9 +19350,10 @@ class Agent:
                         reads="the weight crossed 1 + carried + paid against its witnesses")
 
     def _reflex_settle(self) -> None:
-        """22: last step's reads judged. A fire whose predicted consequence failed, or that a death
-        followed, is one witness against; one whose consequence held is paid. A guard met without
-        a fire that a death followed is paid (sensitization). Nothing else counts (r1243 4)."""
+        """22: last step's reads judged. A fire whose predicted consequence failed, or that a game
+        loss followed, is one witness against; one whose consequence held is paid.
+        A guard met without
+        a fire that a game loss followed is paid (sensitization). Nothing else counts (r1243 4)."""
         pend, self._rf_pending = self._rf_pending, []
         for form, situ, slot, was, fired in pend:
             if not fired and self._alive:
@@ -19361,7 +19374,7 @@ class Agent:
         those that fire, the larger p takes the turn. Every guard met is a row, fired or not."""
         out, self._rf_out = self._rf_out, {s: v for s, v in self._outstanding.items() if v > 0}
         cands = []
-        k = self._last_press_key if _DEATH_VOTE else None
+        k = self._last_press_key if _GAME_LOSS_VOTE else None
         if k is not None and self._danger(k) > 0:
             safe = tuple(a for a in self.actions
                          if a != IFace.RESET and not self._danger((k[0], a, k[2])))
@@ -20181,7 +20194,7 @@ class Agent:
                     # today's R_goal shrink as the tie-break. A shrinking window opens above 0
                     _rw = series[-(MIN_REPEAT + 1):]
                     shrink = ((window[0] - window[-1]) / window[0], _rw[0] - _rw[-1])
-                if _DEATH_VOTE and self._death_n:
+                if _GAME_LOSS_VOTE and self._game_loss_n:
                     shrink = (-self._subject_danger(slot), shrink)    # (5c) A12, weighed
                 if hot is not None:
                     if unnom is None or shrink > unnom[0]:
@@ -20693,10 +20706,10 @@ class Agent:
 
     @_in_step("IMPORT")
     def restarted(self, env: Any) -> None:
-        """THE SAME LEVEL AGAIN, after a death and the agent's RESET -- called by the harness, as
-        `retarget` is. The death's boundary HELD the slot-keyed refutations. Each comes back only
-        where EVERY object its key names was re-found unambiguously (overlap, or a unique shape):
-        a look-alike may have swapped names, and a refutation landing on the twin is a claim
+        """THE SAME LEVEL AGAIN, after a game loss and the agent's RESET -- called by the harness,
+        as `retarget` is. The game loss's boundary HELD the slot-keyed refutations. Each comes back
+        only where EVERY object its key names was re-found unambiguously (overlap, or a unique
+        shape): a look-alike may have swapped names, and a refutation landing on the twin is a claim
         travelling changed and silent (the reviewer, 2026-10-06). The rest are NAMED, not carried.
         """
         held, self._held_refutations = self._held_refutations, None
@@ -20736,10 +20749,11 @@ class Agent:
         _c, _s, _lv = self._boundary_key("@boundary")
         self.led.record(_c, "IMPORT", _s, "restart", **_lv,
                         carried=sorted(carried), not_carried=not_carried,
-                        reads="refutations held at the death; carried only where identity is sure")
+                        reads="refutations held at the game loss; carried only where identity "
+                              "is sure")
 
     def _restore_level(self, env: Any, held: dict) -> None:
-        """(6b): carry the bindings and refused routes held at the death back into the restarted
+        """(6b): carry the bindings and refused routes held at the game loss back into the restarted
         level, each only where every object its key names (by _objs_named and by any o<n> in the
         key's text, so an intent string's subject counts) was re-found as overlap or a unique
         shape. The rest are counted, never carried silently."""
@@ -20758,8 +20772,8 @@ class Agent:
                 dest[k] = v
                 kept[store] = kept.get(store, 0) + 1
         _c, _s, _lv = self._boundary_key("@boundary")
-        self.led.record(_c, "IMPORT", _s, "death_kept", **_lv, kept=kept, dropped=dropped,
-                        reads="the level's bindings and refused routes held at the death; "
+        self.led.record(_c, "IMPORT", _s, "game_loss_kept", **_lv, kept=kept, dropped=dropped,
+                        reads="the level's bindings and refused routes held at the game loss; "
                               "carried only where identity is sure")
 
     @_in_step("SETTLE")
@@ -20769,7 +20783,7 @@ class Agent:
         tell never-held from held-and-given-up), a count row per store, and one attempt row: the
         ending's sign and what THIS attempt tried in kind form -- the action names in its own trace
         and the gap kinds filed (_gap_key, 7315) -- never a verdict on the items (Fig 7; the
-        death guard, RL-6)."""
+        game loss guard, RL-6)."""
         stores = {nm: (list if isinstance(getattr(self, at), list) else dict)(getattr(self, at))
                   for nm, at in _LINEAGE_STORES}
         stores["drive_tried"] = {a: set(w) for a, w in self.drive.tried.items()}
@@ -20802,13 +20816,13 @@ class Agent:
 
     @_in_step("IMPORT")
     def _carry_lineage(self, env: Any) -> None:
-        """(b'-l) D-b: on a same-level restart after the game's "death" ending (a loss in the game,
-        not the agent's end: the agent, like a player, keeps everything), that boundary's stores in
-        _LINEAGE_CARRY come back per entry where EVERY object the key names is re-found as
+        """(b'-l) D-b: on a same-level restart after the game's "game_loss" ending (a loss in the
+        game, not the agent's end: the agent, like a player, keeps everything), that boundary's
+        stores in _LINEAGE_CARRY come back per entry where EVERY object the key names is re-found as
         "overlap" or "unique-shape" (restarted's rule, 6969-6978). The rest stay dormant. Gap
         readings, the one-step refusal filing and D5's withdrawn cuts stay the record only."""
         rec = self._dormant[-1] if self._dormant else None
-        if rec is None or rec["how"] != "death" or rec["restarted"]:
+        if rec is None or rec["how"] != "game_loss" or rec["restarted"]:
             return
         rec["restarted"] = True
         idn = getattr(env, "identity", None)
@@ -22765,7 +22779,7 @@ class Agent:
             # (4e) I-C: what the settled model predicts THIS press does HERE is asked first; the
             # pooled table only when it names nothing (or the interface cannot realise it)
             _pf = self._predicted_serves(chosen, _want, _offer, before)
-            if _pf and _DEATH_VOTE:
+            if _pf and _GAME_LOSS_VOTE:
                 _pf = self._danger_safe(chosen, _pf, _rctx) or _pf     # (5c): an order
             if _pf:
                 _r = self.iface.realise(_want, _pf, _ctx, before, self.env, withheld=_wh,
@@ -22777,8 +22791,8 @@ class Agent:
                                     intent=_want.says(), predicted=list(_pf),
                                     taken=_r.action if _r is not None else None,
                                     reads="the current prediction before the pooled table")
-        if _r is None and _DEATH_VOTE and _offer:
-            # (5c) A12: the offers no death has voted against, toward this goal here, first
+        if _r is None and _GAME_LOSS_VOTE and _offer:
+            # (5c) A12: the offers no game loss has voted against, toward this goal here, first
             _sf = self._danger_safe(chosen, _offer, _rctx)
             if _sf:
                 _r = self.iface.realise(_want, _sf, _ctx, before, self.env, withheld=_wh,
@@ -22787,7 +22801,7 @@ class Agent:
                     self.led.record(self.cycle, "PLAN", chosen, "danger_order",
                                     intent=_want.says(), safe=list(_sf),
                                     taken=_r.action if _r is not None else None,
-                                    reads="a death voted against the rest here; they stay "
+                                    reads="a game loss voted against the rest here; they stay "
                                           "offered after these (A12)")
         if _r is None:
             _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
@@ -26862,7 +26876,7 @@ class Agent:
             self._gamma_read = {**self._gamma_read, "fed": _fed, "entered": bool(_fed)}
         if _RUIN_RECORD:
             # the board BEFORE the act and the coordinate it was REALISED at (never the intent's
-            # subject, the a561fb2 lesson): the killing step's key if this step dies
+            # subject, the a561fb2 lesson): the killing step's key if this step loses the game
             self._ruin_step = (*self._step_fp, action,
                                tuple(coord) if coord is not None else None, self.cycle)
         tn = getattr(self.iface, "tally_note", None) if IFace._CHANGE_TALLY else None

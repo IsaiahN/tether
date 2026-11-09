@@ -721,7 +721,7 @@ class Interface:
     def _withhold(self, w: Withheld, offered: tuple[str, ...], state: dict | None,
                   env: Any) -> tuple[tuple[str, ...], Withheld, bool]:
         """(offered, withheld, every option vetoed). A non-empty set built on another board is
-        REFUSED: applying one board's deaths to another is a false veto."""
+        REFUSED: applying one board's game losses to another is a false veto."""
         if not w:
             return offered, w, False
         if env is None or fingerprint(env, env.observe())[0] != w.fp:
@@ -1215,7 +1215,8 @@ class Interface:
 
     def situate(self, epoch: int, alive: bool, new_board: bool = False) -> None:
         """The agent's situation, at each of its boundaries. Nothing recorded is dropped.
-        new_board: the agent read a new board (any boundary but a death; a restart is not one)."""
+        new_board: the agent read a new board (any boundary but a game loss;
+            a restart is not one)."""
         self.epoch, self.alive = epoch, alive
         if new_board:
             self.board_n += 1

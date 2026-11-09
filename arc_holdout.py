@@ -566,10 +566,10 @@ def play(game: str, cycles: int = 40, library: str | None = None,
         # cannot exploit -- and the loss is the ONLY controlled experiment available.
         # AN ENDING IS A TRANSITION, NOT A STATE, AND THE FIRST VERSION COUNTED THE STATE.
         # `terminal()` reports the CURRENT frame, so once `ls20` is GAME_OVER it answers
-        # `death` on every later step -- and retargeting on each of them recorded 32
-        # endings for one death and published `budget_to_deaths` as 0.200 when one death
-        # in 160 cycles is 0.006. **The same misreading as taking 172-of-300 GAME_OVER
-        # frames for abundant deaths, arriving in code an hour after it was caught in
+        # `game_loss` on every later step -- and retargeting on each of them recorded 32
+        # endings for one game loss and published `budget_to_game_losses` as 0.200 when one game
+        # loss in 160 cycles is 0.006. **The same misreading as taking 172-of-300 GAME_OVER
+        # frames for abundant game losses, arriving in code an hour after it was caught in
         # prose.** Edge-triggered: the ending fires where the state CHANGES.
         end = env.terminal()
         if end and end != was_terminal:
@@ -581,10 +581,11 @@ def play(game: str, cycles: int = 40, library: str | None = None,
             # button. The seat restarting on the agent's behalf is the same purchase
             # against the same resource as the agent doing it. The controlled experiment
             # is a SEPARATE seat measurement with no Gamma in it -- see `controlled()`.
-        # (b'-l) D-b, ONE PATH FOR BOTH RUNNERS: after the GAME's "death" ending (its loss, not the
-        # agent's end), the agent's own RESET restarted the level, so restarted() reads it as
+        # (b'-l) D-b, ONE PATH FOR BOTH RUNNERS: after the GAME's "game_loss" ending (its loss, not
+        # the agent's end), the agent's own RESET restarted the level, so restarted() reads it as
         # tether_agent.run does (its 47-48). The seat restarts nothing on the agent's behalf.
-        if tether._LINEAGE_HOLD and was_terminal == "death" and not end:
+        game_lost = ledger.game_loss_word(was_terminal) == ledger.GAME_LOSS
+        if tether._LINEAGE_HOLD and game_lost and not end:
             ag.restarted(env)
         # THE BOUNDARY EDGES, ONE BLOCK IN BOTH RUNNERS (arc_holdout.play, tether_agent.run;
         # the reviewer 2026-10-15 07:32, 07:42, 07:55). The terminal edge was retargeted above.
@@ -744,7 +745,8 @@ def play(game: str, cycles: int = 40, library: str | None = None,
         "endings": dict(endings),
         # §21.2's number, published rather than inferred: *if that is 40%, someone should
         # see it rather than infer it.*
-        "budget_to_deaths": (round(endings.get("death", 0) / cycles, 4) if cycles else 0.0),
+        "budget_to_game_losses": (round(endings.get("game_loss", 0) / cycles, 4) if cycles
+                                  else 0.0),
         # ACTIONS, NOT CYCLES -- the correction four of this session's findings collapse into.
         "budget": bud.report(),
 

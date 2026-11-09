@@ -3,15 +3,15 @@ on, a pair the veto floor holds for THIS board is withheld from the one choose()
 below the seam where the button and coordinate are chosen, unless every option is vetoed.
 
   must-pass: snaps AVOID (s0 must never read 3) from s0=2, 4 lives, the agent CHOOSING: with C
-     OFF it repeats its own death (a held key dies again); with C ON no held key dies again,
-     every @ruin row's choice is outside its withheld set, and the FULL gate passes;
+     OFF it repeats its own game loss (a held key loses the game again); with C ON no held key loses
+     the game again, every @ruin row's choice is outside its withheld set, and the FULL gate passes;
   1. on a DIFFERENT board nothing is withheld;
   2. a positioned action at another coordinate on the same board is offered (only the vetoed
      coordinate is skipped), at _made's spots and at TOUCH route 1;
   3. every option vetoed: the step still acts, all_vetoed True, and `why` says so;
   4. choose() is called exactly once per step;
   5. TETHER_RUIN without TETHER_RUIN_RECORD refuses to start;
-  6. a library saved after a death carries no veto (Fig 4: a recording never crosses up);
+  6. a library saved after a game loss carries no veto (Fig 4: a recording never crosses up);
   7. a withheld set built on board A and passed while the env shows board B is refused;
   8. EXPLORATION: with the board's only untried action vetoed, the step acts, and no draw, tried
      count or table entry is recorded for the withheld action.
@@ -65,7 +65,7 @@ class _Spy:
 
 def _lives(start: int, ruin: bool, lives: int = 4, steps: int = 12) -> tuple:
     """The agent CHOOSING, from the same board each life (deterministic, so a retry re-meets it):
-    (agent, ending per life, veto keys in order, the spy). A life ends at a death or `steps`."""
+    (agent, ending per life, veto keys in order, the spy). A life ends at a game loss or `steps`."""
     tether._RUIN_RECORD, tether._RUIN = True, ruin
     snap = snaps.Snap(R._spec(start))
     ag = R._agent(snap)
@@ -90,8 +90,8 @@ if __name__ == "__main__":
     off, off_ends, off_keys, _s, _n = _lives(2, False)
     ag, ends, keys, spy, acted = _lives(2, True)
     off_rep, rep = len(off_keys) - len(set(off_keys)), len(keys) - len(set(keys))
-    assert off_rep > 0, (off_ends, off_keys)          # OFF: the agent repeats its own death
-    assert rep == 0 and ends.count("death") < off_ends.count("death"), (ends, keys)
+    assert off_rep > 0, (off_ends, off_keys)          # OFF: the agent repeats its own game loss
+    assert rep == 0 and ends.count("game_loss") < off_ends.count("game_loss"), (ends, keys)
     w = _rows(ag, "withheld")
     assert w and all(r["slot"] == "@ruin" and r["step"] == "PLAN" for r in w), w[:2]
     assert all(not r["detail"]["all_vetoed"] for r in w), [r["detail"] for r in w]
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     out = gate.check(ag.led.rows())
     assert out["verdict"] == gate.PASS, out
     print(f"  must-pass, s0=2, 4 lives of up to 12 steps, the agent choosing: OFF endings "
-          f"{off_ends}, {off_rep} deaths repeat a held key; ON endings {ends}, 0 repeats, "
+          f"{off_ends}, {off_rep} game losses repeat a held key; ON endings {ends}, 0 repeats, "
           f"{len(w)} @ruin rows, none choosing a withheld pair; full gate passes "
           f"({len(ag.led.rows())} rows)")
     # 4
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # 1
     other = R._agent(snaps.Snap(R._spec(2)))
     other.step("A")
-    other.retarget(bind(snaps.Snap(R._spec(1))), 1, "death")
+    other.retarget(bind(snaps.Snap(R._spec(1))), 1, "game_loss")
     sp1 = _Spy(other)
     other.step()
     assert not _rows(other, "withheld") and not any(on for on, _o, _e in sp1.every), sp1.every
@@ -164,7 +164,7 @@ if __name__ == "__main__":
         text = path.read_text(encoding="utf-8") if path.exists() else ""
     vfp = _rows(ag, "veto")[0]["detail"]["fingerprint"]
     assert ag._vetoes and vfp not in text and "veto" not in text, text[:200]
-    print(f"  6: the library saved after the death ({len(text)} chars) carries no veto")
+    print(f"  6: the library saved after the game loss ({len(text)} chars) carries no veto")
     # 7
     a7 = R._agent(snaps.Snap(R._spec(2)))
     wa = IFace.Withheld(a7._fingerprint({"s0": 5, "s1": 0})[0], frozenset({("A", None)}))

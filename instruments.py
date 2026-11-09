@@ -108,7 +108,7 @@ class Chain:
     seg: Segment = field(default_factory=Segment)
     stalls: Counter = field(default_factory=Counter)
     advances: int = 0          # counted apart: an advance is drive/search, NOT the loop
-    capped: int = 0            # PSEUDO-DEATHS: the seat ended it, not the world
+    capped: int = 0            # PSEUDO-GAME LOSSES: the seat ended it, not the world
     reuse_attempts: int = 0
     reuse_branch: Counter = field(default_factory=Counter)
     last_stage: str | None = None
@@ -141,11 +141,11 @@ class Chain:
     # -- segment ends ------------------------------------------------------------------
 
     def close(self, how: str) -> str:
-        """how: one of `2e`'s five -- `win`, `death`, `reset`, `advance`, `cap` -- or
+        """how: one of `2e`'s five -- `win`, `game_loss`, `reset`, `advance`, `cap` -- or
         `run_end`. An advance is not scored: it is not a loop firing.
 
-        **A CAP IS A PSEUDO-DEATH IMPOSED FROM OUTSIDE THE GAME**, and it is neither. It ends
-        the episode like a death, but the cause is THE SEAT rather than the world -- and it is
+        **A CAP IS A PSEUDO-GAME LOSS IMPOSED FROM OUTSIDE THE GAME**, and it is neither. It ends
+        the episode like a game loss, but the cause is THE SEAT rather than the world -- and it is
         not a stall either, because the loop did not fail to progress: **it ran out of room
         the seat granted.** Counting it as a stall attributes a reasoning stage to a
         resource exhaustion, which is §19's bug in a third place -- the first two being the
@@ -255,16 +255,16 @@ class Termination:
     Nothing in the frame announces it, so it is read -- and **the evidence is asymmetric**:
 
         a win is possible    `win_levels > 0`              given up front
-        DEATH is possible    a GAME_OVER, once             PROVEN, never disproven
-        bounded              an ending with no death and no cap firing   proven by observation
+        GAME LOSS is possible    a GAME_OVER, once             PROVEN, never disproven
+        bounded              an ending with no game loss and no cap firing   proven by observation
         OPEN                 none of the above, so far     NEVER PROVEN -- only defaulted to
 
-    ***Not having died is not evidence that you cannot die.*** So `death_possible` LATCHES
-    true and never latches back, and **`OPEN` is a standing ASSUMPTION rather than a
-    finding.** The two-state version reports *this game has no death*, which is the absential
-    claim the corpus rules out everywhere else: *absence of evidence resting on completeness
-    never holds mid-episode.* `report()` therefore says which reads are PROVEN and which are
-    ASSUMED, and the class alone is never the whole answer.
+    ***Not having lost the game is not evidence that you cannot lose the game.*** So
+    `game_loss_possible` LATCHES true and never latches back, and **`OPEN` is a standing ASSUMPTION
+    rather than a finding.** The two-state version reports *this game has no game loss*, which is
+    the absential claim the corpus rules out everywhere else: *absence of evidence resting on
+    completeness never holds mid-episode.* `report()` therefore says which reads are PROVEN and
+    which are ASSUMED, and the class alone is never the whole answer.
 
     THE AGENT DOES NOT READ THE CAP. `capped` arrives as an EVENT from the seat, because
     harness configuration is the seat's business and the agent discovers its budget by
@@ -278,7 +278,7 @@ class Termination:
     """
 
     win_possible: bool = False
-    death_possible: bool = False        # latches; never latches back
+    game_loss_possible: bool = False        # latches; never latches back
     bounded_seen: bool = False
     capped_seen: bool = False
     endings: int = 0
@@ -288,18 +288,19 @@ class Termination:
         self.win_possible = self.win_possible or win_levels > 0
 
     def ending(self, kind: str) -> None:
-        """One episode ended. `kind` is the seat's word: `death`, `cap`, or an ordinary end."""
+        """One episode ended. `kind` is the seat's word: `game_loss`, `cap`, or an ordinary end."""
         self.endings += 1
-        if kind == "death":
-            self.death_possible = True      # LATCHED
+        kind = ledger.game_loss_word(kind)
+        if kind == "game_loss":
+            self.game_loss_possible = True      # LATCHED
         elif kind == "cap":
             self.capped_seen = True
         else:
             self.bounded_seen = True
 
     def klass(self) -> str:
-        if self.death_possible:
-            return "death_possible"
+        if self.game_loss_possible:
+            return "game_loss_possible"
         if self.bounded_seen:
             return "bounded"
         return "open"
@@ -309,14 +310,15 @@ class Termination:
         return {
             "class": k,
             "win_possible": self.win_possible,
-            "death_possible": self.death_possible,
+            "game_loss_possible": self.game_loss_possible,
             "capped_seen": self.capped_seen,
             "endings": self.endings,
             "proven": [n for n, v in (("win_possible", self.win_possible),
-                                      ("death_possible", self.death_possible),
+                                      ("game_loss_possible", self.game_loss_possible),
                                       ("bounded", self.bounded_seen)) if v],
             "assumed": ["open -- never proven, only defaulted to"] if k == "open" else [],
-            "reads": ("not having died is not evidence that you cannot die; and under an "
+            "reads": ("not having lost the game is not evidence that you cannot lose the game; "
+                      "and under an "
                       "accruing budget `bounded` is about the AGENT-GAME PAIR, since the cap "
                       "firing is partly a fact about efficiency"),
         }

@@ -116,23 +116,25 @@ def check_reset_after_an_action_is_sent_and_rearms():
 
 
 
-def check_a_death_is_survived_by_the_agents_own_reset():
-    """GAME_OVER (F478; Isaiah 2026-09-29): a death no longer ends the run. The ENTRY POINT
+def check_a_game_loss_is_survived_by_the_agents_own_reset():
+    """GAME_OVER (F478; Isaiah 2026-09-29): a game loss no longer ends the run. The ENTRY POINT
     never presses RESET -- every RESET past its one at construction is the AGENT's -- the agent
     is not stranded short of RESET, and no RESET,RESET pair reaches the wrapper."""
     import tether_agent
     w = FakeWrapper(script={2: GameState.GAME_OVER})
     out = tether_agent.run(w, "fake", max_actions=8)
-    assert out["deaths"] == 1 and out["acted"] > 2, f"the run ended at the death: {out}"
-    assert out["agent_resets"] >= 1 and out["end"] != "death", f"stranded after a death: {out}"
+    assert out["game_losses"] == 1 and out["acted"] > 2, f"the run ended at the game loss: {out}"
+    assert out["agent_resets"] >= 1 and out["end"] != "game_loss", (
+        f"stranded after a game loss: {out}")
     assert w.calls.count("RESET") == 1 + out["agent_resets"], f"the entry point pressed: {w.calls}"
     assert ("RESET", "RESET") not in zip(w.calls[:-1], w.calls[1:], strict=True), (
         f"RESET,RESET sent: {w.calls}")
 
 
 def check_terminal_reset_is_the_next_press_and_no_click_goes_unaimed():
-    """TETHER_TERMINAL_RESET (r669 1): through the gateway any non-RESET press after a death, and a
-    positioned press with no x, y, ends the game. So the press right after the death is the agent's
+    """TETHER_TERMINAL_RESET (r669 1): through the gateway any non-RESET press after a game loss,
+    and a positioned press with no x, y, ends the game. So the press right after the game loss
+    is the agent's
     RESET, and every ACTION6 that reaches the wrapper carries a coordinate."""
     import tether
     import tether_agent
@@ -150,12 +152,12 @@ def check_terminal_reset_is_the_next_press_and_no_click_goes_unaimed():
     names = [a for a, _d in sent]
     dead_at = next(i for i, a in enumerate(names) if a != "RESET" and
                    sum(1 for b in names[:i + 1] if b != "RESET") == 2)
-    assert names[dead_at + 1] == "RESET", f"the press after the death was not RESET: {names}"
+    assert names[dead_at + 1] == "RESET", f"the press after the game loss was not RESET: {names}"
     unaimed = [i for i, (a, d) in enumerate(sent) if a == "ACTION6" and not d]
     assert not unaimed, f"an ACTION6 went out with no coordinate at {unaimed}: {sent}"
 
 
-def check_a_press_after_a_death_keeps_the_board():
+def check_a_press_after_a_game_loss_keeps_the_board():
     """At GAME_OVER the engine answers a non-RESET press with an EMPTY stack. Read as "no
     board", the agent saw no slots and never acted again -- short of RESET. The world keeps the
     last board and takes only the state from the answer."""
@@ -164,11 +166,11 @@ def check_a_press_after_a_death_keeps_the_board():
     env.step("ACTION1")
     env.step("ACTION2")
     board, levels = env.board(), env.levels()
-    assert env.terminal() == "death" and board is not None, "no death to press after"
+    assert env.terminal() == "game_loss" and board is not None, "no game loss to press after"
     env.step("ACTION3")
     assert w.observation_space.is_empty(), "the treatment: the engine's answer was not empty"
     assert env.board() is not None and (env.board() == board).all(), "the dead press lost the board"
-    assert env.terminal() == "death" and env.levels() == levels, (env.terminal(), env.levels())
+    assert env.terminal() == "game_loss" and env.levels() == levels, (env.terminal(), env.levels())
     assert env.observe(), "the dead press left no slots"
     # THE OTHER READING STAYS REACHABLE: an empty answer while the game is LIVE may be a dead
     # channel, so it still reads as no board -- never quietly as "nothing changed".
@@ -195,7 +197,7 @@ class TwinWrapper(FakeWrapper):
         return f
 
 
-def _held_then_restarted(w, moves, how="death"):
+def _held_then_restarted(w, moves, how="game_loss"):
     """A refutation filed on every tracked object's slot, a boundary of kind `how`, RESET, and the
     agent told the level restarted -- the order the entry loop produces."""
     import gamma
@@ -213,8 +215,8 @@ def _held_then_restarted(w, moves, how="death"):
 
 
 def check_a_restart_carries_refutations_only_where_identity_is_sure():
-    """F479 (the reviewer, 2026-10-06): a death's boundary HOLDS the slot-keyed refutations and a
-    restart of the same level carries each back only where every object it names was re-found
+    """F479 (the reviewer, 2026-10-06): a game loss's boundary HOLDS the slot-keyed refutations and
+    a restart of the same level carries each back only where every object it names was re-found
     unambiguously. Twins re-found by shape may have swapped: never carried, and named."""
     env, ag, keys, row = _held_then_restarted(
         FakeWrapper(), ["ACTION2", "ACTION2", "ACTION4", "ACTION4", "ACTION4"])
@@ -296,9 +298,9 @@ def check_a_click_carries_its_position():
         f"the click arrived as {w.calls[-1]} {w.last_data}")
 
 
-def check_run_saves_after_a_death_a_win_and_the_cap():
+def check_run_saves_after_a_game_loss_a_win_and_the_cap():
     """THE ENTRY POINT CARRIES (F471): with a library path, run() keeps the game's library
-    whatever ended it -- a death, a win, or the cap. Without one it saves nothing."""
+    whatever ended it -- a game loss, a win, or the cap. Without one it saves nothing."""
     import pathlib
     import tempfile
 
@@ -309,7 +311,8 @@ def check_run_saves_after_a_death_a_win_and_the_cap():
             out = tether_agent.run(FakeWrapper(script=script), "fake", max_actions=4,
                                    library=path)
             # the planted ending happened (the save itself does not depend on it)
-            assert (out["deaths"] >= 1, out["end"] == "game_win", out["end"] == "cap")[i], (i, out)
+            assert (out["game_losses"] >= 1, out["end"] == "game_win",
+                    out["end"] == "cap")[i], (i, out)
             assert out["saved"] and pathlib.Path(path).exists(), f"not kept after {out['end']}"
         out = tether_agent.run(FakeWrapper(), "fake", max_actions=2)
         assert out["saved"] is None, "a run with no library path saved something"

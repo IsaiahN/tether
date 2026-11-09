@@ -9,7 +9,7 @@ game is made current and its first frame handed to the world BETWEEN steps (ArcW
 it), so the agent's next step decides on that game's own first frame and its action reaches that game (--switch
 between, the default; the reviewer 2026-10-25 10:47, 11:03). --switch step keeps the old swap: the agent's next
 step() got the new frame back as its action's outcome and the action was not forwarded. In-game events keep play()'s
-own handling: a GAME_OVER is that game's death, a clear its level edge.
+own handling: a GAME_OVER is that game's game loss, a clear its level edge.
 
 The order, the seed and each switch (wall time, the agent's cycle) go to the HARNESS's switch.tsv, never to the
 agent's ledger. --mf plants ag.restarted(env) at every switch, so e4_stream_check.py can be shown to catch it.
@@ -275,7 +275,7 @@ for i, g in enumerate(order):
         if end and end != was_terminal:
             endings[end] += 1
             ag.retarget(env, lv, how=end)
-        if tether._LINEAGE_HOLD and was_terminal == "death" and not end:
+        if tether._LINEAGE_HOLD and ledger.game_loss_word(was_terminal) == ledger.GAME_LOSS and not end:
             ag.restarted(env)
         term_edge = bool(end) and end != was_terminal
         lvl_edge = not term_edge and lv > lv_seen

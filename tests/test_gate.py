@@ -766,12 +766,12 @@ def test_a_ledger_states_the_arms_its_run_had():
         assert Attribution.library_sha(d)[0] != a[0], "a changed library file must change it"
 
 
-def test_undeclared_death():
-    """A CHOSEN death with no disproof is farming wearing an experiment's word (§21.2)."""
+def test_undeclared_game_loss():
+    """A CHOSEN game loss with no disproof is farming wearing an experiment's word (§21.2)."""
     r = valid()
     r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
-              "event": "ending", "detail": {"how": "death", "deliberate": True}})
-    _refuses(r, gate.UNDECLARED_DEATH)
+              "event": "ending", "detail": {"how": "game_loss", "deliberate": True}})
+    _refuses(r, gate.UNDECLARED_GAME_LOSS)
 
 
 def _refusal(term):
@@ -864,21 +864,21 @@ def test_observations_the_alphabet_separates_pass():
     assert gate.check(_observed((0, 9), (8, 9), (-2, 9)))["verdict"] == gate.PASS
 
 
-def test_declared_death_passes():
-    """The same death WITH its disproof stated is the experiment §21.2 licenses."""
+def test_declared_game_loss_passes():
+    """The same game loss WITH its disproof stated is the experiment §21.2 licenses."""
     r = valid()
     r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
               "event": "ending",
-              "detail": {"how": "death", "deliberate": True,
+              "detail": {"how": "game_loss", "deliberate": True,
                          "disproof": {"live": 40, "splits": 3, "refuted_at_least": 12}}})
     assert gate.check(r)["verdict"] == gate.PASS
 
 
-def test_world_inflicted_death_is_not_the_subject():
-    """An UNCHOSEN death is not a bypass of anything, so declaring it would be theatre."""
+def test_world_inflicted_game_loss_is_not_the_subject():
+    """An UNCHOSEN game loss is not a bypass of anything, so declaring it would be theatre."""
     r = valid()
     r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
-              "event": "ending", "detail": {"how": "death"}})
+              "event": "ending", "detail": {"how": "game_loss"}})
     assert gate.check(r)["verdict"] == gate.PASS
 
 
@@ -936,7 +936,7 @@ def test_the_cli_exit_code_carries_the_verdict():
 # **THE RUNNER GOES LAST, AND IT COUNTS ITSELF -- `F416`.** It used to sit mid-file and
 # collect `globals()` at the moment it ran, so THREE test functions defined BELOW it did not
 # exist yet and were never collected: 20 defined, 17 run, and the seat reported green. The
-# three were the section 21.2 UNDECLARED_DEATH / farming guards. All three PASS when called
+# three were the section 21.2 UNDECLARED_GAME_LOSS / farming guards. All three PASS when called
 # directly, so nothing was hiding -- what there was, was a guard never exercised by the seat
 # that reports it.
 #

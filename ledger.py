@@ -105,7 +105,7 @@ NO_CHANGE = "no_change"
 # THE TWO CLEARING WORDS NAME THEIR EVENT (Isaiah 2026-10-15 08:30; the reviewer 08:31): a game won
 # is "game_win", a level cleared "level_advance". Before F1b they were the bare words "win" and
 # "advance", and ARC wrote "advance" for a game WIN; old ledgers are read through legacy_ending.
-WIN, DEATH, RESET, ADVANCE, CAP = "game_win", "death", "reset", "level_advance", "cap"
+WIN, GAME_LOSS, RESET, ADVANCE, CAP = "game_win", "game_loss", "reset", "level_advance", "cap"
 # item 4 (2026-10-22): the game ended because the agent's own code raised, never the world
 AGENT_FAULT = "agent_fault"
 
@@ -114,7 +114,7 @@ AGENT_FAULT = "agent_fault"
 # COMPETITION collapses the two events in the API's semantics.
 ENDING_READS = {
     WIN: "the objective was met",
-    DEATH: "the world ended the episode -- evidence about the world",
+    GAME_LOSS: "the world ended the episode -- evidence about the world",
     RESET: "the next board is KNOWN, so a residual spike means THE MODEL IS WRONG. On a "
            "board already modelled a residual has no excuse",
     ADVANCE: "the next board is UNKNOWN by design, so a residual spike means NOTHING YET. "
@@ -128,12 +128,25 @@ ENDING_READS = {
 # from 446e7f6 (F1, a level clear through retarget) until F1b it was ALSO the level clear, which no
 # word on the row separates. Readers of old ledgers (the recovery read, panel readers) map here.
 LEGACY_AMBIGUOUS = "level_advance or game_win"
+# THE GAME-LOSS WORDS (Isaiah 2026-11-09 12:41; the reviewer r1571; precedent b973691): what ends an
+# attempt is a game loss, and the agent carries on outside the game. Before this the code said
+# "death". Old ledgers, saves and fixtures keep their words; every reader maps them through here.
+GAME_LOSS_ALIASES = {"death": GAME_LOSS, "deaths": "game_losses",
+                     "death_possible": "game_loss_possible", "death_vote": "game_loss_vote",
+                     "death_kept": "game_loss_kept", "closed_death": "closed_game_loss",
+                     "@death": "@game_loss"}
+
+
+def game_loss_word(word):
+    """An old record's game-loss word read as the current one; any other value unchanged."""
+    return GAME_LOSS_ALIASES.get(word, word) if isinstance(word, str) else word
 
 
 def legacy_ending(word: str, world: str | None, f1_era: bool = False) -> str:
     """An old ledger's ending word, by PROVENANCE. `world` is the run header's world class
     ("arc_world.ArcWorld" on ARC; from provenance where the header predates 0c841dd); `f1_era` is
     True for an ARC run at or after 446e7f6 and before F1b. Never rewrites a file."""
+    word = game_loss_word(word)
     if word == "win":
         return WIN
     if word != "advance":

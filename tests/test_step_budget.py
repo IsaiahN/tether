@@ -22,9 +22,9 @@
         owed_lookups (the reviewer 01:28)
   Q     every step with a lookup writes its "@budget" row (spent, asked, not asked, the owed
         queue in questions and lookups); under a budget of 1 no step asks more than one lookup
-  D     a budget of 1 and a death at step 5: the boundary closes every owed question with one
+  D     a budget of 1 and a game loss at step 5: the boundary closes every owed question with one
         "owed_closed" row (its id and unasked members), and the first step after it carries none
-  MF-D  the close removed: an owed question from before the death crosses the boundary
+  MF-D  the close removed: an owed question from before the game loss crosses the boundary
   D2    a budget of 1 and a level ADVANCE at step 5 (levels_completed 0 -> 1, no terminal state):
         retarget(advance) closes every owed question with one row, and the next level's first step
         carries none (the reviewer 16:06); the edge reaches retarget under TETHER_LEVEL_EDGE (F1,
@@ -58,7 +58,7 @@ if sys.argv[1] != "-":
 mode = sys.argv[2] if len(sys.argv) > 2 else ""
 if mode == "noclose":
     tether.Agent._close_owed = lambda self, how: None
-script = {5: GameState.GAME_OVER} if mode in ("death", "noclose") else {}
+script = {5: GameState.GAME_OVER} if mode in ("game_loss", "noclose") else {}
 
 
 class Advance(FakeWrapper):
@@ -187,17 +187,17 @@ def main() -> int:
           r["detail"]["owed_questions"], r["detail"]["owed_lookups"]) for r in bud]
     assert all(n == 1 for _c, n, *_ in q if n), q                                       # Q
     print("Q @budget rows (cycle, asked, not asked, owed questions, owed lookups):", q[:6])
-    d = child("1", mode="death")
+    d = child("1", mode="game_loss")
     closed = [r for r in d if r.get("event") == "owed_closed"]
-    assert closed, "precondition: the death closed no owed question"
+    assert closed, "precondition: the game loss closed no owed question"
     bc = closed[0]["cycle"]
     after = sorted({r["cycle"] for r in d if r.get("event") == "budget" and r["cycle"] > bc})
-    assert after, "precondition: no step after the death"
+    assert after, "precondition: no step after the game loss"
     first = [r for r in d if r.get("event") == "budget_owed" and r["cycle"] == after[0]]
     assert all(r["detail"]["question"][0] == after[0] for r in first), first[:3]          # D
     qs = {tuple(r["detail"]["question"]) for r in closed}
     assert len(qs) == len(closed), "one row per question"
-    print("D death at cycle", bc, ": closed", len(closed), "questions (how:",
+    print("D game loss at cycle", bc, ": closed", len(closed), "questions (how:",
           sorted({r["detail"]["how"] for r in closed}), "), e.g.",
           [(r["detail"]["question"], r["detail"]["unasked"]) for r in closed[:2]],
           "; the first step after carries none:", [r["slot"] for r in first][:3])
@@ -208,7 +208,8 @@ def main() -> int:
     crossed = [r for r in n if r.get("event") in OWERS and r["cycle"] > bc
                and (r["detail"].get("question") or [nb + 1])[0] <= nb]
     assert crossed, "MF-D: no owed question crossed the boundary with the close removed"   # MF-D
-    print("MF-D close removed:", len(crossed), "owed rows after the death carry a question from "
+    print("MF-D close removed:", len(crossed),
+          "owed rows after the game loss carry a question from "
           "before it, e.g.", [(r["cycle"], r["event"], r["detail"]["question"])
                               for r in crossed[:2]])
     v = child("1", mode="level_advance")

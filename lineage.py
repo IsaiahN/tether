@@ -37,6 +37,7 @@ from typing import Any
 import armflag
 import cap
 import gamma
+import ledger
 import sensors
 
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -59,7 +60,7 @@ def _b2_inherit(ag: Any, gens) -> int:
     ag._b2_kinds_inh, ag._b2_cells_inh = kinds, cells
     return len(kinds)
 # THE BOUNDARY WRITE (the reviewer 2026-10-15 06:46, 07:23, 07:32; Isaiah 06:20): under the carry,
-# a generation at every level clear and death too, so a stop loses at most the current level.
+# a generation at every level clear and game loss too, so a stop loses at most the current level.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
 # WRITE AT GOAL ENDINGS (the reviewer 2026-11-09 r1530; r1487, r1501): a goal hypothesis's end
@@ -1138,12 +1139,13 @@ def _new_form_pairs(ag: Any) -> list:
 
 def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
     """THE BOUNDARY WRITE, one path for both runners (arc_holdout.play, tether_agent.run): a
-    generation at a level clear ("level") or a terminal edge ("death", "game_win"), as write() makes
-    one at the game's end, and under _ENDING_SAVE at a goal ending ("goal_ending"), not written when
+    generation at a level clear ("level") or a terminal edge ("game_loss", "game_win"), as write()
+    makes one at the game's end, and under _ENDING_SAVE at a goal ending ("goal_ending"),
+    not written when
     nothing is new. None unless the boundary arm, the carry and a folder are all present."""
     if not (_BOUNDARY and _CARRY and d):
         return None
-    # agent_level: Agent.level, which counts WIN/death edges, and level clears too only under
+    # agent_level: Agent.level, which counts WIN/game loss edges, and level clears too only under
     # TETHER_LEVEL_EDGE (F1); the 'how' field is the true label of the write
     if _ENDING_SAVE:
         ag._ending_due = False      # any write covers the endings before it
@@ -1528,7 +1530,10 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         rep["stopped_at_in"] = ag._self_read()
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade_in"):
         for s, d_ in c.get("root_grades", {}).items():
-            ag._root_grade_in.setdefault(s, {}).update(d_)
+            into = ag._root_grade_in.setdefault(s, {})
+            for o, n in d_.items():
+                o = ledger.game_loss_word(o)        # r1571: an old save's word
+                into[o] = into.get(o, 0) + n
         rep["root_shapes_in"] = len(ag._root_grade_in)
     if tether._M7_INV and hasattr(ag, "_reinvent_carried"):
         with ag._step_scope("IMPORT"):      # r1488: its row is the load's, booked as the load's
@@ -1768,6 +1773,7 @@ def load(d: str | Path, ag: Any) -> dict:
             for s, c in g.get("root_grades", {}).items():
                 into = ag._root_grade_in.setdefault(s, {})
                 for o, n in c.items():
+                    o = ledger.game_loss_word(o)    # r1571: an old save's word
                     into[o] = into.get(o, 0) + n
         rep["root_shapes_in"] = len(ag._root_grade_in)
     if tether._M7_INV and hasattr(ag, "_reinvent_carried"):

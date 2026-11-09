@@ -418,7 +418,7 @@ while nxt is not None:
         if end and end != was_terminal:
             endings[end] += 1
             ag.retarget(env, lv, how=end)
-        if tether._LINEAGE_HOLD and was_terminal == "death" and not end:
+        if tether._LINEAGE_HOLD and ledger.game_loss_word(was_terminal) == ledger.GAME_LOSS and not end:
             ag.restarted(env)
         term_edge = bool(end) and end != was_terminal
         lvl_edge = not term_edge and lv > lv_seen

@@ -1169,7 +1169,7 @@ class ArcWorld:
             keep = self._frame.model_copy()
             keep.state = nxt.state
             nxt = keep
-            self.frame_kept = True       # item 23: the death record's frame is the pre-press one
+            self.frame_kept = True       # item 23: the game loss record's frame is pre-press
         else:
             self.frame_kept = False
         self._take_frame(nxt)
@@ -1398,7 +1398,7 @@ class ArcWorld:
         if f.state == GameState.WIN:
             return ledger.WIN    # the game won (F1b; Isaiah 08:30)
         if f.state == GameState.GAME_OVER:
-            return "death"
+            return "game_loss"
         return ""
 
     # NO `restart()`. One was built here and removed the same day: its only caller

@@ -4,7 +4,7 @@ world (it offers a positioned action, so a kind touch is realised there).
   KIND_TOUCH_FELT: in 10 steps at least one contact row of kind "kind-touch" is written, carrying
   the whole credited change (moved_n, owners_n); with the arm OFF none is (the must-fail).
   GOAL_BY_MOVED: the per-board set of slots the presses moved fills, and a new_board boundary
-  clears it while a death does not.
+  clears it while a game loss does not.
 
     python tests/test_kind_touch_felt.py
 """
@@ -38,8 +38,8 @@ def main():
     assert all("moved_n" in r["detail"] and "owners_n" in r["detail"] for r in rows), rows[:2]
     moved = set(ag._board_moved)
     assert moved, "GOAL_BY_MOVED: the presses moved nothing on the record"
-    ag.retarget(env, ag.level, how="death")
-    assert ag._board_moved == moved, "a death is not a new board"
+    ag.retarget(env, ag.level, how="game_loss")
+    assert ag._board_moved == moved, "a game loss is not a new board"
     ag.retarget(env, ag.level, how=tether.NEW_BOARD)
     assert not ag._board_moved, "a new board's moved set starts empty"
     tether._KIND_TOUCH_FELT = False
@@ -50,7 +50,7 @@ def main():
     assert not off, ("must-fail: kind-touch rows written with the arm OFF", len(off))
     print(f"test_kind_touch_felt: {len(rows)} kind-touch rows (moved_n "
           f"{[r['detail']['moved_n'] for r in rows]}), none with the arm OFF; {len(moved)} slots "
-          f"moved on the board, kept at death, cleared at new_board")
+          f"moved on the board, kept at game loss, cleared at new_board")
 
 
 if __name__ == "__main__":

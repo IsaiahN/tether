@@ -1432,7 +1432,7 @@ def check_the_precondition_refuses_a_spectator():
 def check_an_unreadable_reading_is_suspended_not_charged():
     """DEFECT: a reading that turned unreadable while its object was still there was billed a full
     code as a vanished OBJECT (`observe` strips NOT_RESOLVED; the bet loop read the absence as
-    death). Measured: `o0.rem_row` charged 3.0 bits on a no-move frame (F493). Fig 10: a missing
+    game loss). Measured: `o0.rem_row` charged 3.0 bits on a no-move frame (F493). Fig 10: a missing
     reading is a channel fact. CONTROL: an object whose key leaves the listing is still charged."""
     def run(drop_key: bool):
         ag = _agent()

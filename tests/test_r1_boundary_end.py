@@ -5,7 +5,8 @@ longer runs that slot's chain backwards and the gate passes the ledger. gridworl
 seed pinned, stepped until a hypothesis is held; the boundary planted as play() makes it (retarget
 between steps, the cycle already advanced). Each check in its own process; a tree may be named.
 
-  R1a DEATH: a held hypothesis at a planted death, then one step: the gate's step order holds and
+  R1a GAME LOSS: a held hypothesis at a planted game loss, then one step: the gate's step order
+      holds and
       the whole gate passes; the end row is on "@boundary" with the object in hyp_slot.
       Red at 4a1cc5d: "<slot>: PERCEIVE after IMPORT".
   R1b WIN: the same boundary on a win still credits the hypothesis's shelf record (won), ends it
@@ -42,8 +43,8 @@ else:
     raise SystemExit("no hypothesis held in 40 steps")
 slot = ag._hyp["slots"][0]
 out = {"slot": slot}
-if which == "death":
-    ag.retarget(ag.env, ag.level, how=ledger.DEATH)
+if which == "game_loss":
+    ag.retarget(ag.env, ag.level, how=ledger.GAME_LOSS)
     ag.step()
     rows = ag.led.rows()
     out["steps"] = gate._steps(rows)
@@ -68,15 +69,15 @@ def _probe(tree: str, which: str) -> dict:
     return json.loads(p.stdout.strip().splitlines()[-1])
 
 
-def check_r1a_death(tree: str) -> None:
-    o = _probe(tree, "death")
+def check_r1a_game_loss(tree: str) -> None:
+    o = _probe(tree, "game_loss")
     assert o["steps"] is None, ("the step order refused", o["steps"])
     assert o["verdict"]["verdict"] == "pass", o["verdict"]
     e = o["end"]
     # an untested hold keeps its boundary as ended_by (UNTESTED_KEEP)
     assert e["slot"] == "@boundary" and e["hyp_slot"] == o["slot"], e
-    assert "closed_death" in (e["why"], e["ended_by"]), e
-    print(f"  death with {o['slot']} held, then a step: the gate passes; the end on @boundary, "
+    assert "closed_game_loss" in (e["why"], e["ended_by"]), e
+    print(f"  game loss with {o['slot']} held, then a step: the gate passes; the end on @boundary, "
           f"hyp_slot {e['hyp_slot']}")
 
 

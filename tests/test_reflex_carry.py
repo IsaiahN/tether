@@ -80,8 +80,8 @@ def check_k1_paid_crosses() -> None:
 def _plant_loss(ag):
     hk = ag._kind_str("o2")
     k = ("planted", "right", ())
-    ag._death_n[k] = 1
-    ag._loss_rel = {k: Counter({("death", "terminal", ((hk, "orthogonal"),)): 1})}
+    ag._game_loss_n[k] = 1
+    ag._loss_rel = {k: Counter({("game_loss", "terminal", ((hk, "orthogonal"),)): 1})}
     return hk
 
 
@@ -113,11 +113,11 @@ def check_k2_loss_crosses() -> None:
     recs = _written(a)
     assert recs and recs[0]["loss"], recs
     b = _agent()
-    assert not b._death_n and b._how_soon("right", dict(b.env.observe()))[0] == float("inf")
+    assert not b._game_loss_n and b._how_soon("right", dict(b.env.observe()))[0] == float("inf")
     b._reinvent_carried(json.loads(json.dumps(recs)))
     before = _stub(b, {"o0": (5, 1), "o2": (5, 4)})
     j = b._how_soon("right", before)[0]
-    assert j == 2 and not any(b._death_n.values()), (j, dict(b._death_n))
+    assert j == 2 and not any(b._game_loss_n.values()), (j, dict(b._game_loss_n))
     print(f"  carried {recs[0]['loss']}; B, no loss of its own: reading {j}")
 
 

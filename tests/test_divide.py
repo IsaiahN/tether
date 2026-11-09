@@ -612,7 +612,7 @@ def _space_retarget(must_fail: bool) -> tuple[list, list]:
             return real(cycle, step, slot, event, *a, **kw)
         led.record = back
     n0 = len(led.rows())
-    ag.retarget(env, ag.level, "death")
+    ag.retarget(env, ag.level, "game_loss")
     closes = [r for r in led.rows()[n0:] if r["event"] == "space_closed"]
     ag.step()
     return led.rows(), closes

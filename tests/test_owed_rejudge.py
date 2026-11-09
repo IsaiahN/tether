@@ -438,7 +438,7 @@ def _retarget_rows(must_fail: bool) -> tuple[list, list, list, bool]:
             return real(cycle, step, "@owed" if slot == "@owed_ask" else slot, event, *a, **kw)
         ag.led.record = back
     n0 = len(ag.led.rows())
-    ag.retarget(env, ag.level, "death")
+    ag.retarget(env, ag.level, "game_loss")
     new = ag.led.rows()[n0:]
     closed = [r for r in new if r["event"] == "owed_closed"]
     rel = [r for r in new if r["event"] == "owed_released"

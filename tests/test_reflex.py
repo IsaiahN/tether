@@ -8,11 +8,11 @@ run with TETHER_REFLEX=0 in the environment turns every check red at its first l
   check_r3_paused         the held routine is the same object after the reflex step, and its
                           next advance is its own first step
   check_r4_recovery       two witnesses, fewer ticks than one halflife: no fire; one halflife: fires
-  check_r5_sensitize      a death with the guard met and no fire is paid: a situation that would
+  check_r5_sensitize      a game loss with the guard met and no fire is paid: a situation that would
                           not fire then fires
   check_r6_no_identity    no game id and no family name is read at the reflex sites (AST)
   check_r7_habituates     a recurring unexplained change: two fires, two misses, then no fire
-  check_freeze            a held routine whose next press is the death-voted kind: ON a
+  check_freeze            a held routine whose next press is the game loss-voted kind: ON a
                           never-voted offer (by="reflex"); OFF the voted kind
     python tests/test_reflex.py [check ...]
 """
@@ -135,19 +135,21 @@ def check_r5_sensitize() -> None:
     _slot, situ = _plant_orient(ag, against=2.0)
     assert not _fires(ag)
     ag._rf_pending = [("orient", situ, _slot, 0.0, False)]
-    ag._alive = False                         # a death followed the guard, with no fire
+    ag._alive = False                         # a game loss followed the guard, with no fire
     ag._reflex_settle()
     st = ag._reflexes["orient"]["standing"][situ]
     assert st["paid"] == 1, st
     ag._alive = True
     _plant_orient(ag, against=2.0, paid=1)
     assert _fires(ag), "paid 1 against 2: 1 + 1 >= 2, it fires"
-    print(f"  a death with the guard met, no fire: paid {st['paid']}; then it fires")
+    print(f"  a game loss with the guard met, no fire: paid {st['paid']}; then it fires")
 
 
 def check_r6_no_identity() -> None:
     import ast
     import inspect
+
+    from game_loss_names import game_name_ok
 
     import tether
     fams = set(tether._DESC_SEED) | set(tether._DESC_SEED.values())
@@ -157,7 +159,8 @@ def check_r6_no_identity() -> None:
             if isinstance(n, ast.Constant) and isinstance(n.value, str):
                 assert n.value not in fams, (f.__name__, n.value)
             name = n.attr if isinstance(n, ast.Attribute) else getattr(n, "id", "")
-            assert "game" not in name.lower(), (f.__name__, name)
+            assert game_name_ok(name), (f.__name__, name)
+    assert not game_name_ok("_game_loss_by_game"), "MUST-FAIL: the exemption widened"   # r1575
     print(f"  _reflex, _reflex_settle, _rf_standing: no game id, none of {len(fams)} family names")
 
 
@@ -186,7 +189,7 @@ def check_freeze() -> None:
     ag = _agent()
     k = ag._last_press_key
     assert k is not None, "PRECONDITION: no press key after 6 steps"
-    ag._death_n[k] += 1
+    ag._game_loss_n[k] += 1
     ag._press_n[k] = max(ag._press_n[k], 1)
     ag._rf_out = {s: v for s, v in ag._outstanding.items() if v > 0}
     ag._rf_pending = []
@@ -196,7 +199,7 @@ def check_freeze() -> None:
     assert by == "reflex" and act != k[1] and not ag._danger((k[0], act, k[2])), (by, act, k)
     ag2 = _agent()
     k2 = ag2._last_press_key
-    ag2._death_n[k2] += 1
+    ag2._game_loss_n[k2] += 1
     ag2._press_n[k2] = max(ag2._press_n[k2], 1)
     ag2.routine = Rt.Seq(Rt.Act(k2[1]), Rt.Act(k2[1]))
     ag2.routine_for, ag2._routine_next = None, None

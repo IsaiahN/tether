@@ -19,7 +19,7 @@ agent's and the pick is fixed.
   WALL      case 2 in a world: the real agent on gridworld, seeds 0-2, 40 steps, ON against OFF.
             Where OFF pushes one route past MIN_REPEAT with no closing outcome (the occasion; at
             least one seed must give one), ON never does and rows a route_refused
-  NOT HERE  R-E's delayed effects (a stub, later); R-D's carry across a death (open)
+  NOT HERE  R-E's delayed effects (a stub, later); R-D's carry across a game loss (open)
     python tests/test_route_refuse.py
 """
 from __future__ import annotations

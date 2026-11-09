@@ -13,14 +13,19 @@ Every arm now reads through `arm()`, and
 from __future__ import annotations
 
 import os
+import sys
 
 ON = ("1", "true")
 OFF = ("0", "false", "")
 
 
-def arm(name: str, default: bool = False) -> bool:
-    """The arm's state: the environment's word if it says one, else the declared default."""
+def arm(name: str, default: bool = False, old: str | None = None) -> bool:
+    """The arm's state: the environment's word if it says one, else the declared default. `old` is
+    a renamed switch's former name, read only when the new one is unset, with one warning line."""
     raw = os.environ.get(name)
+    if raw is None and old is not None and os.environ.get(old) is not None:
+        raw = os.environ[old]
+        print(f"armflag: {old} is renamed {name}; read as {name}={raw}", file=sys.stderr)
     if raw is None:
         return default
     v = raw.strip().lower()

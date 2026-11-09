@@ -271,6 +271,8 @@ def check_m6_no_identity() -> None:
     import ast
     import inspect
 
+    from game_loss_names import game_name_ok
+
     import tether
     fams = set(tether._DESC_SEED) | set(tether._DESC_SEED.values())
     fs = (tether.Agent._muse_need, tether.Agent._muse_order, tether.Agent._muse_host,
@@ -280,7 +282,8 @@ def check_m6_no_identity() -> None:
             if isinstance(n, ast.Constant) and isinstance(n.value, str):
                 assert n.value not in fams, (f.__name__, n.value)
             name = n.attr if isinstance(n, ast.Attribute) else getattr(n, "id", "")
-            assert "game" not in name.lower(), (f.__name__, name)
+            assert game_name_ok(name), (f.__name__, name)
+    assert not game_name_ok("_game_loss_by_game"), "MUST-FAIL: the exemption widened"   # r1575
     print(f"  {len(fs)} sites: no game id, none of {len(fams)} family names")
 
 

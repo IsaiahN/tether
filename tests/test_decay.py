@@ -2,11 +2,13 @@
 18:13 D1-D4).
 
   RD-1  the captured stranded birth (scratchpad DRESET/birth_1.jsonl, seed d2f79069488af4c3),
-        replayed by its record, presses RESET after its death and is not stranded;
+        replayed by its record, presses RESET after its game loss and is not stranded;
         precondition: the same replay with the four arms OFF strands, so RD-1 can fail
-  RD-2  fresh births (each its own seed) on test_entry's death game, as many as fit the budget, the
-        number stated: none is stranded; per birth, the presses between the death and RESET
-  RD-3  no term loses standing (the reviewer 16:10): at the death of the RD-1 replay the standings
+  RD-2  fresh births (each its own seed) on test_entry's game loss game, as many as fit the budget,
+        the
+        number stated: none is stranded; per birth, the presses between the game loss and RESET
+  RD-3  no term loses standing (the reviewer 16:10): at the game loss of the RD-1 replay
+        the standings
         are identical ON and OFF, and situate() changes no Gamma field
   D1    the record only grows: across every situate() no by_ctx, "to", ep, to_ep, clicked or
         clicked_at count falls
@@ -112,8 +114,8 @@ real_rt = tether.Agent.retarget
 std = {{}}
 def rt(self, env, level, how=tether.ADVANCE):
     AG["ag"] = self
-    if how == "death" and "at_death" not in std:
-        std["at_death"] = sorted((k, repr(v)) for k, v in self.gamma.standing.items())
+    if how == "game_loss" and "at_game_loss" not in std:
+        std["at_game_loss"] = sorted((k, repr(v)) for k, v in self.gamma.standing.items())
     return real_rt(self, env, level, how)
 tether.Agent.retarget = rt
 out = []
@@ -125,16 +127,16 @@ for b in range(births):
     r = tether_agent.run(w, "fake", max_actions=8)
     acts = [c for c in w.calls[1:]]
     k = [i for i, c in enumerate(acts) if c != "RESET"]
-    death_at = k[1] if len(k) > 1 else None
-    after = acts[death_at + 1:] if death_at is not None else []
+    game_loss_at = k[1] if len(k) > 1 else None
+    after = acts[game_loss_at + 1:] if game_loss_at is not None else []
     before_reset = next((i for i, c in enumerate(after) if c == "RESET"), None)
-    out.append({{"end": r["end"], "deaths": r["deaths"], "resets": r["agent_resets"],
+    out.append({{"end": r["end"], "game_losses": r["game_losses"], "resets": r["agent_resets"],
                  "presses_before_reset": before_reset if before_reset is not None else len(after),
                  "calls": w.calls}})
 c = counts(AG["ag"].iface) if AG.get("ag") else None
 print("OUT " + json.dumps({{"births": out, "shrunk": shrunk, "situates": len(grows),
                             "gamma_moved": gamma_moved, "planted": PLANTED["n"],
-                            "priced": PLANTED.get("priced", 0), "std": std.get("at_death"),
+                            "priced": PLANTED.get("priced", 0), "std": std.get("at_game_loss"),
                             "last": c,
                             "seed_source": AG["ag"].seed_source if AG.get("ag") else None}},
                           default=repr))
@@ -206,14 +208,16 @@ def main() -> None:
     print(f"  replay ({on['seed_source']}): OFF end {b_off['end']} resets {b_off['resets']};"
           f" ON end {b_on['end']} resets {b_on['resets']},"
           f" presses before RESET {b_on['presses_before_reset']}")
-    assert b_off["deaths"] == 1 and b_off["end"] == "death", (
+    assert b_off["game_losses"] == 1 and b_off["end"] == "game_loss", (
         "RD-1 precondition: the replay with the arms OFF does not strand", b_off)
-    assert b_on["deaths"] == 1 and b_on["resets"] >= 1 and b_on["end"] != "death", (
+    assert b_on["game_losses"] == 1 and b_on["resets"] >= 1 and b_on["end"] != "game_loss", (
         "RD-1: the replay strands with the arms ON", b_on)
-    print("  RD-1 the captured birth presses RESET after its death (OFF strands)")
-    assert on["std"] is not None and on["std"] == off["std"], "RD-3: standings differ at the death"
+    print("  RD-1 the captured birth presses RESET after its game loss (OFF strands)")
+    assert on["std"] is not None and on["std"] == off["std"], (
+        "RD-3: standings differ at the game loss")
     assert not on["gamma_moved"], ("RD-3: situate() moved a Gamma field", on["gamma_moved"])
-    print(f"  RD-3 {len(on['std'])} standings identical ON and OFF at the death; situate() moved"
+    print(f"  RD-3 {len(on['std'])} standings identical ON and OFF at the game loss; "
+          f"situate() moved"
           f" no Gamma field over {on['situates']} calls")
     assert on["situates"] >= 2 and not on["shrunk"], ("D1: a record count fell", on["shrunk"])
     print(f"  D1 no record count fell across {on['situates']} situate() calls; last {on['last']}")
@@ -221,7 +225,7 @@ def main() -> None:
     b_bad = bad["births"][0]
     assert bad["planted"] > 0 and bad["priced"] > 0, ("RD-4: the planted fault never executed",
                                                       bad["planted"], bad["priced"])
-    assert b_bad["end"] == "death", ("RD-4 MUST-FAIL did not fail: the dead reach rule removed,"
+    assert b_bad["end"] == "game_loss", ("RD-4 MUST-FAIL did not fail: the dead reach rule removed,"
                                      " still resets", b_bad)
     print(f"  RD-4 must-fail fired: the dead board read as live ({bad['planted']} reads) and"
           f" dead presses priced ({bad['priced']} picks) strand the replay again")
@@ -229,8 +233,9 @@ def main() -> None:
     left = 300 - (time.perf_counter() - t0) - 30
     fresh = _child({}, births=40, budget=min(RD2_BUDGET_S, max(left, 0)))
     n = len(fresh["births"])
-    stranded = [b for b in fresh["births"] if b["end"] == "death"]
-    print(f"  RD-2 {n} fresh births: stranded {len(stranded)}; presses between the death and RESET"
+    stranded = [b for b in fresh["births"] if b["end"] == "game_loss"]
+    print(f"  RD-2 {n} fresh births: stranded {len(stranded)}; presses between the game loss "
+          f"and RESET"
           f" {[b['presses_before_reset'] for b in fresh['births']]}")
     assert n >= 1 and not stranded, ("RD-2: a fresh birth acted into a dead game", stranded[:1])
     print(f"decay: OK ({time.perf_counter() - t0:.0f} s)")

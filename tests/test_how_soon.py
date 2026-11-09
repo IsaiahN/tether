@@ -1,19 +1,19 @@
 """23 THE HOW-SOON READING (TETHER_HOW_SOON, default ON; the reviewer 2026-11-05 r1245, r1246).
 gridworld default seed 0, the agent seed pinned, 6 steps, then a planted read over a synthetic
-state; the death record, the subject, the settled standing and the one-press predictor are
+state; the game loss record, the subject, the settled standing and the one-press predictor are
 planted (the predictor is the settled model's, stubbed here so the arithmetic is the reading's).
 Each check its own process; TETHER_HOW_SOON=0 in the environment turns every check red.
   check_h0_context     contact_points_at(observe()) == contact_points(), gridworld and the fake
                        ARC board; context == context_of(contact_points())
-  check_h1_none_inf    no death record: inf, no evaluation spent; an unsettled slot: None
-  check_h2_reading     a death record (hazard kind, orthogonal) and a mover 3 cells off: 2
+  check_h1_none_inf    no game loss record: inf, no evaluation spent; an unsettled slot: None
+  check_h2_reading     a game loss record (hazard kind, orthogonal) and a mover 3 cells off: 2
   check_h3_dodge       ON by="reflex" (dodge) takes the furthest offer; OFF no dodge (H3);
                        every offer finite, one strictly further: taken (H3b); none further: no
                        fire and the row (H3c)
   check_h4_mint        ON the predictor kind heads the queue for the hazard slot, finite (H4)
                        and None (H4b); OFF the existing order
-  check_h5_witness     non-arrival by j+w: against (H5a); a death at j+1, w 1: paid (H5b); a
-                       death at 40 with j 2, w 0: against (H5c); the course broken: no verdict
+  check_h5_witness     non-arrival by j+w: against (H5a); a game loss at j+1, w 1: paid (H5b); a
+                       game loss at 40 with j 2, w 0: against (H5c); the course broken: no verdict
   check_h6_no_identity no game id and no family name at the reading's sites (AST)
     python tests/test_how_soon.py [check ...]
 """
@@ -45,7 +45,7 @@ def _agent():
 
 
 def _plant(ag, at: dict, settled: bool = True) -> tuple:
-    """o0 the subject at `at["o0"]`, the others where `at` puts them (far by default); one death
+    """o0 the subject at `at["o0"]`, the others where `at` puts them (far by default); one game loss
     record on (the hazard kind, orthogonal), terminal frame; every slot settled (or not)."""
     import tether
     before = dict(ag.env.observe())
@@ -54,8 +54,8 @@ def _plant(ag, at: dict, settled: bool = True) -> tuple:
         before[f"o{i}.row"], before[f"o{i}.col"] = r, c
     hk = ag._kind_str("o2")
     k = ("planted", "right", ())
-    ag._death_n[k] = 1
-    ag._loss_rel = {k: Counter({("death", "terminal", ((hk, "orthogonal"),)): 1})}
+    ag._game_loss_n[k] = 1
+    ag._loss_rel = {k: Counter({("game_loss", "terminal", ((hk, "orthogonal"),)): 1})}
     ag._hs_subject = lambda: {"o0"}
     ag._hs_open, ag._hs_read = [], None
     ag._spent = tether.STEP_BUDGET - 20000
@@ -106,7 +106,7 @@ def check_h1_none_inf() -> None:
     ag._spent = tether.STEP_BUDGET - 1             # a purse too small for one press
     j0, _w, _r, h0 = ag._how_soon("up", before)
     assert j0 is None and h0 == 0, (j0, h0)
-    print(f"  no death record: inf, 0 evaluations spent; unsettled: {j}; nothing rolled "
+    print(f"  no game loss record: inf, 0 evaluations spent; unsettled: {j}; nothing rolled "
           f"(purse < one press): {j0}")
 
 
@@ -223,6 +223,8 @@ def check_h6_no_identity() -> None:
     import ast
     import inspect
 
+    from game_loss_names import game_name_ok
+
     import tether
     fams = set(tether._DESC_SEED) | set(tether._DESC_SEED.values())
     fs = (tether.Agent._how_soon, tether.Agent._hs_course, tether.Agent._hs_settle,
@@ -234,7 +236,8 @@ def check_h6_no_identity() -> None:
             if isinstance(n, ast.Constant) and isinstance(n.value, str):
                 assert n.value not in fams, (f.__name__, n.value)
             name = n.attr if isinstance(n, ast.Attribute) else getattr(n, "id", "")
-            assert "game" not in name.lower(), (f.__name__, name)
+            assert game_name_ok(name), (f.__name__, name)
+    assert not game_name_ok("_game_loss_by_game"), "MUST-FAIL: the exemption widened"   # r1575
     print(f"  {len(fs)} sites: no game id, none of {len(fams)} family names")
 
 
