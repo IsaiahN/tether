@@ -7810,19 +7810,18 @@ class Agent:
                 "r0": self._last_landed if self._last_landed in objects else None}
         return tuple(reached + lifted), info, len(tiers), covaried
 
-    def _3a_settle(self) -> None:
-        """E2 (the reviewer 2026-10-17 09:40): part 2's unseen-actor credits are provisional.
-        Before a diagnosis reads the hazard, a pending credit whose change the agent's own act
-        reached on its row -- a slot of its body (the owners of its contingent slots, or what it
-        aimed at or landed on), a slot derived from a body slot, or a relational slot with its
-        reference undeclared while the body moved -- is withdrawn, with a correcting row (Fig 5
-        :12; Fig 1: nothing removed)."""
+    def _3a_reached(self, count: bool = True):
+        """E2's reached test, read only: yields (key, slot, kind, row) for each pending unseen
+        credit the agent's own act reached, one at a time, so _3a_settle withdraws each before the
+        next head as it always has; `count` False keeps cap's heads out (a save's readout,
+        r1534)."""
         own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
         body_slots = set(self.agency.contingent())
         dv = getattr(self.env, "derived", None)
         derived = dv() if dv is not None else {}
         for key, got in list(self._3a_unseen.items()):
-            cap.head()
+            if count:
+                cap.head()
             if got is None or key[0] != self._trace_epoch or not 0 <= got[1] < len(self.trace):
                 continue
             slot, (kind, i) = key[1], got
@@ -7831,16 +7830,24 @@ class Agent:
             body |= {o_ for o_ in (self._3a_aim.get((key[0], i)), land) if o_}
             mine = {s_ for s_ in af.keys() | b.keys()
                     if b.get(s_) != af.get(s_) and own.get(s_) in body}
-            reached = (slot in mine or (any(x in mine for x in derived[slot]) if slot in derived
-                       else IFace._is_relational(slot, self.env) and bool(mine)))
-            if reached:
-                self._3a_hazard.unseen(slot, kind, -1)
-                self._3a_unseen[key] = None
-                self.led.record(self._book_cycle(), self._running_step, "@vector",
-                                "unseen_withdrawn",
-                                at=slot, kind=kind, row=i,
-                                reads="part 2's unseen-actor credit withdrawn: the agent's own act "
-                                      "reached this change")
+            if (slot in mine or (any(x in mine for x in derived[slot]) if slot in derived
+                                 else IFace._is_relational(slot, self.env) and bool(mine))):
+                yield key, slot, kind, i
+
+    def _3a_settle(self) -> None:
+        """E2 (the reviewer 2026-10-17 09:40): part 2's unseen-actor credits are provisional.
+        Before a diagnosis reads the hazard, a pending credit whose change the agent's own act
+        reached on its row -- a slot of its body (the owners of its contingent slots, or what it
+        aimed at or landed on), a slot derived from a body slot, or a relational slot with its
+        reference undeclared while the body moved -- is withdrawn, with a correcting row (Fig 5
+        :12; Fig 1: nothing removed)."""
+        for key, slot, kind, i in self._3a_reached():
+            self._3a_hazard.unseen(slot, kind, -1)
+            self._3a_unseen[key] = None
+            self.led.record(self._book_cycle(), self._running_step, "@vector", "unseen_withdrawn",
+                            at=slot, kind=kind, row=i,
+                            reads="part 2's unseen-actor credit withdrawn: the agent's own act "
+                                  "reached this change")
 
     def _diagnose_one(self, c: dict) -> dict:
         """E2: one contradiction on a slot, diagnosed by diagnose.diagnose from this agent's own

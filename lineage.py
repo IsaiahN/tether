@@ -22,6 +22,7 @@ evidence IS read back into standing at load (Gamma.replay), globally, never per 
 record itself is unchanged. The dormant record is still not read back."""
 from __future__ import annotations
 
+import copy
 import dataclasses
 import hashlib
 import heapq
@@ -654,7 +655,7 @@ def _fsync(f: Path) -> None:
         os.fsync(fh.fileno())
 
 
-def write(d: str | Path, ag: Any, game: str, sleep: bool = True, skip_empty: bool = False) -> dict:
+def write(d: str | Path, ag: Any, game: str, sleep: bool = True, readout: bool = False) -> dict:
     """The boundary's generation: only what changed since the parent the instance LOADED
     (ag.lineage_parent), against that parent's fold. Named by its own hash; never overwritten.
     Under TETHER_MEMORY_STORE the parent's fold is a store lookup, and the save is merged into the
@@ -665,7 +666,7 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True, skip_empty: boo
     if sleep and snap is not None:
         snap.close()    # W-4: the snapshot's reader ends before the game's checkpoint
     try:
-        return _write(d, ag, game, sleep, held, skip_empty)
+        return _write(d, ag, game, sleep, held, readout)
     finally:    # the store's connection is closed on every path, an error's included
         for con in held:
             con.close()
@@ -682,7 +683,9 @@ def _carries_nothing(v: Any) -> bool:
 
 
 def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
-           skip_empty: bool = False) -> dict:
+           readout: bool = False) -> dict:
+    # readout: a goal ending's save (r1530-r1534) -- not written when nothing is new, and it
+    # changes no live state
     p = Path(d)
     p.mkdir(parents=True, exist_ok=True)
     parent = getattr(ag, "lineage_parent", None)
@@ -880,11 +883,19 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         # E2: the hazard by KIND and by ACTOR (templates, never a board's spots), since the last
         # write; the load adds them back as a head start. Pending unseen credits the agent's own
         # act reached are settled first, so a lineage never carries one (the reviewer 09:40)
-        ag._3a_settle()
+        if readout:
+            # r1534: a goal ending's save is a readout -- what _3a_settle would withdraw is left
+            # out of what is written, on a copy; the live hazard and its pending credits stay
+            hz3a = copy.deepcopy(ag._3a_hazard)
+            for _k, slot, kind, _i in ag._3a_reached(count=False):
+                hz3a.unseen(slot, kind, -1)
+        else:
+            ag._3a_settle()
+            hz3a = ag._3a_hazard
         gen["hazard_3a"] = {fam: {k: n - ag._3a_written.get(fam, {}).get(k, 0)
                                   for k, n in sorted(c.items())
                                   if n > ag._3a_written.get(fam, {}).get(k, 0)}
-                            for fam, c in _hazard_families(ag._3a_hazard).items()}
+                            for fam, c in _hazard_families(hz3a).items()}
     pairs = _new_form_pairs(ag)        # K4: before the cumulative fields below are read
     if pairs:
         gen["form_aliases"], gen["alias_rule"] = pairs, ALIAS_RULE
@@ -916,7 +927,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         # are not in it (above); its unstamped structures (kind episodes, counters) are as built
         gen["ended"], gen["error"] = "agent_fault", str(ag._fault_text)[:500]
     # r1532 (A): kinds_by_class is a whole table, new only when it differs from the last written
-    if skip_empty and all(_carries_nothing(v) or (k == "kinds_by_class"
+    if readout and all(_carries_nothing(v) or (k == "kinds_by_class"
                                                   and v == getattr(ag, "_kbc_written", None))
                           for k, v in gen.items() if k not in _GEN_HEADER):
         # r1530: nothing new since the last write; index, memo and asked entries stay pending
@@ -970,7 +981,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         if "cause_kinds" in gen:
             ag._cause_kind_written = dict(ag._cause_kind_n)
         if "hazard_3a" in gen:
-            ag._3a_written = {f: dict(c) for f, c in _hazard_families(ag._3a_hazard).items()}
+            ag._3a_written = {f: dict(c) for f, c in _hazard_families(hz3a).items()}
         if "entry_use" in gen:
             ag._entry_use_written = {k: dict(c) for k, c in ag._entry_use.items()}
         if "routines_by_kind" in gen:
@@ -1112,7 +1123,7 @@ def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
     if _ENDING_SAVE:
         ag._ending_due = False      # any write covers the endings before it
     return {"how": how, "agent_level": ag.level,
-            **write(d, ag, game, sleep=False, skip_empty=how == "goal_ending")}
+            **write(d, ag, game, sleep=False, readout=how == "goal_ending")}
 
 
 def _heal(p: Path, ok: bool, why: str) -> tuple[bool, str, dict]:
