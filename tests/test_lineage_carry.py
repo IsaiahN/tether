@@ -52,6 +52,9 @@ import world  # noqa: E402
 from test_entry import FakeWrapper  # noqa: E402
 
 N = 20
+# R-g2's steps after the retarget: seed 3 under the pinned seed first settles (gamma.evidence) at
+# c49, 29 steps after the c20 retarget (measured 2026-11-08, r1498); 36 is that plus a margin
+N_AFTER = 36
 
 
 _LOADS = []   # each load_blob call lineage.load makes: what R-g1's oracle repeats, guard (a)
@@ -196,11 +199,13 @@ def _carries(rows, ag, rep, label, mf=False):
     return composed, unbound
 
 
-def _partition(f, blob, names):
+def _partition(f, blob, names, held=None):
     """R-g2's terms under (d), TETHER_SAVE_DEDUP (amends registered refuter R-g2, the reviewer
     2026-10-14 20:18, ruled 2026-10-25 21:03): a term whose load key a written row already holds is
     saved as an alias {was, key}, so the rows and the aliases are the blob's terms. None, or the
-    first of (a)-(e) that fails. OFF there are no aliases and it is the old check exactly."""
+    first of (a)-(e) that fails. OFF there are no aliases and it is the old check exactly.
+    `held`, when given, is the rows (d) reads: the fold's, so an alias onto a parent row is
+    found and an alias onto nothing is not (r1506)."""
     folded = [{k: v for k, v in r.items() if k not in ("born", "was")} for r in f["terms"]]
     al = {a["was"]: a["key"] for a in f.get("aliases", [])}
     terms = list(zip(blob["terms"], names, strict=True))
@@ -210,7 +215,8 @@ def _partition(f, blob, names):
         return "(b) the rows are not the blob's terms less the aliased ones"
     if not all(gamma.Gamma.row_key(t) == al[n] for t, n in terms if n in al):
         return "(c) an alias's key is not its own term's"
-    if not set(al.values()) <= {gamma.Gamma.row_key(r) for r in f["terms"]}:
+    if not set(al.values()) <= {gamma.Gamma.row_key(r)
+                                for r in (f["terms"] if held is None else held)}:
         return "(d) an alias's key is no written row's"
     # "was" is R7i's field, which the generation ADDS (lineage.write, TETHER_REPLAY_UNIT): each
     # row's must be that term's own name, checked rather than ignored (the reviewer 20:14 b)
@@ -316,21 +322,20 @@ def _part_a(tmp):
     assert r.returncode == 0, f"R-g1 second process:\n{r.stderr[-2000:]}"
 
 
-def _part_b(tmp):
-    """R-g2."""
-    # R-g2: the round trip, with a dormant record (HOLD on, a real retarget).
-    rr = tmp / "rt"
-    env, ag, _ = _agent(rr, 3)
+def _life(rr, seed):
+    """One R-g2 life on world `seed`, loading rr first: N steps, a real retarget, N_AFTER steps,
+    end_run. The write is _write_kind_off's."""
+    env, ag, rep = _agent(rr, seed)
     for _ in range(N):
         ag.step()
     ag.retarget(env, ag.level + 1, how="level_advance")
-    for _ in range(3):
+    for _ in range(N_AFTER):
         ag.step()
     ag.end_run("cap")
-    blob = ag.gamma.blob()
-    names = [r["name"] for r in ag.gamma.blob(with_names=True)["terms"]]
-    assert ag.gamma.evidence and ag._dormant, ("fixture: no evidence or no dormant record",
-                                               len(ag.gamma.evidence), len(ag._dormant))
+    return env, ag, rep
+
+
+def _write_kind_off(rr, ag):
     # R-g2 is ABOUT instance aliases and "was == name" (and the evidence written as held), which
     # TETHER_KIND_SAVE (3) changes by construction: pinned to KIND_SAVE OFF for this write (the
     # reviewer 2026-10-29 r299: per check, in the test). ON TWIN: tests/test_kind_save.py
@@ -341,29 +346,78 @@ def _part_b(tmp):
         lineage.write(rr, ag, "default")
     finally:
         lineage._KIND_SAVE = kind_save
+
+
+def _part_b(tmp):
+    """R-g2."""
+    # R-g2: the round trip, with a dormant record (HOLD on, a real retarget), on a life that
+    # INHERITED (r1503, r1504, r1506): a first real life on the same world writes the parent, and
+    # the life under test loads it. Its save holds one composition under several instance names,
+    # the within-save alias (lineage.py :716-722, held_keys grown at :724); the parent-fold path
+    # (:699) is not witnessed here, and _part_e is its constructed fixture
+    rr = tmp / "rt"
+    _env1, ag1, _ = _life(rr, 3)
+    assert ag1.gamma.evidence and ag1._dormant, (
+        "fixture: life 1 settled nothing (or held no dormant record); the parent has no record",
+        len(ag1.gamma.evidence), len(ag1._dormant))
+    _write_kind_off(rr, ag1)
+    env, ag, rep = _life(rr, 3)
+    assert rep.get("parent"), ("fixture: life 2 loaded no parent", rep)
+    blob = ag.gamma.blob()
+    names = [r["name"] for r in ag.gamma.blob(with_names=True)["terms"]]
+    assert ag.gamma.evidence and ag._dormant, (
+        "fixture: seed 3 settled nothing (or held no dormant record) by step N + N_AFTER -- the "
+        "forcing occasion is gone; not a lineage failure", len(ag.gamma.evidence), len(ag._dormant))
+    _write_kind_off(rr, ag)
+    chain = lineage._chain(Path(rr))
     _h, f = lineage.head(rr)
-    bad = _partition(f, blob, names)
+    assert len(chain) == 2 and chain[-1][0] == _h, ("fixture: the chain is not parent + tip",
+                                                    [h for h, _g in chain])
+    par, tip = chain[0][1], chain[1][1]
+    # (r1506 (2)) the terms the TIP holds: life 2's own; a carried term is not re-written (:716),
+    # so the rows and aliases partition life 2's NEW terms, and (d) reads the fold's rows
+    new = [(t, n) for t, n in zip(blob["terms"], names, strict=True)
+           if not ag.gamma.carried.get(n)]
+    nb, nn = {"terms": [t for t, _n in new]}, [n for _t, n in new]
+    ft = {"terms": tip["terms"], "aliases": tip.get("aliases", [])}
+    bad = _partition(ft, nb, nn, f["terms"])
     assert bad is None, ("R-g2 terms", bad)
-    al = f.get("aliases", [])
+    al = ft["aliases"]
     assert al, "fixture: the save wrote no alias, so the must-fail below has no occasion"
     # MUST-FAIL (the reviewer 2026-10-25 21:03): one alias dropped, and one pointed at a key no row
     # holds; each must go RED, naming the clause
-    drop = _partition({**f, "aliases": al[1:]}, blob, names)
-    stray = _partition({**f, "aliases": [{**al[0], "key": json.dumps(["no such"])}] + al[1:]},
-                       blob, names)
+    drop = _partition({**ft, "aliases": al[1:]}, nb, nn, f["terms"])
+    stray = _partition({**ft, "aliases": [{**al[0], "key": json.dumps(["no such"])}] + al[1:]},
+                       nb, nn, f["terms"])
     assert drop and stray, ("R-g2 MF: a broken save passed", drop, stray)
-    print(f"  R-g2 terms: {len(blob['terms'])} = {len(f['terms'])} rows + {len(al)} aliases; "
-          f"MF one alias dropped -> {drop}; one alias's key stray -> {stray}", flush=True)
-    assert f["evidence"] == ag.gamma.evidence, "R-g2 evidence"
+    print(f"  R-g2 terms: life 2 holds {len(names)} ({len(names) - len(nn)} carried); its "
+          f"{len(nn)} new = {len(ft['terms'])} rows + {len(al)} aliases; MF one alias dropped -> "
+          f"{drop}; one alias's key stray -> {stray}", flush=True)
+    # (r1504) (1) evidence and dormant at the generation under test: the fold's are not read back
+    # (lineage.load); (3) the fold is exactly the parent's followed by the tip's. A save holds its
+    # dormant encoded (:196) and the fold decodes it (:444), so the tip's is compared decoded
+    td = lineage.dec(tip["dormant"])
+    assert tip["evidence"] == ag.gamma.evidence, "R-g2 evidence"
+    assert f["evidence"] == par["evidence"] + tip["evidence"], "R-g2 evidence chain"
+    assert f["dormant"] == lineage.dec(par["dormant"]) + td, "R-g2 dormant chain"
+    # MUST-FAILS (r1504): one tip entry dropped fails (1); one parent entry dropped fails (3);
+    # the parent's dormant dropped fails (3)
+    assert par["evidence"] and par["dormant"], "fixture: the parent wrote no evidence or dormant"
+    assert (tip["evidence"][:-1] != ag.gamma.evidence
+            and f["evidence"] != par["evidence"][:-1] + tip["evidence"]
+            and f["dormant"] != td), "R-g2 MF: a dropped evidence or dormant entry passed"
+    print(f"  R-g2 chain: evidence {len(f['evidence'])} = {len(par['evidence'])} + "
+          f"{len(tip['evidence'])}, dormant {len(f['dormant'])} = "
+          f"{len(f['dormant']) - len(td)} + {len(td)}; MF a dropped entry -> red", flush=True)
     # (c), the reviewer 20:57: the boundary item is written WHOLE, each Term in its term-row form
     gen_rr = json.loads(lineage_store.file_bytes(Path(rr) / f"gen_{_h}.json"))
     assert gen_rr["dormant_refused"] == [], ("R-g2 dormant refused", gen_rr["dormant_refused"])
-    assert f["dormant"] == [lineage.term_form(x) for x in ag._dormant], "R-g2 dormant"
+    assert td == [lineage.term_form(x) for x in ag._dormant], "R-g2 dormant"
     live = {(i, k): t for i, x in enumerate(ag._dormant)
             for k, t in x["stores"]["want_terms"].items()}
     assert live, "fixture: no Term in the dormant record"
-    assert all(f["dormant"][i]["stores"]["want_terms"][k]["__term__"] == t.name
-               and f["dormant"][i]["stores"]["want_terms"][k]["atoms"] == [a.name for a in t.atoms]
+    assert all(td[i]["stores"]["want_terms"][k]["__term__"] == t.name
+               and td[i]["stores"]["want_terms"][k]["atoms"] == [a.name for a in t.atoms]
                for (i, k), t in live.items()), "R-g2 dormant: the record is not the live Term's"
     # MUST-FAIL: OFF, the write's own encoder refuses the item, named (the check above would fire)
     arm = lineage._DORMANT_TERM_FORM
