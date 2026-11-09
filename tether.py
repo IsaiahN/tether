@@ -17359,16 +17359,19 @@ class Agent:
             st["credit"] = st.get("credit", 0) + 1
             dv["credited"] += 1
 
-    def _divide_close(self, slot: str, cause: str, seen: tuple) -> None:
+    def _divide_close(self, slot: str, cause: str, seen: tuple, boundary: bool = False) -> None:
         """1a: a space ends (a key part moved, the kind changed, the level, the run): one row with
         its counts, and nothing reads its tallies after (the reviewer 2026-10-29 r312 (a); Fig 6
-        :46, kept as held-and-given-up)."""
+        :46, kept as held-and-given-up). A close at a boundary or the run's end, outside its step,
+        goes on "@space" naming the slot: its own chain, apart from the slot's, which the next
+        step continues at the same cycle (gate.py's one chain per slot; r1556)."""
         sp = self._space.pop(slot, None)
         if sp is None:
             return
         cells = [*seen[1].items(), *seen[2].items()]
         surv = sorted((v[1], t.name) for t, v in cells if len(v) > 2 and v[2] is None)
-        self.led.record(self.cycle, self._running_step, slot, "space_closed", cause=cause,
+        self.led.record(self.cycle, self._running_step, "@space" if boundary else slot,
+                        "space_closed", cause=cause, **({"space": slot} if boundary else {}),
                         opened=sp["opened"], mints=sp["mints"], kind=list(sp["kind"]),
                         entries=len(cells), survivors=len(surv),
                         eliminated=sum(1 for _t, v in cells if len(v) > 2 and v[2] is not None),
@@ -17389,7 +17392,8 @@ class Agent:
                 self._space.pop(slot)
                 continue
             key = self._divide_key(slot, seen[0][0])
-            self._divide_close(slot, cause if key == seen[0] else _divide_cause(seen[0], key), seen)
+            self._divide_close(slot, cause if key == seen[0] else _divide_cause(seen[0], key), seen,
+                               boundary=True)
 
     def _divide_row(self, slot: str, rkey) -> None:
         """1a: the mint's divide row, the exact m1 (the reviewer 2026-10-29 r308, r312): of the

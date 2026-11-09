@@ -35,6 +35,9 @@ r308, r311, r312). Each check runs in its own process, under 5 minutes.
                       closed space's cells; the lineage save carries neither record
   check_cond_b        r312 (b): a slot's cells are never handed to another slot's pricing
   check_cond_c        r312 (c): no gap kind holds an object id or a slot name
+  check_space_chain   r1556: a retarget with an open space writes its close on "@space" naming the
+                      slot, and gate._steps passes on the next step's rows; MUST-FAIL: the close
+                      back on the slot is refused "PLAN after IMPORT" (or any step-order refusal)
     python tests/test_divide.py [check ...]
 """
 from __future__ import annotations
@@ -144,9 +147,9 @@ def _spy(stats: collections.Counter, closed: set, by_slot: dict) -> None:
                 written[(slot, term)] = self._decoder_size()
         return r
 
-    def close(self, slot, cause, seen):
+    def close(self, slot, cause, seen, **kw):
         closed.update((id(seen[1]), id(seen[2])))
-        return close0(self, slot, cause, seen)
+        return close0(self, slot, cause, seen, **kw)
     tether.Agent._cannot_pay, tether.Agent._divide_close = cp, close
 
 
@@ -576,7 +579,8 @@ def check_cond_a() -> None:
     _env, ag, led = _agent("grid", 24)
     ag.end_run("cap")
     opened = {(r["slot"], r["detail"]["opened"]) for r in _rows(led, "divide")}
-    ended = {(r["slot"], r["detail"]["opened"]) for r in _rows(led, "space_closed")}
+    ended = {(r["detail"].get("space", r["slot"]), r["detail"]["opened"])
+             for r in _rows(led, "space_closed")}
     assert opened and opened == ended, ("(a) a space with no space_closed row", opened - ended)
     assert not ag._space, ("(a) a space still open after the run's end", list(ag._space))
     assert stats["read_after_close"] == 0, dict(stats)
@@ -588,6 +592,44 @@ def check_cond_a() -> None:
     assert "space_closed" not in text and "kind_space" not in text and '"divide' not in text
     print(f"  (a) {len(opened)} spaces, each ended by a space_closed row; 0 reads of a closed "
           "space's cells; the lineage save carries neither record")
+
+
+def _space_retarget(must_fail: bool) -> tuple[list, list]:
+    import tether
+    tether._AGENT_SEED = False
+    env, ag, led = _agent("grid", 0)
+    for _ in range(40):
+        ag.step()
+        if ag._space:
+            break
+    assert ag._space, "occasion: no open space in 40 steps"
+    if must_fail:
+        real = led.record
+
+        def back(cycle, step, slot, event, *a, **kw):
+            if slot == "@space":
+                slot = kw.pop("space")
+            return real(cycle, step, slot, event, *a, **kw)
+        led.record = back
+    n0 = len(led.rows())
+    ag.retarget(env, ag.level, "death")
+    closes = [r for r in led.rows()[n0:] if r["event"] == "space_closed"]
+    ag.step()
+    return led.rows(), closes
+
+
+def check_space_chain() -> None:
+    import gate
+    rows, closes = _space_retarget(False)
+    assert closes and {r["slot"] for r in closes} == {"@space"}, closes[:2]
+    out = gate._steps(rows)
+    assert out is None, out
+    rows, _c = _space_retarget(True)
+    out = gate._steps(rows)
+    assert out is not None and out["token"] == "step-order", ("MUST-FAIL did not fail", out)
+    print(f"  one retarget: {len(closes)} space_closed on '@space' naming "
+          f"{sorted(r['detail']['space'] for r in closes)[:3]}; _steps passes. MUST-FAIL "
+          f"(the close back on its slot): {out['note']}")
 
 
 def check_cond_b() -> None:
