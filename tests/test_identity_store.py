@@ -93,6 +93,17 @@ RESULT_MASK = (STORE + ("end_path",),            # {s, sleep_s}, the same wall s
                STORE + ("sleep", "s_checkpoint"),   # wall seconds of the checkpoint
                STORE + ("sleep", "s_quick_check"))  # wall seconds of the quick check
 DB_MASK = (("meta", "end_path"),)   # the meta row keyed 'end_path': the same {s, sleep_s}
+# THE SAME WALL SECONDS INSIDE EACH SAVE OF lineage_bounds, a LIST (604ce53 writes a save at every
+# goal ending; at 604ce53^ the self-run's store result was equal). Masked per element, by exact path
+# (the reviewer 2026-11-09 r1586 2, r1587 3)
+BOUNDS = ("persistence", "lineage_bounds")
+BOUNDS_MASK = (("store", "s_commit"),        # wall seconds of the commit
+               ("store", "s_fsync"),         # wall seconds of the fsync
+               ("store", "s_read"),          # wall seconds of the reads
+               ("store", "s_statements"))    # wall seconds of the statements
+# DERIVED OUTPUT, TIMINGS AND INTERLEAVING ONLY: the ledger's narrator (d2db6ef) and pipeline log
+# (2b5e08c) write beside it; across two self-runs, numbers stripped, both read equal (r1586 2)
+FILES_EXCLUDED = ("narrate.log", "pipeline.log")
 
 
 def _witness(res: dict, label: str) -> None:
@@ -110,7 +121,28 @@ def _mask_result(res: dict) -> dict:
             d = d.get(k) if isinstance(d, dict) else None
         if isinstance(d, dict):
             d.pop(path[-1], None)
+    lst = (res.get(BOUNDS[0]) or {}).get(BOUNDS[1]) if isinstance(res, dict) else None
+    for el in lst or ():
+        for path in BOUNDS_MASK:
+            d = el
+            for k in path[:-1]:
+                d = d.get(k) if isinstance(d, dict) else None
+            if isinstance(d, dict):
+                d.pop(path[-1], None)
     return res
+
+
+def _mask_mustfail() -> None:
+    """MUST-FAIL: a non-timing leaf inside one lineage_bounds element (a store count) still differs
+    after the mask; the four timing leaves alone do not."""
+    def res(k, s):
+        return {"persistence": {"lineage_bounds": [
+            {"hash": "h", "store": {"k": k, "s_commit": s, "s_fsync": s, "s_read": s,
+                                    "s_statements": s}}]}}
+    assert _mask_result(res(1, 0.1)) == _mask_result(res(1, 0.2)), "a timing leaf survived the mask"
+    assert _mask_result(res(1, 0.1)) != _mask_result(res(2, 0.1)), "MUST-FAIL: the count was masked"
+    print("  mask must-fail: a store count inside lineage_bounds[0] differs after the mask: ok",
+          flush=True)
 
 
 def _under_tmp(p: str) -> str:
@@ -159,6 +191,8 @@ def _files(out: str, scratch: str) -> dict:
             rel = os.path.relpath(p, out).replace("\\", "/")
             if rel.endswith(".jsonl") or rel.endswith(".result.json"):
                 continue                       # the ledger and result, compared on their own
+            if rel in FILES_EXCLUDED:
+                continue                       # derived output, timings and interleaving only
             if f == "memory.db":
                 got[rel] = _db_rows(p, scratch)
             elif not f.endswith(("-shm", "-wal")):
@@ -216,6 +250,7 @@ def _tree_copy(src_rev: str | None, src_dir: str | None, dst: str, mode: str) ->
 def main() -> None:
     rev, mode, n = sys.argv[1], sys.argv[2], int(sys.argv[3])
     self_check = "--self" in sys.argv
+    _mask_mustfail()
     assert mode in ("lineage", "library", "absent"), mode
     plays = ("cold", "warm") if mode != "absent" else ("one",)
     with tempfile.TemporaryDirectory() as d:
