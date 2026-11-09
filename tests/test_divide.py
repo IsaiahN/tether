@@ -652,10 +652,10 @@ def _reach(credit: bool) -> list:
     calls: list = []
     ec0 = gamma.Gamma.enumerate_closure
 
-    def ec(self, in_type, out_type, max_depth, budget, stats=None, order=None):
+    def ec(self, in_type, out_type, max_depth, budget, stats=None, order=None, prune=None):
         rec = [0, budget]
         calls.append(rec)
-        for t in ec0(self, in_type, out_type, max_depth, budget, stats, order):
+        for t in ec0(self, in_type, out_type, max_depth, budget, stats, order, prune):
             rec[0] += 1
             yield t
     gamma.Gamma.enumerate_closure = ec

@@ -34,7 +34,8 @@ def _end(ag, text: str, why: str, loss: bool, n: int):
     ag._hyp = {"key": f"@t{n}", "displaced": {}, "steps": 2, "touches": 1,
                "tkey": (text, "s", None), "text": text, "shelf": None,
                "slots": [text.split()[0]], "source": "library",
-               "held_unreadable": 0, "losses": 0, "reads": {}, "acted": Counter(), "tests": {}}
+               "held_unreadable": 0, "losses": 0, "reads": {}, "seg": {}, "acted": Counter(),
+               "tests": {}}
     ag._hyp_end(why, loss=loss)
 
 

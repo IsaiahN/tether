@@ -82,7 +82,7 @@ def check_r1a_game_loss(tree: str) -> None:
 
 
 def check_r1b_win(tree: str) -> None:
-    o = _probe(tree, "win")
+    o = _probe(tree, "win_probe")
     assert o["record"].get("won") == 1, o["record"]
     e = o["end"]
     assert e["slot"] == "@boundary" and e["why"] == "level_cleared", e

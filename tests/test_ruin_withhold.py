@@ -148,7 +148,7 @@ if __name__ == "__main__":
           f"all_vetoed True, '{IFace.ALL_VETOED}' set")
     # 5
     env5 = {**os.environ, "TETHER_RUIN": "1", "PYTHONDONTWRITEBYTECODE": "1"}
-    env5.pop("TETHER_RUIN_RECORD", None)
+    env5["TETHER_RUIN_RECORD"] = "0"     # default ON since 083c07b: unset is no longer OFF
     p5 = subprocess.run([sys.executable, "-c", "import tether"], env=env5, capture_output=True,
                         text=True, cwd=Path(_repo.ROOT), check=False)
     ok5 = subprocess.run([sys.executable, "-c", "import tether"],
