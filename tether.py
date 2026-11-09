@@ -826,6 +826,9 @@ _INTERVAL_BOUND = armflag.arm("TETHER_INTERVAL_BOUND", default=True)
 _INTERVAL_BOUND_CHECK = armflag.arm("TETHER_INTERVAL_BOUND_CHECK")
 INTERVAL_N: dict = {"bound": 0, "walk": 0, "agree": 0, "disagree": 0}
 INTERVAL_DISAGREE: list = []      # the first disagreements, for the check run's reader
+# r1585 3: the unseen walk's own calls and evaluations, read into the step's @body heads row as
+# its own scope (its ring heads land in the enclosing scope). Record only: nothing reads it
+WALK_N: dict = {"calls": 0, "evals": 0}
 # Q3, THE WORK BUDGET CHARGES WORK DONE (Isaiah 2026-10-21 18:58 "3-agreed"; the reviewer 19:02 (B),
 # 19:13 B3): a chain bounded out on cost generates no instance, so its instances are not charged
 # to work_budget (sp80 669,981 / vc33 276,057 such in 8 cycles at 15k). A REACH change: the same
@@ -2632,15 +2635,20 @@ def _priced_hit(evaluate, current: int, ordered: bool, dom: _PricedDomain):
 def _walk_unseen(evaluate, current: int, ordered: bool, dom: _PricedDomain, limit, dk):
     """_priced_hit's unseen walk: the nearest satisfying unseen value, ring by ring, tied by the
     draw (comparable-only: every unseen value). OFF's path and the interval bound's check."""
+    WALK_N["calls"] += 1
+
+    def ev(v):
+        WALK_N["evals"] += 1
+        return evaluate(v)
     if ordered:
         for d in range(1, limit):
             cap.head()
             ring = [v for v in (current - d, current + d)
-                    if 0 <= v < dom.alpha and v not in dom and evaluate(v)]
+                    if 0 <= v < dom.alpha and v not in dom and ev(v)]
             if ring:
                 return min(ring, key=dk)
         return None
-    ring = [v for v in range(dom.alpha) if v != current and v not in dom and evaluate(v)]
+    ring = [v for v in range(dom.alpha) if v != current and v not in dom and ev(v)]
     return min(ring, key=dk) if ring else None
 
 
@@ -4160,6 +4168,7 @@ class Agent:
     _clk_h: dict = {}          # r1404: loop heads (cap.HEADS) per scope this step, beside _clk
     _clk_hs = None             # r1404: each open scope's heads mark, parallel to _clk_stack
     _clk_h0 = 0                # r1404: cap.HEADS at the step's start
+    _walk0 = (0, 0)            # r1585 3: WALK_N's calls and evals at the step's start
     _dw_stop = None            # B2: the slot whose mint this step stopped at a bound, if any
     _end_reserve = None        # the end-path reserve R, s (None: unmeasured, none taken)
     _end_sleep_s = None        # the carried end path's sleep part (checkpoint + quick_check), s
@@ -26328,6 +26337,7 @@ class Agent:
         if _STEP_CLOCK:
             self._clk, self._clk_stack, self._clk_t0 = {}, [], time.perf_counter()
             self._clk_h, self._clk_hs, self._clk_h0 = {}, [], cap.HEADS
+            self._walk0 = (WALK_N["calls"], WALK_N["evals"])
             self._reach_wall = 0.0
         try:
             return self._step_body(action)
@@ -26354,7 +26364,9 @@ class Agent:
         total = cap.HEADS - self._clk_h0
         body = {"slot": "@body", "event": "heads", "cycle": c0, "game": self.gamma.game,
                 "total": total, "unscoped": total - sum(self._clk_h.values()),
-                "scopes": dict(sorted(self._clk_h.items()))}
+                "scopes": dict(sorted(self._clk_h.items())),
+                "walk": {"calls": WALK_N["calls"] - self._walk0[0],
+                         "evals": WALK_N["evals"] - self._walk0[1]}}
         # the side file starts with its ledger (TETHER_BODY_APPEND): a heads line written before
         # the first fold opens it, so the fold appends rather than truncating
         fresh = _BODY_APPEND and not getattr(self.led, "_body_opened", False)
