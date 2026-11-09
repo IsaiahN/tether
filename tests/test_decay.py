@@ -51,7 +51,7 @@ sys.dont_write_bytecode = True
 from arcengine import GameState
 import interface, tether, tether_agent
 from test_entry import FakeWrapper
-plant, births, budget = {plant}, {births}, {budget}
+plant, game_starts, budget = {plant}, {game_starts}, {budget}
 PLANTED = {{"n": 0}}
 if plant:
     # the dead board's reach rule removed alone: a press other than the restart is read as it
@@ -68,7 +68,7 @@ if plant:
             self.alive = False
     interface.Interface.reach = live
     # and a press on a dead board adds to the restart's price again. Either half alone still
-    # resets this birth (measured): unpriced, RESET is cheapest; under the dead reach rule it
+    # resets this game start (measured): unpriced, RESET is cheapest; under the dead reach rule it
     # is the only press that reaches. The fault is both together, with the arm still ON
     dead = {{"n": 0}}
     real_step, real_ck = tether.Agent.step, tether.Agent._choose_known
@@ -120,7 +120,7 @@ def rt(self, env, level, how=tether.ADVANCE):
 tether.Agent.retarget = rt
 out = []
 t0 = time.perf_counter()
-for b in range(births):
+for b in range(game_starts):
     if b and time.perf_counter() - t0 > budget:
         break
     w = FakeWrapper(script={{2: GameState.GAME_OVER}})
@@ -134,7 +134,7 @@ for b in range(births):
                  "presses_before_reset": before_reset if before_reset is not None else len(after),
                  "calls": w.calls}})
 c = counts(AG["ag"].iface) if AG.get("ag") else None
-print("OUT " + json.dumps({{"births": out, "shrunk": shrunk, "situates": len(grows),
+print("OUT " + json.dumps({{"game_starts": out, "shrunk": shrunk, "situates": len(grows),
                             "gamma_moved": gamma_moved, "planted": PLANTED["n"],
                             "priced": PLANTED.get("priced", 0), "std": std.get("at_game_loss"),
                             "last": c,
@@ -143,11 +143,11 @@ print("OUT " + json.dumps({{"births": out, "shrunk": shrunk, "situates": len(gro
 """
 
 
-def _child(env_add: dict, plant: bool = False, births: int = 1, budget: float = 0) -> dict:
+def _child(env_add: dict, plant: bool = False, game_starts: int = 1, budget: float = 0) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(env_add)
     r = subprocess.run([sys.executable, "-B", "-c",
-                        CHILD.format(plant=plant, births=births, budget=budget)], env=env,
+                        CHILD.format(plant=plant, game_starts=game_starts, budget=budget)], env=env,
                        capture_output=True, text=True, check=False, stdin=subprocess.DEVNULL)
     assert r.returncode == 0, r.stderr[-3000:]
     out = [ln for ln in r.stdout.splitlines() if ln.startswith("OUT ")]
@@ -204,7 +204,7 @@ def main() -> None:
     t0 = time.perf_counter()
     off = _child(replay | dict.fromkeys(ARMS, "0"))
     on = _child(replay)
-    b_off, b_on = off["births"][0], on["births"][0]
+    b_off, b_on = off["game_starts"][0], on["game_starts"][0]
     print(f"  replay ({on['seed_source']}): OFF end {b_off['end']} resets {b_off['resets']};"
           f" ON end {b_on['end']} resets {b_on['resets']},"
           f" presses before RESET {b_on['presses_before_reset']}")
@@ -212,7 +212,7 @@ def main() -> None:
         "RD-1 precondition: the replay with the arms OFF does not strand", b_off)
     assert b_on["game_losses"] == 1 and b_on["resets"] >= 1 and b_on["end"] != "game_loss", (
         "RD-1: the replay strands with the arms ON", b_on)
-    print("  RD-1 the captured birth presses RESET after its game loss (OFF strands)")
+    print("  RD-1 the captured game start presses RESET after its game loss (OFF strands)")
     assert on["std"] is not None and on["std"] == off["std"], (
         "RD-3: standings differ at the game loss")
     assert not on["gamma_moved"], ("RD-3: situate() moved a Gamma field", on["gamma_moved"])
@@ -222,7 +222,7 @@ def main() -> None:
     assert on["situates"] >= 2 and not on["shrunk"], ("D1: a record count fell", on["shrunk"])
     print(f"  D1 no record count fell across {on['situates']} situate() calls; last {on['last']}")
     bad = _child(replay, plant=True)
-    b_bad = bad["births"][0]
+    b_bad = bad["game_starts"][0]
     assert bad["planted"] > 0 and bad["priced"] > 0, ("RD-4: the planted fault never executed",
                                                       bad["planted"], bad["priced"])
     assert b_bad["end"] == "game_loss", ("RD-4 MUST-FAIL did not fail: the dead reach rule removed,"
@@ -231,13 +231,14 @@ def main() -> None:
           f" dead presses priced ({bad['priced']} picks) strand the replay again")
     direct()
     left = 300 - (time.perf_counter() - t0) - 30
-    fresh = _child({}, births=40, budget=min(RD2_BUDGET_S, max(left, 0)))
-    n = len(fresh["births"])
-    stranded = [b for b in fresh["births"] if b["end"] == "game_loss"]
-    print(f"  RD-2 {n} fresh births: stranded {len(stranded)}; presses between the game loss "
+    fresh = _child({}, game_starts=40, budget=min(RD2_BUDGET_S, max(left, 0)))
+    n = len(fresh["game_starts"])
+    stranded = [b for b in fresh["game_starts"] if b["end"] == "game_loss"]
+    print(f"  RD-2 {n} fresh game starts: stranded {len(stranded)}; presses between the game loss "
           f"and RESET"
-          f" {[b['presses_before_reset'] for b in fresh['births']]}")
-    assert n >= 1 and not stranded, ("RD-2: a fresh birth acted into a dead game", stranded[:1])
+          f" {[b['presses_before_reset'] for b in fresh['game_starts']]}")
+    assert n >= 1 and not stranded, ("RD-2: a fresh game start acted into a dead game",
+                                     stranded[:1])
     print(f"decay: OK ({time.perf_counter() - t0:.0f} s)")
 
 

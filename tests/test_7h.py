@@ -93,7 +93,7 @@ def main() -> None:
     print(f"  R2 {n_choice} choice rows each carry the root before them")
     assert verdicts and verdicts[0][1]["root"] == first["root"] \
         and verdicts[0][1]["ending"] == "game_loss", ("R3", verdicts)
-    print(f"  R3 the birth root {first['root']} graded at the game loss: {verdicts[0][1]}")
+    print(f"  R3 the game-start root {first['root']} graded at the game loss: {verdicts[0][1]}")
 
     import frontier as FR
     from tether import _lookup_order

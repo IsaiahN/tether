@@ -178,7 +178,7 @@ ARMS: dict[str, str] = {
                           ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is "
                           "the record; the switch is kept for the checklist's culprit isolation",
     "TETHER_AGENT_SEED": "HOLD_SEED (the reviewer 2026-10-15 14:56, 15:04): the agent draws its "
-                         "own seed at birth from the OS, records it (run header, lineage), "
+                         "own seed at its start from the OS, records it (run header, lineage), "
                          "carries it through its lineage with the generation index, and every "
                          "draw (mind, interface, minted handles) uses it. default ON (Isaiah "
                          "2026-10-15 07:53); OFF is the old constant 0",
@@ -901,7 +901,8 @@ ARMS: dict[str, str] = {
                              "line before it exactly",
     "TETHER_RESOLVE_ONCE": "RESOLVE ONCE PER LINEAGE (the reviewer 2026-11-01 r695 1): a matched "
                            "resolve of a carried index entry is written with a fingerprint of the "
-                           "entry, the readings table and the library code; a later life with the "
+                           "entry, the readings table and the library code; a later game series "
+                           "with the "
                            "same fingerprint and carried hashes takes the verdict without "
                            "re-hashing the view. OFF is the line before it exactly",
     "TETHER_RESOLVE_ONCE_CHECK": "RESOLVE_ONCE's equality arm: re-hashes the view anyway and books "
@@ -909,14 +910,15 @@ ARMS: dict[str, str] = {
                                  "measuring arm, never shipped on",
     "TETHER_WIN_CREDIT": "A WIN MOVES STANDING (the reviewer 2026-11-01 r694 row 3): at a level "
                          "clear (ADVANCE / WIN) each non-atom term bound on the clearing segment "
-                         "is settled once, writing the evidence the next life replays (row and "
+                         "is settled once, writing the evidence the next game series replays (row "
+                         "and "
                          "book win_credit). OFF is the line before it exactly",
     "TETHER_ACTION_CARRY": "THE ACTION TABLE CARRIES BY KIND (the reviewer 2026-11-01 r688 "
                            "STORAGE/RECALL; Q17): the interface's kind tables (delta_kind, "
                            "lands_kind; name-free) are written to the lineage (action_kinds) and "
                            "loaded into Interface.carried_kind, never into the table, so an "
                            "untried action stays unmapped; the kind readers see carried cells "
-                           "under this life's own. OFF is the line before it exactly",
+                           "under this game series' own. OFF is the line before it exactly",
     "TETHER_BOND_INC": "B2.3 INCREMENTAL BOND READINGS (the reviewer 2026-11-01 r681): the reach's "
                        "bond readings fold over the slot's frames (composer.fold_two), each "
                        "reading pair resuming where its last lookup stopped while the frames read "
@@ -1270,7 +1272,8 @@ ARMS: dict[str, str] = {
                           "state from before kept); at the next step head Agent._arrival_gap "
                           "scores the frame the agent held (perceive's after) against the arrived "
                           "one, per slot, held or failed (gone counts failed). Break iff the share "
-                          "is above every ORDINARY no-press reading this life (every other step "
+                          "is above every ORDINARY no-press reading this game series (every other "
+                          "step "
                           "head is one; no constant); before the first, the appearance call "
                           "decides alone, as OFF. A break restores the tracker and re-reads the "
                           "frame with that call's break forced; what a break does is unchanged. "
@@ -1356,12 +1359,12 @@ ARMS: dict[str, str] = {
                             "(ended_by, since). Reset with _hyp_tried at a level. No number. OFF: "
                             "it enters _hyp_tried, as before. default ON",
     "TETHER_CARRY_W": "5 CARRY_W (the reviewer r392, r395, r397; Symbols :20-26). In gamma: an "
-                      "outcome of a carried, non-innate term in this life (settle = held; a "
+                      "outcome of a carried, non-innate term in this game series (settle = held; a "
                       "refute that is a refusal by Standing.refute's own held reading = failed; "
                       "replay's carried evidence excluded) counts for its kind "
                       "(gamma.kind_of(term).name); w = held / (held + failed). track_of for such "
                       "a term is w * Laplace(its standing as loaded) + (1 - w) * Laplace(this "
-                      "life's own counts) once its kind has an outcome; with none, today's "
+                      "game series' own counts) once its kind has an outcome; with none, today's "
                       "track_of exactly. Orders retrieval only; settled and is_settled are "
                       "untouched; the innate core is untouched. tether writes a carry_w row "
                       "(kind, held, failed, w) per change. No number. OFF: carried standing "
@@ -1527,7 +1530,7 @@ ARMS: dict[str, str] = {
                            "(gaps_off_board). The test is the slot's presence on this board, never "
                            "an object id. OFF: such a gap can be chosen, and its prediction reads "
                            "state[slot] in _value_of and raises KeyError (contained in play by "
-                           "fault recovery, at the cost of the life's state). default ON",
+                           "fault recovery, at the cost of the game series' state). default ON",
     "TETHER_VIEW_HOLD_SAME_CHECK": "7's check (the reviewer r415): each view served from the "
                                    "'same' hold is also computed fresh with lib.view(key, role, "
                                    "o, x) and compared; same_checked / same_mismatch in "
@@ -1854,7 +1857,8 @@ ARMS: dict[str, str] = {
                          "degree (any level clear; on ARC degree = levels / win, so 1.0 was the "
                          "whole game), candidates from the clearing step's after AND before "
                          "states, held conditions SHELVED at ADVANCE / WIN with (game, level) and "
-                         "carried as a template through M7-INV, goal atoms numbered for the life. "
+                         "carried as a template through M7-INV, goal atoms numbered for the game "
+                         "series. "
                          "OFF: degree >= 1.0 > prev, closed with the level (7091be4). default ON",
     "TETHER_GOAL_HYPOTHESES": "GQ2, GOAL HYPOTHESES (the reviewer 2026-10-20 14:27; Isaiah "
                               "14:11): with no objective held, the library's own condition "
@@ -1936,7 +1940,7 @@ ARMS: dict[str, str] = {
                          "under K1, ArcWorld.shape_code gives a new shape's as-seen and canonical "
                          "codes at once (arc_percept.code_pair) and keeps as_seen -> (canonical, "
                          "pose); the save writes the pairs whose as-seen code names stored kinds "
-                         "and are not in force, after the life's carried action cells and "
+                         "and are not in force, after the game series' carried action cells and "
                          "routines under them meet their canonical ones. OFF: the canonical code "
                          "only, no pairs. default ON",
     "TETHER_CANON_MEMO": "(4) THE canon() MEMO (Build 1; the reviewer 2026-11-03 r909): each cell "
@@ -1958,7 +1962,8 @@ ARMS: dict[str, str] = {
                         "matched object's pose changing at the same kind. No new type, no shape "
                         "label moved. OFF: neither reading. default ON",
     "TETHER_AK_DELTA": "(7) THE ACTION TABLE AS INCREMENTS (Build 1; the reviewer 2026-11-03 r906 "
-                       "3, MF-K14): a save writes this life's own action cells' increments since "
+                       "3, MF-K14): a save writes this game series' own action cells' increments "
+                       "since "
                        "its last write (action_kinds_d) and the store and the archive load add "
                        "them, so branches' increments sum at any merge in any order and a fork's "
                        "as-seen cells add into the canonical one; saves written before keep their "
@@ -2255,7 +2260,7 @@ ARMS: dict[str, str] = {
     "TETHER_THINK_CHOOSER": "BUILD 7 ITEM 25 (the reviewer 2026-11-05 r1261-r1265, Isaiah 17:26): "
                             "one purse per step from before choose; the runners hand the game's "
                             "clocks (actions_left, slice_until); a walk or a muse is taken iff its "
-                            "gain beats the presses it displaces x rho (this life's bits per "
+                            "gain beats the presses it displaces x rho (this game series' bits per "
                             "press) x need, the press going out either way; the gate's "
                             "readings are inputs, its exit order gone; think_choice / "
                             "think_settled witness each. OFF: route resets the purse, the "
@@ -2478,7 +2483,7 @@ ARMS: dict[str, str] = {
                        "miss writes no ledger row and moves no decision state are evicted at a "
                        "W-1 fold (soft: the entries not read since the last fold; hard: all) "
                        "and recomputed at their next miss; the counts go to @body. OFF: they "
-                       "grow for the life of the agent or the process. default ON",
+                       "grow for the game series or the process. default ON",
     "TETHER_W_SOFT_READS": "M2 (the reviewer 2026-10-23 09:18, 09:25): a write to a W-2 cache no "
                            "longer marks the entry seen, so a SOFT fold drops the entries not READ "
                            "since the last fold (used once); the first SOFT fold was inert by "
@@ -2557,7 +2562,7 @@ ARMS: dict[str, str] = {
                            "trend and goal exit. default ON (Isaiah 2026-10-24 14:16: 'just "
                            "keep the switch on period')",
     "TETHER_W_DK_KEYED": "W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14 (c), "
-                         "05:52): the life's kind_dk stays on disk, read through a snapshot "
+                         "05:52): the game series' kind_dk stays on disk, read through a snapshot "
                          "held from load (one read transaction, lineage.DkSnapshot) -- each "
                          "asked kind's rows at its first ask, the per-type sums and latest "
                          "seqs from its aggregates; closed before the game's checkpoint. OFF: "
@@ -2595,12 +2600,13 @@ ARMS: dict[str, str] = {
                           "the store load reads the held keys only; each entry's items from the "
                           "load-time snapshot at its first ask; _INDEX_STORE evictable by W-2 for "
                           "entries with resolve's verdict (re-read without hashing), never this "
-                          "life's own compiles. OFF: every held entry decoded at load and kept "
+                          "game series' own compiles. OFF: every held entry decoded at load and "
+                          "kept "
                           "for the process. default ON",
     "TETHER_CAP_HELD": "THE 20 MB CAP, part (ii) (Isaiah 2026-10-25 05:31; the reviewer 05:49, "
                        "06:06): under the store load with W-3, lineage's _CARRIED and _LAZY are "
                        "answered from the held table (the load-time snapshot, else a read-only "
-                       "connection) plus this life's own adds, discards and first resolves, "
+                       "connection) plus this game series' own adds, discards and first resolves, "
                        "instead of copied at load (16.4 MB at 33 saves); the same answers. A "
                        "second store load in one process copies the first load's answers back "
                        "into the old sets. OFF: both copied at load. default ON",
@@ -2633,7 +2639,8 @@ ARMS: dict[str, str] = {
                                     "holds (HYP_ROUTE_FIRST_N counts). default OFF",
     "TETHER_HOT_COLD": "S4, THE MEMORY SPLIT (the reviewer 2026-11-02 r811, r816; Isaiah 13:00): "
                        "lineage.DkSnapshot's kind enumerations and per-type totals read the "
-                       "HOT rows (n >= 2, or seen this life); a past-life n == 1 row stays on "
+                       "HOT rows (n >= 2, or seen this game series); an earlier game series' n == "
+                       "1 row stays on "
                        "disk, read by key and on a lookup that finds nothing hot. Nothing "
                        "deleted. OFF: every row. default ON",
     "TETHER_KIND_CANON": "K1 (the reviewer 2026-11-02 r797; Isaiah 10:12): arc_percept.form_code, "
@@ -2694,7 +2701,8 @@ ARMS: dict[str, str] = {
     "TETHER_HYP_ORDER": "B1, THE ORDER INSIDE A KEY GROUP (the reviewer 2026-11-08 r1469, r1470, "
                         "r1471; Isaiah 10:57): the goal pick's key-group cut is unchanged; inside "
                         "the group the walk is S-class (r1443, the better of the subject-side "
-                        "parties), then times parked this life (r1473), then contingent-first "
+                        "parties), then times parked this game series (r1473), then "
+                        "contingent-first "
                         "(r678 b), then rounds over subjects -- each subject's least-checked "
                         "candidate, the least-tried subject first (r1474, r1478) -- then the "
                         "explore draw, only among the equal and equally untried (r1477): no name "
@@ -2736,7 +2744,8 @@ ARMS: dict[str, str] = {
                              "end; this ask's head entries are never skipped. OFF: keyed by the "
                              "whole description and dropped at its end. default ON",
     "TETHER_SERP_CACHE": "S3 (the reviewer 2026-11-02 r816): under SERP, a description key "
-                         "remembers the entries its windows offered nothing from this life and "
+                         "remembers the entries its windows offered nothing from this game series "
+                         "and "
                          "its next ask skips them (the next unjudged window); cleared on a level "
                          "or game reset. OFF: the offset alone. default ON",
     "TETHER_SERP": "SERP (the reviewer 2026-11-02 r810, r816; Isaiah 12:53, 13:55): a described "
@@ -2873,7 +2882,8 @@ ARMS: dict[str, str] = {
                             "realised on this board (its own per-board record; the agent's "
                             "situate(new_board=True) opens a board) and System 0 stays active "
                             "while untried_here(), a count, is above 0; the told order first. "
-                            "OFF: untried = absent from the life's table (18c9ec4). default ON",
+                            "OFF: untried = absent from the game series' table (18c9ec4). default "
+                            "ON",
     "TETHER_TOUCH_EACH_OBJECT": "C2, EVERY OBJECT TOUCHED ONCE PER BOARD (r726): after the "
                                 "unexplored contact pairs, System 0's touch target is an object "
                                 "not yet touched on this board, before the seek-contact owners. "
@@ -3000,12 +3010,14 @@ ARMS: dict[str, str] = {
                          "summed root to tip at load; it lived on the Agent, so it never "
                          "crossed. Paid is not carried here: 7i's replay is its one carrier. "
                          "OFF: nothing written or read (a102c5a). default ON",
-    "TETHER_DECAY_NEW_LIFE": "F3a (the reviewer 2026-10-31 r603; the memory audit, P3). A "
-                             "carried Standing keeps its last_tick, and a new life's cycle "
+    "TETHER_DECAY_NEW_GAME_SERIES": "(was TETHER_DECAY_NEW_LIFE, renamed r1582) F3a (the reviewer "
+                                    "2026-10-31 r603; the memory audit, P3). A "
+                             "carried Standing keeps its last_tick, and a new game series' cycle "
                              "starts at 0, so max(0, tick - last_tick) stayed 0 until the new "
-                             "life passed the old one's last cycle: a carried refutation did "
+                             "game series passed the old one's last cycle: a carried refutation "
+                             "did "
                              "not decay. ON: a tick below last_tick is a restarted clock and "
-                             "the gap counts from the new life's start. OFF: as before. "
+                             "the gap counts from the new game series' start. OFF: as before. "
                              "default ON",
     "TETHER_PRIOR_CODE": "L1 (the reviewer 2026-10-17 18:13 (a), 18:40, 18:48): a transition "
                          "term's stating cost is its length under a NORMALIZED code over "
@@ -3241,7 +3253,8 @@ ARMS: dict[str, str] = {
                            "exactly (a merge generation, another signature, bm_/bs_ files, a "
                            "failed check at open) loads from the saves as before, with a "
                            "store_refused row. default ON (Isaiah 2026-10-19 17:03 'turn it "
-                           "on'; OFF every load is the saves' fold, 14.35 GiB on the E4 life). "
+                           "on'; OFF every load is the saves' fold, 14.35 GiB on the E4 game "
+                           "series). "
                            "OFF (=0): the saves' fold, as before",
     "TETHER_ONE_PASS": "the one-pass load (the reviewer 2026-10-19 06:09 d, 06:13): lineage.load "
                        "reads and folds the memory saves' chain once; head()'s pass was the same "
@@ -3383,7 +3396,8 @@ VALUES = {"TETHER_TEST_LANDING": "a TEST selector, never read by the agent: '1' 
           "TETHER_HOLDING_DIR": "a PATH: the holding folder beside the runs folder, scanned for "
                                 "box folders; never on/off (Isaiah 2026-10-30 16:33, the reviewer "
                                 "r454)",
-          "TETHER_DECAY_RECORD": "a PATH: test_decay's captured birth record; never on/off (Isaiah "
+          "TETHER_DECAY_RECORD": "a PATH: test_decay's captured game-start record; never on/off "
+                                 "(Isaiah "
                                  "2026-10-30 16:33, the reviewer r454)",
           "TETHER_STEP_BUDGET_N": "a COUNT, MAGIC (an interim constant authored by the seats, Fig "
                                   "10 :48; B1-B5 replaces it after the competition entry): "
@@ -3662,9 +3676,9 @@ RETIRED = {
                        "one caller never ran on click worlds. Intent covered by _goal_choice, "
                        "both spellings and cascade agency.",
     "TETHER_HOLD_SEED": "the reviewer 2026-10-15 15:04 (HOLD_SEED Q2): a seed-valued input is "
-                        "a route to forcing the seed; the seed is the agent's, drawn at birth "
+                        "a route to forcing the seed; the seed is the agent's, drawn at its start "
                         "and recorded, and a replay names a record (TETHER_SEED_FROM). Setting "
-                        "it is refused by name at the agent's birth.",
+                        "it is refused by name at the agent's start.",
 }
 
 

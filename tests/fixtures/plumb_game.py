@@ -9,7 +9,7 @@ from arcengine import ARCBaseGame, GameAction, Level, Sprite
 MOVES = {GameAction.ACTION1: (0, -1), GameAction.ACTION2: (0, 1),
          GameAction.ACTION3: (-1, 0), GameAction.ACTION4: (1, 0)}
 # anchor: a loop bound for a plumbing fixture, not a game parameter.
-LIFE = 8
+ATTEMPT_MOVES = 8
 
 
 class Plumb(ARCBaseGame):
@@ -24,6 +24,6 @@ class Plumb(ARCBaseGame):
         if self.action.id in MOVES:
             self.try_move("block", *MOVES[self.action.id])
             self.moves += 1
-            if self.moves >= LIFE:
+            if self.moves >= ATTEMPT_MOVES:
                 self.win()
         self.complete_action()

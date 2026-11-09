@@ -326,7 +326,7 @@ def _part_a(tmp):
     assert r.returncode == 0, f"R-g1 second process:\n{r.stderr[-2000:]}"
 
 
-def _life(rr, seed):
+def _game_series(rr, seed):
     """One R-g2 game series on world `seed`, loading rr first: N steps, a real retarget, N_AFTER
     steps, end_run. The write is _write_kind_off's."""
     env, ag, rep = _agent(rr, seed)
@@ -360,13 +360,14 @@ def _part_b(tmp):
     # names, the within-save alias (lineage.py :716-722, held_keys grown at :724); the parent-fold
     # path (:699) is not witnessed here; its own constructed fixture follows (r1506)
     rr = tmp / "rt"
-    _env1, ag1, _ = _life(rr, 3)
+    _env1, ag1, _ = _game_series(rr, 3)
     assert ag1.gamma.evidence and ag1._dormant, (
-        "fixture: life 1 settled nothing (or held no dormant record); the parent has no record",
+        "fixture: game series 1 settled nothing (or held no dormant record); the parent has no "
+        "record",
         len(ag1.gamma.evidence), len(ag1._dormant))
     _write_kind_off(rr, ag1)
-    env, ag, rep = _life(rr, 3)
-    assert rep.get("parent"), ("fixture: life 2 loaded no parent", rep)
+    env, ag, rep = _game_series(rr, 3)
+    assert rep.get("parent"), ("fixture: game series 2 loaded no parent", rep)
     blob = ag.gamma.blob()
     names = [r["name"] for r in ag.gamma.blob(with_names=True)["terms"]]
     assert ag.gamma.evidence and ag._dormant, (
@@ -395,7 +396,7 @@ def _part_b(tmp):
     stray = _partition({**ft, "aliases": [{**al[0], "key": json.dumps(["no such"])}] + al[1:]},
                        nb, nn, f["terms"])
     assert drop and stray, ("R-g2 MF: a broken save passed", drop, stray)
-    print(f"  R-g2 terms: life 2 holds {len(names)} ({len(names) - len(nn)} carried); its "
+    print(f"  R-g2 terms: game series 2 holds {len(names)} ({len(names) - len(nn)} carried); its "
           f"{len(nn)} new = {len(ft['terms'])} rows + {len(al)} aliases; MF one alias dropped -> "
           f"{drop}; one alias's key stray -> {stray}", flush=True)
     # (r1504) (1) evidence and dormant at the generation under test: the fold's are not read back

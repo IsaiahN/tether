@@ -8,7 +8,7 @@ process, by name.
                                  inc . dec<o1.colour>) must save as TWO kinds; gamma.kind_of keeps
                                  the operand only when the bare chain is a PRIOR atom
                                  (gamma.py 1244-1254), so both become one
-  check_p3_decay_across_lives    AT 1e9d4d5: FAIL. A refutation carried from a game series that
+  check_p3_decay_across_game_series  AT 1e9d4d5: FAIL. A refutation carried from a game series that
                                  ended at
                                  cycle 250 must decay in the next game series; Standing.decay's gap
                                  is max(0, tick - last_tick) (gamma.py 915) and the next game
@@ -25,7 +25,7 @@ process, by name.
                                  must have a predictor (_pred_by not None). bound is emptied at
                                  every game and level start (tether.py 4045) and _pred_by is filled
                                  from it (9858), so nothing carried predicts before the first miss
-  check_p8_t1d_bounded_over_lives
+  check_p8_t1d_bounded_over_game_series
                                  AUDIT AT 1e9d4d5: FAIL; MEASURED: PASS (see EXPECTED). Three
                                  lives on one lineage (the fake game, 30
                                  steps each, each its own process): every lookup's T1d lists no
@@ -47,18 +47,20 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 EXPECTED = {"check_p1_kind_keeps_attribute": "PASS",   # gamma._KIND_ATTR (F1/F2, 11-01)
-            "check_p3_decay_across_lives": "PASS",     # F3a TETHER_DECAY_NEW_LIFE
+            "check_p3_decay_across_game_series": "PASS",     # F3a TETHER_DECAY_NEW_GAME_SERIES
             "check_p4_faulted_step_dropped": "PASS",   # F4 TETHER_FAULT_FORMATS
             "check_p6_carried_press_term_predicts_at_step_1": "FAIL",
-            # measured PASS, against the audit's FAIL: over 3 lives of 30 steps T1d stays under T3
+            # measured PASS, against the audit's FAIL: over 3 game series of 30 steps T1d stays
+            # under T3
             # (max T1d - T3 -201, -96, -47) and spent per lookup falls (2876.5, 1938.8, 1978.4);
             # but mean T1d GROWS 605.9 -> 786.1 -> 872.4 against a flat T3 ~1095, so the bound is
             # approached, not held by construction
             # REGISTERED FAIL on the synced code (r785 3a): T1d - T3 [-82, 182, 182] over the
-            # 3 lives (PASS at f36f792, max -47): T1d outgrows what this residual lit; A5 holds it
-            "check_p8_t1d_bounded_over_lives": "FAIL"}
+            # 3 game series (PASS at f36f792, max -47): T1d outgrows what this residual lit; A5
+            # holds it
+            "check_p8_t1d_bounded_over_game_series": "FAIL"}
 
-LIFE = r'''
+GAME_SERIES = r'''
 import json, sys
 sys.dont_write_bytecode = True
 tree, lin, mode, n = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
@@ -112,16 +114,16 @@ def check_p1_kind_keeps_attribute() -> None:
     assert k_row != k_col, ("one kind for two attributes", k_row)
 
 
-def check_p3_decay_across_lives() -> None:
+def check_p3_decay_across_game_series() -> None:
     import gamma
     st = gamma.Standing(last_tick=250)
     st.rejections = 2.0
     before = st.rejections
     st.decay(5)                 # the next game series, five cycles in: its cycle clock started
                                 # again at 0
-    print(f"  carried rejections {before} at last_tick 250; after decay at the next life's "
+    print(f"  carried rejections {before} at last_tick 250; after decay at the next game series' "
           f"cycle 5: {st.rejections}")
-    assert st.rejections < before, "a carried refutation did not decay across lives"
+    assert st.rejections < before, "a carried refutation did not decay across game series"
 
 
 def check_p4_faulted_step_dropped() -> None:
@@ -148,10 +150,11 @@ def check_p4_faulted_step_dropped() -> None:
     assert not written, ("a term from the faulted step was carried", res)
 
 
-def _life(lin: str, mode: str, n: int) -> dict:
+def _game_series(lin: str, mode: str, n: int) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0")
-    r = subprocess.run([sys.executable, "-B", "-c", LIFE, str(_repo.ROOT), lin, mode, str(n)],
+    r = subprocess.run([sys.executable, "-B", "-c", GAME_SERIES, str(_repo.ROOT), lin, mode,
+                        str(n)],
                        env=env, capture_output=True, text=True, timeout=1800,
                        cwd=str(_repo.ROOT), stdin=subprocess.DEVNULL)
     assert r.returncode == 0, r.stderr[-3000:]
@@ -160,33 +163,36 @@ def _life(lin: str, mode: str, n: int) -> dict:
 
 def check_p6_carried_press_term_predicts_at_step_1() -> None:
     with tempfile.TemporaryDirectory() as lin:
-        one = _life(lin, "write", 40)
-        print(f"  life 1: settled non-prior terms {len(one['settled'])} {one['settled'][:3]}, "
+        one = _game_series(lin, "write", 40)
+        print(f"  game series 1: settled non-prior terms {len(one['settled'])} "
+              f"{one['settled'][:3]}, "
               f"of them press terms {len(one['settled_press'])}; wrote {one['written']}")
         # the fake game settles no PRESS term in 40 steps (measured), so the precondition is the
         # audit's general claim: ANY settled carried term, and none predicts at step 1
-        assert one["settled"], "PRECONDITION: life 1 settled no term; cannot fire"
-        two = _life(lin, "step1", 1)
-        print(f"  life 2 (parent {two['loaded_parent']}): after step 1, slots with a predictor "
+        assert one["settled"], "PRECONDITION: game series 1 settled no term; cannot fire"
+        two = _game_series(lin, "step1", 1)
+        print(f"  game series 2 (parent {two['loaded_parent']}): after step 1, slots with a "
+              f"predictor "
               f"{len(two['pred_by'])} of {two['slots']} {dict(list(two['pred_by'].items())[:3])}")
-        assert two["pred_by"], "nothing carried predicts at step 1 of a new life"
+        assert two["pred_by"], "nothing carried predicts at step 1 of a new game series"
 
 
-def check_p8_t1d_bounded_over_lives() -> None:
+def check_p8_t1d_bounded_over_game_series() -> None:
     with tempfile.TemporaryDirectory() as lin:
-        lives = [_life(lin, "tiers", 30) for _ in range(3)]
+        runs = [_game_series(lin, "tiers", 30) for _ in range(3)]
     worst, per_lookup = [], []
-    for i, lv in enumerate(lives, 1):
+    for i, lv in enumerate(runs, 1):
         over = [t.get("T1d", 0) - t.get("T3", 0) for t in lv["tiers"]]
         worst.append(max(over) if over else None)
         per_lookup.append(round(sum(lv["spent"]) / max(lv["lookups"], 1), 1))
         mean_d = round(sum(t.get("T1d", 0) for t in lv["tiers"]) / max(len(lv["tiers"]), 1), 1)
         mean_3 = round(sum(t.get("T3", 0) for t in lv["tiers"]) / max(len(lv["tiers"]), 1), 1)
-        print(f"  life {i}: lookups listed {len(lv['tiers'])}, mean T1d {mean_d}, mean T3 (lit) "
-              f"{mean_3}, max T1d - T3 {worst[-1]}; spent per lookup {per_lookup[-1]}")
-    assert all(lv["tiers"] for lv in lives), "PRECONDITION: a life listed no lookup; cannot fire"
+        print(f"  game series {i}: lookups listed {len(lv['tiers'])}, mean T1d {mean_d}, mean T3 "
+              f"(lit) {mean_3}, max T1d - T3 {worst[-1]}; spent per lookup {per_lookup[-1]}")
+    assert all(lv["tiers"] for lv in runs), (
+        "PRECONDITION: a game series listed no lookup; cannot fire")
     assert all(w <= 0 for w in worst), ("T1d lists more than is lit", worst)
-    assert per_lookup[-1] <= per_lookup[0], ("spent per lookup rose over lives", per_lookup)
+    assert per_lookup[-1] <= per_lookup[0], ("spent per lookup rose over game series", per_lookup)
 
 
 def main() -> int:

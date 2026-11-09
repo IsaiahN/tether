@@ -14,7 +14,7 @@ root, asserted and printed (c1). The whole run stops itself at CAP seconds with 
 --self compares BASE against itself: the determinism control (d4), run before anything else.
 THE SEED (WATSON ruling 4, 12:47): every play reads its seed from ONE record the test writes under
 the temp root, {"slot": "@run", "event": "seed", "detail": {"seed": "0000000000000000",
-"generation": 0, "seed_source": "birth"}}, through TETHER_SEED_FROM (the replay path, the seed arm
+"generation": 0, "seed_source": "start"}}, through TETHER_SEED_FROM (the replay path, the seed arm
 at its default ON). TETHER_AGENT_SEED=0 is the constant seed, under which gamma.draw_seed is None
 and every minted handle's suffix is random; the replay's handles are blake2b(seed:name).
 A differing ledger field prints its two values whole (P2).
@@ -48,7 +48,7 @@ CAP, T0 = 600, time.time()
 TMP = os.path.realpath(tempfile.gettempdir())
 SEED: list = []          # the fixed seed record's path, written under the temp root in main()
 SEED_ROW = {"slot": "@run", "event": "seed",
-            "detail": {"seed": "0000000000000000", "generation": 0, "seed_source": "birth"}}
+            "detail": {"seed": "0000000000000000", "generation": 0, "seed_source": "start"}}
 PLAY = r'''
 import json, os, sys
 sys.dont_write_bytecode = True

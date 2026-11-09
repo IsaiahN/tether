@@ -12,7 +12,7 @@ states bet on GROUND outcomes and each bet settles only at a level or game endin
       "game_loss";
   OFF/ON: every row but the process rows is identical, so nothing chooses from it -- read by
      conform/identity_mod_rows.compare, which maps every position field through the inserted
-     rows' shift and applies the shared BIRTH and TIMINGS masks (the reviewer 2026-10-22 00:45).
+     rows' shift and applies the shared START and TIMINGS masks (the reviewer 2026-10-22 00:45).
      The test's own strip dropped only seq and shadow.recorded_before, so resolution's
      signal_seq (shifted by the process rows) failed it (83 vs 80 on seed 5).
 

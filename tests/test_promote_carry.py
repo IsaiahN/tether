@@ -27,7 +27,7 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 
 
-def _life(d, seed):
+def _game_series(d, seed):
     import gamma
     import gridworld
     import ledger
@@ -48,7 +48,7 @@ def child(d):
     import gamma
     import lineage
     d = Path(d)
-    ag1, _ = _life(d, 0)
+    ag1, _ = _game_series(d, 0)
     for _ in range(20):
         ag1.step()
     natural = len(ag1.gamma.primitives)
@@ -71,11 +71,11 @@ def child(d):
         return real(self, blob, parent=parent, hold_unbound=hold_unbound)
     gamma.Gamma.load_blob = spy
     try:
-        ag2, _ = _life(d, 1)
+        ag2, _ = _game_series(d, 1)
     finally:
         gamma.Gamma.load_blob = real
     got = [n for n, t in ag2.gamma.library.items() if _key(t) == _key(plant)]
-    print(json.dumps({"natural_life1": natural, "written": written, "loaded": loaded,
+    print(json.dumps({"natural_game_series1": natural, "written": written, "loaded": loaded,
                       "crossed": len(got),
                       "primitive": [ag2.gamma.is_primitive(n) for n in got],
                       "admitted": [ag2.gamma.stamps.get(n, {}).get("admitted") for n in got]}))

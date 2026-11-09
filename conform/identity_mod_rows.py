@@ -13,7 +13,7 @@ fails the check, which is the point: a new position field must be added to the l
 The optional last argument names fields the instrument ADDS to existing rows on purpose; each is
 removed from the new row only where the base row lacks it, so a changed value still fails.
 
-BIRTH and TIMINGS are the one mask: every reader that compares ledgers for identity imports them,
+START and TIMINGS are the one mask: every reader that compares ledgers for identity imports them,
 never a copy (the reviewer 2026-10-22 00:45). A NEW timing field written into any ledger row is
 added to TIMINGS in the SAME commit, or the freeze identity check fails on it -- that failure is
 the signal.
@@ -38,13 +38,13 @@ POSITIONS = (
 # completion_sweep.segment_rows = len(led) - start at record time, so its span is
 # [own seq - value, own seq).
 COUNTS = (("completion_sweep", ("detail", "segment_rows")),)
-# The @run arms row's seed is the start seed (the BIRTH mask), drawn per process; a lineage replaces
+# The @run arms row's seed is the start seed (the START mask), drawn per process; a lineage replaces
 # it with a later @run seed row (tether._seed_from_lineage). So the arms row's seed fields are
 # masked and the EFFECTIVE seed is compared instead (the reviewer 2026-10-20 12:23: one mask, every
 # comparer imports it).
-BIRTH = ("seed", "seed_source")
+START = ("seed", "seed_source")
 # Fields that record WALL TIME, which no two runs share: (event, field). The same one list for every
-# comparer, imported and never copied (the reviewer 2026-10-21 23:16, 23:27; as BIRTH). A field is
+# comparer, imported and never copied (the reviewer 2026-10-21 23:16, 23:27; as START). A field is
 # added here only if it is a timing; any other difference still fails. FOUND BY (2026-10-22; rerun
 # it when a module gains a clock): grep -n "perf_counter() -\|time.time() -\|monotonic() -\|_ms=\|
 # _s=round" over the agent's modules, keeping each result that lands in a led.record row (the body
@@ -80,7 +80,7 @@ TIMINGS = (("goal_hypotheses", "wall_s"),    # tether 5955, under TETHER_HYP_DRA
 
 # The @run arms row's MACHINE facts (W-1, 2026-10-22): the budget and the RAM it was read from. One
 # machine gives one value; two machines (here and remote) differ, and no decision reads the RAM
-# figure itself. Masked as BIRTH is.
+# figure itself. Masked as START is.
 MACHINE = ("budget_bytes", "ram_bytes")
 # Fields that depend on WHEN a body fold evicted a cache (W-2, 2026-10-22): the memo sizes and
 # hit counts a memo_sizes row reports. Masked only by a comparer that runs a fold or an eviction on
@@ -151,7 +151,7 @@ def compare(a: list[dict], b: list[dict], drop: set[str],
     for x, y in zip(a, kept, strict=True):
         x, y = mask_timings([json.loads(json.dumps(x)), json.loads(json.dumps(y))])
         if x.get("slot") == "@run" and x["event"] == "arms" == y["event"]:
-            for k in BIRTH + MACHINE:
+            for k in START + MACHINE:
                 x["detail"].pop(k, None)
                 y["detail"].pop(k, None)
         for f in new_fields:

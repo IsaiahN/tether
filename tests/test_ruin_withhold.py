@@ -2,7 +2,7 @@
 on, a pair the veto floor holds for THIS board is withheld from the one choose() call, at the sites
 below the seam where the button and coordinate are chosen, unless every option is vetoed.
 
-  must-pass: snaps AVOID (s0 must never read 3) from s0=2, 4 lives, the agent CHOOSING: with C
+  must-pass: snaps AVOID (s0 must never read 3) from s0=2, 4 attempts, the agent CHOOSING: with C
      OFF it repeats its own game loss (a held key loses the game again); with C ON no held key loses
      the game again, every @ruin row's choice is outside its withheld set, and the FULL gate passes;
   1. on a DIFFERENT board nothing is withheld;
@@ -63,7 +63,7 @@ class _Spy:
         ag.choose, ag.iface._withhold = choose, withhold
 
 
-def _lives(start: int, ruin: bool, lives: int = 4, steps: int = 12) -> tuple:
+def _attempts(start: int, ruin: bool, attempts: int = 4, steps: int = 12) -> tuple:
     """The agent CHOOSING, from the same board each attempt (deterministic, so a retry re-meets it):
     (agent, ending per attempt, veto keys in order, the spy). An attempt ends at a game loss or
     `steps`."""
@@ -71,7 +71,7 @@ def _lives(start: int, ruin: bool, lives: int = 4, steps: int = 12) -> tuple:
     snap = snaps.Snap(R._spec(start))
     ag = R._agent(snap)
     spy, ends, acted = _Spy(ag), [], 0
-    for lv in range(lives):
+    for lv in range(attempts):
         end = None
         for _ in range(steps):
             acted += 1
@@ -88,8 +88,8 @@ def _lives(start: int, ruin: bool, lives: int = 4, steps: int = 12) -> tuple:
 
 
 if __name__ == "__main__":
-    off, off_ends, off_keys, _s, _n = _lives(2, False)
-    ag, ends, keys, spy, acted = _lives(2, True)
+    off, off_ends, off_keys, _s, _n = _attempts(2, False)
+    ag, ends, keys, spy, acted = _attempts(2, True)
     off_rep, rep = len(off_keys) - len(set(off_keys)), len(keys) - len(set(keys))
     assert off_rep > 0, (off_ends, off_keys)          # OFF: the agent repeats its own game loss
     assert rep == 0 and ends.count("game_loss") < off_ends.count("game_loss"), (ends, keys)
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     assert all(r["detail"]["chosen"] not in r["detail"]["withheld"] for r in w), w
     out = gate.check(ag.led.rows())
     assert out["verdict"] == gate.PASS, out
-    print(f"  must-pass, s0=2, 4 lives of up to 12 steps, the agent choosing: OFF endings "
+    print(f"  must-pass, s0=2, 4 attempts of up to 12 steps, the agent choosing: OFF endings "
           f"{off_ends}, {off_rep} game losses repeat a held key; ON endings {ends}, 0 repeats, "
           f"{len(w)} @ruin rows, none choosing a withheld pair; full gate passes "
           f"({len(ag.led.rows())} rows)")

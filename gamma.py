@@ -469,7 +469,8 @@ _KIND_REL = armflag.arm("TETHER_KIND_REL", default=True)
 # max(0, tick - last_tick) is 0 until the new game series passes the old one's last cycle: a carried
 # refutation does not decay. ON: a tick below last_tick is a restarted clock, and the gap counts
 # from the new game series' start (tick). OFF: as before.
-_DECAY_NEW_LIFE = armflag.arm("TETHER_DECAY_NEW_LIFE", default=True)
+_DECAY_NEW_GAME_SERIES = armflag.arm("TETHER_DECAY_NEW_GAME_SERIES", default=True,
+                                     old="TETHER_DECAY_NEW_LIFE")
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
@@ -479,11 +480,11 @@ _DECAY_NEW_LIFE = armflag.arm("TETHER_DECAY_NEW_LIFE", default=True)
 _CARRY_W = armflag.arm("TETHER_CARRY_W", default=True)
 
 
-def mix_w(w: float, inherited, life) -> float:
+def mix_w(w: float, inherited, own) -> float:
     """Symbols :20-26: a belief formed from what it inherited and from its own history, mixed by
     w -- each side a Laplace estimate of its (held, failed) counts. CARRY_W and tether's B2 (r1471
     (B)) both read it here, so the form is one."""
-    (c0, r0), (c1, r1) = inherited, life
+    (c0, r0), (c1, r1) = inherited, own
     return w * (c0 + 1.0) / (c0 + r0 + 2.0) + (1 - w) * (c1 + 1.0) / (c1 + r1 + 2.0)
 
 # L1b (the reviewer 2026-10-17 19:06, 19:33): Rank.used crosses the lineage. It lived on the Agent,
@@ -999,7 +1000,7 @@ class Standing:
         agent has no basis, and **a seed that is replaced the moment evidence exists is the
         floor without the ceiling** -- not a default hiding the absence of a reading.
         """
-        gap = (tick if _DECAY_NEW_LIFE and tick < self.last_tick
+        gap = (tick if _DECAY_NEW_GAME_SERIES and tick < self.last_tick
                else max(0, tick - self.last_tick))
         if gap:
             _f = 0.5 ** (gap / (halflife or REJECTION_HALFLIFE))
@@ -1096,7 +1097,7 @@ class Gamma:
         # series; kind -> [held, failed]; (kind, held, failed, w) per change, for tether's carry_w
         # rows
         self.carry_w_base: dict[str, tuple] = {}
-        self.carry_w_life: dict[str, list] = {}
+        self.carry_w_game_series: dict[str, list] = {}
         self.carry_w_kind: dict[str, list] = {}
         self.carry_w_log: list = []
         self._carry_w_kinds: dict[str, str] = {}
@@ -1255,7 +1256,7 @@ class Gamma:
         if _CARRY_W:
             for name in self.carried:
                 if name in self.library and name not in self.innate \
-                        and name not in self.carry_w_life:
+                        and name not in self.carry_w_game_series:
                     st = self.standing.get(name)
                     self.carry_w_base[name] = ((st.confirmations, st.refusals)
                                                if st is not None else (0.0, 0.0))
@@ -1274,10 +1275,10 @@ class Gamma:
         k = self._carry_w_kinds.get(name)
         if k is None:
             k = self._carry_w_kinds[name] = self.kind_of(self.library[name]).name
-        life = self.carry_w_life.setdefault(name, [0, 0])
+        own = self.carry_w_game_series.setdefault(name, [0, 0])
         kc = self.carry_w_kind.setdefault(k, [0, 0])
         i = 0 if held else 1
-        life[i] += 1
+        own[i] += 1
         kc[i] += 1
         self.carry_w_log.append((k, kc[0], kc[1], round(kc[0] / (kc[0] + kc[1]), 6)))
 
@@ -1525,7 +1526,7 @@ class Gamma:
             h, f = self.carry_w_kind.get(k, (0, 0))
             if h + f:                        # outcomes for the kind: mix (Symbols :20-26)
                 return mix_w(h / (h + f), self.carry_w_base[name],
-                             self.carry_w_life.get(name, (0, 0)))
+                             self.carry_w_game_series.get(name, (0, 0)))
         return (st.confirmations + 1.0) / (st.confirmations + st.refusals + 2.0)
 
     def youth_of(self, name: str) -> float:

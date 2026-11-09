@@ -2,7 +2,7 @@
 NOT RUN: it runs in the end-of-step-7 checklist. Each agent runs in a child process, because the
 arms resolve at import.
 
-  S1  START: two agents started with nothing set draw different seeds, each "birth", generation 0,
+  S1  START: two agents started with nothing set draw different seeds, each "start", generation 0,
       draw seed "<seed>:0", and the run header records it.
   S2  REPLAY: an agent pointed at S1's first ledger (TETHER_SEED_FROM) carries that seed and
       generation, labelled "replay:<sha16>"; it chose nothing.
@@ -75,10 +75,10 @@ def main() -> None:
         assert rc == 0, err
         rc, b, err = child(t / "b.jsonl")
         assert rc == 0, err
-        assert a["seed"] != b["seed"] and a["src"] == b["src"] == "birth", (a, b)
+        assert a["seed"] != b["seed"] and a["src"] == b["src"] == "start", (a, b)
         assert a["gen"] == 0 and a["draw"] == f"{a['seed']}:0", a
         assert header(t / "a.jsonl")["seed"] == a["seed"], "S1: the header does not record it"
-        print(f"  S1 two births, two seeds; header records {a['seed']}")
+        print(f"  S1 two game starts, two seeds; header records {a['seed']}")
 
         rc, r, err = child(t / "r.jsonl", TETHER_SEED_FROM=str(t / "a.jsonl"))
         assert rc == 0, err
@@ -106,7 +106,7 @@ def main() -> None:
         assert rc == 0, err
         assert c["seed"] == w["seed"] and c["gen"] == 1 and c["src"].startswith("lineage:"), c
         assert c["draw"] == f"{w['seed']}:1", c
-        assert c["draw"] != w["draw"], "MF-S6: the continued life replays its day"
+        assert c["draw"] != w["draw"], "MF-S6: the continued game series replays its day"
         assert c["at_load"] == [c["draw"]], ("F-a: the load ran under another seed", c)
         print(f"  S6 the lineage carries the seed at generation 1 ({c['draw']})")
 

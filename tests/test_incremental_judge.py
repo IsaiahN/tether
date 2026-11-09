@@ -1,6 +1,6 @@
 """22 INCREMENTAL_JUDGE (TETHER_INCREMENTAL_JUDGE, default ON; the reviewer 2026-10-31 r571).
 Minimal gates, each in its own process.
-  check_identity_and_long_life
+  check_identity_and_long_game_series
                       THE MUST-HOLD: six movers (r481's fixture), 60 steps: the ON and OFF ledgers
                       identical row for row, the timing fields and the arms row aside; and REPORTED,
                       the same runs: the history rows _left walks and ROUTE's seconds per step, OFF
@@ -124,7 +124,7 @@ def _route(rows: list) -> list:
             if r["event"] == "repeat" and isinstance(r["detail"].get("wall_s"), dict)]
 
 
-def check_identity_and_long_life() -> None:
+def check_identity_and_long_game_series() -> None:
     """The must-hold and the must-fail read off the same pair of runs."""
     on, off = _pair()
     a, b = _norm(off["rows"]), _norm(on["rows"])

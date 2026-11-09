@@ -269,7 +269,8 @@ def rewire(env, ag, ctx, why: dict, no_answer: bool = False):
     led.record(cycle, "SETTLE", "@run", "b_mem_guard", what="rewire", **why,
                parent=getattr(fresh, "lineage_parent", None), written=(w or {}).get("hash"),
                reads="run B B_MEM_GUARD: between games, a fresh agent, because this worker's commit plus its "
-                     "largest one-game growth would pass its share; under K-W this life was written first and the "
+                     "largest one-game growth would pass its share; under K-W this game series was written first and "
+                     "the "
                      "fresh agent loads it, else nothing was written and it loads the unchanged lineage")
     return fresh_env, fresh
 
@@ -284,7 +285,7 @@ def inject(ag) -> None:
     ag.step = once
 
 
-steps_life = 0
+steps_game_series = 0
 arc = Arcade(operation_mode=arc_holdout._mode())
 proxy = Stream(arc)
 no_answer = []                            # r563: games ended because the wrapper answered None
@@ -386,9 +387,9 @@ while nxt is not None:
     acts, first_act_s = 0, None
     while going(t_start, acts, mn, mx):
         t_step = time.time()
-        if FAULT_AT is not None and steps_life == FAULT_AT:
+        if FAULT_AT is not None and steps_game_series == FAULT_AT:
             inject(ag)
-        steps_life += 1
+        steps_game_series += 1
         # item 25 (r1265): this game's slice, read by the agent as its wall clock (no turn count)
         ag.slice_from, ag.slice_until = t_start, t_start + mx
         # item 31 (r1291, r1292): the run's budget as readings -- the games a quit's seconds would

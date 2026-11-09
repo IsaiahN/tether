@@ -628,7 +628,7 @@ def play(game: str, cycles: int = 40, library: str | None = None,
                    reserve_s=ag._end_reserve, cut=ag._cut,
                    stored=((lineage_gen or {}).get("store") or {}).get("end_path"),
                    reads="C1 (A): the game's end path, timed whole; its stored wall is the next "
-                         "life's reserve")
+                         "game series' reserve")
     # R2 REOPEN (the reviewer 2026-10-18 01:18): the lineage write is the boundary's last writer
     # (_3a_settle's rows reopen the handle end_run closed), so the ledger closes again here
     close = getattr(ag.led, "close", None)

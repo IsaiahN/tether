@@ -38,7 +38,7 @@ def main():
     left = ag._board_untried_n()
     assert left < len(offered), ("occasions: no press reached the record", left)
     mapped = [a for a in offered if a in ag.iface.table]
-    assert mapped, "occasions: the life's table maps an action"
+    assert mapped, "occasions: the game series' table maps an action"
     ag.retarget(env, ag.level, how="game_loss")
     assert ag._board_untried_n() == left, "a game loss is not a new board"
     ag.retarget(env, ag.level, how=tether.NEW_BOARD)

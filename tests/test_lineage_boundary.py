@@ -276,16 +276,16 @@ def _part_mfd(tmp):
     # THE OCCASION (the reviewer 2026-10-25 21:52, (m)): a free-seed game series that writes no term
     # row before its last generation gives a cleared map nothing to write twice. A fresh game start
     # is drawn, up to 5, selected on the occasion ONLY, never on the outcome
-    for birth in range(1, 6):
-        mfd = tmp / f"mfd_{birth}"
+    for start in range(1, 6):
+        mfd = tmp / f"mfd_{start}"
         out = _out(_child("game", mfd, -1, "written", TETHER_SAVE_DEDUP="0"), "REPORT")
         seed, rows, al = _occasion(mfd)
-        print(f"  MF-D birth {birth}: seed {seed}, rows before the last generation {rows}, "
+        print(f"  MF-D game start {start}: seed {seed}, rows before the last generation {rows}, "
               f"aliases {al}")
         if rows:
             break
     else:
-        raise AssertionError("MF-D: no occasion in 5 births")
+        raise AssertionError("MF-D: no occasion in 5 game starts")
     try:
         _l3(mfd, out["evidence"])
     except AssertionError as e:

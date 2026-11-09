@@ -3066,7 +3066,7 @@ def _seed_from_record(path: str) -> dict:
             "seed_source": tag}
 
 
-def _seed_at_birth() -> dict:
+def _seed_at_start() -> dict:
     """The agent's seed when it is made: OFF the old constant; a replay reads its record; else a
     fresh draw from the OS that nothing of ours picks."""
     if "TETHER_HOLD_SEED" in os.environ:
@@ -3078,7 +3078,7 @@ def _seed_at_birth() -> dict:
     if src:
         return _seed_from_record(src)
     import secrets
-    return {"seed": secrets.token_hex(8), "generation": 0, "seed_source": "birth"}
+    return {"seed": secrets.token_hex(8), "generation": 0, "seed_source": "start"}
 
 # `_INVENT` / `_invent` REMOVED -- Isaiah 2026-10-04, *a bootleg composition*; RETIRED means
 # gone. Why, measured: `F431.6`. `conform/arms.py` `RETIRED` refuses the flag if it returns.
@@ -4519,7 +4519,7 @@ class Agent:
         # THE RUN HEADER: which arms this agent runs with, read from the live module values,
         # ONCE, before any step (the reviewer 2026-10-08 18:56Z; F424). Its own slot, so the
         # per-(cycle, slot) step order the gate checks cannot see it displace a PLAN row.
-        self._set_seed(**_seed_at_birth())
+        self._set_seed(**_seed_at_start())
         if len(self.led) == 0:
             arms = I.Attribution.arms()
             self.led.record(0, "PLAN", "@run", "arms", on=arms["on"], off=arms["off"],
@@ -23580,8 +23580,8 @@ class Agent:
         if len(seeds) == 1:
             seed, src = next(iter(seeds)), f"lineage:{tip}"
         else:
-            seed, src = self.seed, ("birth; the lineage carries no seed" if not seeds else
-                                    f"birth; the lineage carries {len(seeds)} seeds")
+            seed, src = self.seed, ("start; the lineage carries no seed" if not seeds else
+                                    f"start; the lineage carries {len(seeds)} seeds")
         self._set_seed(seed, n, src)
         self.led.record(0, "PLAN", "@run", "seed", seed=seed, generation=n, seed_source=src,
                         lineage_seeds=sorted(seeds))
@@ -27128,7 +27128,7 @@ class Agent:
                 self.led.record(self.cycle - 1, "REPEAT", "@carry_w", "carry_w", kind=k, held=h,
                                 failed=f, w=w,
                                 reads="w for this kind of carried term: the share of its "
-                                      "outcomes this life that held (Symbols :20-26)")
+                                      "outcomes this game series that held (Symbols :20-26)")
             self.gamma.carry_w_log.clear()
         with self._step_scope("REPEAT"):
             self.led.record(self.cycle - 1, "REPEAT", "@loop", "repeat",

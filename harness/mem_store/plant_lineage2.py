@@ -1,4 +1,5 @@
-"""THE PLANTED LINEAGE v2 for the kind switch (the reviewer 2026-10-19 10:45 item 2 (d), (e)). plant_life.py's two saves
+"""THE PLANTED LINEAGE v2 for the kind switch (the reviewer 2026-10-19 10:45 item 2 (d), (e)).
+plant_lineage.py's two saves
 (G1 = the root as SET-FORM; G2 with A, B, C (known, no count), D, E (counted, in no kinds_landed)), PLUS three T2
 CANDIDATES in G2 on three DISTINCT REAL entries (from the root's kinds_landed, so the library holds them) under a
 PLANTED target kind ["PLANTED_KIND"], which no dk landing names:
