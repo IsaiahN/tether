@@ -5261,7 +5261,8 @@ class Agent:
         """The run ends with this level still open: its signals resolve at the GAME (MC2). The loops
         call it after their last step; `retarget` never sees a cap or a timeout."""
         if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
-            self._3a_settle()     # r1542: at the game's own end, not at its save
+            with self._tail_booking():  # r1562: booked to the ended life's last cycle
+                self._3a_settle()     # r1542: at the game's own end, not at its save
         self._intent_verdict(how)
         self._note_ending(how, "run")
         if composer._BOND_TEST:
@@ -5274,7 +5275,8 @@ class Agent:
             self._muse_close_parks(how)          # item 24: the game's parks close with it
         self._resolve_signals("game", how)
         if _D13:
-            self._settle_process("game", how)
+            with self._tail_booking():  # r1562: the ended life's bets, its last cycle
+                self._settle_process("game", how)
         if self._goal_conds:
             self._close_goals(how)
         if _MEMO_CLEAR or _MEMO_ADMIT:
@@ -5401,7 +5403,8 @@ class Agent:
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
         if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
-            self._3a_settle()     # r1542: while this epoch's trace still exists
+            with self._tail_booking():  # r1562: booked to the ended life's last cycle
+                self._3a_settle()     # r1542: while this epoch's trace still exists
         if _S0_HANDOFF:
             if how in (WIN, ADVANCE):
                 self._s0_pay()                  # item 28: the stalled line's level paid
@@ -5553,7 +5556,8 @@ class Agent:
                                                     "clearing segment, settled once (r694 3)")
         self._resolve_signals("level", how)
         if _D13:
-            self._settle_process("level", how)
+            with self._tail_booking():  # r1562: the ended life's bets, its last cycle
+                self._settle_process("level", how)
         if _GOAL_HYP:
             # GQ2: a hypothesis held through a clear WON (its shelf record counts it); any other
             # boundary closes it; the new level's board is proposed afresh
@@ -11273,7 +11277,8 @@ class Agent:
                                    "on its explanation")
             else:
                 right, by = None, "no change after the park: no ground reading"
-            self.led.record(self.cycle, "SETTLE", "@process", "process_settle", bet_seq=b["seq"],
+            self.led.record(self._book_cycle(), "SETTLE", "@process", "process_settle",
+                            bet_seq=b["seq"],
                             kind=b["kind"], about=b["slot"], right=right, settled_by=by,
                             scope=scope, how=how, level=self.level,
                             **({} if cleared else {"stall": {

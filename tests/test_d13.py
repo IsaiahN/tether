@@ -94,6 +94,40 @@ if __name__ == "__main__":
     tether._AGENT_SEED = False
     tether.Agent.__init__ = _init
     tether.Agent._settle_process = _guarded
+    # r1562 (B): retarget books the ended life's settle to that life's last cycle, so the next
+    # step's own process_bet on "@process", at the same cycle number, follows it in step order
+    from contextlib import contextmanager
+
+    import gate
+
+    @contextmanager
+    def _no_booking(_self):
+        yield
+
+    def _booked(no_scope: bool):
+        tether._D13 = True
+        real_tb = tether.Agent._tail_booking
+        if no_scope:
+            tether.Agent._tail_booking = _no_booking
+        try:
+            ag = _agent()
+            sl = sorted(ag.slots)[0]
+            ag._park_bet(sl, {"verdict": "under_floor"})
+            c0 = ag.cycle
+            ag.retarget(ag.env, ag.level, how="death")
+            with ag._step_scope("MINT"):
+                ag._process_bet("parked_explained", sl)   # the next step's own bet
+        finally:
+            tether.Agent._tail_booking = real_tb
+        cyc = {r["cycle"] for r in ag.led.rows() if r["event"] == "process_settle"}
+        return c0, cyc, gate._steps(ag.led.rows())
+    c0, cyc, out = _booked(False)
+    assert cyc == {c0 - 1} and out is None, (c0, cyc, out)
+    _c, cyc_mf, out_mf = _booked(True)
+    assert cyc_mf == {_c} and out_mf is not None, ("MUST-FAIL did not fail", cyc_mf, out_mf)
+    print(f"  r1562: a death at cycle {c0} books its process_settle at {c0 - 1}; the next bet on "
+          f"'@process' passes _steps. MUST-FAIL (no booking scope): settled at {_c}, "
+          f"{out_mf['note']}")
     for seed in (5, 7):
         on = _ladder(seed, True)
         bets = [r["detail"] for r in on if r["event"] == "process_bet"]
