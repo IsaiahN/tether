@@ -6139,9 +6139,10 @@ class Agent:
         """1d: an owed derived ask let go, with the reason and the readings it was judged on. It
         is not marked tried, so new evidence raises it again. Its own MINT scope: a release at
         retarget or end_run runs outside the step's MINT phase, after later steps have written
-        rows on the slot, so those go on "@owed" (as "@boundary" does), naming the ask."""
+        rows on the slot, so those go on "@owed_ask", naming the ask: its own chain, apart from
+        C1's owed_closed on "@owed" in the same retarget (gate.py's one chain per slot; r1553)."""
         der = self.env.derived() if hasattr(self.env, "derived") else {}
-        at = "@owed" if why in ("level end", "outranked") else d
+        at = "@owed_ask" if why in ("level end", "outranked") else d
         self.led.record(self.cycle, "MINT", at, "owed_released", ask=d, since=ct[0], why=why,
                         transition=list(ct[1]), wants=d in self.wants,
                         sources={s: round(self.outstanding(s), 4) for s in der.get(d, ())},
@@ -6216,7 +6217,7 @@ class Agent:
                 self._dw_owed[d] = (owed[d][0] if d in owed else self.cycle, t)
                 b2["deferred"] += 1
                 # r1442 (a): E0-W runs after the ACCEPT loop, so on a slot ACCEPTed this cycle its
-                # note goes on "@derived" (as "@owed" does), the slot named in the row
+                # note goes on "@derived" (as "@owed_ask" does), the slot named in the row
                 at = "@derived" if self.led.wrote(self.cycle, "ACCEPT", d) else d
                 self.led.record(self.cycle, "MINT", at, "derived_deferred", owes=True,
                                 **({"derived": d} if at != d else {}),

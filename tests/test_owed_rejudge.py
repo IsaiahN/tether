@@ -25,6 +25,10 @@ birth seed pinned. Each check runs in its own process, under 5 minutes.
                                   the plain mint takes the step's search, the derived asks are owed
                                   after it
   check_tie_control               the same, the plain mints skipped: the derived asks run
+  check_j_owed_chains_apart       r1553: one retarget with C1's owed questions AND 1d's owed asks
+                                  writes owed_closed and 'level end' releases on two keys, and
+                                  gate._steps passes; MUST-FAIL: the release back on "@owed" is
+                                  refused "MINT after IMPORT"
   check_off_identity_grid, check_off_identity_fake   TETHER_OWED_REJUDGE=0 against 2a8045c
     python tests/test_owed_rejudge.py [check ...]
 """
@@ -415,6 +419,45 @@ def _off_identity(w: str) -> None:
         (i for i, (x, y) in enumerate(zip(base, cur, strict=False)) if x != y), None))
     print(f"  OFF identity (TETHER_OWED_REJUDGE=0, {w}): {len(base)} rows against {BASE}, "
           "0 differences")
+
+
+def _retarget_rows(must_fail: bool) -> tuple[list, list, list, bool]:
+    env, ag = _owed_state()
+    grown = bool(ag._owed_q)
+    if not grown:                       # constructed: C1's half of the occasion
+        ag._owed_q = {next(iter(sorted(ag._dw_owed))): (ag.cycle, "o0")}
+    if must_fail:
+        real = ag.led.record
+
+        def back(cycle, step, slot, event, *a, **kw):
+            return real(cycle, step, "@owed" if slot == "@owed_ask" else slot, event, *a, **kw)
+        ag.led.record = back
+    n0 = len(ag.led.rows())
+    ag.retarget(env, ag.level, "death")
+    new = ag.led.rows()[n0:]
+    closed = [r for r in new if r["event"] == "owed_closed"]
+    rel = [r for r in new if r["event"] == "owed_released"
+           and r["detail"].get("why") == "level end"]
+    assert closed and rel and {r["cycle"] for r in closed} == {r["cycle"] for r in rel}, (
+        "occasion: owed_closed and a 'level end' release in one retarget, one cycle",
+        len(closed), len(rel))
+    return ag.led.rows(), closed, rel, grown
+
+
+def check_j_owed_chains_apart() -> None:
+    import gate
+    rows, closed, rel, grown = _retarget_rows(False)
+    assert {r["slot"] for r in closed} == {"@owed"}, {r["slot"] for r in closed}
+    assert {r["slot"] for r in rel} == {"@owed_ask"}, {r["slot"] for r in rel}
+    out = gate._steps(rows)
+    assert out is None, out
+    rows, _c, _r, _g = _retarget_rows(True)
+    out = gate._steps(rows)
+    assert out is not None and "MINT after IMPORT" in out["note"], ("MUST-FAIL did not fail", out)
+    how = "grown" if grown else "constructed"
+    print(f"  one retarget ({how} owed questions): {len(closed)} owed_closed on '@owed', "
+          f"{len(rel)} 'level end' "
+          f"releases on '@owed_ask'; _steps passes. MUST-FAIL (release on '@owed'): {out['note']}")
 
 
 def check_off_identity_grid() -> None:
