@@ -602,6 +602,10 @@ def play(game: str, cycles: int = 40, library: str | None = None,
                 bounds.append(door.lineage_boundary(lineage_dir, ag, game,
                                                     end if term_edge else "level"))
                 ag._note_boundary_wall(time.perf_counter() - t_b)
+            elif lineage._ENDING_SAVE and lineage._BOUNDARY and getattr(ag, "_ending_due", False):
+                t_b = time.perf_counter()       # r1530: a goal ending's save, between steps
+                bounds.append(door.lineage_boundary(lineage_dir, ag, game, "goal_ending"))
+                ag._note_boundary_wall(time.perf_counter() - t_b)
             lv_seen = lv
         was_terminal = end
         # `cycles` is a CAP, not the unit. play() otherwise runs the full count and every

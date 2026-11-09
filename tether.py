@@ -9616,6 +9616,8 @@ class Agent:
     def _hyp_end(self, why: str, loss: bool = False, won: bool = False,
                  step: str = "PLAN", by: str | None = None, boundary: bool = False) -> None:
         h, self._hyp = self._hyp, None
+        if lineage._ENDING_SAVE and not boundary:
+            self._ending_due = True     # r1530: the runners write its save between steps
         self._la_routine(h, why)
         kept = self._books_kept()
         released = self._release_link(h["key"])

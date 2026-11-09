@@ -3197,7 +3197,15 @@ ARMS: dict[str, str] = {
                          "resolves each alias to what that row installed (renamed / onto an atom "
                          "/ refused), so the replay maps the evidence as before. An alias naming "
                          "no row raises. OFF: every row written, as before. default ON",
-    "TETHER_STORE_HEAL": "S6 H (the reviewer 2026-10-19; the K crash runs): under "
+    "TETHER_ENDING_SAVE": "WRITE AT GOAL ENDINGS (the reviewer 2026-11-09 r1530; r1487, r1501): "
+                          "a goal hypothesis's end (Agent._hyp_end, a boundary's close aside, "
+                          "which the edge write covers) marks a save due; both runners write it "
+                          "between steps through lineage.boundary(how=\"goal_ending\"), and a "
+                          "save with every field beyond the header empty is not written. Loss "
+                          "window: the current goal's search. A write point only: nothing "
+                          "reaches the agent. OFF: as 8db0a33. default OFF until the reviewer's "
+                          "verification",
+    "TETHER_STORE_HEAL":"S6 H (the reviewer 2026-10-19; the K crash runs): under "
                          "TETHER_MEMORY_STORE, a store failing its cheap check at load WITH a WAL "
                          "is checkpointed "
                          "(TRUNCATE) and checked again, size and quick_check "

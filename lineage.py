@@ -61,6 +61,12 @@ def _b2_inherit(ag: Any, gens) -> int:
 # a generation at every level clear and death too, so a stop loses at most the current level.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
+# WRITE AT GOAL ENDINGS (the reviewer 2026-11-09 r1530; r1487, r1501): a goal hypothesis's end
+# (Agent._hyp_end, a boundary's close aside) marks a save due, and both runners write it between
+# steps through boundary(how="goal_ending"); a save with nothing new is not written. A cut-off
+# loses at most the current goal's search. OFF: as 8db0a33
+_ENDING_SAVE = armflag.arm("TETHER_ENDING_SAVE", default=False)
+_GEN_HEADER = ("lineage", "parent", "game", "seed", "generation", "alias_rule")
 # (c) THE DORMANT ITEM WRITTEN WHOLE (the reviewer 2026-10-22 20:57): a boundary item holds live
 # Terms (its want_terms copy), which enc has no form for, so one Term cost the generation the WHOLE
 # boundary record. ON: each Term in it is written as its term-row record (dormant_items), the live
@@ -648,7 +654,7 @@ def _fsync(f: Path) -> None:
         os.fsync(fh.fileno())
 
 
-def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
+def write(d: str | Path, ag: Any, game: str, sleep: bool = True, skip_empty: bool = False) -> dict:
     """The boundary's generation: only what changed since the parent the instance LOADED
     (ag.lineage_parent), against that parent's fold. Named by its own hash; never overwritten.
     Under TETHER_MEMORY_STORE the parent's fold is a store lookup, and the save is merged into the
@@ -659,13 +665,24 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
     if sleep and snap is not None:
         snap.close()    # W-4: the snapshot's reader ends before the game's checkpoint
     try:
-        return _write(d, ag, game, sleep, held)
+        return _write(d, ag, game, sleep, held, skip_empty)
     finally:    # the store's connection is closed on every path, an error's included
         for con in held:
             con.close()
 
 
-def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
+def _carries_nothing(v: Any) -> bool:
+    """r1530's empty: None, an empty container, or a dict of such (thought_*, kind_counts and
+    hazard_3a keep each key with an empty delta); a zero or False is a value, never empty."""
+    if v is None:
+        return True
+    if isinstance(v, dict):
+        return all(_carries_nothing(x) for x in v.values())
+    return isinstance(v, (list, tuple, set, str)) and not v
+
+
+def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
+           skip_empty: bool = False) -> dict:
     p = Path(d)
     p.mkdir(parents=True, exist_ok=True)
     parent = getattr(ag, "lineage_parent", None)
@@ -898,6 +915,12 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         # item 4: the generation names how its game ended; the faulted cycle's stamped entries
         # are not in it (above); its unstamped structures (kind episodes, counters) are as built
         gen["ended"], gen["error"] = "agent_fault", str(ag._fault_text)[:500]
+    # r1532 (A): kinds_by_class is a whole table, new only when it differs from the last written
+    if skip_empty and all(_carries_nothing(v) or (k == "kinds_by_class"
+                                                  and v == getattr(ag, "_kbc_written", None))
+                          for k, v in gen.items() if k not in _GEN_HEADER):
+        # r1530: nothing new since the last write; index, memo and asked entries stay pending
+        return {"skipped": "nothing new"}
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     if fc is not None and not _readback(_store_bytes(raw), raw, h):
@@ -919,6 +942,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._kind_episode_mark = len(ag._kind_episodes)
         if "kinds_landed_n" in gen:
             ag._kn_written = dict(ag._kind_landed_n)
+        if "kinds_by_class" in gen:
+            ag._kbc_written = gen["kinds_by_class"]
         # a write without the boundary is a sibling of the last (the parent does not advance),
         # so the mark moves only with the parent
         if "unit_used" in gen:
@@ -1078,12 +1103,16 @@ def _new_form_pairs(ag: Any) -> list:
 def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
     """THE BOUNDARY WRITE, one path for both runners (arc_holdout.play, tether_agent.run): a
     generation at a level clear ("level") or a terminal edge ("death", "game_win"), as write() makes
-    one at the game's end. None unless the boundary arm, the carry and a folder are all present."""
+    one at the game's end, and under _ENDING_SAVE at a goal ending ("goal_ending"), not written when
+    nothing is new. None unless the boundary arm, the carry and a folder are all present."""
     if not (_BOUNDARY and _CARRY and d):
         return None
     # agent_level: Agent.level, which counts WIN/death edges, and level clears too only under
     # TETHER_LEVEL_EDGE (F1); the 'how' field is the true label of the write
-    return {"how": how, "agent_level": ag.level, **write(d, ag, game, sleep=False)}
+    if _ENDING_SAVE:
+        ag._ending_due = False      # any write covers the endings before it
+    return {"how": how, "agent_level": ag.level,
+            **write(d, ag, game, sleep=False, skip_empty=how == "goal_ending")}
 
 
 def _heal(p: Path, ok: bool, why: str) -> tuple[bool, str, dict]:

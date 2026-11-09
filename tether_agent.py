@@ -74,6 +74,9 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
             if lineage._BOUNDARY and (term_edge or lvl_edge):
                 bounds.append(store.lineage_boundary(lineage_dir, ag, game,
                                                      end if term_edge else "level"))
+            elif lineage._ENDING_SAVE and lineage._BOUNDARY and getattr(ag, "_ending_due", False):
+                # r1530: a goal ending's save, between steps
+                bounds.append(store.lineage_boundary(lineage_dir, ag, game, "goal_ending"))
             lv_seen = lv
         was = end
         if end == ledger.WIN:   # the game is over and won. A death is not an end.

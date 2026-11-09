@@ -14,6 +14,11 @@ runners do at a level clear or a terminal edge.
        least one memo entry is pending when the stopped game had bound answers.
   MF-L MUST-FAIL: the parent left at the loaded one after each write -> N3 (L2 red).
   MF-D MUST-FAIL: the written map cleared after each write -> a term written twice (L3 red).
+  LE   TETHER_ENDING_SAVE (r1530-r1532): a stop right after the first goal ending whose save writes
+       a term (no game-end write) loses none of it: a new instance loads that save as its tip and
+       loaded + already_held == the terms the ending saves wrote. A real occasion: gridworld_arc_s4,
+       found by a search on the occasion only (r1532 4). MF-LE: the arm OFF, the same stop -> the
+       term is not loaded.
 
     python tests/test_lineage_boundary.py
 """
@@ -42,6 +47,7 @@ import world  # noqa: E402
 
 K, N = 3, 8
 N_ON = 8   # MF-D (ii)'s steps a level under seed 0, lengthened only if its occasion is absent
+N_E = 40   # LE's step cap on gridworld_arc_s4 (its first term-writing ending save: c17)
 
 
 def _agent(seed):
@@ -84,8 +90,33 @@ def role_game(d, stop, mf, n=N):
           flush=True)
 
 
-def role_load(d):
-    ag = _agent(1)
+def _arc_agent(name):
+    sys.path.insert(1, str(Path(__file__).resolve().parents[1] / "conform"))
+    import panel
+    env = world.bind(panel._gridworld(name)[0])
+    return tether.Agent(env, gamma.Gamma(env.atoms(), game=name), tether.Config(),
+                        ledger.Ledger())
+
+
+def role_ending(d, stop):
+    """LE: gridworld_arc_s4, each due goal ending saved as both runners save it; stops after the
+    first ending save that writes a term (stop < 0) or at cycle `stop`; no game-end write."""
+    ag = _arc_agent("gridworld_arc_s4")
+    lineage.load(d, ag)
+    reps = []
+    for _ in range(N_E):
+        ag.step()
+        if lineage._ENDING_SAVE and getattr(ag, "_ending_due", False):
+            reps.append(lineage.boundary(d, ag, "arc_s4", "goal_ending"))
+        if (reps and reps[-1].get("terms")) if stop < 0 else ag.cycle >= stop:
+            break
+    print("REPORT " + json.dumps({"cycle": ag.cycle, "reps": [
+        {k: r.get(k) for k in ("hash", "terms", "skipped", "refused")} for r in reps]}),
+          flush=True)
+
+
+def role_load(d, arc=False):
+    ag = _arc_agent("gridworld_arc_s4") if arc else _agent(1)
     rep = lineage.load(d, ag)
     lib = sorted(n for n, t in ag.gamma.library.items() if t.origin != gamma.PRIOR)
     st = json.dumps({n: dataclasses.asdict(ag.gamma.standing[n]) for n in lib
@@ -154,7 +185,7 @@ def _l3(d, evidence):
     return chain
 
 
-PARTS = ("l1", "l4", "mfl", "mfd", "mfdon")   # by name, one process each, under 5 min (r299)
+PARTS = ("l1", "l4", "mfl", "mfd", "mfdon", "le")   # by name, one process each, under 5 min (r299)
 
 
 def main(parts=PARTS):
@@ -286,13 +317,37 @@ def _part_mfdon(tmp):
           f"({len(lf['library'])}) and standing ({lf['standing']}) load from both")
 
 
+def _part_le(tmp):
+    """LE and MF-LE."""
+    # wiring AND occasion are real: the agent's own ending writes the term (r1532 4); the stop is
+    # right after that save, so the next instance has only what the ending saves wrote
+    out = _out(_child("ending", tmp / "le", -1, TETHER_ENDING_SAVE="1"), "REPORT")
+    wrote = sum(r["terms"] or 0 for r in out["reps"])
+    assert wrote, ("fixture: no goal-ending save wrote a term", out)
+    got = _out(_child("load", tmp / "le", "arc", TETHER_ENDING_SAVE="1"), "LOAD")
+    assert got["parent"] == out["reps"][-1]["hash"], ("LE: the tip is not the ending's save", got)
+    assert got["loaded"] + got["already_held"] == wrote, ("LE: terms written vs taken", wrote, got)
+    # MF-LE: the arm OFF, the same stop: no ending save, so the term is not loaded
+    off = _out(_child("ending", tmp / "le_off", out["cycle"], TETHER_ENDING_SAVE="0"), "REPORT")
+    assert off["cycle"] == out["cycle"] and not off["reps"], ("MF-LE: not the same stop", off)
+    lo = _out(_child("load", tmp / "le_off", "arc", TETHER_ENDING_SAVE="0"), "LOAD")
+    assert lo["loaded"] + lo["already_held"] < wrote, ("MF-LE MUST-FAIL did not fail: the term "
+                                                       "loaded with no ending save", lo)
+    print(f"  LE stopped at c{out['cycle']} after {len(out['reps'])} ending saves "
+          f"({sum(1 for r in out['reps'] if r['skipped'])} skipped): the next instance loads the "
+          f"last as its tip and all {wrote} terms they wrote ({got['loaded']} installed; already "
+          f"held {got['already_held']}); MF-LE arm OFF, the same stop: {lo['loaded']} loaded")
+
+
 if __name__ == "__main__":
     if "--role" in sys.argv:
         a = sys.argv[sys.argv.index("--role") + 1:]
         if a[0] == "game":
             role_game(a[1], int(a[2]), a[3], int(a[4]) if len(a) > 4 else N)
+        elif a[0] == "ending":
+            role_ending(a[1], int(a[2]))
         else:
-            role_load(a[1])
+            role_load(a[1], arc=len(a) > 2)
     else:
         # part names on the command line run only those parts; none runs all
         main(tuple(a for a in sys.argv[1:] if a in PARTS) or PARTS)
