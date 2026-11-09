@@ -228,7 +228,8 @@ def _partition(f, blob, names, held=None):
     return None
 
 
-PARTS = ("a", "b", "c", "d", "e")    # by name, one process each, each under 5 min (r299)
+PARTS = ("a", "b", "c", "d", "e", "f")  # by name, one process each; each under 5 min (r299),
+#                                          c and e under 10 (r1526)
 
 
 def on_checks(parts=PARTS):
@@ -562,6 +563,84 @@ def _part_d(tmp):
           f"{b['lineage']['hash']}", flush=True)
 
 
+def _plant_take(ag, operand):
+    """A PLANT (as part a's): one constructed "take" term bound to `operand`, accepted."""
+    t = gamma.Term((ag.gamma._by_name["take"],), operand=operand)
+    ag.gamma.accept(t, seq=len(ag.led), residual=f"{operand}@{ag.cycle}")
+    return t
+
+
+def _past_self_pair(d, wrap=None):
+    """Game 1 plants take<o0.dcol_o3> and writes the earlier save; game 2 loads it, plants
+    take<o1.dcol_o2> -- one composition, another binding, so one row_key and two names -- and
+    writes; `wrap`, when given, replaces Gamma.row_key during game 2's write only."""
+    _env, ag1, _r = _agent(d, 0)
+    p1 = _plant_take(ag1, "o0.dcol_o3")
+    ag1.end_run("cap")
+    _write_kind_off(d, ag1)
+    w1 = lineage._chain(Path(d))[-1][0]
+    _env, ag2, rep2 = _agent(d, 0)
+    assert rep2.get("parent") == w1, ("fixture: game 2 did not load the earlier save", rep2)
+    p2 = _plant_take(ag2, "o1.dcol_o2")
+    # the alias branch's own preconditions (lineage.py :705-707, :716; r1527): without them the
+    # plant is written as a row and the must-fail below would pass for the wrong reason
+    assert gamma._REPLAY_UNIT, "fixture: _REPLAY_UNIT off -- no 'was', the alias branch cannot run"
+    assert lineage._SAVE_DEDUP, "fixture: (d) off -- nothing is aliased"
+    assert p2.guard_ref is None, "fixture: the plant carries a guard_ref"
+    assert p2.name not in ag2.gamma.carried, "fixture: game 2's plant is carried, not new"
+    ag2.end_run("cap")
+    real = gamma.Gamma.row_key
+    if wrap:
+        gamma.Gamma.row_key = staticmethod(wrap(real, w1))
+    try:
+        _write_kind_off(d, ag2)
+    finally:
+        gamma.Gamma.row_key = real
+    chain = lineage._chain(Path(d))
+    return p1, p2, chain[-2][1], chain[-1][1], w1
+
+
+def _part_f(tmp):
+    """The past-self fold's alias (lineage.py :699)."""
+    # r1506, r1526, r1527: a later game re-makes a composition its earlier save holds, under a new
+    # identity; the save writes it as an ALIAS of the earlier save's row (the past-self fold path,
+    # :699 into :716-722), never a row of its own. Constructed, so it proves wiring (Fig 11 :70);
+    # part b's grown aliases take the within-save path (:724) instead
+    d = tmp / "past_self"
+    p1, p2, g1, g2, w1 = _past_self_pair(d)
+    k = gamma.Gamma.row_key({"atoms": ["take"], "operand": p1.operand})
+    assert any(gamma.Gamma.row_key(r) == k for r in g1["terms"]), (
+        "fixture: the earlier save wrote no row of key K", k)
+    assert gamma.Gamma.row_key({"atoms": ["take"], "operand": p2.operand}) == k, (
+        "fixture: the two plants are not one composition")
+    al = [a for a in g2.get("aliases", []) if a["was"] == p2.name]
+    assert not [r for r in g2["terms"] if r.get("was") == p2.name], (
+        "past-self fold: game 2's plant was written as a row")
+    assert len(al) == 1 and al[0]["key"] == k, (
+        "past-self fold: no alias of key K", g2.get("aliases"))
+    assert k not in {gamma.Gamma.row_key(r) for r in g2["terms"]}, (
+        "past-self fold: K is held by a row of game 2's own save (the within-save path, :724)")
+    # the round trip: a fresh load installs the earlier row once and maps the alias onto it
+    # (gamma.load_blob :1874-1886)
+    _env, ag3, _r = _agent(d, 0)
+    got = ag3.gamma.renamed.get(p2.name)
+    assert got is not None and got == ag3.gamma.renamed.get(p1.name), (
+        "past-self fold: the alias did not load onto the earlier save's term", got,
+        ag3.gamma.renamed.get(p1.name))
+    # MUST-FAIL (r1506): rows born in the earlier save's generation answer with a changed key
+    # during game 2's write, so K is held by nothing and the plant must be written as a ROW
+
+    def changed(real, born):
+        return lambda r: real(r) + "|changed" if r.get("born") == born else real(r)
+    _q1, q2, _h1, h2, _w = _past_self_pair(tmp / "past_self_mf", wrap=changed)
+    assert [r for r in h2["terms"] if r.get("was") == q2.name] and not [
+        a for a in h2.get("aliases", []) if a["was"] == q2.name], (
+        "past-self fold MF: with the earlier row's key changed, the plant was still aliased")
+    print(f"  past-self fold: {p2.name} (game 2) written as an alias of {p1.name}'s row in the "
+          f"earlier save {w1} (key held by no row of game 2's save); a fresh load maps it to "
+          f"{got}; MF earlier key changed -> written as a row", flush=True)
+
+
 def second(d):
     assert lineage._CARRY, "the second process must be started with the arm"
     _h, f = lineage.head(d)
@@ -577,7 +656,7 @@ def main():
     # both seeds pinned (the reviewer 2026-10-22 19:39): R-g1's precondition rode the birth seed
     env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_HOLD="1", TETHER_AGENT_SEED="0",
                PYTHONHASHSEED="0")
-    # part names on the command line run only those parts (a b c d e); none runs all
+    # part names on the command line run only those parts (a b c d e f); none runs all
     parts = [a for a in sys.argv[1:] if a in PARTS]
     r = subprocess.run([sys.executable, "-B", __file__, "--on", *parts], env=env,
                        stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)
