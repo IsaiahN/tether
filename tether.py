@@ -10310,7 +10310,9 @@ class Agent:
                                        if _HYP_ORDER else {}),
                                     **({"contingent_first": _cfirst,
                                         "pick_contingent": x[2].slot in _cset}
-                                       if _GOAL_CONTINGENT else {}))
+                                       if _GOAL_CONTINGENT else {}),
+                                    # r1578: the intent root it was made under, as _choice
+                                    **({"root": self._root_id} if _7H_ROOT else {}))
                     break
                 continue
             ok = []
