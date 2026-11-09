@@ -3210,7 +3210,8 @@ ARMS: dict[str, str] = {
                            "old epoch's trace exists) and in end_run; the edge and end saves "
                            "write the settled hazard view on a copy, name reflex records from "
                            "the save-own sequence and run under cap.hold(); the form-pair meet "
-                           "stays in those saves. OFF: as 604ce53. default OFF until verified",
+                           "stays in those saves. OFF: as 604ce53. default ON (Isaiah "
+                           "06:17, r1546)",
     "TETHER_STORE_HEAL":"S6 H (the reviewer 2026-10-19; the K crash runs): under "
                          "TETHER_MEMORY_STORE, a store failing its cheap check at load WITH a WAL "
                          "is checkpointed "

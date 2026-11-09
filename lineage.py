@@ -70,8 +70,9 @@ _ENDING_SAVE = armflag.arm("TETHER_ENDING_SAVE", default=True)
 # SAVES BECOME READOUTS, part 1 (the reviewer 2026-11-09 r1535, r1542): the agent settles its
 # reached unseen credits at its own events (Agent.retarget's top, end_run), and the edge and end
 # saves take the readout hazard view, save-own reflex names and cap.hold(), as the goal-ending
-# save does; the form-pair meet stays in the edge and end saves. OFF: as 604ce53
-_SAVE_READOUT = armflag.arm("TETHER_SAVE_READOUT", default=False)
+# save does; the form-pair meet stays in the edge and end saves. OFF: as 604ce53. default ON
+# (Isaiah 2026-11-09 06:17: animals have recovery systems; the reviewer r1546)
+_SAVE_READOUT = armflag.arm("TETHER_SAVE_READOUT", default=True)
 _GEN_HEADER = ("lineage", "parent", "game", "seed", "generation", "alias_rule")
 # (c) THE DORMANT ITEM WRITTEN WHOLE (the reviewer 2026-10-22 20:57): a boundary item holds live
 # Terms (its want_terms copy), which enc has no form for, so one Term cost the generation the WHOLE
