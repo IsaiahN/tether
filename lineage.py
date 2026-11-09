@@ -81,9 +81,9 @@ _GEN_HEADER = ("lineage", "parent", "game", "seed", "generation", "alias_rule")
 # and in-memory record untouched. OFF: the item refused and named, as before.
 _DORMANT_TERM_FORM = armflag.arm("TETHER_DORMANT_TERM_FORM", default=True)
 # HOT/COLD, THE CACHE'S ADMISSION RULE (the reviewer 2026-11-02 r811; Isaiah 13:00): the kind_dk
-# enumerations read the HOT set -- n >= 2, or the row seen in this life -- and a past-life row seen
-# once (n == 1: 946,396 of 2,944,831 rows on central) stays on disk, read by key and on a lookup
-# that finds nothing hot. Nothing is deleted. OFF: every row, as before.
+# enumerations read the HOT set -- n >= 2, or the row seen in this game series -- and an earlier
+# game series' row seen once (n == 1: 946,396 of 2,944,831 rows on central) stays on disk, read by
+# key and on a lookup that finds nothing hot. Nothing is deleted. OFF: every row, as before.
 _HOT_COLD = armflag.arm("TETHER_HOT_COLD", default=True)
 # F4 THE FAULTED STEP'S TERM, BY THE FORMATS WRITTEN (the reviewer 2026-10-31 r603; the audit):
 # a residual is "{slot}@{c}", "kind:{n}@{c}", "reuse:{slot}@{c}:{stamp}" or "{m}@{c}:event:{p}"
@@ -103,8 +103,8 @@ _ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=True)
 # THE CONSOLIDATED MEMORY (the reviewer 2026-10-19 06:13-07:35; Isaiah 06:12): load reads the
 # memory folder's store (lineage_store.py) instead of re-reading every save; a folder the store
 # cannot answer exactly loads from the archive as before. Default ON (Isaiah 2026-10-19 17:03 "turn
-# it on"): OFF, every load is the saves' fold (14.35 GiB on the E4 life, over B); ON, that fold is
-# reached only on a refusal. TETHER_MEMORY_STORE=0 is the old path.
+# it on"): OFF, every load is the saves' fold (14.35 GiB on the E4 game series, over B); ON, that
+# fold is reached only on a refusal. TETHER_MEMORY_STORE=0 is the old path.
 _MEMORY_STORE = armflag.arm("TETHER_MEMORY_STORE", default=True)
 # W2 (S2V; the reviewer 2026-10-21 15:38): the store load decoded a kind field's JSON once per row
 # (885,038 json.loads at one sp80 load). One load decodes each sym id once and reuses the tuple when
@@ -741,7 +741,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
             r["was"] = _kind_name(ag.gamma, name) if _KIND_SAVE and r.get("operand") else name
         c = ag.gamma.carried.get(name) or written.get(name) or {}
         if c.get("alias"):
-            continue    # (d): aliased by an earlier write of this life
+            continue    # (d): aliased by an earlier write of this game series
         rid = (c.get("born"), c.get("handle"))
         res = str(r.get("residual") or "")
         if fc is not None and (re.search(rf"@{fc}(?::|$)", res) if _FAULT_FORMATS
@@ -924,7 +924,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
     if tether.IFace._ACTION_CARRY and hasattr(ag, "iface"):
         # r688 STORAGE: the action table by kind (carried + own), the cells that moved since the
         # last write; absent when none, so a generation with nothing new is written as before
-        if tether.IFace._AK_DELTA:      # (7): this life's own increments, summed by the readers
+        if tether.IFace._AK_DELTA:      # (7): this game series' own increments, summed by the
+                                        # readers
             akd, ak_now = ag.iface.kind_tables_delta(getattr(ag, "_ak_own_written", {}))
             if akd:
                 gen["action_kinds_d"] = akd
@@ -933,7 +934,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
             if ak:
                 gen["action_kinds"] = ak
     if _RESOLVE_ONCE:
-        # r695 1: this life's matched resolves not yet in the lineage
+        # r695 1: this game series' matched resolves not yet in the lineage
         ro = {k: v for k, v in _RESOLVE_NEW.items() if _RESOLVE_OK.get(k) != v}
         if ro:
             gen["resolve_ok"] = ro
@@ -1054,7 +1055,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
                 t0_end = getattr(ag, "_end_path_t0", None)
                 if t0_end is not None:
                     # C1 (A)'s reserve: this end path's wall to here (end_run, the saves, the merge,
-                    # the sleep), kept for the next life's thinking deadline (14:27 (i))
+                    # the sleep), kept for the next game series' thinking deadline (14:27 (i))
                     store["end_path"] = ls.note_end_path(
                         store_con, time.perf_counter() - t0_end,
                         store["sleep"]["s_checkpoint"] + store["sleep"]["s_quick_check"])
@@ -1096,7 +1097,7 @@ def _form_pairs_pending(ag: Any) -> tuple[list, list] | None:
 def _new_form_pairs(ag: Any) -> list:
     """K4 at the save (the reviewer 2026-11-03 r888, r903, r906): the pairs perception met
     (arc_world.form_pairs) whose as-seen code names kinds the lineage stores and which are not in
-    force. First the life's carried action cells and routines under those codes meet their
+    force. First the game series' carried action cells and routines under those codes meet their
     canonical ones (two sightings: counts summed, landed values united), so the cumulative cells
     this save writes hold both poses' sightings and never replace the store's re-keyed sum. A pair
     against one in force is a defect, never written: one alias_conflict row."""
@@ -1296,8 +1297,8 @@ class DkSnapshot:
             + " ORDER BY entry, tgt", (i,))}
 
     def cold(self, key: tuple) -> int:
-        """A row's stored n if it is COLD (a past-life n == 1), else 0: the keyed read a row seen
-        in this life takes, so its count stays whole."""
+        """A row's stored n if it is COLD (an earlier game series' n == 1), else 0: the keyed read a
+        row seen in this game series takes, so its count stays whole."""
         if self.closed or not _HOT_COLD:
             return 0
         d, k, t = key
@@ -1440,8 +1441,8 @@ def _store_view(d: str | Path, ag: Any) -> dict:
 
 
 def _note_parent_ended(ag: Any, h: str, ended: dict | None) -> None:
-    """Item 4 (C3), the reviewer 2026-10-22 15:17: the next life's load names that its parent's
-    game ended on an agent fault, so the inheritance is visible."""
+    """Item 4 (C3), the reviewer 2026-10-22 15:17: the next game series' load names that its
+    parent's game ended on an agent fault, so the inheritance is visible."""
     import tether
     if not ended or not tether._ERROR_CARRY:
         return
@@ -2040,12 +2041,12 @@ _VERDICT_N: dict[str, int] = {"refetched": 0}
 # RESOLVE ONCE PER LINEAGE (the reviewer 2026-11-01 r695 1; Fig 12 "re-deriving it is a lookup"):
 # a resolve that matched is recorded with a fingerprint of what the view is computed from (the
 # entry's own definition, the readings table, the library code) and the carried hashes it matched;
-# a later life with the same fingerprint and the same hashes takes the verdict without re-hashing
-# the view. _RESOLVE_ONCE_CHECK hashes anyway and books agree / disagree.
+# a later game series with the same fingerprint and the same hashes takes the verdict without
+# re-hashing the view. _RESOLVE_ONCE_CHECK hashes anyway and books agree / disagree.
 _RESOLVE_ONCE = armflag.arm("TETHER_RESOLVE_ONCE", default=True)
 _RESOLVE_ONCE_CHECK = armflag.arm("TETHER_RESOLVE_ONCE_CHECK")
 _RESOLVE_OK: dict[str, list] = {}     # repr((sig hash, entry, role)) -> [fingerprint, [ch, ...]]
-_RESOLVE_NEW: dict[str, list] = {}    # this life's matched resolves, to write
+_RESOLVE_NEW: dict[str, list] = {}    # this game series' matched resolves, to write
 _FP_BASE: list = []                   # the readings table + the library code, hashed once
 _SIG_H: dict[int, tuple] = {}         # id(signature) -> (signature, its short hash)
 
@@ -2072,7 +2073,7 @@ def _lib_fp(lib: Any, key: str) -> str:
 def _held_in_store(folder: str, key: str, role: str, snap: Any,
                    con: Any = None) -> tuple | None:
     """One held row (gen, items) by key: through the load-time snapshot while it is open (the same
-    rows as at load), else a read-only connection (the rows now: at load, plus this life's own
+    rows as at load), else a read-only connection (the rows now: at load, plus this game series' own
     merged entries, which the asker already holds locally)."""
     if snap is not None and not snap.closed:
         return snap.held(key, role)
@@ -2101,9 +2102,9 @@ def _ro(folder: str) -> Any:
 class _HeldKnown(set):
     """THE 20 MB CAP, part (ii) (TETHER_CAP_HELD): _CARRIED[folder] under the store load, answered
     from the held table instead of copied (11.8 MB at 33 saves). In = held under the load's
-    signature, or added this life (write_index), and not discarded since (resolve's heal): the
-    copied set's answers, which were the held rows at load plus the additions minus the discards.
-    Holds only this life's additions (the set) and discards (gone)."""
+    signature, or added this game series (write_index), and not discarded since (resolve's heal):
+    the copied set's answers, which were the held rows at load plus the additions minus the
+    discards. Holds only this game series' additions (the set) and discards (gone)."""
 
     def __init__(self, folder: str, sig_repr: str, ag: Any) -> None:
         super().__init__()
@@ -2171,8 +2172,8 @@ def _lazy_take(k: tuple, key: str, role: str, snap: Any) -> dict | None:
 
 def _cap_copy() -> None:
     """A second store load in one process: the first load's answers are copied into the old sets
-    (rows never leave held; a row this life rewrote has a gen not in the load's, and a lazy key's
-    load gen was kept at its discard), and every later load copies, as before."""
+    (rows never leave held; a row this game series rewrote has a gen not in the load's, and a lazy
+    key's load gen was kept at its discard), and every later load copies, as before."""
     b = _LAZY_BASE
     for folder, kn in list(_CARRIED.items()):
         if not isinstance(kn, _HeldKnown):
@@ -2187,7 +2188,8 @@ def _cap_copy() -> None:
         old = {(kn.sig_repr, key, role) for key, role, _g in rows} - kn.gone
         old.update(set.__iter__(kn))
         if b and b["folder"] == folder:
-            for key, role, gh in rows:   # a row rewritten this life has a gen not in the load's
+            for key, role, gh in rows:   # a row rewritten this game series has a gen not in the
+                                         # load's
                 k = (b["sig"], key, role)
                 g = b["kept"].get(k, gh if gh in b["gens"] else None)
                 if g is not None and k not in b["skip"] and k not in b["taken"]:

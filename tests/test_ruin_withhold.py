@@ -64,8 +64,9 @@ class _Spy:
 
 
 def _lives(start: int, ruin: bool, lives: int = 4, steps: int = 12) -> tuple:
-    """The agent CHOOSING, from the same board each life (deterministic, so a retry re-meets it):
-    (agent, ending per life, veto keys in order, the spy). A life ends at a game loss or `steps`."""
+    """The agent CHOOSING, from the same board each attempt (deterministic, so a retry re-meets it):
+    (agent, ending per attempt, veto keys in order, the spy). An attempt ends at a game loss or
+    `steps`."""
     tether._RUIN_RECORD, tether._RUIN = True, ruin
     snap = snaps.Snap(R._spec(start))
     ag = R._agent(snap)

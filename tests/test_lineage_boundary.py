@@ -136,7 +136,7 @@ def role_load(d, arc=False):
 
 
 def _occasion(d):
-    """The life's seed, the term rows it wrote before its last generation, and its aliases."""
+    """The game series' seed, the term rows it wrote before its last generation, and its aliases."""
     chain = lineage._chain(Path(d))
     return (chain[0][1].get("seed"), sum(len(g["terms"]) for _h, g in chain[:-1]),
             sum(len(g.get("aliases", [])) for _h, g in chain))
@@ -149,7 +149,7 @@ def _aliases(d):
 
 def _child(*args, **arms):
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-    # r1496: the birth seed pinned, as test_lineage_carry's child does (r1450); stripped, every run
+    # r1496: the start seed pinned, as test_lineage_carry's child does (r1450); stripped, every run
     # drew a fresh entropy seed and played a different game. A part's own arms still win (MF-D ON)
     env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_BOUNDARY="1", TETHER_INDEX_HOLD="1",
                TETHER_AGENT_SEED="0")
@@ -273,9 +273,9 @@ def _part_mfd(tmp):
     # (i) MF-D verbatim with (d) OFF (amends registered refuter MF-D, the reviewer 2026-10-15
     # 07:30, ruled 2026-10-25 21:27): under (d) the re-write a cleared map lets through is an
     # alias, so L3 cannot see it
-    # THE OCCASION (the reviewer 2026-10-25 21:52, (m)): a free-seed life that writes no term row
-    # before its last generation gives a cleared map nothing to write twice. A fresh birth is
-    # drawn, up to 5, selected on the occasion ONLY, never on the outcome
+    # THE OCCASION (the reviewer 2026-10-25 21:52, (m)): a free-seed game series that writes no term
+    # row before its last generation gives a cleared map nothing to write twice. A fresh game start
+    # is drawn, up to 5, selected on the occasion ONLY, never on the outcome
     for birth in range(1, 6):
         mfd = tmp / f"mfd_{birth}"
         out = _out(_child("game", mfd, -1, "written", TETHER_SAVE_DEDUP="0"), "REPORT")
@@ -345,7 +345,7 @@ def _part_le(tmp):
 
 def role_readout(d):
     """RO: a constructed pending form pair (as-seen 11, canonical 10, stored by the lineage) at a
-    goal ending, after an earlier save in this life; then the live meet (MF-RO)."""
+    goal ending, after an earlier save in this game series; then the live meet (MF-RO)."""
     import copy
     ag = _agent(0)
     lineage.load(d, ag)

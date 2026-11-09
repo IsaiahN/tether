@@ -153,7 +153,8 @@ def test_a_settle_with_no_arrival_refuses():
 
 
 def test_a_pull_not_imported_is_not_an_arrival():
-    """r1490 (ii): an in-life term's pull is not its acceptance -- admitted "accepted", or none."""
+    """r1490 (ii): the pull of a term minted in this game series is not its acceptance -- admitted
+    "accepted", or none."""
     for adm in ("accepted", None):
         r = [x for x in valid() if x["event"] not in ("mint", "accept")]
         r.insert(2, _pulled("a . b", adm))

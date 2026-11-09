@@ -213,11 +213,11 @@ _KIND_TEST = armflag.arm("TETHER_KIND_TEST", default=True)
 # kind tables (delta_kind, lands_kind -- name-free: contact context, kind key, rel or the value
 # before) are written to the lineage and loaded into `carried_kind`, beside the table and never into
 # it (an action absent from the table stays unmapped, so game 2 still learns its buttons); the kind
-# readers see carried cells under this life's own, and _KIND_TEST presses one as a test first.
+# readers see carried cells under this game series' own, and _KIND_TEST presses one as a test first.
 _ACTION_CARRY = armflag.arm("TETHER_ACTION_CARRY", default=True)
 # (7) THE ACTION TABLE WRITTEN AS INCREMENTS (Build 1; the reviewer 2026-11-03 r906 3, MF-K14): a
-# save writes this life's OWN cells' increments since its last write ("action_kinds_d"), never the
-# cumulative carried + own value, and the readers add them to the cell. Two branches' increments
+# save writes this game series' OWN cells' increments since its last write ("action_kinds_d"), never
+# the cumulative carried + own value, and the readers add them to the cell. Two branches' increments
 # then sum at any merge in any order, and a fork's cells under an as-seen code add into the
 # canonical cell through the alias map, so no branch's sightings are picked away by fold order.
 # Saves written before keep their meaning (a cumulative cell, the latest replacing). OFF: the
@@ -257,9 +257,9 @@ _AIM_ROUTED = armflag.arm("TETHER_AIM_ROUTED", default=True)
 # C1 BOARD_UNTRIED (the reviewer 2026-11-01 r725-r728; Isaiah 18:00, the names stay in the
 # interface): ELICIT's "never taken" reads "not realised on THIS board" -- the interface's own
 # record per board, a board being what the agent's situate(new_board=True) opens -- never the
-# life's table, which in a serial life maps every button by the second board (pass 3: all of
-# ACTION1-7 by cycle 27). The agent reads only untried_here(), a count. OFF: "never taken" =
-# absent from the life's table
+# the game series' table, which in a serial game series maps every button by the second board (pass
+# 3: all of ACTION1-7 by cycle 27). The agent reads only untried_here(), a count. OFF: "never taken"
+# = absent from the game series' table
 _BOARD_UNTRIED = armflag.arm("TETHER_BOARD_UNTRIED", default=True)
 AIM_ROUTED_N: Counter = Counter()   # "<asker>:record" / ":object" / ":pair_no_record" / ":no_aim"
 
@@ -502,8 +502,8 @@ class Interface:
     the agent built. **This table starts empty on every board and is filled only by acting.**
     """
 
-    # the being's seed, set by the agent at birth (HOLD_SEED, the reviewer 15:04 Q3: one animal);
-    # None is the old constant
+    # the being's seed, set by the agent at its start (HOLD_SEED, the reviewer 15:04 Q3: one
+    # animal); None is the old constant
     draw_seed: str | None = None
 
     def __init__(self) -> None:
@@ -1057,7 +1057,8 @@ class Interface:
             return max(band, key=lambda a: (rank.get(a, 0), -band.index(a)))
 
         def _unm(a: str) -> bool:
-            # C1: an exploration's "never taken" is read on this board, beside the life's table
+            # C1: an exploration's "never taken" is read on this board, beside the game series'
+            # table
             if _BOARD_UNTRIED and intent.kind == ELICIT:
                 return a not in self.realised_board.get(self.board_n, ())
             return a not in self.table
@@ -1712,7 +1713,8 @@ class Interface:
         return tuple(sorted(kinds.items()))
 
     def _kind_tab(self, a: str, tab: str) -> dict:
-        """A kind table for action `a`: this life's own cells, over the carried ones (own wins)."""
+        """A kind table for action `a`: this game series' own cells, over the carried ones (own
+        wins)."""
         own = self.table.get(a, {}).get(tab, {})
         car = self.carried_kind.get(a, {}).get(tab) if _ACTION_CARRY else None
         return {**car, **own} if car else own
@@ -1739,9 +1741,9 @@ class Interface:
         return out
 
     def kind_tables_delta(self, written: dict) -> tuple[dict, dict]:
-        """TETHER_AK_DELTA: this life's OWN cells' increments since `written` (the own values at
-        its last write), keyed as kind_tables_out: [n, total] by subtraction, a landed cell by the
-        values not yet written. (the increments, the own values now)."""
+        """TETHER_AK_DELTA: this game series' OWN cells' increments since `written` (the own values
+        at its last write), keyed as kind_tables_out: [n, total] by subtraction, a landed cell by
+        the values not yet written. (the increments, the own values now)."""
         out, now = {}, {}
         for a, tabs in self.table.items():
             for tab in ("delta_kind", "lands_kind"):

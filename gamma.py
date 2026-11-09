@@ -464,18 +464,18 @@ _FIRST_CONTACT = armflag.arm("TETHER_FIRST_CONTACT_CARRIED", default=True)
 # instance's operand and the slot its residual names -- at load from the rows already written, and
 # at the instance break -- so a first-contact bet can bind where only the attribute was ambiguous.
 _KIND_REL = armflag.arm("TETHER_KIND_REL", default=True)
-# F3a THE CLOCK RESTARTS WITH A LIFE (the reviewer 2026-10-31 r603 P3; the audit): a carried
-# Standing keeps its last_tick (lineage.py dec) and a new life's cycle starts at 0, so
-# max(0, tick - last_tick) is 0 until the new life passes the old one's last cycle: a carried
+# F3a THE CLOCK RESTARTS WITH A GAME SERIES (the reviewer 2026-10-31 r603 P3; the audit): a carried
+# Standing keeps its last_tick (lineage.py dec) and a new game series' cycle starts at 0, so
+# max(0, tick - last_tick) is 0 until the new game series passes the old one's last cycle: a carried
 # refutation does not decay. ON: a tick below last_tick is a restarted clock, and the gap counts
-# from the new life's start (tick). OFF: as before.
+# from the new game series' start (tick). OFF: as before.
 _DECAY_NEW_LIFE = armflag.arm("TETHER_DECAY_NEW_LIFE", default=True)
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
-# * this life's own record of it, where w per kind = held / (held + failed) over this life's
-# outcomes of carried terms of that kind (replay excluded). No outcome for the kind: w = 1, today's
-# track_of exactly. Orders retrieval only; settled is untouched. ON; conform/arms.py
+# * this game series' own record of it, where w per kind = held / (held + failed) over this game
+# series' outcomes of carried terms of that kind (replay excluded). No outcome for the kind: w = 1,
+# today's track_of exactly. Orders retrieval only; settled is untouched. ON; conform/arms.py
 _CARRY_W = armflag.arm("TETHER_CARRY_W", default=True)
 
 
@@ -1068,7 +1068,7 @@ class Code:
 
 
 class Gamma:
-    draw_seed: str | None = None    # the agent's, set at its birth (HOLD_SEED Q4); None: random
+    draw_seed: str | None = None    # the agent's, set at its start (HOLD_SEED Q4); None: random
 
     def __init__(self, atoms: list[Atom], game: str = "x") -> None:
         """NO `molecules` PARAMETER, and its removal is the 2026-08-27 ruling in code.
@@ -1092,8 +1092,9 @@ class Gamma:
         # SET AT LOAD, never at mint: a term that originated elsewhere says so without the
         # reader having to parse a game name out of a handle.
         self.carried: dict[str, dict] = {}
-        # CARRY_W: name -> (confirmations, refusals) as loaded; name -> [held, failed] this life;
-        # kind -> [held, failed]; (kind, held, failed, w) per change, for tether's carry_w rows
+        # CARRY_W: name -> (confirmations, refusals) as loaded; name -> [held, failed] this game
+        # series; kind -> [held, failed]; (kind, held, failed, w) per change, for tether's carry_w
+        # rows
         self.carry_w_base: dict[str, tuple] = {}
         self.carry_w_life: dict[str, list] = {}
         self.carry_w_kind: dict[str, list] = {}
@@ -1222,7 +1223,8 @@ class Gamma:
                **({"renamed": 0, "onto_atom": 0} if _REPLAY_UNIT else {})}
         keep, tick = self.keep_evidence, self.tick
         self.keep_evidence = False
-        self._replaying = _CARRY_W      # CARRY_W: the carried evidence is not this life's outcomes
+        self._replaying = _CARRY_W      # CARRY_W: the carried evidence is not this game series'
+                                        # outcomes
         try:
             for r in rows:
                 kind, name, slot, where, t = r[:5]
@@ -1260,8 +1262,8 @@ class Gamma:
         return out
 
     def _carry_w_note(self, name: str, held: bool) -> None:
-        """CARRY_W: one outcome of a carried, non-innate term in this life, counted for its kind
-        (replay excluded), with the kind's new w logged for tether's carry_w row."""
+        """CARRY_W: one outcome of a carried, non-innate term in this game series, counted for its
+        kind (replay excluded), with the kind's new w logged for tether's carry_w row."""
         if self._replaying or name not in self.carried or name in self.innate \
                 or name not in self.library:
             return

@@ -1,5 +1,5 @@
 """E4 (c), THE STREAM (Isaiah 2026-10-18 11:39 via the reviewer 11:40: "alltogether at once if possible so the agent
-reads it all as one big game"). ONE process, ONE agent, ONE life: the 25 public games in a random order from a
+reads it all as one big game"). ONE process, ONE agent, ONE game series: the 25 public games in a random order from a
 recorded seed, back to back, each a slice of wall time (or until a WIN). HARNESS ONLY: the agent is never told a
 game changed -- no retarget, no restarted, no game_start, no game id, nothing passed at a switch.
 
@@ -41,13 +41,13 @@ ap.add_argument("--slice-steps", default=None)       # per position, e.g. "3,1":
 ap.add_argument("--census", action="store_true")     # census_heap.point between steps (the reviewer 2026-10-19 03:00)
 # E4b's slice rule (A) (Isaiah 2026-10-23 "i like c and then a"; the reviewer 06:29 B1, 06:54 (a)): a slice ends at
 # the first step boundary at or after max(MIN, its first completed action), and no step starts past MAX. A step under
-# way finishes (a cut would end the one life's thinking, tether.Agent.step's _cut), so a slice can overrun MAX.
+# way finishes (a cut would end the one game series' thinking, tether.Agent.step's _cut), so a slice can overrun MAX.
 ap.add_argument("--slice-min-s", type=float, default=None)
 ap.add_argument("--slice-max-s", type=float, default=None)
 # (b), THE ONE WHOLE-RUN NET (the reviewer 2026-10-23 06:54, 07:08 (i), superseding 2026-10-22 15:24 for this only): an
 # epoch the launcher computes (its clock before the supervisor starts + the supervisor's wall - a chosen margin), set
 # ONCE on the agent before the first game and never at a switch. Past it the agent's own cut ends thinking for the rest
-# of the life; the end path still writes, and the games not started are "unreached at this budget".
+# of the game series; the end path still writes, and the games not started are "unreached at this budget".
 ap.add_argument("--deadline-at", type=float, default=None)
 A = ap.parse_args()
 assert (A.slice_min_s is None) == (A.slice_max_s is None), "--slice-min-s and --slice-max-s go together"
@@ -63,8 +63,8 @@ os.makedirs(A.out, exist_ok=True)
 
 
 def _record_traceback(kind, value, tb):
-    """ANY uncaught exception in the one life: its full traceback to <out>/stream.traceback.txt, then the
-    default hook (the reviewer 19:36: if the error comes in the one life, we must at least get the LINE)."""
+    """ANY uncaught exception in the one game series: its full traceback to <out>/stream.traceback.txt, then the
+    default hook (the reviewer 19:36: if the error comes in the one game series, we must at least get the LINE)."""
     import traceback
     with open(os.path.join(A.out, "stream.traceback.txt"), "w", encoding="utf-8") as fh:
         fh.write("".join(traceback.format_exception(kind, value, tb)))
@@ -209,7 +209,7 @@ for i, g in enumerate(order):
     if gone:
         log(f"# {i}\t{g}\tnot played: the card is gone (the gateway's 404)")
         continue
-    if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the life
+    if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the game series
         budget_unreached.append(g)
         log(f"# {i}\t{g}\tunreached at this budget (the whole-run deadline passed; no switch)")
         continue

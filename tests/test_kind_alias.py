@@ -442,8 +442,8 @@ def mf_k9(tmp: Path) -> dict:
     g = lineage._read(d)[out["hash"]]
     assert g.get("form_aliases") == [[11, 10, 1]], ("MF-K9c the pairs written",
                                                     g.get("form_aliases"))
-    # under TETHER_AK_DELTA the save writes only this life's own increments (none here), so the
-    # carried cells never overwrite the store's re-keyed sum
+    # under TETHER_AK_DELTA the save writes only this game series' own increments (none here), so
+    # the carried cells never overwrite the store's re-keyed sum
     assert "action_kinds" not in g and not g.get("action_kinds_d"), (
         "MF-K9c no carried cell is written", g.get("action_kinds"), g.get("action_kinds_d"))
     _catch(d)

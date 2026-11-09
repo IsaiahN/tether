@@ -327,8 +327,8 @@ def _part_a(tmp):
 
 
 def _life(rr, seed):
-    """One R-g2 life on world `seed`, loading rr first: N steps, a real retarget, N_AFTER steps,
-    end_run. The write is _write_kind_off's."""
+    """One R-g2 game series on world `seed`, loading rr first: N steps, a real retarget, N_AFTER
+    steps, end_run. The write is _write_kind_off's."""
     env, ag, rep = _agent(rr, seed)
     for _ in range(N):
         ag.step()
@@ -354,11 +354,11 @@ def _write_kind_off(rr, ag):
 
 def _part_b(tmp):
     """R-g2."""
-    # R-g2: the round trip, with a dormant record (HOLD on, a real retarget), on a life that
-    # INHERITED (r1503, r1504, r1506): a first real life on the same world writes the parent, and
-    # the life under test loads it. Its save holds one composition under several instance names,
-    # the within-save alias (lineage.py :716-722, held_keys grown at :724); the parent-fold path
-    # (:699) is not witnessed here; its own constructed fixture follows (r1506)
+    # R-g2: the round trip, with a dormant record (HOLD on, a real retarget), on a game series that
+    # INHERITED (r1503, r1504, r1506): a first real game series on the same world writes the parent,
+    # and the game series under test loads it. Its save holds one composition under several instance
+    # names, the within-save alias (lineage.py :716-722, held_keys grown at :724); the parent-fold
+    # path (:699) is not witnessed here; its own constructed fixture follows (r1506)
     rr = tmp / "rt"
     _env1, ag1, _ = _life(rr, 3)
     assert ag1.gamma.evidence and ag1._dormant, (
@@ -378,8 +378,9 @@ def _part_b(tmp):
     assert len(chain) == 2 and chain[-1][0] == _h, ("fixture: the chain is not parent + tip",
                                                     [h for h, _g in chain])
     par, tip = chain[0][1], chain[1][1]
-    # (r1506 (2)) the terms the TIP holds: life 2's own; a carried term is not re-written (:716),
-    # so the rows and aliases partition life 2's NEW terms, and (d) reads the fold's rows
+    # (r1506 (2)) the terms the TIP holds: game series 2's own; a carried term is not re-written
+    # (:716), so the rows and aliases partition game series 2's NEW terms, and (d) reads the fold's
+    # rows
     new = [(t, n) for t, n in zip(blob["terms"], names, strict=True)
            if not ag.gamma.carried.get(n)]
     nb, nn = {"terms": [t for t, _n in new]}, [n for _t, n in new]

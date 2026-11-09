@@ -8,8 +8,8 @@ through a stub Arcade), over a two-game fake lineage, with a step that raises Ke
   C3   the faulted cycle's own stamped entries are not in that generation: a term whose residual is
        stamped "@<faulted cycle>" and an invention born in it are left out; the ones stamped one
        cycle earlier are written (the planted pair is the precondition)
-  PE   (C3)'s load row: the next life's load writes ONE "parent_ended" row naming the faulted tip
-       and its error; the play's own load over normal parents writes none (the control), and one
+  PE   (C3)'s load row: the next game series' load writes ONE "parent_ended" row naming the faulted
+       tip and its error; the play's own load over normal parents writes none (the control), and one
        normal game later the next load writes none; on the store path and on the chain path
   RB   a generation that does not read back (lineage._readback planted False) is not written
   OFF  TETHER_ERROR_CARRY off: the KeyError reaches the caller and no generation is written (the

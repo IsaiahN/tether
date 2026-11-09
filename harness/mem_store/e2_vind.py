@@ -1,11 +1,11 @@
-"""E2, THE APPEND-ONLY TABLES ON A PLANTED LIFE (the reviewer 2026-10-19 11:27 item 2). This life has ZERO vindication
-rows, so a planted 2-save chain is written from a lineage COPY's root (read only) into an empty folder: G1 = the root
-with vindication_tail [101, 102] and its own seed; G2 = a minimal child (every record field empty) with vindication_tail
-[201, 202, 203], two planted evidence rows, and a seed. Each gen_ named by the sha256 of its bytes (lineage._dumps).
-A store is built there by lineage_store.open_store + catch_up (REPO's code). Compared N/N with lineage.fold over the
-same chain: vindication (ORDER BY k, i) and evidence (ORDER BY k, i); meta n_vindication = len(vindication); the seeds
-in save order; and the fold blob holds NO evidence / vindication key and the counts blob NO seeds key. The MUST-FAIL:
-the same rows read ORDER BY i, k (the saves interleaved) must DIFFER from fold's list.
+"""E2, THE APPEND-ONLY TABLES ON A PLANTED LINEAGE (the reviewer 2026-10-19 11:27 item 2). This lineage has ZERO
+vindication rows, so a planted 2-save chain is written from a lineage COPY's root (read only) into an empty folder: G1 =
+the root with vindication_tail [101, 102] and its own seed; G2 = a minimal child (every record field empty) with
+vindication_tail [201, 202, 203], two planted evidence rows, and a seed. Each gen_ named by the sha256 of its bytes
+(lineage._dumps). A store is built there by lineage_store.open_store + catch_up (REPO's code). Compared N/N with
+lineage.fold over the same chain: vindication (ORDER BY k, i) and evidence (ORDER BY k, i); meta n_vindication =
+len(vindication); the seeds in save order; and the fold blob holds NO evidence / vindication key and the counts blob NO
+seeds key. The MUST-FAIL: the same rows read ORDER BY i, k (the saves interleaved) must DIFFER from fold's list.
 argv: repo lineage_copy out_dir"""
 import hashlib
 import json

@@ -7,7 +7,7 @@ position moved by one:
   d. MUST-FAIL: a wrong segment_rows count is a difference;
   e. an added field fails unless it is named, and a named field that changes a base value
      still fails.
-  f. the arms row's birth seed is masked; g. MUST-FAIL: the effective @run seed differs;
+  f. the arms row's start seed is masked; g. MUST-FAIL: the effective @run seed differs;
   h. MUST-FAIL: with no @run seed row the arms seed is the effective one (the reviewer
      2026-10-20 12:23).
   i. a field in TIMINGS (goal_hypotheses' wall_s) is masked; j. MUST-FAIL: a non-timing field

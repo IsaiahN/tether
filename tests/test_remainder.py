@@ -1,5 +1,5 @@
 """1e NAMED_REMAINDER (TETHER_NAMED_REMAINDER, default ON; the reviewer 2026-10-29 r325, r364).
-On a stepped gridworld agent (default seed 0, birth seed pinned): the remainder row's three
+On a stepped gridworld agent (default seed 0, start seed pinned): the remainder row's three
 readings, each check in its own process, under 5 minutes.
   check_a_pair              last survivors with disjoint charged rows: the pair and its row split
   check_a_not_found         no disjoint pair: "no split found among the last survivors", never

@@ -8,28 +8,30 @@ process, by name.
                                  inc . dec<o1.colour>) must save as TWO kinds; gamma.kind_of keeps
                                  the operand only when the bare chain is a PRIOR atom
                                  (gamma.py 1244-1254), so both become one
-  check_p3_decay_across_lives    AT 1e9d4d5: FAIL. A refutation carried from a life that ended at
-                                 cycle 250 must decay in the next life; Standing.decay's gap is
-                                 max(0, tick - last_tick) (gamma.py 915) and the next life's cycle
-                                 starts at 0, so it does not move until that life passes cycle 250
+  check_p3_decay_across_lives    AT 1e9d4d5: FAIL. A refutation carried from a game series that
+                                 ended at
+                                 cycle 250 must decay in the next game series; Standing.decay's gap
+                                 is max(0, tick - last_tick) (gamma.py 915) and the next game
+                                 series' cycle starts at 0, so it does not move until that game
+                                 series passes cycle 250
   check_p4_faulted_step_dropped  AT 1e9d4d5: FAIL. A term whose residual names the faulted cycle in
                                  the formats the agent writes ("...@c:stamp") must not be written;
                                  the exclusion is endswith(f"@{fc}") (lineage.py 493), which those
                                  formats never end with
   check_p6_carried_press_term_predicts_at_step_1
-                                 AT 1e9d4d5: FAIL. Life 1 (the fake ARC game, written to a fresh
-                                 lineage) settles a press term (guard TOUCH / ACTED_SELF); at step
-                                 1 of life 2 (loaded from it, its own process) some slot must have
-                                 a predictor (_pred_by not None). bound is emptied at every game
-                                 and level start (tether.py 4045) and _pred_by is filled from it
-                                 (9858), so nothing carried predicts before the first miss
+                                 AT 1e9d4d5: FAIL. Game series 1 (the fake ARC game, written to a
+                                 fresh lineage) settles a press term (guard TOUCH / ACTED_SELF); at
+                                 step 1 of game series 2 (loaded from it, its own process) some slot
+                                 must have a predictor (_pred_by not None). bound is emptied at
+                                 every game and level start (tether.py 4045) and _pred_by is filled
+                                 from it (9858), so nothing carried predicts before the first miss
   check_p8_t1d_bounded_over_lives
                                  AUDIT AT 1e9d4d5: FAIL; MEASURED: PASS (see EXPECTED). Three
                                  lives on one lineage (the fake game, 30
                                  steps each, each its own process): every lookup's T1d lists no
                                  more than its T3 (today's lit), and the evaluations spent per
-                                 lookup do not rise from life 1 to life 3. T1d holds every entry
-                                 that ever compiled (tether.py 6016-6059)
+                                 lookup do not rise from game series 1 to game series 3. T1d holds
+                                 every entry that ever compiled (tether.py 6016-6059)
     python tests/test_memory_proof.py [check ...]
 """
 from __future__ import annotations
@@ -115,7 +117,8 @@ def check_p3_decay_across_lives() -> None:
     st = gamma.Standing(last_tick=250)
     st.rejections = 2.0
     before = st.rejections
-    st.decay(5)                 # the next life, five cycles in: its cycle clock started again at 0
+    st.decay(5)                 # the next game series, five cycles in: its cycle clock started
+                                # again at 0
     print(f"  carried rejections {before} at last_tick 250; after decay at the next life's "
           f"cycle 5: {st.rejections}")
     assert st.rejections < before, "a carried refutation did not decay across lives"

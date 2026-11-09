@@ -1,5 +1,5 @@
 """S4, HOT/COLD (the reviewer 2026-11-02 r811, r816): lineage.DkSnapshot over a store holding one
-kind's three kind_dk rows -- n 5 and n 2 (hot), n 1 (cold, a past life's single sighting).
+kind's three kind_dk rows -- n 5 and n 2 (hot), n 1 (cold, an earlier game series' single sighting).
   MF-HC1  the kind's enumeration returns the hot rows only (2 of 3); with the arm OFF, all 3.
   MF-HC2  a cold row's keyed read (DkSnapshot.cold) returns its stored n (1); a hot row's, 0.
   MF-HC3  the per-type totals count the hot rows (7), the full totals every row (8); nothing is

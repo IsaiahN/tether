@@ -38,10 +38,10 @@ POSITIONS = (
 # completion_sweep.segment_rows = len(led) - start at record time, so its span is
 # [own seq - value, own seq).
 COUNTS = (("completion_sweep", ("detail", "segment_rows")),)
-# The @run arms row's seed is the BIRTH seed, drawn per process; a lineage replaces it with a later
-# @run seed row (tether._seed_from_lineage). So the arms row's seed fields are masked and the
-# EFFECTIVE seed is compared instead (the reviewer 2026-10-20 12:23: one mask, every comparer
-# imports it).
+# The @run arms row's seed is the start seed (the BIRTH mask), drawn per process; a lineage replaces
+# it with a later @run seed row (tether._seed_from_lineage). So the arms row's seed fields are
+# masked and the EFFECTIVE seed is compared instead (the reviewer 2026-10-20 12:23: one mask, every
+# comparer imports it).
 BIRTH = ("seed", "seed_source")
 # Fields that record WALL TIME, which no two runs share: (event, field). The same one list for every
 # comparer, imported and never copied (the reviewer 2026-10-21 23:16, 23:27; as BIRTH). A field is

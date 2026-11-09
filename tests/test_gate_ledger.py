@@ -137,7 +137,7 @@ def main() -> int:
     try:
         with tempfile.TemporaryDirectory() as d:
             led = Path(d) / "fake.jsonl"
-            # C-seed-X for G1 too (2026-10-16): under the per-birth seed the fake run's path
+            # C-seed-X for G1 too (2026-10-16): under the per-start seed the fake run's path
             # varied by the draw, and with it whether a slot-bound choice row was written, so
             # the precondition below passed or failed by the draw
             seed_was, tether._AGENT_SEED = tether._AGENT_SEED, False

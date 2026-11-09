@@ -309,7 +309,7 @@ _W_BUDGET = armflag.arm("TETHER_W_BUDGET", default=True)
 # are evicted at a W-1 fold -- SOFT the entries not read since the last fold, HARD all -- and
 # recomputed at their next miss. Left out on that read: _walk_memo (its hit and miss write
 # different book counters, which reach the books rows and the record) and lineage._CH_HELD
-# (resolve's verdict, W-3). OFF: they grow for the life of the agent or the process.
+# (resolve's verdict, W-3). OFF: they grow for the game series or the process.
 _W_CACHES = armflag.arm("TETHER_W_CACHES", default=True)
 # M2, SOFT READS ONLY (the reviewer 2026-10-23 09:18, 09:25): a WRITE no longer marks an entry
 # seen, so SOFT drops the entries not READ since the last fold (written and used once) and the
@@ -320,18 +320,18 @@ _W_SOFT_READS = armflag.arm("TETHER_W_SOFT_READS", default=True)
 # can be compared with a run that never evicts (MF-W2). Default OFF.
 _W_EVICT_EVERY_STEP = armflag.arm("TETHER_W_EVICT_EVERY_STEP")
 # W-4, THE DK KIND STORE KEYED (the reviewer 2026-10-22 05:14, 05:52; W1: 434,602 keys, 127 MB at
-# load, ~10% read in a game): the life's kind_dk stays on disk and is read through a snapshot held
-# from load (lineage.DkSnapshot, one read transaction), so it equals the in-RAM copy load() made.
-# The tiers index takes each asked kind's rows at its first ask, and the per-type sums and the
-# per-entry latest seq from the snapshot's aggregates; this life's landings stay in RAM as before.
-# OFF: _kind_known_dk and _kdk_last hold every key from load.
+# load, ~10% read in a game): the game series' kind_dk stays on disk and is read through a snapshot
+# held from load (lineage.DkSnapshot, one read transaction), so it equals the in-RAM copy load()
+# made. The tiers index takes each asked kind's rows at its first ask, and the per-type sums and the
+# per-entry latest seq from the snapshot's aggregates; this game series' landings stay in RAM as
+# before. OFF: _kind_known_dk and _kdk_last hold every key from load.
 _W_DK_KEYED = armflag.arm("TETHER_W_DK_KEYED", default=True)
 # W-3, THE HELD INDEX LAZY (the reviewer 2026-10-22 05:14 a, b): the store load reads the held
 # entries' KEYS (the load report's count is the same); each one's items are read from the load-time
 # snapshot at its first ask (lineage.resolve); and _INDEX_STORE joins W-2's eviction for the
 # entries that can come back exactly -- resolved from the snapshot, their verdict kept, so a re-ask
-# re-reads the row and skips the hashing. This life's own compiles are never evicted. OFF: every
-# held entry decoded at load, and _INDEX_STORE grows for the process.
+# re-reads the row and skips the hashing. This game series' own compiles are never evicted. OFF:
+# every held entry decoded at load, and _INDEX_STORE grows for the process.
 _W_HELD_LAZY = armflag.arm("TETHER_W_HELD_LAZY", default=True)
 # THE 20 MB CAP, part (ii) (Isaiah 2026-10-25 05:31; the reviewer 05:49, 06:06): under the store
 # load with W-3, lineage's _CARRIED and _LAZY are answered from the held table instead of copied at
@@ -972,7 +972,7 @@ _STEP_DERIVED = armflag.arm("TETHER_STEP_DERIVED", default=True)
 _OWED_REJUDGE = armflag.arm("TETHER_OWED_REJUDGE", default=True)
 # 5, THE ARRIVAL GAP (the reviewer 2026-10-28 r283; Fig 5 :4-5, Fig 11 :73): at a frame the agent
 # did not press for, the frame it held is scored against the one that arrived; above every
-# ordinary no-press reading this life it is a break, appearance only corroborating. ON;
+# ordinary no-press reading this game series it is a break, appearance only corroborating. ON;
 # conform/arms.py
 _ARRIVAL_GAP = armflag.arm("TETHER_ARRIVAL_GAP", default=True)
 # 2, INSTANCE TERMS LEAVE THE LIVE SET AT THE AGENT'S OWN BREAK (the reviewer 2026-10-29 r292, r294;
@@ -1046,9 +1046,9 @@ _NAMED_REMAINDER = armflag.arm("TETHER_NAMED_REMAINDER", default=True)
 # conform/arms.py
 _REMAINDER_VERDICT_KEY = armflag.arm("TETHER_REMAINDER_VERDICT_KEY", default=True)
 # 4 PLAN_NARROW (the reviewer 2026-10-29 r325 ASK 3, r365; Fig 12 :127): the planner compiles the
-# shelf-won texts first and the rest only if they yield no pick -- what the life learned ranks and
-# cuts the work, never widens it. Exact: the same pick. The goal_hypotheses row says how many were
-# compiled and left. ON; conform/arms.py
+# shelf-won texts first and the rest only if they yield no pick -- what the game series learned
+# ranks and cuts the work, never widens it. Exact: the same pick. The goal_hypotheses row says how
+# many were compiled and left. ON; conform/arms.py
 _PLAN_NARROW = armflag.arm("TETHER_PLAN_NARROW", default=True)
 # 1 CONTACT_FIRST (Isaiah 2026-10-30 06:19-06:21; the reviewer r392, r393; Fig 12 :126-127, Fig 9
 # :53): a step's mint is owed, not walked, when the step's own record says the next fact is on the
@@ -1095,7 +1095,7 @@ _DESCRIBED_LOOKUP = armflag.arm("TETHER_DESCRIBED_LOOKUP", default=True)
 _SERP = armflag.arm("TETHER_SERP", default=True)
 TOPK_K = 32
 # S3, THE RESULT CACHE (r816; Baeza-Yates et al. 2007): under SERP, a description key remembers the
-# entries a window offered nothing from this life; its next ask skips them and takes the next
+# entries a window offered nothing from this game series; its next ask skips them and takes the next
 # unjudged window. Cleared on a level or game reset; a changed description is a new key. OFF: the
 # offset alone, as SERP has it.
 _SERP_CACHE = armflag.arm("TETHER_SERP_CACHE", default=True)
@@ -2185,7 +2185,7 @@ _FIT_BOUND = armflag.arm("TETHER_FIT_BOUND", default=True)
 _FIT_BOUND_CHECK = armflag.arm("TETHER_FIT_BOUND_CHECK")
 # (C), THE TIERS INDEX (the reviewer 2026-10-21 03:05): _tiers ranked by walking every carried and
 # landed (delta kind, entry, target) row and every recency row on each call -- a cost that grew
-# with the agent's life. rung() only reads the asked kinds and their types, so the per-entry sums
+# with the game series. rung() only reads the asked kinds and their types, so the per-entry sums
 # it needs are kept indexed by kind and by type, and kept exact at the stores' writers (a landing,
 # a recency write; a lineage load bumps a version and the index is rebuilt). OFF: the scan (78520a8)
 _TIERS_INDEX = armflag.arm("TETHER_TIERS_INDEX", default=True)
@@ -2319,7 +2319,7 @@ _MUSING_CHOSEN = armflag.arm("TETHER_MUSING_CHOSEN", default=True)
 # Build 7 item 25, THE ONE THINK-VS-ACT CHOOSER (the reviewer 2026-11-05 r1261-r1264, Isaiah 17:26):
 # one purse per step from before choose; the runners hand the game's clocks (actions_left,
 # slice_until); a think (a walk, a muse) is taken iff its gain beats the presses it displaces x rho
-# x need(focal) -- the clocks say how many presses, the life's bits per press prices them, the
+# x need(focal) -- the clocks say how many presses, the game series' bits per press prices them, the
 # press still goes out; the gate's readings are inputs, its exit order gone; think_choice /
 # think_settled witness each. OFF: route resets the purse, the gate's cascade, as before
 _THINK_CHOOSER = armflag.arm("TETHER_THINK_CHOOSER", default=True)
@@ -3036,10 +3036,10 @@ _PARK_WANT = armflag.arm("TETHER_PARK_WANT", default=True)
 # is offered is an instrument, not a capability, and leaving it on would make every later
 # reading a reading of the instrument.
 _HOLD = armflag.arm("TETHER_HOLD")
-# THE SEED IS THE AGENT'S (HOLD_SEED; the reviewer 2026-10-15 14:56, 15:04): drawn at birth from
+# THE SEED IS THE AGENT'S (HOLD_SEED; the reviewer 2026-10-15 14:56, 15:04): drawn at its start from
 # the OS's entropy, recorded in the run header and the lineage, carried by a lineage (the same
-# being, Isaiah 10-14) with its generation index so a continued life does not replay its day, and
-# read back from a record for a replay (TETHER_SEED_FROM names the record, never a seed). Fig 10
+# being, Isaiah 10-14) with its generation index so a continued game series does not replay its day,
+# and read back from a record for a replay (TETHER_SEED_FROM names the record, never a seed). Fig 10
 # :72-74 "the pool must be unauthored first and examined second". OFF: "0", as before.
 _AGENT_SEED = armflag.arm("TETHER_AGENT_SEED", default=True)
 
@@ -3239,8 +3239,8 @@ _FOLD_TPL = re.compile(r"\{o\}\.\{r\} (==|!=|<|>) \{x\}\.\{r\}")
 _GROUP_SUBJECT = armflag.arm("TETHER_GROUP_SUBJECT", default=True)
 # B1, THE ORDER INSIDE A KEY GROUP (the reviewer 2026-11-08 r1469, r1470, r1471; Isaiah 10:57, no
 # leaning on randomness): the key-group cut stays; inside the group the walk is S-class (r1443),
-# then times parked this life (r1473), then contingent-first (r678 b), then the smaller text -- no
-# draw. B2's learned score goes after the class. OFF: the hash draw, then contingent-first
+# then times parked this game series (r1473), then contingent-first (r678 b), then the smaller text
+# -- no draw. B2's learned score goes after the class. OFF: the hash draw, then contingent-first
 _HYP_ORDER = armflag.arm("TETHER_HYP_ORDER", default=True)
 # B2, THE LEARNED ORDER (r1446, r1471, r1474, r1475; Isaiah 09:54 "try for efficacy"): inside B1's
 # class, the learned score (per-(slot kind, reading) standings from endings, mixed with the prior
@@ -3411,13 +3411,14 @@ _RELATION_BET = armflag.arm("TETHER_RELATION_BET", default=True)
 # A WIN MOVES STANDING (the reviewer 2026-11-01 r694 row 3; Fig 1 "the ground enters as the only
 # metric"): at a level clear (ADVANCE / WIN, never a game loss) each non-atom term bound on the
 # clearing segment is settled once -- the settle writes evidence,
-# which the next life replays; win_credit.
+# which the next game series replays; win_credit.
 _WIN_CREDIT = armflag.arm("TETHER_WIN_CREDIT", default=True)
 # THE BOARD BOUNDARY IS THE AGENT'S OWN (the reviewer 2026-11-01 r696, the deep dive's row 1): a
 # frame that arrives with no action (the head frame break; R9: 24 of 24 game switches, none within
 # a level) is a new board -- retarget(how=NEW_BOARD) resets the board-named state (trace, bound,
 # refuted, wants, owed, epoch, today's per-board sets, the progress clock) while the library and
-# the lineage carry; it credits nothing and names no game. OFF: one life runs on across switches.
+# the lineage carry; it credits nothing and names no game. OFF: one game series runs on across
+# switches.
 _BOARD_BOUNDARY = armflag.arm("TETHER_BOARD_BOUNDARY", default=True)
 NEW_BOARD = "new_board"
 _BOND_INC_CHECK = armflag.arm("TETHER_BOND_INC_CHECK")
@@ -4289,7 +4290,8 @@ class Agent:
         self._line_grade: dict = {}
         self._line_grade_in: dict = {}
         self._line_grade_written: dict = {}
-        self._thought: dict = {"tried": {}, "paid": {}}       # M1: key -> entry -> n, this life
+        self._thought: dict = {"tried": {}, "paid": {}}       # M1: key -> entry -> n, this game
+                                                              # series
         self._thought_in: dict = {"tried": {}, "paid": {}}    # M1: the same, carried in
         self._thought_written: dict = {"tried": {}, "paid": {}}
         self._stopped_in: dict = {}                # M3: link -> games, carried in
@@ -4380,7 +4382,7 @@ class Agent:
         # held back; this cycle's derived / transient slots (Q1's hit class)
         self._fold_last_commit: int | None = None
         self._fold_suppressed = 0
-        self._w_budget = _w_budget()    # W-1: B, read once at birth
+        self._w_budget = _w_budget()    # W-1: B, read once at its start
         self._w_last: int | None = None    # W-1: the commit at the last HARD fold (its hysteresis)
         self._w_fold_n = 0                 # W-2: evictions so far, the @body lines' join key
         self._ak_kept: set = set()     # the asked record's keys a fold cleared from the stores
@@ -4431,20 +4433,22 @@ class Agent:
         self._reach_epoch = 0
         self._goal_conds: dict = {}   # build 2: held goal conditions, key -> compiled (in-episode)
         self._goal_text: dict = {}    # build 2: key -> the condition's text
-        self._goal_n = 0              # GQ1: goal atoms are numbered for the agent's life
+        self._goal_n = 0              # GQ1: goal atoms are numbered for the game series
         self._goal_meta: dict = {}    # GQ1: key -> met_state, templates, affects (for the shelf)
         self._goal_shelf: dict = {}   # GQ1: shelved goal conditions, key -> provenance + record
         self._goal_prog: Counter = Counter()   # PROGRESS_SHELF: held key -> progress rows on it
         self._hyp: dict | None = None  # GQ2: the goal hypothesis held now
         self._hyp_tried: dict = {}    # GQ2: (template, subject, operand) -> how it ended (level)
         self._untested: dict = {}     # UNTESTED_KEEP: tkey -> (cycle, the check that ended it)
-        self._parked_n: Counter = Counter()   # B1 (r1473): tkey -> budget endings, this life
-        self._subj_tried: Counter = Counter()   # B1 (r1478): subject slot -> its checks, this life
-        self._cand_checked: Counter = Counter()  # B1 (r1478): tkey -> its checks, this life
+        self._parked_n: Counter = Counter()   # B1 (r1473): tkey -> budget endings, this game series
+        self._subj_tried: Counter = Counter()   # B1 (r1478): subject slot -> its checks, this game
+                                                # series
+        self._cand_checked: Counter = Counter()  # B1 (r1478): tkey -> its checks, this game series
         # B2 (r1471, r1476, r1479, r1480): written only under TETHER_HYP_LEARN. Slot -> values
         # predicted for it / targets aimed for it (L3b, L3c); (slot kind, reading) cells and the
-        # pooled contact kinds -> [holds, parked, untested, paid], own this life and inherited
-        # through the lineage (deltas, like unit_used); kind -> [held, failed] of the inherited call
+        # pooled contact kinds -> [holds, parked, untested, paid], own this game series and
+        # inherited through the lineage (deltas, like unit_used); kind -> [held, failed] of the
+        # inherited call
         self._b2_pred: dict = {}
         self._b2_aimed: dict = {}
         self._b2_cells: dict = {}
@@ -4706,8 +4710,8 @@ class Agent:
         self._route_at = 0
         self._owed_q: dict = {}            # C1: slot -> question id, the lookups left unasked
         self._spent = self._asked = self._not_asked = 0   # C1: this step's evaluations, lookups
-        # item 25: per step (wall, evaluating wall, evaluations); presses this life; the choices
-        # awaiting their witness; the purse choose spent before route
+        # item 25: per step (wall, evaluating wall, evaluations); presses this game series; the
+        # choices awaiting their witness; the purse choose spent before route
         self._tc_steps: list = []
         self._tc_presses = 0
         self._tc_pending: list = []
@@ -4911,7 +4915,7 @@ class Agent:
         # *the agent is always paying with its time*, so a cycle that ends without a
         # commitment makes the next commitment cheaper. Starts at 0, so an agent that has
         # never committed is already under time pressure at cycle 0, which is correct: it has
-        # spent its whole life not acting.
+        # spent its whole game series not acting.
         self._last_commit = 0
         self._last_progress = 0   # (6d): the cycle an objective gap last shrank
         self._probe_wait: dict = {}   # _think_or_act's: slot -> (cycle, what could be probed then)
@@ -5548,7 +5552,7 @@ class Agent:
                 if _WIN_CREDIT:
                     # r694 row 3: the ground's own verdict moves standing -- each non-atom term
                     # bound on the clearing segment is settled once, so the win reaches the
-                    # evidence the next life replays
+                    # evidence the next game series replays
                     n_ = 0
                     for s_, nm_ in sorted(self.bound.items()):
                         t_ = self.gamma.library.get(nm_)
@@ -5902,7 +5906,7 @@ class Agent:
                   "bound_slot_map": len(_BOUND_SLOT_MAP), "pairs_seen": len(_PAIRS_SEEN),
                   "bound_term": len(_BOUND_TERM), "bound_cache": len(self._bound_cache),
                   "bound_slot_cache": len(self._bound_slot_cache)}
-        # THIS AGENT'S hits, since its birth: _INDEX_N is the process's, so a second game in one
+        # THIS AGENT'S hits, since its start: _INDEX_N is the process's, so a second game in one
         # process read the first's too (test_save_only, 2026-10-18 B)
         hits = {k: _INDEX_N.get(k, 0) - self._hits0.get(k, 0) for k in (
             "bound_slot", "bound_slot_hit", "bound_slot_hit_carried", "bound_slot_from_carry",
@@ -7019,8 +7023,9 @@ class Agent:
                     if k not in offered_any:
                         landed_only[k] += m
             if self._kind_store is not None:
-                # the store load (the reviewer 10:45): the candidates are the life's known keys with
-                # no dk landing (no_dk, kept at merge); only this run's dk landings remain to filter
+                # the store load (the reviewer 10:45): the candidates are the game series' known
+                # keys with no dk landing (no_dk, kept at merge); only this run's dk landings remain
+                # to filter
                 cand = self._kind_store["t2"]
                 run_dk = {e[1:] for e in self._kind_landed_dk}
                 t2 = [(k, r, o, x) for (k, r, o, x) in cand
@@ -8410,7 +8415,7 @@ class Agent:
                 cap.head()
                 if m <= 0:
                     return None
-                # hot/cold: a row seen this life is hot; its stored n == 1 joins it
+                # hot/cold: a row seen this game series is hot; its stored n == 1 joins it
                 tot_t.setdefault(key[0][0], Counter())[key[1]] += m + (snap.cold(key) if hot
                                                                         else 0)
                 by_d.setdefault(key[0], []).append(key)
@@ -8426,7 +8431,7 @@ class Agent:
                     return None
                 if (hot and lineage._HOT_COLD and store is self._kind_known_dk and m == 1
                         and key not in self._kind_landed_dk):
-                    continue        # hot/cold: a past-life row seen once stays out
+                    continue        # hot/cold: an earlier game series' row seen once stays out
                 d, k, _t = key
                 if store is self._kind_known_dk or key not in self._kind_known_dk:
                     rows_d.setdefault(d, []).append(key)
@@ -8456,7 +8461,8 @@ class Agent:
         return snap.items() if snap is not None else self._kind_known_dk.items()
 
     def _dk_last_k(self) -> dict:
-        """Each entry's latest landing seq over the carried rows and this life's (CONSOLIDATION's
+        """Each entry's latest landing seq over the carried rows and this game series'
+        (CONSOLIDATION's
         recency): under W-4 the snapshot's per-entry maximum, then the landings in RAM."""
         snap = self._dk_snap if _W_DK_KEYED else None
         last = dict(snap.last_k) if snap is not None and _CONSOLIDATE else {}
@@ -8466,8 +8472,8 @@ class Agent:
         return last
 
     def _kix_kind(self, ix: dict, d: tuple) -> dict:
-        """W-4: kind d's carried rows at its first need, with this life's landings of d so far in
-        the order the full build keeps (carried, then landed); its carried counts returned."""
+        """W-4: kind d's carried rows at its first need, with this game series' landings of d so far
+        in the order the full build keeps (carried, then landed); its carried counts returned."""
         known = ix["known"].get(d)
         if known is None:
             known = ix["known"][d] = self._dk_snap.rows(d, hot=ix.get("hot", False))
@@ -8476,7 +8482,7 @@ class Agent:
                     cap.head()
                     c = 0 if key in known else self._dk_snap.cold(key)
                     if c:
-                        known[key] = c      # seen this life: its stored n == 1 is hot again
+                        known[key] = c      # seen this game series: its stored n == 1 is hot again
             rows, tot = list(known), Counter()
             for key, m in known.items():
                 cap.head()
@@ -8574,8 +8580,9 @@ class Agent:
             return self._pair_cache[1]
         out: dict = {}
         if self._kind_store is not None:
-            # the store load (the reviewer 10:13, 10:45): the life's pairs as read at load, then
-            # this run's landings -- a known-with-no-count key counted 1 there counts landed_n here
+            # the store load (the reviewer 10:13, 10:45): the game series' pairs as read at load,
+            # then this run's landings -- a known-with-no-count key counted 1 there counts landed_n
+            # here
             out = dict(self._kind_store["pairs"])
             nocount = self._kind_store["nocount"]
             for e_ in self._kind_landed:
@@ -8795,9 +8802,9 @@ class Agent:
             _INDEX_N["named"] += 1
         if tally is not None and slot is not None:
             # SPEED-2 (c): the named compile (a compound partner, a role not held) split ONCE
-            # per pair into landing rows by slot and one Counter. Valid for this Agent's life:
-            # its atoms are set once (gamma.py:849, tether.py:1590; a mint adds a Term, never
-            # an atom) and the route's library is fixed for the process (_lib_view)
+            # per pair into landing rows by slot and one Counter. Valid for this Agent's game
+            # series: its atoms are set once (gamma.py:849, tether.py:1590; a mint adds a Term,
+            # never an atom) and the route's library is fixed for the process (_lib_view)
             nkey = (sig, key, role, o, x)
             hit = self._named_split.get(nkey)
             if hit is None:
@@ -9472,11 +9479,11 @@ class Agent:
     def _b2_cues(self) -> tuple:
         """r1479-r1481: the contact kinds in cue order. A kind's validity mixes its inherited and
         own (paid, unpaid) by w -- how far the inherited call, "pays" at or above the mean
-        inherited validity, has held in this life's holds; one side empty, the other's Laplace;
-        both, 0.5. THE MERGE (r1481, Fig 2: one witness is not triangulation): a kind with fewer
-        than _B2_MIN_EVIDENCE ended holds (own, plus inherited weighted by w as the mix weights
-        it) keeps ITS LEVEL'S SLOT; the evidenced kinds, by validity (the level breaking ties),
-        fill the slots of the evidenced kinds. self._b2_evidenced names them, for the row."""
+        inherited validity, has held in this game series' holds; one side empty, the other's
+        Laplace; both, 0.5. THE MERGE (r1481, Fig 2: one witness is not triangulation): a kind with
+        fewer than _B2_MIN_EVIDENCE ended holds (own, plus inherited weighted by w as the mix
+        weights it) keeps ITS LEVEL'S SLOT; the evidenced kinds, by validity (the level breaking
+        ties), fill the slots of the evidenced kinds. self._b2_evidenced names them, for the row."""
         def lap(st):
             return (st[3] + 1.0) / (st[0] + 2.0)
         inh = {k: lap(st) for k, st in self._b2_kinds_inh.items() if st[0]}
@@ -11136,7 +11143,7 @@ class Agent:
             _t, cost, left, e, text, c = best
             lib = self._inv_library()
             try:
-                # GQ1: numbered for the agent's life -- len(self._goal_conds) restarted after every
+                # GQ1: numbered for the game series -- len(self._goal_conds) restarted after every
                 # close and the private library is never cleared, so the 2nd level's goal collided
                 self._goal_n += 1
                 _gi = self._goal_n if _LEVEL_GOAL else len(self._goal_conds) + 1
@@ -15257,7 +15264,7 @@ class Agent:
             self._gcw_credit(paid, "paid")      # item 29: the classes those entries matched on
 
     def _thought_of(self, fld: str, tk: str) -> dict:
-        """M1: the lineage's count under this key plus this life's."""
+        """M1: the lineage's count under this key plus this game series'."""
         out = dict(self._thought_in[fld].get(tk, {}))
         for e, n in self._thought[fld].get(tk, {}).items():
             out[e] = out.get(e, 0) + n
@@ -21271,8 +21278,8 @@ class Agent:
         self._tc_steps.append((total, max(0.0, total - idle), self._spent))
 
     def _tc_rates(self) -> tuple:
-        """Item 25: (s_step, s_per_eval) -- medians over this life's clocked steps of the step's
-        wall and of evaluating wall / evaluations; None unread. Read once per cycle."""
+        """Item 25: (s_step, s_per_eval) -- medians over this game series' clocked steps of the
+        step's wall and of evaluating wall / evaluations; None unread. Read once per cycle."""
         at = getattr(self, "_tc_rates_at", None)
         if at is not None and at[0] == self.cycle and at[1] == len(self._tc_steps):
             return at[2]
@@ -21323,7 +21330,7 @@ class Agent:
         return excess / per if per > 0 else math.inf
 
     def _tc_rho(self) -> float:
-        """Item 25: this life's bits explained per press -- the integral less what is still
+        """Item 25: this game series' bits explained per press -- the integral less what is still
         outstanding, over the presses taken; 0.0 before the first press."""
         n = self._tc_presses
         return (self.pe_integral() - self.outstanding()) / n if n else 0.0
@@ -23556,8 +23563,8 @@ class Agent:
 
     def _set_seed(self, seed: str, generation: int, seed_source: str) -> None:
         """One seed for the being: the mind's draws, the interface's and the minted handles. ON, the
-        draw seed carries the generation index, so a continued life does not replay its day (the
-        reviewer 15:04 Q1); OFF, it is the old constant exactly."""
+        draw seed carries the generation index, so a continued game series does not replay its day
+        (the reviewer 15:04 Q1); OFF, it is the old constant exactly."""
         self.seed, self.generation, self.seed_source = seed, generation, seed_source
         self.draw_seed = seed if seed_source == "constant" else f"{seed}:{generation}"
         self.iface.draw_seed = self.draw_seed
@@ -23566,7 +23573,7 @@ class Agent:
     def _seed_from_lineage(self, seeds: set, n: int, tip: str) -> None:
         """The same being, continued (the reviewer 15:04 Q1): the lineage's seed and its length as
         the generation index. A replay already carries both, and OFF has no seed to carry. A chain
-        carrying no seed (written before HOLD_SEED) or more than one keeps the birth seed, and says
+        carrying no seed (written before HOLD_SEED) or more than one keeps the start seed, and says
         so in the row."""
         if self.seed_source == "constant" or self.seed_source.startswith("replay:"):
             return
@@ -26038,8 +26045,8 @@ class Agent:
         no action was never scored, so the frame the agent held is scored against it here, per
         held slot, held or failed (gone counts failed). Every step head is a no-press boundary; one
         with no arrival pending is an ORDINARY reading. At an arrival the break fires above every
-        ordinary reading this life (no constant); before the first, the deferred appearance call
-        decides alone, as OFF does. Appearance stays on the row, never ANDed in (Fig 2 :31);
+        ordinary reading this game series (no constant); before the first, the deferred appearance
+        call decides alone, as OFF does. Appearance stays on the row, never ANDed in (Fig 2 :31);
         where it disagrees, a row says so (Fig 10 :16-17). Returns the break records applied."""
         held = getattr(self, "_ag_held", None)
         _pf = getattr(self.env, "arrival_pending", None)
@@ -26122,10 +26129,10 @@ class Agent:
         (arrival or seam), a "reuse:" term naming an object the break did not RE-FIND (identity
         "overlap" / "unique-shape", the rule _carry_lineage uses) leaves the live set for the
         record (Gamma.retire; never read back). Its KIND -- the term with no operand, the one
-        load_blob installs next life, origin the instance's -- stays live, so ROUTE's re-binding
-        reaches the method again (Fig 10 :68 "a generator crosses, an instance does not"), and
-        takes the instance's evidence as load's replay would, its own per-slot standing kept.
-        THE INVARIANT (r295): afterwards nothing live names a retired term -- a binding is
+        load_blob installs next game series, origin the instance's -- stays live, so ROUTE's
+        re-binding reaches the method again (Fig 10 :68 "a generator crosses, an instance does
+        not"), and takes the instance's evidence as load's replay would, its own per-slot standing
+        kept. THE INVARIANT (r295): afterwards nothing live names a retired term -- a binding is
         re-pointed to the kind, or dropped and recorded beside the instance; checked once, here."""
         due, self._retire_due = self._retire_due, None
         idn = getattr(self.env, "identity", None)
@@ -26357,9 +26364,9 @@ class Agent:
             fh.write(json.dumps(body) + "\n")
 
     def _note_boundary_wall(self, wall_s: float) -> None:
-        """A level boundary's write, timed by the loop: this life's own measurement of its write at
-        its current size, plus the carried sleep part; the reserve never falls below the carried
-        whole (a boundary write has no end_run, save or sleep in it)."""
+        """A level boundary's write, timed by the loop: this game series' own measurement of its
+        write at its current size, plus the carried sleep part; the reserve never falls below the
+        carried whole (a boundary write has no end_run, save or sleep in it)."""
         if not _END_RESERVE:
             return
         own = wall_s + (self._end_sleep_s or 0.0)

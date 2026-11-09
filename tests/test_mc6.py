@@ -73,7 +73,7 @@ def _ladder(on: bool) -> list:
 
 
 if __name__ == "__main__":
-    # the birth seed pinned, or ON and OFF are two different agents (r1255 census: the flake)
+    # the start seed pinned, or ON and OFF are two different agents (r1255 census: the flake)
     tether._AGENT_SEED = False
     # MC6-a is MUSING's own claim (compute only); item 24 offers a rival by design and is
     # tested in test_musing_chosen, so it is held off here

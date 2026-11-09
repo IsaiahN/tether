@@ -1,12 +1,12 @@
 """C-DECAY-1, the decay class S1, S2, S5, S11 (Isaiah 2026-10-15 15:54; the reviewer 16:18,
 18:13 D1-D4).
 
-  RD-1  the captured stranded birth (scratchpad DRESET/birth_1.jsonl, seed d2f79069488af4c3),
+  RD-1  the captured stranded game start (scratchpad DRESET/birth_1.jsonl, seed d2f79069488af4c3),
         replayed by its record, presses RESET after its game loss and is not stranded;
         precondition: the same replay with the four arms OFF strands, so RD-1 can fail
-  RD-2  fresh births (each its own seed) on test_entry's game loss game, as many as fit the budget,
-        the
-        number stated: none is stranded; per birth, the presses between the game loss and RESET
+  RD-2  fresh game starts (each its own seed) on test_entry's game loss game, as many as fit the
+        budget, the
+        number stated: none is stranded; per game start, the presses between the game loss and RESET
   RD-3  no term loses standing (the reviewer 16:10): at the game loss of the RD-1 replay
         the standings
         are identical ON and OFF, and situate() changes no Gamma field
@@ -15,7 +15,7 @@
   RD-4  MUST-FAIL, a planted fault inside S1, the arm still ON: a press other than the restart
         read on a dead board as it would be alive, AND a dead press priced into the restart
         (either alone still resets; both counted executing); RD-1 strands again.
-        Measured: S1 alone frees this birth
+        Measured: S1 alone frees this game start
         (S1 off alone strands; S1 alone on resets), so S2, S5 and S11 are checked directly:
   S2    an observation stamped in an earlier epoch: a no-effect lapses (unknown), a change
         carries, a destination lapses (reach 1); within an epoch the latest decides; OFF
@@ -38,8 +38,8 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 
-# the captured birth (DRESET's birth_1.jsonl) exists on one machine only: named by an env var, never
-# a machine path (Isaiah 2026-10-30 16:33); unset, the test says SKIP-ENV and passes nothing
+# the captured game start (DRESET's birth_1.jsonl) exists on one machine only: named by an env var,
+# never a machine path (Isaiah 2026-10-30 16:33); unset, the test says SKIP-ENV and passes nothing
 RECORD_VAR = "TETHER_DECAY_RECORD"
 ARMS = ("TETHER_DEAD_PRICE", "TETHER_SITUATED_EFFECT", "TETHER_SITUATED_REACH",
         "TETHER_SITUATED_CLICK")

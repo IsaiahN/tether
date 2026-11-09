@@ -1,6 +1,6 @@
 """C-7h-1, 7h (the reviewer 2026-10-15 17:32, 19:59): the tried count, the shown frequency, root.
 
-  R1  a root row at birth, and after a game loss's restart, none while dead;
+  R1  a root row at the game start, and after a game loss's restart, none while dead;
       its fields answer what is
       shown, expected, open, owed, and name no action, button or coordinate
   R2  every choice row after a root carries that root's id
@@ -8,7 +8,8 @@
   T1  site 8: two operands equal in everything but this level's tries go fewer-tries-first; MF with
       no tried count the draw decides (the order today)
   S1  site 9: a value shown 3 times reads 3, one shown once reads 1; MF OFF reads 1 and 1
-  Runs under the old seed constant (C-seed-X): R1-R3 need a birth that restarts after its game loss.
+  Runs under the old seed constant (C-seed-X): R1-R3 need a game start that restarts after its game
+  loss.
 
     python tests/test_7h.py
 """

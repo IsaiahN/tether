@@ -1,5 +1,5 @@
 """RUN B'S WORKER (the reviewer 2026-10-31 r541 3, r542; Isaiah 10:26 "tether B parallelized"): ONE process, ONE agent,
-ONE life, as harness/mem_store/e4_stream.py, whose loop this keeps line for line -- the switch between steps,
+ONE game series, as harness/mem_store/e4_stream.py, whose loop this keeps line for line -- the switch between steps,
 arrive, the edges, step_or_recover. HARNESS ONLY: nothing in the agent; the agent is never told a game's name or
 that its slice ends. What differs, and only this:
   - the games: taken one at a time from run_b.py's queue (a claim file made with O_CREAT|O_EXCL, so no two workers
@@ -19,7 +19,7 @@ that its slice ends. What differs, and only this:
 THE ONE KNOWN DUPLICATION (the reviewer 2026-10-31 r543): the per-step loop below is e4_stream's text; when e4_stream's
 loop changes, this one must follow.
 B_TEST_FAULT="worker,step" (the local test only, r543's must-hold; never set by the notebook): that worker's agent
-raises once at that step of its life, through step_or_recover, so the recovery below can be seen to run.
+raises once at that step of its game series, through step_or_recover, so the recovery below can be seen to run.
 argv: code out lineage card queue_dir n_workers deadline_at worker"""
 import collections
 import gc
@@ -231,7 +231,7 @@ def recover(env, ag, ctx):
     """(A), the reviewer 2026-10-31 r542: step_or_recover's recovery (arc_holdout.py, after end_path) with end_path's
     writes left out -- the faulted agent's end_run, guarded; a fresh world on the SAME wrapper; a fresh agent on the
     SAME ledger loading the UNCHANGED lineage, with the harness's clock (the cycle after the faulted one, the
-    deadline). The faulted agent is dropped, and with it what this life learned since its load."""
+    deadline). The faulted agent is dropped, and with it what this game series learned since its load."""
     arc_holdout.guarded(ag, ag.end_run, ledger.AGENT_FAULT)
     cycle, deadline, led = ag._fault_cycle + 1, ag.deadline, ag.led
     fresh_env = arc_holdout.world_on(env.w, ctx["game"], ctx["palette"], env.on_frame)
@@ -244,17 +244,18 @@ def recover(env, ag, ctx):
 
 
 def rewire(env, ag, ctx, why: dict, no_answer: bool = False):
-    """B_MEM_GUARD (the reviewer 2026-10-31 r554 3), BETWEEN games only: recover()'s path with no fault -- this life's
-    end_run, a fresh world on the SAME wrapper, a fresh agent on the SAME ledger from the UNCHANGED lineage, the clock
-    carried -- because this worker's commit and its own largest one-game growth would pass its share of the machine.
-    What this life built in memory is dropped; nothing is written.
+    """B_MEM_GUARD (the reviewer 2026-10-31 r554 3), BETWEEN games only: recover()'s path with no fault -- this game
+    series' end_run, a fresh world on the SAME wrapper, a fresh agent on the SAME ledger from the UNCHANGED lineage, the
+    clock carried -- because this worker's commit and its own largest one-game growth would pass its share of the
+    machine. What this game series built in memory is dropped; nothing is written.
     no_answer (r563): the same path after a step the wrapper never answered, whose agent was cut inside its step, so
     its end_run is guarded as recover()'s is."""
     if no_answer:
         arc_holdout.guarded(ag, ag.end_run, "cap")
     else:
         ag.end_run("cap")
-    w = save(ag, "rewire") if WRITE and not no_answer else None   # K-W: the fresh agent loads what this life wrote
+    w = save(ag, "rewire") if WRITE and not no_answer else None   # K-W: the fresh agent loads what this game series
+                                                                  # wrote
     cycle, deadline, led = ag.cycle, ag.deadline, ag.led
     fresh_env = arc_holdout.world_on(env.w, ctx["game"], ctx["palette"], env.on_frame)
     fresh, _loaded = arc_holdout.wire_agent(fresh_env, ctx["game"], None, led, None, LIN, clock=(cycle, deadline))
@@ -336,7 +337,7 @@ while nxt is not None:
     i, g = nxt
     taken.append(g)
     memo("claim", i, g)
-    if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the life
+    if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the game series
         budget_unreached.append(g)
         finished(i)
         log(f"# {i}\t{g}\tunreached at this budget (the whole-run deadline passed; no switch)")
@@ -349,7 +350,8 @@ while nxt is not None:
             env, ag = rewire(env, ag, ctx, {"commit_mb": c_now, "largest_game_growth_mb": grow_max,
                                             "growth_margin": GROWTH_MARGIN,
                                             "share_mb": SHARE_MB, "games_played": len(taken) - 1})
-            gc.collect()      # the old life is cyclic garbage until collected, and freeing it is the guard's point
+            gc.collect()      # the old game series is cyclic garbage until collected, and freeing it is the guard's
+                              # point
             if old is not None:   # r557, the test only: nothing may still hold the old agent or its world
                 held = [r() for r in old]
                 ag.led.record(ag.cycle, "SETTLE", "@run", "b_mem_guard_test",
@@ -404,7 +406,7 @@ while nxt is not None:
             break
         if fault is not None:
             if ctx["faults"].count(arc_holdout.fault_key(fault)) > 1:
-                raise fault                # a repeat ends the life, as e4_stream's
+                raise fault                # a repeat ends the game series, as e4_stream's
             env, ag = recover(env, ag, ctx)
         longest = max(longest, time.time() - t_step)
         steps += 1

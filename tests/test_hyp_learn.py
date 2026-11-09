@@ -8,7 +8,7 @@ L2  own history L3a paid 4 of 10, L1 paid 0 of 10: L3a goes before L1 (validity 
 L3  two candidates sharing L1, one with L3a and one without: L3a decides only once L1 (and every
     earlier cue) fails to discriminate -- a candidate with L2 instead beats the L3a one
 LW  r1480: an inherited record calls L3a "pays" (at or above the mean inherited validity); five
-    own L3a holds all fail; w_L3a falls to 0 and L3a moves below L1 within the life
+    own L3a holds all fail; w_L3a falls to 0 and L3a moves below L1 within the game series
 L0  r1481 (1): no history, an L0 candidate (about the subject itself) before an L1 one; L0 paid 0
     of 5 against L1's 2 of 5, L1 first
 TH  r1481 (2): one failed L1 hold, L1 keeps its level's slot; three failed L1 holds against L3a's

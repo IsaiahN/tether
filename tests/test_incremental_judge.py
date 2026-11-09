@@ -92,8 +92,8 @@ def _child(probe: str, tree: str, extra: dict | None = None) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0",
                **(extra or {}))
-    # 4 h a child: a 60-step mover life took ~50 min at Idle beside a rehearsal and a round, and the
-    # next child passed 3600 s (2026-10-31 22:1x), which is a timeout, not a reading
+    # 4 h a child: a 60-step mover game series took ~50 min at Idle beside a rehearsal and a round,
+    # and the next child passed 3600 s (2026-10-31 22:1x), which is a timeout, not a reading
     out = subprocess.run([sys.executable, "-B", "-c", probe, tree], env=env,
                          capture_output=True, text=True, timeout=14400, cwd=str(_repo.ROOT),
                          stdin=subprocess.DEVNULL)

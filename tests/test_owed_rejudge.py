@@ -1,6 +1,6 @@
 """1d OWED_REJUDGE (TETHER_OWED_REJUDGE, default ON; the reviewer 2026-10-28 r281, 2026-10-29 r326
 Option A, r333). On B2's fixture: gridworld default seed 0 size 4, closure budget 40, echoes off,
-birth seed pinned. Each check runs in its own process, under 5 minutes.
+start seed pinned. Each check runs in its own process, under 5 minutes.
   check_a_sources_explained       an owed ask whose sources all carry no outstanding is released,
                                   "sources explained", and is not owed after
   check_a_mustfail_r281_guard     MUST-FAIL: r281's literal guard (the derived slot's OWN

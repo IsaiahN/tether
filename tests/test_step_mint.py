@@ -32,7 +32,7 @@ sys.dont_write_bytecode = True
 
 
 def _agent(steps: int = 3, **cfg) -> tether.Agent:
-    # one temperament, as check_d's child pins it: the birth seed is OS entropy otherwise, and
+    # one temperament, as check_d's child pins it: the start seed is OS entropy otherwise, and
     # check_c's occasion moved with it (the reviewer 2026-10-29 r316, r317)
     tether._AGENT_SEED = False
     env = world.bind(gridworld.family("default", 0, 4))

@@ -10,9 +10,9 @@ the kind name. Each check runs in its own process, by name.
   check_two_by_three  the reviewer's 2x3 check: on the fake ARC game, instances retired at a
                       break (TETHER_INSTANCE_RETIRE), then saved and loaded into a fresh agent:
                       the kind's settle and refute counts after the load equal those after the
-                      in-life retire
+                      retire within this game series
   check_off_identity  the arm OFF writes the same generation (content, handles aside) and the same
-                      load report as 6b6c5bb on a gridworld life
+                      load report as 6b6c5bb on a gridworld game series
     python tests/test_kind_save.py [check ...]
 """
 from __future__ import annotations

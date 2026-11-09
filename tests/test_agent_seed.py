@@ -2,19 +2,19 @@
 NOT RUN: it runs in the end-of-step-7 checklist. Each agent runs in a child process, because the
 arms resolve at import.
 
-  S1  BIRTH: two agents born with nothing set draw different seeds, each "birth", generation 0,
+  S1  START: two agents started with nothing set draw different seeds, each "birth", generation 0,
       draw seed "<seed>:0", and the run header records it.
   S2  REPLAY: an agent pointed at S1's first ledger (TETHER_SEED_FROM) carries that seed and
       generation, labelled "replay:<sha16>"; it chose nothing.
   S3  A SEEDLESS RECORD IS REFUSED BY NAME: a ledger written with the arm OFF carries no seed of
       the agent's, and an agent pointed at it does not start.
   S4  OFF: TETHER_AGENT_SEED=0 gives seed "0", draw seed "0", "constant" (the old draws exactly).
-  S5  RETIRED: TETHER_HOLD_SEED set refuses the agent's birth by name.
+  S5  RETIRED: TETHER_HOLD_SEED set refuses the agent's start by name.
   S6  LINEAGE (Q1): an agent loading a one-generation lineage carries its writer's seed, as
       "lineage:<tip>", at generation 1, so its draw seed is "<seed>:1". MF-S6: the writer's draw
-      seed ("<seed>:0") differs, so the continued life does not replay its day. F-a: gamma's draw
-      seed when load_blob runs is already the lineage's ("<seed>:1"), so a handle the load mints
-      is minted under the seed a replay reads; with the old order it was the birth seed.
+      seed ("<seed>:0") differs, so the continued game series does not replay its day. F-a: gamma's
+      draw seed when load_blob runs is already the lineage's ("<seed>:1"), so a handle the load
+      mints is minted under the seed a replay reads; with the old order it was the start seed.
   S7  HANDLES (Q4): under a seed a composition's handle is the same twice and differs under another
       seed; the old random suffix is kept for None.
 

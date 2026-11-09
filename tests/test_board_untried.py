@@ -3,10 +3,10 @@ board, and the record lives in the interface; the agent reads a count.
 
 On the gridworld fixture: every offered non-RESET action starts untried; presses bring the count to
 zero; a game loss keeps it, a new_board boundary (the agent's situate(new_board=True)) brings every
-action back; and realise(ELICIT) then takes an action the life's table already maps as unmapped,
-so System 0's untried-first rule fires on the second board of a life. The seam: tether.py names no
-action and keeps no action-keyed store for this (grepped from the diff, not asserted here).
-
+action back; and realise(ELICIT) then takes an action the game series' table already maps as
+unmapped, so System 0's untried-first rule fires on the second board of a game series. The seam:
+tether.py names no action and keeps no action-keyed store for this (grepped from the diff, not
+asserted here). 
     python tests/test_board_untried.py
 """
 from __future__ import annotations

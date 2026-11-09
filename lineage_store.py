@@ -746,9 +746,9 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
 
 def _merge_asked(con: sqlite3.Connection, s: "Syms", k: int, h: str, bodies: list) -> None:
     # bodies: AkFile objects, each read once, streamed (M)
-    """The OLD form (each row a variant's first appearance over the life) adds to n_variants. The
-    NEW form (form 2, S4: the rows asked since the last save, each with n = times asked) adds n to
-    n_asked and 1 to n_saves_asked (the memory saves the class was asked in; not counts' n_saves,
+    """The OLD form (each row a variant's first appearance over the game series) adds to n_variants.
+    The NEW form (form 2, S4: the rows asked since the last save, each with n = times asked) adds n
+    to n_asked and 1 to n_saves_asked (the memory saves the class was asked in; not counts' n_saves,
     the saves merged), and leaves n_variants frozen (the reviewer 08:26 item 3): a new-form row
     cannot tell a new variant from a repeat without a per-variant table."""
     for a in bodies:
@@ -920,7 +920,7 @@ def checkpoint(con: sqlite3.Connection) -> dict:
 
 def note_end_path(con: sqlite3.Connection, wall_s: float, sleep_s: float) -> dict:
     """C1 (A)'s reserve (the reviewer 2026-10-22 14:27): the end path's measured wall and its
-    sleep part, written after the sleep so the next life's load reads its predecessor's."""
+    sleep part, written after the sleep so the next game series' load reads its predecessor's."""
     out = {"s": round(wall_s, 3), "sleep_s": round(sleep_s, 3)}
     con.execute("INSERT OR REPLACE INTO meta VALUES ('end_path', ?)", (json.dumps(out),))
     con.commit()

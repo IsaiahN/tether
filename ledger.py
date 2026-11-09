@@ -30,8 +30,8 @@ sys.dont_write_bytecode = True
 _LEDGER_HANDLE = armflag.arm("TETHER_LEDGER_HANDLE", default=True)
 _OPEN: weakref.WeakSet = weakref.WeakSet()   # ledgers holding a handle, closed at exit
 # THE CHOICE TALLY (Isaiah 2026-10-23 09:12 "these should be deduped and tallied"; the reviewer
-# 09:13, 10:40): an objective_domain "choice" row whose KEY was already written in this life is
-# not appended; it adds to a per-step count, flushed as one "choice_tally" row per key at the
+# 09:13, 10:40): an objective_domain "choice" row whose KEY was already written in this game series
+# is not appended; it adds to a per-step count, flushed as one "choice_tally" row per key at the
 # step's end (flush_tally). E4b: 636,386 such rows, 3,001 keys. The key is every decision field;
 # only cycle, seq and mode are out. `written` counts appended rows AND tallied repeats, and
 # since_written() returns both in call order, so a reader that captures and replays rows

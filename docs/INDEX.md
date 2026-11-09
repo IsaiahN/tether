@@ -57106,3 +57106,5 @@ An operand named `slot~1` is that slot one frame earlier (`PREV`, `_prev_of`, `_
 **FIGURE CENSUS.** Fig 1 -- "A frame cannot score itself with a quantity it also produces.": the reading is not a score. Fig 10 -- "must be unauthored first and examined second.": the ground pool is all 25; a fitting subset answers a mechanism question only, named as chosen. Figs 2-9, 11-13, Operators, Symbols: not engaged by a record. Strained: none.
 
 **2026-11-02, CORPUS PLACEMENT NOTED (the reviewer r782, r783).** `docs/ARC_AGENT.md` §6 "Getting it onto Kaggle" (lines 202-266) is submission how-to inside the corpus, carried on general-agent; left as written, since the file is CORPUS; Isaiah's to move to the submission material on arc-solver-agent or to leave.
+
+**2026-11-09, WORDS (r1571, r1579; Isaiah 12:41, 14:50).** In the code "death" became "game loss" (76ad9f9: how="game_loss", _GAME_LOSS_VOTE, _game_loss_n; old values read through ledger.GAME_LOSS_ALIASES), and in comments one agent instance's "life" became its "game series" and its "birth" its "start" (the life/birth sweep). Entries above this line keep the old words as history.

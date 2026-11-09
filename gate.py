@@ -148,8 +148,8 @@ def _inputs(rows: list[dict]) -> dict | None:
             accepted.add(str(r.get("detail", {}).get("term")))
         elif ev == "pull" and _bound_stamp(r.get("detail", {})) == IMPORTED_STAMP:
             # r1490 (the reviewer 2026-11-08): an inherited term's arrival is its inheritance,
-            # recorded on its pull; an in-life term keeps its own accept. The reuse_install
-            # clause above (2026-10-16 09:14) reads a library pull the same way
+            # recorded on its pull; a term minted in this game series keeps its own accept. The
+            # reuse_install clause above (2026-10-16 09:14) reads a library pull the same way
             accepted.add(str(r.get("detail", {}).get("term")))
         elif ev == "settle" and str(r.get("detail", {}).get("term")) not in accepted:
             return _v("inputs", MISSING_INPUT, r.get("seq"), "settle without accept")
