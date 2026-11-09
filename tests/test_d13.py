@@ -94,8 +94,9 @@ if __name__ == "__main__":
     tether._AGENT_SEED = False
     tether.Agent.__init__ = _init
     tether.Agent._settle_process = _guarded
-    # r1562 (B): retarget books the ended life's settle to that life's last cycle, so the next
-    # step's own process_bet on "@process", at the same cycle number, follows it in step order
+    # r1562 (B): retarget books the ended attempt's settle to that attempt's last cycle (r1565:
+    # 'attempt', never 'life'), so the next step's own process_bet on "@process", at the same
+    # cycle number, follows it in step order
     from contextlib import contextmanager
 
     import gate

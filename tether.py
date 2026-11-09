@@ -5261,7 +5261,7 @@ class Agent:
         """The run ends with this level still open: its signals resolve at the GAME (MC2). The loops
         call it after their last step; `retarget` never sees a cap or a timeout."""
         if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
-            with self._tail_booking():  # r1562: booked to the ended life's last cycle
+            with self._tail_booking():  # r1562: booked to the ended attempt's last cycle
                 self._3a_settle()     # r1542: at the game's own end, not at its save
         self._intent_verdict(how)
         self._note_ending(how, "run")
@@ -5275,7 +5275,7 @@ class Agent:
             self._muse_close_parks(how)          # item 24: the game's parks close with it
         self._resolve_signals("game", how)
         if _D13:
-            with self._tail_booking():  # r1562: the ended life's bets, its last cycle
+            with self._tail_booking():  # r1562: the ended attempt's bets, its last cycle
                 self._settle_process("game", how)
         if self._goal_conds:
             self._close_goals(how)
@@ -5403,7 +5403,7 @@ class Agent:
         minted three levels later can be tested against it -- the mint will never revisit
         it, so this is the sweep's one irreplaceable job."""
         if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
-            with self._tail_booking():  # r1562: booked to the ended life's last cycle
+            with self._tail_booking():  # r1562: booked to the ended attempt's last cycle
                 self._3a_settle()     # r1542: while this epoch's trace still exists
         if _S0_HANDOFF:
             if how in (WIN, ADVANCE):
@@ -5556,7 +5556,7 @@ class Agent:
                                                     "clearing segment, settled once (r694 3)")
         self._resolve_signals("level", how)
         if _D13:
-            with self._tail_booking():  # r1562: the ended life's bets, its last cycle
+            with self._tail_booking():  # r1562: the ended attempt's bets, its last cycle
                 self._settle_process("level", how)
         if _GOAL_HYP:
             # GQ2: a hypothesis held through a clear WON (its shelf record counts it); any other
