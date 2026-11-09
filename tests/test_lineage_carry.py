@@ -55,6 +55,9 @@ N = 20
 # R-g2's steps after the retarget: seed 3 under the pinned seed first settles (gamma.evidence) at
 # c49, 29 steps after the c20 retarget (measured 2026-11-08, r1498); 36 is that plus a margin
 N_AFTER = 36
+# part c's section 1: game 2 first writes rows of its own at 30 (0 at 20; seed 0 twice, measured
+# 2026-11-08, r1515), so the constructed same-text pair has something to build on
+N_C = 30
 
 
 _LOADS = []   # each load_blob call lineage.load makes: what R-g1's oracle repeats, guard (a)
@@ -225,7 +228,7 @@ def _partition(f, blob, names, held=None):
     return None
 
 
-PARTS = ("a", "b", "c", "d")     # by name, one process each at landing, each under 5 min (r299)
+PARTS = ("a", "b", "c", "d", "e")    # by name, one process each, each under 5 min (r299)
 
 
 def on_checks(parts=PARTS):
@@ -354,7 +357,7 @@ def _part_b(tmp):
     # INHERITED (r1503, r1504, r1506): a first real life on the same world writes the parent, and
     # the life under test loads it. Its save holds one composition under several instance names,
     # the within-save alias (lineage.py :716-722, held_keys grown at :724); the parent-fold path
-    # (:699) is not witnessed here, and _part_e is its constructed fixture
+    # (:699) is not witnessed here; its own constructed fixture follows (r1506)
     rr = tmp / "rt"
     _env1, ag1, _ = _life(rr, 3)
     assert ag1.gamma.evidence and ag1._dormant, (
@@ -444,54 +447,71 @@ def _part_b(tmp):
 
 
 def _part_c(tmp):
-    """Identity, (d) OFF and ON."""
-    # LINEAGE-UNIQUE IDENTITY (the reviewer 20:45): a per-game COUNTER in place of the handle's
-    # random suffix, so two games of one name mint the same handle text; both rows must fold.
+    """Identity, (d) OFF: the whole fold."""
+    # LINEAGE-UNIQUE IDENTITY (the reviewer 20:45): two rows sharing one handle text across two
+    # generations must both fold, keyed by (born, handle), never by text. Re-minting no longer
+    # arises: loading the carried term, game 2 reuses it (2026-11-08: reuse at c19 at N=20, c29 at
+    # N=40, settled c30; evidence 48 written 48), so its path departs from game 1's and a per-game
+    # counter's texts no longer line up -- the counter ticked on every non-PRIOR install
+    # (gamma.py :1174), carried loads included. The occasion is constructed as (b) constructs its
+    # own (r1509, r1514, r1515): game 2 writes rows of its own from N_C on (0 at 20, 4 at 30)
     cd = tmp / "same_text"
-    real = gamma.Term.handle
-    count = [0]
-
-    def counted(_self, game, _seed=None):   # term.handle takes the draw seed (HOLD_SEED)
-        count[0] += 1
-        return f"{game}_X_term_{count[0]:08x}"
-    gamma.Term.handle = counted
-    # (d) OFF here: the repeated texts come from game 2 re-minting game 1's compositions, which (d)
-    # writes as aliases; the (born, handle) keying under test is the same either way
     dedup = lineage._SAVE_DEDUP
-    lineage._SAVE_DEDUP = False
+    lineage._SAVE_DEDUP = False    # (d) OFF: nothing is aliased, so every row must fold as a row
     try:
         written = []
-        for _ in range(2):
-            count[0] = 0
-            env, agc, _r = _agent(cd, 0)
-            for _ in range(N):
-                agc.step()
-            agc.end_run("cap")
-            written.append(lineage.write(cd, agc, "default"))
+        env, ag1, _r = _agent(cd, 0)
+        for _ in range(N_C):
+            ag1.step()
+        ag1.end_run("cap")
+        written.append(lineage.write(cd, ag1, "default"))
+        row1 = next(r for r in _gen(cd, written[0])["terms"] if r.get("handle"))
+        env, ag2, _r = _agent(cd, 0)
+        for _ in range(N_C):
+            ag2.step()
+        ag2.end_run("cap")
+        own = next((r for r in ag2.gamma.blob(with_names=True)["terms"]
+                    if r["name"] not in ag2.gamma.carried), None)
+        assert own, ("fixture: game 2 wrote no row of its own -- the constructed occasion has "
+                     "nothing to build on")
+        assert gamma.Gamma.row_key(own) != gamma.Gamma.row_key(row1), (
+            "fixture: the pair is one composition")
+        ag2.gamma.handles[own["name"]] = row1["handle"]
+        written.append(lineage.write(cd, ag2, "default"))
     finally:
-        gamma.Term.handle = real
         lineage._SAVE_DEDUP = dedup
     _h, fc = lineage.head(cd)
     texts = [r["handle"] for r in fc["terms"]]
     same = len(texts) - len(set(texts))
-    assert same, ("fixture: no same-text handles arose", written)
+    assert same, ("fixture: the constructed same-text pair is not in the fold", written)
     assert len(fc["terms"]) == sum(w["terms"] for w in written), (
         "R-g2 same-text handles folded together", len(fc["terms"]), written)
-    print(f"  identity: two same-name games wrote {[w['terms'] for w in written]} rows, "
-          f"{same} handle text(s) repeated across them, all {len(fc['terms'])} folded",
+    # MUST-FAIL: the fold re-keyed by handle text alone (a stand-in here, never the shipped code)
+    by_text = {r["handle"]: r for r in fc["terms"]}
+    assert len(by_text) < len(fc["terms"]), (
+        "identity MF: keyed by text, the pair did not collapse", len(by_text), len(fc["terms"]))
+    print(f"  identity (d) OFF: whole fold == sum written, with a constructed same-text pair: "
+          f"{[w['terms'] for w in written]} rows, {same} handle text(s) shared, all "
+          f"{len(fc['terms'])} folded; MF keyed by text: {len(fc['terms'])} -> {len(by_text)}",
           flush=True)
+
+
+def _part_e(tmp):
+    """Identity, (d) ON: one pair."""
     # (b), (d) ON, the shipped default (the reviewer 2026-10-25 21:15): two DIFFERENT compositions
-    # under one handle text. Game 2 gives a term it minted itself the text of a game 1 row
+    # under one handle text. Game 2 gives a term it minted itself the text of a game 1 row. Split
+    # from part c (r1519) and on seed 0 twice at N_C: seed 0 then 1 at N=20 no longer gives game 2
+    # a composition of its own once it folds in its earlier save (2026-11-08 20:57, 21:36)
     assert lineage._SAVE_DEDUP, "(b) runs with (d) ON"
     cb = tmp / "same_text_on"
     env, agx, _r = _agent(cb, 0)
-    for _ in range(N):
+    for _ in range(N_C):
         agx.step()
     agx.end_run("cap")
     wx = lineage.write(cb, agx, "default")
     row1 = next(r for r in _gen(cb, wx)["terms"] if r.get("handle"))
-    env, agy, _r = _agent(cb, 1)
-    for _ in range(N):
+    env, agy, _r = _agent(cb, 0)
+    for _ in range(N_C):
         agy.step()
     agy.end_run("cap")
     own = next((r for r in agy.gamma.blob(with_names=True)["terms"]
@@ -557,7 +577,7 @@ def main():
     # both seeds pinned (the reviewer 2026-10-22 19:39): R-g1's precondition rode the birth seed
     env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_HOLD="1", TETHER_AGENT_SEED="0",
                PYTHONHASHSEED="0")
-    # part names on the command line run only those parts (a b c d); none runs all
+    # part names on the command line run only those parts (a b c d e); none runs all
     parts = [a for a in sys.argv[1:] if a in PARTS]
     r = subprocess.run([sys.executable, "-B", __file__, "--on", *parts], env=env,
                        stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)
