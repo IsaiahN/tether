@@ -617,6 +617,10 @@ ARMS: dict[str, str] = {
                            "the series', else the prior (A1's outstanding at its aim), x a need "
                            "weight (1.0); every bid declares its source; cost (median demand) is "
                            "a filter against the allowance. OFF: A1's outstanding at its aim",
+    "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
+                         "undefined (over half the steps cut) and the latest step was cut, the "
+                         "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "
+                         "half finish and the median rules again. OFF: the last purse holds",
     "TETHER_D5_NESTED":"Default ON (Isaiah 2026-11-10 05:04, r1633). "
                         "(N) (the reviewer 2026-11-10 r1626, r1627): ON, (N1) a live split's leaf "
                         "part is cut on its own misses over its own rows (an inner node on "

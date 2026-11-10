@@ -1733,6 +1733,15 @@ _PURSE_OWN = armflag.arm("TETHER_PURSE_OWN", default=True)
 # _tc_clocks (offline a think displaces nothing)
 _PURSE_DEADLINE = armflag.arm("TETHER_PURSE_DEADLINE", default=True)
 PURSE_CUT = object()   # the unseen walk stopped at the purse: unreached at this budget, not "none"
+# C2 RISE (the reviewer 2026-11-10 r1646; Fig 8 :41-42 "the remedy is more search", Fig 9 :60):
+# TETHER_PURSE_RISE, when over half the steps are cut the median is undefined, and a purse that
+# could only hold would make "unreached at this budget" a standing verdict. So while the median is
+# undefined and the latest step was cut, the purse is the last purse x PURSE_RISE (never lowered),
+# until half the steps finish and the median rules again. OFF: the last purse holds
+_PURSE_RISE = armflag.arm("TETHER_PURSE_RISE", default=True)
+# an UMWELT setting (class E, r1646; logged for Isaiah): how far a mind widens its search each time
+# it is stuck -- doubling, as unbounded search and iterative deepening do
+PURSE_RISE = 2
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
 # is stored with every landing, and the lit list is TIERS, an order, never a cut: T1a-c what landed
@@ -27713,6 +27722,10 @@ class Agent:
         if p is None:
             p, src = ((self._purse_last, "last purse") if self._purse_last is not None
                       else (STEP_BUDGET, "innate prior (STEP_BUDGET, heads)"))
+            if (_PURSE_RISE and self._purse_last is not None and self._pd
+                    and any(k[0] == "cut" for k in self._pd[-1]["open"])):
+                p = self._purse_last * PURSE_RISE
+                src = "censored: over half cut; rising until half finish"
         self._purse_last, self._purse_src = p, src
         self._purse_memo = (key, p, src)
         return p

@@ -19,6 +19,11 @@ TETHER_PURSE_DEADLINE (P3).
       median" once the level has MIN_REPEAT observed steps (r1644)
   U9  the overshoot: the first check past the allowance records where the step crossed it, with
       the heads spent then; MF: under the allowance, nothing is recorded (r1644)
+  U10 RISE (r1646): a level whose every step is cut raises the purse x PURSE_RISE each step, its
+      source "censored: over half cut; rising until half finish"
+  U11 once half finish, the level median rules again: observed evidence can lower the purse;
+      censored evidence never lowers it
+  U12 OFF (TETHER_PURSE_RISE): the last purse holds
 
     python tests/test_purse.py
 """
@@ -188,8 +193,43 @@ def check_u9() -> None:
     print(f"  U9: crossed in 'route' at {c['spent']} heads against {a}; nothing under it")
 
 
+def check_u10_u11() -> None:
+    ag = _agent()
+    seen = [ag._purse()]
+    for i in range(3):
+        _rec(ag, i, 60000, {("cut", i)})
+        seen.append(ag._purse())
+    k = tether.PURSE_RISE
+    assert seen == [tether.STEP_BUDGET * k ** j for j in range(4)], seen
+    assert ag._purse_src == "censored: over half cut; rising until half finish"
+    top = seen[-1]
+    for i in range(3, 7):
+        _rec(ag, i, 1000)
+    got = ag._purse()
+    assert got == 1000 and ag._purse_src == "level median", (got, ag._purse_src)
+    ag2 = _agent()
+    ag2._purse()
+    for i in range(3):
+        _rec(ag2, i, 1, {("cut", i)})            # censored lower bounds far below the purse
+        assert ag2._purse() >= tether.STEP_BUDGET, "MF: censored evidence lowered the purse"
+    print(f"  U10-U11: every step cut: {seen}; then four observed at 1000 -> the level median "
+          f"{got} (from {top}); censored lower bounds never lowered it")
+
+
+def check_u12() -> None:
+    keep, tether._PURSE_RISE = tether._PURSE_RISE, False
+    try:
+        ag = _agent()
+        ag._purse()
+        _rec(ag, 0, 60000, {("cut", 0)})
+        assert ag._purse() == tether.STEP_BUDGET and ag._purse_src == "last purse"
+    finally:
+        tether._PURSE_RISE = keep
+    print("  U12: OFF, the last purse holds")
+
+
 if __name__ == "__main__":
     for c in (check_u1, check_u2, check_u3, check_u4, check_u5, check_u6, check_u7, check_u8,
-              check_u9):
+              check_u9, check_u10_u11, check_u12):
         c()
     print("purse: OK")
