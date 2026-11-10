@@ -5,10 +5,11 @@ TETHER_SETTLE_BEAT_NULL.
       slot), and its evidence row carries "untipped"; tip=True settles as before
   T2  replay: a carried "untipped" settle row does not tip on load (MF: the arm leaking through the
       save); a plain row tips, as before (path 4 unchanged)
-  T3  gridworld, 40 steps ON: every tipping settle row beat the null (risky true), the tied ones are
-      settle_tied rows and leave the term a candidate there, and _settled_lvl holds only terms with
-      a tipping row in the level (path 3, promotion's gate, by construction). OFF on the same run
-      tips on a tied occasion (the occasion exists)
+  T3  a hand fixture (r1652 (2): the occasion is built, never waited for in a long run): a
+      candidate's correct prediction where "no change" would also have held (tied) and one where
+      it would have missed (beat). ON: the beat tips (risky true) and the tied writes settle_tied
+      and leaves the term a candidate; _settled_lvl holds only the tipped term. MF: OFF, the tied
+      occasion tips (risky false)
   T4  win credit (path 1): at a level advance, a bound term that tipped on a beat in the level is
       tipped; one that did not is counted (confirmations) and not tipped (MF)
 
@@ -79,30 +80,54 @@ def _run(on: bool, n: int = 40) -> tether.Agent:
         tether._SETTLE_BEAT_NULL = keep
 
 
+S = "o0.row"
+
+
+def _occasion(on: bool, tied: bool) -> tuple:
+    """One settle-path occasion, built by hand: the candidate term made the slot's prediction,
+    the ground agreed (mass 0), born before this cycle, in this level. Tied: the prediction equals
+    the slot's previous value (no change would also have held); beat: it differs."""
+    keep, tether._SETTLE_BEAT_NULL = tether._SETTLE_BEAT_NULL, on
+    try:
+        env = world.bind(gridworld.family("default", 0))
+        ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="g"), tether.Config(),
+                          ledger.Ledger())
+        ag.step()
+        lib = ag.gamma.library
+        name = ag.gamma.accept(gamma.Term((lib["inc"].atoms[0], lib["dbl"].atoms[0])), 0,
+                               "r").name
+        ag.candidates[name], ag._cand_level[name] = 0, ag.level
+        b = dict(ag.trace[-1][0])
+        a = ag.alphabet.get(S) or 8
+        frm = 2
+        b[S] = frm
+        act = frm if tied else (frm + 1) % a
+        ag.trace[-1] = (b, ag.trace[-1][1], dict(ag.trace[-1][2], **{S: act}),
+                        *ag.trace[-1][3:])
+        ag._pred_by, ag.bound[S] = {S: name}, name
+        n0 = len(ag.led.rows())
+        ag.settle({S: tether.SlotResidual(S, tether.TRANSITION, act, act, 0.0)})
+        rows = [r for r in ag.led.rows()[n0:] if r["slot"] == S
+                and r["event"] in ("settle", "settle_tied")]
+        return ag, name, rows
+    finally:
+        tether._SETTLE_BEAT_NULL = keep
+
+
 def check_t3() -> None:
-    off = _run(False)
-    off_tied = [r for r in off.led.rows() if r["event"] == "settle"
-                and r["detail"].get("risky") is False]
-    assert off_tied, "occasion: OFF never tipped on a tied settle in 40 steps"
-    ag = _run(True)
-    rows = ag.led.rows()
-    tips = [r for r in rows if r["event"] == "settle" and r["detail"].get("status") == "accepted"]
-    tied = [r for r in rows if r["event"] == "settle_tied"]
-    assert tied, "occasion: no tied settle ON"
-    assert all(r["detail"].get("risky") is True for r in tips), [r["detail"] for r in tips]
-    lvl = ag.level
-    tipped_here = {r["detail"]["term"] for r in tips if r.get("level", lvl) == lvl}
-    assert ag._settled_lvl <= tipped_here, (ag._settled_lvl, tipped_here)
-    last = {}
-    for r in rows:
-        if r["event"] in ("settle", "settle_tied", "demote"):
-            last[(r["detail"].get("term"), r["slot"])] = r["event"]
-    for (name, slot), ev in last.items():
-        if ev == "settle_tied":
-            assert not ag.gamma.is_settled(name, slot), (name, slot)
-    print(f"  T3: ON, {len(tips)} tipping settles all beat the null, {len(tied)} settle_tied rows "
-          f"left their terms candidates; _settled_lvl {sorted(ag._settled_lvl)} only tipped "
-          f"terms. OFF tipped {len(off_tied)} times on a tied occasion")
+    off, off_name, off_rows = _occasion(False, tied=True)
+    assert off_rows and off_rows[-1]["event"] == "settle", ("fixture: no settle", off_rows)
+    assert off_rows[-1]["detail"].get("risky") is False and off.gamma.is_settled(off_name, S), \
+        "MF: OFF, the tied occasion did not tip"
+    ag, name, rows = _occasion(True, tied=True)
+    assert rows and rows[-1]["event"] == "settle_tied", rows
+    assert not ag.gamma.is_settled(name, S) and name not in ag._settled_lvl, "tied tipped ON"
+    bg, bname, brows = _occasion(True, tied=False)
+    assert brows and brows[-1]["event"] == "settle" and brows[-1]["detail"].get("risky") is True
+    assert bg.gamma.is_settled(bname, S) and bg._settled_lvl <= {bname}, bg._settled_lvl
+    print("  T3: by hand: ON the beat tips (risky true) and the tied writes settle_tied, the term "
+          "a candidate; _settled_lvl holds only the tipped term. OFF the tied occasion tips "
+          "(risky false)")
 
 
 def check_t4() -> None:

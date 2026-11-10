@@ -15,8 +15,10 @@
 """
 from __future__ import annotations
 
+import json
 import os
 import re
+import subprocess
 import sys
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
@@ -26,8 +28,6 @@ os.environ.setdefault("TETHER_AGENT_SEED", "0")
 
 import gamma  # noqa: E402
 import gridworld  # noqa: E402
-import ledger  # noqa: E402
-import tether  # noqa: E402
 import world  # noqa: E402
 
 
@@ -50,27 +50,44 @@ def check_n1_mf() -> None:
           "confirmations")
 
 
-def _run(pred: bool) -> tether.Agent:
-    keep, tether._SETTLE_PRED = tether._SETTLE_PRED, pred
-    try:
-        env = world.bind(gridworld.family("default", 0))
-        ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="g"), tether.Config(),
-                          ledger.Ledger())
-        for _ in range(40):
-            ag.step()
-        return ag
-    finally:
-        tether._SETTLE_PRED = keep
+# r1654: each 40-step run in its OWN process. Under the purse (counted heads) a second run in a
+# warm process spends fewer heads for the same work, so two runs sharing a process part at a cut
+# whatever the arm; a fresh process per run is the identity N3 claims
+PROBE = r'''
+import json, sys
+import _repo
+import gamma, gridworld, ledger, tether, world
+env = world.bind(gridworld.family("default", 0))
+ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="g"), tether.Config(), ledger.Ledger())
+for _ in range(40):
+    ag.step()
+tally = [sum(s.beat_null for s in ag.gamma.standing.values()),
+         sum(s.tied_null for s in ag.gamma.standing.values())]
+print(json.dumps({"tally": tally, "rows": ag.led.rows()}, default=str))
+'''
 
 
-def _tally(ag: tether.Agent) -> tuple:
-    return (sum(s.beat_null for s in ag.gamma.standing.values()),
-            sum(s.tied_null for s in ag.gamma.standing.values()))
+def _start(pred: bool) -> subprocess.Popen:
+    env = dict(os.environ, TETHER_SETTLE_PRED="1" if pred else "0", PYTHONDONTWRITEBYTECODE="1")
+    return subprocess.Popen([sys.executable, "-c", PROBE], stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True, env=env, cwd=_repo.ROOT)
+
+
+def _finish(p: subprocess.Popen) -> dict:
+    out, err = p.communicate(timeout=1700)
+    assert p.returncode == 0, err[-2500:]
+    return json.loads(out.strip().splitlines()[-1])
+
+
+def _tally(run: dict) -> tuple:
+    return tuple(run["tally"])
 
 
 def check_n2_b1_n3() -> None:
-    ag = _run(True)
-    rows = ag.led.rows()
+    # r1660: ON and OFF side by side, each in its own process, so the pair fits the 1800 s cap
+    on_p, off_p = _start(True), _start(False)
+    ag, off = _finish(on_p), _finish(off_p)
+    rows = ag["rows"]
     settles = [r["detail"] for r in rows if r["event"] == "settle"
                and r["detail"].get("status") == "accepted"]
     risky = sum(1 for d in settles if d.get("risky") is True)
@@ -91,8 +108,7 @@ def check_n2_b1_n3() -> None:
     print(f"  N2: {len(settles)} settle-path settles, beat_null {beat:g} = risky {risky}, "
           f"tied_null {tied:g} = not risky {quiet}")
     print(f"  B1: {len(bets)} transition bet rows, each with board_fp, action and slot by seq")
-    off = _run(False)
-    off_settles = [r["detail"] for r in off.led.rows() if r["event"] == "settle"
+    off_settles = [r["detail"] for r in off["rows"] if r["event"] == "settle"
                    and r["detail"].get("status") == "accepted"]
     assert not any("risky" in d for d in off_settles), "the arm is OFF and risky was written"
     assert _tally(off) == (beat, tied), (_tally(off), (beat, tied))
