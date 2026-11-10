@@ -130,8 +130,10 @@ For this agent, that channel would be the library itself:
 This shared library is a design; it is not built in this branch.
 
 **What many agents add is parallelism and scale.** If the agents are selected on, the population
-becomes an evolutionary layer, and the best answers surface on their own. The earlier Ouroboros
-agents (v1-v4) showed this works on CPUs, and well-known evolutionary algorithms show it too.
+becomes an evolutionary layer, and the best answers surface on their own. This agent leaves that layer out on purpose: it has been done before, and it is not what this
+project sets out to show. Exhibit A is the earlier [Ouroboros](https://github.com/IsaiahN/Ouroboros)
+agents (v1-v4), which showed selection over a population works on CPUs; well-known evolutionary
+algorithms show it too.
 Swarms are not new technology. They are selection itself, applied by numbers. Dividing and
 conquering by count, like gradient descent, is a strong method, but it is a way to avoid steering
 which answers win, not general intelligence.
@@ -142,6 +144,25 @@ and become a specialist in one thing.
 
 **The Tether is the generative code underneath, and it is what makes this possible.** With the
 generator, an answer can be generated rather than computed by brute force.
+
+## Language
+
+The agent speaks. Its library is written in a small grammar of universal word meanings (the
+primes of the Natural Semantic Metalanguage), and it can say any term it holds, or any decision in
+its record, as a sentence in that grammar. Each sentence cites the record row it came from
+(`nsm.py`). It can also read a sentence back into a term: every sentence compiles back to the same
+term or is refused with a stated reason. It is not as fluent as a language model, but what it says
+is tied to what it did and why.
+
+Conversation needs one more thing: a channel that carries other agents' or people's words in and
+the agent's sentences out. That is a choice of interface, not an ability the agent lacks. This
+general interface provides only the inputs its test worlds give, so it has no such channel yet;
+adding one means adding that channel to the interface.
+
+Learning words from outside sources is the same task as reading any arrangement: find what
+reliably goes with what, and let meaning come from proximity. The design for this is written:
+each kind is organised as a thesaurus of sense clusters, so that "minus" in a ledger and "minus"
+on a board are linked but separate. It is not built in this branch.
 
 **Already in this branch (all on by default):**
 
