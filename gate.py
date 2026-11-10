@@ -151,7 +151,10 @@ def _inputs(rows: list[dict]) -> dict | None:
             # recorded on its pull; a term minted in this game series keeps its own accept. The
             # reuse_install clause above (2026-10-16 09:14) reads a library pull the same way
             accepted.add(str(r.get("detail", {}).get("term")))
-        elif ev == "settle" and str(r.get("detail", {}).get("term")) not in accepted:
+        elif ev in ("settle", "settle_tied") and (
+                str(r.get("detail", {}).get("term")) not in accepted):
+            # a tied settle (the ground held, no change would also have held) is still the
+            # ground judging a term, so it too needs the term's accept (the reviewer r1595 (2))
             return _v("inputs", MISSING_INPUT, r.get("seq"), "settle without accept")
     return None
 

@@ -481,6 +481,16 @@ ARMS: dict[str, str] = {
                  "F408 cannot bind at a 2-a-side cut, so it was the wrong unblocker)"
                  ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
                  "record; the switch is kept for the checklist's culprit isolation",
+    "TETHER_SETTLE_BEAT_NULL": "C1 part 1, the tip-over (the reviewer 2026-11-09 r1584 1, r1592 "
+                               "3, r1595). ON, a settle tips a term (settled_at, settled_on, "
+                               "_settled_lvl) only where no change would have missed "
+                               "(_settle_pred's risky); a tied or unread settle raises "
+                               "confirmations and writes settle_tied (status candidate), and its "
+                               "evidence row carries 'untipped', so replay, ON or OFF, does not "
+                               "tip it. "
+                               "Win credit tips only a term that tipped on a beat in the clearing "
+                               "level; promotion waits on such a tip. OFF because it changes what "
+                               "is composable. OFF: every settle tips, as before",
     "TETHER_D5_ACTION": "C1 part 5, the known-effect condition (the reviewer 2026-11-09 r1592; "
                         "Isaiah 09-29 ruling 1 kept: a guard names an intent, not a button). ON, "
                         "D5's held set also offers KNOWN_EFFECT <form>: the attribute form "

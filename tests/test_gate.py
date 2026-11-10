@@ -152,6 +152,20 @@ def test_a_settle_with_no_arrival_refuses():
     _refuses([x for x in valid() if x["event"] not in ("mint", "accept")], gate.MISSING_INPUT)
 
 
+def test_a_tied_settle_with_no_arrival_refuses():
+    """r1595 (2): a settle_tied row (C1 part 1) is the ground judging a term too, so it needs the
+    term's accept; with the accept it passes, and it licenses no accepted status."""
+    tied = [x for x in valid() if x["event"] != "settle"] + [
+        {"mode": "specified", "seq": 4, "cycle": 1, "step": "SETTLE", "slot": "s",
+         "event": "settle_tied", "detail": {"term": "a . b", "status": "candidate"}}]
+    assert gate.check(tied)["verdict"] == gate.PASS, gate.check(tied)
+    _refuses([x for x in tied if x["event"] not in ("mint", "accept")], gate.MISSING_INPUT)
+    accepted = tied + [{"mode": "specified", "seq": 5, "cycle": 1, "step": "SETTLE", "slot": "s",
+                        "event": "miss_while_settled", "detail": {"term": "a . b",
+                                                                  "status": "accepted"}}]
+    _refuses(accepted, gate.UNSETTLED_ACCEPT)
+
+
 def test_a_pull_not_imported_is_not_an_arrival():
     """r1490 (ii): the pull of a term minted in this game series is not its acceptance -- admitted
     "accepted", or none."""

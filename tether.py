@@ -697,6 +697,12 @@ _D5 = armflag.arm("TETHER_D5", default=True)
 # agent's own presses wrote), an effect and never a button. OFF: D5's held set as before
 _D5_ACTION = armflag.arm("TETHER_D5_ACTION")
 KNOWN_EFFECT = "KNOWN_EFFECT"
+# C1 PART 1, THE TIP-OVER (the reviewer 2026-11-09 r1584 1, r1592 3, r1594): a settle tips a term
+# (settled_at, settled_on, _settled_lvl) only where "no change" would have missed (beat_null); a
+# tied or unread settle raises confirmations and does not tip (Fig 5 :43-44, one occasion is not
+# grounds). Win credit tips only a term that tipped on a beat in the clearing level (path 1), so a
+# promotion waits on a beat in the level (path 3). OFF: every settle tips, as before
+_SETTLE_BEAT_NULL = armflag.arm("TETHER_SETTLE_BEAT_NULL")
 _KNOWN_FORM = re.compile(r"\?\.[A-Za-z_]\w*[+\-=]?")   # r1592 (b): an attribute form, nothing else
 # F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). ON (7.5
 # switch-on, the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. An intent guard (and
@@ -5571,19 +5577,22 @@ class Agent:
                     # r694 row 3: the ground's own verdict moves standing -- each non-atom term
                     # bound on the clearing segment is settled once, so the win reaches the
                     # evidence the next game series replays
-                    n_ = 0
+                    n_ = n_tip = 0
                     for s_, nm_ in sorted(self.bound.items()):
                         t_ = self.gamma.library.get(nm_)
                         if t_ is None or self.gamma.is_atom(t_):
                             continue
-                        self.gamma.settle(nm_, where=self._scope, slot=s_)
-                        if _MUSING_CHOSEN:
+                        tip_ = not _SETTLE_BEAT_NULL or nm_ in self._settled_lvl
+                        self.gamma.settle(nm_, where=self._scope, slot=s_, tip=tip_)
+                        if _MUSING_CHOSEN and tip_:
                             self._muse_paid(nm_, "win_credit")    # item 24 (iii)
                         n_ += 1
+                        n_tip += tip_
                     self.gamma.book["win_credit"] = self.gamma.book.get("win_credit", 0) + n_
                     self.led.record(_cc, "SETTLE", _cs, "win_credit", **_clv, how=how,
                                     terms=n_, reads="each non-atom term bound on the "
-                                                    "clearing segment, settled once (r694 3)")
+                                                    "clearing segment, settled once (r694 3)",
+                                    **({"tipped": n_tip} if _SETTLE_BEAT_NULL else {}))
         self._resolve_signals("level", how)
         if _D13:
             with self._tail_booking():  # r1562: the ended attempt's bets, its last cycle
@@ -25931,7 +25940,17 @@ class Agent:
             sp = self._settle_pred(slot, r)
             null = (None if sp["from_code"] is None or sp["predicted_code"] is None
                     else "beat" if sp["risky"] else "tied")
-            self.gamma.settle(name, where=self._scope, slot=slot, null=null)
+            tip = not _SETTLE_BEAT_NULL or null == "beat"
+            self.gamma.settle(name, where=self._scope, slot=slot, null=null, tip=tip)
+            if not tip:
+                # C1 part 1: the dial rose and the term stays a candidate here; a later beat tips it
+                self.led.record(self.cycle, "SETTLE", slot, "settle_tied", term=name,
+                                status="candidate", asked=[name, slot], ground_said=True,
+                                tipped=False, held_out_cycle=self.cycle,
+                                fitted_through=born,
+                                verdict="held, where no change would also have held: counted, "
+                                        "not tipped")
+                continue
             if _MUSING_CHOSEN:
                 self._muse_paid(name, "settle")           # item 24 (iii)
             if _COUNTERS:     # r692 4 (Q8, Q21): what settles, by where it came from

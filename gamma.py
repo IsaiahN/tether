@@ -478,6 +478,9 @@ _DECAY_NEW_GAME_SERIES = armflag.arm("TETHER_DECAY_NEW_GAME_SERIES", default=Tru
 # series' outcomes of carried terms of that kind (replay excluded). No outcome for the kind: w = 1,
 # today's track_of exactly. Orders retrieval only; settled is untouched. ON; conform/arms.py
 _CARRY_W = armflag.arm("TETHER_CARRY_W", default=True)
+# C1 part 1: a settle evidence row's 6th element when the settle did not tip (only ever written
+# under tether's TETHER_SETTLE_BEAT_NULL); replay applies such a row without tipping
+UNTIPPED = "untipped"
 
 
 def mix_w(w: float, inherited, own) -> float:
@@ -1249,8 +1252,12 @@ class Gamma:
                     out["onto_atom" if lost else "not_held"] += 1
                     continue
                 self.tick = t
-                (self.settle if kind == "settle" else self.refute)(name, tup(where), slot)
-                if _FIRST_CONTACT and kind == "settle" and isinstance(slot, str):
+                tipped = len(r) <= 5 or r[5] != UNTIPPED
+                if kind == "settle":
+                    self.settle(name, tup(where), slot, tip=tipped)
+                else:
+                    self.refute(name, tup(where), slot)
+                if _FIRST_CONTACT and kind == "settle" and tipped and isinstance(slot, str):
                     # the attribute it was settled on, never the board's slot (A1 holds)
                     self.settled_forms.setdefault(name, set()).add(self.unbound_form(slot))
                 out[kind] += 1
@@ -1361,10 +1368,14 @@ class Gamma:
     # -- standing: the ground's verdict, defeasibly ----------------------------------
 
     def settle(self, name: str, where: Any = None, slot: str | None = None,
-               null: str | None = None) -> None:
+               null: str | None = None, tip: bool = True) -> None:
         """The ground paid on evidence the term was never fitted to. `null`, when the caller read
         one occasion: "beat" (no change would have missed) or "tied" (C1 part 1, record only).
         Settles with no single occasion pass none, so beat_null + tied_null <= confirmations.
+
+        `tip` False (C1 part 1 under TETHER_SETTLE_BEAT_NULL, the reviewer r1584 1): the dial rises
+        (confirmations) and the term does not tip: no settled_at, no settled_on. Its evidence row
+        carries "untipped", so replay does not tip it either.
 
         `where` records WHERE it paid, the mirror of `refute`'s. Without it a track record has
         a denominator and no numerator, and ordering by it sorts the most-tried term last.
@@ -1382,10 +1393,12 @@ class Gamma:
         a refuter with a mutation control, not taken on the arithmetic.**
         """
         if self.keep_evidence:
-            self.evidence.append(["settle", name, slot, where, self.tick])
+            self.evidence.append(["settle", name, slot, where, self.tick]
+                                 + ([] if tip else [UNTIPPED]))
         st = self.standing.setdefault(name, Standing())
         st.decay(self.tick, self.halflife)
-        st.settled_at = self.tick
+        if tip:
+            st.settled_at = self.tick
         if _CARRY_W:
             self._carry_w_note(name, True)
         # THE TOTAL, UNCONDITIONAL -- and the breakdown BESIDE it, never instead of it. The
@@ -1400,7 +1413,7 @@ class Gamma:
             st.paid[where] = st.paid.get(where, 0) + 1
         # THE SLOT, BESIDE THE SCOPE AND NEVER INSTEAD OF IT. `where` answers which BOARD
         # paid; this answers which SLOT did, and kernel A5 keys on the second.
-        if slot is not None:
+        if slot is not None and tip:
             st.settled_on.add(slot)
 
     def promote(self, name: str, shadow: dict, echo: dict) -> None:
