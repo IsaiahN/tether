@@ -31,6 +31,22 @@ It is built on **The Tether** architecture:
 
 Swap the interface, keep the lineage.
 
+**Already in production (all on by default):**
+
+- **The try-first hold reads the agent's own record**: a hypothesis counts only its own presses.
+- **A bounded re-check**: the background re-check after a level clear is paid from each step's
+  budget, cut and resumed, so it can no longer stall a session.
+- **Look-ahead**: settled one-press predictions are chained over short sequences of intentions,
+  reading only what is on the board.
+- **Routines kept in kind form**: a look-ahead sequence that closes its gap is kept as one
+  routine, by kind.
+- **The thought record**: each library lookup remembers what it tried and what paid, by kind of
+  situation, and ranks what paid first.
+- **Self-read**: where each game's chain of reasoning stopped is carried, and read at the next
+  game's start.
+- **The try-first pass**: the try-first sweep gives every untouched kind one touch before it may
+  stop, on boards where an action can be aimed at an object.
+
 **What this production carries, promoted from `development` (all on by default):**
 
 - **Strength and forgetting**: a term is tipped to settled only where it beat "no change"; a
@@ -50,14 +66,16 @@ Swap the interface, keep the lineage.
   formula that decided them, and a step the ground keeps refusing is skipped.
 - **Doors**: a guess whose way was blocked is set aside, "not reachable right now", and picked
   back up when the board moves or a new effect is known.
-- **The needs dial**: making progress and exploring are weighed by how often each paid when it
-  was chosen, learned apart under pressure and at ease, so a need used more does not weigh more
-  just for being used.
+- **The needs dial**: making progress and exploring are weighed by how often each has paid when
+  it was tried, learned apart under pressure and at ease, so a need used more does not weigh
+  more just for being used.
 - **Fair test comparisons**: a test that compares two runs starts each one in its own fresh
   process. A process that has already run the agent works faster, so it would think further on
   the same counted budget, and the comparison would measure the process instead of the change.
 
-**The agent's code is `general-agent`'s plus FIN5E and the build above.** For what the agent is
+**The agent's code is `general-agent`'s plus the build above;** once today's `general-agent`
+pull request merges, the agent's code is the same on both, and this branch adds only the ARC
+adapter, the harness and the Kaggle runner. For what the agent is
 and how it reasons, read [that README](https://github.com/IsaiahN/tether/tree/general-agent). What is particular to
 ARC is only the adapter and the harness below.
 
