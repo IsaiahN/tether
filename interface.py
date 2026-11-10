@@ -395,6 +395,7 @@ def fingerprint(env: Any, state: dict) -> tuple[str, str]:
 
 
 ALL_VETOED = "every option vetoed"
+VETO_ORDERED = "a game-loss veto taken last"
 # (4b) WHY A REALISATION FAILED, three kinds (UMW A6): nothing could be offered or the one option
 # was ruled out; no table cell knows a way; or offered actions were seen to act on the subject and
 # none does what is asked here
@@ -413,6 +414,9 @@ class Withheld:
 
     fp: str = ""
     pairs: frozenset = frozenset()
+    # C1 part 7 (the reviewer r1600 Q2): the game-loss vetoes among `pairs`, ordered LAST rather
+    # than removed: released only when nothing else realises (realise's second pass)
+    last: frozenset = frozenset()
 
     def __bool__(self) -> bool:
         return bool(self.pairs)
@@ -651,8 +655,18 @@ class Interface:
             offered = self.adjacent(offered)   # before the floor, so RESET is never even ranked
             if not offered:
                 return self._none(BLOCKED, "reset adjacency: RESET was the only offer", asker)
+        full = offered
         offered, w, every = self._withhold(withheld, offered, state, env)
         r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker, split=split)
+        if r is None and withheld.last and not every:
+            # C1 part 7 (S3): nothing realised with the game-loss vetoes withheld, so they are
+            # offered after everything else, never removed
+            offered, w, every = self._withhold(
+                Withheld(withheld.fp, withheld.pairs - withheld.last), full, state, env)
+            r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker,
+                             split=split)
+            if r is not None:
+                r = _replace(r, why=f"{r.why}; {VETO_ORDERED}")
         if r is not None and r.action == RESET and self._last_was_reset:
             _alt = tuple(a for a in offered if a != RESET)
             r = (self._choose(intent, _alt, ctx, state, env, w, cell=cell, asker=asker,

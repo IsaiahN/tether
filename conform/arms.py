@@ -499,6 +499,17 @@ ARMS: dict[str, str] = {
                           "stands after decay), the rest stay misses; row refusal_ranked. "
                           "REFUTED routing unchanged. OFF because it moves track_of. OFF: every "
                           "candidate miss stays a miss, as before",
+    "TETHER_GAME_LOSS_SHARE": "C1 part 7, a game loss as a share, never a ban (the reviewer "
+                              "2026-11-09 r1584 (c), r1600). ON: a press kind with a game loss "
+                              "reads (losses + 1) / (presses + 2), one without reads 0 like an "
+                              "untried kind; S2's first tier (_danger_safe) and S1's freeze offer "
+                              "the minimum-share actions; S3's ruin vetoes ride Withheld.last and "
+                              "are realised only when nothing else realises (row veto_ordered), "
+                              "and a vetoed press taken and survived is lifted (_veto_lifted, the "
+                              "record kept; row veto_lifted; a new loss on it restores it); a "
+                              "game loss ends the held goal hypothesis with loss=True. OFF "
+                              "because it changes choices after a game loss. OFF: zero-danger "
+                              "tiers, the withhold, the neutral close, as before",
     "TETHER_CROWD_OUT": "C1 parts 3-4, crowding out and re-entry (the reviewer 2026-11-09 r1593 "
                         "(A), r1597). ON, at a refit of a bound slot (_library_fit) a claim with "
                         "a beat on this slot (Standing.beat_on) outranks one without, bits decide "

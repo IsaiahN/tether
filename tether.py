@@ -715,6 +715,12 @@ _REFUSE_RANK = armflag.arm("TETHER_REFUSE_RANK")
 # offered there again until the arrangement changes, the library grows or its crowder weakens.
 # OFF: today's refit, idn never offered against a bound term
 _CROWD_OUT = armflag.arm("TETHER_CROWD_OUT")
+# C1 PART 7, A GAME LOSS AS A SHARE, NEVER A BAN (the reviewer 2026-11-09 r1584 (c), r1600): a
+# press kind with a game loss reads (losses + 1) / (presses + 2), one without reads 0 as an
+# untried one does; S1's freeze and S2's first tier take the minimum share; S3's ruin veto is
+# realised last, not removed, and lifted when a vetoed press is taken and the attempt survives
+# it; a game loss books the held goal hypothesis lost. OFF: zero-danger tiers and the withhold
+_GAME_LOSS_SHARE = armflag.arm("TETHER_GAME_LOSS_SHARE")
 _KNOWN_FORM = re.compile(r"\?\.[A-Za-z_]\w*[+\-=]?")   # r1592 (b): an attribute form, nothing else
 # F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). ON (7.5
 # switch-on, the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. An intent guard (and
@@ -5172,6 +5178,8 @@ class Agent:
         self._dir_scope_noted = False
         self.term = I.Termination()    # 2d / §20.1, latching and asymmetric
         self._vetoes: set[tuple] = set()       # 7a(5) B: (fingerprint, action, coordinate)
+        self._veto_taken: tuple | None = None  # C1 part 7: the veto key a press just took
+        self._veto_lifted: set[tuple] = set()  # C1 part 7: vetoes a survived press lifted
         self._noops: set[tuple] = set()        # 23: (fingerprint, action, coordinate), unchanged
         self._ruin_step: tuple | None = None   # this step's (fp, of, action, coord, cycle)
         self._ending_counted: str | None = None  # the word counted with no step since
@@ -5409,6 +5417,7 @@ class Agent:
                             **self.term.report())
         if how != "game_loss":
             return
+        self._veto_taken = None      # C1 part 7: the attempt ended on it; the veto stands
         if self._ruin_step is None:
             self.led.record(_c, "IMPORT", _s, "veto", **_lv, killing_step=None,
                             reads="a game loss with no action taken this step: nothing to veto")
@@ -5417,9 +5426,23 @@ class Agent:
         key = (fp, act, coord)
         new = key not in self._vetoes
         self._vetoes.add(key)
+        self._veto_lifted.discard(key)     # C1 part 7: lost on again, the "don't" is back
         self.led.record(_c, "IMPORT", _s, "veto", **_lv, fingerprint=fp, fingerprint_of=of,
                         action=act, coord=list(coord) if coord is not None else None,
                         at_cycle=cyc, new=new, vetoes=len(self._vetoes))
+
+    def _veto_lift(self) -> None:
+        """C1 part 7 (the reviewer r1600 Q2): a vetoed press was taken and the attempt did not
+        end on it, so its "don't" is lifted for that board (extinction through safe exposure)."""
+        key, self._veto_taken = self._veto_taken, None
+        if key in self._vetoes and key not in self._veto_lifted:
+            # the record stays (Fig 6 :41: what is recorded only grows); its reach falls
+            self._veto_lifted.add(key)
+            fp, act, coord = key
+            self.led.record(self.cycle, "PLAN", "@ruin", "veto_lifted", fingerprint=fp,
+                            action=act, coord=list(coord) if coord is not None else None,
+                            vetoes=len(self._vetoes), lifted=len(self._veto_lifted),
+                            reads="the vetoed press was taken and the attempt survived it")
 
     @_in_step("SETTLE")
     def _resolve_signals(self, kind: str, how: str) -> None:
@@ -5617,7 +5640,11 @@ class Agent:
             # boundary closes it; the new level's board is proposed afresh
             if self._hyp is not None:
                 self._hyp_end("level_cleared" if how in (WIN, ADVANCE) else f"closed_{how}",
-                              won=how in (WIN, ADVANCE), step="IMPORT", boundary=True)
+                              won=how in (WIN, ADVANCE), step="IMPORT", boundary=True,
+                              # C1 part 7 (r1600, r1601): a game loss is booked lost on the
+                              # hypothesis's shelf record; it tested the route, not the goal's
+                              # direction, so its sign is not refuted (only arriving tests that)
+                              loss=_GAME_LOSS_SHARE and how == "game_loss", sign_tested=False)
             self._hyp_tried, self._hyp_exhausted = {}, None
             if _UNTESTED_KEEP:
                 self._untested = {}
@@ -9697,7 +9724,8 @@ class Agent:
                 self.gamma.book[k] = v
 
     def _hyp_end(self, why: str, loss: bool = False, won: bool = False,
-                 step: str = "PLAN", by: str | None = None, boundary: bool = False) -> None:
+                 step: str = "PLAN", by: str | None = None, boundary: bool = False,
+                 sign_tested: bool = True) -> None:
         h, self._hyp = self._hyp, None
         if lineage._ENDING_SAVE and not boundary:
             self._ending_due = True     # r1530: the runners write its save between steps
@@ -9725,7 +9753,8 @@ class Agent:
                 # item 26 (r1270 (e)): LEFT, not refuted -- re-offerable, priced by its leave
                 self._hyp_tried[h["tkey"]] = ("left_rate", h.get("cond"), h["text"],
                                               self._kind_key(h["slots"][0]))
-            if _GOAL_SIGN_FLIP and loss and not won and (sg := _goal_sign(h["text"])):
+            if (_GOAL_SIGN_FLIP and loss and not won and sign_tested
+                    and (sg := _goal_sign(h["text"]))):
                 self._goal_refuted.add(sg)      # G: arrived without a clear, or lost
         if _HYP_LEARN and h.get("b2"):
             # B2 (r1446 point 3, Fig 7 :35): the ending is the ground's vote, credited to every
@@ -14498,13 +14527,28 @@ class Agent:
         recorded."""
         return self._game_loss_n[key] / self._press_n[key] if self._press_n[key] else 0.0
 
+    def _loss_share(self, key: tuple) -> float:
+        """C1 part 7 (r1600 Q1): a kind with a game loss reads the Laplace share (losses + 1) /
+        (presses + 2), gamma.track_of's form; one without reads 0, as an untried kind does: no
+        vote, no "don't" (Fig 7 :34; Fig 9 :44)."""
+        n = self._game_loss_n[key]
+        return (n + 1) / (self._press_n[key] + 2) if n else 0.0
+
+    def _low_tier(self, keys: dict) -> tuple:
+        """The actions at the least danger: the minimum game-loss share under TETHER_GAME_LOSS_
+        SHARE (1 loss in 8 ahead of 1 in 1), else exactly 0 (as before)."""
+        if _GAME_LOSS_SHARE:
+            share = {a: self._loss_share(k) for a, k in keys.items()}
+            low = min(share.values(), default=0.0)
+            return tuple(a for a in keys if share[a] == low)
+        return tuple(a for a, k in keys.items() if not self._danger(k))
+
     def _danger_safe(self, slot: str, offered: tuple, rctx: tuple) -> tuple:
         """(5c): the offered actions no game loss has voted against here, toward this goal, when
         some have such a vote and some do not; else () -- an order, never a removal."""
         if not self._game_loss_n:
             return ()
-        safe = tuple(a for a in offered
-                     if not self._danger(self._press_kind(a, rctx, slot)))
+        safe = self._low_tier({a: self._press_kind(a, rctx, slot) for a in offered})
         return safe if 0 < len(safe) < len(offered) else ()
 
     def _subject_danger(self, slot: str) -> float:
@@ -19585,8 +19629,7 @@ class Agent:
         cands = []
         k = self._last_press_key if _GAME_LOSS_VOTE else None
         if k is not None and self._danger(k) > 0:
-            safe = tuple(a for a in self.actions
-                         if a != IFace.RESET and not self._danger((k[0], a, k[2])))
+            safe = self._low_tier({a: (k[0], a, k[2]) for a in self.actions if a != IFace.RESET})
             if 0 < len(safe) < len(self.actions):
                 cands.append(("freeze", (k[0], "freeze", k[1]), None,
                               IFace.Intent(IFace.ELICIT), safe))
@@ -26723,13 +26766,16 @@ class Agent:
             _ctx = IFace.Interface.context(self.env) if self._hyp is not None else None
             self._press_here = ({s: (self.level, self._situation(s, _ctx))
                                  for s in self._hyp["slots"]} if _ctx is not None else None)
+        if _GAME_LOSS_SHARE and self._veto_taken is not None:
+            self._veto_lift()
         if _RUIN_RECORD:
             self._ruin_step, self._ending_counted = None, None
             # ONE reading of this board, before anything is chosen: B's key and C's lookup
             self._step_fp, self._step_before = self._fingerprint(before), before
         if _RUIN:
             _fp = self._step_fp[0]
-            _held = frozenset((a, c) for f, a, c in self._vetoes if f == _fp)
+            _held = _ruin = frozenset((a, c) for f, a, c in self._vetoes if f == _fp
+                                      and (f, a, c) not in self._veto_lifted)
             if _NOOP_WITHHOLD:
                 _nop = frozenset((a, c) for f, a, c in self._noops if f == _fp) - _held
                 if _nop:
@@ -26740,7 +26786,8 @@ class Agent:
                                           "board did not change: withheld here only; lifted if "
                                           "every option is withheld")
                     _held = _held | _nop
-            self._withheld = IFace.Withheld(_fp, _held)
+            self._withheld = IFace.Withheld(_fp, _held,
+                                            **({"last": _ruin} if _GAME_LOSS_SHARE else {}))
         # ONE READING PER GOAL HYPOTHESIS, EVERY STEP, BEFORE ANYTHING ACTS ON IT. A trend
         # needs a series, and a series only exists if the reading is unconditional -- taking
         # it inside the branch that consumes it would record only the steps that already
@@ -27091,6 +27138,16 @@ class Agent:
                             withheld=sorted([a, list(c) if c else None] for a, c in _w.pairs),
                             chosen=[action, list(_c) if _c else None],
                             all_vetoed=_w.action(action) or _w.at(action, _c), by=by)
+            hit = ((action, None) if (action, None) in _w.last
+                   else (action, _c) if (action, _c) in _w.last else None)
+            if _GAME_LOSS_SHARE and hit is not None:
+                # C1 part 7 (S3): a game-loss veto taken, after everything else; the next step
+                # lifts it unless this attempt ends on it
+                self._veto_taken = (_w.fp, *hit)
+                self.led.record(self.cycle, "PLAN", "@ruin", "veto_ordered", fingerprint=_w.fp,
+                                taken=[action, list(_c) if _c else None], by=by,
+                                reads="realised last: nothing else realised, or every option "
+                                      "was vetoed")
         self._withheld = IFace.NO_WITHHELD
         if _FED and by != "given":
             _fed = ([{**self._split_term, "role": "goal"}]
