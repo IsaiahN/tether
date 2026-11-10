@@ -7,6 +7,11 @@
   D3  the change pattern: a period is read only after two full cycles (MF: not after one), and a
       door that never changes is no rotation
   D4  OFF: a set-aside guess is never picked back up
+  D5  r1647: after two full cycles the predicted door is picked where the coin would have drawn
+      among the equally unknown, the row naming the tied, the coin's pick and why (G4); MF after
+      one cycle the coin's pick stands; a predicted door outside the tie never overrides
+  D6  MF: a predicted door that explains nothing refutes its pattern; the coin returns and the
+      same pattern is not predicted again
 
     python tests/test_doors.py
 """
@@ -105,7 +110,38 @@ def check_d4() -> None:
     print("  D4: OFF, a set-aside guess stays aside; ON the same guess is picked back up")
 
 
+OPTS = ["probe", "goal", "distinguish"]
+
+
+def check_d5_d6() -> None:
+    ag = _agent()
+    lk = ag._lk()
+    tie, seen = dict.fromkeys(OPTS, 0), dict.fromkeys(OPTS, 1)
+    for e in ["probe", "goal", "probe"]:
+        ag._door_pattern(lk, e)
+    assert ag._door_take("distinguish", OPTS, tie, seen) == "distinguish", "MF: one cycle"
+    ag._door_pattern(lk, "goal")
+    got = ag._door_take("distinguish", OPTS, tie, seen)
+    d = _rows(ag, "door_pattern_pick")[-1]
+    assert got == "probe" and d["coin_would"] == "distinguish" and d["source"] == "door_pattern"
+    assert d["checked"] == "3 of 3 tied" and d["why_won"], d
+    lower = dict(tie, probe=-1)
+    assert ag._door_take("goal", OPTS, lower, seen) == "goal", "MF: overrode outside the tie"
+    ag._door_last = (lk, "probe", ag._door_pred[lk][1])
+    ag._integral, ag._outstanding = 1.0, {"x": 1.0}
+    ag._ex_last = (lk, "probe", ag.pe_integral() - ag.outstanding(), ag.cycle)
+    ag._ex_settle()
+    assert _rows(ag, "door_pattern_refuted") and lk not in ag._door_pred, "MF: a miss kept it"
+    assert ag._door_take("distinguish", OPTS, tie, seen) == "distinguish"
+    for e in ["probe", "goal"]:
+        ag._door_pattern(lk, e)
+    assert lk not in ag._door_pred, "MF: a refuted pattern predicted again"
+    print("  D5-D6: two cycles: probe in the coin's place (it would have drawn distinguish); one "
+          "cycle or outside the tie, the coin stands; a miss refutes it and it is not predicted "
+          "again")
+
+
 if __name__ == "__main__":
-    for c in (check_d1_d2, check_d3, check_d4):
+    for c in (check_d1_d2, check_d3, check_d4, check_d5_d6):
         c()
     print("doors: OK")
