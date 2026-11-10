@@ -3,8 +3,9 @@ r1248, r1248a). gridworld default seed 0, the agent seed pinned, 6 steps; game A
 loss relation planted, written through lineage._write into a temp dir, read back from the file,
 and seeded into a fresh game B through _reinvent_carried. Each check its own process; a run with
 TETHER_REFLEX_CARRY=0 in the environment turns the checks red.
-  check_k1_paid_crosses     paid crosses the boundary, against does not; a second write sends
-                            only the increment
+  check_k1_paid_crosses     paid crosses the boundary; against crosses iff
+                            TETHER_REFLEX_CARRY_AGAINST (r1603 (1)), as the value written, decayed
+                            in B from its start; a second write sends only the paid increment
   check_k2_loss_crosses     a carried loss relation makes _how_soon finite in B before any loss
   check_k3_no_kind          the same carry where B has no partner of that kind: inf, no roll
   check_k4_head_start       carried paid 1: no stop after 2 misses, a stop after 3 (n + 2)
@@ -65,16 +66,24 @@ def check_k1_paid_crosses() -> None:
     recs = _written(a)
     assert len(recs) == 1, recs
     rec = recs[0]
-    assert rec["paid"] == [["orient", list(ORIENT), 2]] and "against" not in json.dumps(rec), rec
+    import tether
+    # r1603 (1): against crosses iff TETHER_REFLEX_CARRY_AGAINST, as the decayed value written
+    on = tether._REFLEX_CARRY_AGAINST
+    assert rec["paid"] == [["orient", list(ORIENT), 2]], rec
+    assert (["orient", list(ORIENT), 1.5] in rec.get("against", [])) if on \
+        else "against" not in json.dumps(rec), rec
     a._reflexes["orient"]["standing"][ORIENT]["paid"] = 3
     again = a._reflex_carry()
     assert again["paid"] == [["orient", list(ORIENT), 1]], again        # the increment only
     b = _agent()
     b._reinvent_carried(json.loads(json.dumps(recs)))
     st = b._rf_standing("orient", ORIENT)
-    assert b._rf_in("orient", ORIENT) == 2 and st["against"] == 0.0, (b._rf_carried, st)
-    print(f"  written {rec['paid']}, no against; increment {again['paid']}; B carried "
-          f"{b._rf_in('orient', ORIENT)}, B against {st['against']}")
+    want = (1.5 * 0.5 ** (b.cycle / (b.gamma.halflife or tether.REJECTION_HALFLIFE)) if on
+            else 0.0)
+    assert b._rf_in("orient", ORIENT) == 2 and abs(st["against"] - want) < 1e-9, \
+        (b._rf_carried, st, want)
+    print(f"  written {rec['paid']}, {'against 1.5' if on else 'no against'}; increment "
+          f"{again['paid']}; B carried {b._rf_in('orient', ORIENT)}, B against {st['against']}")
 
 
 def _plant_loss(ag):

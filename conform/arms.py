@@ -499,6 +499,16 @@ ARMS: dict[str, str] = {
                           "stands after decay), the rest stay misses; row refusal_ranked. "
                           "REFUTED routing unchanged. OFF because it moves track_of. OFF: every "
                           "candidate miss stays a miss, as before",
+    "TETHER_CONDITION_CARRY": "C1 part 6(c), the carry of found conditions (the reviewer "
+                              "2026-11-09 r1604 (A)). ON: each D5 split writes a 'condition' "
+                              "record on the invention channel in kind form (slot kind, P with any "
+                              "partner instance as its kind, the parts' kind names, the cut's "
+                              "numbers) and a 'condition_end' with its outcome; the next game "
+                              "sorts _d5_cut's offered predicates so a same-kind slot's carried "
+                              "P comes first, held before broken. The offered set and its "
+                              "_guard_bits price are unchanged, and the witness still decides. "
+                              "OFF because it changes which cut is found first. OFF: nothing "
+                              "written or read",
     "TETHER_REFLEX_CARRY_AGAINST": "C1, the reflex carry's other half (the reviewer 2026-11-09 "
                                    "r1592 3, r1600 Q3). ON (with TETHER_REFLEX_CARRY): each "
                                    "reflex write also carries the decayed `against` per (form, "

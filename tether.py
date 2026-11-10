@@ -722,6 +722,13 @@ _CROWD_OUT = armflag.arm("TETHER_CROWD_OUT")
 # it; a game loss books the held goal hypothesis lost. OFF: zero-danger tiers and the withhold
 _GAME_LOSS_SHARE = armflag.arm("TETHER_GAME_LOSS_SHARE")
 _KNOWN_FORM = re.compile(r"\?\.[A-Za-z_]\w*[+\-=]?")   # r1592 (b): an attribute form, nothing else
+# C1 PART 6(c), THE CARRY OF FOUND CONDITIONS (the reviewer 2026-11-09 r1604 (A)): a D5 split is
+# written on the invention channel as a METHOD record in kind form (the slot's kind, P with any
+# partner instance as its kind, the parts' kind names, the cut's numbers) and its outcome when it
+# ends; the next game tries a same-kind slot's carried P first in _d5_cut's order (held before
+# broken). An order, never a price: the cut rules and the witness are unchanged. OFF: none
+_CONDITION_CARRY = armflag.arm("TETHER_CONDITION_CARRY")
+_INSTANCE = re.compile(r"(?<![A-Za-z0-9])o\d+")
 # F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). ON (7.5
 # switch-on, the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. An intent guard (and
 # "no intent") costs log2(G+1) like ACTED_* does.
@@ -5207,6 +5214,9 @@ class Agent:
         # C1 part 5: id(before-state) -> the press's known forms that step; this step's forms
         self._kn_eff: dict[int, frozenset] = {}
         self._kn_eff_now: frozenset = frozenset()
+        self._cond_open: dict = {}                 # C1 6(c): slot -> its live split's record name
+        self._cond_n = 0
+        self._cond_in: dict = {}                   # C1 6(c): (slot kind, P kind) -> 0 held/1 broken
         self._d5_said: set = set()              # D5: (slot, term) whose not-split was recorded
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
@@ -11964,6 +11974,7 @@ class Agent:
         lib = self._inv_library() if carried else None
         made, refused, tallied = [], [], []
         rf_in: list = []       # (5) iii: the paid counts carried in, per (form, key)
+        conds: list = []       # C1 6(c): the found conditions' records, read after the loop
         for rec in carried:
             if rec.get("kind") == "tally":      # item 20: the tallies seed the prior, no entry
                 if _TALLY_CARRY and _BOARD_DESC:
@@ -11971,6 +11982,12 @@ class Agent:
                         self._desc_paid[(r, f)] += n
                     for r, f, n in rec.get("lost", ()):
                         self._desc_lost_carried[(r, f)] += n
+                    tallied.append(rec["name"])
+                continue
+            if rec.get("kind") in ("condition", "condition_end"):
+                # C1 6(c): a split's method record, and its outcome; read as an order only
+                if _CONDITION_CARRY:
+                    conds.append(rec)
                     tallied.append(rec["name"])
                 continue
             if rec.get("kind") == "reflex":     # the reflex carry: paid and loss relations
@@ -12025,6 +12042,14 @@ class Agent:
                     "game": rec.get("game"), "level": rec.get("level"), "born": rec.get("born"),
                     "met_state": rec.get("met_state"), "carried": True,
                     "record": {"won": 0, "lost": 0}}
+        if conds:
+            # C1 6(c): (slot kind, P kind) -> 0 held, 1 broken (a broken split: a failed method)
+            ended = {r["ref"]: r["outcome"] for r in conds if r["kind"] == "condition_end"}
+            for r in conds:
+                if r["kind"] == "condition":
+                    k = (r["slot_kind"], r["P"])
+                    rank = 1 if ended.get(r["name"]) == "partition_broken" else 0
+                    self._cond_in[k] = min(rank, self._cond_in.get(k, rank))
         self._inv_carried_in = list(carried)
         if carried:
             self.led.record(self.cycle, self._running_step, "@lineage", "invention_carried",
@@ -18190,6 +18215,11 @@ class Agent:
             preds += [f"{KNOWN_EFFECT} {f}" for f in sorted(
                 {f for r in hist for f in self._kn_eff.get(id(r[0]), ())})
                 if _KNOWN_FORM.fullmatch(f)]
+        if _CONDITION_CARRY and self._cond_in:
+            # C1 6(c): the offered set and its price are unchanged; a same-kind slot's carried P
+            # is tried first (held before broken), so it wins where several cuts pass
+            sk = self._kind_key(slot)
+            preds.sort(key=lambda p: self._cond_in.get((sk, self._p_kind(p)), 2))
         for pred in preds:
             cap.head()
             on = [self._d5_holds(pred, slot, r) for r in hist]
@@ -18290,6 +18320,8 @@ class Agent:
         self.led.record(self.cycle, "MINT", "@d5", "split", split_slot=slot, P=pred,
                         part_a=inc, part_b=part_b or "parked (its own park row names the part)",
                         **numbers)
+        if _CONDITION_CARRY:
+            self._cond_write(slot, pred, inc, part_b, numbers)
 
     def _d5_select(self, betting: list, before: dict, action: str) -> None:
         """D5: the part whose guard holds predicts this step; on a not-P step the incumbent's
@@ -18360,9 +18392,44 @@ class Agent:
             self.led.record(self.cycle, "SETTLE", "@d5", "dissolved", split_slot=slot,
                             P=part["P"], demoted=None, part_a=part["A"], part_b=part["B"],
                             reason="the level ended")
+            if _CONDITION_CARRY:
+                self._cond_end(slot, "level_end")
+
+    def _cond_write(self, slot: str, pred: str, inc: str, part_b: str | None,
+                    numbers: dict) -> None:
+        """C1 6(c): the split as a method record in kind form; no instance name crosses."""
+        self._cond_n += 1
+        name = f"{self.gamma.game}_cond_{self._cond_n}"
+        lib = self.gamma.library
+
+        def kind(n: str | None) -> str | None:
+            return None if n is None or n not in lib else self.gamma.kind_of(lib[n]).name
+        self._cond_open[slot] = name
+        self._inv_carry.append({"name": name, "term": name, "kind": "condition",
+                                "game": self.gamma.game, "born": self.cycle, "level": self.level,
+                                "slot_kind": self._kind_key(slot), "P": self._p_kind(pred),
+                                "A": kind(inc), "B": kind(part_b), "numbers": dict(numbers)})
+
+    def _cond_end(self, slot: str, outcome: str) -> None:
+        """C1 6(c): the split's outcome, its own record pointing at the split's (the first is
+        already written; a record is never edited)."""
+        ref = self._cond_open.pop(slot, None)
+        if ref is not None:
+            self._inv_carry.append({"name": f"{ref}_end", "term": f"{ref}_end",
+                                    "kind": "condition_end", "game": self.gamma.game,
+                                    "born": self.cycle, "ref": ref, "outcome": outcome})
+
+    def _p_kind(self, pred: str) -> str:
+        """C1 6(c): a held predicate in kind form. Intent kinds and ACTED_SELF are kind-level
+        already; a KNOWN_EFFECT pair form's partner instance becomes that object's kind."""
+        if not pred.startswith(KNOWN_EFFECT + " "):
+            return pred
+        return _INSTANCE.sub(lambda m: repr(self._kind(m.group(0))), pred)
 
     def _d5_revert(self, slot: str) -> None:
         """D5: the incumbent was right on a not-P step, so the partition claim is broken."""
+        if _CONDITION_CARRY:
+            self._cond_end(slot, "partition_broken")
         part = self._parts.pop(slot)
         self.bound[slot] = part["A"]
         self.led.record(self.cycle, "SETTLE", "@d5", "partition_broken", split_slot=slot,
@@ -18371,6 +18438,8 @@ class Agent:
 
     def _d5_dissolve(self, slot: str, name: str) -> None:
         """D5: a part's term was demoted by the normal path; the split goes with it."""
+        if _CONDITION_CARRY:
+            self._cond_end(slot, "dissolved")
         part = self._parts.pop(slot)
         self._shadow.pop(slot, None)
         self.led.record(self.cycle, "SETTLE", "@d5", "dissolved", split_slot=slot, P=part["P"],
