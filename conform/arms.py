@@ -610,6 +610,13 @@ ARMS: dict[str, str] = {
                              "presses; online the runner's seconds per remaining press over the "
                              "agent's seconds per step, x purse. OFF: _tc_clocks, as before "
                              "(offline a think displaces nothing)",
+    "TETHER_EXIT_CONTEST": "C3 the exit contest (r1638, r1640, r1641). Default ON at landing "
+                           "(r1633). ON: _exit_choice's contested exits bid and the GATE reads "
+                           "each bid: gain from the ground's settled return on the exit's past "
+                           "acts (bits explained over the next step), the level's record, else "
+                           "the series', else the prior (A1's outstanding at its aim), x a need "
+                           "weight (1.0); every bid declares its source; cost (median demand) is "
+                           "a filter against the allowance. OFF: A1's outstanding at its aim",
     "TETHER_D5_NESTED":"Default ON (Isaiah 2026-11-10 05:04, r1633). "
                         "(N) (the reviewer 2026-11-10 r1626, r1627): ON, (N1) a live split's leaf "
                         "part is cut on its own misses over its own rows (an inner node on "

@@ -1562,6 +1562,15 @@ _7F_LEAVE = armflag.arm("TETHER_7F_LEAVE", default=True)
 # 7h (f), choose()'s exit order (the reviewer 2026-10-16 13:29): the live middle exits are chosen
 # by A1's readings, the goal-directed ones deferring to System 0 while it is active
 _7H_EXIT_CHOICE = armflag.arm("TETHER_7H_EXIT_CHOICE", default=True)
+# C3 THE EXIT CONTEST (the reviewer 2026-11-10 r1638, r1640, r1641): the contested exits bid, and
+# the GATE reads each bid -- the exit supplies nothing but its name (Fig 10 :86, :59; Fig 9 :51).
+# Gain: the ground's settled return on the exit's past acts (bits explained over the step after it
+# acted, read at the next choose), the level's record, else the series', else "prior" (the
+# outstanding at its aim, A1's reading); every bid declares its source (Fig 10 :60-61). Cost: the
+# exit's median demand in heads, a FILTER against the allowance, never summed with the gain
+# (Fig 12 :130, Fig 9 :60). Ties: the record, the least-tried, the seeded draw. A need weight per
+# bid (1.0; C7's hook). OFF: the outstanding at its aim, as before
+_EXIT_CONTEST = armflag.arm("TETHER_EXIT_CONTEST", default=True)
 # 7h (a), A1 (the reviewer 2026-10-16 13:47): the root's held goal shapes, by kind, GRADED by level
 # outcomes and carried by the lineage; a graded record, never a minted term (Fig 5)
 _7H_ROOT_GRADE = armflag.arm("TETHER_7H_ROOT_GRADE", default=True)
@@ -4404,6 +4413,13 @@ class Agent:
         self._leave_line: dict = {}
         self._leave_held: dict = {}
         self._exit_n: collections.Counter = collections.Counter()   # 7h (f): (level, exit) taken
+        # C3: the gate's record of each exit's settled return, (level, exit) and exit -> [n, bits];
+        # the exit that took the last turn and the explained bits then; each exit's step demands
+        self._ex_rec: dict = {}
+        self._ex_last = None
+        self._ex_cost: dict = {}
+        self._ex_need: dict = {}
+        self._c3_offer: dict = {}     # C3 (r1644): exits proposed this step, committed if they win
         # 7h (a): the root's goal shapes; per shape this instance's and the lineage's outcome counts
         self._root_shapes: list = []
         self._root_grade: dict = {}
@@ -17051,13 +17067,23 @@ class Agent:
         if excess <= 0:
             return
         busy = set(self.bound.values()) | set(entrants)
+
+        def tie(n: str) -> tuple:
+            return (self._reach_of(n), self._reach_born.get(n, 0))
+        # r1645 (Fig 2 :43): an exact tie in reach and entry is broken by the seeded draw, never
+        # by the name; when the cut falls inside a tie, the row lists the tied names
         pool = sorted((n for n in tier1 if n not in busy),
-                      key=lambda n: (self._reach_of(n), self._reach_born.get(n, 0), n))
-        for n in pool[:min(len(entrants), excess)]:
+                      key=lambda n: (*tie(n), FR.draw_key(f"{self.cycle}:reach_tier", n,
+                                                           self.draw_seed)))
+        k = min(len(entrants), excess)
+        split = (k < len(pool) and tie(pool[k - 1]) == tie(pool[k]))
+        tied = sorted(n for n in pool if tie(n) == tie(pool[k - 1])) if split else None
+        for n in pool[:k]:
             cap.head()
             self._reach2.add(n)
             self.led.record(self.cycle, "MINT", "@reach", "reach_tier", term=n, to=2,
                             reach=round(self._reach_of(n), 4), pushed_by=sorted(entrants)[:8],
+                            **({"tied": tied, "by": "draw"} if tied and n in tied else {}),
                             reads="new material pushed the least-reached term out of the first "
                                   "search; it stays in the library with every count")
 
@@ -19359,6 +19385,7 @@ class Agent:
                             routine=_shown,
                             note="a fallback ran; the body's ending is NOT a refutation")
         self._recovered_pending = []
+        self._c3_offer = {}
         _next, self._routine_next = self._routine_next, None
         if _next is not None and _next[0] is not self.routine:
             _next = None                      # advanced for a routine no longer held
@@ -19373,9 +19400,14 @@ class Agent:
                 self._routine_adopted, self._plan_no = self.routine, self._plan_no + 1
                 if _LEAVE_RATE:
                     self._lr_adopt()
+            _pre = None
             if _next is not None:
                 _, emit, rest = _next         # advanced at its deciding cycle's end (F501)
             else:
+                if _EXIT_CONTEST:
+                    # C3 (r1644): at its checkpoint the routine PROPOSES (touch-move): its state
+                    # and the press's aim are kept as they were unless its act wins the contest
+                    _pre = (copy.deepcopy(self.routine_state), self._took_state())
                 self.routine_state.pop("expect", None)
                 emit, rest = Rt.advance(self.routine, self._holds(before),
                                         self.routine_lib, self.routine_state)
@@ -19407,7 +19439,16 @@ class Agent:
             _act = (None if _hold or _stale is not None
                     or emit in (Rt.DONE, Rt.BLOCKED, Rt.EXHAUSTED)
                     else self._realise_step(emit, before))
-            if _act is not None:
+            if _act is not None and _pre is not None and emit != Rt.HOLD:
+                self._c3_offer["routine"] = {
+                    "aim": self.routine_for, "act": _act, "rest": rest,
+                    "post": (copy.deepcopy(self.routine_state), self._took_state())}
+                self.routine_state = _pre[0]
+                self._took_restore(_pre[1])
+                _act = "bid"
+            if _act == "bid":
+                pass                          # C3: it bids below; committed only if it wins
+            elif _act is not None:
                 # THE CLAIM, MADE BEFORE THE ACTION LANDS. `advance` published which slots this
                 # step expects to move; the value is recorded NOW so next cycle compares against
                 # what was true when the claim was made, not against a later frame.
@@ -19451,7 +19492,7 @@ class Agent:
             # would be filed as a settled behaviour, callable at a name's price while claiming
             # its budget's reach. `exhausted` is a trial that failed; `blocked` and
             # `unadvertised` are NON-TRIALS and say nothing either way, so they are left alone.
-            if not _hold:
+            if not _hold and _act != "bid":
                 self._end_routine(why, before, detail=_stale)
         # SYSTEM 2 RUNS BESIDE SYSTEM 1, NOT BEHIND IT -- Isaiah, 2026-09-09.
         # Formation used to sit ONLY at the fall-through, so `discriminate:learned` returning
@@ -19510,21 +19551,34 @@ class Agent:
             else:
                 if _HYP_ROAD_CLOSED:
                     self._hyp["no_route"] = 0
-                goal = self._goal_split(before)
-                if goal is not None:
-                    self._hyp_why = "acted"
-                    return goal, "discriminate:goal"
+                if _EXIT_CONTEST:
+                    # C3 (r1644): ready (its probe found a route); it bids, committed if it wins
+                    self._c3_offer["discriminate:goal"] = {"aim": self._hyp["slots"][0]}
+                else:
+                    goal = self._goal_split(before)
+                    if goal is not None:
+                        self._hyp_why = "acted"
+                        return goal, "discriminate:goal"
         if (_LOOKAHEAD and self._hyp is not None and not _touched
                 and not (_BOARD_TRY_FIRST and self._try_first_open())):
-            _la = self._lookahead_act(before)
-            if _la is not None:
-                self._hyp_why = "looked ahead"
-                return _la, "lookahead"
+            if _EXIT_CONTEST:
+                self._c3_offer["lookahead"] = {"aim": self._hyp["slots"][0]}   # C3: it bids
+            else:
+                _la = self._lookahead_act(before)
+                if _la is not None:
+                    self._hyp_why = "looked ahead"
+                    return _la, "lookahead"
         take, s0_tw, dist_r = None, None, None
-        if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and not (
+        if _7H_EXIT_CHOICE and hasattr(self, "_exit_n") and (self._c3_offer or not (
                 self.drive.bored() and not (_STARVED_CONTACT and self._aims())
-                and not (_S0_BEFORE_BORED and self._try_first_open())):
+                and not (_S0_BEFORE_BORED and self._try_first_open()))):
             take, s0_tw, dist_r = self._exit_choice(before)
+        if _EXIT_CONTEST and self._c3_offer:
+            got = self._c3_commit(take, before)
+            if got is not None:
+                return got, take
+            if take in ("routine", "discriminate:goal", "lookahead"):
+                take = None                   # it won and produced no act: the rest choose
         aims = self._aims()
         if _STARVED_CONTACT and aims and take in (None, "probe"):
             pick = sorted(aims)[0]
@@ -21626,19 +21680,114 @@ class Agent:
             if self._muse_test_best is not None:
                 opts.append("muse_test")
                 res["muse_test"] = self.outstanding(self._muse_test_best[0])
+        for e, o in sorted(self._c3_offer.items()):
+            opts.append(e)                    # C3 (r1644): the proposed exits bid like any other
+            res[e] = self.outstanding(o["aim"]) if o.get("aim") in self.slots else 0
         if not opts:
             return None, s0_tw, dist_r
         fixed = ("probe" if starved else "system0" if s0 else "distinguish" if dist_r is not None
                  else "goal")
+        bids = None
+        if _EXIT_CONTEST:
+            res, bids = self._ex_bids(opts, res)
+            opts = bids.pop("_room")
         pick = self._choice("exit", None, [(e, None, 1) for e in opts], res,
                             {e: self._exit_n[(self._lk(), e)] for e in opts},
                             extra={"s0_defer": s0, "fixed_would": fixed,
                                    **({"s0_contest": True} if s0 and _S0_CONTEST else {}),
                                    **({"s0": s0_reads} if s0_reads else {}),
                                    **({"purse_skipped": rmark["skipped"]}
-                                      if rmark.get("skipped") else {})})
+                                      if rmark.get("skipped") else {}),
+                                   **({"bids": bids} if bids is not None else {})})
         self._exit_n[(self._lk(), pick)] += 1
         return pick, s0_tw, dist_r
+
+    def _took_state(self) -> tuple:
+        """C3: what a taken press leaves on the agent (_took), so a proposal can be undone."""
+        return (self._aimed, self._last_real, self._intent_now,
+                getattr(self, "_r4_withheld", None), set(self._intent_kinds))
+
+    def _took_restore(self, t: tuple) -> None:
+        (self._aimed, self._last_real, self._intent_now, self._r4_withheld,
+         self._intent_kinds) = t[0], t[1], t[2], t[3], set(t[4])
+
+    def _c3_commit(self, take: str | None, before: dict) -> str | None:
+        """C3 (r1644): commit the proposed exit that won; each that lost is let go -- a losing
+        routine's state is already as it was before its proposal (touch-move: the touch is the
+        commit). Returns the winner's act, or None."""
+        rt = self._c3_offer.get("routine")
+        if rt is not None:
+            self.led.record(self.cycle, "PLAN", self.routine_for or "*", "routine_rebid",
+                            won=take == "routine", winner=take,
+                            reads="the held routine re-bid at its checkpoint; a loss leaves its "
+                                  "state as it was")
+        if take == "routine" and rt is not None:
+            self.routine_state = rt["post"][0]
+            self._took_restore(rt["post"][1])
+            want = (self.routine_state.get("expect") or [None])[0]
+            if want is not None:
+                self._expect_step += 1
+                self._expect = (want, before.get(want), self._expect_step,
+                                self._routine_adopted, self._act_n() + 1, self._plan_no)
+            self._routine_acts += 1
+            self.routine = rt["rest"]
+            self._routine_fed = self._routine_entries() if _FED else []
+            return rt["act"]
+        if take == "discriminate:goal":
+            goal = self._goal_split(before)
+            if goal is not None:
+                self._hyp_why = "acted"
+            return goal
+        if take == "lookahead":
+            la = self._lookahead_act(before)
+            if la is not None:
+                self._hyp_why = "looked ahead"
+            return la
+        return None
+
+    def _ex_settle(self) -> None:
+        """C3: the ground's return on the last act, credited to the exit that took it (the gate
+        reads it; the exit reports nothing): the bits explained since it acted -- pe_integral less
+        outstanding, both the agent's record of the ground's frames -- to (level, exit) and exit."""
+        last, self._ex_last = self._ex_last, None
+        if last is None:
+            return
+        lk, by, then, cyc = last
+        got = self.pe_integral() - self.outstanding() - then
+        for k in ((lk, by), by):
+            r = self._ex_rec.setdefault(k, [0, 0.0])
+            r[0] += 1
+            r[1] += got
+        if self._pd and self._pd[-1]["cyc"] == cyc:
+            self._ex_cost.setdefault(by, []).append(self._pd[-1]["think"])
+
+    def _ex_bids(self, opts: list, prior: dict) -> tuple:
+        """C3: each contested exit's bid, read by the gate: gain from the record (the level's, else
+        the series'), else the prior (A1's outstanding at its aim), x its need weight; cost, its
+        median demand, filters against the allowance (unknown cost passes; a filter that would
+        empty the room is not applied). Nothing an exit says of itself is read. Returns the gains,
+        and the bid record with the room under "_room"."""
+        lk, gain, out = self._lk(), {}, {}
+        allow = self._allowance() if _PURSE_OWN else None
+        room = []
+        for e in opts:
+            rec = self._ex_rec.get((lk, e)) or self._ex_rec.get(e)
+            src = ("record:level" if self._ex_rec.get((lk, e))
+                   else "record:series" if rec else "prior")
+            g = rec[1] / rec[0] if rec else prior.get(e, 0)
+            w = self._ex_need.get(e, 1.0)
+            cost = self._ex_cost.get(e)
+            med = sorted(cost)[len(cost) // 2] if cost else None
+            ok = med is None or allow is None or med <= allow
+            gain[e] = g * w
+            out[e] = {"gain": round(g, 6), "source": src, "need": w, "n": rec[0] if rec else 0,
+                      "cost": med, "affordable": ok}
+            if ok:
+                room.append(e)
+        out["_filter"] = "applied" if room else "not applied: it would empty the room"
+        out["_compared"] = f"{len(opts)} of {len(opts)}"
+        out["_room"] = room or list(opts)
+        return gain, out
 
     def _kind_key(self, slot: str) -> str:
         """7h (h): a slot as its KIND -- the owner's kind (7l; a pair takes the kind pair) and the
@@ -27938,7 +28087,12 @@ class Agent:
         self._hyp_why = None          # per step: choose sets it when it runs
         if action is None:
             _h = self._hyp
+            if _EXIT_CONTEST:
+                self._ex_settle()
             action, by = self.choose(before)
+            if _EXIT_CONTEST:
+                self._ex_last = (self._lk(), by, self.pe_integral() - self.outstanding(),
+                                 self.cycle)
             if _TERMINAL_RESET and action in IFace.POSITIONED and self._aimed is None:
                 # r669 1: a positioned action never leaves without an aim; it is re-realised among
                 # the unpositioned offers (the same ELICIT intent the probe exits ask for)
