@@ -11,7 +11,8 @@ TETHER_GAME_LOSS_SHARE.
       withheld; a new game loss on it restores it
   L5  the goal side: a game loss ends the held hypothesis with loss=True; OFF, neutrally
   L6  MF (r1601): ON, a game loss books the shelf record lost 1 and leaves _goal_refuted
-      unchanged (it tested the route, not the goal's direction)
+      unchanged (it tested the route, not the goal's direction); MF (r1607): its family_demoted
+      row is on "@boundary", the boundary's booking, never the hypothesis slot
 
     python tests/test_c1_loss.py
 """
@@ -154,6 +155,7 @@ def check_l6() -> None:
         return
     ag = _agent()
     _held(ag)
+    ag._hyp.update(family="navigate", desc=["stall_flat"])
     keep = _arm(True)
     try:
         ag.retarget(ag.env, ag.level, how="game_loss")
@@ -162,7 +164,13 @@ def check_l6() -> None:
     assert ag._goal_shelf["sh"]["record"]["lost"] == 1, ag._goal_shelf["sh"]
     assert not ag._goal_refuted, f"MUST-FAIL (r1601): a game loss refuted the goal's sign: " \
                                  f"{ag._goal_refuted}"
-    print("  L6: ON, a game loss books the shelf record lost 1 and leaves _goal_refuted empty")
+    fd = [r for r in ag.led.rows() if r["event"] == "family_demoted"]
+    if tether._DESC_DEMOTE or tether._STALL_SURFACE:
+        # the sp80 witness: on the slot, this IMPORT row ran before that cycle's PLAN (step order)
+        assert fd and all(r["slot"] == "@boundary" for r in fd), \
+            f"MUST-FAIL: family_demoted on the hypothesis slot: {[r['slot'] for r in fd]}"
+    print(f"  L6: ON, a game loss books the shelf record lost 1 and leaves _goal_refuted empty; "
+          f"its family_demoted row is on @boundary ({len(fd)} row)")
 
 
 def main() -> int:

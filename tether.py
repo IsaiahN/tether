@@ -9811,7 +9811,7 @@ class Agent:
                 self._tally_carry(h)
         if (_DESC_DEMOTE or _STALL_SURFACE) and "family" in h and not won and (
                 loss or why == "stalled"):
-            self._desc_against(h, why, step)
+            self._desc_against(h, why, step, boundary)
         if _GOAL_UNBUNDLE and why == "stalled" and not won:
             self._goal_unbundle(h, step)
         # R1 (r1294): closed BY a boundary, the row joins retarget's own chain on "@boundary"
@@ -11080,10 +11080,11 @@ class Agent:
             out.append("stall_flat")
         return out
 
-    def _desc_against(self, h: dict, why: str, step: str) -> None:
+    def _desc_against(self, h: dict, why: str, step: str, boundary: bool = False) -> None:
         """Item 19: a stall or a loss is evidence AGAINST the held family under each reading that
         held (a), and what it surfaced becomes this board's readings (b); a family_demoted row,
-        the refusal kept on the record (Fig 6 :46)."""
+        the refusal kept on the record (Fig 6 :46). At a boundary the row goes on @boundary, as
+        goal_hypothesis_end's does: on the slot it ran IMPORT before that cycle's PLAN (C1 7)."""
         rs = h["desc"] or ["none"]
         if _DESC_DEMOTE:
             for r in rs:
@@ -11091,7 +11092,9 @@ class Agent:
         surfaced = self._stall_surfaced(h) if _STALL_SURFACE else []
         for k in surfaced:
             self._bd_stall[k] += 1
-        self.led.record(self.cycle, step, h["slots"][0], "family_demoted", text=h["text"],
+        self.led.record(self.cycle, step, "@boundary" if boundary else h["slots"][0],
+                        "family_demoted", text=h["text"],
+                        **({"hyp_slot": h["slots"][0]} if boundary else {}),
                         why=why, family=h["family"], under=rs, surfaced=surfaced,
                         wins={r: self._desc_paid[(r, h["family"])] for r in rs},
                         losses=({r: self._desc_lost[(r, h["family"])] for r in rs}
