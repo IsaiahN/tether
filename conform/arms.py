@@ -644,6 +644,10 @@ ARMS: dict[str, str] = {
                          "both + 2), learned from past weightings' outcomes per state (PRESSED: a "
                          "game loss this level or most steps cut by the purse; else COMFORTABLE); "
                          "owed lines and alternatives keep bidding. OFF: every weight 1.0",
+    "TETHER_DIAL_RATE": "C7 RATE (r1649). Default ON at landing (r1633). ON: the needs dial's "
+                        "weight reads each need's rate, r = (paid + 1) / (turns + 2), and w = r / "
+                        "(sum of both), so a need used more no longer weighs more for being used. "
+                        "OFF: w = (paid + 1) / (paid of both + 2) (017b282)",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "
