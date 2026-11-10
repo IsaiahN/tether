@@ -570,6 +570,19 @@ ARMS: dict[str, str] = {
                                "is not read off the board and fires no relational surprise. OFF "
                                "because it changes which slots become subjects in every wrapping "
                                "world; its default is decided at R1. OFF: the raw value, as B2b",
+    "TETHER_D5_NESTED": "(N) (the reviewer 2026-11-10 r1626, r1627): ON, (N1) a live split's leaf "
+                        "part is cut on its own misses over its own rows (an inner node on "
+                        "_parts, the conjunction along the path, priced over its own offered "
+                        "set, with its own witness and shadow), and (N2) a leaf's demotion "
+                        "leaves the outer split live (part_demoted; the leaf re-minted under its "
+                        "path) while part A's still dissolves. OFF because it is new and changes "
+                        "splits. OFF: one split per slot, a part's demotion dissolves it",
+    "TETHER_EFFECT_WRAPPED": "(E) (the reviewer 2026-11-10 r1627): ON, a press's effect is signed "
+                             "by the minimal difference mod the slot's alphabet (the agent's, "
+                             "passed to Interface.audit), so a one-cell wrap reads as the step the "
+                             "bet reads; a tie at n/2 keeps the raw sign and writes effect_tie. "
+                             "OFF because it changes signatures and remap notices in every "
+                             "wrapping world. OFF: the raw difference",
     "TETHER_SWEEP_STAMP": "(S) (the reviewer 2026-11-10 r1626): ON, a sweep's _reach rescan of a "
                           "parked record that finds nothing stamps the record's rescan_units, and "
                           "the rescan runs again only once the unit set has grown past it. OFF "

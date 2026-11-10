@@ -714,6 +714,11 @@ _DERIVE_AS_JUDGED = armflag.arm("TETHER_DERIVE_AS_JUDGED")
 # TETHER_SWEEP_STAMP (the reviewer 2026-11-10 r1626 (S)): a sweep's rescan of a parked record that
 # finds nothing is not re-run until the unit set grows again (Fig 6: a region already swept)
 _SWEEP_STAMP = armflag.arm("TETHER_SWEEP_STAMP")
+# TETHER_D5_NESTED (the reviewer 2026-11-10 r1626 (N), r1627): (N1) a live split's leaf part is cut
+# on its own misses (an inner node on _parts: the conjunction along the path); (N2) a leaf's
+# demotion leaves the outer split live (part_demoted, the leaf re-minted under its path); part A's
+# still dissolves (Fig 9 :40-41, :54; Fig 13: each falsifier its own witness)
+_D5_NESTED = armflag.arm("TETHER_D5_NESTED")
 # C1 PART 1, THE TIP-OVER (the reviewer 2026-11-09 r1584 1, r1592 3, r1594): a settle tips a term
 # (settled_at, settled_on, _settled_lvl) only where "no change" would have missed (beat_null); a
 # tied or unread settle raises confirmations and does not tip (Fig 5 :43-44, one occasion is not
@@ -5232,6 +5237,13 @@ class Agent:
         self._mint_part: dict | None = None     # D5: the part a running mint searches for
         self._shadow: dict[str, int | None] = {}  # D5: the incumbent's shadow on a not-P step
         self._d5_rows: dict[str, list] = {}     # D5: slot -> (trace row, predictor), this level
+        # (N): the inner cut's candidate / pending (P', numbers, leaf), the inner nodes' shadows on
+        # this step's path [(depth, prediction)], and slot -> the path of a node to re-mint
+        self._d5_in_cand: dict[str, tuple] = {}
+        self._d5_in_pend: dict[str, tuple] = {}
+        self._shadow_in: dict[str, list] = {}
+        self._d5_remint: dict[str, tuple] = {}
+        self._cond_in_within: dict = {}            # (N) (e): (slot kind, outer P kind, P kind)
         # C1 part 5: id(before-state) -> the press's known forms that step; this step's forms
         self._kn_eff: dict[int, frozenset] = {}
         self._kn_eff_now: frozenset = frozenset()
@@ -5726,6 +5738,7 @@ class Agent:
         self._served = {}          # (iv): a served binding does not cross the boundary either
         self._parts, self._d5_pending, self._shadow = {}, {}, {}
         self._d5_candidates = {}
+        self._d5_in_cand, self._d5_in_pend, self._shadow_in, self._d5_remint = {}, {}, {}, {}
         self._d5_rows, self._d5_said = {}, set()   # D5's scope is the level, a world event
         self._kn_eff = {}                          # keyed by the trace's states, cleared with it
         self._kn3 = {}
@@ -12086,8 +12099,13 @@ class Agent:
             ended = {r["ref"]: r["outcome"] for r in conds if r["kind"] == "condition_end"}
             for r in conds:
                 if r["kind"] == "condition":
-                    k = (r["slot_kind"], r["P"])
                     rank = 1 if ended.get(r["name"]) == "partition_broken" else 0
+                    if r.get("within") is not None:
+                        # (N) (e): an inner condition is read only inside a matching outer split
+                        kw = (r["slot_kind"], r["within"], r["P"])
+                        self._cond_in_within[kw] = min(rank, self._cond_in_within.get(kw, rank))
+                        continue
+                    k = (r["slot_kind"], r["P"])
                     self._cond_in[k] = min(rank, self._cond_in.get(k, rank))
         self._inv_carried_in = list(carried)
         if carried:
@@ -15727,10 +15745,16 @@ class Agent:
                 IFace.Interface.context(self.env) if IFace._DEST_GAP else None,
                 own=self._own_clock_keys() if _OWN_CLOCK_SUBJECT else frozenset(),
                 reaff=_reaff,
-                meant=self._meant(action) if IFace._IA_SERVED else None):
+                meant=self._meant(action) if IFace._IA_SERVED else None,
+                alphabet=self.alphabet if IFace._EFFECT_WRAPPED else None):
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
+        if IFace._EFFECT_WRAPPED and self.iface.effect_ties:
+            self.led.record(self.cycle, "PERCEIVE", "@interface", "effect_tie",
+                            of=(action,), slots=list(self.iface.effect_ties),
+                            reads="a step of exactly half the alphabet: signed by the raw "
+                                  "difference, as either way is as near")
         if _ROUTE_REFUSE and not self._seam_now:
             self._audit_at = self.cycle    # R-B: this step's press was audited (no seam, no cut)
         if _R4_RECORD and not self._seam_now:
@@ -18270,16 +18294,16 @@ class Agent:
         f = pred[len(KNOWN_EFFECT) + 1:]
         return True if f in holds else (False if f not in union else None)
 
-    def _d5_cut(self, slot: str, name: str) -> tuple | None:
+    def _d5_cut(self, slot: str, name: str, within: tuple = ()) -> tuple | None:
         """D5's trigger, counted (D5_N): calls and loop heads, for the @body heads line."""
         h0 = cap.HEADS
         try:
-            return self._d5_cut_body(slot, name)
+            return self._d5_cut_body(slot, name, within)
         finally:
             D5_N["calls"] += 1
             D5_N["heads"] += cap.HEADS - h0
 
-    def _d5_cut_body(self, slot: str, name: str) -> tuple | None:
+    def _d5_cut_body(self, slot: str, name: str, within: tuple = ()) -> tuple | None:
         """D5's trigger (Fig 9 :4-5): a held predicate P with the incumbent right on every P row
         and wrong on every other, at least 2 a side (probe.never_live's anchor: two is the
         smallest number that separates), and the split pays: the incumbent's miss on the not-P
@@ -18292,6 +18316,9 @@ class Agent:
         hist = [(b, a, af[slot], i, land) for b, a, af, i, land in
                 (self.trace[j] for j in idx if 0 <= j < len(self.trace))
                 if slot in af and slot in b]
+        if within:
+            # (N) N1: an inner cut sees only the rows on its path (every outer P failed there)
+            hist = [r for r in hist if self._d5_off_path(within, slot, r)]
         if term is None or len(hist) < 4:
             return None
         wrong = [bool(self._residual_obs(slot, term, [r])) for r in hist]
@@ -18304,7 +18331,11 @@ class Agent:
             preds += [f"{KNOWN_EFFECT} {f}" for f in sorted(
                 {f for r in hist for f in self._kn_eff.get(id(r[0]), ())})
                 if _KNOWN_FORM.fullmatch(f)]
-        if _CONDITION_CARRY and self._cond_in:
+        if _CONDITION_CARRY and within and self._cond_in_within:
+            # (N) (e): a carried INNER condition is tried first only inside a matching outer split
+            sk, wk = self._kind_key(slot), self._p_kind(within[-1])
+            preds.sort(key=lambda p: self._cond_in_within.get((sk, wk, self._p_kind(p)), 2))
+        if _CONDITION_CARRY and self._cond_in and not within:
             # C1 6(c): the offered set and its price are unchanged; a same-kind slot's carried P
             # is tried first (held before broken), so it wins where several cuts pass
             sk = self._kind_key(slot)
@@ -18406,6 +18437,24 @@ class Agent:
                 if self._turn_ahead is not None:
                     self._turn_ahead.discard(_slot)
             self._d5_pending.clear()
+        if _D5 and _D5_NESTED:
+            # (N): a confirmed inner cut, and a demoted part's re-mint, are the slot's turn too
+            jobs = [(s, self._d5_split_inner, self._d5_in_pend[s])
+                    for s in sorted(self._d5_in_pend)]
+            jobs += [(s, self._d5_remint_run, (self._d5_remint[s],))
+                     for s in sorted(self._d5_remint)]
+            self._d5_in_pend.clear()
+            self._d5_remint.clear()
+            for _slot, run, args in jobs:
+                cap.head()
+                if _slot in gone or _slot not in self._parts:
+                    self.led.record(self.cycle, "MINT", _slot, "d5_split_not_run", nested=True,
+                                    reason="left the board" if _slot in gone else "no live split")
+                    continue
+                run(_slot, *args)
+                done.add(_slot)
+                if self._turn_ahead is not None:
+                    self._turn_ahead.discard(_slot)
         return done
 
     @_in_step("MINT")
@@ -18475,11 +18524,19 @@ class Agent:
                 # (B) (c): on an undecided step the split does not speak and takes no shadow
                 self._bind_part(slot, part["A"])
                 self._shadow.pop(slot, None)
+                self._shadow_in.pop(slot, None)
                 continue
             self._bind_part(slot, part["A"])
             self._shadow[slot] = self._predict(slot, before, action)
-            if part["B"]:
-                self.bound[slot] = part["B"]
+            leaf = part["B"]
+            if _D5_NESTED:
+                leaf, shs = self._d5_walk(slot, part, before, action)
+                if shs:
+                    self._shadow_in[slot] = shs
+                else:
+                    self._shadow_in.pop(slot, None)
+            if leaf:
+                self.bound[slot] = leaf
             else:
                 self.bound.pop(slot, None)
 
@@ -18491,6 +18548,23 @@ class Agent:
         if slot in self._d5_candidates:
             self._d5_witness(slot, NULL_MAKER, r)
             return
+        if _D5_NESTED and slot in self._parts:
+            # (N): an unbound leaf is the null on its path; the root's null part A is not it, so
+            # only a step on the leaf's path is searched or witnessed
+            w = self._d5_leaf_path(slot, NULL_MAKER)
+            if w is None or not self._d5_off_path(w, slot):
+                return
+            c = self._d5_in_cand.get(slot)
+            if c is not None and c[2] == NULL_MAKER:
+                self._d5_witness(slot, NULL_MAKER, r, inner=True)
+            elif r.mass > 0.0 and slot not in self._d5_in_cand and slot not in self._d5_in_pend:
+                found = self._d5_cut(slot, NULL_MAKER, w)
+                if found is not None:
+                    self._d5_in_cand[slot] = (*found, NULL_MAKER)
+                    self.led.record(self.cycle, "SETTLE", "@d5", "cut_candidate",
+                                    split_slot=slot, P=found[0], incumbent=NULL_MAKER,
+                                    nested=True, within=list(w), **found[1])
+            return
         if r.mass <= 0.0 or slot in self._parts or slot in self._d5_pending:
             return
         found = self._d5_cut(slot, NULL_MAKER)
@@ -18499,16 +18573,21 @@ class Agent:
             self.led.record(self.cycle, "SETTLE", "@d5", "cut_candidate", split_slot=slot,
                             P=found[0], incumbent=NULL_MAKER, **found[1])
 
-    def _d5_witness(self, slot: str, name: str, r: SlotResidual) -> None:
+    def _d5_witness(self, slot: str, name: str, r: SlotResidual, inner: bool = False) -> None:
         """D5: the candidate cut's witness -- the first not-P step after the cut on which the
         incumbent itself predicted. Wrong there: the claim held on a row it did not see, and the
-        split takes effect from the next perceive. Right: the claim is refuted, nothing acted."""
-        c = self._d5_candidates[slot]
+        split takes effect from the next perceive. Right: the claim is refuted, nothing acted.
+        (N) inner: the same witness for a cut inside a live split, on its leaf's own rows."""
+        cands = self._d5_in_cand if inner else self._d5_candidates
+        pend = self._d5_in_pend if inner else self._d5_pending
+        nest = {"nested": True} if inner else {}
+        c = cands[slot]
         if c[2] != name:
-            self._d5_candidates.pop(slot)
+            cands.pop(slot)
             self.led.record(self.cycle, "SETTLE", "@d5", "cut_withdrawn", split_slot=slot,
                             P=c[0], incumbent=c[2], predictor=name, verdict_on_the_cut=None,
-                            reason="another term predicts the slot, so no witness can arrive")
+                            reason="another term predicts the slot, so no witness can arrive",
+                            **nest)
             return
         on = (self._d5_tri if _KNOWN_CORE else self._d5_holds)(c[0], slot)
         if on is None:
@@ -18517,20 +18596,22 @@ class Agent:
             # THE P SIDE IS A WITNESS TOO (the reviewer 20:30Z): the cut also claims the
             # incumbent is right on P. Wrong there refutes it; right there is no news.
             if r.mass > 0.0:
-                self._d5_candidates.pop(slot)
+                cands.pop(slot)
                 self.led.record(self.cycle, "SETTLE", "@d5", "cut_refuted", split_slot=slot,
                                 P=c[0], incumbent=name, actual=r.actual, side="P",
-                                verdict="the incumbent was wrong on a P row after the cut")
+                                verdict="the incumbent was wrong on a P row after the cut",
+                                **nest)
             return
-        self._d5_candidates.pop(slot)
+        cands.pop(slot)
         if r.mass > 0.0:
-            self._d5_pending[slot] = c
+            pend[slot] = c
             self.led.record(self.cycle, "SETTLE", "@d5", "cut_confirmed", split_slot=slot,
-                            P=c[0], incumbent=name, actual=r.actual)
+                            P=c[0], incumbent=name, actual=r.actual, **nest)
         else:
             self.led.record(self.cycle, "SETTLE", "@d5", "cut_refuted", split_slot=slot, P=c[0],
                             incumbent=name, actual=r.actual, side="not-P",
-                            verdict="the incumbent was right on the first not-P step after the cut")
+                            verdict="the incumbent was right on the first not-P step after the cut",
+                            **nest)
 
     @_in_step("SETTLE")
     def _d5_level_end(self) -> None:
@@ -18545,6 +18626,13 @@ class Agent:
             self.led.record(self.cycle, "SETTLE", "@d5", "cut_withdrawn", split_slot=slot,
                             P=c[0], incumbent=c[2], verdict_on_the_cut="confirmed",
                             reason="the level ended before the confirmed split ran")
+        for store, why in ((self._d5_in_cand, "the level ended before a witness"),
+                           (self._d5_in_pend, "the level ended before the confirmed split ran")):
+            for slot, c in store.items():
+                self.led.record(self.cycle, "SETTLE", "@d5", "cut_withdrawn", split_slot=slot,
+                                P=c[0], incumbent=c[2], nested=True, reason=why,
+                                verdict_on_the_cut=None if store is self._d5_in_cand
+                                else "confirmed")
         for slot, part in self._parts.items():
             self.led.record(self.cycle, "SETTLE", "@d5", "dissolved", split_slot=slot,
                             P=part["P"], demoted=None, part_a=part["A"], part_b=part["B"],
@@ -18553,7 +18641,7 @@ class Agent:
                 self._cond_end(slot, "level_end")
 
     def _cond_write(self, slot: str, pred: str, inc: str, part_b: str | None,
-                    numbers: dict) -> None:
+                    numbers: dict, within: str | None = None) -> None:
         """C1 6(c): the split as a method record in kind form; no instance name crosses."""
         self._cond_n += 1
         name = f"{self.gamma.game}_cond_{self._cond_n}"
@@ -18561,11 +18649,12 @@ class Agent:
 
         def kind(n: str | None) -> str | None:
             return None if n is None or n not in lib else self.gamma.kind_of(lib[n]).name
-        self._cond_open[slot] = name
+        self._cond_open[(slot, within) if within else slot] = name
         self._inv_carry.append({"name": name, "term": name, "kind": "condition",
                                 "game": self.gamma.game, "born": self.cycle, "level": self.level,
                                 "slot_kind": self._kind_key(slot), "P": self._p_kind(pred),
-                                "A": kind(inc), "B": kind(part_b), "numbers": dict(numbers)})
+                                "A": kind(inc), "B": kind(part_b), "numbers": dict(numbers),
+                                **({"within": self._p_kind(within)} if within else {})})
 
     def _cond_end(self, slot: str, outcome: str) -> None:
         """C1 6(c): the split's outcome, its own record pointing at the split's (the first is
@@ -18603,11 +18692,188 @@ class Agent:
         else:
             self.bound[slot] = a
 
+    def _d5_off_path(self, within: tuple, slot: str, row: tuple | None = None) -> bool:
+        """(N): every P on the path failed on this row (decided, under (B) (c))."""
+        for p in within:
+            cut = self._d5_tri(p, slot, row) is not False if _KNOWN_CORE else self._d5_holds(
+                p, slot, row)
+            if cut:
+                return False
+        return True
+
+    def _d5_nodes(self, slot: str) -> list:
+        """(N): the split's nodes, root first, each with the P's that failed on the way to it. A
+        node's inner, when it has one, splits its not-P side, so the nodes form a chain."""
+        out, node, path = [], self._parts.get(slot), ()
+        while node is not None:
+            out.append((node, path))
+            path = path + (node["P"],)
+            node = node.get("inner")
+        return out
+
+    def _d5_leaf_path(self, slot: str, name: str) -> tuple | None:
+        """(N) N1: the path to the slot's live leaf if `name` is it (the deepest node's part B;
+        an unbound leaf is the null), else None."""
+        nodes = self._d5_nodes(slot)
+        if not nodes:
+            return None
+        node, path = nodes[-1]
+        return path + (node["P"],) if (node["B"] or NULL_MAKER) == name else None
+
+    def _d5_walk(self, slot: str, part: dict, before: dict, action: str) -> tuple:
+        """(N): down the not-P side to the part that predicts this step. An inner node passed on
+        its not-P' side keeps its A's prediction as that node's shadow (depth, value); a pending
+        inner cut acts from this step, as the outer one does."""
+        node, depth, shs = part, 0, []
+        while True:
+            inner = node.get("inner")
+            if inner is None:
+                pend = self._d5_in_pend.get(slot)
+                if pend is None or pend[2] != (node["B"] or NULL_MAKER):
+                    return node["B"], shs
+                inner = {"P": pend[0], "A": pend[2], "B": None}
+            depth += 1
+            on = (self._d5_tri if _KNOWN_CORE else self._d5_holds)(inner["P"], slot)
+            if on or on is None:
+                return (None if inner["A"] == NULL_MAKER else inner["A"]), shs
+            self._bind_part(slot, inner["A"])
+            shs.append((depth, self._predict(slot, before, action)))
+            node = inner
+
+    def _d5_nested_clear(self, slot: str) -> None:
+        """(N): a split that ends takes its inner record with it."""
+        for store in (self._d5_in_cand, self._d5_in_pend, self._shadow_in, self._d5_remint):
+            store.pop(slot, None)
+
+    def _d5_revert_inner(self, slot: str, depth: int) -> None:
+        """(N): the inner node's A was right on a not-P' step, so that inner partition is broken;
+        the node above takes its rows back (its part is the inner A again)."""
+        nodes = self._d5_nodes(slot)
+        if depth >= len(nodes):
+            c = self._d5_in_pend.pop(slot, None)
+            if c is not None:
+                self.led.record(self.cycle, "SETTLE", "@d5", "partition_broken", split_slot=slot,
+                                P=c[0], incumbent=c[2], nested=True, pending=True,
+                                verdict="the leaf was right on a not-P' row; the inner cut "
+                                        "is broken before it split")
+            return
+        parent, inner = nodes[depth - 1][0], nodes[depth][0]
+        parent.pop("inner", None)
+        parent["B"] = None if inner["A"] == NULL_MAKER else inner["A"]
+        if _CONDITION_CARRY:
+            self._cond_end((slot, parent["P"]), "partition_broken")
+        self.led.record(self.cycle, "SETTLE", "@d5", "partition_broken", split_slot=slot,
+                        P=inner["P"], incumbent=inner["A"], unbound=inner["B"], nested=True,
+                        within=list(nodes[depth][1]),
+                        verdict="the leaf was right on a not-P' row; the inner split reverts")
+
+    def _d5_part_demote(self, slot: str, name: str) -> bool:
+        """(N) N2: a demoted LEAF leaves the outer split live -- its node's not-P side waits for a
+        re-mint; an inner node's A demoted ends that inner node only. Part A of the root: False,
+        so the split dissolves as before (its misses are on P rows, the outer claim's own)."""
+        nodes = self._d5_nodes(slot)
+        if not nodes or nodes[0][0]["A"] == name:
+            return False
+        where = None
+        for i, (node, path) in enumerate(nodes):
+            if i and node["A"] == name:
+                parent, ppath = nodes[i - 1]
+                parent.pop("inner", None)
+                parent["B"] = None
+                where = ppath + (parent["P"],)
+                break
+            if node.get("inner") is None and node["B"] == name:
+                node["B"] = None
+                where = path + (node["P"],)
+                break
+        if where is None:
+            return False
+        for store in (self._d5_in_cand, self._d5_in_pend):
+            if slot in store and store[slot][2] == name:
+                store.pop(slot)
+        self._d5_remint[slot] = where
+        self.led.record(self.cycle, "SETTLE", "@d5", "part_demoted", split_slot=slot,
+                        within=list(where), demoted=name,
+                        reads="a part's demotion is evidence against the part, not the cut: "
+                              "the split stays and the part is searched again on its rows")
+        return True
+
+    def _d5_part_mint(self, slot: str, within: tuple, inc: str | None) -> tuple:
+        """(N): a part's mint on the rows off every P of its path (the same mint _d5_split runs);
+        the slot's park state, wants and binding are restored, so a part never speaks for it."""
+        owed, abst = slot in self.owed_import, self.abstained.get(slot)
+        want, want_t = self.wants.get(slot), self._want_terms.get(slot)
+        was = self.bound.pop(slot, None)
+        label = f"!{within[-1]}"
+        self._row_filter[slot] = lambda r, _w=within, _s=slot: self._d5_off_path(_w, _s, r)
+        n0 = len(self.led)
+        self._mint_part = {"part": label, "slot": slot, "incumbent": inc,
+                           "within": list(within[:-1])}
+        try:
+            self.mint(slot)
+            got = self.bound.get(slot)
+        finally:
+            self._row_filter.pop(slot, None)
+            self._mint_part = None
+        part = got if got and got != inc else None
+        mine = [r for r in self.led.rows(n0)
+                if (r["detail"].get("part") or {}).get("part") == label
+                and r["detail"]["part"].get("slot") == slot]
+        park = next((r for r in mine if r["event"] == "park"), None)
+        said = (part or (f"searched: parked (seq {park['seq']})" if park else None)
+                or ("searched: nothing bound, no park row" if mine
+                    else "not searched: the part's mint wrote no row"))
+        (self.owed_import.add if owed else self.owed_import.discard)(slot)
+        for store, val in ((self.abstained, abst), (self.wants, want), (self._want_terms, want_t)):
+            if val is None:
+                store.pop(slot, None)
+            else:
+                store[slot] = val
+        if was is None:
+            self.bound.pop(slot, None)
+        else:
+            self.bound[slot] = was
+        return part, said
+
+    def _d5_split_inner(self, slot: str, pred: str, numbers: dict, leaf: str) -> None:
+        """(N) N1: the confirmed inner cut splits the leaf's rows: the leaf keeps the P' side and
+        a new part is minted on not-P' within its path (the conjunction)."""
+        nodes = self._d5_nodes(slot)
+        if not nodes or (nodes[-1][0]["B"] or NULL_MAKER) != leaf:
+            self.led.record(self.cycle, "MINT", slot, "d5_split_not_run", nested=True,
+                            reason="pending inner split not run: its leaf is no longer the "
+                                   "slot's leaf")
+            return
+        node, path = nodes[-1]
+        within = path + (node["P"],)
+        part_b, said = self._d5_part_mint(slot, within + (pred,), leaf)
+        node["inner"] = {"P": pred, "A": leaf, "B": part_b}
+        self.led.record(self.cycle, "MINT", "@d5", "split", split_slot=slot, P=pred,
+                        part_a=leaf, part_b=said, nested=True, within=list(within), **numbers)
+        if _CONDITION_CARRY:
+            self._cond_write(slot, pred, leaf, part_b, numbers, within=node["P"])
+
+    def _d5_remint_run(self, slot: str, where: tuple) -> None:
+        """(N) N2: the not-P side whose part was demoted is searched again under its path."""
+        nodes = self._d5_nodes(slot)
+        target = next((n for n, p in nodes
+                       if p + (n["P"],) == where and n.get("inner") is None and n["B"] is None),
+                      None)
+        if target is None:
+            self.led.record(self.cycle, "MINT", slot, "d5_split_not_run", nested=True,
+                            reason="re-mint not run: the node it was for is gone or bound")
+            return
+        part, said = self._d5_part_mint(slot, where, None)
+        target["B"] = part
+        self.led.record(self.cycle, "MINT", "@d5", "part_reminted", split_slot=slot,
+                        within=list(where), part_b=said)
+
     def _d5_revert(self, slot: str) -> None:
         """D5: the incumbent was right on a not-P step, so the partition claim is broken."""
         if _CONDITION_CARRY:
             self._cond_end(slot, "partition_broken")
         part = self._parts.pop(slot)
+        self._d5_nested_clear(slot)
         self._bind_part(slot, part["A"])
         self.led.record(self.cycle, "SETTLE", "@d5", "partition_broken", split_slot=slot,
                         P=part["P"], incumbent=part["A"], unbound=part["B"],
@@ -18619,6 +18885,7 @@ class Agent:
             self._cond_end(slot, "dissolved")
         part = self._parts.pop(slot)
         self._shadow.pop(slot, None)
+        self._d5_nested_clear(slot)
         self.led.record(self.cycle, "SETTLE", "@d5", "dissolved", split_slot=slot, P=part["P"],
                         demoted=name, part_a=part["A"], part_b=part["B"])
 
@@ -26328,6 +26595,15 @@ class Agent:
                         sh == r.actual % self.alphabet[slot]):
                     self._d5_revert(slot)
                     continue
+            if _D5_NESTED and slot in self._shadow_in:
+                # (N): an inner node's own falsifier, its A's shadow on a not-P' step; the
+                # shallowest one right breaks that node (and what hangs below it), nothing above
+                _brk = next((d for d, sh in self._shadow_in.pop(slot)
+                             if sh is not None and r.actual is not None
+                             and sh == r.actual % self.alphabet[slot]), None)
+                if _brk is not None:
+                    self._d5_revert_inner(slot, _brk)
+                    continue
             null = not name and _D5 and _D5_NULL and slot in self._null_bet
             if _D5:
                 self._d5_rows.setdefault(slot, []).append(
@@ -26338,6 +26614,8 @@ class Agent:
                 continue
             if _D5 and slot in self._d5_candidates:
                 self._d5_witness(slot, name, r)
+            if _D5_NESTED and slot in self._d5_in_cand and self._d5_in_cand[slot][2] == name:
+                self._d5_witness(slot, name, r, inner=True)
             if r.mass > 0.0:
                 # express-before-judge: this term actually predicted, and was wrong
                 # AND THE FIFTH BIN IS POPULATED HERE AND NOWHERE ELSE, which is the whole of
@@ -26345,10 +26623,16 @@ class Agent:
                 # BOTH outcomes of `refute` below: a settled term demoted and a candidate
                 # mispredicting are both the ground refusing what was said.
                 self._refuted_slot[slot] = name
-                _found = None
+                _found = _found_in = None
                 if _D5 and slot not in self._parts and slot not in self._d5_pending and (
                         slot not in self._d5_candidates):
                     _found = self._d5_cut(slot, name)
+                elif _D5 and _D5_NESTED and slot in self._parts and (
+                        slot not in self._d5_in_cand and slot not in self._d5_in_pend):
+                    # (N) N1: the live leaf's misses are searched over its own rows
+                    _w = self._d5_leaf_path(slot, name)
+                    _fi = self._d5_cut(slot, name, _w) if _w is not None else None
+                    _found_in = (_fi, _w) if _fi is not None else None
                 held = self.gamma.is_settled(name, slot)
                 if _7I_ROUTE and name in getattr(self.gamma, "innate", ()):
                     self._contra_q.append({"slot": slot, "term": name, "kind": "innate refuted"})
@@ -26362,6 +26646,11 @@ class Agent:
                     self._d5_candidates[slot] = (*_found, name)
                     self.led.record(self.cycle, "SETTLE", "@d5", "cut_candidate",
                                     split_slot=slot, P=_found[0], incumbent=name, **_found[1])
+                if _found_in is not None and not _demoted_now:
+                    self._d5_in_cand[slot] = (*_found_in[0], name)
+                    self.led.record(self.cycle, "SETTLE", "@d5", "cut_candidate",
+                                    split_slot=slot, P=_found_in[0][0], incumbent=name,
+                                    nested=True, within=list(_found_in[1]), **_found_in[0][1])
                 if _demoted_now:
                     self.demoted.append(name)
                     # BOOK 1: a term that had SETTLED and then mispredicted. The ground gave it
@@ -26394,7 +26683,8 @@ class Agent:
                                             split_slot=slot, incumbent=name, verdict_on_the_cut=
                                             "confirmed", reason="confirmed, then its incumbent "
                                             "was demoted on the same step: no part A to keep")
-                        if slot in self._parts:
+                        if slot in self._parts and not (
+                                _D5_NESTED and self._d5_part_demote(slot, name)):
                             self._d5_dissolve(slot, name)
                 elif held:
                     # A MISS THAT COST NO STANDING: the evidence tally rose and stayed under the

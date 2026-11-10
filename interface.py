@@ -134,6 +134,11 @@ _REALISE_CELL = armflag.arm("TETHER_REALISE_CELL", default=True)
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _DEST_GAP = armflag.arm("TETHER_DEST_GAP", default=True)
 
+# (E) (the reviewer 2026-11-10 r1627): a press's effect is signed by the minimal difference mod the
+# slot's alphabet (the agent's, passed to audit), so a one-cell wrap reads as the one-cell step
+# the bet reads; a tie at n/2 keeps the raw sign and is recorded. OFF: the raw difference
+_EFFECT_WRAPPED = armflag.arm("TETHER_EFFECT_WRAPPED")
+
 # THE CLICK SITE'S VARIETY RULE (the reviewer 2026-10-12 15:26 CDT, stage 1b): what a press at a
 # coordinate did, per pre-press context, and an explore press aimed first at an object not yet
 # pressed here. ON; reason in conform/arms.py.
@@ -557,6 +562,7 @@ class Interface:
         self.conditional: set[str] = set()     # more than one effect, ACROSS contexts
         self.changed: set[str] = set()         # more than one effect WITHIN one context
         self.unreliable: set[str] = set()      # lands a slot on more than one value in a ctx
+        self.effect_ties: list[str] = []       # (E): the last press's slots signed at a tie
         # THE CONTINGENCY INSTRUMENTS, MOVED WITH THE COMPUTATION. `Agent.members()` published
         # these and its numbers are the reason the gates below are trusted, so leaving them
         # behind would have made the relocation unreadable at exactly the moment it needs
@@ -1947,7 +1953,8 @@ class Interface:
 
     def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = (),
               ctx_after: tuple | None = None, own: frozenset = frozenset(),
-              reaff: frozenset = frozenset(), meant: tuple | None = None) -> bool:
+              reaff: frozenset = frozenset(), meant: tuple | None = None,
+              alphabet: dict | None = None) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 
         **RETURNS `True` FOR *CONDITIONAL*, NOT FOR *CHANGED*, AND THE DIFFERENCE IS ISAIAH'S
@@ -2017,9 +2024,24 @@ class Interface:
         #
         # Signed, `left` is `(('o0.col', -1),)` and then `(('o0.col', +1),)`: two effects in one
         # context, which is exactly what `changed_here` exists to notice.
+        self.effect_ties = []
+
+        def _wd(k: str) -> int:
+            """(E): the step, read as the bet reads it -- every reader of d in audit takes this."""
+            d = int(after.get(k, 0)) - int(before.get(k, 0))
+            n = (alphabet or {}).get(k) if _EFFECT_WRAPPED else None
+            if n:
+                w = (d + n // 2) % n - n // 2
+                if n % 2 == 0 and w == -(n // 2):
+                    if k not in self.effect_ties:   # exactly n/2 either way: the raw sign
+                        self.effect_ties.append(k)
+                else:
+                    d = w
+            return d
+
         def _eff(k: str) -> tuple[str, int]:
             try:
-                d = int(after.get(k, 0)) - int(before.get(k, 0))
+                d = _wd(k)
             except (TypeError, ValueError):
                 return (k, 0)
             return (k, (d > 0) - (d < 0))
@@ -2083,7 +2105,7 @@ class Interface:
         for k in changed:
             cap.head()
             try:
-                d = int(after.get(k, 0)) - int(before.get(k, 0))
+                d = _wd(k)
             except (TypeError, ValueError):
                 continue
             # LAYER 1. `rel` says whether the slot that moved belongs to the object that was
