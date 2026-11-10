@@ -7,7 +7,10 @@ minimal difference mod the slot's alphabet, so a one-cell wrap reads as the step
      books ONE signature in its context ON and two OFF (the false remap);
   w4 a step of exactly n/2 (0 -> 2 on n = 4) keeps the raw sign and is recorded as a tie, ON;
   w5 MUST-FAIL (r1629): the delta table takes the same step -- the 0 -> 4 press adds -1 to its
-     running total ON and +4 OFF.
+     running total ON and +4 OFF;
+  w6 MUST-FAIL (r1630): Agent.can() -- with up seen to move o0.row 3 -> 2 and 2 -> 1, dec bound,
+     the row at 0 and its target one wrapped cell away (4) is reachable ON ("yes") and not
+     OFF (the raw direction reads the step as the wrong way).
 
     python tests/test_effect_wrapped.py
 """
@@ -42,10 +45,36 @@ out["w5"] = sum(t for (c, k, _r), (_n, t) in f.table["up"]["delta"].items() if k
 print(json.dumps(out))
 '''
 
+CAN = r'''
+import json, sys
+sys.dont_write_bytecode = True
+import gamma, ledger, tether, world
+from conform import panel
+S = "o0.row"
+g, seed = panel._gridworld("gridworld_s0")
+env = world.bind(g)
+ag = tether.Agent(env, gamma.Gamma(env.atoms(), game=f"t_{seed}"), tether.Config(),
+                  ledger.Ledger())
+ag.step()
+def row(a, b):
+    x = dict(g.state)
+    x[S] = a
+    y = dict(x)
+    y[S] = b
+    return (x, "up", y, None, None)
+ag.trace = [row(3, 2), row(2, 1)]
+ag.bound[S] = "dec"
+ag._hyp, ag._disc = None, {}
+ag._discrepancy = lambda s, st: 1
+st = dict(g.state)
+st[S] = 0
+print(json.dumps({"w6": str(ag.can(S, st)), "wanted": ag._predict(S, st, "up")}))
+'''
 
-def _run(on: bool) -> dict:
+
+def _run(on: bool, probe: str = PROBE) -> dict:
     env = dict(os.environ, TETHER_EFFECT_WRAPPED="1" if on else "0", PYTHONDONTWRITEBYTECODE="1")
-    p = subprocess.run([sys.executable, "-c", PROBE], capture_output=True, text=True, env=env,
+    p = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True, env=env,
                        cwd=_repo.ROOT, timeout=300)
     assert p.returncode == 0, p.stderr[-2500:]
     return json.loads(p.stdout.strip().splitlines()[-1])
@@ -64,4 +93,8 @@ if __name__ == "__main__":
     print(f"  w4 0 -> 2 on n = 4 (a tie): {on['w4'][0]}, tie recorded on {on['w4'][1]}")
     assert on["w5"] == -1 and off["w5"] == 4, (on, off)
     print(f"  w5 the delta table on 0 -> 4: ON {on['w5']}, OFF {off['w5']} (MUST-FAIL)")
+    con, coff = _run(True, CAN), _run(False, CAN)
+    assert con["wanted"] == 4 and con["w6"] == "yes" and coff["w6"] != "yes", (con, coff)
+    print(f"  w6 can(): target 4 from row 0 under dec: ON {con['w6']}, OFF {coff['w6']} "
+          f"(MUST-FAIL)")
     print("effect wrapped: OK")

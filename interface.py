@@ -139,6 +139,17 @@ _DEST_GAP = armflag.arm("TETHER_DEST_GAP", default=True)
 # the bet reads; a tie at n/2 keeps the raw sign and is recorded. OFF: the raw difference
 _EFFECT_WRAPPED = armflag.arm("TETHER_EFFECT_WRAPPED")
 
+
+def wrap_step(d: int, n: int | None) -> tuple[int, bool]:
+    """(E): a step read the way the bet reads it, the minimal difference mod n, and whether it
+    was a tie at n/2 (then the raw d). No n: the raw d. Every reader of a step takes this."""
+    if not n:
+        return d, False
+    w = (d + n // 2) % n - n // 2
+    if n % 2 == 0 and w == -(n // 2):
+        return d, True
+    return w, False
+
 # THE CLICK SITE'S VARIETY RULE (the reviewer 2026-10-12 15:26 CDT, stage 1b): what a press at a
 # coordinate did, per pre-press context, and an explore press aimed first at an object not yet
 # pressed here. ON; reason in conform/arms.py.
@@ -2028,15 +2039,10 @@ class Interface:
 
         def _wd(k: str) -> int:
             """(E): the step, read as the bet reads it -- every reader of d in audit takes this."""
-            d = int(after.get(k, 0)) - int(before.get(k, 0))
-            n = (alphabet or {}).get(k) if _EFFECT_WRAPPED else None
-            if n:
-                w = (d + n // 2) % n - n // 2
-                if n % 2 == 0 and w == -(n // 2):
-                    if k not in self.effect_ties:   # exactly n/2 either way: the raw sign
-                        self.effect_ties.append(k)
-                else:
-                    d = w
+            d, tie = wrap_step(int(after.get(k, 0)) - int(before.get(k, 0)),
+                               (alphabet or {}).get(k) if _EFFECT_WRAPPED else None)
+            if tie and k not in self.effect_ties:   # exactly n/2 either way: the raw sign
+                self.effect_ties.append(k)
             return d
 
         def _eff(k: str) -> tuple[str, int]:

@@ -20673,9 +20673,12 @@ class Agent:
         if term is None:
             return UNKNOWN
         ordered = self.slot_types.get(slot) in ORDERED_TYPES
+        # (E) r1630: a move and the way to the target are read as the bet reads a step
+        _n = self.alphabet.get(slot) if IFace._EFFECT_WRAPPED else None
         for a in self.actions:
             cap.head()
-            moves = [aft[slot] - bef[slot] for bef, act, aft, _intent, _landed in self.trace
+            moves = [IFace.wrap_step(aft[slot] - bef[slot], _n)[0]
+                     for bef, act, aft, _intent, _landed in self.trace
                      if act == a and slot in bef and slot in aft]
             if not moves:
                 continue                   # untried is not evidence either way
@@ -20687,7 +20690,7 @@ class Agent:
                        if act == a and slot in aft):
                     return YES
                 continue
-            step = 1 if wanted > state[slot] else -1
+            step = 1 if IFace.wrap_step(wanted - state[slot], _n)[0] > 0 else -1
             if sum(1 for d in moves if d * step > 0) * 2 > len(moves):
                 return YES                 # this agent has moved it that way, mostly
         return UNKNOWN
