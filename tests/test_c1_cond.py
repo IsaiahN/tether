@@ -70,6 +70,9 @@ def _hand(rows: list, row_forms: dict | None = None) -> tether.Agent:
     ag._d5_rows["x"] = [(i, "idn") for i in range(len(rows))]
     ag._kn_eff = {id(t[0]): frozenset(row_forms.get(i, ())) for i, t in enumerate(ag.trace)} \
         if row_forms else {}
+    # TETHER_KNOWN_CORE (default ON, r1633) reads the three-valued table: one known effect per
+    # press here, so holds = union = its forms (the same meaning as _kn_eff)
+    ag._kn3 = {k: (v, v) for k, v in ag._kn_eff.items()}
     return ag
 
 
@@ -158,6 +161,7 @@ def _on_slot(slot: str, rows: list, row_forms: dict) -> tether.Agent:
     ag.alphabet[slot] = 8
     ag._d5_rows[slot] = [(i, "idn") for i in range(len(rows))]
     ag._kn_eff = {id(t[0]): frozenset(row_forms.get(i, ())) for i, t in enumerate(ag.trace)}
+    ag._kn3 = {k: (v, v) for k, v in ag._kn_eff.items()}     # KNOWN_CORE ON: as _hand
     return ag
 
 

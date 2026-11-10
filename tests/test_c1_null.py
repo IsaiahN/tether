@@ -74,7 +74,10 @@ def check_n2_b1_n3() -> None:
     settles = [r["detail"] for r in rows if r["event"] == "settle"
                and r["detail"].get("status") == "accepted"]
     risky = sum(1 for d in settles if d.get("risky") is True)
-    quiet = sum(1 for d in settles if d.get("risky") is False)
+    # TETHER_SETTLE_BEAT_NULL (default ON, r1633): a tied settle counts tied_null but does not
+    # tip, and is written as its own settle_tied row rather than an accepted settle
+    quiet = (sum(1 for d in settles if d.get("risky") is False)
+             + sum(1 for r in rows if r["event"] == "settle_tied"))
     beat, tied = _tally(ag)
     assert settles, "occasion: no settle-path settle in 40 gridworld steps"
     assert (beat, tied) == (risky, quiet), ((beat, tied), (risky, quiet))

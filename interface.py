@@ -137,7 +137,7 @@ _DEST_GAP = armflag.arm("TETHER_DEST_GAP", default=True)
 # (E) (the reviewer 2026-11-10 r1627): a press's effect is signed by the minimal difference mod the
 # slot's alphabet (the agent's, passed to audit), so a one-cell wrap reads as the one-cell step
 # the bet reads; a tie at n/2 keeps the raw sign and is recorded. OFF: the raw difference
-_EFFECT_WRAPPED = armflag.arm("TETHER_EFFECT_WRAPPED")
+_EFFECT_WRAPPED = armflag.arm("TETHER_EFFECT_WRAPPED", default=True)
 
 
 def wrap_step(d: int, n: int | None) -> tuple[int, bool]:

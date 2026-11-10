@@ -47,6 +47,7 @@ def row(ag, act, r):
     a = dict(b)
     a[S] = (r - 1) % 5 if act == "up" else (r + 1) % 5
     ag._kn_eff[id(b)] = frozenset({"?.row", "?.row-" if act == "up" else "?.row+"})
+    ag._kn3[id(b)] = (ag._kn_eff[id(b)],) * 2     # KNOWN_CORE ON reads _kn3 (holds, union)
     return (b, act, a, None, None)
 def d5(ag, n0):
     return [[x["event"], x["detail"].get("P"), x["detail"].get("nested")]
@@ -55,6 +56,7 @@ def settle_step(ag, act, r, name="dec"):
     t = row(ag, act, r)
     ag.trace.append(t)
     ag._kn_eff_now = ag._kn_eff[id(t[0])]
+    ag._kn3_now = (True, ag._kn_eff_now, ag._kn_eff_now)
     ag._pred_by = {S: name}
     ag.bound[S] = name
     pred = (r - 1) % 5
@@ -87,10 +89,12 @@ out["filter"] = seen[:1]
 out["inner"] = (ag._parts[S].get("inner") or {}).get("A")
 t = row(ag, "down", 1)
 ag._kn_eff_now = ag._kn_eff[id(t[0])]
+ag._kn3_now = (True, ag._kn_eff_now, ag._kn_eff_now)
 ag._d5_select([S], t[0], "down")
 out["walk_down"] = [ag.bound.get(S), ag._shadow_in.get(S)]
 t = row(ag, "up", 3)
 ag._kn_eff_now = ag._kn_eff[id(t[0])]
+ag._kn3_now = (True, ag._kn_eff_now, ag._kn_eff_now)
 ag._d5_select([S], t[0], "up")
 out["walk_up"] = ag.bound.get(S)
 inner_b = (ag._parts[S].get("inner") or {}).get("B")
@@ -108,6 +112,8 @@ for case, name, a_name in (("b", "dec", tether.NULL_MAKER), ("bA", "inc", "inc")
     a[S] = 3 if case == "b" else 2
     ag2.trace.append((b, "down" if case == "b" else "right", a, None, None))
     ag2._kn_eff_now = ag2._kn_eff[id(b)]
+    ag2._kn3[id(b)] = (ag2._kn_eff_now,) * 2
+    ag2._kn3_now = (True, ag2._kn_eff_now, ag2._kn_eff_now)
     ag2._pred_by = {S: name}
     ag2.bound[S] = name
     n0 = len(ag2.led.rows())
@@ -138,6 +144,7 @@ for act in ["up", "down", "up", "down", "up", "down", "up", "down"]:
     ag4.trace.append(row(ag4, act, r))
     if act == "up":
         ag4._kn_eff[id(ag4.trace[-1][0])] |= {"?.zz-"}
+        ag4._kn3[id(ag4.trace[-1][0])] = (ag4._kn_eff[id(ag4.trace[-1][0])],) * 2
     r = ag4.trace[-1][2][S]
 ag4._d5_rows = {S: [(i, "dec") for i in range(8)]}
 inside = ag4._d5_cut(S, "dec", (P,))

@@ -695,61 +695,62 @@ _D5 = armflag.arm("TETHER_D5", default=True)
 # C1 PART 5, THE KNOWN-EFFECT CONDITION (the reviewer 2026-11-09 r1592; Isaiah 09-29 ruling 1 kept):
 # D5 also offers "the press is known to move <attribute form>" (Interface.known_forms, the table the
 # agent's own presses wrote), an effect and never a button. OFF: D5's held set as before
-_D5_ACTION = armflag.arm("TETHER_D5_ACTION")
+_D5_ACTION = armflag.arm("TETHER_D5_ACTION", default=True)
 KNOWN_EFFECT = "KNOWN_EFFECT"
-# C1 (B) (the reviewer 2026-11-10 r1612, r1614, r1615), three arms, default OFF:
+# C1 (B) (the reviewer 2026-11-10 r1612, r1614, r1615), three arms. Default ON (Isaiah
+# 2026-11-10 05:04, r1633), as is every C1-family arm in this block:
 # TETHER_D5_NULL: an unbound slot's misses reach D5's condition search as rows, never blame; the
 # null's part A leaves the slot unbound. OFF: settle hands D5 a named maker's rows only
-_D5_NULL = armflag.arm("TETHER_D5_NULL")
+_D5_NULL = armflag.arm("TETHER_D5_NULL", default=True)
 NULL_MAKER = "@null"
 # TETHER_D5_EITHER_SIDE: each offered P is also tested as "UNLESS P", priced over the doubled set
-_D5_EITHER_SIDE = armflag.arm("TETHER_D5_EITHER_SIDE")
+_D5_EITHER_SIDE = armflag.arm("TETHER_D5_EITHER_SIDE", default=True)
 UNLESS = "UNLESS"
 # TETHER_KNOWN_CORE: a KNOWN_EFFECT form is three-valued (Interface.known_split); an undecided row
 # counts for nothing, never as "fails" (Fig 9 :44, :60)
-_KNOWN_CORE = armflag.arm("TETHER_KNOWN_CORE")
+_KNOWN_CORE = armflag.arm("TETHER_KNOWN_CORE", default=True)
 # TETHER_DERIVE_AS_JUDGED (the reviewer 2026-11-10 r1625): derive() reads each bet slot's value as
 # the settle judged it (the code), never the raw value; one prediction, one decoding (Fig 2 :31)
-_DERIVE_AS_JUDGED = armflag.arm("TETHER_DERIVE_AS_JUDGED")
+_DERIVE_AS_JUDGED = armflag.arm("TETHER_DERIVE_AS_JUDGED", default=True)
 # TETHER_SWEEP_STAMP (the reviewer 2026-11-10 r1626 (S)): a sweep's rescan of a parked record that
 # finds nothing is not re-run until the unit set grows again (Fig 6: a region already swept)
-_SWEEP_STAMP = armflag.arm("TETHER_SWEEP_STAMP")
+_SWEEP_STAMP = armflag.arm("TETHER_SWEEP_STAMP", default=True)
 # TETHER_D5_NESTED (the reviewer 2026-11-10 r1626 (N), r1627): (N1) a live split's leaf part is cut
 # on its own misses (an inner node on _parts: the conjunction along the path); (N2) a leaf's
 # demotion leaves the outer split live (part_demoted, the leaf re-minted under its path); part A's
 # still dissolves (Fig 9 :40-41, :54; Fig 13: each falsifier its own witness)
-_D5_NESTED = armflag.arm("TETHER_D5_NESTED")
+_D5_NESTED = armflag.arm("TETHER_D5_NESTED", default=True)
 # C1 PART 1, THE TIP-OVER (the reviewer 2026-11-09 r1584 1, r1592 3, r1594): a settle tips a term
 # (settled_at, settled_on, _settled_lvl) only where "no change" would have missed (beat_null); a
 # tied or unread settle raises confirmations and does not tip (Fig 5 :43-44, one occasion is not
 # grounds). Win credit tips only a term that tipped on a beat in the clearing level (path 1), so a
 # promotion waits on a beat in the level (path 3). OFF: every settle tips, as before
-_SETTLE_BEAT_NULL = armflag.arm("TETHER_SETTLE_BEAT_NULL")
+_SETTLE_BEAT_NULL = armflag.arm("TETHER_SETTLE_BEAT_NULL", default=True)
 # C1 PART 2, THE REFUSAL RANK (the reviewer 2026-11-09 r1584 (a)(b), r1595 (A)): among a step's
 # REFUTED slots the terms tied at the top of (persistent-flat run, fewer beat_null, later settle)
 # have that miss counted as a refusal (Laplace, never a cliff); REFUTED routing is unchanged.
 # OFF: every candidate miss stays a miss, as before
-_REFUSE_RANK = armflag.arm("TETHER_REFUSE_RANK")
+_REFUSE_RANK = armflag.arm("TETHER_REFUSE_RANK", default=True)
 # C1 PARTS 3-4, CROWDING OUT AND RE-ENTRY (the reviewer 2026-11-09 r1593 (A), r1597): at a bound
 # slot's refit a claim with a beat on this slot outranks one without (bits decide within a class,
 # retrieval order breaks ties); the incumbent must still pass its own bargain against the null
 # (Fig 5 :43: cost + left < left(idn)), or the null takes the slot; a crowded-out claim is not
 # offered there again until the arrangement changes, the library grows or its crowder weakens.
 # OFF: today's refit, idn never offered against a bound term
-_CROWD_OUT = armflag.arm("TETHER_CROWD_OUT")
+_CROWD_OUT = armflag.arm("TETHER_CROWD_OUT", default=True)
 # C1 PART 7, A GAME LOSS AS A SHARE, NEVER A BAN (the reviewer 2026-11-09 r1584 (c), r1600): a
 # press kind with a game loss reads (losses + 1) / (presses + 2), one without reads 0 as an
 # untried one does; S1's freeze and S2's first tier take the minimum share; S3's ruin veto is
 # realised last, not removed, and lifted when a vetoed press is taken and the attempt survives
 # it; a game loss books the held goal hypothesis lost. OFF: zero-danger tiers and the withhold
-_GAME_LOSS_SHARE = armflag.arm("TETHER_GAME_LOSS_SHARE")
+_GAME_LOSS_SHARE = armflag.arm("TETHER_GAME_LOSS_SHARE", default=True)
 _KNOWN_FORM = re.compile(r"\?\.[A-Za-z_]\w*[+\-=]?")   # r1592 (b): an attribute form, nothing else
 # C1 PART 6(c), THE CARRY OF FOUND CONDITIONS (the reviewer 2026-11-09 r1604 (A)): a D5 split is
 # written on the invention channel as a METHOD record in kind form (the slot's kind, P with any
 # partner instance as its kind, the parts' kind names, the cut's numbers) and its outcome when it
 # ends; the next game tries a same-kind slot's carried P first in _d5_cut's order (held before
 # broken). An order, never a price: the cut rules and the witness are unchanged. OFF: none
-_CONDITION_CARRY = armflag.arm("TETHER_CONDITION_CARRY")
+_CONDITION_CARRY = armflag.arm("TETHER_CONDITION_CARRY", default=True)
 _INSTANCE = re.compile(r"(?<![A-Za-z0-9])o\d+")
 # F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). ON (7.5
 # switch-on, the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. An intent guard (and
@@ -2376,7 +2377,7 @@ _REFLEX_CARRY = armflag.arm("TETHER_REFLEX_CARRY", default=True)
 # against per (form, kind-level key); the load keeps the latest; a standing first read in a game
 # starts at the carried value decayed from the game's start, then decays as in play. Needs
 # TETHER_REFLEX_CARRY. OFF: only paid crosses ("forgiveness is this game's clock"), as before
-_REFLEX_CARRY_AGAINST = armflag.arm("TETHER_REFLEX_CARRY_AGAINST")
+_REFLEX_CARRY_AGAINST = armflag.arm("TETHER_REFLEX_CARRY_AGAINST", default=True)
 # Build 6 item 24 (C), THE LEVEL AT A GAME SWITCH (the reviewer 2026-11-05 r1250): the agent's own
 # board boundary (NEW_BOARD) retargets at the world's level (env.levels()[0]), so the previous
 # game's level number does not run on into the next. OFF: self.level carried over, as before
