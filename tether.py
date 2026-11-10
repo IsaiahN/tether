@@ -708,6 +708,13 @@ _SETTLE_BEAT_NULL = armflag.arm("TETHER_SETTLE_BEAT_NULL")
 # have that miss counted as a refusal (Laplace, never a cliff); REFUTED routing is unchanged.
 # OFF: every candidate miss stays a miss, as before
 _REFUSE_RANK = armflag.arm("TETHER_REFUSE_RANK")
+# C1 PARTS 3-4, CROWDING OUT AND RE-ENTRY (the reviewer 2026-11-09 r1593 (A), r1597): at a bound
+# slot's refit a claim with a beat on this slot outranks one without (bits decide within a class,
+# retrieval order breaks ties); the incumbent must still pass its own bargain against the null
+# (Fig 5 :43: cost + left < left(idn)), or the null takes the slot; a crowded-out claim is not
+# offered there again until the arrangement changes, the library grows or its crowder weakens.
+# OFF: today's refit, idn never offered against a bound term
+_CROWD_OUT = armflag.arm("TETHER_CROWD_OUT")
 _KNOWN_FORM = re.compile(r"\?\.[A-Za-z_]\w*[+\-=]?")   # r1592 (b): an attribute form, nothing else
 # F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). ON (7.5
 # switch-on, the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. An intent guard (and
@@ -4530,6 +4537,8 @@ class Agent:
         self._contact_seen: set = set()
         self._refuted_slot: dict = {}
         self._miss_at: dict = {}      # C1 part 2: slot -> (term, cycle, settled there) of its miss
+        self._crowd: dict = {}        # C1 part 4: (slot, term) -> (level, library size, crowder,
+                                      # the crowder's track_of), until it re-enters
         # the slots whose loop turn is still ahead this cycle (F500); None outside the loop
         self._turn_ahead: set | None = None
         # an acted routine's next step, advanced once at its deciding cycle's end (F501)
@@ -16525,6 +16534,8 @@ class Agent:
                 cap.head()
                 if n == exclude or (self._not and self._term_refused(n, _gk)):
                     continue
+                if _CROWD_OUT and self._crowd_blocked(slot, n):
+                    continue
                 # RE-BIND WHAT ARRIVED WITHOUT A BINDING. `save` drops the operand because a slot
                 # name is an instance, so an IMPORTED operand-reading term is `idn` here -- both
                 # `translate` and `recolour` return `v` on empty operands -- and `_explains` tests
@@ -16627,8 +16638,28 @@ class Agent:
                 continue
             _late_row((n, cand.name))
             return self._take_pull(n, cand, slot)
+        _inc = self.bound.get(slot)
+        _crowd = (_CROWD_OUT and _BARGAIN_FIT and _CARRY_PRICE and _inc not in (None, IDN)
+                  and _inc in self.gamma.library and IDN in self.gamma.library)
+        _inc_beat = _crowd and self._beat_here(_inc, slot)
+
+        def _pkey(x):
+            # C1 part 3: under the arm the class (a beat here) first, then bits, then order
+            return ((not self._beat_here(x[2], slot),) if _crowd else ()) + (x[0], x[1])
+        if _crowd:
+            if _inc_beat:
+                # (a) a claim with a beat here is displaced only by another with one
+                _paying = [p for p in _paying if self._beat_here(p[2], slot)]
+            best = min(_paying, key=_pkey) if _paying else None
+            if not _inc_beat and (best is None or not self._beat_here(best[2], slot)):
+                null = self._null_bargain(slot, hist, _cells, _base, _inc)
+                if null is not None and (best is None or null["null_price"] < best[0]):
+                    _late_row(None)
+                    return self._crowd_null(slot, _inc, null)
         if _paying:
-            price, _o, n, cand, cred, left_, cost_ = min(_paying, key=lambda x: (x[0], x[1]))
+            price, _o, n, cand, cred, left_, cost_ = min(_paying, key=_pkey)
+            if _crowd and self._beat_here(n, slot) and not _inc_beat:
+                self._crowd_note(slot, _inc, n)
             book = self.gamma.book
             if cred:
                 book["carry_pull_credited"] = book.get("carry_pull_credited", 0) + 1
@@ -16657,6 +16688,63 @@ class Agent:
         self.led.record(self.cycle, "ROUTE", slot, "reach_failed",
                         reads="described the gap and the library held nothing that explains it")
         return None
+
+    def _beat_here(self, name: str, slot: str) -> bool:
+        """C1 part 3's class: a settle of `name` on this slot beat the null (Standing.beat_on)."""
+        st = self.gamma.standing.get(name)
+        return st is not None and slot in st.beat_on
+
+    def _null_bargain(self, slot: str, hist, cells, left_inc: float, inc: str) -> dict | None:
+        """C1 part 3 (the reviewer r1597 2): the incumbent re-asked Fig 5 :43's bargain against
+        what the slot leaves without it, the null's left. None when it still pays
+        (cost + left < left(idn)); else the reading, with the null's own whole price."""
+        lib = self.gamma.library
+        units = self._units_for(slot)
+        cost = self._bits((lib[inc], units))
+        left_idn = self._cl_left(lib[IDN], slot, hist, cells)
+        if pays(cost, left_inc, left_idn):
+            return None
+        return {"incumbent_cost": round(cost, 4), "incumbent_left": round(left_inc, 4),
+                "null_left": round(left_idn, 4),
+                "null_price": self._bits((lib[IDN], units)) + left_idn}
+
+    def _crowd_null(self, slot: str, inc: str, null: dict) -> None:
+        """The null takes the slot: the incumbent is unbound (the slot reads the null, as any
+        unbound slot does; idn is never bound as a claim), the slot owes, the crowding recorded."""
+        self.bound.pop(slot, None)
+        self.owed_import.add(slot)
+        self._crowd_note(slot, inc, IDN, **{**null, "null_price": round(null["null_price"], 4)})
+
+    def _crowd_note(self, slot: str, term: str, crowder: str, **detail) -> None:
+        self._crowd[(slot, term)] = (self.level, len(self.gamma.library), crowder,
+                                     self.gamma.track_of(crowder))
+        self.led.record(self.cycle, self._running_step, slot, "crowded_out", term=term,
+                        crowder=crowder, **detail,
+                        reads="displaced by a claim with a beat here, or failing its bargain "
+                              "against the null; kept in the library, offered here again only "
+                              "on re-entry (C1 parts 3-4)")
+
+    def _crowd_blocked(self, slot: str, term: str) -> bool:
+        """C1 part 4: a crowded-out claim stays out of this slot's refits until the level changes
+        (a changed arrangement), the library has grown (a COARSE reading of Fig 6 :44-45's "a new
+        mint makes it derivable": any added term, not one shown to derive it), or its crowder is
+        no longer bound here or its track_of has fallen (it weakened). No timer. Re-entry only
+        makes it eligible at the next refit."""
+        got = self._crowd.get((slot, term))
+        if got is None:
+            return False
+        level, size, crowder, track = got
+        why = ("arrangement" if self.level != level
+               else "library_grew" if len(self.gamma.library) > size
+               else "crowder_unbound" if self.bound.get(slot, IDN) != crowder
+               else "crowder_weakened" if self.gamma.track_of(crowder) < track
+               else None)
+        if why is None:
+            return True
+        del self._crowd[(slot, term)]
+        self.led.record(self.cycle, self._running_step, slot, "re_entered", term=term,
+                        crowder=crowder, reason=why)
+        return False
 
     def _explains(self, term: Term, slot: str, hist) -> bool:
         return bool(hist) and self._left(term, slot, hist) == 0.0
@@ -25689,6 +25777,8 @@ class Agent:
                 if found is not None and found[0] < left:
                     left, cand, how = found[0], found[1], "chunk"
             cross = tkey != slot
+            if _CROWD_OUT and not cross and self._crowd_blocked(slot, cand.name):
+                continue
             # F32 RULED (all-or-nothing is WRONG): the residual never fully closes, so
             # `left == 0.0` discarded 42 strict improvements AND admitted 19/21 full-closures
             # that do not pay. THE FIX IS THE ONE BARGAIN (14.4), not a second gate: accept when

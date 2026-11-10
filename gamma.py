@@ -933,6 +933,10 @@ class Standing:
     # beat_null + tied_null <= confirmations. Record only: nothing reads them
     beat_null: float = 0.0
     tied_null: float = 0.0
+    # C1 parts 3-4 (the reviewer r1597 3): the slots on which a settle beat the null ("beat here",
+    # with or without TETHER_SETTLE_BEAT_NULL, which settled_on is not). Cleared by replay with
+    # settled_on; read only by tether's TETHER_CROWD_OUT class gate
+    beat_on: set = field(default_factory=set)
 
     def refute(self, tick: int, halflife: float | None = None,
                ceiling: float | None = None, where: Any = None,
@@ -1264,6 +1268,7 @@ class Gamma:
                 st = self.standing[name]
                 st.settled_on.clear()
                 st.refusals_on.clear()
+                st.beat_on.clear()
         finally:
             self.keep_evidence, self.tick = keep, tick
             self._replaying = False
@@ -1406,6 +1411,8 @@ class Gamma:
         st.confirmations += 1.0
         if null == "beat":
             st.beat_null += 1.0
+            if slot is not None:
+                st.beat_on.add(slot)
         elif null == "tied":
             st.tied_null += 1.0
         self._paid_ver += 1

@@ -499,6 +499,16 @@ ARMS: dict[str, str] = {
                           "stands after decay), the rest stay misses; row refusal_ranked. "
                           "REFUTED routing unchanged. OFF because it moves track_of. OFF: every "
                           "candidate miss stays a miss, as before",
+    "TETHER_CROWD_OUT": "C1 parts 3-4, crowding out and re-entry (the reviewer 2026-11-09 r1593 "
+                        "(A), r1597). ON, at a refit of a bound slot (_library_fit) a claim with "
+                        "a beat on this slot (Standing.beat_on) outranks one without, bits decide "
+                        "within a class, retrieval order breaks ties; the incumbent must still "
+                        "pass Fig 5 :43's bargain against the null (cost + left < left(idn)), or "
+                        "the null takes the slot (unbound, owed; row crowded_out); a crowded-out "
+                        "claim is held out of that slot's refits and the sweep until the level "
+                        "changes, the library grows (coarse) or its crowder weakens (row "
+                        "re_entered). OFF because it changes binding. OFF: today's refit, idn "
+                        "never offered against a bound term",
     "TETHER_D5_ACTION": "C1 part 5, the known-effect condition (the reviewer 2026-11-09 r1592; "
                         "Isaiah 09-29 ruling 1 kept: a guard names an intent, not a button). ON, "
                         "D5's held set also offers KNOWN_EFFECT <form>: the attribute form "
