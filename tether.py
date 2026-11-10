@@ -703,6 +703,11 @@ KNOWN_EFFECT = "KNOWN_EFFECT"
 # grounds). Win credit tips only a term that tipped on a beat in the clearing level (path 1), so a
 # promotion waits on a beat in the level (path 3). OFF: every settle tips, as before
 _SETTLE_BEAT_NULL = armflag.arm("TETHER_SETTLE_BEAT_NULL")
+# C1 PART 2, THE REFUSAL RANK (the reviewer 2026-11-09 r1584 (a)(b), r1595 (A)): among a step's
+# REFUTED slots the terms tied at the top of (persistent-flat run, fewer beat_null, later settle)
+# have that miss counted as a refusal (Laplace, never a cliff); REFUTED routing is unchanged.
+# OFF: every candidate miss stays a miss, as before
+_REFUSE_RANK = armflag.arm("TETHER_REFUSE_RANK")
 _KNOWN_FORM = re.compile(r"\?\.[A-Za-z_]\w*[+\-=]?")   # r1592 (b): an attribute form, nothing else
 # F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). ON (7.5
 # switch-on, the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. An intent guard (and
@@ -4524,6 +4529,7 @@ class Agent:
         self._cue_tag_cache: tuple = (-1, {})
         self._contact_seen: set = set()
         self._refuted_slot: dict = {}
+        self._miss_at: dict = {}      # C1 part 2: slot -> (term, cycle, settled there) of its miss
         # the slots whose loop turn is still ahead this cycle (F500); None outside the loop
         self._turn_ahead: set | None = None
         # an acted routine's next step, advanced once at its deciding cycle's end (F501)
@@ -5748,6 +5754,7 @@ class Agent:
         # SLOT NAME, and the slots do not survive a level boundary. Same rule the boundary
         # reset states for `_res` and `_disc`.
         self._refuted_slot: dict = {}
+        self._miss_at: dict = {}
         self._dl_missed = {}               # 20: its keys name slots, so the same rule
         self._tk_off = {}
         self._tk_nofit = {}
@@ -17304,9 +17311,66 @@ class Agent:
                                    "the lit entries listed, kept and cut, the misses (no_entry), "
                                    "the unchanged keys not asked again (held) and the owed ones "
                                    "dropped (Fig 9 :27-29, :43-45)"))
+        if _REFUSE_RANK:
+            self._refuse_rank([t[0] for t in out if t[1] == REFUTED])
         if _STEP_RANK:
             out.sort(key=lambda t: pos[t[0]])           # the mints run in today's order
         return out
+
+    def _flat_run(self, name: str, slot: str) -> int:
+        """C1 part 2: the longest trailing run of rows on which `name` missed the slot (left > 0)
+        and which _persists' test reads as persisting (not confidently shrinking: not every step
+        non-increasing with a real fall). 0 when no run of MIN_REPEAT+1 rows qualifies."""
+        t = self.gamma.library.get(name)
+        if t is None:
+            return 0
+        rows, best, later = self.history(slot), 0, None
+        le = lt = False
+        for n, row in enumerate(reversed(rows), 1):
+            v = self._left(t, slot, [row])
+            if v <= 0:
+                break
+            if later is not None:
+                le, lt = (n == 2 or le) and later - v <= 0, lt or later - v < 0
+            later = v
+            if n >= MIN_REPEAT + 1 and not (le and lt):
+                best = n
+        return best
+
+    def _refuse_rank(self, slots: list) -> None:
+        """C1 PART 2, THE REFUSAL RANK (the reviewer 2026-11-09 r1584 (a)(b), r1595 (A)). Fig 5
+        :57-59 points the refusal at the bound term whose residual PERSISTS AND DOES NOT TREND DOWN.
+        Among this step's REFUTED slots (routing unchanged), each refused term is ranked by
+        (_flat_run descending, beat_null ascending, the later settled_at first, never-settled
+        last); every term tied at the top has this miss counted as a refusal (gamma.refusal_from_
+        miss), the rest stay misses. A term settled on the slot already took it as a refusal. A
+        name, a hash or an order never decides."""
+        ranked = []
+        for s in slots:
+            name, m = self._refuted_slot.get(s), self._miss_at.get(s)
+            if not name or m is None or m[0] != name:
+                continue
+            run = self._flat_run(name, s)
+            if run:
+                st = self.gamma.standing.get(name)
+                ranked.append((s, name, run, st.beat_null if st else 0.0,
+                               st.settled_at if st else None, m))
+        if not ranked:
+            return
+
+        def key(e: tuple) -> tuple:
+            return -e[2], e[3], (0, -e[4]) if e[4] is not None else (1, 0)
+        ranked.sort(key=key)
+        top, refused = key(ranked[0]), []
+        for e in ranked:
+            if key(e) != top:
+                break
+            moved = 0.0 if e[5][2] else self.gamma.refusal_from_miss(e[1], e[5][1])
+            refused.append([e[0], e[1], round(moved, 6)])
+        self.led.record(self.cycle, "ROUTE", "@refuse_rank", "refusal_ranked",
+                        ranked=[[s, n, r, b, a] for s, n, r, b, a, _ in ranked], refused=refused,
+                        reads="the REFUTED slots' terms by (persistent-flat run, fewer beat_null, "
+                              "later settle); the top's miss counted as a refusal (Fig 5 :57-59)")
 
     def _rank_class(self, slot: str) -> str:
         """C1b: the slot's class for this step's lookup order. CHANGED: its value moved between the
@@ -25863,6 +25927,8 @@ class Agent:
                 if _7I_ROUTE and name in getattr(self.gamma, "innate", ()):
                     self._contra_q.append({"slot": slot, "term": name, "kind": "innate refuted"})
                 _demoted_now = self.gamma.refute(name, where=self._scope, slot=slot)
+                if _REFUSE_RANK:
+                    self._miss_at[slot] = (name, self.gamma.tick, held)
                 if _found is not None and not _demoted_now:
                     # A CANDIDATE, NOT A PARTITION (the reviewer 18:46Z, Fig 9 :60): the cut was
                     # read off rows already seen, so it acts only after a row it did not see

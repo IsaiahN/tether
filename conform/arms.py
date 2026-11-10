@@ -491,6 +491,14 @@ ARMS: dict[str, str] = {
                                "Win credit tips only a term that tipped on a beat in the clearing "
                                "level; promotion waits on such a tip. OFF because it changes what "
                                "is composable. OFF: every settle tips, as before",
+    "TETHER_REFUSE_RANK": "C1 part 2, the refusal rank (the reviewer 2026-11-09 r1584 (a)(b), "
+                          "r1595 (A)). ON, at route's end the terms of the slots routed REFUTED "
+                          "are ranked by (persistent-flat miss run descending, beat_null "
+                          "ascending, the later settled_at first); every term tied at the top "
+                          "has this miss counted as a refusal (gamma.refusal_from_miss, as it "
+                          "stands after decay), the rest stay misses; row refusal_ranked. "
+                          "REFUTED routing unchanged. OFF because it moves track_of. OFF: every "
+                          "candidate miss stays a miss, as before",
     "TETHER_D5_ACTION": "C1 part 5, the known-effect condition (the reviewer 2026-11-09 r1592; "
                         "Isaiah 09-29 ruling 1 kept: a guard names an intent, not a button). ON, "
                         "D5's held set also offers KNOWN_EFFECT <form>: the attribute form "

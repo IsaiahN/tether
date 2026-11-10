@@ -1485,6 +1485,21 @@ class Gamma:
         # a slot it never settled on included -- whether or not standing was lost (F462).
         return was and not self.is_settled(name, slot)
 
+    def refusal_from_miss(self, name: str, at: int) -> float:
+        """C1 part 2 (the reviewer r1584 (a), r1595): the candidate miss counted at tick `at` is
+        counted as a refusal instead, as it stands after decay, so misses + refusals == rejections
+        holds and track_of reads it. Isaiah's (c) split stands: a miss is exploring, and only the
+        rank's top persistent-flat miss is converted. Returns the amount moved."""
+        st = self.standing.get(name)
+        if st is None:
+            return 0.0
+        st.decay(self.tick, self.halflife)
+        h = self.halflife or REJECTION_HALFLIFE
+        moved = min(st.misses, 0.5 ** (max(0, self.tick - at) / h))
+        st.misses -= moved
+        st.refusals += moved
+        return moved
+
     def is_settled(self, name: str, slot: str | None = None) -> bool:
         """Settled -- ANYWHERE by default, HERE when a slot is given. Kernel A5.
 
