@@ -617,6 +617,13 @@ ARMS: dict[str, str] = {
                            "the series', else the prior (A1's outstanding at its aim), x a need "
                            "weight (1.0); every bid declares its source; cost (median demand) is "
                            "a filter against the allowance. OFF: A1's outstanding at its aim",
+    "TETHER_PROPOSE_RECALL": "C4 recall-first goal proposer (r1638, r1640). Default ON at "
+                             "landing (r1633). ON: the proposer's supply in three stages, each "
+                             "only if the ones before gave no pick -- recall (shelf templates "
+                             "with a won or progress record), compose (the shelf's others on this "
+                             "board), enumerate (the library's grammar), reached only while the "
+                             "purse allows; the row names the stage and checked N of M. OFF: "
+                             "PLAN_NARROW's phases",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "

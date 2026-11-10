@@ -1571,6 +1571,14 @@ _7H_EXIT_CHOICE = armflag.arm("TETHER_7H_EXIT_CHOICE", default=True)
 # (Fig 12 :130, Fig 9 :60). Ties: the record, the least-tried, the seeded draw. A need weight per
 # bid (1.0; C7's hook). OFF: the outstanding at its aim, as before
 _EXIT_CONTEST = armflag.arm("TETHER_EXIT_CONTEST", default=True)
+# C4 RECALL-FIRST GOAL PROPOSER (the reviewer 2026-11-10 r1638, r1640): the proposer's supply in
+# three stages, each only if the ones before gave no pick: RECALL (the shelf's templates with a
+# won or progress record, instantiated on this board), COMPOSE (the shelf's other templates on this
+# board's objects), ENUMERATE (the library's condition grammar over the state) -- reached only while
+# the purse allows, else "unreached at this budget" (Fig 6 :32: improved from what already
+# returns; Fig 9 :43). The row names the stage and what was checked of what. OFF: PLAN_NARROW's
+# phases, as before
+_PROPOSE_RECALL = armflag.arm("TETHER_PROPOSE_RECALL", default=True)
 # 7h (a), A1 (the reviewer 2026-10-16 13:47): the root's held goal shapes, by kind, GRADED by level
 # outcomes and carried by the lineage; a graded record, never a minted term (Fig 5)
 _7H_ROOT_GRADE = armflag.arm("TETHER_7H_ROOT_GRADE", default=True)
@@ -10175,6 +10183,18 @@ class Agent:
                    if _PLAN_NARROW else {})
         phases = ([won_src, {t: k for t, k in src.items() if t not in won_src}]
                   if won_src and len(won_src) < len(src) else [src])
+        stages = None
+        if _PROPOSE_RECALL:
+            rec_src = {t: k for t, k in src.items()
+                       if self._goal_shelf.get(k, {}).get("record", {}).get("won", 0)
+                       or self._goal_shelf.get(k, {}).get("record", {}).get("progress", 0)}
+            named = [(n, p) for n, p in (
+                ("recall", rec_src),
+                ("compose", {t: k for t, k in src.items() if t not in rec_src and k != "library"}),
+                ("enumerate", {t: k for t, k in src.items()
+                               if t not in rec_src and k == "library"})) if p]
+            phases = [p for _n, p in named] or [src]
+            stages = [n for n, _p in named] or ["enumerate"]
         compiled = [0]
 
         def _movable(sl: str) -> bool:
@@ -10604,6 +10624,16 @@ class Agent:
         if pick is None and not pmark.get("purse_cut"):
             pick = self._hyp_pair(before, detail)
         detail.update(checked=checked, refused=dict(refused))
+        if stages is not None:
+            # C4: the stage the pass ended in, the stages it reached, and what it checked of what
+            _stage = stages[min(self._hyp_phases, len(stages)) - 1]
+            detail.update(stage=_stage, stages=stages[:self._hyp_phases],
+                          checked_of=[checked, len(src)], stages_left=stages[self._hyp_phases:],
+                          shelf_n=len(self._goal_shelf),
+                          # G4 (r1640, r1647): why the winner won -- the readings are "ranked"
+                          why_won=(f"the first candidate in stage {_stage} whose hold found a "
+                                   "route, in rank order (bits, then A1's tie keys)"
+                                   if pick is not None else None))
         if _ONE_TERM:
             detail["one_term"] = {"pairs": len(alt_of), "alternates": len(alt), **dict(one)}
             ONE_TERM_N.update(one)
