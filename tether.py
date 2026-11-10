@@ -1596,6 +1596,18 @@ _TRANSLATE = armflag.arm("TETHER_TRANSLATE", default=True)
 # coin's place among the equally unknown, and a miss refutes it (r1647). Win-stay is C3's record
 # and C4's recall: one chooser (r1640 (d)). OFF: parked guesses stay searched past; the coin draws
 _DOORS = armflag.arm("TETHER_DOORS", default=True)
+# C7 THE NEEDS DIAL (the reviewer 2026-11-10 r1638, r1640, r1641; Isaiah 11-06 answer 8): the
+# contested exits serve a need -- PROGRESS (the goal-directed exits) or EXPLORE (the rest) -- and
+# each bid is weighted by its need's w, LEARNED from the outcomes of past weightings (Symbols
+# :24-25 "w_A + w_B = 1, and w is learnable"): w = (paid turns of that need + 1) / (paid turns + 2),
+# the 1 and 2 being the even head start (Fig 4 :22). Kept per STATE, read off the agent's record:
+# PRESSED once this level saw a game loss or most of its steps were cut by the purse (the purse is
+# a need: "if tired ... youll have to sleep"), else COMFORTABLE -- so what pays near ruin is
+# learned apart from what pays at ease. Each need is read on its own, never averaged (Fig 1 :28);
+# owed lines and every alternative keep bidding (the guard). OFF: every need weight 1.0
+_NEEDS_DIAL = armflag.arm("TETHER_NEEDS_DIAL", default=True)
+_NEED_OF = {"goal": "progress", "untried:goal": "progress", "probe:3a": "progress",
+            "discriminate": "progress"}
 TRANSLATE = {
     "which exit": (
         ("ROUTE", "protected", "a protected exit acts on its own condition, never bids"),
@@ -4643,6 +4655,10 @@ class Agent:
         self._door_pred: dict = {}    # C6 (r1647): level key -> (predicted door, its cycle)
         self._door_refuted: set = set()   # C6: (level key, cycle) patterns a miss refuted
         self._door_last = None        # C6: (level key, door, cycle) a pattern picked, to book
+        self._dial: dict = {}         # C7: (state, need) -> [paid turns, turns]
+        self._dial_lost: Counter = Counter()   # C7: level key -> game losses
+        self._dial_last = None        # C7: the (state, need) the last contested turn was taken in
+        self._dial_ex: dict = {}      # C7 (r1647): (state, exit) -> [paid turns, turns], the risk
         self._parked_n: Counter = Counter()   # B1 (r1473): tkey -> budget endings, this game series
         self._subj_tried: Counter = Counter()   # B1 (r1478): subject slot -> its checks, this game
                                                 # series
@@ -5886,6 +5902,8 @@ class Agent:
         self._kn3 = {}
         self._attempt_actions = 0
         # a game loss is a boundary into a dead situation; any other ending into a live one
+        if _NEEDS_DIAL and how == "game_loss":
+            self._dial_lost[self._lk()] += 1
         self._alive, self._epoch = how != "game_loss", self._epoch + 1
         if _PLAN_EPISODES:
             self._episode_why.append(f"a boundary ({how})")
@@ -21782,8 +21800,11 @@ class Agent:
         bids = None
         prior = dict(res)
         if _EXIT_CONTEST:
+            dial = self._dial_weights(opts) if _NEEDS_DIAL else None
             res, bids = self._ex_bids(opts, res)
             opts = bids.pop("_room")
+            if dial is not None:
+                bids["_dial"] = dial
         seen = {e: self._exit_n[(self._lk(), e)] for e in opts}
         if _TRANSLATE:
             # C5: a step the ground refused is skipped: the record's gains give way to the prior,
@@ -21802,6 +21823,8 @@ class Agent:
         if _DOORS and self._choice_by == "draw":
             pick = self._door_take(pick, opts, res, seen)
         self._exit_n[(self._lk(), pick)] += 1
+        if _NEEDS_DIAL and _EXIT_CONTEST:
+            self._dial_last = (self._dial_state(), _NEED_OF.get(pick, "explore"))
         if _TRANSLATE:
             step = _EXIT_STEP.get(self._choice_by, "record")
             if (step == "record" and bids is not None
@@ -21812,6 +21835,37 @@ class Agent:
             self._translate("which exit", step, pick=pick, options=len(opts))
             self._tr_last = ("which exit", step)
         return pick, s0_tw, dist_r
+
+    def _dial_state(self) -> str:
+        """C7: PRESSED when this level saw a game loss, or most of its steps were cut by the purse
+        (the median's own half); else COMFORTABLE. Readings of the agent's record only."""
+        if self._dial_lost[self._lk()]:
+            return "pressed"
+        lv = [r for r in self._pd if r["lvl"] == self.level]
+        cut = sum(1 for r in lv if any(k[0] == "cut" for k in r["open"]))
+        return "pressed" if lv and cut * 2 > len(lv) else "comfortable"
+
+    def _dial_weights(self, opts: list) -> dict:
+        """C7: each contested exit's need weight, w = (paid + 1) / (paid of both needs + 2) in the
+        current state -- learned from the outcomes of past weightings, the even prior first -- set
+        into C3's hook. Returns what was read, for the exit row."""
+        st = self._dial_state()
+        paid = {n: self._dial.get((st, n), [0, 0])[0] for n in ("progress", "explore")}
+        tot = sum(paid.values())
+        w = {n: (paid[n] + 1) / (tot + 2) for n in paid}
+        for e in opts:
+            self._ex_need[e] = w[_NEED_OF.get(e, "explore")]
+        # r1647: the RISK -- per need, the lowest standing p (paid / turns) of a line the agent
+        # took for it in this state; None before any such line was taken
+        risk = {}
+        for n in paid:
+            ps = [x[0] / x[1] for (s_, e), x in self._dial_ex.items()
+                  if s_ == st and x[1] and _NEED_OF.get(e, "explore") == n]
+            risk[n] = round(min(ps), 4) if ps else None
+        return {"state": st, "w": {n: round(v, 4) for n, v in w.items()},
+                "paid": paid, "turns": {n: self._dial.get((st, n), [0, 0])[1] for n in paid},
+                "risk": risk, "checked": f"{len(paid)} of {len(paid)} needs",
+                "why": "w = (paid + 1) / (paid of both + 2), learned in this state"}
 
     def _known_forms_n(self) -> int:
         """C6: how many effect forms the agent knows (its own effect table's forms, any frame)."""
@@ -21981,6 +22035,14 @@ class Agent:
                                       "refuted and the coin returns")
         if _DOORS and got > 0:
             self._door_pattern(lk, by)
+        if _NEEDS_DIAL and self._dial_last is not None:
+            r = self._dial.setdefault(self._dial_last, [0, 0])
+            r[0] += got > 0
+            r[1] += 1
+            x = self._dial_ex.setdefault((self._dial_last[0], by), [0, 0])
+            x[0] += got > 0
+            x[1] += 1
+            self._dial_last = None
         for k in ((lk, by), by):
             r = self._ex_rec.setdefault(k, [0, 0.0])
             r[0] += 1

@@ -638,6 +638,12 @@ ARMS: dict[str, str] = {
                     "a pattern in the paying exits, confirmed over two full cycles, takes the "
                     "coin's place among the equally unknown (r1647) and a miss refutes it. OFF: a "
                     "parked guess stays searched past and the coin draws",
+    "TETHER_NEEDS_DIAL": "C7 the needs dial (r1638, r1640, r1641; Isaiah 11-06 answer 8). Default "
+                         "ON at landing (r1633). ON: each contested exit serves PROGRESS or "
+                         "EXPLORE and its bid is weighted by its need's w = (paid + 1) / (paid of "
+                         "both + 2), learned from past weightings' outcomes per state (PRESSED: a "
+                         "game loss this level or most steps cut by the purse; else COMFORTABLE); "
+                         "owed lines and alternatives keep bidding. OFF: every weight 1.0",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "
