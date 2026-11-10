@@ -499,6 +499,14 @@ ARMS: dict[str, str] = {
                           "stands after decay), the rest stay misses; row refusal_ranked. "
                           "REFUTED routing unchanged. OFF because it moves track_of. OFF: every "
                           "candidate miss stays a miss, as before",
+    "TETHER_REFLEX_CARRY_AGAINST": "C1, the reflex carry's other half (the reviewer 2026-11-09 "
+                                   "r1592 3, r1600 Q3). ON (with TETHER_REFLEX_CARRY): each "
+                                   "reflex write also carries the decayed `against` per (form, "
+                                   "kind-level key); the load keeps the latest; a standing first "
+                                   "read in a game, and an unseen sa_edge's weight, start from the "
+                                   "carried value decayed from the game's start, then decay as in "
+                                   "play, so the carried dial is a share. OFF because it changes "
+                                   "which reflexes fire at a game's start. OFF: only paid crosses",
     "TETHER_GAME_LOSS_SHARE": "C1 part 7, a game loss as a share, never a ban (the reviewer "
                               "2026-11-09 r1584 (c), r1600). ON: a press kind with a game loss "
                               "reads (losses + 1) / (presses + 2), one without reads 0 like an "

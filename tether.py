@@ -2339,6 +2339,12 @@ _HOW_SOON = armflag.arm("TETHER_HOW_SOON", default=True)
 # next game a reflex fires iff 1 + carried_paid + paid >= against, and a carried loss relation is
 # a weight the game's own witness can put under. OFF: nothing carried, as before
 _REFLEX_CARRY = armflag.arm("TETHER_REFLEX_CARRY", default=True)
+# C1, THE REFLEX CARRY'S OTHER HALF (the reviewer 2026-11-09 r1592 3, r1600 Q3): `against` crosses
+# too, so the carried dial is a share and not a tally of successes. Each write carries the decayed
+# against per (form, kind-level key); the load keeps the latest; a standing first read in a game
+# starts at the carried value decayed from the game's start, then decays as in play. Needs
+# TETHER_REFLEX_CARRY. OFF: only paid crosses ("forgiveness is this game's clock"), as before
+_REFLEX_CARRY_AGAINST = armflag.arm("TETHER_REFLEX_CARRY_AGAINST")
 # Build 6 item 24 (C), THE LEVEL AT A GAME SWITCH (the reviewer 2026-11-05 r1250): the agent's own
 # board boundary (NEW_BOARD) retargets at the world's level (env.levels()[0]), so the previous
 # game's level number does not run on into the next. OFF: self.level carried over, as before
@@ -5061,6 +5067,7 @@ class Agent:
         self._hs_open: list = []      # 23: course readings awaiting their verdict at j + lag
         self._hs_read: tuple | None = None   # 23: (cycle, course, reading) -- one per cycle
         self._rf_carried: Counter = Counter()      # carry: (form, kind-level key) -> paid in
+        self._rf_against_in: dict = {}             # carry: (form, kind-level key) -> against in
         self._rf_side: dict = {}   # (5) ii, r1356: (form, situation) -> under at its last read
         self._loss_carried: Counter = Counter()    # carry: (loss kind, frame, relation) -> n in
         self._rfc_written: dict = {}               # carry: what the last write already sent
@@ -7507,7 +7514,7 @@ class Agent:
         st = self._reflexes["sa_edge"]["standing"].get((a, b, board))
         c = self._rf_in("sa_edge", (a, b, board))
         if st is None:
-            return (2 + c) / (3 + c)
+            return (2 + c) / (3 + c + self._rf_against_now("sa_edge", (a, b, board)))
         st = self._rf_standing("sa_edge", (a, b, board))
         return (2 + c + st["paid"]) / (3 + c + st["paid"] + st["against"])
 
@@ -11977,6 +11984,10 @@ class Agent:
                         rf_in.append([form, [str(k) for k in key], n])
                     for lk, frame, rel, n in rec.get("loss", ()):
                         self._loss_carried[(game_loss_word(lk), frame, _tup(rel))] += n
+                    if _REFLEX_CARRY_AGAINST:
+                        # the latest write per key: it already holds what it was seeded with
+                        for form, key, v in rec.get("against", ()):
+                            self._rf_against_in[(form, _tup(key))] = v
                     tallied.append(rec["name"])
                 continue
             if lib is None or lib.get(f"AGENT-INVENTED|{rec['name']}"):
@@ -19530,6 +19541,14 @@ class Agent:
         """The carry: the paid count the lineage brought for this (form, situation); 0 OFF."""
         return self._rf_carried[(form, self._rf_carry_key(form, situ))] if _REFLEX_CARRY else 0
 
+    def _rf_against_now(self, form: str, situ: tuple) -> float:
+        """The carry's other half: the `against` the lineage brought for this (form, situation),
+        decayed from the game's start to now on play's clock; 0 OFF."""
+        if not (_REFLEX_CARRY_AGAINST and _REFLEX_CARRY):
+            return 0.0
+        a_in = self._rf_against_in.get((form, self._rf_carry_key(form, situ)), 0.0)
+        return a_in * 0.5 ** (self.cycle / (self.gamma.halflife or REJECTION_HALFLIFE))
+
     def _reflex_carry(self, readout: bool = False) -> dict | None:
         """The carry, at the lineage boundary (r1248 3(2)): the paid counts and the terminal-frame
         loss relations since the last write, under kind-level keys; `against` never crosses. A
@@ -19551,7 +19570,22 @@ class Agent:
         dl = [[lk, fr, [list(p) for p in rel], n - was.get(("l", lk, fr, rel), 0)]
               for (lk, fr, rel), n in sorted(loss.items(), key=repr)
               if n > was.get(("l", lk, fr, rel), 0)]
-        if not dp and not dl:
+        da: list = []
+        if _REFLEX_CARRY_AGAINST:
+            # the other half: each key's against decayed to now (not a delta: the load keeps the
+            # latest), written when it moved since the last write
+            h = self.gamma.halflife or REJECTION_HALFLIFE
+            ag: Counter = Counter()
+            for form, r in self._reflexes.items():
+                if form == "steer":
+                    continue
+                for situ, st in r["standing"].items():
+                    ag[(form, self._rf_carry_key(form, situ))] += (
+                        st["against"] * 0.5 ** ((self.cycle - st["tick"]) / h))
+            da = [[f, list(k), round(v, 6)] for (f, k), v in sorted(ag.items(), key=repr)
+                  if round(v, 6) != was.get(("a", f, k))]
+            was.update({("a", f, k): round(v, 6) for (f, k), v in ag.items()})
+        if not dp and not dl and not da:
             return None
         was.update({("p", f, k): n for (f, k), n in paid.items()})
         was.update({("l", lk, fr, rel): n for (lk, fr, rel), n in loss.items()})
@@ -19566,15 +19600,19 @@ class Agent:
             self._tally_n = getattr(self, "_tally_n", 0) + 1
             name = f"{self.gamma.game}_reflex_{self._tally_n}"
         rec = {"name": name, "term": name, "kind": "reflex", "game": self.gamma.game,
-               "born": self.cycle, "level": self.level, "paid": dp, "loss": dl}
+               "born": self.cycle, "level": self.level, "paid": dp, "loss": dl,
+               **({"against": da} if _REFLEX_CARRY_AGAINST else {})}
         self._inv_carry.append(rec)
         return rec
 
     def _rf_standing(self, form: str, situ: tuple) -> dict:
         """22: one (situation, form)'s record, `against` decayed to now on the logical clock --
         decaying failures is forgiveness, decaying confirmations amnesia (Standing, r1243)."""
-        st = self._reflexes[form]["standing"].setdefault(
-            situ, {"paid": 0, "against": 0.0, "tick": self.cycle})
+        stand = self._reflexes[form]["standing"]
+        if situ not in stand and _REFLEX_CARRY_AGAINST and _REFLEX_CARRY:
+            stand[situ] = {"paid": 0, "tick": self.cycle,
+                           "against": self._rf_against_now(form, situ)}
+        st = stand.setdefault(situ, {"paid": 0, "against": 0.0, "tick": self.cycle})
         a0 = st["against"]
         if st["against"]:
             st["against"] *= 0.5 ** ((self.cycle - st["tick"])
