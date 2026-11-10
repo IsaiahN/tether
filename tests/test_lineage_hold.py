@@ -4,7 +4,7 @@ child process at start (never toggled at runtime). Child 1: the arm alone. Child
 FILE): every TETHER_ line of FILE plus the arm -- the flipped ARC state. Each prints its header.
 
   RL-1   nothing deleted: every store, the trace included, each copied by its own type, is in
-         _dormant after the boundary, at an ADVANCE and at a DEATH; not_carried entries stay.
+         _dormant after the boundary, at an ADVANCE and at a GAME LOSS; not_carried entries stay.
   RL-2   no slot-name reach: after an ADVANCE the live stores start empty. (That nothing outside
          _carry_lineage reads _dormant is a code read.)
   RL-2b  REGRESSION GUARD, not a new reach: paths (the _gap_key form) already survives an advance
@@ -118,13 +118,14 @@ def on_checks():
     assert KIND in ag.paths and str(KIND[0]) in att[0]["gap_kinds"], (
         "RL-2b the kind form did not cross", att[0]["gap_kinds"])
     print(f"  ADVANCE: {len(before)} stores dormant by type; counts {before}", flush=True)
-    # DEATH + same-level restart: RL-1 death clause, A2, F2, A3.
-    env, ag, objs, before = _boundary(FakeWrapper(), "death")
+    # GAME LOSS + same-level restart: RL-1 game loss clause, A2, F2, A3.
+    env, ag, objs, before = _boundary(FakeWrapper(), "game_loss")
     env.step("RESET")
     ag.restarted(env)
     row = [e.detail for e in ag.led.entries if e.event == "restart_lineage"]
     assert row and sum(row[-1]["carried"].values()) > 0, ("carry exercised", row)
-    assert all(len(ag._dormant[-1]["stores"][nm]) == n for nm, n in before.items()), "RL-1 death"
+    assert all(len(ag._dormant[-1]["stores"][nm]) == n for nm, n in before.items()), (
+        "RL-1 game loss")
     assert ({}, "ACTION2", {}) not in ag.trace and ag._dormant[-1]["stores"]["trace"], "A2 trace"
     sure = [o for o in objs if env.identity(o) in ("overlap", "unique-shape")]
     assert sure, ("fixture: no sure object", {o: env.identity(o) for o in objs})
@@ -135,17 +136,17 @@ def on_checks():
     back = pair in ag.drive.tried.get("ACTION2", set())
     assert back == all_sure, ("F2 the Drive pair", all_sure, back)
     print(f"  RESTART: carried {row[-1]['carried']} / not {row[-1]['not_carried']}", flush=True)
-    ag.retarget(env, env.levels()[0], how="death")      # A3: nothing new tried since the carry
+    ag.retarget(env, env.levels()[0], how="game_loss")      # A3: nothing new tried since the carry
     att = [e.detail for e in ag.led.entries if e.event == "attempt_end"]
     assert att[-1]["actions_tried"] == [], ("A3 carried actions counted as tried", att[-1])
     # A3 the re-try: after a carry, the attempt takes a carried action AGAIN (a trace step, as the
     # step loop writes at tether 4418) -> it is counted as tried.
-    env, ag, objs, before = _boundary(FakeWrapper(), "death")
+    env, ag, objs, before = _boundary(FakeWrapper(), "game_loss")
     env.step("RESET")
     ag.restarted(env)
     assert "ACTION2" in ag.drive.tried, ("fixture: the carried pair is not back", ag.drive.tried)
     ag.trace.append(({}, "ACTION2", {}, None, None))
-    ag.retarget(env, env.levels()[0], how="death")
+    ag.retarget(env, env.levels()[0], how="game_loss")
     att = [e.detail for e in ag.led.entries if e.event == "attempt_end"]
     assert att[-1]["actions_tried"] == ["ACTION2"], ("A3 a re-try was not counted", att[-1])
     # TWIN + C3. The twins read "look-alike" only once a RESET has re-found them by shape
@@ -160,7 +161,7 @@ def on_checks():
             if a != b:
                 pk = (f"{a}~{b}.bbox", (), ())
                 ag.refuted[pk], ag.refuted_at[pk] = gamma.Standing(last_tick=0), 1.0
-    ag.retarget(env, env.levels()[0], how="death")
+    ag.retarget(env, env.levels()[0], how="game_loss")
     env.step("RESET")
     ag.restarted(env)
     twins = sorted(o for o in env._decompose.tracked if env.identity(o) == "look-alike")
@@ -176,24 +177,24 @@ def on_checks():
     print(f"  TWIN {twins} and C3 {pk[0]}: not carried, still dormant", flush=True)
     # RL-3 runner parity, non-vacuous (F1).
     a, b = _restart_row(_by_tether_agent), _restart_row(_by_play)
-    assert a is not None and b is not None, ("RL-3 unexercised: no death in the run", a, b)
+    assert a is not None and b is not None, ("RL-3 unexercised: no game loss in the run", a, b)
     assert sum(sum(r.values()) for r in (a["carried"], a["not_carried"])) > 0, ("RL-3 vacuous", a)
     assert a == b, ("RL-3", a, b)
     print(f"  RL-3 parity: {a}", flush=True)
 
 
-# The record's own death case (test_entry 119-126): GAME_OVER at the second action, 8 actions.
-DEATH = {2: GameState.GAME_OVER}
+# The record's own game loss case (test_entry 119-126): GAME_OVER at the second action, 8 actions.
+GAME_LOSS = {2: GameState.GAME_OVER}
 
 
 def _by_tether_agent():
-    tether_agent.run(FakeWrapper(script=DEATH), "fake", 8)
+    tether_agent.run(FakeWrapper(script=GAME_LOSS), "fake", 8)
 
 
 def _by_play():
     class Arc:
         def make(self, _game):
-            return FakeWrapper(script=DEATH)
+            return FakeWrapper(script=GAME_LOSS)
     arc_holdout.play("fake", 8, arc=Arc())
 
 
@@ -214,7 +215,7 @@ def _restart_row(drive):
 
 def _child(extra: dict, label: str) -> None:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-    # C-seed-X (the reviewer 2026-10-15 15:27): RL-3 compares two separately born agents, so
+    # C-seed-X (the reviewer 2026-10-15 15:27): RL-3 compares two separately started agents, so
     # one temperament, the old constant seed
     env.update(extra, TETHER_LINEAGE_HOLD="1", LINEAGE_ENV=label, TETHER_AGENT_SEED="0")
     r = subprocess.run([sys.executable, "-B", __file__, "--on"], cwd=os.getcwd(), env=env,

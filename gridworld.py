@@ -560,12 +560,17 @@ class GridWorld:
         `_contact_keys` keys on `(kind, sorted shape ids)` -- vocabulary permanent, instances
         transient, which is its own rule and not mine.
         """
+        return self.contact_points_at(self.state)
+
+    def contact_points_at(self, state: dict) -> list[tuple[str, str, str]]:
+        """`contact_points` over a given state (item 23: a predicted one); the live call is this
+        over `self.state`."""
         out: list[tuple[str, str, str]] = []
         objs = tuple(f"o{i}" for i in range(N_OBJECTS))
         for i, a in enumerate(objs):
             for b in objs[i + 1:]:
-                dr = abs(self.state[a + ".row"] - self.state[b + ".row"])
-                dc = abs(self.state[a + ".col"] - self.state[b + ".col"])
+                dr = abs(state[a + ".row"] - state[b + ".row"])
+                dc = abs(state[a + ".col"] - state[b + ".col"])
                 if dr + dc == 1:
                     out.append((a, b, "orthogonal"))
                 elif dr == 1 and dc == 1:

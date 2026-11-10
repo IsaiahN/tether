@@ -11,12 +11,15 @@ import bisect
 import json
 import sys
 import weakref
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
 import armflag
 import narrate
+import nsm
+import pipelog
 
 sys.dont_write_bytecode = True
 
@@ -27,8 +30,8 @@ sys.dont_write_bytecode = True
 _LEDGER_HANDLE = armflag.arm("TETHER_LEDGER_HANDLE", default=True)
 _OPEN: weakref.WeakSet = weakref.WeakSet()   # ledgers holding a handle, closed at exit
 # THE CHOICE TALLY (Isaiah 2026-10-23 09:12 "these should be deduped and tallied"; the reviewer
-# 09:13, 10:40): an objective_domain "choice" row whose KEY was already written in this life is
-# not appended; it adds to a per-step count, flushed as one "choice_tally" row per key at the
+# 09:13, 10:40): an objective_domain "choice" row whose KEY was already written in this game series
+# is not appended; it adds to a per-step count, flushed as one "choice_tally" row per key at the
 # step's end (flush_tally). E4b: 636,386 such rows, 3,001 keys. The key is every decision field;
 # only cycle, seq and mode are out. `written` counts appended rows AND tallied repeats, and
 # since_written() returns both in call order, so a reader that captures and replays rows
@@ -45,7 +48,8 @@ _CHOICE_TALLY_CHECK = armflag.arm("TETHER_CHOICE_TALLY_CHECK")
 # order (c2ddc5a).
 _CHOICE_TALLY_ORDER = armflag.arm("TETHER_CHOICE_TALLY_ORDER", default=True)
 TALLY_SITE = "objective_domain"
-TALLY_FIELDS = ("site", "options", "frontier", "pick", "by", "root", "residual", "seen")
+# "at": a tail row on "@vector" names its slot here, so its tally key keeps the slot (r1448)
+TALLY_FIELDS = ("site", "options", "frontier", "pick", "by", "root", "residual", "seen", "at")
 
 
 def _tally_key(slot: str, step: str, detail: dict, fields: tuple) -> str:
@@ -101,7 +105,7 @@ NO_CHANGE = "no_change"
 # THE TWO CLEARING WORDS NAME THEIR EVENT (Isaiah 2026-10-15 08:30; the reviewer 08:31): a game won
 # is "game_win", a level cleared "level_advance". Before F1b they were the bare words "win" and
 # "advance", and ARC wrote "advance" for a game WIN; old ledgers are read through legacy_ending.
-WIN, DEATH, RESET, ADVANCE, CAP = "game_win", "death", "reset", "level_advance", "cap"
+WIN, GAME_LOSS, RESET, ADVANCE, CAP = "game_win", "game_loss", "reset", "level_advance", "cap"
 # item 4 (2026-10-22): the game ended because the agent's own code raised, never the world
 AGENT_FAULT = "agent_fault"
 
@@ -110,7 +114,7 @@ AGENT_FAULT = "agent_fault"
 # COMPETITION collapses the two events in the API's semantics.
 ENDING_READS = {
     WIN: "the objective was met",
-    DEATH: "the world ended the episode -- evidence about the world",
+    GAME_LOSS: "the world ended the episode -- evidence about the world",
     RESET: "the next board is KNOWN, so a residual spike means THE MODEL IS WRONG. On a "
            "board already modelled a residual has no excuse",
     ADVANCE: "the next board is UNKNOWN by design, so a residual spike means NOTHING YET. "
@@ -124,12 +128,25 @@ ENDING_READS = {
 # from 446e7f6 (F1, a level clear through retarget) until F1b it was ALSO the level clear, which no
 # word on the row separates. Readers of old ledgers (the recovery read, panel readers) map here.
 LEGACY_AMBIGUOUS = "level_advance or game_win"
+# THE GAME-LOSS WORDS (Isaiah 2026-11-09 12:41; the reviewer r1571; precedent b973691): what ends an
+# attempt is a game loss, and the agent carries on outside the game. Before this the code said
+# "death". Old ledgers, saves and fixtures keep their words; every reader maps them through here.
+GAME_LOSS_ALIASES = {"death": GAME_LOSS, "deaths": "game_losses",
+                     "death_possible": "game_loss_possible", "death_vote": "game_loss_vote",
+                     "death_kept": "game_loss_kept", "closed_death": "closed_game_loss",
+                     "@death": "@game_loss"}
+
+
+def game_loss_word(word):
+    """An old record's game-loss word read as the current one; any other value unchanged."""
+    return GAME_LOSS_ALIASES.get(word, word) if isinstance(word, str) else word
 
 
 def legacy_ending(word: str, world: str | None, f1_era: bool = False) -> str:
     """An old ledger's ending word, by PROVENANCE. `world` is the run header's world class
     ("arc_world.ArcWorld" on ARC; from provenance where the header predates 0c841dd); `f1_era` is
     True for an ARC run at or after 446e7f6 and before F1b. Never rewrites a file."""
+    word = game_loss_word(word)
     if word == "win":
         return WIN
     if word != "advance":
@@ -173,9 +190,12 @@ class Ledger:
         self._last_step: dict[tuple, str] = {}   # ORDER: (cycle, slot) -> its latest appended step
         self._last_cyc: int | None = None     # ORDER: the highest cycle appended (prunes the above)
         self.tally_full = {"step": 0, "field": 0, "mode": 0}   # ORDER: repeats appended in full
+        self._pass: tuple[str, str, str] | None = None   # r1564: (slot, pass key, naming field)
         self._path = Path(path) if path else None
         self._fh = None
         self.narrator = narrate.Narrator(self._path, (WIN, ADVANCE))   # N1: says key rows aloud
+        self.pipe = pipelog.PipeLog(self._path, (WIN, ADVANCE))        # 7d: the stage lines
+        self.speaker = nsm.Speaker(self._path, (WIN, ADVANCE))         # 7: the NSM trace
         if self._path is not None:
             self._path.parent.mkdir(parents=True, exist_ok=True)
             self._path.write_text("", encoding="utf-8")
@@ -183,12 +203,28 @@ class Ledger:
     def __len__(self) -> int:
         return len(self._entries)
 
+    @contextmanager
+    def pass_key(self, slot: str, key: str, name: str = "derived", on: bool = True):
+        """r1564: while a second pass runs on a slot already ACCEPTed this cycle, that slot's rows
+        go on the pass's own key, naming the slot -- the ledger, not each writer, decides a row's
+        key, so a writer added to the pass later is covered too. on=False changes nothing."""
+        was = self._pass
+        if on:
+            self._pass = (slot, key, name)
+        try:
+            yield
+        finally:
+            self._pass = was
+
     def record(self, cycle: int, step: str, slot: str, event: str,
                of: tuple[str, ...] | None = None, **detail: Any) -> Entry:
         if step not in STEPS:
             raise ValueError(f"entry names no loop step: {step!r}")
+        named = slot
+        if self._pass is not None and slot == self._pass[0]:
+            slot, detail = self._pass[1], {**detail, self._pass[2]: named}
         if _CHOICE_TALLY and event == "choice" and detail.get("site") == TALLY_SITE:
-            k = _tally_key(slot, step, detail, TALLY_FIELDS)
+            k = _tally_key(named, step, detail, TALLY_FIELDS)   # r1564: the named slot, not merged
             ref = self._tkeys.get(k)
             if ref is not None and _CHOICE_TALLY_ORDER:
                 why = ("step" if self._last_step.get((cycle, slot)) != step
@@ -208,7 +244,7 @@ class Ledger:
                 self._tev.append((self.written, row))
                 self.written += 1
                 if _CHOICE_TALLY_CHECK:
-                    fk = _full_key(slot, step, detail)
+                    fk = _full_key(named, step, detail)
                     self._tchk.setdefault(k, {self._tfull[k]}).add(fk)
                     self._tchk_n[fk] = self._tchk_n.get(fk, 0) + 1
                 return self._entries[ref]
@@ -216,7 +252,7 @@ class Ledger:
                 self._tkeys[k] = len(self._entries)
                 self._tmode[k] = self.mode
                 if _CHOICE_TALLY_CHECK:
-                    self._tfull[k] = _full_key(slot, step, detail)
+                    self._tfull[k] = _full_key(named, step, detail)
         e = Entry(len(self._entries), cycle, step, slot, event, detail, of)
         self._entries.append(e)
         if _CHOICE_TALLY and _CHOICE_TALLY_ORDER:
@@ -241,6 +277,10 @@ class Ledger:
                     fh.write(line)
         if self.narrator.on:
             self.narrator.see(cycle, step, slot, event, detail)
+        if self.pipe.on:
+            self.pipe.see(cycle, step, slot, event, detail)
+        if self.speaker.on:
+            self.speaker.see(e.seq, cycle, step, slot, event, detail)
         return e
 
     def narrate(self, cycle: int, kind: str, slot: str, text: str) -> None:
@@ -250,6 +290,7 @@ class Ledger:
     def end_game(self, cycle: int, label: str) -> None:
         """N2: this game's "stopped at link X because ..." line, then its counts restart."""
         self.narrator.end_game(cycle, label)
+        self.speaker.close()                 # 7: the cycle's "+n more" lines said
 
     def close(self) -> None:
         """R2: close the held handle (end_run, and at exit); a later row reopens it."""
@@ -272,6 +313,20 @@ class Ledger:
         """What the gate reads. Plain data, no objects from this module. R2: from `start` on only,
         so a reader of the tail no longer converts the whole ledger."""
         return [self._row(e) for e in self._entries[start:]]
+
+    def wrote(self, cycle: int, step: str, slot: str) -> bool:
+        """r1442: whether a row on `slot` under `step` was written in `cycle`. A backwards scan
+        that stops below the cycle before it, so a caller that asks rarely pays rarely. It reads
+        THROUGH cycle - 1 rows (a closing row of the cycle before -- repeat, carry_w, the tail's
+        rows -- carries cycle - 1; r1449) so that no such row can cut the scan short, and it
+        matches only e.cycle == cycle, so an ACCEPT of cycle - 1 never counts. ACCEPT rows are
+        never tallied (only site objective_domain choice rows are), so _entries holds them all."""
+        for e in reversed(self._entries):
+            if e.cycle < cycle - 1:
+                return False
+            if e.cycle == cycle and e.step == step and e.slot == slot:
+                return True
+        return False
 
     def by_event(self, event: str) -> list[Entry]:
         return [e for e in self._entries if e.event == event]

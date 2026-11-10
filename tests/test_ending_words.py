@@ -53,7 +53,8 @@ def main() -> None:
     assert lg("advance", "arc_world.ArcWorld", f1_era=True) == ledger.LEGACY_AMBIGUOUS
     assert lg("advance", "snaps.Snap") == ledger.ADVANCE
     assert lg("advance", None) == ledger.ADVANCE
-    assert lg("death", "arc_world.ArcWorld") == "death"
+    assert lg("game_loss", "arc_world.ArcWorld") == ledger.GAME_LOSS
+    assert lg("death", "arc_world.ArcWorld") == ledger.GAME_LOSS   # r1571: the old word
     print("  W2 legacy_ending maps the old words by provenance")
     mf = scan("planted.py", 'def terminal(self):\n    return "advance"\n')
     assert mf, "MF-W MUST-FAIL did not fail: the scanner missed a planted bare word"

@@ -91,7 +91,7 @@ def _charge(arm: bool) -> tuple[float, float, float]:
 
 
 def main() -> int:
-    tether._AGENT_SEED = False     # C-seed-X: separately born agents compared, one temperament
+    tether._AGENT_SEED = False     # C-seed-X: separately started agents compared, one temperament
     on, off = _charge(True), _charge(False)
     assert on == (3.0, 3.0, 0.0) and off == (5.0, 3.0, 2.0), (on, off)
     print(f"  OC1: a stability miss (2.0) beside a shape miss (3.0): ON charges the integral "

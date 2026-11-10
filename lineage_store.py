@@ -14,6 +14,7 @@ import codecs
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import time
 import zlib
@@ -214,11 +215,21 @@ def _add(into: dict, d: dict) -> None:
         into[k] = into.get(k, 0) + n
 
 
-def _counts_apply(c: dict, g: dict) -> dict:
-    """lineage.load's root-to-tip sums for one generation, in the same order of first appearance."""
+def _counts_apply(c: dict, g: dict, amap: dict | None = None, k: int = 0) -> dict:
+    """lineage.load's root-to-tip sums for one generation, in the same order of first appearance.
+    Under TETHER_KIND_ALIAS the routines carry their save index k (alias_routines), and under an
+    alias map the action cells are read through it (alias_actions)."""
+    if _ALIAS and g.get("routines_by_kind"):
+        alias_routines(c, {r["key"]: r for r in g["routines_by_kind"]}, amap or {}, k)
+        g = {x: v for x, v in g.items() if x != "routines_by_kind"}
+    if amap and g.get("action_kinds"):
+        alias_actions(c.setdefault("action_kinds", {}), g["action_kinds"], amap)
+        g = {x: v for x, v in g.items() if x != "action_kinds"}
+    if _AK_DELTA():
+        add_action_increments(c.setdefault("action_kinds", {}), g.get("action_kinds_d"))
     _add(c.setdefault("unit_used", {}), g.get("unit_used") or {})
     for fld in ("line_grades", "root_grades", "kind_counts", "hazard_3a", "thought_tried",
-                "thought_paid"):
+                "thought_paid", "b2_kinds", "b2_cells"):
         for k, d in g.get(fld, {}).items():
             _add(c.setdefault(fld, {}).setdefault(k, {}), d)
     _add(c.setdefault("cause_kinds", {}), g.get("cause_kinds", {}))
@@ -241,6 +252,291 @@ def _counts_apply(c: dict, g: dict) -> dict:
     if "kinds_landed_n" not in g and g.get("kinds_landed"):
         c["kinds_set_form"] = c.get("kinds_set_form", 0) + len(g["kinds_landed"])
     return c
+
+
+# K1's ALIAS GENERATION READ (the reviewer 2026-11-03 r886, r887, r902): a generation's
+# "form_aliases" [[as_seen, canonical, pose]] joins the map in force (meta 'form_aliases'); the rows
+# already stored are re-keyed there, and every later save's kinds and kind-keyed counts are read
+# through it. Rows that meet are two sightings of one kind: n summed, the l_* of the greater l_seq,
+# flags by max; an action cell's counts summed and its landed values united. The map is idempotent
+# (lineage.alias_generation refuses one that is not), so a re-key at the alias generation and a
+# translation on insert give one store. OFF: the field is ignored and every code stays as stored.
+_ALIAS = armflag.arm("TETHER_KIND_ALIAS", default=True)
+_FORM = re.compile(r"(?<![A-Za-z_])form=(\d+)")
+_KIND_AT = {"kinds_landed": (2, 3), "kinds_landed_n": (2, 3), "kinds_last": (2, 3),
+            "kinds_landed_dk": (0, 2), "kinds_dk_last": (0, 2), "kinds_offered_dk": (0, 2)}
+_SUMMED2 = ("line_grades", "root_grades", "kind_counts", "hazard_3a", "thought_tried",
+            "thought_paid")
+
+
+def alias_add(amap: dict, pairs: Any) -> dict:
+    """The map in force after one alias generation's pairs (as-seen -> canonical, ints)."""
+    return {**amap, **{int(a): int(c) for a, c, *_pose in pairs}}
+
+
+def alias_refusal(amap: dict, pairs: Any) -> str | None:
+    """Why these pairs cannot join the map, or None (r903 2b, MF-K10, MF-K12): perception is
+    deterministic, so an as-seen code with two canonicals is a defect; and the map stays
+    idempotent (a canonical is the as-seen code of the canonical pose, so it maps to itself)."""
+    have = dict(amap)
+    for a, c, *_pose in pairs:
+        a, c = int(a), int(c)
+        if have.get(a, c) != c:
+            return f"form {a} is aliased to {have[a]} and to {c}"
+        have[a] = c
+    onward = {a: c for a, c in have.items() if have.get(c, c) != c}
+    if onward:
+        a, c = sorted(onward.items())[0]
+        return f"not idempotent: {a} -> {c} -> {have[c]} ({len(onward)} such)"
+    return None
+
+
+def alias_text(s: Any, amap: dict) -> Any:
+    if not amap or not isinstance(s, str) or "form=" not in s:
+        return s
+    return _FORM.sub(lambda m: f"form={amap.get(int(m.group(1)), int(m.group(1)))}", s)
+
+
+def _alias_val(x: Any, amap: dict) -> Any:
+    if isinstance(x, str):
+        return alias_text(x, amap)
+    if isinstance(x, list | tuple):
+        return [_alias_val(y, amap) for y in x]
+    if isinstance(x, dict):
+        return {alias_text(k, amap): _alias_val(v, amap) for k, v in x.items()}
+    return x
+
+
+def _sum_into(into: dict, d: dict, amap: dict) -> None:
+    for k, n in d.items():
+        k = alias_text(k, amap)
+        into[k] = into.get(k, 0) + n
+
+
+def _ak_meet(key: str, old: Any, new: Any) -> Any:
+    import ast
+    try:
+        tab = ast.literal_eval(key)[1]
+    except (ValueError, SyntaxError, IndexError, TypeError):
+        return new
+    if tab == "delta_kind":
+        return [old[0] + new[0], old[1] + new[1]]
+    return [json.loads(x) for x in sorted(set(map(_j, old)) | set(map(_j, new)))]
+
+
+def alias_actions(into: dict, rows: dict, amap: dict) -> None:
+    """The action cells through the map: a later save's cell replaces; two cells that meet in ONE
+    re-key or ONE save are two sightings of one kind (_ak_meet: counts summed, landed values
+    united)."""
+    seen: dict = {}
+    for k, v in rows.items():
+        k2, v2 = alias_text(k, amap), _alias_val(v, amap)
+        seen[k2] = _ak_meet(k2, seen[k2], v2) if k2 in seen else v2
+    into.update(seen)
+
+
+def _AK_DELTA() -> bool:
+    import interface
+    return interface._AK_DELTA
+
+
+def add_action_increments(into: dict, rows: dict | None) -> None:
+    """(7) TETHER_AK_DELTA: a save's action-cell increments added into the cells (_ak_meet: counts
+    summed, landed values united); the keys are already read through the alias map (alias_gen)."""
+    for key, v in (rows or {}).items():
+        into[key] = _ak_meet(key, into[key], v) if key in into else v
+
+
+def alias_routines(c: dict, rows: dict, amap: dict, k: int | None) -> None:
+    """routines_by_kind through the map (the reviewer 2026-11-03 r904 1), with each key's save
+    index in routines_k: `rows` from save k, or k None to re-key what `c` holds. Two pre-images that
+    meet with different rows are a CONTEST, both kept in contested_routines; the read value is the
+    later save's (then the greater text). Equal rows are no contest. A later save's row for a key
+    replaces it, as before."""
+    ks = c.setdefault("routines_k", {})
+    if k is None:
+        rows = c.get("routines_by_kind", {})
+    seen: dict = {}
+    seen_k: dict = {}
+    for key, v in rows.items():
+        k2 = alias_text(key, amap)
+        v2 = {**_alias_val(v, amap), "key": k2}
+        kv = ks.get(key, 0) if k is None else k
+        if k2 in seen:
+            pv, pk = seen[k2], seen_k[k2]
+            if {x: y for x, y in pv.items() if x != "key"} != {
+                    x: y for x, y in v2.items() if x != "key"}:
+                rec = c.setdefault("contested_routines", {}).setdefault(k2, [])
+                rec.extend(r for r in (pv, v2) if r not in rec)
+            if (kv, _j(v2)) < (pk, _j(pv)):
+                v2, kv = pv, pk
+        seen[k2], seen_k[k2] = v2, kv
+    if k is None:
+        c["routines_by_kind"], c["routines_k"] = seen, seen_k
+    else:
+        c.setdefault("routines_by_kind", {}).update(seen)
+        ks.update(seen_k)
+
+
+def alias_counts(c: dict, amap: dict) -> dict:
+    """The counts blob re-keyed through the map (at an alias generation)."""
+    out = dict(c)
+    for fld in _SUMMED2:
+        if fld in c:
+            new: dict = {}
+            for k, d in c[fld].items():
+                _sum_into(new.setdefault(alias_text(k, amap), {}), d, amap)
+            out[fld] = new
+    if "cause_kinds" in c:
+        out["cause_kinds"] = {}
+        _sum_into(out["cause_kinds"], c["cause_kinds"], amap)
+    if "action_kinds" in c:
+        out["action_kinds"] = {}
+        alias_actions(out["action_kinds"], c["action_kinds"], amap)
+    if "routines_by_kind" in c:
+        alias_routines(out, {}, amap, None)
+    return out
+
+
+def alias_gen(g: dict, amap: dict) -> dict:
+    """One save's kinds and kind-keyed counts read through the map (a shallow copy); the
+    latest-wins fields are left to alias_actions and alias_routines."""
+    if not amap:
+        return g
+    out = dict(g)
+    for fld, at in _KIND_AT.items():
+        if fld in g:
+            out[fld] = [[_alias_val(x, amap) if i in at else x for i, x in enumerate(e)]
+                        for e in g[fld]]
+    for fld in _SUMMED2:
+        if fld in g:
+            new: dict = {}
+            for k, d in g[fld].items():
+                _sum_into(new.setdefault(alias_text(k, amap), {}), d, amap)
+            out[fld] = new
+    if "cause_kinds" in g:
+        out["cause_kinds"] = {}
+        _sum_into(out["cause_kinds"], g["cause_kinds"], amap)
+    if g.get("action_kinds_d"):          # (7): increments meet by sum, as two sightings
+        out["action_kinds_d"] = {}
+        alias_actions(out["action_kinds_d"], g["action_kinds_d"], amap)
+    return out
+
+
+def alias_chain(chain: list) -> list:
+    """lineage.load's archive read under the alias generations, giving the store's state: every
+    save's kinds and summed counts through the whole map (sums do not depend on order), and the
+    latest-wins fields folded in chain order with the re-key at each alias generation, placed on
+    the last save. A chain with no alias generation, or OFF: unchanged."""
+    if not _ALIAS or not any(g.get("form_aliases") for _h, g in chain):
+        return chain
+    full: dict = {}
+    for _h, g in chain:
+        full = alias_add(full, g.get("form_aliases", ()))
+    run: dict = {}
+    ak: dict = {}
+    rk: dict = {}
+    out = []
+    for i, (h, g) in enumerate(chain):
+        if g.get("form_aliases"):
+            run = alias_add(run, g["form_aliases"])
+            was, ak = ak, {}
+            alias_actions(ak, was, run)
+            alias_routines(rk, {}, run, None)
+        if g.get("action_kinds"):
+            if run:
+                alias_actions(ak, g["action_kinds"], run)
+            else:
+                ak.update(g["action_kinds"])
+        if g.get("routines_by_kind"):     # the store's save index: k = position + 1
+            alias_routines(rk, {r["key"]: r for r in g["routines_by_kind"]}, run, i + 1)
+        out.append((h, {k: v for k, v in alias_gen(g, full).items()
+                        if k not in ("action_kinds", "routines_by_kind")}))
+    h, g = out[-1]
+    out[-1] = (h, {**g, "action_kinds": ak,
+                   "routines_by_kind": list(rk.get("routines_by_kind", {}).values())})
+    return out
+
+
+def alias_map(con: sqlite3.Connection) -> dict:
+    r = con.execute("SELECT v FROM meta WHERE k='form_aliases'").fetchone()
+    return {int(a): c for a, c in json.loads(r[0]).items()} if r else {}
+
+
+_REKEY_KIND = (
+    "INSERT INTO kind SELECT entry, role, COALESCE(m1.new, kind_o), COALESCE(m2.new, kind_x), "
+    "in_landed, n, has_n, l_game, l_level, l_cycle, l_seq, no_dk FROM temp.mv_kind "
+    "LEFT JOIN temp.smap m1 ON m1.old = kind_o LEFT JOIN temp.smap m2 ON m2.old = kind_x "
+    "WHERE 1 ORDER BY l_seq, entry, role, kind_o, kind_x ON CONFLICT DO UPDATE SET "
+    "in_landed = max(in_landed, excluded.in_landed), n = n + excluded.n, "
+    "has_n = max(has_n, excluded.has_n), "
+    "l_game = CASE WHEN excluded.l_seq >= l_seq THEN excluded.l_game ELSE l_game END, "
+    "l_level = CASE WHEN excluded.l_seq >= l_seq THEN excluded.l_level ELSE l_level END, "
+    "l_cycle = CASE WHEN excluded.l_seq >= l_seq THEN excluded.l_cycle ELSE l_cycle END, "
+    "l_seq = max(l_seq, excluded.l_seq)")
+_REKEY_DK = (
+    "INSERT INTO kind_dk SELECT COALESCE(m1.new, dk), entry, COALESCE(m2.new, tgt), n, l_game, "
+    "l_level, l_cycle, l_seq FROM temp.mv_dk LEFT JOIN temp.smap m1 ON m1.old = dk "
+    "LEFT JOIN temp.smap m2 ON m2.old = tgt WHERE 1 ORDER BY l_seq, dk, entry, tgt "
+    "ON CONFLICT DO UPDATE SET n = n + excluded.n, "
+    "l_game = CASE WHEN excluded.l_seq >= l_seq THEN excluded.l_game ELSE l_game END, "
+    "l_level = CASE WHEN excluded.l_seq >= l_seq THEN excluded.l_level ELSE l_level END, "
+    "l_cycle = CASE WHEN excluded.l_seq >= l_seq THEN excluded.l_cycle ELSE l_cycle END, "
+    "l_seq = max(l_seq, excluded.l_seq)")
+_REKEY_OFF = (
+    "INSERT INTO kind_off SELECT COALESCE(m1.new, dk), entry, COALESCE(m2.new, ko), n "
+    "FROM temp.mv_off LEFT JOIN temp.smap m1 ON m1.old = dk LEFT JOIN temp.smap m2 ON m2.old = ko "
+    "WHERE 1 ORDER BY dk, entry, ko ON CONFLICT DO UPDATE SET n = n + excluded.n")
+
+
+def _apply_aliases(con: sqlite3.Connection, s: "Syms", pairs: Any) -> dict:
+    """An alias generation: the map in force grows by its pairs, and every stored kind row, delta
+    row, offer row, pair and kind-keyed count is re-keyed through it. A pair's n is the sum of its
+    landed kinds' contributions (what _merge_kinds accumulates, telescoped), so it is recomputed
+    for every pair a re-keyed kind now names; kinds_known and no_dk likewise."""
+    why = alias_refusal(alias_map(con), pairs)
+    if why:
+        raise Refused(f"form_aliases: {why}")
+    amap = alias_add(alias_map(con), pairs)
+    con.execute("INSERT OR REPLACE INTO meta VALUES ('form_aliases', ?)",
+                (json.dumps({str(a): c for a, c in sorted(amap.items())}),))
+    smap = {}
+    for txt, sid in list(s.ids.items()):
+        t2 = alias_text(txt, amap)
+        if t2 != txt:
+            smap[sid] = s(t2)
+    con.execute("CREATE TEMP TABLE IF NOT EXISTS smap(old INTEGER PRIMARY KEY, new INTEGER)")
+    con.execute("DELETE FROM temp.smap")
+    con.executemany("INSERT INTO temp.smap VALUES (?,?)", sorted(smap.items()))
+    if smap:
+        known0 = con.execute("SELECT COUNT(*) FROM kind WHERE in_landed = 1").fetchone()[0]
+        old = "(SELECT old FROM temp.smap)"
+        for t, cols, sql in (("kind", ("kind_o", "kind_x"), _REKEY_KIND),
+                             ("kind_dk", ("dk", "tgt"), _REKEY_DK),
+                             ("kind_off", ("dk", "ko"), _REKEY_OFF)):
+            where = " OR ".join(f"{c} IN {old}" for c in cols)
+            mv = "mv_" + t.replace("kind_", "") if t != "kind" else "mv_kind"
+            con.execute(f"DROP TABLE IF EXISTS temp.{mv}")
+            con.execute(f"CREATE TEMP TABLE {mv} AS SELECT * FROM {t} WHERE {where}")
+            con.execute(f"DELETE FROM {t} WHERE {where}")
+            con.execute(sql)
+            con.execute(f"DROP TABLE temp.{mv}")
+        new = "(SELECT new FROM temp.smap)"
+        con.execute(f"DELETE FROM pair WHERE kind_o IN {old} OR kind_x IN {old} "
+                    f"OR kind_o IN {new} OR kind_x IN {new}")
+        con.execute("INSERT INTO pair SELECT kind_o, kind_x, "
+                    "SUM(CASE WHEN has_n THEN n ELSE 1 END), "
+                    f"MAX(l_seq) FROM kind WHERE in_landed = 1 AND (kind_o IN {new} OR kind_x IN "
+                    f"{new}) GROUP BY kind_o, kind_x")
+        cause = s("CAUSE")
+        con.execute("UPDATE kind SET no_dk = NOT EXISTS (SELECT 1 FROM kind_dk d WHERE "
+                    "d.entry = kind.entry AND d.n > 0 AND d.tgt = CASE WHEN kind.role = ? "
+                    f"THEN kind.kind_x ELSE kind.kind_o END) WHERE kind_o IN {new} OR "
+                    f"kind_x IN {new}", (cause,))
+        _meta_add(con, "kinds_known", con.execute(
+            "SELECT COUNT(*) FROM kind WHERE in_landed = 1").fetchone()[0] - known0)
+    con.execute("DELETE FROM temp.smap")
+    return amap
 
 
 def file_bytes(f: Path) -> bytes:
@@ -403,8 +699,13 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
                     "ON CONFLICT DO UPDATE SET n = n + excluded.n, has_n = 1",
                     sorted((*kkey(e), e[4]) for e in g.get("kinds_landed_n", ())))
     if "kinds_landed_n" not in g:     # a set-form generation counts each key once (load, 545)
-        con.executemany("UPDATE kind SET n = n + 1, has_n = 1 "
-                        "WHERE entry=? AND role=? AND kind_o=? AND kind_x=?", kl)
+        # once per row as written: two as-seen keys an alias joins count twice, as the load does
+        many: dict = {}
+        for e in g.get("kinds_landed", ()):
+            many[kkey(e)] = many.get(kkey(e), 0) + 1
+        con.executemany("UPDATE kind SET n = n + ?, has_n = 1 "
+                        "WHERE entry=? AND role=? AND kind_o=? AND kind_x=?",
+                        [(many[x], *x) for x in kl])
     con.executemany("INSERT INTO kind VALUES (?,?,?,?,0,0,0,?,?,?,?,0) "
                     + UPSERT_LAST.format(t="kind"),
                     [(*kkey(e), *e[4:8]) for e in g.get("kinds_last", ())])
@@ -445,9 +746,9 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
 
 def _merge_asked(con: sqlite3.Connection, s: "Syms", k: int, h: str, bodies: list) -> None:
     # bodies: AkFile objects, each read once, streamed (M)
-    """The OLD form (each row a variant's first appearance over the life) adds to n_variants. The
-    NEW form (form 2, S4: the rows asked since the last save, each with n = times asked) adds n to
-    n_asked and 1 to n_saves_asked (the memory saves the class was asked in; not counts' n_saves,
+    """The OLD form (each row a variant's first appearance over the game series) adds to n_variants.
+    The NEW form (form 2, S4: the rows asked since the last save, each with n = times asked) adds n
+    to n_asked and 1 to n_saves_asked (the memory saves the class was asked in; not counts' n_saves,
     the saves merged), and leaves n_variants frozen (the reviewer 08:26 item 3): a new-form row
     cannot tell a new variant from a repeat without a per-variant table."""
     for a in bodies:
@@ -546,6 +847,16 @@ def _merge_body(con: sqlite3.Connection, h: str, k: int, g: dict, aks: list, idx
                 files: list, state: Any = None) -> dict:
     """merge_save's statements, inside its transaction."""
     s = Syms(con)
+    g_raw = g      # the save as written: the fold reads it, and translates through its own map
+    amap: dict = {}
+    if _ALIAS:
+        if g.get("form_aliases"):
+            amap = _apply_aliases(con, s, g["form_aliases"])
+            con.execute("INSERT OR REPLACE INTO blob VALUES ('counts', ?)",
+                        (json.dumps(alias_counts(_get_blob(con, "counts", {}), amap)),))
+        else:
+            amap = alias_map(con)
+        g = alias_gen(g, amap)
     _merge_asked(con, s, k, h, aks)
     _merge_kinds(con, s, g)
     if idx is not None:
@@ -564,9 +875,15 @@ def _merge_body(con: sqlite3.Connection, h: str, k: int, g: dict, aks: list, idx
     if state is None:
         f = _fold_apply(_get_blob(con, "fold", {}), h, g)
     else:
-        state.step(h, g)
+        state.step(h, g_raw)
         f = _state_fold(state)
-    c = _counts_apply(_get_blob(con, "counts", {}), g)
+    c = _counts_apply(_get_blob(con, "counts", {}), g, amap, k)
+    if state is not None and getattr(state, "ak", None) is not None:
+        # MF-K16: on a branched lineage the action cells are the fold's (a cumulative branch
+        # converted to its increments), never the last save's in fold order
+        c["action_kinds"], ca = state.ak.value()
+        if ca:
+            c["contested_action_kinds"] = ca
     c["n_saves"] = k
     con.execute("INSERT OR REPLACE INTO blob VALUES ('fold', ?)", (json.dumps(f),))
     con.execute("INSERT OR REPLACE INTO blob VALUES ('counts', ?)", (json.dumps(c),))
@@ -603,7 +920,7 @@ def checkpoint(con: sqlite3.Connection) -> dict:
 
 def note_end_path(con: sqlite3.Connection, wall_s: float, sleep_s: float) -> dict:
     """C1 (A)'s reserve (the reviewer 2026-10-22 14:27): the end path's measured wall and its
-    sleep part, written after the sleep so the next life's load reads its predecessor's."""
+    sleep part, written after the sleep so the next game series' load reads its predecessor's."""
     out = {"s": round(wall_s, 3), "sleep_s": round(sleep_s, 3)}
     con.execute("INSERT OR REPLACE INTO meta VALUES ('end_path', ?)", (json.dumps(out),))
     con.commit()
@@ -700,6 +1017,7 @@ def _rebuild(con: sqlite3.Connection, folder: str | Path, read: Any) -> list:
 # in the rebuild's order. Minutes instead of hours. Otherwise None, and the full rebuild runs.
 # OFF: always the rebuild.
 _CONTINUE = armflag.arm("TETHER_STORE_CONTINUE", default=True)
+_CONTINUE_WAL = armflag.arm("TETHER_CONTINUE_WAL", default=True)
 
 
 def _continue(con: sqlite3.Connection, folder: str | Path, read: Any, ps: dict) -> list | None:
@@ -719,7 +1037,15 @@ def _continue(con: sqlite3.Connection, folder: str | Path, read: Any, ps: dict) 
     state = lineage.FoldState(lists=False)
     for h in merged:
         state.step(h, read(h))
-    return [{**merge_save(con, folder, h, read(h), state), "dag": "continue"} for h in new]
+    out = []
+    for h in new:
+        out.append({**merge_save(con, folder, h, read(h), state), "dag": "continue"})
+        # the rebuild's WAL bound (r794 3), here too: a continue of many saves grew the WAL to
+        # 2.14 GB on 2026-11-03 (REPORT FIN5E §8). OFF (TETHER_CONTINUE_WAL): no bound, as before
+        if (_CONTINUE_WAL and WAL_BOUND_BYTES is not None
+                and wal_bytes(folder) > WAL_BOUND_BYTES):
+            out[-1]["wal_bound"] = {"wal_bytes": wal_bytes(folder), **checkpoint(con)}
+    return out
 
 
 def catch_up(con: sqlite3.Connection, folder: str | Path) -> list:

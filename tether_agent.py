@@ -6,7 +6,7 @@ appends overrides `main()` and calls `run()` here, which drives tether one step 
 `arc_holdout.wire()` -- the SAME wiring `play` uses, so the two cannot drift. No threads, no
 inversion, and it runs the same under Swarm's threads or under a runner of our own.
 
-GAME_OVER: the entry point NEVER sends RESET (the who-presses rule). A death does NOT end the
+GAME_OVER: the entry point NEVER sends RESET (the who-presses rule). A game loss does NOT end the
 run: the boundary is marked and play goes on, and the AGENT may choose the platform's RESET
 (Isaiah 2026-09-29; F477, F478). Only a WIN, the step cap or the time allowance ends a game.
 """
@@ -37,11 +37,13 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
                                                             library=library,
                                                             lineage_dir=lineage_dir)
     ag.deadline = deadline   # the wall allowance, read between lookups too (TETHER_CAP_MIDSTEP)
-    acted_n, was, end, deaths = 0, "", "", 0
+    acted_n, was, end, game_losses = 0, "", "", 0
     # the boundary edges' level and the write's reports; with both arms OFF nothing new is read
     lv_seen = env.levels()[0] if (lineage._BOUNDARY or tether._LEVEL_EDGE) else 0
     bounds = []
-    for _ in range(max_actions):
+    for i_ in range(max_actions):
+        # item 25 (r1265): turns left that the habitat allows, read by the agent as a clock
+        ag.actions_left, ag.actions_cap = max_actions - i_, max_actions
         # A WALL-CLOCK BOUND, like the step cap: the runner's per-game allowance, never a prior.
         if deadline is not None and time.time() >= deadline:
             end = end or "time"
@@ -53,11 +55,12 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
             if on_action is not None:
                 on_action(w.observation_space)
         end = env.terminal()
-        if was == "death" and not end:      # the agent's RESET restarted the same level
+        # the agent's RESET restarted the same level
+        if ledger.game_loss_word(was) == ledger.GAME_LOSS and not end:
             ag.restarted(env)
         if end and end != was:
             ag.retarget(env, env.levels()[0], how=end)
-            deaths += end == "death"
+            game_losses += ledger.game_loss_word(end) == ledger.GAME_LOSS
         # THE BOUNDARY EDGES, ONE BLOCK IN BOTH RUNNERS (arc_holdout.play, tether_agent.run;
         # the reviewer 2026-10-15 07:32, 07:42, 07:55). The terminal edge was retargeted above.
         # A level clear with no terminal edge: under TETHER_LEVEL_EDGE the agent perceives it,
@@ -72,15 +75,18 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
             if lineage._BOUNDARY and (term_edge or lvl_edge):
                 bounds.append(store.lineage_boundary(lineage_dir, ag, game,
                                                      end if term_edge else "level"))
+            elif lineage._ENDING_SAVE and lineage._BOUNDARY and getattr(ag, "_ending_due", False):
+                # r1530: a goal ending's save, between steps
+                bounds.append(store.lineage_boundary(lineage_dir, ag, game, "goal_ending"))
             lv_seen = lv
         was = end
-        if end == ledger.WIN:   # the game is over and won. A death is not an end.
+        if end == ledger.WIN:   # the game is over and won. A game loss is not an end.
             break
     # MC2: the level still open when the run stops resolves at the game. A WIN already retargeted;
     # a cap or the deadline never reaches retarget.
     ag.end_run(end if end in ("time", ledger.WIN) else "cap")
     # THE GAME'S LIBRARY IS KEPT for the next game in this worker's sequence -- after WIN,
-    # death or cap alike. No path, no save: a run with no sequence stays cold (F471).
+    # game loss or cap alike. No path, no save: a run with no sequence stays cold (F471).
     saved = store.library_save(ag.gamma, library) if library else None
     # THE STOP-LOSS, the same rule as play: written, never read here (arc_holdout.save_only).
     saved_only = arc_holdout.save_only(ag, save_only_dir, game, led_path)
@@ -95,7 +101,7 @@ def run(w, game: str, max_actions: int, *, on_action=None, library: str | None =
     return {"game": game, "acted": acted_n, "cycles": ag.cycle, "end": end or "cap",
             # D-RESET-COUNT (the reviewer 2026-10-15 19:45): the RESETs that REACHED the game; one
             # the guard refused (arc_holdout 109-110) was chosen, counted in _acts, and never sent
-            "deaths": deaths,
+            "game_losses": game_losses,
             "agent_resets": ag._acts.get("RESET", 0) - getattr(env.w, "refused_step", 0),
             "levels": env.levels(), "refused_resets": getattr(env.w, "refused", 0),
             "loaded": loaded, "saved": saved, "saved_only": saved_only,

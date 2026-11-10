@@ -74,7 +74,10 @@ def child(world_: str, arm: str) -> dict:
     return out
 
 
-WORK = {("@budget", "spent"), ("@budget", "late_asked"), ("*", "late_asked")}
+# and the walk memo's hit / miss counters on the books row (it postdates E): an answer recomputed
+# on its first ask changes how often a later lookup hits, which is work, never a decision
+WORK = {("@budget", "spent"), ("@budget", "late_asked"), ("*", "late_asked"),
+        ("*", "walk_memo_hit"), ("*", "walk_memo_miss")}
 
 
 def main() -> int:

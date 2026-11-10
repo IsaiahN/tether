@@ -134,6 +134,22 @@ _REALISE_CELL = armflag.arm("TETHER_REALISE_CELL", default=True)
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _DEST_GAP = armflag.arm("TETHER_DEST_GAP", default=True)
 
+# (E) (the reviewer 2026-11-10 r1627): a press's effect is signed by the minimal difference mod the
+# slot's alphabet (the agent's, passed to audit), so a one-cell wrap reads as the one-cell step
+# the bet reads; a tie at n/2 keeps the raw sign and is recorded. OFF: the raw difference
+_EFFECT_WRAPPED = armflag.arm("TETHER_EFFECT_WRAPPED", default=True)
+
+
+def wrap_step(d: int, n: int | None) -> tuple[int, bool]:
+    """(E): a step read the way the bet reads it, the minimal difference mod n, and whether it
+    was a tie at n/2 (then the raw d). No n: the raw d. Every reader of a step takes this."""
+    if not n:
+        return d, False
+    w = (d + n // 2) % n - n // 2
+    if n % 2 == 0 and w == -(n // 2):
+        return d, True
+    return w, False
+
 # THE CLICK SITE'S VARIETY RULE (the reviewer 2026-10-12 15:26 CDT, stage 1b): what a press at a
 # coordinate did, per pre-press context, and an explore press aimed first at an object not yet
 # pressed here. ON; reason in conform/arms.py.
@@ -213,8 +229,16 @@ _KIND_TEST = armflag.arm("TETHER_KIND_TEST", default=True)
 # kind tables (delta_kind, lands_kind -- name-free: contact context, kind key, rel or the value
 # before) are written to the lineage and loaded into `carried_kind`, beside the table and never into
 # it (an action absent from the table stays unmapped, so game 2 still learns its buttons); the kind
-# readers see carried cells under this life's own, and _KIND_TEST presses one as a test first.
+# readers see carried cells under this game series' own, and _KIND_TEST presses one as a test first.
 _ACTION_CARRY = armflag.arm("TETHER_ACTION_CARRY", default=True)
+# (7) THE ACTION TABLE WRITTEN AS INCREMENTS (Build 1; the reviewer 2026-11-03 r906 3, MF-K14): a
+# save writes this game series' OWN cells' increments since its last write ("action_kinds_d"), never
+# the cumulative carried + own value, and the readers add them to the cell. Two branches' increments
+# then sum at any merge in any order, and a fork's cells under an as-seen code add into the
+# canonical cell through the alias map, so no branch's sightings are picked away by fold order.
+# Saves written before keep their meaning (a cumulative cell, the latest replacing). OFF: the
+# cumulative cells, and an increment field is not read.
+_AK_DELTA = armflag.arm("TETHER_AK_DELTA", default=True)
 
 def _summed(delta: dict, ctx: tuple, slot: str) -> tuple[int, float]:
     """`(n, tot)` for one `(ctx, slot)`, SUMMED OVER EVERY `rel`.
@@ -249,11 +273,20 @@ _AIM_ROUTED = armflag.arm("TETHER_AIM_ROUTED", default=True)
 # C1 BOARD_UNTRIED (the reviewer 2026-11-01 r725-r728; Isaiah 18:00, the names stay in the
 # interface): ELICIT's "never taken" reads "not realised on THIS board" -- the interface's own
 # record per board, a board being what the agent's situate(new_board=True) opens -- never the
-# life's table, which in a serial life maps every button by the second board (pass 3: all of
-# ACTION1-7 by cycle 27). The agent reads only untried_here(), a count. OFF: "never taken" =
-# absent from the life's table
+# the game series' table, which in a serial game series maps every button by the second board (pass
+# 3: all of ACTION1-7 by cycle 27). The agent reads only untried_here(), a count. OFF: "never taken"
+# = absent from the game series' table
 _BOARD_UNTRIED = armflag.arm("TETHER_BOARD_UNTRIED", default=True)
 AIM_ROUTED_N: Counter = Counter()   # "<asker>:record" / ":object" / ":pair_no_record" / ":no_aim"
+
+
+def _sig_forms(sig) -> frozenset:
+    """A signature's attribute forms: each moved attribute signed ("?.row+") and unsigned."""
+    out = set()
+    for k, s in sig:
+        f = f"?.{k.rsplit('.', 1)[-1]}"
+        out |= {f, f + ("+" if s > 0 else "-" if s < 0 else "=")}
+    return frozenset(out)
 
 
 def _is_relational(slot: str | None, env: object) -> bool:
@@ -387,6 +420,7 @@ def fingerprint(env: Any, state: dict) -> tuple[str, str]:
 
 
 ALL_VETOED = "every option vetoed"
+VETO_ORDERED = "a game-loss veto taken last"
 # (4b) WHY A REALISATION FAILED, three kinds (UMW A6): nothing could be offered or the one option
 # was ruled out; no table cell knows a way; or offered actions were seen to act on the subject and
 # none does what is asked here
@@ -405,6 +439,9 @@ class Withheld:
 
     fp: str = ""
     pairs: frozenset = frozenset()
+    # C1 part 7 (the reviewer r1600 Q2): the game-loss vetoes among `pairs`, ordered LAST rather
+    # than removed: released only when nothing else realises (realise's second pass)
+    last: frozenset = frozenset()
 
     def __bool__(self) -> bool:
         return bool(self.pairs)
@@ -494,8 +531,8 @@ class Interface:
     the agent built. **This table starts empty on every board and is filled only by acting.**
     """
 
-    # the being's seed, set by the agent at birth (HOLD_SEED, the reviewer 15:04 Q3: one animal);
-    # None is the old constant
+    # the being's seed, set by the agent at its start (HOLD_SEED, the reviewer 15:04 Q3: one
+    # animal); None is the old constant
     draw_seed: str | None = None
 
     def __init__(self) -> None:
@@ -518,6 +555,7 @@ class Interface:
         # (4b): the last None realise's reason, and every one since the agent last drained them
         self.unrealised: dict | None = None
         self.unrealised_log: list = []
+        self.unrealised_dropped = 0     # r1431: reasons the log's cap refused since the drain
         # (4a) I-A: (intent said, ctx) -> {(action, coord): [on course, off course]}, the agent's
         # verdicts; and what the last audited press MEANT (intent, why, mode)
         self.served: dict = {}
@@ -535,6 +573,7 @@ class Interface:
         self.conditional: set[str] = set()     # more than one effect, ACROSS contexts
         self.changed: set[str] = set()         # more than one effect WITHIN one context
         self.unreliable: set[str] = set()      # lands a slot on more than one value in a ctx
+        self.effect_ties: list[str] = []       # (E): the last press's slots signed at a tie
         # THE CONTINGENCY INSTRUMENTS, MOVED WITH THE COMPUTATION. `Agent.members()` published
         # these and its numbers are the reason the gates below are trusted, so leaving them
         # behind would have made the relocation unreadable at exactly the moment it needs
@@ -642,8 +681,18 @@ class Interface:
             offered = self.adjacent(offered)   # before the floor, so RESET is never even ranked
             if not offered:
                 return self._none(BLOCKED, "reset adjacency: RESET was the only offer", asker)
+        full = offered
         offered, w, every = self._withhold(withheld, offered, state, env)
         r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker, split=split)
+        if r is None and withheld.last and not every:
+            # C1 part 7 (S3): nothing realised with the game-loss vetoes withheld, so they are
+            # offered after everything else, never removed
+            offered, w, every = self._withhold(
+                Withheld(withheld.fp, withheld.pairs - withheld.last), full, state, env)
+            r = self._choose(intent, offered, ctx, state, env, w, cell=cell, asker=asker,
+                             split=split)
+            if r is not None:
+                r = _replace(r, why=f"{r.why}; {VETO_ORDERED}")
         if r is not None and r.action == RESET and self._last_was_reset:
             _alt = tuple(a for a in offered if a != RESET)
             r = (self._choose(intent, _alt, ctx, state, env, w, cell=cell, asker=asker,
@@ -660,6 +709,8 @@ class Interface:
             self.unrealised = {"kind": kind, "why": why, "asker": asker}
             if len(self.unrealised_log) < 256:
                 self.unrealised_log.append(self.unrealised)
+            else:
+                self.unrealised_dropped += 1
 
     def _tried(self, offered: tuple[str, ...], subject: str | None) -> str:
         """(4b): TRIED when an offered action's table already holds a cell on `subject` (it was
@@ -701,10 +752,16 @@ class Interface:
         out, self.unrealised_log = self.unrealised_log, []
         return out
 
+    def take_unrealised_dropped(self) -> int:
+        """r1431: how many reasons the log's 256 cap refused since the last call; the REPEAT row
+        drains it beside take_unrealised."""
+        out, self.unrealised_dropped = self.unrealised_dropped, 0
+        return out
+
     def _withhold(self, w: Withheld, offered: tuple[str, ...], state: dict | None,
                   env: Any) -> tuple[tuple[str, ...], Withheld, bool]:
         """(offered, withheld, every option vetoed). A non-empty set built on another board is
-        REFUSED: applying one board's deaths to another is a false veto."""
+        REFUSED: applying one board's game losses to another is a false veto."""
         if not w:
             return offered, w, False
         if env is None or fingerprint(env, env.observe())[0] != w.fp:
@@ -1040,7 +1097,8 @@ class Interface:
             return max(band, key=lambda a: (rank.get(a, 0), -band.index(a)))
 
         def _unm(a: str) -> bool:
-            # C1: an exploration's "never taken" is read on this board, beside the life's table
+            # C1: an exploration's "never taken" is read on this board, beside the game series'
+            # table
             if _BOARD_UNTRIED and intent.kind == ELICIT:
                 return a not in self.realised_board.get(self.board_n, ())
             return a not in self.table
@@ -1198,7 +1256,8 @@ class Interface:
 
     def situate(self, epoch: int, alive: bool, new_board: bool = False) -> None:
         """The agent's situation, at each of its boundaries. Nothing recorded is dropped.
-        new_board: the agent read a new board (any boundary but a death; a restart is not one)."""
+        new_board: the agent read a new board (any boundary but a game loss;
+            a restart is not one)."""
         self.epoch, self.alive = epoch, alive
         if new_board:
             self.board_n += 1
@@ -1207,6 +1266,12 @@ class Interface:
         """TF_PASS (r850): whether any offered action can be aimed at an object, so a kind touch
         is possible at all. The names stay on this side of the seam."""
         return any(a in POSITIONED for a in offered)
+
+    @staticmethod
+    def touch_only(moved: set) -> bool | None:
+        """Item 18 (r1223): every action seen to move something takes a position; None while
+        nothing has moved. The names stay on this side of the seam."""
+        return all(a in POSITIONED for a in moved) if moved else None
 
     def untried_here(self, offered: tuple[str, ...]) -> int:
         """C1: how many offered actions are not yet realised on this board, RESET left out while
@@ -1325,6 +1390,27 @@ class Interface:
         if a == RESET:
             return RESTARTS
         return CHANGES if self._known_now(a, ctx) == CHANGES else NO_EFFECT
+
+    def known_forms(self, a: str, ctx: tuple) -> frozenset:
+        """C1 part 5 (the reviewer 2026-11-09 r1592): what `a` is KNOWN to move in `ctx`, as signed
+        attribute forms ("?.row+"), read from the table this agent's own presses wrote. Known = one
+        effect seen there; none seen, or more than one, offers nothing ("unknown" never reads as
+        "moves nothing", Fig 9 :44). Only the attribute crosses: no action name, key or coord. Each
+        moved attribute is offered signed ("?.row+") and unsigned ("?.row", either way)."""
+        sigs = self.table.get(a, {}).get("by_ctx", {}).get(ctx)
+        if not sigs or len(sigs) != 1:
+            return frozenset()
+        return _sig_forms(next(iter(sigs)))
+
+    def known_split(self, a: str, ctx: tuple) -> tuple[bool, frozenset, frozenset]:
+        """C1 (B) (c), TETHER_KNOWN_CORE (the reviewer 2026-11-10 r1615): (seen, holds, union)
+        for `a` in `ctx`. A form HOLDS if every signature seen there moved it, FAILS if none did
+        (outside the union), and is undecided otherwise, or when `a` was never seen in `ctx`."""
+        sigs = self.table.get(a, {}).get("by_ctx", {}).get(ctx)
+        if not sigs:
+            return False, frozenset(), frozenset()
+        each = [_sig_forms(s) for s in sigs]
+        return True, frozenset.intersection(*each), frozenset.union(*each)
 
     # ---- upward: what changed, in reasoning terms -------------------------------------
 
@@ -1671,6 +1757,12 @@ class Interface:
         except Exception as e:                             # noqa: BLE001
             CONTEXT_FAULTS[type(e).__name__] += 1          # r696 row 14: booked, never silent
             return ()
+        return Interface.context_of(pts, actor)
+
+    @staticmethod
+    def context_of(pts: Any, actor: str | None = None) -> tuple:
+        """`context`'s count over given contact points: the live call is this over the live
+        points, and item 23 (TETHER_HOW_SOON) reads a predicted state's points through it."""
         kinds: dict[str, int] = {}
         for a, b, kind in pts:
             # THE ACTOR'S OWN CONTACTS, not the board's. *`left` while against the wall* and
@@ -1682,7 +1774,8 @@ class Interface:
         return tuple(sorted(kinds.items()))
 
     def _kind_tab(self, a: str, tab: str) -> dict:
-        """A kind table for action `a`: this life's own cells, over the carried ones (own wins)."""
+        """A kind table for action `a`: this game series' own cells, over the carried ones (own
+        wins)."""
         own = self.table.get(a, {}).get(tab, {})
         car = self.carried_kind.get(a, {}).get(tab) if _ACTION_CARRY else None
         return {**car, **own} if car else own
@@ -1707,6 +1800,29 @@ class Interface:
                     if written.get(key) != v:
                         out[key] = v
         return out
+
+    def kind_tables_delta(self, written: dict) -> tuple[dict, dict]:
+        """TETHER_AK_DELTA: this game series' OWN cells' increments since `written` (the own values
+        at its last write), keyed as kind_tables_out: [n, total] by subtraction, a landed cell by
+        the values not yet written. (the increments, the own values now)."""
+        out, now = {}, {}
+        for a, tabs in self.table.items():
+            for tab in ("delta_kind", "lands_kind"):
+                for k, o in tabs.get(tab, {}).items():
+                    key = repr((a, tab, k))
+                    w = written.get(key)
+                    if tab == "delta_kind":
+                        now[key] = [o[0], o[1]]
+                        w = w or [0, 0]
+                        d = [o[0] - w[0], o[1] - w[1]]
+                        if d != [0, 0]:
+                            out[key] = d
+                    else:
+                        now[key] = sorted(set(o))
+                        d = sorted(set(o) - set(w or ()))
+                        if d:
+                            out[key] = d
+        return out, now
 
     def kind_tables_in(self, rows: dict) -> int:
         """TETHER_ACTION_CARRY: the lineage's kind cells into `carried_kind`; a row that does not
@@ -1848,7 +1964,8 @@ class Interface:
 
     def audit(self, r: Realisation, before: dict, after: dict, ctx: tuple = (),
               ctx_after: tuple | None = None, own: frozenset = frozenset(),
-              reaff: frozenset = frozenset(), meant: tuple | None = None) -> bool:
+              reaff: frozenset = frozenset(), meant: tuple | None = None,
+              alphabet: dict | None = None) -> bool:
         """Record what this action did, and report when it does not have ONE fixed effect.
 
         **RETURNS `True` FOR *CONDITIONAL*, NOT FOR *CHANGED*, AND THE DIFFERENCE IS ISAIAH'S
@@ -1918,9 +2035,19 @@ class Interface:
         #
         # Signed, `left` is `(('o0.col', -1),)` and then `(('o0.col', +1),)`: two effects in one
         # context, which is exactly what `changed_here` exists to notice.
+        self.effect_ties = []
+
+        def _wd(k: str) -> int:
+            """(E): the step, read as the bet reads it -- every reader of d in audit takes this."""
+            d, tie = wrap_step(int(after.get(k, 0)) - int(before.get(k, 0)),
+                               (alphabet or {}).get(k) if _EFFECT_WRAPPED else None)
+            if tie and k not in self.effect_ties:   # exactly n/2 either way: the raw sign
+                self.effect_ties.append(k)
+            return d
+
         def _eff(k: str) -> tuple[str, int]:
             try:
-                d = int(after.get(k, 0)) - int(before.get(k, 0))
+                d = _wd(k)
             except (TypeError, ValueError):
                 return (k, 0)
             return (k, (d > 0) - (d < 0))
@@ -1984,7 +2111,7 @@ class Interface:
         for k in changed:
             cap.head()
             try:
-                d = int(after.get(k, 0)) - int(before.get(k, 0))
+                d = _wd(k)
             except (TypeError, ValueError):
                 continue
             # LAYER 1. `rel` says whether the slot that moved belongs to the object that was

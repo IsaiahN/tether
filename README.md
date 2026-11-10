@@ -47,6 +47,11 @@ source code. It rewrites its **vocabulary**: the terms it reasons with.
 - **It knows when it is stuck.** When nothing it holds can close a gap, it says *unreachable with
   what I hold*. It then splits the question, names a new condition, or waits for an import,
   instead of guessing.
+- **It budgets its own thinking and weighs its own choices.** A step thinks about as long as
+  its recent steps needed, and work it cannot afford is owed, never judged. Each way of acting
+  wins only on what it returned before; a held plan or a goal step proposes and acts only if it
+  wins; goals that worked before are tried first; and as new terms arrive, the least-used fall
+  back to a second search tier, while nothing is deleted.
 - **It carries what it learned.** Between runs it writes a lineage of terms *by kind*, never by
   instance, with their evidence. The next life starts from them.
 - **It is whitebox.** Each term carries the atoms and bonds it was built from. The ledger says

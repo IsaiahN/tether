@@ -81,6 +81,10 @@ def _norm(rows: list, partial: tuple = ()) -> list:
         if r["event"] == "arms":
             continue
         d = r["detail"]
+        if r["event"] == "memo_sizes" and isinstance(d.get("agent"), dict):
+            # r1195: the end-of-run size row, added after this test; its compile cache holds what
+            # narrowing compiled (501 ON, 618 OFF on fake) -- the saving itself, not a behaviour
+            d = {**d, "agent": {k: v for k, v in d["agent"].items() if k != "compile"}}
         if r["event"] == "goal_hypotheses":
             d = {k: v for k, v in d.items() if k not in partial}
             if isinstance(d.get("capped"), dict):
@@ -203,6 +207,13 @@ def check_cap_record_phases() -> None:
 
 
 def _off_identity(w: str) -> None:
+    # r1195 (r1170): a LANDING-TIME check. Its base is pinned to the tree before the arm (a228a09),
+    # and every default-ON arm since is OFF only by off_env's list; each item's own OFF identity is
+    # the live check
+    if os.environ.get("TETHER_TEST_LANDING") != "1":
+        print(f"  SKIP OFF identity {w}: landing-time identity vs {BASE} (r1170, r1195); run with "
+              "TETHER_TEST_LANDING=1")
+        return
     root = str(_repo.ROOT)
     with tempfile.TemporaryDirectory() as d:
         tar = subprocess.run(["git", "-C", root, "archive", BASE], capture_output=True, check=True)

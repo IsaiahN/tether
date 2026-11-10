@@ -1,13 +1,15 @@
 """C-7h-1, 7h (the reviewer 2026-10-15 17:32, 19:59): the tried count, the shown frequency, root.
 
-  R1  a root row at birth, and after a death's restart, none while dead; its fields answer what is
+  R1  a root row at the game start, and after a game loss's restart, none while dead;
+      its fields answer what is
       shown, expected, open, owed, and name no action, button or coordinate
   R2  every choice row after a root carries that root's id
-  R3  a root written before a death gets a verdict row with ending "death" at that boundary
+  R3  a root written before a game loss gets a verdict row with ending "game_loss" at that boundary
   T1  site 8: two operands equal in everything but this level's tries go fewer-tries-first; MF with
       no tried count the draw decides (the order today)
   S1  site 9: a value shown 3 times reads 3, one shown once reads 1; MF OFF reads 1 and 1
-  Runs under the old seed constant (C-seed-X): R1-R3 need a birth that restarts after its death.
+  Runs under the old seed constant (C-seed-X): R1-R3 need a game start that restarts after its game
+  loss.
 
     python tests/test_7h.py
 """
@@ -65,7 +67,7 @@ def main() -> None:
     run = _run(RUN, {})
     roots = [(s, d) for s, e, d in run["rows"] if e == "intent_root"]
     verdicts = [(s, d) for s, e, d in run["rows"] if e == "intent_verdict"]
-    assert run["end"] != "death" and run["resets"] >= 1, ("precondition: no restart", run)
+    assert run["end"] != "game_loss" and run["resets"] >= 1, ("precondition: no restart", run)
     assert len(roots) >= 2 and all(d["alive"] for _s, d in roots), ("R1", roots)
     first = roots[0][1]
     for k in ("shown", "expected", "open", "owed"):
@@ -80,8 +82,8 @@ def main() -> None:
         if e == "choice":
             live = [r for r in by_seq if r[0] < s]
             want = live[-1][1]["root"] if live else None
-            # a root graded by a verdict (the death) before this choice is closed: while dead there
-            # is no root (R1), so a choice made then -- 7h (f)'s exit row -- carries none
+            # a root graded by a verdict (the game loss) before this choice is closed: while dead
+            # there is no root (R1), so a choice made then -- 7h (f)'s exit row -- carries none
             if live and any(live[-1][0] < v < s for v, _vd in verdicts):
                 want = None
             if d.get("root") != want:
@@ -90,8 +92,8 @@ def main() -> None:
     assert n_choice and not bad, ("R2", n_choice, bad[:3])
     print(f"  R2 {n_choice} choice rows each carry the root before them")
     assert verdicts and verdicts[0][1]["root"] == first["root"] \
-        and verdicts[0][1]["ending"] == "death", ("R3", verdicts)
-    print(f"  R3 the birth root {first['root']} graded at the death: {verdicts[0][1]}")
+        and verdicts[0][1]["ending"] == "game_loss", ("R3", verdicts)
+    print(f"  R3 the game-start root {first['root']} graded at the game loss: {verdicts[0][1]}")
 
     import frontier as FR
     from tether import _lookup_order

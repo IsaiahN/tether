@@ -146,7 +146,8 @@ def main() -> int:
     b.end_run("cap")
     lineage.write(d, b, "fake")
     assert b._dk_snap.closed and ls.wal_bytes(d) == 0, ls.wal_bytes(d)
-    env_c, c = agent(d)                     # a third life: its snapshot is the planted reader
+    env_c, c = agent(d)                     # a third game series: its snapshot is the planted
+                                            # reader
     steps(env_c, c, 6)
     assert lineage.boundary(d, c, "fake", "level")
     framed = ls.wal_bytes(d)

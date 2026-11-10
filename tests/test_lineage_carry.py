@@ -52,6 +52,12 @@ import world  # noqa: E402
 from test_entry import FakeWrapper  # noqa: E402
 
 N = 20
+# R-g2's steps after the retarget: seed 3 under the pinned seed first settles (gamma.evidence) at
+# c49, 29 steps after the c20 retarget (measured 2026-11-08, r1498); 36 is that plus a margin
+N_AFTER = 36
+# part c's section 1: game 2 first writes rows of its own at 30 (0 at 20; seed 0 twice, measured
+# 2026-11-08, r1515), so the constructed same-text pair has something to build on
+N_C = 30
 
 
 _LOADS = []   # each load_blob call lineage.load makes: what R-g1's oracle repeats, guard (a)
@@ -196,11 +202,13 @@ def _carries(rows, ag, rep, label, mf=False):
     return composed, unbound
 
 
-def _partition(f, blob, names):
+def _partition(f, blob, names, held=None):
     """R-g2's terms under (d), TETHER_SAVE_DEDUP (amends registered refuter R-g2, the reviewer
     2026-10-14 20:18, ruled 2026-10-25 21:03): a term whose load key a written row already holds is
     saved as an alias {was, key}, so the rows and the aliases are the blob's terms. None, or the
-    first of (a)-(e) that fails. OFF there are no aliases and it is the old check exactly."""
+    first of (a)-(e) that fails. OFF there are no aliases and it is the old check exactly.
+    `held`, when given, is the rows (d) reads: the fold's, so an alias onto a parent row is
+    found and an alias onto nothing is not (r1506)."""
     folded = [{k: v for k, v in r.items() if k not in ("born", "was")} for r in f["terms"]]
     al = {a["was"]: a["key"] for a in f.get("aliases", [])}
     terms = list(zip(blob["terms"], names, strict=True))
@@ -210,7 +218,8 @@ def _partition(f, blob, names):
         return "(b) the rows are not the blob's terms less the aliased ones"
     if not all(gamma.Gamma.row_key(t) == al[n] for t, n in terms if n in al):
         return "(c) an alias's key is not its own term's"
-    if not set(al.values()) <= {gamma.Gamma.row_key(r) for r in f["terms"]}:
+    if not set(al.values()) <= {gamma.Gamma.row_key(r)
+                                for r in (f["terms"] if held is None else held)}:
         return "(d) an alias's key is no written row's"
     # "was" is R7i's field, which the generation ADDS (lineage.write, TETHER_REPLAY_UNIT): each
     # row's must be that term's own name, checked rather than ignored (the reviewer 20:14 b)
@@ -219,7 +228,8 @@ def _partition(f, blob, names):
     return None
 
 
-PARTS = ("a", "b", "c", "d")     # by name, one process each at landing, each under 5 min (r299)
+PARTS = ("a", "b", "c", "d", "e", "f")  # by name, one process each; each under 5 min (r299),
+#                                          c and e under 10 (r1526)
 
 
 def on_checks(parts=PARTS):
@@ -316,21 +326,20 @@ def _part_a(tmp):
     assert r.returncode == 0, f"R-g1 second process:\n{r.stderr[-2000:]}"
 
 
-def _part_b(tmp):
-    """R-g2."""
-    # R-g2: the round trip, with a dormant record (HOLD on, a real retarget).
-    rr = tmp / "rt"
-    env, ag, _ = _agent(rr, 3)
+def _game_series(rr, seed):
+    """One R-g2 game series on world `seed`, loading rr first: N steps, a real retarget, N_AFTER
+    steps, end_run. The write is _write_kind_off's."""
+    env, ag, rep = _agent(rr, seed)
     for _ in range(N):
         ag.step()
     ag.retarget(env, ag.level + 1, how="level_advance")
-    for _ in range(3):
+    for _ in range(N_AFTER):
         ag.step()
     ag.end_run("cap")
-    blob = ag.gamma.blob()
-    names = [r["name"] for r in ag.gamma.blob(with_names=True)["terms"]]
-    assert ag.gamma.evidence and ag._dormant, ("fixture: no evidence or no dormant record",
-                                               len(ag.gamma.evidence), len(ag._dormant))
+    return env, ag, rep
+
+
+def _write_kind_off(rr, ag):
     # R-g2 is ABOUT instance aliases and "was == name" (and the evidence written as held), which
     # TETHER_KIND_SAVE (3) changes by construction: pinned to KIND_SAVE OFF for this write (the
     # reviewer 2026-10-29 r299: per check, in the test). ON TWIN: tests/test_kind_save.py
@@ -341,29 +350,80 @@ def _part_b(tmp):
         lineage.write(rr, ag, "default")
     finally:
         lineage._KIND_SAVE = kind_save
+
+
+def _part_b(tmp):
+    """R-g2."""
+    # R-g2: the round trip, with a dormant record (HOLD on, a real retarget), on a game series that
+    # INHERITED (r1503, r1504, r1506): a first real game series on the same world writes the parent,
+    # and the game series under test loads it. Its save holds one composition under several instance
+    # names, the within-save alias (lineage.py :716-722, held_keys grown at :724); the parent-fold
+    # path (:699) is not witnessed here; its own constructed fixture follows (r1506)
+    rr = tmp / "rt"
+    _env1, ag1, _ = _game_series(rr, 3)
+    assert ag1.gamma.evidence and ag1._dormant, (
+        "fixture: game series 1 settled nothing (or held no dormant record); the parent has no "
+        "record",
+        len(ag1.gamma.evidence), len(ag1._dormant))
+    _write_kind_off(rr, ag1)
+    env, ag, rep = _game_series(rr, 3)
+    assert rep.get("parent"), ("fixture: game series 2 loaded no parent", rep)
+    blob = ag.gamma.blob()
+    names = [r["name"] for r in ag.gamma.blob(with_names=True)["terms"]]
+    assert ag.gamma.evidence and ag._dormant, (
+        "fixture: seed 3 settled nothing (or held no dormant record) by step N + N_AFTER -- the "
+        "forcing occasion is gone; not a lineage failure", len(ag.gamma.evidence), len(ag._dormant))
+    _write_kind_off(rr, ag)
+    chain = lineage._chain(Path(rr))
     _h, f = lineage.head(rr)
-    bad = _partition(f, blob, names)
+    assert len(chain) == 2 and chain[-1][0] == _h, ("fixture: the chain is not parent + tip",
+                                                    [h for h, _g in chain])
+    par, tip = chain[0][1], chain[1][1]
+    # (r1506 (2)) the terms the TIP holds: game series 2's own; a carried term is not re-written
+    # (:716), so the rows and aliases partition game series 2's NEW terms, and (d) reads the fold's
+    # rows
+    new = [(t, n) for t, n in zip(blob["terms"], names, strict=True)
+           if not ag.gamma.carried.get(n)]
+    nb, nn = {"terms": [t for t, _n in new]}, [n for _t, n in new]
+    ft = {"terms": tip["terms"], "aliases": tip.get("aliases", [])}
+    bad = _partition(ft, nb, nn, f["terms"])
     assert bad is None, ("R-g2 terms", bad)
-    al = f.get("aliases", [])
+    al = ft["aliases"]
     assert al, "fixture: the save wrote no alias, so the must-fail below has no occasion"
     # MUST-FAIL (the reviewer 2026-10-25 21:03): one alias dropped, and one pointed at a key no row
     # holds; each must go RED, naming the clause
-    drop = _partition({**f, "aliases": al[1:]}, blob, names)
-    stray = _partition({**f, "aliases": [{**al[0], "key": json.dumps(["no such"])}] + al[1:]},
-                       blob, names)
+    drop = _partition({**ft, "aliases": al[1:]}, nb, nn, f["terms"])
+    stray = _partition({**ft, "aliases": [{**al[0], "key": json.dumps(["no such"])}] + al[1:]},
+                       nb, nn, f["terms"])
     assert drop and stray, ("R-g2 MF: a broken save passed", drop, stray)
-    print(f"  R-g2 terms: {len(blob['terms'])} = {len(f['terms'])} rows + {len(al)} aliases; "
-          f"MF one alias dropped -> {drop}; one alias's key stray -> {stray}", flush=True)
-    assert f["evidence"] == ag.gamma.evidence, "R-g2 evidence"
+    print(f"  R-g2 terms: game series 2 holds {len(names)} ({len(names) - len(nn)} carried); its "
+          f"{len(nn)} new = {len(ft['terms'])} rows + {len(al)} aliases; MF one alias dropped -> "
+          f"{drop}; one alias's key stray -> {stray}", flush=True)
+    # (r1504) (1) evidence and dormant at the generation under test: the fold's are not read back
+    # (lineage.load); (3) the fold is exactly the parent's followed by the tip's. A save holds its
+    # dormant encoded (:196) and the fold decodes it (:444), so the tip's is compared decoded
+    td = lineage.dec(tip["dormant"])
+    assert tip["evidence"] == ag.gamma.evidence, "R-g2 evidence"
+    assert f["evidence"] == par["evidence"] + tip["evidence"], "R-g2 evidence chain"
+    assert f["dormant"] == lineage.dec(par["dormant"]) + td, "R-g2 dormant chain"
+    # MUST-FAILS (r1504): one tip entry dropped fails (1); one parent entry dropped fails (3);
+    # the parent's dormant dropped fails (3)
+    assert par["evidence"] and par["dormant"], "fixture: the parent wrote no evidence or dormant"
+    assert (tip["evidence"][:-1] != ag.gamma.evidence
+            and f["evidence"] != par["evidence"][:-1] + tip["evidence"]
+            and f["dormant"] != td), "R-g2 MF: a dropped evidence or dormant entry passed"
+    print(f"  R-g2 chain: evidence {len(f['evidence'])} = {len(par['evidence'])} + "
+          f"{len(tip['evidence'])}, dormant {len(f['dormant'])} = "
+          f"{len(f['dormant']) - len(td)} + {len(td)}; MF a dropped entry -> red", flush=True)
     # (c), the reviewer 20:57: the boundary item is written WHOLE, each Term in its term-row form
     gen_rr = json.loads(lineage_store.file_bytes(Path(rr) / f"gen_{_h}.json"))
     assert gen_rr["dormant_refused"] == [], ("R-g2 dormant refused", gen_rr["dormant_refused"])
-    assert f["dormant"] == [lineage.term_form(x) for x in ag._dormant], "R-g2 dormant"
+    assert td == [lineage.term_form(x) for x in ag._dormant], "R-g2 dormant"
     live = {(i, k): t for i, x in enumerate(ag._dormant)
             for k, t in x["stores"]["want_terms"].items()}
     assert live, "fixture: no Term in the dormant record"
-    assert all(f["dormant"][i]["stores"]["want_terms"][k]["__term__"] == t.name
-               and f["dormant"][i]["stores"]["want_terms"][k]["atoms"] == [a.name for a in t.atoms]
+    assert all(td[i]["stores"]["want_terms"][k]["__term__"] == t.name
+               and td[i]["stores"]["want_terms"][k]["atoms"] == [a.name for a in t.atoms]
                for (i, k), t in live.items()), "R-g2 dormant: the record is not the live Term's"
     # MUST-FAIL: OFF, the write's own encoder refuses the item, named (the check above would fire)
     arm = lineage._DORMANT_TERM_FORM
@@ -390,54 +450,71 @@ def _part_b(tmp):
 
 
 def _part_c(tmp):
-    """Identity, (d) OFF and ON."""
-    # LINEAGE-UNIQUE IDENTITY (the reviewer 20:45): a per-game COUNTER in place of the handle's
-    # random suffix, so two games of one name mint the same handle text; both rows must fold.
+    """Identity, (d) OFF: the whole fold."""
+    # LINEAGE-UNIQUE IDENTITY (the reviewer 20:45): two rows sharing one handle text across two
+    # generations must both fold, keyed by (born, handle), never by text. Re-minting no longer
+    # arises: loading the carried term, game 2 reuses it (2026-11-08: reuse at c19 at N=20, c29 at
+    # N=40, settled c30; evidence 48 written 48), so its path departs from game 1's and a per-game
+    # counter's texts no longer line up -- the counter ticked on every non-PRIOR install
+    # (gamma.py :1174), carried loads included. The occasion is constructed as (b) constructs its
+    # own (r1509, r1514, r1515): game 2 writes rows of its own from N_C on (0 at 20, 4 at 30)
     cd = tmp / "same_text"
-    real = gamma.Term.handle
-    count = [0]
-
-    def counted(_self, game, _seed=None):   # term.handle takes the draw seed (HOLD_SEED)
-        count[0] += 1
-        return f"{game}_X_term_{count[0]:08x}"
-    gamma.Term.handle = counted
-    # (d) OFF here: the repeated texts come from game 2 re-minting game 1's compositions, which (d)
-    # writes as aliases; the (born, handle) keying under test is the same either way
     dedup = lineage._SAVE_DEDUP
-    lineage._SAVE_DEDUP = False
+    lineage._SAVE_DEDUP = False    # (d) OFF: nothing is aliased, so every row must fold as a row
     try:
         written = []
-        for _ in range(2):
-            count[0] = 0
-            env, agc, _r = _agent(cd, 0)
-            for _ in range(N):
-                agc.step()
-            agc.end_run("cap")
-            written.append(lineage.write(cd, agc, "default"))
+        env, ag1, _r = _agent(cd, 0)
+        for _ in range(N_C):
+            ag1.step()
+        ag1.end_run("cap")
+        written.append(lineage.write(cd, ag1, "default"))
+        row1 = next(r for r in _gen(cd, written[0])["terms"] if r.get("handle"))
+        env, ag2, _r = _agent(cd, 0)
+        for _ in range(N_C):
+            ag2.step()
+        ag2.end_run("cap")
+        own = next((r for r in ag2.gamma.blob(with_names=True)["terms"]
+                    if r["name"] not in ag2.gamma.carried), None)
+        assert own, ("fixture: game 2 wrote no row of its own -- the constructed occasion has "
+                     "nothing to build on")
+        assert gamma.Gamma.row_key(own) != gamma.Gamma.row_key(row1), (
+            "fixture: the pair is one composition")
+        ag2.gamma.handles[own["name"]] = row1["handle"]
+        written.append(lineage.write(cd, ag2, "default"))
     finally:
-        gamma.Term.handle = real
         lineage._SAVE_DEDUP = dedup
     _h, fc = lineage.head(cd)
     texts = [r["handle"] for r in fc["terms"]]
     same = len(texts) - len(set(texts))
-    assert same, ("fixture: no same-text handles arose", written)
+    assert same, ("fixture: the constructed same-text pair is not in the fold", written)
     assert len(fc["terms"]) == sum(w["terms"] for w in written), (
         "R-g2 same-text handles folded together", len(fc["terms"]), written)
-    print(f"  identity: two same-name games wrote {[w['terms'] for w in written]} rows, "
-          f"{same} handle text(s) repeated across them, all {len(fc['terms'])} folded",
+    # MUST-FAIL: the fold re-keyed by handle text alone (a stand-in here, never the shipped code)
+    by_text = {r["handle"]: r for r in fc["terms"]}
+    assert len(by_text) < len(fc["terms"]), (
+        "identity MF: keyed by text, the pair did not collapse", len(by_text), len(fc["terms"]))
+    print(f"  identity (d) OFF: whole fold == sum written, with a constructed same-text pair: "
+          f"{[w['terms'] for w in written]} rows, {same} handle text(s) shared, all "
+          f"{len(fc['terms'])} folded; MF keyed by text: {len(fc['terms'])} -> {len(by_text)}",
           flush=True)
+
+
+def _part_e(tmp):
+    """Identity, (d) ON: one pair."""
     # (b), (d) ON, the shipped default (the reviewer 2026-10-25 21:15): two DIFFERENT compositions
-    # under one handle text. Game 2 gives a term it minted itself the text of a game 1 row
+    # under one handle text. Game 2 gives a term it minted itself the text of a game 1 row. Split
+    # from part c (r1519) and on seed 0 twice at N_C: seed 0 then 1 at N=20 no longer gives game 2
+    # a composition of its own once it folds in its earlier save (2026-11-08 20:57, 21:36)
     assert lineage._SAVE_DEDUP, "(b) runs with (d) ON"
     cb = tmp / "same_text_on"
     env, agx, _r = _agent(cb, 0)
-    for _ in range(N):
+    for _ in range(N_C):
         agx.step()
     agx.end_run("cap")
     wx = lineage.write(cb, agx, "default")
     row1 = next(r for r in _gen(cb, wx)["terms"] if r.get("handle"))
-    env, agy, _r = _agent(cb, 1)
-    for _ in range(N):
+    env, agy, _r = _agent(cb, 0)
+    for _ in range(N_C):
         agy.step()
     agy.end_run("cap")
     own = next((r for r in agy.gamma.blob(with_names=True)["terms"]
@@ -483,9 +560,101 @@ def _part_d(tmp):
     b = arc_holdout.play("fake", 5, arc=Arc(), lineage_dir=str(pd))["persistence"]
     assert a["lineage"]["written"] and b["loaded"]["lineage"]["parent"] == a["lineage"]["hash"], (
         "ONE PATH", a["lineage"], b["loaded"])
-    assert b["lineage"]["parent"] == a["lineage"]["hash"], ("ONE PATH parent", b["lineage"])
+    # r1541: under TETHER_ENDING_SAVE play 2's goal-ending saves extend its chain before its end
+    # write (F2), so play 1's save parents play 2's FIRST written generation, and the end write's
+    # chain reaches it; OFF, the first written generation is the end write
+    wrote = [x for x in b.get("lineage_bounds") or () if x and x.get("hash")]
+    if lineage._ENDING_SAVE:
+        assert any(x.get("how") == "goal_ending" for x in wrote), (
+            "fixture: play 2 made no goal-ending save under the arm", b.get("lineage_bounds"))
+    first = wrote[0] if wrote else b["lineage"]
+    assert first["parent"] == a["lineage"]["hash"], ("ONE PATH parent", first)
+    par = {h: g.get("parent") for h, g in lineage._chain(Path(pd))}
+    h, back = b["lineage"]["hash"], []
+    while h is not None and h != a["lineage"]["hash"]:
+        back.append(h)
+        h = par.get(h)
+    assert h == a["lineage"]["hash"], ("ONE PATH chain: play 2's end write does not reach a", back)
     print(f"  ONE PATH: play wrote {a['lineage']['hash']}, the next play loaded it and wrote "
-          f"{b['lineage']['hash']}", flush=True)
+          f"{b['lineage']['hash']} ({len(wrote)} earlier save(s) between)", flush=True)
+
+
+def _plant_take(ag, operand):
+    """A PLANT (as part a's): one constructed "take" term bound to `operand`, accepted."""
+    t = gamma.Term((ag.gamma._by_name["take"],), operand=operand)
+    ag.gamma.accept(t, seq=len(ag.led), residual=f"{operand}@{ag.cycle}")
+    return t
+
+
+def _past_self_pair(d, wrap=None):
+    """Game 1 plants take<o0.dcol_o3> and writes the earlier save; game 2 loads it, plants
+    take<o1.dcol_o2> -- one composition, another binding, so one row_key and two names -- and
+    writes; `wrap`, when given, replaces Gamma.row_key during game 2's write only."""
+    _env, ag1, _r = _agent(d, 0)
+    p1 = _plant_take(ag1, "o0.dcol_o3")
+    ag1.end_run("cap")
+    _write_kind_off(d, ag1)
+    w1 = lineage._chain(Path(d))[-1][0]
+    _env, ag2, rep2 = _agent(d, 0)
+    assert rep2.get("parent") == w1, ("fixture: game 2 did not load the earlier save", rep2)
+    p2 = _plant_take(ag2, "o1.dcol_o2")
+    # the alias branch's own preconditions (lineage.py :705-707, :716; r1527): without them the
+    # plant is written as a row and the must-fail below would pass for the wrong reason
+    assert gamma._REPLAY_UNIT, "fixture: _REPLAY_UNIT off -- no 'was', the alias branch cannot run"
+    assert lineage._SAVE_DEDUP, "fixture: (d) off -- nothing is aliased"
+    assert p2.guard_ref is None, "fixture: the plant carries a guard_ref"
+    assert p2.name not in ag2.gamma.carried, "fixture: game 2's plant is carried, not new"
+    ag2.end_run("cap")
+    real = gamma.Gamma.row_key
+    if wrap:
+        gamma.Gamma.row_key = staticmethod(wrap(real, w1))
+    try:
+        _write_kind_off(d, ag2)
+    finally:
+        gamma.Gamma.row_key = real
+    chain = lineage._chain(Path(d))
+    return p1, p2, chain[-2][1], chain[-1][1], w1
+
+
+def _part_f(tmp):
+    """The past-self fold's alias (lineage.py :699)."""
+    # r1506, r1526, r1527: a later game re-makes a composition its earlier save holds, under a new
+    # identity; the save writes it as an ALIAS of the earlier save's row (the past-self fold path,
+    # :699 into :716-722), never a row of its own. Constructed, so it proves wiring (Fig 11 :70);
+    # part b's grown aliases take the within-save path (:724) instead
+    d = tmp / "past_self"
+    p1, p2, g1, g2, w1 = _past_self_pair(d)
+    k = gamma.Gamma.row_key({"atoms": ["take"], "operand": p1.operand})
+    assert any(gamma.Gamma.row_key(r) == k for r in g1["terms"]), (
+        "fixture: the earlier save wrote no row of key K", k)
+    assert gamma.Gamma.row_key({"atoms": ["take"], "operand": p2.operand}) == k, (
+        "fixture: the two plants are not one composition")
+    al = [a for a in g2.get("aliases", []) if a["was"] == p2.name]
+    assert not [r for r in g2["terms"] if r.get("was") == p2.name], (
+        "past-self fold: game 2's plant was written as a row")
+    assert len(al) == 1 and al[0]["key"] == k, (
+        "past-self fold: no alias of key K", g2.get("aliases"))
+    assert k not in {gamma.Gamma.row_key(r) for r in g2["terms"]}, (
+        "past-self fold: K is held by a row of game 2's own save (the within-save path, :724)")
+    # the round trip: a fresh load installs the earlier row once and maps the alias onto it
+    # (gamma.load_blob :1874-1886)
+    _env, ag3, _r = _agent(d, 0)
+    got = ag3.gamma.renamed.get(p2.name)
+    assert got is not None and got == ag3.gamma.renamed.get(p1.name), (
+        "past-self fold: the alias did not load onto the earlier save's term", got,
+        ag3.gamma.renamed.get(p1.name))
+    # MUST-FAIL (r1506): rows born in the earlier save's generation answer with a changed key
+    # during game 2's write, so K is held by nothing and the plant must be written as a ROW
+
+    def changed(real, born):
+        return lambda r: real(r) + "|changed" if r.get("born") == born else real(r)
+    _q1, q2, _h1, h2, _w = _past_self_pair(tmp / "past_self_mf", wrap=changed)
+    assert [r for r in h2["terms"] if r.get("was") == q2.name] and not [
+        a for a in h2.get("aliases", []) if a["was"] == q2.name], (
+        "past-self fold MF: with the earlier row's key changed, the plant was still aliased")
+    print(f"  past-self fold: {p2.name} (game 2) written as an alias of {p1.name}'s row in the "
+          f"earlier save {w1} (key held by no row of game 2's save); a fresh load maps it to "
+          f"{got}; MF earlier key changed -> written as a row", flush=True)
 
 
 def second(d):
@@ -503,7 +672,7 @@ def main():
     # both seeds pinned (the reviewer 2026-10-22 19:39): R-g1's precondition rode the birth seed
     env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_HOLD="1", TETHER_AGENT_SEED="0",
                PYTHONHASHSEED="0")
-    # part names on the command line run only those parts (a b c d); none runs all
+    # part names on the command line run only those parts (a b c d e f); none runs all
     parts = [a for a in sys.argv[1:] if a in PARTS]
     r = subprocess.run([sys.executable, "-B", __file__, "--on", *parts], env=env,
                        stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)

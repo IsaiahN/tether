@@ -141,6 +141,93 @@ def test_a_reuse_install_after_the_settle_is_not_an_acceptance():
     _refuses(r, gate.MISSING_INPUT)
 
 
+def _pulled(term, admitted, seq=2):
+    d = {"term": term} if admitted is None else {"term": term, "admitted": admitted}
+    return {"mode": "specified", "seq": seq, "cycle": 0, "step": "ROUTE", "slot": "s",
+            "event": "pull", "detail": d}
+
+
+def test_a_settle_with_no_arrival_refuses():
+    """r1490 (i): no accept, no reuse_install and no pull."""
+    _refuses([x for x in valid() if x["event"] not in ("mint", "accept")], gate.MISSING_INPUT)
+
+
+def test_a_tied_settle_with_no_arrival_refuses():
+    """r1595 (2): a settle_tied row (C1 part 1) is the ground judging a term too, so it needs the
+    term's accept; with the accept it passes, and it licenses no accepted status."""
+    tied = [x for x in valid() if x["event"] != "settle"] + [
+        {"mode": "specified", "seq": 4, "cycle": 1, "step": "SETTLE", "slot": "s",
+         "event": "settle_tied", "detail": {"term": "a . b", "status": "candidate"}}]
+    assert gate.check(tied)["verdict"] == gate.PASS, gate.check(tied)
+    _refuses([x for x in tied if x["event"] not in ("mint", "accept")], gate.MISSING_INPUT)
+    accepted = tied + [{"mode": "specified", "seq": 5, "cycle": 1, "step": "SETTLE", "slot": "s",
+                        "event": "miss_while_settled", "detail": {"term": "a . b",
+                                                                  "status": "accepted"}}]
+    _refuses(accepted, gate.UNSETTLED_ACCEPT)
+
+
+def test_a_pull_not_imported_is_not_an_arrival():
+    """r1490 (ii): the pull of a term minted in this game series is not its acceptance -- admitted
+    "accepted", or none."""
+    for adm in ("accepted", None):
+        r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+        r.insert(2, _pulled("a . b", adm))
+        _refuses(r, gate.MISSING_INPUT)
+
+
+def test_an_imported_pull_is_the_terms_arrival():
+    """r1490 (iii): an inherited term's arrival is its inheritance, recorded on its pull."""
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r.insert(2, _pulled("a . b", gate.IMPORTED_STAMP))
+    assert gate.check(r)["verdict"] == gate.PASS, gate.check(r)
+
+
+def test_the_imported_stamp_is_the_builds():
+    """r1490: the gate imports nothing from the build, so the one token it shares is pinned here.
+    MF: a gate whose stamp drifted refuses the build's inherited pull."""
+    import gamma
+    assert gate.IMPORTED_STAMP == gamma.IMPORTED, (gate.IMPORTED_STAMP, gamma.IMPORTED)
+    saved, gate.IMPORTED_STAMP = gate.IMPORTED_STAMP, gamma.IMPORTED + "-drifted"
+    try:
+        r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+        r.insert(2, _pulled("a . b", gamma.IMPORTED))
+        _refuses(r, gate.MISSING_INPUT)
+    finally:
+        gate.IMPORTED_STAMP = saved
+
+
+def _rebound(held_admitted, term_admitted=None, seq=2):
+    r = _pulled("a . b", held_admitted, seq=seq)
+    r["detail"].update(held="a", rebound=True)
+    if term_admitted is not None:
+        r["detail"]["term_admitted"] = term_admitted
+    return r
+
+
+def test_an_imported_rebound_arrives_by_its_reuse_install():
+    """r1493 (i): a rebound import's new name arrives by its own reuse_install."""
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r[2:2] = [_reused("a . b"), _rebound(gate.IMPORTED_STAMP, "accepted", seq=3)]
+    assert gate.check(r)["verdict"] == gate.PASS, gate.check(r)
+
+
+def test_a_rebound_onto_an_inherited_name_arrives():
+    """r1493 (ii): held "necessary", the bound name inherited, no reuse_install: its arrival is its
+    pull's term_admitted. MF: the field removed, the row's admitted (held's) does not carry it."""
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r.insert(2, _rebound("necessary", gate.IMPORTED_STAMP))
+    assert gate.check(r)["verdict"] == gate.PASS, gate.check(r)
+    del r[2]["detail"]["term_admitted"]
+    _refuses(r, gate.MISSING_INPUT)
+
+
+def test_term_admitted_is_not_overridden_by_admitted():
+    """r1493 (iii): the bound name's own stamp not imported, held's imported: no arrival."""
+    r = [x for x in valid() if x["event"] not in ("mint", "accept")]
+    r.insert(2, _rebound(gate.IMPORTED_STAMP, "accepted"))
+    _refuses(r, gate.MISSING_INPUT)
+
+
 def test_a_candidates_refuted_bet_is_a_row_the_gate_accepts():
     """P3: a candidate the ground refuted before it ever settled is recorded, as a SETTLE row."""
     r = valid()
@@ -694,12 +781,12 @@ def test_a_ledger_states_the_arms_its_run_had():
         assert Attribution.library_sha(d)[0] != a[0], "a changed library file must change it"
 
 
-def test_undeclared_death():
-    """A CHOSEN death with no disproof is farming wearing an experiment's word (§21.2)."""
+def test_undeclared_game_loss():
+    """A CHOSEN game loss with no disproof is farming wearing an experiment's word (§21.2)."""
     r = valid()
     r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
-              "event": "ending", "detail": {"how": "death", "deliberate": True}})
-    _refuses(r, gate.UNDECLARED_DEATH)
+              "event": "ending", "detail": {"how": "game_loss", "deliberate": True}})
+    _refuses(r, gate.UNDECLARED_GAME_LOSS)
 
 
 def _refusal(term):
@@ -792,21 +879,21 @@ def test_observations_the_alphabet_separates_pass():
     assert gate.check(_observed((0, 9), (8, 9), (-2, 9)))["verdict"] == gate.PASS
 
 
-def test_declared_death_passes():
-    """The same death WITH its disproof stated is the experiment §21.2 licenses."""
+def test_declared_game_loss_passes():
+    """The same game loss WITH its disproof stated is the experiment §21.2 licenses."""
     r = valid()
     r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
               "event": "ending",
-              "detail": {"how": "death", "deliberate": True,
+              "detail": {"how": "game_loss", "deliberate": True,
                          "disproof": {"live": 40, "splits": 3, "refuted_at_least": 12}}})
     assert gate.check(r)["verdict"] == gate.PASS
 
 
-def test_world_inflicted_death_is_not_the_subject():
-    """An UNCHOSEN death is not a bypass of anything, so declaring it would be theatre."""
+def test_world_inflicted_game_loss_is_not_the_subject():
+    """An UNCHOSEN game loss is not a bypass of anything, so declaring it would be theatre."""
     r = valid()
     r.append({"mode": "specified", "seq": 5, "cycle": 1, "step": "IMPORT", "slot": "@loop",
-              "event": "ending", "detail": {"how": "death"}})
+              "event": "ending", "detail": {"how": "game_loss"}})
     assert gate.check(r)["verdict"] == gate.PASS
 
 
@@ -864,7 +951,7 @@ def test_the_cli_exit_code_carries_the_verdict():
 # **THE RUNNER GOES LAST, AND IT COUNTS ITSELF -- `F416`.** It used to sit mid-file and
 # collect `globals()` at the moment it ran, so THREE test functions defined BELOW it did not
 # exist yet and were never collected: 20 defined, 17 run, and the seat reported green. The
-# three were the section 21.2 UNDECLARED_DEATH / farming guards. All three PASS when called
+# three were the section 21.2 UNDECLARED_GAME_LOSS / farming guards. All three PASS when called
 # directly, so nothing was hiding -- what there was, was a guard never exercised by the seat
 # that reports it.
 #

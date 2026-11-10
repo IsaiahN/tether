@@ -67,7 +67,9 @@ led = os.path.join(tempfile.mkdtemp(), "k.jsonl")
 env, ag, *_ = arc_holdout.wire(FakeWrapper(script={}), "fake", led_path=led,
                                lineage_dir=d if d != "-" else None)
 out = {"alphabet": ag.gamma.alphabet, "kraft": [], "units": []}
-for i in range({"p2": 3, "p2k": 1}.get(mode, 12)):
+# r1195: process 2 plays process 1's length (12). At 3 its run wrote no lookup at all -- the
+# deferral gates now look later -- so K (b) had no lookup to read, never a lookup without a T1
+for i in range({"p2k": 1}.get(mode, 12)):
     env.observe()
     ag.step()
     out["kraft"].append(round(ag.gamma.code().kraft(), 12))

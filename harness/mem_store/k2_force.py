@@ -1,5 +1,5 @@
 """THE FORCED T2 / PAIR CALL (the reviewer 2026-10-19 10:45 item 2 (c), (d), (e)). One agent per process, built over
-sc25 through arc_holdout.wire on a COPY of the planted life v2 (its gen_ files copied into <out>/lin), with
+sc25 through arc_holdout.wire on a COPY of the planted lineage v2 (its gen_ files copied into <out>/lin), with
 TETHER_MEMORY_STORE set (mode on) or unset (mode off) before any import. Agent._kind is stubbed to answer the planted
 target kind, so T2 asks about the planted candidates. Then, in this order:
   land F (a counted candidate) -- its last moves this run, condition (c)

@@ -104,8 +104,8 @@ def _children(spec: dict) -> dict:
         procs = {}
         for name, (arms, cap, wrong) in batch:
             env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
-            # C-seed-X: two separately born agents compared under ONE temperament, or the per-birth
-            # seed alone makes their paths differ (the same pin as test_speed2_count)
+            # C-seed-X: two separately started agents compared under ONE temperament, or the
+            # per-start seed alone makes their paths differ (the same pin as test_speed2_count)
             env.update({"TETHER_AGENT_SEED": "0"}, **arms)
             procs[name] = subprocess.Popen(
                 [sys.executable, "-B", "-c", CHILD.format(wrong=wrong, cap=cap)], env=env,

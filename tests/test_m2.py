@@ -1302,6 +1302,10 @@ def check_the_goal_is_a_slot_the_agent_can_perceive():
     w._palette = 16
     w.board = lambda: [[0, 1], [1, 0]]
     w._decompose = lambda _b: {"o0.row": 2, "o0.col": 5}
+    # A frame with no contacts and no pairs, as __init__ sets them: _decomposed reads the contact
+    # pair slots (d29c4f4, d777217) and ARC B2's pair cache (3c4e89c) (r1581 4 (2))
+    w._decompose.tracked, w._contacts = {}, {}
+    w._pair_read, w._rel_kept, w._actors, w._pair_src = None, None, frozenset(), {}
 
     got = arc_world.ArcWorld._decomposed(w)
     assert "@goal.completed" in got, "the goal slot is not published"
@@ -1323,6 +1327,8 @@ def check_the_goal_is_a_slot_the_agent_can_perceive():
     w2._read, w2.blind, w2._frame, w2._palette = None, True, _Frame(), 16
     w2.board = lambda: None
     w2._decompose = lambda _b: {}
+    w2._decompose.tracked, w2._contacts = {}, {}
+    w2._pair_read, w2._rel_kept, w2._actors, w2._pair_src = None, None, frozenset(), {}
     assert "@goal.completed" not in arc_world.ArcWorld._decomposed(w2)
 
 
@@ -1432,7 +1438,7 @@ def check_the_precondition_refuses_a_spectator():
 def check_an_unreadable_reading_is_suspended_not_charged():
     """DEFECT: a reading that turned unreadable while its object was still there was billed a full
     code as a vanished OBJECT (`observe` strips NOT_RESOLVED; the bet loop read the absence as
-    death). Measured: `o0.rem_row` charged 3.0 bits on a no-move frame (F493). Fig 10: a missing
+    game loss). Measured: `o0.rem_row` charged 3.0 bits on a no-move frame (F493). Fig 10: a missing
     reading is a channel fact. CONTROL: an object whose key leaves the listing is still charged."""
     def run(drop_key: bool):
         ag = _agent()
@@ -2355,6 +2361,8 @@ CHECKS = [v for k, v in sorted(globals().items()) if k.startswith("check_")]
 if __name__ == "__main__":
     # THE COVERAGE CHECK RUNS LAST AND WATCHES THE OTHERS, so the suite is not run twice.
     # `_watch` counts what the ACT space actually reached during the ordinary pass.
+    # EVERY CHECK IN ITS OWN TRY, ANY EXCEPTION, ITS TYPE NAMED: one AttributeError used to end
+    # the run and hide 9 of 68 checks behind it (r1581 4 (3)).
     bad: list[str] = []
     coverage = check_the_suite_reaches_the_hard_cases
     ordered = [f for f in CHECKS if f is not coverage] + [coverage]
@@ -2362,12 +2370,12 @@ if __name__ == "__main__":
         for fn in ordered[:-1]:
             try:
                 fn()
-            except AssertionError as exc:
-                bad.append(f"{fn.__name__}: {exc}")
+            except Exception as exc:
+                bad.append(f"{fn.__name__}: {type(exc).__name__}: {exc}")
     try:
         coverage()
-    except AssertionError as exc:
-        bad.append(f"{coverage.__name__}: {exc}")
+    except Exception as exc:
+        bad.append(f"{coverage.__name__}: {type(exc).__name__}: {exc}")
     for line in bad:
         print("  FAIL", line)
     print(f"\n  {len(ordered) - len(bad)}/{len(ordered)} M2 checks pass")

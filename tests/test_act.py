@@ -2,7 +2,10 @@
 A2 TETHER_WALK_BUDGET, on a stepped gridworld agent.
 
   (a) A1: with an untried action, route defers the slot's lookup (lookup_deferred probe_first), the
-      slot is owed, and the next cycle with the same untried set walks it (probe_declined);
+      slot is owed, and the gate's next asking with the same untried set walks it
+      (probe_declined); item 25's chooser is pinned off in (a) only, since (a) is the gate's
+      own check (r1317). The "very next cycle" premise predates r674: the miss grade holds the
+      in-range miss at cycle+1 first (asserted by name), and the walk is at cycle+2 (r1318);
   (b) A1 MUST-FAIL: with the arm OFF the lookup runs at once;
   (c) A2: with STEP_BUDGET forced to 1 the index walk stops at an entry boundary (walk_cut), the
       truncated index is not memoised, the slot is owed, and the next route asks it first;
@@ -21,7 +24,9 @@ import os
 import subprocess
 import sys
 
-import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
+os.environ["TETHER_AGENT_SEED"] = "0"     # no start seed: case (a)'s cycle+1 hold varied with it
+
+import _repo  # noqa: F401,E402  the repo root on sys.path (tests/, 4d)
 import gamma
 import gridworld
 import ledger
@@ -65,33 +70,55 @@ def _gate_case(on: bool) -> tuple:
         ag.route(_res(slot))
         first = (list(calls), _rows(ag, n0, "lookup_deferred"), slot in ag._owed_q,
                  slot in ag.owed_import)
-        ag.cycle = c0 + 1                          # a later cycle, the same untried set
-        n1 = len(ag.led.rows())
-        ag.route(_res(slot))
-        second = (list(calls), _rows(ag, n1, "lookup_deferred"), _rows(ag, n1, "step_act"))
+        later = []
+        for k in (1, 2):                           # later cycles, the same untried set
+            ag.cycle = c0 + k
+            n1 = len(ag.led.rows())
+            ag.route(_res(slot))
+            later.append((list(calls), _rows(ag, n1, "lookup_deferred"),
+                          _rows(ag, n1, "step_act"),
+                          [r for r in _rows(ag, n1, "route") if r["slot"] == slot]))
     finally:
         tether._STEP_ACT = keep
-    return slot, first, second
+    return slot, first, *later
 
 
 def check_a_untried_action_defers_then_probe_declined_walks() -> None:
-    slot, (calls1, rows1, owed, owes), (calls2, rows2, act2) = _gate_case(True)
+    # (a) is the A1 gate's own defer-then-walk, so item 25's chooser is pinned off here only:
+    # with it on, _think_or_act hands the slot to _tc_walk, which has no probe_declined path (the
+    # reviewer 2026-11-06 r1317; the chooser's starvation of an owed slot is R5's)
+    keep = tether._THINK_CHOOSER
+    tether._THINK_CHOOSER = False
+    try:
+        slot, (calls1, rows1, owed, owes), hold, (calls3, rows3, act3, rt3) = _gate_case(True)
+    finally:
+        tether._THINK_CHOOSER = keep
     assert calls1 == [], calls1                                  # not looked up this step
     assert [r["detail"]["why"] for r in rows1] == ["probe_first"], rows1
     assert owed and owes, (owed, owes)                           # owed, asked first next step
-    assert len(calls2) == 1 and calls2[0][1] == slot, calls2     # the next cycle walks it
-    assert rows2 == [], rows2
-    assert act2 and act2[-1]["detail"]["lookups_walked"] == 1, act2
+    # the next cycle: r674's miss grade holds an in-range miss first, before the think-or-act gate
+    assert hold[0] == [] and hold[1] == [], hold[:2]
+    assert [(r["detail"]["bin"], r["detail"].get("miss_grade")) for r in hold[3]] == [
+        ("held", "in_range_hold")], hold[3]
+    # the one after: broken after the hold, asked, and the gate walks it (probe_declined)
+    assert [r["detail"].get("miss_grade") for r in rt3] == ["broken_after_hold"], rt3
+    assert len(calls3) == 1 and calls3[0][1] == slot, calls3
+    assert rows3 == [], rows3
+    assert act3 and act3[-1]["detail"]["lookups_walked"] == 1, act3
 
 
 def check_b_must_fail_arm_off_looks_up_at_once() -> None:
-    slot, (calls1, rows1, _o, _w), _second = _gate_case(False)
+    slot, (calls1, rows1, _o, _w), *_later = _gate_case(False)
     assert len(calls1) == 1 and calls1[0][1] == slot, calls1
     assert rows1 == [], rows1
 
 
 def check_c_walk_budget_cuts_at_an_entry_and_owes() -> None:
     ag = _agent()
+    # the FORCING FIXTURE (the reviewer 2026-11-06 r1325, r1187): under arm 20 a cold 3-step agent's
+    # described tier is empty, every lookup ends no_entry and no walk runs. A warm game series' tier
+    # lists entries, so here it lists the whole lit list; arm 20's own key and miss memo still run
+    ag._described_lit = lambda _lib, lit, *_a, **_k: lit
     keep = tether.STEP_BUDGET, tether._STEP_ACT
     try:
         tether._STEP_ACT = False                   # the walk is the subject here
@@ -154,23 +181,30 @@ def check_e_urgent_defers_then_urgent_declined_walks() -> None:
     ag._relief_rate = lambda: (1.0, 0)             # idle / 1 >= _QUORUM_HALF: urgent
     calls: list = []
     ag._library_fit = lambda s, _ex: calls.append((ag.cycle, s)) or None
-    keep = tether._STEP_ACT, tether._THINK_OR_ACT
+    # (e) is the gate's own check: item 25's chooser pinned off here only; each asking's miss
+    # is a distinct far value, so r674's miss grade is met and passes, never holds (r1326)
+    keep = tether._STEP_ACT, tether._THINK_OR_ACT, tether._THINK_CHOOSER
     try:
         tether._STEP_ACT = tether._THINK_OR_ACT = True
+        tether._THINK_CHOOSER = False
         c = ag.cycle = 100
-        whys = []
+        whys, grades = [], []
         for k in range(3):
             ag.cycle = c + k
             n0 = len(ag.led.rows())
-            ag.route(_res(slot))
+            ag.route({slot: tether.SlotResidual(slot, "x", 0, 10 ** 6 + k, 1.0)})
             whys.append([r["detail"]["why"] for r in _rows(ag, n0, "lookup_deferred")])
+            grades += [r["detail"].get("miss_grade") for r in _rows(ag, n0, "route")
+                       if r["slot"] == slot]
+        assert len(grades) == 3 and all(g in ("searched", "broken_after_hold")
+                                        for g in grades), grades
         assert whys == [["urgent"], [], ["urgent"]], whys            # every other step
         assert calls == [(c + 1, slot)], calls                       # walked at c+1 only
         ag.cycle = c + 1
         ag._urgent_wait[slot] = (c + 1, "urgent_declined")
         assert ag._think_or_act(slot, closer=False) == (True, "urgent_declined")  # same cycle
     finally:
-        tether._STEP_ACT, tether._THINK_OR_ACT = keep
+        tether._STEP_ACT, tether._THINK_OR_ACT, tether._THINK_CHOOSER = keep
 
 
 def check_f_route_runs_in_the_route_step() -> None:
@@ -181,11 +215,22 @@ def check_f_route_runs_in_the_route_step() -> None:
     keep = tether._STEP_ACT
     try:
         tether._STEP_ACT = False                   # the lookup runs, so the spy is reached
+
+        def grade(n0: int) -> list:
+            return [r["detail"].get("miss_grade") for r in ag.led.rows()[n0:]
+                    if r["event"] == "route" and r["slot"] == slot]
+        n0 = len(ag.led.rows())
         ag.route(_res(slot))
         assert seen == ["ROUTE"], seen
+        assert grade(n0) == ["searched"], grade(n0)
         seen.clear()
-        tether.Agent.route.__wrapped__(ag, _res(slot))   # MUST-FAIL: route without its scope
+        # the first call put _res's value into the slot's range; a distinct far miss passes r674's
+        # miss grade, so the must-fail reaches the lookup (r1326)
+        n0 = len(ag.led.rows())
+        far = {slot: tether.SlotResidual(slot, "x", 0, 10 ** 6, 1.0)}
+        tether.Agent.route.__wrapped__(ag, far)           # MUST-FAIL: route without its scope
         assert seen and seen != ["ROUTE"], seen
+        assert grade(n0) and grade(n0)[0] in ("searched", "broken_after_hold"), grade(n0)
     finally:
         tether._STEP_ACT = keep
 

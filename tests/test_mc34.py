@@ -87,8 +87,8 @@ if __name__ == "__main__":
     print("  2: a world cap of 50, never reached by an ending, is not read: both reserves "
           "'no record'")
     d = _agent()
-    d._mc3_note("death", "level")
-    d._mc3_note("death", "level")
+    d._mc3_note("game_loss", "level")
+    d._mc3_note("game_loss", "level")
     assert len(d._mc3) == 1
     print("  3: the same word twice with no action between is one ending")
     r = _agent()

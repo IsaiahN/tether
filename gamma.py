@@ -167,7 +167,40 @@ def accepts_type(unit: Any, ty: str | None) -> bool:
         return True
     if getattr(unit, "polymorphic", False):
         return True
+    if _TRANSLATE_AFFINE and target_operand(unit, ty) is not None:
+        return True             # r1103: a declared target type (its operand typed per target)
     return ty in unit.accepts
+
+
+# r1103 (the reviewer 2026-11-04; TETHER_TRANSLATE_AFFINE): an atom whose operand is typed PER
+# TARGET, registered by the world that builds it and keyed by its FUNCTION, off the Atom -- whose
+# fields feed the atoms token (the interval declarations below are the precedent). {target type:
+# the ONE operand type it takes there}: `translate` at a POSITION takes a DELTA only, a point plus
+# a displacement; a point plus a point is not defined (arc_atoms.py:882's own warrant). Other
+# targets keep their rule.
+_TRANSLATE_AFFINE = armflag.arm("TETHER_TRANSLATE_AFFINE", default=True)
+TARGET_OPERAND: dict = {}
+
+
+def declare_target_operand(atom: Any, table: dict) -> None:
+    TARGET_OPERAND.setdefault(atom.fn, {}).update(table)
+
+
+def target_operand(unit: Any, ty: str | None) -> str | None:
+    """The operand type declared for this unit's head at a target of type `ty`, or None (always
+    None with the arm OFF, so neither the head check nor the operand check moves)."""
+    if not (_TRANSLATE_AFFINE and ty):
+        return None
+    head = unit.atoms[0] if getattr(unit, "atoms", None) else unit
+    return TARGET_OPERAND.get(getattr(head, "fn", None), {}).get(ty)
+
+
+def declared(unit: Any) -> bool:
+    """Does this unit's head declare its typing per target (always False with the arm OFF)?"""
+    if not _TRANSLATE_AFFINE:
+        return False
+    head = unit.atoms[0] if getattr(unit, "atoms", None) else unit
+    return getattr(head, "fn", None) in TARGET_OPERAND
 
 
 # **THE RELATIVE GUARD, A SENTINEL AND NEVER A NAME -- the reviewer, 2026-10-01.** A guard
@@ -192,6 +225,12 @@ ACTED_ON = "ACTED_ON"
 # 7c M6 (the reviewer 2026-10-10 23:14Z): a guard whose truth is the agent's own INVENTED
 # condition, `guard_ref` naming it. Resolved per state by the caller into `Ctx.cond_holds`.
 INVENTED_GUARD = "INVENTED"
+# BUILD 3, THE BOND TERMS (the reviewer 2026-11-04 r1059, r1060; Fig 12 :112, :123): a guard whose
+# truth is a SETTLED ≡ / ⋛ junction between two of this board's slots, `guard_ref` naming it
+# ("≡:<a>|<b>", "⋛:<a>|<b>" = a above b). Resolved per state by the caller into
+# `Ctx.junction_holds`. A condition, never a value predictor; it names this board's slots, so it
+# does not cross.
+JUNCTION_GUARD = "JUNCTION"
 
 
 @dataclass(frozen=True)
@@ -219,6 +258,8 @@ class Ctx:
     acted_self: bool = False
     # 7c M6: the invented condition named by the term's `guard_ref`, read on the BEFORE state.
     cond_holds: bool = False
+    # BOND TERMS: the settled junction named by the term's `guard_ref`, read on the BEFORE state.
+    junction_holds: bool = False
     operands: tuple = ()          # other slots' values, in the term's binding order
     # SENSOR 8's SECOND OPERAND, resolved PER SLOT by the caller. `_extract` wrapped the
     # one-place sensors eight times and nothing wrapped a two-place one: an atom receives one
@@ -423,19 +464,32 @@ _FIRST_CONTACT = armflag.arm("TETHER_FIRST_CONTACT_CARRIED", default=True)
 # instance's operand and the slot its residual names -- at load from the rows already written, and
 # at the instance break -- so a first-contact bet can bind where only the attribute was ambiguous.
 _KIND_REL = armflag.arm("TETHER_KIND_REL", default=True)
-# F3a THE CLOCK RESTARTS WITH A LIFE (the reviewer 2026-10-31 r603 P3; the audit): a carried
-# Standing keeps its last_tick (lineage.py dec) and a new life's cycle starts at 0, so
-# max(0, tick - last_tick) is 0 until the new life passes the old one's last cycle: a carried
+# F3a THE CLOCK RESTARTS WITH A GAME SERIES (the reviewer 2026-10-31 r603 P3; the audit): a carried
+# Standing keeps its last_tick (lineage.py dec) and a new game series' cycle starts at 0, so
+# max(0, tick - last_tick) is 0 until the new game series passes the old one's last cycle: a carried
 # refutation does not decay. ON: a tick below last_tick is a restarted clock, and the gap counts
-# from the new life's start (tick). OFF: as before.
-_DECAY_NEW_LIFE = armflag.arm("TETHER_DECAY_NEW_LIFE", default=True)
+# from the new game series' start (tick). OFF: as before.
+_DECAY_NEW_GAME_SERIES = armflag.arm("TETHER_DECAY_NEW_GAME_SERIES", default=True,
+                                     old="TETHER_DECAY_NEW_LIFE")
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
-# * this life's own record of it, where w per kind = held / (held + failed) over this life's
-# outcomes of carried terms of that kind (replay excluded). No outcome for the kind: w = 1, today's
-# track_of exactly. Orders retrieval only; settled is untouched. ON; conform/arms.py
+# * this game series' own record of it, where w per kind = held / (held + failed) over this game
+# series' outcomes of carried terms of that kind (replay excluded). No outcome for the kind: w = 1,
+# today's track_of exactly. Orders retrieval only; settled is untouched. ON; conform/arms.py
 _CARRY_W = armflag.arm("TETHER_CARRY_W", default=True)
+# C1 part 1: a settle evidence row's 6th element when the settle did not tip (only ever written
+# under tether's TETHER_SETTLE_BEAT_NULL); replay applies such a row without tipping
+UNTIPPED = "untipped"
+
+
+def mix_w(w: float, inherited, own) -> float:
+    """Symbols :20-26: a belief formed from what it inherited and from its own history, mixed by
+    w -- each side a Laplace estimate of its (held, failed) counts. CARRY_W and tether's B2 (r1471
+    (B)) both read it here, so the form is one."""
+    (c0, r0), (c1, r1) = inherited, own
+    return w * (c0 + 1.0) / (c0 + r0 + 2.0) + (1 - w) * (c1 + 1.0) / (c1 + r1 + 2.0)
+
 # L1b (the reviewer 2026-10-17 19:06, 19:33): Rank.used crosses the lineage. It lived on the Agent,
 # so every process re-earned that half of its preparedness; Standing.paid already crosses, by 7i's
 # replay of the carried settle rows. Carried per UNIT (the atom sequence), never per binding.
@@ -447,6 +501,11 @@ _USED_CARRY = armflag.arm("TETHER_USED_CARRY", default=True)
 # installed from that row; the replay applies each row to that term. The method crosses, the
 # binding does not. OFF: by name, as before (ffb365c)
 _REPLAY_UNIT = armflag.arm("TETHER_REPLAY_UNIT", default=True)
+# AN UNREADABLE OPERAND IS NEVER CONSUMED AS A VALUE (the reviewer 2026-11-09 r1544, r1545):
+# §12.2's non-reading propagates through ctx.operands as it does through the value, so an
+# operand-reading atom never sees NOT_RESOLVED (+ raised; == and != answered 0/1). OFF: as
+# 604ce53. default ON (Isaiah 2026-11-09 06:17; the reviewer r1546)
+_OPERAND_REFUSE = armflag.arm("TETHER_OPERAND_REFUSE", default=True)
 
 
 def unit_key(atoms: tuple) -> str:
@@ -685,8 +744,13 @@ class Term:
         elif self.guard == INVENTED_GUARD:
             if not ctx.cond_holds:
                 return value
+        elif self.guard == JUNCTION_GUARD:
+            if not ctx.junction_holds:
+                return value
         elif self.guard is not None and ctx.intent != self.guard:
             return value
+        if _OPERAND_REFUSE and any(o is NOT_RESOLVED for o in ctx.operands or ()):
+            return NOT_RESOLVED     # r1545 (B): an unreadable operand reads as nothing
         for a in self.atoms:
             # ELEMENTWISE WHEN THE CHAIN IS MID-ITERATION -- §12.2.1. An atom typed `CELL` sees
             # ONE cell and is mapped across the collection; an atom typed `CELLS` consumes the
@@ -862,6 +926,17 @@ class Standing:
     # one quantity with a total and a breakdown, which is the shape this class already has
     # on the failure side, written at ONE site in one statement block so they cannot disagree.
     confirmations: float = 0.0                     # the success total, on the same clock
+    # C1 PART 1 (the reviewer 2026-11-09 r1584 1, r1591): the settle row's "risky" (r288, item 6:
+    # persistence would have been wrong) tallied per term: beat_null where it was true, tied_null
+    # where "no change" was equally right. Counted from _settle_pred's reading, so with or without
+    # TETHER_SETTLE_PRED. Settles with no single occasion (win credit, replay) count in neither, so
+    # beat_null + tied_null <= confirmations. Record only: nothing reads them
+    beat_null: float = 0.0
+    tied_null: float = 0.0
+    # C1 parts 3-4 (the reviewer r1597 3): the slots on which a settle beat the null ("beat here",
+    # with or without TETHER_SETTLE_BEAT_NULL, which settled_on is not). Cleared by replay with
+    # settled_on; read only by tether's TETHER_CROWD_OUT class gate
+    beat_on: set = field(default_factory=set)
 
     def refute(self, tick: int, halflife: float | None = None,
                ceiling: float | None = None, where: Any = None,
@@ -939,7 +1014,7 @@ class Standing:
         agent has no basis, and **a seed that is replaced the moment evidence exists is the
         floor without the ceiling** -- not a default hiding the absence of a reading.
         """
-        gap = (tick if _DECAY_NEW_LIFE and tick < self.last_tick
+        gap = (tick if _DECAY_NEW_GAME_SERIES and tick < self.last_tick
                else max(0, tick - self.last_tick))
         if gap:
             _f = 0.5 ** (gap / (halflife or REJECTION_HALFLIFE))
@@ -1008,7 +1083,7 @@ class Code:
 
 
 class Gamma:
-    draw_seed: str | None = None    # the agent's, set at its birth (HOLD_SEED Q4); None: random
+    draw_seed: str | None = None    # the agent's, set at its start (HOLD_SEED Q4); None: random
 
     def __init__(self, atoms: list[Atom], game: str = "x") -> None:
         """NO `molecules` PARAMETER, and its removal is the 2026-08-27 ruling in code.
@@ -1032,10 +1107,11 @@ class Gamma:
         # SET AT LOAD, never at mint: a term that originated elsewhere says so without the
         # reader having to parse a game name out of a handle.
         self.carried: dict[str, dict] = {}
-        # CARRY_W: name -> (confirmations, refusals) as loaded; name -> [held, failed] this life;
-        # kind -> [held, failed]; (kind, held, failed, w) per change, for tether's carry_w rows
+        # CARRY_W: name -> (confirmations, refusals) as loaded; name -> [held, failed] this game
+        # series; kind -> [held, failed]; (kind, held, failed, w) per change, for tether's carry_w
+        # rows
         self.carry_w_base: dict[str, tuple] = {}
-        self.carry_w_life: dict[str, list] = {}
+        self.carry_w_game_series: dict[str, list] = {}
         self.carry_w_kind: dict[str, list] = {}
         self.carry_w_log: list = []
         self._carry_w_kinds: dict[str, str] = {}
@@ -1056,6 +1132,9 @@ class Gamma:
         self.settled_forms: dict[str, set[str]] = {}
         self.kind_rel: dict[str, set[str]] = {}   # KIND_REL: name -> {"same", "other"} (note_rel)
         self.innate: set[str] = set()   # 7i: names whose standing a refute never moves
+        # (P) r1383, r1635: name -> the clause that admitted it to the kernel, set at entry only;
+        # read only by the agent's tier move-down and crowd-out (TETHER_KERNEL), never a verdict
+        self.kernel: dict[str, str] = {}
         # name -> the two verdicts that promoted it. A dict rather than a set because
         # `primitive requires both` is only checkable if both are on the record.
         self.primitives: dict[str, dict] = {}
@@ -1122,6 +1201,8 @@ class Gamma:
         self.stamps[term.name] = {"origin": term.origin, "seq": seq, "residual": residual,
                                   "admitted": admitted}
         self.standing.setdefault(term.name, Standing(last_tick=self.tick))
+        if term.origin == PRIOR and len(term.atoms) == 1:
+            self.kernel.setdefault(term.name, "prior-atom")
         if _SETTLED_CORE and term.origin == PRIOR and len(term.atoms) == 1:
             # already settled in the only sense Gamma has, a PRIOR unit from birth
             # (relations.py:161-162); innate adds that a refute never moves it
@@ -1136,6 +1217,7 @@ class Gamma:
             st.settled_at = self.tick
         self.stamps.setdefault(name, {})["admitted"] = INHERITED
         self.innate.add(name)
+        self.kernel.setdefault(name, "inherited")
         return INHERITED
 
     def learn(self, name: str) -> str:
@@ -1162,7 +1244,8 @@ class Gamma:
                **({"renamed": 0, "onto_atom": 0} if _REPLAY_UNIT else {})}
         keep, tick = self.keep_evidence, self.tick
         self.keep_evidence = False
-        self._replaying = _CARRY_W      # CARRY_W: the carried evidence is not this life's outcomes
+        self._replaying = _CARRY_W      # CARRY_W: the carried evidence is not this game series'
+                                        # outcomes
         try:
             for r in rows:
                 kind, name, slot, where, t = r[:5]
@@ -1179,29 +1262,34 @@ class Gamma:
                     out["onto_atom" if lost else "not_held"] += 1
                     continue
                 self.tick = t
-                (self.settle if kind == "settle" else self.refute)(name, tup(where), slot)
-                if _FIRST_CONTACT and kind == "settle" and isinstance(slot, str):
+                tipped = len(r) <= 5 or r[5] != UNTIPPED
+                if kind == "settle":
+                    self.settle(name, tup(where), slot, tip=tipped)
+                else:
+                    self.refute(name, tup(where), slot)
+                if _FIRST_CONTACT and kind == "settle" and tipped and isinstance(slot, str):
                     # the attribute it was settled on, never the board's slot (A1 holds)
                     self.settled_forms.setdefault(name, set()).add(self.unbound_form(slot))
                 out[kind] += 1
                 st = self.standing[name]
                 st.settled_on.clear()
                 st.refusals_on.clear()
+                st.beat_on.clear()
         finally:
             self.keep_evidence, self.tick = keep, tick
             self._replaying = False
         if _CARRY_W:
             for name in self.carried:
                 if name in self.library and name not in self.innate \
-                        and name not in self.carry_w_life:
+                        and name not in self.carry_w_game_series:
                     st = self.standing.get(name)
                     self.carry_w_base[name] = ((st.confirmations, st.refusals)
                                                if st is not None else (0.0, 0.0))
         return out
 
     def _carry_w_note(self, name: str, held: bool) -> None:
-        """CARRY_W: one outcome of a carried, non-innate term in this life, counted for its kind
-        (replay excluded), with the kind's new w logged for tether's carry_w row."""
+        """CARRY_W: one outcome of a carried, non-innate term in this game series, counted for its
+        kind (replay excluded), with the kind's new w logged for tether's carry_w row."""
         if self._replaying or name not in self.carried or name in self.innate \
                 or name not in self.library:
             return
@@ -1212,10 +1300,10 @@ class Gamma:
         k = self._carry_w_kinds.get(name)
         if k is None:
             k = self._carry_w_kinds[name] = self.kind_of(self.library[name]).name
-        life = self.carry_w_life.setdefault(name, [0, 0])
+        own = self.carry_w_game_series.setdefault(name, [0, 0])
         kc = self.carry_w_kind.setdefault(k, [0, 0])
         i = 0 if held else 1
-        life[i] += 1
+        own[i] += 1
         kc[i] += 1
         self.carry_w_log.append((k, kc[0], kc[1], round(kc[0] / (kc[0] + kc[1]), 6)))
 
@@ -1290,8 +1378,15 @@ class Gamma:
 
     # -- standing: the ground's verdict, defeasibly ----------------------------------
 
-    def settle(self, name: str, where: Any = None, slot: str | None = None) -> None:
-        """The ground paid on evidence the term was never fitted to.
+    def settle(self, name: str, where: Any = None, slot: str | None = None,
+               null: str | None = None, tip: bool = True) -> None:
+        """The ground paid on evidence the term was never fitted to. `null`, when the caller read
+        one occasion: "beat" (no change would have missed) or "tied" (C1 part 1, record only).
+        Settles with no single occasion pass none, so beat_null + tied_null <= confirmations.
+
+        `tip` False (C1 part 1 under TETHER_SETTLE_BEAT_NULL, the reviewer r1584 1): the dial rises
+        (confirmations) and the term does not tip: no settled_at, no settled_on. Its evidence row
+        carries "untipped", so replay does not tip it either.
 
         `where` records WHERE it paid, the mirror of `refute`'s. Without it a track record has
         a denominator and no numerator, and ordering by it sorts the most-tried term last.
@@ -1309,21 +1404,29 @@ class Gamma:
         a refuter with a mutation control, not taken on the arithmetic.**
         """
         if self.keep_evidence:
-            self.evidence.append(["settle", name, slot, where, self.tick])
+            self.evidence.append(["settle", name, slot, where, self.tick]
+                                 + ([] if tip else [UNTIPPED]))
         st = self.standing.setdefault(name, Standing())
         st.decay(self.tick, self.halflife)
-        st.settled_at = self.tick
+        if tip:
+            st.settled_at = self.tick
         if _CARRY_W:
             self._carry_w_note(name, True)
         # THE TOTAL, UNCONDITIONAL -- and the breakdown BESIDE it, never instead of it. The
         # same two lines `refute` writes, in the same order, so the pair cannot drift apart.
         st.confirmations += 1.0
+        if null == "beat":
+            st.beat_null += 1.0
+            if slot is not None:
+                st.beat_on.add(slot)
+        elif null == "tied":
+            st.tied_null += 1.0
         self._paid_ver += 1
         if where is not None:
             st.paid[where] = st.paid.get(where, 0) + 1
         # THE SLOT, BESIDE THE SCOPE AND NEVER INSTEAD OF IT. `where` answers which BOARD
         # paid; this answers which SLOT did, and kernel A5 keys on the second.
-        if slot is not None:
+        if slot is not None and tip:
             st.settled_on.add(slot)
 
     def promote(self, name: str, shadow: dict, echo: dict) -> None:
@@ -1395,6 +1498,21 @@ class Gamma:
         # a slot it never settled on included -- whether or not standing was lost (F462).
         return was and not self.is_settled(name, slot)
 
+    def refusal_from_miss(self, name: str, at: int) -> float:
+        """C1 part 2 (the reviewer r1584 (a), r1595): the candidate miss counted at tick `at` is
+        counted as a refusal instead, as it stands after decay, so misses + refusals == rejections
+        holds and track_of reads it. Isaiah's (c) split stands: a miss is exploring, and only the
+        rank's top persistent-flat miss is converted. Returns the amount moved."""
+        st = self.standing.get(name)
+        if st is None:
+            return 0.0
+        st.decay(self.tick, self.halflife)
+        h = self.halflife or REJECTION_HALFLIFE
+        moved = min(st.misses, 0.5 ** (max(0, self.tick - at) / h))
+        st.misses -= moved
+        st.refusals += moved
+        return moved
+
     def is_settled(self, name: str, slot: str | None = None) -> bool:
         """Settled -- ANYWHERE by default, HERE when a slot is given. Kernel A5.
 
@@ -1462,10 +1580,8 @@ class Gamma:
                 k = self._carry_w_kinds[name] = self.kind_of(self.library[name]).name
             h, f = self.carry_w_kind.get(k, (0, 0))
             if h + f:                        # outcomes for the kind: mix (Symbols :20-26)
-                w = h / (h + f)
-                c0, r0 = self.carry_w_base[name]
-                c1, r1 = self.carry_w_life.get(name, (0, 0))
-                return w * (c0 + 1.0) / (c0 + r0 + 2.0) + (1 - w) * (c1 + 1.0) / (c1 + r1 + 2.0)
+                return mix_w(h / (h + f), self.carry_w_base[name],
+                             self.carry_w_game_series.get(name, (0, 0)))
         return (st.confirmations + 1.0) / (st.confirmations + st.refusals + 2.0)
 
     def youth_of(self, name: str) -> float:
@@ -1568,6 +1684,8 @@ class Gamma:
                 continue          # an atom was not minted; there is nothing to carry
             if t.guard == INVENTED_GUARD:
                 continue          # 7c M6: an invention does not cross; carry is M7, gated
+            if t.guard == JUNCTION_GUARD:
+                continue          # BOND TERMS: it names this board's slots, so it does not cross
             st = self.stamps.get(name)
             # **THE GUARD CROSSES AND THE OPERAND'S BINDING DOES NOT -- the reviewer,
             # 2026-10-03.** A guard is a CONDITION and game-agnostic: `?ACTED_SELF` is a
@@ -2097,6 +2215,8 @@ class Gamma:
                     return None
                 cur, elem = CELLS, a.out_type              # mapped: the ELEMENT type moves
                 continue
+            if target_operand(a, cur) is not None:
+                continue        # r1103: a point plus a displacement is a point -- the type holds
             if not (a.polymorphic or cur in a.accepts):
                 return None
             cur = a.out_type
@@ -2105,7 +2225,9 @@ class Gamma:
 
     def enumerate_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
                           stats: dict | None = None,
-                          order: Callable[[Term], float] | None = None) -> Iterator[Term]:
+                          order: Callable[[Term], float] | None = None,
+                          prune: Callable[[tuple, int, bool], bool] | None = None,
+                          ) -> Iterator[Term]:
         """Type-valid pipelines over UNITS, shortest first, capped by budget.
 
         Yielding a term is a WITNESS that it is reachable. Stopping is one of two facts and
@@ -2121,7 +2243,11 @@ class Gamma:
             stats["units"] = len(units)
             stats["estimate"] = self.space_exact(units, in_type, out_type, max_depth)
             stats["seen"] = 0
-        start = [u for u in units if accepts_type(u, in_type)]
+        # a start is one the WALK accepts too, as space_exact counts it: a settled term headed by
+        # an atom with a declared target (translate . inc at POSITION) passes the head check and
+        # its fold refuses it (r1116's A/B arm B, 2 faults)
+        start = [u for u in units
+                 if accepts_type(u, in_type) and Gamma._iter_step(in_type, None, u) is not None]
         # §23.5's PREREQUISITE, and it is not a new judgement. *Loading generously requires
         # retrieval-by-characterised-residual, not enumeration -- a big library is an asset
         # when you look things up by the shape of your gap and a liability when you walk it in
@@ -2148,6 +2274,14 @@ class Gamma:
         while frontier and depth <= max_depth:
             nxt: list[tuple] = []
             for chain, cur, elem in frontier:
+                # TETHER_PREFIX_PRUNE (the caller's): a chain whose cost alone already reaches
+                # what it must explain is neither yielded nor extended -- an extension never costs
+                # less -- and is not counted against the budget. It is told the walk's own depth
+                # (in units) and whether the chain is CLOSED (a term), for its novelty read
+                if prune is not None and prune(chain, depth, elem is None):
+                    if stats is not None:
+                        stats["pruned"] = stats.get("pruned", 0) + 1
+                    continue
                 # AN UNCLOSED ITERATION IS NOT A TERM. Its value is a `Cells`, whatever the
                 # last atom's `out_type` says -- so it may only be emitted once a reducer has
                 # closed it, which is exactly `elem is None`.

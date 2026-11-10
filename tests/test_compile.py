@@ -99,17 +99,24 @@ def test_each_named_refusal_is_refused_with_its_reason():
                  "o1.colour_changed == 0"):
         assert isinstance(C.compile_candidate({"condition": cond}, atoms), C.Compiled), cond
     for cond, reason in [
-                         ("contact(o1, o2) == 1", "no pairwise atom"),
-                         ("frame.came > 0", "events are not slots"),
+                         # refused either way; under TETHER_OBSERVER (default ON) by the face
+                         # count's held-back pair part, before the pairwise-atom check
+                         ("contact(o1, o2) == 1", ("no pairwise atom",
+                                                   "the face count's pair part is held back")),
+                         ("frame.came > 0", ("events are not slots",
+                                             "no change reading for came without a subject")),
                          ("board.completed > 0", "not an object slot"),
                          ("@goal.row < o2.row", "@goal is the board's progress marker"),
                          ("o1.row > @goal.row", "@goal is the board's progress marker")]:
         got = C.compile_candidate({"condition": cond}, atoms)
-        assert isinstance(got, C.Refusal) and reason in got.reason, (cond, got)
+        assert isinstance(got, C.Refusal) and any(
+            r in got.reason for r in (reason if isinstance(reason, tuple) else (reason,))), (
+            cond, got)
 
 
 def test_a_rule_candidate_is_refused_as_quantified():
-    """A RULE candidate from the library's own view is refused as quantified over the group;
+    """A RULE candidate from the library's own view is refused as quantified over the group with
+    the group row OFF, and ON compiles to a Group over the same member (item 17 (i), r1200);
     MUST-FAIL: the same candidate without its quantifier compiles, so the quantifier is what
     refuses it."""
     atoms = _atoms()
@@ -118,8 +125,15 @@ def test_a_rule_candidate_is_refused_as_quantified():
         for cand in lib.view(key, "RULE"):
             bare = {k: v for k, v in cand.items() if k not in ("quantifier", "scope")}
             if isinstance(C.compile_candidate(bare, atoms), C.Compiled):
-                got = C.compile_candidate(cand, atoms)
+                C._GROUP_ROW = False
+                try:
+                    got = C.compile_candidate(cand, atoms)
+                finally:
+                    C._GROUP_ROW = True
                 assert isinstance(got, C.Refusal) and got.reason == C.QUANTIFIED, (cand, got)
+                on = C.compile_candidate(cand, atoms)
+                assert isinstance(on, C.Group) and on.member == C.compile_candidate(
+                    bare, atoms), (cand, on)
                 return cand["condition"]
     raise AssertionError("no RULE candidate in the library compiles without its quantifier")
 
@@ -168,12 +182,16 @@ def test_down_as_the_plain_chain_is_caught_at_zero():
 def test_a_swapped_binding_is_caught():
     """MUST-FAIL: "less" compiled with the binding NOT reversed means "more"; it must disagree."""
     atoms = _atoms()
-    keep = C.TABLE[("<", "slot")]
-    C.TABLE[("<", "slot")] = (("above",), "x")
+    # the row the compiler reads: CONVERSE's when its atoms are held (it overrides TABLE)
+    key = ("<", "slot")
+    book = (C.CONVERSE if key in C.CONVERSE and all(n in atoms for n in C.CONVERSE[key][0])
+            else C.TABLE)
+    keep = book[key]
+    book[key] = (("above",), "x")
     try:
         bad, _n, _r = disagreements(atoms)
     finally:
-        C.TABLE[("<", "slot")] = keep
+        book[key] = keep
     assert bad, "the swapped binding in the 'less' row was not caught"
     return bad
 

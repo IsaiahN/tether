@@ -27,6 +27,13 @@ def _lineage():
 
 
 # ---------------------------------------------------------------- the library's files
+def grammar() -> dict:
+    """library/grammar.json -- the operators table and symbols from the figures, verbatim -- through
+    the one door; {} when library/ is absent (the ablation)."""
+    p = LIBRARY / "grammar.json"
+    return json.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}
+
+
 def library_files(names) -> dict:
     """The GIVEN library's old file shapes, by old name (store step 3): served from given.json /
     frame.json / index.json by library_runtime.old_files, fresh per call. {} when library/ is

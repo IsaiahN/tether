@@ -2,7 +2,7 @@
 
   An ordered goal ended "arrived_no_clear" (loss, not won) refutes its (subject, sign) for this
   board; an "==" goal refutes nothing by sign (it is refused next as tried this level); a stalled
-  goal refutes nothing; a death keeps the refutations and a new_board boundary clears them; with
+  goal refutes nothing; a game loss keeps the refutations and a new_board boundary clears them; with
   the arm OFF nothing is refuted (the must-fail). _goal_sign reads only "<" and ">".
 
     python tests/test_goal_sign_flip.py
@@ -34,7 +34,8 @@ def _end(ag, text: str, why: str, loss: bool, n: int):
     ag._hyp = {"key": f"@t{n}", "displaced": {}, "steps": 2, "touches": 1,
                "tkey": (text, "s", None), "text": text, "shelf": None,
                "slots": [text.split()[0]], "source": "library",
-               "held_unreadable": 0, "losses": 0, "reads": {}, "acted": Counter(), "tests": {}}
+               "held_unreadable": 0, "losses": 0, "reads": {}, "seg": {}, "acted": Counter(),
+               "tests": {}}
     ag._hyp_end(why, loss=loss)
 
 
@@ -49,8 +50,8 @@ def main():
     _end(ag, "o33.colour == o19.colour", "arrived_no_clear", True, 2)
     _end(ag, "o0.rem_n < o14.rem_n", "stalled", False, 3)
     assert ag._goal_refuted == {("o40.row", ">")}, ag._goal_refuted
-    ag.retarget(env, ag.level, how="death")
-    assert ag._goal_refuted == {("o40.row", ">")}, "a death keeps the refutations"
+    ag.retarget(env, ag.level, how="game_loss")
+    assert ag._goal_refuted == {("o40.row", ">")}, "a game loss keeps the refutations"
     ag.retarget(env, ag.level, how=tether.NEW_BOARD)
     assert not ag._goal_refuted, "a new board's refutations start empty"
     tether._GOAL_SIGN_FLIP = False
@@ -61,7 +62,7 @@ def main():
         tether._GOAL_SIGN_FLIP = True
     assert not ag2._goal_refuted, ("must-fail: refuted with the arm OFF", ag2._goal_refuted)
     print("test_goal_sign_flip: an arrived ordered goal refutes its sign; == and stalled goals do "
-          "not; kept at death, cleared at new_board; nothing with the arm OFF")
+          "not; kept at game loss, cleared at new_board; nothing with the arm OFF")
 
 
 if __name__ == "__main__":

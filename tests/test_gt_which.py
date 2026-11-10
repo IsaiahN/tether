@@ -80,6 +80,9 @@ if __name__ == "__main__":
         print("     not_int: an OBJ term's value is objective_step's, an int of the domain or "
               "NOT_RESOLVED; not reached here, NOT AUTHORED")
         ag._goal_choice = lambda _why=None: "o0.col"
+        # r1195: the board's TRY_FIRST hold (untried actions, untouched kinds) defers the goal exit
+        # before its target is read; this case is the target's own refusal, so the board is open
+        ag._try_first_open = lambda: 0
         n0 = sum(1 for r in ag.led.rows() if r["event"] == "split_refused")
         assert ag._goal_split(held, commit=False) is None
         assert ag._split_why == "no_goal_target"

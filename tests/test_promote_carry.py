@@ -1,15 +1,15 @@
-"""ROW 13, A PROMOTION ACROSS A LIFE -- the record of the ruling (the reviewer 2026-11-01 r704 (b)).
-
-Two lives on the carry fixture's gridworld, through lineage.write / lineage.load. Life 1 steps,
-plants one accepted 2-atom chain and promotes it (the feed rarely fires on a short fixture, so the
-promotion is seeded; the natural count is printed), then writes. Life 2 loads.
+"""ROW 13, A PROMOTION ACROSS A GAME SERIES -- the record of the ruling (the reviewer 2026-11-01
+r704 (b)). 
+Two game series on the carry fixture's gridworld, through lineage.write / lineage.load. Game series
+1 steps, plants one accepted 2-atom chain and promotes it (the feed rarely fires on a short fixture,
+so the promotion is seeded; the natural count is printed), then writes. Game series 2 loads.
 
   MUST-HOLD (by design, ruled (b)): the store keeps the promotion -- the row is written and
-  reaches life 2's load_blob as admitted=promoted -- and load_blob enters it as IMPORTED (gamma:
-  "A TERM FROM ANOTHER GAME ENTERS AS IMPORTED, NEVER AS promoted"; Sec 11 clause two, "across
-  games there is no first"). So in life 2 the stamp and is_primitive agree: neither says promoted.
-  r702's "storage break" was refuted by this check and withdrawn. Occasions: the planted term
-  crossed (asserted > 0).
+  reaches game series 2's load_blob as admitted=promoted -- and load_blob enters it as IMPORTED
+  (gamma: "A TERM FROM ANOTHER GAME ENTERS AS IMPORTED, NEVER AS promoted"; Sec 11 clause two,
+  "across games there is no first"). So in game series 2 the stamp and is_primitive agree: neither
+  says promoted. r702's "storage break" was refuted by this check and withdrawn. Occasions: the
+  planted term crossed (asserted > 0).
 
     python tests/test_promote_carry.py
 """
@@ -27,7 +27,7 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 
 
-def _life(d, seed):
+def _game_series(d, seed):
     import gamma
     import gridworld
     import ledger
@@ -48,7 +48,7 @@ def child(d):
     import gamma
     import lineage
     d = Path(d)
-    ag1, _ = _life(d, 0)
+    ag1, _ = _game_series(d, 0)
     for _ in range(20):
         ag1.step()
     natural = len(ag1.gamma.primitives)
@@ -71,11 +71,11 @@ def child(d):
         return real(self, blob, parent=parent, hold_unbound=hold_unbound)
     gamma.Gamma.load_blob = spy
     try:
-        ag2, _ = _life(d, 1)
+        ag2, _ = _game_series(d, 1)
     finally:
         gamma.Gamma.load_blob = real
     got = [n for n, t in ag2.gamma.library.items() if _key(t) == _key(plant)]
-    print(json.dumps({"natural_life1": natural, "written": written, "loaded": loaded,
+    print(json.dumps({"natural_game_series1": natural, "written": written, "loaded": loaded,
                       "crossed": len(got),
                       "primitive": [ag2.gamma.is_primitive(n) for n in got],
                       "admitted": [ag2.gamma.stamps.get(n, {}).get("admitted") for n in got]}))
