@@ -85,6 +85,7 @@ from ledger import (
     NO_CHANGE,
     SLICE_TOO_SMALL,
     SPECIFIED,
+    STEPS,
     WIN,
     Ledger,
     game_loss_word,
@@ -1811,6 +1812,13 @@ PURSE_RISE = 2
 # a level change already does; in a game stream every game starts at level 0, so before this the
 # bank ran on across games (76.6 M heads by R1's game 11). OFF: only a level change empties it
 _BANK_PER_BOARD = armflag.arm("TETHER_BANK_PER_BOARD", default=True)
+# C2 THE PURSE INSIDE EVERY UNIT (R1 finding F2; Isaiah 2026-11-10 16:12, the reviewer r1700): the
+# purse was checked only between whole units, so one unit could run past it (tu93: 2,815 M heads
+# against a 46 M allowance). cap.head() now asks the purse once the step's allowance in heads is
+# reached; spent, the unit stops at that loop head (cap.PurseCut) and this step ends with one
+# "unreached at this budget" row; the next step runs. cap.hold() units stay whole. OFF: between
+# whole units only
+_UNIT_PURSE = armflag.arm("TETHER_UNIT_PURSE", default=True)
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
 # is stored with every landing, and the lit list is TIERS, an order, never a cut: T1a-c what landed
@@ -3866,6 +3874,8 @@ OWES = "not held: this step read zero and the slot still owes"
 LEFT_BOARD = "not sorted: left the board this step; the miss stays recorded"
 CAP_UNREACHED = ("not sorted: the cap reached mid-step before this slot's turn; the residual "
                  "stays recorded")
+PURSE_UNREACHED = ("not sorted: unreached at this budget, the step's allowance was spent inside a "
+                   "unit before this slot's turn; the residual stays recorded and owed")
 PAIR_NOT_OBJECT = "a pair owner is not an object name"   # C1a: one per (entry, role, pairing)
 
 TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"
@@ -27913,12 +27923,17 @@ class Agent:
             self._d50 = (D5_N["calls"], D5_N["heads"])
             self._dem_paid = []
             self._reach_wall = 0.0
+            if _UNIT_PURSE and _PURSE_OWN:
+                cap.LIMIT, cap.ON_LIMIT = cap.HEADS + self._allowance(), self._unit_purse
+                self._row0 = len(self.led)
         try:
             return self._step_body(action)
+        except cap.PurseCut as cut:
+            return self._unit_purse_end(cut)
         except cap.CapReached as cut:
             return self._cut_step(cut)
         finally:
-            cap.AT = None
+            cap.AT = cap.LIMIT = cap.ON_LIMIT = None
             if _THINK_CHOOSER:
                 self._tc_note_step()
             if _GAME_QUIT:
@@ -28126,6 +28141,55 @@ class Agent:
         if self.deadline is None:
             return None
         return self.deadline - (self._end_reserve or 0.0) if _END_RESERVE else self.deadline
+
+    def _unit_purse(self) -> None:
+        """TETHER_UNIT_PURSE: cap.head() at the step's head limit. The exact thinking spend (the
+        idle scopes left out) against the allowance: spent, the unit stops here; else the limit
+        moves to what is left."""
+        spent, allow = self._purse_spent(), self._allowance()
+        if spent >= allow:
+            cap.LIMIT = None
+            if self._p_cross is None:
+                self._p_cross = {"at": self._clk_stack[-1][0] if self._clk_stack else None,
+                                 "spent": spent, "allowance": allow}
+            raise cap.PurseCut
+        cap.LIMIT = cap.HEADS + (allow - spent)
+
+    def _unit_purse_end(self, cut: BaseException) -> bool:
+        """TETHER_UNIT_PURSE: the allowance was spent inside a unit. One "@cap" row naming the
+        scope and the site; the step's demand is censored (owed, never a verdict); the next step
+        runs, unlike a deadline's cut."""
+        site = None
+        tb = cut.__traceback__
+        while tb is not None:
+            f = tb.tb_frame.f_code
+            if os.path.basename(f.co_filename) != "cap.py" and f.co_name != "_unit_purse":
+                site = f"{os.path.basename(f.co_filename)}:{tb.tb_lineno} {f.co_name}"
+            tb = tb.tb_next
+        self._p_cut = True
+        at = self._cut_scope or self._running_step
+        # every slot with a live reading this cycle and no route row yet gets one (the gate's
+        # routing check): only a cut in PERCEIVE or ROUTE leaves any, so ROUTE never follows MINT
+        tail = self.led.rows(getattr(self, "_row0", len(self.led)))
+        live = {r["slot"] for r in tail if r["event"] == "bet" and r["cycle"] == self.cycle
+                and float(r["detail"].get("mass", r["detail"].get("shortfall", 0))) > 0}
+        live -= {r["slot"] for r in tail if r["event"] == "route" and r["cycle"] == self.cycle}
+        if live:
+            with self._step_scope("ROUTE"):
+                for s_ in sorted(live):
+                    self.led.record(self.cycle, "ROUTE", s_, "route", bin=None,
+                                    why_not=PURSE_UNREACHED, support=len(self.trace))
+        # booked under SETTLE, or under the cut scope when that comes later (the step order)
+        lab = at if at in STEPS and STEPS.index(at) > STEPS.index("SETTLE") else "SETTLE"
+        with self._step_scope(lab):
+            self.led.record(self.cycle, lab, "@cap", "unit_purse_cut", acted=self._pressed,
+                            at=at, site=site, spent=self._purse_spent(),
+                            allowance=self._allowance(),
+                            reads="unreached at this budget: the step's allowance was spent "
+                                  "inside a unit; it stopped at that loop's head and the rest "
+                                  "of this step is owed, never a verdict")
+        self.cycle += 1
+        return self._pressed
 
     def _cut_step(self, cut: BaseException) -> bool:
         """A cut at a growing loop's head (cap.head): one "@cap" row naming the step scope, the
@@ -28675,6 +28739,8 @@ class Agent:
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         try:
             routed = self.route(res)
+        except cap.PurseCut:
+            raise                       # TETHER_UNIT_PURSE: the step ends; thinking goes on
         except _CapReached:
             # the press went out in perceive; the rest of this step is not run (the only caller of
             # the lookups is route, so this is the one place the cap can land). Every slot from the
