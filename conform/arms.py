@@ -481,7 +481,14 @@ ARMS: dict[str, str] = {
                  "F408 cannot bind at a 2-a-side cut, so it was the wrong unblocker)"
                  ". DEFAULT ON since 2026-10-15 (Isaiah 07:53): any OFF wording above is the "
                  "record; the switch is kept for the checklist's culprit isolation",
-    "TETHER_CONTACT": "7a(5b), the contact instrument (Isaiah 2026-10-10 06:46 CDT; the reviewer "
+    "TETHER_D5_ACTION": "C1 part 5, the known-effect condition (the reviewer 2026-11-09 r1592; "
+                        "Isaiah 09-29 ruling 1 kept: a guard names an intent, not a button). ON, "
+                        "D5's held set also offers KNOWN_EFFECT <form>: the attribute form "
+                        "(?.row+, ?.row) the agent's own press table (Interface.known_forms) "
+                        "knew that step's press to move, one signature only; any other shape is "
+                        "refused, priced by _guard_bits like every guard. OFF because it is new "
+                        "and can change a split. OFF: D5's held set as before",
+    "TETHER_CONTACT":"7a(5b), the contact instrument (Isaiah 2026-10-10 06:46 CDT; the reviewer "
                       "11:46Z, 12:27Z): ON, the REPEAT row's gamma_read gains fed, one entry per "
                       "library term read by the exit whose action is RETURNED, {kind, name, slot, "
                       "seq, role: goal|route|body}, and MC2's resolution fed becomes [REPEAT seq, "

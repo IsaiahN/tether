@@ -1351,6 +1351,21 @@ class Interface:
             return RESTARTS
         return CHANGES if self._known_now(a, ctx) == CHANGES else NO_EFFECT
 
+    def known_forms(self, a: str, ctx: tuple) -> frozenset:
+        """C1 part 5 (the reviewer 2026-11-09 r1592): what `a` is KNOWN to move in `ctx`, as signed
+        attribute forms ("?.row+"), read from the table this agent's own presses wrote. Known = one
+        effect seen there; none seen, or more than one, offers nothing ("unknown" never reads as
+        "moves nothing", Fig 9 :44). Only the attribute crosses: no action name, key or coord. Each
+        moved attribute is offered signed ("?.row+") and unsigned ("?.row", either way)."""
+        sigs = self.table.get(a, {}).get("by_ctx", {}).get(ctx)
+        if not sigs or len(sigs) != 1:
+            return frozenset()
+        out = set()
+        for k, s in next(iter(sigs)):
+            f = f"?.{k.rsplit('.', 1)[-1]}"
+            out |= {f, f + ("+" if s > 0 else "-" if s < 0 else "=")}
+        return frozenset(out)
+
     # ---- upward: what changed, in reasoning terms -------------------------------------
 
     def undirected(self, offered: tuple[str, ...], cycle: int, withheld: Withheld = NO_WITHHELD,

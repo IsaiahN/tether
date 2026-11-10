@@ -692,6 +692,12 @@ _ROUTE_KEY_GENERAL = armflag.arm("TETHER_ROUTE_KEY_GENERAL", default=True)
 # incumbent is shadow-graded on not-P rows and a broken partition reverts the split.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _D5 = armflag.arm("TETHER_D5", default=True)
+# C1 PART 5, THE KNOWN-EFFECT CONDITION (the reviewer 2026-11-09 r1592; Isaiah 09-29 ruling 1 kept):
+# D5 also offers "the press is known to move <attribute form>" (Interface.known_forms, the table the
+# agent's own presses wrote), an effect and never a button. OFF: D5's held set as before
+_D5_ACTION = armflag.arm("TETHER_D5_ACTION")
+KNOWN_EFFECT = "KNOWN_EFFECT"
+_KNOWN_FORM = re.compile(r"\?\.[A-Za-z_]\w*[+\-=]?")   # r1592 (b): an attribute form, nothing else
 # F408, EVERY NAMED GUARD PRICED (Fig 12 :99-102; the reviewer 2026-10-10 21:31Z). ON (7.5
 # switch-on, the reviewer 2026-10-11 02:19Z); reason in conform/arms.py. An intent guard (and
 # "no intent") costs log2(G+1) like ACTED_* does.
@@ -5162,6 +5168,9 @@ class Agent:
         self._mint_part: dict | None = None     # D5: the part a running mint searches for
         self._shadow: dict[str, int | None] = {}  # D5: the incumbent's shadow on a not-P step
         self._d5_rows: dict[str, list] = {}     # D5: slot -> (trace row, predictor), this level
+        # C1 part 5: id(before-state) -> the press's known forms that step; this step's forms
+        self._kn_eff: dict[int, frozenset] = {}
+        self._kn_eff_now: frozenset = frozenset()
         self._d5_said: set = set()              # D5: (slot, term) whose not-split was recorded
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
@@ -5624,6 +5633,7 @@ class Agent:
         self._parts, self._d5_pending, self._shadow = {}, {}, {}
         self._d5_candidates = {}
         self._d5_rows, self._d5_said = {}, set()   # D5's scope is the level, a world event
+        self._kn_eff = {}                          # keyed by the trace's states, cleared with it
         self._attempt_actions = 0
         # a game loss is a boundary into a dead situation; any other ending into a live one
         self._alive, self._epoch = how != "game_loss", self._epoch + 1
@@ -15416,6 +15426,11 @@ class Agent:
         # slot. Measured: `o1.colour` is unbound at perceive-exit on 30 of 30 steps and
         # bound at settle-entry on 18 -- and those 18 are exactly the 18 refutations of a
         # term the habitat says is TRUE (`o1.colour` +1 mod 4 on 21 of 21 own clicks).
+        if _D5_ACTION:
+            # C1 part 5: what this press is known to move, from the table as it stood before it
+            self._kn_eff_now = self.iface.known_forms(action, IFace.Interface.context(self.env))
+            if self._kn_eff_now:
+                self._kn_eff[id(before)] = self._kn_eff_now
         if _D5 and (self._parts or self._d5_pending):
             self._d5_select(betting, before, action)
         # B2b (the reviewer 2026-10-11 10:30 CDT): a DERIVED slot (a pair relation the world
@@ -17924,6 +17939,10 @@ class Agent:
     def _d5_holds(self, pred: str, slot: str, row: tuple | None = None) -> bool:
         """D5: does the held predicate P hold, on a history row or (row None) on this step."""
         owner = slot.rsplit(".", 1)[0]
+        if pred.startswith(KNOWN_EFFECT + " "):
+            # C1 part 5: the press was known, that step, to move this attribute form
+            forms = self._kn_eff_now if row is None else self._kn_eff.get(id(row[0]), frozenset())
+            return pred[len(KNOWN_EFFECT) + 1:] in forms
         if row is None:
             if pred == ACTED_SELF:
                 return _same_object(self._last_landed, owner)
@@ -17949,6 +17968,12 @@ class Agent:
         preds = sorted({r[3] for r in hist if r[3] is not None})
         if _ACTED_GUARD:
             preds.append(ACTED_SELF)
+        if _D5_ACTION:
+            # C1 part 5: each attribute form a press on these rows was known to move; anything
+            # else in the table (a name, a key) is refused by shape (r1592 (b))
+            preds += [f"{KNOWN_EFFECT} {f}" for f in sorted(
+                {f for r in hist for f in self._kn_eff.get(id(r[0]), ())})
+                if _KNOWN_FORM.fullmatch(f)]
         for pred in preds:
             cap.head()
             on = [self._d5_holds(pred, slot, r) for r in hist]
