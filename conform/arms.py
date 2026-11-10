@@ -545,6 +545,25 @@ ARMS: dict[str, str] = {
                         "knew that step's press to move, one signature only; any other shape is "
                         "refused, priced by _guard_bits like every guard. OFF because it is new "
                         "and can change a split. OFF: D5's held set as before",
+    "TETHER_D5_NULL": "C1 (B) (a), the null's misses in D5's condition search (the reviewer "
+                      "2026-11-10 r1612, r1615). ON, a slot bet on with nothing bound is a D5 row "
+                      "marked @null and its misses are searched for a condition (_d5_null) -- "
+                      "search only, never blame: no refute, standing or demote for idn; a null "
+                      "split mints part B and leaves part A unbound; its shadow still reverts. "
+                      "OFF because it is new and can split a slot. OFF: settle hands D5 a named "
+                      "maker's rows only",
+    "TETHER_D5_EITHER_SIDE": "C1 (B) (b), orientation (the reviewer 2026-11-10 r1614 (ii), r1615). "
+                             "ON, each offered P is also tested as UNLESS P (part A on not-P, part "
+                             "B on P), every guard priced over the doubled offered set. OFF "
+                             "because it is new and can change a split. OFF: a P must hold on the "
+                             "incumbent's right rows",
+    "TETHER_KNOWN_CORE": "C1 (B) (c), the three-valued known effect (the reviewer 2026-11-10 "
+                         "r1615). ON, a KNOWN_EFFECT form holds where every signature of the "
+                         "press in its context moved it, fails outside their union, and is "
+                         "undecided otherwise or in a context never seen (Interface.known_split); "
+                         "an undecided row counts toward neither side of a cut, witnesses "
+                         "nothing, and leaves a split silent. OFF because it is new and can change "
+                         "a split. OFF: one signature only, and unknown reads as not-P",
     "TETHER_CONTACT":"7a(5b), the contact instrument (Isaiah 2026-10-10 06:46 CDT; the reviewer "
                       "11:46Z, 12:27Z): ON, the REPEAT row's gamma_read gains fed, one entry per "
                       "library term read by the exit whose action is RETURNED, {kind, name, slot, "

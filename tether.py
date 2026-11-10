@@ -697,6 +697,17 @@ _D5 = armflag.arm("TETHER_D5", default=True)
 # agent's own presses wrote), an effect and never a button. OFF: D5's held set as before
 _D5_ACTION = armflag.arm("TETHER_D5_ACTION")
 KNOWN_EFFECT = "KNOWN_EFFECT"
+# C1 (B) (the reviewer 2026-11-10 r1612, r1614, r1615), three arms, default OFF:
+# TETHER_D5_NULL: an unbound slot's misses reach D5's condition search as rows, never blame; the
+# null's part A leaves the slot unbound. OFF: settle hands D5 a named maker's rows only
+_D5_NULL = armflag.arm("TETHER_D5_NULL")
+NULL_MAKER = "@null"
+# TETHER_D5_EITHER_SIDE: each offered P is also tested as "UNLESS P", priced over the doubled set
+_D5_EITHER_SIDE = armflag.arm("TETHER_D5_EITHER_SIDE")
+UNLESS = "UNLESS"
+# TETHER_KNOWN_CORE: a KNOWN_EFFECT form is three-valued (Interface.known_split); an undecided row
+# counts for nothing, never as "fails" (Fig 9 :44, :60)
+_KNOWN_CORE = armflag.arm("TETHER_KNOWN_CORE")
 # C1 PART 1, THE TIP-OVER (the reviewer 2026-11-09 r1584 1, r1592 3, r1594): a settle tips a term
 # (settled_at, settled_on, _settled_lvl) only where "no change" would have missed (beat_null); a
 # tied or unread settle raises confirmations and does not tip (Fig 5 :43-44, one occasion is not
@@ -4210,6 +4221,7 @@ class Agent:
     _clk_t0 = 0.0              # the step clock: the step's start
     _clk_h: dict = {}          # r1404: loop heads (cap.HEADS) per scope this step, beside _clk
     _clk_hs = None             # r1404: each open scope's heads mark, parallel to _clk_stack
+    _null_bet: frozenset = frozenset()   # (B) (a): this step's slots bet on with nothing bound
     _clk_h0 = 0                # r1404: cap.HEADS at the step's start
     _walk0 = (0, 0)            # r1585 3: WALK_N's calls and evals at the step's start
     _dw_stop = None            # B2: the slot whose mint this step stopped at a bound, if any
@@ -5214,6 +5226,10 @@ class Agent:
         # C1 part 5: id(before-state) -> the press's known forms that step; this step's forms
         self._kn_eff: dict[int, frozenset] = {}
         self._kn_eff_now: frozenset = frozenset()
+        # C1 (B) (c): id(before-state) -> (holds, union) for a press seen in its context; absent =
+        # undecided. This step's (seen, holds, union)
+        self._kn3: dict[int, tuple] = {}
+        self._kn3_now: tuple = (False, frozenset(), frozenset())
         self._cond_open: dict = {}                 # C1 6(c): slot -> its live split's record name
         self._cond_n = 0
         self._cond_in: dict = {}                   # C1 6(c): (slot kind, P kind) -> 0 held/1 broken
@@ -5703,6 +5719,7 @@ class Agent:
         self._d5_candidates = {}
         self._d5_rows, self._d5_said = {}, set()   # D5's scope is the level, a world event
         self._kn_eff = {}                          # keyed by the trace's states, cleared with it
+        self._kn3 = {}
         self._attempt_actions = 0
         # a game loss is a boundary into a dead situation; any other ending into a live one
         self._alive, self._epoch = how != "game_loss", self._epoch + 1
@@ -15537,7 +15554,16 @@ class Agent:
         # term the habitat says is TRUE (`o1.colour` +1 mod 4 on 21 of 21 own clicks).
         if _D5_ACTION:
             # C1 part 5: what this press is known to move, from the table as it stood before it
-            self._kn_eff_now = self.iface.known_forms(action, IFace.Interface.context(self.env))
+            if _KNOWN_CORE:
+                # (B) (c): what every signature here moved is offered; a form outside the union
+                # fails; the rest, and a context never seen, is undecided
+                self._kn3_now = self.iface.known_split(action, IFace.Interface.context(self.env))
+                self._kn_eff_now = self._kn3_now[1]
+                if self._kn3_now[0]:
+                    self._kn3[id(before)] = self._kn3_now[1:]
+            else:
+                self._kn_eff_now = self.iface.known_forms(action,
+                                                          IFace.Interface.context(self.env))
             if self._kn_eff_now:
                 self._kn_eff[id(before)] = self._kn_eff_now
         if _D5 and (self._parts or self._d5_pending):
@@ -15651,6 +15677,9 @@ class Agent:
                     pred[s] = raw[s] = _oe[s]
                     self._pred_by[s] = None
                     _own_clock.add(s)
+        # (B) (a): the slots bet on with nothing bound (the bet row's "no_change"), no own clock
+        self._null_bet = frozenset(s for s in betting
+                                   if self._pred_by.get(s) is None and s not in _own_clock)
         # RE-READ AFTER THE OBSERVATION, BEFORE ANYTHING IS PRICED: a label the step created
         # was priced under the count from before it existed, so a new shape 8 read as 0 under
         # 8 and the miss cost nothing (8 of 12 games, 2026-10-07).
@@ -18189,6 +18218,8 @@ class Agent:
 
     def _d5_holds(self, pred: str, slot: str, row: tuple | None = None) -> bool:
         """D5: does the held predicate P hold, on a history row or (row None) on this step."""
+        if pred.startswith(UNLESS + " "):
+            return not self._d5_holds(pred[len(UNLESS) + 1:], slot, row)
         owner = slot.rsplit(".", 1)[0]
         if pred.startswith(KNOWN_EFFECT + " "):
             # C1 part 5: the press was known, that step, to move this attribute form
@@ -18200,12 +18231,34 @@ class Agent:
             return (self._intent_now.kind if self._intent_now is not None else NO_INTENT) == pred
         return _same_object(row[4], owner) if pred == ACTED_SELF else row[3] == pred
 
+    def _d5_tri(self, pred: str, slot: str, row: tuple | None = None) -> bool | None:
+        """(B) (c) (r1615): P on a row, three-valued under TETHER_KNOWN_CORE -- a KNOWN_EFFECT form
+        holds where every signature in the press's context moved it, fails outside their union,
+        and is None (undecided) otherwise or in a context never seen; UNLESS P is undecided where
+        P is. Every other predicate is two-valued, as _d5_holds."""
+        if pred.startswith(UNLESS + " "):
+            t = self._d5_tri(pred[len(UNLESS) + 1:], slot, row)
+            return None if t is None else not t
+        if not (_KNOWN_CORE and pred.startswith(KNOWN_EFFECT + " ")):
+            return self._d5_holds(pred, slot, row)
+        if row is None:
+            seen, holds, union = self._kn3_now
+            if not seen:
+                return None
+        else:
+            got = self._kn3.get(id(row[0]))
+            if got is None:
+                return None
+            holds, union = got
+        f = pred[len(KNOWN_EFFECT) + 1:]
+        return True if f in holds else (False if f not in union else None)
+
     def _d5_cut(self, slot: str, name: str) -> tuple | None:
         """D5's trigger (Fig 9 :4-5): a held predicate P with the incumbent right on every P row
         and wrong on every other, at least 2 a side (probe.never_live's anchor: two is the
         smallest number that separates), and the split pays: the incumbent's miss on the not-P
         rows exceeds the guard's cost. Only predicates the agent already holds (Fig 6 :32)."""
-        term = self.gamma.library.get(name)
+        term = self.gamma.library.get(IDN if name == NULL_MAKER else name)
         # THE TERM'S OWN RECORD, SCOPED BY THE LEVEL (the reviewer 16:24Z): every row on which
         # THIS term predicted the slot in this level, across any demote or rebind. A boundary the
         # agent produces (its own demote) may not decide which evidence counts (Fig 1 :27).
@@ -18245,25 +18298,40 @@ class Agent:
                                 unmatched=[pk for pk in here if pk not in live],
                                 reads="a carried condition tried first through its live form; "
                                       "one with no live form here is not offered")
+        n_price = len(preds)
+        if _D5_EITHER_SIDE:
+            # (B) (b) (r1614 (ii)): either side's predicate states the partition; the search over
+            # twice the predicates pays for the extra chances
+            preds = preds + [f"{UNLESS} {p}" for p in preds]
+            n_price = len(preds)
+        tri, und = _KNOWN_CORE or _D5_EITHER_SIDE, {}
         for pred in preds:
             cap.head()
-            on = [self._d5_holds(pred, slot, r) for r in hist]
-            right_p = sum(1 for o, w in zip(on, wrong, strict=True) if o and not w)
-            wrong_np = sum(1 for o, w in zip(on, wrong, strict=True) if not o and w)
-            if right_p < 2 or wrong_np < 2 or right_p + wrong_np != len(hist):
+            on = [(self._d5_tri if tri else self._d5_holds)(pred, slot, r) for r in hist]
+            # (B) (c): an undecided row counts toward neither side (r1615)
+            dec = [(o, w) for o, w in zip(on, wrong, strict=True) if o is not None]
+            if len(dec) < len(on):
+                und[pred] = len(on) - len(dec)
+            right_p = sum(1 for o, w in dec if o and not w)
+            wrong_np = sum(1 for o, w in dec if not o and w)
+            if len(dec) < 4 or right_p < 2 or wrong_np < 2 or right_p + wrong_np != len(dec):
                 continue
-            miss = self._left(term, slot, [hist[i] for i, o in enumerate(on) if not o])
-            cost = _guard_bits(pred, len(preds))
+            miss = self._left(term, slot, [hist[i] for i, o in enumerate(on) if o is False])
+            base = pred[len(UNLESS) + 1:] if pred.startswith(UNLESS + " ") else pred
+            cost = _guard_bits(base, n_price)
             if miss > cost:
                 return pred, {"right_on_p": right_p, "wrong_off_p": wrong_np,
                               "incumbent_miss_bits_off_p": round(miss, 3),
-                              "guard_bits": round(cost, 3)}
+                              "guard_bits": round(cost, 3),
+                              **({"decided": len(dec), "undecided": len(on) - len(dec)}
+                                 if _KNOWN_CORE else {})}
         n_right, n_wrong = wrong.count(False), wrong.count(True)
         if n_right >= 2 and n_wrong >= 2 and (slot, name) not in self._d5_said:
             # A UNION THE HELD PREDICATES DO NOT SEPARATE: recorded once, never split (design 5).
             self._d5_said.add((slot, name))
             self.led.record(self.cycle, "SETTLE", "@d5", "not_split", split_slot=slot, term=name,
                             right=n_right, wrong=n_wrong, predicates=preds,
+                            **({"undecided": und} if _KNOWN_CORE else {}),
                             reason="no held predicate separates the term's right rows from its "
                                    "wrong rows in this level")
         return None
@@ -18325,7 +18393,11 @@ class Agent:
         owed, abst = slot in self.owed_import, self.abstained.get(slot)
         want, want_t = self.wants.get(slot), self._want_terms.get(slot)
         self.bound.pop(slot, None)
-        self._row_filter[slot] = lambda r, _p=pred, _s=slot: not self._d5_holds(_p, _s, r)
+        if _KNOWN_CORE:
+            # (B) (c): part B is minted on the rows where P FAILS; an undecided row is no part's
+            self._row_filter[slot] = lambda r, _p=pred, _s=slot: self._d5_tri(_p, _s, r) is False
+        else:
+            self._row_filter[slot] = lambda r, _p=pred, _s=slot: not self._d5_holds(_p, _s, r)
         self._mint_part = {"part": f"!{pred}", "slot": slot, "incumbent": inc}
         try:
             self.mint(slot)
@@ -18340,7 +18412,7 @@ class Agent:
                 store.pop(slot, None)
             else:
                 store[slot] = val
-        self.bound[slot] = inc
+        self._bind_part(slot, inc)
         self._parts[slot] = {"P": pred, "A": inc, "B": part_b}
         self.led.record(self.cycle, "MINT", "@d5", "split", split_slot=slot, P=pred,
                         part_a=inc, part_b=part_b or "parked (its own park row names the part)",
@@ -18359,16 +18431,34 @@ class Agent:
             cap.head()
             if slot not in betting:
                 continue
-            if self._d5_holds(part["P"], slot):
-                self.bound[slot] = part["A"]
+            on = (self._d5_tri if _KNOWN_CORE else self._d5_holds)(part["P"], slot)
+            if on or on is None:
+                # (B) (c): on an undecided step the split does not speak and takes no shadow
+                self._bind_part(slot, part["A"])
                 self._shadow.pop(slot, None)
                 continue
-            self.bound[slot] = part["A"]
+            self._bind_part(slot, part["A"])
             self._shadow[slot] = self._predict(slot, before, action)
             if part["B"]:
                 self.bound[slot] = part["B"]
             else:
                 self.bound.pop(slot, None)
+
+    def _d5_null(self, slot: str, r: SlotResidual) -> None:
+        """(B) (a) (r1612, r1615): the null's row in D5's condition search -- SEARCH ONLY, NEVER
+        BLAME. A cut candidate on the null is witnessed here; a null miss on a slot with no part,
+        candidate or pending cut is searched. Nothing is booked against idn: no refute, no
+        standing, no demote ("an unattributed prediction is not evidence against anybody")."""
+        if slot in self._d5_candidates:
+            self._d5_witness(slot, NULL_MAKER, r)
+            return
+        if r.mass <= 0.0 or slot in self._parts or slot in self._d5_pending:
+            return
+        found = self._d5_cut(slot, NULL_MAKER)
+        if found is not None:
+            self._d5_candidates[slot] = (*found, NULL_MAKER)
+            self.led.record(self.cycle, "SETTLE", "@d5", "cut_candidate", split_slot=slot,
+                            P=found[0], incumbent=NULL_MAKER, **found[1])
 
     def _d5_witness(self, slot: str, name: str, r: SlotResidual) -> None:
         """D5: the candidate cut's witness -- the first not-P step after the cut on which the
@@ -18381,7 +18471,10 @@ class Agent:
                             P=c[0], incumbent=c[2], predictor=name, verdict_on_the_cut=None,
                             reason="another term predicts the slot, so no witness can arrive")
             return
-        if self._d5_holds(c[0], slot):
+        on = (self._d5_tri if _KNOWN_CORE else self._d5_holds)(c[0], slot)
+        if on is None:
+            return        # (B) (c): an undecided row witnesses neither side; the candidate waits
+        if on:
             # THE P SIDE IS A WITNESS TOO (the reviewer 20:30Z): the cut also claims the
             # incumbent is right on P. Wrong there refutes it; right there is no news.
             if r.mass > 0.0:
@@ -18447,16 +18540,26 @@ class Agent:
     def _p_kind(self, pred: str) -> str:
         """C1 6(c): a held predicate in kind form. Intent kinds and ACTED_SELF are kind-level
         already; a KNOWN_EFFECT pair form's partner instance becomes that object's kind."""
+        if pred.startswith(UNLESS + " "):
+            return f"{UNLESS} {self._p_kind(pred[len(UNLESS) + 1:])}"
         if not pred.startswith(KNOWN_EFFECT + " "):
             return pred
         return _INSTANCE.sub(lambda m: repr(self._kind(m.group(0))), pred)
+
+    def _bind_part(self, slot: str, a: str) -> None:
+        """D5: a part's incumbent takes the slot; the null's part A leaves it unbound (B) (a), so
+        the null stays unattributed and never a maker (r1612: search only, never blame)."""
+        if a == NULL_MAKER:
+            self.bound.pop(slot, None)
+        else:
+            self.bound[slot] = a
 
     def _d5_revert(self, slot: str) -> None:
         """D5: the incumbent was right on a not-P step, so the partition claim is broken."""
         if _CONDITION_CARRY:
             self._cond_end(slot, "partition_broken")
         part = self._parts.pop(slot)
-        self.bound[slot] = part["A"]
+        self._bind_part(slot, part["A"])
         self.led.record(self.cycle, "SETTLE", "@d5", "partition_broken", split_slot=slot,
                         P=part["P"], incumbent=part["A"], unbound=part["B"],
                         verdict="the incumbent was right on a not-P row; the split reverts")
@@ -26171,9 +26274,13 @@ class Agent:
                         sh == r.actual % self.alphabet[slot]):
                     self._d5_revert(slot)
                     continue
+            null = not name and _D5 and _D5_NULL and slot in self._null_bet
             if _D5:
-                self._d5_rows.setdefault(slot, []).append((len(self.trace) - 1, name))
+                self._d5_rows.setdefault(slot, []).append(
+                    (len(self.trace) - 1, NULL_MAKER if null else name))
             if not name:
+                if null:
+                    self._d5_null(slot, r)
                 continue
             if _D5 and slot in self._d5_candidates:
                 self._d5_witness(slot, name, r)

@@ -5,7 +5,9 @@ ruling 1 kept: a guard names an intent, not a button).
       context: an unseen press, and a press with two effects there, offer nothing (MF (a))
   K2  a hand trace on slot x: idn right on the rows whose press was known to move ?.row (up on one,
       down on the other) and wrong on the ?.col rows, 2 a side: D5 splits on "KNOWN_EFFECT ?.row",
-      priced by _guard_bits (c); the signed forms alone separate nothing
+      priced by _guard_bits (c); the signed forms alone separate nothing. A CUT-LOGIC witness: it
+      calls _d5_cut directly, and the live loop names no maker for an unbound slot, so its entry
+      through settle is test_c1_nullsearch N4 (the reviewer 2026-11-10 r1612 (3))
   K3  MF (b): the same rows with button names ("ACTION1", "left", "o0.row+") in place of forms:
       refused by shape, no split
   K4  MF (d): forms that do not separate the right rows from the wrong ones: no split

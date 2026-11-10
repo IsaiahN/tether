@@ -264,6 +264,15 @@ _BOARD_UNTRIED = armflag.arm("TETHER_BOARD_UNTRIED", default=True)
 AIM_ROUTED_N: Counter = Counter()   # "<asker>:record" / ":object" / ":pair_no_record" / ":no_aim"
 
 
+def _sig_forms(sig) -> frozenset:
+    """A signature's attribute forms: each moved attribute signed ("?.row+") and unsigned."""
+    out = set()
+    for k, s in sig:
+        f = f"?.{k.rsplit('.', 1)[-1]}"
+        out |= {f, f + ("+" if s > 0 else "-" if s < 0 else "=")}
+    return frozenset(out)
+
+
 def _is_relational(slot: str | None, env: object) -> bool:
     """Is this slot's attribute a RELATION TO ANOTHER OBJECT? **Asked of the world.**
 
@@ -1374,11 +1383,17 @@ class Interface:
         sigs = self.table.get(a, {}).get("by_ctx", {}).get(ctx)
         if not sigs or len(sigs) != 1:
             return frozenset()
-        out = set()
-        for k, s in next(iter(sigs)):
-            f = f"?.{k.rsplit('.', 1)[-1]}"
-            out |= {f, f + ("+" if s > 0 else "-" if s < 0 else "=")}
-        return frozenset(out)
+        return _sig_forms(next(iter(sigs)))
+
+    def known_split(self, a: str, ctx: tuple) -> tuple[bool, frozenset, frozenset]:
+        """C1 (B) (c), TETHER_KNOWN_CORE (the reviewer 2026-11-10 r1615): (seen, holds, union)
+        for `a` in `ctx`. A form HOLDS if every signature seen there moved it, FAILS if none did
+        (outside the union), and is undecided otherwise, or when `a` was never seen in `ctx`."""
+        sigs = self.table.get(a, {}).get("by_ctx", {}).get(ctx)
+        if not sigs:
+            return False, frozenset(), frozenset()
+        each = [_sig_forms(s) for s in sigs]
+        return True, frozenset.intersection(*each), frozenset.union(*each)
 
     # ---- upward: what changed, in reasoning terms -------------------------------------
 
