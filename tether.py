@@ -1600,12 +1600,18 @@ _DOORS = armflag.arm("TETHER_DOORS", default=True)
 # contested exits serve a need -- PROGRESS (the goal-directed exits) or EXPLORE (the rest) -- and
 # each bid is weighted by its need's w, LEARNED from the outcomes of past weightings (Symbols
 # :24-25 "w_A + w_B = 1, and w is learnable"): w = (paid turns of that need + 1) / (paid turns + 2),
-# the 1 and 2 being the even head start (Fig 4 :22). Kept per STATE, read off the agent's record:
+# the 1 and 2 being the even head start (Fig 4 :22) -- read as the RATE under TETHER_DIAL_RATE
+# (r1649, below). Kept per STATE, read off the agent's record:
 # PRESSED once this level saw a game loss or most of its steps were cut by the purse (the purse is
 # a need: "if tired ... youll have to sleep"), else COMFORTABLE -- so what pays near ruin is
 # learned apart from what pays at ease. Each need is read on its own, never averaged (Fig 1 :28);
 # owed lines and every alternative keep bidding (the guard). OFF: every need weight 1.0
 _NEEDS_DIAL = armflag.arm("TETHER_NEEDS_DIAL", default=True)
+# C7 RATE (the reviewer 2026-11-10 r1649; Isaiah 11-09 "why knowing why beats frequency"):
+# TETHER_DIAL_RATE, the weight reads each need's RATE, r = (paid + 1) / (turns + 2) with the same
+# even prior, and w = r / (r_progress + r_explore) -- a need used more no longer weighs more for
+# being used. OFF: w = (paid turns of that need + 1) / (paid turns of both + 2) (017b282)
+_DIAL_RATE = armflag.arm("TETHER_DIAL_RATE", default=True)
 _NEED_OF = {"goal": "progress", "untried:goal": "progress", "probe:3a": "progress",
             "discriminate": "progress"}
 TRANSLATE = {
@@ -21846,13 +21852,19 @@ class Agent:
         return "pressed" if lv and cut * 2 > len(lv) else "comfortable"
 
     def _dial_weights(self, opts: list) -> dict:
-        """C7: each contested exit's need weight, w = (paid + 1) / (paid of both needs + 2) in the
-        current state -- learned from the outcomes of past weightings, the even prior first -- set
-        into C3's hook. Returns what was read, for the exit row."""
+        """C7: each contested exit's need weight in the current state, learned from the outcomes
+        of past weightings with the even prior first: ON (TETHER_DIAL_RATE) each need's rate,
+        r = (paid + 1) / (turns + 2), and w = r / (sum of both); OFF w = (paid + 1) / (paid of
+        both + 2). Set into C3's hook. Returns what was read, for the exit row."""
         st = self._dial_state()
         paid = {n: self._dial.get((st, n), [0, 0])[0] for n in ("progress", "explore")}
-        tot = sum(paid.values())
-        w = {n: (paid[n] + 1) / (tot + 2) for n in paid}
+        turns = {n: self._dial.get((st, n), [0, 0])[1] for n in paid}
+        rate = {n: (paid[n] + 1) / (turns[n] + 2) for n in paid}
+        if _DIAL_RATE:
+            w = {n: rate[n] / sum(rate.values()) for n in paid}
+        else:
+            tot = sum(paid.values())
+            w = {n: (paid[n] + 1) / (tot + 2) for n in paid}
         for e in opts:
             self._ex_need[e] = w[_NEED_OF.get(e, "explore")]
         # r1647: the RISK -- per need, the lowest standing p (paid / turns) of a line the agent
@@ -21863,9 +21875,12 @@ class Agent:
                   if s_ == st and x[1] and _NEED_OF.get(e, "explore") == n]
             risk[n] = round(min(ps), 4) if ps else None
         return {"state": st, "w": {n: round(v, 4) for n, v in w.items()},
-                "paid": paid, "turns": {n: self._dial.get((st, n), [0, 0])[1] for n in paid},
-                "risk": risk, "checked": f"{len(paid)} of {len(paid)} needs",
-                "why": "w = (paid + 1) / (paid of both + 2), learned in this state"}
+                "paid": paid, "turns": turns, "risk": risk,
+                **({"rate": {n: round(v, 4) for n, v in rate.items()}} if _DIAL_RATE else {}),
+                "checked": f"{len(paid)} of {len(paid)} needs",
+                "why": ("w = r / (r_progress + r_explore), r = (paid + 1) / (turns + 2), learned "
+                        "in this state" if _DIAL_RATE
+                        else "w = (paid + 1) / (paid of both + 2), learned in this state")}
 
     def _known_forms_n(self) -> int:
         """C6: how many effect forms the agent knows (its own effect table's forms, any frame)."""
