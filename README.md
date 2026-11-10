@@ -5,8 +5,8 @@ watches, predicts, acts, and keeps only the ideas that the world pays for. The i
 small programs in a typed language, so it builds its own vocabulary and then builds on it. Every
 step is written to a record that a separate checker can fail.
 
-It is an instance of **The Tether** architecture: Isaiah Nwukor's account of how intelligence
-grows by mapping a world against a ground it cannot argue with.
+It is an instance of **The Tether**, a framework for how intelligence grows by mapping a world
+against a ground it cannot argue with.
 
 - *Arrival of the Fittest: The Tether Architecture*:
   [Medium](https://medium.com/@IsaiahNwukor/arrival-of-the-fittest-the-tether-architecture-1de7edf641ec)
@@ -54,13 +54,65 @@ source code. It rewrites its **vocabulary**: the terms it reasons with.
   back to a second search tier, while nothing is deleted.
 - **It carries what it learned.** Between runs it writes a lineage of terms *by kind*, never by
   instance, with their evidence. The next life starts from them.
-- **It is whitebox.** Each term carries the atoms and bonds it was built from. The ledger says
-  why every decision was made, and `gate.py`, which imports nothing from the agent, can fail the
-  run.
 
 The loop is one loop for every world, with no branch on problem type:
 
     PERCEIVE -> ROUTE -> MINT -> ACCEPT -> SETTLE -> PROMOTE -> IMPORT -> REPEAT
+
+## What it is built to be capable of
+
+These are the capabilities a recursively self-improving, general agent needs, and how this one is
+built to meet each. They are design commitments, not results; results are reported where they are
+measured.
+
+- **Learn a new task from contact alone.** No instructions, no stated goal, no rules. It finds out
+  what a world is by acting in it.
+- **Set its own goals.** It proposes candidate goals from its own grammar over what it sees, chases
+  them, and keeps what held.
+- **Understand cause, not just correlation.** It learns what each action does to what, and keeps a
+  prediction only where it beat "no change".
+- **Abstract and compose.** It builds new ideas out of settled ones, and relates new things to the
+  kinds it already knows.
+- **Plan.** It chains settled predictions into short sequences, and a held plan acts only when it
+  outbids every other way of acting.
+- **Work in any world.** One loop for every world, with no branch on problem type. Swap the
+  interface, keep the lineage.
+- **Improve itself, recursively.** What it learns becomes what it learns with: a settled term is a
+  part the next search builds on, so every idea it keeps makes the next one cheaper.
+- **Improve how it improves.** Its thinking budget, its forgetting rate and the weight it gives
+  each need are learned from its own record. The loop itself is fixed by design, as evolution's
+  is; what changes is everything the loop builds and how it spends.
+- **Keep learning for a lifetime without forgetting.** New knowledge is appended, not retrained
+  (see below).
+- **Transfer.** It carries methods between worlds by kind, never by instance.
+- **Know what it does not know.** When nothing it holds can close a gap, it says *unreachable with
+  what I hold*, then splits the question or waits for an import, instead of guessing.
+- **Stay correctable.** It is graded by a ground it cannot move. Nothing it says about itself
+  counts as evidence.
+- **Show its work.** It is whitebox (see below).
+- **Think within a budget.** Thinking is priced and counted, and work it cannot afford is owed, not
+  judged. It runs on a CPU.
+- **Grow without a ceiling set by size.** The same loop and rules hold at any scale, the record
+  only grows, and what it learns carries forward across lifetimes.
+
+## It learns by appending, not retraining
+
+New knowledge enters as new terms beside the old ones. A term that turns out wrong gets a refusal
+added next to it; nothing is rewritten or torn out. What the agent can reach is recomputed from
+everything it holds, so a correction in one corner reaches only what was built on that corner.
+
+A neural network updates by retraining its weights, and new training can overwrite old skills
+(catastrophic forgetting), so its knowledge tends to be refreshed in whole new versions. Here the
+agent keeps its shape and its history while its picture of the world updates one term at a time.
+Its starting priors are human knowledge from one point in time; they are a head start it can grow
+past, not a fixed snapshot.
+
+## It is whitebox
+
+There are no weights to probe. Every term the agent holds carries the atoms and bonds it was built
+from and where it came from. The ledger records why every decision was made. `gate.py`, which
+imports nothing from the agent, can fail any run. To see what the agent knows and why, read it
+term by term.
 
 **Already in this branch (all on by default):**
 
