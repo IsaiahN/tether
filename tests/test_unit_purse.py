@@ -3,9 +3,11 @@ TETHER_UNIT_PURSE.
 
   P1  MF: a planted unit of N heads over the allowance stops at the allowance (cap.PurseCut at the
       limit); with no limit set it runs all N; a held unit is never stopped inside
-  P2  a real step whose allowance is far below its demand ends with ONE unit_purse_cut row (no row
-      of the step after it), its demand censored, the cycle advanced and thinking NOT ended: the
-      next step runs; OFF the step runs past the allowance and writes no such row
+  P2  a real step whose allowance is far below its demand writes ONE unit_purse_cut row, its
+      demand censored, and runs on to its choice (r1703): a step cut inside ROUTE still writes its
+      step_act and REPEAT rows, and every cut step its REPEAT row (MF: 796b600, where the cut
+      unwound the whole step); thinking is NOT ended: the next step runs; OFF the step runs past
+      the allowance and writes no such row
   P3  a step under the allowance is unchanged: the same rows ON and OFF
 
     python tests/test_unit_purse.py
@@ -94,15 +96,26 @@ def _agent() -> tether.Agent:
 
 
 def _steps(on: bool, allowance: int | None, n: int = 3) -> tuple:
+    """`allowance` heads past what the step had spent when its first unit began (so the cut lands
+    inside that unit, not before it), unlimited until then; None: the agent's own."""
     keep = tether._UNIT_PURSE
     tether._UNIT_PURSE = on
     try:
         ag = _agent()
+        box = [None]
         if allowance is not None:
-            ag._allowance = lambda: allowance
+            unit = ag._unit
+
+            def first_unit(on_cut, fn, *a):
+                if box[0] is None:
+                    box[0] = ag._purse_spent() + allowance
+                return unit(on_cut, fn, *a)
+            ag._unit = first_unit
+            ag._allowance = lambda: 10 ** 15 if box[0] is None else box[0]
         per = []
         for _ in range(n):
             c0, r0 = ag.cycle, len(ag.led.rows())
+            box[0] = None
             ag.step()
             rows = ag.led.rows()[r0:]
             per.append((c0, ag.cycle, [r["event"] for r in rows]))
@@ -114,20 +127,27 @@ def _steps(on: bool, allowance: int | None, n: int = 3) -> tuple:
 def check_p2() -> None:
     ag, per = _steps(True, 2_000)
     for c0, c1, evs in per:
-        assert evs.count("unit_purse_cut") == 1, \
-            f"MUST-FAIL: no unit cut at 2,000 heads: {evs[-5:]}"
+        assert evs.count("unit_purse_cut") <= 1, evs.count("unit_purse_cut")
         assert c1 == c0 + 1, (c0, c1)
-    cut_rows = [r for r in ag.led.rows() if r["event"] == "unit_purse_cut"]
-    last = cut_rows[-1]
-    after = [r for r in ag.led.rows() if r["seq"] > last["seq"] and r["cycle"] == last["cycle"]]
-    assert not after, f"rows of the cut step after its cut row: {[r['event'] for r in after]}"
+    rows = ag.led.rows()
+    cuts = {r["cycle"]: r["detail"] for r in rows if r["event"] == "unit_purse_cut"}
+    assert cuts, "MUST-FAIL: no unit cut at 2,000 heads"
+    in_route = [c for c, d in cuts.items() if d["at"] == "ROUTE"]
+    assert in_route, f"no cut inside ROUTE to read: {cuts}"
+    have = {(r["cycle"], r["event"]) for r in rows if r["event"] in ("step_act", "repeat")}
+    lost = [(c, e) for c in cuts for e in ("repeat",) + (("step_act",) if c in in_route else ())
+            if (c, e) not in have]
+    assert not lost, f"MUST-FAIL (796b600): a cut step lost its choice rows: {lost}"
     assert not ag._cut, "a purse cut ended thinking (only a deadline does)"
     assert any(("cut", c) in r["open"] for r in ag._pd for c in [r["cyc"]]), "demand not censored"
     _off, per_off = _steps(False, 2_000)
     assert all("unit_purse_cut" not in evs for _c0, _c1, evs in per_off), per_off
-    d = last["detail"]
-    print(f"  P2: allowance 2,000 heads: {len(per)} steps, each one unit_purse_cut row (last at "
-          f"{d['at']}, {d['site']}, spent {d['spent']:,}); the next step ran; OFF none")
+    d = cuts[in_route[0]]
+    print(f"  P2: allowance 2,000 heads past the first unit: {len(cuts)} of {len(per)} steps cut "
+          f"inside a unit (in "
+          f"ROUTE at cycle {in_route[0]}: {d['site']}, spent {d['spent']:,}); every cut step "
+          f"wrote its REPEAT row and the ROUTE-cut ones their step_act; the next step ran; OFF "
+          f"none")
 
 
 def check_p3() -> None:

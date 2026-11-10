@@ -85,7 +85,6 @@ from ledger import (
     NO_CHANGE,
     SLICE_TOO_SMALL,
     SPECIFIED,
-    STEPS,
     WIN,
     Ledger,
     game_loss_word,
@@ -1815,10 +1814,14 @@ _BANK_PER_BOARD = armflag.arm("TETHER_BANK_PER_BOARD", default=True)
 # C2 THE PURSE INSIDE EVERY UNIT (R1 finding F2; Isaiah 2026-11-10 16:12, the reviewer r1700): the
 # purse was checked only between whole units, so one unit could run past it (tu93: 2,815 M heads
 # against a 46 M allowance). cap.head() now asks the purse once the step's allowance in heads is
-# reached; spent, the unit stops at that loop head (cap.PurseCut) and this step ends with one
-# "unreached at this budget" row; the next step runs. cap.hold() units stay whole. OFF: between
-# whole units only
+# reached; spent, the unit stops at that loop head (cap.PurseCut) with one "unreached at this
+# budget" row. A cut ends THINKING, never the choice (the reviewer r1703, r1704): the limit is armed
+# only inside a unit that already has a between-unit stop (a route lookup, a mint, a derived ask,
+# an event's want), and the cut owes that unit's item exactly as that stop does; the step runs on
+# through settle, step_act and REPEAT under the spent purse. cap.hold() units stay whole. OFF:
+# between whole units only
 _UNIT_PURSE = armflag.arm("TETHER_UNIT_PURSE", default=True)
+_UNIT_CUT = object()        # TETHER_UNIT_PURSE: what a unit cut inside returns to its caller
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
 # is stored with every landing, and the lit list is TIERS, an order, never a cut: T1a-c what landed
@@ -3874,8 +3877,6 @@ OWES = "not held: this step read zero and the slot still owes"
 LEFT_BOARD = "not sorted: left the board this step; the miss stays recorded"
 CAP_UNREACHED = ("not sorted: the cap reached mid-step before this slot's turn; the residual "
                  "stays recorded")
-PURSE_UNREACHED = ("not sorted: unreached at this budget, the step's allowance was spent inside a "
-                   "unit before this slot's turn; the residual stays recorded and owed")
 PAIR_NOT_OBJECT = "a pair owner is not an object name"   # C1a: one per (entry, role, pairing)
 
 TRANSITION, REWARD, BRACKET = "transition", "reward", "bracket"
@@ -6540,6 +6541,23 @@ class Agent:
             order = sorted(order, key=lambda s: (self._dw_seen[s], drawn[s]))
         elif owed:
             order = sorted(order, key=lambda s: s not in owed)   # owed first, stable
+        def defer(d: str, t: tuple, why: Any) -> None:
+            # OWED, NOT TRIED: the ask stays askable; it is asked first next step (C2: or the
+            # purse is spent, its demand censored)
+            self._dw_tried[d].discard(t)
+            self._dw_owed[d] = (owed[d][0] if d in owed else self.cycle, t)
+            b2["deferred"] += 1
+            # r1442 (a): E0-W runs after the ACCEPT loop, so on a slot ACCEPTed this cycle its
+            # note goes on "@derived" (as "@owed_ask" does), the slot named in the row
+            at = "@derived" if self.led.wrote(self.cycle, "ACCEPT", d) else d
+            self.led.record(self.cycle, "MINT", at, "derived_deferred", owes=True,
+                            **({"derived": d} if at != d else {}),
+                            after=why, transition=list(t),
+                            since=self._dw_owed[d][0],
+                            reads="B2: not minted this step: a mint this step already stopped "
+                                  "at its bound; owed, asked first next step -- unreached at "
+                                  "this budget, never a verdict")
+
         for d in order:
             cap.head()
             missed = None
@@ -6557,29 +6575,19 @@ class Agent:
                 missed = self._ds_echo(d)
             _b2_stop = b2 is not None and b2["stop"] is not None
             if b2 is not None and ((_b2_stop and not missed) or self._purse_cut()):
-                # OWED, NOT TRIED: the ask stays askable; it is asked first next step (C2: or the
-                # purse is spent, its demand censored)
-                self._dw_tried[d].discard(t)
-                self._dw_owed[d] = (owed[d][0] if d in owed else self.cycle, t)
-                b2["deferred"] += 1
-                # r1442 (a): E0-W runs after the ACCEPT loop, so on a slot ACCEPTed this cycle its
-                # note goes on "@derived" (as "@owed_ask" does), the slot named in the row
-                at = "@derived" if self.led.wrote(self.cycle, "ACCEPT", d) else d
-                self.led.record(self.cycle, "MINT", at, "derived_deferred", owes=True,
-                                **({"derived": d} if at != d else {}),
-                                after=b2["stop"] if _b2_stop else "the purse", transition=list(t),
-                                since=self._dw_owed[d][0],
-                                reads="B2: not minted this step: a mint this step already stopped "
-                                      "at its bound; owed, asked first next step -- unreached at "
-                                      "this budget, never a verdict")
+                defer(d, t, b2["stop"] if _b2_stop else "the purse")
                 continue
             # r1564: the ask and its whole search are a second pass on a slot ACCEPTed this
             # cycle: the ledger books that slot's rows on "@derived", naming it
             with self.led.pass_key(d, "@derived",
                                    on=self.led.wrote(self.cycle, "ACCEPT", d)):
                 if missed:
-                    formed, free = (self._no_search_want(d, before, after, *ctx) if ctx
-                                    else (None, 0))
+                    formed, free = (self._unit(lambda: (_UNIT_CUT, 0), self._no_search_want, d,
+                                               before, after, *ctx) if ctx else (None, 0))
+                    if formed is _UNIT_CUT:     # TETHER_UNIT_PURSE: cut inside the ask
+                        if b2 is not None:
+                            defer(d, t, "the purse")
+                        continue
                     self.led.record(self.cycle, "MINT", d, "derived_asked", echo=True,
                                     missed=missed,
                                     formed=formed is not None, refused_free=free,
@@ -6603,9 +6611,13 @@ class Agent:
                     self._mint_exhausted = False
                     t0 = time.perf_counter()
                 try:
-                    self.mint(d)
+                    got = self._unit(lambda: _UNIT_CUT, self.mint, d)
                 finally:
                     self._want_only = False
+                if got is _UNIT_CUT:            # TETHER_UNIT_PURSE: cut inside the ask
+                    if b2 is not None:
+                        defer(d, t, "the purse")
+                    continue
                 if _OWED_REJUDGE:
                     self._dw_seen[d] += 1            # 1d: A1's learning reading, turns taken
                 if b2 is not None:
@@ -6667,11 +6679,14 @@ class Agent:
             formed, free, held = None, 0, None
             for d in changed:
                 cap.head()
-                f_, n_ = self._no_search_want(d, before, after, *ctx)
+                f_, n_ = self._unit(lambda: (_UNIT_CUT, 0), self._no_search_want, d, before,
+                                    after, *ctx)
                 free += n_
                 if f_ is not None:
                     formed = f_
                     break
+            if formed is _UNIT_CUT:
+                break       # TETHER_UNIT_PURSE: cut inside this event's want; the rest unread
             if formed is not None:
                 d, term, prov, dk = formed
                 if d in self.wants:
@@ -16744,6 +16759,31 @@ class Agent:
                                 reads="declared heads refused, not walked late: one row per head "
                                       "per fit, n counted, the distinct terms kept (r1163, r1164)")
 
+    def _lookup_owed(self, slot: str, cut: bool = False) -> None:
+        """The lookup not asked (or, cut, not finished) at a spent purse: owed, asked first next
+        step."""
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        qid = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
+        self._owed_q[slot] = qid
+        self._not_asked += 1
+        if slot in self._route_cls:
+            self._class_n[self._route_cls[slot]][1] += 1
+        self.owed_import.add(slot)
+        self.led.record(self.cycle, "ROUTE", slot, "budget_owed", question=list(qid),
+                        spent=self._spent_now(), budget=self._budget_now(),
+                        **({"unit_cut": True} if cut else {}),
+                        reads="not asked: the step's budget was spent; owed, " + _owed_next())
+
+    def _lookup_unit(self, fit: Any, slot: str, exclude: str | None) -> str | None:
+        """route's lookup as one unit under the purse: cut inside, it was never finished, so it is
+        owed as a lookup the spent purse never asked (TETHER_UNIT_PURSE)."""
+        asked = self._asked
+
+        def owed() -> None:
+            self._asked = asked
+            self._lookup_owed(slot, cut=True)
+        return self._unit(owed, fit, slot, exclude)
+
     def _fit_tier0(self, slot: str, exclude: str | None) -> str | None:
         """S2a (the reviewer 2026-10-20 19:54): an OWED slot whose bet held this step. A row the
         bound term predicted adds 0 to base_bits and never less than 0 to any candidate's left
@@ -16836,16 +16876,7 @@ class Agent:
                                "consumers: the pull count, the description's ordering proof, "
                                "and an import's shadow test"))
         if _STEP_BUDGET and self._purse_out():
-            own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
-            qid = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
-            self._owed_q[slot] = qid
-            self._not_asked += 1
-            if slot in self._route_cls:
-                self._class_n[self._route_cls[slot]][1] += 1
-            self.owed_import.add(slot)
-            self.led.record(self.cycle, "ROUTE", slot, "budget_owed", question=list(qid),
-                            spent=self._spent_now(), budget=self._budget_now(),
-                            reads="not asked: the step's budget was spent; owed, " + _owed_next())
+            self._lookup_owed(slot)
         else:
             _paid_q = self._owed_q.pop(slot, None)
             self._dl_owed = _paid_q is not None
@@ -17830,7 +17861,7 @@ class Agent:
                 # route only files the slot; `_price_refusal` takes it from `_refuted_slot`.
                 self._refuted_slot[slot] = was_refused
                 self._fit_none.pop(slot, None)     # S2a: a refuted bet reopens it
-                fit = self._fit_counted(slot, was_refused)
+                fit = self._lookup_unit(self._fit_counted, slot, was_refused)
                 # AND ZERO SUPPORT FALLS THROUGH TO MINT -- ruled 2026-09-22 on B5.
                 # *Support at zero is an INSTRUCTION, not a stop: perturb.* A rebind changes
                 # what the agent BELIEVES and does not touch the world, so it cannot discharge
@@ -17859,8 +17890,9 @@ class Agent:
                 # evidence. It is why an unbound slot fell back to idn and was never
                 # revisited.
                 b, fit = MECHANISM, (None if self._defer_lookup(slot)
-                                     else self._fit_tier0(slot, self.bound.get(slot)) if _FIT_TIER0
-                                     else self._fit_counted(slot, self.bound.get(slot)))
+                                     else self._lookup_unit(self._fit_tier0 if _FIT_TIER0
+                                                         else self._fit_counted, slot,
+                                                         self.bound.get(slot)))
                 if fit:
                     b = REBIND
             elif len(self.trace) < 2:
@@ -17878,7 +17910,7 @@ class Agent:
             else:
                 self._fit_none.pop(slot, None)     # S2a: a row the bound term missed reopens it
                 fit = (None if self._defer_lookup(slot)
-                       else self._fit_counted(slot, self.bound.get(slot)))
+                       else self._lookup_unit(self._fit_counted, slot, self.bound.get(slot)))
                 b = REBIND if fit else MECHANISM
                 if _MISS_GRADE:
                     _grade = "broken_after_hold" if slot in self._miss_held else "searched"
@@ -25484,23 +25516,32 @@ class Agent:
         if _PURSE_OWN and hasattr(self, "_pd") and self._purse_cut():
             # C2: the purse is spent -- this slot's mint is unreached at this budget, owed and
             # asked first next step (walk_cut's form), never a verdict on the slot
-            own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
-            self._owed_q[slot] = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
-            self.owed_import.add(slot)
-            self.led.record(self.cycle, self._running_step, slot, "purse_cut", site="mint",
-                            spent=self._purse_spent(), allowance=self._allowance(),
-                            source=self._purse_src,
-                            reads="unreached at this budget: the purse; owed, " + _owed_next())
+            self._mint_purse_owed(slot)
             return None
         out0 = self.outstanding(slot) if _7F_LEAVE else None
         self._memo = {}
         try:
-            got = self._mint(slot)
+            # a derived ask's mint is cut at its ask (_derived_wants), which owes it there
+            got = (self._mint(slot) if self._want_only
+                   else self._unit(partial(self._mint_purse_owed, slot, True), self._mint, slot))
         finally:
             self._memo = None
+        if got is _UNIT_CUT:
+            return None
         if _7F_LEAVE and hasattr(self, "_leave_held"):   # an Agent built by __new__ has none
             self._leave_check(slot, out0)
         return got
+
+    def _mint_purse_owed(self, slot: str, cut: bool = False) -> object:
+        """mint at a spent purse (or, cut, inside it): owed, asked first next step."""
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        self._owed_q[slot] = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
+        self.owed_import.add(slot)
+        self.led.record(self.cycle, self._running_step, slot, "purse_cut", site="mint",
+                        spent=self._purse_spent(), allowance=self._allowance(),
+                        source=self._purse_src, **({"unit_cut": True} if cut else {}),
+                        reads="unreached at this budget: the purse; owed, " + _owed_next())
+        return _UNIT_CUT
 
     def _may_mint(self, slot: str) -> bool:
         """7f: True when the slot may be minted -- it is not left, or it reopens now (the level,
@@ -27923,13 +27964,8 @@ class Agent:
             self._d50 = (D5_N["calls"], D5_N["heads"])
             self._dem_paid = []
             self._reach_wall = 0.0
-            if _UNIT_PURSE and _PURSE_OWN:
-                cap.LIMIT, cap.ON_LIMIT = cap.HEADS + self._allowance(), self._unit_purse
-                self._row0 = len(self.led)
         try:
             return self._step_body(action)
-        except cap.PurseCut as cut:
-            return self._unit_purse_end(cut)
         except cap.CapReached as cut:
             return self._cut_step(cut)
         finally:
@@ -28155,10 +28191,32 @@ class Agent:
             raise cap.PurseCut
         cap.LIMIT = cap.HEADS + (allow - spent)
 
-    def _unit_purse_end(self, cut: BaseException) -> bool:
-        """TETHER_UNIT_PURSE: the allowance was spent inside a unit. One "@cap" row naming the
-        scope and the site; the step's demand is censored (owed, never a verdict); the next step
-        runs, unlike a deadline's cut."""
+    def _unit(self, on_cut: Any, fn: Any, *a: Any) -> Any:
+        """TETHER_UNIT_PURSE: fn(*a) as one unit of thinking, its heads limited to what the step's
+        allowance has left. Cut inside it: one unit_purse_cut row, and on_cut() is the result, the
+        unit's item owed as its own between-unit stop owes it; the step runs on (a cut ends
+        thinking, never the choice: the reviewer r1703, r1704). Already spent, the unit's own
+        between-unit checks stop it; nested, the outer unit's limit stands."""
+        arm = _UNIT_PURSE and _PURSE_OWN and self._clk_hs is not None and cap.LIMIT is None
+        if arm:
+            left = self._allowance() - self._purse_spent()
+            if left <= 0:
+                return fn(*a)
+            cap.LIMIT, cap.ON_LIMIT = cap.HEADS + left, self._unit_purse
+        elif cap.LIMIT is None:
+            return fn(*a)
+        try:
+            return fn(*a)
+        except cap.PurseCut as cut:
+            self._unit_note(cut)
+            return on_cut()
+        finally:
+            if arm:
+                cap.LIMIT = cap.ON_LIMIT = None
+
+    def _unit_note(self, cut: BaseException) -> None:
+        """TETHER_UNIT_PURSE: one "@cap" row naming the scope and the site of a unit cut; the
+        step's demand is censored (owed, never a verdict)."""
         site = None
         tb = cut.__traceback__
         while tb is not None:
@@ -28167,29 +28225,12 @@ class Agent:
                 site = f"{os.path.basename(f.co_filename)}:{tb.tb_lineno} {f.co_name}"
             tb = tb.tb_next
         self._p_cut = True
-        at = self._cut_scope or self._running_step
-        # every slot with a live reading this cycle and no route row yet gets one (the gate's
-        # routing check): only a cut in PERCEIVE or ROUTE leaves any, so ROUTE never follows MINT
-        tail = self.led.rows(getattr(self, "_row0", len(self.led)))
-        live = {r["slot"] for r in tail if r["event"] == "bet" and r["cycle"] == self.cycle
-                and float(r["detail"].get("mass", r["detail"].get("shortfall", 0))) > 0}
-        live -= {r["slot"] for r in tail if r["event"] == "route" and r["cycle"] == self.cycle}
-        if live:
-            with self._step_scope("ROUTE"):
-                for s_ in sorted(live):
-                    self.led.record(self.cycle, "ROUTE", s_, "route", bin=None,
-                                    why_not=PURSE_UNREACHED, support=len(self.trace))
-        # booked under SETTLE, or under the cut scope when that comes later (the step order)
-        lab = at if at in STEPS and STEPS.index(at) > STEPS.index("SETTLE") else "SETTLE"
-        with self._step_scope(lab):
-            self.led.record(self.cycle, lab, "@cap", "unit_purse_cut", acted=self._pressed,
-                            at=at, site=site, spent=self._purse_spent(),
-                            allowance=self._allowance(),
-                            reads="unreached at this budget: the step's allowance was spent "
-                                  "inside a unit; it stopped at that loop's head and the rest "
-                                  "of this step is owed, never a verdict")
-        self.cycle += 1
-        return self._pressed
+        self.led.record(self.cycle, self._running_step, "@cap", "unit_purse_cut",
+                        acted=self._pressed, at=self._cut_scope or self._running_step, site=site,
+                        spent=self._purse_spent(), allowance=self._allowance(),
+                        reads="unreached at this budget: the step's allowance was spent inside a "
+                              "unit; it stopped at that loop's head, its item is owed, and the "
+                              "step runs on to its choice, never a verdict")
 
     def _cut_step(self, cut: BaseException) -> bool:
         """A cut at a growing loop's head (cap.head): one "@cap" row naming the step scope, the
@@ -28739,8 +28780,6 @@ class Agent:
         # WHAT THAT ACTION DID TO THE AVATAR, recorded from the frames either side of it.
         try:
             routed = self.route(res)
-        except cap.PurseCut:
-            raise                       # TETHER_UNIT_PURSE: the step ends; thinking goes on
         except _CapReached:
             # the press went out in perceive; the rest of this step is not run (the only caller of
             # the lookups is route, so this is the one place the cap can land). Every slot from the

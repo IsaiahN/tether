@@ -674,11 +674,14 @@ ARMS: dict[str, str] = {
                              "TETHER_BOARD_BOUNDARY off there is no NEW_BOARD signal, and the "
                              "bank behaves as on 05243c8",
     "TETHER_UNIT_PURSE": "C2 the purse inside every unit (R1 finding F2; Isaiah 2026-11-10 16:12, "
-                         "r1700). Default ON. ON: cap.head() asks the purse once the step's "
-                         "allowance in heads is reached; spent, the unit stops at that loop head "
-                         "(cap.PurseCut) and the step ends with one unit_purse_cut row, its "
-                         "demand censored, owed, never a verdict; the next step runs. cap.hold() "
-                         "units stay whole. OFF: the purse is checked only between whole units",
+                         "r1700, r1703, r1704). Default ON. ON: inside a unit that has a "
+                         "between-unit stop (a route lookup, a mint, a derived ask, an event's "
+                         "want) cap.head() asks the purse once the step's allowance in heads is "
+                         "reached; spent, the unit stops at that loop head (cap.PurseCut), one "
+                         "unit_purse_cut row, its item owed as that stop owes it, the demand "
+                         "censored, never a verdict; the step runs on to its choice (settle, "
+                         "step_act, REPEAT). cap.hold() units stay whole. OFF: the purse is "
+                         "checked only between whole units",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "
