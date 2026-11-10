@@ -648,6 +648,25 @@ ARMS: dict[str, str] = {
                         "weight reads each need's rate, r = (paid + 1) / (turns + 2), and w = r / "
                         "(sum of both), so a need used more no longer weighs more for being used. "
                         "OFF: w = (paid + 1) / (paid of both + 2) (017b282)",
+    "TETHER_GENERAL": "r1665, the general agent (Isaiah 2026-11-10 11:52). Default ON: each fade "
+                      "switch (TETHER_FADE_PAID, TETHER_FADE_FAILURES; TETHER_RELEVANCE once "
+                      "built) follows its own default -- a general agent can lose context: "
+                      "nothing is deleted (the record only grows), but what goes unused gets "
+                      "compressed, downweighted and hard to surface until used again. OFF, the "
+                      "SPECIALIST agent (mostly fixed, an expert): every fade switch is forced "
+                      "OFF; it learns and never forgets. A sub-switch set in a test overrides it "
+                      "there only",
+    "TETHER_FADE_PAID": "r1661 (A), positives fade too (Isaiah 2026-11-10 11:41, 11:47). Default "
+                        "ON. ON: every r1243 weight's paid is read faded by disuse, raw x 0.5 ** "
+                        "(cycles since its last use / (4 x halflife)), 4 x a seed; a pay or an "
+                        "against restores it; the raw count, the carry and the record never fade. "
+                        "OFF: paid as counted. The SPECIALIST agent is every fade switch OFF "
+                        "(TETHER_FADE_PAID, TETHER_FADE_FAILURES; TETHER_RELEVANCE once built)",
+    "TETHER_FADE_FAILURES": "r1663 (C), failures fade (Isaiah 2026-11-10 11:49). Default ON: "
+                            "today's forgiveness, Standing.decay (rejections, misses, refusals, "
+                            "refusals_on) and the r1243 weights' against (in play, carried in, "
+                            "written out) fade at the halflife. OFF: no failure fades. The "
+                            "SPECIALIST agent is every fade switch OFF: nothing it holds fades",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "

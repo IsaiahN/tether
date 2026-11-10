@@ -48,7 +48,9 @@ import retrieval
 import routine as Rt
 import store as door  # the one door; `store` is a local name in three methods
 from gamma import _CARRY_W as G_CARRY_W
+from gamma import _FADE_FAILURES as G_FADE_FAILURES
 from gamma import _FIRST_CONTACT as G_FIRST_CONTACT
+from gamma import _GENERAL as G_GENERAL
 from gamma import _KIND_ATTR as G_KIND_ATTR
 from gamma import _KIND_REL as G_KIND_REL
 from gamma import _OPERAND_REFUSE as G_OPERAND_REFUSE
@@ -2070,11 +2072,16 @@ _STEP_RANK = armflag.arm("TETHER_STEP_RANK", default=True)
 RANK_CLASSES = ("owed_changed", "changed", "own_act", "owed_still", "rest")
 
 
+def _paid_raw(st: dict) -> int:
+    """r1661 (A): a standing's paid count unfaded, with any pays counted since its last read."""
+    return st["paid_n"] + round(st["paid"] - st["p_shown"]) if "paid_n" in st else st["paid"]
+
+
 def _pa(form: dict, situ: tuple) -> list:
     """(5) iii: a standing's [paid, against] as the record holds it, read WITHOUT the decay
     (a read through _rf_standing moves its tick); [0, 0.0] where none was made."""
     st = form["standing"].get(situ)
-    return [0, 0.0] if st is None else [st["paid"], round(st["against"], 4)]
+    return [0, 0.0] if st is None else [_paid_raw(st), round(st["against"], 4)]
 
 
 def _standing_of(form: dict, keys, *rest) -> dict:
@@ -2485,6 +2492,12 @@ _REFLEX_CARRY = armflag.arm("TETHER_REFLEX_CARRY", default=True)
 # starts at the carried value decayed from the game's start, then decays as in play. Needs
 # TETHER_REFLEX_CARRY. OFF: only paid crosses ("forgiveness is this game's clock"), as before
 _REFLEX_CARRY_AGAINST = armflag.arm("TETHER_REFLEX_CARRY_AGAINST", default=True)
+# r1661 (A), POSITIVES FADE TOO (Isaiah 2026-11-10 11:41, 11:47): every r1243 weight's `paid` is
+# read faded by disuse, raw x 0.5 ** (cycles since its last use / (4 x halflife)) -- 4 x is a SEED
+# until the agent measures the relative rate. A pay or an against since the last read is a use and
+# restores the full count; the raw count, the carry and the record never fade. OFF (or
+# TETHER_GENERAL OFF): paid as counted
+_FADE_PAID = armflag.arm("TETHER_FADE_PAID", default=True) and G_GENERAL
 # Build 6 item 24 (C), THE LEVEL AT A GAME SWITCH (the reviewer 2026-11-05 r1250): the agent's own
 # board boundary (NEW_BOARD) retargets at the world's level (env.levels()[0]), so the previous
 # game's level number does not run on into the next. OFF: self.level carried over, as before
@@ -20424,6 +20437,8 @@ class Agent:
         if not (_REFLEX_CARRY_AGAINST and _REFLEX_CARRY):
             return 0.0
         a_in = self._rf_against_in.get((form, self._rf_carry_key(form, situ)), 0.0)
+        if not G_FADE_FAILURES:
+            return a_in
         return a_in * 0.5 ** (self.cycle / (self.gamma.halflife or REJECTION_HALFLIFE))
 
     def _reflex_carry(self, readout: bool = False) -> dict | None:
@@ -20435,7 +20450,7 @@ class Agent:
             if form == "steer":
                 continue                        # item 27: a steer is this game's; nothing crosses
             for situ, st in r["standing"].items():
-                paid[(form, self._rf_carry_key(form, situ))] += st["paid"]
+                paid[(form, self._rf_carry_key(form, situ))] += _paid_raw(st)
         loss: Counter = Counter()
         for c in self._loss_rel.values():
             for (lk, frame, rel), n in c.items():
@@ -20458,7 +20473,8 @@ class Agent:
                     continue
                 for situ, st in r["standing"].items():
                     ag[(form, self._rf_carry_key(form, situ))] += (
-                        st["against"] * 0.5 ** ((self.cycle - st["tick"]) / h))
+                        st["against"] * (0.5 ** ((self.cycle - st["tick"]) / h)
+                                         if G_FADE_FAILURES else 1.0))
             da = [[f, list(k), round(v, 6)] for (f, k), v in sorted(ag.items(), key=repr)
                   if round(v, 6) != was.get(("a", f, k))]
             was.update({("a", f, k): round(v, 6) for (f, k), v in ag.items()})
@@ -20490,15 +20506,27 @@ class Agent:
             stand[situ] = {"paid": 0, "tick": self.cycle,
                            "against": self._rf_against_now(form, situ)}
         st = stand.setdefault(situ, {"paid": 0, "against": 0.0, "tick": self.cycle})
-        a0 = st["against"]
-        if st["against"]:
-            st["against"] *= 0.5 ** ((self.cycle - st["tick"])
-                                     / (self.gamma.halflife or REJECTION_HALFLIFE))
+        a0, p0 = st["against"], st["paid"]
+        h = self.gamma.halflife or REJECTION_HALFLIFE
+        if st["against"] and G_FADE_FAILURES:
+            st["against"] *= 0.5 ** ((self.cycle - st["tick"]) / h)
         st["tick"] = self.cycle
-        self._rf_crossed(form, situ, st, a0)
+        if _FADE_PAID:
+            # r1661 (A): callers count on the shown value; fold their pays into the raw count
+            if "paid_n" not in st:
+                st["paid_n"], st["used"] = p0, self.cycle      # first read: its count, fresh
+            else:
+                if p0 > st["p_shown"] or a0 > st["a_shown"]:
+                    st["used"] = self.cycle
+                st["paid_n"] += round(p0 - st["p_shown"])
+            gap = self.cycle - st.get("used", self.cycle)
+            st["paid"] = (st["paid_n"] if gap == 0
+                          else round(st["paid_n"] * 0.5 ** (gap / (4 * h)), 6))
+            st["p_shown"], st["a_shown"] = st["paid"], st["against"]
+        self._rf_crossed(form, situ, st, a0, p0)
         return st
 
-    def _rf_crossed(self, form: str, situ: tuple, st: dict, a0: float) -> None:
+    def _rf_crossed(self, form: str, situ: tuple, st: dict, a0: float, p0: float) -> None:
         """(5) ii (r1356; Isaiah 07:56 "log that event and console it"): one standing_freed row
         when a read finds a (form, situation) on the other side of r1243's threshold (1 + carried
         + paid < against, p < 1/2) from its last read: by this read's decay, or by the witnesses
@@ -20511,7 +20539,7 @@ class Agent:
             return
         self.led.record(self.cycle, self._running_step, "@weight", "standing_freed", form=form,
                         situation=[str(x) for x in situ], to="under" if under else "free",
-                        by="decay" if (1 + c + st["paid"] < a0) == was else "witnesses",
+                        by="decay" if (1 + c + p0 < a0) == was else "witnesses",
                         against=round(st["against"], 4), against_before=round(a0, 4),
                         paid=st["paid"], carried=c,
                         halflife=self.gamma.halflife or REJECTION_HALFLIFE,

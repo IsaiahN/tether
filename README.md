@@ -49,10 +49,27 @@ Swap the interface, keep the lineage.
   formula that decided them, and a step the ground keeps refusing is skipped.
 - **Doors**: a guess whose way was blocked is set aside, "not reachable right now", and picked
   back up when the board moves or a new effect is known.
-- **The needs dial**: making progress and exploring are weighed by what paid before, learned
-  apart under pressure and at ease.
+- **The needs dial**: making progress and exploring are weighed by how often each has paid when
+  it was tried, learned apart under pressure and at ease, so a need used more does not weigh
+  more just for being used.
+- **Fair test comparisons**: a test that compares two runs starts each one in its own fresh
+  process. A process that has already run the agent works faster, so it would think further on
+  the same counted budget, and the comparison would measure the process instead of the change.
 
-**The agent's code is `general-agent`'s plus FIN5E and the build above.** For what the agent is
+**A general agent or a specialist one: `TETHER_GENERAL` (on by default).**
+
+- **On, the general agent**: it can lose context. Nothing it holds is ever deleted (the record
+  only grows), but what goes unused gets compressed, downweighted and hard to surface until it is
+  used again. A habit that once paid is reached for less readily the longer it sits unused, and
+  one use brings it back (`TETHER_FADE_PAID`). A failure is slowly forgiven, so one old miss does
+  not bar a thing forever (`TETHER_FADE_FAILURES`). What it believes is true never fades.
+- **Off, the specialist agent** (mostly fixed, an expert): it still learns new things, and it
+  never forgets. Every fade switch is forced off, so a habit learned once and a failure taken once keep their full weight however
+  long they go unused, like a model frozen at a checkpoint that keeps adding to what it knows.
+
+**The agent's code is `general-agent`'s plus the build above;** once today's `general-agent`
+pull request merges, the agent's code is the same on both, and this branch adds only the ARC
+adapter, the harness and the Kaggle runner. For what the agent is
 and how it reasons, read [that README](https://github.com/IsaiahN/tether/tree/general-agent). What is particular to
 ARC is only the adapter and the harness below.
 
