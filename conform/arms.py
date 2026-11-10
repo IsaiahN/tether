@@ -667,6 +667,12 @@ ARMS: dict[str, str] = {
                             "refusals_on) and the r1243 weights' against (in play, carried in, "
                             "written out) fade at the halflife. OFF: no failure fades. The "
                             "SPECIALIST agent is every fade switch OFF: nothing it holds fades",
+    "TETHER_BANK_PER_BOARD": "C2 bank per board (R1 finding F3, 2026-11-10). Default ON. ON: the "
+                             "agent's own new-board boundary (retarget NEW_BOARD) empties the "
+                             "purse's bank, as a level change does, so time saved on one board is "
+                             "spent on that board. OFF: only a level change empties it. With "
+                             "TETHER_BOARD_BOUNDARY off there is no NEW_BOARD signal, and the "
+                             "bank behaves as on 05243c8",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "

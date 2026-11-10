@@ -1806,6 +1806,11 @@ _PURSE_RISE = armflag.arm("TETHER_PURSE_RISE", default=True)
 # an UMWELT setting (class E, r1646; logged for Isaiah): how far a mind widens its search each time
 # it is stuck -- doubling, as unbounded search and iterative deepening do
 PURSE_RISE = 2
+# C2 BANK PER BOARD (R1 finding F3, 2026-11-10): the bank is a board's -- time saved on a board's
+# questions is spent on that board's harder ones (Isaiah 11-06). retarget(NEW_BOARD) empties it, as
+# a level change already does; in a game stream every game starts at level 0, so before this the
+# bank ran on across games (76.6 M heads by R1's game 11). OFF: only a level change empties it
+_BANK_PER_BOARD = armflag.arm("TETHER_BANK_PER_BOARD", default=True)
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
 # is stored with every landing, and the lit list is TIERS, an order, never a cut: T1a-c what landed
@@ -5736,6 +5741,8 @@ class Agent:
                 self._lr_left.clear()           # item 26: a left line is this game's
             if _SELF_STEER:
                 self._reflexes["steer"]["standing"].clear()   # item 27: within a game only
+            if _BANK_PER_BOARD:
+                self._bank, self._bank_lvl = 0, None          # F3: the bank is this board's
         if _MEMO_CLEAR:
             # R4: the agent-level instance memos are this board's and are cleared here; the asked
             # keys, the kind stores, the record and the carried bound memos stay
