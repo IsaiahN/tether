@@ -2130,6 +2130,14 @@ ARMS: dict[str, str] = {
                               "(views, causes, refusals, charges, landings, asks); the fresh "
                               "walk is used. A measurement switch for check runs, never a play "
                               "setting. default OFF",
+    "TETHER_PATTERN_MEMO": "(A) by pattern (R1 finding F1; Isaiah 2026-11-10 16:12, the reviewer "
+                           "r1700, r1702, r1704). Default ON. ON: an instance miss asks a second "
+                           "store keyed by the owners' NAME PATTERN (library, atoms token, "
+                           "signature, entry; the owners numbered in the walk's own order, an "
+                           "@ name kept as itself; slot and targets in those numbers), the kept "
+                           "walk re-bound to the asking names through _bound; no owner's kind in "
+                           "the key (r1704: the walk never reads it). OFF: the instance-keyed "
+                           "walk memo only",
     "TETHER_TIERS_DRAW": "THE _tiers NAME TIE (the reviewer 2026-10-20 23:55 (ii), 2026-10-21 "
                          "03:05; "
                          "Isaiah's 10-15 A1 rule): a tie on _tiers' numbers falls to the recorded "
