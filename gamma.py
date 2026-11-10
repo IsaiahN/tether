@@ -1132,6 +1132,9 @@ class Gamma:
         self.settled_forms: dict[str, set[str]] = {}
         self.kind_rel: dict[str, set[str]] = {}   # KIND_REL: name -> {"same", "other"} (note_rel)
         self.innate: set[str] = set()   # 7i: names whose standing a refute never moves
+        # (P) r1383, r1635: name -> the clause that admitted it to the kernel, set at entry only;
+        # read only by the agent's tier move-down and crowd-out (TETHER_KERNEL), never a verdict
+        self.kernel: dict[str, str] = {}
         # name -> the two verdicts that promoted it. A dict rather than a set because
         # `primitive requires both` is only checkable if both are on the record.
         self.primitives: dict[str, dict] = {}
@@ -1198,6 +1201,8 @@ class Gamma:
         self.stamps[term.name] = {"origin": term.origin, "seq": seq, "residual": residual,
                                   "admitted": admitted}
         self.standing.setdefault(term.name, Standing(last_tick=self.tick))
+        if term.origin == PRIOR and len(term.atoms) == 1:
+            self.kernel.setdefault(term.name, "prior-atom")
         if _SETTLED_CORE and term.origin == PRIOR and len(term.atoms) == 1:
             # already settled in the only sense Gamma has, a PRIOR unit from birth
             # (relations.py:161-162); innate adds that a refute never moves it
@@ -1212,6 +1217,7 @@ class Gamma:
             st.settled_at = self.tick
         self.stamps.setdefault(name, {})["admitted"] = INHERITED
         self.innate.add(name)
+        self.kernel.setdefault(name, "inherited")
         return INHERITED
 
     def learn(self, name: str) -> str:

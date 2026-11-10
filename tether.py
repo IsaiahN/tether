@@ -720,6 +720,17 @@ _SWEEP_STAMP = armflag.arm("TETHER_SWEEP_STAMP", default=True)
 # demotion leaves the outer split live (part_demoted, the leaf re-minted under its path); part A's
 # still dissolves (Fig 9 :40-41, :54; Fig 13: each falsifier its own witness)
 _D5_NESTED = armflag.arm("TETHER_D5_NESTED", default=True)
+# (T)+(L) TETHER_REACH_TIER (the reviewer 2026-11-10 r1632, r1635; Isaiah r1394): tiers of REACH,
+# never of the record (Fig 6 (41), Fig 5 (54)). Tier 2 is offered only when the first search finds
+# no payer; inflow past TIER_CAP moves the lowest-reach unbound, non-kernel terms down; a recalled
+# term re-enters with its own (fallen) reach. (P) TETHER_KERNEL (r1383): a kernel term (its clause
+# in gamma.kernel) is never moved down nor crowded out, and is still refuted like any other
+_REACH_TIER = armflag.arm("TETHER_REACH_TIER", default=True)
+_KERNEL = armflag.arm("TETHER_KERNEL", default=True)
+# C, the non-kernel tier-1 capacity: an UMWELT setting (r1394 class E; r1635 delegated, logged for
+# Isaiah). Initial value measured: the largest non-kernel library in the full-game record,
+# 7a39fbc game 1 (101 terms written at its end); gridworld 12 mints none, so it never fires there
+TIER_CAP = 101
 # C1 PART 1, THE TIP-OVER (the reviewer 2026-11-09 r1584 1, r1592 3, r1594): a settle tips a term
 # (settled_at, settled_on, _settled_lvl) only where "no change" would have missed (beat_null); a
 # tied or unread settle raises confirmations and does not tip (Fig 5 :43-44, one occasion is not
@@ -4585,6 +4596,12 @@ class Agent:
         self._miss_at: dict = {}      # C1 part 2: slot -> (term, cycle, settled there) of its miss
         self._crowd: dict = {}        # C1 part 4: (slot, term) -> (level, library size, crowder,
                                       # the crowder's track_of), until it re-enters
+        # (T)+(L): the names in tier 2 (long-term); each name's binds since it entered, the cycle
+        # it entered tier 1 (kept on recall), and this cycle's recalled names (they count as intake)
+        self._reach2: set = set()
+        self._reach_uses: dict = {}
+        self._reach_born: dict = {}
+        self._reach_recalled: list = []
         # the slots whose loop turn is still ahead this cycle (F500); None outside the loop
         self._turn_ahead: set | None = None
         # an acted routine's next step, advanced once at its deciding cycle's end (F501)
@@ -16254,6 +16271,18 @@ class Agent:
         held, n = n, (n if cand.name == n
                       else (cand.name if cand.name in self.gamma.library
                             else self._install_reuse(cand, slot)))
+        if _REACH_TIER:
+            # (T) a bind is a use; (L) a tier-2 term reached on a miss re-enters tier 1 with its own
+            # (fallen) reach, its entry cycle kept, and counts as this cycle's intake (r1635)
+            self._reach_uses[held] = self._reach_uses.get(held, 0) + 1
+            if held in self._reach2:
+                self._reach2.discard(held)
+                self._reach_recalled.append(held)
+                self.led.record(self.cycle, self._running_step, slot, "reach_tier", term=held,
+                                to=1,
+                                recalled=True, reach=round(self._reach_of(held), 4),
+                                reads="reached on a miss and bound: back in the first search, "
+                                      "with its own reach")
         st = self.gamma.stamps.get(held)
         # STAMPS ARE DICTS. `getattr(st, "origin")` returned None on every pull, so
         # the transfer column would have read *no imported term was ever pulled*
@@ -16690,8 +16719,10 @@ class Agent:
                 _lw.clear()
 
         def _pairs():
-            for n in retrieval.retrieve(self.gamma.library, gap, track=self.gamma.track_of,
-                                        youth=self.gamma.youth_of):
+            for n in self._reach_pass(retrieval.retrieve(self.gamma.library, gap,
+                                                        track=self.gamma.track_of,
+                                                        youth=self.gamma.youth_of),
+                                     lambda: bool(_paying)):
                 cap.head()
                 if n == exclude or (self._not and self._term_refused(n, _gk)):
                     continue
@@ -16801,7 +16832,8 @@ class Agent:
             return self._take_pull(n, cand, slot)
         _inc = self.bound.get(slot)
         _crowd = (_CROWD_OUT and _BARGAIN_FIT and _CARRY_PRICE and _inc not in (None, IDN)
-                  and _inc in self.gamma.library and IDN in self.gamma.library)
+                  and _inc in self.gamma.library and IDN in self.gamma.library
+                  and not self._kernel(_inc))
         _inc_beat = _crowd and self._beat_here(_inc, slot)
 
         def _pkey(x):
@@ -16885,6 +16917,61 @@ class Agent:
                               "against the null; kept in the library, offered here again only "
                               "on re-entry (C1 parts 3-4)")
 
+    def _kernel(self, name: str) -> bool:
+        """(P): the kernel flag (gamma.kernel, set at entry by its clause). Read only by the tier
+        move-down and crowd-out; never by settle, refute, demote, the bargain or any bid."""
+        return _KERNEL and name in self.gamma.kernel
+
+    def _reach_of(self, name: str) -> float:
+        """(T): a term's reach, its events per cycle since it entered tier 1: the entry itself, its
+        binds and its settles (confirmations). New material starts at 1; a recall keeps its entry
+        cycle, so a recalled term's reach is spread over its age, weaker than new (r1394)."""
+        st = self.gamma.standing.get(name)
+        n = 1 + self._reach_uses.get(name, 0) + (st.confirmations if st is not None else 0.0)
+        return n / (self.cycle - self._reach_born.get(name, self.cycle) + 1)
+
+    @_in_step("MINT")
+    def _reach_inflow(self) -> None:
+        """(T) (r1635): the cycle's intake (terms new to the library, and recalls) enters tier 1.
+        Past TIER_CAP non-kernel terms there, as many of the lowest-reach unbound non-kernel terms
+        as entered move to tier 2 (older first on a tie), a "reach_tier" row each. Inflow is the
+        only trigger, never disuse; nothing is deleted and no count moves
+        (Fig 6 (41), Fig 12 (106))."""
+        new = [n for n in self.gamma.library if n not in self._reach_born]
+        for n in new:
+            self._reach_born[n] = self.cycle
+        entrants, self._reach_recalled = new + self._reach_recalled, []
+        if not entrants:
+            return
+        tier1 = [n for n in self.gamma.library if n not in self._reach2 and not self._kernel(n)]
+        excess = len(tier1) - TIER_CAP
+        if excess <= 0:
+            return
+        busy = set(self.bound.values()) | set(entrants)
+        pool = sorted((n for n in tier1 if n not in busy),
+                      key=lambda n: (self._reach_of(n), self._reach_born.get(n, 0), n))
+        for n in pool[:min(len(entrants), excess)]:
+            cap.head()
+            self._reach2.add(n)
+            self.led.record(self.cycle, "MINT", "@reach", "reach_tier", term=n, to=2,
+                            reach=round(self._reach_of(n), 4), pushed_by=sorted(entrants)[:8],
+                            reads="new material pushed the least-reached term out of the first "
+                                  "search; it stays in the library with every count")
+
+    def _reach_pass(self, names, paying) -> Any:
+        """(T): the first search offers tier 1 in retrieval's order; tier 2 is offered after it,
+        in the same order, only if the first search found no payer (paying() false)."""
+        held = []
+        for n in names:
+            if _REACH_TIER and n in self._reach2:
+                held.append(n)
+                continue
+            yield n
+        if held and not paying():
+            self.led.record(self.cycle, self._running_step, "@reach", "reach_tier_second_pass",
+                            offered=len(held), reads="nothing in tier 1 paid: tier 2 is offered")
+            yield from held
+
     def _crowd_blocked(self, slot: str, term: str) -> bool:
         """C1 part 4: a crowded-out claim stays out of this slot's refits until the level changes
         (a changed arrangement), the library has grown (a COARSE reading of Fig 6 :44-45's "a new
@@ -16892,8 +16979,8 @@ class Agent:
         no longer bound here or its track_of has fallen (it weakened). No timer. Re-entry only
         makes it eligible at the next refit."""
         got = self._crowd.get((slot, term))
-        if got is None:
-            return False
+        if got is None or self._kernel(term):
+            return False                  # (P): a kernel claim is never crowded out
         level, size, crowder, track = got
         why = ("arrangement" if self.level != level
                else "library_grew" if len(self.gamma.library) > size
@@ -27798,6 +27885,8 @@ class Agent:
         # minted this cycle is swept only into slots whose own turn is still to come; a slot
         # already past its turn meets it through its own route next cycle.
         self._turn_ahead = {s for s, b, *_ in routed if b in (REBIND, REFUTED, MECHANISM)}
+        if _REACH_TIER:
+            self._reach_inflow()
         _split_now = self._d5_splits(frozenset(s for s, r in res.items() if r.gone))
         # THE SLOTS WHOSE OWN TURN RUNS THIS CYCLE, for the probe flush below: a slot past its
         # turn takes no MINT row after its ACCEPT (F500's rule; the probe flush, 2026-10-14).

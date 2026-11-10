@@ -581,7 +581,19 @@ ARMS: dict[str, str] = {
                                "is not read off the board and fires no relational surprise. OFF "
                                "because it changes which slots become subjects in every wrapping "
                                "world; its default is decided at R1. OFF: the raw value, as B2b",
-    "TETHER_D5_NESTED": "Default ON (Isaiah 2026-11-10 05:04, r1633). "
+    "TETHER_REACH_TIER": "(T)+(L) tiers of reach (the reviewer 2026-11-10 r1632, r1635; "
+                         "Isaiah r1394). "
+                    "Default ON at landing (r1633). ON: past TIER_CAP non-kernel terms in tier "
+                    "1, each cycle's intake (new terms and recalls) moves as many of the "
+                    "lowest-reach unbound non-kernel terms to tier 2 (a tier row each); tier 2 "
+                    "is offered only when the first search finds no payer; a recalled term "
+                    "re-enters with its own fallen reach. Nothing deleted, no count moved. OFF: "
+                    "every term offered in the first search, as before",
+    "TETHER_KERNEL": "(P) the kernel flag (r1383's design, r1635). Default ON at landing (r1633). "
+                     "ON: a term with a kernel clause (prior-atom, inherited; set at entry) is "
+                     "never moved down a tier and never crowded out; settle, refute and the "
+                     "bargain never read it. OFF: kernel terms move and are crowded like any",
+    "TETHER_D5_NESTED":"Default ON (Isaiah 2026-11-10 05:04, r1633). "
                         "(N) (the reviewer 2026-11-10 r1626, r1627): ON, (N1) a live split's leaf "
                         "part is cut on its own misses over its own rows (an inner node on "
                         "_parts, the conjunction along the path, priced over its own offered "
