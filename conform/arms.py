@@ -570,6 +570,12 @@ ARMS: dict[str, str] = {
                                "is not read off the board and fires no relational surprise. OFF "
                                "because it changes which slots become subjects in every wrapping "
                                "world; its default is decided at R1. OFF: the raw value, as B2b",
+    "TETHER_SWEEP_STAMP": "(S) (the reviewer 2026-11-10 r1626): ON, a sweep's _reach rescan of a "
+                          "parked record that finds nothing stamps the record's rescan_units, and "
+                          "the rescan runs again only once the unit set has grown past it. OFF "
+                          "because a repeated rescan over more history rows at the same units "
+                          "could succeed; its default is decided at R1. OFF: every sweep "
+                          "re-runs it",
     "TETHER_CONTACT":"7a(5b), the contact instrument (Isaiah 2026-10-10 06:46 CDT; the reviewer "
                       "11:46Z, 12:27Z): ON, the REPEAT row's gamma_read gains fed, one entry per "
                       "library term read by the exit whose action is RETURNED, {kind, name, slot, "

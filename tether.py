@@ -711,6 +711,9 @@ _KNOWN_CORE = armflag.arm("TETHER_KNOWN_CORE")
 # TETHER_DERIVE_AS_JUDGED (the reviewer 2026-11-10 r1625): derive() reads each bet slot's value as
 # the settle judged it (the code), never the raw value; one prediction, one decoding (Fig 2 :31)
 _DERIVE_AS_JUDGED = armflag.arm("TETHER_DERIVE_AS_JUDGED")
+# TETHER_SWEEP_STAMP (the reviewer 2026-11-10 r1626 (S)): a sweep's rescan of a parked record that
+# finds nothing is not re-run until the unit set grows again (Fig 6: a region already swept)
+_SWEEP_STAMP = armflag.arm("TETHER_SWEEP_STAMP")
 # C1 PART 1, THE TIP-OVER (the reviewer 2026-11-09 r1584 1, r1592 3, r1594): a settle tips a term
 # (settled_at, settled_on, _settled_lvl) only where "no change" would have missed (beat_null); a
 # tied or unread settle raises confirmations and does not tip (Fig 5 :43-44, one occasion is not
@@ -26095,11 +26098,16 @@ class Agent:
                 if best is None or left < best[0]:
                     best = (left, cand)
             left, cand = best
-            if left > 0.0 and units_now > rec.get("units_then", units_now):
+            if left > 0.0 and units_now > rec.get("units_then", units_now) and not (
+                    _SWEEP_STAMP and units_now <= rec.get("rescan_units", -1)):
                 self.chain.reuse_branch["rescan"] += 1
                 found = self._reach(slot, hist, slots)
                 if found is not None and found[0] < left:
                     left, cand, how = found[0], found[1], "chunk"
+                elif _SWEEP_STAMP:
+                    # (S) r1626: a rescan that found nothing waits for the unit set to grow
+                    # again; its own key, as units_then also gates stale() and floor_only
+                    rec["rescan_units"] = units_now
             cross = tkey != slot
             if _CROWD_OUT and not cross and self._crowd_blocked(slot, cand.name):
                 continue
