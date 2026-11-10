@@ -137,7 +137,7 @@ def main() -> int:
     try:
         with tempfile.TemporaryDirectory() as d:
             led = Path(d) / "fake.jsonl"
-            # C-seed-X for G1 too (2026-10-16): under the per-birth seed the fake run's path
+            # C-seed-X for G1 too (2026-10-16): under the per-start seed the fake run's path
             # varied by the draw, and with it whether a slot-bound choice row was written, so
             # the precondition below passed or failed by the draw
             seed_was, tether._AGENT_SEED = tether._AGENT_SEED, False
@@ -216,9 +216,11 @@ def main() -> int:
             # B1, and B1's labels are checked by G2 with B1 ON (the reviewer 2026-10-26 r250)
             # AND THE THREE r726 ARMS (r736): C1 keeps System 0 pressing each untried action and
             # TRY_FIRST owes the mint until each is pressed, so the sweep falls later still; G2
-            # checks their rows with them ON
+            # checks their rows with them ON. AND TETHER_PREFIX_PRUNE (r1025): the walk's budget
+            # reaches other chains, so the sweep falls outside the 11 steps; the label does not
+            # depend on it, and G2 checks its rows with it ON
             c5 = ("_PREV_OFFER", "_CARRY_PRICE", "_BUDGET_GENERATED", "_STEP_MINT",
-                  "_BOARD_TRY_FIRST", "_TOUCH_EACH_OBJECT")
+                  "_BOARD_TRY_FIRST", "_TOUCH_EACH_OBJECT", "_PREFIX_PRUNE")
             c5_was = {f: getattr(tether, f) for f in c5}
             for f in c5:
                 setattr(tether, f, False)

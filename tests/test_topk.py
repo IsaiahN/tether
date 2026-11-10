@@ -94,8 +94,26 @@ def main():
     A._tk_after(ag6, "s1", n1)
     w2, _n2 = A._topk(ag6, lit, lit, tiers, att, tg, "s1")
     assert not {k for k, _w in w1} & {k for k, _w in w2} and len(w2) == 32, "MF-SC1"
-    w3, _n3 = A._topk(ag6, lit, lit, tiers, att, tg, "s2")
-    assert [k for k, _w in w3] == [k for k, _w in w1], "MF-SC2: a new key starts from the top"
+    # MF-SC2 is S3 under the DESCRIPTION key (r816), so it runs with TETHER_NOFIT_BY_READS off;
+    # the default keys the no-fit set by the readings, which MF-SC2' states (r1053, r1061)
+    by_reads, tether._NOFIT_BY_READS = tether._NOFIT_BY_READS, False
+    try:
+        ag7 = stub()
+        v1, m1 = A._topk(ag7, lit, lit, tiers, att, tg, "s1")
+        A._tk_after(ag7, "s1", m1)
+        w3, _n3 = A._topk(ag7, lit, lit, tiers, att, tg, "s2")
+        assert [k for k, _w in w3] == [k for k, _w in v1], "MF-SC2: a new key starts from the top"
+    finally:
+        tether._NOFIT_BY_READS = by_reads
+    # MF-SC2' (default): a new key with the SAME readings does not re-take w1; with DIFFERENT
+    # readings it starts from the top
+    assert tether._NOFIT_BY_READS, "TETHER_NOFIT_BY_READS ON by default"
+    w4, _n4 = A._topk(ag6, lit, lit, tiers, att, tg, "s3")
+    assert not {k for k, _w in w4} & {k for k, _w in w1}, "MF-SC2': same readings re-took w1"
+    tg2 = ("o1.w",)
+    w5, _n5 = A._topk(ag6, lit, lit, tiers, att, tg2, "s4")
+    top, _t = A._topk(stub(), lit, lit, tiers, att, tg2, "s4")
+    assert [k for k, _w in w5] == [k for k, _w in top], "MF-SC2': other readings start at the top"
     print(f"test_topk: 200 kept -> {len(A._topk(stub(), lit, lit, tiers, att, tg, 'k5')[0])} "
           f"evaluated; the rank-70 fit found on lookup {found} (windows 1-2 not yet, no verdict); "
           f"7 windows over 200 -> verdict only at the 7th; the 3-reading entry ranks above the "

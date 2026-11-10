@@ -28,6 +28,7 @@ TWO CHOICES THE CORPUS DOES NOT SETTLE, MADE HERE AND STATED:
 from __future__ import annotations
 
 import copy
+import math
 import sys
 from typing import Any
 
@@ -105,10 +106,11 @@ _KIND_CARRY = armflag.arm("TETHER_KIND_CARRY", default=True)
 # color, position or rotation/orientation changes"): the form code is taken over the LEAST of the
 # shape's 8 rotations and mirrors, so a turned or mirrored object is the same kind; which way it
 # faces is the pose (canon's second value), a reading beside the kind. OFF: the cells as they
-# stand, so a turn is a different kind. DEFAULT OFF (the reviewer 2026-11-02 r808): every kind
-# tally is stored under the as-seen code (7,981,124 kind rows carry it), so ON orphans the rows of
-# every shape not in its least orientation until a legacy read (both keys, summed) exists.
-_KIND_CANON = armflag.arm("TETHER_KIND_CANON")
+# stand, so a turn is a different kind. DEFAULT ON since Build 1 (6) (the reviewer 2026-11-03 r915):
+# the stored as-seen rows are re-keyed by an alias generation (TETHER_KIND_ALIAS), the codes met
+# later by the alias at arrival (TETHER_FORM_PAIRS), and the pose stays readable (TETHER_POSE_READ).
+# It was OFF (r808) while ON would have orphaned the rows of every shape not in its least pose.
+_KIND_CANON = armflag.arm("TETHER_KIND_CANON", default=True)
 # K3a, A TURN IS NOT A DEATH (r797, r808): the tracker's shape fallback matches the same KIND (any
 # rotation or mirror) when no exact shape matches, by kind_code, whatever _KIND_CANON publishes.
 # OFF: an exact shape match only, so a turned object is a birth.
@@ -134,19 +136,89 @@ def _images(cells: Any) -> list:
     return out
 
 
-def canon(cells: Any) -> tuple[frozenset, int]:
-    """The shape's canonical form (the least image) and its POSE: the least index i whose image
-    of the canonical form is this shape."""
+# (4) THE canon() MEMO (Build 1; the reviewer 2026-11-03 r909): canon is a function of the cell set
+# alone and a game shows the same few shapes frame after frame, so each cell set's (form, pose) is
+# computed once per game (canon_reset at each ArcWorld). OFF: computed at every call.
+_CANON_MEMO = armflag.arm("TETHER_CANON_MEMO", default=True)
+_CANON: dict = {}
+
+
+def canon_reset() -> None:
+    _CANON.clear()
+
+
+# (5) SCALE (Build 1; Isaiah 2026-11-03 14:29, "the same kind at a different size"; the reviewer
+# r911): a shape that is a k-fold blow-up of a smaller one -- every k x k block of its bounding box,
+# aligned to the box's corner, full or empty, k dividing both sides, the largest such k -- is the
+# smaller shape's kind at scale k. A shape's cells carry no colour (components() is one hue per
+# object), so a two-colour block is never one object to descale. `scale` (EXTENT) is a reading
+# beside the kind (the tracker's and _obj_derive's), and grew / shrank (BOOL) are its changes; both
+# types every object already carries, so no kind tuple moves. The pose is NOT a slot: no type in
+# the set is a categorical label that is not a colour or a shape, and a new type would move every
+# kind tuple; it stays in _entry and the alias pairs. OFF: a shape's own size is its kind, and the
+# three readings are not published.
+_KIND_SCALE = armflag.arm("TETHER_KIND_SCALE", default=True)
+# THE POSE, READABLE (the reviewer 2026-11-03 r915; Symbols Table F: "the frame transform ... Cannot
+# be run without a pose"): under K1 an upright and a turned L are one kind, so two readings keep the
+# turn sayable without a new type. `kind` (SHAPE, like `shape`) is the shape label of the kind's
+# first-seen member, in the same table -- so `same` over `.kind` says same kind and over `.shape`
+# (the form as seen, unchanged by K1) same as seen; `turned` (BOOL) is a matched object's pose
+# changing at the same kind (a size change alone is grew / shrank). OFF: neither reading.
+_POSE_READ = armflag.arm("TETHER_POSE_READ", default=True)
+
+
+def descale(cells: Any) -> tuple[frozenset, int]:
+    """(the least shape this one is a blow-up of, the factor k); (its normalised cells, 1) when
+    none."""
+    n = _norm(cells)
+    g = math.gcd(max(r for r, _ in n) + 1, max(c for _, c in n) + 1)
+    for k in range(g, 1, -1):
+        if g % k == 0:
+            small = frozenset((r // k, c // k) for r, c in n)
+            if len(small) * k * k == len(n):
+                return small, k
+    return n, 1
+
+
+def _canon(cells: Any) -> tuple[frozenset, int]:
     best = min(_images(cells), key=sorted)
     here = _norm(cells)
     return best, next(i for i, x in enumerate(_images(best)) if x == here)
 
 
+def _entry(cells: Any) -> tuple:
+    """(canonical form, pose, canonical code, as-seen code, scale), once per cell set under the
+    memo."""
+    if not _CANON_MEMO:
+        return _compute(cells)
+    key = cells if isinstance(cells, frozenset) else frozenset(tuple(c) for c in cells)
+    got = _CANON.get(key)
+    if got is None:
+        got = _CANON[key] = _compute(key)
+    return got
+
+
+def _compute(cells: Any) -> tuple:
+    small, k = descale(cells) if _KIND_SCALE else (cells, 1)
+    best, pose = _canon(small)
+    return best, pose, _hash(best), _hash(cells), k
+
+
+def canon(cells: Any) -> tuple[frozenset, int]:
+    """The shape's canonical form (the least image) and its POSE: the least index i whose image
+    of the canonical form is this shape."""
+    return _entry(cells)[:2]
+
+
+def _hash(cells: Any) -> int:
+    import hashlib
+    raw = repr(sorted(tuple(c) for c in cells)).encode()
+    return int.from_bytes(hashlib.blake2b(raw, digest_size=6).digest(), "big")
+
+
 def kind_code(cells: Any) -> int:
     """The canonical form's code, always: the tracker's kind (K3a), independent of _KIND_CANON."""
-    import hashlib
-    raw = repr(sorted(tuple(c) for c in canon(cells)[0])).encode()
-    return int.from_bytes(hashlib.blake2b(raw, digest_size=6).digest(), "big")
+    return _entry(cells)[2]
 
 
 def form_code(cells: Any) -> int | None:
@@ -155,11 +227,21 @@ def form_code(cells: Any) -> int | None:
     cells."""
     if not cells:
         return None
-    import hashlib
-    if _KIND_CANON:
-        cells = canon(cells)[0]
-    raw = repr(sorted(tuple(c) for c in cells)).encode()
-    return int.from_bytes(hashlib.blake2b(raw, digest_size=6).digest(), "big")
+    return _entry(cells)[2] if _KIND_CANON else _hash(cells)
+
+
+# K4, THE ALIAS AT ARRIVAL (the reviewer 2026-11-03 r886, r888, r903, r906): under K1 a shape met
+# for the first time gives BOTH its codes, the as-seen (its cells as they stand: form_code with K1
+# OFF) and the canonical, with its pose; arc_world keeps as_seen -> (canonical, pose), and the save
+# writes the pairs whose as-seen code names rows the lineage stores (lineage._write), re-keyed by
+# the store there (TETHER_KIND_ALIAS). OFF: the canonical code only.
+_FORM_PAIRS = armflag.arm("TETHER_FORM_PAIRS", default=True)
+
+
+def code_pair(cells: Any) -> tuple[int, int, int]:
+    """(as-seen code, canonical code, pose), one canon."""
+    e = _entry(cells)
+    return e[3], e[2], e[1]
 BREAK_MEDIAN, BREAK_COLOUR = 0.71, 0.42
 
 
@@ -930,6 +1012,17 @@ class Objects:
                     # answer at birth and it is none, where *how far did it move* has no answer
                     # because there was nothing to move from.
                     obj = {**obj, "stability": 0}
+            if _POSE_READ and prev is not None:
+                e0, e1 = _entry(prev["shape"]), _entry(obj["shape"])
+                obj = {**obj, "turned": int(e0[2] == e1[2] and e0[1] != e1[1])}
+            if _KIND_SCALE:
+                # (5): how large it is, beside its kind; grew / shrank only on a matched object
+                # (a birth gets no change, as the deltas above)
+                e = _entry(obj["shape"])
+                obj = {**obj, "scale": e[4]}
+                if prev is not None and "scale" in prev:
+                    obj = {**obj, "grew": int(e[4] > prev["scale"]),
+                           "shrank": int(e[4] < prev["scale"])}
             fresh[best] = obj
 
         # DEATH ONLY ON EVIDENCE. An unmatched tracked object keeps its slots unless another
@@ -1037,11 +1130,19 @@ class Objects:
             # same rule `drow`/`dcol` state above.
             for attr in ("row", "col", "h", "w", "colour", "drow", "dcol",
                          "dh", "dw", "dcells", "colour_changed",
-                         "dholes", "dperimeter", "age", "speed", "stability", *_CHANGE_ATTRS):
+                         "dholes", "dperimeter", "age", "speed", "stability", *_CHANGE_ATTRS,
+                         "scale", "grew", "shrank", "turned"):
                 if attr in obj:
                     state[f"{name}.{attr}"] = (NOT_RESOLVED if covered or obj[attr] is None
                                                else int(obj[attr]))
             state[f"{name}.shape"] = (
                 NOT_RESOLVED if covered
                 else self._shapes.setdefault(obj["shape"], len(self._shapes)))
+            if _POSE_READ:
+                # the shape label of the kind's FIRST-SEEN member: a member of the kind, decoded
+                # by the same table, and no new label, so every `shape` label stays as it was
+                kl = self.__dict__.setdefault("_kind_label", {})
+                state[f"{name}.kind"] = (
+                    NOT_RESOLVED if covered
+                    else kl.setdefault(_entry(obj["shape"])[2], state[f"{name}.shape"]))
         return state

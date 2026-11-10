@@ -23,6 +23,7 @@ from functools import cache
 from typing import Any
 
 import armflag
+import cap
 import condition
 import gamma
 import relations
@@ -34,6 +35,29 @@ SAME = gamma.SAME_AS_TARGET
 # "o0.dist_o3 < o0.dist_o3~1", away the converse. ON; reason in conform/arms.py.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _RELATION_SET = armflag.arm("TETHER_RELATION_SET", default=True)
+# Build 3 item 9 (the reviewer 2026-11-04 r1151): the attribute bridge adds readings to library
+# entries, and an entry's views come from its reads, so a compile made without it must not be served
+# with it: the arm enters the signature (one cold recompile, named)
+_ATTR_BRIDGE = armflag.arm("TETHER_ATTR_BRIDGE", default=True)
+_ATTR_GROUP = armflag.arm("TETHER_ATTR_GROUP", default=True)  # 9b: the bridge reads more
+# Build 5 item 17 (i), THE GROUP ROW (the reviewer 2026-11-05 r1200): a quantified candidate
+# compiles to a Group over the members of a kind the agent holds (7l), never a list we hand it
+# (Fig 11 :48). OFF: Refusal(QUANTIFIED), as before
+_GROUP_ROW = armflag.arm("TETHER_GROUP_ROW", default=True)
+# Build 5 item 17 (ii), A SLOT AGAINST A CONSTANT (the reviewer 2026-11-05 r1200, r1203): "o1.colour
+# == 3" compiles, the constant typed by the slot's own reading type through the slot-to-slot row
+# (so a colour takes ==/!= only). The operand is the constant itself, CONST + its value. OFF:
+# "no template compares colour with the constant 3", as before
+_SLOT_CONSTANT = armflag.arm("TETHER_SLOT_CONSTANT", default=True)
+# Build 5 item 17 (v) (a), CHAIN-CONNECTED (the reviewer 2026-11-05 r1208; Fig 6 :29-32):
+# connected(o, x) compiles onto o.connected_x, a BOOL DERIVED in run() from the frame's own
+# *.touches_* slots (the touch graph's components), never added to perception. It reads whatever
+# touches the world publishes (gridworld's box touches count corners). OFF: "no pairwise atom"
+_CONNECTED = armflag.arm("TETHER_CONNECTED", default=True)
+CONNECTED_VIA = "derived:connected"
+CONST = "#"
+CONST_TYPES = {"COLOUR", "SHAPE", "POSITION", "EXTENT", "DELTA"}
+CONST_FIRST = {"COLOUR", "SHAPE", "POSITION"}   # no 0 / 1 template types on these
 
 # (op, right side) -> (atom chain run on the target slot, operand side or None[, operand chain]).
 # right side: "zero" / "one" for a constant, "slot" for another object's same reading.
@@ -101,10 +125,20 @@ TEMPLATE_ATOMS = frozenset(
 
 def signature(atoms: dict) -> tuple:
     """What a compile can read of the atoms: each template atom present, with every field the
-    typing reads (all but `fn`), and the arm. An atom outside T never changes it."""
-    return (_RELATION_SET, tuple(sorted(
+    typing reads (all but `fn`), and the arm. An atom outside T never changes it. r1108: also any
+    EFFECTIVE gamma.TARGET_OPERAND row of a template atom (the typing reads it, off the Atom) --
+    appended only when there is one, so with none (today, and always with the arm OFF) the key is
+    byte-identical and no persisted memo goes cold."""
+    base = (_RELATION_SET, tuple(sorted(
         (n, a.in_type, a.out_type, a.reads_operand, a.operand_type, a.also_accepts,
          a.polymorphic, a.elem_type) for n, a in atoms.items() if n in TEMPLATE_ATOMS)))
+    rows = tuple(sorted((n, tuple(sorted(gamma.TARGET_OPERAND[a.fn].items())))
+                        for n, a in atoms.items()
+                        if n in TEMPLATE_ATOMS and gamma._TRANSLATE_AFFINE
+                        and gamma.TARGET_OPERAND.get(a.fn)))
+    out = (*base, rows) if rows else base
+    out = (*out, ("ATTR_BRIDGE",)) if _ATTR_BRIDGE else out
+    return (*out, ("ATTR_GROUP",)) if _ATTR_BRIDGE and _ATTR_GROUP else out
 # 7d, THE EVENT ROUTE (the reviewer 2026-10-16 11:56, 12:00; 10-11 14:17: an event is a transition,
 # carried by the change readings): a frame event is compiled onto a change reading the agent
 # ALREADY carries, on the role's subject. frame.came > 0 (some object appeared) -> {subject}.age
@@ -158,6 +192,20 @@ class Refusal:
     reason: str
 
 
+@dataclass(frozen=True)
+class Group:
+    """The group row: `member` (written on `scope`) for ALL members of the scope's kind, or for
+    NONE of them; NONE with no member condition is presence alone ("none of K remain")."""
+    quant: str                # "ALL" / "NONE"
+    scope: str                # the object the member condition is written on
+    member: Compiled | None
+    exclude: tuple = ()       # r1219: a pair reading's PARTNER, held fixed and never a member
+
+    @property
+    def slot(self) -> str | None:
+        return None if self.member is None else self.member.slot
+
+
 @cache
 def readings() -> dict[str, dict]:
     # an absent library is the ablation (tether._LIBRARY_REQUIRED OFF; wire() refuses it ON): no
@@ -203,13 +251,16 @@ def _typed(chain: tuple[gamma.Atom, ...], slot_type: str, operand_type: str | No
 # A RULE candidate holds of EVERY object in scope; one slot's chain says nothing about the group
 # (the reviewer 2026-10-09 00:42Z: refused until a group row -- all_same / all_of -- is ruled)
 QUANTIFIED = "quantified over the group: needs a group row (not ruled)"
+# the quantifier's first word -> the row; the library's RULE view writes "ALL objects, every frame"
+GROUP_QUANT = {"all": "ALL", "every": "ALL", "each": "ALL", "none": "NONE", "no": "NONE"}
 
 
 def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom],
-                      subject: str | None = None) -> Compiled | Refusal:
+                      subject: str | None = None) -> Compiled | Group | Refusal:
     """One candidate (`{"condition": "o1.drow > 0", ...}`), compiled or refused with a reason."""
+    cap.head()      # C2 P2 (r1425): a compile is a counted unit, so the purse sees it
     if "quantifier" in cand:
-        return Refusal(QUANTIFIED)
+        return _group(cand, atoms, subject) if _GROUP_ROW else Refusal(QUANTIFIED)
     for name, why in NOT_SLOTS.items():
         if name.startswith("@") and re.search(re.escape(name) + r"\b", cand["condition"]):
             return Refusal(why)
@@ -226,6 +277,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom],
     if (_RELATION_SET and isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call)
             and node.left.name in OBSERVER_PAIR):
         return _observer_pair(node, atoms)
+    if (_CONNECTED and isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call)
+            and node.left.name == "connected"):
+        return _connected(node, atoms)
     if isinstance(node, condition.Cmp) and isinstance(node.left, condition.Call):
         # a pair reading names TWO objects; the atoms read one slot each (`touching` reads
         # whether its object touches ANY object), so no chain says "this pair"
@@ -249,6 +303,9 @@ def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom],
     right = node.right
     if reading in CHANGE_OF:
         return _change(obj, reading, node.op, right, atoms)
+    if (_SLOT_CONSTANT and isinstance(right, int) and not isinstance(right, bool)
+            and (right not in (0, 1) or rtype in CONST_FIRST)):
+        return _constant(target, rtype, node.op, right, atoms)
     if isinstance(right, condition.Slot):
         kind, other = "slot", right.name
         if "~" in other and not (_RELATION_SET and other == target + PREV):
@@ -305,6 +362,130 @@ def converse(c: Compiled, atoms: dict[str, gamma.Atom]) -> Compiled | None:
     if name is None or name not in atoms:
         return None
     return Compiled(c.operand, gamma.Term((atoms[name],), operand=c.slot), c.slot)
+
+
+def _group(cand: dict, atoms: dict[str, gamma.Atom], subject: str | None) -> Group | Refusal:
+    q = GROUP_QUANT.get(str(cand["quantifier"]).split(" ", 1)[0].strip(",").lower())
+    if q is None:
+        return Refusal(f"no group row for the quantifier {cand['quantifier']!r}")
+    text = cand.get("condition")
+    if not text:
+        if q != "NONE":
+            return Refusal("ALL needs a member condition")
+        if not cand.get("scope"):
+            return Refusal("a group row names its scope object")
+        return Group(q, cand["scope"], None)
+    scope = cand.get("scope") or (re.findall(r"\bo\d+\b", text) or [None])[0]
+    if scope is None:
+        return Refusal("a group row names its scope object")
+    got = compile_candidate({"condition": text}, atoms, subject)
+    if isinstance(got, Refusal):
+        return got
+    if not any(re.search(rf"\b{re.escape(scope)}\b", s or "")
+               for s in (got.slot, got.operand, *got.parties)):
+        return Refusal(f"the member condition does not read its scope {scope}")
+    return Group(q, scope, got)
+
+
+def bind(c: Compiled, scope: str, member: str) -> Compiled:
+    """`c` with the scope object renamed to `member` in its slot, operand and parties."""
+    pat = re.compile(rf"\b{re.escape(scope)}\b")
+
+    def sub(s: str | None) -> str | None:
+        return None if s is None else pat.sub(member, s)
+    term = c.term
+    if term.operand is not None:
+        term = replace(term, operand=sub(term.operand))
+    return replace(c, slot=sub(c.slot), term=term, operand=sub(c.operand),
+                   parties=tuple(sub(p) for p in c.parties))
+
+
+def run_group(g: Group, frame: dict[str, Any], members: list[str], held: bool) -> bool | None:
+    """The group row on one frame, per member: True / False, or None for could not tell. NONE of
+    a kind never held and ALL of no members are None (r1200 MF-G2, MF-G3): an unmet goal never
+    reads as met, and a search that finds nothing is not a proof of absence (Fig 8 :39)."""
+    if g.exclude:
+        members = [m for m in members if m not in g.exclude]
+    if g.quant == "NONE" and not held:
+        return None
+    if g.quant == "ALL" and not members:
+        return None
+    if g.member is None:                      # presence alone: none of K remain
+        return not members
+    vals = [run(bind(g.member, g.scope, m), frame) for m in members]
+    if g.quant == "ALL":
+        return False if False in vals else (None if None in vals else True)
+    return False if True in vals else (None if None in vals else True)
+
+
+def _connected(node: Any, atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
+    """connected(o, x) == 1 / > 0 / != 0 -> holds, == 0 -> holds . negate, on o.connected_x."""
+    call = node.left
+    if len(call.args) != 2 or not all(isinstance(a, condition.Slot) for a in call.args):
+        return Refusal(f"no template for {call} {node.op} {node.right}")
+    names = OBSERVER_PAIR["inside"].get((node.op, node.right))     # a BOOL, read as inside's
+    if names is None:
+        return Refusal("a BOOL is 0 or 1")
+    missing = [n for n in names if n not in atoms]
+    if missing:
+        return Refusal(f"Gamma holds no atom {missing}")
+    chain = tuple(atoms[n] for n in names)
+    why = _typed(chain, "BOOL", None)
+    if why:
+        return Refusal(why)
+    o, x = (a.name for a in call.args)
+    return Compiled(f"{o}.connected_{x}", gamma.Term(chain), None, parties=(o, x),
+                    via=CONNECTED_VIA)
+
+
+def connected(frame: dict[str, Any], o: str, x: str) -> int | None:
+    """1 when a chain of touching objects joins o and x in this frame, 0 when none does, None when
+    either is absent: the touch graph read off the frame's own *.touches_* slots."""
+    owners = {k.split(".", 1)[0] for k in frame if "." in k}
+    if o not in owners or x not in owners:
+        return None
+    adj: dict = {}
+    for k, v in frame.items():
+        a, sep, b = k.partition(".touches_")
+        if sep and v and "~" not in a:
+            adj.setdefault(a, set()).add(b)
+            adj.setdefault(b, set()).add(a)
+    seen, todo = {o}, [o]
+    while todo:
+        for n in sorted(adj.get(todo.pop(), ())):    # r1400: one order for every seed
+            if n == x:
+                return 1
+            if n not in seen:
+                seen.add(n)
+                todo.append(n)
+    return int(o == x)
+
+
+def const_of(name: str | None) -> int | None:
+    """The value of a constant operand (CONST + an int), else None."""
+    return int(name[1:]) if name and name[0] == CONST else None
+
+
+def _constant(target: str, rtype: str, op: str, value: int,
+              atoms: dict[str, gamma.Atom]) -> Compiled | Refusal:
+    if rtype not in CONST_TYPES:
+        return Refusal(f"no constant of a {rtype}")
+    if value < 0 and rtype != "DELTA":
+        return Refusal(f"a {rtype} is never negative")
+    row = TABLE.get((op, "slot"))
+    if (op, "slot") in CONVERSE and all(n in atoms for n in CONVERSE[(op, "slot")][0]):
+        row = CONVERSE[(op, "slot")]
+    if row is None or row[1] != "x":
+        return Refusal(f"no template for {op} against a constant")
+    missing = [n for n in row[0] if n not in atoms]
+    if missing:
+        return Refusal(f"Gamma holds no atom {missing}")
+    chain = tuple(atoms[n] for n in row[0])
+    why = _typed(chain, rtype, rtype)
+    if why:
+        return Refusal(why)
+    operand = f"{CONST}{value}"
+    return Compiled(target, gamma.Term(chain, operand=operand), operand)
 
 
 def _change(obj: str, reading: str, op: str, right: Any,
@@ -397,11 +578,17 @@ def run(c: Compiled, frame: dict[str, Any]) -> bool | None:
     if frame.get(c.slot) is None and c.absent is not None and c.parties and all(
             any(k.startswith(p + ".") for k in frame) for p in c.parties):
         frame = {**frame, c.slot: c.absent}      # a sparse pair, both objects present: absent IS 0
-    if frame.get(c.slot) is None or (c.operand and frame.get(c.operand) is None):
+    if c.via == CONNECTED_VIA and frame.get(c.slot) is None:
+        v = connected(frame, *c.parties)        # (v): derived here, never perceived
+        if v is None:
+            return None
+        frame = {**frame, c.slot: v}
+    k = const_of(c.operand)
+    if frame.get(c.slot) is None or (c.operand and k is None and frame.get(c.operand) is None):
         return None
     ops: tuple = ()
     if c.operand:
-        o = frame[c.operand]
+        o = frame[c.operand] if k is None else k
         if c.term.operand_term is not None:      # a tree: the operand is computed
             o = c.term.operand_term.apply(o, Ctx())
             if o is NOT_RESOLVED:

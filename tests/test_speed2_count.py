@@ -9,7 +9,7 @@
   MF   MUST-FAIL, a planted fault: a pair's Counter not added when the pair is asked again;
        R must fail on it
   8 steps per child (the fake game costs ~10 s a step; three children under 5 minutes).
-  Both children run under the old seed constant (C-seed-X), since they compare two births.
+  Both children run under the old seed constant (C-seed-X), since they compare two game starts.
 
     python tests/test_speed2_count.py
 """

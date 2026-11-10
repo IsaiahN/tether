@@ -42,6 +42,9 @@ def _record(ag: tether.Agent, slots: dict[str, list[int]], alphabet: int = 2) ->
     states = [{s: seq[i] for s, seq in slots.items()} for i in range(n)]
     ag.trace = [(states[i], "A", states[i + 1], None, None) for i in range(n - 1)]
     ag._trace_pos = None
+    # the trace is REPLACED here, which a run never does within an epoch: the fit's stored
+    # prefixes (16, _cl_cells) are cleared as retarget clears them
+    ag._cl_cells.clear()
     for s in slots:
         if s not in ag.slots:
             ag.slots = [*ag.slots, s]

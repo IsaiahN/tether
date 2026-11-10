@@ -80,8 +80,13 @@ if __name__ == "__main__":
     deep = gamma.Term(tuple(f.atoms) * (ag.cfg.max_depth + 1), operand=f.operand)
     k = ag.gamma.length(deep) + ag.gamma.length(c.term)
     assert k > ag.cfg.max_depth
-    assert ag._inv_cost(deep, [c]) == tether.term_bits(k, ag.gamma.alphabet)
-    assert ag._inv_cost(deep, [c]) > tether.term_bits(ag.cfg.max_depth, ag.gamma.alphabet)
+    # r1173: in the agent's own code (_bits), never term_bits alone -- under TETHER_PRIOR_CODE
+    # (ON since a102c5a) a length is priced by the normalized code, and term_bits only with it OFF
+    cut = gamma.Term(tuple(deep.atoms)[:ag.cfg.max_depth], operand=deep.operand)
+    assert ag._inv_cost(deep, [c]) == ag._bits((deep, ()), (c.term, ()))
+    assert ag._inv_cost(deep, [c]) > ag._bits((cut, ()), (c.term, ()))
+    if not tether.G_PRIOR_CODE:
+        assert ag._inv_cost(deep, [c]) == tether.term_bits(k, ag.gamma.alphabet)
     print(f"  M6-b: length {k} past max_depth {ag.cfg.max_depth} is priced at its whole length")
     u = _agent()
     u._invent(SLOT, _trace(u), _base(u, _trace(u)), 0.0, "under_floor")

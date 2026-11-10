@@ -169,8 +169,13 @@ def main() -> int:
     t = child("transient", 4)
     assert t["rel"] and all(any(x.endswith(".shape") for x in (src or ()))
                             for _s, src, _d, _a, _e in t["rel"]), t["rel"]              # T
-    assert {e for *_x, e in t["rel"]} == {"derived_new"}, t["rel"]          # T under DS (ON)
+    # T under DS with r688 C7 (TETHER_RELATION_BET, ON): the first genuine relational surprise
+    # makes the relation a subject, bet on as itself -- a relational_surprise row, not derived_new
+    assert {e for *_x, e in t["rel"]} == {"relational_surprise"}, t["rel"]
     print("T transient: relational surprises", t["rel"][:3])
+    tds = child("transient", 4, {"TETHER_RELATION_BET": "0"})
+    assert {e for *_x, e in tds["rel"]} == {"derived_new"}, tds["rel"]     # T under DS, C7 OFF
+    print("T-DS (TETHER_RELATION_BET=0): derived_new rows", tds["rel"][:3])
     toff = child("transient", 4, {"TETHER_DERIVED_SUBJECT": "0"})
     assert toff["rel"] and {e for *_x, e in toff["rel"]} == {"relational_surprise"}, toff  # T-OFF
     print("T-OFF (TETHER_DERIVED_SUBJECT=0): relational surprises", toff["rel"][:3])

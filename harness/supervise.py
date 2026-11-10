@@ -231,7 +231,9 @@ def main(argv: list[str]) -> int:
         json.dump(res, fh)
     note(f"end {res}")
     k32.CloseHandle(job)
-    return 0
+    # the reviewer 2026-11-04 r1094, r1097: the exit is the CHILD's rc (it returned 0 whatever the
+    # child did, so every launcher logged "game rc 0"); a memory-cap stop that left rc 0 is 5
+    return 5 if ending == "MEM_CAP" and not res["rc"] else res["rc"]
 
 
 if __name__ == "__main__":

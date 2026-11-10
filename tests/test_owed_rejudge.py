@@ -1,6 +1,6 @@
 """1d OWED_REJUDGE (TETHER_OWED_REJUDGE, default ON; the reviewer 2026-10-28 r281, 2026-10-29 r326
 Option A, r333). On B2's fixture: gridworld default seed 0 size 4, closure budget 40, echoes off,
-birth seed pinned. Each check runs in its own process, under 5 minutes.
+start seed pinned. Each check runs in its own process, under 5 minutes.
   check_a_sources_explained       an owed ask whose sources all carry no outstanding is released,
                                   "sources explained", and is not owed after
   check_a_mustfail_r281_guard     MUST-FAIL: r281's literal guard (the derived slot's OWN
@@ -25,6 +25,15 @@ birth seed pinned. Each check runs in its own process, under 5 minutes.
                                   the plain mint takes the step's search, the derived asks are owed
                                   after it
   check_tie_control               the same, the plain mints skipped: the derived asks run
+  check_j_owed_chains_apart       r1553: one retarget with C1's owed questions AND 1d's owed asks
+                                  writes owed_closed and 'level end' releases on two keys, and
+                                  gate._steps passes; MUST-FAIL: the release back on "@owed" is
+                                  refused "MINT after IMPORT"
+  check_k_derived_pass            r1564: a derived ask on a slot ACCEPTed this cycle (the ACCEPT
+                                  planted) writes its ask and its whole search on "@derived" naming
+                                  the slot, and gate._steps passes; MUST-FAIL: the pass key off, the
+                                  search lands on the slot, refused "MINT after ACCEPT"; two passes
+                                  on two slots each keep their own choice row
   check_off_identity_grid, check_off_identity_fake   TETHER_OWED_REJUDGE=0 against 2a8045c
     python tests/test_owed_rejudge.py [check ...]
 """
@@ -48,7 +57,7 @@ sys.dont_write_bytecode = True
 BASE = "2a8045c"      # wip/ask-stop after 1b, the tree before the arm
 
 
-def _agent():
+def _agent(budget: int = 40):
     import gamma
     import gridworld
     import ledger
@@ -57,7 +66,7 @@ def _agent():
     tether._AGENT_SEED = False
     env = world.bind(gridworld.family("default", 0, 4))
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="owed_rejudge_fixture"),
-                      tether.Config(budget=40), ledger.Ledger())
+                      tether.Config(budget=budget), ledger.Ledger())
     ag._ds_echo = lambda _d: []
     return env, ag
 
@@ -120,8 +129,8 @@ def check_a_mustfail_r281_guard() -> None:
           "the sources' guard releases 0 on the same frame")
 
 
-def _run(steps: int, probe=None, ag_hook=None):
-    env, ag = _agent()
+def _run(steps: int, probe=None, ag_hook=None, budget: int = 40):
+    env, ag = _agent(budget)
     if ag_hook is not None:
         ag_hook(ag)
     for _ in range(steps):
@@ -214,8 +223,9 @@ def check_f_reraised() -> None:
     for _ in range(6):
         n0 = len(ag.led.rows())
         ag.step()
-        back |= {r["slot"] for r in ag.led.rows()[n0:]
-                 if r["event"] in ("derived_asked", "derived_deferred") and r["slot"] in rel}
+        back |= {r["detail"].get("derived", r["slot"]) for r in ag.led.rows()[n0:]
+                 if r["event"] in ("derived_asked", "derived_deferred")
+                 and r["detail"].get("derived", r["slot"]) in rel}     # r1442: "@derived"
         if back:
             break
     assert back, ("a released ask raised again by a later frame", len(rel))
@@ -333,7 +343,9 @@ def _tie(skip_plain: bool) -> tuple:
                 1 for r in new
                 if r["event"] == "derived_deferred" and r["detail"]["after"] in plain)
             out["derived_run_after_skip"] += sum(x["derived_run"] for x in sd)
-    _run(8, probe, ag_hook=hook)
+    # budget 5, was 40 (r1167): under TETHER_PREFIX_PRUNE (21726d3) the plain mint no longer
+    # stops at its bound at 40, so no derived ask was owed after it and the tie had no occasion
+    _run(8, probe, ag_hook=hook, budget=5)
     return out
 
 
@@ -414,7 +426,92 @@ def _off_identity(w: str) -> None:
           "0 differences")
 
 
+def _retarget_rows(must_fail: bool) -> tuple[list, list, list, bool]:
+    env, ag = _owed_state()
+    grown = bool(ag._owed_q)
+    if not grown:                       # constructed: C1's half of the occasion
+        ag._owed_q = {next(iter(sorted(ag._dw_owed))): (ag.cycle, "o0")}
+    if must_fail:
+        real = ag.led.record
+
+        def back(cycle, step, slot, event, *a, **kw):
+            return real(cycle, step, "@owed" if slot == "@owed_ask" else slot, event, *a, **kw)
+        ag.led.record = back
+    n0 = len(ag.led.rows())
+    ag.retarget(env, ag.level, "game_loss")
+    new = ag.led.rows()[n0:]
+    closed = [r for r in new if r["event"] == "owed_closed"]
+    rel = [r for r in new if r["event"] == "owed_released"
+           and r["detail"].get("why") == "level end"]
+    assert closed and rel and {r["cycle"] for r in closed} == {r["cycle"] for r in rel}, (
+        "occasion: owed_closed and a 'level end' release in one retarget, one cycle",
+        len(closed), len(rel))
+    return ag.led.rows(), closed, rel, grown
+
+
+def check_j_owed_chains_apart() -> None:
+    import gate
+    rows, closed, rel, grown = _retarget_rows(False)
+    assert {r["slot"] for r in closed} == {"@owed"}, {r["slot"] for r in closed}
+    assert {r["slot"] for r in rel} == {"@owed_ask"}, {r["slot"] for r in rel}
+    out = gate._steps(rows)
+    assert out is None, out
+    rows, _c, _r, _g = _retarget_rows(True)
+    out = gate._steps(rows)
+    assert out is not None and "MINT after IMPORT" in out["note"], ("MUST-FAIL did not fail", out)
+    how = "grown" if grown else "constructed"
+    print(f"  one retarget ({how} owed questions): {len(closed)} owed_closed on '@owed', "
+          f"{len(rel)} 'level end' "
+          f"releases on '@owed_ask'; _steps passes. MUST-FAIL (release on '@owed'): {out['note']}")
+
+
+def _derived_pass(on: bool) -> tuple[list, list, str]:
+    import ledger
+    env, ag = _owed_state()
+    d = sorted(ag._dw_owed)[0]
+    with ag._step_scope("ACCEPT"):       # the occasion, constructed: an ACCEPT on d this cycle
+        ag.led.record(ag.cycle, "ACCEPT", d, "rebind", note="planted by check_k")
+    real = ledger.Ledger.pass_key
+    if not on:
+        ledger.Ledger.pass_key = lambda self, *a, **k: real(self, *a, **{**k, "on": False})
+    try:
+        new = _rejudge(ag)
+    finally:
+        ledger.Ledger.pass_key = real
+    return ag.led.rows(), new, d
+
+
+def check_k_derived_pass() -> None:
+    import gate
+    import ledger
+    rows, new, d = _derived_pass(True)
+    moved = [r for r in new if r["slot"] == "@derived" and r["detail"].get("derived") == d]
+    evs = {r["event"] for r in moved}
+    assert "derived_asked" in evs and evs - {"derived_asked"}, ("occasion: no ask and search", evs)
+    assert not [r for r in new if r["slot"] == d], "a pass row stayed on the slot"
+    out = gate._steps(rows)
+    assert out is None, out
+    rows, _n, _d = _derived_pass(False)
+    out = gate._steps(rows)
+    assert out is not None and "MINT after ACCEPT" in out["note"], ("MUST-FAIL did not fail", out)
+    led = ledger.Ledger()
+    same = {"site": ledger.TALLY_SITE, "options": 2, "pick": "a"}
+    for s in ("o1.row", "o2.row"):
+        with led.pass_key(s, "@derived"):
+            led.record(1, "MINT", s, "choice", **same)
+    kept = sorted(r["detail"]["derived"] for r in led.rows() if r["event"] == "choice")
+    assert kept == ["o1.row", "o2.row"], kept
+    print(f"  {len(moved)} pass rows on '@derived' naming {d} ({sorted(evs)}); _steps passes. "
+          f"MUST-FAIL (key off): {out['note']}. Two slots' choice rows kept apart: {kept}")
+
+
 def check_off_identity_grid() -> None:
+    # r1170: a LANDING-TIME check. Its base is pinned to the tree before the arm (10-29), and
+    # every default-ON arm since moves that ledger; each item's own OFF identity is the live check
+    if os.environ.get("TETHER_TEST_LANDING") != "1":
+        print(f"  SKIP check_off_identity_grid: landing-time identity vs {BASE} (r1170); run with "
+              "TETHER_TEST_LANDING=1")
+        return
     _off_identity("grid")
 
 

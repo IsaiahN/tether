@@ -108,7 +108,7 @@ class Chain:
     seg: Segment = field(default_factory=Segment)
     stalls: Counter = field(default_factory=Counter)
     advances: int = 0          # counted apart: an advance is drive/search, NOT the loop
-    capped: int = 0            # PSEUDO-DEATHS: the seat ended it, not the world
+    capped: int = 0            # PSEUDO-GAME LOSSES: the seat ended it, not the world
     reuse_attempts: int = 0
     reuse_branch: Counter = field(default_factory=Counter)
     last_stage: str | None = None
@@ -141,11 +141,11 @@ class Chain:
     # -- segment ends ------------------------------------------------------------------
 
     def close(self, how: str) -> str:
-        """how: one of `2e`'s five -- `win`, `death`, `reset`, `advance`, `cap` -- or
+        """how: one of `2e`'s five -- `win`, `game_loss`, `reset`, `advance`, `cap` -- or
         `run_end`. An advance is not scored: it is not a loop firing.
 
-        **A CAP IS A PSEUDO-DEATH IMPOSED FROM OUTSIDE THE GAME**, and it is neither. It ends
-        the episode like a death, but the cause is THE SEAT rather than the world -- and it is
+        **A CAP IS A PSEUDO-GAME LOSS IMPOSED FROM OUTSIDE THE GAME**, and it is neither. It ends
+        the episode like a game loss, but the cause is THE SEAT rather than the world -- and it is
         not a stall either, because the loop did not fail to progress: **it ran out of room
         the seat granted.** Counting it as a stall attributes a reasoning stage to a
         resource exhaustion, which is §19's bug in a third place -- the first two being the
@@ -255,16 +255,16 @@ class Termination:
     Nothing in the frame announces it, so it is read -- and **the evidence is asymmetric**:
 
         a win is possible    `win_levels > 0`              given up front
-        DEATH is possible    a GAME_OVER, once             PROVEN, never disproven
-        bounded              an ending with no death and no cap firing   proven by observation
+        GAME LOSS is possible    a GAME_OVER, once             PROVEN, never disproven
+        bounded              an ending with no game loss and no cap firing   proven by observation
         OPEN                 none of the above, so far     NEVER PROVEN -- only defaulted to
 
-    ***Not having died is not evidence that you cannot die.*** So `death_possible` LATCHES
-    true and never latches back, and **`OPEN` is a standing ASSUMPTION rather than a
-    finding.** The two-state version reports *this game has no death*, which is the absential
-    claim the corpus rules out everywhere else: *absence of evidence resting on completeness
-    never holds mid-episode.* `report()` therefore says which reads are PROVEN and which are
-    ASSUMED, and the class alone is never the whole answer.
+    ***Not having lost the game is not evidence that you cannot lose the game.*** So
+    `game_loss_possible` LATCHES true and never latches back, and **`OPEN` is a standing ASSUMPTION
+    rather than a finding.** The two-state version reports *this game has no game loss*, which is
+    the absential claim the corpus rules out everywhere else: *absence of evidence resting on
+    completeness never holds mid-episode.* `report()` therefore says which reads are PROVEN and
+    which are ASSUMED, and the class alone is never the whole answer.
 
     THE AGENT DOES NOT READ THE CAP. `capped` arrives as an EVENT from the seat, because
     harness configuration is the seat's business and the agent discovers its budget by
@@ -278,7 +278,7 @@ class Termination:
     """
 
     win_possible: bool = False
-    death_possible: bool = False        # latches; never latches back
+    game_loss_possible: bool = False        # latches; never latches back
     bounded_seen: bool = False
     capped_seen: bool = False
     endings: int = 0
@@ -288,18 +288,19 @@ class Termination:
         self.win_possible = self.win_possible or win_levels > 0
 
     def ending(self, kind: str) -> None:
-        """One episode ended. `kind` is the seat's word: `death`, `cap`, or an ordinary end."""
+        """One episode ended. `kind` is the seat's word: `game_loss`, `cap`, or an ordinary end."""
         self.endings += 1
-        if kind == "death":
-            self.death_possible = True      # LATCHED
+        kind = ledger.game_loss_word(kind)
+        if kind == "game_loss":
+            self.game_loss_possible = True      # LATCHED
         elif kind == "cap":
             self.capped_seen = True
         else:
             self.bounded_seen = True
 
     def klass(self) -> str:
-        if self.death_possible:
-            return "death_possible"
+        if self.game_loss_possible:
+            return "game_loss_possible"
         if self.bounded_seen:
             return "bounded"
         return "open"
@@ -309,14 +310,15 @@ class Termination:
         return {
             "class": k,
             "win_possible": self.win_possible,
-            "death_possible": self.death_possible,
+            "game_loss_possible": self.game_loss_possible,
             "capped_seen": self.capped_seen,
             "endings": self.endings,
             "proven": [n for n, v in (("win_possible", self.win_possible),
-                                      ("death_possible", self.death_possible),
+                                      ("game_loss_possible", self.game_loss_possible),
                                       ("bounded", self.bounded_seen)) if v],
             "assumed": ["open -- never proven, only defaulted to"] if k == "open" else [],
-            "reads": ("not having died is not evidence that you cannot die; and under an "
+            "reads": ("not having lost the game is not evidence that you cannot lose the game; "
+                      "and under an "
                       "accruing budget `bounded` is about the AGENT-GAME PAIR, since the cap "
                       "firing is partly a fact about efficiency"),
         }
@@ -370,6 +372,10 @@ class Agency:
     # r674 1: (slot, action) -> the distinct changes seen (at most two kept); indifferent()'s memo
     deltas: dict = field(default_factory=dict, repr=False, compare=False)
     _i_memo: tuple | None = field(default=None, repr=False, compare=False)
+    # item 18 (r1213): (slot, action, here) -> presses / changes, for HELD slots, so a stall that
+    # happens only HERE is not diluted by the run-wide counts
+    tried_here: Counter = field(default_factory=Counter, repr=False, compare=False)
+    moved_here: Counter = field(default_factory=Counter, repr=False, compare=False)
 
     def retire(self, board: set, alias: dict, token: Any) -> Counter:
         """10 ARRIVAL_ALIAS: a (slot, action) count whose slot names an object not in `board`
@@ -434,6 +440,28 @@ class Agency:
                 out.append(s)
         self._i_memo = (key, tuple(sorted(out)))
         return list(self._i_memo[1])
+
+    def unmoved(self) -> dict[str, dict]:
+        """Item 18 (r1212): slots NO action tried has moved -> {slot: {action: presses}}. A sibling
+        of contingent() / indifferent() on the same counters: the search's scope, never a proof
+        of absence (Fig 8 :39)."""
+        by: dict[str, dict] = {}
+        for (s, a), n in self.tried.items():
+            by.setdefault(s, {})[a] = n
+        return {s: acts for s, acts in by.items() if not any(self.moved[(s, a)] for a in acts)}
+
+    def note_here(self, slot: str, action: str, here: Any, moved: bool) -> None:
+        self.tried_here[(slot, action, here)] += 1
+        if moved:
+            self.moved_here[(slot, action, here)] += 1
+
+    def unmoved_here(self, slot: str, here: Any) -> dict | None:
+        """Item 18 (r1213): {action: presses} when no action tried on `slot` in context `here` has
+        moved it there, else None."""
+        acts = {a: n for (s, a, h), n in self.tried_here.items() if s == slot and h == here}
+        if not acts or any(self.moved_here[(slot, a, here)] for a in acts):
+            return None
+        return acts
 
     def note(self, action: str, changed: set[str], slots: list[str]) -> None:
         self.steps += 1
@@ -529,7 +557,8 @@ class Clocks:
 # cap from 2026-10-22, for TETHER_CAP_INNER (C1 widened). narrate from 2026-11-02 (TETHER_NARRATE).
 ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms", "compile_term", "gridworld",
                "interface", "lineage", "gamma", "instruments", "sensors_heavy", "relations",
-               "ledger", "lineage_store", "cap", "arc_holdout", "narrate")
+               "ledger", "lineage_store", "cap", "arc_holdout", "narrate", "composer",
+               "pipelog", "nsm", "arc_predict")
 
 
 class Attribution:

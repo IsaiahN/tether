@@ -327,7 +327,8 @@ def _fold_rules() -> dict:
     f7 = lineage.fold([(h, g7[h]) for h in lineage._topo(g7)])
     assert f7["book"]["c"] == 163 and "contested_book" not in f7, ("MF-F7 fork below a merge",
                                                                    f7["book"])
-    # MF-F8 (r881 4 (ii), r882 3): at a merge of fold_rule 2, two lives that each moved a counter
+    # MF-F8 (r881 4 (ii), r882 3): at a merge of fold_rule 2, two game series that each moved a
+    # counter
     # 64 -> 66 are two increments, not one agreement (68; RED 66), and a head that did not move
     # adds 0 (27 / 28 / 28 -> 29)
     def equal_moves(books, root, rule):

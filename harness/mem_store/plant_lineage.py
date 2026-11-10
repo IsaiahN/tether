@@ -1,4 +1,4 @@
-"""THE PLANTED LIFE for the pair-table merge fix (the seat 10:25-10:26; the reviewer 10:13 item 3). READ ONLY on a
+"""THE PLANTED LINEAGE for the pair-table merge fix (the seat 10:25-10:26; the reviewer 10:13 item 3). READ ONLY on a
 lineage copy; writes ONLY into an empty output folder. Two memory saves, each named by the sha256 of its own bytes in
 lineage._dumps' form, so lineage.load and lineage_store.catch_up accept them:
   G1 = the copy's ROOT save (parent None) as a SET-FORM generation: "kinds_landed_n" removed, all else kept

@@ -14,7 +14,7 @@ park return now writes the unpaid objective want the mint ranked, through the ta
 
   Run twice (the reviewer 2026-10-26 01:04, 01:29, 01:40, ruled; red since 0996891, 10-15,
   TETHER_A1_TIES: the first press is a recorded tie draw, so the hard pin gridworld_s1 o5.distance
-  c5 went stale by construction). Every child runs with TETHER_AGENT_SEED=0 (cab5bd5 made the birth
+  c5 went stale by construction). Every child runs with TETHER_AGENT_SEED=0 (cab5bd5 made the start
   seed the OS's; the precedent is the other tests' _AGENT_SEED = False), so the fixture is one
   fixed being, and the arms row read back shows it. Both pins are FOUND IN THE RUN by one search:
   the first park with `wanted` set (from _mint's locals) over an order of (board, steps) written

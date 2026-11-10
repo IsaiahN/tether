@@ -79,7 +79,7 @@ def _minted(arm: bool) -> tuple:
 
 
 def main() -> int:
-    tether._AGENT_SEED = False     # C-seed-X: separately born agents compared, one temperament
+    tether._AGENT_SEED = False     # C-seed-X: separately started agents compared, one temperament
     base, after, rows, on_rows = _served(True, True)
     assert base > 0 and rows and abs(after - (base - rows[0]["detail"]["explained"])) < 1e-9, (
         base, after, rows)

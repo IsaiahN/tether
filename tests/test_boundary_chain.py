@@ -1,8 +1,9 @@
-"""The boundary rows' own chains (the reviewer 2026-10-10 08:11Z, 09:40Z). A level end and a death
-restart used to be written at cycle = self.level on "@loop", behind that cycle's REPEAT row, and the
-21.3 credit (SETTLE) behind the IMPORT rows on the same key, so gate check 1 refused every one.
-
-  1. a gridworld run with a death + restart and an advance (credit written), then end_run: the FULL
+"""The boundary rows' own chains (the reviewer 2026-10-10 08:11Z, 09:40Z). A level end and a game
+loss restart used to be written at cycle = self.level on "@loop", behind that cycle's REPEAT row,
+and the 21.3 credit (SETTLE) behind the IMPORT rows on the same key, so gate check 1 refused every
+one. 
+  1. a gridworld run with a game loss + restart and an advance (credit written), then end_run:
+     the FULL
      gate passes;
   2. must-fail: the same run with _BOUNDARY_CHAIN False (the old keying) is refused by check 1;
   3. must-fail: the credit row alone moved onto "@boundary" (same cycle, after the two IMPORT rows)
@@ -32,7 +33,7 @@ def _run(chain: bool) -> list[dict]:
                       ledger.Ledger())
     for _ in range(4):
         ag.step()
-    ag.retarget(env, ag.level, how="death")
+    ag.retarget(env, ag.level, how="game_loss")
     ag.restarted(env)
     for _ in range(3):
         ag.step()

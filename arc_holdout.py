@@ -244,7 +244,8 @@ def wire_agent(env, game: str, cfg: Any, led, library: str | None, lineage_dir: 
     # 4 widens the whole ARC search, not only the folds, and the run that would price it is
     # still prohibited.
     if cfg is None:
-        cfg = tether.Config(max_depth=4, work_budget=ARC_WORK_BUDGET)
+        cfg = tether.Config(max_depth=4, work_budget=ARC_WORK_BUDGET,
+                            budget=ARC_CLOSURE_BUDGET)
     # THE AGENT IS NEVER TOLD A GAME'S NAME, in any mode (Isaiah 2026-10-25 07:16: "it might try to
     # match the learning to the game and i need the learning to transfer across games"); one
     # constant, the stream's, so every mode writes the same scope. `game` stays the harness's.
@@ -350,6 +351,22 @@ def end_path(ag: Any, env: Any, game: str, library: str | None, save_only_dir: s
     return rows, saved, saved_only, lineage_gen
 
 
+def games_waiting(left: int, share: bool, deadline: float | None, slice_end: float,
+                  fixed_s: float | None) -> int | None:
+    """Item 31 (r1291, r1292): the games a quit's seconds could reach, for the agent to read
+    (`left` counts this game). Under a share every later slice grows by them: left - 1. Under
+    fixed slices, only while the whole-run deadline binds -- the later games' fixed slices do not
+    all fit after this one's end -- else None: a quit would hand its seconds to nobody."""
+    n = left - 1
+    if n <= 0:
+        return None
+    if share:
+        return n
+    if deadline is None or fixed_s is None:
+        return None
+    return n if n * fixed_s > deadline - slice_end else None
+
+
 def step_or_recover(env: Any, ag: Any, ctx: dict) -> tuple:
     """(B), IN-GAME RECOVERY AFTER AN AGENT FAULT (Isaiah 2026-10-22 12:36-12:37; the design post
     15:13, approved 15:17 with (C3), (C4)). One ag.step(). An Exception from the agent's own code
@@ -452,6 +469,9 @@ def save_only(ag: Any, out_dir: str | None, game: str, led_path: str | None) -> 
 # 15000 restores the old pacing (317879c). MAGIC: a seat-authored constant (Fig 10 :48),
 # replaced post-submission by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 ARC_WORK_BUDGET = int(os.environ.get("TETHER_WORK_BUDGET_N", "5000"))
+# THE WALK'S YIELD BUDGET ON THE ARC PATH (the reviewer 2026-11-04 r1025 2): Config's own default,
+# 4000, made settable so a same-memory A/B can let the closure enumerate to depth. A VALUE.
+ARC_CLOSURE_BUDGET = int(os.environ.get("TETHER_CLOSURE_BUDGET_N", "4000"))
 # What Gamma is told the game is, for every game and every mode: the stream's constant
 # (harness/mem_store/e4_stream.py wires under "stream"). Isaiah 2026-10-25 07:16.
 AGENT_GAME = "stream"
@@ -515,7 +535,10 @@ def play(game: str, cycles: int = 40, library: str | None = None,
     fault = None           # item 4: an agent fault ends the loop into a guarded end path
     ctx = {"game": game, "cfg": cfg, "library": library, "lineage_dir": lineage_dir,
            "led_path": led_path, "save_only_dir": save_only_dir, "palette": palette}
-    for _ in range(cycles):
+    for i_ in range(cycles):
+        # item 25 (r1265): turns left that the habitat allows; a turn that presses nothing still
+        # spends one
+        ag.actions_left, ag.actions_cap = cycles - i_, cycles
         state = env.observe()
         # THE UNIT. `step` returns False when no action was proposed, and after the first
         # GAME_OVER that is every cycle -- so a 1000-CYCLE run is a ~140-ACTION run followed
@@ -543,10 +566,10 @@ def play(game: str, cycles: int = 40, library: str | None = None,
         # cannot exploit -- and the loss is the ONLY controlled experiment available.
         # AN ENDING IS A TRANSITION, NOT A STATE, AND THE FIRST VERSION COUNTED THE STATE.
         # `terminal()` reports the CURRENT frame, so once `ls20` is GAME_OVER it answers
-        # `death` on every later step -- and retargeting on each of them recorded 32
-        # endings for one death and published `budget_to_deaths` as 0.200 when one death
-        # in 160 cycles is 0.006. **The same misreading as taking 172-of-300 GAME_OVER
-        # frames for abundant deaths, arriving in code an hour after it was caught in
+        # `game_loss` on every later step -- and retargeting on each of them recorded 32
+        # endings for one game loss and published `budget_to_game_losses` as 0.200 when one game
+        # loss in 160 cycles is 0.006. **The same misreading as taking 172-of-300 GAME_OVER
+        # frames for abundant game losses, arriving in code an hour after it was caught in
         # prose.** Edge-triggered: the ending fires where the state CHANGES.
         end = env.terminal()
         if end and end != was_terminal:
@@ -558,10 +581,11 @@ def play(game: str, cycles: int = 40, library: str | None = None,
             # button. The seat restarting on the agent's behalf is the same purchase
             # against the same resource as the agent doing it. The controlled experiment
             # is a SEPARATE seat measurement with no Gamma in it -- see `controlled()`.
-        # (b'-l) D-b, ONE PATH FOR BOTH RUNNERS: after the GAME's "death" ending (its loss, not the
-        # agent's end), the agent's own RESET restarted the level, so restarted() reads it as
+        # (b'-l) D-b, ONE PATH FOR BOTH RUNNERS: after the GAME's "game_loss" ending (its loss, not
+        # the agent's end), the agent's own RESET restarted the level, so restarted() reads it as
         # tether_agent.run does (its 47-48). The seat restarts nothing on the agent's behalf.
-        if tether._LINEAGE_HOLD and was_terminal == "death" and not end:
+        game_lost = ledger.game_loss_word(was_terminal) == ledger.GAME_LOSS
+        if tether._LINEAGE_HOLD and game_lost and not end:
             ag.restarted(env)
         # THE BOUNDARY EDGES, ONE BLOCK IN BOTH RUNNERS (arc_holdout.play, tether_agent.run;
         # the reviewer 2026-10-15 07:32, 07:42, 07:55). The terminal edge was retargeted above.
@@ -578,6 +602,10 @@ def play(game: str, cycles: int = 40, library: str | None = None,
                 t_b = time.perf_counter()
                 bounds.append(door.lineage_boundary(lineage_dir, ag, game,
                                                     end if term_edge else "level"))
+                ag._note_boundary_wall(time.perf_counter() - t_b)
+            elif lineage._ENDING_SAVE and lineage._BOUNDARY and getattr(ag, "_ending_due", False):
+                t_b = time.perf_counter()       # r1530: a goal ending's save, between steps
+                bounds.append(door.lineage_boundary(lineage_dir, ag, game, "goal_ending"))
                 ag._note_boundary_wall(time.perf_counter() - t_b)
             lv_seen = lv
         was_terminal = end
@@ -600,7 +628,7 @@ def play(game: str, cycles: int = 40, library: str | None = None,
                    reserve_s=ag._end_reserve, cut=ag._cut,
                    stored=((lineage_gen or {}).get("store") or {}).get("end_path"),
                    reads="C1 (A): the game's end path, timed whole; its stored wall is the next "
-                         "life's reserve")
+                         "game series' reserve")
     # R2 REOPEN (the reviewer 2026-10-18 01:18): the lineage write is the boundary's last writer
     # (_3a_settle's rows reopen the handle end_run closed), so the ledger closes again here
     close = getattr(ag.led, "close", None)
@@ -717,7 +745,8 @@ def play(game: str, cycles: int = 40, library: str | None = None,
         "endings": dict(endings),
         # §21.2's number, published rather than inferred: *if that is 40%, someone should
         # see it rather than infer it.*
-        "budget_to_deaths": (round(endings.get("death", 0) / cycles, 4) if cycles else 0.0),
+        "budget_to_game_losses": (round(endings.get("game_loss", 0) / cycles, 4) if cycles
+                                  else 0.0),
         # ACTIONS, NOT CYCLES -- the correction four of this session's findings collapse into.
         "budget": bud.report(),
 

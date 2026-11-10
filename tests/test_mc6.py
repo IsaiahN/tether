@@ -1,7 +1,8 @@
-"""7a(10) MC6 muse (TETHER_MC6; R3 part 2; the reviewer 2026-10-10 23:50Z). On a step that owes
+"""THE MUSING TEST (MUSING, formerly MC6; r1253).
+7a(10) MC6 muse (TETHER_MC6; R3 part 2; the reviewer 2026-10-10 23:50Z). On a step that owes
 nothing, the settled methods are re-tested as chains on an earlier level's parked residuals and a
 MUSE row records the gap and the compute spent. snaps.ladder seed 7 (levels 5, steps 60, 4 slots)
-is the habitat: its level 4 owes nothing on 42 steps with level 1's death parked.
+is the habitat: its level 4 owes nothing on 42 steps with level 1's game loss parked.
 
   must-pass: ON, seed 7 writes MUSE rows, each on a step that owed nothing, each carrying
      compute_ms, installed False;
@@ -61,17 +62,22 @@ def _muse_checked(self):
 
 
 def _ladder(on: bool) -> list:
-    was = tether._MC6
-    tether._MC6 = on
+    was = tether._MUSING
+    tether._MUSING = on
     made.clear()
     try:
         snaps.ladder(7, levels=5, steps=60, n_slots=4)
     finally:
-        tether._MC6 = was
+        tether._MUSING = was
     return made[0].led.rows()
 
 
 if __name__ == "__main__":
+    # the start seed pinned, or ON and OFF are two different agents (r1255 census: the flake)
+    tether._AGENT_SEED = False
+    # MC6-a is MUSING's own claim (compute only); item 24 offers a rival by design and is
+    # tested in test_musing_chosen, so it is held off here
+    tether._MUSING_CHOSEN = False
     tether.Agent.__init__ = _init
     tether.Agent._muse = _muse_checked
     on = _ladder(True)
@@ -99,14 +105,16 @@ if __name__ == "__main__":
             if r["event"] in ("muse", "arms"):
                 continue
             r = {k: v for k, v in r.items() if k != "seq"}
-            r["detail"] = {k: v for k, v in r["detail"].items() if k != "seq"}
+            # and the row-index references the MUSE rows shift the same way (r1255 census)
+            r["detail"] = {k: v for k, v in r["detail"].items()
+                           if k not in ("seq", "signal_seq", "bet_seq", "plan_seq")}
             out.append(json.dumps(r, sort_keys=True, default=str))
         return out
     a, b = strip(on), strip(off)
     assert a == b, next(i for i, (x, y) in enumerate(zip(a, b, strict=False)) if x != y)
     print(f"  MC6-a: ON and OFF ledgers identical but for the MUSE rows ({len(a)} rows)")
     tether.Agent.__init__ = real_init
-    tether._MC6 = True
+    tether._MUSING = True
     env = world.bind(gridworld.family("default", 0, 4))
     ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="mc6"), tether.Config(), ledger.Ledger())
     ag.step()
@@ -125,5 +133,5 @@ if __name__ == "__main__":
     assert ag.bound == bound0
     print("  MC6-c: the parked slot's binding is untouched; methods are chains re-bound on its "
           "own history")
-    tether._MC6 = False
+    tether._MUSING = False
     print("ok")

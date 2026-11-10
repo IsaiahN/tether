@@ -22,6 +22,7 @@ import armflag
 
 _CAP_INNER = armflag.arm("TETHER_CAP_INNER", default=True)
 AT: float | None = None
+HEADS = 0
 _HOLD = 0
 _now = time.time
 
@@ -33,6 +34,8 @@ class CapReached(BaseException):
 def head() -> None:
     """A growing loop's head: raise CapReached once the thinking deadline has passed, unless
     held."""
+    global HEADS
+    HEADS += 1
     if AT is None or _HOLD or not _CAP_INNER:
         return
     if _now() >= AT:

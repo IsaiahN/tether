@@ -36,7 +36,7 @@ from dataclasses import replace
 from typing import Any
 
 import armflag
-from arc_percept import _CELL_CHANGE, holes_of, perimeter_of
+from arc_percept import _CELL_CHANGE, _KIND_SCALE, _POSE_READ, holes_of, perimeter_of
 from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx, declare_turns
 from sensors import (
     BOOL,
@@ -190,6 +190,15 @@ ATTRIBUTE_TYPE = {"colour": COLOUR, "row": POSITION, "col": POSITION,
 if _CELL_CHANGE:
     ATTRIBUTE_TYPE.update({"add_n": EXTENT, "rem_n": EXTENT, "add_row": POSITION,
                            "add_col": POSITION, "rem_row": POSITION, "rem_col": POSITION})
+# (5) SCALE -- arm `TETHER_KIND_SCALE` (`arc_percept`): how many times larger than its kind's least
+# form an object is, EXTENT like `h`/`w`; grew / shrank its change on a matched object, BOOL like
+# `colour_changed`. Types every object already carries, so no kind tuple moves. Under the arm only.
+if _KIND_SCALE:
+    ATTRIBUTE_TYPE.update({"scale": EXTENT, "grew": BOOL, "shrank": BOOL})
+# THE POSE, READABLE -- arm `TETHER_POSE_READ` (`arc_percept`, r915): `kind` is the shape label of
+# the kind's first-seen member, SHAPE like `shape`; `turned` a matched object's pose changing, BOOL.
+if _POSE_READ:
+    ATTRIBUTE_TYPE.update({"kind": SHAPE, "turned": BOOL})
 
 # AN ATTRIBUTE'S ATOM EXISTS ONLY WHERE ITS ARM PUBLISHES IT -- F503, the reviewer 2026-10-07. Every
 # key above becomes an atom, and each atom widens the alphabet every term is priced over; on the
@@ -201,6 +210,8 @@ ATTRIBUTE_ARM = {
     **dict.fromkeys(("contact", "bbox", "inside"), ("arc_world", "_OBSERVER")),
     **dict.fromkeys(("dholes", "dperimeter"), ("arc_percept", "_SHAPE_DELTA")),
     **dict.fromkeys(("age", "speed", "stability"), ("arc_percept", "_INSTRUMENTS")),
+    **dict.fromkeys(("scale", "grew", "shrank"), ("arc_percept", "_KIND_SCALE")),
+    **dict.fromkeys(("kind", "turned"), ("arc_percept", "_POSE_READ")),
 }
 
 
@@ -286,6 +297,11 @@ ADMITTED = {
              "reading be used where a predicate is wanted. Ruled by the reviewer 2026-10-08 "
              "23:54Z over blanket widening: +183,415 rows for x1.02-1.04 search, against "
              "+139,293 for x1.11-1.18",
+    "subtract": "handed-2026-11-04: the Tether's own bond, wired -- − is subtraction, A with B "
+                "removed (Operators Table :41-46; Isaiah 15:31, the reviewer r1141, r1142), and "
+                "grammar.json held it with no executable form; translate's dual, v less an "
+                "operand, typed per target (TETHER_SUBTRACT). No chain of the held atoms yields "
+                "it: none negates a DELTA (the 8b typing check, r1138)",
     "touches": "handed-2026-10-08: the agent's own machinery named the gap -- 171,809 library "
                "compile refusals name a missing pairwise atom (compile_census, M3); contact is "
                "a core prior (objects interact by contact); a human arrives holding it. "
@@ -361,7 +377,8 @@ def _fold_admissions() -> dict[str, str]:
 CLAUSE_ONE = frozenset({
     # perception's own readings -- what a slot IS. `ATTRIBUTE_TYPE`'s keys become atoms.
     "row", "col", "colour", "h", "w", "bbox", "shape", "age", "speed", "stability",
-    "completed", "colour_changed", "contact", "touching",
+    "completed", "colour_changed", "contact", "touching", "scale", "grew", "shrank",
+    "kind", "turned",
     # the deltas -- what CHANGED. Without them there is no residual to price.
     "drow", "dcol", "dh", "dw", "dcells", "dholes", "dperimeter",
     "add_n", "rem_n", "add_row", "add_col", "rem_row", "rem_col",
@@ -1182,6 +1199,7 @@ _W_CELL = "reads a cell collection, not the slot's value"
 VALUE_TURNS = {
     "idn": ("identity", "returns its input"),
     "translate": ("walk", "v plus an operand: a later comparison turns at a shifted value"),
+    "subtract": ("walk", "v less an operand: a later comparison turns at a shifted value"),
     "recolour": ("walk", "takes the operand's value, not decided by the input's pieces"),
     "owner": ("walk", "reads ctx.obj and returns an object"),
     "rotate": ("walk", _W_SHAPE), "reflect": ("walk", _W_SHAPE), "holes": ("walk", _W_SHAPE),
@@ -1268,8 +1286,10 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
             f"a thing in and that cannot be rebuilt afterwards.")
     # AN ATTRIBUTE ATOM WHOSE ARM IS OFF IS GATED, NOT PHANTOM (F498): it is declared and built
     # whenever its arm publishes it. A name with no construction anywhere still fires here.
+    import arc_predict  # the predict set's own arm-gated atoms (subtract, r1142)
     phantom = sorted(n for n in _admitted if n not in seen
-                     and not (n in ATTRIBUTE_TYPE and n in ATTRIBUTE_ARM and not _published(n)))
+                     and not (n in ATTRIBUTE_TYPE and n in ATTRIBUTE_ARM and not _published(n))
+                     and arc_predict.GATED.get(n, True))
     if phantom:
         raise ValueError(
             f"`ADMITTED` names atoms that were never built: {phantom}. `inside` sat here for "

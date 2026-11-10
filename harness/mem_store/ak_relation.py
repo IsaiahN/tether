@@ -1,6 +1,6 @@
 """THE ak_ RELATION (the reviewer 2026-10-19 07:31 item 2, 08:26 item 2, 08:30). READ ONLY. OFF's rows = ON's rows
-minus the rows the life already held. OFF wrote 0 here, so the check is: every one of the ON save's ak_ rows is held
-in the OLD saves' ak_ files, N/N. A row is (key, role, o, x, slot) -- the identity write_ak skips on (_AK_CARRIED
+minus the rows the game series already held. OFF wrote 0 here, so the check is: every one of the ON save's ak_ rows is
+held in the OLD saves' ak_ files, N/N. A row is (key, role, o, x, slot) -- the identity write_ak skips on (_AK_CARRIED
 holds no signature, R1), so an old file of any signature counts. The ON file's rows are the targets; each old ak_
 file is parsed alone and its hits removed from the open set; one parse in memory at a time.
 argv: lineage_dir on_ak_file"""

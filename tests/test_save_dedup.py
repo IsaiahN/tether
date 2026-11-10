@@ -38,7 +38,7 @@ import lineage  # noqa: E402
 import tether  # noqa: E402
 import world  # noqa: E402
 
-N, LIVES = 20, 2
+N, GAME_SERIES_N = 20, 2
 
 
 def _agent(seed=0):
@@ -47,7 +47,7 @@ def _agent(seed=0):
                         ledger.Ledger())
 
 
-def _life(d, n):
+def _game_series(d, n):
     ag = _agent()
     rep = lineage.load(d, ag)
     for _ in range(n):
@@ -80,7 +80,7 @@ def _standing(gm):
 def two_step(tmp):
     d = tmp / "two"
     d.mkdir()
-    a, _ = _life(d, N)
+    a, _ = _game_series(d, N)
     w = lineage.write(d, a, "default")
     row = next((r for r in _gens(d)[w["hash"]]["terms"] if r.get("was") and not r.get("guard_ref")),
                None)
@@ -92,7 +92,7 @@ def two_step(tmp):
     seen = {}
     for store in (True, False):
         lineage._MEMORY_STORE = store
-        b, rep = _life(d, 0)
+        b, rep = _game_series(d, 0)
         got = {n: b.gamma.renamed.get(n) for n in (row["was"], "alias_two", "alias_three")}
         lost = {n for n in ("alias_two", "alias_three") if n in b.gamma.lost_onto_atom}
         if row["was"] in b.gamma.lost_onto_atom:
@@ -152,15 +152,15 @@ def _on_off(tmp):
         lineage._SAVE_DEDUP = arm
         d = tmp / ("on" if arm else "off")
         d.mkdir()
-        for i in range(LIVES):
-            a, _ = _life(d, N + 5 * i)
+        for i in range(GAME_SERIES_N):
+            a, _ = _game_series(d, N + 5 * i)
             lineage.write(d, a, "default")
-        b, rep = _life(d, 0)
+        b, rep = _game_series(d, 0)
         out[arm] = (d, b, rep)
     lineage._SAVE_DEDUP = True
     (d_on, b_on, r_on), (d_off, b_off, r_off) = out[True], out[False]
     n_al = sum(len(g.get("aliases", [])) for g in _gens(d_on).values())
-    assert n_al > 0, "D-4 precondition: the ON lives wrote no alias, so nothing is tested"
+    assert n_al > 0, "D-4 precondition: the ON game series wrote no alias, so nothing is tested"
     assert not any(g.get("aliases") for g in _gens(d_off).values()), "D-4 OFF wrote an alias"
     rows_on = sum(len(g["terms"]) for g in _gens(d_on).values())
     rows_off = sum(len(g["terms"]) for g in _gens(d_off).values())
@@ -178,7 +178,8 @@ def _on_off(tmp):
     dropped = g.replay(f["evidence"])
     assert dropped["not_held"] > r_on["replayed"]["not_held"], (
         "D-4 must-fail: aliases dropped and not_held did not rise", dropped, r_on["replayed"])
-    print(f"  D-4 gridworld {LIVES} lives: rows ON {rows_on} + aliases {n_al}, OFF {rows_off}; "
+    print(f"  D-4 gridworld {GAME_SERIES_N} game series: rows ON {rows_on} + aliases {n_al}, "
+          f"OFF {rows_off}; "
           f"library {len(lib_on)} = {len(lib_off)}; standing 0 differing; "
           f"replay {r_on['replayed']}; aliases dropped: not_held "
           f"{r_on['replayed']['not_held']} -> {dropped['not_held']}",
@@ -186,7 +187,7 @@ def _on_off(tmp):
 
 
 def main():
-    tether._AGENT_SEED = False    # one temperament, so the ON and OFF lives are the same lives
+    tether._AGENT_SEED = False    # one temperament, so the ON and OFF game series are the same
     assert lineage._SAVE_DEDUP and lineage._MEMORY_STORE, "the arms must start ON"
     tmp = Path(tempfile.mkdtemp(prefix="savededup_"))
     row, k = two_step(tmp)

@@ -7,13 +7,16 @@ position moved by one:
   d. MUST-FAIL: a wrong segment_rows count is a difference;
   e. an added field fails unless it is named, and a named field that changes a base value
      still fails.
-  f. the arms row's birth seed is masked; g. MUST-FAIL: the effective @run seed differs;
+  f. the arms row's start seed is masked; g. MUST-FAIL: the effective @run seed differs;
   h. MUST-FAIL: with no @run seed row the arms seed is the effective one (the reviewer
      2026-10-20 12:23).
   i. a field in TIMINGS (goal_hypotheses' wall_s) is masked; j. MUST-FAIL: a non-timing field
      beside it still differs (the reviewer 2026-10-21 23:16: one list, every comparer imports it).
   k. choice_tally's ref is a position (the reviewer 2026-10-23 19:10): shifted, it is identical;
      MUST-FAIL: a ref left unshifted is a difference.
+  l. intent_predict's ms and the decision row's because.predicted.ms (r1388) are masked, each
+     by its exact path; m. MUST-FAIL: a sibling of either (predicted.by, intent_predict's changed)
+     still differs, so the mask did not go wide.
     python tests/test_identity_mod_rows.py
 """
 from __future__ import annotations
@@ -86,11 +89,11 @@ if __name__ == "__main__":
     assert compare(BASE, b, drop, {"process_settle:offered"}), "e: naming a field hid a change"
     print("e. an added field passes only when named, and never hides a changed value: ok")
 
-    def _seeded(birth, eff):
+    def _seeded(start, eff):
         def run(n, event, **d):
             return {"seq": n, "cycle": 0, "step": "PLAN", "slot": "@run", "event": event,
                     "mode": "specified", "detail": d}
-        r = [run(-2, "arms", seed=birth, seed_source="birth", generation=0)]
+        r = [run(-2, "arms", seed=start, seed_source="start", generation=0)]
         if eff:
             r.append(run(-1, "seed", seed=eff, seed_source="lineage:t", generation=3))
         return r + copy.deepcopy(BASE)
@@ -98,8 +101,8 @@ if __name__ == "__main__":
     def _eff(x, y):
         return any("effective seed" in s for s in compare(x, y, set()))
 
-    assert compare(_seeded("b1", "e"), _seeded("b2", "e"), set()) == [], "f: birth seed failed"
-    print("f. two ledgers differing only in the arms row's birth seed are identical: ok")
+    assert compare(_seeded("b1", "e"), _seeded("b2", "e"), set()) == [], "f: start seed failed"
+    print("f. two ledgers differing only in the arms row's start seed are identical: ok")
     assert _eff(_seeded("b1", "e"), _seeded("b1", "e2")), "g: an effective seed difference passed"
     print("g. MUST-FAIL: ledgers differing only in the effective @run seed are different: ok")
     assert _eff(_seeded("b1", None), _seeded("b2", None)), "h: a lineage-less seed passed"
@@ -120,3 +123,17 @@ if __name__ == "__main__":
     tn[2]["detail"]["ref"] = 0
     assert compare(tb, tn, {"audit"}), "k: an unshifted ref passed"
     print("k. choice_tally's ref is mapped as a position, and an unshifted ref fails: ok")
+    pa = [_row(0, "intent_predict", intent="x", ms=0.745, changed={"o1.row": [1, 2]}),
+          _row(1, "decision", chose="x", because={"undone_here": 1, "predicted": {
+              "changed": {"o1.row": [1, 2]}, "by": "t", "ms": 0.745}})]
+    pb = copy.deepcopy(pa)
+    pb[0]["detail"]["ms"], pb[1]["detail"]["because"]["predicted"]["ms"] = 0.659, 0.659
+    assert compare(pa, pb, set()) == [], "l: the two predict timings alone failed"
+    print("l. ledgers differing only in intent_predict's ms and the decision row's "
+          "because.predicted.ms (r1388) are identical: ok")
+    pb[1]["detail"]["because"]["predicted"]["by"] = "u"
+    pb[0]["detail"]["changed"] = {"o1.row": [1, 3]}
+    bad = compare(pa, pb, set())
+    assert len(bad) == 2, f"m: a sibling of a masked timing passed: {bad}"
+    print("m. MUST-FAIL: siblings of the masked ms (predicted.by, intent_predict's changed) "
+          "are differences: ok")

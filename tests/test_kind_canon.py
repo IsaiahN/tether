@@ -53,7 +53,8 @@ def _turned() -> tuple[str, str, str]:
 
 
 def main():
-    assert not ap._KIND_CANON and ap._TURN_TRACK, "defaults: K1 OFF (r808), K3a ON"
+    assert ap._KIND_CANON and ap._TURN_TRACK, "defaults: K1 ON (Build 1 (6), r915), K3a ON"
+    ap._KIND_CANON = False       # MF-K3 reads the turn through the tracker's route alone
     first, now, route = _turned()
     ap._KIND_CANON = True
     assert now == first and route == "shape", ("MF-K3: a turned object keeps its name",
