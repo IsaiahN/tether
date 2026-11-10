@@ -187,11 +187,9 @@ From the repository root, one at a time:
 Each prints its own result line and exits 0 when it passes. `tests/test_gate.py` checks the
 checker itself: one planted defect per check, and every defect must be caught.
 
-## The objection to pre-empt
+## How results are judged
 
-**"A hand-authored library of composable predicates is Cyc."** The difference is the arbiter.
-Cyc's predicates were graded by their authors; here every term is graded by a ground the library
-cannot move.
+Every term is graded by a ground the library cannot move.
 
 - **Nothing scores itself.** Coverage, terms minted and compression achieved are internal to the
   frame, and are not evidence.
