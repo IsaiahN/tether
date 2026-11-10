@@ -352,10 +352,10 @@ class Snap:
         return f"MAINTAIN({sp.who} != {sp.tgt})", 0.0 if self.dead else 1.0
 
     def terminal(self) -> str | None:
-        """advance, death, or None. AVOID can never advance -- surviving the budget is
+        """advance, game loss, or None. AVOID can never advance -- surviving the budget is
         the win, so exhaustion is scored as the advance for that family."""
         if self.dead:
-            return "death"
+            return "game_loss"
         if self.spec.obj != "AVOID" and self.held >= self.spec.hold:
             return ADVANCE
         return None
@@ -572,7 +572,7 @@ def ladder(seed: int, levels: int = 5, ds: float = 0.4, steps: int = 60,
                 break
         if ending == "exhausted" and spec.obj == "AVOID" and not snap.dead:
             ending = ADVANCE            # surviving the budget IS the win for AVOID
-        last_end = ending if ending in (ADVANCE, "death") else "run_end"
+        last_end = ending if ending in (ADVANCE, "game_loss") else "run_end"
         agent.chain.close(last_end)
         agent.phases.level_done()
         row = grade(agent, snap, k, lib_before)

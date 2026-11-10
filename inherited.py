@@ -79,6 +79,18 @@ READING_CLUSTER: dict[str, tuple[str, ...]] = {
     **dict.fromkeys(("came", "gone"), ("CHANGE", "IDENTITY")),
     **dict.fromkeys(("action", "press"), ("ACTION",)),
 }
+# BUILD 3 ITEM 9b (the reviewer 2026-11-04 r1157): the two clusters K1's table gave no reading,
+# derived from their MEMBER atoms' own attributes, existing readings only. Read by the attribute
+# bridge alone; K1's T5 draw and _delta_kind keep READING_CLUSTER as it was.
+READING_CLUSTER_DERIVED: dict[str, tuple[str, str]] = {
+    # FORCE (188): force 9, pressure 9, tension 8, stress 8, separation 4, distance 4 -- what
+    # pushes or pulls acts across contact, and separation is contact lost
+    **dict.fromkeys(("contact", "touching", "dcontact"), ("FORCE", "force/pressure/tension")),
+    # SIGNAL (119): input 5, stimulus 7, actuator 2, action 2 -- the press that sends
+    **dict.fromkeys(("action", "press"), ("SIGNAL", "input/stimulus/actuator")),
+    # SIGNAL: output 18, response 14, cue 5 -- the change that answers
+    **dict.fromkeys(("came", "gone", "colour_changed"), ("SIGNAL", "output/response/cue")),
+}
 # K1 amendment 2 (the reviewer 2026-10-17 20:28): a reading that IS already a change takes the kind
 # of its own value -- sign(v), bit length of |v| -- never of its difference, which would turn steady
 # motion into "0" and a reversal into a size. The cell-change counts and the change flags are

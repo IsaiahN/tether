@@ -6,7 +6,7 @@ of it.
        load-time snapshot): the two runs' ledgers are equal (compare(), the one mask) and the load
        report's index line is equal (installed, the same count from the keys alone, amendment b)
   H2   ON, in process: entries resolved from the snapshot carry a verdict; a hard W-2 eviction
-       drops them from _INDEX_STORE and keeps a planted entry with no verdict (this life's own
+       drops them from _INDEX_STORE and keeps a planted entry with no verdict (this game series' own
        compile is never evicted)
   H3   MF (a): an evicted entry asked again is re-read from the snapshot with NO _ch hashing (a
        counter on lineage._ch), and its held view equals the one before the eviction (by repr)

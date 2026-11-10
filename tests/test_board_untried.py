@@ -2,11 +2,11 @@
 board, and the record lives in the interface; the agent reads a count.
 
 On the gridworld fixture: every offered non-RESET action starts untried; presses bring the count to
-zero; a death keeps it, a new_board boundary (the agent's situate(new_board=True)) brings every
-action back; and realise(ELICIT) then takes an action the life's table already maps as unmapped,
-so System 0's untried-first rule fires on the second board of a life. The seam: tether.py names no
-action and keeps no action-keyed store for this (grepped from the diff, not asserted here).
-
+zero; a game loss keeps it, a new_board boundary (the agent's situate(new_board=True)) brings every
+action back; and realise(ELICIT) then takes an action the game series' table already maps as
+unmapped, so System 0's untried-first rule fires on the second board of a game series. The seam:
+tether.py names no action and keeps no action-keyed store for this (grepped from the diff, not
+asserted here). 
     python tests/test_board_untried.py
 """
 from __future__ import annotations
@@ -38,16 +38,16 @@ def main():
     left = ag._board_untried_n()
     assert left < len(offered), ("occasions: no press reached the record", left)
     mapped = [a for a in offered if a in ag.iface.table]
-    assert mapped, "occasions: the life's table maps an action"
-    ag.retarget(env, ag.level, how="death")
-    assert ag._board_untried_n() == left, "a death is not a new board"
+    assert mapped, "occasions: the game series' table maps an action"
+    ag.retarget(env, ag.level, how="game_loss")
+    assert ag._board_untried_n() == left, "a game loss is not a new board"
     ag.retarget(env, ag.level, how=tether.NEW_BOARD)
     assert ag._board_untried_n() == len(offered), "a new board's buttons are untried again"
     r = ag.iface.realise(IFace.Intent(IFace.ELICIT), offered, IFace.Interface.context(env),
                          env.observe(), env)
     assert r is not None and r.action in ag.iface.table and r.unmapped, r
     print(f"test_board_untried: {len(offered)} offered, {len(offered) - left} pressed on board 1, "
-          f"kept at death, all untried again at new_board; ELICIT takes mapped {r.action} as "
+          f"kept at game loss, all untried again at new_board; ELICIT takes mapped {r.action} as "
           f"unmapped")
 
 

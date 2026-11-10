@@ -68,7 +68,9 @@ _ARRIVAL_GAP = armflag.arm("TETHER_ARRIVAL_GAP", default=True)
 _OBJ_DERIVED = {"h": ("shape",), "w": ("shape",), "dh": ("shape",), "dw": ("shape",),
                 "dcells": ("shape",), "dholes": ("shape",), "dperimeter": ("shape",),
                 "drow": ("row",), "dcol": ("col",), "speed": ("row", "col"),
-                "colour_changed": ("colour",)}
+                "colour_changed": ("colour",),
+                "scale": ("shape",), "grew": ("shape",), "shrank": ("shape",),
+                "kind": ("shape",), "turned": ("shape",)}
 # E0b: the observer-item-4 pair slots (_relation_slots), each a function of both parties' cells
 _OBS_PAIR = ("contact", "bbox", "inside")
 
@@ -92,6 +94,10 @@ ALPHABET: dict[str, Callable[[int, int, dict], int]] = {
     "bbox": lambda h, w, _d: h * w + 1,                                 # an intersection area
     "contact": lambda h, w, _d: 2 * h * w + 1,                          # shared faces < 2hw
     "colour_changed": lambda _h, _w, _d: 2, "inside": lambda _h, _w, _d: 2,  # BOOL
+    # (5) SCALE: a scale divides both bbox sides; grew / shrank BOOL
+    "scale": lambda h, w, _d: max(h, w) + 1,
+    "grew": lambda _h, _w, _d: 2, "shrank": lambda _h, _w, _d: 2,
+    "turned": lambda _h, _w, _d: 2,                                     # the pose, readable
     # FRAMES, which no board quantity bounds: no object is older than the oldest, and
     # `stability` (frames unchanged) never exceeds its `age`. Varies per call, as `shape` does.
     "age": lambda _h, _w, d: _oldest(d) + 1, "stability": lambda _h, _w, d: _oldest(d) + 1,
@@ -154,6 +160,8 @@ class ArcWorld:
         self._contacts: dict[str, list[str]] | None = None
         self._contact_pts: list | None = None
         self._shape_codes: dict = {}   # 3c-CANON: normalised cells -> their stable code
+        self.form_pairs: dict = {}     # K4: as-seen code -> (canonical code, pose), under K1
+        arc_percept.canon_reset()      # (4): the canon memo is per game
         self._prev_contacts: dict[str, list[str]] | None = None
         self._actors: frozenset = frozenset()          # ARC B2: set by the agent's `relate`
         self._pair_read: dict[str, int] | None = None  # ARC B2: this frame's pair slots
@@ -516,7 +524,13 @@ class ArcWorld:
             return None
         code = self._shape_codes.get(cells)
         if code is None:     # arc_percept's one rule, the canonical form's under K1
-            code = self._shape_codes[cells] = arc_percept.form_code(cells)
+            if arc_percept._KIND_CANON and arc_percept._FORM_PAIRS:
+                seen, code, pose = arc_percept.code_pair(cells)
+                if seen != code:     # K4: the pose's own code, named as its kind's
+                    self.form_pairs.setdefault(seen, (code, pose))
+            else:
+                code = arc_percept.form_code(cells)
+            self._shape_codes[cells] = code
         return code
 
     def contact_points(self) -> list[tuple[str, str, str]]:
@@ -544,6 +558,28 @@ class ArcWorld:
                         out.append((a, b, k))
             self._contact_pts = out
         return self._contact_pts
+
+    def contact_points_at(self, state: dict) -> list[tuple[str, str, str]]:
+        """`contact_points` over a given state (item 23: a predicted one): each tracked object's
+        cells moved by its row/col change from the observed values, then the same contact_kind;
+        a zero move is the live call."""
+        now = self.observe()
+        tr = {}
+        for a, o in self._decompose.tracked.items():
+            dr = state.get(f"{a}.row", now.get(f"{a}.row", 0)) - now.get(f"{a}.row", 0)
+            dc = state.get(f"{a}.col", now.get(f"{a}.col", 0)) - now.get(f"{a}.col", 0)
+            tr[a] = o if not (dr or dc) else {**o, "cells": {(r + dr, c + dc)
+                                                            for r, c in o["cells"]}}
+        names = sorted(tr)
+        out = []
+        for i, a in enumerate(names):
+            cap.head()
+            for b in names[i + 1:]:
+                cap.head()
+                k = arc_percept.contact_kind(tr[a], tr[b])
+                if k is not None:
+                    out.append((a, b, k))
+        return out
 
     def relational_slots(self) -> tuple[str, ...]:
         """WHICH ATTRIBUTES ARE A RELATION TO ANOTHER OBJECT. See `gridworld`'s.
@@ -669,7 +705,7 @@ class ArcWorld:
                 # not a constant chosen here. `+1` because 0 completed is a value.
                 out[s] = max(1, int(getattr(self._frame, "win_levels", 0) or 1)) + 1
                 continue
-            if key == "shape":
+            if key in ("shape", "kind"):     # `kind` labels in the shape table (r915)
                 # THE COUNT OF LABELS, NOT THE SPACE OF SHAPES. The slot holds an ID, and an
                 # id is a label -- arbitrary, comparable, never orderable -- so its alphabet
                 # is the number of labels, exactly as `colour`'s is the palette. `2**(h*w)`
@@ -981,9 +1017,22 @@ class ArcWorld:
                 continue
             out[f"{o}.h"] = max(r for r, _c in key) + 1
             out[f"{o}.w"] = max(c for _r, c in key) + 1
+            e = arc_percept._entry(key)
+            if arc_percept._KIND_SCALE:     # (5): the tracker's own scale rule
+                out[f"{o}.scale"] = e[4]
+            if arc_percept._POSE_READ:      # r915: the kind's first-seen member's label, if held
+                lab_k = (getattr(self._decompose, "_kind_label", None) or {}).get(e[2])
+                if lab_k is not None:
+                    out[f"{o}.kind"] = lab_k
             if before is None:
                 continue
             bkey = self._shape_key(before.get(k))
+            if arc_percept._KIND_SCALE and bkey is not None:
+                bs = arc_percept._entry(bkey)[4]
+                out[f"{o}.grew"], out[f"{o}.shrank"] = int(e[4] > bs), int(e[4] < bs)
+            if arc_percept._POSE_READ and bkey is not None:
+                e0, e1 = arc_percept._entry(bkey), arc_percept._entry(key)
+                out[f"{o}.turned"] = int(e0[2] == e1[2] and e0[1] != e1[1])
             if bkey is not None:
                 bh, bw = max(r for r, _c in bkey) + 1, max(c for _r, c in bkey) + 1
                 out[f"{o}.dh"], out[f"{o}.dw"] = out[f"{o}.h"] - bh, out[f"{o}.w"] - bw
@@ -1120,6 +1169,9 @@ class ArcWorld:
             keep = self._frame.model_copy()
             keep.state = nxt.state
             nxt = keep
+            self.frame_kept = True       # item 23: the game loss record's frame is pre-press
+        else:
+            self.frame_kept = False
         self._take_frame(nxt)
         now = self.board()
         if self.on_frame is not None:
@@ -1346,7 +1398,7 @@ class ArcWorld:
         if f.state == GameState.WIN:
             return ledger.WIN    # the game won (F1b; Isaiah 08:30)
         if f.state == GameState.GAME_OVER:
-            return "death"
+            return "game_loss"
         return ""
 
     # NO `restart()`. One was built here and removed the same day: its only caller

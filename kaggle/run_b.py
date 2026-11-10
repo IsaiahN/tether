@@ -1,6 +1,6 @@
 """SHAPE B (the reviewer 2026-10-31 r541 3, r542; Isaiah 10:26 "tether B parallelized version"): N processes, each ONE
-agent and ONE life (kaggle/b_worker.py), taking the games the Arcade lists from one queue until none is left. Under
-K-W (B_WRITE, default ON, r789) N is 1 and the worker writes what it learns into the lineage it was handed; under
+agent and ONE game series (kaggle/b_worker.py), taking the games the Arcade lists from one queue until none is left.
+Under K-W (B_WRITE, default ON, r789) N is 1 and the worker writes what it learns into the lineage it was handed; under
 B_WRITE=0, ONE MIND, N COPIES: every worker loads the same lineage and none writes to it (r465 3). Harness only:
 nothing in the agent. Seeds as run A's: PYTHONHASHSEED 0 from the launcher, TETHER_AGENT_SEED 0 in each worker.
 N = min(the cores this process may run on, the memory it may use // one worker's peak), read here at run time.

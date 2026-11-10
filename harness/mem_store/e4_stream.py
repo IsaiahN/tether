@@ -1,5 +1,5 @@
 """E4 (c), THE STREAM (Isaiah 2026-10-18 11:39 via the reviewer 11:40: "alltogether at once if possible so the agent
-reads it all as one big game"). ONE process, ONE agent, ONE life: the 25 public games in a random order from a
+reads it all as one big game"). ONE process, ONE agent, ONE game series: the 25 public games in a random order from a
 recorded seed, back to back, each a slice of wall time (or until a WIN). HARNESS ONLY: the agent is never told a
 game changed -- no retarget, no restarted, no game_start, no game id, nothing passed at a switch.
 
@@ -9,7 +9,7 @@ game is made current and its first frame handed to the world BETWEEN steps (ArcW
 it), so the agent's next step decides on that game's own first frame and its action reaches that game (--switch
 between, the default; the reviewer 2026-10-25 10:47, 11:03). --switch step keeps the old swap: the agent's next
 step() got the new frame back as its action's outcome and the action was not forwarded. In-game events keep play()'s
-own handling: a GAME_OVER is that game's death, a clear its level edge.
+own handling: a GAME_OVER is that game's game loss, a clear its level edge.
 
 The order, the seed and each switch (wall time, the agent's cycle) go to the HARNESS's switch.tsv, never to the
 agent's ledger. --mf plants ag.restarted(env) at every switch, so e4_stream_check.py can be shown to catch it.
@@ -41,13 +41,13 @@ ap.add_argument("--slice-steps", default=None)       # per position, e.g. "3,1":
 ap.add_argument("--census", action="store_true")     # census_heap.point between steps (the reviewer 2026-10-19 03:00)
 # E4b's slice rule (A) (Isaiah 2026-10-23 "i like c and then a"; the reviewer 06:29 B1, 06:54 (a)): a slice ends at
 # the first step boundary at or after max(MIN, its first completed action), and no step starts past MAX. A step under
-# way finishes (a cut would end the one life's thinking, tether.Agent.step's _cut), so a slice can overrun MAX.
+# way finishes (a cut would end the one game series' thinking, tether.Agent.step's _cut), so a slice can overrun MAX.
 ap.add_argument("--slice-min-s", type=float, default=None)
 ap.add_argument("--slice-max-s", type=float, default=None)
 # (b), THE ONE WHOLE-RUN NET (the reviewer 2026-10-23 06:54, 07:08 (i), superseding 2026-10-22 15:24 for this only): an
 # epoch the launcher computes (its clock before the supervisor starts + the supervisor's wall - a chosen margin), set
 # ONCE on the agent before the first game and never at a switch. Past it the agent's own cut ends thinking for the rest
-# of the life; the end path still writes, and the games not started are "unreached at this budget".
+# of the game series; the end path still writes, and the games not started are "unreached at this budget".
 ap.add_argument("--deadline-at", type=float, default=None)
 A = ap.parse_args()
 assert (A.slice_min_s is None) == (A.slice_max_s is None), "--slice-min-s and --slice-max-s go together"
@@ -63,8 +63,8 @@ os.makedirs(A.out, exist_ok=True)
 
 
 def _record_traceback(kind, value, tb):
-    """ANY uncaught exception in the one life: its full traceback to <out>/stream.traceback.txt, then the
-    default hook (the reviewer 19:36: if the error comes in the one life, we must at least get the LINE)."""
+    """ANY uncaught exception in the one game series: its full traceback to <out>/stream.traceback.txt, then the
+    default hook (the reviewer 19:36: if the error comes in the one game series, we must at least get the LINE)."""
     import traceback
     with open(os.path.join(A.out, "stream.traceback.txt"), "w", encoding="utf-8") as fh:
         fh.write("".join(traceback.format_exception(kind, value, tb)))
@@ -204,11 +204,12 @@ if CH:
 endings_all = collections.Counter()
 budget_unreached = []
 no_answer, gone = [], False   # r563
+run_levels, run_secs, run_games = 0, 0.0, 0   # item 31: the finished games, for run_rate
 for i, g in enumerate(order):
     if gone:
         log(f"# {i}\t{g}\tnot played: the card is gone (the gateway's 404)")
         continue
-    if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the life
+    if getattr(ag, "_cut", False):        # the net fired: thinking has ended for the game series
         budget_unreached.append(g)
         log(f"# {i}\t{g}\tunreached at this budget (the whole-run deadline passed; no switch)")
         continue
@@ -232,6 +233,19 @@ for i, g in enumerate(order):
     n_steps = STEPS[min(i, len(STEPS) - 1)] if STEPS else None
     acts, first_act_s = 0, None
     while going(steps, n_steps, t_start, acts):
+        # item 25 (r1265): this game's clock as the slice rule reads it -- N steps is a turn count
+        # (one step, one press), the seconds modes a wall
+        if n_steps:
+            ag.actions_left, ag.actions_cap = n_steps - steps, n_steps
+        else:
+            ag.slice_from = t_start
+            ag.slice_until = t_start + (A.slice_max_s if A.slice_min_s is not None
+                                        else A.slice_s)
+            # item 31 (r1291): the games still waiting and the run's levels per second (a wall
+            # slice only: a turn count has no seconds to hand on)
+            ag.games_waiting = arc_holdout.games_waiting(len(order) - i, False, A.deadline_at,
+                                                         ag.slice_until, ag.slice_until - t_start)
+            ag.run_rate = run_levels / run_secs if run_games and run_secs > 0 else None
         try:
             env, ag, acted, fault = arc_holdout.step_or_recover(env, ag, ctx)   # (B)
         except NoAnswer:   # r563: the game ends here, no retry; the agent cut inside its step is replaced
@@ -261,7 +275,7 @@ for i, g in enumerate(order):
         if end and end != was_terminal:
             endings[end] += 1
             ag.retarget(env, lv, how=end)
-        if tether._LINEAGE_HOLD and was_terminal == "death" and not end:
+        if tether._LINEAGE_HOLD and ledger.game_loss_word(was_terminal) == ledger.GAME_LOSS and not end:
             ag.restarted(env)
         term_edge = bool(end) and end != was_terminal
         lvl_edge = not term_edge and lv > lv_seen
@@ -276,10 +290,18 @@ for i, g in enumerate(order):
         if getattr(ag, "_cut", False):
             ending = "cut"
             break
+        if getattr(ag, "_quit", False):     # item 31: the agent quit; its seconds go on
+            ag._quit = False
+            ending = "quit"
+            break
         if CH and n_steps and steps < n_steps:       # between steps; the last step's point is the switch below
             CH.point(f"after_step{steps}", ag, A.out)
     endings_all.update(endings)
     wall_end, commit_end = round(time.time() - t_start, 1), commit_mb()   # read BEFORE the switch's census
+    if hasattr(ag, "quit_met_close"):
+        ag.quit_met_close()               # item 31: a second meeting's witness (none here)
+    run_levels, run_secs, run_games = (run_levels + lv_seen - (lv_start or 0), run_secs + wall_end,
+                                       run_games + 1)
     if CH:
         CH.point("switch", ag, A.out)
     mn, mx = A.slice_min_s, A.slice_max_s

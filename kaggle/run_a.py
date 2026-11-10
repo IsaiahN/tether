@@ -1,7 +1,7 @@
 """SHAPE A (the reviewer 2026-10-30 r464 3): ONE process, ONE agent, the games the Arcade lists, in its order, back to
-back -- harness/mem_store/e4_stream.py with --games arcade, run here through runpy so that, however the life ends, the
-scorecard its games were played on is CLOSED afterwards (the close is what scores every listed game). Harness only:
-nothing in the agent. Seeds as PLAY's box: PYTHONHASHSEED 0 from the launcher, TETHER_AGENT_SEED 0 here.
+back -- harness/mem_store/e4_stream.py with --games arcade, run here through runpy so that, however the game series
+ends, the scorecard its games were played on is CLOSED afterwards (the close is what scores every listed game). Harness
+only: nothing in the agent. Seeds as PLAY's box: PYTHONHASHSEED 0 from the launcher, TETHER_AGENT_SEED 0 here.
 Writes <out>/kaggle_a.json: rc, the error if any, each card closed and what the close returned.
 argv: code out lineage slice_min_s slice_max_s deadline_at [n_games]"""
 import json
@@ -25,7 +25,7 @@ MADE = []
 
 
 class _Kept(arc_agi.Arcade):
-    """The Arcade e4_stream makes, kept so its card can be closed after the life."""
+    """The Arcade e4_stream makes, kept so its card can be closed after the game series."""
 
     def __init__(self, *a, **k):
         super().__init__(*a, **k)

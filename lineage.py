@@ -22,6 +22,7 @@ evidence IS read back into standing at load (Gamma.replay), globally, never per 
 record itself is unchanged. The dormant record is still not read back."""
 from __future__ import annotations
 
+import copy
 import dataclasses
 import hashlib
 import heapq
@@ -36,23 +37,53 @@ from typing import Any
 import armflag
 import cap
 import gamma
+import ledger
 import sensors
 
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _CARRY = armflag.arm("TETHER_LINEAGE_CARRY", default=True)   # _UPPER, so the @run header records it
+_B2_FIELDS = ("holds", "parked", "untested", "paid")   # tether's B2 counts, in their list order
+
+
+def _b2_inherit(ag: Any, gens) -> int:
+    """B2 (r1476, r1480): the inherited side -- every earlier generation's contact-kind and
+    reading-cell counts, summed (the store path hands one folded record, the chain path each)."""
+    kinds: dict = {}
+    cells: dict = {}
+    for g in gens:
+        for fld, into, keyf in (("b2_kinds", kinds, lambda k: k),
+                                ("b2_cells", cells, lambda k: tuple(k.split("|", 1)))):
+            for k, d in (g.get(fld) or {}).items():
+                st = into.setdefault(keyf(k), [0, 0, 0, 0])
+                for i, f in enumerate(_B2_FIELDS):
+                    st[i] += d.get(f, 0)
+    ag._b2_kinds_inh, ag._b2_cells_inh = kinds, cells
+    return len(kinds)
 # THE BOUNDARY WRITE (the reviewer 2026-10-15 06:46, 07:23, 07:32; Isaiah 06:20): under the carry,
-# a generation at every level clear and death too, so a stop loses at most the current level.
+# a generation at every level clear and game loss too, so a stop loses at most the current level.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _BOUNDARY = armflag.arm("TETHER_LINEAGE_BOUNDARY", default=True)
+# WRITE AT GOAL ENDINGS (the reviewer 2026-11-09 r1530; r1487, r1501): a goal hypothesis's end
+# (Agent._hyp_end, a boundary's close aside) marks a save due, and both runners write it between
+# steps through boundary(how="goal_ending"); a save with nothing new is not written. A cut-off
+# loses at most the current goal's search. OFF: as 8db0a33. default ON (r1539)
+_ENDING_SAVE = armflag.arm("TETHER_ENDING_SAVE", default=True)
+# SAVES BECOME READOUTS, part 1 (the reviewer 2026-11-09 r1535, r1542): the agent settles its
+# reached unseen credits at its own events (Agent.retarget's top, end_run), and the edge and end
+# saves take the readout hazard view, save-own reflex names and cap.hold(), as the goal-ending
+# save does; the form-pair meet stays in the edge and end saves. OFF: as 604ce53. default ON
+# (Isaiah 2026-11-09 06:17: animals have recovery systems; the reviewer r1546)
+_SAVE_READOUT = armflag.arm("TETHER_SAVE_READOUT", default=True)
+_GEN_HEADER = ("lineage", "parent", "game", "seed", "generation", "alias_rule")
 # (c) THE DORMANT ITEM WRITTEN WHOLE (the reviewer 2026-10-22 20:57): a boundary item holds live
 # Terms (its want_terms copy), which enc has no form for, so one Term cost the generation the WHOLE
 # boundary record. ON: each Term in it is written as its term-row record (dormant_items), the live
 # and in-memory record untouched. OFF: the item refused and named, as before.
 _DORMANT_TERM_FORM = armflag.arm("TETHER_DORMANT_TERM_FORM", default=True)
 # HOT/COLD, THE CACHE'S ADMISSION RULE (the reviewer 2026-11-02 r811; Isaiah 13:00): the kind_dk
-# enumerations read the HOT set -- n >= 2, or the row seen in this life -- and a past-life row seen
-# once (n == 1: 946,396 of 2,944,831 rows on central) stays on disk, read by key and on a lookup
-# that finds nothing hot. Nothing is deleted. OFF: every row, as before.
+# enumerations read the HOT set -- n >= 2, or the row seen in this game series -- and an earlier
+# game series' row seen once (n == 1: 946,396 of 2,944,831 rows on central) stays on disk, read by
+# key and on a lookup that finds nothing hot. Nothing is deleted. OFF: every row, as before.
 _HOT_COLD = armflag.arm("TETHER_HOT_COLD", default=True)
 # F4 THE FAULTED STEP'S TERM, BY THE FORMATS WRITTEN (the reviewer 2026-10-31 r603; the audit):
 # a residual is "{slot}@{c}", "kind:{n}@{c}", "reuse:{slot}@{c}:{stamp}" or "{m}@{c}:event:{p}"
@@ -72,8 +103,8 @@ _ONE_PASS = armflag.arm("TETHER_ONE_PASS", default=True)
 # THE CONSOLIDATED MEMORY (the reviewer 2026-10-19 06:13-07:35; Isaiah 06:12): load reads the
 # memory folder's store (lineage_store.py) instead of re-reading every save; a folder the store
 # cannot answer exactly loads from the archive as before. Default ON (Isaiah 2026-10-19 17:03 "turn
-# it on"): OFF, every load is the saves' fold (14.35 GiB on the E4 life, over B); ON, that fold is
-# reached only on a refusal. TETHER_MEMORY_STORE=0 is the old path.
+# it on"): OFF, every load is the saves' fold (14.35 GiB on the E4 game series, over B); ON, that
+# fold is reached only on a refusal. TETHER_MEMORY_STORE=0 is the old path.
 _MEMORY_STORE = armflag.arm("TETHER_MEMORY_STORE", default=True)
 # W2 (S2V; the reviewer 2026-10-21 15:38): the store load decoded a kind field's JSON once per row
 # (885,038 json.loads at one sp80 load). One load decodes each sym id once and reuses the tuple when
@@ -386,6 +417,7 @@ class FoldState:
         self.heads: dict[tuple, set] = {}
         self.khist: dict[tuple, list] = {}     # the same, for book keys and invented names
         self.kheads: dict[tuple, set] = {}
+        self.ak = AkFold() if _AK_CONVERT else None     # (7) MF-K16: the action cells
 
     def step(self, h: str, g: dict) -> None:
         rows, out, anc, hist, heads = self.rows, self.out, self.anc, self.hist, self.heads
@@ -426,6 +458,8 @@ class FoldState:
             out["dormant"].extend(dec(g["dormant"]))
         if g.get("aliases"):
             out.setdefault("aliases", []).extend(g["aliases"])   # (d), in chain order
+        if self.ak is not None:
+            self.ak.step(h, anc, g)
 
     def _merge_point(self, h: str, rule: int) -> None:
         """A merge generation writes nothing, so a key both branches wrote kept two heads past it,
@@ -458,7 +492,119 @@ class FoldState:
 
     def result(self) -> dict:
         self.out["terms"] = list(self.rows.values())
+        if self.ak is not None and self.ak.ent:
+            self.out["action_kinds"], self.out["contested_action_kinds"] = self.ak.value()
         return self.out
+
+
+# (7) MF-K16, A CUMULATIVE BRANCH IS CONVERTED AT A MERGE OF FOLD_RULE 3 (the reviewer 2026-11-03
+# r924 2, r927 3): each action cell keeps its saves' entries per RAW key (the code it was written
+# under, so two poses that an alias joins stay two sub-counters, and the cell is their sum). An
+# increment save (action_kinds_d) adds what it wrote. A CUMULATIVE save (action_kinds, older code)
+# supersedes the entries of its raw key in its VIEW: every earlier one, except an entry on a branch
+# whose FIRST join with it is a merge of fold_rule >= 3, where it sees only its own ancestors -- so
+# an old-code branch merged at such a merge adds only its own increments. Below rule 3 (every merge
+# written before) this is the save-order fold it always was: a cumulative cell replaced, a sum where
+# an alias joins keys. A value below its view's under a rule-3 view is a contest: recorded, never
+# taken.
+# OFF: the fold reads no action cells, and the store and the load read them in save order.
+_AK_CONVERT = armflag.arm("TETHER_AK_CONVERT", default=True)
+
+
+class AkFold:
+    def __init__(self) -> None:
+        self.ent: dict[str, list] = {}      # cell -> [(index, save, raw key, cumulative, value)]
+        self.amap: dict = {}
+        self.order: dict[str, int] = {}
+        self.anc: dict = {}
+        self.merges: list = []              # (save, fold_rule), in fold order
+        self.cache: dict[str, tuple] = {}   # cell -> (value, contests)
+        self.dirty: set = set()
+        self.first: dict[str, int] = {}     # cell -> its first entry's number: the output's order
+
+    @staticmethod
+    def _lands(key: str) -> bool:
+        return "'lands_kind'" in key
+
+    def step(self, h: str, anc: dict, g: dict) -> None:
+        import lineage_store as ls
+        self.anc = anc
+        self.order[h] = i = len(self.order)
+        if len(_parents(g)) > 1:
+            self.merges.append((h, g.get("fold_rule", 1)))
+            if g.get("fold_rule", 1) >= 3:
+                self.dirty |= set(self.ent)
+        if g.get("form_aliases") and ls._ALIAS:
+            self.amap = ls.alias_add(self.amap, g["form_aliases"])
+            joined: dict[str, list] = {}
+            for key, xs in self.ent.items():
+                joined.setdefault(ls.alias_text(key, self.amap), []).extend(xs)
+            self.ent = {k: sorted(xs, key=lambda e: e[0]) for k, xs in joined.items()}
+            first: dict[str, int] = {}
+            for key, n in self.first.items():
+                k2 = ls.alias_text(key, self.amap)
+                first[k2] = min(first.get(k2, n), n)
+            self.first = first
+            self.cache, self.dirty = {}, set(self.ent)
+        for fld, cum in (("action_kinds_d", False), ("action_kinds", True)):
+            for key, v in (g.get(fld) or {}).items():
+                k = ls.alias_text(key, self.amap)
+                self.ent.setdefault(k, []).append((i, h, key, cum, v))
+                self.first.setdefault(k, len(self.first))
+                self.dirty.add(k)
+
+    def _joined3(self, a: str, b: str) -> bool:
+        """Whether the first merge that descends from both saves is of fold_rule >= 3."""
+        for m, rule in self.merges:
+            got = self.anc[m]
+            if a in got and b in got:
+                return rule >= 3
+        return False
+
+    def _cell(self, key: str) -> tuple:
+        es, lands = self.ent[key], self._lands(key)
+        c: dict = {}
+        active: list = []
+        contests: list = []
+        for n, (_i, h, rk, cum, v) in enumerate(es):
+            if not cum:
+                c[n] = v
+                active.append(n)
+                continue
+            prior = [m for m in range(n) if es[m][2] == rk and m in c]
+            view = [m for m in prior
+                    if es[m][1] in self.anc[h] or not self._joined3(es[m][1], h)]
+            converted = len(view) < len(prior)
+            if lands:
+                active = [m for m in active if m not in view]
+                c[n] = v
+                active.append(n)
+                continue
+            x = [v[0] - sum(c[m][0] for m in view), v[1] - sum(c[m][1] for m in view)]
+            if converted and (x[0] < 0 or x[1] < 0):
+                contests.append({"gen": h, "value": list(v),
+                                 "view_holds": [sum(c[m][0] for m in view),
+                                                sum(c[m][1] for m in view)]})
+                continue
+            c[n] = x
+        if lands:
+            if len(active) == 1:
+                return list(es[active[0]][4]), contests
+            return [json.loads(s) for s in sorted({_j_(y) for m in active
+                                                    for y in es[m][4]})], contests
+        return [sum(x[0] for x in c.values()), sum(x[1] for x in c.values())], contests
+
+    def value(self) -> tuple[dict, dict]:
+        for k in self.dirty:
+            self.cache[k] = self._cell(k)
+        self.dirty = set()
+        keys = sorted(self.cache, key=lambda k: self.first[k])
+        return ({k: self.cache[k][0] for k in keys},
+                {k: self.cache[k][1] for k in keys if self.cache[k][1]})
+
+
+def _j_(v: Any) -> str:
+    return json.dumps(v, sort_keys=True)
 
 
 def fold(chain: list[tuple[str, dict]]) -> dict:
@@ -516,7 +662,7 @@ def _fsync(f: Path) -> None:
         os.fsync(fh.fileno())
 
 
-def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
+def write(d: str | Path, ag: Any, game: str, sleep: bool = True, readout: bool = False) -> dict:
     """The boundary's generation: only what changed since the parent the instance LOADED
     (ag.lineage_parent), against that parent's fold. Named by its own hash; never overwritten.
     Under TETHER_MEMORY_STORE the parent's fold is a store lookup, and the save is merged into the
@@ -527,13 +673,33 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True) -> dict:
     if sleep and snap is not None:
         snap.close()    # W-4: the snapshot's reader ends before the game's checkpoint
     try:
-        return _write(d, ag, game, sleep, held)
+        if _SAVE_READOUT:
+            with cap.hold():     # a readout cannot cut the agent (r1536 (3))
+                return _write(d, ag, game, sleep, held, readout)
+        return _write(d, ag, game, sleep, held, readout)
     finally:    # the store's connection is closed on every path, an error's included
         for con in held:
             con.close()
 
 
-def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
+def _carries_nothing(v: Any) -> bool:
+    """r1530's empty: None, an empty container, or a dict of such (thought_*, kind_counts and
+    hazard_3a keep each key with an empty delta); a zero or False is a value, never empty."""
+    if v is None:
+        return True
+    if isinstance(v, dict):
+        return all(_carries_nothing(x) for x in v.values())
+    return isinstance(v, (list, tuple, set, str)) and not v
+
+
+def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
+           readout: bool = False) -> dict:
+    # readout: a goal ending's save (r1530-r1534) -- not written when nothing is new, and it
+    # changes no live state
+    if readout and any(_form_pairs_pending(ag) or ()):
+        # r1536 (2): a readout cannot meet form pairs in place; the next edge or end save meets
+        # them, and this one is skipped, counted in the boundary report
+        return {"skipped": "form pairs pending"}
     p = Path(d)
     p.mkdir(parents=True, exist_ok=True)
     parent = getattr(ag, "lineage_parent", None)
@@ -575,7 +741,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             r["was"] = _kind_name(ag.gamma, name) if _KIND_SAVE and r.get("operand") else name
         c = ag.gamma.carried.get(name) or written.get(name) or {}
         if c.get("alias"):
-            continue    # (d): aliased by an earlier write of this life
+            continue    # (d): aliased by an earlier write of this game series
         rid = (c.get("born"), c.get("handle"))
         res = str(r.get("residual") or "")
         if fc is not None and (re.search(rf"@{fc}(?::|$)", res) if _FAULT_FORMATS
@@ -664,6 +830,20 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                                   for o, n in sorted(c.items())
                                   if n > ag._line_grade_written.get(k, {}).get(o, 0)}
                               for k, c in sorted(ag._line_grade.items())}
+    if tether._HYP_LEARN and hasattr(ag, "_b2_kinds"):
+        # B2 (r1476, r1480): the contact kinds' and reading cells' own counts since the last
+        # write; the load sums the chain into the inherited side
+        for fld, own, mark in (("b2_kinds", ag._b2_kinds, "_b2k_written"),
+                               ("b2_cells", ag._b2_cells, "_b2c_written")):
+            was = getattr(ag, mark, {})
+            gen[fld] = {}
+            for key, st in own.items():
+                name = key if isinstance(key, str) else "|".join(key)
+                w0 = was.get(name, (0, 0, 0, 0))
+                d = {f: st[i] - w0[i] for i, f in enumerate(_B2_FIELDS) if st[i] > w0[i]}
+                if d:
+                    gen[fld][name] = d
+            gen[fld] = dict(sorted(gen[fld].items()))
     if tether._THOUGHT_RECORD and hasattr(ag, "_thought"):
         # M1: each kind-form lookup key's entries tried / paid since the last write; load sums
         for fld in ("tried", "paid"):
@@ -676,6 +856,9 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         now = getattr(getattr(ag.led, "narrator", None), "links", {})
         w = ag._stopped_written
         gen["stopped_at"] = {k: n - w.get(k, 0) for k, n in sorted(now.items()) if n > w.get(k, 0)}
+    if tether._REFLEX_CARRY and tether._M7_INV and hasattr(ag, "_reflex_carry"):
+        # the reflex carry (r1248): its increments ride the inventions below
+        ag._reflex_carry(readout=True) if readout or _SAVE_READOUT else ag._reflex_carry()
     if tether._M7_INV and hasattr(ag, "_inv_carry"):
         # M7-INV: the inventions made since the last write, as their method, with the standing
         # their term holds now (a record of it; the next game starts them on trial)
@@ -715,11 +898,22 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         # E2: the hazard by KIND and by ACTOR (templates, never a board's spots), since the last
         # write; the load adds them back as a head start. Pending unseen credits the agent's own
         # act reached are settled first, so a lineage never carries one (the reviewer 09:40)
-        ag._3a_settle()
+        if readout or _SAVE_READOUT:
+            # r1534: a goal ending's save is a readout -- what _3a_settle would withdraw is left
+            # out of what is written, on a copy; the live hazard and its pending credits stay
+            hz3a = copy.deepcopy(ag._3a_hazard)
+            for _k, slot, kind, _i in ag._3a_reached(count=False):
+                hz3a.unseen(slot, kind, -1)
+        else:
+            ag._3a_settle()
+            hz3a = ag._3a_hazard
         gen["hazard_3a"] = {fam: {k: n - ag._3a_written.get(fam, {}).get(k, 0)
                                   for k, n in sorted(c.items())
                                   if n > ag._3a_written.get(fam, {}).get(k, 0)}
-                            for fam, c in _hazard_families(ag._3a_hazard).items()}
+                            for fam, c in _hazard_families(hz3a).items()}
+    pairs = _new_form_pairs(ag)        # K4: before the cumulative fields below are read
+    if pairs:
+        gen["form_aliases"], gen["alias_rule"] = pairs, ALIAS_RULE
     if tether._ROUTINE_CARRY and hasattr(ag, "routines_by_kind"):
         # (6c): the settled routines in kind form not yet in the lineage; absent when none, so a
         # generation with nothing to carry is written exactly as before
@@ -730,11 +924,17 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
     if tether.IFace._ACTION_CARRY and hasattr(ag, "iface"):
         # r688 STORAGE: the action table by kind (carried + own), the cells that moved since the
         # last write; absent when none, so a generation with nothing new is written as before
-        ak = ag.iface.kind_tables_out(getattr(ag, "_ak_written", {}))
-        if ak:
-            gen["action_kinds"] = ak
+        if tether.IFace._AK_DELTA:      # (7): this game series' own increments, summed by the
+                                        # readers
+            akd, ak_now = ag.iface.kind_tables_delta(getattr(ag, "_ak_own_written", {}))
+            if akd:
+                gen["action_kinds_d"] = akd
+        else:
+            ak = ag.iface.kind_tables_out(getattr(ag, "_ak_written", {}))
+            if ak:
+                gen["action_kinds"] = ak
     if _RESOLVE_ONCE:
-        # r695 1: this life's matched resolves not yet in the lineage
+        # r695 1: this game series' matched resolves not yet in the lineage
         ro = {k: v for k, v in _RESOLVE_NEW.items() if _RESOLVE_OK.get(k) != v}
         if ro:
             gen["resolve_ok"] = ro
@@ -742,6 +942,12 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         # item 4: the generation names how its game ended; the faulted cycle's stamped entries
         # are not in it (above); its unstamped structures (kind episodes, counters) are as built
         gen["ended"], gen["error"] = "agent_fault", str(ag._fault_text)[:500]
+    # r1532 (A): kinds_by_class is a whole table, new only when it differs from the last written
+    if readout and all(_carries_nothing(v) or (k == "kinds_by_class"
+                                                  and v == getattr(ag, "_kbc_written", None))
+                          for k, v in gen.items() if k not in _GEN_HEADER):
+        # r1530: nothing new since the last write; index, memo and asked entries stay pending
+        return {"skipped": "nothing new"}
     raw = _dumps(gen)
     h = hashlib.sha256(raw).hexdigest()[:16]
     if fc is not None and not _readback(_store_bytes(raw), raw, h):
@@ -763,6 +969,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._kind_episode_mark = len(ag._kind_episodes)
         if "kinds_landed_n" in gen:
             ag._kn_written = dict(ag._kind_landed_n)
+        if "kinds_by_class" in gen:
+            ag._kbc_written = gen["kinds_by_class"]
         # a write without the boundary is a sibling of the last (the parent does not advance),
         # so the mark moves only with the parent
         if "unit_used" in gen:
@@ -772,6 +980,9 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             ag._koff_written = dict(ag._kind_offered_dk)
         if "line_grades" in gen:
             ag._line_grade_written = {k: dict(c) for k, c in ag._line_grade.items()}
+        if "b2_kinds" in gen:
+            ag._b2k_written = {k: list(st) for k, st in ag._b2_kinds.items()}
+            ag._b2c_written = {"|".join(k): list(st) for k, st in ag._b2_cells.items()}
         if "stopped_at" in gen:
             ag._stopped_written = dict(getattr(getattr(ag.led, "narrator", None), "links", {}))
         if "thought_tried" in gen:
@@ -786,15 +997,21 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
         if "cause_kinds" in gen:
             ag._cause_kind_written = dict(ag._cause_kind_n)
         if "hazard_3a" in gen:
-            ag._3a_written = {f: dict(c) for f, c in _hazard_families(ag._3a_hazard).items()}
+            ag._3a_written = {f: dict(c) for f, c in _hazard_families(hz3a).items()}
         if "entry_use" in gen:
             ag._entry_use_written = {k: dict(c) for k, c in ag._entry_use.items()}
         if "routines_by_kind" in gen:
             ag._rk_written.update({r["key"]: r["standing"] for r in gen["routines_by_kind"]})
         if "action_kinds" in gen:
             ag._ak_written = {**getattr(ag, "_ak_written", {}), **gen["action_kinds"]}
+        if "action_kinds_d" in gen:
+            ag._ak_own_written = ak_now
         if "resolve_ok" in gen:
             _RESOLVE_OK.update(gen["resolve_ok"])
+        if "form_aliases" in gen:
+            ag._form_aliases = {**getattr(ag, "_form_aliases", {}),
+                                **{a: c for a, c, _p in gen["form_aliases"]}}
+            ag._stored_forms = getattr(ag, "_stored_forms", set()) - set(ag._form_aliases)
     # D3: the index AFTER the generation; its failure is recorded and never costs the generation
     try:
         idx = write_index(p, ag, h)
@@ -838,7 +1055,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
                 t0_end = getattr(ag, "_end_path_t0", None)
                 if t0_end is not None:
                     # C1 (A)'s reserve: this end path's wall to here (end_run, the saves, the merge,
-                    # the sleep), kept for the next life's thinking deadline (14:27 (i))
+                    # the sleep), kept for the next game series' thinking deadline (14:27 (i))
                     store["end_path"] = ls.note_end_path(
                         store_con, time.perf_counter() - t0_end,
                         store["sleep"]["s_checkpoint"] + store["sleep"]["s_quick_check"])
@@ -855,14 +1072,89 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list) -> dict:
             "slot_memo": slot_memo, "asked": asked, **({"store": store} if store else {})}
 
 
+def _alias_tuple(x: Any, amap: dict) -> Any:
+    import lineage_store as ls
+    if isinstance(x, tuple):
+        return tuple(_alias_tuple(y, amap) for y in x)
+    return ls.alias_text(x, amap)
+
+
+def _form_pairs_pending(ag: Any) -> tuple[list, list] | None:
+    """K4's read, no change: (new pairs to meet, pairs against one in force); None with the arms
+    OFF. _new_form_pairs acts on it; a readout save is skipped when either is non-empty (r1536)."""
+    import arc_percept
+    import lineage_store as ls
+    if not (ls._ALIAS and arc_percept._FORM_PAIRS):
+        return None
+    have = getattr(ag, "_form_aliases", {})
+    stored = getattr(ag, "_stored_forms", set())
+    seen = getattr(ag.env, "form_pairs", None) or {}
+    bad = sorted([a, have[a], c] for a, (c, _p) in seen.items() if a in have and have[a] != c)
+    new = sorted([a, c, p] for a, (c, p) in seen.items() if a in stored and a not in have)
+    return new, bad
+
+
+def _new_form_pairs(ag: Any) -> list:
+    """K4 at the save (the reviewer 2026-11-03 r888, r903, r906): the pairs perception met
+    (arc_world.form_pairs) whose as-seen code names kinds the lineage stores and which are not in
+    force. First the game series' carried action cells and routines under those codes meet their
+    canonical ones (two sightings: counts summed, landed values united), so the cumulative cells
+    this save writes hold both poses' sightings and never replace the store's re-keyed sum. A pair
+    against one in force is a defect, never written: one alias_conflict row."""
+    import lineage_store as ls
+    pending = _form_pairs_pending(ag)
+    if pending is None:
+        return []
+    new, bad = pending
+    if bad:
+        _c, _s, _lv = ag._boundary_key("@lineage")
+        ag.led.record(_c, "SETTLE", _s, "alias_conflict", **_lv, pairs=bad[:20], n=len(bad),
+                      reads="perception named a code's kind differently from the alias in force")
+    amap = {a: c for a, c, _p in new}
+    if not amap:
+        return []
+    for tabs in getattr(getattr(ag, "iface", None), "carried_kind", {}).values():
+        for tab, cells in tabs.items():
+            out: dict = {}
+            for k, v in cells.items():
+                k2 = _alias_tuple(k, amap)
+                if k2 not in out:
+                    out[k2] = v
+                elif tab == "delta_kind":
+                    out[k2] = (out[k2][0] + v[0], out[k2][1] + v[1])
+                else:
+                    out[k2] = set(out[k2]) | set(v)
+            tabs[tab] = out
+    for name in ("_routines_in", "_rk_written"):
+        rows = getattr(ag, name, None)
+        if rows:
+            out = {k: v for k, v in rows.items() if ls.alias_text(k, amap) == k}  # kept on a meet
+            for k, v in rows.items():
+                k2 = ls.alias_text(k, amap)
+                v2 = {**ls._alias_val(v, amap), "key": k2} if isinstance(v, dict) else v
+                out.setdefault(k2, v2)
+            rows.clear()
+            rows.update(out)
+    return new
+
+
 def boundary(d: str | Path | None, ag: Any, game: str, how: str) -> dict | None:
     """THE BOUNDARY WRITE, one path for both runners (arc_holdout.play, tether_agent.run): a
-    generation at a level clear ("level") or a terminal edge ("death", "game_win"), as write() makes
-    one at the game's end. None unless the boundary arm, the carry and a folder are all present."""
+    generation at a level clear ("level") or a terminal edge ("game_loss", "game_win"), as write()
+    makes one at the game's end, and under _ENDING_SAVE at a goal ending ("goal_ending"),
+    not written when
+    nothing is new. None unless the boundary arm, the carry and a folder are all present."""
     if not (_BOUNDARY and _CARRY and d):
         return None
-    # agent_level: Agent.level, which counts WIN/death edges, and level clears too only under
+    # agent_level: Agent.level, which counts WIN/game loss edges, and level clears too only under
     # TETHER_LEVEL_EDGE (F1); the 'how' field is the true label of the write
+    if _ENDING_SAVE:
+        ag._ending_due = False      # any write covers the endings before it
+    if how == "goal_ending":
+        # r1536 (3): a readout cannot cut the agent; the end path's reserve budgets the write
+        with cap.hold():
+            return {"how": how, "agent_level": ag.level, **write(d, ag, game, sleep=False,
+                                                                 readout=True)}
     return {"how": how, "agent_level": ag.level, **write(d, ag, game, sleep=False)}
 
 
@@ -1005,8 +1297,8 @@ class DkSnapshot:
             + " ORDER BY entry, tgt", (i,))}
 
     def cold(self, key: tuple) -> int:
-        """A row's stored n if it is COLD (a past-life n == 1), else 0: the keyed read a row seen
-        in this life takes, so its count stays whole."""
+        """A row's stored n if it is COLD (an earlier game series' n == 1), else 0: the keyed read a
+        row seen in this game series takes, so its count stays whole."""
         if self.closed or not _HOT_COLD:
             return 0
         d, k, t = key
@@ -1123,12 +1415,17 @@ def _store_view(d: str | Path, ag: Any) -> dict:
         seeds = [json.loads(s_) for (s_,) in con.execute("SELECT seed FROM seeds ORDER BY k")]
         end_path = ls.read_end_path(con)
         ended = con.execute("SELECT v FROM meta WHERE k='ended'").fetchone()
+        # K4: the alias map in force and every form code the store's kinds name
+        amap = ls.alias_map(con)
+        forms = {int(x) for (s_,) in con.execute("SELECT s FROM sym WHERE s LIKE '%form=%'")
+                 for x in ls._FORM.findall(s_)} - set(amap)
     finally:
         con.close()
     return {"tip": tip and tip[0], "fold": f, "counts": c, "merged": merged, "healed": healed,
             "sig": sig, "end_path": end_path, "ended": ended and json.loads(ended[0]),
             "atoms": atoms, "folder": str(p.resolve()),
             "evidence": evidence, "vindication": vindication, "seeds": seeds,
+            "form_aliases": amap, "stored_forms": forms,
             "pairs": {(tuple(json.loads(sym[o])), tuple(json.loads(sym[x]))): (n, max(last, 0))
                       for o, x, n, last in pairs},
             "nocount": {key((2, 3), e, r, ko, kx) for e, r, ko, kx in nocount},
@@ -1144,8 +1441,8 @@ def _store_view(d: str | Path, ag: Any) -> dict:
 
 
 def _note_parent_ended(ag: Any, h: str, ended: dict | None) -> None:
-    """Item 4 (C3), the reviewer 2026-10-22 15:17: the next life's load names that its parent's
-    game ended on an agent fault, so the inheritance is visible."""
+    """Item 4 (C3), the reviewer 2026-10-22 15:17: the next game series' load names that its
+    parent's game ended on an agent fault, so the inheritance is visible."""
     import tether
     if not ended or not tether._ERROR_CARRY:
         return
@@ -1163,6 +1460,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     v = _store_view(d, ag)
     h, f, c = v["tip"], v["fold"], v["counts"]
     ag.lineage_parent = h
+    ag._form_aliases = dict(v.get("form_aliases") or {})     # K4
+    ag._stored_forms = set(v.get("stored_forms") or ())
     if tether._END_RESERVE and v.get("end_path") is not None:
         # C1 (A)'s reserve: the predecessor's measured end-path wall (the reviewer 2026-10-22 14:27)
         ag._end_reserve = v["end_path"]["s"]
@@ -1220,6 +1519,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         for k, d_ in c.get("line_grades", {}).items():
             ag._line_grade_in.setdefault(k, {}).update(d_)
         rep["line_kinds_in"] = len(ag._line_grade_in)
+    if tether._HYP_LEARN and hasattr(ag, "_b2_kinds_inh"):
+        rep["b2_kinds_in"] = _b2_inherit(ag, [c])
     if tether._THOUGHT_RECORD and hasattr(ag, "_thought_in"):
         for f in ("tried", "paid"):
             for k, d_ in c.get("thought_" + f, {}).items():
@@ -1230,10 +1531,14 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         rep["stopped_at_in"] = ag._self_read()
     if tether._7H_ROOT_GRADE and hasattr(ag, "_root_grade_in"):
         for s, d_ in c.get("root_grades", {}).items():
-            ag._root_grade_in.setdefault(s, {}).update(d_)
+            into = ag._root_grade_in.setdefault(s, {})
+            for o, n in d_.items():
+                o = ledger.game_loss_word(o)        # r1571: an old save's word
+                into[o] = into.get(o, 0) + n
         rep["root_shapes_in"] = len(ag._root_grade_in)
     if tether._M7_INV and hasattr(ag, "_reinvent_carried"):
-        rep["inventions_in"] = ag._reinvent_carried(list(c.get("inventions", [])))
+        with ag._step_scope("IMPORT"):      # r1488: its row is the load's, booked as the load's
+            rep["inventions_in"] = ag._reinvent_carried(list(c.get("inventions", [])))
     if tether._ROUTINE_CARRY and hasattr(ag, "_carry_routines_in"):
         # (6c): one row per kind form (the store's fold); absent in an older store: none
         rep["routines_in"] = ag._carry_routines_in(list(c.get("routines_by_kind", {}).values()))
@@ -1372,6 +1677,16 @@ def load(d: str | Path, ag: Any) -> dict:
         return {"parent": None, "root": "no generation yet; this instance writes the first"}
     if not _ONE_PASS:
         chain = _chain(Path(d))
+    import lineage_store
+    chain = lineage_store.alias_chain(chain)      # K1: the saves read as the store reads them
+    if lineage_store._ALIAS:
+        # K4: the alias map in force and the form codes the saves' kinds name, as the store's
+        ag._form_aliases = {}
+        for _h, g in chain:
+            ag._form_aliases = lineage_store.alias_add(ag._form_aliases, g.get("form_aliases", ()))
+        ag._stored_forms = {int(x) for _h, g in chain for fld in lineage_store._KIND_AT
+                            if fld in g for x in lineage_store._FORM.findall(json.dumps(g[fld]))
+                            } - set(ag._form_aliases)
     tip = chain[-1][1] if chain and chain[-1][0] == h else {}
     _note_parent_ended(ag, h, tip if tip.get("ended") else None)
     # the being's seed BEFORE anything is installed, so a handle the load mints is minted under
@@ -1436,12 +1751,14 @@ def load(d: str | Path, ag: Any) -> dict:
                 for o, n in c.items():
                     into[o] = into.get(o, 0) + n
         rep["line_kinds_in"] = len(ag._line_grade_in)
+    if tether._HYP_LEARN and hasattr(ag, "_b2_kinds_inh"):
+        rep["b2_kinds_in"] = _b2_inherit(ag, [g for _h, g in chain])
     if tether._THOUGHT_RECORD and hasattr(ag, "_thought_in"):
         # M1: every generation's thought record, root to tip
         for _h, g in chain:
-            for f in ("tried", "paid"):
-                for k, c in g.get("thought_" + f, {}).items():
-                    into = ag._thought_in[f].setdefault(k, {})
+            for fld in ("tried", "paid"):     # never `f`, the fold read below (replay)
+                for k, c in g.get("thought_" + fld, {}).items():
+                    into = ag._thought_in[fld].setdefault(k, {})
                     for e, n in c.items():
                         into[e] = into.get(e, 0) + n
         rep["thought_keys_in"] = len(ag._thought_in["tried"])
@@ -1457,20 +1774,28 @@ def load(d: str | Path, ag: Any) -> dict:
             for s, c in g.get("root_grades", {}).items():
                 into = ag._root_grade_in.setdefault(s, {})
                 for o, n in c.items():
+                    o = ledger.game_loss_word(o)    # r1571: an old save's word
                     into[o] = into.get(o, 0) + n
         rep["root_shapes_in"] = len(ag._root_grade_in)
     if tether._M7_INV and hasattr(ag, "_reinvent_carried"):
         # M7-INV: every generation's inventions, root to tip, re-invented on trial
-        rep["inventions_in"] = ag._reinvent_carried(
-            [r for _h, g in chain for r in g.get("inventions", ())])
+        with ag._step_scope("IMPORT"):      # r1488: as in _load_from_store
+            rep["inventions_in"] = ag._reinvent_carried(
+                [r for _h, g in chain for r in g.get("inventions", ())])
     if tether._ROUTINE_CARRY and hasattr(ag, "_carry_routines_in"):
         # (6c): root to tip, one row per kind form, the latest standing kept
         rk = {r["key"]: r for _h, g in chain for r in g.get("routines_by_kind", ())}
         rep["routines_in"] = ag._carry_routines_in(list(rk.values()))
     if tether.IFace._ACTION_CARRY and hasattr(ag, "iface"):
         ag._ak_written = {}                                     # r688 RECALL: root to tip, latest
-        for _h, g in chain:
-            ag._ak_written.update(g.get("action_kinds", {}))
+        if _AK_CONVERT and "action_kinds" in f and any(len(_parents(g)) > 1 for _h, g in chain):
+            ag._ak_written = dict(f["action_kinds"])     # MF-K16: a branched chain, the fold's
+        else:
+            for _h, g in chain:
+                ag._ak_written.update(g.get("action_kinds", {}))
+            if tether.IFace._AK_DELTA:      # (7): and every save's increments, added
+                for _h, g in chain:
+                    lineage_store.add_action_increments(ag._ak_written, g.get("action_kinds_d"))
         rep["action_kinds_in"] = ag.iface.kind_tables_in(ag._ak_written)
     if _RESOLVE_ONCE:
         for _h, g in chain:                                     # r695 1: verdicts per lineage
@@ -1519,9 +1844,9 @@ def load(d: str | Path, ag: Any) -> dict:
             "asked": load_ak(d, ag, chain)}
 
 
-def _scan(d: Path) -> dict[str, dict]:
-    """Every generation's parents, read and hash-checked one file at a time (_read's checks, none
-    of its memory)."""
+def _scan(d: Path, keep: tuple = ()) -> dict[str, dict]:
+    """Every generation's parents (and the `keep` fields it holds), read and hash-checked one file
+    at a time (_read's checks, none of its memory)."""
     import lineage_store as ls
     gens: dict[str, dict] = {}
     for f in sorted(d.glob(f"{PREFIX}*.json")):
@@ -1529,8 +1854,9 @@ def _scan(d: Path) -> dict[str, dict]:
         h = hashlib.sha256(raw).hexdigest()[:16]
         if f.stem != PREFIX + h:
             raise ValueError(f"lineage: {f.name} does not hash to its name ({h})")
-        gens[h] = {"parents": _parents(json.loads(raw))}
-        del raw
+        g = json.loads(raw)
+        gens[h] = {"parents": _parents(g), **{k: g[k] for k in keep if k in g}}
+        del raw, g
     bad = {h: p for h, g in gens.items() for p in g["parents"] if p not in gens}
     if bad:
         raise ValueError(f"lineage: a parent that is not in the chain: {bad}")
@@ -1538,8 +1864,10 @@ def _scan(d: Path) -> dict[str, dict]:
 
 
 # the fold's rule version a merge generation is written under (the reviewer 2026-11-03 r882 3): 2 =
-# equal moving counters at the merge sum as increments; a merge with no field folds as rule 1
-FOLD_RULE = 2
+# equal moving counters at the merge sum as increments; 3 = a cumulative action cell from a branch
+# converts to its own increments at the merge (r927 3, MF-K16); a merge with no field folds as
+# rule 1
+FOLD_RULE = 3
 
 
 def merge(d: str | Path, tips: list[str] | None = None) -> dict:
@@ -1567,6 +1895,43 @@ def merge(d: str | Path, tips: list[str] | None = None) -> dict:
     except FileExistsError:
         return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parents": tips}
+
+
+# K1's ALIAS GENERATION (the reviewer 2026-11-03 r886, r887, r903): as-seen form codes named as
+# their canonical, [as_seen, canonical, pose], on a generation of their own whose parent is the
+# tip and which holds nothing else; the store re-keys what it holds there (lineage_store._ALIAS).
+# Refused: a code already aliased to another canonical, or a map that would not be idempotent.
+ALIAS_RULE = 1
+
+
+def alias_generation(d: str | Path, pairs: list) -> dict:
+    import lineage_store as ls
+    p = Path(d)
+    gens = _scan(p, keep=("form_aliases",))
+    tips = _tips(gens)
+    if len(tips) != 1:
+        return {"refused": f"{len(tips)} tips; merge them first"}
+    amap: dict = {}
+    for h in _topo(gens):
+        amap = ls.alias_add(amap, gens[h].get("form_aliases", ()))
+    pairs = sorted({(int(a), int(c), int(pose)) for a, c, pose in pairs})
+    why = ls.alias_refusal(amap, pairs)
+    if why:
+        return {"refused": why}
+    pairs = [list(x) for x in pairs if amap.get(x[0]) != x[1]]
+    if not pairs:
+        return {"refused": "every pair is already in force"}
+    gen = {"lineage": 1, "parent": tips[0], "game": None, "terms": [], "status": [],
+           "evidence": [], "vindication_tail": [], "book": {}, "invented": {}, "dormant": [],
+           "dormant_refused": [], "form_aliases": pairs, "alias_rule": ALIAS_RULE}
+    raw = _dumps(gen)
+    h = hashlib.sha256(raw).hexdigest()[:16]
+    try:
+        with open(p / f"{PREFIX}{h}.json", "xb") as fh:
+            fh.write(_store_bytes(raw))
+    except FileExistsError:
+        return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
+    return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": tips[0], "pairs": len(pairs)}
 
 
 
@@ -1676,12 +2041,12 @@ _VERDICT_N: dict[str, int] = {"refetched": 0}
 # RESOLVE ONCE PER LINEAGE (the reviewer 2026-11-01 r695 1; Fig 12 "re-deriving it is a lookup"):
 # a resolve that matched is recorded with a fingerprint of what the view is computed from (the
 # entry's own definition, the readings table, the library code) and the carried hashes it matched;
-# a later life with the same fingerprint and the same hashes takes the verdict without re-hashing
-# the view. _RESOLVE_ONCE_CHECK hashes anyway and books agree / disagree.
+# a later game series with the same fingerprint and the same hashes takes the verdict without
+# re-hashing the view. _RESOLVE_ONCE_CHECK hashes anyway and books agree / disagree.
 _RESOLVE_ONCE = armflag.arm("TETHER_RESOLVE_ONCE", default=True)
 _RESOLVE_ONCE_CHECK = armflag.arm("TETHER_RESOLVE_ONCE_CHECK")
 _RESOLVE_OK: dict[str, list] = {}     # repr((sig hash, entry, role)) -> [fingerprint, [ch, ...]]
-_RESOLVE_NEW: dict[str, list] = {}    # this life's matched resolves, to write
+_RESOLVE_NEW: dict[str, list] = {}    # this game series' matched resolves, to write
 _FP_BASE: list = []                   # the readings table + the library code, hashed once
 _SIG_H: dict[int, tuple] = {}         # id(signature) -> (signature, its short hash)
 
@@ -1708,7 +2073,7 @@ def _lib_fp(lib: Any, key: str) -> str:
 def _held_in_store(folder: str, key: str, role: str, snap: Any,
                    con: Any = None) -> tuple | None:
     """One held row (gen, items) by key: through the load-time snapshot while it is open (the same
-    rows as at load), else a read-only connection (the rows now: at load, plus this life's own
+    rows as at load), else a read-only connection (the rows now: at load, plus this game series' own
     merged entries, which the asker already holds locally)."""
     if snap is not None and not snap.closed:
         return snap.held(key, role)
@@ -1737,9 +2102,9 @@ def _ro(folder: str) -> Any:
 class _HeldKnown(set):
     """THE 20 MB CAP, part (ii) (TETHER_CAP_HELD): _CARRIED[folder] under the store load, answered
     from the held table instead of copied (11.8 MB at 33 saves). In = held under the load's
-    signature, or added this life (write_index), and not discarded since (resolve's heal): the
-    copied set's answers, which were the held rows at load plus the additions minus the discards.
-    Holds only this life's additions (the set) and discards (gone)."""
+    signature, or added this game series (write_index), and not discarded since (resolve's heal):
+    the copied set's answers, which were the held rows at load plus the additions minus the
+    discards. Holds only this game series' additions (the set) and discards (gone)."""
 
     def __init__(self, folder: str, sig_repr: str, ag: Any) -> None:
         super().__init__()
@@ -1807,8 +2172,8 @@ def _lazy_take(k: tuple, key: str, role: str, snap: Any) -> dict | None:
 
 def _cap_copy() -> None:
     """A second store load in one process: the first load's answers are copied into the old sets
-    (rows never leave held; a row this life rewrote has a gen not in the load's, and a lazy key's
-    load gen was kept at its discard), and every later load copies, as before."""
+    (rows never leave held; a row this game series rewrote has a gen not in the load's, and a lazy
+    key's load gen was kept at its discard), and every later load copies, as before."""
     b = _LAZY_BASE
     for folder, kn in list(_CARRIED.items()):
         if not isinstance(kn, _HeldKnown):
@@ -1823,7 +2188,8 @@ def _cap_copy() -> None:
         old = {(kn.sig_repr, key, role) for key, role, _g in rows} - kn.gone
         old.update(set.__iter__(kn))
         if b and b["folder"] == folder:
-            for key, role, gh in rows:   # a row rewritten this life has a gen not in the load's
+            for key, role, gh in rows:   # a row rewritten this game series has a gen not in the
+                                         # load's
                 k = (b["sig"], key, role)
                 g = b["kept"].get(k, gh if gh in b["gens"] else None)
                 if g is not None and k not in b["skip"] and k not in b["taken"]:

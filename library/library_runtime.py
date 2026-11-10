@@ -409,13 +409,26 @@ def axis_forms(condition: str) -> list[str]:
     at the destination; the ground there decides which holds. Scale needs nothing: the templates
     compare
     objects with each other, never with a size."""
+    return list(dict.fromkeys([condition, *(c for _n, c in axis_forms_named(condition))]))
+
+
+def axis_forms_named(condition: str) -> list[tuple[str, str]]:
+    """axis_forms' three other readings, each with its name -- "turned" (axes swapped), "mirrored"
+    (orderings reversed), "turned+mirrored" -- dropping any that reads as the condition itself or as
+    an earlier form (Build 3 item 11: each is offered as its own entry, named)."""
     names = sorted(_AXIS_SWAP, key=len, reverse=True)
     swap = lambda c: _re.sub(r"\b(" + "|".join(names) + r")\b", lambda m: _AXIS_SWAP[m.group(1)], c)  # noqa: E731
 
     def flip(c: str) -> str:
         return _re.sub(r"(?<![<>=!])([<>])(?!=)", lambda m: "<" if m.group(1) == ">" else ">", c)
 
-    return list(dict.fromkeys([condition, swap(condition), flip(condition), flip(swap(condition))]))
+    out, seen = [], {condition}
+    for name, c in (("turned", swap(condition)), ("mirrored", flip(condition)),
+                    ("turned+mirrored", flip(swap(condition)))):
+        if c not in seen:
+            seen.add(c)
+            out.append((name, c))
+    return out
 
 
 _ID_EDGE = r"[A-Za-z0-9_~]"
@@ -437,6 +450,7 @@ class Library:
         self.by_reading: dict[str, list] = defaultdict(list)
         self.by_affects: dict[str, list] = defaultdict(list)  # v7: reading -> entries producing it
         self.ingredient_of: dict[str, list] = defaultdict(list)
+        self.cluster_derived: dict = {}  # 9b: the build's grouping of the unclustered atoms
         self.partner_named = _names  # v9: the RELATION/MEASURE partner test (a whole id)
 
     # ---------------------------------------------------------------- loading
@@ -460,6 +474,7 @@ class Library:
             self.by_affects[r] = list(keys)
         for k, rows in idx["ingredient_of"].items():
             self.ingredient_of[k] = list(rows)
+        self.cluster_derived = idx.get("by_cluster_derived") or {}
         for layer, name in ((self.runtime, "runtime.json"), (self.learnings, "learnings.json")):
             p = self.root / name
             if p.exists():
@@ -545,7 +560,7 @@ class Library:
         while frontier:
             _cap_head()
             nxt = set()
-            for k in frontier:
+            for k in sorted(frontier):     # r1400: one order for every hash seed
                 _cap_head()
                 for m in self.ingredient_of.get(k, ()):
                     _cap_head()

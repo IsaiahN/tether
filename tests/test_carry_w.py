@@ -2,8 +2,8 @@
 (r392): one must-fail, one must-hold, each in its own process.
   check_mustfail_mixes  a stub carried LEARNED term (inc.dbl) reads today's track_of before any
                         outcome; after one settle and one refusal its kind's w is 0.5 and its
-                        track_of is 0.5 * Laplace(as loaded) + 0.5 * Laplace(this life); the arm
-                        off reads today's formula and logs nothing
+                        track_of is 0.5 * Laplace(as loaded) + 0.5 * Laplace(this game series); the
+                        arm off reads today's formula and logs nothing
   check_off_identity    TETHER_CARRY_W=0 (off_env) against 10cbfae, fake, whole-run
     python tests/test_carry_w.py [check ...]
 """
@@ -32,7 +32,8 @@ def _run(on: bool) -> tuple:
     g._install(t, seq=0, residual=None)
     g.carried[t.name] = {"from": "earlier", "handle": None}
     g.learn(t.name)
-    g.replay([["settle", t.name, None, None, g.tick]] * 3)   # carried evidence, not this life's
+    g.replay([["settle", t.name, None, None, g.tick]] * 3)   # carried evidence, not this game
+                                                             # series'
     st = g.standing[t.name]
     base = (st.confirmations, st.refusals)
     before = g.track_of(t.name)

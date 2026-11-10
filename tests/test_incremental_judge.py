@@ -1,6 +1,6 @@
 """22 INCREMENTAL_JUDGE (TETHER_INCREMENTAL_JUDGE, default ON; the reviewer 2026-10-31 r571).
 Minimal gates, each in its own process.
-  check_identity_and_long_life
+  check_identity_and_long_game_series
                       THE MUST-HOLD: six movers (r481's fixture), 60 steps: the ON and OFF ledgers
                       identical row for row, the timing fields and the arms row aside; and REPORTED,
                       the same runs: the history rows _left walks and ROUTE's seconds per step, OFF
@@ -92,8 +92,8 @@ def _child(probe: str, tree: str, extra: dict | None = None) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0",
                **(extra or {}))
-    # 4 h a child: a 60-step mover life took ~50 min at Idle beside a rehearsal and a round, and the
-    # next child passed 3600 s (2026-10-31 22:1x), which is a timeout, not a reading
+    # 4 h a child: a 60-step mover game series took ~50 min at Idle beside a rehearsal and a round,
+    # and the next child passed 3600 s (2026-10-31 22:1x), which is a timeout, not a reading
     out = subprocess.run([sys.executable, "-B", "-c", probe, tree], env=env,
                          capture_output=True, text=True, timeout=14400, cwd=str(_repo.ROOT),
                          stdin=subprocess.DEVNULL)
@@ -124,7 +124,7 @@ def _route(rows: list) -> list:
             if r["event"] == "repeat" and isinstance(r["detail"].get("wall_s"), dict)]
 
 
-def check_identity_and_long_life() -> None:
+def check_identity_and_long_game_series() -> None:
     """The must-hold and the must-fail read off the same pair of runs."""
     on, off = _pair()
     a, b = _norm(off["rows"]), _norm(on["rows"])

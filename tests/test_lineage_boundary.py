@@ -14,6 +14,15 @@ runners do at a level clear or a terminal edge.
        least one memo entry is pending when the stopped game had bound answers.
   MF-L MUST-FAIL: the parent left at the loaded one after each write -> N3 (L2 red).
   MF-D MUST-FAIL: the written map cleared after each write -> a term written twice (L3 red).
+  LE   TETHER_ENDING_SAVE (r1530-r1532): a stop right after the first goal ending whose save writes
+       a term (no game-end write) loses none of it: a new instance loads that save as its tip and
+       loaded + already_held == the terms the ending saves wrote. A real occasion: gridworld_arc_s4,
+       found by a search on the occasion only (r1532 4). MF-LE: the arm OFF, the same stop -> the
+       term is not loaded.
+  RO   (r1536 (2)) a goal-ending save meeting a pending form pair is skipped ("form pairs
+       pending"), writes no generation, and leaves the live carried cells, routines and aliases
+       equal. Constructed (no 40-cycle game meets one: wa30, vc33), so it proves wiring (Fig 11
+       :70). MF-RO: the live meet the skip defers re-keys the carried cell 11 -> 10.
 
     python tests/test_lineage_boundary.py
 """
@@ -42,6 +51,7 @@ import world  # noqa: E402
 
 K, N = 3, 8
 N_ON = 8   # MF-D (ii)'s steps a level under seed 0, lengthened only if its occasion is absent
+N_E = 40   # LE's step cap on gridworld_arc_s4 (its first term-writing ending save: c17)
 
 
 def _agent(seed):
@@ -84,8 +94,33 @@ def role_game(d, stop, mf, n=N):
           flush=True)
 
 
-def role_load(d):
-    ag = _agent(1)
+def _arc_agent(name):
+    sys.path.insert(1, str(Path(__file__).resolve().parents[1] / "conform"))
+    import panel
+    env = world.bind(panel._gridworld(name)[0])
+    return tether.Agent(env, gamma.Gamma(env.atoms(), game=name), tether.Config(),
+                        ledger.Ledger())
+
+
+def role_ending(d, stop):
+    """LE: gridworld_arc_s4, each due goal ending saved as both runners save it; stops after the
+    first ending save that writes a term (stop < 0) or at cycle `stop`; no game-end write."""
+    ag = _arc_agent("gridworld_arc_s4")
+    lineage.load(d, ag)
+    reps = []
+    for _ in range(N_E):
+        ag.step()
+        if lineage._ENDING_SAVE and getattr(ag, "_ending_due", False):
+            reps.append(lineage.boundary(d, ag, "arc_s4", "goal_ending"))
+        if (reps and reps[-1].get("terms")) if stop < 0 else ag.cycle >= stop:
+            break
+    print("REPORT " + json.dumps({"cycle": ag.cycle, "reps": [
+        {k: r.get(k) for k in ("hash", "terms", "skipped", "refused")} for r in reps]}),
+          flush=True)
+
+
+def role_load(d, arc=False):
+    ag = _arc_agent("gridworld_arc_s4") if arc else _agent(1)
     rep = lineage.load(d, ag)
     lib = sorted(n for n, t in ag.gamma.library.items() if t.origin != gamma.PRIOR)
     st = json.dumps({n: dataclasses.asdict(ag.gamma.standing[n]) for n in lib
@@ -101,7 +136,7 @@ def role_load(d):
 
 
 def _occasion(d):
-    """The life's seed, the term rows it wrote before its last generation, and its aliases."""
+    """The game series' seed, the term rows it wrote before its last generation, and its aliases."""
     chain = lineage._chain(Path(d))
     return (chain[0][1].get("seed"), sum(len(g["terms"]) for _h, g in chain[:-1]),
             sum(len(g.get("aliases", [])) for _h, g in chain))
@@ -114,8 +149,11 @@ def _aliases(d):
 
 def _child(*args, **arms):
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
+    # r1496: the start seed pinned, as test_lineage_carry's child does (r1450); stripped, every run
+    # drew a fresh entropy seed and played a different game. A part's own arms still win (MF-D ON)
     env.update(TETHER_LINEAGE_CARRY="1", TETHER_LINEAGE_BOUNDARY="1", TETHER_INDEX_HOLD="1",
-               **arms)
+               TETHER_AGENT_SEED="0")
+    env.update(arms)
     return subprocess.run([sys.executable, "-B", __file__, "--role", *map(str, args)], env=env,
                           stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)
 
@@ -151,7 +189,7 @@ def _l3(d, evidence):
     return chain
 
 
-PARTS = ("l1", "l4", "mfl", "mfd", "mfdon")   # by name, one process each, under 5 min (r299)
+PARTS = ("l1", "l4", "mfl", "mfd", "mfdon", "le", "ro")   # by name, one process each, under 5 min
 
 
 def main(parts=PARTS):
@@ -164,6 +202,9 @@ def main(parts=PARTS):
 def _part_l1(tmp):
     """L1, L2, L3 and L3's must-fail."""
     out = _out(_child("game", tmp / "full", -1, "none"), "REPORT")
+    assert sum(r["terms"] or 0 for r in out["reps"]), (
+        "fixture: the pinned seed-0 run wrote no term in K boundaries -- the forcing occasion "
+        "(a term installed by c16) is gone; not a lineage failure", out["reps"])
     hs = [r["hash"] for r in out["reps"]]
     gens = sorted(Path(tmp / "full").glob(f"{lineage.PREFIX}*.json"))
     assert len(gens) == K + 1 and all(hs), ("L1", len(gens), out["reps"])
@@ -199,9 +240,13 @@ def _part_l1(tmp):
 
 def _part_l4(tmp):
     """L4."""
-    k = 1
+    # r1498: stop after the boundary that WRITES seed 0's term (installed c16, written at the c24
+    # boundary, k = 2); at k = 1 the stop came before it and L4 compared 0 terms with 0
+    k = 2
     out = _out(_child("game", tmp / "stop", k, "none"), "REPORT")
     assert len(out["reps"]) == k + 1, ("L4: boundaries written before the stop", out["reps"])
+    assert sum(r["terms"] or 0 for r in out["reps"]), (
+        "fixture: the term this stop depends on was not written; occasion gone", out["reps"])
     got = _out(_child("load", tmp / "stop"), "LOAD")
     assert got["parent"] == out["reps"][-1]["hash"], ("L4: the tip is not boundary k", got)
     _l3(tmp / "stop", out["evidence"])   # the stop came right after boundary k
@@ -228,19 +273,19 @@ def _part_mfd(tmp):
     # (i) MF-D verbatim with (d) OFF (amends registered refuter MF-D, the reviewer 2026-10-15
     # 07:30, ruled 2026-10-25 21:27): under (d) the re-write a cleared map lets through is an
     # alias, so L3 cannot see it
-    # THE OCCASION (the reviewer 2026-10-25 21:52, (m)): a free-seed life that writes no term row
-    # before its last generation gives a cleared map nothing to write twice. A fresh birth is
-    # drawn, up to 5, selected on the occasion ONLY, never on the outcome
-    for birth in range(1, 6):
-        mfd = tmp / f"mfd_{birth}"
+    # THE OCCASION (the reviewer 2026-10-25 21:52, (m)): a free-seed game series that writes no term
+    # row before its last generation gives a cleared map nothing to write twice. A fresh game start
+    # is drawn, up to 5, selected on the occasion ONLY, never on the outcome
+    for start in range(1, 6):
+        mfd = tmp / f"mfd_{start}"
         out = _out(_child("game", mfd, -1, "written", TETHER_SAVE_DEDUP="0"), "REPORT")
         seed, rows, al = _occasion(mfd)
-        print(f"  MF-D birth {birth}: seed {seed}, rows before the last generation {rows}, "
+        print(f"  MF-D game start {start}: seed {seed}, rows before the last generation {rows}, "
               f"aliases {al}")
         if rows:
             break
     else:
-        raise AssertionError("MF-D: no occasion in 5 births")
+        raise AssertionError("MF-D: no occasion in 5 game starts")
     try:
         _l3(mfd, out["evidence"])
     except AssertionError as e:
@@ -276,13 +321,74 @@ def _part_mfdon(tmp):
           f"({len(lf['library'])}) and standing ({lf['standing']}) load from both")
 
 
+def _part_le(tmp):
+    """LE and MF-LE."""
+    # wiring AND occasion are real: the agent's own ending writes the term (r1532 4); the stop is
+    # right after that save, so the next instance has only what the ending saves wrote
+    out = _out(_child("ending", tmp / "le", -1, TETHER_ENDING_SAVE="1"), "REPORT")
+    wrote = sum(r["terms"] or 0 for r in out["reps"])
+    assert wrote, ("fixture: no goal-ending save wrote a term", out)
+    got = _out(_child("load", tmp / "le", "arc", TETHER_ENDING_SAVE="1"), "LOAD")
+    assert got["parent"] == out["reps"][-1]["hash"], ("LE: the tip is not the ending's save", got)
+    assert got["loaded"] + got["already_held"] == wrote, ("LE: terms written vs taken", wrote, got)
+    # MF-LE: the arm OFF, the same stop: no ending save, so the term is not loaded
+    off = _out(_child("ending", tmp / "le_off", out["cycle"], TETHER_ENDING_SAVE="0"), "REPORT")
+    assert off["cycle"] == out["cycle"] and not off["reps"], ("MF-LE: not the same stop", off)
+    lo = _out(_child("load", tmp / "le_off", "arc", TETHER_ENDING_SAVE="0"), "LOAD")
+    assert lo["loaded"] + lo["already_held"] < wrote, ("MF-LE MUST-FAIL did not fail: the term "
+                                                       "loaded with no ending save", lo)
+    print(f"  LE stopped at c{out['cycle']} after {len(out['reps'])} ending saves "
+          f"({sum(1 for r in out['reps'] if r['skipped'])} skipped): the next instance loads the "
+          f"last as its tip and all {wrote} terms they wrote ({got['loaded']} installed; already "
+          f"held {got['already_held']}); MF-LE arm OFF, the same stop: {lo['loaded']} loaded")
+
+
+def role_readout(d):
+    """RO: a constructed pending form pair (as-seen 11, canonical 10, stored by the lineage) at a
+    goal ending, after an earlier save in this game series; then the live meet (MF-RO)."""
+    import copy
+    ag = _agent(0)
+    lineage.load(d, ag)
+    for _ in range(N):
+        ag.step()
+    lineage.boundary(d, ag, "default", "level")
+    ag.env.form_pairs = {11: (10, 1)}
+    ag._stored_forms = {11}
+    ag.iface.carried_kind = {"A1": {"delta_kind": {("k|form=11",): (3, 4)}}}
+
+    def live():
+        return copy.deepcopy((ag.iface.carried_kind, getattr(ag, "_routines_in", None),
+                              ag._rk_written, getattr(ag, "_form_aliases", {}), ag._stored_forms))
+    before, gens = live(), len(lineage._chain(Path(d)))
+    r = lineage.boundary(d, ag, "default", "goal_ending")
+    out = {"skipped": r.get("skipped"), "same": live() == before,
+           "gens_same": len(lineage._chain(Path(d))) == gens}
+    lineage._new_form_pairs(ag)
+    out["met"] = list(ag.iface.carried_kind["A1"]["delta_kind"])
+    print("READOUT " + json.dumps(out), flush=True)
+
+
+def _part_ro(tmp):
+    """RO and MF-RO."""
+    got = _out(_child("readout", tmp / "ro", TETHER_ENDING_SAVE="1"), "READOUT")
+    assert got["skipped"] == "form pairs pending", ("RO: the ending save was not skipped", got)
+    assert got["same"] and got["gens_same"], ("RO: the skipped save changed live state", got)
+    assert got["met"] == [["k|form=10"]], ("MF-RO: the live meet did not re-key 11 -> 10", got)
+    print(f"  RO a pending form pair: the ending save skipped ({got['skipped']}), no generation, "
+          f"live cells, routines and aliases equal; MF-RO the live meet re-keys to {got['met']}")
+
+
 if __name__ == "__main__":
     if "--role" in sys.argv:
         a = sys.argv[sys.argv.index("--role") + 1:]
         if a[0] == "game":
             role_game(a[1], int(a[2]), a[3], int(a[4]) if len(a) > 4 else N)
+        elif a[0] == "ending":
+            role_ending(a[1], int(a[2]))
+        elif a[0] == "readout":
+            role_readout(a[1])
         else:
-            role_load(a[1])
+            role_load(a[1], arc=len(a) > 2)
     else:
         # part names on the command line run only those parts; none runs all
         main(tuple(a for a in sys.argv[1:] if a in PARTS) or PARTS)

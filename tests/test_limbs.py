@@ -2,13 +2,13 @@
 
 Each shows the new behaviour fires and the old failure cannot recur, on a gridworld agent with the
 one site under test isolated:
-  - THE GOVERNOR: closer_found; urgent past the commit bar (must-fail: idle 0 is not urgent);
+  - THE GATE: closer_found; urgent past the commit bar (must-fail: idle 0 is not urgent);
     probe_first while an action is untried, the same answer within one cycle, probe_declined at a
     later cycle with the same open set, probe_first again when the set changes; OFF walks;
   - L2: the delta order keeps EVERY candidate (the cut that lost a closing term cannot recur), on
     every slot of a stepped agent, with occasions counted;
   - L3: a type-mismatched closer is deferred, walked late after the typed candidates, and closes
-    (typed_late closed 1); MUST-FAIL: with the governor saying act, the same lookup finds nothing;
+    (typed_late closed 1); MUST-FAIL: with the gate saying act, the same lookup finds nothing;
   - L4: in a real mint with a widened stream, no base stream draws after the first widened draw,
     and the widened stream did draw (occasions > 0).
 
@@ -34,11 +34,14 @@ def _agent() -> tether.Agent:
                         tether.Config(), ledger.Ledger())
 
 
-def check_governor() -> None:
+def check_gate() -> None:
     ag = _agent()
-    keep = tether._THINK_OR_ACT
+    keep, keep_tc = tether._THINK_OR_ACT, tether._THINK_CHOOSER
     try:
         tether._THINK_OR_ACT = True
+        # the cascade checked here is the OFF path of item 25's chooser (r1376): with it on,
+        # _think_or_act hands the slot to _tc_walk, as test_act pins for its (a) and (e)
+        tether._THINK_CHOOSER = False
         ag._can_probe = None
         ag.actions = ("A1", "A2")
         ag.iface.table = {"A1": {}}
@@ -61,7 +64,7 @@ def check_governor() -> None:
         ag.iface.table = {}
         assert ag._think_or_act("s", closer=True) == (True, "ok")
     finally:
-        tether._THINK_OR_ACT = keep
+        tether._THINK_OR_ACT, tether._THINK_CHOOSER = keep, keep_tc
 
 
 def check_l2_the_order_keeps_every_candidate() -> None:
@@ -96,7 +99,7 @@ def _late_lookup(walk: bool) -> tuple:
     left = {id(held): 5.0, id(a): 0.0, id(b): 10.0}
     called: list = []
 
-    def _left(term, _slot, _hist):
+    def _left(term, _slot, _hist, **_k):
         if term is not held:
             called.append(term.name)
         return left.get(id(term), 5.0)

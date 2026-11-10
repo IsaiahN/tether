@@ -50,7 +50,7 @@ def check_real_run() -> None:
         ag.step()
     before = [json.dumps(r, sort_keys=True, default=str) for r in ag.led.rows()]
     n_level = len(ag._signals)
-    ag.retarget(env, ag.level + 1, how="death")
+    ag.retarget(env, ag.level + 1, how="game_loss")
     for _ in range(3):
         ag.step()
     ag.end_run("cap")
@@ -65,10 +65,10 @@ def check_real_run() -> None:
     assert sorted(by) == sorted(signals), "a signal unresolved, or a resolution of a non-signal"
     assert all(len(v) == 1 for v in by.values()), "a signal resolved twice"
     kinds = [(by[s][0]["kind"], by[s][0]["how"]) for s in signals]
-    assert kinds[:n_level] == [("level", "death")] * n_level and n_level > 0, kinds[:3]
+    assert kinds[:n_level] == [("level", "game_loss")] * n_level and n_level > 0, kinds[:3]
     assert kinds[n_level:] == [("game", "cap")] * (len(signals) - n_level), kinds[-3:]
     assert gate.check(rows)["verdict"] == gate.PASS, gate.check(rows)
-    print(f"  real run: {len(signals)} signals, {n_level} resolved at the level (death), "
+    print(f"  real run: {len(signals)} signals, {n_level} resolved at the level (game loss), "
           f"{len(signals) - n_level} at the game (cap); earlier rows unchanged; full gate passes")
 
 

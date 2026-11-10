@@ -19,7 +19,7 @@ agent's and the pick is fixed.
   WALL      case 2 in a world: the real agent on gridworld, seeds 0-2, 40 steps, ON against OFF.
             Where OFF pushes one route past MIN_REPEAT with no closing outcome (the occasion; at
             least one seed must give one), ON never does and rows a route_refused
-  NOT HERE  R-E's delayed effects (a stub, later); R-D's carry across a death (open)
+  NOT HERE  R-E's delayed effects (a stub, later); R-D's carry across a game loss (open)
     python tests/test_route_refuse.py
 """
 from __future__ import annotations
@@ -264,8 +264,15 @@ def cases() -> None:
     print(f"  warm-up refusals ON ({len(warm)}): " + json.dumps(on["warmup_refused"])[:600])
     assert not [k for k in warm if k in on["case2_keys"] or k in on["case4_keys"]], (
         "a warm-up refusal shares a route key with case 2 or case 4", warm)
-    assert len(set(on["case2"][:mr])) == 1 and on["case2"][mr] != on["case2"][0], (
-        "CASE 2 ON: the refused route was retaken", on["case2"])
+    # r1185: the RULE, not a press order. R-F (TETHER_STEER) legitimately sets the last off-course
+    # route aside once, so routes may alternate; what must never happen is a route pressed AFTER
+    # its own refusal (every case-2 press is a no-change, so a route is refused at its MR-th press)
+    c2 = on["case2"]
+    refused_at = {a: [i for i, x in enumerate(c2) if x == a][mr - 1] for a in set(c2) if a
+                  and c2.count(a) >= mr}
+    assert refused_at and not [(a, i) for a, at in refused_at.items()
+                               for i, x in enumerate(c2) if x == a and i > at], (
+        "CASE 2 ON: the refused route was retaken", c2, refused_at)
     # CASE 7, farther
     assert len(set(off["case7"])) == 1, ("CASE 7: today retakes after farther", off["case7"])
     assert on["case7_refused"] and set(on["case7_refused"]) == {"farther"}, (
@@ -316,6 +323,14 @@ def longest_dead_run(log: list) -> int:
 def world_wall() -> None:
     """CASE 2 IN A WORLD (the reviewer 2026-10-23 22:28, owed before switch-on): the real agent on
     gridworld (the wall o2), ON against OFF, per seed, never pooled."""
+    # r1195: LANDING-TIME. Its occasion (today's code pushing a dead goal-exit route past MR) is a
+    # world premise today's exits no longer produce -- the goal exit takes 1-2 of 40 turns on
+    # seeds 0-2 (distinguish 14-21, system0 14-17) -- and the forced dead route is cases() CASE 2's
+    if os.environ.get("TETHER_TEST_LANDING") != "1":
+        print("  SKIP world_wall: landing-time; its dead goal-exit occasion is a world premise "
+              "today's exits do not produce (r1187, r1195); CASE 2 forces it. Run with "
+              "TETHER_TEST_LANDING=1")
+        return
     root, mr = str(_repo.ROOT), 2
     seen = 0
     for seed in (0, 1, 2):
@@ -333,6 +348,12 @@ def world_wall() -> None:
 
 
 def off_identity() -> None:
+    # r1183 (r1170): a LANDING-TIME check. Its base is the tree before R-A/R-B (10-24), and every
+    # default-ON arm since is in its ON list; each item's own OFF identity is the live check
+    if os.environ.get("TETHER_TEST_LANDING") != "1":
+        print("  SKIP off_identity: landing-time identity vs the tree before TETHER_ROUTE_REFUSE "
+              "(r1170, r1183); run with TETHER_TEST_LANDING=1")
+        return
     root = str(_repo.ROOT)
     with tempfile.TemporaryDirectory() as d:
         # the tree before R-A/R-B: the last first-parent commit whose tether.py lacks the switch

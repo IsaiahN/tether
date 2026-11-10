@@ -3,7 +3,7 @@ lines after the import of arc_holdout, which install kind_spy.py (this directory
 tree) to write OUT/kind_spy.jsonl. No agent code changed.
 
 E4b, THE BOX (Isaiah 2026-10-23 "i like c and then a", the cap "120"; the reviewer 06:29 B1-B6, 06:54, 07:08):
-harness/mem_store/e4_stream.py at the tree's defaults, the agent's code untouched, one life over the 25 public games.
+harness/mem_store/e4_stream.py at the tree's defaults, the agent's code untouched, one game series over the 25 public games.
 One harness-side wrap, nothing in the agent: arc_holdout.wire is wrapped to write <out>/load_report.json (the head the
 load read, the library size after it, the lineage load report wire returns), PF's wrap; e4_stream writes its own
 traceback (stream.traceback.txt). Agent seed 0 in-script; hash seed 0 from the launcher.

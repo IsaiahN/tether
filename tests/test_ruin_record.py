@@ -1,13 +1,14 @@
 """7a(5) A + B, the ruin record (ARC_AGENT 19.3-19.4; the reviewer 2026-10-10 10:41Z), on hand
-snaps worlds that die (AVOID: s0 must never read 3). Record only; arm TETHER_RUIN_RECORD.
+snaps worlds that lose the game (AVOID: s0 must never read 3). Record only; arm TETHER_RUIN_RECORD.
 
-  1. a ladder: death; the deterministic RETRY of the same board dies the same way; a death at a
+  1. a ladder: game loss; the deterministic RETRY of the same board loses the game the same way;
+     a game loss at a
      DIFFERENT board; a level that survives; end_run("cap"). The FULL gate passes;
-  2. A: Termination hears every ending once: death_possible latches (proven); must-fail, a cap
+  2. A: Termination hears every ending once: game_loss_possible latches (proven); must-fail, a cap
      alone never latches it; must-fail, a WIN retargeted then ended by the loop is ONE ending;
-     must-fail, a death then the deadline with no step between is TWO (the reviewer 10:57Z);
-  3. B: one veto per death, keyed (fingerprint, action, realised coordinate); the retry re-reads
-     the same key (new False); must-fail, a death at another fingerprint is a second entry;
+     must-fail, a game loss then the deadline with no step between is TWO (the reviewer 10:57Z);
+  3. B: one veto per game loss, keyed (fingerprint, action, realised coordinate); the retry re-reads
+     the same key (new False); must-fail, a game loss at another fingerprint is a second entry;
      must-fail, the same action at another coordinate on the same board is another key;
      the fingerprint reads board() where the world gives one -- two boards that observe() alike
      get two fingerprints -- else observe(), and the row says which;
@@ -78,8 +79,9 @@ def _play(ag: tether.Agent, snap: snaps.Snap, actions: str) -> str | None:
 
 
 def _ladder(on: bool) -> tether.Agent:
-    """(start of s0, actions): A from 2 dies; the retry of the same board dies the same way;
-    B from 1 dies on another board; B then A from 2 survives (s0 4, 5)."""
+    """(start of s0, actions): A from 2 loses the game; the retry of the same board loses the game
+    the same way;
+    B from 1 loses the game on another board; B then A from 2 survives (s0 4, 5)."""
     # TETHER_RUIN requires this arm (tether refuses the pair at import), so OFF turns off both
     was, tether._RUIN_RECORD = tether._RUIN_RECORD, on
     was_ruin, tether._RUIN = tether._RUIN, tether._RUIN and on
@@ -122,15 +124,16 @@ if __name__ == "__main__":
           f"{[(t['was'], t['class']) for t in terms]}")
     # A
     rep = ag.term.report()
-    assert rep["death_possible"] and "death_possible" in rep["proven"], rep
-    assert rep["endings"] == 4 and rep["capped_seen"], rep          # 3 deaths + the run's cap
+    assert rep["game_loss_possible"] and "game_loss_possible" in rep["proven"], rep
+    assert rep["endings"] == 4 and rep["capped_seen"], rep          # 3 game losses + the run's cap
     print(f"  A: {rep['endings']} endings, class {rep['class']}, proven {rep['proven']}")
     cap = _agent(snaps.Snap(_spec(4)))
     _play(cap, cap.env, "AA")
     cap.end_run("cap")
     rc = cap.term.report()
-    assert not rc["death_possible"] and rc["capped_seen"] and rc["class"] == "open", rc
-    print(f"  must-fail, a cap alone: death_possible {rc['death_possible']}, class {rc['class']}, "
+    assert not rc["game_loss_possible"] and rc["capped_seen"] and rc["class"] == "open", rc
+    print(f"  must-fail, a cap alone: game_loss_possible {rc['game_loss_possible']}, "
+          f"class {rc['class']}, "
           f"assumed {rc['assumed']}")
     win = _agent(snaps.Snap(_spec(4)))
     _play(win, win.env, "A")
@@ -143,12 +146,13 @@ if __name__ == "__main__":
     print(f"  must-fail, WIN + end_run: {one} ending; a step then a cap: 2")
     dd = _agent(snaps.Snap(_spec(2)))
     _play(dd, dd.env, "A")
-    dd.retarget(bind(snaps.Snap(_spec(2))), 1, "death")
+    dd.retarget(bind(snaps.Snap(_spec(2))), 1, "game_loss")
     dd.end_run("time")
     rd = dd.term.report()
-    assert rd["endings"] == 2 and rd["death_possible"] and rd["capped_seen"], rd
-    print(f"  must-fail, a death then the deadline with no step between: {rd['endings']} endings, "
-          f"death_possible {rd['death_possible']}, capped_seen {rd['capped_seen']}")
+    assert rd["endings"] == 2 and rd["game_loss_possible"] and rd["capped_seen"], rd
+    print(f"  must-fail, a game loss then the deadline with no step between: "
+          f"{rd['endings']} endings, "
+          f"game_loss_possible {rd['game_loss_possible']}, capped_seen {rd['capped_seen']}")
     # B
     keys = [(v["fingerprint"], v["action"], v["coord"], v["new"]) for v in vetoes]
     assert len(vetoes) == 3 and len(ag._vetoes) == 2, keys
@@ -165,8 +169,8 @@ if __name__ == "__main__":
             return "A", "probe"
         aimed.choose = _choose
         aimed.step()
-        assert aimed.env.terminal() == "death"
-        aimed.retarget(bind(Positioned(_spec(2))), aimed.level + 1, "death")
+        assert aimed.env.terminal() == "game_loss"
+        aimed.retarget(bind(Positioned(_spec(2))), aimed.level + 1, "game_loss")
     av = _ev(aimed, "veto")
     assert [v["coord"] for v in av] == [[1, 2], [5, 6]], av
     assert av[0]["fingerprint"] == av[1]["fingerprint"] and len(aimed._vetoes) == 2, av
@@ -177,7 +181,7 @@ if __name__ == "__main__":
         b = Boarded(_spec(2), hidden)
         bag = _agent(b)
         _play(bag, b, "A")
-        bag.retarget(bind(Boarded(_spec(2), hidden)), 1, "death")
+        bag.retarget(bind(Boarded(_spec(2), hidden)), 1, "game_loss")
         fps.append((_ev(bag, "veto")[0], bag._fingerprint({"s0": 2, "s1": 0})))
     (v0, _), (v1, _) = fps
     assert v0["fingerprint_of"] == v1["fingerprint_of"] == "board", fps

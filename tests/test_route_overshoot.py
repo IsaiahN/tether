@@ -39,8 +39,11 @@ ag.slot_types[sl] = "POSITION"
 ag._hyp = None
 ag._goal_choice = lambda why=None, book=False: sl
 ag._goal_target = lambda s, bf: bf[s] + 1        # sb26's receding target: one above the value
+# r1185: the intent STATES its target (R-C's seam): only a specific aim can pass its target --
+# a general one reads any right-way move as reached (the reviewer 2026-10-24 09:30, 09:37)
+ag._intent_aim = lambda s, t: "specific"
 ag.iface.realise = (lambda want, offered, ctx, state=None, env=None,
-                    withheld=IFace.NO_WITHHELD, cell=True:
+                    withheld=IFace.NO_WITHHELD, cell=True, asker=None:
                     IFace.Realisation(offered[0], why="probe: first offered") if offered else None)
 IFace.Interface.context = staticmethod(lambda env, actor=None: (("probe", 1),))
 ag._route_refused, ag._route_run, ag._test = {}, {}, None
@@ -83,10 +86,11 @@ def main() -> None:
     print("  OFF:", json.dumps(off, default=str)[:400])
     assert on["arm"] is True and off["arm"] is False, "the switch did not reach the module"
     first = on["presses"][0]
-    # OCCASIONS: a goal-exit press graded "farther" that moved WITH the intent's sign
-    assert first["action"] is not None and first["outcome"] == "farther", (
-        "occasion: no farther", first)
-    assert str(first["intent"]).endswith(" +") and first["after"] > first["before"], (
+    # OCCASIONS: a goal-exit press that moved WITH the intent's sign and passed its stated target,
+    # graded "overshot" by R-C (r1185: refined from "farther", the grading R-C replaced)
+    assert first["action"] is not None and first["outcome"] == "overshot", (
+        "occasion: no overshoot", first)
+    assert "+" in str(first["intent"]) and first["after"] > first["before"], (
         "occasion: the press did not move with the intent's sign", first)
     assert first["target"] == first["before"] + 1, ("occasion: not sb26's receding target", first)
     print(f"  occasions: 1 overshoot press (before {first['before']}, after {first['after']}, "
@@ -95,7 +99,10 @@ def main() -> None:
     # THE RULE: the overshoot must NOT refuse the route at once. What the next press does is
     # PRINTED, not asserted: asserting it would presume option A (the reviewer 07:28)
     print(f"  next press ON: {json.dumps(on['presses'][1], default=str)}")
-    assert not [r for r in on["refused"] if r.get("why") == "farther"], (
+    # r1185: the OVERSHOOTING route (the first press's intent) is never refused at once. R-C's
+    # correction is a route of its own; the stub world moves it the wrong way, and R-B refuses it
+    said = str(first["intent"]).split(" -> ")[0]
+    assert not [r for r in on["refused"] if r.get("why") == "farther" and r["intent"] == said], (
         "ON: a right-way overshoot refused the route at once", on["refused"])
     print("route_overshoot: OK")
 

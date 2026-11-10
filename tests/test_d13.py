@@ -9,10 +9,10 @@ states bet on GROUND outcomes and each bet settles only at a level or game endin
   D3-c. a park bet is graded on the slot's last CHANGE after the park (the reviewer 00:14Z): a
      parked slot that never moves again settles None, where the last-bet rule read it right;
   D1. a plan bet is about the ground: the same bet settles right on "level_advance", wrong on
-      "death";
+      "game_loss";
   OFF/ON: every row but the process rows is identical, so nothing chooses from it -- read by
      conform/identity_mod_rows.compare, which maps every position field through the inserted
-     rows' shift and applies the shared BIRTH and TIMINGS masks (the reviewer 2026-10-22 00:45).
+     rows' shift and applies the shared START and TIMINGS masks (the reviewer 2026-10-22 00:45).
      The test's own strip dropped only seq and shadow.recorded_before, so resolution's
      signal_seq (shifted by the process rows) failed it (83 vs 80 on seed 5).
 
@@ -89,11 +89,47 @@ def _agent():
 
 
 if __name__ == "__main__":
-    # C-seed-X (the reviewer 2026-10-15 15:27): two separately born agents compared, so one
+    # C-seed-X (the reviewer 2026-10-15 15:27): two separately started agents compared, so one
     # temperament: the old constant seed, a replay-style constant inside a test
     tether._AGENT_SEED = False
     tether.Agent.__init__ = _init
     tether.Agent._settle_process = _guarded
+    # r1562 (B): retarget books the ended attempt's settle to that attempt's last cycle (r1565:
+    # 'attempt', never 'life'), so the next step's own process_bet on "@process", at the same
+    # cycle number, follows it in step order
+    from contextlib import contextmanager
+
+    import gate
+
+    @contextmanager
+    def _no_booking(_self):
+        yield
+
+    def _booked(no_scope: bool):
+        tether._D13 = True
+        real_tb = tether.Agent._tail_booking
+        if no_scope:
+            tether.Agent._tail_booking = _no_booking
+        try:
+            ag = _agent()
+            sl = sorted(ag.slots)[0]
+            ag._park_bet(sl, {"verdict": "under_floor"})
+            c0 = ag.cycle
+            ag.retarget(ag.env, ag.level, how="game_loss")
+            with ag._step_scope("MINT"):
+                ag._process_bet("parked_explained", sl)   # the next step's own bet
+        finally:
+            tether.Agent._tail_booking = real_tb
+        cyc = {r["cycle"] for r in ag.led.rows() if r["event"] == "process_settle"}
+        return c0, cyc, gate._steps(ag.led.rows())
+    c0, cyc, out = _booked(False)
+    assert cyc == {c0 - 1} and out is None, (c0, cyc, out)
+    _c, cyc_mf, out_mf = _booked(True)
+    assert cyc_mf == {_c} and out_mf is not None, ("MUST-FAIL did not fail", cyc_mf, out_mf)
+    print(f"  r1562: a game loss at cycle {c0} books its process_settle at {c0 - 1}; "
+          f"the next bet on "
+          f"'@process' passes _steps. MUST-FAIL (no booking scope): settled at {_c}, "
+          f"{out_mf['note']}")
     for seed in (5, 7):
         on = _ladder(seed, True)
         bets = [r["detail"] for r in on if r["event"] == "process_bet"]
@@ -123,11 +159,11 @@ if __name__ == "__main__":
     assert not [r for r in ag.led.rows()[n0:] if r["event"] == "process_settle"]
     a1 = _agent()
     a1._park_bet(slot, {"verdict": "under_floor"})
-    a1._settle_process("level", "death")
+    a1._settle_process("level", "game_loss")
     a2 = _agent()
     a2._park_bet(slot, {"verdict": "under_floor"})
     a2.owed_import = set()
-    a2._settle_process("level", "death")
+    a2._settle_process("level", "game_loss")
     g1 = [r["detail"]["right"] for r in a1.led.rows() if r["event"] == "process_settle"]
     g2 = [r["detail"]["right"] for r in a2.led.rows() if r["event"] == "process_settle"]
     assert g1 == g2 and len(g1) == 1, (g1, g2)
@@ -148,20 +184,20 @@ if __name__ == "__main__":
                 a.get("actual") == a.get("from_value") for a in after):
             quiet.append(sl)
     assert quiet, "fixture: no slot stayed still after the park, so D3-c would be vacuous"
-    q._settle_process("level", "death")
+    q._settle_process("level", "game_loss")
     got = {r["detail"]["about"]: r["detail"]["right"] for r in q.led.rows()
            if r["event"] == "process_settle"}
     assert all(got[sl] is None for sl in quiet), {sl: got[sl] for sl in quiet}
     print(f"  D3-c: {len(quiet)} parked slots never moved after the park; their last bet paid "
           f"(the old rule read right), and each settles None")
     out = []
-    for how in ("level_advance", "death"):
+    for how in ("level_advance", "game_loss"):
         p = _agent()
         p._process_bet("plan_clears", slot, plan_no=1, need=3)
         p._settle_process("level", how)
         out.append([r["detail"]["right"] for r in p.led.rows()
                     if r["event"] == "process_settle"][0])
     assert out == [True, False], out
-    print("  D1: the same plan bet settles right on 'level_advance' and wrong on 'death'")
+    print("  D1: the same plan bet settles right on 'level_advance' and wrong on 'game_loss'")
     tether._D13 = False
     print("ok")

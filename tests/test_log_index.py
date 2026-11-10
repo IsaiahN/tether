@@ -49,7 +49,7 @@ def ledger(p: Path, header: bool, n: int = 40, torn: bool = False) -> Path:
     rows += [{"mode": "specified", "seq": i + 1, "cycle": i // 4, "step": "PERCEIVE",
               "slot": f"o{i % 3}.col", "event": "bet", "detail": {"v": i}} for i in range(n)]
     rows.append({"mode": "specified", "seq": n + 1, "cycle": n // 4, "step": "IMPORT",
-                 "slot": "@boundary", "event": "ending", "detail": {"how": "death"}})
+                 "slot": "@boundary", "event": "ending", "detail": {"how": "game_loss"}})
     text = "".join(json.dumps(r) + "\n" for r in rows)
     if torn:
         text += '{"mode": "specified", "seq": 99, "cyc'

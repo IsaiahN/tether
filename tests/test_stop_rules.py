@@ -1,5 +1,5 @@
 """1c STOP_RULES (TETHER_STOP_RULES, default ON; the reviewer 2026-10-29 r325, r327, r337, r338).
-On a stepped gridworld agent (default seed 0, birth seed pinned) whose space record is replaced by a
+On a stepped gridworld agent (default seed 0, start seed pinned) whose space record is replaced by a
 stub S1, so each rule meets exactly its occasion. Each check runs in its own process, under 5
 minutes.
   check_i_held                    one survivor with a risky settle under the space's current key:

@@ -4,7 +4,7 @@ kind touches find two objects that move others).
   The actuator with the larger credited change is continued first, through a TOUCH of it; a press
   that yields no credited change refutes it (arrived without a clear) and the other actuator is
   continued next; an actuator whose whole effect is the per-press baseline (what every press of
-  the board changed) is not continued; a new_board boundary clears the actuators and a death
+  the board changed) is not continued; a new_board boundary clears the actuators and a game loss
   keeps them; with the arm OFF no press is chosen as "actuator" (the must-fail).
 
     python tests/test_goal_from_actuator.py
@@ -55,8 +55,8 @@ def main():
     finally:
         tether._BASELINE_FROM_OTHERS = True
     ag._press_every = None
-    ag.retarget(env, ag.level, how="death")
-    assert ag._actuators and first in ag._act_refuted, "a death keeps the actuators"
+    ag.retarget(env, ag.level, how="game_loss")
+    assert ag._actuators and first in ag._act_refuted, "a game loss keeps the actuators"
     ag.retarget(env, ag.level, how=tether.NEW_BOARD)
     assert not ag._actuators and not ag._act_refuted, "a new board's actuators start empty"
     tether._GOAL_FROM_ACTUATOR = False
@@ -68,7 +68,7 @@ def main():
     assert not off, ("must-fail: actuator goals with the arm OFF", len(off))
     print(f"test_goal_from_actuator: actuators {({o: v[:2] for o, v in acts.items()})}; {first} "
           f"continued first, refuted on no change, then {second}; none whose effect is the "
-          f"per-press baseline; cleared at new_board, kept at death; none with the arm OFF")
+          f"per-press baseline; cleared at new_board, kept at game loss; none with the arm OFF")
 
 
 if __name__ == "__main__":

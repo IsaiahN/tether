@@ -10,9 +10,9 @@ the kind name. Each check runs in its own process, by name.
   check_two_by_three  the reviewer's 2x3 check: on the fake ARC game, instances retired at a
                       break (TETHER_INSTANCE_RETIRE), then saved and loaded into a fresh agent:
                       the kind's settle and refute counts after the load equal those after the
-                      in-life retire
+                      retire within this game series
   check_off_identity  the arm OFF writes the same generation (content, handles aside) and the same
-                      load report as 6b6c5bb on a gridworld life
+                      load report as 6b6c5bb on a gridworld game series
     python tests/test_kind_save.py [check ...]
 """
 from __future__ import annotations
@@ -35,7 +35,7 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 
 BASE = "6b6c5bb"      # the tree before the arm
-N, LIVES = 20, 2
+N, GAME_SERIES_N = 20, 2
 OID = re.compile(r"\bo\d+\b")
 
 
@@ -50,7 +50,7 @@ def _gridworld_agent():
                         ledger.Ledger())
 
 
-def _life(d, n):
+def _game_series(d, n):
     import lineage
     ag = _gridworld_agent()
     rep = lineage.load(d, ag)
@@ -74,17 +74,17 @@ def check_gridworld() -> None:
         lineage._KIND_SAVE = arm
         d = tmp / ("on" if arm else "off")
         d.mkdir()
-        for i in range(LIVES):
-            a, _ = _life(d, N + 5 * i)
+        for i in range(GAME_SERIES_N):
+            a, _ = _game_series(d, N + 5 * i)
             lineage.write(d, a, "default")
-        b, rep = _life(d, 0)
+        b, rep = _game_series(d, 0)
         out[arm] = (d, b, rep)
     lineage._KIND_SAVE = True
     (d_on, b_on, r_on), (d_off, b_off, r_off) = out[True], out[False]
     g_on, g_off = lineage._read(d_on), lineage._read(d_off)
     inst_al = [a["was"] for g in g_off.values() for a in g.get("aliases", [])
                if OID.search(a["was"])]
-    assert inst_al, "MUST-FAIL occasion: the OFF lives wrote no instance alias"
+    assert inst_al, "MUST-FAIL occasion: the OFF game series wrote no instance alias"
     on_al = [a["was"] for g in g_on.values() for a in g.get("aliases", []) if OID.search(a["was"])]
     on_ev = [e[1] for g in g_on.values() for e in g.get("evidence", []) if OID.search(str(e[1]))]
     on_was = [r["was"] for g in g_on.values() for r in g["terms"] if OID.search(str(r.get("was")))]
@@ -98,7 +98,8 @@ def check_gridworld() -> None:
     rp_on, rp_off = dict(r_on["replayed"]), dict(r_off["replayed"])
     assert (rp_on["settle"], rp_on["refute"]) == (rp_off["settle"], rp_off["refute"]), (rp_on,
                                                                                          rp_off)
-    print(f"  gridworld {LIVES} lives per arm: OFF wrote {len(inst_al)} instance aliases (e.g. "
+    print(f"  gridworld {GAME_SERIES_N} game series per arm: OFF wrote {len(inst_al)} instance "
+          f"aliases (e.g. "
           f"{inst_al[0]!r}); ON 0 instance aliases, 0 instance evidence names, 0 instance 'was'; "
           f"last load: library {len(lib_on)} = {len(lib_off)}, standing 0 differing; replay "
           f"ON {rp_on} / OFF {rp_off}")
@@ -169,8 +170,9 @@ def check_two_by_three() -> None:
         return None if s is None else (round(s.confirmations, 6), round(s.refusals, 6),
                                        round(s.rejections, 6), round(sum(s.paid.values()), 6),
                                        g.is_settled(k), k in g.innate)
-    in_life = {k: counts(ag.gamma, k) for k in kinds}
-    assert all(v and v[0] > 0 for v in in_life.values()), ("the kinds took no evidence", in_life)
+    in_game_series = {k: counts(ag.gamma, k) for k in kinds}
+    assert all(v and v[0] > 0 for v in in_game_series.values()), (
+        "the kinds took no evidence", in_game_series)
     lineage.write(d, ag, "fake")
     gens = lineage._read(d)
     assert not any(OID.search(a["was"]) for g in gens.values() for a in g.get("aliases", []))
@@ -178,9 +180,11 @@ def check_two_by_three() -> None:
     _env2, ag2, *_ = arc_holdout.wire(w2, "fake")
     rep = lineage.load(d, ag2)
     after_load = {k: counts(ag2.gamma, k) for k in kinds}
-    assert after_load == in_life, ("2x3: the break and the load disagree", in_life, after_load)
+    assert after_load == in_game_series, (
+        "2x3: the break and the load disagree", in_game_series, after_load)
     print(f"  2x3: {ret[0]['detail']['retired']} instances retired at the break; kinds "
-          f"(confirmations, refusals, rejections) in life {in_life} == after save + fresh load "
+          f"(confirmations, refusals, rejections) in game series {in_game_series} == after save "
+          f"+ fresh load "
           f"{after_load}; replay {rep.get('replayed')}")
 
 

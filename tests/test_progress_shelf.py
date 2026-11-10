@@ -4,7 +4,8 @@ gates (r392): one must-fail, one must-hold, each in its own process.
                           shrank counts one progress at _note_progress, and a close without a
                           clear shelves it {won 0, lost 0, progress 1}; with the arm off nothing
                           is counted and the close drops it
-  check_off_identity      TETHER_PROGRESS_SHELF=0 (off_env) against af6f0cd, fake, whole-run
+  check_off_identity      TETHER_PROGRESS_SHELF=0 (off_env) against af6f0cd, fake, whole-run --
+                          LANDING-TIME only (TETHER_TEST_LANDING=1; r1236)
     python tests/test_progress_shelf.py [check ...]
 """
 from __future__ import annotations
@@ -60,8 +61,16 @@ def check_mustfail_shelves() -> None:
 
 def check_off_identity() -> None:
     import io
+    import os
     import tarfile
     import tempfile
+
+    # LANDING-TIME (the red window, r1236; r1170): an identity against a FROZEN base stays green
+    # only until the next default-ON arm. The suite's ON-vs-OFF at one tree is the must-fail
+    if os.environ.get("TETHER_TEST_LANDING") != "1":
+        print(f"  SKIP OFF identity: landing-time identity vs {BASE} (r1170, r1236); run with "
+              "TETHER_TEST_LANDING=1")
+        return
 
     from _batch import off_env
     root = str(_repo.ROOT)

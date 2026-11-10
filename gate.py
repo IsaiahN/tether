@@ -22,6 +22,7 @@ PASS, REFUSE = "pass", "refuse"
 NO_STEP = "no-step"
 STEP_ORDER = "step-order"
 MISSING_INPUT = "missing-input"
+IMPORTED_STAMP = "imported"     # an inherited term's pull "admitted"; test_gate pins it
 UNROUTED = "unrouted"
 DOUBLE_ROUTED = "double-routed"
 NO_DISCRIMINATOR = "no-discriminator"
@@ -31,7 +32,9 @@ NO_MODE = "no-mode"
 FILTER_VERDICT = "filter-verdict"
 IRREVERSIBLE_CUT = "irreversible-cut"
 UNREACHED_UNMEASURED = "unreached-unmeasured"
-UNDECLARED_DEATH = "undeclared-death"
+UNDECLARED_GAME_LOSS = "undeclared-game-loss"
+# r1571: a ledger from before the rename says "death"; the gate reads both, build-blind
+GAME_LOSS_WORDS = ("game_loss", "death")
 REFUSED_UNBOUND = "refused-unbound"
 ABANDONED_ON_ANOTHERS_CLAIM = "abandoned-on-anothers-claim"
 JUDGED_ON_ANOTHER_ACT = "judged-on-another-act"
@@ -143,9 +146,23 @@ def _inputs(rows: list[dict]) -> dict | None:
             # step running (ROUTE from the library pull, MINT from the sweep, which runs inside
             # mint; the reviewer 2026-10-16 09:14); since P1 it is a candidate, so it may settle
             accepted.add(str(r.get("detail", {}).get("term")))
-        elif ev == "settle" and str(r.get("detail", {}).get("term")) not in accepted:
+        elif ev == "pull" and _bound_stamp(r.get("detail", {})) == IMPORTED_STAMP:
+            # r1490 (the reviewer 2026-11-08): an inherited term's arrival is its inheritance,
+            # recorded on its pull; a term minted in this game series keeps its own accept. The
+            # reuse_install clause above (2026-10-16 09:14) reads a library pull the same way
+            accepted.add(str(r.get("detail", {}).get("term")))
+        elif ev in ("settle", "settle_tied") and (
+                str(r.get("detail", {}).get("term")) not in accepted):
+            # a tied settle (the ground held, no change would also have held) is still the
+            # ground judging a term, so it too needs the term's accept (the reviewer r1595 (2))
             return _v("inputs", MISSING_INPUT, r.get("seq"), "settle without accept")
     return None
+
+
+def _bound_stamp(d: dict):
+    """r1493: a pull's "admitted" is the HELD name's stamp; "term_admitted", when the row has it,
+    is the stamp of the name it binds, and that is the one that arrived. Older rows lack it."""
+    return d["term_admitted"] if "term_admitted" in d else d.get("admitted")
 
 
 def _routing(rows: list[dict]) -> dict | None:
@@ -168,7 +185,7 @@ def _routing(rows: list[dict]) -> dict | None:
                 return _v("routing", DOUBLE_ROUTED, r.get("seq"), slot)
             if not d.get("why_not"):
                 return _v("routing", NO_DISCRIMINATOR, r.get("seq"), slot)
-    for k in live:
+    for k in sorted(live, key=str):         # r1400: the first unrouted, one order
         if k not in routed:
             return _v("routing", UNROUTED, None, f"cycle {k[0]} slot {k[1]}")
     return None
@@ -254,33 +271,33 @@ def _unreached(rows: list[dict]) -> dict | None:
 
 
 def _experiment(rows: list[dict]) -> dict | None:
-    """10. A DELIBERATE death states its disproof BEFORE the action. §21.2's discriminator.
+    """10. A DELIBERATE game loss states its disproof BEFORE the action. §21.2's discriminator.
 
-    *If a death costs actions and returns you to a known board, choosing to die is a way of
+    *If a game loss costs actions and returns you to a known board, choosing a game loss is a way of
     buying an experiment* -- **and it is one step from farming**, which this project has
     already been burned by: `bounds.py` exists because *the Redux harness once force-RESET on
     GAME_OVER to farm ~18 unearned attempts*. §21.2 keeps them apart with two checkable
     things, and this is the second: *an experiment states its hypothesis AND ITS DISPROOF
     BEFORE the action; farming states nothing and just wants the board back.*
 
-    **ONLY A DEATH THE AGENT CHOSE IS IN SCOPE.** A world-inflicted GAME_OVER is not a bypass
+    **ONLY A GAME LOSS THE AGENT CHOSE IS IN SCOPE.** A world-inflicted GAME_OVER is not a bypass
     of anything and declaring it would be theatre, so the check reads `deliberate` -- which
-    the loop sets only when it acted FOR the ending. **A death with no such mark is not
+    the loop sets only when it acted FOR the ending. **A game loss with no such mark is not
     examined**, and that exemption is data on the row rather than logic here.
 
     The first check whose subject arrives with the item that needed it: before deliberate
-    death exists there is nothing to examine, and a control that examines nothing cannot
+    game loss exists there is nothing to examine, and a control that examines nothing cannot
     demonstrate a clean state.
     """
     for r in rows:
         d = r.get("detail", {})
-        if r.get("event") != "ending" or d.get("how") != "death":
+        if r.get("event") != "ending" or d.get("how") not in GAME_LOSS_WORDS:
             continue
         if not d.get("deliberate"):
             continue                      # world-inflicted: not this check's subject
         if not d.get("disproof"):
-            return _v("experiment", UNDECLARED_DEATH, r.get("seq"),
-                      "a chosen death with no disproof stated before it")
+            return _v("experiment", UNDECLARED_GAME_LOSS, r.get("seq"),
+                      "a chosen game loss with no disproof stated before it")
     return None
 
 

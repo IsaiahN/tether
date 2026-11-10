@@ -16,7 +16,7 @@ process (arms resolve at import).
   MF1  CHECK with a deliberately wrong n (+1 before the flush) raises
   MF2  CHECK with a tally key that drops "frontier" (a decision field) raises: two rows that differ
        in it were merged
-  MF-LIFE  L with end_run's flush removed: the end repeats are lost (1 of 3)
+  MF-SERIES  L with end_run's flush removed: the end repeats are lost (1 of 3)
     python tests/test_choice_tally.py
 """
 from __future__ import annotations
@@ -109,7 +109,7 @@ def _left_w(self, term, slot, hist, *a, **k):
     row(self.led, self.cycle, slot, [[repr(len(hist) % 3), 0.0, 1]],
         step=self._running_step)          # labelled as the real writer labels (tether.py:8216)
     _calls[self.cycle] = _calls.get(self.cycle, 0) + 1
-    if mode.startswith("life") and self.cycle == 7 and _calls[7] == 80:
+    if mode.startswith("game_series") and self.cycle == 7 and _calls[7] == 80:
         raise cap.CapReached()       # a cut mid-step, after this step's repeats began
     return _left_(self, term, slot, hist, *a, **k)
 tether.Agent._left = _left_w
@@ -117,10 +117,10 @@ env = world.bind(panel._gridworld("gridworld_arc_s1")[0])
 ag = tether.Agent(env, gamma.Gamma(env.atoms(), game="tally"), tether.Config(), ledger.Ledger())
 for _ in range(15 if mode == "plant" else 9):
     ag.step()
-if mode.startswith("life"):
+if mode.startswith("game_series"):
     for _ in range(3):
         row(ag.led, ag.cycle, "o9.z", [["'7'", 0.0, 7]])    # repeats written outside any step
-    if mode == "life_mf":
+    if mode == "game_series_mf":
         ag.led.flush_tally = lambda cycle: None             # end_run's flush removed
     ag.end_run("cap")
 print(json.dumps({"on": ledger._CHOICE_TALLY, "check": ledger._CHOICE_TALLY_CHECK,
@@ -263,9 +263,9 @@ def main() -> None:
           f"{len(per_key(off['rows']))} keys, the same count per key; acting rows equal; other "
           f"rows equal (wall_s dropped, cited seqs ranked); gate {g[0]['verdict']} on all three; "
           "CHECK clean")
-    lo = child("life", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
-    lf = child("life", TETHER_CHOICE_TALLY="0")
-    mf = child("life_mf", TETHER_CHOICE_TALLY="1")
+    lo = child("game_series", TETHER_CHOICE_TALLY="1", TETHER_CHOICE_TALLY_CHECK="1")
+    lf = child("game_series", TETHER_CHOICE_TALLY="0")
+    mf = child("game_series_mf", TETHER_CHOICE_TALLY="1")
     ev = [r["event"] for r in lo["rows"]]
     cut_c = next(r["cycle"] for r in lo["rows"] if r["event"] == "cap_mid_step")
     # the cut at cycle 7 (of 9 steps, from the measured per-cycle _left counts) leaves one step
@@ -275,21 +275,24 @@ def main() -> None:
                for r in lo["rows"]), "L: treatment, no tally row for the cut step"
     kz = [k for k in per_key(lf["rows"]) if '"o9.z"' in k]
     assert len(kz) == 1 and per_key(lf["rows"])[kz[0]] == 3, ("L: OFF's end rows", kz)
-    assert per_key(lo["rows"]) == per_key(lf["rows"]), "L: per-key counts after a cut and life end"
+    assert per_key(lo["rows"]) == per_key(lf["rows"]), (
+        "L: per-key counts after a cut and game series end")
     assert acting(lo["rows"]) == acting(lf["rows"]) and rest(lo["rows"]) == rest(lf["rows"]), "L"
     gl = [gate.check(x["rows"]) for x in (lo, lf)]
     assert [v["verdict"] for v in gl] == ["pass", "pass"], ("L: the gate's accepting path", gl)
-    # MF-LIFE's occasion (the sweep, 2026-10-23): in the guarded life the o9.z key has ONE row
-    # and a choice_tally row referring to it with n == 2, so two repeats were pending at end_run
+    # MF-SERIES's occasion (the sweep, 2026-10-23): in the guarded game series the o9.z key has
+    # ONE row and a choice_tally row referring to it with n == 2, so two repeats were pending at
+    # end_run
     oz = [r for r in lo["rows"] if r["event"] == "choice" and r["slot"] == "o9.z"]
     tz = [r for r in lo["rows"] if r["event"] == "choice_tally" and oz
           and r["detail"]["ref"] == oz[0]["seq"]]
-    assert len(oz) == 1 and len(tz) == 1 and tz[0]["detail"]["n"] == 2, ("MF-LIFE occasion", oz, tz)
-    assert per_key(mf["rows"])[kz[0]] == 1, ("MF-LIFE: end_run without its flush kept the total",
+    assert len(oz) == 1 and len(tz) == 1 and tz[0]["detail"]["n"] == 2, (
+        "MF-SERIES occasion", oz, tz)
+    assert per_key(mf["rows"])[kz[0]] == 1, ("MF-SERIES: end_run without its flush kept the total",
                                               per_key(mf["rows"])[kz[0]])
     print(f"  L: a cut at cycle {cut_c} mid-tally, {ev.count('after_cut')} after_cut steps, "
           f"3 repeats outside a step, end_run: per-key counts, acting and other rows equal ON "
-          f"(CHECK) and OFF; gate {gl[0]['verdict']} on both. MF-LIFE: end_run without its "
+          f"(CHECK) and OFF; gate {gl[0]['verdict']} on both. MF-SERIES: end_run without its "
           "flush shows 1 of 3")
     print("choice_tally: OK")
 

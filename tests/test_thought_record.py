@@ -65,7 +65,7 @@ def main():
     assert A._thought_of(ag, "tried", k1) == {"e0": 1, "e1": 1, "e2": 1, "e3": 1}
     assert A._thought_of(ag, "paid", k1) == {"e3": 1}, "M-a: paid counted"
     ag._thought_in["paid"][k1] = {"e3": 2}
-    assert A._thought_of(ag, "paid", k1) == {"e3": 3}, "M-a: carried + this life"
+    assert A._thought_of(ag, "paid", k1) == {"e3": 3}, "M-a: carried + this game series"
     got = rank(ag, lit)
     assert got[0] == "e3" and got[1] == "e4" and got[2:] == ["e0", "e1", "e2"], (
         "M-b: paid first, untried next, tried-never-paid last, none dropped", got)

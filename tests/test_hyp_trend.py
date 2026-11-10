@@ -11,7 +11,12 @@ hypothesis is held, the arm toggled at the call (each flag is read where it is u
   T3 ORDER (TETHER_GOAL_HYPOTHESES): with System 0 forced active, the hypothesis's route is taken
      ON (discriminate:goal) and System 0 acts OFF.
   T4 CLOCK (TETHER_GOAL_HYPOTHESES): a slot moved by -2 under every action is refused as
-     self-moving ON and accepted OFF; a slot moved only under one action is accepted ON.
+     self-moving ON and accepted OFF; a slot moved only under one action is accepted ON -- with
+     TETHER_ONE_TERM off. With it on (r1453 (c), the reviewer r1458) the clock's pairs are written
+     on their other party, so nothing is refused: no admitted candidate has the clock as its
+     subject, "subject from the other spelling" > 0, the pick unchanged; with the self-moving
+     check off some admitted pair does take the clock (non-vacuity), and a check stubbed to pass
+     lets it in (must-fail).
   T5 THE CLICK BOARD (19:54 (c)): one positioned action and the platform's RESET, never pressed: a
      +1-every-click slot is self-moving after clicks landing in two places, not after one; a slot
      moved only where the click lands on one object is not.
@@ -59,7 +64,9 @@ def trend(on, reads):
     ag = fresh()
     h, sl = ag._hyp, ag._hyp["slots"][0]
     n0 = len(ends(ag))
-    h.update(steps=0, budget=99, reads={s: list(reads) for s in h["slots"]}, seg={})
+    # Build 5 red window: the last press was the hypothesis's OWN (P2' (ii), _HYP_OWN_PRESS) --
+    # else _hyp_check counts it "elsewhere" and returns before the trend is read
+    h.update(steps=0, budget=99, reads={s: list(reads) for s in h["slots"]}, seg={}, own_last=True)
     for s in h["slots"]:
         ag._res[s] = [reads[-1]]            # open: neither touched nor confirmed
     tether._GOAL_HYP = on
@@ -74,6 +81,7 @@ def trend(on, reads):
 def hold(on):
     ag = fresh()
     h, sl = ag._hyp, ag._hyp["slots"][0]
+    h["own_last"] = True        # the hypothesis's own press: note_goals reads only those (P2' (ii))
     ag._res[sl] = [0.5, 0.4]
     orig = ag.goal_residual
 
@@ -95,10 +103,13 @@ def hold(on):
 def order(on):
     ag = fresh()
     before = ag.env.observe()
-    sl = ag._hyp["slots"][0]
+    # r1191 (b): the held slot with a route (16c holds a symmetric goal through the side that has
+    # one), the first held slot when none has
+    sl = next((s for s in ag._hyp["slots"] if ag._hyp_route(s, before)), ag._hyp["slots"][0])
     ag._res[sl] = [0.6, 0.5]
     route = ag._hyp_route(sl, before)
     ag.routine, ag._routine_next = None, None
+    ag._try_first_open = lambda: 0    # the board's TRY_FIRST hold would defer the goal exit first
     ag._system0_active = lambda: True
     ag._exit_choice = lambda b: ("system0", None, None)
     tether._GOAL_HYP = on
@@ -109,7 +120,7 @@ def order(on):
     return {"route": route, "act": act, "by": by}
 
 
-def clock(on):
+def clock(on, one=False, stub=False, group=False):
     ag = fresh()
     ag._hyp_end("lost")
     before = ag.env.observe()
@@ -121,16 +132,35 @@ def clock(on):
         af["o0.row"] = b["o0.row"] + (1 if a == acts[-1] else 0)
         planted.append((b, a, af, None, None))
     ag.trace = planted
-    tether._GOAL_HYP = on
+    admitted = []                      # the admitted candidates' written subjects (r1458)
+    real_fc = ag._family_counts
+
+    def fc(ranked, *a, **k):
+        admitted.extend((getattr(x[2], "slot", None), isinstance(x[2], tether._Pair))
+                        for x in ranked)
+        return real_fc(ranked, *a, **k)
+    ag._family_counts = fc
+    was = tether._GOAL_HYP, tether._ONE_TERM, tether._GROUP_SUBJECT
+    tether._GOAL_HYP, tether._ONE_TERM, tether._GROUP_SUBJECT = on, one, group
     try:
         out = {"col": ag._self_moving("o0.col"), "row": ag._self_moving("o0.row")}
+        if stub:                       # the must-fail: the self-moving check passes everything
+            ag._self_moving = lambda *_a, **_k: False
         ag._hyp_tried = {}
         ag._hyp_propose(before)
     finally:
-        tether._GOAL_HYP = True
+        tether._GOAL_HYP, tether._ONE_TERM, tether._GROUP_SUBJECT = was
     row = [r["detail"] for r in ag.led.rows() if r["event"] == "goal_hypotheses"][-1]
     out["refused"] = row["refused"].get("self-moving subject", 0)
     out["open"] = row["open"]
+    out["pick"] = row.get("pick")
+    out["admitted"] = len(admitted)
+    # singles (one compiled comparison: what ONE TERM writes) apart from group rows, which no
+    # self-moving check has ever read (24d4349 admits the same "ALL kind(o0): o0.col ..." rows)
+    out["clock_subject"] = sum(1 for s, grp in admitted if s == "o0.col" and not grp)
+    out["clock_group"] = sum(1 for s, grp in admitted if s == "o0.col" and grp)
+    out["other_spelling"] = (row.get("one_term") or {}).get("subject from the other spelling", 0)
+    out["group_refused"] = {k: v for k, v in row["refused"].items() if k.startswith("group:")}
     return out
 
 
@@ -158,7 +188,10 @@ print(json.dumps({
     "t1_fall_on": trend(True, [0.5 - 0.1 * i for i in range(W)]),
     "t2_on": hold(True), "t2_off": hold(False),
     "t3_on": order(True), "t3_off": order(False),
-    "t4_on": clock(True), "t4_off": clock(False), "t5": click()}, default=str))
+    "t4_on": clock(True), "t4_off": clock(False),
+    "t4_one": clock(True, one=True, group=True), "t4_one_ungrouped": clock(True, one=True),
+    "t4_one_unchecked": clock(False, one=True, group=True),
+    "t4_one_mf": clock(True, one=True, stub=True, group=True), "t5": click()}, default=str))
 '''
 
 
@@ -177,13 +210,33 @@ def main() -> None:
     assert r["t2_off"]["len"] == 0 and r["t2_off"]["held_unreadable"] == 0, r["t2_off"]
     assert r["t3_on"]["by"] == "discriminate:goal" and r["t3_on"]["act"] == r["t3_on"]["route"], r
     assert r["t3_off"]["by"] == "system0", r["t3_off"]
+    # T4's OFF half runs under TETHER_ONE_TERM off: every pair written both ways, as 24d4349
     assert r["t4_on"]["col"] is True and r["t4_on"]["row"] is False and r["t4_on"]["refused"], r
     assert not r["t4_off"]["refused"], r
     assert r["t4_off"]["open"] > r["t4_on"]["open"], (r["t4_on"], r["t4_off"])
+    # T4's ON half (r1458): under ONE TERM the clock is kept out by CHOOSING the subject, so no term
+    # is refused "self-moving subject" -- the pair is written on its other party. What is protected
+    # is that the clock is never a written subject, read at the ADMITTED candidates.
+    one, nv, mf = r["t4_one"], r["t4_one_unchecked"], r["t4_one_mf"]
+    assert one["admitted"] and one["clock_subject"] == 0 and one["other_spelling"] > 0, one
+    assert one["pick"] == r["t4_on"]["pick"], (one, r["t4_on"])
+    # non-vacuity: with the self-moving check off, some admitted pair does take the clock as subject
+    assert nv["clock_subject"] > 0, nv
+    # must-fail: the check stubbed to pass lets the clock in as a written subject
+    assert mf["clock_subject"] > 0, ("MUST-FAIL: a passing check kept the clock out", mf)
     assert r["t5"] == {"one_place": False, "two_places": True, "mover_at_one_place": False}, r["t5"]
     print(f"test_hyp_trend: pass (T1 flat ON {r['t1_flat_on']['end']}, OFF held, falling ON held; "
           f"T2 series ON {r['t2_on']}, OFF {r['t2_off']}; T3 ON {r['t3_on']}, OFF {r['t3_off']}; "
-          f"T4 ON {r['t4_on']}, OFF {r['t4_off']}; T5 click board {r['t5']})")
+          f"T4 ON {r['t4_on']}, OFF {r['t4_off']}; T4 ONE TERM {one}, unchecked {nv}, "
+          f"MUST-FAIL {mf}; T5 click board {r['t5']})")
+    # G1 (r1465): under TETHER_GROUP_SUBJECT no admitted group row has the clock as subject --
+    # each refused "group: self-moving subject" -- and the pick holds; the arm OFF still admits them
+    ug = r["t4_one_ungrouped"]
+    assert one["clock_group"] == 0 and ug["clock_group"] > 0, (one, ug)
+    assert one["group_refused"].get("group: self-moving subject", 0) >= ug["clock_group"], (one, ug)
+    assert one["pick"] == ug["pick"], (one, ug)
+    print(f"G1 (r1465): clock group rows {one['clock_group']} under the arm, "
+          f"{ug['clock_group']} with it OFF; refused {one['group_refused']}")
 
 
 if __name__ == "__main__":

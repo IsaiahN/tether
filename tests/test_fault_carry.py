@@ -8,8 +8,8 @@ through a stub Arcade), over a two-game fake lineage, with a step that raises Ke
   C3   the faulted cycle's own stamped entries are not in that generation: a term whose residual is
        stamped "@<faulted cycle>" and an invention born in it are left out; the ones stamped one
        cycle earlier are written (the planted pair is the precondition)
-  PE   (C3)'s load row: the next life's load writes ONE "parent_ended" row naming the faulted tip
-       and its error; the play's own load over normal parents writes none (the control), and one
+  PE   (C3)'s load row: the next game series' load writes ONE "parent_ended" row naming the faulted
+       tip and its error; the play's own load over normal parents writes none (the control), and one
        normal game later the next load writes none; on the store path and on the chain path
   RB   a generation that does not read back (lineage._readback planted False) is not written
   OFF  TETHER_ERROR_CARRY off: the KeyError reaches the caller and no generation is written (the
@@ -204,7 +204,11 @@ def main() -> int:
     assert r["head"] == r["gen_hash"], ("C3: the generation with real plants must load", r)
     assert r["lib_terms"] == [pl["before"]], ("C3: a fresh load holds the earlier term only", r)
     ic = r["inv_carried"]
-    assert len(ic) == 1 and ic[0]["reinvented"] == ["planted_before"], (
+    # Build 3 item 11 (TETHER_CARRY_FORMS, default ON): the carried rule also re-invents its
+    # turned / mirrored forms, each named planted_before~<form>; the rule itself comes first
+    re_ = ic[0]["reinvented"] if len(ic) == 1 else []
+    assert re_[:1] == ["planted_before"] and all(
+        x.startswith("planted_before~") for x in re_[1:]), (
         "C3: the carried invention (a real template) must re-invent", ic, r["plants"])
     bad = ic[0]["refused"]
     assert [b["name"] for b in bad] == ["planted_bad"] and "names no reading" in bad[0]["why"], (

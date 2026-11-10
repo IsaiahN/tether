@@ -186,6 +186,12 @@ def _child(role, d=None, carry=False):
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(TETHER_ATOMS_ONCE="1", TETHER_INDEX_HOLD="1")
     env["TETHER_CARRY_RECORD"] = "0"   # S1g: tests the bm_/bs_ carry the asked record replaces
+    # X3 tests the bm_ carry, which two later arms bypass by construction (the reviewer
+    # 2026-11-04 r1045): 20's described lookup kept 0 of its first window on this board, so
+    # the route asked no pair; C4's reach share binds per slot, never the whole bm_ carries.
+    # Both OFF, W wrote 43,282 entries
+    env["TETHER_DESCRIBED_LOOKUP"] = "0"
+    env["TETHER_REACH_SHARE"] = "0"
     if carry:
         env["TETHER_LINEAGE_CARRY"] = "1"
     r = subprocess.run([sys.executable, "-B", __file__, "--role", role, str(d)], env=env,
