@@ -1587,6 +1587,15 @@ _PROPOSE_RECALL = armflag.arm("TETHER_PROPOSE_RECALL", default=True)
 # paid or missed on the "which exit" steps (C3's settled return): a step that missed MIN_REPEAT
 # times and never paid is refused, and the site skips it (Fig 6 (41)). OFF: no reader
 _TRANSLATE = armflag.arm("TETHER_TRANSLATE", default=True)
+# C6 DOORS (the reviewer 2026-11-10 r1638, r1640; Isaiah 11-06 answer 7): (1) a held guess parked
+# because its route was refused is "not reachable right now" -- never "wrong" -- with its condition
+# to be picked back up: a subject slot moved, or a new effect became known; when it fires, its
+# parked count is cleared and it is offered at its own rank again (Fig 9 :44, :60). (2) THE CHANGE
+# PATTERN: the exits that paid in a context, read for a period only after two full cycles (two is
+# the smallest number that separates a pattern from coincidence); a confirmed pattern takes the
+# coin's place among the equally unknown, and a miss refutes it (r1647). Win-stay is C3's record
+# and C4's recall: one chooser (r1640 (d)). OFF: parked guesses stay searched past; the coin draws
+_DOORS = armflag.arm("TETHER_DOORS", default=True)
 TRANSLATE = {
     "which exit": (
         ("ROUTE", "protected", "a protected exit acts on its own condition, never bids"),
@@ -4629,6 +4638,11 @@ class Agent:
         self._hyp: dict | None = None  # GQ2: the goal hypothesis held now
         self._hyp_tried: dict = {}    # GQ2: (template, subject, operand) -> how it ended (level)
         self._untested: dict = {}     # UNTESTED_KEEP: tkey -> (cycle, the check that ended it)
+        self._door_aside: dict = {}   # C6: tkey -> the condition to pick a parked guess back up
+        self._door_seq: dict = {}     # C6: level key -> the exits that paid, in order
+        self._door_pred: dict = {}    # C6 (r1647): level key -> (predicted door, its cycle)
+        self._door_refuted: set = set()   # C6: (level key, cycle) patterns a miss refuted
+        self._door_last = None        # C6: (level key, door, cycle) a pattern picked, to book
         self._parked_n: Counter = Counter()   # B1 (r1473): tkey -> budget endings, this game series
         self._subj_tried: Counter = Counter()   # B1 (r1478): subject slot -> its checks, this game
                                                 # series
@@ -9948,6 +9962,8 @@ class Agent:
         if (_UNTESTED_KEEP and h["steps"] == 0 and h["touches"] == 0 and not (loss or won)
                 or budget_end):
             self._untested[h["tkey"]] = (self.cycle, why)    # the board could not host its test
+            if _DOORS and why == "parked":
+                self._door_set_aside(h)
             if _HYP_ORDER:
                 self._parked_n[h["tkey"]] += 1      # B1 (r1473): offered still, searched past
             if why != "parked":
@@ -10159,6 +10175,8 @@ class Agent:
         then description length (term_bits); an exact tie by _choice (A1), never by text. The
         first rank group with a ROUTE is the pick (CAN from the agent's own delta table)."""
         t0 = time.perf_counter()
+        if _DOORS and self._door_aside:
+            self._door_pick_up(before)
         atoms = {a.name: a for a in self.gamma.atoms}
         der = self.env.derived() if hasattr(self.env, "derived") else {}
         self._inv_alt = {}      # r1453 (c): this call's pairs only; a generator that does not fold
@@ -21781,6 +21799,8 @@ class Agent:
                                    **({"purse_skipped": rmark["skipped"]}
                                       if rmark.get("skipped") else {}),
                                    **({"bids": bids} if bids is not None else {})})
+        if _DOORS and self._choice_by == "draw":
+            pick = self._door_take(pick, opts, res, seen)
         self._exit_n[(self._lk(), pick)] += 1
         if _TRANSLATE:
             step = _EXIT_STEP.get(self._choice_by, "record")
@@ -21792,6 +21812,80 @@ class Agent:
             self._translate("which exit", step, pick=pick, options=len(opts))
             self._tr_last = ("which exit", step)
         return pick, s0_tw, dist_r
+
+    def _known_forms_n(self) -> int:
+        """C6: how many effect forms the agent knows (its own effect table's forms, any frame)."""
+        return len(set().union(*self._kn_eff.values())) if self._kn_eff else 0
+
+    def _door_set_aside(self, h: dict) -> None:
+        """C6 (1): a guess whose route was refused is set aside, not reachable right now, with the
+        condition that picks it back up: its subject slots' values now, and the known effects."""
+        last = self.trace[-1][2] if self.trace else {}
+        cond = {"slots": {sl: last.get(sl) for sl in h["slots"]}, "forms": self._known_forms_n()}
+        self._door_aside[h["tkey"]] = cond
+        self.led.record(self.cycle, "PLAN", h["slots"][0], "door_set_aside", text=h["text"],
+                        verdict="not reachable right now", pick_up_when=cond,
+                        reads="the route was refused: set aside, never wrong; picked back up "
+                              "when a subject slot moves or a new effect becomes known")
+
+    def _door_pick_up(self, before: dict) -> None:
+        """C6 (1): a set-aside guess whose condition fired is offered at its own rank again."""
+        forms = self._known_forms_n()
+        aside = sorted(self._door_aside.items(), key=lambda kv: repr(kv[0]))
+        for tkey, cond in aside:
+            cap.head()
+            moved = [sl for sl, v in cond["slots"].items() if before.get(sl) != v]
+            if not moved and forms <= cond["forms"]:
+                continue
+            del self._door_aside[tkey]
+            self._parked_n.pop(tkey, None)
+            self.led.record(self.cycle, "PLAN", "@door", "door_picked_up", tkey=repr(tkey),
+                            by="a subject slot moved" if moved else "a new effect is known",
+                            moved=moved, forms=[cond["forms"], forms],
+                            checked=f"{len(aside)} set aside, each read against this frame")
+
+    def _door_take(self, pick: str, opts: list, res: dict, seen: dict | None) -> str:
+        """C6 (r1647, Isaiah's answer 7): where the contest drew among the equally unknown (the
+        same gain and the same tries), a pattern confirmed over two cycles picks its predicted door
+        in the coin's place, with source door_pattern; else the coin's pick stands."""
+        lk = self._lk()
+        pred = self._door_pred.get(lk)
+        if pred is None:
+            return pick
+        top = max(res.get(e, 0) for e in opts)
+        pool = [e for e in opts if res.get(e, 0) == top]
+        if seen:
+            low = min(seen.get(e, 0) for e in pool)
+            pool = [e for e in pool if seen.get(e, 0) == low]
+        if pred[0] not in pool or len(pool) < 2:
+            return pick
+        self._door_last = (lk, pred[0], pred[1])
+        self.led.record(self.cycle, "PLAN", "@door", "door_pattern_pick", pick=pred[0],
+                        coin_would=pick, source="door_pattern", checked=f"{len(pool)} of "
+                        f"{len(opts)} tied", tied=sorted(pool), gain=top,
+                        tries=None if not seen else seen.get(pred[0], 0),
+                        why_won="a pattern confirmed over two cycles predicts it; the coin "
+                                "decides only among the equally unknown")
+        return pred[0]
+
+    def _door_pattern(self, lk: Any, by: str) -> None:
+        """C6 (2): the exits that paid in this context, read for a period p only once the last
+        2p repeat it (two full cycles); the predicted next door is written, never imposed."""
+        seq = self._door_seq.setdefault(lk, [])
+        seq.append(by)
+        for per in range(2, len(seq) // 2 + 1):
+            cap.head()
+            if seq[-2 * per:-per] == seq[-per:] and len(set(seq[-per:])) == per:
+                cyc = tuple(seq[-per:])
+                key = min(cyc[i:] + cyc[:i] for i in range(per))   # one cycle, any phase
+                if (lk, key) in self._door_refuted:
+                    return                  # a refuted pattern is not predicted again
+                self._door_pred[lk] = (seq[-per], key)
+                self.led.record(self.cycle, "PLAN", "@door", "door_pattern", period=per,
+                                cycle_of=list(cyc), predicted=seq[-per],
+                                reads="the paying door changed in a cycle, seen twice through; "
+                                      "it takes the coin's place among the equally unknown")
+                return
 
     def _tr_refused(self, process: str, step: str) -> bool:
         """C5: the ground refused this recipe step: it missed MIN_REPEAT times and never paid."""
@@ -21874,6 +21968,19 @@ class Agent:
             r = self._tr_rec.setdefault(self._tr_last, [0, 0])
             r[0 if got > 0 else 1] += 1
             self._tr_last = None
+        if _DOORS and self._door_last is not None:
+            dlk, door, cyc = self._door_last
+            self._door_last = None
+            if door == by and got <= 0:
+                # r1647: a pattern that misses is refuted like any term; the coin returns
+                self._door_refuted.add((dlk, cyc))
+                self._door_pred.pop(dlk, None)
+                self.led.record(self.cycle, "PLAN", "@door", "door_pattern_refuted",
+                                door=door, cycle_of=list(cyc), explained=round(got, 6),
+                                reads="the predicted door explained nothing: the pattern is "
+                                      "refuted and the coin returns")
+        if _DOORS and got > 0:
+            self._door_pattern(lk, by)
         for k in ((lk, by), by):
             r = self._ex_rec.setdefault(k, [0, 0.0])
             r[0] += 1

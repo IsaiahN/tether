@@ -631,6 +631,13 @@ ARMS: dict[str, str] = {
                         "decided; the ground books paid or missed on the which-exit steps, and a "
                         "step refused (missed MIN_REPEAT times, never paid) is skipped there. "
                         "OFF: no reader",
+    "TETHER_DOORS": "C6 doors (r1638, r1640; Isaiah 11-06 answer 7). Default ON at landing "
+                    "(r1633). ON: a guess parked because its route was refused is set aside "
+                    "'not reachable right now' with its pick-up condition (a subject slot moves, "
+                    "or a new effect is known) and offered at its own rank again when it fires; "
+                    "a pattern in the paying exits, confirmed over two full cycles, takes the "
+                    "coin's place among the equally unknown (r1647) and a miss refutes it. OFF: a "
+                    "parked guess stays searched past and the coin draws",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "
