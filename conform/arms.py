@@ -624,6 +624,13 @@ ARMS: dict[str, str] = {
                              "board), enumerate (the library's grammar), reached only while the "
                              "purse allows; the row names the stage and checked N of M. OFF: "
                              "PLAN_NARROW's phases",
+    "TETHER_TRANSLATE": "C5 the translation table (r1638, r1640, r1641). Default ON at landing "
+                        "(r1633). ON: per process (which exit, when to leave, what to look up) an "
+                        "ordered recipe of the formula's steps with the Operators marks and a "
+                        "BECAUSE, provenance prior; a reader at each site writes the step that "
+                        "decided; the ground books paid or missed on the which-exit steps, and a "
+                        "step refused (missed MIN_REPEAT times, never paid) is skipped there. "
+                        "OFF: no reader",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "

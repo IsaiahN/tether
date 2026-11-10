@@ -1579,6 +1579,33 @@ _EXIT_CONTEST = armflag.arm("TETHER_EXIT_CONTEST", default=True)
 # returns; Fig 9 :43). The row names the stage and what was checked of what. OFF: PLAN_NARROW's
 # phases, as before
 _PROPOSE_RECALL = armflag.arm("TETHER_PROPOSE_RECALL", default=True)
+# C5 THE TRANSLATION TABLE (the reviewer 2026-11-10 r1638, r1640, r1641; Isaiah: the agent uses the
+# formula on its own decisions): per PROCESS an ordered recipe of the formula's steps, its
+# arrangement in the Operators table's marks ("+" at once, "->" in sequence; Fig 12 :94 "The
+# arrangement is the substance"), each step with its BECAUSE. Head starts (Fig 4 :22), provenance
+# "prior" (Fig 10 :62); a reader at three sites writes the step that decided, and the ground books
+# paid or missed on the "which exit" steps (C3's settled return): a step that missed MIN_REPEAT
+# times and never paid is refused, and the site skips it (Fig 6 (41)). OFF: no reader
+_TRANSLATE = armflag.arm("TETHER_TRANSLATE", default=True)
+TRANSLATE = {
+    "which exit": (
+        ("ROUTE", "protected", "a protected exit acts on its own condition, never bids"),
+        ("+", "affordable", "Use filters for the budget and witnesses for the verdict (Fig 9 :60)"),
+        ("->", "record", "SETTLE: the ground settles it. Verified only by what pays."),
+        ("->", "prior", "no record yet: the head start bids (Fig 4 :22 'Only head starts come "
+                        "down')"),
+        ("->", "least-tried", "standing is a stake: the least-tried keeps a turn (Fig 10 :61)"),
+        ("->", "draw", "unauthored needs a mechanism: a lottery (Fig 10 :75-76)")),
+    "when to leave": (
+        ("7", "searched", "SEARCHED: is it in here and unfound? Asked FIRST"),
+        ("->", "unreached", "underivable-in-principle and unreachable-at-this-budget are "
+                            "DIFFERENT FACTS")),
+    "what to look up": (
+        ("2", "owed", "ROUTE: what a budget left unasked is owed, asked first next step"),
+        ("->", "rank", "WHICH TERM: rank by the residual that PERSISTS AND DOES NOT TREND DOWN")),
+}
+_EXIT_STEP = {"gate": "record", "residual": "record", "frontier": "record",
+              "learning": "least-tried", "draw": "draw"}
 # 7h (a), A1 (the reviewer 2026-10-16 13:47): the root's held goal shapes, by kind, GRADED by level
 # outcomes and carried by the lineage; a graded record, never a minted term (Fig 5)
 _7H_ROOT_GRADE = armflag.arm("TETHER_7H_ROOT_GRADE", default=True)
@@ -4437,6 +4464,11 @@ class Agent:
         self._ex_cost: dict = {}
         self._ex_need: dict = {}
         self._c3_offer: dict = {}     # C3 (r1644): exits proposed this step, committed if they win
+        # C5: (process, step) -> [paid, missed], the ground's book on each recipe step; the
+        # "which exit" step that decided the last turn
+        self._tr_rec: dict = {}
+        self._tr_last = None
+        self._choice_by = None
         # 7h (a): the root's goal shapes; per shape this instance's and the lineage's outcome counts
         self._root_shapes: list = []
         self._root_grade: dict = {}
@@ -16741,6 +16773,8 @@ class Agent:
         else:
             _paid_q = self._owed_q.pop(slot, None)
             self._dl_owed = _paid_q is not None
+            if _TRANSLATE and _paid_q is not None:
+                self._translate("what to look up", "owed", at=slot, since=_paid_q[0])
             self._asked += 1
             if slot in self._route_cls:
                 self._class_n[self._route_cls[slot]][0] += 1
@@ -21606,6 +21640,7 @@ class Agent:
         frontier's readings, the residual and learning readings, the pick and its step."""
         pick, by, front = FR.frontier_pick(options, residual, seen,
                                            f"{self.cycle}:{site}:{slot}", self.draw_seed)
+        self._choice_by = by
         fr = set(front)
         tie = {}
         if (by in ("learning", "draw") and seen
@@ -21727,11 +21762,19 @@ class Agent:
         fixed = ("probe" if starved else "system0" if s0 else "distinguish" if dist_r is not None
                  else "goal")
         bids = None
+        prior = dict(res)
         if _EXIT_CONTEST:
             res, bids = self._ex_bids(opts, res)
             opts = bids.pop("_room")
-        pick = self._choice("exit", None, [(e, None, 1) for e in opts], res,
-                            {e: self._exit_n[(self._lk(), e)] for e in opts},
+        seen = {e: self._exit_n[(self._lk(), e)] for e in opts}
+        if _TRANSLATE:
+            # C5: a step the ground refused is skipped: the record's gains give way to the prior,
+            # the least-tried key to the draw
+            if self._tr_refused("which exit", "record"):
+                res = prior
+            if self._tr_refused("which exit", "least-tried"):
+                seen = None
+        pick = self._choice("exit", None, [(e, None, 1) for e in opts], res, seen,
                             extra={"s0_defer": s0, "fixed_would": fixed,
                                    **({"s0_contest": True} if s0 and _S0_CONTEST else {}),
                                    **({"s0": s0_reads} if s0_reads else {}),
@@ -21739,7 +21782,41 @@ class Agent:
                                       if rmark.get("skipped") else {}),
                                    **({"bids": bids} if bids is not None else {})})
         self._exit_n[(self._lk(), pick)] += 1
+        if _TRANSLATE:
+            step = _EXIT_STEP.get(self._choice_by, "record")
+            if (step == "record" and bids is not None
+                    and bids.get(pick, {}).get("source") == "prior"):
+                step = "prior"          # credit goes to what made the bid, never to the record
+            if bids is not None and bids.get("_filter") == "applied" and len(opts) < len(bids) - 2:
+                step = "affordable" if len(opts) == 1 else step
+            self._translate("which exit", step, pick=pick, options=len(opts))
+            self._tr_last = ("which exit", step)
         return pick, s0_tw, dist_r
+
+    def _tr_refused(self, process: str, step: str) -> bool:
+        """C5: the ground refused this recipe step: it missed MIN_REPEAT times and never paid."""
+        paid, missed = self._tr_rec.get((process, step), (0, 0))
+        return paid == 0 and missed >= MIN_REPEAT
+
+    def _translate(self, process: str, step: str, **reads) -> None:
+        """C5's reader: the recipe this process runs, the step that decided and its BECAUSE, its
+        provenance ("prior": a head start the ground may refuse) and the ground's book on it."""
+        recipe = TRANSLATE[process]
+        because = next((b for _m, k, b in recipe if k == step), None)
+        if process == "which exit":
+            # G4 (r1647): every step of the recipe compared, with the ground's book on each, and
+            # why this step decided
+            book = {k: list(self._tr_rec.get((process, k), (0, 0))) for _m, k, _b in recipe}
+            ground = {"checked": f"{len(recipe)} of {len(recipe)} steps", "book": book,
+                      "refused": [k for _m, k, _b in recipe if self._tr_refused(process, k)],
+                      "why_won": because}
+        else:
+            # r1647: no credit is read at this site yet: its steps are neither paid nor refusable
+            ground = {"credit": "no credit reading at this site yet"}
+        self.led.record(self.cycle, self._running_step, "@translate", "translate",
+                        process=process, decided=step, because=because,
+                        recipe=" ".join(f"{m} {k}" for m, k, _b in recipe), provenance="prior",
+                        **ground, **reads)
 
     def _took_state(self) -> tuple:
         """C3: what a taken press leaves on the agent (_took), so a proposal can be undone."""
@@ -21793,6 +21870,10 @@ class Agent:
             return
         lk, by, then, cyc = last
         got = self.pe_integral() - self.outstanding() - then
+        if _TRANSLATE and self._tr_last is not None:
+            r = self._tr_rec.setdefault(self._tr_last, [0, 0])
+            r[0 if got > 0 else 1] += 1
+            self._tr_last = None
         for k in ((lk, by), by):
             r = self._ex_rec.setdefault(k, [0, 0.0])
             r[0] += 1
@@ -25269,6 +25350,8 @@ class Agent:
         if _SELF_STEER:
             self._ss_stop("vocabulary", "mint", self._kind_key(slot))     # item 27: the stop
         self._transitions(slot, self._leave_held[slot])
+        if _TRANSLATE:
+            self._translate("when to leave", "searched", at=slot, closure=len(closure))
         with self._step_scope("ACCEPT"):   # it reads the accept's outcome, as line_paid does
             self.led.record(self.cycle, self._running_step, slot, "leave", root=self._root_id,
                             level=self.level, verdict="unreachable at this budget",
