@@ -564,6 +564,12 @@ ARMS: dict[str, str] = {
                          "an undecided row counts toward neither side of a cut, witnesses "
                          "nothing, and leaves a split silent. OFF because it is new and can change "
                          "a split. OFF: one signature only, and unknown reads as not-P",
+    "TETHER_DERIVE_AS_JUDGED": "the echo (the reviewer 2026-11-10 r1625): ON, derive() and the "
+                               "blocked reading take each bet slot's value as the settle judged "
+                               "it (the code), so a wrapped raw prediction held mod the alphabet "
+                               "is not read off the board and fires no relational surprise. OFF "
+                               "because it changes which slots become subjects in every wrapping "
+                               "world; its default is decided at R1. OFF: the raw value, as B2b",
     "TETHER_CONTACT":"7a(5b), the contact instrument (Isaiah 2026-10-10 06:46 CDT; the reviewer "
                       "11:46Z, 12:27Z): ON, the REPEAT row's gamma_read gains fed, one entry per "
                       "library term read by the exit whose action is RETURNED, {kind, name, slot, "

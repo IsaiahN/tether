@@ -708,6 +708,9 @@ UNLESS = "UNLESS"
 # TETHER_KNOWN_CORE: a KNOWN_EFFECT form is three-valued (Interface.known_split); an undecided row
 # counts for nothing, never as "fails" (Fig 9 :44, :60)
 _KNOWN_CORE = armflag.arm("TETHER_KNOWN_CORE")
+# TETHER_DERIVE_AS_JUDGED (the reviewer 2026-11-10 r1625): derive() reads each bet slot's value as
+# the settle judged it (the code), never the raw value; one prediction, one decoding (Fig 2 :31)
+_DERIVE_AS_JUDGED = armflag.arm("TETHER_DERIVE_AS_JUDGED")
 # C1 PART 1, THE TIP-OVER (the reviewer 2026-11-09 r1584 1, r1592 3, r1594): a settle tips a term
 # (settled_at, settled_on, _settled_lvl) only where "no change" would have missed (beat_null); a
 # tied or unread settle raises confirmations and does not tip (Fig 5 :43-44, one occasion is not
@@ -8768,6 +8771,15 @@ class Agent:
             self._derive_takes_before = "before" in inspect.signature(fn).parameters
         return fn(state, before=before) if self._derive_takes_before else fn(state)
 
+    def _derive_sources(self, before: dict, betting: list, pred: dict, raw: dict) -> dict:
+        """The predicted state derive() and _blocked_reading read. Under TETHER_DERIVE_AS_JUDGED
+        each bet slot carries the code its settle compares to the board (r1625: a wrapped raw
+        -1 held as 4 is read as 4 here too); OFF, the raw value as B2b wrote it."""
+        ps = dict(before)
+        ps.update({s: (pred[s] if _DERIVE_AS_JUDGED or raw.get(s) is None else raw[s])
+                   for s in betting})
+        return ps
+
     def _bind_terms(self, o: str, x: str) -> tuple:
         """BIND ONCE: _bound's (terms memo, key prefix) for names (o, x), living with the bound
         memos (the process's under an atoms token, this Agent's otherwise); () when OFF."""
@@ -15598,8 +15610,7 @@ class Agent:
                       if _7H_REHEARSE else {})
         _dpred: dict = {}
         if _derived:
-            _ps = dict(before)
-            _ps.update({s: (raw[s] if raw.get(s) is not None else pred[s]) for s in betting})
+            _ps = self._derive_sources(before, betting, pred, raw)
             _dpred = {k: v for k, v in self._derive(_ps, before).items() if k in _derived}
         self._derived_pred = _dpred
         _, deg_before = self.env.objective()
