@@ -16482,12 +16482,18 @@ class Agent:
                             spent=self._spent, budget=STEP_BUDGET,
                             reads="not asked: the step's budget was spent; owed, " + _owed_next())
         else:
-            self._dl_owed = self._owed_q.pop(slot, None) is not None
+            _paid_q = self._owed_q.pop(slot, None)
+            self._dl_owed = _paid_q is not None
             self._asked += 1
             if slot in self._route_cls:
                 self._class_n[self._route_cls[slot]][0] += 1
             self._walk_cut = 0
+            _h0 = cap.HEADS
             self._lookup(slot, hist)
+            if _paid_q is not None and self._clk_hs is not None:
+                # C2 P0 (r1610): an owed lookup's heads, booked back to the step that owed it
+                self._dem_paid.append({"for": _paid_q[0], "q": list(_paid_q), "slot": slot,
+                                       "heads": cap.HEADS - _h0})
             self._dl_owed = False
             if _WALK_BUDGET and self._walk_cut:
                 # A2: the walk stopped at the step's budget; the slot is owed, asked first next step
@@ -26717,6 +26723,7 @@ class Agent:
             self._clk, self._clk_stack, self._clk_t0 = {}, [], time.perf_counter()
             self._clk_h, self._clk_hs, self._clk_h0 = {}, [], cap.HEADS
             self._walk0 = (WALK_N["calls"], WALK_N["evals"])
+            self._dem_paid = []
             self._reach_wall = 0.0
         try:
             return self._step_body(action)
@@ -26745,7 +26752,14 @@ class Agent:
                 "total": total, "unscoped": total - sum(self._clk_h.values()),
                 "scopes": dict(sorted(self._clk_h.items())),
                 "walk": {"calls": WALK_N["calls"] - self._walk0[0],
-                         "evals": WALK_N["evals"] - self._walk0[1]}}
+                         "evals": WALK_N["evals"] - self._walk0[1]},
+                # C2 P0, THE DEMAND RECORD (r1399, r1610): thinking heads (less the idle scopes),
+                # the questions this step left owed, and owed work it ran for earlier steps. A
+                # step's demand = think - paid out + what later lines book back to it; owed and
+                # never paid is censored. Nothing reads it.
+                "think": total - sum(self._clk_h.get(k, 0) for k in _TC_IDLE_SCOPES),
+                "deferred": sorted(list(q) for q in set(self._owed_q.values()) if q[0] == c0),
+                "paid": self._dem_paid}
         # the side file starts with its ledger (TETHER_BODY_APPEND): a heads line written before
         # the first fold opens it, so the fold appends rather than truncating
         fresh = _BODY_APPEND and not getattr(self.led, "_body_opened", False)
