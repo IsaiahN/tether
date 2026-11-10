@@ -5,8 +5,8 @@ watches, predicts, acts, and keeps only the ideas that the world pays for. The i
 small programs in a typed language, so it builds its own vocabulary and then builds on it. Every
 step is written to a record that a separate checker can fail.
 
-It is an instance of **The Tether** architecture: Isaiah Nwukor's account of how intelligence
-grows by mapping a world against a ground it cannot argue with.
+It is an instance of **The Tether**, a framework for how intelligence grows by mapping a world
+against a ground it cannot argue with.
 
 - *Arrival of the Fittest: The Tether Architecture*:
   [Medium](https://medium.com/@IsaiahNwukor/arrival-of-the-fittest-the-tether-architecture-1de7edf641ec)
@@ -54,13 +54,115 @@ source code. It rewrites its **vocabulary**: the terms it reasons with.
   back to a second search tier, while nothing is deleted.
 - **It carries what it learned.** Between runs it writes a lineage of terms *by kind*, never by
   instance, with their evidence. The next life starts from them.
-- **It is whitebox.** Each term carries the atoms and bonds it was built from. The ledger says
-  why every decision was made, and `gate.py`, which imports nothing from the agent, can fail the
-  run.
 
 The loop is one loop for every world, with no branch on problem type:
 
     PERCEIVE -> ROUTE -> MINT -> ACCEPT -> SETTLE -> PROMOTE -> IMPORT -> REPEAT
+
+## What it is built to be capable of
+
+These are the capabilities a recursively self-improving, general agent needs, and how this one is
+built to meet each. They are design commitments, not results; results are reported where they are
+measured.
+
+- **Learn a new task from contact alone.** No instructions, no stated goal, no rules. It finds out
+  what a world is by acting in it.
+- **Set its own goals.** It proposes candidate goals from its own grammar over what it sees, chases
+  them, and keeps what held.
+- **Understand cause, not just correlation.** It learns what each action does to what, and keeps a
+  prediction only where it beat "no change".
+- **Abstract and compose.** It builds new ideas out of settled ones, and relates new things to the
+  kinds it already knows.
+- **Plan.** It chains settled predictions into short sequences, and a held plan acts only when it
+  outbids every other way of acting.
+- **Work in any world.** One loop for every world, with no branch on problem type. Swap the
+  interface, keep the lineage.
+- **Improve itself, recursively.** What it learns becomes what it learns with: a settled term is a
+  part the next search builds on, so every idea it keeps makes the next one cheaper.
+- **Improve how it improves.** Its thinking budget, its forgetting rate and the weight it gives
+  each need are learned from its own record. The loop itself is fixed by design, as evolution's
+  is; what changes is everything the loop builds and how it spends.
+- **Keep learning for a lifetime without forgetting.** New knowledge is appended, not retrained
+  (see below).
+- **Transfer.** It carries methods between worlds by kind, never by instance.
+- **Know what it does not know.** When nothing it holds can close a gap, it says *unreachable with
+  what I hold*, then splits the question or waits for an import, instead of guessing.
+- **Stay correctable.** It is graded by a ground it cannot move. Nothing it says about itself
+  counts as evidence.
+- **Show its work.** It is whitebox (see below).
+- **Think within a budget.** Thinking is priced and counted, and work it cannot afford is owed, not
+  judged. It runs on a CPU.
+- **Grow without a ceiling set by size.** The same loop and rules hold at any scale, the record
+  only grows, and what it learns carries forward across lifetimes.
+
+## It learns by appending, not retraining
+
+New knowledge enters as new terms beside the old ones. A term that turns out wrong gets a refusal
+added next to it; nothing is rewritten or torn out. What the agent can reach is recomputed from
+everything it holds, so a correction in one corner reaches only what was built on that corner.
+
+A neural network updates by retraining its weights, and new training can overwrite old skills
+(catastrophic forgetting), so its knowledge tends to be refreshed in whole new versions. Here the
+agent keeps its shape and its history while its picture of the world updates one term at a time.
+Its starting priors are human knowledge from one point in time; they are a head start it can grow
+past, not a fixed snapshot.
+
+## It is whitebox
+
+There are no weights to probe. Every term the agent holds carries the atoms and bonds it was built
+from and where it came from. The ledger records why every decision was made. `gate.py`, which
+imports nothing from the agent, can fail any run. To see what the agent knows and why, read it
+term by term.
+
+## Multi-agent systems, and what "general" means here
+
+**At minimum, a multi-agent system needs a shared channel every agent can both read and write.**
+For this agent, that channel would be the library itself:
+
+- traits the agents share are marked as common;
+- each agent keeps its own modifications on top, the way an instance inherits from a class;
+- every agent can read everyone's combined learning (what to do and what not to do) on similar
+  tasks. In a mixture-of-experts setup, agents working on different tasks can correlate what they
+  learned in the same store and find the links between them;
+- each agent still marks which thoughts and concepts originated with it, so the lineage of every
+  idea stays whitebox across the whole network of agents, not only inside one.
+
+This shared library is a design; it is not built in this branch.
+
+**What many agents add is parallelism and scale.** If the agents are selected on, the population
+becomes an evolutionary layer, and the best answers surface on their own. This agent leaves that layer out on purpose: it has been done before, and it is not what this
+project sets out to show. Exhibit A is the earlier [Ouroboros](https://github.com/IsaiahN/Ouroboros)
+agents (v1-v4), which showed selection over a population works on CPUs; well-known evolutionary
+algorithms show it too.
+Swarms are not new technology. They are selection itself, applied by numbers. Dividing and
+conquering by count, like gradient descent, is a strong method, but it is a way to avoid steering
+which answers win, not general intelligence.
+
+**A general agent, here, is one that can become anything.** It can stay general, flexible and
+changing in proportion to what it meets over time. Or it can choose to lock in what it has learned
+and become a specialist in one thing.
+
+**The Tether is the generative code underneath, and it is what makes this possible.** With the
+generator, an answer can be generated rather than computed by brute force.
+
+## Language
+
+The agent speaks. Its library is written in a small grammar of universal word meanings (the
+primes of the Natural Semantic Metalanguage), and it can say any term it holds, or any decision in
+its record, as a sentence in that grammar. Each sentence cites the record row it came from
+(`nsm.py`). It can also read a sentence back into a term: every sentence compiles back to the same
+term or is refused with a stated reason. It is not as fluent as a language model, but what it says
+is tied to what it did and why.
+
+Conversation needs one more thing: a channel that carries other agents' or people's words in and
+the agent's sentences out. That is a choice of interface, not an ability the agent lacks. This
+general interface provides only the inputs its test worlds give, so it has no such channel yet;
+adding one means adding that channel to the interface.
+
+Learning words from outside sources is the same task as reading any arrangement: find what
+reliably goes with what, and let meaning come from proximity. The design for this is written:
+each kind is organised as a thesaurus of sense clusters, so that "minus" in a ledger and "minus"
+on a board are linked but separate. It is not built in this branch.
 
 **Already in this branch (all on by default):**
 
@@ -187,11 +289,9 @@ From the repository root, one at a time:
 Each prints its own result line and exits 0 when it passes. `tests/test_gate.py` checks the
 checker itself: one planted defect per check, and every defect must be caught.
 
-## The objection to pre-empt
+## How results are judged
 
-**"A hand-authored library of composable predicates is Cyc."** The difference is the arbiter.
-Cyc's predicates were graded by their authors; here every term is graded by a ground the library
-cannot move.
+Every term is graded by a ground the library cannot move.
 
 - **Nothing scores itself.** Coverage, terms minted and compression achieved are internal to the
   frame, and are not evidence.
