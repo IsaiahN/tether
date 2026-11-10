@@ -85,6 +85,9 @@ def check_c2_runner_clocks() -> None:
                       ("kaggle/b_worker.py", "ag.slice_from, ag.slice_until = t_start, t_start"),
                       ("harness/mem_store/e4_stream.py", "ag.actions_left, ag.actions_cap = "
                                                          "n_steps - steps")):
+        if f.startswith("kaggle/") and not os.path.exists(os.path.join(_repo.ROOT, f)):
+            print(f"  skipped: {f} is not in this tree (a branch with no Kaggle runner; r1649 (a))")
+            continue
         with open(os.path.join(_repo.ROOT, f), encoding="utf-8") as fh:
             assert needle in fh.read(), (f, needle)
     tether._AGENT_SEED = False

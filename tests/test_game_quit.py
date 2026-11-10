@@ -139,15 +139,22 @@ def check_q5_runner() -> None:
     import tether
     assert tether._GAME_QUIT, "TETHER_GAME_QUIT is OFF"
     from pathlib import Path
+    worker = Path(_repo.ROOT, "kaggle/b_worker.py").exists()   # r1649 (a): absent on general-agent
+    if not worker:
+        print("  skipped: kaggle/b_worker.py is not in this tree (a branch with no Kaggle runner; "
+              "r1649 (a))")
     for p in ("kaggle/b_worker.py", "harness/mem_store/e4_stream.py"):
+        if p.startswith("kaggle/") and not worker:
+            continue
         s = Path(_repo.ROOT, p).read_text(encoding="utf-8")
         for line in ("ag.games_waiting = arc_holdout.games_waiting(",
                      "ag.run_rate = run_levels / run_secs",
                      'if getattr(ag, "_quit", False):', 'ending = "quit"', "ag.quit_met_close()"):
             assert line in s, (p, line)
     # b_worker's share, read at a slice's start: mx = (DL - now - longest) * N / left
-    s = Path(_repo.ROOT, "kaggle/b_worker.py").read_text(encoding="utf-8")
-    assert "mn = mx = max(0.0, (DL - time.time() - longest) * N / left)" in s
+    if worker:
+        s = Path(_repo.ROOT, "kaggle/b_worker.py").read_text(encoding="utf-8")
+        assert "mn = mx = max(0.0, (DL - time.time() - longest) * N / left)" in s
     dl, longest, n, left = 1000.0, 10.0, 1, 2
     early, late = (dl - 100.0 - longest) * n / left, (dl - 300.0 - longest) * n / left
     assert early > late
