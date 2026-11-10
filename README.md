@@ -35,7 +35,10 @@ Swap the interface, keep the lineage.
 ## What it is an example of
 
 A **recursively self-improving agent** of a specific, checkable kind. It does not rewrite its
-source code. It rewrites its **vocabulary**: the terms it reasons with.
+source code. It rewrites its **vocabulary**: the terms it reasons with. Neither do people: no one
+rewrites their DNA in a lifetime, yet over years they can become a different kind of person. The
+agent can likewise stay general, or lock in what it has learned and specialize, and keep evolving
+along that path (the switch for this arrives at the next release).
 
 - **It invents only what pays.** A new term enters its library only if stating it, plus what it
   still fails to explain, costs less than the miss it explains (a minimum-description-length
@@ -130,10 +133,10 @@ For this agent, that channel would be the library itself:
 This shared library is a design; it is not built in this branch.
 
 **What many agents add is parallelism and scale.** If the agents are selected on, the population
-becomes an evolutionary layer, and the best answers surface on their own. This agent leaves that layer out on purpose: it has been done before, and it is not what this
-project sets out to show. Exhibit A is the earlier [Ouroboros](https://github.com/IsaiahN/Ouroboros)
-agents (v1-v4), which showed selection over a population works on CPUs; well-known evolutionary
-algorithms show it too.
+becomes an evolutionary layer, and the best answers surface on their own. This agent leaves that
+layer out on purpose: it has been done before, and it is not what this project sets out to show.
+Exhibit A is the earlier [Ouroboros](https://github.com/IsaiahN/Ouroboros) agents (v1-v4), which
+showed selection over a population works on CPUs; well-known evolutionary algorithms show it too.
 Swarms are not new technology. They are selection itself, applied by numbers. Dividing and
 conquering by count, like gradient descent, is a strong method, but it is a way to avoid steering
 which answers win, not general intelligence.
@@ -161,10 +164,10 @@ adding one means adding that channel to the interface.
 
 Learning words from outside sources is the same task as reading any arrangement: find what
 reliably goes with what, and let meaning come from proximity. The design for this is written:
-each kind is organised as a thesaurus of sense clusters, so that "minus" in a ledger and "minus"
+each kind is organized as a thesaurus of sense clusters, so that "minus" in a ledger and "minus"
 on a board are linked but separate. It is not built in this branch.
 
-**Already in this branch (all on by default):**
+## Already in this branch (all on by default)
 
 - **The try-first hold reads the agent's own record**: a hypothesis counts only its own presses.
 - **A bounded re-check**: the background re-check after a level clear is paid from each step's
@@ -180,7 +183,7 @@ on a board are linked but separate. It is not built in this branch.
 - **The try-first pass**: the try-first sweep gives every untouched kind one touch before it may
   stop, on boards where an action can be aimed at an object.
 
-**What this release adds (every switch on by default):**
+## What this release adds (every switch on by default)
 
 - **Condition search**: when a rule keeps missing on part of what it covers, the agent names the
   condition that separates the misses and searches inside it, nested inside a live split too.
