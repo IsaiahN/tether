@@ -20,17 +20,18 @@ It is built on **The Tether** architecture:
 - **[`general-agent`](https://github.com/IsaiahN/tether/tree/general-agent)**: the full general
   learning agent. Domain-agnostic: the library of ~4,000 human-prior entries, the lineage
   (generations, merge, graft), search, minting, the narrator. Where general work lands first.
-- **[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)**: production.
+- **[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)** (this one):
+  production.
   `general-agent` plus the ARC-AGI-3 interface and the Kaggle runner. The competition build, and
   what a Kaggle submission is built from: it receives `general-agent` by merge and adds only what
   ARC needs. It changes only by a pull request from `development`.
-- **[`development`](https://github.com/IsaiahN/tether/tree/development)** (this one): the working
-  branch. It carries production plus the build below; it is promoted to arc-solver-agent by pull
-  request once its changes are refined. A test bundle built from it is labelled DEV.
+- **[`development`](https://github.com/IsaiahN/tether/tree/development)**: the working branch,
+  promoted to arc-solver-agent by pull request once its changes are refined. A test bundle built
+  from it is labelled DEV.
 
 Swap the interface, keep the lineage.
 
-**What `development` carries beyond production (all on by default):**
+**What this production carries, promoted from `development` (all on by default):**
 
 - **Strength and forgetting**: a term is tipped to settled only where it beat "no change"; a
   term whose bargain no longer pays against the null is crowded out of a slot and kept in the
