@@ -114,6 +114,35 @@ from and where it came from. The ledger records why every decision was made. `ga
 imports nothing from the agent, can fail any run. To see what the agent knows and why, read it
 term by term.
 
+## Multi-agent systems, and what "general" means here
+
+**At minimum, a multi-agent system needs a shared channel every agent can both read and write.**
+For this agent, that channel would be the library itself:
+
+- traits the agents share are marked as common;
+- each agent keeps its own modifications on top, the way an instance inherits from a class;
+- every agent can read everyone's combined learning (what to do and what not to do) on similar
+  tasks. In a mixture-of-experts setup, agents working on different tasks can correlate what they
+  learned in the same store and find the links between them;
+- each agent still marks which thoughts and concepts originated with it, so the lineage of every
+  idea stays whitebox across the whole network of agents, not only inside one.
+
+This shared library is a design; it is not built in this branch.
+
+**What many agents add is parallelism and scale.** If the agents are selected on, the population
+becomes an evolutionary layer, and the best answers surface on their own. The earlier Ouroboros
+agents (v1-v4) showed this works on CPUs, and well-known evolutionary algorithms show it too.
+Swarms are not new technology. They are selection itself, applied by numbers. Dividing and
+conquering by count, like gradient descent, is a strong method, but it is a way to avoid steering
+which answers win, not general intelligence.
+
+**A general agent, here, is one that can become anything.** It can stay general, flexible and
+changing in proportion to what it meets over time. Or it can choose to lock in what it has learned
+and become a specialist in one thing.
+
+**The Tether is the generative code underneath, and it is what makes this possible.** With the
+generator, an answer can be generated rather than computed by brute force.
+
 **Already in this branch (all on by default):**
 
 - **The try-first hold reads the agent's own record**: a hypothesis counts only its own presses.
