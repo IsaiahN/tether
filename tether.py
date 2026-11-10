@@ -5537,7 +5537,9 @@ class Agent:
         call it after their last step; `retarget` never sees a cap or a timeout."""
         how = game_loss_word(how)       # r1571: an old runner's word reads as today's
         if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
-            with self._tail_booking():  # r1562: booked to the ended attempt's last cycle
+            # r1562: booked to the ended attempt's last cycle; under SETTLE, a provisional credit
+            # settled, so it never lands as PLAN after that cycle's PERCEIVE tail (gate step-order)
+            with self._tail_booking(), self._step_scope("SETTLE"):
                 self._3a_settle()     # r1542: at the game's own end, not at its save
         self._intent_verdict(how)
         self._note_ending(how, "run")
@@ -5695,7 +5697,9 @@ class Agent:
         it, so this is the sweep's one irreplaceable job."""
         how = game_loss_word(how)       # r1571: an old runner's word reads as today's
         if lineage._SAVE_READOUT and _3A_DIAGNOSE and hasattr(self, "_3a_unseen"):
-            with self._tail_booking():  # r1562: booked to the ended attempt's last cycle
+            # r1562: booked to the ended attempt's last cycle; under SETTLE, a provisional credit
+            # settled, so it never lands as PLAN after that cycle's PERCEIVE tail (gate step-order)
+            with self._tail_booking(), self._step_scope("SETTLE"):
                 self._3a_settle()     # r1542: while this epoch's trace still exists
         if _S0_HANDOFF:
             if how in (WIN, ADVANCE):
