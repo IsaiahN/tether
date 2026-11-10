@@ -10,6 +10,9 @@ TETHER_NEEDS_DIAL.
   N4  the outcome books on the (state, need) the turn was taken in, paid only when bits were
       explained
   N5  the guard: the dial sets weights on the contested exits only; OFF it sets none
+  N7  r1649 (TETHER_DIAL_RATE): the weight reads the RATE, never the paid count. MF explore 10
+      paid of 100 turns against progress 2 of 2 gives progress the higher weight; OFF (017b282)
+      the paid count backs explore
   N6  r1647: the risk reading per need is the lowest standing p of a line taken for it in this
       state, None before any; MF a line taken in the other state does not count; G4: the record
       says what it compared and why
@@ -53,11 +56,13 @@ def check_n2_n3() -> None:
     ag._dial[("pressed", "progress")] = [3, 3]
     ag._dial[("comfortable", "explore")] = [3, 4]
     calm = ag._dial_weights(OPTS)
-    assert calm["state"] == "comfortable" and calm["w"]["explore"] == 0.8, calm
-    assert ag._ex_need["distinguish"] == 0.8 and ag._ex_need["goal"] == 0.2
+    r_e, r_p = 4 / 6, 1 / 2                         # explore 3 of 4, progress unseen (even prior)
+    assert calm["state"] == "comfortable" and calm["w"]["explore"] == round(r_e / (r_e + r_p), 4)
+    assert ag._ex_need["distinguish"] > 0.5 > ag._ex_need["goal"], ag._ex_need
     ag._dial_lost[ag._lk()] += 1
     hard = ag._dial_weights(OPTS)
-    assert hard["state"] == "pressed" and hard["w"]["explore"] == 0.2, hard
+    r_p2, r_e2 = 4 / 5, 1 / 2                       # pressed: progress 3 of 3, explore unseen
+    assert hard["state"] == "pressed" and hard["w"]["explore"] == round(r_e2 / (r_e2 + r_p2), 4)
     ag2 = _agent()
     for i in range(3):
         ag2._pd.append({"cyc": i, "lvl": ag2.level, "think": 1, "extra": 0,
@@ -114,7 +119,24 @@ def check_n6() -> None:
           f"record says what it compared and why")
 
 
+def check_n7() -> None:
+    ag = _agent()
+    ag._dial[("comfortable", "explore")] = [10, 100]
+    ag._dial[("comfortable", "progress")] = [2, 2]
+    d = ag._dial_weights(OPTS)
+    assert d["w"]["progress"] > d["w"]["explore"], "MF: the paid count backed the worse line"
+    assert d["rate"] == {"progress": 0.75, "explore": round(11 / 102, 4)}, d["rate"]
+    keep, tether._DIAL_RATE = tether._DIAL_RATE, False
+    try:
+        off = ag._dial_weights(OPTS)
+    finally:
+        tether._DIAL_RATE = keep
+    assert off["w"]["explore"] > off["w"]["progress"] and "rate" not in off, off
+    print(f"  N7: explore 10/100 vs progress 2/2: ON w {d['w']} (the rate); OFF w {off['w']} "
+          f"(the paid count, 017b282)")
+
+
 if __name__ == "__main__":
-    for c in (check_n1, check_n2_n3, check_n4, check_n5, check_n6):
+    for c in (check_n1, check_n2_n3, check_n4, check_n5, check_n6, check_n7):
         c()
     print("needs_dial: OK")
