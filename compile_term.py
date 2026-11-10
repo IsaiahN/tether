@@ -23,6 +23,7 @@ from functools import cache
 from typing import Any
 
 import armflag
+import cap
 import condition
 import gamma
 import relations
@@ -257,6 +258,7 @@ GROUP_QUANT = {"all": "ALL", "every": "ALL", "each": "ALL", "none": "NONE", "no"
 def compile_candidate(cand: dict, atoms: dict[str, gamma.Atom],
                       subject: str | None = None) -> Compiled | Group | Refusal:
     """One candidate (`{"condition": "o1.drow > 0", ...}`), compiled or refused with a reason."""
+    cap.head()      # C2 P2 (r1425): a compile is a counted unit, so the purse sees it
     if "quantifier" in cand:
         return _group(cand, atoms, subject) if _GROUP_ROW else Refusal(QUANTIFIED)
     for name, why in NOT_SLOTS.items():

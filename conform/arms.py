@@ -593,6 +593,23 @@ ARMS: dict[str, str] = {
                      "ON: a term with a kernel clause (prior-atom, inherited; set at entry) is "
                      "never moved down a tier and never crowded out; settle, refute and the "
                      "bargain never read it. OFF: kernel terms move and are crowded like any",
+    "TETHER_PURSE_OWN": "C2 the purse (the reviewer r1392, r1395, r1398, r1399, r1610). Default ON "
+                        "at landing (r1633). ON: a step thinks in its own counted heads (less the "
+                        "idle scopes) up to the purse -- the level's product-limit median of step "
+                        "demand (owed work booked back; right-censored while owed), the series' "
+                        "before MIN_REPEAT steps, the last purse when undefined, STEP_BUDGET in "
+                        "heads only as the newborn's innate prior -- plus the level's bank. Every "
+                        "STEP_BUDGET gate reads it, and the unseen walk, mint and its closure "
+                        "walk, MOLECULE APPLY and its cover walk, the goal proposer, the exit "
+                        "contest's readiness reads and the want derivation stop at it, "
+                        "'unreached at this budget', owed, never a verdict. OFF: STEP_BUDGET's "
+                        "evaluations, as before",
+    "TETHER_PURSE_DEADLINE": "C2 P3 (r1610 Q3). Default ON at landing (r1633). ON (with "
+                             "TETHER_PURSE_OWN): a think is priced in heads -- offline the "
+                             "deadline is actions_left x purse, so a think displaces think / purse "
+                             "presses; online the runner's seconds per remaining press over the "
+                             "agent's seconds per step, x purse. OFF: _tc_clocks, as before "
+                             "(offline a think displaces nothing)",
     "TETHER_D5_NESTED":"Default ON (Isaiah 2026-11-10 05:04, r1633). "
                         "(N) (the reviewer 2026-11-10 r1626, r1627): ON, (N1) a live split's leaf "
                         "part is cut on its own misses over its own rows (an inner node on "

@@ -1708,6 +1708,22 @@ _STEP_BUDGET = armflag.arm("TETHER_STEP_BUDGET", default=True)
 # overrides it, 1000000 restores the old pacing (317879c). MAGIC: a seat-authored constant
 # (Fig 10 :48), replaced post-submission by B1-B5 (Isaiah 2026-10-21 19:06, 19:15)
 STEP_BUDGET = int(os.environ.get("TETHER_STEP_BUDGET_N", "50000"))
+# C2 THE PURSE (the reviewer 2026-11-07 r1392, r1395, r1398, r1399; 2026-11-10 r1610; Isaiah 11-07
+# 08:09): TETHER_PURSE_OWN, a step thinks in its own counted work (cap.HEADS less the idle
+# scopes), up to the purse: this level's product-limit median of step DEMAND (a step's heads plus
+# what its owed work later spent; right-censored while owed), the game series' before MIN_REPEAT
+# steps, the last purse when undefined (never lowered on censored evidence, Fig 2 :33), and
+# STEP_BUDGET read in heads as the newborn's INNATE prior only (r1610). Plus this level's bank (a
+# step under the purse saves the rest; one over it draws, never past what is banked). Every
+# STEP_BUDGET gate reads it; a spent purse stops a site "unreached at this budget", owed, never a
+# verdict (Fig 8 :40-42, Fig 9 :60). OFF: STEP_BUDGET's evaluation count, as before
+_PURSE_OWN = armflag.arm("TETHER_PURSE_OWN", default=True)
+# C2 P3 (r1610 Q3): TETHER_PURSE_DEADLINE, a think is priced in the purse's own unit: offline the
+# deadline is actions_left x purse, so a think displaces think heads / purse presses; online the
+# runner's seconds per remaining press over the agent's own seconds per step, x purse. OFF: today's
+# _tc_clocks (offline a think displaces nothing)
+_PURSE_DEADLINE = armflag.arm("TETHER_PURSE_DEADLINE", default=True)
+PURSE_CUT = object()   # the unseen walk stopped at the purse: unreached at this budget, not "none"
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
 # is stored with every landing, and the lit list is TIERS, an order, never a cut: T1a-c what landed
@@ -2700,6 +2716,11 @@ def _priced_hit(evaluate, current: int, ordered: bool, dom: _PricedDomain):
                 INTERVAL_DISAGREE.append({"current": current, "ordered": ordered,
                                           "alpha": dom.alpha, "bound": unseen, "walk": walked})
         unseen = walked
+    if unseen is PURSE_CUT:
+        # C2 P1: the purse stopped the walk -- unreached at this budget, never "no value": the
+        # shown answer stands if there is one, else the objective could not be read (Fig 9 :60)
+        dom.purse_note(shown)
+        return shown if shown is not None else NOT_RESOLVED
     if unseen is None or shown is None:
         return shown if unseen is None else unseen
     n = dom.alpha - len(dom)
@@ -2720,13 +2741,24 @@ def _walk_unseen(evaluate, current: int, ordered: bool, dom: _PricedDomain, limi
     def ev(v):
         WALK_N["evals"] += 1
         return evaluate(v)
+    purse = getattr(dom, "purse", None)     # C2 P1: the purse, checked between rings
     if ordered:
         for d in range(1, limit):
             cap.head()
+            if purse is not None and purse(d):
+                return PURSE_CUT
             ring = [v for v in (current - d, current + d)
                     if 0 <= v < dom.alpha and v not in dom and ev(v)]
             if ring:
                 return min(ring, key=dk)
+        return None
+    if purse is not None:       # comparable-only: draw order, the first that satisfies, as min(dk)
+        for i, v in enumerate(sorted(range(dom.alpha), key=dk)):
+            cap.head()
+            if purse(i):
+                return PURSE_CUT
+            if v != current and v not in dom and ev(v):
+                return v
         return None
     ring = [v for v in range(dom.alpha) if v != current and v not in dom and ev(v)]
     return min(ring, key=dk) if ring else None
@@ -3961,7 +3993,7 @@ def objective_step(evaluate, current: int, ordered: bool, domain) -> Any:
         return current
     if isinstance(domain, _PricedDomain):        # A1 site 9: the unseen priced, not removed
         hit = _priced_hit(evaluate, current, ordered, domain)
-        if hit is None:
+        if hit is None or hit is NOT_RESOLVED:
             return NOT_RESOLVED
         return hit if not ordered else (current - 1 if hit < current else current + 1)
     # P3: THE SAME ANSWER, ASKED AS A FIRST-MATCH. Both arms took ONE element out of a
@@ -4022,6 +4054,8 @@ def objective_gap(evaluate, current: int, ordered: bool, domain) -> Any:
         return 0
     if isinstance(domain, _PricedDomain):        # A1 site 9: the unseen priced, not removed
         hit = _priced_hit(evaluate, current, ordered, domain)
+        if hit is NOT_RESOLVED:
+            return NOT_RESOLVED         # C2 P1: unreached at this budget, never a negative
         return None if hit is None else (abs(hit - current) if ordered else 1)
     hits = [v for v in domain if v != current and evaluate(v)]
     if not hits:
@@ -4602,6 +4636,17 @@ class Agent:
         self._reach_uses: dict = {}
         self._reach_born: dict = {}
         self._reach_recalled: list = []
+        # C2 the purse (r1399): each step's demand record (cycle -> index), its bank, its memo
+        self._pd: list = []
+        self._pd_at: dict = {}
+        self._p_cut = False          # this step's purse stopped a site: its demand is censored
+        self._pd_ver = 0
+        self._purse_last = None
+        self._purse_memo = None
+        self._bank, self._bank_lvl, self._bank_last = 0, None, (0, 0)
+        self._walk_ring = 0
+        self._purse_src = None       # C2 (r1644): where the purse was read from
+        self._p_cross = None         # C2 (r1644): where this step's thinking crossed its allowance
         # the slots whose loop turn is still ahead this cycle (F500); None outside the loop
         self._turn_ahead: set | None = None
         # an acted routine's next step, advanced once at its deciding cycle's end (F501)
@@ -6373,8 +6418,10 @@ class Agent:
                     continue
                 self._dw_tried[d].add(t)
                 missed = self._ds_echo(d)
-            if b2 is not None and b2["stop"] is not None and not missed:
-                # OWED, NOT TRIED: the ask stays askable; it is asked first next step
+            _b2_stop = b2 is not None and b2["stop"] is not None
+            if b2 is not None and ((_b2_stop and not missed) or self._purse_cut()):
+                # OWED, NOT TRIED: the ask stays askable; it is asked first next step (C2: or the
+                # purse is spent, its demand censored)
                 self._dw_tried[d].discard(t)
                 self._dw_owed[d] = (owed[d][0] if d in owed else self.cycle, t)
                 b2["deferred"] += 1
@@ -6383,7 +6430,7 @@ class Agent:
                 at = "@derived" if self.led.wrote(self.cycle, "ACCEPT", d) else d
                 self.led.record(self.cycle, "MINT", at, "derived_deferred", owes=True,
                                 **({"derived": d} if at != d else {}),
-                                after=b2["stop"], transition=list(t),
+                                after=b2["stop"] if _b2_stop else "the purse", transition=list(t),
                                 since=self._dw_owed[d][0],
                                 reads="B2: not minted this step: a mint this step already stopped "
                                       "at its bound; owed, asked first next step -- unreached at "
@@ -6463,8 +6510,17 @@ class Agent:
         if ctx is None:
             return
         own = ctx[3]
-        for p, mem in sorted(self._events.items()):
+        evs = sorted(self._events.items())
+        for i_, (p, mem) in enumerate(evs):
             cap.head()
+            if self._purse_cut():
+                # C2 P2: the purse is spent between events -- the rest unreached at this budget
+                self.led.record(self.cycle, "MINT", "@g1", "purse_cut", site="g1_wants",
+                                unread=len(evs) - i_, spent=self._purse_spent(),
+                                allowance=self._allowance(), source=self._purse_src,
+                                reads="unreached at this budget: the purse; the events left "
+                                      "unread this step")
+                break
             srcs = set(mem)
             changed = [d for d, src in sorted(der.items())
                        if d in after and d in before and after[d] != before[d]
@@ -7313,7 +7369,7 @@ class Agent:
                 lit, tk_next = self._topk(full, full, tiers, att, tg, dl_key)
                 lit = self._described_lit(lib, lit, tiers, att, tg, head_keys)
                 while (_WINDOW_BACKOFF and not lit and tk_next is not None
-                       and not (_STEP_BUDGET and self._spent >= STEP_BUDGET)):
+                       and not (_STEP_BUDGET and self._purse_out())):
                     cap.head()
                     self._tk_after(dl_key, tk_next)
                     self._dl_n["backoff"] += 1
@@ -8382,7 +8438,7 @@ class Agent:
         kinds: dict | None = {} if _KIND_HOIST else None
         for i_, (key, _w) in enumerate(lit):
             cap.head()
-            if _WALK_BUDGET and _STEP_BUDGET and self._spent >= STEP_BUDGET:
+            if _WALK_BUDGET and _STEP_BUDGET and self._purse_out():
                 # A2: K1's guard on EVERY key, at the entry boundary (a memo-walked entry's charge
                 # has landed by here); the rest is unreached at this budget, the index is not
                 # memoised, and _library_fit owes the slot
@@ -8395,7 +8451,7 @@ class Agent:
                 # K1's COST GUARD: T4 / T5 are asked only while the step's budget remains; the
                 # rest is counted not asked, and the truncated index is not memoised
                 a_, na_ = self._late
-                if _STEP_BUDGET and self._spent >= STEP_BUDGET:
+                if _STEP_BUDGET and self._purse_out():
                     self._late = (a_, na_ + sum(1 for k_, _x in lit[i_:] if k_ in late))
                     self._k1_trunc = True
                     break
@@ -10357,7 +10413,10 @@ class Agent:
         checked = 0
         group_n = None
         b2ctx: list = [None]            # B2: this pass's readings, built on first need
+        pmark: dict = {}                # C2 P2: a purse cut here, and what it left unread
         while pick is None:
+            if self._purse_cut(pmark):
+                break
             if not cands:
                 if not pending:
                     break
@@ -10434,6 +10493,9 @@ class Agent:
                                  + [t for t in order if by_text[t][2].slot not in _cset])
                 for n, text in enumerate(order, 1):
                     cap.head()
+                    if self._purse_cut(pmark):     # between whole candidates; the rest unread
+                        pmark["unread"] = pmark.get("unread", 0) + len(order) - n + 1
+                        break
                     x = by_text[text]
                     checked += 1
                     self._hyp_n += 1
@@ -10482,6 +10544,9 @@ class Agent:
             ok = []
             for x in group:
                 cap.head()
+                if self._purse_cut(pmark):         # C2 P2: between whole candidates
+                    pmark["unread"] = pmark.get("unread", 0) + 1
+                    break
                 checked += 1
                 self._hyp_n += 1
                 key = f"@hyp{self._hyp_n}"
@@ -10511,7 +10576,7 @@ class Agent:
             if link is not None:
                 pick = (x, key, link)
                 routable = len(ok)
-        if pick is None:
+        if pick is None and not pmark.get("purse_cut"):
             pick = self._hyp_pair(before, detail)
         detail.update(checked=checked, refused=dict(refused))
         if _ONE_TERM:
@@ -10526,6 +10591,13 @@ class Agent:
                           phases=self._hyp_phases, wall_s=round(time.perf_counter() - t0, 4))
         if _HYP_DRAW:              # its wall time and the size of the group it stopped in
             detail.update(wall_s=round(time.perf_counter() - t0, 4), group_n=group_n)
+        if pmark.get("purse_cut"):
+            detail.update(purse_cut=True, purse_unread=pmark.get("unread", 0))
+        if pick is None and pmark.get("purse_cut"):
+            # C2 P2: unreached at this budget -- never _hyp_exhausted, asked again next step
+            self.led.record(self.cycle, "PLAN", "@goal", "goal_hypotheses", pick=None,
+                            why="unreached at this budget: the purse", **detail)
+            return
         if pick is None:
             self._hyp_exhausted = self._hyp_known
             self.led.record(self.cycle, "PLAN", "@goal", "goal_hypotheses", pick=None,
@@ -11530,7 +11602,8 @@ class Agent:
             # MUSE_BOUND: one evaluation per _left, charged to the step; True when spent out
             if not _MUSE_BOUND:
                 return False
-            if self._spent >= STEP_BUDGET:
+            if self._purse_out():
+                self._purse_cut()       # C2: ON, the step's demand is censored here
                 return True
             self._spent += 1
             return False
@@ -13273,6 +13346,7 @@ class Agent:
         order: list = []
         cov_seen: dict = {}            # r1163 FIX 2: (slot, term, operand) -> its first prov
         pruned: collections.Counter = collections.Counter()   # r1178: (head, type) -> paths
+        pc: dict = {}                  # C2 P2: the purse -- molecules begun, and a cut if any
         if tr:
             frames = [b for b, *_r in tr] + [tr[-1][2]]
             skip = tuple(t + 1 for t, r in enumerate(tr) if str(r[1]).upper().endswith("RESET"))
@@ -13393,6 +13467,10 @@ class Agent:
                 walk = lit + [c for c in walk if c["molecule"] not in set(lit_sev)]
             for m in walk:
                 cap.head()
+                if self._purse_cut(pc):     # between whole molecules; the rest unreached
+                    pc["unreached"] = len(walk) - pc.get("began", 0)
+                    break
+                pc["began"] = pc.get("began", 0) + 1
                 if m.get("lit"):
                     # r1130 (a): RESOLVE FIRST -- never a whole built on an unresolved part
                     unres = None
@@ -13445,6 +13523,9 @@ class Agent:
                         for path in (self._cover_paths(per, pruned)
                                      if _COVER_PRUNE and _COVER_CHAIN_TYPED
                                      else itertools.product(*per)):
+                            if self._purse_cut(pc):     # the cover walk: between whole paths
+                                pc["cover"] = pc.get("cover", 0) + 1
+                                break
                             if _BOND_DISJOINT and len(set(path)) < len(path):
                                 continue                # one slot read twice is one quantity
                             ts = [self._slot_term(s) for s in path]
@@ -13506,6 +13587,8 @@ class Agent:
                         seen=sum(p["seen"] for p in order),
                         generalised=sum(not p["seen"] for p in order), slots=len(self._mol_offers),
                         not_offered=dict(why.most_common()), previous=prev,
+                        **({"purse_unreached": pc.get("unreached", 0),
+                            "purse_cover_cut": pc.get("cover", 0)} if pc.get("purse_cut") else {}),
                         **({"lift": dict(self._lift_n)} if _DERIVED_LIFT and self._lift_n else {}),
                         **({"lit_cover": dict(lit_n)} if _LIT_COVER and lit_n else {}),
                         **({"two_slot": dict(two_n)} if _TWO_SLOT_OPERAND and two_n else {}),
@@ -14337,7 +14420,26 @@ class Agent:
                 cap.head()
                 out.counts[v] = max(1, sum(1 for x in seq[:n + 1] if x == v))
         out.note = partial(self._domain_row, slot)
+        if _PURSE_OWN:
+            out.purse = self._purse_ring
+            out.purse_note = partial(self._purse_walk_row, slot)
         return out
+
+    def _purse_ring(self, ring: int) -> bool:
+        """C2 P1: the unseen walk's check between rings (comparable-only: between values)."""
+        self._walk_ring = ring
+        return self._purse_cut()
+
+    def _purse_walk_row(self, slot: str, shown) -> None:
+        """C2 P1: the walk stopped at the purse, a row: unreached at this budget, never a value."""
+        self.led.record(self._book_cycle(), self._running_step, self._book_key(slot), "purse_cut",
+                        site="unseen_walk", ring=self._walk_ring, spent=self._purse_spent(),
+                        purse=self._purse(), source=self._purse_src,
+                        allowance=self._allowance(),
+                        shown=None if shown is None else repr(shown),
+                        reads="unreached at this budget: the walk stopped between rings; the "
+                              "shown answer stands if there is one, else not resolved, never "
+                              "none")
 
     def _domain_row(self, slot: str, opts: list, pick: int, by: str, front: list) -> None:
         """A1 site 9's A2 row: both values on the frontier, their readings, the pick, its step."""
@@ -15014,7 +15116,7 @@ class Agent:
         keep = dict(self._pred_raw)
 
         def more():
-            return self._spent + used[0] + len(preds) <= STEP_BUDGET
+            return self._purse_affords(used[0] + len(preds))
 
         owners = sorted({o for s in preds for o in self._objs_named(s)})
         wants = ([IFace.Intent(IFace.BECOME, subj, "+"), IFace.Intent(IFace.BECOME, subj, "-")]
@@ -16503,7 +16605,7 @@ class Agent:
         asked = self._asked
         fit = self._fit_counted(slot, exclude)
         if (fit is None and self._asked > asked
-                and not (_STEP_BUDGET and self._spent >= STEP_BUDGET)):
+                and not (_STEP_BUDGET and self._purse_out())):
             self._fit_none[slot] = (self._fit_key(slot, exclude), self.cycle)
         else:
             self._fit_none.pop(slot, None)
@@ -16570,7 +16672,7 @@ class Agent:
                         reads=("the gap, cited BEFORE the library is read. One record, three "
                                "consumers: the pull count, the description's ordering proof, "
                                "and an import's shadow test"))
-        if _STEP_BUDGET and self._spent >= STEP_BUDGET:
+        if _STEP_BUDGET and self._purse_out():
             own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
             qid = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
             self._owed_q[slot] = qid
@@ -16579,7 +16681,7 @@ class Agent:
                 self._class_n[self._route_cls[slot]][1] += 1
             self.owed_import.add(slot)
             self.led.record(self.cycle, "ROUTE", slot, "budget_owed", question=list(qid),
-                            spent=self._spent, budget=STEP_BUDGET,
+                            spent=self._spent_now(), budget=self._budget_now(),
                             reads="not asked: the step's budget was spent; owed, " + _owed_next())
         else:
             _paid_q = self._owed_q.pop(slot, None)
@@ -16602,7 +16704,8 @@ class Agent:
                 self._owed_q[slot] = qid
                 self.owed_import.add(slot)
                 self.led.record(self.cycle, "ROUTE", slot, "walk_cut", question=list(qid),
-                                unreached=self._walk_cut, spent=self._spent, budget=STEP_BUDGET,
+                                unreached=self._walk_cut, spent=self._spent_now(),
+                                budget=self._budget_now(),
                                 reads="unreached at this budget, never absent: the index walk "
                                       "stopped between entries; owed, " + _owed_next())
         # THE TRACK RECORD ENTERS HERE AND ONLY HERE. `track_of` decays on read, mirroring
@@ -17620,7 +17723,7 @@ class Agent:
                     lo, hi = self._range.get(slot, (r.actual, r.actual))
                     self._range[slot] = (min(lo, r.actual), max(hi, r.actual))
         if _STEP_BUDGET:
-            self.led.record(self.cycle, "ROUTE", "@budget", "budget", budget=STEP_BUDGET,
+            self.led.record(self.cycle, "ROUTE", "@budget", "budget", budget=self._budget_now(),
                             spent=self._spent, asked=self._asked, not_asked=self._not_asked,
                             **({"spent_choose": self._tc_choose_spent,
                                 "spent_route": self._spent - self._tc_choose_spent}
@@ -20059,7 +20162,7 @@ class Agent:
         st, unread, used, j = dict(before), set(), [0], 0
         keep, sim = dict(self._pred_raw), getattr(self, "_sim_parent", {})
         try:
-            while self._spent + used[0] + len(slots) <= STEP_BUDGET:
+            while self._purse_affords(used[0] + len(slots)):
                 cap.head()
                 nxt = self._la_predict(st, press, slots, unread, used)
                 if unread:
@@ -21453,6 +21556,13 @@ class Agent:
         starved = _STARVED_CONTACT and bool(self._aims())
         opts, res = [], {}
         s0_tw = dist_r = None
+        rmark: dict = {}               # C2 P2: the readiness reads the purse left unread
+
+        def _ok(name: str) -> bool:
+            if self._purse_cut(rmark):
+                rmark.setdefault("skipped", []).append(name)
+                return False
+            return True
         if starved:
             opts.append("probe")
             res["probe"] = max(self.outstanding(s) for s in self._aims())
@@ -21473,40 +21583,46 @@ class Agent:
         # each aims, then turns taken, then the draw). OFF: they defer while it is active
         if not s0 or _S0_CONTEST:
             _gap = None
-            if _ASK and _DIVIDE:
-                dist_r, _gap = self._ask_aimed(before)    # 1b: aimed at a gap's survivors
-            if _gap is None:
-                dist_r = self.iface.realise(IFace.Intent(IFace.DISTINGUISH), tuple(self.actions),
-                                            IFace.Interface.context(self.env), before, self.env,
-                                            withheld=self._withheld)
+            if _ok("distinguish"):
+                if _ASK and _DIVIDE:
+                    dist_r, _gap = self._ask_aimed(before)    # 1b: aimed at a gap's survivors
+                if _gap is None:
+                    dist_r = self.iface.realise(IFace.Intent(IFace.DISTINGUISH),
+                                                tuple(self.actions),
+                                                IFace.Interface.context(self.env), before,
+                                                self.env, withheld=self._withheld)
             if dist_r is not None:
                 opts.append("distinguish")
                 # it aims at the board, not a slot -- unless 1b aimed it at a gap's survivors:
                 # then the outstanding of the slot it aims at, this function's own rule
                 res["distinguish"] = self.outstanding(_gap) if _gap else 0
-            gslot = self._goal_choice()
+            gslot = self._goal_choice() if _ok("goal") else None
             if gslot is not None and self._goal_split(before, commit=False) is not None:
                 opts.append("goal")
                 res["goal"] = self.outstanding(gslot)
             # 16b (r1189): a formed intent never pressed here, at a static goal slot, same rule
-            self._untried_best = self._untried_ready(before) if _UNTRIED_INTENT else None
+            self._untried_best = (self._untried_ready(before)
+                                  if _UNTRIED_INTENT and _ok("untried:goal") else None)
             if self._untried_best is not None:
                 opts.append("untried:goal")
                 res["untried:goal"] = self.outstanding(self._untried_best[0])
             # 16 (r1184): a slip's named probe, the act meant, enters it by the same rule
-            self._probe_best = self._probe_ready(before) if _3A_PROBE else None
+            self._probe_best = (self._probe_ready(before)
+                                if _3A_PROBE and _ok("probe:3a") else None)
             if self._probe_best is not None:
                 opts.append("probe:3a")
                 res["probe:3a"] = self.outstanding(self._probe_best[0]["slot"])
             # 15c (r1184): the held rivals' disagreement enters the same contest, read by the same
             # rule (the outstanding of the slot it aims at)
             self._disc_best = (self._discrim_best(before)
-                               if _INTENT_DISCRIMINATE and _INTENT_PREDICT else None)
+                               if _INTENT_DISCRIMINATE and _INTENT_PREDICT and _ok("discriminate")
+                               else None)
             if self._disc_best is not None:
                 opts.append("discriminate")
                 res["discriminate"] = self.outstanding(self._disc_best[1])
             # item 24 (i) (r1252 4): a muse rival's test press enters by the same rule
-            self._muse_test_best = self._muse_test_ready(before) if _MUSING_CHOSEN else None
+            self._muse_test_best = (self._muse_test_ready(before)
+                                    if _MUSING_CHOSEN and _ok("muse_test") else None)
             if self._muse_test_best is not None:
                 opts.append("muse_test")
                 res["muse_test"] = self.outstanding(self._muse_test_best[0])
@@ -21518,7 +21634,9 @@ class Agent:
                             {e: self._exit_n[(self._lk(), e)] for e in opts},
                             extra={"s0_defer": s0, "fixed_would": fixed,
                                    **({"s0_contest": True} if s0 and _S0_CONTEST else {}),
-                                   **({"s0": s0_reads} if s0_reads else {})})
+                                   **({"s0": s0_reads} if s0_reads else {}),
+                                   **({"purse_skipped": rmark["skipped"]}
+                                      if rmark.get("skipped") else {})})
         self._exit_n[(self._lk(), pick)] += 1
         return pick, s0_tw, dist_r
 
@@ -22200,6 +22318,28 @@ class Agent:
                 "w_frac": round(wall / span, 4) if (span and wall is not None) else None,
                 "s_step": s_step, "s_per_eval": s_eval, "s_per_press": per}
 
+    def _tc_think_left(self) -> int:
+        """What a think may still spend this step: C2 ON, the allowance left in heads; OFF,
+        STEP_BUDGET - spent in evaluations, as before."""
+        if not _PURSE_OWN:
+            return max(0, STEP_BUDGET - self._spent) if _STEP_BUDGET else 0
+        return max(0, self._allowance() - self._purse_spent())
+
+    def _tc_clock_now(self) -> dict:
+        """The clocks a think is priced on. OFF: _tc_clocks, as before. C2 P3 ON (r1392 2, r1395
+        3), in heads: s_step = the purse, one head per evaluation; per press = the purse offline
+        (the deadline actions_left x purse, so a think displaces think / purse presses), and
+        online the runner's seconds per remaining press over the agent's own seconds per step, x
+        the purse -- the one place a wall enters, and only where the deadline is a wall."""
+        c = self._tc_clocks()
+        if not (_PURSE_DEADLINE and _PURSE_OWN):
+            return c
+        p = self._purse()
+        per = p
+        if c["wall_s"] is not None and c["actions_left"] and c["s_step"]:
+            per = p * (c["wall_s"] / c["actions_left"]) / c["s_step"]
+        return {**c, "s_step": p, "s_per_eval": 1, "s_per_press": per, "unit": "heads"}
+
     @staticmethod
     def _tc_displaced(evals: float, c: dict) -> float:
         """Item 25 (r1264): the presses a think of `evals` evaluations displaces. Wall only: every
@@ -22253,8 +22393,8 @@ class Agent:
                    ) -> bool:
         """Item 25 (r1264), the corrected (a'): think iff gain > displaced x rho x need x urgency.
         The press goes out either way. One think_choice row; the choice awaits its witness."""
-        evals = max(0, STEP_BUDGET - self._spent) if _STEP_BUDGET else 0
-        c = self._tc_clocks()
+        evals = self._tc_think_left()
+        c = self._tc_clock_now()
         disp, rho = self._tc_displaced(evals, c), self._tc_rho()
         need, urg, parts = self._tc_act_side(kind, slot)
         cost = disp * rho * need * urg
@@ -22294,9 +22434,8 @@ class Agent:
         if ln is not None and not why0 and ln.get("presses", 0) > 0:
             # item 26: a mint line that has displaced presses (a clock binds) is weighed by its
             # own rate; under rho its gain is that rate x the presses this walk would displace
-            c = self._tc_clocks()
-            disp = self._tc_displaced(max(0, STEP_BUDGET - self._spent) if _STEP_BUDGET else 0,
-                                      c)
+            c = self._tc_clock_now()
+            disp = self._tc_displaced(self._tc_think_left(), c)
             rate = self._tc_line_rate({slot: ln["first"]}, ln["presses"])
             if not self._tc_line("mint", slot, kind, rate, disp, mints=ln["mints"]):
                 gain = rate * disp
@@ -24840,6 +24979,17 @@ class Agent:
         construction; checked on four worlds."""
         if _7F_LEAVE and hasattr(self, "_leave_held") and not self._may_mint(slot):
             return None
+        if _PURSE_OWN and hasattr(self, "_pd") and self._purse_cut():
+            # C2: the purse is spent -- this slot's mint is unreached at this budget, owed and
+            # asked first next step (walk_cut's form), never a verdict on the slot
+            own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+            self._owed_q[slot] = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
+            self.owed_import.add(slot)
+            self.led.record(self.cycle, self._running_step, slot, "purse_cut", site="mint",
+                            spent=self._purse_spent(), allowance=self._allowance(),
+                            source=self._purse_src,
+                            reads="unreached at this budget: the purse; owed, " + _owed_next())
+            return None
         out0 = self.outstanding(slot) if _7F_LEAVE else None
         self._memo = {}
         try:
@@ -25420,7 +25570,7 @@ class Agent:
                         _cur = None
                     if not _live and _held:
                         # L4: every base stream has stopped this round; the widened draw next
-                        if rank >= self.cfg.work_budget:
+                        if rank >= self.cfg.work_budget or self._purse_cut(stats):
                             _walk, _why = False, "budget"
                         else:
                             _walk, _why = self._think_or_act(slot, closer=best is not None)
@@ -25458,7 +25608,7 @@ class Agent:
                     if _hit and _pk in _hit[1]:
                         _skipped += 1
                         continue
-                    if rank >= self.cfg.work_budget:
+                    if rank >= self.cfg.work_budget or self._purse_cut(stats):
                         st["budget_spent"] = True
                         _stop(_si, _open, _live)
                         continue
@@ -25589,7 +25739,7 @@ class Agent:
                         if _WINDOW:
                             # THE BUDGET CHECKED INSIDE THE CHAIN (the reviewer 18:15Z), so the
                             # cut can fall between two lags and the low-ranked ones go first.
-                            if rank >= self.cfg.work_budget:
+                            if rank >= self.cfg.work_budget or self._purse_cut(stats):
                                 st["budget_spent"] = True
                                 break
                             if bind and "~" in bind and lag_of(bind):
@@ -26028,7 +26178,8 @@ class Agent:
             _won = best[3] if best is not None else None
             _stop_why = {"found": int(_won is not None),
                          "budget": int(bool(stats["budget_spent"])),
-                         "exhausted": int(_won is None and not stats["budget_spent"])}
+                         "exhausted": int(_won is None and not stats["budget_spent"]),
+                         **({"purse": 1} if stats.get("purse_cut") else {})}
             if _LIBRARY_FIRST:
                 self.led.record(
                     self.cycle, "MINT", slot, "stream", site="library_merge", arm=_A1_LIBRARY,
@@ -27280,6 +27431,8 @@ class Agent:
                 self._quit_weigh()      # item 31: at the step's end, stay against go in levels
             if self._clk_hs is not None:
                 self._heads_body(c0)
+                if _PURSE_OWN:
+                    self._purse_close_step(c0)
             self._clk_stack = self._clk_hs = None      # the step clock closes with the step
             self.led.flush_tally(c0)    # the choice tally's per-step rows, at the step's end
 
@@ -27305,6 +27458,19 @@ class Agent:
                 "think": total - sum(self._clk_h.get(k, 0) for k in _TC_IDLE_SCOPES),
                 "deferred": sorted(list(q) for q in set(self._owed_q.values()) if q[0] == c0),
                 "paid": self._dem_paid}
+        if _PURSE_OWN:
+            # C2: the purse this step thought against, its bank, and the level's censored steps
+            spent_now, allow_now = self._purse_spent(), self._allowance()
+            body["purse"] = {"purse": self._purse(), "source": self._purse_src,
+                             "allowance": allow_now,
+                             "bank": self._bank if self._bank_lvl == self.level else 0,
+                             "cut": self._p_cut,
+                             # r1644: the overshoot -- heads past the allowance, and the unit
+                             # that crossed it (checks fall between whole units)
+                             "purse_over": max(0, spent_now - allow_now),
+                             "crossed": self._p_cross,
+                             "censored": sum(1 for r in self._pd
+                                             if r["lvl"] == self.level and r["open"])}
         # the side file starts with its ledger (TETHER_BODY_APPEND): a heads line written before
         # the first fold opens it, so the fold appends rather than truncating
         fresh = _BODY_APPEND and not getattr(self.led, "_body_opened", False)
@@ -27312,6 +27478,140 @@ class Agent:
             self.led._body_opened = True
         with open(f"{path}.body.jsonl", "w" if fresh else "a", encoding="utf-8") as fh:
             fh.write(json.dumps(body) + "\n")
+
+    def _purse_close_step(self, c0: int) -> None:
+        """C2 (r1399): the step's DEMAND record -- its thinking heads, open while a question it
+        owed is unpaid or a site it cut was left (right-censored) -- the heads owed work ran this
+        step booked back to the step that owed it, and this level's BANK: a step under the purse
+        saves the rest, one over it draws, never past what is banked; it starts empty at each
+        level (r1395 p1)."""
+        p = self._purse()
+        spent = self._purse_spent()
+        opened = {tuple(q) for q in self._owed_q.values() if q[0] == c0}
+        if self._p_cut:
+            opened.add(("cut", c0))
+        self._pd_at[c0] = len(self._pd)
+        self._pd.append({"cyc": c0, "lvl": self.level, "think": spent, "extra": 0,
+                         "open": opened})
+        for paid in self._dem_paid:
+            i = self._pd_at.get(paid["for"])
+            if i is not None and i != len(self._pd) - 1:
+                self._pd[i]["extra"] += paid["heads"]
+                self._pd[i]["open"].discard(tuple(paid["q"]))
+        if self._bank_lvl != self.level:
+            self._bank, self._bank_lvl = 0, self.level
+        saved = draw = 0
+        if spent < p:
+            saved = p - spent
+            self._bank += saved
+        else:
+            draw = min(self._bank, spent - p)
+            self._bank -= draw
+        self._bank_last = (saved, draw)
+        self._p_cut, self._p_cross = False, None
+        self._pd_ver += 1
+
+    def _purse_spent(self) -> int:
+        """C2: this step's THINKING heads so far -- loop heads since the step began, less the idle
+        scopes' (_TC_IDLE_SCOPES, the open one counted up to now). Counted, never a wall."""
+        if self._clk_hs is None:
+            return 0
+        h = cap.HEADS
+        idle = sum(self._clk_h.get(k, 0) for k in _TC_IDLE_SCOPES)
+        stk, hs = self._clk_stack, self._clk_hs
+        if stk and hs and stk[-1][0] in _TC_IDLE_SCOPES:
+            idle += h - hs[-1]
+        return max(0, h - self._clk_h0 - idle)
+
+    @staticmethod
+    def _km_median(obs: list) -> int | None:
+        """The product-limit (Kaplan-Meier) median of (value, observed) pairs: an observed step's
+        demand, or a lower bound on it (owed work unpaid: right-censored). The smallest value where
+        survival falls to one half; None when it never does (over half the mass lies above what
+        has been seen). Counts, no fill."""
+        pts = sorted(obs)
+        n, surv, i = len(pts), 1.0, 0
+        while i < n:
+            cap.head()
+            v, d, c, at_risk = pts[i][0], 0, 0, n - i
+            while i < n and pts[i][0] == v:
+                if pts[i][1]:
+                    d += 1
+                else:
+                    c += 1
+                i += 1
+            if d:
+                surv *= 1 - d / at_risk
+                if surv <= 0.5:
+                    return v
+        return None
+
+    def _purse(self) -> int:
+        """C2 (r1392 1, r1395 p1, r1399, r1610): this LEVEL's median step demand by the
+        product-limit median, once the level holds MIN_REPEAT steps; else (or undefined) the game
+        series'; undefined too, the last purse, NEVER LOWERED on censored evidence (Fig 2 :33);
+        before any demand, STEP_BUDGET in heads: the newborn's innate prior, a head start
+        (Fig 4 :22), replaced at the first demand reading."""
+        key = (self.level, self._pd_ver)
+        if self._purse_memo is not None and self._purse_memo[0] == key:
+            self._purse_src = self._purse_memo[2]
+            return self._purse_memo[1]
+        obs = [(r["think"] + r["extra"], not r["open"]) for r in self._pd]
+        here = [o for o, r in zip(obs, self._pd, strict=True) if r["lvl"] == self.level]
+        p, src = (self._km_median(here) if len(here) >= MIN_REPEAT else None), "level median"
+        if p is None:
+            p, src = self._km_median(obs), "series median"
+        if p is None:
+            p, src = ((self._purse_last, "last purse") if self._purse_last is not None
+                      else (STEP_BUDGET, "innate prior (STEP_BUDGET, heads)"))
+        self._purse_last, self._purse_src = p, src
+        self._purse_memo = (key, p, src)
+        return p
+
+    def _allowance(self) -> int:
+        """C2: what this step may think: the purse plus this level's bank (r1399 3; Isaiah 11-06:
+        "any time saved per question can be allocated to harder questions")."""
+        return self._purse() + (self._bank if self._bank_lvl == self.level else 0)
+
+    def _purse_out(self) -> bool:
+        """Is this step's thinking budget spent? ON: thinking heads against the allowance (never
+        outside a step); OFF: STEP_BUDGET's evaluation count, as before."""
+        if not _PURSE_OWN:
+            return self._spent >= STEP_BUDGET
+        if self._clk_hs is None:
+            return False
+        spent, allow = self._purse_spent(), self._allowance()
+        if spent >= allow and self._p_cross is None:
+            # r1644: the unit that crossed the allowance is the scope running when it is first seen
+            self._p_cross = {"at": self._clk_stack[-1][0] if self._clk_stack else None,
+                             "spent": spent, "allowance": allow}
+        return spent >= allow
+
+    def _purse_affords(self, n: int) -> bool:
+        """May a unit of n evaluations start? OFF: spent + n <= STEP_BUDGET, as before. ON: the
+        purse is not yet spent (a unit's heads are counted as it runs, never pre-priced)."""
+        if not _PURSE_OWN:
+            return self._spent + n <= STEP_BUDGET
+        return not self._purse_out()
+
+    def _purse_cut(self, mark: dict | None = None) -> bool:
+        """C2: a site's purse check between whole units (its own bound is kept; whichever comes
+        first stops it). True when the purse is spent: the step's demand is censored, and `mark`
+        gets purse_cut so the site's row can say "unreached at this budget". OFF: never."""
+        if not (_PURSE_OWN and self._purse_out()):
+            return False
+        self._p_cut = True
+        if mark is not None:
+            mark["purse_cut"] = True
+        return True
+
+    def _spent_now(self) -> int:
+        """What a budget row reports as spent: thinking heads ON, evaluations OFF."""
+        return self._purse_spent() if _PURSE_OWN else self._spent
+
+    def _budget_now(self) -> int:
+        """What a budget row reports as the budget: the allowance in heads ON, STEP_BUDGET OFF."""
+        return self._allowance() if _PURSE_OWN else STEP_BUDGET
 
     def _note_boundary_wall(self, wall_s: float) -> None:
         """A level boundary's write, timed by the loop: this game series' own measurement of its
