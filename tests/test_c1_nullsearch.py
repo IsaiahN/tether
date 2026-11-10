@@ -192,12 +192,74 @@ def check_n5() -> None:
           f"shadow right on a not-P row reverts it; idn's standing byte-equal")
 
 
+def _left(ag, slot: str) -> None:
+    """slot's mint line LEFT by 7f, with every transition already seen: _may_mint skips it."""
+    seen = {(b.get(slot), a, af.get(slot)) for b, a, af, *_ in ag.trace}
+    ag._leave_held[slot] = {"level": ag.level, "root": ag._root_id, "cycle": 2,
+                            "slots": set(ag.slots), "skipped": 0, "seen": seen,
+                            "upto": len(ag.trace)}
+
+
+def _split_rows(on: bool, left: bool) -> tuple[list, dict]:
+    keep = _arms(on, False, True)
+    try:
+        ag = _agent()
+        _hand(ag, ROWS, KNOWN)
+        if left:
+            _left(ag, "x")
+        n0 = len(ag.led)
+        ag._d5_split("x", f"{KE} ?.col", {}, tether.NULL_MAKER)
+        new = ag.led.rows(n0)
+    finally:
+        _restore(keep)
+    split = next(r for r in new if r["event"] == "split")
+    return new, split
+
+
+def _part_rows(new: list) -> list:
+    return [r for r in new if (r["detail"].get("part") or {}).get("part") == f"!{KE} ?.col"]
+
+
+def check_n6() -> None:
+    """r1619 (a), (b): a left slot's confirmed null cut REOPENS the line with a row and part B's
+    mint runs; OFF (TETHER_D5_NULL off) the line stays left and the split row says so."""
+    new, split = _split_rows(True, True)
+    reopen = [r for r in new if r["event"] == "reopen"]
+    assert reopen and reopen[0]["detail"]["reopen_by"] == "split", new
+    assert reopen[0]["detail"]["split_P"] == f"{KE} ?.col"
+    parts = _part_rows(new)
+    assert parts and parts[0]["seq"] > reopen[0]["seq"], "MUST-FAIL (a): part B's mint never ran"
+    assert not split["detail"]["part_b"].startswith("not searched"), split["detail"]
+    off, split_off = _split_rows(False, True)
+    assert not [r for r in off if r["event"] == "reopen"] and not _part_rows(off), off
+    said = split_off["detail"]["part_b"]
+    assert said == "not searched: the line was left at c2", \
+        f"MUST-FAIL (b): a split whose part mint did not run said {said!r}"
+    print(f"  N6: left line reopened (reopen_by split), part B's mint ran ({len(parts)} part rows; "
+          f"part_b {split['detail']['part_b']!r}); OFF: {said!r}")
+
+
+def check_n7() -> None:
+    """r1619 (c): a split whose part mint parked names the park row; never 'parked' without one."""
+    new, split = _split_rows(True, False)
+    said = split["detail"]["part_b"]
+    parks = [r for r in _part_rows(new) if r["event"] == "park"]
+    if parks:
+        assert said == f"searched: parked (seq {parks[0]['seq']})", \
+            f"MUST-FAIL (c): the park row is not named: {said!r}"
+    else:
+        assert "parked" not in said, f"MUST-FAIL (c): 'parked' with no park row: {said!r}"
+    print(f"  N7: part_b {said!r} ({len(parks)} park row(s) carrying the part)")
+
+
 def main() -> int:
     check_n1()
     check_n2()
     check_n3()
     check_n4()
     check_n5()
+    check_n6()
+    check_n7()
     print("c1_nullsearch: OK")
     return 0
 

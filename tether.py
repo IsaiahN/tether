@@ -877,6 +877,9 @@ INTERVAL_DISAGREE: list = []      # the first disagreements, for the check run's
 # r1585 3: the unseen walk's own calls and evaluations, read into the step's @body heads row as
 # its own scope (its ring heads land in the enclosing scope). Record only: nothing reads it
 WALK_N: dict = {"calls": 0, "evals": 0}
+# (B) (r1615 (d), r1619): D5's condition searches -- _d5_cut's calls and loop heads -- for the @body
+# heads line; record only, nothing reads it
+D5_N: dict = {"calls": 0, "heads": 0}
 # Q3, THE WORK BUDGET CHARGES WORK DONE (Isaiah 2026-10-21 18:58 "3-agreed"; the reviewer 19:02 (B),
 # 19:13 B3): a chain bounded out on cost generates no instance, so its instances are not charged
 # to work_budget (sp80 669,981 / vc33 276,057 such in 8 cycles at 15k). A REACH change: the same
@@ -18254,6 +18257,15 @@ class Agent:
         return True if f in holds else (False if f not in union else None)
 
     def _d5_cut(self, slot: str, name: str) -> tuple | None:
+        """D5's trigger, counted (D5_N): calls and loop heads, for the @body heads line."""
+        h0 = cap.HEADS
+        try:
+            return self._d5_cut_body(slot, name)
+        finally:
+            D5_N["calls"] += 1
+            D5_N["heads"] += cap.HEADS - h0
+
+    def _d5_cut_body(self, slot: str, name: str) -> tuple | None:
         """D5's trigger (Fig 9 :4-5): a held predicate P with the incumbent right on every P row
         and wrong on every other, at least 2 a side (probe.never_live's anchor: two is the
         smallest number that separates), and the split pays: the incumbent's miss on the not-P
@@ -18398,6 +18410,10 @@ class Agent:
             self._row_filter[slot] = lambda r, _p=pred, _s=slot: self._d5_tri(_p, _s, r) is False
         else:
             self._row_filter[slot] = lambda r, _p=pred, _s=slot: not self._d5_holds(_p, _s, r)
+        lf0 = self._leave_held.get(slot) if _7F_LEAVE and hasattr(self, "_leave_held") else None
+        if _D5_NULL and lf0 is not None:
+            self._reopen_split(slot, pred, lf0)
+        n0 = len(self.led)
         self._mint_part = {"part": f"!{pred}", "slot": slot, "incumbent": inc}
         try:
             self.mint(slot)
@@ -18406,6 +18422,16 @@ class Agent:
             self._row_filter.pop(slot, None)
             self._mint_part = None
         part_b = got if got and got != inc else None
+        # r1619, unconditional: the split row says what part B's mint did, read off its own rows
+        mine = [r for r in self.led.rows(n0)
+                if (r["detail"].get("part") or {}).get("part") == f"!{pred}"
+                and r["detail"]["part"].get("slot") == slot]
+        park = next((r for r in mine if r["event"] == "park"), None)
+        said_b = (part_b or (f"searched: parked (seq {park['seq']})" if park else None)
+                  or ("searched: nothing bound, no park row" if mine else None)
+                  or (f"not searched: the line was left at c{lf0['cycle']}"
+                      if lf0 is not None and slot in self._leave_held
+                      else "not searched: the part's mint wrote no row"))
         (self.owed_import.add if owed else self.owed_import.discard)(slot)
         for store, val in ((self.abstained, abst), (self.wants, want), (self._want_terms, want_t)):
             if val is None:
@@ -18415,8 +18441,7 @@ class Agent:
         self._bind_part(slot, inc)
         self._parts[slot] = {"P": pred, "A": inc, "B": part_b}
         self.led.record(self.cycle, "MINT", "@d5", "split", split_slot=slot, P=pred,
-                        part_a=inc, part_b=part_b or "parked (its own park row names the part)",
-                        **numbers)
+                        part_a=inc, part_b=said_b, **numbers)
         if _CONDITION_CARRY:
             self._cond_write(slot, pred, inc, part_b, numbers)
 
@@ -18545,6 +18570,16 @@ class Agent:
         if not pred.startswith(KNOWN_EFFECT + " "):
             return pred
         return _INSTANCE.sub(lambda m: repr(self._kind(m.group(0))), pred)
+
+    def _reopen_split(self, slot: str, pred: str, lf: dict) -> None:
+        """(B) (r1619): a confirmed cut is new about a left slot -- a partition the leave never
+        held -- so the line REOPENS by 7f's own reopen row (reopen_by "split") and part B's mint
+        runs; 7f's rules apply after it, so the line may be left again by its own check."""
+        del self._leave_held[slot]
+        self._leave_line.pop(slot, None)
+        self.led.record(self.cycle, self._running_step, slot, "reopen", reopen_by="split",
+                        split_P=pred, skipped=lf["skipped"], left_at=lf["cycle"],
+                        root=self._root_id)
 
     def _bind_part(self, slot: str, a: str) -> None:
         """D5: a part's incumbent takes the slot; the null's part A leaves it unbound (B) (a), so
@@ -26830,6 +26865,7 @@ class Agent:
             self._clk, self._clk_stack, self._clk_t0 = {}, [], time.perf_counter()
             self._clk_h, self._clk_hs, self._clk_h0 = {}, [], cap.HEADS
             self._walk0 = (WALK_N["calls"], WALK_N["evals"])
+            self._d50 = (D5_N["calls"], D5_N["heads"])
             self._dem_paid = []
             self._reach_wall = 0.0
         try:
@@ -26860,6 +26896,8 @@ class Agent:
                 "scopes": dict(sorted(self._clk_h.items())),
                 "walk": {"calls": WALK_N["calls"] - self._walk0[0],
                          "evals": WALK_N["evals"] - self._walk0[1]},
+                "d5": {"calls": D5_N["calls"] - self._d50[0],
+                       "heads": D5_N["heads"] - self._d50[1]},
                 # C2 P0, THE DEMAND RECORD (r1399, r1610): thinking heads (less the idle scopes),
                 # the questions this step left owed, and owed work it ran for earlier steps. A
                 # step's demand = think - paid out + what later lines book back to it; owed and
