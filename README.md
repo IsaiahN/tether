@@ -24,7 +24,7 @@ grows by mapping a world against a ground it cannot argue with.
   lineage (generations, merge, graft), search, minting, the narrator. Where general work lands
   first.
 - **[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)**:
-  `general-agent` plus the ARC-AGI-3 interface and the Kaggle runner. The competition build: it
+  `general-agent` plus the ARC-AGI-3 interface, the competition build: it
   receives `general-agent` by merge and adds only what ARC needs.
 - **[`development`](https://github.com/IsaiahN/tether/tree/development)**: the working branch for
   the competition build, cut from `arc-solver-agent`; refined changes reach `arc-solver-agent` by
@@ -62,6 +62,22 @@ The loop is one loop for every world, with no branch on problem type:
 
     PERCEIVE -> ROUTE -> MINT -> ACCEPT -> SETTLE -> PROMOTE -> IMPORT -> REPEAT
 
+**Already in this branch (all on by default):**
+
+- **The try-first hold reads the agent's own record**: a hypothesis counts only its own presses.
+- **A bounded re-check**: the background re-check after a level clear is paid from each step's
+  budget, cut and resumed, so it can no longer stall a session.
+- **Look-ahead**: settled one-press predictions are chained over short sequences of intentions,
+  reading only what is on the board.
+- **Routines kept in kind form**: a look-ahead sequence that closes its gap is kept as one
+  routine, by kind.
+- **The thought record**: each library lookup remembers what it tried and what paid, by kind of
+  situation, and ranks what paid first.
+- **Self-read**: where each game's chain of reasoning stopped is carried, and read at the next
+  game's start.
+- **The try-first pass**: the try-first sweep gives every untouched kind one touch before it may
+  stop, on boards where an action can be aimed at an object.
+
 **What this release adds (every switch on by default):**
 
 - **Condition search**: when a rule keeps missing on part of what it covers, the agent names the
@@ -82,9 +98,9 @@ The loop is one loop for every world, with no branch on problem type:
   formula that decided them, and a step the ground keeps refusing is skipped.
 - **Doors**: a guess whose way was blocked is set aside, "not reachable right now", and picked
   back up when the world changes or a new effect is known.
-- **The needs dial**: making progress and exploring are weighed by how often each paid when it
-  was chosen, learned apart under pressure and at ease, so a need used more does not weigh more
-  just for being used.
+- **The needs dial**: making progress and exploring are weighed by how often each has paid when
+  it was tried, learned apart under pressure and at ease, so a need used more does not weigh
+  more just for being used.
 - **Fair test comparisons**: a test that compares two runs starts each one in its own fresh
   process. A process that has already run the agent works faster, so it would think further on
   the same counted budget, and the comparison would measure the process instead of the change.
