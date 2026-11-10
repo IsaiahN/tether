@@ -62,6 +62,33 @@ The loop is one loop for every world, with no branch on problem type:
 
     PERCEIVE -> ROUTE -> MINT -> ACCEPT -> SETTLE -> PROMOTE -> IMPORT -> REPEAT
 
+**What this release adds (every switch on by default):**
+
+- **Condition search**: when a rule keeps missing on part of what it covers, the agent names the
+  condition that separates the misses and searches inside it, nested inside a live split too.
+- **Strength and forgetting**: a term is settled only where it beat "no change"; a term whose
+  bargain no longer pays is crowded out of a slot and kept in the library. As new material
+  arrives, the least-used entries fall to a second search tier; nothing is deleted, and the
+  kernel (the priors and what was inherited) is never moved down or crowded out.
+- **The purse**: a step thinks in its own counted work, up to its level's median demand plus what
+  earlier steps saved; work it cannot afford is "unreached at this budget" and owed, never a
+  verdict, and a level that keeps running out widens the purse until half its steps finish.
+- **The exit contest**: every contested way of acting bids, and the bid is read off the agent's
+  own record of what that way returned before; a held plan, a goal step and a look-ahead each
+  propose and act only if they win.
+- **The recall-first goal proposer**: goals that won or made progress before are tried first,
+  then the shelf's other forms, and the whole library's grammar only while the purse allows.
+- **The translation table**: three of the agent's own decisions are written as the steps of the
+  formula that decided them, and a step the ground keeps refusing is skipped.
+- **Doors**: a guess whose way was blocked is set aside, "not reachable right now", and picked
+  back up when the world changes or a new effect is known.
+- **The needs dial**: making progress and exploring are weighed by how often each paid when it
+  was chosen, learned apart under pressure and at ease, so a need used more does not weigh more
+  just for being used.
+- **Fair test comparisons**: a test that compares two runs starts each one in its own fresh
+  process. A process that has already run the agent works faster, so it would think further on
+  the same counted budget, and the comparison would measure the process instead of the change.
+
 ## A general learner: swap the two layers, keep the mind
 
 The agent reasons in **intents** (what it wants to be true): `ELICIT`, `TOUCH`, `BE_AT`,
