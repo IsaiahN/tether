@@ -50,8 +50,12 @@ Swap the interface, keep the lineage.
   formula that decided them, and a step the ground keeps refusing is skipped.
 - **Doors**: a guess whose way was blocked is set aside, "not reachable right now", and picked
   back up when the board moves or a new effect is known.
-- **The needs dial**: making progress and exploring are weighed by what paid before, learned
-  apart under pressure and at ease.
+- **The needs dial**: making progress and exploring are weighed by how often each paid when it
+  was chosen, learned apart under pressure and at ease, so a need used more does not weigh more
+  just for being used.
+- **Fair test comparisons**: a test that compares two runs starts each one in its own fresh
+  process. A process that has already run the agent works faster, so it would think further on
+  the same counted budget, and the comparison would measure the process instead of the change.
 
 **The agent's code is `general-agent`'s plus FIN5E and the build above.** For what the agent is
 and how it reasons, read [that README](https://github.com/IsaiahN/tether/tree/general-agent). What is particular to
