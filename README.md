@@ -25,29 +25,35 @@ It is built on **The Tether** architecture:
   what a Kaggle submission is built from: it receives `general-agent` by merge and adds only what
   ARC needs. It changes only by a pull request from `development`.
 - **[`development`](https://github.com/IsaiahN/tether/tree/development)** (this one): the working
-  branch. development = production (783d9f9) + FIN5E, merged; promoted to arc-solver-agent by
-  pull request once its changes are refined. A test bundle built from it is labelled DEV.
+  branch. It carries production plus the build below; it is promoted to arc-solver-agent by pull
+  request once its changes are refined. A test bundle built from it is labelled DEV.
 
 Swap the interface, keep the lineage.
 
-**What `development` carries beyond production (FIN5E, all on by default):**
+**What `development` carries beyond production (all on by default):**
 
-- **P2′**: the try-first hold reads the agent's own record; a hypothesis counts only its own
-  presses.
-- **MUSE_BOUND**: the background re-check after a level clear is paid from each step's budget,
-  cut and resumed, so it can no longer stall a session.
-- **P3 look-ahead**: settled one-press predictions chained over short sequences of intentions;
-  it reads only what is on the board.
-- **P4**: a look-ahead sequence that closes its gap is kept as one routine, in kind form.
-- **M1 + M2, the thought record**: each library lookup remembers what it tried and what paid, by
-  kind of situation, and ranks what paid first.
-- **M3, self-read**: each game's "where the chain stopped" is carried, and read at the next
-  game's start.
-- **TF_PASS**: the try-first sweep gives every untouched kind one touch before it may stop;
-  bounded to boards where an action can be aimed at an object.
+- **Strength and forgetting**: a term is tipped to settled only where it beat "no change"; a
+  term whose bargain no longer pays against the null is crowded out of a slot and kept in the
+  library; a miss is cut by the condition that separates it (nested inside a live split, too).
+  What is reachable falls into a second tier when new material arrives; nothing is deleted, and
+  the kernel (the priors, what was inherited) is never moved down or crowded out.
+- **The purse**: a step thinks in its own counted work, up to its level's median demand plus what
+  earlier steps saved; work it cannot afford is "unreached at this budget" and owed, never a
+  verdict, and a level that keeps running out widens the purse until half its steps finish.
+- **The exit contest**: every contested way of acting bids, and the bid is read off the agent's
+  own record of what that way returned before; a held plan, a goal step and a look-ahead each
+  propose and act only if they win.
+- **The recall-first goal proposer**: goals that won or made progress before are tried first,
+  then the shelf's other forms, and the whole library's grammar only while the purse allows.
+- **The translation table**: three of the agent's own decisions are written as the steps of the
+  formula that decided them, and a step the ground keeps refusing is skipped.
+- **Doors**: a guess whose way was blocked is set aside, "not reachable right now", and picked
+  back up when the board moves or a new effect is known.
+- **The needs dial**: making progress and exploring are weighed by what paid before, learned
+  apart under pressure and at ease.
 
-**The agent's code is `general-agent`'s plus FIN5E.** For what the agent is and how it reasons,
-read [that README](https://github.com/IsaiahN/tether/tree/general-agent). What is particular to
+**The agent's code is `general-agent`'s plus FIN5E and the build above.** For what the agent is
+and how it reasons, read [that README](https://github.com/IsaiahN/tether/tree/general-agent). What is particular to
 ARC is only the adapter and the harness below.
 
 ## How it meets an ARC game
