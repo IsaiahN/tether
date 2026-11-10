@@ -9,6 +9,9 @@ TETHER_CONDITION_CARRY.
   D4  MF: a carried condition that does not separate here fires nothing
   D5  a carried cut is still a candidate: _d5_cut finds it, nothing is split by it
   D6  OFF: the order is today's (TOUCH first), even with conditions held
+  D7  r1605, the pair form's round trip: written on "?.dcol_o1+", saved in kind form, loaded in
+      game B and found first through B's live "?.dcol_o1+" (shape accepted); with no live partner
+      of its kind it is recorded unmatched and never offered raw
 
     python tests/test_c1_cond.py
 """
@@ -147,11 +150,69 @@ def check_d4() -> None:
     print("  D4: a carried TOUCH that does not separate here fires nothing")
 
 
+def _on_slot(slot: str, rows: list, row_forms: dict) -> tether.Agent:
+    """A game-B agent with a hand trace on a REAL slot (its kind is the board's), idn predicting."""
+    ag = _agent(4)
+    ag.trace = [({slot: r[1]}, "A", {slot: r[2]}, r[0], None) for r in rows]
+    ag._trace_pos = None
+    ag.alphabet[slot] = 8
+    ag._d5_rows[slot] = [(i, "idn") for i in range(len(rows))]
+    ag._kn_eff = {id(t[0]): frozenset(row_forms.get(i, ())) for i, t in enumerate(ag.trace)}
+    return ag
+
+
+def check_d7() -> None:
+    """r1605: the pair form's round trip. Game A writes a split on "?.dcol_o1+"; the save holds
+    its kind form; game B loads it and finds it first THROUGH ITS OWN LIVE "?.dcol_o1+" (a partner
+    of that kind), which the shape rule accepts. A carried pair form with no live partner of its
+    kind is recorded as unmatched and never offered raw."""
+    live = f"{tether.KNOWN_EFFECT} ?.dcol_o1+"
+    keep = _arms(True)
+    try:
+        a = _agent(4)
+        slot = next(s for s in a.slots if s.startswith("o0."))
+        a._cond_write(slot, live, "idn", None, {"right_on_p": 2, "wrong_off_p": 2})
+        with tempfile.TemporaryDirectory() as d:
+            lineage._write(d, a, "g", False, [])
+            recs = [r for g in lineage._read(Path(d)).values() for r in g.get("inventions", ())
+                    if r.get("kind") == "condition"]
+        assert len(recs) == 1 and not INSTANCE.search(recs[0]["P"]), recs
+        forms = {0: {"?.dcol_o1+"}, 2: {"?.dcol_o1+"}}
+        b = _on_slot(slot, CLEAN, forms)
+        plain = b._d5_cut(slot, "idn")
+        b._reinvent_carried(json.loads(json.dumps(recs)))
+        cut = b._d5_cut(slot, "idn")
+        row = [r["detail"] for r in b.led.rows() if r["event"] == "condition_carried"][-1]
+        ghost = {**recs[0], "name": "g_cond_8", "term": "g_cond_8",
+                 "P": f"{tether.KNOWN_EFFECT} ?.dcol_('NO SUCH KIND',)+"}
+        c = _on_slot(slot, CLEAN, forms)
+        c._reinvent_carried([ghost])
+        tried, real = [], c._d5_holds
+
+        def spy(pred, s, r=None):
+            tried.append(pred)
+            return real(pred, s, r)
+        c._d5_holds = spy
+        cut_c = c._d5_cut(slot, "idn")
+        row_c = [r["detail"] for r in c.led.rows() if r["event"] == "condition_carried"][-1]
+    finally:
+        _restore(keep)
+    assert plain[0] == T, plain
+    assert cut[0] == live and tether._KNOWN_FORM.fullmatch(cut[0].split(" ", 1)[1]), cut
+    assert row["matched"] == [[recs[0]["P"], [live]]] and row["unmatched"] == [], row
+    assert cut_c[0] == T and ghost["P"] not in tried, (cut_c, ghost["P"] in tried)
+    assert row_c["unmatched"] == [ghost["P"]] and row_c["matched"] == [], row_c
+    print(f"  D7: saved {recs[0]['P']!r}; game B finds it first through its live {live!r} "
+          f"(shape accepted; today {plain[0]!r}); a carried pair form with no live partner of its "
+          f"kind is recorded unmatched and never offered")
+
+
 def main() -> int:
     recs = check_d1()
     check_d2(recs)
     check_d3_d6()
     check_d4()
+    check_d7()
     print("c1_cond: OK")
     return 0
 

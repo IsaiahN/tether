@@ -5217,6 +5217,7 @@ class Agent:
         self._cond_open: dict = {}                 # C1 6(c): slot -> its live split's record name
         self._cond_n = 0
         self._cond_in: dict = {}                   # C1 6(c): (slot kind, P kind) -> 0 held/1 broken
+        self._cond_said: set = set()               # C1 6(c): condition_carried rows written
         self._d5_said: set = set()              # D5: (slot, term) whose not-split was recorded
         self.retro: list[dict] = []
         # parked residuals survive a level boundary; the trace does not. So a parked
@@ -18220,6 +18221,21 @@ class Agent:
             # is tried first (held before broken), so it wins where several cuts pass
             sk = self._kind_key(slot)
             preds.sort(key=lambda p: self._cond_in.get((sk, self._p_kind(p)), 2))
+            # the carried kind form maps back through this game's live forms (a partner of the
+            # carried kind); one never matched is recorded, never offered raw (r1605)
+            here = sorted(pk for k, pk in self._cond_in if k == sk)
+            live: dict = {}
+            for p in preds:
+                live.setdefault(self._p_kind(p), []).append(p)
+            seen = (slot, self.level, tuple(pk for pk in here if pk in live))
+            if here and seen not in self._cond_said:
+                self._cond_said.add(seen)
+                self.led.record(self.cycle, self._running_step, "@d5", "condition_carried",
+                                split_slot=slot, slot_kind=sk,
+                                matched=[[pk, live[pk]] for pk in here if pk in live],
+                                unmatched=[pk for pk in here if pk not in live],
+                                reads="a carried condition tried first through its live form; "
+                                      "one with no live form here is not offered")
         for pred in preds:
             cap.head()
             on = [self._d5_holds(pred, slot, r) for r in hist]
