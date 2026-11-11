@@ -503,8 +503,31 @@ def _store_age(w: float, now: float) -> float:
     return max(0.0, now - w)
 
 
-def _store_fade(w: float, now: float, h: float | None) -> float:
-    """Piece 1: 0.5 ** (age / h); 1 while there is no half-life yet (r1711 Q2 (a))."""
+class SeedCycles:
+    """r1730 4, r1733 2 (amend r1711 Q2 (a)): before the seed converts, the half-life is the 8-cycle
+    seed IN ITS OWN UNIT. A W stamp is aged by the cycles IN WHICH W GREW since it (the Gamma's
+    W-by-cycle record), on REJECTION_HALFLIFE cycles times the caller's scale. A cycle where W
+    stayed flat ages nothing, before conversion as after (Isaiah 02:55: a still board, no fade)."""
+
+    __slots__ = ("g", "scale")
+
+    def __init__(self, g: Any, scale: float = 1.0) -> None:
+        self.g, self.scale = g, scale
+
+    def __mul__(self, k: float) -> SeedCycles:
+        return SeedCycles(self.g, self.scale * k)
+
+    __rmul__ = __mul__
+
+    def fade(self, w: float) -> float:
+        return 0.5 ** (self.g.active_since(w) / (REJECTION_HALFLIFE * self.scale))
+
+
+def _store_fade(w: float, now: float, h: Any) -> float:
+    """Piece 1: 0.5 ** (age / h) on the store clock; before the seed converts, the seed in cycles
+    (SeedCycles, r1730); 1 only where neither exists (no step yet)."""
+    if isinstance(h, SeedCycles):
+        return h.fade(w)
     return 0.5 ** (_store_age(w, now) / h) if h else 1.0
 
 
@@ -1254,6 +1277,9 @@ class Gamma:
         # them by sum); until one exists, the seed -- 8 cycles converted once by this agent's own
         # writes (tether._store_tick) -- and until that is measured, no fade
         self.store_seed: float | None = None
+        # r1730: [cycle, W] at each step's end until the seed converts (the first entry is the W
+        # the life started with, at cycle - 1): SeedCycles reads a W stamp's cycle from it
+        self.w_cycles: list = []
         self._clock_at: float | None = None     # replay: the evidence row's own clock reading
         # Piece 1 (r1713): the present categorizer, (fn(raw contact) -> context, version token),
         # set by the agent; None: every failure ages from its own time
@@ -1742,6 +1768,8 @@ class Gamma:
         if name in self.kernel:
             return c + y
         h = self._fade_at()[1]
+        if isinstance(h, SeedCycles):
+            return c * h.fade(w) + y
         return c * (0.5 ** (self.age(w) / h) if h else 1.0) + y
 
     def youth_of(self, name: str) -> float:
@@ -1926,8 +1954,24 @@ class Gamma:
 
     def _fade_at(self) -> tuple:
         """(the clock, the half-life) every Standing decay reads: the store clock's under
-        TETHER_FADE_BY_STORE, else the cycle and the cycle half-life (as before)."""
-        return (self.clock(), self.h_store()) if _FADE_BY_STORE else (self.tick, self.halflife)
+        TETHER_FADE_BY_STORE -- before the seed converts, the seed in cycles (SeedCycles, r1730)
+        -- else the cycle and the cycle half-life (as before)."""
+        if not _FADE_BY_STORE:
+            return self.tick, self.halflife
+        h = self.h_store()
+        return self.clock(), (SeedCycles(self) if h is None and self.w_cycles else h)
+
+    def note_w(self, cycle: int, w: float) -> None:
+        """r1730: W at a step's end, recorded until the seed converts."""
+        if self.store_seed is None and self.h_store() is None:
+            self.w_cycles.append([cycle, w])
+
+    def active_since(self, w: float) -> int:
+        """r1733: the cycles in which W grew since a stamp w -- the recorded rises that start at or
+        above w. W never falls, so those rises came after the stamp; equal W's need no telling
+        apart, since a flat cycle ages nothing."""
+        rec = self.w_cycles
+        return sum(1 for (_c0, a), (_c1, b) in zip(rec, rec[1:], strict=False) if b > a >= w)
 
     def _ev_w(self, contact: Any = None) -> list:
         """Piece 1: an evidence row's clock reading and raw contact, so a replay ages it from its

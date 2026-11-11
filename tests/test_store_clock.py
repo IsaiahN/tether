@@ -23,6 +23,11 @@ TETHER_FADE_BY_STORE and TETHER_FADE_SHARE.
   T12 a failure's contact on an owner one of whose slots has no published attribute (None):
       read without raising, the pair [None, type] kept, sorted last (the E2E's fault on sp80,
       cycle 29). MF: the bare sorted() raises "'<' not supported ... 'NoneType' and 'str'"
+  T13 before the seed converts (r1730, r1733): a newborn's failure stamped in cycle 1, read at
+      cycle 3, with W growing in cycle 2 only, has aged exactly 1 active cycle: 0.5^(1/8).
+      MF: r1711's "no fade" reads raw (1.0); cycles since the stamp, flat ones counted, read 2
+  T14 a still board ages nothing before conversion either: W flat over cycles 3-8, a failure
+      stamped in cycle 3 reads raw at cycle 8. MF: counting every cycle fades it (0.5^(5/8))
   (T6, zero-is-off, is gw12 with TETHER_FADE_BY_STORE=0 against the previous head)
 
     python tests/test_store_clock.py
@@ -309,9 +314,48 @@ def check_t12() -> None:
           f"None pair last ({obs[-1]}); MF the bare sort raises: {raised}")
 
 
+def _pre_seed(rec, tick):
+    """A newborn's Gamma before its seed converts, with this W-by-cycle record, read at `tick`."""
+    g = _agent().gamma
+    g.w_cycles, g.tick, g.store_seed = [list(r) for r in rec], tick, None
+    g.book["store_writes"] = rec[-1][1]
+    _now, h = g._fade_at()
+    assert isinstance(h, gamma.SeedCycles), ("precondition: the seed in cycles", h)
+    return g, h
+
+
+def check_t13() -> None:
+    with _Arms(True):
+        # W: 0 at the start, 10 after cycle 0, flat in cycle 1, 20 after cycle 2; read in cycle 3.
+        # A failure in cycle 1 is stamped 10 (the W of the step before it)
+        g, h = _pre_seed([[-1, 0], [0, 10], [1, 10], [2, 20]], 3)
+        got = gamma._store_fade(10, g.clock(), h)
+        st = gamma.Standing()
+        st._ev_add(10, "ref", None, None)
+        st.decay(*g._fade_at())
+    want = 0.5 ** (1 / gamma.REJECTION_HALFLIFE)
+    raw, every = 1.0, 0.5 ** (2 / gamma.REJECTION_HALFLIFE)
+    assert abs(got - want) < 1e-12 and abs(st.rejections - want) < 1e-12, (got, st.rejections)
+    assert raw != got and every != got, "MUST-FAIL: the rejected rules read the same"
+    print(f"  T13: stamped in cycle 1, read at cycle 3, W grew in cycle 2 only: {got:.6f} = "
+          f"0.5^(1/8) (a Standing reads {st.rejections:.6f}); MF no fade {raw}, every cycle "
+          f"counted {every:.6f}")
+
+
+def check_t14() -> None:
+    with _Arms(True):
+        rec = [[-1, 0], [0, 10], [1, 15], [2, 20]] + [[c, 20] for c in range(3, 9)]
+        g, h = _pre_seed(rec, 8)
+        got = gamma._store_fade(20, g.clock(), h)
+    every = 0.5 ** (5 / gamma.REJECTION_HALFLIFE)
+    assert got == 1.0 and every != got, (got, every)
+    print(f"  T14: W flat over cycles 3-8, a failure stamped in cycle 3 read at cycle 8: {got} "
+          f"(raw); MF every cycle counted: {every:.6f}")
+
+
 def main() -> int:
     for check in (check_t1, check_t2, check_t3, check_t4, check_t5, check_t7, check_t8,
-                  check_t9, check_t10a, check_t10b, check_t11, check_t12):
+                  check_t9, check_t10a, check_t10b, check_t11, check_t12, check_t13, check_t14):
         check()
     print("store_clock: OK")
     return 0

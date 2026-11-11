@@ -16,6 +16,16 @@ below the seam where the button and coordinate are chosen, unless every option i
   8. EXPLORATION: with the board's only untried action vetoed, the step acts, and no draw, tried
      count or table entry is recorded for the withheld action.
 
+  The must-pass's CONTRAST (ON loses fewer games than OFF) is read on the CYCLE clock it was
+  written on (r1736, r1737). That move rested on unpinned samples: pinned (below), the unvetoed
+  agent repeats its own game loss on the store clock too (2 repeats, 4 losses in 4 attempts, as on
+  the cycle clock). The veto's own laws (no held key repeated, no withheld pair chosen, the gate)
+  are read on the store clock, and every numbered check below runs there.
+
+  The agent's seed is pinned (TETHER_AGENT_SEED off, the constant seed, as test_lineage_merge):
+  each process otherwise draws its own seed at start, and one law read over four short attempts
+  is then a different sample every run (the reviewer r1740 1).
+
     python tests/test_ruin_withhold.py
 """
 from __future__ import annotations
@@ -35,6 +45,7 @@ import tether
 from world import bind
 
 sys.dont_write_bytecode = True
+tether._AGENT_SEED = False          # r1740 1: one seed, so the attempts replay exactly
 
 
 def _on() -> None:
@@ -87,20 +98,39 @@ def _attempts(start: int, ruin: bool, attempts: int = 4, steps: int = 12) -> tup
     return ag, ends, keys, spy, acted
 
 
-if __name__ == "__main__":
+def _contrast() -> str:
+    """The must-pass's contrast, in a process started on the cycle clock (r1737)."""
+    assert not tether.G_FADE_BY_STORE, "the contrast reads the cycle clock"
     off, off_ends, off_keys, _s, _n = _attempts(2, False)
-    ag, ends, keys, spy, acted = _attempts(2, True)
-    off_rep, rep = len(off_keys) - len(set(off_keys)), len(keys) - len(set(keys))
+    _c, c_ends, c_keys, _cs, _cn = _attempts(2, True)
+    off_rep, c_rep = len(off_keys) - len(set(off_keys)), len(c_keys) - len(set(c_keys))
     assert off_rep > 0, (off_ends, off_keys)          # OFF: the agent repeats its own game loss
-    assert rep == 0 and ends.count("game_loss") < off_ends.count("game_loss"), (ends, keys)
+    assert c_rep == 0 and c_ends.count("game_loss") < off_ends.count("game_loss"), (c_ends, c_keys)
+    return (f"cycle clock OFF endings {off_ends}, {off_rep} repeat a held key; ON {c_ends}, "
+            "0 repeats")
+
+
+if __name__ == "__main__" and sys.argv[1:] == ["--contrast"]:
+    print(_contrast())
+    sys.exit(0)
+
+if __name__ == "__main__":
+    env = {**os.environ, "TETHER_FADE_BY_STORE": "0"}
+    r = subprocess.run([sys.executable, "-B", __file__, "--contrast"], env=env, text=True,
+                       capture_output=True, stdin=subprocess.DEVNULL, check=False)
+    assert r.returncode == 0, r.stderr[-1500:]
+    said = r.stdout.strip().splitlines()[-1]
+    ag, ends, keys, spy, acted = _attempts(2, True)   # the veto's laws, on the shipped clock
+    rep = len(keys) - len(set(keys))
+    assert rep == 0, (ends, keys)
     w = _rows(ag, "withheld")
     assert w and all(r["slot"] == "@ruin" and r["step"] == "PLAN" for r in w), w[:2]
     assert all(not r["detail"]["all_vetoed"] for r in w), [r["detail"] for r in w]
     assert all(r["detail"]["chosen"] not in r["detail"]["withheld"] for r in w), w
     out = gate.check(ag.led.rows())
     assert out["verdict"] == gate.PASS, out
-    print(f"  must-pass, s0=2, 4 attempts of up to 12 steps, the agent choosing: OFF endings "
-          f"{off_ends}, {off_rep} game losses repeat a held key; ON endings {ends}, 0 repeats, "
+    print(f"  must-pass, s0=2, 4 attempts of up to 12 steps, the agent choosing: {said}; "
+          f"store clock ON endings {ends}, 0 repeats, "
           f"{len(w)} @ruin rows, none choosing a withheld pair; full gate passes "
           f"({len(ag.led.rows())} rows)")
     # 4

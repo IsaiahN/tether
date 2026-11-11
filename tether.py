@@ -5878,7 +5878,9 @@ class Agent:
                 rel = self._hs_rel(fn() if fn is not None else (), self._hs_subject())
                 frame = "pre-press" if getattr(env, "frame_kept", False) else "terminal"
                 _lr = self._loss_rel.setdefault(k, Counter())
-                self._store_nested += (how, frame, rel) not in _lr
+                if G_FADE_BY_STORE:
+                    self._store_nested = (getattr(self, "_store_nested", 0)
+                                          + ((how, frame, rel) not in _lr))
                 _lr[(how, frame, rel)] += 1
                 _hs = {"loss_kind": how, "rel": [list(p) for p in rel], "frame": frame}
             self.led.record(self.cycle, "SETTLE", "@game_loss", "game_loss_vote", goal_kind=k[0],
@@ -16012,7 +16014,8 @@ class Agent:
         for fld, es in (("tried", tried), ("paid", paid)):
             into = self._thought[fld].setdefault(tk, {})
             for e in es:
-                self._store_nested += e not in into
+                if G_FADE_BY_STORE:   # Piece 1's write count; a stub without it is untouched
+                    self._store_nested = getattr(self, "_store_nested", 0) + (e not in into)
                 into[e] = into.get(e, 0) + 1
         if _FIELD_CLASS and paid and "gcw" in getattr(self, "_reflexes", {}):
             self._gcw_credit(paid, "paid")      # item 29: the classes those entries matched on
@@ -20884,8 +20887,11 @@ class Agent:
             prev = sizes if book.get("store_writes") else {}
         grew = sum(max(0, n - prev.get(k, 0)) for k, n in sizes.items()) + self._store_nested
         self._store_prev, self._store_nested = sizes, 0
+        if not self.gamma.w_cycles:
+            self.gamma.note_w(self.cycle - 1, book.get("store_writes", 0))   # r1730: the start
         book["store_writes"] = book.get("store_writes", 0) + grew
         w, c = book["store_writes"], self.cycle
+        self.gamma.note_w(c, w)
         if self._store_c0 is None:
             self._store_c0 = c
         self._store_w[c] = w

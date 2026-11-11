@@ -145,10 +145,19 @@ def _p3(run: dict) -> None:
     assert n, "no under_floor/no_support park in the window: p3 examined nothing"
 
 
+def _wrote(run: dict) -> list:
+    """The parks with `wanted` set that WROTE their park row. Since 6c8e6f4 (the unit purse) a _mint
+    can return by a cut, owed: its locals show `wanted` and no park row is written (r1733 4)."""
+    rows = {(r["slot"], r["cycle"]) for r in run.get("rows", ())
+            if r["step"] == "MINT" and r["event"] == "park"}
+    return [p for p in run["parks"] if p["wanted"] and (p["slot"], p["cycle"]) in rows]
+
+
 def _first_wanted(label: str, searched: list) -> tuple[str, int, str, int]:
-    """The pin: the first park with `wanted` set over the searched (board, steps, run), in order."""
+    """The pin: the first park with `wanted` set over the searched (board, steps, run), in order,
+    that wrote its park row."""
     for member, steps, run in searched:
-        w = [p for p in run["parks"] if p["wanted"]]
+        w = _wrote(run)
         if w:
             return member, steps, w[0]["slot"], w[0]["cycle"]
     raise AssertionError(f"{label}: no park with wanted set in its order: the park-want occasion "
@@ -162,8 +171,9 @@ def _search(label: str, order: tuple, arms: dict | None) -> tuple[tuple, list]:
     for member, steps in order:
         run = _run("on", member, steps, arms)
         searched.append((member, steps, run))
-        n = sum(1 for p in run["parks"] if p["wanted"])
-        print(f"{label} search {member} {steps} steps: parks {len(run['parks'])}, with wanted {n}")
+        n = len(_wrote(run))
+        print(f"{label} search {member} {steps} steps: parks {len(run['parks'])}, with wanted "
+              f"and a park row {n}")
         if n:
             break
     return _first_wanted(label, searched), searched
