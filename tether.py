@@ -3117,24 +3117,49 @@ def _name_rx(names: tuple) -> re.Pattern:
     return re.compile(rf"(?<![A-Za-z0-9_])(?:{alt})(?![A-Za-z0-9_])")
 
 
-def _fail_context(contact: list) -> tuple:
-    """Piece 1 (r1713, r1714): the PRESENT categorizer -- a failure's context from its raw
-    contact alone, computed now: today's kind of the owner from its observed [attribute, type]
-    pairs (and shape code), and today's delta kind of the transition. Reads no name."""
-    a, typ, before, after, obs, code = contact
-    kind = tuple(sorted({t for _a, t in obs}))
-    if code is not None and _3C_CANON:
-        kind = (*kind, f"form={code}")
+def _object_kind(types: Any, code: Any) -> tuple:
+    """7l: an object's KIND from what was observed of it -- the sorted attribute types of its
+    slots, and its canonical shape code where one is given (3c-CANON). The one kind function:
+    Agent._kind and the present categorizer both read it (r1716)."""
+    got = tuple(sorted(set(types)))
+    return (*got, f"form={code}") if code is not None else got
+
+
+def _delta_kind_of(a: Any, typ: Any, before: Any, after: Any) -> tuple | None:
+    """K1: HOW a reading changed -- (cluster, sign, size class), from its attribute, its type and
+    one transition. A change reading's kind is its own value's; a level's is its difference's.
+    Ordered values: "+" / "-" / "0" and the bit length of the magnitude; unordered ones: "ne" /
+    "0" and "-". None with no cluster or no value. The one delta-kind function (r1716)."""
     cl = inherited.READING_CLUSTER.get(a)
-    dk = None
-    if cl and after is not None and (a in inherited.DELTA_READINGS or before is not None):
-        if typ in ORDERED_TYPES and isinstance(after, int) and not isinstance(after, bool):
-            v = after if a in inherited.DELTA_READINGS else after - before
-            dk = (cl[0], "+" if v > 0 else "-" if v < 0 else "0", abs(v).bit_length())
-        else:
-            moved = bool(after) if a in inherited.DELTA_READINGS else after != before
-            dk = (cl[0], "ne" if moved else "0", "-")
-    return kind, dk
+    if not cl:
+        return None
+    if after is NOT_RESOLVED or after is None or (
+            a not in inherited.DELTA_READINGS and (before is NOT_RESOLVED or before is None)):
+        return None
+    if not (typ in ORDERED_TYPES and isinstance(after, int) and not isinstance(after, bool)):
+        moved = bool(after) if a in inherited.DELTA_READINGS else after != before
+        return (cl[0], "ne" if moved else "0", "-")
+    v = after if a in inherited.DELTA_READINGS else after - before
+    return (cl[0], "+" if v > 0 else "-" if v < 0 else "0", abs(v).bit_length())
+
+
+def _categorizer_version() -> str:
+    """r1716: the present categorizer's own version -- its two functions' code and the tables
+    they read, so a change to either moves the token and the cached contexts re-sort."""
+    h = hashlib.sha256()
+    for f in (_object_kind, _delta_kind_of, _fail_context):
+        h.update(f.__code__.co_code + repr(f.__code__.co_consts).encode())
+    h.update(repr((sorted(inherited.READING_CLUSTER.items()), sorted(inherited.DELTA_READINGS),
+                   ORDERED_TYPES, _3C_CANON)).encode())
+    return h.hexdigest()[:16]
+
+
+def _fail_context(contact: list) -> tuple:
+    """Piece 1 (r1713, r1714, r1716): the PRESENT categorizer -- a failure's context from its raw
+    contact alone, computed now by the agent's own kind and delta-kind functions. Reads no name."""
+    a, typ, before, after, obs, code = contact
+    return (_object_kind((t for _a, t in obs), code if _3C_CANON else None),
+            _delta_kind_of(a, typ, before, after))
 
 
 def _slot_of(c: Any, sub: Any) -> str:
@@ -5077,7 +5102,7 @@ class Agent:
         self._bound_slot_map: dict = {}    # S1c: as _BOUND_SLOT_MAP, likewise
         self._atoms_token = shared_token(self.gamma.atoms)   # None: this Agent's own memo
         if G_FADE_BY_STORE:     # Piece 1 (r1713): the present self sorts the failures it reads
-            self.gamma.categorize = (_fail_context, (self._atoms_token, _3C_CANON))
+            self.gamma.categorize = (_fail_context, _categorizer_version())
         self._view_hold: dict = _cache()   # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
         self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
@@ -7309,20 +7334,9 @@ class Agent:
         unordered ones: "ne" / "0" and "-". None with no cluster, no frame, or no value."""
         att = getattr(self.env, "attribute_of", None)
         a = (att() if att else {}).get(slot)
-        cl = inherited.READING_CLUSTER.get(a)
-        if not cl or not hist:
+        if not hist:
             return None
-        before, after = hist[-1][0].get(slot), hist[-1][2]
-        if after is NOT_RESOLVED or after is None or (
-                a not in inherited.DELTA_READINGS and (before is NOT_RESOLVED or before is None)):
-            return None
-        ordered = (self.slot_types.get(slot) in ORDERED_TYPES and isinstance(after, int)
-                   and not isinstance(after, bool))
-        if not ordered:
-            moved = bool(after) if a in inherited.DELTA_READINGS else after != before
-            return (cl[0], "ne" if moved else "0", "-")
-        v = after if a in inherited.DELTA_READINGS else after - before
-        return (cl[0], "+" if v > 0 else "-" if v < 0 else "0", abs(v).bit_length())
+        return _delta_kind_of(a, self.slot_types.get(slot), hist[-1][0].get(slot), hist[-1][2])
 
     def _tiers(self, lib: Any, lit: list, dk: tuple | None, mine: str, described: dict,
                att: dict, more: tuple = ()) -> tuple[list, dict]:
@@ -9087,11 +9101,9 @@ class Agent:
         k = (owner, len(self.slots), code)   # cleared wherever slot_types is replaced
         got = self._kind_cache.get(k)
         if got is None:
-            got = tuple(sorted({
-                str(self.slot_types.get(s)) for s in self.slots if s.split(".")[0] == owner}))
-            if code is not None:
-                got = (*got, f"form={code}")
-            self._kind_cache[k] = got
+            got = self._kind_cache[k] = _object_kind(
+                (str(self.slot_types.get(s)) for s in self.slots if s.split(".")[0] == owner),
+                code)
         return got
 
     def _owners(self, state: dict) -> list[str]:
