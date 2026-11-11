@@ -6,6 +6,12 @@ candidate gave -- element for element, in order -- for every target and this run
       entries per target, run dk landings filtering some). MF: buckets sorted differ; a bucket
       missing one candidate differs
   B2  every candidate sits in exactly its own target's bucket (the buckets partition the dict)
+  B3  the AGENT's own store-path T2 (Agent._tiers, tether.py's line, r1775 2): on a _kind_store
+      with candidates on 3 targets, each target's entries its own, and a run dk landing on one
+      candidate, the T2 tier for every target is exactly the entries the scan of every candidate
+      keeps. External MFs (tether.py mutated in a scratch worktree): no target filter, and the
+      run-dk clause removed, each fail here. The bucket ORDER is not observable at this tier
+      (n_ sums, l_ maxes, _draw_ties sorts), so it is pinned by B1 alone
 
     python tests/test_t2_buckets.py
 """
@@ -19,7 +25,12 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 sys.path.insert(0, _repo.ROOT)
 
+import arc_holdout  # noqa: E402
 import lineage  # noqa: E402
+import tether  # noqa: E402
+from test_entry import FakeWrapper  # noqa: E402
+
+tether._AGENT_SEED = False
 
 
 def scanned(cand: dict, ko, run_dk: set) -> list:
@@ -32,6 +43,13 @@ def scanned(cand: dict, ko, run_dk: set) -> list:
 def bucketed(by: dict, ko, run_dk: set) -> list:
     """tether's T2 now (store path)."""
     return [(k, r, o, x) for (k, r, o, x) in by.get(ko, ()) if (k, ko) not in run_dk]
+
+
+class Lib(dict):
+    """The library as _tiers reads it: get, and no molecule over the lit keys."""
+
+    def molecules_lit(self, _keys) -> list:
+        return []
 
 
 def fixture(seed: int = 7) -> tuple[dict, list, set]:
@@ -65,6 +83,33 @@ def main() -> int:
     assert set(by) == {(e[3] if e[1] == "CAUSE" else e[2]) for e in t2}
     assert sum(map(len, by.values())) == len(t2)
     print(f"B2 t2_buckets: {len(by)} targets, every candidate in exactly its target's bucket")
+
+    # B3: the agent's own line
+    _env, ag, *_ = arc_holdout.wire(FakeWrapper(script={}), "fake", lineage_dir=None)
+    tg = {i: ("COLOUR", f"form={i}") for i in range(3)}
+    t2b: dict = {}
+    for i, t in tg.items():
+        for j in range(4):
+            role = "CAUSE" if j % 2 else "PROCESS"
+            o, x = (("SHAPE",), t) if role == "CAUSE" else (t, ("SHAPE",))
+            t2b[(f"LIB|T{i}E{j}", role, o, x)] = (1, (None, None, None, -1))
+    ag._kind_store = {"pairs": {}, "nocount": set(), "t2": t2b, "t2_by": lineage.t2_buckets(t2b)}
+    ag._kind_landed_dk.clear()
+    ag._kind_landed_dk[(("OTHER", "+", 1), "LIB|T1E2", tg[1])] = 1
+    run = {e[1:] for e in ag._kind_landed_dk}
+    lib = Lib({e[0]: {"key": e[0]} for e in t2b})
+    got = {}
+    for i, t in tg.items():
+        ag._kind = lambda _mine, t=t: t
+        out, n = ag._tiers(lib, [], ("MOTION", "+", 1), "o1", {}, {})
+        want = {e[0] for e in scanned(t2b, t, run)}
+        names = {k for k, _w in out}
+        assert n.get("T2") == len(want) and want <= names, (i, n, want, names)
+        assert not (names & ({e[0] for e in t2b} - want)), (i, names - want)
+        got[i] = n["T2"]
+    assert got == {0: 4, 1: 3, 2: 4}, got
+    print(f"B3 the agent's own T2 (Agent._tiers, store path) per target = the entries the scan "
+          f"keeps: {got} (target 1 loses the entry its run dk landing filters); no other target's")
     print("t2_buckets: OK")
     return 0
 
