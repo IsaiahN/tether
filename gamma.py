@@ -471,6 +471,14 @@ _KIND_REL = armflag.arm("TETHER_KIND_REL", default=True)
 # from the new game series' start (tick). OFF: as before.
 _DECAY_NEW_GAME_SERIES = armflag.arm("TETHER_DECAY_NEW_GAME_SERIES", default=True,
                                      old="TETHER_DECAY_NEW_LIFE")
+# r1665 THE GENERAL AGENT (Isaiah 2026-11-10 11:52): ON, each fade switch follows its own default --
+# a general agent can lose context: nothing is deleted, but what goes unused gets compressed,
+# downweighted and hard to surface until used again. OFF, the SPECIALIST agent: every fade switch is
+# forced OFF; it still learns, and nothing it holds fades
+_GENERAL = armflag.arm("TETHER_GENERAL", default=True)
+# r1663 (C), FAILURES FADE (Isaiah 2026-11-10 11:49): ON, today's forgiveness -- Standing.decay and
+# the r1243 weights' `against` fade at the halflife. OFF (or TETHER_GENERAL OFF): no failure fades
+_FADE_FAILURES = armflag.arm("TETHER_FADE_FAILURES", default=True) and _GENERAL
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
@@ -1017,7 +1025,7 @@ class Standing:
         gap = (tick if _DECAY_NEW_GAME_SERIES and tick < self.last_tick
                else max(0, tick - self.last_tick))
         if gap:
-            _f = 0.5 ** (gap / (halflife or REJECTION_HALFLIFE))
+            _f = 0.5 ** (gap / (halflife or REJECTION_HALFLIFE)) if _FADE_FAILURES else 1.0
             self.rejections *= _f
             # THE SAME FACTOR ON ALL THREE, so the two halves stay comparable with the total
             # and with each other. See `misses`.

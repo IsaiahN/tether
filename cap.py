@@ -27,15 +27,26 @@ _HOLD = 0
 _now = time.time
 
 
+LIMIT: int | None = None      # TETHER_UNIT_PURSE: the head count at which ON_LIMIT asks the purse
+ON_LIMIT = None
+
+
 class CapReached(BaseException):
     """The thinking deadline passed at a loop head: the step stops between whole units."""
 
 
+class PurseCut(CapReached):
+    """The step's thinking allowance was spent inside a unit: this step stops at a loop head, and
+    the next step runs (a deadline's CapReached ends thinking for the game)."""
+
+
 def head() -> None:
     """A growing loop's head: raise CapReached once the thinking deadline has passed, unless
-    held."""
+    held; at LIMIT heads, ON_LIMIT raises PurseCut or moves LIMIT to what is left."""
     global HEADS
     HEADS += 1
+    if LIMIT is not None and HEADS >= LIMIT and not _HOLD:
+        ON_LIMIT()
     if AT is None or _HOLD or not _CAP_INNER:
         return
     if _now() >= AT:

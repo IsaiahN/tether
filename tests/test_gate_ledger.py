@@ -247,8 +247,11 @@ def main() -> int:
             # MF4 WITH TETHER_BOARD_TRY_FIRST OFF (r736): TRY_FIRST holds the goal split until each
             # offered action is pressed on the board, so note_goals' "*" PLAN write falls outside
             # the 11 steps (measured: present at 14 with it ON); the ladder does not depend on the
-            # arm, and TRY_FIRST's own rows are checked by G2 with it ON
+            # arm, and TRY_FIRST's own rows are checked by G2 with it ON. TETHER_UNIT_PURSE OFF too
+            # (r1703): in this warm process its cuts land inside the mints of cycles 7-10, which are
+            # owed, so the goal split again falls outside the 11 steps; its rows are checked by G2
             tf_was, tether._BOARD_TRY_FIRST = tether._BOARD_TRY_FIRST, False
+            up_was, tether._UNIT_PURSE = tether._UNIT_PURSE, False
             try:
                 writes.clear()
                 gridworld(MF4_STEPS, None)
@@ -271,6 +274,7 @@ def main() -> int:
                     tether.Agent._narrate_cues = cues
             finally:
                 tether._BOARD_TRY_FIRST = tf_was
+                tether._UNIT_PURSE = up_was
             assert ladder(writes, ledger.STEPS), ("MF4: a top-of-step helper in PERCEIVE was not "
                                                   "flagged")
             # the flag is the PLAN write on "*" that follows the misplaced cues row, not any break
