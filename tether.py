@@ -10373,8 +10373,13 @@ class Agent:
         atoms = {a.name: a for a in self.gamma.atoms}
         der = self.env.derived() if hasattr(self.env, "derived") else {}
         self._inv_alt = {}      # r1453 (c): this call's pairs only; a generator that does not fold
-        src = dict.fromkeys(self._inv_conditions(before, fold=True) if _ONE_TERM
-                            else self._inv_conditions(before), "library")
+        # TETHER_UNIT_PURSE (r1715 2): the conditions, phase 0's candidates and the group forms
+        # are units with no between-unit check of their own: cut inside, or skipped at a spent
+        # purse, nothing is offered and the pass stops at its first purse check with its own row
+        src = dict.fromkeys(self._unit(list, lambda: (self._inv_conditions(before, fold=True)
+                                                      if _ONE_TERM
+                                                      else self._inv_conditions(before)),
+                                       skip_spent=True), "library")
         tpl = dict(self._inv_tpl) if _M7_INV else {}
         alt_of = dict(self._inv_alt) if _ONE_TERM else {}  # r1453 (c): written -> (other, tpl)
         of_alt = {v[0]: w for w, v in alt_of.items()}
@@ -10670,7 +10675,7 @@ class Agent:
             return [((*k[:-1], round(k[-1] + prior[self._desc_family(c, ctrl)], 6)), t, c, tk, s)
                     for k, t, c, tk, s in xs]
 
-        cands = _admit(phases[0])
+        cands = self._unit(list, lambda: _admit(phases[0]), skip_spent=True)
         if _GROUP_PROPOSE:                      # box 3: the group row's FORM, priced by bits
             gitems = phases[0]
             if alt_of:      # r1453 (c): a group form is keyed by its subject's kind: both spellings
@@ -10683,10 +10688,11 @@ class Agent:
             # none are offered, the purse is spent, and the pass below stops at its first purse
             # check with its own "unreached at this budget" row, as its between-unit stop does
             cands += self._unit(list, lambda: self._group_cands(gitems, before, atoms,
-                                                                guard=gguard))
+                                                                guard=gguard), skip_spent=True)
         if carried_grp:
             cands += self._unit(list, lambda: self._carried_groups(carried_grp, before, atoms,
-                                                                   guard=gguard))
+                                                                   guard=gguard),
+                                skip_spent=True)
         if _GOAL_UNBUNDLE and self._hyp_split is not None:
             cands += self._compounds(cands)     # item 19 (c): kept AND c, in the same sort
         cands = _priced(cands)
@@ -28433,16 +28439,22 @@ class Agent:
             raise cap.PurseCut
         cap.LIMIT = cap.HEADS + (allow - spent)
 
-    def _unit(self, on_cut: Any, fn: Any, *a: Any) -> Any:
+    def _unit(self, on_cut: Any, fn: Any, *a: Any, skip_spent: bool = False) -> Any:
         """TETHER_UNIT_PURSE: fn(*a) as one unit of thinking, its heads limited to what the step's
         allowance has left. Cut inside it: one unit_purse_cut row, and on_cut() is the result, the
         unit's item owed as its own between-unit stop owes it; the step runs on (a cut ends
         thinking, never the choice: the reviewer r1703, r1704). Already spent, the unit's own
-        between-unit checks stop it; nested, the outer unit's limit stands."""
+        between-unit checks stop it; nested, the outer unit's limit stands. skip_spent (r1715 2,
+        the proposer's units, which have no between-unit check of their own): already spent, the
+        unit is not run -- on_cut() at once, the step marked cut (_p_cut, which PURSE_RISE reads,
+        so a game whose proposer never fits an allowance is not starved of it)."""
         arm = _UNIT_PURSE and _PURSE_OWN and self._clk_hs is not None and cap.LIMIT is None
         if arm:
             left = self._allowance() - self._purse_spent()
             if left <= 0:
+                if skip_spent:
+                    self._p_cut = True
+                    return on_cut()
                 return fn(*a)
             cap.LIMIT, cap.ON_LIMIT = cap.HEADS + left, self._unit_purse
         elif cap.LIMIT is None:
