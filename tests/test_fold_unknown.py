@@ -13,6 +13,9 @@ conform/retro_fold.py. Each check is shown passing, then its must-fail (MF) fail
       row at n 1 folds; with no kernel skip the kernel rows fold
   U5  parity with Piece 2: the fake game played once with the live fold ON, against the same game
       fold OFF then the retro-fold: the same _kind_known, _kind_pairs, n, lasts, on both paths
+  U6  a delta kind's third element is an int on some keys and a str on others (lineage._ksorted):
+      the fixture folds one of each, and the dk save's kinds_dk_last is written in the writer's
+      total order. MF: plain sorted() of those rows raises (the 2026-11-11 10:45 red)
 
     python tests/test_fold_unknown.py
 """
@@ -42,6 +45,7 @@ tether._AGENT_SEED = False
 E = "LIB|Alpha"
 P, C = "PROCESS", "CAUSE"
 DK = ["MOTION", "+", 1]
+DX = ["MOTION", "+", "x"]
 U = ["POSITION", "SHAPE"]
 
 
@@ -69,13 +73,13 @@ def merged(d: Path) -> None:
 
 def hand(kern: str, n_y: int = 2) -> Path:
     """X1-X3 seen once (concept new), Y recurring, Z a CAUSE row on F1 (no_dk 0 by D1), K1-K3 a
-    kernel entry's one-offs; D1-D3 dk one-offs."""
+    kernel entry's one-offs; D1-D3 dk one-offs, and D4-D6 the same with a str-sized delta kind."""
     d = Path(tempfile.mkdtemp())
     rows = [[E, P, F(1), F(1), 1], [E, P, F(2), F(2), 1], [E, P, F(3), F(3), 1],
             [E, P, F(4), F(4), n_y], [E, C, U, F(1), 2],
             [kern, P, F(5), F(5), 1], [kern, P, F(6), F(6), 1], [kern, P, F(7), F(7), 1]]
     last = [[*r[:4], "g0", 0, 1, 10 + i] for i, r in enumerate(rows)]
-    dks = [[DK, E, F(1), 1], [DK, E, F(2), 1], [DK, E, F(3), 1]]
+    dks = [[k, E, F(i), 1] for k in (DK, DX) for i in (1, 2, 3)]
     put(d, None, kinds_landed=sorted(r[:4] for r in rows), kinds_landed_n=sorted(rows),
         kinds_last=sorted(last), kinds_landed_dk=lineage._ksorted(dks),
         kinds_dk_last=lineage._ksorted([[*k[:3], "g0", 0, 1, 30 + i] for i, k in enumerate(dks)]))
@@ -119,12 +123,12 @@ def main() -> int:
     kern = retro_fold.kernel()
     kname = sorted(kern)[0]
     folded = [(E, P, tuple(F(i)), tuple(F(i))) for i in (1, 2, 3)]
-    dfold = [(tuple(DK), E, tuple(F(i))) for i in (1, 2, 3)]
+    dfold = [(tuple(k), E, tuple(F(i))) for k in (DK, DX) for i in (1, 2, 3)]
 
     # U1 / U4
     d = hand(kname)
     out = fold(d, kern)
-    assert out["tables"]["kind"]["folded"] == 3 and out["tables"]["kind_dk"]["folded"] == 3, out
+    assert out["tables"]["kind"]["folded"] == 3 and out["tables"]["kind_dk"]["folded"] == 6, out
     assert out["tables"]["kind"]["kernel_refused"] == 3, out
     st = kinds(d)["kind"]
     for e in folded:
@@ -137,7 +141,8 @@ def main() -> int:
             assert not set(folded) & set(ag._kind_last), ag._kind_last
             assert ag._kind_known_n[(E, P, tuple(U), tuple(U))] == 3
         assert not set(dfold) & set(ag._kind_known_dk) and not set(dfold) & set(ag._kdk_last)
-        assert ag._kind_known_dk[(tuple(DK), E, tuple(U))] == 3 or store, ag._kind_known_dk
+        for k in (DK, DX):
+            assert ag._kind_known_dk[(tuple(k), E, tuple(U))] == 3 or store, ag._kind_known_dk
     old = lineage_store._FOLD_UNKNOWN
     lineage_store._FOLD_UNKNOWN = False
     try:
@@ -241,6 +246,21 @@ def main() -> int:
     print(f"U5 live fold vs retro-fold of the same game ({n_live} rows folded each): the same "
           f"known keys, n, dk, lasts and pairs on the archive path; the same kind / kind_dk "
           f"rows, pairs, meta and lasts on the store path")
+
+    # U6: the dk save of U1's lineage holds a kinds_dk_last for the int-sized and the str-sized
+    # delta kind; the tool wrote it in the writer's total order
+    dk_save = [s for s in out["saves"] if s["table"] == "kind_dk"]
+    g = lineage._read(d)[dk_save[0]["h"]]
+    rows = g["kinds_dk_last"]
+    assert {type(r[0][2]) for r in rows} == {int, str} and rows == lineage._ksorted(rows), rows
+    try:
+        sorted(rows)
+        mf = None
+    except TypeError as e:
+        mf = str(e)
+    assert mf, "MF-U6: plain sorted() of int- and str-sized delta kinds should raise"
+    print(f"U6 the dk save's kinds_dk_last ({len(rows)} rows, delta kinds sized int and str) is in "
+          f"the writer's total order; MF plain sorted(): {mf}")
     print("fold_unknown: OK")
     return 0
 

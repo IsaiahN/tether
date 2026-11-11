@@ -10,8 +10,12 @@ the same fields, the key in kinds_landed, the folded rows' latest landing when i
 concept's own, and one audit record ("retro_fold", read by nothing). Saves are split by concept, so
 each one keeps every concept's sum. The kernel is a freshly wired agent's (no bound terms offline).
 
-    python conform/retro_fold.py <lineage dir>                 # count only, writes nothing
+    python conform/retro_fold.py <lineage dir>             # count only, writes nothing
+    python conform/retro_fold.py <lineage dir> --check     # every save built, none written
     python conform/retro_fold.py <lineage dir> --write [--rows N]
+
+A write builds, sorts and encodes every save before the first file lands (r1768 3), so it cannot
+stop halfway on a save it could not build.
 """
 from __future__ import annotations
 
@@ -156,7 +160,7 @@ def _gen(parent: str, f: dict, part: int, of: int, tool: str, kernel_n: int) -> 
         x["concepts"] += 1
         x["concepts_new"] += int(new)
     for k in list(f):
-        f[k] = lineage._ksorted(f[k]) if k.endswith("_dk") else sorted(f[k])
+        f[k] = lineage._ksorted(f[k])   # a delta kind mixes int and str in one place
     return {"lineage": 1, "parent": parent, "game": None, "terms": [], "status": [],
             "evidence": [], "vindication_tail": [], "book": {}, "invented": {}, "dormant": [],
             "dormant_refused": [], **f,
@@ -168,7 +172,7 @@ def _gen(parent: str, f: dict, part: int, of: int, tool: str, kernel_n: int) -> 
 
 
 def run(d: Path, rows_per: int = 200_000, write: bool = False, kern: set | None = None,
-        say=print) -> dict:
+        say=print, check: bool = False) -> dict:
     """Plan the fold of the store in `d` and, with `write`, write its saves on the store's last
     merged save. Every save in the folder must be merged and the last merged must be a tip (a
     lineage may carry dead-end tips the store merged as a DAG; central has seven, r1763 3)."""
@@ -199,6 +203,12 @@ def run(d: Path, rows_per: int = 200_000, write: bool = False, kern: set | None 
         chunks = [(t, c) for t in ("kind", "kind_dk") for c in _chunks(plans[t], rows_per)]
         say(f"saves {len(chunks)} (at most {rows_per} folded rows each); planned in "
             f"{time.perf_counter() - t0:.0f} s; kernel {len(kern)} terms; parent {last[0]}")
+        if not (write or check):
+            return out
+        for i, (t, cs) in enumerate(chunks, 1):
+            lineage._dumps(_gen("0" * 16, fields(t, plans[t], cs), i, len(chunks), tool, len(kern)))
+        out["checked"] = len(chunks)
+        say(f"{len(chunks)} parts built and sorted ({time.perf_counter() - t0:.0f} s)")
         if not write:
             return out
         parent = last[0]
@@ -226,9 +236,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("lineage")
     ap.add_argument("--write", action="store_true")
+    ap.add_argument("--check", action="store_true")
     ap.add_argument("--rows", type=int, default=200_000, help="folded rows per save at most")
     a = ap.parse_args()
-    return 2 if run(Path(a.lineage), a.rows, a.write).get("refused") else 0
+    return 2 if run(Path(a.lineage), a.rows, a.write, check=a.check).get("refused") else 0
 
 
 if __name__ == "__main__":
