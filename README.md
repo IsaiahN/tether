@@ -84,6 +84,21 @@ Swap the interface, keep the lineage.
   at its next loop and is owed, and the step still makes and records its choice.
 - **Walks shared by pattern**: a library walk worked out for one set of objects is reused for any
   set in the same arrangement, the names substituted, so the same thinking costs less.
+- **Time counted by learning** (`TETHER_FADE_BY_STORE`): fading runs on how much the agent has
+  written to memory, not on how many steps pass, so a board where nothing new happens ages
+  nothing. When something fails again, its earlier failures are re-judged by what kind of thing
+  they were, never by name; before there is enough to measure, only steps in which something was
+  learned count.
+- **One-off sightings fold into their idea** (`TETHER_FOLD`): at a game's end, something seen only
+  once is counted on the general idea it belongs to instead of kept as its own record, so memory
+  grows with what recurs.
+- **Proven and recent first** (`TETHER_RELEVANCE`): among library entries that fit equally well,
+  the order is by how well each has held up and how recently it was used, and one never tried gets
+  a small head start; fit still comes first, and what the agent believes does not change.
+- **A lost game is not repeated by another route**: every way the agent chooses a move now avoids
+  a move that lost on this same board before, unless no other move is left.
+- **Goal-finding and invention stay inside the budget**: proposing goals and building new
+  candidates stop when the step's allowance is spent and are owed, instead of running long.
 
 **The agent's code is `general-agent`'s plus the build above;** once today's `general-agent`
 pull request merges, the agent's code is the same on both, and this branch adds only the ARC
