@@ -22,11 +22,12 @@ below the seam where the button and coordinate are chosen, unless every option i
      gate's step order holds (filed under "s0" it refused: "s0: MINT after ACCEPT"). The occasion
      is the store clock's path; under TETHER_FADE_BY_STORE=0 the run never sweeps such a park.
 
-  The must-pass's CONTRAST (ON loses fewer games than OFF) is read on the CYCLE clock it was
-  written on (r1736, r1737). That move rested on unpinned samples: pinned (below), the unvetoed
-  agent repeats its own game loss on the store clock too (2 repeats, 4 losses in 4 attempts, as on
-  the cycle clock). The veto's own laws (no held key repeated, no withheld pair chosen, the gate)
-  are read on the store clock, and every numbered check below runs there.
+  The must-pass's CONTRAST (ON loses fewer games than OFF) is read on BOTH clocks, each in its
+  own child process (TETHER_FADE_BY_STORE=1 and =0; r1738, r1747): pinned (below), the unvetoed
+  agent repeats its own game loss on either (2 repeats, 4 losses in 4 attempts, measured on
+  8464907), so the veto pays on the default clock too. The veto's own laws (no held key repeated,
+  no withheld pair chosen, the gate) are read in the parent, and every numbered check below runs
+  there.
 
   The agent's seed is pinned (TETHER_AGENT_SEED off, the constant seed, as test_lineage_merge):
   each process otherwise draws its own seed at start, and one law read over four short attempts
@@ -106,15 +107,14 @@ def _attempts(start: int, ruin: bool, attempts: int = 4, steps: int = 12) -> tup
 
 
 def _contrast() -> str:
-    """The must-pass's contrast, in a process started on the cycle clock (r1737)."""
-    assert not tether.G_FADE_BY_STORE, "the contrast reads the cycle clock"
+    """The must-pass's contrast, in a child process started on one fade clock (r1747)."""
     off, off_ends, off_keys, _s, _n = _attempts(2, False)
     _c, c_ends, c_keys, _cs, _cn = _attempts(2, True)
     off_rep, c_rep = len(off_keys) - len(set(off_keys)), len(c_keys) - len(set(c_keys))
     assert off_rep > 0, (off_ends, off_keys)          # OFF: the agent repeats its own game loss
     assert c_rep == 0 and c_ends.count("game_loss") < off_ends.count("game_loss"), (c_ends, c_keys)
-    return (f"cycle clock OFF endings {off_ends}, {off_rep} repeat a held key; ON {c_ends}, "
-            "0 repeats")
+    clock = "store clock" if tether.G_FADE_BY_STORE else "cycle clock"
+    return f"{clock} OFF endings {off_ends}, {off_rep} repeat a held key; ON {c_ends}, 0 repeats"
 
 
 if __name__ == "__main__" and sys.argv[1:] == ["--contrast"]:
@@ -122,11 +122,14 @@ if __name__ == "__main__" and sys.argv[1:] == ["--contrast"]:
     sys.exit(0)
 
 if __name__ == "__main__":
-    env = {**os.environ, "TETHER_FADE_BY_STORE": "0"}
-    r = subprocess.run([sys.executable, "-B", __file__, "--contrast"], env=env, text=True,
-                       capture_output=True, stdin=subprocess.DEVNULL, check=False)
-    assert r.returncode == 0, r.stderr[-1500:]
-    said = r.stdout.strip().splitlines()[-1]
+    said = []
+    for clock in ("1", "0"):
+        env = {**os.environ, "TETHER_FADE_BY_STORE": clock}
+        r = subprocess.run([sys.executable, "-B", __file__, "--contrast"], env=env, text=True,
+                           capture_output=True, stdin=subprocess.DEVNULL, check=False)
+        assert r.returncode == 0, (clock, r.stderr[-1500:])
+        said.append(r.stdout.strip().splitlines()[-1])
+    said = "; ".join(said)
     ag, ends, keys, spy, acted = _attempts(2, True)   # the veto's laws, on the shipped clock
     rep = len(keys) - len(set(keys))
     assert rep == 0, (ends, keys)
@@ -143,7 +146,8 @@ if __name__ == "__main__":
     assert all(r["slot"] == r["detail"]["held"] for r in rr), [(r["slot"], r["detail"]["held"])
                                                                for r in rr]
     print(f"  must-pass, s0=2, 4 attempts of up to 12 steps, the agent choosing: {said}; "
-          f"store clock ON endings {ends}, 0 repeats, "
+          f"parent ({'store' if tether.G_FADE_BY_STORE else 'cycle'} clock) ON endings {ends}, "
+          "0 repeats, "
           f"{len(w)} @ruin rows, none choosing a withheld pair; full gate passes "
           f"({len(ag.led.rows())} rows)")
     print(f"  10: {len(rr)} earlier-level park row(s) on a live slot name filed under the park "
