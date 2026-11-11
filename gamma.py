@@ -488,6 +488,11 @@ _FADE_BY_STORE = armflag.arm("TETHER_FADE_BY_STORE", default=True) and _GENERAL
 # 1 - W_last / W_now (Isaiah 13:33: "share makes the most sense"). OFF: the raw count of writes,
 # W_now - W_last -- a test setting only
 _FADE_SHARE = armflag.arm("TETHER_FADE_SHARE", default=True)
+# PIECE 3, LIBRARY RELEVANCE (the reviewer r1679, r1720; spec 5.10.8): a term's standing at the one
+# ranking site is confidence x fade(age) + youth, the age on Piece 1's clock since its last use (a
+# pay, a witnessed refute, a residual it closed). Never used: youth only; a used kernel term never
+# fades. Confidence is unchanged. OFF (or TETHER_GENERAL OFF, the specialist): ranking as before
+_RELEVANCE = armflag.arm("TETHER_RELEVANCE", default=True) and _GENERAL
 
 
 def _store_age(w: float, now: float) -> float:
@@ -1232,6 +1237,8 @@ class Gamma:
         # (P) r1383, r1635: name -> the clause that admitted it to the kernel, set at entry only;
         # read only by the agent's tier move-down and crowd-out (TETHER_KERNEL), never a verdict
         self.kernel: dict[str, str] = {}
+        # Piece 3: name -> clock() at its last use; a replayed settle/refute stamps its own reading
+        self.term_w: dict[str, float] = {}
         # name -> the two verdicts that promoted it. A dict rather than a set because
         # `primitive requires both` is only checkable if both are on the record.
         self.primitives: dict[str, dict] = {}
@@ -1359,6 +1366,11 @@ class Gamma:
                     # R7i: the row's term reloaded under another name; apply it there
                     name = self.renamed[name]
                     out["renamed"] += 1
+                if (_RELEVANCE and name in self.innate
+                        and kind in ("settle", "refute", "contradiction")):
+                    # Piece 3: an innate (kernel) term's row is the record only, and still a use
+                    w = r[-1].get("w") if isinstance(r[-1], dict) else None
+                    self.term_w[name] = w if w is not None and _FADE_BY_STORE else t
                 if kind not in ("settle", "refute") or name in self.innate:
                     out["record"] += 1
                     continue
@@ -1516,6 +1528,7 @@ class Gamma:
         a mere read, so this is the established pattern rather than a new one. **Asserted as
         a refuter with a mutation control, not taken on the arithmetic.**
         """
+        self.note_use(name)
         if self.keep_evidence:
             self.evidence.append(["settle", name, slot, where, self.tick]
                                  + ([] if tip else [UNTIPPED]) + self._ev_w())
@@ -1585,6 +1598,7 @@ class Gamma:
         level, and the failure this records is *one board did not have the mechanic*, which
         happens at both scales. The caller is the one holding both.
         """
+        self.note_use(name)
         if _SETTLED_CORE and name in self.innate:
             # 7i: INNATE. The contradiction is RECORDED, never a demotion; on a slot the
             # binding may still move (Q1, the reviewer 2026-10-15 19:04): settled_on loses
@@ -1709,6 +1723,26 @@ class Gamma:
                 return mix_w(h / (h + f), self.carry_w_base[name],
                              self.carry_w_game_series.get(name, (0, 0)))
         return (st.confirmations + 1.0) / (st.confirmations + st.refusals + 2.0)
+
+    def note_use(self, name: str) -> None:
+        """Piece 3 (r1720 point 1): a use -- a pay, a witnessed refute, a residual it closed."""
+        if _RELEVANCE:
+            self.term_w[name] = self.clock()
+
+    def relevance_of(self, name: str) -> float:
+        """PIECE 3, 5.10.8's RELEVANCE (TETHER_RELEVANCE; r1720): confidence x fade(age) + youth.
+        A term never used reads youth alone -- "an untried term has never been used, so its
+        confidence contribution vanishes and only youth remains" (youth_of) -- so it cannot outrank
+        a proven term in use. A used kernel term never fades (the tiers' exemption); before a
+        half-life exists a used term reads fade 1."""
+        c, y = self.track_of(name), self.youth_of(name)
+        w = self.term_w.get(name)
+        if w is None:
+            return y
+        if name in self.kernel:
+            return c + y
+        h = self._fade_at()[1]
+        return c * (0.5 ** (self.age(w) / h) if h else 1.0) + y
 
     def youth_of(self, name: str) -> float:
         """THE YOUTH BONUS -- `1 / (1 + confirmations + refusals)`. Sec 5.10.8, no constant.

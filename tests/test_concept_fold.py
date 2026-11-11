@@ -25,6 +25,8 @@
        changes them
   F5   zero-is-off: TETHER_FOLD off (the module value lineage.write reads), no fold row and the
        game's seen-once rows written as they are
+  F12  three one-offs of one unformed key with no stored concept fold into a NEW concept
+       (concept_new True); two do not (r1721 2). MF: an exists-at-load-only fit folds none
 
     python tests/test_concept_fold.py
 """
@@ -233,6 +235,22 @@ def main() -> int:
     assert (a, b, mf) == (0, 0, 1), (a, b, mf)
     print("F10 a form seen twice this series, and one already stored, stay; MF the concept alone: "
           "the stored one folds")
+
+    # F12: a concept formed by this game's one-offs alone
+    def new_concept(k, defect=False):
+        ag, rows = fresh()
+        for i in range(k):
+            land(ag, (DK, E, ("POSITION", "SHAPE", f"form={30 + i}")))
+        if defect:
+            return patched(tether.Agent, "_fold_fits",
+                           lambda _self, s, sc, _h: s == 0 and sc >= 2, lambda: folded(ag))
+        n = folded(ag)
+        return n, [k_["concept_new"] for ev, k_ in rows if ev == "fold"]
+    three, two, mf12 = new_concept(3), new_concept(2), new_concept(3, defect=True)
+    assert three == (3, [True]) and two == (0, []) and mf12 == 0, (three, two, mf12)
+    print(f"F12 three one-offs, no stored concept: folded {three[0]} into a new concept "
+          f"(concept_new {three[1][0]}); two: folded {two[0]}; MF an exists-at-load-only fit: "
+          f"folded {mf12}")
 
     # FW: W unchanged by a fold, and the next write still counts
     def w_case(defect, new_row):

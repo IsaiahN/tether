@@ -179,7 +179,7 @@ def fits(term: Any, gap: dict, in_type: str, out_type: str) -> int:
 
 
 def retrieve(library: dict, gap: dict, in_type: str = "val",
-             out_type: str = "val", track=None, youth=None) -> list[str]:
+             out_type: str = "val", track=None, youth=None, relevance=None) -> list[str]:
     """ONE PASS over the library, ordered by fit. Every name comes back.
 
     Not a search: no composition, no enumeration, no closure walked. The library is what is
@@ -222,6 +222,12 @@ def retrieve(library: dict, gap: dict, in_type: str = "val",
     of the key, and it will separate the moment one term carries a positive record. **Do not
     reach for a coefficient to make the number move.**
     """
+    if relevance is not None:
+        # PIECE 3 (TETHER_RELEVANCE, r1720): 5.10.8's additive relevance, now that its decay term
+        # exists, takes the two tie slots; fit stays strictly first
+        scored = [(-fits(t, gap, in_type, out_type), -relevance(n), len(t), n)
+                  for n, t in library.items()]
+        return [n for _, _, _, n in sorted(scored)]
     if track is None:
         scored = [(-fits(t, gap, in_type, out_type), len(t), n) for n, t in library.items()]
         return [n for _, _, n in sorted(scored)]

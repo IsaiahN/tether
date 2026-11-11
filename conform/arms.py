@@ -649,9 +649,10 @@ ARMS: dict[str, str] = {
                         "(sum of both), so a need used more no longer weighs more for being used. "
                         "OFF: w = (paid + 1) / (paid of both + 2) (017b282)",
     "TETHER_GENERAL": "r1665, the general agent (Isaiah 2026-11-10 11:52). Default ON: each fade "
-                      "switch (TETHER_FADE_PAID, TETHER_FADE_FAILURES; TETHER_RELEVANCE once "
-                      "built) follows its own default -- a general agent can lose context: "
-                      "nothing is deleted (the record only grows), but what goes unused gets "
+                      "switch (TETHER_FADE_PAID, TETHER_FADE_FAILURES, TETHER_FADE_BY_STORE, "
+                      "TETHER_RELEVANCE) follows its own default -- a general agent can lose "
+                      "context: nothing is deleted (the record only grows), but what goes unused "
+                      "gets "
                       "compressed, downweighted and hard to surface until used again. OFF, the "
                       "SPECIALIST agent (mostly fixed, an expert): every fade switch is forced "
                       "OFF; it learns and never forgets. A sub-switch set in a test overrides it "
@@ -661,7 +662,7 @@ ARMS: dict[str, str] = {
                         "(cycles since its last use / (4 x halflife)), 4 x a seed; a pay or an "
                         "against restores it; the raw count, the carry and the record never fade. "
                         "OFF: paid as counted. The SPECIALIST agent is every fade switch OFF "
-                        "(TETHER_FADE_PAID, TETHER_FADE_FAILURES; TETHER_RELEVANCE once built)",
+                        "(TETHER_FADE_PAID, TETHER_FADE_FAILURES, TETHER_RELEVANCE)",
     "TETHER_FADE_FAILURES": "r1663 (C), failures fade (Isaiah 2026-11-10 11:49). Default ON: "
                             "today's forgiveness, Standing.decay (rejections, misses, refusals, "
                             "refusals_on) and the r1243 weights' against (in play, carried in, "
@@ -681,6 +682,13 @@ ARMS: dict[str, str] = {
                          "share of all writes after its last event, 1 - W_last / W_now, so a "
                          "young agent forgets fast and a mature one slowly. OFF: the raw count "
                          "of writes, W_now - W_last -- a test setting only",
+    "TETHER_RELEVANCE": "Piece 3, library relevance (r1679, r1720; spec 5.10.8). Default ON "
+                        "(forced OFF by TETHER_GENERAL=0). ON: retrieve's one ranking site orders "
+                        "equal fits by confidence x fade(age) + youth, the age on Piece 1's clock "
+                        "since the term's last use (a pay, a witnessed refute, a residual it "
+                        "closed; gamma.term_w, rebuilt at load from the carried evidence rows); "
+                        "a term never used reads youth alone, a used kernel term never fades. "
+                        "Confidence is unchanged. OFF: confidence, then youth, as tie slots",
     "TETHER_FOLD": "Piece 2, the concept fold (r1679, r1688, r1717; Isaiah 2026-11-10 13:05, "
                    "14:27). Default ON, also for the specialist. ON: at a game's end (the save "
                    "that sleeps) each kind_dk and kind row this game wrote and saw once, whose "

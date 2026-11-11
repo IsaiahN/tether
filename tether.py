@@ -56,6 +56,7 @@ from gamma import _KIND_ATTR as G_KIND_ATTR
 from gamma import _KIND_REL as G_KIND_REL
 from gamma import _OPERAND_REFUSE as G_OPERAND_REFUSE
 from gamma import _PRIOR_CODE as G_PRIOR_CODE
+from gamma import _RELEVANCE as G_RELEVANCE
 from gamma import _SETTLED_CORE as G_SETTLED_CORE
 from gamma import _UNITS_MEMO as G_UNITS_MEMO
 from gamma import (
@@ -6509,13 +6510,15 @@ class Agent:
         for e, n in landed.items():
             here[concept(e)] += n
         fold: dict = {}
+        stored_at: dict = {}
         for e, n in sorted(landed.items(), key=repr):
             if (n != 1 or written.get(e) or last.get(e, (None,))[0] != game
                     or concept(e) == e or e[ent] in skip):
                 continue
             stored, stored_c = reader(e)
-            if stored == 0 and stored_c + here[concept(e)] - 1 >= 2:
+            if self._fold_fits(stored, stored_c, here[concept(e)]):
                 fold.setdefault(concept(e), []).append(e)
+                stored_at[concept(e)] = stored_c
         for u, rows in fold.items():
             forms = set()
             for e in rows:
@@ -6531,10 +6534,22 @@ class Agent:
                     self._kind_pairs.add((u[2], u[3]))
             self.led.record(self.cycle, self._running_step, "@fold", "fold", store=table,
                             concept=list(u), folded=len(rows), forms=len(forms),
+                            concept_new=stored_at[u] == 0,
                             reads="one-off sightings folded into their concept at the game's end: "
                                   "its count holds them; their shape forms and where/when are "
                                   "not kept")
         return sum(len(r) for r in fold.values())
+
+    def _note_use(self, name: str) -> None:
+        """A term closed a residual: the rank's use, and Piece 3's last use (gamma.note_use)."""
+        self.rank.note(name, cycle=self.cycle)
+        self.gamma.note_use(name)
+
+    def _fold_fits(self, stored: int, stored_c: int, here_n: int) -> bool:
+        """Piece 2's fit: no stored row of its own, and its concept holds n >= 2 besides it -- the
+        store at load plus this series' rows, so this game's one-offs alone can form a new concept
+        (three different forms make one; r1721 2)."""
+        return stored == 0 and stored_c + here_n - 1 >= 2
 
     def _size_fold(self) -> None:
         """CONSOLIDATION's size trigger, at a step's start: commit >= the ceiling / 2 folds (the
@@ -7053,7 +7068,7 @@ class Agent:
             if t.name not in self.gamma.library:   # a held term is bound, as a rebind is
                 self.gamma.accept(t, seq=len(self.led), residual=f"{m}@{self.cycle}:event:{p}")
             self.bound[m] = t.name
-            self.rank.note(t.name, self.cycle)
+            self._note_use(t.name)
             self.candidates[t.name] = self.cycle
             self._cand_level[t.name] = self.level
             if lf == 0.0:
@@ -12823,7 +12838,7 @@ class Agent:
         detail["explained"], detail["overclaimed"] = self.explain(slot, base_held - left)
         self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
         self.bound[slot] = term.name
-        self.rank.note(term.name, self.cycle)
+        self._note_use(term.name)
         self.candidates[term.name] = self.cycle
         self._cand_level[term.name] = self.level
         if left == 0.0:
@@ -16796,7 +16811,7 @@ class Agent:
             self._serve(s, n)
             self.bound[s] = n
             self._carry(n)
-            self.rank.note(n, self.cycle)
+            self._note_use(n)
             _fc_book(self.gamma.book, "first_contact_bound")
             self.led.record(self.cycle, "PERCEIVE", s, "first_contact", term=n, kind=k.name,
                             reads="a slot met for the first time bets with the carried kind "
@@ -17276,9 +17291,9 @@ class Agent:
                 _lw.clear()
 
         def _pairs():
-            for n in self._reach_pass(retrieval.retrieve(self.gamma.library, gap,
-                                                        track=self.gamma.track_of,
-                                                        youth=self.gamma.youth_of),
+            for n in self._reach_pass(retrieval.retrieve(
+                    self.gamma.library, gap, track=self.gamma.track_of, youth=self.gamma.youth_of,
+                    relevance=self.gamma.relevance_of if G_RELEVANCE else None),
                                      lambda: bool(_paying)):
                 cap.head()
                 if n == exclude or (self._not and self._term_refused(n, _gk)):
@@ -27286,7 +27301,7 @@ class Agent:
             self.gamma.accept(term, seq=len(self.led), residual=f"{slot}@{self.cycle}")
             self._carry_identity(term, slot)
             self.bound[slot] = term.name
-            self.rank.note(term.name, self.cycle)
+            self._note_use(term.name)
             closes = left == 0.0
             if not closes and lag_of(term.operand) is not None:
                 _miss = self._residual_obs(slot, term, robs)
@@ -27571,7 +27586,7 @@ class Agent:
                     # `_library_fit` excludes the incumbent -- so counting there reads 1 forever.
                     # And the `cross` case never touches `bound` at all, which is precisely the
                     # reuse §17.7 means.
-                    self.rank.note(name, self.cycle)
+                    self._note_use(name)
                     if cross:
                         self.parked.pop(tkey, None)
                     else:
@@ -29221,7 +29236,7 @@ class Agent:
                     self._serve(slot, fit)
                     self.bound[slot] = fit
                     self._carry(fit)
-                    self.rank.note(fit, self.cycle)
+                    self._note_use(fit)
                     self.owed_import.discard(slot)
                     self.abstained.pop(slot, None)
                     self.led.record(self.cycle, "ACCEPT", slot, "rebind", term=fit,
@@ -29234,7 +29249,7 @@ class Agent:
                         self._serve(slot, fit)
                         self.bound[slot] = fit
                         self._carry(fit)
-                        self.rank.note(fit, self.cycle)
+                        self._note_use(fit)
                         # THE SAME ACT AS A REBIND, SO THE SAME BOOKKEEPING (the reviewer 2026-10-07
                         # 13:11Z, F497): a fitting library term bound, awaiting the ground. Left
                         # owed, the slot drove seed 0's decisions apart from the rebind path.
