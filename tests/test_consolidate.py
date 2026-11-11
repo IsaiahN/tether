@@ -142,6 +142,9 @@ def main() -> int:
         tether._W_BUDGET = w_was
 
     d = tempfile.mkdtemp()
+    # CON-6 reads the merge's sum on the raw keys; the concept fold (TETHER_FOLD) moves a game's
+    # one-off rows to their concept, so it is pinned off here (its own law: test_concept_fold F4)
+    fold_was, tether._CONCEPT_FOLD = tether._CONCEPT_FOLD, False
     ns, dks, prs, eps = [], [], [], 0
     for _g in range(2):
         tether, env, ag = agent(lineage_dir=d)
@@ -181,6 +184,7 @@ def main() -> int:
           f"and {'the store pairs / t2' if ag._kind_store is not None else '_kind_known_n'} too; "
           f"episodes written {eps}, in the chain {chain_eps}; MF an overwrite differs on "
           f"{len(over)}")
+    tether._CONCEPT_FOLD = fold_was
     print("consolidate: OK")
     return 0
 

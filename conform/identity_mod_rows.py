@@ -29,6 +29,7 @@ POSITIONS = (
     ("detail", "bet_seq"),
     ("detail", "plan_seq"),
     ("detail", "signal_seq"),
+    ("detail", "park_seq"),                       # d5 split / part_reminted (r1725)
     ("detail", "shadow", "recorded_before"),
     ("detail", "fed", "*", 0),                    # resolution: [[seq, role], ...]
     ("detail", "gamma_read", "fed", "*", "seq"),  # may be None

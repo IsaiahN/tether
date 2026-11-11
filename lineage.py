@@ -670,6 +670,9 @@ def write(d: str | Path, ag: Any, game: str, sleep: bool = True, readout: bool =
     inside a game) also runs the store's checkpoint."""
     held: list = []
     snap = getattr(ag, "_dk_snap", None)
+    import tether
+    if sleep and not readout and tether._CONCEPT_FOLD and hasattr(ag, "_concept_fold"):
+        ag._concept_fold()      # Piece 2: at the game's end, before the snapshot closes
     if sleep and snap is not None:
         snap.close()    # W-4: the snapshot's reader ends before the game's checkpoint
     try:
@@ -1277,6 +1280,9 @@ class DkSnapshot:
             if hot or not _HOT_COLD:
                 self.tot_t.setdefault(self.kind[dk][0], Counter())[self.ent[e]] += (
                     hot if _HOT_COLD else n)
+        self._fold_ids: dict | None = None
+        self._fold_dec: dict = {}
+        self._fold_cache: dict = {}
         self.last_k: dict = {}
         for e, s in q("SELECT entry, MAX(l_seq) FROM kind_dk WHERE l_game IS NOT NULL "
                       "GROUP BY entry ORDER BY MIN(dk), entry"):
@@ -1327,6 +1333,48 @@ class DkSnapshot:
             return None
         return q("SELECT gen, items FROM held WHERE key = ? AND role = ?",
                  (ids[0][0], ids[1][0])).fetchone()
+
+    def fold_counts(self, table: str, key: tuple) -> tuple:
+        """Piece 2 (r1717): a kind row's stored count and its concept's -- the rows whose target
+        kinds equal its own with the shape form dropped -- as the store stood at load; read once
+        per (dk, entry) or (entry, role). kind_dk: (dk, entry, target) -> n; kind: (entry, role,
+        kind_o, kind_x) -> in_landed * (n if has_n else 1), as the pair table sums it."""
+        if self.closed:
+            raise RuntimeError("W-4: the load-time dk snapshot is closed")
+        import tether
+        if self._fold_ids is None:
+            self._fold_ids = {}
+            for i, s in self.con.execute("SELECT id, s FROM sym"):
+                self._fold_ids[s] = i
+                if s.startswith("["):
+                    try:
+                        v = json.loads(s)
+                    except ValueError:
+                        continue
+                    if isinstance(v, list):
+                        self._fold_dec[i] = tuple(v)
+        ids, dec = self._fold_ids, self._fold_dec
+        if table == "kind_dk":
+            pre = (ids.get(json.dumps(list(key[0]), sort_keys=True)), ids.get(key[1]))
+            sql = "SELECT tgt, n FROM kind_dk WHERE dk = ? AND entry = ? AND n != 0"
+            rest = (key[2],)
+        else:
+            pre = (ids.get(key[0]), ids.get(key[1]))
+            sql = ("SELECT kind_o, kind_x, CASE WHEN has_n THEN n ELSE 1 END FROM kind "
+                   "WHERE entry = ? AND role = ? AND in_landed = 1")
+            rest = (key[2], key[3])
+        if None in pre:
+            return 0, 0
+        got = self._fold_cache.get((table, pre))
+        if got is None:
+            exact: dict = {}
+            conc: Counter = Counter()
+            for *parts, n in self.con.execute(sql, pre):
+                k = tuple(dec.get(p, p) for p in parts)
+                exact[k] = n
+                conc[tuple(tether._unformed(x) for x in k)] += n
+            got = self._fold_cache[(table, pre)] = (exact, conc)
+        return got[0].get(rest, 0), got[1][tuple(tether._unformed(x) for x in rest)]
 
     def close(self) -> None:
         if not self.closed:

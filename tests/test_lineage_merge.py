@@ -33,7 +33,11 @@ import lineage_store  # noqa: E402
 import tether  # noqa: E402
 import world  # noqa: E402
 
-N = 20
+# r1733 3 (Isaiah 2026-11-11 02:55: a still board ages nothing): on default seed 0 the newborn's W
+# goes flat at cycle 2, so its refusals never fade and it writes no term in 20 steps -- the branches
+# then share nothing. On seed 1, 30 steps: the root writes 1 term, the branches 1 and 4, 1 shared
+N = 30
+SEED = 1
 
 
 def _run(d, seed, n):
@@ -79,12 +83,12 @@ def main():
     d, side = tmp / "main", tmp / "side"
     d.mkdir()
     side.mkdir()
-    a, _ = _run(d, 0, N)
+    a, _ = _run(d, SEED, N)
     wa = lineage.write(d, a, "default")
     shutil.copy(d / wa["written"], side / wa["written"])
-    b1, _ = _run(d, 0, N)
+    b1, _ = _run(d, SEED, N)
     w1 = lineage.write(d, b1, "default")
-    b2, _ = _run(side, 0, N + 5)
+    b2, _ = _run(side, SEED, N + 5)
     w2 = lineage.write(side, b2, "default")
     shutil.copy(side / w2["written"], d / w2["written"])
     gens = lineage._read(d)
@@ -142,7 +146,7 @@ def main():
     got = {(c["gen"], c["value"]) for c in f.get("contested_book", {}).get(bk, [])}
     assert got == {(s1, "b1"), (s2, "b2")} and f["book"].get(bk) == pre, (
         "R-m3 a branch was dropped", "book", bk, got, f["book"].get(bk), pre)
-    c, rep = _run(d, 0, 0)
+    c, rep = _run(d, SEED, 0)
     assert rep["parent"] == m["hash"], ("R-m3 a branch was dropped", "load", rep.get("parent"))
     (d / m["written"]).unlink()
     assert _n3(d), "R-m3: with the merge generation removed, N3 did not raise"
