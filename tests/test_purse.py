@@ -76,7 +76,8 @@ def check_u2() -> None:
     ag = _agent()
     assert ag._purse() == tether.STEP_BUDGET
     ag.step()
-    cut = [r for r in ag.led.rows() if r["event"] == "purse_cut"
+    # TETHER_UNIT_PURSE (r1700): the newborn's step may now be stopped inside a unit first
+    cut = [r for r in ag.led.rows() if r["event"] in ("purse_cut", "unit_purse_cut")
            or r["detail"].get("after") == "the purse"]
     assert cut and all("unreached at this budget" in r["detail"]["reads"] for r in cut), cut[:1]
     assert ag._pd[-1]["open"] == {("cut", 0)}, "MF: a cut step's demand was read as observed"
