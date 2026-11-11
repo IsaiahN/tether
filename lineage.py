@@ -1540,7 +1540,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     if tether._7L_KIND and hasattr(ag, "_kind_known"):
         # the trio stays EMPTY: what its two readers need is held instead (tether _pair_counts,
         # _tiers' T2), as load-time snapshots, so a mid-game merge does not move them
-        ag._kind_store = {"pairs": v["pairs"], "nocount": v["nocount"], "t2": v["t2"]}
+        ag._kind_store = {"pairs": v["pairs"], "nocount": v["nocount"], "t2": v["t2"],
+                          "t2_by": t2_buckets(v["t2"])}
         ag._kind_store_ver += 1
         ag._kind_pairs = ag._kind_pairs | set(v["pairs"])
         rep["kinds_known"] = v["kinds_known"]
@@ -1698,6 +1699,16 @@ def _ensure_dir(d: str | Path) -> None:
     exist yet is created before the store opens (sqlite3 cannot create a missing folder), so a fresh
     clone starts empty and fills as it plays. An existing folder is untouched."""
     Path(d).mkdir(parents=True, exist_ok=True)
+
+
+def t2_buckets(t2: dict) -> dict:
+    """The store load's T2 candidates by their target (kind_x for a CAUSE, kind_o otherwise), each
+    bucket in the dict's own order, so tether's T2 reads one bucket instead of every candidate
+    (r1774 3b: 124,249 candidates after the retro-fold)."""
+    out: dict = {}
+    for e_ in t2:
+        out.setdefault(e_[3] if e_[1] == "CAUSE" else e_[2], []).append(e_)
+    return out
 
 
 def _unknown(g: dict, dk: bool = False) -> set:

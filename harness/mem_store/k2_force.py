@@ -63,7 +63,8 @@ if VAR in ("boundary", "mf_reread"):
 if VAR == "mf_reread":
     assert MODE == "on"
     v = lineage._store_view(LIN, ag)
-    ag._kind_store = {"pairs": v["pairs"], "nocount": v["nocount"], "t2": v["t2"]}
+    ag._kind_store = {"pairs": v["pairs"], "nocount": v["nocount"], "t2": v["t2"],
+                      "t2_by": lineage.t2_buckets(v["t2"])}
     ag._kind_store_ver += 1
 if VAR == "mf_nofilter":
     assert MODE == "on"

@@ -7584,12 +7584,11 @@ class Agent:
             if self._kind_store is not None:
                 # the store load (the reviewer 10:45): the candidates are the game series' known
                 # keys with no dk landing (no_dk, kept at merge); only this run's dk landings remain
-                # to filter
-                cand = self._kind_store["t2"]
+                # to filter; read from ko's own bucket (lineage.t2_buckets, r1774 3b), in the order
+                # the scan of every candidate gave
+                cand = self._kind_store["t2_by"].get(ko, ())
                 run_dk = {e[1:] for e in self._kind_landed_dk}
-                t2 = [(k, r, o, x) for (k, r, o, x) in cand
-                      if (x if r == "CAUSE" else o) == ko
-                      and (k, x if r == "CAUSE" else o) not in run_dk]
+                t2 = [(k, r, o, x) for (k, r, o, x) in cand if (k, ko) not in run_dk]
             else:
                 with_dk = {e[1:] for e in itertools.chain(self._kind_landed_dk,
                                                           self._kind_known_dk)}
