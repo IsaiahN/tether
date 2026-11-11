@@ -20853,8 +20853,10 @@ class Agent:
         if _3C_CANON:
             fn = getattr(self.env, "shape_code", None)
             code = fn(o) if fn is not None else None
-        obs = sorted([att.get(s), str(self.slot_types.get(s))] for s in self.slots
-                     if own.get(s, s.split(".")[0]) == o)
+        # a slot with no published attribute reads None; it sorts last (the E2E's sp80 fault)
+        obs = sorted(([att.get(s), str(self.slot_types.get(s))] for s in self.slots
+                      if own.get(s, s.split(".")[0]) == o),
+                     key=lambda p: (p[0] is None, str(p[0]), p[1]))
         return [att.get(slot), str(self.slot_types.get(slot)), val(before), val(after), obs,
                 val(code)]
 

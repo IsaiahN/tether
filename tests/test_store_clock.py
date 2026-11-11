@@ -20,6 +20,9 @@ TETHER_FADE_BY_STORE and TETHER_FADE_SHARE.
       MF: a label kept from record time keeps the old grouping
   T11 C1 part 2 on the store clock: a miss counted as a refusal keeps its own stamp and contact,
       and misses + refusals == rejections. MF: moved at the current stamp, it would read unfaded
+  T12 a failure's contact on an owner one of whose slots has no published attribute (None):
+      read without raising, the pair [None, type] kept, sorted last (the E2E's fault on sp80,
+      cycle 29). MF: the bare sorted() raises "'<' not supported ... 'NoneType' and 'str'"
   (T6, zero-is-off, is gw12 with TETHER_FADE_BY_STORE=0 against the previous head)
 
     python tests/test_store_clock.py
@@ -280,9 +283,35 @@ def check_t11() -> None:
           f"rejections {st.rejections}")
 
 
+def check_t12() -> None:
+    ag = _agent()
+    real = ag.env.attribute_of
+    own = ag.env.slot_owner() if hasattr(ag.env, "slot_owner") else {}
+    by: dict = {}
+    for s in ag.slots:
+        by.setdefault(own.get(s, s.split(".")[0]), []).append(s)
+    mates = next((m for m in by.values() if len(m) >= 2), [])
+    assert len(mates) >= 2, ("precondition: an owner with two slots", by)
+    slot = mates[0]
+    gone = next(s for s in mates if s != slot)
+    ag.env.attribute_of = lambda: {k: v for k, v in real().items() if k != gone}
+    contact = ag._fail_contact(slot)
+    obs = contact[4]
+    assert obs[-1][0] is None and any(p[0] is not None for p in obs), obs
+    pairs = [[ag.env.attribute_of().get(s), str(ag.slot_types.get(s))] for s in mates]
+    try:
+        sorted(pairs)
+        raised = None
+    except TypeError as e:
+        raised = str(e)
+    assert raised and "NoneType" in raised, ("MUST-FAIL: the bare sort did not raise", raised)
+    print(f"  T12: an owner with slot {gone} unpublished: contact read, {len(obs)} pairs, the "
+          f"None pair last ({obs[-1]}); MF the bare sort raises: {raised}")
+
+
 def main() -> int:
     for check in (check_t1, check_t2, check_t3, check_t4, check_t5, check_t7, check_t8,
-                  check_t9, check_t10a, check_t10b, check_t11):
+                  check_t9, check_t10a, check_t10b, check_t11, check_t12):
         check()
     print("store_clock: OK")
     return 0
