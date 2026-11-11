@@ -38,7 +38,7 @@ A **recursively self-improving agent** of a specific, checkable kind. It does no
 source code. It rewrites its **vocabulary**: the terms it reasons with. Neither do people: no one
 rewrites their DNA in a lifetime, yet over years they can become a different kind of person. The
 agent can likewise stay general, or lock in what it has learned and specialize, and keep evolving
-along that path (the switch for this arrives at the next release).
+along that path.
 
 - **It invents only what pays.** A new term enters its library only if stating it, plus what it
   still fails to explain, costs less than the miss it explains (a minimum-description-length
@@ -182,9 +182,6 @@ on a board are linked but separate. It is not built in this branch.
   game's start.
 - **The try-first pass**: the try-first sweep gives every untouched kind one touch before it may
   stop, on boards where an action can be aimed at an object.
-
-## What this release adds (every switch on by default)
-
 - **Condition search**: when a rule keeps missing on part of what it covers, the agent names the
   condition that separates the misses and searches inside it, nested inside a live split too.
 - **Strength and forgetting**: a term is settled only where it beat "no change"; a term whose
@@ -209,6 +206,21 @@ on a board are linked but separate. It is not built in this branch.
 - **Fair test comparisons**: a test that compares two runs starts each one in its own fresh
   process. A process that has already run the agent works faster, so it would think further on
   the same counted budget, and the comparison would measure the process instead of the change.
+
+## What this release adds (every switch on by default)
+
+- **A general agent or a specialist one** (`TETHER_GENERAL`): on, the general agent can lose
+  context: what goes unused is reached for less readily, never deleted. Off, the specialist agent
+  still learns new things and never forgets: every fade below is switched off.
+- **Fading by disuse**: a habit that once paid is reached for less readily the longer it sits
+  unused, and one use brings it back; an old failure is slowly forgiven. What it believes is true
+  never fades.
+- **A bank per board**: thinking a board saves is spent on that board's harder questions, and a new
+  board starts with an empty bank, so one game's savings never carry into the next.
+- **The purse inside each unit**: a lookup or a mint that would run past the step's allowance stops
+  at its next loop and is owed, and the step still makes and records its choice.
+- **Walks shared by pattern**: a library walk worked out for one set of objects is reused for any
+  set in the same arrangement, the names substituted, so the same thinking costs less.
 
 ## A general learner: swap the two layers, keep the mind
 

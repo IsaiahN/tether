@@ -1,5 +1,9 @@
 # The released agent vs the Tether, and its Umwelt ranking
 
+> **Snapshot of the 10-30 release (general-agent cba1dd5, arc-solver-agent 7b44592), measured
+> with the PLAY24 runs. Superseded by the 2026-11-11 review in this folder; kept unchanged for
+> history.**
+
 Reviewer, 2026-10-30. Release reviewed: general-agent cba1dd5 and arc-solver-agent 7b44592.
 
 The two branches are one agent. Every Fig 3 link is built, and the PLAY24 runs show the chain

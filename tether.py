@@ -48,7 +48,9 @@ import retrieval
 import routine as Rt
 import store as door  # the one door; `store` is a local name in three methods
 from gamma import _CARRY_W as G_CARRY_W
+from gamma import _FADE_FAILURES as G_FADE_FAILURES
 from gamma import _FIRST_CONTACT as G_FIRST_CONTACT
+from gamma import _GENERAL as G_GENERAL
 from gamma import _KIND_ATTR as G_KIND_ATTR
 from gamma import _KIND_REL as G_KIND_REL
 from gamma import _OPERAND_REFUSE as G_OPERAND_REFUSE
@@ -1804,6 +1806,22 @@ _PURSE_RISE = armflag.arm("TETHER_PURSE_RISE", default=True)
 # an UMWELT setting (class E, r1646; logged for Isaiah): how far a mind widens its search each time
 # it is stuck -- doubling, as unbounded search and iterative deepening do
 PURSE_RISE = 2
+# C2 BANK PER BOARD (R1 finding F3, 2026-11-10): the bank is a board's -- time saved on a board's
+# questions is spent on that board's harder ones (Isaiah 11-06). retarget(NEW_BOARD) empties it, as
+# a level change already does; in a game stream every game starts at level 0, so before this the
+# bank ran on across games (76.6 M heads by R1's game 11). OFF: only a level change empties it
+_BANK_PER_BOARD = armflag.arm("TETHER_BANK_PER_BOARD", default=True)
+# C2 THE PURSE INSIDE EVERY UNIT (R1 finding F2; Isaiah 2026-11-10 16:12, the reviewer r1700): the
+# purse was checked only between whole units, so one unit could run past it (tu93: 2,815 M heads
+# against a 46 M allowance). cap.head() now asks the purse once the step's allowance in heads is
+# reached; spent, the unit stops at that loop head (cap.PurseCut) with one "unreached at this
+# budget" row. A cut ends THINKING, never the choice (the reviewer r1703, r1704): the limit is armed
+# only inside a unit that already has a between-unit stop (a route lookup, a mint, a derived ask,
+# an event's want), and the cut owes that unit's item exactly as that stop does; the step runs on
+# through settle, step_act and REPEAT under the spent purse. cap.hold() units stay whole. OFF:
+# between whole units only
+_UNIT_PURSE = armflag.arm("TETHER_UNIT_PURSE", default=True)
+_UNIT_CUT = object()        # TETHER_UNIT_PURSE: what a unit cut inside returns to its caller
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
 # is stored with every landing, and the lit list is TIERS, an order, never a cut: T1a-c what landed
@@ -2070,11 +2088,16 @@ _STEP_RANK = armflag.arm("TETHER_STEP_RANK", default=True)
 RANK_CLASSES = ("owed_changed", "changed", "own_act", "owed_still", "rest")
 
 
+def _paid_raw(st: dict) -> int:
+    """r1661 (A): a standing's paid count unfaded, with any pays counted since its last read."""
+    return st["paid_n"] + round(st["paid"] - st["p_shown"]) if "paid_n" in st else st["paid"]
+
+
 def _pa(form: dict, situ: tuple) -> list:
     """(5) iii: a standing's [paid, against] as the record holds it, read WITHOUT the decay
     (a read through _rf_standing moves its tick); [0, 0.0] where none was made."""
     st = form["standing"].get(situ)
-    return [0, 0.0] if st is None else [st["paid"], round(st["against"], 4)]
+    return [0, 0.0] if st is None else [_paid_raw(st), round(st["against"], 4)]
 
 
 def _standing_of(form: dict, keys, *rest) -> dict:
@@ -2317,6 +2340,15 @@ _WALK_MEMO = armflag.arm("TETHER_WALK_MEMO", default=True)
 # (A)'s check run: each hit is also walked fresh and compared (contributions, refusals, charges,
 # landings, asks); the fresh walk is used. OFF: no check
 _WALK_MEMO_CHECK = armflag.arm("TETHER_WALK_MEMO_CHECK")
+# (A) BY PATTERN (R1 F1; Isaiah 2026-11-10 16:12, the reviewer r1700, r1702, r1704): a lit entry's
+# walk is a pure function of the NAME PATTERN (the held rows are compiled under placeholders and
+# _bound puts names back by name), so a walk kept for one owner pattern serves every same-shaped
+# one: keyed on (library, atoms, signature, entry, the pattern -- the owners numbered once each in
+# the walk's own visit order, mine, partner, the others; slot and targets written in those
+# numbers), the record re-bound to the asking names through _bound. No owner's kind is in the key:
+# the walk never reads it (r1704: a key holds what the answer depends on, no more). Name-free, so a
+# frame break does not clear it. OFF: the instance-keyed walk memo only
+_PATTERN_MEMO = armflag.arm("TETHER_PATTERN_MEMO", default=True)
 # (D), THE KIND HOIST (the S2E box, 2026-10-20 23:08): inside one _index_reach call the slots never
 # change (only __init__, retarget and _present replace them), so an owner's _kind is constant there;
 # the walk memo's landings read it once per owner per call. OFF: _kind per landing (a88909d)
@@ -2485,6 +2517,12 @@ _REFLEX_CARRY = armflag.arm("TETHER_REFLEX_CARRY", default=True)
 # starts at the carried value decayed from the game's start, then decays as in play. Needs
 # TETHER_REFLEX_CARRY. OFF: only paid crosses ("forgiveness is this game's clock"), as before
 _REFLEX_CARRY_AGAINST = armflag.arm("TETHER_REFLEX_CARRY_AGAINST", default=True)
+# r1661 (A), POSITIVES FADE TOO (Isaiah 2026-11-10 11:41, 11:47): every r1243 weight's `paid` is
+# read faded by disuse, raw x 0.5 ** (cycles since its last use / (4 x halflife)) -- 4 x is a SEED
+# until the agent measures the relative rate. A pay or an against since the last read is a use and
+# restores the full count; the raw count, the carry and the record never fade. OFF (or
+# TETHER_GENERAL OFF): paid as counted
+_FADE_PAID = armflag.arm("TETHER_FADE_PAID", default=True) and G_GENERAL
 # Build 6 item 24 (C), THE LEVEL AT A GAME SWITCH (the reviewer 2026-11-05 r1250): the agent's own
 # board boundary (NEW_BOARD) retargets at the world's level (env.levels()[0]), so the previous
 # game's level number does not run on into the next. OFF: self.level carried over, as before
@@ -3060,6 +3098,13 @@ def _bound(c: Any, sub: Any, atoms: dict, terms: dict | None = None, tk: tuple =
         else:
             _INDEX_N["bind_once_shared"] += 1
     return compile_term.Compiled(slot, t, sub(c.operand), parties, c.absent, c.via)
+
+
+@lru_cache(maxsize=4096)
+def _name_rx(names: tuple) -> re.Pattern:
+    """(A) by pattern: the owner names as whole names only (o1 never inside o12)."""
+    alt = "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True))
+    return re.compile(rf"(?<![A-Za-z0-9_])(?:{alt})(?![A-Za-z0-9_])")
 
 
 def _slot_of(c: Any, sub: Any) -> str:
@@ -3762,6 +3807,8 @@ BOOKS: tuple[str, ...] = (
     "walk_memo_miss",                   # (A): a lit entry walked fresh and kept
     "walk_memo_agree",                  # (A) check run: the kept walk matched the fresh one
     "walk_memo_disagree",               # (A) check run: the kept walk did NOT match
+    "pattern_memo_lookup",              # (A) by pattern: an instance miss asked the pattern memo
+    "pattern_memo_hit",                 # (A) by pattern: a kept walk of the same pattern re-bound
     "fit_units_agree",                  # (B) check run: the fit's reused units matched fresh
     "fit_units_disagree",               # (B) check run: the reused units did NOT match
     "fit_dedup_agree",                  # (2a) check run: a reused definition matched fresh
@@ -4616,7 +4663,7 @@ class Agent:
         # R4: the keys each admitted memo has been asked once (kept across a boundary clear)
         self._hits0: dict = dict(_INDEX_N)    # R4's hit counter is read as this agent's deltas
         self._seen_keys: dict = {m: set() for m in ("reach_index", "compile", "fold", "verdicts",
-                                                    "units_for", "walk")}
+                                                    "units_for", "walk", "pwalk")}
         self._late = (0, 0)                # K1: this step's T4 / T5 entries (asked, not asked)
         self._k1_trunc = False             # K1: the last index walk was cut by the budget
         self._walk_cut = 0                 # A2: entries this lookup's index walks left unreached
@@ -4940,6 +4987,7 @@ class Agent:
         self._dl_n: Counter = Counter()    # 20: this step's described-lookup counts
         self._reach_index: dict = {}       # M4: distinct compiled terms per description
         self._walk_memo: dict = {}         # (A): one lit entry's walk, by what it reads
+        self._pwalk_memo: dict = {}        # (A) by pattern: a walk by its owners' name pattern
         self._ak_rec: Counter | None = None   # (A)'s check: the asks a fresh walk made
         self._reach_verdicts: dict = {}    # M4: a CAUSE pair's verdict per trace length
         self._reach_fold: dict = {}        # E1 X1: a CAUSE pair -> (frames sig, fold state)
@@ -5723,6 +5771,8 @@ class Agent:
                 self._lr_left.clear()           # item 26: a left line is this game's
             if _SELF_STEER:
                 self._reflexes["steer"]["standing"].clear()   # item 27: within a game only
+            if _BANK_PER_BOARD:
+                self._bank, self._bank_lvl = 0, None          # F3: the bank is this board's
         if _MEMO_CLEAR:
             # R4: the agent-level instance memos are this board's and are cleared here; the asked
             # keys, the kind stores, the record and the carried bound memos stay
@@ -6510,6 +6560,23 @@ class Agent:
             order = sorted(order, key=lambda s: (self._dw_seen[s], drawn[s]))
         elif owed:
             order = sorted(order, key=lambda s: s not in owed)   # owed first, stable
+        def defer(d: str, t: tuple, why: Any) -> None:
+            # OWED, NOT TRIED: the ask stays askable; it is asked first next step (C2: or the
+            # purse is spent, its demand censored)
+            self._dw_tried[d].discard(t)
+            self._dw_owed[d] = (owed[d][0] if d in owed else self.cycle, t)
+            b2["deferred"] += 1
+            # r1442 (a): E0-W runs after the ACCEPT loop, so on a slot ACCEPTed this cycle its
+            # note goes on "@derived" (as "@owed_ask" does), the slot named in the row
+            at = "@derived" if self.led.wrote(self.cycle, "ACCEPT", d) else d
+            self.led.record(self.cycle, "MINT", at, "derived_deferred", owes=True,
+                            **({"derived": d} if at != d else {}),
+                            after=why, transition=list(t),
+                            since=self._dw_owed[d][0],
+                            reads="B2: not minted this step: a mint this step already stopped "
+                                  "at its bound; owed, asked first next step -- unreached at "
+                                  "this budget, never a verdict")
+
         for d in order:
             cap.head()
             missed = None
@@ -6527,29 +6594,19 @@ class Agent:
                 missed = self._ds_echo(d)
             _b2_stop = b2 is not None and b2["stop"] is not None
             if b2 is not None and ((_b2_stop and not missed) or self._purse_cut()):
-                # OWED, NOT TRIED: the ask stays askable; it is asked first next step (C2: or the
-                # purse is spent, its demand censored)
-                self._dw_tried[d].discard(t)
-                self._dw_owed[d] = (owed[d][0] if d in owed else self.cycle, t)
-                b2["deferred"] += 1
-                # r1442 (a): E0-W runs after the ACCEPT loop, so on a slot ACCEPTed this cycle its
-                # note goes on "@derived" (as "@owed_ask" does), the slot named in the row
-                at = "@derived" if self.led.wrote(self.cycle, "ACCEPT", d) else d
-                self.led.record(self.cycle, "MINT", at, "derived_deferred", owes=True,
-                                **({"derived": d} if at != d else {}),
-                                after=b2["stop"] if _b2_stop else "the purse", transition=list(t),
-                                since=self._dw_owed[d][0],
-                                reads="B2: not minted this step: a mint this step already stopped "
-                                      "at its bound; owed, asked first next step -- unreached at "
-                                      "this budget, never a verdict")
+                defer(d, t, b2["stop"] if _b2_stop else "the purse")
                 continue
             # r1564: the ask and its whole search are a second pass on a slot ACCEPTed this
             # cycle: the ledger books that slot's rows on "@derived", naming it
             with self.led.pass_key(d, "@derived",
                                    on=self.led.wrote(self.cycle, "ACCEPT", d)):
                 if missed:
-                    formed, free = (self._no_search_want(d, before, after, *ctx) if ctx
-                                    else (None, 0))
+                    formed, free = (self._unit(lambda: (_UNIT_CUT, 0), self._no_search_want, d,
+                                               before, after, *ctx) if ctx else (None, 0))
+                    if formed is _UNIT_CUT:     # TETHER_UNIT_PURSE: cut inside the ask
+                        if b2 is not None:
+                            defer(d, t, "the purse")
+                        continue
                     self.led.record(self.cycle, "MINT", d, "derived_asked", echo=True,
                                     missed=missed,
                                     formed=formed is not None, refused_free=free,
@@ -6573,9 +6630,13 @@ class Agent:
                     self._mint_exhausted = False
                     t0 = time.perf_counter()
                 try:
-                    self.mint(d)
+                    got = self._unit(lambda: _UNIT_CUT, self.mint, d)
                 finally:
                     self._want_only = False
+                if got is _UNIT_CUT:            # TETHER_UNIT_PURSE: cut inside the ask
+                    if b2 is not None:
+                        defer(d, t, "the purse")
+                    continue
                 if _OWED_REJUDGE:
                     self._dw_seen[d] += 1            # 1d: A1's learning reading, turns taken
                 if b2 is not None:
@@ -6637,11 +6698,14 @@ class Agent:
             formed, free, held = None, 0, None
             for d in changed:
                 cap.head()
-                f_, n_ = self._no_search_want(d, before, after, *ctx)
+                f_, n_ = self._unit(lambda: (_UNIT_CUT, 0), self._no_search_want, d, before,
+                                    after, *ctx)
                 free += n_
                 if f_ is not None:
                     formed = f_
                     break
+            if formed is _UNIT_CUT:
+                break       # TETHER_UNIT_PURSE: cut inside this event's want; the rest unread
             if formed is not None:
                 d, term, prov, dk = formed
                 if d in self.wants:
@@ -8344,6 +8408,16 @@ class Agent:
         ek = (id(lib), self._atoms_token, sig, key, slot, mine, partner, tuple(others),
               tuple(targets))
         rec = self._walk_memo.get(ek)
+        kk = None
+        if rec is None and _PATTERN_MEMO:
+            kk = self._pmemo_key(lib, key, slot, mine, partner, others, targets, sig, tallied, pno)
+            if kk is not None:
+                _book_add(self.gamma.book, "pattern_memo_lookup")
+                got = self._pwalk_memo.get(kk[0])
+                if got is not None:
+                    _book_add(self.gamma.book, "pattern_memo_hit")
+                    rec = got[1] if got[0] == kk[1] else self._pmemo_rename(got[1], got[0],
+                                                                            kk[1], atoms)
         if rec is not None and not _WALK_MEMO_CHECK:
             _book_add(self.gamma.book, "walk_memo_hit")
             self._walk_apply(rec, key, sig, views, causes, refused, replay=True, kinds=kinds)
@@ -8372,7 +8446,56 @@ class Agent:
             _book_add(self.gamma.book, "walk_memo_miss")
             if self._admit("walk", ek):
                 self._walk_memo[ek] = fresh
+            if kk is not None and self._admit("pwalk", kk[0]):
+                self._pwalk_memo[kk[0]] = (kk[1], fresh)
         self._walk_apply(fresh, key, sig, views, causes, refused, replay=False, kinds=kinds)
+
+    def _pmemo_key(self, lib: Any, key: str, slot: str, mine: str, partner: str, others: tuple,
+                   targets: tuple, sig: Any, tallied: bool, pno: bool) -> tuple | None:
+        """(A) by pattern: (the key, the numbered owner names in pattern order), or None where a
+        name is neither a plain id nor an "@" name. The plain owners are numbered once each in the
+        walk's own order (mine, partner, the others); an "@" name (@goal) is no object and stays
+        itself in the key; the roles are kept as those numbers or names (the partner is often
+        others[0] or mine itself)."""
+        owners = tuple(dict.fromkeys((mine, partner, *others)))
+        names = tuple(n for n in owners if not n.startswith("@"))
+        # a pair name (a~b) is only ever counted, never compiled, under PAIR_NOT_OBJECT
+        if not all(_PLAIN.fullmatch(p) for n in names for p in n.split("~")) or (
+                not _PAIR_NOT_OBJECT and any("~" in n for n in names)):
+            return None
+        at = {**{n: n for n in owners}, **{n: i for i, n in enumerate(names)}}
+        rx, pos = _name_rx(names), {n: f"\x00{i}\x00" for i, n in enumerate(names)}
+
+        def pat(s: str) -> str:
+            return rx.sub(lambda m: pos[m.group(0)], s) if names else s
+        roles = (at[mine], at[partner], *(at[o] for o in others))
+        return (id(lib), self._atoms_token, sig, key, pat(slot), tuple(pat(t) for t in targets),
+                roles, tallied, pno), names
+
+    @staticmethod
+    def _pmemo_rename(rec: dict, old: tuple, new: tuple, atoms: dict) -> dict:
+        """(A) by pattern: a kept walk under another owner pattern's names, re-bound to these
+        through _bound (the names put back, the bbox pair re-sorted, the Term rebuilt by name),
+        as a fresh compile from the held rows gives."""
+        m, rx = dict(zip(old, new, strict=True)), _name_rx(old)
+
+        def sub(s: Any) -> Any:
+            return s if s is None else rx.sub(lambda g: m[g.group(0)], s)
+        views: dict = {}
+        for vk, (c, meta, n) in rec["views"].items():
+            c2 = _bound(c, sub, atoms)
+            vk2 = (sub(vk[0]), c2.term.name) if isinstance(vk, tuple) else c2.term.name
+            views[vk2] = [c2, dict(meta), n]
+        causes: dict = {}
+        for pk, (if_c, then_c, meta, n) in rec["causes"].items():
+            i2, t2 = _bound(if_c, sub, atoms), _bound(then_c, sub, atoms)
+            causes[(i2.term.name, i2.slot, t2.term.name, *(sub(x) for x in pk[3:]))] = [
+                i2, t2, dict(meta), n]
+        return {"views": views, "causes": causes,
+                "refused": Counter({sub(k): v for k, v in rec["refused"].items()}),
+                "spent": rec["spent"],
+                "landed": [(r, sub(a), sub(b), sub(t)) for r, a, b, t in rec["landed"]],
+                "calls": [(k, r, sub(o), sub(x), sub(t)) for k, r, o, x, t in rec["calls"]]}
 
     def _walk_one(self, lib: Any, key: str, slot: str, mine: str, partner: str, others: tuple,
                   targets: tuple, comp: Any, atoms: dict, sig: Any, tallied: bool,
@@ -16714,6 +16837,31 @@ class Agent:
                                 reads="declared heads refused, not walked late: one row per head "
                                       "per fit, n counted, the distinct terms kept (r1163, r1164)")
 
+    def _lookup_owed(self, slot: str, cut: bool = False) -> None:
+        """The lookup not asked (or, cut, not finished) at a spent purse: owed, asked first next
+        step."""
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        qid = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
+        self._owed_q[slot] = qid
+        self._not_asked += 1
+        if slot in self._route_cls:
+            self._class_n[self._route_cls[slot]][1] += 1
+        self.owed_import.add(slot)
+        self.led.record(self.cycle, "ROUTE", slot, "budget_owed", question=list(qid),
+                        spent=self._spent_now(), budget=self._budget_now(),
+                        **({"unit_cut": True} if cut else {}),
+                        reads="not asked: the step's budget was spent; owed, " + _owed_next())
+
+    def _lookup_unit(self, fit: Any, slot: str, exclude: str | None) -> str | None:
+        """route's lookup as one unit under the purse: cut inside, it was never finished, so it is
+        owed as a lookup the spent purse never asked (TETHER_UNIT_PURSE)."""
+        asked = self._asked
+
+        def owed() -> None:
+            self._asked = asked
+            self._lookup_owed(slot, cut=True)
+        return self._unit(owed, fit, slot, exclude)
+
     def _fit_tier0(self, slot: str, exclude: str | None) -> str | None:
         """S2a (the reviewer 2026-10-20 19:54): an OWED slot whose bet held this step. A row the
         bound term predicted adds 0 to base_bits and never less than 0 to any candidate's left
@@ -16806,16 +16954,7 @@ class Agent:
                                "consumers: the pull count, the description's ordering proof, "
                                "and an import's shadow test"))
         if _STEP_BUDGET and self._purse_out():
-            own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
-            qid = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
-            self._owed_q[slot] = qid
-            self._not_asked += 1
-            if slot in self._route_cls:
-                self._class_n[self._route_cls[slot]][1] += 1
-            self.owed_import.add(slot)
-            self.led.record(self.cycle, "ROUTE", slot, "budget_owed", question=list(qid),
-                            spent=self._spent_now(), budget=self._budget_now(),
-                            reads="not asked: the step's budget was spent; owed, " + _owed_next())
+            self._lookup_owed(slot)
         else:
             _paid_q = self._owed_q.pop(slot, None)
             self._dl_owed = _paid_q is not None
@@ -17800,7 +17939,7 @@ class Agent:
                 # route only files the slot; `_price_refusal` takes it from `_refuted_slot`.
                 self._refuted_slot[slot] = was_refused
                 self._fit_none.pop(slot, None)     # S2a: a refuted bet reopens it
-                fit = self._fit_counted(slot, was_refused)
+                fit = self._lookup_unit(self._fit_counted, slot, was_refused)
                 # AND ZERO SUPPORT FALLS THROUGH TO MINT -- ruled 2026-09-22 on B5.
                 # *Support at zero is an INSTRUCTION, not a stop: perturb.* A rebind changes
                 # what the agent BELIEVES and does not touch the world, so it cannot discharge
@@ -17829,8 +17968,9 @@ class Agent:
                 # evidence. It is why an unbound slot fell back to idn and was never
                 # revisited.
                 b, fit = MECHANISM, (None if self._defer_lookup(slot)
-                                     else self._fit_tier0(slot, self.bound.get(slot)) if _FIT_TIER0
-                                     else self._fit_counted(slot, self.bound.get(slot)))
+                                     else self._lookup_unit(self._fit_tier0 if _FIT_TIER0
+                                                         else self._fit_counted, slot,
+                                                         self.bound.get(slot)))
                 if fit:
                     b = REBIND
             elif len(self.trace) < 2:
@@ -17848,7 +17988,7 @@ class Agent:
             else:
                 self._fit_none.pop(slot, None)     # S2a: a row the bound term missed reopens it
                 fit = (None if self._defer_lookup(slot)
-                       else self._fit_counted(slot, self.bound.get(slot)))
+                       else self._lookup_unit(self._fit_counted, slot, self.bound.get(slot)))
                 b = REBIND if fit else MECHANISM
                 if _MISS_GRADE:
                     _grade = "broken_after_hold" if slot in self._miss_held else "searched"
@@ -20424,6 +20564,8 @@ class Agent:
         if not (_REFLEX_CARRY_AGAINST and _REFLEX_CARRY):
             return 0.0
         a_in = self._rf_against_in.get((form, self._rf_carry_key(form, situ)), 0.0)
+        if not G_FADE_FAILURES:
+            return a_in
         return a_in * 0.5 ** (self.cycle / (self.gamma.halflife or REJECTION_HALFLIFE))
 
     def _reflex_carry(self, readout: bool = False) -> dict | None:
@@ -20435,7 +20577,7 @@ class Agent:
             if form == "steer":
                 continue                        # item 27: a steer is this game's; nothing crosses
             for situ, st in r["standing"].items():
-                paid[(form, self._rf_carry_key(form, situ))] += st["paid"]
+                paid[(form, self._rf_carry_key(form, situ))] += _paid_raw(st)
         loss: Counter = Counter()
         for c in self._loss_rel.values():
             for (lk, frame, rel), n in c.items():
@@ -20458,7 +20600,8 @@ class Agent:
                     continue
                 for situ, st in r["standing"].items():
                     ag[(form, self._rf_carry_key(form, situ))] += (
-                        st["against"] * 0.5 ** ((self.cycle - st["tick"]) / h))
+                        st["against"] * (0.5 ** ((self.cycle - st["tick"]) / h)
+                                         if G_FADE_FAILURES else 1.0))
             da = [[f, list(k), round(v, 6)] for (f, k), v in sorted(ag.items(), key=repr)
                   if round(v, 6) != was.get(("a", f, k))]
             was.update({("a", f, k): round(v, 6) for (f, k), v in ag.items()})
@@ -20490,15 +20633,27 @@ class Agent:
             stand[situ] = {"paid": 0, "tick": self.cycle,
                            "against": self._rf_against_now(form, situ)}
         st = stand.setdefault(situ, {"paid": 0, "against": 0.0, "tick": self.cycle})
-        a0 = st["against"]
-        if st["against"]:
-            st["against"] *= 0.5 ** ((self.cycle - st["tick"])
-                                     / (self.gamma.halflife or REJECTION_HALFLIFE))
+        a0, p0 = st["against"], st["paid"]
+        h = self.gamma.halflife or REJECTION_HALFLIFE
+        if st["against"] and G_FADE_FAILURES:
+            st["against"] *= 0.5 ** ((self.cycle - st["tick"]) / h)
         st["tick"] = self.cycle
-        self._rf_crossed(form, situ, st, a0)
+        if _FADE_PAID:
+            # r1661 (A): callers count on the shown value; fold their pays into the raw count
+            if "paid_n" not in st:
+                st["paid_n"], st["used"] = p0, self.cycle      # first read: its count, fresh
+            else:
+                if p0 > st["p_shown"] or a0 > st["a_shown"]:
+                    st["used"] = self.cycle
+                st["paid_n"] += round(p0 - st["p_shown"])
+            gap = self.cycle - st.get("used", self.cycle)
+            st["paid"] = (st["paid_n"] if gap == 0
+                          else round(st["paid_n"] * 0.5 ** (gap / (4 * h)), 6))
+            st["p_shown"], st["a_shown"] = st["paid"], st["against"]
+        self._rf_crossed(form, situ, st, a0, p0)
         return st
 
-    def _rf_crossed(self, form: str, situ: tuple, st: dict, a0: float) -> None:
+    def _rf_crossed(self, form: str, situ: tuple, st: dict, a0: float, p0: float) -> None:
         """(5) ii (r1356; Isaiah 07:56 "log that event and console it"): one standing_freed row
         when a read finds a (form, situation) on the other side of r1243's threshold (1 + carried
         + paid < against, p < 1/2) from its last read: by this read's decay, or by the witnesses
@@ -20511,7 +20666,7 @@ class Agent:
             return
         self.led.record(self.cycle, self._running_step, "@weight", "standing_freed", form=form,
                         situation=[str(x) for x in situ], to="under" if under else "free",
-                        by="decay" if (1 + c + st["paid"] < a0) == was else "witnesses",
+                        by="decay" if (1 + c + p0 < a0) == was else "witnesses",
                         against=round(st["against"], 4), against_before=round(a0, 4),
                         paid=st["paid"], carried=c,
                         halflife=self.gamma.halflife or REJECTION_HALFLIFE,
@@ -25439,23 +25594,32 @@ class Agent:
         if _PURSE_OWN and hasattr(self, "_pd") and self._purse_cut():
             # C2: the purse is spent -- this slot's mint is unreached at this budget, owed and
             # asked first next step (walk_cut's form), never a verdict on the slot
-            own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
-            self._owed_q[slot] = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
-            self.owed_import.add(slot)
-            self.led.record(self.cycle, self._running_step, slot, "purse_cut", site="mint",
-                            spent=self._purse_spent(), allowance=self._allowance(),
-                            source=self._purse_src,
-                            reads="unreached at this budget: the purse; owed, " + _owed_next())
+            self._mint_purse_owed(slot)
             return None
         out0 = self.outstanding(slot) if _7F_LEAVE else None
         self._memo = {}
         try:
-            got = self._mint(slot)
+            # a derived ask's mint is cut at its ask (_derived_wants), which owes it there
+            got = (self._mint(slot) if self._want_only
+                   else self._unit(partial(self._mint_purse_owed, slot, True), self._mint, slot))
         finally:
             self._memo = None
+        if got is _UNIT_CUT:
+            return None
         if _7F_LEAVE and hasattr(self, "_leave_held"):   # an Agent built by __new__ has none
             self._leave_check(slot, out0)
         return got
+
+    def _mint_purse_owed(self, slot: str, cut: bool = False) -> object:
+        """mint at a spent purse (or, cut, inside it): owed, asked first next step."""
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        self._owed_q[slot] = self._owed_q.get(slot) or (self.cycle, own.get(slot, slot))
+        self.owed_import.add(slot)
+        self.led.record(self.cycle, self._running_step, slot, "purse_cut", site="mint",
+                        spent=self._purse_spent(), allowance=self._allowance(),
+                        source=self._purse_src, **({"unit_cut": True} if cut else {}),
+                        reads="unreached at this budget: the purse; owed, " + _owed_next())
+        return _UNIT_CUT
 
     def _may_mint(self, slot: str) -> bool:
         """7f: True when the slot may be minted -- it is not left, or it reopens now (the level,
@@ -27883,7 +28047,7 @@ class Agent:
         except cap.CapReached as cut:
             return self._cut_step(cut)
         finally:
-            cap.AT = None
+            cap.AT = cap.LIMIT = cap.ON_LIMIT = None
             if _THINK_CHOOSER:
                 self._tc_note_step()
             if _GAME_QUIT:
@@ -28091,6 +28255,60 @@ class Agent:
         if self.deadline is None:
             return None
         return self.deadline - (self._end_reserve or 0.0) if _END_RESERVE else self.deadline
+
+    def _unit_purse(self) -> None:
+        """TETHER_UNIT_PURSE: cap.head() at the step's head limit. The exact thinking spend (the
+        idle scopes left out) against the allowance: spent, the unit stops here; else the limit
+        moves to what is left."""
+        spent, allow = self._purse_spent(), self._allowance()
+        if spent >= allow:
+            cap.LIMIT = None
+            if self._p_cross is None:
+                self._p_cross = {"at": self._clk_stack[-1][0] if self._clk_stack else None,
+                                 "spent": spent, "allowance": allow}
+            raise cap.PurseCut
+        cap.LIMIT = cap.HEADS + (allow - spent)
+
+    def _unit(self, on_cut: Any, fn: Any, *a: Any) -> Any:
+        """TETHER_UNIT_PURSE: fn(*a) as one unit of thinking, its heads limited to what the step's
+        allowance has left. Cut inside it: one unit_purse_cut row, and on_cut() is the result, the
+        unit's item owed as its own between-unit stop owes it; the step runs on (a cut ends
+        thinking, never the choice: the reviewer r1703, r1704). Already spent, the unit's own
+        between-unit checks stop it; nested, the outer unit's limit stands."""
+        arm = _UNIT_PURSE and _PURSE_OWN and self._clk_hs is not None and cap.LIMIT is None
+        if arm:
+            left = self._allowance() - self._purse_spent()
+            if left <= 0:
+                return fn(*a)
+            cap.LIMIT, cap.ON_LIMIT = cap.HEADS + left, self._unit_purse
+        elif cap.LIMIT is None:
+            return fn(*a)
+        try:
+            return fn(*a)
+        except cap.PurseCut as cut:
+            self._unit_note(cut)
+            return on_cut()
+        finally:
+            if arm:
+                cap.LIMIT = cap.ON_LIMIT = None
+
+    def _unit_note(self, cut: BaseException) -> None:
+        """TETHER_UNIT_PURSE: one "@cap" row naming the scope and the site of a unit cut; the
+        step's demand is censored (owed, never a verdict)."""
+        site = None
+        tb = cut.__traceback__
+        while tb is not None:
+            f = tb.tb_frame.f_code
+            if os.path.basename(f.co_filename) != "cap.py" and f.co_name != "_unit_purse":
+                site = f"{os.path.basename(f.co_filename)}:{tb.tb_lineno} {f.co_name}"
+            tb = tb.tb_next
+        self._p_cut = True
+        self.led.record(self.cycle, self._running_step, "@cap", "unit_purse_cut",
+                        acted=self._pressed, at=self._cut_scope or self._running_step, site=site,
+                        spent=self._purse_spent(), allowance=self._allowance(),
+                        reads="unreached at this budget: the step's allowance was spent inside a "
+                              "unit; it stopped at that loop's head, its item is owed, and the "
+                              "step runs on to its choice, never a verdict")
 
     def _cut_step(self, cut: BaseException) -> bool:
         """A cut at a growing loop's head (cap.head): one "@cap" row naming the step scope, the
