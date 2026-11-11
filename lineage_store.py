@@ -688,16 +688,23 @@ def _meta_max(con: sqlite3.Connection, k: str, x: int) -> None:
 
 def _recount_pairs(con: sqlite3.Connection, pairs: set) -> None:
     """_FOLD_UNKNOWN: an unknown key's pair, recounted whole by the invariant above (max() cannot
-    lower last_seq); removed when no in_landed row is left."""
-    for o, x in sorted(pairs):
-        n, last, rows = con.execute(
-            "SELECT SUM(CASE WHEN has_n THEN n ELSE 1 END), MAX(l_seq), COUNT(*) FROM kind "
-            "WHERE in_landed = 1 AND kind_o = ? AND kind_x = ?", (o, x)).fetchone()
-        if rows:
-            con.execute("UPDATE pair SET n = ?, last_seq = ? WHERE kind_o = ? AND kind_x = ?",
-                        (n, last, o, x))
-        else:
-            con.execute("DELETE FROM pair WHERE kind_o = ? AND kind_x = ?", (o, x))
+    lower last_seq); removed when no in_landed row is left. ONE scan of kind for all of them:
+    nothing indexes (kind_o, kind_x), and a scan per pair cost 1 s each on central's 7.67 M rows."""
+    if not pairs:
+        return
+    con.execute("CREATE TEMP TABLE IF NOT EXISTS rp(o INTEGER, x INTEGER, PRIMARY KEY(o, x)) "
+                "WITHOUT ROWID")
+    con.execute("DELETE FROM temp.rp")
+    con.executemany("INSERT INTO temp.rp VALUES (?, ?)", sorted(pairs))
+    got = {(o, x): (n, last) for o, x, n, last in con.execute(
+        "SELECT kind_o, kind_x, SUM(CASE WHEN has_n THEN n ELSE 1 END), MAX(l_seq) FROM kind "
+        "WHERE in_landed = 1 AND (kind_o, kind_x) IN (SELECT o, x FROM temp.rp) "
+        "GROUP BY kind_o, kind_x")}
+    con.executemany("UPDATE pair SET n = ?, last_seq = ? WHERE kind_o = ? AND kind_x = ?",
+                    sorted((*got[p], *p) for p in got))
+    con.executemany("DELETE FROM pair WHERE kind_o = ? AND kind_x = ?",
+                    sorted(p for p in pairs if p not in got))
+    con.execute("DELETE FROM temp.rp")
 
 
 def _reread_no_dk(con: sqlite3.Connection, cause: int, fell: set) -> None:

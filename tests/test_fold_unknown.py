@@ -13,6 +13,10 @@ conform/retro_fold.py. Each check is shown passing, then its must-fail (MF) fail
       row at n 1 folds; with no kernel skip the kernel rows fold
   U5  parity with Piece 2: the fake game played once with the live fold ON, against the same game
       fold OFF then the retro-fold: the same _kind_known, _kind_pairs, n, lasts, on both paths
+  U7  the one-scan pair recount equals the per-pair one it replaced (b48babb's, which scanned kind
+      once per pair: ~10 h on central, r1771), pair table for pair table, on pairs emptied (F2, F3),
+      partly folded (F1: W, another entry's recurring row, stays) and untouched. MF: a recount that
+      skips the emptied pairs' DELETE differs
   U6  a delta kind's third element is an int on some keys and a str on others (lineage._ksorted):
       the fixture folds one of each, and the dk save's kinds_dk_last is written in the writer's
       total order. MF: plain sorted() of those rows raises (the 2026-11-11 10:45 red)
@@ -42,7 +46,7 @@ import tether  # noqa: E402
 from test_entry import FakeWrapper  # noqa: E402
 
 tether._AGENT_SEED = False
-E = "LIB|Alpha"
+E, E2 = "LIB|Alpha", "LIB|Beta"
 P, C = "PROCESS", "CAUSE"
 DK = ["MOTION", "+", 1]
 DX = ["MOTION", "+", "x"]
@@ -72,11 +76,12 @@ def merged(d: Path) -> None:
 
 
 def hand(kern: str, n_y: int = 2) -> Path:
-    """X1-X3 seen once (concept new), Y recurring, Z a CAUSE row on F1 (no_dk 0 by D1), K1-K3 a
+    """X1-X3 seen once (concept new), Y recurring, W another entry's recurring row on X1's pair, Z
+    a CAUSE row on F1 (no_dk 0 by D1), K1-K3 a
     kernel entry's one-offs; D1-D3 dk one-offs, and D4-D6 the same with a str-sized delta kind."""
     d = Path(tempfile.mkdtemp())
     rows = [[E, P, F(1), F(1), 1], [E, P, F(2), F(2), 1], [E, P, F(3), F(3), 1],
-            [E, P, F(4), F(4), n_y], [E, C, U, F(1), 2],
+            [E, P, F(4), F(4), n_y], [E2, P, F(1), F(1), 2], [E, C, U, F(1), 2],
             [kern, P, F(5), F(5), 1], [kern, P, F(6), F(6), 1], [kern, P, F(7), F(7), 1]]
     last = [[*r[:4], "g0", 0, 1, 10 + i] for i, r in enumerate(rows)]
     dks = [[k, E, F(i), 1] for k in (DK, DX) for i in (1, 2, 3)]
@@ -163,9 +168,9 @@ def main() -> int:
     print("U4 the recurring row (n 2) and the kernel entry's 3 rows stay; MF the row at n 1 "
           "folds (4), no kernel skip folds the kernel rows (6)")
 
-    # U2: the pair (F1, F1) loses its only landed row
+    # U2: the pair (F2, F2) loses its only landed row; (F1, F1) keeps W's
     pr = kinds(d)["pair"]
-    assert (j(F(1)), j(F(1))) not in pr, pr
+    assert (j(F(2)), j(F(2))) not in pr and pr[(j(F(1)), j(F(1)))][0] == 2, pr
     ag_a = load(d, False)
     arch = {(j(o), j(x)): v for (o, x), v in ag_a._pair_counts().items()}
     assert {k: v[0] for k, v in pr.items()} == {k: v[0] for k, v in arch.items()}, (pr, arch)
@@ -176,10 +181,39 @@ def main() -> int:
         fold(d2, kern)
     finally:
         lineage_store._recount_pairs = real
-    assert kinds(d2)["pair"].get((j(F(1)), j(F(1)))) is not None, "MF-U2: the row should stay"
+    assert kinds(d2)["pair"].get((j(F(2)), j(F(2)))) is not None, "MF-U2: the row should stay"
     print(f"U2 the pair whose only row folded is gone; store pairs = archive _pair_counts "
           f"({len(pr)} pairs); MF no recount: the row stays at n "
-          f"{kinds(d2)['pair'][(j(F(1)), j(F(1)))][0]}")
+          f"{kinds(d2)['pair'][(j(F(2)), j(F(2)))][0]}")
+
+    # U7: the one scan == the per-pair recount it replaced, on emptied, partly folded and untouched
+    def per_pair(con, pairs, delete=True):
+        for o, x in sorted(pairs):
+            n, last, rows = con.execute(
+                "SELECT SUM(CASE WHEN has_n THEN n ELSE 1 END), MAX(l_seq), COUNT(*) FROM kind "
+                "WHERE in_landed = 1 AND kind_o = ? AND kind_x = ?", (o, x)).fetchone()
+            if rows:
+                con.execute("UPDATE pair SET n = ?, last_seq = ? WHERE kind_o = ? AND kind_x = ?",
+                            (n, last, o, x))
+            elif delete:
+                con.execute("DELETE FROM pair WHERE kind_o = ? AND kind_x = ?", (o, x))
+
+    def with_recount(fn):
+        real = lineage_store._recount_pairs
+        lineage_store._recount_pairs = fn
+        try:
+            dd = hand(kname)
+            fold(dd, kern)
+        finally:
+            lineage_store._recount_pairs = real
+        return kinds(dd)["pair"]
+    ref = with_recount(per_pair)
+    assert pr == ref, (pr, ref)
+    mf = with_recount(lambda con, pairs: per_pair(con, pairs, delete=False))
+    assert mf != pr, "MF-U7: a recount without the DELETE should leave the emptied pairs"
+    print(f"U7 the one-scan recount == the per-pair recount it replaced ({len(pr)} pairs: emptied "
+          f"F2/F3, partly folded F1 at n {pr[(j(F(1)), j(F(1)))][0]}); MF no DELETE: "
+          f"{len(set(mf) - set(pr))} emptied pairs left")
 
     # U3: Z (CAUSE, target F1) had D1; D1 falls 1 -> 0
     z = (E, C, j(U), j(F(1)))
