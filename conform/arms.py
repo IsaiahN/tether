@@ -681,6 +681,14 @@ ARMS: dict[str, str] = {
                          "share of all writes after its last event, 1 - W_last / W_now, so a "
                          "young agent forgets fast and a mature one slowly. OFF: the raw count "
                          "of writes, W_now - W_last -- a test setting only",
+    "TETHER_FOLD": "Piece 2, the concept fold (r1679, r1688, r1717; Isaiah 2026-11-10 13:05, "
+                   "14:27). Default ON, also for the specialist. ON: at a game's end (the save "
+                   "that sleeps) each kind_dk and kind row this game wrote and saw once, whose "
+                   "concept (the key with the target kinds' shape form dropped) holds n >= 2 "
+                   "without it, entry neither kernel nor bound, is written as +1 on the "
+                   "concept's row; its own row and where/when are not written. A formed row with "
+                   "n >= 2 never folds; no row of an earlier save or of the store is touched; one "
+                   "fold row per concept; book fold_total. OFF: every seen-once row is written",
     "TETHER_BANK_PER_BOARD": "C2 bank per board (R1 finding F3, 2026-11-10). Default ON. ON: the "
                              "agent's own new-board boundary (retarget NEW_BOARD) empties the "
                              "purse's bank, as a level change does, so time saved on one board is "

@@ -1994,6 +1994,14 @@ _MEMO_ADMIT = armflag.arm("TETHER_MEMO_ADMIT", default=False)
 # (ak_, the episodes), which the lookup wrote as the answers landed. One @consolidate row a fold.
 # OFF: the bound stores outlive every boundary (the 10-15 06:01 carry)
 _CONSOLIDATE = armflag.arm("TETHER_CONSOLIDATE", default=True)
+# PIECE 2, THE CONCEPT FOLD (r1679, r1688, r1717; Isaiah 2026-11-10 13:05, 14:27): at a game's end
+# (the save that sleeps), each kind_dk and kind row THIS game wrote and saw once (n == 1, no earlier
+# save of the series and no store row) whose CONCEPT -- the same key with the target kinds' shape
+# form dropped -- holds n >= 2 without it, its entry neither kernel nor bound, folds: its count is
+# written on the concept's row, and the sighting's own row and where/when are not written. A formed
+# row with n >= 2 has earned its own row and never folds; the store is read, never changed. One
+# fold row per concept. ON for the specialist too. OFF: every seen-once row is written.
+_CONCEPT_FOLD = armflag.arm("TETHER_FOLD", default=True)
 
 
 _PMC_CALL: Any = None    # the Windows call, built once (W-1 reads commit between lookups)
@@ -3123,6 +3131,14 @@ def _object_kind(types: Any, code: Any) -> tuple:
     Agent._kind and the present categorizer both read it (r1716)."""
     got = tuple(sorted(set(types)))
     return (*got, f"form={code}") if code is not None else got
+
+
+def _unformed(kind: Any) -> Any:
+    """Piece 2 (r1717): a kind without its shape form (3c-CANON's "form=" part) -- the concept a
+    one-off shape folds into. Anything that is not a tuple of parts is returned as it is."""
+    if not isinstance(kind, tuple):
+        return kind
+    return tuple(x for x in kind if not (isinstance(x, str) and x.startswith("form=")))
 
 
 def _delta_kind_of(a: Any, typ: Any, before: Any, after: Any) -> tuple | None:
@@ -6426,6 +6442,99 @@ class Agent:
                 self.led._body_opened = True
             with open(f"{path}.body.jsonl", "w" if fresh else "a", encoding="utf-8") as fh:
                 fh.write(json.dumps(body) + "\n")
+
+    def _concept_fold(self) -> dict:
+        """PIECE 2 (TETHER_FOLD; r1679, r1717): at a game's end, the kind_dk and kind rows this game
+        wrote and saw once fold into their concept when it holds n >= 2 without them. Decided on
+        the state before any fold; the store is read as it stood at load (the snapshot), never
+        changed. Returns the rows folded per store."""
+        g = self.gamma.game
+        snap = getattr(self, "_dk_snap", None)
+        snap = snap if snap is not None and not snap.closed else None
+        skip = set(self.gamma.kernel) | set(self.bound.values())
+        out: dict = {}
+        if G_FADE_BY_STORE and self._store_prev is not None:
+            self._store_tick()      # r1718: the writes since the last tick are counted first
+        if _DELTA_KIND and _CONSOLIDATE:
+            out["kind_dk"] = self._fold_rows(
+                "kind_dk", self._kind_landed_dk, self._kdk_last,
+                getattr(self, "_kdk_written", {}), 1, (2,), g, skip,
+                self._fold_reader("kind_dk", snap))
+            if self._store_prev is not None:
+                # Piece 1: the clock counts growth; the folded rows were counted when written
+                self._store_prev["kind_landed"] = len(self._kind_landed_dk)
+        if _7L_KIND and _CONSOLIDATE:
+            out["kind"] = self._fold_rows(
+                "kind", self._kind_landed_n, self._kind_last, getattr(self, "_kn_written", {}),
+                0, (2, 3), g, skip, self._fold_reader("kind", snap))
+        n = sum(v for v in out.values() if isinstance(v, int))
+        if n:
+            self.gamma.book["fold_total"] = self.gamma.book.get("fold_total", 0) + n
+            self._kix_ver = getattr(self, "_kix_ver", 0) + 1    # (C): the tiers index rebuilds
+        return out
+
+    def _fold_reader(self, table: str, snap: Any) -> Any:
+        """Piece 2: a row's stored count and its concept's, as the store stood at load -- the
+        snapshot's keyed read, else the in-memory known stores when they are load's full copy; None
+        when neither can answer (a store load with no snapshot: the kind table is on disk only)."""
+        if snap is not None:
+            return lambda key: snap.fold_counts(table, key)
+        if table == "kind_dk":
+            known = self._kind_known_dk
+        elif self._kind_store is None:
+            known = {e: self._kind_known_n.get(e, 1)
+                     for e in self._kind_known | set(self._kind_known_n)}
+        else:
+            return None
+        parts = (2,) if table == "kind_dk" else (2, 3)
+        conc: Counter = Counter()
+        for e, n in known.items():
+            conc[(*e[:2], *(_unformed(e[i]) for i in parts))] += n
+        return lambda key: (known.get(key, 0),
+                            conc[(*key[:2], *(_unformed(key[i]) for i in parts))])
+
+    def _fold_rows(self, table: str, landed: Counter, last: dict, written: dict, ent: int,
+                   parts: tuple, game: Any, skip: set, reader: Any) -> int | str:
+        """Piece 2: one store's fold. A candidate is a row counted once in this series, its latest
+        sighting this game, never written, with a shape form in its target kinds; it folds when the
+        store holds no such row and its concept holds n >= 2 besides it (store at load + this
+        series), and its entry is neither kernel nor bound. One fold row per concept."""
+        def concept(e):
+            return tuple(_unformed(x) if i in parts else x for i, x in enumerate(e))
+        if reader is None:
+            self.led.record(self.cycle, self._running_step, "@fold", "fold_skipped", store=table,
+                            reads="the concept fold did not run: no load-time reader of the store")
+            return "no reader"
+        here: Counter = Counter()
+        for e, n in landed.items():
+            here[concept(e)] += n
+        fold: dict = {}
+        for e, n in sorted(landed.items(), key=repr):
+            if (n != 1 or written.get(e) or last.get(e, (None,))[0] != game
+                    or concept(e) == e or e[ent] in skip):
+                continue
+            stored, stored_c = reader(e)
+            if stored == 0 and stored_c + here[concept(e)] - 1 >= 2:
+                fold.setdefault(concept(e), []).append(e)
+        for u, rows in fold.items():
+            forms = set()
+            for e in rows:
+                del landed[e]
+                landed[u] += 1
+                lv, lu = last.pop(e, None), last.get(u)
+                if lv is not None and (lu is None or lv[3] > lu[3]):
+                    last[u] = lv
+                forms.add(tuple(x for i in parts for x in e[i] if x not in u[i]))
+                if table == "kind":
+                    self._kind_landed.discard(e)
+                    self._kind_landed.add(u)
+                    self._kind_pairs.add((u[2], u[3]))
+            self.led.record(self.cycle, self._running_step, "@fold", "fold", store=table,
+                            concept=list(u), folded=len(rows), forms=len(forms),
+                            reads="one-off sightings folded into their concept at the game's end: "
+                                  "its count holds them; their shape forms and where/when are "
+                                  "not kept")
+        return sum(len(r) for r in fold.values())
 
     def _size_fold(self) -> None:
         """CONSOLIDATION's size trigger, at a step's start: commit >= the ceiling / 2 folds (the
