@@ -30,7 +30,11 @@ import lineage_store  # noqa: E402
 import tether  # noqa: E402
 import world  # noqa: E402
 
-N = 20
+# r1736 (Isaiah 2026-11-11 02:55: a still board ages nothing): on default seed 0 the newborn's W
+# goes flat at cycle 2, its refusals never fade, and the root writes no term: nothing to contest. On
+# seed 1, 30 steps, the root and both branches write terms (as test_lineage_merge's fixture)
+N = 30
+SEED = 1
 
 
 def _run(d, seed, n):
@@ -82,13 +86,13 @@ def _fixture(tmp: Path) -> tuple[Path, dict]:
     d, side = tmp / "main", tmp / "side"
     d.mkdir()
     side.mkdir()
-    a, _ = _run(d, 0, N)
+    a, _ = _run(d, SEED, N)
     wa = lineage.write(d, a, "default")
     for f in d.glob(f"*{wa['hash']}*"):
         shutil.copy(f, side / f.name)
-    b1, _ = _run(d, 0, N)
+    b1, _ = _run(d, SEED, N)
     w1 = lineage.write(d, b1, "default")
-    b2, _ = _run(side, 0, N + 5)
+    b2, _ = _run(side, SEED, N + 5)
     w2 = lineage.write(side, b2, "default")
     for f in side.glob(f"*{w2['hash']}*"):
         shutil.copy(f, d / f.name)

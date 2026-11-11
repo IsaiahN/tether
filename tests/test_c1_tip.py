@@ -24,6 +24,9 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 os.environ.setdefault("TETHER_AGENT_SEED", "0")
+# Piece 1: these checks read the CYCLE clock (TETHER_FADE_BY_STORE=0, r1677); the store clock is
+# tests/test_store_clock.py
+os.environ.setdefault("TETHER_FADE_BY_STORE", "0")
 
 import gamma  # noqa: E402
 import gridworld  # noqa: E402

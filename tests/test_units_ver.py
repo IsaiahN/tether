@@ -90,6 +90,9 @@ def pin(gamma, atoms) -> int:
         elif isinstance(v, dict):
             v["o1.y"] = 9.0
             v.clear()
+        elif isinstance(v, list):    # Piece 1's ev (7fdce7e): an event added and taken back
+            v.append([5, 1.0, "ref", "o1.y", None])
+            v.clear()
         else:
             setattr(st, f.name, v + 5)
         n += 1

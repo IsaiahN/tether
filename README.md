@@ -206,9 +206,6 @@ on a board are linked but separate. It is not built in this branch.
 - **Fair test comparisons**: a test that compares two runs starts each one in its own fresh
   process. A process that has already run the agent works faster, so it would think further on
   the same counted budget, and the comparison would measure the process instead of the change.
-
-## What this release adds (every switch on by default)
-
 - **A general agent or a specialist one** (`TETHER_GENERAL`): on, the general agent can lose
   context: what goes unused is reached for less readily, never deleted. Off, the specialist agent
   still learns new things and never forgets: every fade below is switched off.
@@ -221,6 +218,24 @@ on a board are linked but separate. It is not built in this branch.
   at its next loop and is owed, and the step still makes and records its choice.
 - **Walks shared by pattern**: a library walk worked out for one set of objects is reused for any
   set in the same arrangement, the names substituted, so the same thinking costs less.
+
+## What this release adds (every switch on by default)
+
+- **Time counted by learning** (`TETHER_FADE_BY_STORE`): fading runs on how much the agent has
+  written to memory, not on how many steps pass, so a board where nothing new happens ages
+  nothing. When something fails again, its earlier failures are re-judged by what kind of thing
+  they were, never by name; before there is enough to measure, only steps in which something was
+  learned count.
+- **One-off sightings fold into their idea** (`TETHER_FOLD`): at a game's end, something seen only
+  once is counted on the general idea it belongs to instead of kept as its own record, so memory
+  grows with what recurs.
+- **Proven and recent first** (`TETHER_RELEVANCE`): among library entries that fit equally well,
+  the order is by how well each has held up and how recently it was used, and one never tried gets
+  a small head start; fit still comes first, and what the agent believes does not change.
+- **A lost game is not repeated by another route**: every way the agent chooses a move now avoids
+  a move that lost on this same board before, unless no other move is left.
+- **Goal-finding and invention stay inside the budget**: proposing goals and building new
+  candidates stop when the step's allowance is spent and are owed, instead of running long.
 
 ## A general learner: swap the two layers, keep the mind
 

@@ -9,6 +9,8 @@ the recorded gain and kind item 24 writes at a level end. Each check its own pro
                           before (96, need 0); OFF the key order
   check_m4_rival          the best paying entry is offered as a by=muse rival on its host; a kind
                           walked with nothing paying is one witness against its muse weight
+  check_m5b_test_press_withheld  a test press the floor withholds on this board is not offered
+                          (a muse_test_withheld row); with every action withheld it is (r1741)
   check_m6_no_identity    no game id and no family name at the musing-chosen sites (AST)
     python tests/test_musing_chosen.py [check ...]
 """
@@ -150,13 +152,19 @@ def check_m9_cadence_carries() -> None:
         gens = lineage._read(Path(d))
     recs = [r for g in gens.values() for r in g.get("inventions", ())
             if r.get("kind") == "reflex"]
-    assert recs and "against" not in json.dumps(recs), recs
+    import tether
+    # r1603 (1): against crosses iff TETHER_REFLEX_CARRY_AGAINST (r1746), as test_reflex_carry
+    on = tether._REFLEX_CARRY_AGAINST
+    mus = [x for r in recs for x in r.get("against", ()) if x[0] == "muse"]
+    assert recs and (mus == [["muse", ["K"], 1.5]] if on
+                     else "against" not in json.dumps(recs)), recs
     b = _agent()
     b._reinvent_carried(json.loads(json.dumps(recs)))
     sb = b._rf_standing("muse", ("K",))
-    assert b._rf_in("muse", ("K",)) == 2 and sb["against"] == 0.0, (b._rf_carried, sb)
+    want = 0.891905 if on else 0.0       # measured on 97e345b: the carried 1.5 as B reads it
+    assert b._rf_in("muse", ("K",)) == 2 and abs(sb["against"] - want) < 1e-6, (b._rf_carried, sb)
     print(f"  game A muse paid 2 -> game B carried {b._rf_in('muse', ('K',))}, against "
-          f"{sb['against']} (did not cross)")
+          f"{sb['against']:.6f} ({'crossed, r1603 (1)' if on else 'did not cross, arm off'})")
 
 
 def check_m5_test_press() -> None:
@@ -194,6 +202,26 @@ def check_m5_test_press() -> None:
     assert ok == 2 - 1 and against == 1.0 and host not in ag._muse_tests, (ok, against)
     print(f"  test press {a} on {host}; contest options {opts}; rival's value: test paid {ok}; "
           f"bound's value: muse against {against}, test withdrawn")
+
+
+def check_m5b_test_press_withheld() -> None:
+    import interface as IFace
+    from gamma import Term
+    ag = _agent()
+    host = sorted(s for s in ag.slots if s.endswith(".col") and not s.startswith("@"))[0]
+    ag._muse_tests[host] = (Term(ag.gamma.library[sorted(ag.gamma.library)[0]].atoms), "K")
+    ag._predict_term = lambda _t, s, st, a, **_k: st[s] + (1 if a == "right" else 0)
+    ag._predict = lambda s, st, _a, *_x, **_k: st[s]
+    before = dict(ag.env.observe())
+    ag._withheld = IFace.Withheld("fp", frozenset({("right", None)}))
+    best = ag._muse_test_ready(before)
+    rows = [r["detail"] for r in ag.led.rows() if r["event"] == "muse_test_withheld"]
+    assert best is None and rows and rows[-1]["action"] == "right", (best, rows)
+    ag._withheld = IFace.Withheld("fp", frozenset((a, None) for a in ag.actions))
+    every = ag._muse_test_ready(before)
+    assert every is not None and every[1] == "right", every
+    print(f"  the only discriminating press 'right' withheld: no test offered, row {rows[-1]}; "
+          f"every action withheld: 'right' offered")
 
 
 def _owing_step(ag, park_gain: float, debt_out: float) -> tuple:
