@@ -1817,7 +1817,8 @@ _BANK_PER_BOARD = armflag.arm("TETHER_BANK_PER_BOARD", default=True)
 # reached; spent, the unit stops at that loop head (cap.PurseCut) with one "unreached at this
 # budget" row. A cut ends THINKING, never the choice (the reviewer r1703, r1704): the limit is armed
 # only inside a unit that already has a between-unit stop (a route lookup, a mint, a derived ask,
-# an event's want), and the cut owes that unit's item exactly as that stop does; the step runs on
+# an event's want, the goal hypotheses' candidate building: r1707 3), and the cut owes that unit's
+# item exactly as that stop does; the step runs on
 # through settle, step_act and REPEAT under the spent purse. cap.hold() units stay whole. OFF:
 # between whole units only
 _UNIT_PURSE = armflag.arm("TETHER_UNIT_PURSE", default=True)
@@ -10643,9 +10644,14 @@ class Agent:
                     gitems[t] = s
                     if t in alt_of:
                         gitems.setdefault(alt_of[t][0], s)
-            cands += self._group_cands(gitems, before, atoms, guard=gguard)
+            # TETHER_UNIT_PURSE (r1705 (i), r1707 3): the group candidates are a unit; cut inside,
+            # none are offered, the purse is spent, and the pass below stops at its first purse
+            # check with its own "unreached at this budget" row, as its between-unit stop does
+            cands += self._unit(list, lambda: self._group_cands(gitems, before, atoms,
+                                                                guard=gguard))
         if carried_grp:
-            cands += self._carried_groups(carried_grp, before, atoms, guard=gguard)
+            cands += self._unit(list, lambda: self._carried_groups(carried_grp, before, atoms,
+                                                                   guard=gguard))
         if _GOAL_UNBUNDLE and self._hyp_split is not None:
             cands += self._compounds(cands)     # item 19 (c): kept AND c, in the same sort
         cands = _priced(cands)

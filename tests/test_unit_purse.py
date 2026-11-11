@@ -9,6 +9,9 @@ TETHER_UNIT_PURSE.
       unwound the whole step); thinking is NOT ended: the next step runs; OFF the step runs past
       the allowance and writes no such row
   P3  a step under the allowance is unchanged: the same rows ON and OFF
+  P4  (r1705 (i), r1707 3) a cut inside the goal hypotheses' candidate building: the pass offers
+      none, stops at its own purse check ("unreached at this budget: the purse"), and the step
+      still writes its REPEAT row (MF: OFF the building runs whole past the allowance, no cut)
 
     python tests/test_unit_purse.py
 """
@@ -162,10 +165,53 @@ def check_p3() -> None:
     print(f"  P3: under the allowance, the rows are the same ON and OFF ({n} rows over 2 steps)")
 
 
+def _p4(on: bool) -> tuple:
+    """the first step whose goal hypotheses build group candidates, with the allowance one head
+    past what the step had spent when that building began"""
+    keep = tether._UNIT_PURSE
+    tether._UNIT_PURSE = on
+    try:
+        ag = _agent()
+        box = [None]
+        unit = ag._unit
+
+        def at_building(on_cut, fn, *a):
+            if box[0] is None and "_group_cands" in fn.__code__.co_names:
+                box[0] = ag._purse_spent() + 1
+            return unit(on_cut, fn, *a)
+        ag._unit = at_building
+        ag._allowance = lambda: 10 ** 15 if box[0] is None else box[0]
+        for _ in range(12):
+            box[0], c0 = None, ag.cycle
+            ag.step()
+            if box[0] is not None:
+                rows = [r for r in ag.led.rows() if r["cycle"] == c0]
+                return c0, rows
+        return None, []
+    finally:
+        tether._UNIT_PURSE = keep
+
+
+def check_p4() -> None:
+    c, rows = _p4(True)
+    assert c is not None, "precondition: no step built group candidates in 12 steps"
+    cut = [r["detail"] for r in rows if r["event"] == "unit_purse_cut"]
+    assert cut and cut[0]["at"] == "PLAN", f"MUST-FAIL: no PLAN cut inside the building: {cut}"
+    hyp = [r["detail"].get("why") for r in rows if r["event"] == "goal_hypotheses"]
+    assert any(w and w.startswith("unreached at this budget") for w in hyp), hyp
+    assert any(r["event"] == "repeat" for r in rows), "the cut step lost its REPEAT row"
+    c_off, rows_off = _p4(False)
+    assert c_off == c and not [r for r in rows_off if r["event"] == "unit_purse_cut"], \
+        "OFF cut inside the building"
+    print(f"  P4: cycle {c}: cut in PLAN at {cut[0]['site']}; the pass ended '{hyp[-1]}'; REPEAT "
+          f"written; OFF no cut")
+
+
 def main() -> int:
     check_p1()
     check_p2()
     check_p3()
+    check_p4()
     print("unit_purse: OK")
     return 0
 
