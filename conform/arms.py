@@ -673,6 +673,12 @@ ARMS: dict[str, str] = {
                              "spent on that board. OFF: only a level change empties it. With "
                              "TETHER_BOARD_BOUNDARY off there is no NEW_BOARD signal, and the "
                              "bank behaves as on 05243c8",
+    "TETHER_PURSE_FIRST": "C2 the purse first (R2's fired refuter; the reviewer r1707 2). Default "
+                          "ON. ON: at a spent purse the owed lookup (budget_owed) returns before "
+                          "the library's candidate fit, so the slot routes MECHANISM and is "
+                          "fitted whole next step, as its row says. OFF: the candidate fit runs "
+                          "at a spent purse (after a ROUTE cut on re86: 23.8 M heads, 2x the "
+                          "step's thinking before the cut)",
     "TETHER_UNIT_PURSE": "C2 the purse inside every unit (R1 finding F2; Isaiah 2026-11-10 16:12, "
                          "r1700, r1703, r1704). Default ON. ON: inside a unit that has a "
                          "between-unit stop (a route lookup, a mint, a derived ask, an event's "

@@ -1822,6 +1822,12 @@ _BANK_PER_BOARD = armflag.arm("TETHER_BANK_PER_BOARD", default=True)
 # between whole units only
 _UNIT_PURSE = armflag.arm("TETHER_UNIT_PURSE", default=True)
 _UNIT_CUT = object()        # TETHER_UNIT_PURSE: what a unit cut inside returns to its caller
+# C2 THE PURSE FIRST (R2's fired refuter; the reviewer r1707 2): at a spent purse _library_fit wrote
+# budget_owed ("not asked ... owed") and skipped only the index walk, then fitted every library
+# candidate anyway (re86 after a ROUTE cut: 16 M heads in _delta_tier, 6 M in _rebindings/_pairs).
+# ON: the owed lookup returns there, the slot routes MECHANISM and is fitted whole next step, as its
+# row says. OFF: the candidate fit runs at a spent purse, as before
+_PURSE_FIRST = armflag.arm("TETHER_PURSE_FIRST", default=True)
 # K1, ASK BY KIND (the reviewer 2026-10-17 17:03, 17:27, 17:35 A, 17:37, 17:47, 19:06, 20:25,
 # 20:28): the residual's DELTA KIND -- (cluster, sign, size class) of its own slot's last change --
 # is stored with every landing, and the lit list is TIERS, an order, never a cut: T1a-c what landed
@@ -16955,6 +16961,8 @@ class Agent:
                                "and an import's shadow test"))
         if _STEP_BUDGET and self._purse_out():
             self._lookup_owed(slot)
+            if _PURSE_FIRST:
+                return None
         else:
             _paid_q = self._owed_q.pop(slot, None)
             self._dl_owed = _paid_q is not None
