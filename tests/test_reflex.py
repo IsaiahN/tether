@@ -8,6 +8,10 @@ run with TETHER_REFLEX=0 in the environment turns every check red at its first l
   check_r3_paused         the held routine is the same object after the reflex step, and its
                           next advance is its own first step
   check_r4_recovery       two witnesses, fewer ticks than one halflife: no fire; one halflife: fires
+                          -- on the CYCLE clock it was written for (TETHER_FADE_BY_STORE=0 pinned,
+                          r1736: under the store clock cycles alone age nothing, Isaiah 02:55)
+  check_r4s_recovery_store the same on the STORE clock: two witnesses at W 1000, seed 0.5; at W 1900
+                          (less than one half-life of writes) no fire; at W 2001 it fires
   check_r5_sensitize      a game loss with the guard met and no fire is paid: a situation that would
                           not fire then fires
   check_r6_no_identity    no game id and no family name is read at the reflex sites (AST)
@@ -18,6 +22,7 @@ run with TETHER_REFLEX=0 in the environment turns every check red at its first l
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 
@@ -115,7 +120,9 @@ def check_r3_paused() -> None:
 
 
 def check_r4_recovery() -> None:
+    os.environ.setdefault("TETHER_FADE_BY_STORE", "0")    # r1736: the cycle clock it was written on
     import tether
+    assert not tether.G_FADE_BY_STORE, "precondition: R4 reads the cycle clock"
     ag = _agent()
     hl = ag.gamma.halflife or tether.REJECTION_HALFLIFE
     _plant_orient(ag, against=2.0)
@@ -128,6 +135,28 @@ def check_r4_recovery() -> None:
     ag.cycle = c0 + int(-(-hl // 1))
     assert _fires(ag), "one halflife: against <= 1, it fires (recovery)"
     print(f"  halflife {hl}: {int(hl) - 1} ticks no fire; {int(-(-hl // 1))} ticks fires")
+
+
+def check_r4s_recovery_store() -> None:
+    import tether
+    assert tether.G_FADE_BY_STORE, "precondition: R4s reads the store clock"
+    ag = _agent()
+    g = ag.gamma
+    g.store_seed, g.book["store_writes"] = 0.5, 1000
+    slot, situ = _plant_orient(ag, against=2.0)
+    assert not _fires(ag), "at the witnesses' own W: no fire"
+
+    def again():     # the trigger re-armed, the record (its W-stamped events) kept
+        kept = ag._reflexes["orient"]["standing"][situ]
+        _plant_orient(ag)
+        ag._reflexes["orient"]["standing"][situ] = kept
+    g.book["store_writes"] = 1900
+    again()
+    assert not _fires(ag), "less than one half-life of writes: no fire"
+    g.book["store_writes"] = 2001
+    again()
+    assert _fires(ag), "one half-life of writes: against <= 1, it fires (recovery)"
+    print("  store clock, seed 0.5: witnesses at W 1000; W 1900 no fire; W 2001 fires")
 
 
 def check_r5_sensitize() -> None:

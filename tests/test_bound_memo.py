@@ -16,7 +16,11 @@ TETHER_INDEX_HOLD, and for W/R TETHER_LINEAGE_CARRY).
        and X2's check fires.
   X3   W plays and writes a generation with its memo file; R, a new process, loads it: carried
        answers are pending, resolved at first ask with 0 unresolved, each equal to the named
-       compile and holding R's atoms.
+       compile and holding R's atoms. W and R run on a FIXED allowance (TETHER_PURSE_OWN=0,
+       STEP_BUDGET), so the memo is written whatever the machine's speed (the reviewer r1722 2:
+       under load the speed-measured allowance was spent before any compile reached the memo).
+  MF-X3 MUST-FAIL: W unpinned (TETHER_PURSE_OWN=1) from a tiny prior (TETHER_STEP_BUDGET_N=1)
+       writes no memo entries. (Pinned, a tiny budget still writes a few: each unit runs once.)
 
     python tests/test_bound_memo.py
 """
@@ -182,7 +186,7 @@ def role_r(d):
           "the named compile")
 
 
-def _child(role, d=None, carry=False):
+def _child(role, d=None, carry=False, extra=None, fails=None):
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(TETHER_ATOMS_ONCE="1", TETHER_INDEX_HOLD="1")
     env["TETHER_CARRY_RECORD"] = "0"   # S1g: tests the bm_/bs_ carry the asked record replaces
@@ -194,9 +198,14 @@ def _child(role, d=None, carry=False):
     env["TETHER_REACH_SHARE"] = "0"
     if carry:
         env["TETHER_LINEAGE_CARRY"] = "1"
+        env["TETHER_PURSE_OWN"] = "0"     # r1722 2: a fixed allowance, not the machine's speed
+    env.update(extra or {})
     r = subprocess.run([sys.executable, "-B", __file__, "--role", role, str(d)], env=env,
                        stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False)
     sys.stdout.write(r.stdout)
+    if fails is not None:
+        assert r.returncode != 0 and fails in r.stderr, f"MF {role} did not fail: {r.stderr[-800:]}"
+        return r.stderr
     assert r.returncode == 0, f"{role} failed:\n{r.stderr[-3000:]}"
     return r.stdout
 
@@ -210,6 +219,11 @@ def main():
     d = Path(tempfile.mkdtemp(prefix="memo_"))
     _child("w", d, carry=True)
     _child("r", d, carry=True)
+    _child("w", Path(tempfile.mkdtemp(prefix="memo_mf_")), carry=True,
+           extra={"TETHER_PURSE_OWN": "1", "TETHER_STEP_BUDGET_N": "1"},
+           fails="X3: W wrote no memo entries")
+    print("  MF-X3 must-fail fired: unpinned (the purse's own allowance) from a tiny prior, W "
+          "wrote no memo entries")
     print("bound memo: OK")
 
 
