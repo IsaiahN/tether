@@ -2207,6 +2207,16 @@ ARMS: dict[str, str] = {
                          "reads later saves through it; the archive load reads the same "
                          "(alias_chain); a second canonical or a non-idempotent map is refused. "
                          "OFF: the field is ignored and every code stays as stored. default ON",
+    "TETHER_FOLD_UNKNOWN": "THE RETRO-FOLD'S UNKNOWN KEYS (the reviewer r1761 3 (1), parity with "
+                           "Piece 2): a save's kinds_unknown / kinds_unknown_dk name rows it "
+                           "folded into their concept; read in chain order after the save's "
+                           "increments, so the folded row stands as the live fold leaves one, "
+                           "never written and not known. The store keeps the row (n 0) with "
+                           "in_landed 0 and no l_*, recounts its pair (removed when no row is "
+                           "left) and re-reads its target's no_dk; the archive load drops it "
+                           "from _kind_known, _kind_known_n, _kind_last, _kind_known_dk, "
+                           "_kdk_last. No save before conform/retro_fold.py carries the fields, "
+                           "so ON is an identity there. OFF: the fields are not read. default ON",
     "TETHER_FORM_PAIRS": "K4, THE ALIAS AT ARRIVAL (the reviewer 2026-11-03 r888, r903, r906): "
                          "under K1, ArcWorld.shape_code gives a new shape's as-seen and canonical "
                          "codes at once (arc_percept.code_pair) and keeps as_seen -> (canonical, "

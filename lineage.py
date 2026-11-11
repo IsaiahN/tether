@@ -1700,6 +1700,16 @@ def _ensure_dir(d: str | Path) -> None:
     Path(d).mkdir(parents=True, exist_ok=True)
 
 
+def _unknown(g: dict, dk: bool = False) -> set:
+    """A retro-fold save's folded keys (lineage_store._FOLD_UNKNOWN), keyed as the load reads."""
+    import lineage_store as ls
+    if not ls._FOLD_UNKNOWN:
+        return set()
+    if dk:
+        return {(tuple(d_), k, tuple(t_)) for d_, k, t_ in g.get("kinds_unknown_dk", ())}
+    return {(k, r, tuple(ko), tuple(kx)) for k, r, ko, kx in g.get("kinds_unknown", ())}
+
+
 def load(d: str | Path, ag: Any) -> dict:
     """The next instance's start: the chain folded into its Gamma as IMPORTED terms naming the tip,
     and the evidence record turned on. The fold's evidence and dormant record are not read back."""
@@ -1755,14 +1765,18 @@ def load(d: str | Path, ag: Any) -> dict:
     import tether
     if tether._7L_KIND and hasattr(ag, "_kind_known"):
         # 7l: every generation's kinds, root to tip, known to this instance (7m reads them)
-        ag._kind_known = {(k, r, tuple(ko), tuple(kx)) for _h, g in chain
-                          for k, r, ko, kx in g.get("kinds_landed", ())}
+        ag._kind_known = set()
+        for _h, g in chain:
+            ag._kind_known.update((k, r, tuple(ko), tuple(kx))
+                                  for k, r, ko, kx in g.get("kinds_landed", ()))
+            ag._kind_known.difference_update(_unknown(g))
         ag._kind_pairs = ag._kind_pairs | {(ko, kx) for _k, _r, ko, kx in ag._kind_known}
         rep["kinds_known"] = len(ag._kind_known)
         if tether._CONSOLIDATE:
             # CONSOLIDATION: landings summed root to tip; a generation written before the counts
             # (set form) gives each of its keys n = 1, counted; the latest landing wins by seq
             set_form = 0
+            seq_hi = ag._kind_seq
             for _h, g in chain:
                 if "kinds_landed_n" in g:
                     for k, r, ko, kx, n in g["kinds_landed_n"]:
@@ -1773,19 +1787,28 @@ def load(d: str | Path, ag: Any) -> dict:
                         set_form += 1
                 for k, r, ko, kx, *v in g.get("kinds_last", ()):
                     e_ = (k, r, tuple(ko), tuple(kx))
+                    seq_hi = max(seq_hi, v[3])
                     if v[3] >= ag._kind_last.get(e_, (0, 0, 0, -1))[3]:
                         ag._kind_last[e_] = tuple(v)
                 for d_, k, t_, *v in g.get("kinds_dk_last", ()):
                     e_ = (tuple(d_), k, tuple(t_))
                     if v[3] >= ag._kdk_last.get(e_, (0, 0, 0, -1))[3]:
                         ag._kdk_last[e_] = tuple(v)
-            ag._kind_seq = max([v[3] for v in ag._kind_last.values()] + [ag._kind_seq])
+                for e_ in _unknown(g):
+                    ag._kind_known_n.pop(e_, None)
+                    ag._kind_last.pop(e_, None)
+                for e_ in _unknown(g, dk=True):
+                    ag._kdk_last.pop(e_, None)
+            # the landing clock is the store's kind_seq_max: a fold never turns it back
+            ag._kind_seq = max([v[3] for v in ag._kind_last.values()] + [seq_hi])
             rep["kinds_set_form"] = set_form
     if tether._DELTA_KIND and hasattr(ag, "_kind_known_dk"):
         # K1: every generation's landings with their delta kind, root to tip
         for _h, g in chain:
             for dk_, k, tg, n in g.get("kinds_landed_dk", ()):
                 ag._kind_known_dk[(tuple(dk_), k, tuple(tg))] += n
+            for e_ in _unknown(g, dk=True):
+                ag._kind_known_dk.pop(e_, None)
             for dk_, k, ko, n in g.get("kinds_offered_dk", ()):
                 ag._kind_known_off[(tuple(dk_), k, tuple(ko))] += n
         ag._kix_ver = getattr(ag, "_kix_ver", 0) + 1    # (C): the tiers index rebuilds

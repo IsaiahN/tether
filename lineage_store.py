@@ -264,7 +264,15 @@ def _counts_apply(c: dict, g: dict, amap: dict | None = None, k: int = 0) -> dic
 _ALIAS = armflag.arm("TETHER_KIND_ALIAS", default=True)
 _FORM = re.compile(r"(?<![A-Za-z_])form=(\d+)")
 _KIND_AT = {"kinds_landed": (2, 3), "kinds_landed_n": (2, 3), "kinds_last": (2, 3),
-            "kinds_landed_dk": (0, 2), "kinds_dk_last": (0, 2), "kinds_offered_dk": (0, 2)}
+            "kinds_landed_dk": (0, 2), "kinds_dk_last": (0, 2), "kinds_offered_dk": (0, 2),
+            "kinds_unknown": (2, 3), "kinds_unknown_dk": (0, 2)}
+# THE RETRO-FOLD'S UNKNOWN KEYS (the reviewer r1761 3 (1); conform/retro_fold.py): a save's
+# kinds_unknown / kinds_unknown_dk name rows it folded into their concept (n already 0 by its own
+# increments). Read in chain order, after the save's increments, so the row stands as the live fold
+# leaves one -- never written, so not known: the store keeps it with in_landed 0 and no l_*, its
+# pair is recounted from the kind rows (removed when none is left) and its target's no_dk re-read;
+# the archive load drops it from the known stores. OFF: the fields are not read
+_FOLD_UNKNOWN = armflag.arm("TETHER_FOLD_UNKNOWN", default=True)
 _SUMMED2 = ("line_grades", "root_grades", "kind_counts", "hazard_3a", "thought_tried",
             "thought_paid")
 
@@ -678,6 +686,29 @@ def _meta_max(con: sqlite3.Connection, k: str, x: int) -> None:
                 (k, str(max(int(v[0]) if v else x, x))))
 
 
+def _recount_pairs(con: sqlite3.Connection, pairs: set) -> None:
+    """_FOLD_UNKNOWN: an unknown key's pair, recounted whole by the invariant above (max() cannot
+    lower last_seq); removed when no in_landed row is left."""
+    for o, x in sorted(pairs):
+        n, last, rows = con.execute(
+            "SELECT SUM(CASE WHEN has_n THEN n ELSE 1 END), MAX(l_seq), COUNT(*) FROM kind "
+            "WHERE in_landed = 1 AND kind_o = ? AND kind_x = ?", (o, x)).fetchone()
+        if rows:
+            con.execute("UPDATE pair SET n = ?, last_seq = ? WHERE kind_o = ? AND kind_x = ?",
+                        (n, last, o, x))
+        else:
+            con.execute("DELETE FROM pair WHERE kind_o = ? AND kind_x = ?", (o, x))
+
+
+def _reread_no_dk(con: sqlite3.Connection, cause: int, fell: set) -> None:
+    """_FOLD_UNKNOWN: each (entry, target) a dk row fell on (a fold's -1), its kind rows' no_dk
+    re-read by the T2 flag's rule (_merge_kinds)."""
+    con.executemany("UPDATE kind SET no_dk = NOT EXISTS (SELECT 1 FROM kind_dk d WHERE "
+                    "d.entry = kind.entry AND d.n > 0 AND d.tgt = ?) WHERE entry = ? AND "
+                    "((role = ? AND kind_x = ?) OR (role <> ? AND kind_o = ?))",
+                    sorted((t, e, cause, t, cause, t) for e, t in fell))
+
+
 def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
     _j = _key_memo()
 
@@ -687,10 +718,11 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
     con.execute("CREATE TEMP TABLE IF NOT EXISTS touched(entry INTEGER, role INTEGER, "
                 "kind_o INTEGER, kind_x INTEGER, PRIMARY KEY(entry, role, kind_o, kind_x)) "
                 "WITHOUT ROWID")
+    unk = sorted({kkey(e) for e in g.get("kinds_unknown", ())}) if _FOLD_UNKNOWN else []
     con.execute("DELETE FROM temp.touched")
     con.executemany("INSERT OR IGNORE INTO temp.touched VALUES (?,?,?,?)",
                     [*kl, *(kkey(e) for e in g.get("kinds_landed_n", ())),
-                     *(kkey(e) for e in g.get("kinds_last", ()))])
+                     *(kkey(e) for e in g.get("kinds_last", ())), *unk])
     before = {(o, x): n for o, x, n, _l in con.execute(_PAIR_CONTRIB)}
     known0 = con.execute(_KNOWN_TOUCHED).fetchone()[0]
     con.executemany("INSERT INTO kind VALUES (?,?,?,?,1,0,0,NULL,NULL,NULL,-1,0) "
@@ -709,10 +741,14 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
     con.executemany("INSERT INTO kind VALUES (?,?,?,?,0,0,0,?,?,?,?,0) "
                     + UPSERT_LAST.format(t="kind"),
                     [(*kkey(e), *e[4:8]) for e in g.get("kinds_last", ())])
+    con.executemany("UPDATE kind SET in_landed = 0, l_game = NULL, l_level = NULL, "
+                    "l_cycle = NULL, l_seq = -1 WHERE entry=? AND role=? AND kind_o=? AND kind_x=?",
+                    unk)
     after = con.execute(_PAIR_CONTRIB).fetchall()
     con.executemany("INSERT INTO pair VALUES (?,?,?,?) ON CONFLICT DO UPDATE SET "
                     "n = n + excluded.n, last_seq = max(last_seq, excluded.last_seq)",
                     sorted((o, x, n - before.get((o, x), 0), last) for o, x, n, last in after))
+    _recount_pairs(con, {(e[2], e[3]) for e in unk})
     _meta_add(con, "kinds_known", con.execute(_KNOWN_TOUCHED).fetchone()[0] - known0)
     seqs = [e[7] for e in g.get("kinds_last", ())]
     if seqs:
@@ -737,6 +773,13 @@ def _merge_kinds(con: sqlite3.Connection, s: "Syms", g: dict) -> None:
                     "((role = ? AND kind_x = ?) OR (role <> ? AND kind_o = ?))",
                     sorted({(s(e[1]), cause, s(_j(e[2])), cause, s(_j(e[2])))
                             for e in g.get("kinds_landed_dk", ()) if e[3] > 0}))
+    if _FOLD_UNKNOWN:
+        unk_dk = sorted({(s(_j(e[0])), s(e[1]), s(_j(e[2])))
+                         for e in g.get("kinds_unknown_dk", ())})
+        con.executemany("UPDATE kind_dk SET l_game = NULL, l_level = NULL, l_cycle = NULL, "
+                        "l_seq = -1 WHERE dk = ? AND entry = ? AND tgt = ?", unk_dk)
+        _reread_no_dk(con, cause, {(s(e[1]), s(_j(e[2])))
+                                   for e in g.get("kinds_landed_dk", ()) if e[3] <= 0})
     con.execute("DELETE FROM temp.touched")
     con.executemany("INSERT INTO kind_off VALUES (?,?,?,?) "
                     "ON CONFLICT DO UPDATE SET n = n + excluded.n",
