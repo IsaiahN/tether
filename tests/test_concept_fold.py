@@ -25,6 +25,9 @@
        changes them
   F5   zero-is-off: TETHER_FOLD off (the module value lineage.write reads), no fold row and the
        game's seen-once rows written as they are
+  F13  a run of 3 games with their own ids and ONE write at the end: game 1's one-offs fold
+       (r1728: the candidate is "since the last write", whatever the game id). MF: the
+       latest-sighting-this-game rule folds 0 of them
   F12  three one-offs of one unformed key with no stored concept fold into a NEW concept
        (concept_new True); two do not (r1721 2). MF: an exists-at-load-only fit folds none
 
@@ -158,7 +161,7 @@ def main() -> int:
             if defect:
                 real = tether.Agent._fold_rows
                 n = patched(tether.Agent, "_fold_rows",
-                            lambda self, *a, r=real: r(self, *a[:7], set(), a[8]),
+                            lambda self, *a, r=real: r(self, *a[:6], set(), a[7]),
                             lambda a_=ag: folded(a_))
             else:
                 n = folded(ag)
@@ -235,6 +238,25 @@ def main() -> int:
     assert (a, b, mf) == (0, 0, 1), (a, b, mf)
     print("F10 a form seen twice this series, and one already stored, stay; MF the concept alone: "
           "the stored one folds")
+
+    # F13: per-game ids, one write at the end
+    def per_game(defect=False):
+        ag, _ = fresh()
+        ag._kind_known_dk[(DK, E, T2)] = 3
+        for i, gid in enumerate(("game1", "game2", "game3")):
+            land(ag, (DK, E, ("POSITION", "SHAPE", f"form={40 + i}")), game=gid)
+        ag.gamma.game = "game3"                  # the one write happens in the last game
+        if not defect:
+            return folded(ag), ag._kind_landed_dk[(DK, E, U)]
+        real = tether.Agent._fold_candidate
+
+        def this_game(self, e, *a):
+            return real(self, e, *a) and self._kdk_last.get(e, (None,))[0] == self.gamma.game
+        return patched(tether.Agent, "_fold_candidate", this_game, lambda: folded(ag)), None
+    (n13, conc13), (mf13, _) = per_game(), per_game(defect=True)
+    assert n13 == 3 and conc13 == 3 and mf13 == 1, (n13, conc13, mf13)
+    print(f"F13 three games with their own ids, one write: all {n13} one-offs folded (game 1's "
+          f"included), concept holds {conc13}; MF the this-game rule: {mf13} (only game 3's)")
 
     # F12: a concept formed by this game's one-offs alone
     def new_concept(k, defect=False):

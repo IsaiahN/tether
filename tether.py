@@ -6449,7 +6449,6 @@ class Agent:
         wrote and saw once fold into their concept when it holds n >= 2 without them. Decided on
         the state before any fold; the store is read as it stood at load (the snapshot), never
         changed. Returns the rows folded per store."""
-        g = self.gamma.game
         snap = getattr(self, "_dk_snap", None)
         snap = snap if snap is not None and not snap.closed else None
         skip = set(self.gamma.kernel) | set(self.bound.values())
@@ -6459,7 +6458,7 @@ class Agent:
         if _DELTA_KIND and _CONSOLIDATE:
             out["kind_dk"] = self._fold_rows(
                 "kind_dk", self._kind_landed_dk, self._kdk_last,
-                getattr(self, "_kdk_written", {}), 1, (2,), g, skip,
+                getattr(self, "_kdk_written", {}), 1, (2,), skip,
                 self._fold_reader("kind_dk", snap))
             if self._store_prev is not None:
                 # Piece 1: the clock counts growth; the folded rows were counted when written
@@ -6467,7 +6466,7 @@ class Agent:
         if _7L_KIND and _CONSOLIDATE:
             out["kind"] = self._fold_rows(
                 "kind", self._kind_landed_n, self._kind_last, getattr(self, "_kn_written", {}),
-                0, (2, 3), g, skip, self._fold_reader("kind", snap))
+                0, (2, 3), skip, self._fold_reader("kind", snap))
         n = sum(v for v in out.values() if isinstance(v, int))
         if n:
             self.gamma.book["fold_total"] = self.gamma.book.get("fold_total", 0) + n
@@ -6495,11 +6494,11 @@ class Agent:
                             conc[(*key[:2], *(_unformed(key[i]) for i in parts))])
 
     def _fold_rows(self, table: str, landed: Counter, last: dict, written: dict, ent: int,
-                   parts: tuple, game: Any, skip: set, reader: Any) -> int | str:
-        """Piece 2: one store's fold. A candidate is a row counted once in this series, its latest
-        sighting this game, never written, with a shape form in its target kinds; it folds when the
-        store holds no such row and its concept holds n >= 2 besides it (store at load + this
-        series), and its entry is neither kernel nor bound. One fold row per concept."""
+                   parts: tuple, skip: set, reader: Any) -> int | str:
+        """Piece 2: one store's fold. A candidate is a row counted once since the last write and
+        never written, with a shape form in its target kinds (r1728: whatever the game id); it
+        folds when the store holds no such row and its concept holds n >= 2 besides it (store at
+        load + this series), and its entry is neither kernel nor bound. One fold row per concept."""
         def concept(e):
             return tuple(_unformed(x) if i in parts else x for i, x in enumerate(e))
         if reader is None:
@@ -6512,8 +6511,7 @@ class Agent:
         fold: dict = {}
         stored_at: dict = {}
         for e, n in sorted(landed.items(), key=repr):
-            if (n != 1 or written.get(e) or last.get(e, (None,))[0] != game
-                    or concept(e) == e or e[ent] in skip):
+            if not self._fold_candidate(e, n, written, concept(e), ent, skip):
                 continue
             stored, stored_c = reader(e)
             if self._fold_fits(stored, stored_c, here[concept(e)]):
@@ -6544,6 +6542,12 @@ class Agent:
         """A term closed a residual: the rank's use, and Piece 3's last use (gamma.note_use)."""
         self.rank.note(name, cycle=self.cycle)
         self.gamma.note_use(name)
+
+    def _fold_candidate(self, e: tuple, n: int, written: dict, u: tuple, ent: int,
+                        skip: set) -> bool:
+        """Piece 2's candidate (r1728): counted once since the last write, never written, carrying a
+        shape form (its concept differs from it), its entry neither kernel nor bound."""
+        return n == 1 and not written.get(e) and u != e and e[ent] not in skip
 
     def _fold_fits(self, stored: int, stored_c: int, here_n: int) -> bool:
         """Piece 2's fit: no stored row of its own, and its concept holds n >= 2 besides it -- the
@@ -19161,7 +19165,8 @@ class Agent:
                 if (r["detail"].get("part") or {}).get("part") == f"!{pred}"
                 and r["detail"]["part"].get("slot") == slot]
         park = next((r for r in mine if r["event"] == "park"), None)
-        said_b = (part_b or (f"searched: parked (seq {park['seq']})" if park else None)
+        # r1725: the park's row number is a position field (park_seq), never prose
+        said_b = (part_b or ("searched: parked" if park else None)
                   or ("searched: nothing bound, no park row" if mine else None)
                   or (f"not searched: the line was left at c{lf0['cycle']}"
                       if lf0 is not None and slot in self._leave_held
@@ -19175,7 +19180,8 @@ class Agent:
         self._bind_part(slot, inc)
         self._parts[slot] = {"P": pred, "A": inc, "B": part_b}
         self.led.record(self.cycle, "MINT", "@d5", "split", split_slot=slot, P=pred,
-                        part_a=inc, part_b=said_b, **numbers)
+                        part_a=inc, part_b=said_b, **numbers,
+                        **({"park_seq": park["seq"]} if park and not part_b else {}))
         if _CONDITION_CARRY:
             self._cond_write(slot, pred, inc, part_b, numbers)
 
@@ -19491,7 +19497,7 @@ class Agent:
                 if (r["detail"].get("part") or {}).get("part") == label
                 and r["detail"]["part"].get("slot") == slot]
         park = next((r for r in mine if r["event"] == "park"), None)
-        said = (part or (f"searched: parked (seq {park['seq']})" if park else None)
+        said = (part or ("searched: parked" if park else None)
                 or ("searched: nothing bound, no park row" if mine
                     else "not searched: the part's mint wrote no row"))
         (self.owed_import.add if owed else self.owed_import.discard)(slot)
@@ -19504,7 +19510,7 @@ class Agent:
             self.bound.pop(slot, None)
         else:
             self.bound[slot] = was
-        return part, said
+        return part, said, (park["seq"] if park and not part else None)
 
     def _d5_split_inner(self, slot: str, pred: str, numbers: dict, leaf: str) -> None:
         """(N) N1: the confirmed inner cut splits the leaf's rows: the leaf keeps the P' side and
@@ -19517,10 +19523,11 @@ class Agent:
             return
         node, path = nodes[-1]
         within = path + (node["P"],)
-        part_b, said = self._d5_part_mint(slot, within + (pred,), leaf)
+        part_b, said, pk = self._d5_part_mint(slot, within + (pred,), leaf)
         node["inner"] = {"P": pred, "A": leaf, "B": part_b}
         self.led.record(self.cycle, "MINT", "@d5", "split", split_slot=slot, P=pred,
-                        part_a=leaf, part_b=said, nested=True, within=list(within), **numbers)
+                        part_a=leaf, part_b=said, nested=True, within=list(within), **numbers,
+                        **({"park_seq": pk} if pk is not None else {}))
         if _CONDITION_CARRY:
             self._cond_write(slot, pred, leaf, part_b, numbers, within=node["P"])
 
@@ -19534,10 +19541,11 @@ class Agent:
             self.led.record(self.cycle, "MINT", slot, "d5_split_not_run", nested=True,
                             reason="re-mint not run: the node it was for is gone or bound")
             return
-        part, said = self._d5_part_mint(slot, where, None)
+        part, said, pk = self._d5_part_mint(slot, where, None)
         target["B"] = part
         self.led.record(self.cycle, "MINT", "@d5", "part_reminted", split_slot=slot,
-                        within=list(where), part_b=said)
+                        within=list(where), part_b=said,
+                        **({"park_seq": pk} if pk is not None else {}))
 
     def _d5_revert(self, slot: str) -> None:
         """D5: the incumbent was right on a not-P step, so the partition claim is broken."""

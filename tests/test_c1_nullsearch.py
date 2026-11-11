@@ -240,15 +240,17 @@ def check_n6() -> None:
 
 
 def check_n7() -> None:
-    """r1619 (c): a split whose part mint parked names the park row; never 'parked' without one."""
+    """r1619 (c): a split whose part mint parked names the park row; never 'parked' without one.
+    r1725: the name is the position field park_seq, never a number in the text."""
     new, split = _split_rows(True, False)
     said = split["detail"]["part_b"]
     parks = [r for r in _part_rows(new) if r["event"] == "park"]
     if parks:
-        assert said == f"searched: parked (seq {parks[0]['seq']})", \
-            f"MUST-FAIL (c): the park row is not named: {said!r}"
+        assert said == "searched: parked" and split["detail"].get("park_seq") == parks[0]["seq"], \
+            f"MUST-FAIL (c): the park row is not named: {said!r}, {split['detail'].get('park_seq')}"
     else:
-        assert "parked" not in said, f"MUST-FAIL (c): 'parked' with no park row: {said!r}"
+        assert "parked" not in said and "park_seq" not in split["detail"], \
+            f"MUST-FAIL (c): 'parked' with no park row: {said!r}"
     print(f"  N7: part_b {said!r} ({len(parks)} park row(s) carrying the part)")
 
 
