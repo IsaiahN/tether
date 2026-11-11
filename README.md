@@ -72,6 +72,18 @@ Swap the interface, keep the lineage.
 - **Fair test comparisons**: a test that compares two runs starts each one in its own fresh
   process. A process that has already run the agent works faster, so it would think further on
   the same counted budget, and the comparison would measure the process instead of the change.
+- **A general agent or a specialist one** (`TETHER_GENERAL`): on, the general agent can lose
+  context: what goes unused is reached for less readily, never deleted. Off, the specialist agent
+  still learns new things and never forgets: every fade below is switched off.
+- **Fading by disuse**: a habit that once paid is reached for less readily the longer it sits
+  unused, and one use brings it back; an old failure is slowly forgiven. What it believes is true
+  never fades.
+- **A bank per board**: thinking a board saves is spent on that board's harder questions, and a new
+  board starts with an empty bank, so one game's savings never carry into the next.
+- **The purse inside each unit**: a lookup or a mint that would run past the step's allowance stops
+  at its next loop and is owed, and the step still makes and records its choice.
+- **Walks shared by pattern**: a library walk worked out for one set of objects is reused for any
+  set in the same arrangement, the names substituted, so the same thinking costs less.
 
 **The agent's code is `general-agent`'s plus the build above;** once today's `general-agent`
 pull request merges, the agent's code is the same on both, and this branch adds only the ARC
