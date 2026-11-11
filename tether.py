@@ -48,6 +48,7 @@ import retrieval
 import routine as Rt
 import store as door  # the one door; `store` is a local name in three methods
 from gamma import _CARRY_W as G_CARRY_W
+from gamma import _FADE_BY_STORE as G_FADE_BY_STORE
 from gamma import _FADE_FAILURES as G_FADE_FAILURES
 from gamma import _FIRST_CONTACT as G_FIRST_CONTACT
 from gamma import _GENERAL as G_GENERAL
@@ -74,8 +75,10 @@ from gamma import (
     shared_token,
     target_operand,
 )
+from gamma import CTX_N as G_CTX_N
 from gamma import SAME_AS_TARGET as G_SAME
 from gamma import VALUE_TURNS as G_VALUE_TURNS
+from gamma import _store_fade as g_store_fade
 from gamma import mix_w as G_MIX_W
 from ledger import (
     ADVANCE,
@@ -3114,6 +3117,26 @@ def _name_rx(names: tuple) -> re.Pattern:
     return re.compile(rf"(?<![A-Za-z0-9_])(?:{alt})(?![A-Za-z0-9_])")
 
 
+def _fail_context(contact: list) -> tuple:
+    """Piece 1 (r1713, r1714): the PRESENT categorizer -- a failure's context from its raw
+    contact alone, computed now: today's kind of the owner from its observed [attribute, type]
+    pairs (and shape code), and today's delta kind of the transition. Reads no name."""
+    a, typ, before, after, obs, code = contact
+    kind = tuple(sorted({t for _a, t in obs}))
+    if code is not None and _3C_CANON:
+        kind = (*kind, f"form={code}")
+    cl = inherited.READING_CLUSTER.get(a)
+    dk = None
+    if cl and after is not None and (a in inherited.DELTA_READINGS or before is not None):
+        if typ in ORDERED_TYPES and isinstance(after, int) and not isinstance(after, bool):
+            v = after if a in inherited.DELTA_READINGS else after - before
+            dk = (cl[0], "+" if v > 0 else "-" if v < 0 else "0", abs(v).bit_length())
+        else:
+            moved = bool(after) if a in inherited.DELTA_READINGS else after != before
+            dk = (cl[0], "ne" if moved else "0", "-")
+    return kind, dk
+
+
 def _slot_of(c: Any, sub: Any) -> str:
     """A held compile's slot under this question's names: _bound's own slot step (sub, then the bbox
     pair re-sorted), without rebuilding the Term (S1)."""
@@ -3816,6 +3839,7 @@ BOOKS: tuple[str, ...] = (
     "walk_memo_disagree",               # (A) check run: the kept walk did NOT match
     "pattern_memo_lookup",              # (A) by pattern: an instance miss asked the pattern memo
     "pattern_memo_hit",                 # (A) by pattern: a kept walk of the same pattern re-bound
+    "store_writes",                     # Piece 1: W, entries written into the carried stores
     "fit_units_agree",                  # (B) check run: the fit's reused units matched fresh
     "fit_units_disagree",               # (B) check run: the reused units did NOT match
     "fit_dedup_agree",                  # (2a) check run: a reused definition matched fresh
@@ -4561,6 +4585,11 @@ class Agent:
         self._line_grade_in: dict = {}
         self._line_grade_written: dict = {}
         self._thought: dict = {"tried": {}, "paid": {}}       # M1: key -> entry -> n, this game
+        self._store_prev: dict | None = None    # Piece 1: each flat store's size at the last read
+        self._store_nested = 0                  # Piece 1: new entries in the nested stores since
+        self._store_w: dict = {}                # Piece 1: W at each of the last 9 cycles' ends
+        self._store_c0: int | None = None       # Piece 1: this life's first cycle
+        self._demoted_w: dict = {}              # Piece 1: W at each watched demotion
                                                               # series
         self._thought_in: dict = {"tried": {}, "paid": {}}    # M1: the same, carried in
         self._thought_written: dict = {"tried": {}, "paid": {}}
@@ -5047,6 +5076,8 @@ class Agent:
         self._pairs_seen: set = set()      # S1c: as _PAIRS_SEEN, for an Agent with its own memo
         self._bound_slot_map: dict = {}    # S1c: as _BOUND_SLOT_MAP, likewise
         self._atoms_token = shared_token(self.gamma.atoms)   # None: this Agent's own memo
+        if G_FADE_BY_STORE:     # Piece 1 (r1713): the present self sorts the failures it reads
+            self.gamma.categorize = (_fail_context, (self._atoms_token, _3C_CANON))
         self._view_hold: dict = _cache()   # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
         self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
@@ -5603,6 +5634,8 @@ class Agent:
         if _MOLECULE_APPLY and self._mol_offers:
             self.led.record(self.cycle, self._running_step, "@molecule", "molecule_apply",
                             at="run", previous=self._mol_flush())
+        if G_FADE_BY_STORE:
+            self._fade_ev_books()
         self.led.end_game(self.cycle, f"end {how}")      # N2: where this game's chain stopped
         if _MUSING_CHOSEN and self.parked:
             self._muse_close_parks(how)          # item 24: the game's parks close with it
@@ -5802,7 +5835,9 @@ class Agent:
                 fn = getattr(env, "contact_points", None)
                 rel = self._hs_rel(fn() if fn is not None else (), self._hs_subject())
                 frame = "pre-press" if getattr(env, "frame_kept", False) else "terminal"
-                self._loss_rel.setdefault(k, Counter())[(how, frame, rel)] += 1
+                _lr = self._loss_rel.setdefault(k, Counter())
+                self._store_nested += (how, frame, rel) not in _lr
+                _lr[(how, frame, rel)] += 1
                 _hs = {"loss_kind": how, "rel": [list(p) for p in rel], "frame": frame}
             self.led.record(self.cycle, "SETTLE", "@game_loss", "game_loss_vote", goal_kind=k[0],
                             action=k[1], situation=[list(p) for p in k[2]],
@@ -12889,7 +12924,8 @@ class Agent:
             rg = self.goal_residual(self.routine_for, before)
             k = self._reject_key(self.routine_for, self.routine, self.routine_lib)
             self.refuted.setdefault(k, Standing(last_tick=self.cycle)).refute(
-                self.cycle, self.gamma.halflife, where=self._scope)
+                *(self.gamma._fade_at() if G_FADE_BY_STORE
+                  else (self.cycle, self.gamma.halflife)), where=self._scope)
             self.refuted_at[k] = 1.0 if rg is None else rg
             # AND FILED A SECOND TIME UNDER THE SHAPE OF THE GAP IT FAILED AGAINST. The two
             # keys answer different questions and neither replaces the other: `k` says *this
@@ -13126,6 +13162,8 @@ class Agent:
                 # halflife is measured in. **So the dial reads the observation directly and no
                 # mapping is chosen by us.** A rate would have needed a function; this does not.
                 self.gamma.vindication.append(self.cycle - since)
+                if G_FADE_BY_STORE:         # Piece 1: the same delay in the store clock's unit
+                    self.gamma.vindicated(self._demoted_w.pop(name, self.gamma.clock()))
                 self.gamma.book["demoted_would_have_been_right"] = (
                     self.gamma.book.get("demoted_would_have_been_right", 0) + 1)
                 self._demoted_watch.pop(name, None)
@@ -15828,6 +15866,7 @@ class Agent:
         for fld, es in (("tried", tried), ("paid", paid)):
             into = self._thought[fld].setdefault(tk, {})
             for e in es:
+                self._store_nested += e not in into
                 into[e] = into.get(e, 0) + 1
         if _FIELD_CLASS and paid and "gcw" in getattr(self, "_reflexes", {}):
             self._gcw_credit(paid, "paid")      # item 29: the classes those entries matched on
@@ -20639,6 +20678,78 @@ class Agent:
         self._inv_carry.append(rec)
         return rec
 
+    def _fade_ev_books(self) -> None:
+        """Piece 1 (r1711 LIMIT, r1713 5): the failure event lists' largest length and total
+        events, the events with no raw contact (each ages from its own time), and the present
+        categorizer's cache hits and misses; past 1,000 in one list, a write-up for Isaiah."""
+        sts = (*self.gamma.standing.values(), *self.refuted.values())
+        lens = [len(st.ev) for st in sts]
+        lens += [len(r.get("ag_ev", ())) for f in self._reflexes.values()
+                 for r in f["standing"].values()]
+        book = self.gamma.book
+        book["fade_ev_max"] = max(lens, default=0)
+        book["fade_ev_total"] = sum(lens)
+        book["fade_ev_nocontact"] = (sum(1 for st in sts for e in st.ev if e[4] is None)
+                                     + sum(lens[len(sts):]))
+        book["fade_ctx_hit"], book["fade_ctx_miss"] = G_CTX_N["hit"], G_CTX_N["miss"]
+
+    def _fail_contact(self, slot: str) -> list:
+        """Piece 1 (r1714): a failure's RAW CONTACT -- what was observed, never a name: the
+        failing reading's attribute and type and its last transition (before, after), and its
+        owner's observed [attribute, type] pairs and shape code (what _kind reads today). The
+        owner is looked up only to gather those; no name is kept."""
+        att_fn = getattr(self.env, "attribute_of", None)
+        att = att_fn() if att_fn else {}
+        own = self.env.slot_owner() if hasattr(self.env, "slot_owner") else {}
+        o = own.get(slot, slot.split(".")[0])
+        hist = self.history(slot)
+        before, after = (hist[-1][0].get(slot), hist[-1][2]) if hist else (None, None)
+
+        def val(v: Any) -> Any:
+            return v if isinstance(v, (int, str)) and not isinstance(v, bool) else None
+        code = None
+        if _3C_CANON:
+            fn = getattr(self.env, "shape_code", None)
+            code = fn(o) if fn is not None else None
+        obs = sorted([att.get(s), str(self.slot_types.get(s))] for s in self.slots
+                     if own.get(s, s.split(".")[0]) == o)
+        return [att.get(slot), str(self.slot_types.get(slot)), val(before), val(after), obs,
+                val(code)]
+
+    def _store_tick(self) -> None:
+        """Piece 1 (TETHER_FADE_BY_STORE; r1679, r1681): W += what was written into the carried
+        stores since the last read -- a flat store's growth (a store cleared grows again from its
+        new base, so W never falls) plus the nested stores' new entries counted where written.
+        The steer form is excluded (cleared each game, never carried). A lineage with no carried
+        W counts the stores it loaded at the first read, once; with one, that read is the base."""
+        sizes = {"library": len(self.gamma.library), "kind_landed": len(self._kind_landed_dk),
+                 "kind_known": len(self._kind_known_dk), "inv_carry": len(self._inv_carry),
+                 **{f"rf:{f}": len(r["standing"]) for f, r in self._reflexes.items()
+                    if f != "steer"}}
+        book = self.gamma.book
+        prev = self._store_prev
+        if prev is None:
+            prev = sizes if book.get("store_writes") else {}
+        grew = sum(max(0, n - prev.get(k, 0)) for k, n in sizes.items()) + self._store_nested
+        self._store_prev, self._store_nested = sizes, 0
+        book["store_writes"] = book.get("store_writes", 0) + grew
+        w, c = book["store_writes"], self.cycle
+        if self._store_c0 is None:
+            self._store_c0 = c
+        self._store_w[c] = w
+        self._store_w.pop(c - 9, None)
+        g = self.gamma
+        if g.store_seed is None and c - self._store_c0 >= 8 and (c - 8) in self._store_w:
+            # r1711 Q2: the seed, 8 cycles, converted ONCE into the clock's unit by this agent's own
+            # writes over its last 8 cycles, and held; while W did not grow, wait (never 0)
+            w8 = self._store_w[c - 8]
+            if w > w8:
+                g.store_seed = g.age(w8)
+                self.led.record(c, self._running_step, "@fade", "fade_seed", seed=g.store_seed,
+                                w_then=w8, w_now=w, cycles=8,
+                                reads=f"seed, converted from 8 cycles at cycle {c}: the share of "
+                                      "this agent's writes made over its last 8 cycles")
+
     def _rf_standing(self, form: str, situ: tuple) -> dict:
         """22: one (situation, form)'s record, `against` decayed to now on the logical clock --
         decaying failures is forgiveness, decaying confirmations amnesia (Standing, r1243)."""
@@ -20648,6 +20759,8 @@ class Agent:
                            "against": self._rf_against_now(form, situ)}
         st = stand.setdefault(situ, {"paid": 0, "against": 0.0, "tick": self.cycle})
         a0, p0 = st["against"], st["paid"]
+        if G_FADE_BY_STORE:
+            return self._rf_store(form, situ, st, a0, p0)
         h = self.gamma.halflife or REJECTION_HALFLIFE
         if st["against"] and G_FADE_FAILURES:
             st["against"] *= 0.5 ** ((self.cycle - st["tick"]) / h)
@@ -20664,6 +20777,38 @@ class Agent:
             st["paid"] = (st["paid_n"] if gap == 0
                           else round(st["paid_n"] * 0.5 ** (gap / (4 * h)), 6))
             st["p_shown"], st["a_shown"] = st["paid"], st["against"]
+        self._rf_crossed(form, situ, st, a0, p0)
+        return st
+
+    def _rf_store(self, form: str, situ: tuple, st: dict, a0: float, p0: float) -> dict:
+        """Piece 1 (r1711 Q1): one r1243 record on the store clock. `against` is a record of
+        witnessed events, (W, n), each fading from its own time; a credit (a caller's `- 1`) is a
+        negative event; the shown value is presented fresh and clamped at 0. `paid` keeps its raw
+        count and ONE stamp, its last use (a use brings a habit back). Nothing presented is ever
+        folded back, so a read changes nothing."""
+        now, h = self.gamma._fade_at()
+        ev = st.setdefault("ag_ev", [])
+        shown_a = st.get("a_shown")
+        d = a0 if shown_a is None else a0 - shown_a
+        if d:
+            if ev and ev[-1][0] == now:
+                ev[-1][1] += d
+            else:
+                ev.append([now, d])
+        st["tick"] = self.cycle
+        hf = h if G_FADE_FAILURES else None
+        st["against"] = max(0.0, sum(n * g_store_fade(w, now, hf) for w, n in ev))
+        if _FADE_PAID:
+            if "paid_n" not in st:
+                st["paid_n"], st["used_w"] = p0, now          # first read: its count, fresh
+            else:
+                if p0 > st["p_shown"] or (shown_a is not None and a0 > shown_a):
+                    st["used_w"] = now
+                st["paid_n"] += round(p0 - st["p_shown"])
+            f = g_store_fade(st.get("used_w", now), now, 4 * h if h else None)
+            st["paid"] = st["paid_n"] if f == 1.0 else round(st["paid_n"] * f, 6)
+            st["p_shown"] = st["paid"]
+        st["a_shown"] = st["against"]
         self._rf_crossed(form, situ, st, a0, p0)
         return st
 
@@ -22616,7 +22761,8 @@ class Agent:
         st = self.refuted.get(key)
         if st is None:
             return 0.0
-        st.decay(self.cycle, self.gamma.halflife)
+        st.decay(*(self.gamma._fade_at() if G_FADE_BY_STORE
+                   else (self.cycle, self.gamma.halflife)))
         return st.rejections
 
     @property
@@ -27515,9 +27661,11 @@ class Agent:
                 held = self.gamma.is_settled(name, slot)
                 if _7I_ROUTE and name in getattr(self.gamma, "innate", ()):
                     self._contra_q.append({"slot": slot, "term": name, "kind": "innate refuted"})
-                _demoted_now = self.gamma.refute(name, where=self._scope, slot=slot)
+                _demoted_now = self.gamma.refute(
+                    name, where=self._scope, slot=slot,
+                    **({"contact": self._fail_contact(slot)} if G_FADE_BY_STORE else {}))
                 if _REFUSE_RANK:
-                    self._miss_at[slot] = (name, self.gamma.tick, held)
+                    self._miss_at[slot] = (name, self.gamma.clock(), held)
                 if _found is not None and not _demoted_now:
                     # A CANDIDATE, NOT A PARTITION (the reviewer 18:46Z, Fig 9 :60): the cut was
                     # read off rows already seen, so it acts only after a row it did not see
@@ -27542,6 +27690,8 @@ class Agent:
                     # Capped -- a book that grows without bound is a leak, not a record.
                     if len(self._demoted_watch) < 64:
                         self._demoted_watch[name] = (slot, self.cycle)
+                        if G_FADE_BY_STORE:
+                            self._demoted_w[name] = self.gamma.clock()
                     self._carry_note(name, slot, "demoted")
                     self.led.record(self.cycle, "SETTLE", slot, "demote", term=name,
                                     status="candidate",
@@ -29051,6 +29201,8 @@ class Agent:
             self._completion_sweep(degree)
         self.clocks.note(not self.owed_import and bool(self.bound),
                          1 if degree >= 1.0 else 0)
+        if G_FADE_BY_STORE:
+            self._store_tick()
         self.cycle += 1
         # §12.4's trigger is a PERCEPTION reading -- the vocabulary failing to resolve two
         # things the world distinguishes -- so it is recorded, not acted on here.

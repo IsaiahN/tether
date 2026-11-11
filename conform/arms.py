@@ -667,6 +667,20 @@ ARMS: dict[str, str] = {
                             "refusals_on) and the r1243 weights' against (in play, carried in, "
                             "written out) fade at the halflife. OFF: no failure fades. The "
                             "SPECIALIST agent is every fade switch OFF: nothing it holds fades",
+    "TETHER_FADE_BY_STORE": "Piece 1, the store clock (the reviewer r1679, r1681, r1711; Isaiah "
+                            "2026-11-10 12:19-13:33). Default ON (forced OFF by TETHER_GENERAL=0). "
+                            "ON: every fade runs on W, the entries written into the stores the "
+                            "lineage carries (book store_writes, carried and merged as a book "
+                            "count); a still board ages nothing. Failures are per-event stamps "
+                            "(W, n), each fading from its own time, presented fresh at each read "
+                            "and never folded back; paid keeps one stamp, its last use; the "
+                            "half-life is earned in the clock's unit (books store_vind_n, "
+                            "store_vind_sum_ppm), its seed 8 cycles converted once by the agent's "
+                            "own writes, no fade before it. OFF: the cycle clock (r1677)",
+    "TETHER_FADE_SHARE": "Piece 1's age (r1681, Isaiah 13:33). Default ON: an item's age is the "
+                         "share of all writes after its last event, 1 - W_last / W_now, so a "
+                         "young agent forgets fast and a mature one slowly. OFF: the raw count "
+                         "of writes, W_now - W_last -- a test setting only",
     "TETHER_BANK_PER_BOARD": "C2 bank per board (R1 finding F3, 2026-11-10). Default ON. ON: the "
                              "agent's own new-board boundary (retarget NEW_BOARD) empties the "
                              "purse's bank, as a level change does, so time saved on one board is "

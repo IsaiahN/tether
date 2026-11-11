@@ -479,6 +479,31 @@ _GENERAL = armflag.arm("TETHER_GENERAL", default=True)
 # r1663 (C), FAILURES FADE (Isaiah 2026-11-10 11:49): ON, today's forgiveness -- Standing.decay and
 # the r1243 weights' `against` fade at the halflife. OFF (or TETHER_GENERAL OFF): no failure fades
 _FADE_FAILURES = armflag.arm("TETHER_FADE_FAILURES", default=True) and _GENERAL
+# PIECE 1, THE STORE CLOCK (the reviewer r1679, r1681; Isaiah 2026-11-10 12:19-13:33): fading runs
+# "in proportion to the flow of information into the agent", never wall-clock and never surprise.
+# W (book "store_writes") counts the entries written into the stores the lineage carries; a still
+# board writes nothing, so nothing ages. ON: clock() is W. OFF: clock() is the cycle (r1677)
+_FADE_BY_STORE = armflag.arm("TETHER_FADE_BY_STORE", default=True) and _GENERAL
+# r1681: an item's age is the SHARE of everything written that came after its last use,
+# 1 - W_last / W_now (Isaiah 13:33: "share makes the most sense"). OFF: the raw count of writes,
+# W_now - W_last -- a test setting only
+_FADE_SHARE = armflag.arm("TETHER_FADE_SHARE", default=True)
+
+
+def _store_age(w: float, now: float) -> float:
+    """Piece 1: an age on the store clock, from the clock's reading w at an event: the share of
+    all writes after it (TETHER_FADE_SHARE), else their count."""
+    if _FADE_SHARE:
+        return 1.0 - w / now if now > 0 and w < now else 0.0
+    return max(0.0, now - w)
+
+
+def _store_fade(w: float, now: float, h: float | None) -> float:
+    """Piece 1: 0.5 ** (age / h); 1 while there is no half-life yet (r1711 Q2 (a))."""
+    return 0.5 ** (_store_age(w, now) / h) if h else 1.0
+
+
+CTX_N: dict = {"hit": 0, "miss": 0}   # Piece 1: the present categorizer's cache, hits and misses
 # 5 CARRY_W (the reviewer 2026-10-30 r392, r395, r397; Symbols :20-26 "b ... from its own history
 # and from what it inherited, mixed by w"; "w_A + w_B = 1, and w is learnable from the outcomes of
 # past weightings"): a carried, non-innate term's track_of is w * its standing as loaded + (1 - w)
@@ -945,10 +970,61 @@ class Standing:
     # with or without TETHER_SETTLE_BEAT_NULL, which settled_on is not). Cleared by replay with
     # settled_on; read only by tether's TETHER_CROWD_OUT class gate
     beat_on: set = field(default_factory=set)
+    # PIECE 1 (r1713, r1714; Isaiah 2026-11-10 20:43-20:49, "different river, different man"):
+    # under the store clock the failures are a record of events, [W, n, "mis"|"ref", slot, raw
+    # contact], never lowered. At each read the PRESENT categorizer sorts them into contexts from
+    # the raw contact (observed attributes, never a name), and each failure ages from the latest
+    # failure of its present context; the counts above are presented from that and never folded
+    # back (Fig 6 :42-43). An event with no raw contact ages from its own time. The slot is the
+    # per-slot standing's key only, never read for grouping
+    ev: list = field(default_factory=list)
+    _ctx: dict = field(default_factory=dict, repr=False, compare=False)   # (i, token) -> context
+
+    def _ev_add(self, w: float, kind: str, slot: str | None, contact: Any) -> None:
+        self.ev.append([w, 1.0, kind, slot, contact])
+
+    def _ev_present(self, now: float, h: float | None, cat: Any) -> tuple:
+        """(rejections, misses, refusals, refusals_on) as the present self reads the events"""
+        ctxs = []
+        for i, e in enumerate(self.ev):
+            c = None
+            if e[4] is not None and cat is not None:
+                k = (i, cat[1])
+                c = self._ctx.get(k)
+                CTX_N["hit" if c is not None else "miss"] += 1
+                if c is None:
+                    c = self._ctx[k] = ("ctx", cat[0](e[4]))
+            ctxs.append(c if c is not None else ("own", i))
+        latest: dict = {}
+        for c, e in zip(ctxs, self.ev, strict=True):
+            latest[c] = max(latest.get(c, e[0]), e[0])
+        rej = mis = ref = 0.0
+        on: dict = {}
+        for c, e in zip(ctxs, self.ev, strict=True):
+            v = e[1] * _store_fade(latest[c], now, h)
+            rej += v
+            if e[2] == "mis":
+                mis += v
+            else:
+                ref += v
+                if e[3] is not None:
+                    on[e[3]] = on.get(e[3], 0.0) + v
+        return rej, mis, ref, on
+
+    def _ev_move(self, at: float, n: float) -> None:
+        """the miss event stamped at (or last before) `at`: n of it becomes a refusal, keeping its
+        stamp and contact (a new event; the old one's n falls by as much)"""
+        i = max((j for j, e in enumerate(self.ev) if e[2] == "mis" and e[0] <= at), default=None)
+        if i is None or n <= 0:
+            return
+        e = self.ev[i]
+        n = min(n, e[1])
+        e[1] -= n
+        self.ev.append([e[0], n, "ref", None, e[4]])
 
     def refute(self, tick: int, halflife: float | None = None,
                ceiling: float | None = None, where: Any = None,
-               slot: str | None = None) -> None:
+               slot: str | None = None, cat: Any = None, contact: Any = None) -> None:
         """**ISAIAH, 2026-09-24: NOT A HARD BAN. A DECAY OR A RATIO, NEVER A CLIFF.**
 
         This read `self.settled_at = None` -- **one miss and a standing was gone, unconditionally
@@ -966,7 +1042,7 @@ class Standing:
         The mechanism is installed, visible and movable; the judgement of how much
         one failure should cost is Isaiah's, and `F341` files it as a judgement constant.
         """
-        self.decay(tick, halflife)
+        self.decay(tick, halflife, cat)
         self.rejections += 1.0
         # STAMPED BESIDE THE TOTAL, NEVER INSTEAD OF IT. The scalar is what the ceiling reads
         # and it is unchanged; this only says where the weight came from.
@@ -983,6 +1059,9 @@ class Standing:
             # IT WAS NEVER SETTLED, SO THIS IS NOT A REFUSAL. Counted beside the total, never
             # taken out of it -- see the field's own note.
             self.misses += 1.0
+        if _FADE_BY_STORE:              # Piece 1: the event; tick is the store clock here
+            self._ev_add(tick, "ref" if held else "mis", slot if held else None, contact)
+            self.decay(tick, halflife, cat)     # a new failure reassesses its present context
         # **THE CEILING READS REFUSALS, NOT THE BLEND -- ISAIAH'S (c), 2026-09-30.** It read
         # `rejections`, which counts BOTH, and `settle` does not reset it. Measured: five
         # candidate-era misses, then settle, then ONE post-settlement miss -> unsettled
@@ -1000,7 +1079,7 @@ class Standing:
             return
         # PER SLOT, MIRRORING SETTLEMENT. A refusal here unsettles HERE; the term keeps its
         # standing on every other slot it earned, which is exactly what A5 did for settling.
-        if held:
+        if held and not _FADE_BY_STORE:       # Piece 1: the event above already counts it
             self.refusals_on[slot] = self.refusals_on.get(slot, 0.0) + 1.0
         if self.refusals_on.get(slot, 0.0) >= cap:
             self.settled_on.discard(slot)
@@ -1009,7 +1088,7 @@ class Standing:
             if not self.settled_on:
                 self.settled_at = None
 
-    def decay(self, tick: int, halflife: float | None = None) -> None:
+    def decay(self, tick: int, halflife: float | None = None, cat: Any = None) -> None:
         """**THE SHAPE IS OURS; THE RATE IS THE AGENT'S.** Isaiah, 2026-09-24: the agent controls
         everything except the score, and *we give it the dial and the fact that a dial exists.*
 
@@ -1022,6 +1101,16 @@ class Standing:
         agent has no basis, and **a seed that is replaced the moment evidence exists is the
         floor without the ceiling** -- not a default hiding the absence of a reading.
         """
+        if _FADE_BY_STORE:
+            # Piece 1 (r1711 Q1): presented fresh from the events, at the store clock `tick`;
+            # nothing written back to the record, so how often this is read changes nothing
+            if self.ev:
+                self.rejections, self.misses, self.refusals, on = self._ev_present(
+                    tick, halflife if _FADE_FAILURES else None, cat)
+                for s_ in self.refusals_on:
+                    self.refusals_on[s_] = on.get(s_, 0.0)
+                self.refusals_on.update(on)
+            return
         gap = (tick if _DECAY_NEW_GAME_SERIES and tick < self.last_tick
                else max(0, tick - self.last_tick))
         if gap:
@@ -1153,6 +1242,15 @@ class Gamma:
         # Written by `tether.Agent` from its own books; never set here, and never defaulted to
         # a number we picked at any point after construction.
         self.halflife: float | None = None
+        # PIECE 1 (r1711 Q2): the half-life in the store clock's unit is earned from share-unit
+        # vindications (books store_vind_n / store_vind_sum_ppm, integers so the lineage merges
+        # them by sum); until one exists, the seed -- 8 cycles converted once by this agent's own
+        # writes (tether._store_tick) -- and until that is measured, no fade
+        self.store_seed: float | None = None
+        self._clock_at: float | None = None     # replay: the evidence row's own clock reading
+        # Piece 1 (r1713): the present categorizer, (fn(raw contact) -> context, version token),
+        # set by the agent; None: every failure ages from its own time
+        self.categorize: tuple | None = None
         # THE EVIDENCE BEHIND IT, carried across attempts by `save`/`load`. The agent appends;
         # the seat persists; the value is re-derived rather than restored.
         self.vindication: list[int] = []
@@ -1270,11 +1368,15 @@ class Gamma:
                     out["onto_atom" if lost else "not_held"] += 1
                     continue
                 self.tick = t
+                _rc = None
+                if _FADE_BY_STORE:      # a row with no reading is a fresh start (age 0), r1679
+                    self._clock_at = r[-1].get("w") if isinstance(r[-1], dict) else None
+                    _rc = r[-1].get("c") if isinstance(r[-1], dict) else None
                 tipped = len(r) <= 5 or r[5] != UNTIPPED
                 if kind == "settle":
                     self.settle(name, tup(where), slot, tip=tipped)
                 else:
-                    self.refute(name, tup(where), slot)
+                    self.refute(name, tup(where), slot, contact=_rc)
                 if _FIRST_CONTACT and kind == "settle" and tipped and isinstance(slot, str):
                     # the attribute it was settled on, never the board's slot (A1 holds)
                     self.settled_forms.setdefault(name, set()).add(self.unbound_form(slot))
@@ -1283,8 +1385,11 @@ class Gamma:
                 st.settled_on.clear()
                 st.refusals_on.clear()
                 st.beat_on.clear()
+                for e in st.ev:         # the per-slot standing is a board's: cleared
+                    e[3] = None
         finally:
             self.keep_evidence, self.tick = keep, tick
+            self._clock_at = None
             self._replaying = False
         if _CARRY_W:
             for name in self.carried:
@@ -1413,9 +1518,9 @@ class Gamma:
         """
         if self.keep_evidence:
             self.evidence.append(["settle", name, slot, where, self.tick]
-                                 + ([] if tip else [UNTIPPED]))
+                                 + ([] if tip else [UNTIPPED]) + self._ev_w())
         st = self.standing.setdefault(name, Standing())
-        st.decay(self.tick, self.halflife)
+        st.decay(*self._fade_at(), cat=self._cat())
         if tip:
             st.settled_at = self.tick
         if _CARRY_W:
@@ -1471,7 +1576,8 @@ class Gamma:
         return name in self.primitives
 
 
-    def refute(self, name: str, where: Any = None, slot: str | None = None) -> bool:
+    def refute(self, name: str, where: Any = None, slot: str | None = None,
+               contact: Any = None) -> bool:
         """A settled term mispredicted on fresh evidence. Demoted to candidate -- not
         deleted, and the rejection decays, so it can settle again if it starts paying.
 
@@ -1484,23 +1590,25 @@ class Gamma:
             # binding may still move (Q1, the reviewer 2026-10-15 19:04): settled_on loses
             # that slot, the global standing stays
             if self.keep_evidence:
-                self.evidence.append(["contradiction", name, slot, where, self.tick])
+                self.evidence.append(["contradiction", name, slot, where, self.tick]
+                                     + self._ev_w())
             self.book["contradictions"] = self.book.get("contradictions", 0) + 1
             st = self.standing.setdefault(name, Standing())
             was = self.is_settled(name, slot)
             at, on = st.settled_at, set(st.settled_on)
-            st.refute(self.tick, self.halflife, where=where, slot=slot)
+            st.refute(*self._fade_at(), where=where, slot=slot, cat=self._cat(), contact=contact)
             st.settled_at = at
             if slot is None:
                 st.settled_on = on
             return was and not self.is_settled(name, slot)
         if self.keep_evidence:
-            self.evidence.append(["refute", name, slot, where, self.tick])
+            self.evidence.append(["refute", name, slot, where, self.tick]
+                                 + self._ev_w(contact))
         st = self.standing.setdefault(name, Standing())
         was = self.is_settled(name, slot)
         if _CARRY_W and ((slot in st.settled_on) if slot is not None else st.settled):
             self._carry_w_note(name, False)     # a refusal by Standing.refute's own reading
-        st.refute(self.tick, self.halflife, where=where, slot=slot)
+        st.refute(*self._fade_at(), where=where, slot=slot, cat=self._cat(), contact=contact)
         # TRUE ONLY WHEN THIS MISS COST STANDING, on the slot when one is given. This returned
         # `was settled (anywhere)`, so the caller unbound on every miss by a settled term --
         # a slot it never settled on included -- whether or not standing was lost (F462).
@@ -1514,7 +1622,17 @@ class Gamma:
         st = self.standing.get(name)
         if st is None:
             return 0.0
-        st.decay(self.tick, self.halflife)
+        if _FADE_BY_STORE:
+            # Piece 1: the miss event stamped at `at` (the store clock then) becomes a refusal,
+            # keeping its stamp; the counts are presented again from the events
+            now, h = self._fade_at()
+            st.decay(now, h, self._cat())
+            f = _store_fade(at, now, h if _FADE_FAILURES else None)
+            moved = min(st.misses, f)
+            st._ev_move(at, moved / f if f else 0.0)
+            st.decay(now, h, self._cat())
+            return moved
+        st.decay(*self._fade_at(), cat=self._cat())
         h = self.halflife or REJECTION_HALFLIFE
         moved = min(st.misses, 0.5 ** (max(0, self.tick - at) / h))
         st.misses -= moved
@@ -1543,7 +1661,7 @@ class Gamma:
         st = self.standing.get(name)
         if st is None:
             return 0.0
-        st.decay(self.tick, self.halflife)
+        st.decay(*self._fade_at(), cat=self._cat())
         return st.rejections
 
     def track_of(self, name: str) -> float:
@@ -1581,7 +1699,7 @@ class Gamma:
         st = self.standing.get(name)
         if st is None:
             return 0.5                       # UNTRIED READS 0.5, as the spec requires
-        st.decay(self.tick, self.halflife)
+        st.decay(*self._fade_at(), cat=self._cat())
         if _CARRY_W and name in self.carry_w_base:
             k = self._carry_w_kinds.get(name)
             if k is None and name in self.library:
@@ -1629,7 +1747,7 @@ class Gamma:
         st = self.standing.get(name)
         if st is None:
             return 1.0                       # never seen: maximally young
-        st.decay(self.tick, self.halflife)
+        st.decay(*self._fade_at(), cat=self._cat())
         return 1.0 / (1.0 + st.confirmations + st.refusals)
 
     @property
@@ -1741,6 +1859,51 @@ class Gamma:
                 "invented": {n: rec for n, rec in self.invented.items() if rec.get("delta")},
                 "vindication": list(self.vindication),
                 "book": dict(self.book)}
+
+    def clock(self) -> float:
+        """Piece 1: the fades' clock -- W, the entries written into memory, under
+        TETHER_FADE_BY_STORE (a replayed evidence row reads its own); the cycle (tick)
+        otherwise. tick stays the cycle for its readers."""
+        if not _FADE_BY_STORE:
+            return self.tick
+        if self._clock_at is not None:
+            return self._clock_at
+        return self.book.get("store_writes", 0)
+
+    def age(self, since: float) -> float:
+        """Piece 1: an item's age on clock(), from the clock's reading at its last use."""
+        return _store_age(since, self.clock()) if _FADE_BY_STORE else max(0, self.tick - since)
+
+    def h_store(self) -> float | None:
+        """Piece 1 (r1711 Q2): the half-life in the store clock's unit -- the mean of the
+        share-unit vindications once one exists, else the converted seed, else None (no fade)."""
+        n = self.book.get("store_vind_n", 0)
+        if n:
+            tot = self.book.get("store_vind_sum_ppm", 0)
+            return tot / 1e6 / n if _FADE_SHARE else tot / n
+        return self.store_seed
+
+    def vindicated(self, since: float) -> None:
+        """Piece 1: one vindication in the store clock's unit, from the clock at the demotion."""
+        a = self.age(since)
+        self.book["store_vind_n"] = self.book.get("store_vind_n", 0) + 1
+        self.book["store_vind_sum_ppm"] = (self.book.get("store_vind_sum_ppm", 0)
+                                           + (round(a * 1e6) if _FADE_SHARE else round(a)))
+
+    def _fade_at(self) -> tuple:
+        """(the clock, the half-life) every Standing decay reads: the store clock's under
+        TETHER_FADE_BY_STORE, else the cycle and the cycle half-life (as before)."""
+        return (self.clock(), self.h_store()) if _FADE_BY_STORE else (self.tick, self.halflife)
+
+    def _ev_w(self, contact: Any = None) -> list:
+        """Piece 1: an evidence row's clock reading and raw contact, so a replay ages it from its
+        own time and the present self can sort it again."""
+        if not _FADE_BY_STORE:
+            return []
+        return [{"w": self.clock(), **({"c": contact} if contact is not None else {})}]
+
+    def _cat(self) -> Any:
+        return self.categorize if _FADE_BY_STORE else None
 
     def load(self, path: str, hold_unbound: bool = False) -> dict:
         """Read a saved library into this Gamma. **SEAT-SIDE, and it REFUSES loudly.**
