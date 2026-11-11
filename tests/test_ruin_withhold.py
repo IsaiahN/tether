@@ -15,6 +15,12 @@ below the seam where the button and coordinate are chosen, unless every option i
   7. a withheld set built on board A and passed while the env shows board B is refused;
   8. EXPLORATION: with the board's only untried action vetoed, the step acts, and no draw, tried
      count or table entry is recorded for the withheld action.
+  9. HOLD (r1743): a still press the floor withholds is not held with (a hyp_still_withheld row,
+     no still press left); with every action withheld it is.
+  10. STEP ORDER (r1744): in the must-pass run an earlier level's park on a live slot name ("L1:s0")
+     is swept after s0's ACCEPT; its reuse_refused row is filed under the park's key, so the full
+     gate's step order holds (filed under "s0" it refused: "s0: MINT after ACCEPT"). The occasion
+     is the store clock's path; under TETHER_FADE_BY_STORE=0 the run never sweeps such a park.
 
   The must-pass's CONTRAST (ON loses fewer games than OFF) is read on the CYCLE clock it was
   written on (r1736, r1737). That move rested on unpinned samples: pinned (below), the unvetoed
@@ -35,6 +41,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 import gate
@@ -129,10 +136,19 @@ if __name__ == "__main__":
     assert all(r["detail"]["chosen"] not in r["detail"]["withheld"] for r in w), w
     out = gate.check(ag.led.rows())
     assert out["verdict"] == gate.PASS, out
+    rr = [r for r in _rows(ag, "reuse_refused") if r["detail"].get("cross_level")
+          and r["detail"]["held"].rsplit(":", 1)[-1] in ag.slots]
+    # the occasion is the store clock's path (the muse rival); the cycle clock never sweeps it
+    assert rr or not tether.G_FADE_BY_STORE, "precondition: no earlier-level park refused"
+    assert all(r["slot"] == r["detail"]["held"] for r in rr), [(r["slot"], r["detail"]["held"])
+                                                               for r in rr]
     print(f"  must-pass, s0=2, 4 attempts of up to 12 steps, the agent choosing: {said}; "
           f"store clock ON endings {ends}, 0 repeats, "
           f"{len(w)} @ruin rows, none choosing a withheld pair; full gate passes "
           f"({len(ag.led.rows())} rows)")
+    print(f"  10: {len(rr)} earlier-level park row(s) on a live slot name filed under the park "
+          f"({rr[0]['slot']}, step {rr[0]['step']}); step order holds" if rr else
+          "  10: no earlier-level park swept on this clock (no occasion); step order holds")
     # 4
     assert spy.chose == acted, (spy.chose, acted)
     print(f"  4: choose() called {spy.chose} times for {acted} steps")
@@ -221,4 +237,18 @@ if __name__ == "__main__":
     assert "A" not in a8.drive.tried and "A" not in a8.iface.table, (a8.drive.tried, chosen8)
     print(f"  8: the only untried action A vetoed -> the step acts ({chosen8}); A has no draw, "
           f"tried or table entry")
+    # 9
+    a9 = R._agent(snaps.Snap(R._spec(2)))
+    a9._hyp = {"slots": ["s1"], "cond": SimpleNamespace(slot="s1", operand=None), "key": "planted"}
+    a9._hyp_plat = set()
+    a9.iface.table.clear()
+    a9.iface.table.update({"A": {"n": 1, "delta": {}}, "B": {"n": 1, "delta": {("o", "s1"): 1}}})
+    a9._withheld = IFace.Withheld("fp9", frozenset({("A", None)}))
+    still9 = a9._hyp_still()
+    r9 = [r["detail"] for r in _rows(a9, "hyp_still_withheld")]
+    assert still9 is None and r9 and r9[-1]["action"] == "A", (still9, r9)
+    a9._withheld = IFace.Withheld("fp9", frozenset((x, None) for x in a9.actions))
+    assert a9._hyp_still() == "A"
+    print(f"  9: hold's only still press A withheld -> none held, row {r9[-1]}; every action "
+          f"withheld -> A")
     print("ok")

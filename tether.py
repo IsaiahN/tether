@@ -11108,16 +11108,25 @@ class Agent:
     def _hyp_still(self) -> str | None:
         """The action the agent's own delta table says leaves the held hypothesis's subjects and
         operands as they are: taken, never seen to move one of them, not the platform's, not
-        positioned (a press that needs an aim is not known still); A1 among several."""
+        positioned (a press that needs an aim is not known still); A1 among several. A press the
+        floor withholds on this board is not held with, as routine's bare step (the reviewer
+        r1743): no still press left, and the step falls through to the other exits."""
         h = self._hyp
         parts = list(h["cond"].parts) if isinstance(h["cond"], _Pair) else [h["cond"]]
         keep = set(h["slots"]) | {s for p in parts for s in (p.slot, getattr(p, "operand", None))
                                   if s}             # both parties, whichever holds the want
+        _w = self._withheld
+        _all = bool(_w) and all(_w.action(x) for x in self.actions)
         still = []
         for a in self.actions:
             e = self.iface.table.get(a)
             if (a in self._hyp_plat or a in IFace.POSITIONED or not e or not e.get("n")
                     or any(k[1] in keep for k in e.get("delta", {}))):
+                continue
+            if _w.action(a) and not _all:
+                self.led.record(self.cycle, "PLAN", h["slots"][0], "hyp_still_withheld",
+                                action=a, fingerprint=_w.fp,
+                                reads="a still press withheld on this board: not held with (r1743)")
                 continue
             still.append(a)
         if not still:
@@ -12242,7 +12251,11 @@ class Agent:
     def _muse_test_ready(self, before: dict) -> tuple | None:
         """Item 24 (i) (r1252 4): a muse rival's discriminating press -- an offered, unpositioned
         press on which the rival and the bound term predict different values -- under its own
-        weight per ("muse_test", kind). (host, press, rival's value, bound's value, kind)."""
+        weight per ("muse_test", kind). (host, press, rival's value, bound's value, kind).
+        A press the floor withholds on this board is not offered, as routine's bare step
+        (the reviewer r1741): the step falls through to the other exits."""
+        _w = self._withheld
+        _all = bool(_w) and all(_w.action(x) for x in self.actions)
         for host, (cand, kind) in sorted(self._muse_tests.items(), key=lambda x: x[0]):
             if host not in before:
                 continue
@@ -12254,6 +12267,12 @@ class Agent:
                 pc = self._predict_term(cand, host, before, a)
                 pb = self._predict(host, before, a)
                 if pc is not None and pb is not None and pc != pb:
+                    if _w.action(a) and not _all:
+                        self.led.record(self.cycle, "PLAN", host, "muse_test_withheld",
+                                        action=a, fingerprint=_w.fp, kind=str(kind),
+                                        reads="the test press is withheld on this board: not "
+                                              "offered (r1741)")
+                        continue
                     return host, a, pc, pb, kind
         return None
 
@@ -27682,8 +27701,10 @@ class Agent:
                 # candidate* is the bargain speaking, not the router binning a slot. **Relabelled
                 # rather than the slot renamed**: a name chosen to keep a checker quiet is the
                 # defect wearing a disguise.
-                self.led.record(self.cycle, "MINT", slot, "reuse_refused",
-                                reason=why, term=cand.name, held=tkey,
+                # an earlier level's park has no turn here: its row is filed on the park, never
+                # on this level's live slot of the same name, whose turn may be done (step order)
+                self.led.record(self.cycle, "MINT", tkey if cross and slot in self.slots else slot,
+                                "reuse_refused", reason=why, term=cand.name, held=tkey,
                                 term_bits=round(cost, 4), left_bits=round(left, 4),
                                 base_bits=round(base, 4),
                                 would_pay=pays(cost, left, base), via=how, cross_level=cross,
