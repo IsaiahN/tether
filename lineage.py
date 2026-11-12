@@ -38,6 +38,7 @@ import armflag
 import cap
 import gamma
 import ledger
+import reuse
 import sensors
 
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -873,6 +874,11 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
                           for k, c in sorted(ag._fx.items(), key=lambda kc: repr(kc[0]))
                           if (d := {e: n - w.get(k, {}).get(e, 0) for e, n in sorted(c.items())
                                     if n > w.get(k, {}).get(e, 0)})}
+    if getattr(ag, "_reuse", None) is not None:
+        # P6 H5: the reuse book's counts since the last save; load sums (reuse_n)
+        _rn = ag._reuse.drain()
+        if _rn:
+            gen["reuse_n"] = _rn
     if tether._SELF_READ and hasattr(ag, "_stopped_written"):
         # M3: the games' stopped-at links since the last write; load sums
         now = getattr(getattr(ag.led, "narrator", None), "links", {})
@@ -1600,6 +1606,11 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         for k, d_ in c.get("facet_n", {}).items():
             ag._fx_in.setdefault(fx_key(k), {}).update(d_)
         rep["facet_keys_in"] = len(ag._fx_in)
+    if getattr(ag, "_reuse", None) is not None:
+        # P6 H1: the store's summed reuse_n, then the age window from it
+        ag._reuse.load(c.get("reuse_n", {}))
+        ag._reuse.window = reuse.derive_window(ag._reuse)
+        rep["reuse_window"] = ag._reuse.window
     if tether._SELF_READ and hasattr(ag, "_stopped_in"):
         ag._stopped_in.update(c.get("stopped_at", {}))
         rep["stopped_at_in"] = ag._self_read()
@@ -1877,6 +1888,17 @@ def load(d: str | Path, ag: Any) -> dict:
                 for e, n in c.items():
                     into[e] = into.get(e, 0) + n
         rep["facet_keys_in"] = len(ag._fx_in)
+    if getattr(ag, "_reuse", None) is not None:
+        # P6 H1: every generation's reuse_n, root to tip, then the age window from it
+        _sum: dict = {}
+        for _h, g in chain:
+            for k, c in g.get("reuse_n", {}).items():
+                into = _sum.setdefault(k, {})
+                for e, n in c.items():
+                    into[e] = into.get(e, 0) + n
+        ag._reuse.load(_sum)
+        ag._reuse.window = reuse.derive_window(ag._reuse)
+        rep["reuse_window"] = ag._reuse.window
     if tether._SELF_READ and hasattr(ag, "_stopped_in"):
         # M3: every generation's stopped-at links, root to tip, read into one self_read row
         for _h, g in chain:

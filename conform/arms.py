@@ -682,6 +682,14 @@ ARMS: dict[str, str] = {
                          "share of all writes after its last event, 1 - W_last / W_now, so a "
                          "young agent forgets fast and a mature one slowly. OFF: the raw count "
                          "of writes, W_now - W_last -- a test setting only",
+    "TETHER_REUSE_BOOK": "8c (step 8; the reviewer 2026-11-12 r1835/r1838, DESIGN_STEP8 P6; Isaiah "
+                         "11-11 07:20-07:30): reuse.ReuseBook counts, per context (context_key), "
+                         "each head's chances, its uses inside an age window counted in chances "
+                         "(derived: the median chances to a second use), and its payments (a paid "
+                         "musing re-test counts); GENERAL after payment in 2 contexts; residency "
+                         "order kernel > general > reused > one-off; an authority TIEBREAK for the "
+                         "idea walk. Orders and keeps-ready only; never a verdict. The counts ride "
+                         "the counts blob as 'reuse_n'. default ON",
     "TETHER_RELEVANCE": "Piece 3, library relevance (r1679, r1720; spec 5.10.8). Default ON "
                         "(forced OFF by TETHER_GENERAL=0). ON: retrieve's one ranking site orders "
                         "equal fits by confidence x fade(age) + youth, the age on Piece 1's clock "

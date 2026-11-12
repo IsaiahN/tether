@@ -45,6 +45,7 @@ import lineage
 import reach
 import relations
 import retrieval
+import reuse
 import routine as Rt
 import shape_order
 import store as door  # the one door; `store` is a local name in three methods
@@ -4912,6 +4913,9 @@ class Agent:
         self._src_cache: dict = {}
         self._shape_readings: dict | None = None   # P5: atom -> the readings it affects or reads
         self._sense_ctx: dict = {}     # P4: term name -> (the facet key it was minted under, head)
+        # P6 H1 (TETHER_REUSE_BOOK): per-context chances / uses / payments of the heads; the age
+        # window is derived at load from the agent's own time to a second use
+        self._reuse = reuse.ReuseBook(kernel=self.gamma.kernel) if reuse.ON else None
         self._stopped_in: dict = {}                # M3: link -> games, carried in
         self._stopped_written: dict = {}
         self._lib_won: set = set()       # 7h (d) by route: library-route wins at a mint
@@ -7862,8 +7866,16 @@ class Agent:
                 last = self._dk_last_k()
             if _FACET_INDEX:
                 # P3: T0, what was offered or landed under this change's facet key, first
-                put("T0", [(e, float(p_ + o_ + l_))
-                           for e, p_, o_, l_, _f in facet_index(self, dk, mine, slot)])
+                _fx0 = facet_index(self, dk, mine, slot)
+                if self._reuse is not None and _fx0:
+                    # P6 H6: among equally-paid entries, the keep-ready order; H2: each one offered
+                    # is a chance under this change's context
+                    _res = {h: i for i, h in enumerate(self._reuse.residency([t[0] for t in _fx0]))}
+                    _fx0 = sorted(_fx0, key=lambda t: (-t[1], _res[t[0]]))
+                    _rc = facet_key(self, dk, mine, slot)
+                    for t in _fx0:
+                        self._reuse.note_chance(_rc, t[0])
+                put("T0", [(e, float(p_ + o_ + l_)) for e, p_, o_, l_, _f in _fx0])
             for g_ in "abc":
                 put(f"T1{g_}", order(((k, float(m)) for k, m in off[g_].items()),
                                      lambda kv, g_=g_: (-kv[1], -land[g_][kv[0]],
@@ -9324,6 +9336,9 @@ class Agent:
             op = getattr(t, "operand", None)
             if isinstance(op, str) and "." in op and "~" not in op:
                 post[f"B|{_kind_text(self._kind(op.split('.', 1)[0]))}"] += 1
+        if self._reuse is not None:
+            # P6 H3: the head used under its context (the role dropped, as the chances are kept)
+            self._reuse.note_use((*ctx[:3], "*"), head, paid=paid)
         self.led.record(self.cycle, "SETTLE", slot, "sense_note", head=head, term=name,
                         outcome="paid" if paid else "missed", src=ctx[0], subj=ctx[1],
                         reads="the ground's verdict on the head, under its own context")
@@ -27040,9 +27055,16 @@ class Agent:
                     _heads = ([tuple(a.name for a in self.gamma.library[n].atoms)
                                for n in self._sense_terms(slot) if n in self.gamma.library]
                               if _SENSES else [])
+                    if self._reuse is not None and _heads:
+                        _dk2 = self._slot_dk(slot)       # P6 H2: each stage-0 head is a chance
+                        for n in self._sense_terms(slot):
+                            self._reuse.note_chance(
+                                facet_key(self, _dk2, slot.split(".", 1)[0], slot), n)
                     _key = shape_order.make_order_key(
                         shape_order.wanted(slot.rsplit(".", 1)[-1]), self._shape_readings,
                         paid_heads=_heads, sense_heads=_heads,
+                        authority=(self._reuse.authority() if self._reuse is not None
+                                   else None),         # P6 H7: 8c's tiebreak
                         fits_whole=lambda ch, _b=by_fit: _b(Term(ch)))
                     _bound = _stop_at = None
                     if robs:
@@ -28573,6 +28595,12 @@ class Agent:
                                         "not tipped")
                 continue
             if _MUSING_CHOSEN:
+                if self._reuse is not None and name in self._muse_offered:
+                    # P6 H4: a musing re-test that settled is a payment in its slot's context
+                    _dk4 = self._slot_dk(slot)
+                    if _dk4 is not None:
+                        self._reuse.note_use(facet_key(self, _dk4, slot.split(".", 1)[0], slot),
+                                             name, paid=True, source="muse")
                 self._muse_paid(name, "settle")           # item 24 (iii)
             if _COUNTERS:     # r692 4 (Q8, Q21): what settles, by where it came from
                 bk = self.gamma.book
