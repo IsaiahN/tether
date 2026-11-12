@@ -3198,6 +3198,18 @@ ARMS: dict[str, str] = {
                                 "(_contact_target, _system0_active) and no longer hold reasoning. "
                                 "8d reads it. OFF: the hold reads _try_first_open, kinds included. "
                                 "default ON",
+    "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
+                           "with _operand_fits before its _left, and skips every bind's _left "
+                           "when the term's cost (the same for every bind) already reaches the "
+                           "parked base and neither the carry credit nor a rescan can apply; "
+                           "that refusal is written as reuse_refused cost-at-or-over-base. "
+                           "8d reads the sweep's _left per accept. OFF: every bind's _left, as "
+                           "before. default ON",
+    "TETHER_EXHAUSTED_WORD": "P1 (the reviewer r1838; DESIGN_STEP8 F4): the renamed park verdict "
+                             "priced_out_at_depth is read where the old word depth_exhausted "
+                             "still was (the owe/abstain write; the sweep's stale()), so a "
+                             "priced-out slot owes, parks and is re-swept when the unit set "
+                             "grows. OFF: the old word only. default ON",
     "TETHER_ROUTE_KEY_GENERAL": "42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer "
                                 "2026-11-01 r717): R-B keys a route by the intent's general "
                                 "statement (slot and sign; a Specific's stated target dropped), so "

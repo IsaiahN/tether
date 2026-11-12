@@ -3522,6 +3522,18 @@ _BOARD_TRY_FIRST = armflag.arm("TETHER_BOARD_TRY_FIRST", default=True)
 # touches (_contact_target, _system0_active) but no longer hold reasoning: a residual on a slot
 # after a press is already contact. OFF: the hold reads _try_first_open, kinds included
 _TRY_FIRST_ACTIONS = armflag.arm("TETHER_TRY_FIRST_ACTIONS", default=True)
+# P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
+# _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
+# skips every bind's _left when the term's cost -- the same for every bind, gamma.length keys the
+# atoms only -- already reaches the parked base and neither the carry credit nor a rescan can
+# apply: no bind can pay, and the refusal is written as reuse_refused "cost-at-or-over-base".
+# OFF: every bind's _left, as before
+_SWEEP_FILTER = armflag.arm("TETHER_SWEEP_FILTER", default=True)
+# P1 EXHAUSTED_WORD (r1838; DESIGN_STEP8 F4): the park verdict renamed depth_exhausted ->
+# priced_out_at_depth was still read under its old word at the owe/abstain write and in the sweep's
+# stale(), so a priced-out slot never owed, never parked and was never swept. The new word is read
+# there too. OFF: the old word only
+_EXHAUSTED_WORD = armflag.arm("TETHER_EXHAUSTED_WORD", default=True)
 # C2 FINISH, S0_BEFORE_BORED (the reviewer 2026-11-01 r736): choose skipped the exit contest
 # whenever the drive was bored and nothing was starved, so a bored, uninformed probe took the
 # turn while System 0 was still active (lp85, measured at choose: 16 of 21 turns
@@ -27427,7 +27439,8 @@ class Agent:
             # which is a capability loss wearing a speedup's clothes. The search is skipped;
             # the debt is not.
             _ds_wo = _DERIVED_SUBJECT and getattr(self, "_want_only", False)
-            if detail["verdict"] in ("budget_spent", "depth_exhausted", "under_floor"):
+            if detail["verdict"] in ("budget_spent", "depth_exhausted", "under_floor") + (
+                    ("priced_out_at_depth",) if _EXHAUSTED_WORD else ()):
                 if not _ds_wo:     # DS (4): a want-only ask owes no import; no sweep is sent
                     self.owed_import.add(slot)
                 self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
@@ -27734,8 +27747,9 @@ class Agent:
             # RIGHT condition is a separate question and a separate change.
             # CARRY (item 3): the floor lemma bounds a NEW term's cost, not one already paid, so
             # under the arm an under_floor record is swept too.
-            return (rec.get("verdict") not in (("depth_exhausted",) if _CARRY_PRICE
-                                               else ("depth_exhausted", "under_floor"))
+            _ex = (("depth_exhausted", "priced_out_at_depth") if _EXHAUSTED_WORD
+                   else ("depth_exhausted",))
+            return (rec.get("verdict") not in (_ex if _CARRY_PRICE else _ex + ("under_floor",))
                     or units_now > rec.get("units_then", 0))
 
         eligible = [t for t in targets if stale(t[3]) and t[2]]
@@ -27765,9 +27779,29 @@ class Agent:
             cap.head()
             how = "direct"
             base = self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
+            if _SWEEP_FILTER:
+                _cost0 = self._bits((Term(term.atoms), self._units_for(slot)))
+                _rescan = units_now > rec.get("units_then", units_now) and not (
+                    _SWEEP_STAMP and units_now <= rec.get("rescan_units", -1))
+                _credit = _CARRY_PRICE and (
+                    self.gamma.stamps.get(term.name) or {}).get("origin") == MINTED
+                if _cost0 >= base and not _rescan and not _credit:
+                    self.chain.note_reuse_attempt("cost-at-or-over-base")
+                    self.led.record(self.cycle, "MINT",
+                                    tkey if tkey != slot and slot in self.slots else slot,
+                                    "reuse_refused", reason="cost-at-or-over-base", term=term.name,
+                                    held=tkey, term_bits=round(_cost0, 4), left_bits=None,
+                                    base_bits=round(base, 4), would_pay=False, via=how,
+                                    cross_level=tkey != slot,
+                                    reads="the ONE bargain refused this term on its cost alone "
+                                          "(cost >= base, the same for every bind): no _left run")
+                    continue
             best = None
             for bind in [None] + [s for s in slots if s != slot]:
                 cap.head()
+                if _SWEEP_FILTER and not self._operand_fits(term, slot, bind):
+                    self.chain.reuse_branch["sweep:operand-refused"] += 1
+                    continue
                 cand = Term(term.atoms, operand=bind)
                 left = self._left(cand, slot, hist)
                 if best is None or left < best[0]:
