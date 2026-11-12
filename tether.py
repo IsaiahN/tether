@@ -12931,6 +12931,7 @@ class Agent:
             self.abstained.pop(slot, None)
         else:
             self.owed_import.add(slot)
+        self._rp_bind(slot, term.name, "invented")     # r1824 2: before any pull can name it
         self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
         # (c) ACCEPT by design: this row records the ACCEPT this method itself performs, a later
         # step carried out inside MINT (the reviewer 2026-10-16 09:23)
