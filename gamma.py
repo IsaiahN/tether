@@ -2476,8 +2476,12 @@ class Gamma:
                           stats: dict | None = None,
                           order: Callable[[Term], float] | None = None,
                           prune: Callable[[tuple, int, bool], bool] | None = None,
+                          must_contain: frozenset | None = None,
                           ) -> Iterator[Term]:
         """Type-valid pipelines over UNITS, shortest first, capped by budget.
+
+        `must_contain` (P2, TETHER_SWEEP_DELTA): unit names; only a chain built with at least one
+        of them is yielded (and charged), every chain is still extended. None: every chain.
 
         Yielding a term is a WITNESS that it is reachable. Stopping is one of two facts and
         they are not the same claim: `budget_spent` (we stopped early) or `depth_exhausted`
@@ -2517,12 +2521,13 @@ class Gamma:
                                               key=lambda x: (-x[0], x[1].name))]
         # CARRIED, NOT RECOMPUTED. The state is (chain, current type, element type or None);
         # re-deriving it per extension would walk every chain again inside the hot loop.
-        frontier = [(u.atoms, *Gamma._iter_step(in_type, None, u)) for u in start]
+        frontier = [(u.atoms, *Gamma._iter_step(in_type, None, u),
+                     must_contain is not None and u.name in must_contain) for u in start]
         depth = 1
         spent = False
         while frontier and depth <= max_depth:
             nxt: list[tuple] = []
-            for chain, cur, elem in frontier:
+            for chain, cur, elem, has_new in frontier:
                 # TETHER_PREFIX_PRUNE (the caller's): a chain whose cost alone already reaches
                 # what it must explain is neither yielded nor extended -- an extension never costs
                 # less -- and is not counted against the budget. It is told the walk's own depth
@@ -2535,7 +2540,7 @@ class Gamma:
                 # last atom's `out_type` says -- so it may only be emitted once a reducer has
                 # closed it, which is exactly `elem is None`.
                 cap.head()
-                if elem is None and cur == out_type:
+                if elem is None and cur == out_type and (must_contain is None or has_new):
                     # a yield the caller found already answered is credited back (tether's
                     # TETHER_DIVIDE_CREDIT writes "credit"; nothing else does)
                     if emitted - (stats.get("credit", 0) if stats is not None else 0) >= budget:
@@ -2569,7 +2574,8 @@ class Gamma:
                             continue
                         step = Gamma._iter_step(cur, elem, u)
                         if step is not None:
-                            nxt.append((chain + u.atoms, *step))
+                            nxt.append((chain + u.atoms, *step, has_new or (
+                                must_contain is not None and u.name in must_contain)))
             if spent:
                 break
             frontier, depth = nxt, depth + 1

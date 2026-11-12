@@ -3210,6 +3210,11 @@ ARMS: dict[str, str] = {
                              "still was (the owe/abstain write; the sweep's stale()), so a "
                              "priced-out slot owes, parks and is re-swept when the unit set "
                              "grows. OFF: the old word only. default ON",
+    "TETHER_SWEEP_DELTA": "P2 (the reviewer r1838; DESIGN_STEP8 D1): the sweep's rescan (_reach) "
+                          "walks only chains built with a unit settled since the park, or since "
+                          "its last empty rescan (gamma.enumerate_closure must_contain); the "
+                          "park keeps its unit names for this. 8d reads _reach's _left per "
+                          "accept. OFF: _reach re-walks the whole closure, as before. default ON",
     "TETHER_ROUTE_KEY_GENERAL": "42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer "
                                 "2026-11-01 r717): R-B keys a route by the intent's general "
                                 "statement (slot and sign; a Specific's stated target dropped), so "

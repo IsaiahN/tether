@@ -3534,6 +3534,11 @@ _SWEEP_FILTER = armflag.arm("TETHER_SWEEP_FILTER", default=True)
 # stale(), so a priced-out slot never owed, never parked and was never swept. The new word is read
 # there too. OFF: the old word only
 _EXHAUSTED_WORD = armflag.arm("TETHER_EXHAUSTED_WORD", default=True)
+# P2 SWEEP_DELTA (r1838; DESIGN_STEP8 D1): the sweep's rescan (_reach) walks only chains built with
+# a unit settled since the park (or since its last empty rescan): _reach's own claim is that the
+# unit set grew, and every chain without a new unit was there when the park was made (Fig 6 :49).
+# The park keeps its unit names for this. OFF: _reach re-walks the whole closure, as before
+_SWEEP_DELTA = armflag.arm("TETHER_SWEEP_DELTA", default=True)
 # C2 FINISH, S0_BEFORE_BORED (the reviewer 2026-11-01 r736): choose skipped the exit contest
 # whenever the drive was bored and nothing was starved, so a bored, uninformed probe took the
 # turn while System 0 was still active (lp85, measured at choose: 16 of 21 turns
@@ -27448,7 +27453,10 @@ class Agent:
                                         "coverage": detail["coverage"],
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
-                                        "base_bits": round(base, 3)}
+                                        "base_bits": round(base, 3),
+                                        **({"unit_names": sorted(
+                                            u.name for u in self.gamma.units())}
+                                           if _SWEEP_DELTA else {})}
             if _skey is not None and detail["verdict"] in ("budget_spent", "priced_out_at_depth",
                                                            "not_novel"):
                 detail["chains_priced_in_scope"] = len(priced)
@@ -27671,7 +27679,8 @@ class Agent:
             self.chain.note_mint()
         self.sweep(term, slot)
 
-    def _reach(self, slot: str, hist: list, slots: list) -> tuple[float, Term] | None:
+    def _reach(self, slot: str, hist: list, slots: list,
+               new: frozenset | None = None) -> tuple[float, Term] | None:
         """Re-run the search for a parked slot because the UNIT SET grew.
 
         This is the chunking claim made falsifiable: closure(Gamma) is unchanged and no
@@ -27681,7 +27690,7 @@ class Agent:
         """
         best = None
         for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
-                                                 self.cfg.budget):
+                                                 self.cfg.budget, must_contain=new):
             cap.head()
             for bind in [None] + [s2 for s2 in slots if s2 != slot]:
                 # `_operand_fits` IS ALREADY RULED AND THIS SITE NEVER CALLED IT. Its own
@@ -27810,13 +27819,18 @@ class Agent:
             if left > 0.0 and units_now > rec.get("units_then", units_now) and not (
                     _SWEEP_STAMP and units_now <= rec.get("rescan_units", -1)):
                 self.chain.reuse_branch["rescan"] += 1
-                found = self._reach(slot, hist, slots)
+                _then = (rec.get("rescan_names") or rec.get("unit_names")) if _SWEEP_DELTA else None
+                _new = (frozenset(u.name for u in self.gamma.units()) - set(_then)
+                        if _then is not None else None)
+                found = self._reach(slot, hist, slots, _new)
                 if found is not None and found[0] < left:
                     left, cand, how = found[0], found[1], "chunk"
                 elif _SWEEP_STAMP:
                     # (S) r1626: a rescan that found nothing waits for the unit set to grow
                     # again; its own key, as units_then also gates stale() and floor_only
                     rec["rescan_units"] = units_now
+                    if _SWEEP_DELTA:
+                        rec["rescan_names"] = sorted(u.name for u in self.gamma.units())
             cross = tkey != slot
             if _CROWD_OUT and not cross and self._crowd_blocked(slot, cand.name):
                 continue
