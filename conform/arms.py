@@ -2344,6 +2344,12 @@ ARMS: dict[str, str] = {
                          "unclustered PERCEPT atoms (index by_cluster_derived, served only against "
                          "the corpus file it was derived from); enters compile_term.signature. "
                          "NEEDS TETHER_ATTR_BRIDGE. OFF: item 9's bridge as it was. default ON",
+    "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
+                          "the mint's depth-one trees that passed their own _cannot_pay are "
+                          "deepened a tier at a time (tree_search.deepen), each priced by the "
+                          "mint's bargain, best-first with the exact stop, within the work "
+                          "budget left; a deeper tree that beats the best is the best. ON. OFF: "
+                          "no deepening. MF: tests/test_tree_deepen.py.",
     "TETHER_TIERED_TERMS": "STEP 10d (the reviewer 2026-11-12; Isaiah 12:41, 15:15): the "
                            "operand tree recurses -- a node naming a second slot that "
                            "carries its own operand tree reads that leaf through _ops, so a "

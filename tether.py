@@ -49,6 +49,7 @@ import reuse
 import routine as Rt
 import shape_order
 import store as door  # the one door; `store` is a local name in three methods
+import tree_search
 from gamma import _CARRY_W as G_CARRY_W
 from gamma import _FADE_BY_STORE as G_FADE_BY_STORE
 from gamma import _FADE_FAILURES as G_FADE_FAILURES
@@ -1448,6 +1449,13 @@ _TWO_SLOT_OPERAND = armflag.arm("TETHER_TWO_SLOT_OPERAND", default=True)
 # structural (the branch's operand was a value, never a term); here the second leaf is a term.
 # OFF: the second leaf is read as a raw slot, as before (r1145).
 _TIERED_TERMS = armflag.arm("TETHER_TIERED_TERMS", default=True)
+# 10d STEP 2b, THE MINT DEEPENS ITS TREES (the reviewer 2026-11-12; Isaiah 12:41, 15:15, 17:05
+# "finish step 10"): the depth-one trees that passed their own _cannot_pay are the roots of
+# tree_search.deepen after the streams end -- a unary branch grows by one atom, a node's raw second
+# leaf is fed by a one-atom term over another bind -- each priced by the same bargain (_cannot_pay,
+# _left, pays), best-first by cost with the exact stop, within what the mint's work budget left. A
+# deeper tree that beats the best is the best; nothing is refused. OFF: no deepening, as before.
+_TREE_DEEPEN = armflag.arm("TETHER_TREE_DEEPEN", default=True)
 # the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
@@ -26130,6 +26138,75 @@ class Agent:
         key = f"{self.draw_seed}:{self.cycle}:{slot}".encode()
         return hashlib.blake2b(key, digest_size=8).digest()[0] < 128      # ~0.5
 
+    def _deepen_trees(self, slot: str, roots: list, hist, base: float, robs: list, rkey: Any,
+                      units: Any, budget: int, beat: float) -> tuple:
+        """10d 2b: tree_search.deepen over the mint's depth-one trees. `roots` are (tree, guard
+        bits, kind). A child is one tier deeper: a unary branch grows by one branch atom, or a
+        node's raw second leaf is fed by a one-atom term over another of the slot's binds. Each
+        is priced by the mint's own bargain -- cost = bits + the root's guard bits (a lower bound
+        on every deeper tree, since depth only adds symbols); total = cost + _left when
+        _cannot_pay and pays admit it, else infinite. Returns ((total, left, cost, tree, kind) or
+        None, stats); a tree is returned only if its total is under `beat`."""
+        gb: dict = {}
+        kinds: dict = {}
+        start = []
+        for t, g_bits, k in roots:
+            if t.name not in gb:
+                gb[t.name], kinds[t.name] = g_bits, k
+                start.append(t)
+        br = [b.atoms[0] for b in self._branches()]
+        binds = [b for b in self._bindings(slot, robs) if b]
+        extra: dict = {}
+
+        def cost(t):
+            cap.head()
+            return self._bits((t, units)) + gb[t.name]
+
+        def total(t):
+            c = cost(t)
+            if self._cannot_pay(t, slot, robs, c, base, rkey):
+                return math.inf
+            left = self._left(t, slot, hist, base, c)
+            return c + left if self._pays_ev(slot, t, c, left, base) else math.inf
+
+        def children(t):
+            ot, out = t.operand_term, []
+            if ot is None:
+                return out
+            if ot.operand is None and ot.operand_term is None:
+                kids = [Term(t.atoms, origin=t.origin, operand=t.operand, guard=t.guard,
+                             guard_ref=t.guard_ref, operand_term=Term(ot.atoms + (a,)))
+                        for a in br]
+                add = 1
+            else:
+                path = tree_search.open_leaf(t)
+                if not path:
+                    return out
+                ls = path[-1].operand
+                kids = [tree_search.replace_leaf(t, Term((a,), operand=b2))
+                        for a in br for b2 in binds if b2 not in (ls, t.operand)]
+                add = 0
+            for k in kids:
+                cap.head()
+                if k is None or k.name in gb or self.gamma.is_atom(k) or (
+                        k.name in self.gamma.library) or not self._operand_fits(
+                        k, slot, t.operand):
+                    continue
+                gb[k.name], kinds[k.name] = gb[t.name], kinds[t.name]
+                extra[k.name] = extra.get(t.name, 0) + add
+                out.append(k)
+            return out
+
+        def depth(t):
+            return tree_search.term_depth(t) + extra.get(t.name, 0)
+
+        found, st = tree_search.deepen(start, children, cost, total, depth, beat, budget)
+        if found is None:
+            return None, st
+        c = cost(found)
+        tot = total(found)
+        return (tot, tot - c, c, found, kinds[found.name]), st
+
     def _operand_fits(self, cand, target: str, bind: str | None) -> bool:
         """`0a`'s TYPING half, whose trigger fired on a real board.
 
@@ -26876,6 +26953,7 @@ class Agent:
         by_kind: dict[str, tuple] = {}
         wanted: tuple[float, Term, int] | None = None
         rank = 0
+        _tree_roots: list = []      # 10d 2b: (tree, guard bits, kind) that passed _cannot_pay
         _share: dict = {}        # D2: per-stream rank/pays/turns, recorded under the arm
         _widen: dict = {}        # L4: the widened streams' kinds and the gate's answer per round
         _skey = _hit = None
@@ -27447,6 +27525,9 @@ class Agent:
                                         + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
+                                if _TREE_DEEPEN:
+                                    _tree_roots.append((bt, _guard_bits(
+                                        g, len(_gs) - 1, _nr(g, len(_refs))), kind))
                                 bleft = self._left(bt, slot, hist, base, bcost)
                                 _sh["pays_called"] += 1
                                 if not self._pays_ev(slot, bt, bcost, bleft, base):
@@ -27529,6 +27610,9 @@ class Agent:
                             # the bound was already correct.
                             if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                 continue
+                            if _TREE_DEEPEN:
+                                _tree_roots.append((bt, _guard_bits(
+                                    g, len(_gs) - 1, _nr(g, len(_refs))), kind))
                             bleft = self._left(bt, slot, hist, base, bcost)
                             _sh["pays_called"] += 1
                             if not self._pays_ev(slot, bt, bcost, bleft, base):
@@ -27679,6 +27763,30 @@ class Agent:
                 # search skips nobody who was going to be asked.
             if _DIVIDE:
                 self._divide_row(slot, rkey)
+
+        if _TREE_DEEPEN and _tree_roots:
+            # 10d 2b: one tier down from the depth-one trees, within the work budget left; the
+            # best tree found beats `best` or nothing changes (deepen only returns a better one)
+            _beat = base if best is None else min(base, best[0])
+            _dfound, _dst = self._deepen_trees(slot, _tree_roots, hist, base, robs, rkey, _units,
+                                               max(0, self.cfg.work_budget - rank), _beat)
+            self.led.record(self.cycle, self._running_step, slot, "tree_deepen",
+                            roots=len(_tree_roots), priced=_dst["priced"],
+                            per_tier=_dst["per_tier"], tier_reached=_dst["tier_reached"],
+                            frontier_stop=_dst["frontier_stop"],
+                            budget_spent=_dst["budget_spent"],
+                            found=_dfound[3].name if _dfound else None,
+                            reads="10d 2b: the trees deepened a tier at a time, priced by the "
+                                  "same bargain, best-first with the exact stop")
+            if _dfound is not None:
+                _dk = _dfound[4]
+                _dfound = _dfound[:4]
+                self.gamma.book["bargain_paid"] = self.gamma.book.get("bargain_paid", 0) + 1
+                guards["reachability"] = True
+                if _dk not in by_kind or _dfound[0] < by_kind[_dk][0]:
+                    by_kind[_dk] = _dfound
+                if best is None or _dfound[0] < best[0]:
+                    best = _dfound
 
         # WHICH KIND WON THE SLOT, AND BY HOW MUCH. The residual alone buries the answer:
         # *did an objective ever out-predict a plain value bet* is the question the two-stream
