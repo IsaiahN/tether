@@ -3234,6 +3234,12 @@ ARMS: dict[str, str] = {
                          "least price can beat min(base, its kind's best total). Orders, never "
                          "refuses. OFF: enumerate_closure shortest-first by first-unit fit. "
                          "default ON",
+    "TETHER_SENSES": "P4, 8b-1 (the reviewer r1838; DESIGN_STEP8 B2/B3/B6): a sense is a head's "
+                     "paid / missed record under the facet key it was minted under -- P and M in "
+                     "P3's postings, written on the settle (with T, the settled chain, and B, its "
+                     "operand's door kind); sense_pick / sense_note rows; order_bind first in "
+                     "_bindings; paid terms first in _library_fit and as P5's stage-0 heads; "
+                     "sense_lookup's merge read, never stored. OFF: no P / M. default ON",
     "TETHER_ROUTE_KEY_GENERAL": "42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer "
                                 "2026-11-01 r717): R-B keys a route by the intent's general "
                                 "statement (slot and sign; a Specific's stated target dropped), so "

@@ -6,6 +6,11 @@ gridworld default 0, 12 steps.
         it fires is printed, not asserted: on gw12 and dc22 c0-9 the caller's own cut ends every
         walk first (P5 commit post).
   MF-SS1 the call site with no stop (the plant): the stop is never asked -> RED.
+  SS3   THE SHAPE ORDER REACHES THE MINT (the reviewer r1849): within every walk the yields come
+        out in non-decreasing (stage, -E) under the key the call site built, and at least one walk
+        has yields of different E (gw12: 4 of them).
+  MF-SS3 the call site's order_key replaced by None (the plant; the key kept only to read it):
+        some walk's yields come out of that order -> RED.
   SS2   OFF: the by-fit enumerate_closure walk, and ordered_closure is never called.
   gw12's OFF identity against the parent is the commit's check, not this file's.
 
@@ -29,12 +34,17 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, os.getcwd())
 import gamma, gridworld, ledger, tether, world
 G = gamma.Gamma
-OUT = {"ordered": 0, "by_fit": 0, "stats": [], "asks": 0}
+OUT = {"ordered": 0, "by_fit": 0, "stats": [], "asks": 0, "keys": []}
 _oc, _ec = G.ordered_closure, G.enumerate_closure
 def oc(self, *a, **k):
     OUT["ordered"] += 1
     if os.environ.get("PLANT_NO_STOP"):
         k["stop"] = None
+    key = k.get("order_key")
+    if os.environ.get("PLANT_NO_ORDER"):
+        k["order_key"] = None
+    seen = []
+    OUT["keys"].append(seen)
     s0 = k.get("stop")
     if s0 is not None:
         def s1(m, _s=s0):
@@ -44,7 +54,10 @@ def oc(self, *a, **k):
     st = a[4] if len(a) > 4 else k.get("stats")
     if st is not None:
         OUT["stats"].append(st)
-    return _oc(self, *a, **k)
+    for t in _oc(self, *a, **k):
+        if key is not None:
+            seen.append(list(key(t.atoms, True, 0)[:2]))
+        yield t
 def ec(self, *a, **k):
     if k.get("order") is not None:
         OUT["by_fit"] += 1
@@ -57,16 +70,21 @@ for _ in range(12):
 stops = sum(1 for s in OUT["stats"] if s.get("frontier_stop"))
 print("SITE " + json.dumps({"ordered": OUT["ordered"], "by_fit": OUT["by_fit"], "stops": stops,
                             "asks": OUT["asks"],
+                            "e_walks": sum(1 for w in OUT["keys"] if len({x[1] for x in w}) > 1),
+                            "out_of_order": sum(1 for w in OUT["keys"]
+                                                if any(w[i] > w[i + 1] for i in range(len(w) - 1))),
                             "pops": sum(s.get("pops", 0) for s in OUT["stats"])}))
 '''
 
 
-def run(arm: bool, plant: bool = False) -> dict:
+def run(arm: bool, plant: bool = False, plant_order: bool = False) -> dict:
     env = {k: v for k, v in os.environ.items() if not k.startswith("TETHER_")}
     env.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0", TETHER_AGENT_SEED="0",
                TETHER_SHAPE_WALK="1" if arm else "0")
     if plant:
         env["PLANT_NO_STOP"] = "1"
+    if plant_order:
+        env["PLANT_NO_ORDER"] = "1"
     p = subprocess.run([sys.executable, "-B", "-c", CHILD], capture_output=True, text=True,
                        env=env, cwd=HERE, stdin=subprocess.DEVNULL)
     assert p.returncode == 0, p.stderr[-3000:]
@@ -85,6 +103,15 @@ def main() -> int:
     print("MF-SS1 no stop at the call site: " + ("RED" if pl["asks"] == 0
                                                   else "GREEN (the plant went unseen)"))
     assert pl["asks"] == 0, pl
+    ok3 = on["e_walks"] > 0 and on["out_of_order"] == 0
+    print(f"SS3 every walk's yields in (stage, -E) order ({on['e_walks']} walks with E varying): "
+          + ("GREEN" if ok3 else "RED"))
+    assert ok3, on
+    po = run(True, plant_order=True)
+    print(f"   the plant (order_key None): {po}")
+    print("MF-SS3 no order key at the call site: " + ("RED" if po["out_of_order"] > 0
+                                                       else "GREEN (the plant went unseen)"))
+    assert po["out_of_order"] > 0, po
     off = run(False)
     print(f"   OFF: {off}")
     ok2 = off["ordered"] == 0 and off["by_fit"] > 0

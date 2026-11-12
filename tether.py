@@ -3280,11 +3280,66 @@ def _fx_backoff(ag: Any, dk: Any, owner: str, slot: str | None) -> tuple:
                     continue
                 for tag, m in c.items():
                     which, entry = tag.split("|", 1)
+                    if which not in ("P", "O", "L"):
+                        continue                    # P4's M / T / B ride the same postings
                     a = agg.setdefault(entry, {"P": 0, "O": 0, "L": 0})
                     a[which] = a.get(which, 0) + m
         if agg:
             return key, agg
     return None, {}
+
+
+def fx_tags(ag: Any, key: tuple, which: str) -> dict:
+    """P4: tag -> n for one tag kind ("T" paid terms, "B" collocate kinds) over the postings whose
+    key matches `key` ("*" matches any facet; the role is never matched)."""
+    out: dict = {}
+    for store in (ag._fx, ag._fx_in):
+        for (s, sj, dd, _r), c in store.items():
+            cap.head()
+            if dd != key[2] or key[1] not in ("*", sj) or key[0] not in ("*", s):
+                continue
+            for tag, m in c.items():
+                w, rest = tag.split("|", 1)
+                if w == which:
+                    out[rest] = out.get(rest, 0) + m
+    return out
+
+
+def sense_lookup(ag: Any, ctx: tuple) -> list:
+    """P4 (8b-1, B2): the senses under ctx -- [(head, paid, missed, pred, merged)], paid first. A
+    sense is one head's P / M under one exact facet key; ctx's "*" facets match any. THE MERGE,
+    read here and never stored: two exact keys of one head one facet apart (src, subj or role; dk
+    is the prediction and must agree), each paid >= 2 and neither missed, read as one sense,
+    pooled -- so a miss in either splits them again, their own counts untouched."""
+    src, subj, d, role = ctx
+    per: dict = {}
+    for store in (ag._fx, ag._fx_in):
+        for k, c in store.items():
+            cap.head()
+            if k[2] != d:
+                continue
+            for tag, m in c.items():
+                w, head = tag.split("|", 1)
+                if w in ("P", "M"):
+                    per.setdefault(head, {}).setdefault(k, [0, 0])[w == "M"] += m
+    out = []
+    for head, ks in per.items():
+        mine = {k for k in ks if src in ("*", k[0]) and subj in ("*", k[1])
+                and role in ("*", k[3])}
+        if not mine:
+            continue
+        group = set(mine)
+        for a in mine:
+            if ks[a][0] < 2 or ks[a][1]:
+                continue
+            for b, (pb, mb) in ks.items():
+                cap.head()
+                if b not in group and pb >= 2 and not mb and sum(
+                        x != y for x, y in zip(a, b, strict=True)) == 1:
+                    group.add(b)
+        out.append((head, sum(ks[k][0] for k in group), sum(ks[k][1] for k in group), d,
+                    len(group) > len(mine)))
+    return sorted(out, key=lambda t: (-t[1], t[2]))      # ties keep the postings' order
 
 
 def context_key(ag: Any, dk: Any, owner: str, slot: str | None = None) -> tuple | None:
@@ -3295,13 +3350,14 @@ def context_key(ag: Any, dk: Any, owner: str, slot: str | None = None) -> tuple 
 
 def facet_index(ag: Any, dk: Any, owner: str, slot: str | None = None) -> list:
     """P3: the postings at the owner's context_key -- [(entry, paid, offered, landed,
-    form_match)], paid first, then offered, the form as a tiebreak, then landed."""
+    form_match)], paid first, then offered, the form as a tiebreak, then landed; exact ties keep
+    the postings' order (the order the evidence arrived), never the name (r1850)."""
     _key, agg = _fx_backoff(ag, dk, owner, slot)
     form = next((x for x in (ag._kind(owner) or ()) if isinstance(x, str)
                  and x.startswith("form=")), None)
     return sorted(((e, a["P"], a["O"], a["L"], int(form in ag._fx_form.get(e, ())))
                    for e, a in agg.items()),
-                  key=lambda t: (-t[1], -t[2], -t[4], -t[3], t[0]))
+                  key=lambda t: (-t[1], -t[2], -t[4], -t[3]))
 
 
 def _delta_kind_of(a: Any, typ: Any, before: Any, after: Any) -> tuple | None:
@@ -3695,6 +3751,11 @@ _FACET_INDEX = armflag.arm("TETHER_FACET_INDEX", default=True)
 # when no waiting chain's least price can beat min(base, its kind's best total). It orders, never
 # refuses. OFF: the shortest-first enumerate_closure walk by first-unit fit, as before
 _SHAPE_WALK = armflag.arm("TETHER_SHAPE_WALK", default=True)
+# P4 SENSES (8b-1; the reviewer r1838; DESIGN_STEP8 B2/B3/B6): a sense is a head's paid / missed
+# record under the facet key it was offered or minted under -- the P and M columns of P3's facet
+# postings, written on the settle. What paid under a context comes back first there: T0's P column,
+# the walk's stage 0, the bind order (order_bind), _library_fit's order. OFF: no P / M, as before
+_SENSES = armflag.arm("TETHER_SENSES", default=True)
 # C2 FINISH, S0_BEFORE_BORED (the reviewer 2026-11-01 r736): choose skipped the exit contest
 # whenever the drive was bored and nothing was starved, so a bored, uninformed probe took the
 # turn while System 0 was still active (lp85, measured at choose: 16 of 21 turns
@@ -4850,6 +4911,7 @@ class Agent:
         self._fx_form: dict = {}
         self._src_cache: dict = {}
         self._shape_readings: dict | None = None   # P5: atom -> the readings it affects or reads
+        self._sense_ctx: dict = {}     # P4: term name -> (the facet key it was minted under, head)
         self._stopped_in: dict = {}                # M3: link -> games, carried in
         self._stopped_written: dict = {}
         self._lib_won: set = set()       # 7h (d) by route: library-route wins at a mint
@@ -9225,6 +9287,59 @@ class Agent:
         form = next((x for x in kind or () if isinstance(x, str) and x.startswith("form=")), None)
         if form:
             self._fx_form.setdefault(entry, set()).add(form)
+
+    def _slot_dk(self, slot: str) -> tuple | None:
+        """P4: the slot's delta kind now, as _lookup reads it (_dk_of holds only the slots the
+        last lookup asked), cached per (slot, cycle)."""
+        key = ("dk", slot, self.cycle)
+        if key not in self._src_cache:
+            self._src_cache[key] = (self._delta_kind(slot, self.history(slot))
+                                    if _DELTA_KIND else None)
+        return self._src_cache[key]
+
+    def _sense_pick(self, slot: str, name: str, head: str, role: str) -> None:
+        """P4: a head minted under a context -- its facet key kept for the settle that will judge
+        it, and the prediction said before the test (sense_pick). The first mint wins."""
+        dk = self._slot_dk(slot)
+        if name in self._sense_ctx or dk is None:
+            return
+        ctx = facet_key(self, dk, slot.split(".", 1)[0], slot, role)
+        self._sense_ctx[name] = (ctx, head)
+        self.led.record(self.cycle, self._running_step, slot, "sense_pick", src=ctx[0],
+                        subj=ctx[1], head=head, role=role, pred=list(dk), term=name,
+                        reads="a head minted under this context; its settle is the test")
+
+    def _sense_settle(self, slot: str, name: str, paid: bool) -> None:
+        """P4: the ground's verdict on a sensed head, under the context it was minted under --
+        P (and the settled chain, T, and its operand's door kind, B) or M."""
+        got = self._sense_ctx.get(name)
+        if got is None:
+            return
+        ctx, head = got
+        post = self._fx[ctx]
+        post[f"{'P' if paid else 'M'}|{head}"] += 1
+        if paid:
+            post[f"T|{name}"] += 1
+            t = self.gamma.library.get(name)
+            op = getattr(t, "operand", None)
+            if isinstance(op, str) and "." in op and "~" not in op:
+                post[f"B|{_kind_text(self._kind(op.split('.', 1)[0]))}"] += 1
+        self.led.record(self.cycle, "SETTLE", slot, "sense_note", head=head, term=name,
+                        outcome="paid" if paid else "missed", src=ctx[0], subj=ctx[1],
+                        reads="the ground's verdict on the head, under its own context")
+
+    def _sense_terms(self, slot: str) -> list:
+        """P4: the terms that PAID under this slot's context (exact src, else any src, same door
+        kind and dk), most paid first -- P5's stage-0 heads and _library_fit's front."""
+        dk = self._slot_dk(slot)
+        if dk is None:
+            return []
+        src, subj, d, _r = facet_key(self, dk, slot.split(".", 1)[0], slot)
+        for key in ((src, subj, d, "*"), ("*", subj, d, "*")):
+            got = fx_tags(self, key, "T")
+            if got:
+                return [n for n, _m in sorted(got.items(), key=lambda kv: -kv[1])]
+        return []
 
     @cap.held      # C1 (A): one landing writes several kind stores the lineage carries (15:34 2)
     def _land_kind(self, entry: tuple, dk: tuple | None = None, slot: str | None = None) -> None:
@@ -17589,10 +17704,16 @@ class Agent:
                 _lw.clear()
 
         def _pairs():
-            for n in self._reach_pass(retrieval.retrieve(
-                    self.gamma.library, gap, track=self.gamma.track_of, youth=self.gamma.youth_of,
-                    relevance=self.gamma.relevance_of if G_RELEVANCE else None),
-                                     lambda: bool(_paying)):
+            _ret = retrieval.retrieve(
+                self.gamma.library, gap, track=self.gamma.track_of, youth=self.gamma.youth_of,
+                relevance=self.gamma.relevance_of if G_RELEVANCE else None)
+            if _SENSES:
+                # P4: what paid under this slot's context first, the rest in retrieve's order
+                _t0 = [n for n in self._sense_terms(slot) if n in self.gamma.library]
+                if _t0:
+                    _s0 = set(_t0)
+                    _ret = _t0 + [n for n in _ret if n not in _s0]
+            for n in self._reach_pass(_ret, lambda: bool(_paying)):
                 cap.head()
                 if n == exclude or (self._not and self._term_refused(n, _gk)):
                     continue
@@ -26116,7 +26237,29 @@ class Agent:
             out = [None] + sorted(out[1:], key=lambda s: _tier.get(s, 3))
         if _WINDOW:
             out += self._window_lags(slot, robs)
+        if _SENSES and robs:
+            out = self._order_bind(slot, out)
         return out
+
+    def _order_bind(self, slot: str, out: list) -> list:
+        """P4 order_bind (B4's second order), the first key, stable, nothing filtered: 0 for the
+        slot's own lag when its change depends on my action (src SELF), or a bind whose owner's
+        door kind a head paid with under this context (its collocates, "B"); else 1."""
+        dk = self._slot_dk(slot)
+        if dk is None:
+            return out
+        src, subj, d, _r = facet_key(self, dk, slot.split(".", 1)[0], slot)
+        kinds = set(fx_tags(self, (src, subj, d, "*"), "B"))
+        own = f"{slot}~1"
+
+        def first(b: str) -> int:
+            if src == "SELF" and b == own:
+                return 0
+            if kinds and "~" not in b and _kind_text(self._kind(b.split(".", 1)[0])) in kinds:
+                return 0
+            return 1
+        return ([b for b in out if b is None]
+                + sorted((b for b in out if b is not None), key=first))
 
     def _window_lags(self, slot: str, robs: list) -> list[str]:
         """THE WINDOW'S OFFER (the reviewer 14:52Z, 18:10Z, 18:15Z): every lag the trace can
@@ -26887,14 +27030,19 @@ class Agent:
                 _lf_of[_si] = _lf_names          # CREDIT: a library chain took no yield
                 _lf_seen.update(tuple(a.name for a in c.atoms) for c in _lf)
                 if _SHAPE_WALK:
-                    # P5: best-first by the gap's shape; paid / sense heads (P4) and authority
-                    # (P6) are empty until they land; the stop bound needs rows to price against
+                    # P5: best-first by the gap's shape; the paid / sense heads are P4's (the
+                    # terms that paid under this slot's context), authority (P6) empty until it
+                    # lands; the stop bound needs rows to price against
                     if self._shape_readings is None:
                         lib_ = _library()
                         self._shape_readings = shape_order.declared_readings(
                             {**lib_.seed, **lib_.runtime, **lib_.learnings} if lib_ else {})
+                    _heads = ([tuple(a.name for a in self.gamma.library[n].atoms)
+                               for n in self._sense_terms(slot) if n in self.gamma.library]
+                              if _SENSES else [])
                     _key = shape_order.make_order_key(
                         shape_order.wanted(slot.rsplit(".", 1)[-1]), self._shape_readings,
+                        paid_heads=_heads, sense_heads=_heads,
                         fits_whole=lambda ch, _b=by_fit: _b(Term(ch)))
                     _bound = _stop_at = None
                     if robs:
@@ -27857,6 +28005,8 @@ class Agent:
                              == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
                 if prov is not None:
                     detail["library"] = prov
+                    if _SENSES and prov.get("library") is not None:
+                        self._sense_pick(slot, term.name, prov["library"], prov.get("role", "*"))
                     if _REACH_PAID:
                         rc_, rt_ = self._rp_reached.get((slot, prov.get("library")),
                                                         (None, "not reached"))
@@ -27885,6 +28035,8 @@ class Agent:
                 if _7H_ROUTE_GRADE and detail["library_route"] != "none":
                     self._lib_won.add(term.name)
             self._rp_bind(slot, term.name, "mint")        # the agent's own mint (first wins)
+            if _SENSES:
+                self._sense_pick(slot, term.name, term.name, "PROCESS")
             self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
             # THE PART RIDES ON THE ACCEPT TOO (the reviewer 2026-10-11 23:03 CDT): a D5 part-B
             # accept
@@ -28320,6 +28472,8 @@ class Agent:
                 _demoted_now = self.gamma.refute(
                     name, where=self._scope, slot=slot,
                     **({"contact": self._fail_contact(slot)} if G_FADE_BY_STORE else {}))
+                if _SENSES:
+                    self._sense_settle(slot, name, False)
                 if _REFUSE_RANK:
                     self._miss_at[slot] = (name, self.gamma.clock(), held)
                 if _found is not None and not _demoted_now:
@@ -28473,6 +28627,8 @@ class Agent:
                 self._risky[(slot, name)] = self._tally.get(slot, (None,))[0]
             if _REACH_PAID and name in self._rp_minted:
                 self._rp_settled.add(name)
+            if _SENSES:
+                self._sense_settle(slot, name, True)
             if _REACH_PAID:
                 self._rp_bound_n[self._rp_bound.get(
                     (slot, name), self._rp_bound.get((None, name), "none recorded"))] += 1
