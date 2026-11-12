@@ -9,7 +9,7 @@ entry's tier).
         own output -- put() is out's only writer and n holds each tier's count in call order --
         and every label must equal it, after every call; every library row's tier_offered and
         tier_landed must equal its lookup's rebuilt map ("untiered" where none placed it).
-        MF2 every label T3, and every label shifted one tier down: each goes RED.
+        MF2 every label T3, and every label shifted one tier down (on c0-8): each goes RED.
         The tier distribution on dc22, a reading; a tier with no entry is named (T2 reads the
         carried store, and the replay runs without a lineage).
   P3    no reader: only _tiers (the writer), _land_kind, the lookup's reset and the library row
@@ -137,9 +137,9 @@ def main() -> int:
                                "tether._AGENT_SEED = False\n" + SPY, 1)
     assert SPY in replay
 
-    def dc(arm: bool, plant: str = "") -> tuple[list, dict]:
+    def dc(arm: bool, plant: str = "", cycles: int = 25) -> tuple[list, dict]:
         p = os.path.join(tmp, f"dc{arm}{plant}.jsonl")
-        return run(replay, [data, "25", p], arm, p, plant)
+        return run(replay, [data, str(cycles), p], arm, p, plant)
 
     gw = {a: run(pg.GW, [os.path.join(tmp, f"gw{a}.jsonl"), "none"], a,
                  os.path.join(tmp, f"gw{a}.jsonl"))[0] for a in (False, True)}
@@ -162,7 +162,9 @@ def main() -> int:
           f"{checked} library rows checked against their lookup's map, {len(wrong)} wrong")
     assert lab["calls"] and checked and not nbad and not wrong, (lab["bad"][:2], wrong[:2])
     for plant in ("mislabel", "shift"):
-        rows_p, lab_p = dc(True, plant)
+        # a plant only has to go red: c0-8 is enough (r1813 2), and keeps the file inside the
+        # six's 900 s per-test cap
+        rows_p, lab_p = dc(True, plant, cycles=9)
         nb, ch, wr = truth(rows_p, lab_p)
         print(f"MF2 {plant} planted: " + (f"RED -- {nb} calls with wrong labels (e.g. "
               f"{lab_p['bad'][0][4][:1]}), {len({w[0] for w in wr})} of {ch} library rows wrong"

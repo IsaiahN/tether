@@ -258,6 +258,12 @@ _PAY_GAP = armflag.arm("TETHER_PAY_GAP", default=False)
 # record: nothing reads it. OFF: the row as before.
 _PICK_TIER = armflag.arm("TETHER_PICK_TIER", default=False)
 
+# 8a-0, THE REACHED-AND-PAID FIELD (r1795, r1796, r1812 4): three facts kept apart, each with the
+# entry's K1 tier -- REACHED (offered in a lookup), MINTED (the mint's winner came from that offer;
+# on the "mint" row), SETTLED (that term later held out-of-fit; on the "settle" row) -- and one
+# run-end row of the three per tier. A record: nothing reads it. OFF: the rows as before.
+_REACH_PAID = armflag.arm("TETHER_REACH_PAID", default=False)
+
 # ARM G -- REBIND WHAT IS HELD. `_rebindings` returns early for any term that already carries an
 # operand, so only IMPORTS (which arrive unbound, `save` drops it) are ever re-bound. A term the
 # agent minted THIS RUN is offered to a new slot still pointing at the old one, `_explains` tests
@@ -4857,6 +4863,11 @@ class Agent:
         self._pg = None                      # 8a-0 pay-gap: this mint's notebook (TETHER_PAY_GAP)
         self._tier_of: dict | None = None    # 8a-0 pick-tier: this lookup's entry -> K1 tier
         self._tier_land: dict = {}           # 8a-0 pick-tier: this lookup's landed entry -> tier
+        self._rp_reached: dict = {}          # 8a-0 reached-and-paid: (slot, entry) -> (cycle, tier)
+        self._rp_minted: dict = {}           # 8a-0 reached-and-paid: term -> its reached record
+        self._rp_settled: set = set()        # 8a-0 reached-and-paid: offer-minted terms settled
+        self._rp_bound: dict = {}            # 8a-0 bound_by: (slot | None, term) -> first path
+        self._rp_bound_n: Counter = Counter()   # 8a-0 bound_by: accepted settles per path
         self._memo: dict | None = None       # live only inside one `mint` -- see `mint`
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
@@ -5701,6 +5712,8 @@ class Agent:
         if _MOLECULE_APPLY and self._mol_offers:
             self.led.record(self.cycle, self._running_step, "@molecule", "molecule_apply",
                             at="run", previous=self._mol_flush())
+        if _REACH_PAID:
+            self._rp_summary()
         if G_FADE_BY_STORE:
             self._fade_ev_books()
         self.led.end_game(self.cycle, f"end {how}")      # N2: where this game's chain stopped
@@ -7723,7 +7736,7 @@ class Agent:
         for m in tg:
             cap.head()
             self._lib_offers[m] = []
-        if _PICK_TIER:
+        if _PICK_TIER or _REACH_PAID:
             self._tier_of, self._tier_land = {}, {}
         if k1:
             lit, tiers = self._tiers(lib, lit, dk, mine, described, att,
@@ -7911,6 +7924,12 @@ class Agent:
                 self._rank_moved(slot, rank, n_tiers, explained=bool(rows),
                                  kind=f"{self._kind_str(mine)}|{att.get(slot)}")
             self._lib_offers[m] = [o_ for o_ in offers if o_["offered"]]
+            if _REACH_PAID:
+                for o_ in self._lib_offers[m]:
+                    e_ = o_["prov"].get("library")
+                    if e_ is not None:
+                        self._rp_reached.setdefault(
+                            (m, e_), (self.cycle, self._tier_of.get(e_, "untiered")))
             if _ENTRY_USE:
                 for o_ in offers:
                     cap.head()
@@ -7930,7 +7949,7 @@ class Agent:
                                     {o_["prov"].get("library") for o_ in self._lib_offers[m]}
                                     - {None})},
                                 "tier_landed": dict(sorted(self._tier_land.items()))}
-                               if self._tier_of is not None else {}),
+                               if _PICK_TIER and self._tier_of is not None else {}),
                             reads=("the library lit by this residual's description; the distinct "
                                    "views and CAUSE then-sides that compile onto this slot, tested "
                                    "and recorded, each with the count of entries that offered it"))
@@ -16906,6 +16925,7 @@ class Agent:
         # installed under a NEW name stamped `accepted`, so a column keyed on the
         # imported NAME could never match it however well transfer worked. The
         # composition is what crossed, and it is what the reading has to key on.
+        self._rp_bind(slot, n, "route_pull")
         self.led.record(self.cycle, self._running_step, slot, "pull", term=n,
                         held=held, chain=" . ".join(a.name for a in cand.atoms),
                         rebound=held != n,
@@ -19854,6 +19874,48 @@ class Agent:
                                    if r["event"] == "want_only"]},
             reads="8a-0 (r1767 2, r1809 3): an instrument's notebook, counted uncharged; the "
                   "agent reads none of it")
+
+    def _rp_bind(self, slot: str, term: str, path: str) -> None:
+        """8a-0 bound_by (r1816 3): the first path that named `term` -- on this slot, and on any."""
+        if _REACH_PAID:
+            self._rp_bound.setdefault((slot, term), path)
+            self._rp_bound.setdefault((None, term), path)
+
+    def _rp_summary(self) -> None:
+        """8a-0 reached-and-paid: the run's counts per K1 tier, the ground's first (r1815 1) --
+        settled (offer-minted terms that later held out-of-fit), minted (terms minted from an
+        offer), reached (distinct (slot, entry) offered) -- and the two drop-offs by name."""
+        by: dict = {}
+
+        def cell(t: str) -> dict:
+            return by.setdefault(t, {"settled": 0, "minted": 0, "reached": 0})
+        for _c, t in self._rp_reached.values():
+            cell(t)["reached"] += 1
+        minted_e = set()
+        for name, m in self._rp_minted.items():
+            c = cell(m["tier"])
+            c["minted"] += 1
+            c["settled"] += name in self._rp_settled
+            minted_e.add((m["slot"], m["entry"]))
+        for t, c in by.items():
+            c["reached_never_minted"] = sum(1 for k, (_c, t_) in self._rp_reached.items()
+                                            if t_ == t and k not in minted_e)
+            c["minted_never_settled"] = c["minted"] - c["settled"]
+        # rows are written with sorted keys, so the headline is said, not left to key order
+        self.led.record(self.cycle, self._running_step, "@reach", "reached_paid",
+                        headline="settled", order=["settled", "minted", "reached",
+                                                   "reached_never_minted", "minted_never_settled"],
+                        by_tier={t: by[t] for t in sorted(by)},
+                        # r1817: every accepted settle by the path that bound it; tiers belong to
+                        # offers only, so this is per path; "none recorded" > 0 is a path unnamed
+                        settled_by_path=dict(sorted(self._rp_bound_n.items())),
+                        none_recorded=self._rp_bound_n.get("none recorded", 0),
+                        scope=("this process: kept across a level or game reset inside the run; "
+                               "not across runs, not in the lineage"),
+                        reads="8a-0 (r1795, r1796, r1812 4, r1815): settled = an offer-minted "
+                              "term later held out-of-fit (the ground's payment, the headline); "
+                              "minted = the mint's winner came from that offer; reached = "
+                              "offered in a lookup. A record; nothing reads it")
 
     def _divide_cell(self, term: Term, rows: int, wrong: int, ref, start: int, was,
                      e0: int, cost: float) -> tuple:
@@ -27542,6 +27604,15 @@ class Agent:
                              == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
                 if prov is not None:
                     detail["library"] = prov
+                    if _REACH_PAID:
+                        rc_, rt_ = self._rp_reached.get((slot, prov.get("library")),
+                                                        (None, "not reached"))
+                        # "from_offer", never "reached": that key is an int on this row (r1815 2)
+                        detail["from_offer"] = {"entry": prov.get("library"), "tier": rt_,
+                                                "reached_cycle": rc_}
+                        self._rp_minted[term.name] = {**detail["from_offer"], "slot": slot,
+                                                      "minted_cycle": self.cycle}
+                        self._rp_bind(slot, term.name, "from_offer")
                     if _ENTRY_USE:
                         self._use(prov.get("library"), "explained", last=True)
                     _core = (_core_kind(self._lib_offers.get(slot, ()), term)
@@ -27560,6 +27631,7 @@ class Agent:
                     else "chain_only" if any(names[:len(ch)] == ch for ch in _lf_seen) else "none")
                 if _7H_ROUTE_GRADE and detail["library_route"] != "none":
                     self._lib_won.add(term.name)
+            self._rp_bind(slot, term.name, "mint")        # the agent's own mint (first wins)
             self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
             # THE PART RIDES ON THE ACCEPT TOO (the reviewer 2026-10-11 23:03 CDT): a D5 part-B
             # accept
@@ -27727,6 +27799,7 @@ class Agent:
                     # THE SWEEP IS A PULL AND EMITTED NO PULL ROW. `reused()` counts `pull` rows
                     # and this is the only path that RE-BINDS, so every reuse it found was
                     # invisible to the bench-pull and transfer columns both.
+                    self._rp_bind(slot, cand.name, "route_pull")
                     self.led.record(self.cycle, self._running_step, slot, "pull", term=cand.name,
                                     held=tkey, chain=" . ".join(a.name for a in cand.atoms),
                                     rebound=True, via="sweep",
@@ -27859,6 +27932,7 @@ class Agent:
         # and its own `pull` row is a ROUTE row, so an `ACCEPT` here puts a later ROUTE for the
         # same slot out of order -- `chase: ROUTE after ACCEPT`, refused at seq 39. **The step
         # is a fact about WHEN the row is written, not about what the event feels like.**
+        self._rp_bind(slot, cand.name, "reuse_install")
         self.led.record(self.cycle, self._running_step, slot, "reuse_install", term=cand.name,
                         cost=round(cost, 4), left=round(left, 4),
                         base=None if base is None else round(base, 4),
@@ -28117,12 +28191,22 @@ class Agent:
             if _STOP_RULES and self._settle_pred(slot, r)["risky"]:
                 # 1c (i): a survival persistence would miss, under the space's key of now (r338)
                 self._risky[(slot, name)] = self._tally.get(slot, (None,))[0]
+            if _REACH_PAID and name in self._rp_minted:
+                self._rp_settled.add(name)
+            if _REACH_PAID:
+                self._rp_bound_n[self._rp_bound.get(
+                    (slot, name), self._rp_bound.get((None, name), "none recorded"))] += 1
             self.led.record(self.cycle, "SETTLE", slot, "settle", term=name,
                             status="accepted",
                             asked=[name, slot], ground_said=True,
                             verdict="held on a transition it was not fitted to",
                             held_out_cycle=self.cycle, fitted_through=born,
-                            **(self._settle_pred(slot, r) if _SETTLE_PRED else {}))
+                            **(self._settle_pred(slot, r) if _SETTLE_PRED else {}),
+                            **({"from_offer": self._rp_minted[name]}
+                               if _REACH_PAID and name in self._rp_minted else {}),
+                            **({"bound_by": self._rp_bound.get(
+                                (slot, name), self._rp_bound.get((None, name), "none recorded"))}
+                               if _REACH_PAID else {}))
 
     # -- the utterance: the only way an action is proposed --------------------------------
 
@@ -29399,6 +29483,7 @@ class Agent:
                     self._note_use(fit)
                     self.owed_import.discard(slot)
                     self.abstained.pop(slot, None)
+                    self._rp_bind(slot, fit, "rebind")
                     self.led.record(self.cycle, "ACCEPT", slot, "rebind", term=fit,
                                     status="candidate", note="refit; the library did not change")
                 elif b == REFUTED:

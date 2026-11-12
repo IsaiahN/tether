@@ -2414,6 +2414,13 @@ ARMS: dict[str, str] = {
                         "entry's K1 tier) and tier_landed (each landed entry's tier; 'untiered' "
                         "where no tier placed it). A record; nothing reads it. OFF by default; "
                         "8d sets it ON explicitly (r1811). OFF: the row as before",
+    "TETHER_REACH_PAID": "8a-0, r1795, r1796, r1812 4, r1815: reached (offered in a lookup), "
+                         "minted (the mint's winner came from that offer; the mint row's "
+                         "from_offer), settled (that term later held out-of-fit; the settle "
+                         "row's from_offer), each with the entry's K1 tier, and a run-end "
+                         "reached_paid row per tier (settled first). A record; nothing reads it. "
+                         "OFF by default; 8d sets it ON explicitly (r1811). OFF: the rows as "
+                         "before",
     "TETHER_RECIPE_HELD_FREE": "the reviewer 2026-11-04 r985 (Fig 12 :107-108): under "
                                "RECIPE_DEDUP a chain held as a recipe is tested once, before its "
                                "instances are generated, and takes no try (it was B x G tries, "
