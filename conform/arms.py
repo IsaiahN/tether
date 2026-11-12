@@ -3192,6 +3192,12 @@ ARMS: dict[str, str] = {
                               "while an offered action is unpressed on this board the step's mint "
                               "is owed (try_first_owed) and the goal split is not offered. OFF: "
                               "both run from the first press (18c9ec4). default ON",
+    "TETHER_TRY_FIRST_ACTIONS": "the reviewer r1821, r726's bound restored: the hold on the mint "
+                                "and the goal split counts the unpressed offered actions only; "
+                                "untouched kinds (r736) keep steering System 0's touches "
+                                "(_contact_target, _system0_active) and no longer hold reasoning. "
+                                "8d reads it. OFF: the hold reads _try_first_open, kinds included. "
+                                "default ON",
     "TETHER_ROUTE_KEY_GENERAL": "42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer "
                                 "2026-11-01 r717): R-B keys a route by the intent's general "
                                 "statement (slot and sign; a Specific's stated target dropped), so "

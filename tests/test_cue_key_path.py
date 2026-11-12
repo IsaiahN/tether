@@ -218,7 +218,8 @@ def statuses(a: dict, b: dict) -> dict:
     st["MF3"] = (min(held.values()) == 0, "produce-only in the window: " + ", ".join(
         f"{g['game']} {held[g['game']]} of {len(g['prod_only'])} (ranks "
         f"{sorted(g['prod_ranks'].values())[:3]} of {g['lit_n']}, window {len(g['window'])})"
-        for g in (a, b)))
+        for g in (a, b)) + " -- rank of produce-only entries; AGENT|translate is an atom with "
+        "no held view, so its rank is not this move's block (r1819)")
     ahead = {g["game"]: any(r < g["fwd_last_rank"] for r in g["prod_ranks"].values())
              for g in (a, b)}
     st["MF4"] = (not all(ahead.values()), "a produce-only entry ahead of the forward tail: " +

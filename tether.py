@@ -3517,6 +3517,11 @@ _TOUCH_EACH_OBJECT = armflag.arm("TETHER_TOUCH_EACH_OBJECT", default=True)
 # booked try_first_owed) and the goal split is not offered. Bounded by the offered actions.
 # OFF: both run from the first press
 _BOARD_TRY_FIRST = armflag.arm("TETHER_BOARD_TRY_FIRST", default=True)
+# TRY_FIRST_ACTIONS (the reviewer r1821, r726's bound restored): the HOLD on the mint and the goal
+# split counts the unpressed offered actions only. Untouched kinds (r736) keep steering System 0's
+# touches (_contact_target, _system0_active) but no longer hold reasoning: a residual on a slot
+# after a press is already contact. OFF: the hold reads _try_first_open, kinds included
+_TRY_FIRST_ACTIONS = armflag.arm("TETHER_TRY_FIRST_ACTIONS", default=True)
 # C2 FINISH, S0_BEFORE_BORED (the reviewer 2026-11-01 r736): choose skipped the exit contest
 # whenever the drive was bored and nothing was starved, so a bored, uninformed probe took the
 # turn while System 0 was still active (lp85, measured at choose: 16 of 21 turns
@@ -20810,6 +20815,11 @@ class Agent:
             n += len(uk)
         return n
 
+    def _try_first_hold(self) -> int:
+        """TRY_FIRST's hold on the mint and the goal split (r726): the unpressed offered actions,
+        under TRY_FIRST_ACTIONS (r1821); OFF, _try_first_open's count, kinds included."""
+        return self._board_untried_n() if _TRY_FIRST_ACTIONS else self._try_first_open()
+
     def _board_untried_n(self) -> int:
         """C1 / TRY_FIRST: how many offered actions are not yet pressed on this board -- the
         interface's count; the names stay below the seam (r727)."""
@@ -24844,7 +24854,7 @@ class Agent:
         keyed on the same evidence. And nothing here sums magnitudes across slots, because
         nothing here ranges over more than the ONE slot the selector chose.
         """
-        if _BOARD_TRY_FIRST and self._try_first_open():
+        if _BOARD_TRY_FIRST and self._try_first_hold():
             self._split_why = "try_first"   # the refusal row names the hold, not None
             return None                  # TRY_FIRST: this board's buttons are pressed first
         # ITEM 3 GATES ITEM 2. Before the selector this ranged over EVERY OBJ-bound slot,
@@ -25977,7 +25987,7 @@ class Agent:
                                          if _GOAL_MINT_FIRST else "")
                                       + " -- unreached at this budget, never a verdict")
             return
-        if _BOARD_TRY_FIRST and self._try_first_open():
+        if _BOARD_TRY_FIRST and self._try_first_hold():
             self.owed_import.add(slot)
             _book_add(self.gamma.book, "try_first_owed")
             untried = self._board_untried_n()        # read where the row read them (r1411)
