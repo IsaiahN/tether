@@ -110,6 +110,7 @@ def order(on):
     route = ag._hyp_route(sl, before)
     ag.routine, ag._routine_next = None, None
     ag._try_first_open = lambda: 0    # the board's TRY_FIRST hold would defer the goal exit first
+    ag._try_first_hold = lambda: 0    # 6adfec2: _goal_split's hold reads this one
     ag._system0_active = lambda: True
     ag._exit_choice = lambda b: ("system0", None, None)
     tether._GOAL_HYP = on
