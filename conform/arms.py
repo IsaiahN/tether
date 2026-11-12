@@ -2404,6 +2404,12 @@ ARMS: dict[str, str] = {
                               "'closure cannot cover R' (enumerated to its affordable depth), with "
                               "the best candidate; record only, the agent's readers keep the old "
                               "verdict. OFF: the row as before. default ON",
+    "TETHER_PAY_GAP": "8a-0, the reviewer r1767 2, r1809 3: per mint a pay_gap row -- the cut "
+                      "candidates' gap over ALL of R (counted uncharged: heads and the extent "
+                      "count restored), headroom, rows read before the cut, the closest 3, and "
+                      "the book's bargain counts and the divide / space_closed / want_only rows "
+                      "read back. An instrument; nothing in the agent reads it. OFF by default "
+                      "so no default run (8d included) pays its wall time. OFF: no row, no count",
     "TETHER_RECIPE_HELD_FREE": "the reviewer 2026-11-04 r985 (Fig 12 :107-108): under "
                                "RECIPE_DEDUP a chain held as a recipe is tested once, before its "
                                "instances are generated, and takes no try (it was B x G tries, "

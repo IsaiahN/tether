@@ -246,6 +246,13 @@ _RECIPE_HELD_FREE = armflag.arm("TETHER_RECIPE_HELD_FREE", default=True)
 # inside the agent sees the old one. OFF: the row is as before.
 _CLOSURE_VERDICT = armflag.arm("TETHER_CLOSURE_VERDICT", default=True)
 
+# 8a-0, THE PAY-GAP ROW (the reviewer r1767 2, r1809 3): per mint, how far the candidates
+# _cannot_pay cut were from paying. The cut stops at the first row that proves it, so the gap AT
+# the cut sits in [0, log2 V) and cannot tell "nearly paid" from "nowhere near"; the gap is counted
+# over ALL of R, UNCHARGED -- no head booked, the shape table's extent count restored -- and the
+# row says so. An instrument's notebook: nothing in the agent reads it. OFF: no row, no count.
+_PAY_GAP = armflag.arm("TETHER_PAY_GAP", default=False)
+
 # ARM G -- REBIND WHAT IS HELD. `_rebindings` returns early for any term that already carries an
 # operand, so only IMPORTS (which arrive unbound, `save` drops it) are ever re-bound. A term the
 # agent minted THIS RUN is offered to a new slot still pointing at the old one, `_explains` tests
@@ -4135,6 +4142,16 @@ class _DecoderView(Mapping):
         return len(self._m)
 
 
+def _pg_q(xs: list) -> dict | None:
+    """8a-0 pay-gap: min / p10 / p50 / p90 / max of a mint's readings, None when there are none."""
+    if not xs:
+        return None
+    s = sorted(xs)
+    at = lambda f: round(s[min(len(s) - 1, int(f * len(s)))], 3)  # noqa: E731
+    return {"n": len(s), "min": round(s[0], 3), "p10": at(0.1), "p50": at(0.5), "p90": at(0.9),
+            "max": round(s[-1], 3)}
+
+
 def _divide_cause(old: tuple, new: tuple) -> str:
     """1a: which parts of a slot's key moved, by name."""
     return "+".join(n for n, a, b in zip(_DIVIDE_PARTS, old, new, strict=True) if a != b) or "same"
@@ -4832,6 +4849,7 @@ class Agent:
         # taken, and would read low for a reason that is not the hold.
         self._hold_eligible = 0
         self._priced = 0                     # candidates priced by `_cannot_pay`, ever
+        self._pg = None                      # 8a-0 pay-gap: this mint's notebook (TETHER_PAY_GAP)
         self._memo: dict | None = None       # live only inside one `mint` -- see `mint`
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
@@ -19718,6 +19736,8 @@ class Agent:
                             self._dv["answered"] += 1
                     if _CLOSURE_VERDICT:
                         self._cp_note(term, start, len(robs), cost, base, unit)
+                    if self._pg is not None:
+                        self._pg_note(term, slot, robs, cost, base, unit, start)
                     return True             # the stored prefix already proves it
         for i in range(start, len(robs)):
             cap.head()
@@ -19732,6 +19752,8 @@ class Agent:
                                                     cost) if _DIVIDE else (i + 1, wrong))
                 if _CLOSURE_VERDICT:
                     self._cp_note(term, i + 1, len(robs), cost, base, unit)
+                if self._pg is not None:
+                    self._pg_note(term, slot, robs, cost, base, unit, i + 1)
                 return True          # `wrong` only grows; the rest of R adds nothing
         if cell is not None:
             cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was, e0, cost)
@@ -19739,6 +19761,80 @@ class Agent:
         if _DIVIDE and self._dv is not None:
             self._dv["passed"] += 1     # the term goes on to the bargain: not a lookup (CREDIT)
         return False
+
+    def _pg_note(self, term: Term, slot: str, robs: list, cost: float, base: float, unit: float,
+                 before: int) -> None:
+        """8a-0 pay-gap (r1809 3): a cut candidate's gap over ALL of R, counted uncharged -- the
+        heads and the extent count are restored and held, so the budget and every later stamp
+        are as if the count never ran; only its wall time is spent, and booked here. It reads
+        through its own memo: a hit it left in the mint's would spare the mint heads later."""
+        t0 = time.perf_counter()
+        pg = self._pg
+        memo, self._memo = self._memo, pg["memo"]
+        try:
+            with self._pg_uncharged():
+                wrong = sum(1 for r in robs if self._row_wrong(term, slot, r))
+        finally:
+            self._memo = memo
+        pg["s"] += time.perf_counter() - t0
+        pg["after"] += len(robs) - before
+        pg["max_r"] = max(pg["max_r"], len(robs))
+        gap = cost + unit * wrong - base
+        pg["gap"].append(gap)
+        pg["head"].append(base - cost)
+        pg["frac"].append(before / len(robs) if robs else 1.0)
+        pg["near"] = sorted([*pg["near"], (round(gap, 3), term.name, round(cost, 3),
+                                           round(base, 3), len(robs), wrong)])[:3]
+
+    def _pg_row(self, slot: str, pg: dict) -> None:
+        """8a-0 pay-gap: the mint's row. The counts it does not make itself it READS -- the book's
+        bargain counters across the mint, and the divide / space_closed / want_only rows the mint
+        wrote -- so nothing is counted twice. Uncharged as the count is."""
+        with self._pg_uncharged():
+            self._pg_write(slot, pg)
+
+    @contextmanager
+    def _pg_uncharged(self):
+        """8a-0 pay-gap: the block runs held and outside the step's purse (no head clock, so no
+        purse check inside it fires, writes a row or marks the step cut, and no scope books heads),
+        and what it moved that the purse or a later stamp reads is put back -- the heads, the step
+        clock's per-scope heads, the extent count, the cycle's derived-slot cache."""
+        heads, ext, dsl, clk_h, hs = cap.HEADS, _EXTENT[0], self._dslots, dict(self._clk_h), \
+            self._clk_hs
+        self._clk_hs = None
+        try:
+            with cap.hold():
+                yield
+        finally:
+            cap.HEADS, _EXTENT[0], self._dslots, self._clk_h = heads, ext, dsl, clk_h
+            self._clk_hs = hs
+
+    def _pg_write(self, slot: str, pg: dict) -> None:
+        rows = self.led.rows(pg["n0"])
+        mine = [r for r in rows if r["slot"] == slot]
+        book = {k: self.gamma.book.get(k, 0) - v for k, v in pg["book"].items()}
+        self.led.record(
+            self.cycle, "MINT", slot, "pay_gap", uncharged_instrument=True,
+            derived=bool(pg["want_only"] or slot in self._derived_now()),
+            want_only_ask=pg["want_only"], cuts=len(pg["gap"]),
+            rows_read_after_cut=pg["after"], wall_s_uncharged=round(pg["s"], 4),
+            max_R=pg["max_r"], gap_bits=_pg_q(pg["gap"]), headroom_bits=_pg_q(pg["head"]),
+            cut_on_cost_alone=sum(1 for h in pg["head"] if h <= 0),
+            rows_before_cut_frac=_pg_q(pg["frac"]),
+            closest=[{"gap_bits": g, "term": t, "cost": c, "base": b, "slot": slot, "R": n,
+                      "wrong": w} for g, t, c, b, n, w in pg["near"]],
+            read={"candidates_priced": self._priced - pg["priced"],
+                  "bounded_out": book["bargain_bounded_out"],
+                  "did_not_pay": book["bargain_does_not_pay"], "paid": book["bargain_paid"],
+                  "divide_survivors": [r["detail"].get("survivors") for r in mine
+                                       if r["event"] == "divide"],
+                  "space_closed_survivors": [
+                      r["detail"].get("survivors") for r in rows if r["event"] == "space_closed"
+                      and slot in (r["slot"], r["detail"].get("space"))],
+                  "want_written": [r["detail"].get("want") is not None for r in mine
+                                   if r["event"] == "want_only"]},
+            reads="8a-0 (r1767 2, r1809 3): an instrument's notebook, counted uncharged; the "
+                  "agent reads none of it")
 
     def _divide_cell(self, term: Term, rows: int, wrong: int, ref, start: int, was,
                      e0: int, cost: float) -> tuple:
@@ -25934,12 +26030,21 @@ class Agent:
             return None
         out0 = self.outstanding(slot) if _7F_LEAVE else None
         self._memo = {}
+        if _PAY_GAP:
+            self._pg = {"n0": len(self.led), "priced": self._priced, "want_only": self._want_only,
+                        "book": {k: self.gamma.book.get(k, 0) for k in (
+                            "bargain_bounded_out", "bargain_does_not_pay", "bargain_paid")},
+                        "s": 0.0, "after": 0, "max_r": 0, "gap": [], "head": [], "frac": [],
+                        "near": [], "memo": {}}
         try:
             # a derived ask's mint is cut at its ask (_derived_wants), which owes it there
             got = (self._mint(slot) if self._want_only
                    else self._unit(partial(self._mint_purse_owed, slot, True), self._mint, slot))
         finally:
             self._memo = None
+            pg, self._pg = self._pg, None
+        if pg is not None:
+            self._pg_row(slot, pg)
         if got is _UNIT_CUT:
             return None
         if _7F_LEAVE and hasattr(self, "_leave_held"):   # an Agent built by __new__ has none
