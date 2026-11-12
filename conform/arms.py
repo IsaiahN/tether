@@ -2408,8 +2408,12 @@ ARMS: dict[str, str] = {
                       "candidates' gap over ALL of R (counted uncharged: heads and the extent "
                       "count restored), headroom, rows read before the cut, the closest 3, and "
                       "the book's bargain counts and the divide / space_closed / want_only rows "
-                      "read back. An instrument; nothing in the agent reads it. OFF by default "
-                      "so no default run (8d included) pays its wall time. OFF: no row, no count",
+                      "read back. An instrument; nothing in the agent reads it. OFF by default; "
+                      "8d sets it ON explicitly (r1811). OFF: no row, no count",
+    "TETHER_PICK_TIER": "8a-0, r1789, r1796: the library row carries tier_offered (each offered "
+                        "entry's K1 tier) and tier_landed (each landed entry's tier; 'untiered' "
+                        "where no tier placed it). A record; nothing reads it. OFF by default; "
+                        "8d sets it ON explicitly (r1811). OFF: the row as before",
     "TETHER_RECIPE_HELD_FREE": "the reviewer 2026-11-04 r985 (Fig 12 :107-108): under "
                                "RECIPE_DEDUP a chain held as a recipe is tested once, before its "
                                "instances are generated, and takes no try (it was B x G tries, "

@@ -253,6 +253,11 @@ _CLOSURE_VERDICT = armflag.arm("TETHER_CLOSURE_VERDICT", default=True)
 # row says so. An instrument's notebook: nothing in the agent reads it. OFF: no row, no count.
 _PAY_GAP = armflag.arm("TETHER_PAY_GAP", default=False)
 
+# 8a-0, THE PICK-TIER FIELD (r1789, r1796): on the library row, the K1 tier each OFFERED entry came
+# from and the tier of each entry that LANDED in the lookup ("untiered" where no tier placed it). A
+# record: nothing reads it. OFF: the row as before.
+_PICK_TIER = armflag.arm("TETHER_PICK_TIER", default=False)
+
 # ARM G -- REBIND WHAT IS HELD. `_rebindings` returns early for any term that already carries an
 # operand, so only IMPORTS (which arrive unbound, `save` drops it) are ever re-bound. A term the
 # agent minted THIS RUN is offered to a new slot still pointing at the old one, `_explains` tests
@@ -4850,6 +4855,8 @@ class Agent:
         self._hold_eligible = 0
         self._priced = 0                     # candidates priced by `_cannot_pay`, ever
         self._pg = None                      # 8a-0 pay-gap: this mint's notebook (TETHER_PAY_GAP)
+        self._tier_of: dict | None = None    # 8a-0 pick-tier: this lookup's entry -> K1 tier
+        self._tier_land: dict = {}           # 8a-0 pick-tier: this lookup's landed entry -> tier
         self._memo: dict | None = None       # live only inside one `mint` -- see `mint`
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
@@ -7506,6 +7513,8 @@ class Agent:
                     seen.add(k)
                     out.append((k, w))
                     c += 1
+                    if self._tier_of is not None:
+                        self._tier_of[k] = tier
             n[tier] = c
 
         # every order below ends in a tie-break: the recorded draw, keyed per lookup (OFF: the name)
@@ -7714,6 +7723,8 @@ class Agent:
         for m in tg:
             cap.head()
             self._lib_offers[m] = []
+        if _PICK_TIER:
+            self._tier_of, self._tier_land = {}, {}
         if k1:
             lit, tiers = self._tiers(lib, lit, dk, mine, described, att,
                                      more=tuple(d for m, d in (dks or {}).items()
@@ -7914,6 +7925,12 @@ class Agent:
                             **({"cue_norm": sorted(normed)} if normed else {}),
                             **({"rank": rank} if rank is not None and m == slot else {}),
                             **({"obj_event": self._event_of.get(slot)} if members else {}),
+                            **({"tier_offered": {
+                                k_: self._tier_of.get(k_, "untiered") for k_ in sorted(
+                                    {o_["prov"].get("library") for o_ in self._lib_offers[m]}
+                                    - {None})},
+                                "tier_landed": dict(sorted(self._tier_land.items()))}
+                               if self._tier_of is not None else {}),
                             reads=("the library lit by this residual's description; the distinct "
                                    "views and CAUSE then-sides that compile onto this slot, tested "
                                    "and recorded, each with the count of entries that offered it"))
@@ -8980,6 +8997,8 @@ class Agent:
     @cap.held      # C1 (A): one landing writes several kind stores the lineage carries (15:34 2)
     def _land_kind(self, entry: tuple, dk: tuple | None = None, slot: str | None = None) -> None:
         """7l: a landed (entry, role, kind_o, kind_x); 7m's pair set kept with it."""
+        if self._tier_of is not None:
+            self._tier_land[entry[0]] = self._tier_of.get(entry[0], "untiered")
         self._kind_landed.add(entry)
         self._kind_pairs.add((entry[2], entry[3]))
         if _CONSOLIDATE and ("7l", entry, slot) not in self._dk_this:
