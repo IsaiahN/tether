@@ -31,6 +31,7 @@ from functools import cache, lru_cache, partial, wraps
 from typing import Any
 
 import armflag
+import can_ledger
 import cap
 import compile_term
 import composer
@@ -1456,6 +1457,12 @@ _TIERED_TERMS = armflag.arm("TETHER_TIERED_TERMS", default=True)
 # _left, pays), best-first by cost with the exact stop, within what the mint's work budget left. A
 # deeper tree that beats the best is the best; nothing is refused. OFF: no deepening, as before.
 _TREE_DEEPEN = armflag.arm("TETHER_TREE_DEEPEN", default=True)
+# 10a+, WHAT I CAN DO AND WHAT I CAN'T (the reviewer 2026-11-12; Isaiah 15:01-15:08): at each
+# planning episode every subject slot is read into CAN / BLOCKED / NOT_FOUND / GIVEN_UP
+# (can_ledger.py), and an item that crosses lists, or appears, is a row with its pretext, cue, lag
+# and src -- the evidence wall of what opened what. RECORD-ONLY: no choice reads it yet. OFF: no
+# rows.
+_CAN_LEDGER = armflag.arm("TETHER_CAN_LEDGER", default=True)
 # the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
@@ -26138,6 +26145,65 @@ class Agent:
         key = f"{self.draw_seed}:{self.cycle}:{slot}".encode()
         return hashlib.blake2b(key, digest_size=8).digest()[0] < 128      # ~0.5
 
+    def _can_update(self) -> None:
+        """10a+ (TETHER_CAN_LEDGER): read every subject slot into CAN / BLOCKED / NOT_FOUND /
+        GIVEN_UP, compare with the last reading on this board, and write a row per crossing and
+        one for the appearances -- record-only (can_ledger.py; Isaiah 11-12 15:01-15:08)."""
+        before = self.trace[-1][2]
+        board = getattr(self.iface, "board_n", None)
+        st = getattr(self, "_can_state", None)
+        if st is None or st["board"] != board:
+            st = self._can_state = {"board": board, "lists": None, "state": None,
+                                    "step": self.cycle, "known": None}
+        der = self.env.derived() if hasattr(self.env, "derived") else {}
+        slots = [k for k in before if "." in k and "~" not in k and "@" not in k
+                 and k in self.slots]
+        movable = {k for k in slots if k not in der}
+        routable = self._route_first_set(before)
+        clock = set(self._own_clock_keys()) if _OWN_CLOCK_SUBJECT else set()
+        table = self.iface.table
+        untried = sum(1 for a in self.actions if a not in table)
+        given_up = {tk[1] for tk, v in self._hyp_tried.items()
+                    if isinstance(tk, tuple) and len(tk) > 1 and isinstance(v, tuple) and v
+                    and v[0] in can_ledger.REFUTED_ENDS}
+        now = can_ledger.classify(slots, movable, routable, clock, untried, given_up)
+        known = (sum(len(v.get("delta", {})) for v in table.values()), len(self.gamma.library))
+        prev, pstate = st["lists"], st["state"]
+        lag = self.cycle - st["step"]
+        cnt = can_ledger.counts(now)
+        if prev is None:
+            self.led.record(self.cycle, "MINT", "@can", "can_lists", board=board, **cnt,
+                            first=True, reads="10a+: what I can do and what I can't, first "
+                                              "reading on this board (record-only)")
+        else:
+            learned = known != st["known"]
+            cross, appear = can_ledger.crossings(prev, now, learned)
+            changed = sorted(k for k in before if pstate is not None
+                             and pstate.get(k) != before[k])
+            cue = {"press": str(self.trace[-1][1]), "changed": changed[:12],
+                   "changed_n": len(changed)}
+            for row in cross:
+                cap.head()
+                try:
+                    src, first, gain, n = source_of(self, row["item"])[:4]
+                except Exception:   # noqa: BLE001  a hint, never a verdict: no src is honest
+                    src, first, gain, n = None, None, None, None
+                self.led.record(self.cycle, "MINT", "@can", "can_crossing", **row, cue=cue,
+                                lag=lag, src=src, first_bind=first, gain=gain, rows=n,
+                                learned_since=learned,
+                                reads="an item changed list: the old list and reason are the "
+                                      "pretext, the press and the changed slots the cue, src "
+                                      "who it reads as moved by -- a filter, never a verdict")
+            if appear:
+                self.led.record(self.cycle, "MINT", "@can", "can_appeared", n=len(appear),
+                                items=appear[:12], cue=cue, lag=lag,
+                                reads="items new to the lists since the last reading")
+            if cross or appear:
+                self.led.record(self.cycle, "MINT", "@can", "can_lists", board=board, **cnt,
+                                crossings=len(cross), appeared=len(appear),
+                                reads="what I can do and what I can't, after the crossings")
+        st.update(lists=now, state=dict(before), step=self.cycle, known=known)
+
     def _deepen_trees(self, slot: str, roots: list, hist, base: float, robs: list, rkey: Any,
                       units: Any, budget: int, beat: float) -> tuple:
         """10d 2b: tree_search.deepen over the mint's depth-one trees. `roots` are (tree, guard
@@ -30156,6 +30222,11 @@ class Agent:
         if _DERIVED_WANT and self.trace and _plan:
             with self._step_scope("MINT"):
                 self._derived_wants()
+        if _CAN_LEDGER and _plan and self.trace:
+            # record-only, so uncharged: no head, purse, extent or derived-slot cache it touches
+            # may move a choice or a later reading (8a-0's pay-gap rule)
+            with self._step_scope("MINT"), self._pg_uncharged():
+                self._can_update()
         if _t_ep is not None:
             with self._step_scope("MINT"):   # G1: the row's label is the step running
                 self.led.record(self.cycle, "MINT", "@plan", "plan_episode",

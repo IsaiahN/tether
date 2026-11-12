@@ -2344,6 +2344,11 @@ ARMS: dict[str, str] = {
                          "unclustered PERCEPT atoms (index by_cluster_derived, served only against "
                          "the corpus file it was derived from); enters compile_term.signature. "
                          "NEEDS TETHER_ATTR_BRIDGE. OFF: item 9's bridge as it was. default ON",
+    "TETHER_CAN_LEDGER": "STEP 10a+ (the reviewer 2026-11-12; Isaiah 15:01-15:08): at each "
+                         "planning episode every subject slot is read into CAN / BLOCKED / "
+                         "NOT_FOUND / GIVEN_UP (can_ledger.py); a crossing or an appearance is a "
+                         "row with its pretext, cue, lag and src. RECORD-ONLY and uncharged. "
+                         "ON. OFF: no rows. MF: tests/test_can_ledger.py.",
     "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
                           "the mint's depth-one trees that passed their own _cannot_pay are "
                           "deepened a tier at a time (tree_search.deepen), each priced by the "
