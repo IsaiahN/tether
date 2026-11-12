@@ -3030,6 +3030,11 @@ ARMS: dict[str, str] = {
                       "says its key rows aloud, one line per event kind per cycle (more counted), "
                       "copied to narrate.log, and each game's 'stopped at link X'. Writes nothing "
                       "back: the ledger is the same OFF. default ON",
+    "TETHER_NARRATE_WEIGHT": "P7 (step 8; the reviewer 2026-11-12 r1835/r1838, item 6; Isaiah "
+                             "11-06 'log that event and console it'): the narrator also says "
+                             "WEIGHT lines (standing_freed, reflex_settled) and SENSE lines "
+                             "(8b-1's sense_pick 'cue -> sense, expecting' and sense_note "
+                             "held/missed). Say-only: the ledger is the same OFF. default ON",
     "TETHER_WINDOW_BACKOFF": "BUILD 3 item 10 (the reviewer 2026-11-04 r1045; Fig 8 :39): a "
                              "described-lookup window that keeps 0 is followed in the same ask "
                              "by the next ranked window until one keeps > 0, the list ends or "
