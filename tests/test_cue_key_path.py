@@ -30,7 +30,9 @@ outcome recorded back -- then the same change kind in another game and on anothe
 
 EXPECTED_RED is today's red set; the test passes iff the measured red set equals it exactly, so a
 red that turns green before its piece, or a green that turns red, fails it. 8a-1 removes
-MF2a/MF3/MF4, 8a-2 MF2b/MF7/MF8.
+MF2a/MF3/MF4, 8a-2 MF2b/MF7/MF8. RETIRED (MF2b, MF8) are printed with their reading and never
+asserted: each tests the 8a-2 lookup memory r1828 retired, a mechanism the agent no longer has
+(r1844).
 
     python tests/test_cue_key_path.py
 """
@@ -46,7 +48,8 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 HERE = _repo.ROOT
 DATA = os.path.join(HERE, "tests", "data", "cue_key_path")
-EXPECTED_RED = {"MF2a", "MF2b", "MF3", "MF4", "MF7", "MF8"}
+EXPECTED_RED = {"MF2a", "MF3", "MF4", "MF7"}
+RETIRED = {"MF2b", "MF8"}         # r1828 retired 8a-2's lookup memory; r1844
 
 CHILD = r'''
 import gzip, json, os, sys, tempfile
@@ -254,8 +257,9 @@ def main() -> int:
     st = statuses(a, b)
     for mf in sorted(st, key=lambda x: (len(x), x)):
         red, why = st[mf]
-        print(f"{mf:5} {'RED  ' if red else 'GREEN'} {why}")
-    red = {mf for mf, (r, _w) in st.items() if r}
+        tag = "RETIRED" if mf in RETIRED else ""
+        print(f"{mf:5} {'RED  ' if red else 'GREEN'} {why}" + (f"  [{tag}: r1828]" if tag else ""))
+    red = {mf for mf, (r, _w) in st.items() if r and mf not in RETIRED}
     assert red == EXPECTED_RED, f"red set {sorted(red)} != expected {sorted(EXPECTED_RED)}"
     print(f"OK: the red set is the expected {sorted(EXPECTED_RED)}")
     return 0
