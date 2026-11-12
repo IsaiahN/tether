@@ -151,7 +151,10 @@ def _key(row: dict) -> str:
     """A term row's atoms, guard and operand tree, WITHOUT the operand: coarser than what load
     installs by (see gamma.Gamma.row_key, the reviewer 2026-10-25 21:38). Never a row's identity
     in the record, which is (born, handle) below."""
-    return json.dumps([row["atoms"], row.get("guard"), row.get("operand_term")])
+    key = [row["atoms"], row.get("guard"), row.get("operand_term")]
+    if row.get("operand_tree") is not None:     # 10d: a deeper shape is a different term
+        key.append(row["operand_tree"])
+    return json.dumps(key)
 
 
 def _rid(row: dict) -> tuple:

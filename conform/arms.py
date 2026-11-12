@@ -2337,6 +2337,12 @@ ARMS: dict[str, str] = {
                          "unclustered PERCEPT atoms (index by_cluster_derived, served only against "
                          "the corpus file it was derived from); enters compile_term.signature. "
                          "NEEDS TETHER_ATTR_BRIDGE. OFF: item 9's bridge as it was. default ON",
+    "TETHER_TIERED_TERMS": "STEP 10d (the reviewer 2026-11-12; Isaiah 12:41, 15:15): the "
+                           "operand tree recurses -- a node naming a second slot that "
+                           "carries its own operand tree reads that leaf through _ops, so a "
+                           "leaf is a computed value and depth is what the bargain pays for. "
+                           "ON. OFF: the second leaf is a raw slot (r1145). MF: "
+                           "tests/test_tiered_terms.py (depth-2 plant).",
     "TETHER_TWO_SLOT_OPERAND": "BUILD 3 ITEM 8b' (the reviewer 2026-11-04 r1145): an operand-"
                                "tree node slot_a − slot_b (the tree's own term names the second "
                                "slot), typed affinely, seeded ONLY from a settled junction whose "

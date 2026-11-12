@@ -1441,6 +1441,13 @@ _COVER_PRUNE = armflag.arm("TETHER_COVER_PRUNE", default=True)
 # -- seeded ONLY from the two pair readings of a settled junction no existing shape can express,
 # lifted to the one source that moved, priced as a bonded arrangement. Depth one: leaves are slots.
 _TWO_SLOT_OPERAND = armflag.arm("TETHER_TWO_SLOT_OPERAND", default=True)
+# 10d, TIERED TERMS (the reviewer 2026-11-12; Isaiah 12:41 "f(g(h(i(...))))", 15:15 "it can start
+# now"): the operand tree RECURSES. A node whose own term names a second slot AND carries its own
+# operand tree reads that second leaf through _ops itself, so a leaf can be a computed value and the
+# tree can be as deep as the bargain pays for -- the depth-one bound in _ops' docstring was
+# structural (the branch's operand was a value, never a term); here the second leaf is a term.
+# OFF: the second leaf is read as a raw slot, as before (r1145).
+_TIERED_TERMS = armflag.arm("TETHER_TIERED_TERMS", default=True)
 # the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
@@ -13331,7 +13338,13 @@ class Agent:
             b = term.operand_term.operand if _TWO_SLOT_OPERAND else None
             if b is not None:
                 # r1145: the node slot_a − slot_b -- its second leaf is a slot, read in this state
-                vb = self._operand_value(b, state) if "~" in b else state.get(b, NOT_RESOLVED)
+                if _TIERED_TERMS and term.operand_term.operand_term is not None:
+                    # 10d: the second leaf is itself a tree -- read it through _ops (one tier
+                    # down); an unreadable leaf is NOT_RESOLVED, never a guessed value (12.2)
+                    inner = self._ops(term.operand_term, state)
+                    vb = inner[0] if inner else NOT_RESOLVED
+                else:
+                    vb = self._operand_value(b, state) if "~" in b else state.get(b, NOT_RESOLVED)
                 value = (NOT_RESOLVED if NOT_RESOLVED in (value, vb)
                          else term.operand_term.apply(value, Ctx(operands=(vb,))))
             else:

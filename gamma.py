@@ -476,6 +476,10 @@ _DECAY_NEW_GAME_SERIES = armflag.arm("TETHER_DECAY_NEW_GAME_SERIES", default=Tru
 # downweighted and hard to surface until used again. OFF, the SPECIALIST agent: every fade switch is
 # forced OFF; it still learns, and nothing it holds fades
 _GENERAL = armflag.arm("TETHER_GENERAL", default=True)
+# 10d STEP 3 (the reviewer 2026-11-12): a tree deeper than one node saves and loads its nested
+# SHAPE (operand_tree; no bindings). The same switch as tether's recursive _ops. OFF: only the
+# first node's atom names cross, as before.
+_TREE_SAVE = armflag.arm("TETHER_TIERED_TERMS", default=True)
 # r1663 (C), FAILURES FADE (Isaiah 2026-11-10 11:49): ON, today's forgiveness -- Standing.decay and
 # the r1243 weights' `against` fade at the halflife. OFF (or TETHER_GENERAL OFF): no failure fades
 _FADE_FAILURES = armflag.arm("TETHER_FADE_FAILURES", default=True) and _GENERAL
@@ -1207,6 +1211,37 @@ class Code:
         return sum(2.0 ** -c for c in self.cost.values()) + 2.0 ** -self.end
 
 
+def tree_schema(t: Term | None) -> list | None:
+    """10d STEP 3: an operand tree's SHAPE, nested -- [[atom names], child schema or None] per node,
+    no slot bindings (the binding is per board; the shape is the method, Fig 4). Written only for
+    trees deeper than one node (`operand_term` already carries a one-node tree's atom names), so
+    every depth-one row and its row_key stay byte-identical."""
+    if t is None:
+        return None
+    return [[a.name for a in t.atoms], tree_schema(t.operand_term)]
+
+
+def tree_from_schema(sch: list | None, by_name: dict) -> Term | None:
+    """The unbound Term tree a schema names (None when any atom is not in this registry)."""
+    if sch is None:
+        return None
+    names, child = sch
+    if not all(n in by_name for n in names):
+        return None
+    inner = tree_from_schema(child, by_name) if child is not None else None
+    if child is not None and inner is None:
+        return None
+    return Term(tuple(by_name[n] for n in names), operand_term=inner)
+
+
+def _schema_names(sch: list | None) -> list:
+    out = []
+    while sch is not None:
+        out += sch[0]
+        sch = sch[1]
+    return out
+
+
 class Gamma:
     draw_seed: str | None = None    # the agent's, set at its start (HOLD_SEED Q4); None: random
 
@@ -1889,6 +1924,11 @@ class Gamma:
                         # (Fig 4); the slot it was bound to is not, and is not written.
                         "operand_term": ([a.name for a in t.operand_term.atoms]
                                          if t.operand_term is not None else None),
+                        # 10d STEP 3 (TETHER_TIERED_TERMS): a tree deeper than one node also
+                        # writes its nested SHAPE (no bindings); depth-one rows are unchanged
+                        **({"operand_tree": tree_schema(t.operand_term)}
+                           if _TREE_SAVE and t.operand_term is not None
+                           and t.operand_term.operand_term is not None else {}),
                         "handle": self.handles.get(name), "game": self.game,
                         # `stamps` holds DICTS: `getattr` on one returned None, so every term
                         # was saved with no admitting clause and no residual (F464).
@@ -2048,8 +2088,11 @@ class Gamma:
         operand tree, and its operand with the object ids blanked (the unbound form). Two rows
         with one key install the same term, so the later one can be saved as an alias."""
         op = r.get("operand")
-        return json.dumps([r["atoms"], r.get("guard"), r.get("operand_term"),
-                           Gamma.unbound_form(op) if op else None])
+        key = [r["atoms"], r.get("guard"), r.get("operand_term"),
+               Gamma.unbound_form(op) if op else None]
+        if r.get("operand_tree") is not None:      # 10d: deeper shapes are different terms
+            key.append(r["operand_tree"])
+        return json.dumps(key)
 
     def load_blob(self, blob: Any, parent: str | None = None,
                   hold_unbound: bool = False) -> dict:
@@ -2101,6 +2144,11 @@ class Gamma:
             seen_keys.add(rk)
             names = tuple(r["atoms"])
             tree = r.get("operand_term")
+            deep = r.get("operand_tree") if _TREE_SAVE else None
+            if deep is not None and not all(n in self._by_name for n in _schema_names(deep)):
+                refused.append({"atoms": list(r["atoms"]),
+                                "why": "operand tree names an atom not in this registry"})
+                continue
             if tree and not all(n in self._by_name for n in tree):
                 refused.append({"atoms": list(names),
                                 "why": "operand tree names an atom not in this registry"})
@@ -2126,7 +2174,8 @@ class Gamma:
                      # stayed "minted" and got no carry-candidacy (F468).
                      origin=IMPORTED,
                      guard=r.get("guard"),
-                     operand_term=(Term(tuple(self._by_name[n] for n in tree))
+                     operand_term=(tree_from_schema(deep, self._by_name) if deep is not None
+                                   else Term(tuple(self._by_name[n] for n in tree))
                                    if tree else None))
             unbound = None
             if ((parent or hold_unbound) and r.get("operand")
