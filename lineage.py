@@ -623,6 +623,18 @@ def head(d: str | Path) -> tuple[str | None, dict]:
     return (chain[-1][0] if chain else None), fold(chain)
 
 
+def fx_text(k: tuple) -> str:
+    """P3: a facet key (src, subj, dk, role) as the text a save stores it under."""
+    src, subj, dk, role = k
+    return json.dumps([src, subj, list(dk) if dk is not None else None, role])
+
+
+def fx_key(t: str) -> tuple:
+    """P3: the facet key a save's text names (fx_text's inverse)."""
+    src, subj, dk, role = json.loads(t)
+    return (src, subj, tuple(dk) if dk is not None else None, role)
+
+
 def _ksorted(rows) -> list:
     """The kind lists sorted by a TOTAL order: a delta kind's third element is an int on some
     keys and a str on others (ar25, E4a 2026-10-18); plain sorting compares element by element."""
@@ -854,6 +866,13 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
             gen["thought_" + fld] = {k: {e: n - w.get(k, {}).get(e, 0) for e, n in sorted(c.items())
                                          if n > w.get(k, {}).get(e, 0)}
                                      for k, c in sorted(ag._thought[fld].items())}
+    if tether._FACET_INDEX and hasattr(ag, "_fx"):
+        # P3 (R1): each facet key's L / O / P counts since the last write; load sums (facet_n)
+        w = ag._fx_written
+        gen["facet_n"] = {fx_text(k): d
+                          for k, c in sorted(ag._fx.items(), key=lambda kc: repr(kc[0]))
+                          if (d := {e: n - w.get(k, {}).get(e, 0) for e, n in sorted(c.items())
+                                    if n > w.get(k, {}).get(e, 0)})}
     if tether._SELF_READ and hasattr(ag, "_stopped_written"):
         # M3: the games' stopped-at links since the last write; load sums
         now = getattr(getattr(ag.led, "narrator", None), "links", {})
@@ -991,6 +1010,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         if "thought_tried" in gen:
             ag._thought_written = {f: {k: dict(c) for k, c in ag._thought[f].items()}
                                    for f in ("tried", "paid")}
+        if "facet_n" in gen:
+            ag._fx_written = {k: dict(c) for k, c in ag._fx.items()}
         if "root_grades" in gen:
             ag._root_grade_written = {s: dict(c) for s, c in ag._root_grade.items()}
         if "inventions" in gen:
@@ -1575,6 +1596,10 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
             for k, d_ in c.get("thought_" + f, {}).items():
                 ag._thought_in[f].setdefault(k, {}).update(d_)
         rep["thought_keys_in"] = len(ag._thought_in["tried"])
+    if tether._FACET_INDEX and hasattr(ag, "_fx_in"):
+        for k, d_ in c.get("facet_n", {}).items():
+            ag._fx_in.setdefault(fx_key(k), {}).update(d_)
+        rep["facet_keys_in"] = len(ag._fx_in)
     if tether._SELF_READ and hasattr(ag, "_stopped_in"):
         ag._stopped_in.update(c.get("stopped_at", {}))
         rep["stopped_at_in"] = ag._self_read()
@@ -1844,6 +1869,14 @@ def load(d: str | Path, ag: Any) -> dict:
                     for e, n in c.items():
                         into[e] = into.get(e, 0) + n
         rep["thought_keys_in"] = len(ag._thought_in["tried"])
+    if tether._FACET_INDEX and hasattr(ag, "_fx_in"):
+        # P3: every generation's facet counts, root to tip
+        for _h, g in chain:
+            for k, c in g.get("facet_n", {}).items():
+                into = ag._fx_in.setdefault(fx_key(k), {})
+                for e, n in c.items():
+                    into[e] = into.get(e, 0) + n
+        rep["facet_keys_in"] = len(ag._fx_in)
     if tether._SELF_READ and hasattr(ag, "_stopped_in"):
         # M3: every generation's stopped-at links, root to tip, read into one self_read row
         for _h, g in chain:

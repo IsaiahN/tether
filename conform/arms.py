@@ -3215,6 +3215,13 @@ ARMS: dict[str, str] = {
                           "its last empty rescan (gamma.enumerate_closure must_contain); the "
                           "park keeps its unit names for this. 8d reads _reach's _left per "
                           "accept. OFF: _reach re-walks the whole closure, as before. default ON",
+    "TETHER_FACET_INDEX": "P3, 8b-0 (the reviewer r1838, r1840, r1841; DESIGN_STEP8 B1/B3): K1's "
+                          "landed/offered records are also kept under the facet key (src, subj, "
+                          "dk, role) -- subj the door kind (form code dropped), src from "
+                          "source_of (SELF/COUPLED/OWN/BY:<kind>/HIDDEN, leave-one-out over the "
+                          "slot's history) -- and served as tier T0 before T1a; facet_n rides "
+                          "the counts blob across lifetimes. OFF: no facet record, no T0. "
+                          "default ON",
     "TETHER_ROUTE_KEY_GENERAL": "42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer "
                                 "2026-11-01 r717): R-B keys a route by the intent's general "
                                 "statement (slot and sign; a Specific's stated target dropped), so "

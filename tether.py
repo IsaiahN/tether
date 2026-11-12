@@ -3160,6 +3160,149 @@ def _unformed(kind: Any) -> Any:
     return tuple(x for x in kind if not (isinstance(x, str) and x.startswith("form=")))
 
 
+def _change_class(before: Any, after: Any) -> tuple:
+    """P3: how a slot's value moved in one step -- (sign, bit length) for ints, (moved?,) else."""
+    if isinstance(before, int) and isinstance(after, int) and not isinstance(after, bool):
+        v = after - before
+        return ("+" if v > 0 else "-" if v < 0 else "0", abs(v).bit_length())
+    return ("ne" if after != before else "0",)
+
+
+def _loo_hits(keys: list, cls: list) -> tuple[int, int]:
+    """P3: (hits, readable) -- rows whose change class is the strict majority of the OTHER rows
+    sharing their key, and the rows that have another row to be read from. A contingency count
+    read leave-one-out, so a key seen once predicts nothing."""
+    tab: dict = collections.defaultdict(collections.Counter)
+    for k, c in zip(keys, cls, strict=True):
+        tab[k][c] += 1
+    hits = readable = 0
+    for k, c in zip(keys, cls, strict=True):
+        cap.head()
+        t = tab[k]
+        t[c] -= 1
+        top = max(t.values(), default=0)
+        if top > 0:
+            readable += 1
+            win = [x for x, m in t.items() if m == top]
+            hits += len(win) == 1 and win[0] == c
+        t[c] += 1
+    return hits, readable
+
+
+def _kind_text(kind: Any) -> str:
+    """P3: a door kind as text -- the attribute types without the form code."""
+    k = _unformed(kind)
+    return "/".join(str(x) for x in k) if isinstance(k, tuple) else str(k)
+
+
+def source_of(ag: Any, slot: str) -> tuple:
+    """P3 (r1840, r1841; Isaiah 11:20, the general case): WHO the slot's change depends on --
+    (src, first_bind, gain, n). Over the slot's history, each candidate x scores the rows it adds
+    to the slot's own past: G(x) = hits(class | previous class, x) - hits(class | previous class),
+    read leave-one-out. Candidates in the cause-search order (Isaiah 10-17): my action, then each
+    slot of each object in contact with the owner, then the next ring out; ties to the earlier.
+    src: SELF (my action closes every row it can be read on) / COUPLED (my action, partly) /
+    BY:<door kind> / OWN (the own past closes it) / HIDDEN (nothing gains, the own past does not).
+    first_bind: the slot's own lag for SELF / COUPLED / OWN, x for BY. It orders and keys only."""
+    key = (slot, ag.cycle)
+    got = ag._src_cache.get(key)
+    if got is not None:
+        return got
+    hist = ag.history(slot)
+    if not hist:
+        ag._src_cache[key] = ("*", None, 0, 0)
+        return ag._src_cache[key]
+    cls = [_change_class(r[0].get(slot), r[2]) for r in hist]
+    prev = [None] + cls[:-1]
+    n = len(cls)
+    h0, r0 = _loo_hits(prev, cls)
+    owner = slot.split(".", 1)[0]
+    last = hist[-1][0]
+
+    def ring(objs: set) -> set:
+        out = set()
+        for s, v in last.items():
+            if v and "~" in s and s.endswith(".contact"):
+                a, b = s.split(".", 1)[0].split("~", 1)
+                if a in objs and b not in objs:
+                    out.add(b)
+                elif b in objs and a not in objs:
+                    out.add(a)
+        return out
+
+    r1 = ring({owner})
+    r2 = ring(r1 | {owner}) - r1
+    cands: list = [("act", None)]
+    for objs in (r1, r2):
+        cands += [("slot", s) for s in sorted(last) if "~" not in s and "." in s
+                  and s.split(".", 1)[0] in objs]
+    best = (0, None)
+    for kind_, x in cands:
+        cap.head()
+        xs = [r[1] for r in hist] if kind_ == "act" else [r[0].get(x) for r in hist]
+        hx, rx = _loo_hits(list(zip(prev, xs, strict=True)), cls)
+        g = hx - h0
+        if g > best[0]:
+            best = (g, (kind_, x, hx == rx))
+    if best[1] is None:
+        out = ("OWN", f"{slot}~1", 0, n) if r0 and h0 == r0 else ("HIDDEN", None, 0, n)
+    elif best[1][0] == "act":
+        out = ("SELF" if best[1][2] else "COUPLED", f"{slot}~1", best[0], n)
+    else:
+        x = best[1][1]
+        out = ("BY:" + _kind_text(ag._kind(x.split(".", 1)[0])), x, best[0], n)
+    ag._src_cache[key] = out
+    return out
+
+
+def facet_key(ag: Any, dk: Any, owner: str, slot: str | None = None, role: str = "*") -> tuple:
+    """P3: the facet key (src, subj, dk, role) -- src from source_of on the asking slot ("*" with
+    none), subj the owner's door kind, never its form code."""
+    src = source_of(ag, slot)[0] if slot else "*"
+    return (src, _kind_text(ag._kind(owner)), tuple(dk) if dk else None, role)
+
+
+def _fx_backoff(ag: Any, dk: Any, owner: str, slot: str | None) -> tuple:
+    """P3: (the key that held postings, its postings) -- exact (src, subj, dk); (*, subj, dk);
+    (*, *, dk), K1's key without the form. Every role summed; (None, {}) with none."""
+    src, subj, d, _role = facet_key(ag, dk, owner, slot)
+    tried: list = []
+    for key in ((src, subj, d, "*"), ("*", subj, d, "*"), ("*", "*", d, "*")):
+        if key in tried:
+            continue
+        tried.append(key)
+        agg: dict = {}
+        for store in (ag._fx, ag._fx_in):
+            for (s, sj, dd, _r), c in store.items():
+                cap.head()
+                if dd != d or key[1] not in ("*", sj) or key[0] not in ("*", s):
+                    continue
+                for tag, m in c.items():
+                    which, entry = tag.split("|", 1)
+                    a = agg.setdefault(entry, {"P": 0, "O": 0, "L": 0})
+                    a[which] = a.get(which, 0) + m
+        if agg:
+            return key, agg
+    return None, {}
+
+
+def context_key(ag: Any, dk: Any, owner: str, slot: str | None = None) -> tuple | None:
+    """P3: the asking key after back-off -- the first of (src, subj, dk), (*, subj, dk),
+    (*, *, dk) holding a posting; None with none."""
+    return _fx_backoff(ag, dk, owner, slot)[0]
+
+
+def facet_index(ag: Any, dk: Any, owner: str, slot: str | None = None) -> list:
+    """P3: the postings at the owner's context_key -- [(entry, paid, offered, landed,
+    form_match)], paid first, then offered, the form as a tiebreak, then landed."""
+    _key, agg = _fx_backoff(ag, dk, owner, slot)
+    form = next((x for x in (ag._kind(owner) or ()) if isinstance(x, str)
+                 and x.startswith("form=")), None)
+    return sorted(((e, a["P"], a["O"], a["L"], int(form in ag._fx_form.get(e, ())))
+                   for e, a in agg.items()),
+                  key=lambda t: (-t[1], -t[2], -t[4], -t[3], t[0]))
+
+
 def _delta_kind_of(a: Any, typ: Any, before: Any, after: Any) -> tuple | None:
     """K1: HOW a reading changed -- (cluster, sign, size class), from its attribute, its type and
     one transition. A change reading's kind is its own value's; a level's is its difference's.
@@ -3539,6 +3682,12 @@ _EXHAUSTED_WORD = armflag.arm("TETHER_EXHAUSTED_WORD", default=True)
 # unit set grew, and every chain without a new unit was there when the park was made (Fig 6 :49).
 # The park keeps its unit names for this. OFF: _reach re-walks the whole closure, as before
 _SWEEP_DELTA = armflag.arm("TETHER_SWEEP_DELTA", default=True)
+# P3 FACET_INDEX (8b-0; the reviewer r1838, r1840, r1841; DESIGN_STEP8 B1/B3): a change is filed
+# and looked up by what it is -- (src, subj, dk, role): who the change depends on (source_of), the
+# owner's door kind (its attribute types without the form code), the delta kind, the role -- and
+# what was offered or landed under that key comes back first (tier T0, an order, nothing cut). The
+# counts ride the counts blob as facet_n. OFF: no facet records, no T0, as before
+_FACET_INDEX = armflag.arm("TETHER_FACET_INDEX", default=True)
 # C2 FINISH, S0_BEFORE_BORED (the reviewer 2026-11-01 r736): choose skipped the exit contest
 # whenever the drive was bored and nothing was starved, so a bored, uninformed probe took the
 # turn while System 0 was still active (lp85, measured at choose: 16 of 21 turns
@@ -4685,6 +4834,14 @@ class Agent:
                                                               # series
         self._thought_in: dict = {"tried": {}, "paid": {}}    # M1: the same, carried in
         self._thought_written: dict = {"tried": {}, "paid": {}}
+        # P3 (TETHER_FACET_INDEX): (src, subj, dk, role) -> "L|entry" / "O|entry" / "P|entry" -> n,
+        # this game; the same carried in (facet_n, summed at load); what the last save wrote; the
+        # forms each entry was filed under (a tiebreak); source_of's answers per (slot, cycle)
+        self._fx: dict = collections.defaultdict(collections.Counter)
+        self._fx_in: dict = {}
+        self._fx_written: dict = {}
+        self._fx_form: dict = {}
+        self._src_cache: dict = {}
         self._stopped_in: dict = {}                # M3: link -> games, carried in
         self._stopped_written: dict = {}
         self._lib_won: set = set()       # 7h (d) by route: library-route wins at a mint
@@ -7529,8 +7686,9 @@ class Agent:
         return _delta_kind_of(a, self.slot_types.get(slot), hist[-1][0].get(slot), hist[-1][2])
 
     def _tiers(self, lib: Any, lit: list, dk: tuple | None, mine: str, described: dict,
-               att: dict, more: tuple = ()) -> tuple[list, dict]:
+               att: dict, more: tuple = (), slot: str | None = None) -> tuple[list, dict]:
         """K1: the lit list as tiers, an ORDER and never a cut, each key once at its first tier:
+        T0 the postings at this change's facet context_key (P3, TETHER_FACET_INDEX);
         T1a / T1b / T1c what was OFFERED before under this delta kind and this object kind / this
         delta kind / this cluster (the back-off ladder; the probe); T2 carried landings with no
         delta kind, this object kind; T3 today's lit; T1d what only LANDED (the reviewer 20:43,
@@ -7632,6 +7790,10 @@ class Agent:
                 # CONSOLIDATION's recency (the reviewer 04:43 2d, 04:55 3): an entry's latest
                 # landing over its K1 keys; it breaks ties only, so the 20:43 order stands
                 last = self._dk_last_k()
+            if _FACET_INDEX:
+                # P3: T0, what was offered or landed under this change's facet key, first
+                put("T0", [(e, float(p_ + o_ + l_))
+                           for e, p_, o_, l_, _f in facet_index(self, dk, mine, slot)])
             for g_ in "abc":
                 put(f"T1{g_}", order(((k, float(m)) for k, m in off[g_].items()),
                                      lambda kv, g_=g_: (-kv[1], -land[g_][kv[0]],
@@ -7763,7 +7925,7 @@ class Agent:
         if k1:
             lit, tiers = self._tiers(lib, lit, dk, mine, described, att,
                                      more=tuple(d for m, d in (dks or {}).items()
-                                                if members and m != slot and d))
+                                                if members and m != slot and d), slot=slot)
         dl_key, dl_cut, tk_next = None, 0, None
         if _DESCRIBED_LOOKUP and tiers is not None and _INDEX_HOLD and lit:
             # 20: the key is the description -- the slot, its delta kind, the readings, its contact
@@ -7930,6 +8092,11 @@ class Agent:
                 for k_ in {o_["prov"].get("library") for o_ in offers if o_["offered"]} - {None}:
                     cap.head()
                     self._kind_offered_dk[(dk_m, k_, _ko)] += 1
+                if _FACET_INDEX:
+                    for k_, r_ in {(o_["prov"].get("library"), o_["prov"].get("role", "*"))
+                                   for o_ in offers if o_["offered"]}:
+                        if k_ is not None:
+                            self._fx_note("O", dk_m, k_, _ko, r_, m)
             rows = []
             for prov, if_c, then_c, v, off in sup:
                 cap.head()
@@ -7946,6 +8113,12 @@ class Agent:
                 self._rank_moved(slot, rank, n_tiers, explained=bool(rows),
                                  kind=f"{self._kind_str(mine)}|{att.get(slot)}")
             self._lib_offers[m] = [o_ for o_ in offers if o_["offered"]]
+            fx_row: dict = {}
+            if _FACET_INDEX and dk_m is not None and mine_m is not None:
+                # P3: the asking key and src's gain on n rows, read by 8d and P7 only
+                fk_, sg_ = facet_key(self, dk_m, mine_m, m), source_of(self, m)
+                fx_row = {"facet": [fk_[0], fk_[1], list(fk_[2]), fk_[3]],
+                          "src_gain": [sg_[2], sg_[3]]}
             if _REACH_PAID:
                 for o_ in self._lib_offers[m]:
                     e_ = o_["prov"].get("library")
@@ -7966,6 +8139,7 @@ class Agent:
                             **({"cue_norm": sorted(normed)} if normed else {}),
                             **({"rank": rank} if rank is not None and m == slot else {}),
                             **({"obj_event": self._event_of.get(slot)} if members else {}),
+                            **fx_row,
                             **({"tier_offered": {
                                 k_: self._tier_of.get(k_, "untiered") for k_ in sorted(
                                     {o_["prov"].get("library") for o_ in self._lib_offers[m]}
@@ -9036,6 +9210,15 @@ class Agent:
         return views, causes, refused
 
     @cap.held      # C1 (A): one landing writes several kind stores the lineage carries (15:34 2)
+    def _fx_note(self, which: str, dk: tuple, entry: str, kind: Any, role: str,
+                 slot: str | None) -> None:
+        """P3: one landing ("L") or offer ("O") filed under its facet key (src, subj, dk, role)."""
+        src = source_of(self, slot)[0] if slot else "*"
+        self._fx[(src, _kind_text(kind), tuple(dk), role)][f"{which}|{entry}"] += 1
+        form = next((x for x in kind or () if isinstance(x, str) and x.startswith("form=")), None)
+        if form:
+            self._fx_form.setdefault(entry, set()).add(form)
+
     def _land_kind(self, entry: tuple, dk: tuple | None = None, slot: str | None = None) -> None:
         """7l: a landed (entry, role, kind_o, kind_x); 7m's pair set kept with it."""
         if self._tier_of is not None:
@@ -9066,6 +9249,8 @@ class Agent:
                 if ix_ok:
                     self._kix_add(e, 1)
                 self._kind_landed_dk[e] += 1
+                if _FACET_INDEX:
+                    self._fx_note("L", dk, entry[0], e[2], entry[1], slot)
                 if _CONSOLIDATE:
                     if _CYCLE_SEQ:
                         self._next_seq(per_landing=False)

@@ -19,9 +19,10 @@ outcome recorded back -- then the same change kind in another game and on anothe
   MF3   an entry that PRODUCES the observed effect and reads none of the changed readings is in
         the window
   MF4   such an entry ranks ahead of the forward list's tail (order by facets matched)
-  MF5   nothing is cut: the union of lit is the same set with the facet arm on and off (vacuous
-        until it exists)
-  MF6   the index writes no standing (vacuous until the arm exists)
+  MF5   nothing is cut: the target ask's lit is the same set with the facet arm on and off, and
+        T0 served it (its own arguments, re-run after the replay; vacuous until the arm exists)
+  MF6   the index writes no standing: every reflex's standing and the written rank standing are
+        unchanged across each facet write and read (vacuous until the arm exists)
   MF7   the outcome is recorded back under the query's facets (an outcome facet in the offer /
         landing key)
   MF8   after a cached miss, an entry added with the key's facets is reached (executed from 8a-2,
@@ -97,6 +98,8 @@ def tiers(self, lib, lit, dk, mine, *a, **k):
     out = _tiers(self, lib, lit, dk, mine, *a, **k)
     if dk is not None and tuple(dk) == DK:
         SPY["tiers"][self.cycle] = [k_ for k_, _w in out[0]]
+        if self.cycle == T_CYC:
+            SPY["t_args"] = (lib, list(lit), dk, mine, a, k)
     return out
 def dlit(self, lib, lit, *a, **k):
     out = _dlit(self, lib, lit, *a, **k)
@@ -106,6 +109,25 @@ def offs(self, index, slot, frs):
     SPY["offers"][(self.cycle, slot)] += 1
     return _offs(self, index, slot, frs)
 A._index_reach, A._tiers, A._described_lit, A._offers_of = reach, tiers, dlit, offs
+# MF6: every reflex's standing and the rank keys' written standing, around each facet write / read
+SPY["mf6"] = {"calls": 0, "changed": 0}
+def standing(self):
+    rf = sorted((f, repr(sorted(v.get("standing", {}).items(), key=str)))
+                for f, v in self._reflexes.items())
+    return repr(rf) + repr(sorted(self._rk_written.items(), key=str))
+def watched(fn, ag_of):
+    def run(*a, **k):
+        ag_ = ag_of(a)
+        before = standing(ag_)
+        try:
+            return fn(*a, **k)
+        finally:
+            SPY["mf6"]["calls"] += 1
+            SPY["mf6"]["changed"] += standing(ag_) != before
+    return run
+if hasattr(A, "_fx_note"):
+    A._fx_note = watched(A._fx_note, lambda a: a[0])
+    tether.facet_index = watched(tether.facet_index, lambda a: a[0])
 # r1807: the replay is valid only while the agent acts as the capture did, so every press is
 # FORCED to the captured action (the agent's predictions and the press both read it); the
 # agent's own choice is kept beside it as a reading
@@ -172,7 +194,21 @@ out = {
     "arms": {"facet": bool(getattr(tether, "_FACET_INDEX", False)),
              "memory": bool(getattr(tether, "_FACET_MEMORY", False))},
     "forced": len(FORCED), "own_differs": [f for f in FORCED if f[1] != f[2]],
+    "mf6": SPY["mf6"],
 }
+if SPY.get("t_args") and hasattr(tether, "_FACET_INDEX"):
+    # MF5: the T_CYC ask's own arguments, run with the facet arm on and off after the replay (so
+    # neither call's heads move a cycle); nothing cut = the same set of keys either way
+    lib_, lit_, dk_, mine_, a_, k_ = SPY["t_args"]
+    was, sets = tether._FACET_INDEX, {}
+    with tether.cap.hold():
+        for arm in (True, False):
+            tether._FACET_INDEX = arm
+            o_ = _tiers(ag, lib_, list(lit_), dk_, mine_, *a_, **k_)
+            sets[arm] = ({k__ for k__, _w in o_[0]}, o_[1].get("T0", 0))
+    tether._FACET_INDEX = was
+    out["mf5"] = {"on": len(sets[True][0]), "off": len(sets[False][0]),
+                  "same": sets[True][0] == sets[False][0], "t0": sets[True][1]}
 if S_SLOT:
     o2 = S_SLOT.split(".")[0]
     out["second"] = {"slot": S_SLOT, "cycle": S_CYC,
@@ -229,9 +265,19 @@ def statuses(a: dict, b: dict) -> dict:
                  ", ".join(f"{g['game']} {ahead[g['game']]} (first "
                            f"{min(g['prod_ranks'].values(), default=None)}, forward tail "
                            f"{g['fwd_last_rank']})" for g in (a, b)))
-    for mf in ("MF5", "MF6"):
-        st[mf] = ((False, "vacuous: no facet arm yet") if not a["arms"]["facet"]
-                  else st.get(mf, (True, "not measured")))
+    if not a["arms"]["facet"]:
+        st["MF5"] = st["MF6"] = (False, "vacuous: no facet arm yet")
+    else:
+        m5 = [g.get("mf5") for g in (a, b)]
+        st["MF5"] = ((True, "not measured") if None in m5 else (
+            not all(m["same"] and m["t0"] for m in m5),
+            "lit keys at the target ask, facet arm on / off: " + ", ".join(
+                f"{g['game']} {g['mf5']['on']} / {g['mf5']['off']} same {g['mf5']['same']} "
+                f"(T0 {g['mf5']['t0']})" for g in (a, b))))
+        c6 = sum(g["mf6"]["calls"] for g in (a, b))
+        ch6 = sum(g["mf6"]["changed"] for g in (a, b))
+        st["MF6"] = (c6 == 0 or ch6 > 0, f"reflex standing / written rank standing changed across "
+                                         f"{ch6} of {c6} facet writes and reads")
     rec = [k for g in (a, b) for k in g["keys"]]
     flat = all(len(k) == 3 for k in rec)
     st["MF7"] = (flat, f"{len(rec)} offer/landing keys, all (dk, entry, object kind): no outcome "
