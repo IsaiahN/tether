@@ -1457,8 +1457,8 @@ _TIERED_TERMS = armflag.arm("TETHER_TIERED_TERMS", default=True)
 # _left, pays), best-first by cost with the exact stop, within what the mint's work budget left. A
 # deeper tree that beats the best is the best; nothing is refused. OFF: no deepening, as before.
 _TREE_DEEPEN = armflag.arm("TETHER_TREE_DEEPEN", default=True)
-# 10a+, WHAT I CAN DO AND WHAT I CAN'T (the reviewer 2026-11-12; Isaiah 15:01-15:08): at each
-# planning episode every subject slot is read into CAN / BLOCKED / NOT_FOUND / GIVEN_UP
+# 10a+, WHAT I CAN DO AND WHAT I CAN'T (the reviewer 2026-11-12; Isaiah 15:01-15:08): at every
+# step every subject slot is read into CAN / BLOCKED / NOT_FOUND / GIVEN_UP
 # (can_ledger.py), and an item that crosses lists, or appears, is a row with its pretext, cue, lag
 # and src -- the evidence wall of what opened what. RECORD-ONLY: no choice reads it yet. OFF: no
 # rows.
@@ -30222,8 +30222,10 @@ class Agent:
         if _DERIVED_WANT and self.trace and _plan:
             with self._step_scope("MINT"):
                 self._derived_wants()
-        if _CAN_LEDGER and _plan and self.trace:
-            # record-only, so uncharged: no head, purse, extent or derived-slot cache it touches
+        if _CAN_LEDGER and self.trace:
+            # EVERY STEP, not only in a planning episode (dc22 c0-24 opened ONE episode, so a
+            # once-per-episode reading saw no crossing): Isaiah 15:01 "as soon as those change".
+            # Record-only, so uncharged: no head, purse, extent or derived-slot cache it touches
             # may move a choice or a later reading (8a-0's pay-gap rule)
             with self._step_scope("MINT"), self._pg_uncharged():
                 self._can_update()

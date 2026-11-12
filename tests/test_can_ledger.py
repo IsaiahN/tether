@@ -1,6 +1,6 @@
 """10a+, WHAT I CAN DO AND WHAT I CAN'T (TETHER_CAN_LEDGER; the reviewer 2026-11-12; Isaiah
-15:01-15:08). Every subject slot is read into CAN / BLOCKED / NOT_FOUND / GIVEN_UP at each planning
-episode; a crossing or an appearance is a row. Record-only.
+15:01-15:08). Every subject slot is read into CAN / BLOCKED / NOT_FOUND / GIVEN_UP at every
+step; a crossing or an appearance is a row. Record-only.
 
 CL1  classify: not movable -> BLOCKED; no route with actions untried -> NOT_FOUND; no route with
      every action tried -> BLOCKED; refuted -> GIVEN_UP; else CAN

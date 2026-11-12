@@ -2,7 +2,7 @@
 reviewer 2026-11-12; Isaiah 15:01-15:08; WATSON what_i_can_and_cant_and_when_it_switches;
 Fig 6 :42-47, Fig 8 :39, Fig 11 :40-53, Fig 9 :60).
 
-Every subject slot sits in one of four lists, read off the board each planning episode, never
+Every subject slot sits in one of four lists, read off the board every step, never
 authored:
   CAN        movable, routable, not on the agent's own clock
   BLOCKED    a precondition missing: not a movable slot, on the own clock, or no route although

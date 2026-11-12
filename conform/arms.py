@@ -2345,7 +2345,7 @@ ARMS: dict[str, str] = {
                          "the corpus file it was derived from); enters compile_term.signature. "
                          "NEEDS TETHER_ATTR_BRIDGE. OFF: item 9's bridge as it was. default ON",
     "TETHER_CAN_LEDGER": "STEP 10a+ (the reviewer 2026-11-12; Isaiah 15:01-15:08): at each "
-                         "planning episode every subject slot is read into CAN / BLOCKED / "
+                         "step every subject slot is read into CAN / BLOCKED / "
                          "NOT_FOUND / GIVEN_UP (can_ledger.py); a crossing or an appearance is a "
                          "row with its pretext, cue, lag and src. RECORD-ONLY and uncharged. "
                          "ON. OFF: no rows. MF: tests/test_can_ledger.py.",
