@@ -46,6 +46,7 @@ import reach
 import relations
 import retrieval
 import routine as Rt
+import shape_order
 import store as door  # the one door; `store` is a local name in three methods
 from gamma import _CARRY_W as G_CARRY_W
 from gamma import _FADE_BY_STORE as G_FADE_BY_STORE
@@ -3688,6 +3689,12 @@ _SWEEP_DELTA = armflag.arm("TETHER_SWEEP_DELTA", default=True)
 # what was offered or landed under that key comes back first (tier T0, an order, nothing cut). The
 # counts ride the counts blob as facet_n. OFF: no facet records, no T0, as before
 _FACET_INDEX = armflag.arm("TETHER_FACET_INDEX", default=True)
+# P5 SHAPE_WALK (8b-2; the reviewer's patch, r1838; DESIGN_STEP8 B4/B5): the mint's closure is
+# walked best-first by the gap's shape (gamma.ordered_closure keyed by shape_order: the wanted
+# readings an atom affects or reads first, the whole chain's fit as a tiebreak) and a stream ends
+# when no waiting chain's least price can beat min(base, its kind's best total). It orders, never
+# refuses. OFF: the shortest-first enumerate_closure walk by first-unit fit, as before
+_SHAPE_WALK = armflag.arm("TETHER_SHAPE_WALK", default=True)
 # C2 FINISH, S0_BEFORE_BORED (the reviewer 2026-11-01 r736): choose skipped the exit contest
 # whenever the drive was bored and nothing was starved, so a bored, uninformed probe took the
 # turn while System 0 was still active (lp85, measured at choose: 16 of 21 turns
@@ -4842,6 +4849,7 @@ class Agent:
         self._fx_written: dict = {}
         self._fx_form: dict = {}
         self._src_cache: dict = {}
+        self._shape_readings: dict | None = None   # P5: atom -> the readings it affects or reads
         self._stopped_in: dict = {}                # M3: link -> games, carried in
         self._stopped_written: dict = {}
         self._lib_won: set = set()       # 7h (d) by route: library-route wins at a mint
@@ -26802,7 +26810,7 @@ class Agent:
             _lf_of: dict = {}
             _pg: list = []                       # TETHER_PREFIX_PRUNE: the cheapest guard bits
 
-            def _prune(atoms: tuple, depth: int, closed: bool) -> bool:
+            def _pg_ready() -> None:
                 if not _pg:
                     _gs0 = self._guards_once(robs, slot, operand_binds)
                     _pg.append(min(_guard_bits(g, len(_gs0[1]) - 1, len(_gs0[6]) if
@@ -26811,6 +26819,9 @@ class Agent:
                     _pg.append(_gs0)
                     self._hold_eligible -= _gs0[3]    # the probe books no hold occasion
                     self._hold_withheld -= _gs0[4]
+
+            def _prune(atoms: tuple, depth: int, closed: bool) -> bool:
+                _pg_ready()
                 if self._bits((Term(atoms), _units)) + _pg[0] < base:
                     return False
                 if not guards["novelty"]:
@@ -26875,10 +26886,35 @@ class Agent:
                 _lf_names = {c.name for c in _lf}
                 _lf_of[_si] = _lf_names          # CREDIT: a library chain took no yield
                 _lf_seen.update(tuple(a.name for a in c.atoms) for c in _lf)
-                _clo = (c for c in self.gamma.enumerate_closure(
-                            in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit,
-                            prune=_prune if _PREFIX_PRUNE and robs else None)
-                        if c.name not in _lf_names)
+                if _SHAPE_WALK:
+                    # P5: best-first by the gap's shape; paid / sense heads (P4) and authority
+                    # (P6) are empty until they land; the stop bound needs rows to price against
+                    if self._shape_readings is None:
+                        lib_ = _library()
+                        self._shape_readings = shape_order.declared_readings(
+                            {**lib_.seed, **lib_.runtime, **lib_.learnings} if lib_ else {})
+                    _key = shape_order.make_order_key(
+                        shape_order.wanted(slot.rsplit(".", 1)[-1]), self._shape_readings,
+                        fits_whole=lambda ch, _b=by_fit: _b(Term(ch)))
+                    _bound = _stop_at = None
+                    if robs:
+                        def _bound(ch):
+                            _pg_ready()
+                            return self._bits((Term(ch), _units)) + _pg[0]
+
+                        def _stop_at(m, _k=kind):
+                            fc = _floor_champion(by_kind, _k, best, _STREAM_SHARE)
+                            return m >= (base if fc is None else min(base, fc[0]))
+                    _clo = (c for c in self.gamma.ordered_closure(
+                                in_t, out_t, self.cfg.max_depth, self.cfg.budget, st,
+                                order_key=_key, bound_of=_bound, stop=_stop_at,
+                                prune=_prune if _PREFIX_PRUNE and robs else None)
+                            if c.name not in _lf_names)
+                else:
+                    _clo = (c for c in self.gamma.enumerate_closure(
+                                in_t, out_t, self.cfg.max_depth, self.cfg.budget, st,
+                                order=by_fit, prune=_prune if _PREFIX_PRUNE and robs else None)
+                            if c.name not in _lf_names)
                 _stream = (_merge_by_depth(_lf, _clo, _lf_ev, f"{self.cycle}:{slot}:library:{_si}",
                                            self.draw_seed)
                            if _A1_LIBRARY else itertools.chain(_lf, _clo))

@@ -2584,6 +2584,142 @@ class Gamma:
             stats["budget_spent"] = spent
             stats["depth_exhausted"] = not spent
 
+    def ordered_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
+                        stats: dict | None = None,
+                        order_key: Callable[[tuple, bool, int], tuple] | None = None,
+                        bound_of: Callable[[tuple], float] | None = None,
+                        stop: Callable[[float], bool] | None = None,
+                        prune: Callable[[tuple, int, bool], bool] | None = None,
+                        ) -> Iterator[Term]:
+        """THE SAME CLOSURE AS `enumerate_closure`, WALKED BEST-FIRST (step 8b-2, TETHER_SHAPE_WALK;
+        the reviewer 2026-11-12 r1838, DESIGN_STEP8 B4/B5; Isaiah 11-12 09:24: "even if i can
+        only think 5-10 thoughts, these are the ten most likely").
+
+        **IT ORDERS, IT NEVER ADMITS.** With no budget and no stop it yields exactly the set
+        `enumerate_closure` yields (same start rule, same `_iter_step` typing, same `idn` rule,
+        same `prune`), only in another order -- Fig 9 :40-41 "keep every cut ranked and
+        reversible". What changes is which terms are REACHED inside `budget`.
+
+        `order_key(chain, closed, depth_left)` ranks an entry, lower first. For a CLOSED chain
+        it is the chain's own key; for an OPEN prefix (closed=False) it must be OPTIMISTIC: no
+        extension of the prefix may get a key below it. Then yields come out in exact key order
+        (the A* argument: when a closed chain pops, every open prefix still waiting has a key
+        at or above it, so nothing undiscovered can rank before it).
+
+        `bound_of(chain)` is a lower bound on the price of ANY closed chain extending `chain`
+        (the code length only grows under extension). `stop(m)` is asked before each pop with
+        `m` = the least bound still waiting; True ends the walk because no waiting chain can
+        do better (Fig 5 :43's bargain read as a floor; DESIGN_STEP8 B5's proof). That is an
+        exhaustion, so `depth_exhausted` stays True and `frontier_stop` says why.
+
+        Children are expanded lazily, one sorted sibling group per expanded prefix, so the heap
+        holds O(pops) entries rather than every generated chain.
+        """
+        import heapq
+        units = self.units()
+        emitted = 0
+        if stats is not None:
+            stats["units"] = len(units)
+            stats["estimate"] = self.space_exact(units, in_type, out_type, max_depth)
+            stats["seen"] = 0
+            stats["frontier_stop"] = False
+            stats["pops"] = 0
+        if order_key is None:
+            def order_key(chain: tuple, closed: bool, left: int) -> tuple:  # noqa: ARG001
+                return (len(chain),)
+        heap: list = []            # (key, seq, kind, payload)
+        bounds: list = []          # (bound, seq) -- the least waiting bound, lazily cleaned
+        live: set = set()
+        seq = 0
+
+        def push(key: tuple, kind: str, payload: tuple, bound: float) -> None:
+            nonlocal seq
+            seq += 1
+            heapq.heappush(heap, (key, seq, kind, payload))
+            if bound_of is not None:
+                heapq.heappush(bounds, (bound, seq))
+                live.add(seq)
+
+        def child_entries(chain: tuple, cur: str, elem: str | None, depth: int) -> list:
+            """The typed child's own entries, (key, kind, payload, bound); [] when pruned."""
+            if prune is not None and prune(chain, depth, elem is None):
+                if stats is not None:
+                    stats["pruned"] = stats.get("pruned", 0) + 1
+                return []
+            b = bound_of(chain) if bound_of is not None else 0.0
+            out = []
+            # AN UNCLOSED ITERATION IS NOT A TERM (as enumerate_closure).
+            if elem is None and cur == out_type:
+                out.append((order_key(chain, True, max_depth - depth), "yield", (chain,), b))
+            if depth < max_depth and not any(a.name == IDN_NAME for a in chain):
+                out.append((order_key(chain, False, max_depth - depth), "expand",
+                            (chain, cur, elem, depth), b))
+            return out
+
+        def group(children: list, parent_bound: float) -> None:
+            """Push the first of a sorted sibling group; the rest wait behind it."""
+            if children:
+                children.sort(key=lambda c: c[0])
+                push(children[0][0], "group", (children, 0), parent_bound)
+
+        start = []
+        for u in units:
+            cap.head()
+            if accepts_type(u, in_type):
+                step = Gamma._iter_step(in_type, None, u)
+                if step is not None:
+                    for e in child_entries(u.atoms, step[0], step[1], 1):
+                        start.append(e)
+        group(start, min((e[3] for e in start), default=0.0))
+
+        spent = False
+        while heap:
+            if bound_of is not None and stop is not None:
+                while bounds and bounds[0][1] not in live:
+                    heapq.heappop(bounds)
+                if bounds and stop(bounds[0][0]):
+                    if stats is not None:
+                        stats["frontier_stop"] = True
+                    break
+            key, s, kind, payload = heapq.heappop(heap)
+            live.discard(s)
+            cap.head()
+            if stats is not None:
+                stats["pops"] += 1
+            if kind == "group":
+                children, i = payload
+                if i + 1 < len(children):
+                    nxt_b = min(c[3] for c in children[i + 1:]) if bound_of is not None else 0.0
+                    push(children[i + 1][0], "group", (children, i + 1), nxt_b)
+                k, kd, pl, b = children[i]
+                push(k, kd, pl, b)
+                continue
+            if kind == "yield":
+                # a yield the caller found already answered is credited back (as
+                # enumerate_closure: TETHER_DIVIDE_CREDIT writes "credit")
+                if emitted - (stats.get("credit", 0) if stats is not None else 0) >= budget:
+                    spent = True
+                    break
+                emitted += 1
+                if stats is not None:
+                    stats["seen"] = emitted
+                yield Term(payload[0])
+                continue
+            chain, cur, elem, depth = payload            # "expand"
+            kids = []
+            for u in units:
+                cap.head()
+                if any(a.name == IDN_NAME for a in u.atoms):
+                    continue
+                step = Gamma._iter_step(cur, elem, u)
+                if step is not None:
+                    kids.extend(child_entries(chain + u.atoms, step[0], step[1], depth + 1))
+            group(kids, min((e[3] for e in kids), default=0.0))
+        if stats is not None:
+            stats["seen"] = emitted
+            stats["budget_spent"] = spent
+            stats["depth_exhausted"] = not spent
+
     @staticmethod
     def space_exact(units: list[Term], in_type: str, out_type: str, max_depth: int) -> int:
         """How many terms the closure WOULD emit with no budget. Not an estimate.

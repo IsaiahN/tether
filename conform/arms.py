@@ -3222,6 +3222,13 @@ ARMS: dict[str, str] = {
                           "slot's history) -- and served as tier T0 before T1a; facet_n rides "
                           "the counts blob across lifetimes. OFF: no facet record, no T0. "
                           "default ON",
+    "TETHER_SHAPE_WALK": "P5, 8b-2 (the reviewer's patch, r1838; DESIGN_STEP8 B4/B5): the mint's "
+                         "closure walked best-first by the gap's shape (gamma.ordered_closure "
+                         "keyed by shape_order: wanted readings affected or read first, the whole "
+                         "chain's fit a tiebreak), each stream ending when no waiting chain's "
+                         "least price can beat min(base, its kind's best total). Orders, never "
+                         "refuses. OFF: enumerate_closure shortest-first by first-unit fit. "
+                         "default ON",
     "TETHER_ROUTE_KEY_GENERAL": "42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer "
                                 "2026-11-01 r717): R-B keys a route by the intent's general "
                                 "statement (slot and sign; a Specific's stated target dropped), so "
