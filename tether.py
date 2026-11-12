@@ -9209,7 +9209,6 @@ class Agent:
                                       if _DELTA_KIND and self._cur_dk is not None else {})})
         return views, causes, refused
 
-    @cap.held      # C1 (A): one landing writes several kind stores the lineage carries (15:34 2)
     def _fx_note(self, which: str, dk: tuple, entry: str, kind: Any, role: str,
                  slot: str | None) -> None:
         """P3: one landing ("L") or offer ("O") filed under its facet key (src, subj, dk, role)."""
@@ -9219,6 +9218,7 @@ class Agent:
         if form:
             self._fx_form.setdefault(entry, set()).add(form)
 
+    @cap.held      # C1 (A): one landing writes several kind stores the lineage carries (15:34 2)
     def _land_kind(self, entry: tuple, dk: tuple | None = None, slot: str | None = None) -> None:
         """7l: a landed (entry, role, kind_o, kind_x); 7m's pair set kept with it."""
         if self._tier_of is not None:
