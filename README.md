@@ -119,6 +119,16 @@ ARC is only the adapter and the harness below.
   the run: play goes on, and the agent may choose to RESET. The entry point never presses RESET
   for it.
 
+## Future state
+
+- **Recursive Diffusion Learning** (planned, not built). The agent has no weights to pretrain,
+  since its mind is search and reason, so a large corpus is preloaded instead: a parser rewrites
+  it into the agent's own grammar in stages that each lose more detail (instances, regularities,
+  abstractions, core rules), and each stage is released only as fast as the board settles the one
+  before. Nothing preloaded has standing until contact with the board pays for it, and anything
+  built on a term the board refutes falls on its own, so the ground does the training, and the
+  agent's own record of how its reach grew decides where it searches first.
+
 ## Documents
 
 The documents are in numbered folders under `docs/`; start at
