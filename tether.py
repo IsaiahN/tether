@@ -1463,6 +1463,18 @@ _TREE_DEEPEN = armflag.arm("TETHER_TREE_DEEPEN", default=True)
 # and src -- the evidence wall of what opened what. RECORD-ONLY: no choice reads it yet. OFF: no
 # rows.
 _CAN_LEDGER = armflag.arm("TETHER_CAN_LEDGER", default=True)
+# 10a, THE PASS'S KIND TABLE (the reviewer 2026-11-12, from the dc22 profile: the goal proposer's
+# cost is the group FORM, not the text grammar -- _group_form re-read every owner's kind for every
+# text, 3.6M _kind calls in 25 steps, each asking the world for its shape code). One table per
+# _group_cands pass: owner -> kind, kind -> owners in _owners' order, read once over that pass's
+# state. Exact: the same members in the same order. OFF: every kind read per text, as before.
+_KIND_PASS = armflag.arm("TETHER_KIND_PASS", default=True)
+# 10a, THE PURSE'S CHEAP BOUND (the reviewer 2026-11-12, the dc22 profile: the unseen walk asks
+# "is the purse spent?" between every ring, 18M times in 25 steps, and each answer summed the idle
+# scopes). The thinking spent is at most the heads since the step began (idle is never negative),
+# so while those are under the allowance the purse is not spent and the idle sum is not needed.
+# Exact: the same answer, the allowance still read (its source note). OFF: the sum every time.
+_PURSE_FAST = armflag.arm("TETHER_PURSE_FAST", default=True)
 # the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
@@ -4797,6 +4809,7 @@ class Agent:
     _s0_int0 = 0.0             # item 28: pe_integral at this board's (or level's) start
     _s0_turn = None            # item 28: (cycle, kind, drives before) of the last System 0 turn
     _own_pass = None           # R2: (state, owners) for one _group_cands pass over that state
+    _kind_pass = None          # 10a: (state, owner -> kind, kind -> owners) for that pass
     _s0_stall_at = None        # item 28: the cycle directed work last stalled
 
     def _book_cycle(self) -> int:
@@ -9661,6 +9674,11 @@ class Agent:
     def _kind(self, owner: str) -> tuple:
         """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots;
         under 3c-CANON also its canonical shape code where the world publishes one."""
+        kp = self._kind_pass
+        if kp is not None:                  # 10a: read once for this pass's owners
+            got = kp[1].get(owner)
+            if got is not None:
+                return got
         code = None
         if _3C_CANON:
             fn = getattr(self.env, "shape_code", None)
@@ -9690,7 +9708,11 @@ class Agent:
         """Item 17 (i): the group row on `state`, its members the owners present whose kind (7l)
         is the scope's; `kind` fixed at binding, else read off the scope now."""
         kind = kind if kind is not None else self._kind(g.scope)
-        members = [o for o in self._owners(state) if self._kind(o) == kind]
+        kp = self._kind_pass
+        if kp is not None and kp[0] is state:
+            members = list(kp[2].get(kind, ()))     # 10a: the pass's table, same order
+        else:
+            members = [o for o in self._owners(state) if self._kind(o) == kind]
         held = kind in self.__dict__.get("_kinds_held", ()) or bool(members)
         return compile_term.run_group(g, state, members, held)
 
@@ -12158,11 +12180,19 @@ class Agent:
         still marked only inside _group_form, so a text that fails to form never blocks one
         that would. G1 (r1465): `guard`, the body's subject checks, refuses a formed row."""
         out, seen = [], set()
-        self._own_pass = (before, self._owners(before))
+        owners = self._owners(before)
+        self._own_pass = (before, owners)
+        if _KIND_PASS:
+            of = {o: self._kind(o) for o in owners}
+            by: dict = {}
+            for o in owners:
+                by.setdefault(of[o], []).append(o)
+            self._kind_pass = (before, of, by)
         try:
             return self._group_cands_pass(items, before, atoms, out, seen, guard)
         finally:
             self._own_pass = None
+            self._kind_pass = None
 
     def _group_key(self, text: str) -> tuple | None:
         """R2: _group_form's (kind, template) key read off the text's leading slot, the scope a
@@ -12220,7 +12250,11 @@ class Agent:
         if k in seen:
             return None
         seen.add(k)
-        members = [o for o in self._owners(state) if self._kind(o) == kind and o != partner]
+        kp = self._kind_pass
+        if kp is not None and kp[0] is state:   # 10a: the pass's table, in _owners' order
+            members = [o for o in kp[2].get(kind, ()) if o != partner]
+        else:
+            members = [o for o in self._owners(state) if self._kind(o) == kind and o != partner]
         if len(members) < 2:
             return None                         # a group of one is its single
         bound = (compile_term.bind(c, scope, m) for m in members)
@@ -29456,7 +29490,13 @@ class Agent:
             return self._spent >= STEP_BUDGET
         if self._clk_hs is None:
             return False
-        spent, allow = self._purse_spent(), self._allowance()
+        if _PURSE_FAST:
+            allow = self._allowance()
+            if 0 <= cap.HEADS - self._clk_h0 < allow:
+                return False                # 0 <= spent <= heads since the step began < allow
+            spent = self._purse_spent()
+        else:
+            spent, allow = self._purse_spent(), self._allowance()
         if spent >= allow and self._p_cross is None:
             # r1644: the unit that crossed the allowance is the scope running when it is first seen
             self._p_cross = {"at": self._clk_stack[-1][0] if self._clk_stack else None,

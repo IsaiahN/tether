@@ -2349,6 +2349,15 @@ ARMS: dict[str, str] = {
                          "NOT_FOUND / GIVEN_UP (can_ledger.py); a crossing or an appearance is a "
                          "row with its pretext, cue, lag and src. RECORD-ONLY and uncharged. "
                          "ON. OFF: no rows. MF: tests/test_can_ledger.py.",
+    "TETHER_KIND_PASS": "STEP 10a (the reviewer 2026-11-12, the dc22 profile): one kind table "
+                        "per _group_cands pass (owner -> kind, kind -> owners in _owners' order) "
+                        "in place of re-reading every owner's kind for every text. EXACT: the "
+                        "same members, same order. ON. OFF: per-text reads. MF: "
+                        "tests/test_kind_pass.py.",
+    "TETHER_PURSE_FAST": "STEP 10a (the reviewer 2026-11-12, the dc22 profile): _purse_out "
+                         "answers 'not spent' without the idle-scope sum while the heads since "
+                         "the step began are under the allowance (spent <= those heads). EXACT. "
+                         "ON. OFF: the sum every check. MF: tests/test_purse_fast.py.",
     "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
                           "the mint's depth-one trees that passed their own _cannot_pay are "
                           "deepened a tier at a time (tree_search.deepen), each priced by the "
