@@ -14,6 +14,32 @@ against a ground it cannot argue with.
 - The figures it is built from are in [`figures/`](figures/), with the formula,
   [`figures/THE_FORMULA.md`](figures/THE_FORMULA.md).
 
+## What recursive self-improvement means here
+
+The usual picture of recursive self-improvement is a system that rewrites its own core, faster each time, taking whatever it needs from its surroundings. That is how a virus works: it has no stable core of its own, so it hijacks its host's machinery to run its own code. It changes fast, but it has no autonomy, and it exists only by taking from others. Tether uses a different definition, closer to seed AI: a stable seed that grows into a full agent, inside a lineage that improves over generations.
+
+**A kernel and an operating system.**
+- The **kernel** is the seed, kept on the [`core`](https://github.com/IsaiahN/tether/tree/core) branch: the Tether loop that routes each residual, the gate that decides what is minted and kept, provenance, and abstention when nothing fits. Its code has not changed since the first build on 2026-08-22, and every other branch descends from it. Like DNA, it is what every generation shares. Every agent built on it starts from human priors, a library of about 4,000 entries, as its first inheritance.
+- The **operating system** is everything that grows on top of it: the ideas the agent composes, how it searches, its reflexes, what it knows about each kind of object. This changes all the time. It is built by consulting the Tether architecture on nearly every design choice, and the code and its commit history cite the figures each choice follows.
+
+**Within one lifetime** (a run), the agent changes its operating system, never its kernel. As with a person, what it becomes is not set by the environment alone. It comes from what it meets, what it practices, and what it chooses to keep.
+
+**Across generations**, the lineage carries forward what paid. Every save is the next generation's starting point. One-off details fold into general patterns and unused ideas fade, so over enough generations the traces of old environments compress away. The environment selects; the lineage decides what it carries. This is the recursion. It is slow, and it happens between generations, not inside one.
+
+**Why one agent is not enough.** Generations need a population. A single agent varies only as far as its own environment pushes it, it cannot remix its own kernel, and selection has nothing to choose between. One bad change can end the line. Real recursion needs many autonomous agents of the same kind, each meeting different environments and challenges, each growing a different operating system. They share what they learn through a common library, each noting which ideas came from it, so the network stays readable. What crosses between them is operating system: ideas, search orders, reflexes. The kernel stays the shared seed that makes them one kind, the way a species is defined by the heritage its members hold in common. Diversity gives selection something to work with, and it keeps the seedline alive when one branch fails.
+
+Clones are the opposite case. Copies of one agent are useful on a short problem, where the work splits across many hands. But they share every weakness and give selection nothing to choose between, so they cannot carry a lineage forward.
+
+**Where Tether is today.** Tether runs one agent and its saved lineage. The population layer, many agents sharing one library, is not built here. Selection over many agents is already known to work (the earlier [Ouroboros](https://github.com/IsaiahN/Ouroboros) agents showed it on CPUs); this project sets out to show the agent itself, the seed every member of such a population would share.
+
+**Releases** (this repository's commits and the [CHANGELOG](CHANGELOG.md)) are operating-system updates. A change to the [`core`](https://github.com/IsaiahN/tether/tree/core) kernel would be a new species: a new branch, made on purpose, never a self-edit at runtime.
+
+**Why the priors matter.** No one has a record of every event that shaped the human mind, so a random starting kernel can at best produce an imitation of one. Margarine shares properties with butter, but it is not butter. Tether starts from human priors, grows them into primitives, and lets them mature in a new substrate with faster computation and better memory. The lineage stays faithful to its source as it diverges, the way oranges become orange juice and then orange drink, until enough generations make it something new.
+
+**Why it can be trusted.** Its provenance is known from the first build on [`core`](https://github.com/IsaiahN/tether/tree/core). Every change is checked against the kernel: the gate's eight checks from the first build on `core` still run on every branch against the agent's own record, and [ruff](https://docs.astral.sh/ruff/) lints all code with the rules `core` set. Every change is versioned, every decision is a readable record, and results reproduce. Nothing is taken on trust; everything can be checked.
+
+Each agent keeps its own lineage: it decides what continues, how it changes, and whether it ends.
+
 ## The four branches
 
 - **[`core`](https://github.com/IsaiahN/tether/tree/core)**: the minimal kernel. The Tether loop,
@@ -275,6 +301,8 @@ is a candidate: puzzles, games, simulations, lab or control loops.
 
 The documents are in numbered folders under `docs/`; start at
 [docs/00-README.md](docs/00-README.md). Each folder has its own README.
+
+What changed in each release: [CHANGELOG.md](CHANGELOG.md).
 
 ## Quick start (about 2 minutes)
 

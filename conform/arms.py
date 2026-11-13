@@ -726,6 +726,13 @@ ARMS: dict[str, str] = {
                          "censored, never a verdict; the step runs on to its choice (settle, "
                          "step_act, REPEAT). cap.hold() units stay whole. OFF: the purse is "
                          "checked only between whole units",
+    "TETHER_MINT_CUT_LANDED": "SHIP 1, the reviewer r1869. Default ON. ON: a mint unit cut after "
+                              "the slot's mint landed inside the unit (its mint or ACCEPT row "
+                              "written, e.g. a cut in the post-accept sweep) owes nothing -- no "
+                              "purse_cut row, no owed entry; the @cap unit_purse_cut row still "
+                              "records the cut. OFF: every mint cut owes the slot, which wrote "
+                              "'owed' for a term just accepted and the demo's gate refused it "
+                              "(ladder: MINT after ACCEPT)",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "
