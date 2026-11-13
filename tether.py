@@ -26204,6 +26204,23 @@ class Agent:
                                 reads="what I can do and what I can't, after the crossings")
         st.update(lists=now, state=dict(before), step=self.cycle, known=known)
 
+    def _reuse_head_names(self):
+        """H7's KEY FIX (step 10; r1849 / the seat's 16:24 note): the reuse book counts HEADS --
+        settled terms by name, library entries -- while the walk scores CHAINS of atoms, so keying
+        authority by atom name scored almost nothing. This maps a chain to the book's heads whose
+        own atoms the chain STARTS with (a settled term's atoms, read from the library), so a
+        chain built on a head that paid in many contexts rises in order. Order only."""
+        heads: dict = {}
+        for (_c, h) in self._reuse.paid:
+            t = self.gamma.library.get(h)
+            if t is not None and h not in heads:
+                heads[h] = tuple(a.name for a in t.atoms)
+
+        def names(chain: tuple):
+            got = tuple(a.name for a in chain)
+            return [h for h, at in heads.items() if at and got[:len(at)] == at]
+        return names
+
     def _deepen_trees(self, slot: str, roots: list, hist, base: float, robs: list, rkey: Any,
                       units: Any, budget: int, beat: float) -> tuple:
         """10d 2b: tree_search.deepen over the mint's depth-one trees. `roots` are (tree, guard
@@ -27250,8 +27267,9 @@ class Agent:
                     _key = shape_order.make_order_key(
                         shape_order.wanted(slot.rsplit(".", 1)[-1]), self._shape_readings,
                         paid_heads=_heads, sense_heads=_heads,
-                        authority=(self._reuse.authority() if self._reuse is not None
-                                   else None),         # P6 H7: 8c's tiebreak
+                        authority=(self._reuse.authority(self._reuse_head_names())
+                                   if self._reuse is not None else None),   # P6 H7, keyed
+                        # by the HEADS the chain starts with (H7's key fix, step 10)
                         fits_whole=lambda ch, _b=by_fit: _b(Term(ch)))
                     _bound = _stop_at = None
                     if robs:
