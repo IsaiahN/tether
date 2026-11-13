@@ -30291,7 +30291,9 @@ class Agent:
             self.led.record(self.cycle, "PLAN", "@ruin", "withheld", fingerprint=_w.fp,
                             withheld=sorted([a, list(c) if c else None] for a, c in _w.pairs),
                             chosen=[action, list(_c) if _c else None],
-                            all_vetoed=_w.action(action) or _w.at(action, _c), by=by)
+                            # the chosen press is held: every option vetoed, or a game-loss veto
+                            # taken last (C1 part 7); the old name said only the first (r1900 7c)
+                            chosen_held=_w.action(action) or _w.at(action, _c), by=by)
             hit = ((action, None) if (action, None) in _w.last
                    else (action, _c) if (action, _c) in _w.last else None)
             if _GAME_LOSS_SHARE and hit is not None:

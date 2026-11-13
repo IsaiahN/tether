@@ -8,7 +8,8 @@ below the seam where the button and coordinate are chosen, unless every option i
   1. on a DIFFERENT board nothing is withheld;
   2. a positioned action at another coordinate on the same board is offered (only the vetoed
      coordinate is skipped), at _made's spots and at TOUCH route 1;
-  3. every option vetoed: the step still acts, all_vetoed True, and `why` says so;
+  3. every option vetoed: the step still acts, chosen_held True (no all_vetoed key, r1900 7c),
+     and `why` says so;
   4. choose() is called exactly once per step;
   5. TETHER_RUIN without TETHER_RUIN_RECORD refuses to start;
   6. a library saved after a game loss carries no veto (Fig 4: a recording never crosses up);
@@ -135,7 +136,7 @@ if __name__ == "__main__":
     assert rep == 0, (ends, keys)
     w = _rows(ag, "withheld")
     assert w and all(r["slot"] == "@ruin" and r["step"] == "PLAN" for r in w), w[:2]
-    assert all(not r["detail"]["all_vetoed"] for r in w), [r["detail"] for r in w]
+    assert all(not r["detail"]["chosen_held"] for r in w), [r["detail"] for r in w]
     assert all(r["detail"]["chosen"] not in r["detail"]["withheld"] for r in w), w
     out = gate.check(ag.led.rows())
     assert out["verdict"] == gate.PASS, out
@@ -193,10 +194,11 @@ if __name__ == "__main__":
     sp3 = _Spy(al)
     acted = al.step()
     w3 = _rows(al, "withheld")
-    assert acted and w3 and w3[-1]["detail"]["all_vetoed"], (acted, w3)
+    assert acted and w3 and w3[-1]["detail"]["chosen_held"], (acted, w3)
+    assert not any("all_vetoed" in r["detail"] for r in w3), w3[-1]["detail"]
     assert any(e for _on, _o, e in sp3.every), sp3.every
     print(f"  3: every option vetoed -> the step acts ({w3[-1]['detail']['chosen']}), "
-          f"all_vetoed True, '{IFace.ALL_VETOED}' set")
+          f"chosen_held True, '{IFace.ALL_VETOED}' set")
     # 5
     env5 = {**os.environ, "TETHER_RUIN": "1", "PYTHONDONTWRITEBYTECODE": "1"}
     env5["TETHER_RUIN_RECORD"] = "0"     # default ON since 083c07b: unset is no longer OFF
