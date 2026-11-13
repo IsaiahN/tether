@@ -22,15 +22,19 @@ Releases are listed newest first.
 ### Fixed
 - demo.py no longer crashes on a fresh clone.
 - A finished idea is no longer marked as unfinished when the thinking budget runs out after it.
+- demo.py's record check passes: board reads made while forming an idea are recorded under the right step. The previous release failed this check about 3 runs in 5.
 
 ### Known issues
 - Steps run slower on tn36 and bp35. Profiling is next.
+- The demo's answers vary slightly from run to run (1 wrong "can't explain" in 25 runs).
 
 ### Repository
 - docs/ sorted into numbered folders, each with a README.
 - Logs written to logs/.
 - About 35 obsolete files removed (all kept in git history).
 - Attribute index moved to library/.
+- README: a section on what recursive self-improvement means here.
+- CHANGELOG.md added.
 
 ## 2026-11-11: Measurement and memory fold
 
