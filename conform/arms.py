@@ -2358,6 +2358,12 @@ ARMS: dict[str, str] = {
                          "answers 'not spent' without the idle-scope sum while the heads since "
                          "the step began are under the allowance (spent <= those heads). EXACT. "
                          "ON. OFF: the sum every check. MF: tests/test_purse_fast.py.",
+    "TETHER_GOAL_ORDER_BY_GROUND": "STEP 10a (the reviewer 2026-11-12; Isaiah 14:59 'the ground "
+                                   "decides'): the proposer's PRICE and CLASS cues ordered by "
+                                   "what paid on the holds they disagreed on; price first "
+                                   "(today's) until price has 3 such endings and class's "
+                                   "validity is higher. ON. OFF: price first always. MF: "
+                                   "tests/test_order_by_ground.py.",
     "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
                           "the mint's depth-one trees that passed their own _cannot_pay are "
                           "deepened a tier at a time (tree_search.deepen), each priced by the "

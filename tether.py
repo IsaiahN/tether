@@ -1475,6 +1475,16 @@ _KIND_PASS = armflag.arm("TETHER_KIND_PASS", default=True)
 # so while those are under the allowance the purse is not spent and the idle sum is not needed.
 # Exact: the same answer, the allowance still read (its source note). OFF: the sum every time.
 _PURSE_FAST = armflag.arm("TETHER_PURSE_FAST", default=True)
+# 10a, ORDER BY GROUND (the reviewer 2026-11-12; Isaiah 14:59: "I can walk and use my legs < i
+# cannot see anymore (blind) circumstantial - the ground decides"). The proposer's two cues -- PRICE
+# (the shorter description, bits) and CLASS ("can act on it": a live residual, routable, the rest)
+# -- are ordered by what paid, never by a fixed rule (Fig 2 :43; endings are the ground's votes,
+# Fig 7 :35). A held goal the two cues DISAGREE on (one would have put it first among its peers,
+# the other not) credits, at its ending, the cue that endorsed it; a budget ending is no verdict
+# (r1379). Validity (paid + 1) / (ended + 2). Default: price first, today's order. Class goes
+# above price once price has _B2_MIN_EVIDENCE disagreeing endings and class's validity (its
+# Laplace 0.5 while untried) is higher; it swaps back as evidence moves. OFF: price first always.
+_ORDER_BY_GROUND = armflag.arm("TETHER_GOAL_ORDER_BY_GROUND", default=True)
 # the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
@@ -5137,6 +5147,7 @@ class Agent:
         self._b2_cells_inh: dict = {}
         self._b2_kinds_inh: dict = {}
         self._b2_wk: dict = {}
+        self._obg = {"price": [0, 0], "class": [0, 0]}     # 10a ORDER_BY_GROUND: [ended, paid]
         self._b2_evidenced: list = []   # r1481: the kinds placed by validity, at the last cue order
         self._indist_key = None       # INDIST_ON_CHANGE: the last grouping computed
         self._indist_at = None        # INDIST_ON_CHANGE: the cycle of the last indistinct row
@@ -10590,6 +10601,22 @@ class Agent:
         return tuple(next(placed) if k in ev else k for k in _B2_CUES)
 
     @staticmethod
+    def _obg_first(rec: dict) -> str:
+        """10a ORDER_BY_GROUND: which cue leads -- "class" once price has _B2_MIN_EVIDENCE ended
+        holds the cues disagreed on and class's validity is higher, else "price" (today's)."""
+        def val(st):
+            return (st[1] + 1.0) / (st[0] + 2.0)
+        return ("class" if rec["price"][0] >= _B2_MIN_EVIDENCE
+                and val(rec["class"]) > val(rec["price"]) else "price")
+
+    @staticmethod
+    def _obg_key(k: tuple, cls: int, first: str) -> tuple:
+        """10a: a candidate's sort key with the class cue placed by `first` -- price first leaves
+        the key as it is; class first puts the class before the bits (the key's last element stays
+        the bits, which every reader takes as k[-1])."""
+        return k if first == "price" else (*k[:-1], cls, k[-1])
+
+    @staticmethod
     def _b2_ttb_key(has, cues: tuple) -> tuple:
         """r1479 TAKE THE BEST as a sort key: 0 where the candidate has the kind, 1 where it
         lacks it, in cue order -- so the first cue on which two candidates differ decides, and
@@ -10776,6 +10803,12 @@ class Agent:
             # reading the hold carried at its pick; paid is P1's word (an arrival, a win, a touch)
             self._b2_credit(h["b2"]["cells"],
                             won or why == "arrived_no_clear" or h.get("touches", 0) > 0, why)
+        if _ORDER_BY_GROUND and h.get("obg") and not budget_end and why not in ("untested",
+                                                                                "parked"):
+            # 10a: the ending is the ground's vote on the cue that put this pick first
+            st = self._obg[h["obg"]]
+            st[0] += 1
+            st[1] += 1 if (won or why == "arrived_no_clear" or h.get("touches", 0) > 0) else 0
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
         if _LEAVE_RATE and h.get("reopened") is not None:
@@ -11297,6 +11330,9 @@ class Agent:
         if _GOAL_UNBUNDLE and self._hyp_split is not None:
             cands += self._compounds(cands)     # item 19 (c): kept AND c, in the same sort
         cands = _priced(cands)
+        obg_first = self._obg_first(self._obg) if _ORDER_BY_GROUND else "price"
+        if obg_first != "price":                # 10a: the ground put class above price
+            cands = [(self._obg_key(x[0], _xcls(x), obg_first), *x[1:]) for x in cands]
         cands.sort(key=lambda x: x[0])
         ranked_all = list(cands)                # the pick's rank is read against this order
         self._hyp_open = len(cands)              # C1 item 1: a cut's record counts against it
@@ -11305,6 +11341,8 @@ class Agent:
         detail = {"candidates": len(src), "open": len(cands), "refused": dict(refused),
                   "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][-1],
                               "source": x[4]} for x in cands[:5]]}
+        if _ORDER_BY_GROUND:
+            detail["order_first"] = obg_first   # 10a: the cue order this pass ranked by
         if _R4_RECORD:
             detail["self_moving"] = dict(sorted(_smw.items()))
         if desc is not None:
@@ -11324,6 +11362,8 @@ class Agent:
                 if _GOAL_UNBUNDLE and self._hyp_split is not None:
                     cands += self._compounds(cands)
                 cands = _priced(cands)
+                if obg_first != "price":
+                    cands = [(self._obg_key(x[0], _xcls(x), obg_first), *x[1:]) for x in cands]
                 cands.sort(key=lambda x: x[0])
                 ranked_all += cands
                 self._hyp_open += len(cands)
@@ -11537,6 +11577,16 @@ class Agent:
             cells, _has = self._b2_text(b2ctx[0], x[1], _xcls(x))
             kind = x[2].slot.split(".", 1)[1] if "." in x[2].slot else x[2].slot
             self._hyp["b2"] = {"cells": [(kind, c) for c in cells]}
+        if _ORDER_BY_GROUND:
+            # 10a: which cue endorsed this pick among its peers (the same won / sign / moved
+            # tiers): the cheapest bits, the best class; credited at its ending only if they differ
+            peers = [y for y in ranked_all if y[0][:3] == x[0][:3]]
+            by_p = x[0][-1] <= min(y[0][-1] for y in peers)
+            by_c = _xcls(x) <= min(_xcls(y) for y in peers)
+            self._hyp["obg"] = None if by_p == by_c else ("price" if by_p else "class")
+            detail["order_by_ground"] = {"first": obg_first, "pick_by": self._hyp["obg"],
+                                         "price": list(self._obg["price"]),
+                                         "class": list(self._obg["class"])}
         if _UNTESTED_KEEP and x[3] in self._untested:
             since, ended_by = self._untested.pop(x[3])
             self.led.record(self.cycle, "PLAN", sl, "goal_hypothesis_reopened", text=x[1],
