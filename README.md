@@ -98,6 +98,8 @@ ARC is only the adapter and the harness below.
 The documents are in numbered folders under `docs/`; start at
 [docs/00-README.md](docs/00-README.md). Each folder has its own README.
 
+What changed in each release: [CHANGELOG.md](CHANGELOG.md).
+
 ## Quick start
 
 Python 3.13. `requirements.lock` pins the whole runtime.
