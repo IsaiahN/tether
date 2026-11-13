@@ -6,6 +6,25 @@ Each release below is an operating-system update: it changes what grows on the k
 
 Releases are listed newest first.
 
+## 2026-11-13: Plans with subtasks
+
+### New
+- Hierarchical task planning: when a goal runs out of routes, the agent breaks it into the subtasks it needs first, and breaks those down in turn. A finished subtask hands control back to the task above it.
+- Before a subtask is taken on, a quick check asks whether it can be reached at all. Unreachable subtasks are dropped before any effort is spent on them.
+- Subtask methods are kept by kind, not by object. The methods that paid off are tried first, and the record carries across generations.
+- The "is this possible?" check now runs before idea-making starts, so an impossible job costs nothing.
+- Board reads made while forming an idea are charged to idea-making. Each read records whether this kind of object was seen before, to measure how experience makes looking cheaper.
+- Blocked items can now open: an item counted as blocked because every action was tried can be read as opened when the board changes.
+
+### Improved
+- Memory reuse from an earlier level is filed under that level's key.
+- The memory lookup's bucket walk is charged per read.
+- Each new idea's record notes how much past evidence backed it.
+- Clearer names in the records.
+
+### Known issues
+- Not yet measured on full games; the five-game retest follows this release. Each new piece has its own switch.
+
 ## 2026-11-13: Search that learns its order
 
 ### New

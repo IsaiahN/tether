@@ -733,6 +733,12 @@ ARMS: dict[str, str] = {
                               "records the cut. OFF: every mint cut owes the slot, which wrote "
                               "'owed' for a term just accepted and the demo's gate refused it "
                               "(ladder: MINT after ACCEPT)",
+    "TETHER_T2_METER": "7d, the reviewer r1900. Default ON. ON: the store load's T2 bucket walk "
+                       "(the candidates of the change's own target, lineage.t2_buckets) is one "
+                       "cap.head() per candidate read, so a long bucket is paid from the step's "
+                       "budget and can be cut there like every other tier's walk. OFF: the bucket "
+                       "is filtered unmetered (a6f4f93). Its own switch because a cut there "
+                       "changes what is offered",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "
@@ -2364,6 +2370,24 @@ ARMS: dict[str, str] = {
                                    "(today's) until price has 3 such endings and class's "
                                    "validity is higher. ON. OFF: price first always. MF: "
                                    "tests/test_order_by_ground.py.",
+    "TETHER_HTN": "A REAL HTN (Isaiah 2026-11-13 04:39; DESIGN_2026-11-13_HTN): R-C's single "
+                  "detour becomes a task stack, recursive and bounded by the dependency "
+                  "chain; methods by kind order the candidate subtasks by what paid; the "
+                  "walkthrough rejects an unreachable subtask before it is pursued; methods "
+                  "carry in the lineage (htn_n). ON. OFF: R-C's single detour. MF: "
+                  "tests/test_htn.py.",
+    "TETHER_MINT_READ_CHARGED": "THE DESIGN BILL (Isaiah 2026-11-13 00:10 'the trip back to the "
+                                "walk is apart of the design'): a board read made in order to "
+                                "design (the contact read; the reach read when it runs inside "
+                                "design) is charged to MINT; each writes a design_read row "
+                                "(heads, prior "
+                                "reads of the kind). ON. OFF: the r1871 label-only read, "
+                                "uncharged. MF: tests/test_design_bill.py.",
+    "TETHER_REACH_FIRST": "THE DESIGN BILL (Isaiah 2026-11-13 00:18): the 'is this possible?' "
+                          "reach check runs before the contact read, free, so an impossible job "
+                          "stops before any design is charged (Fig 13 :133; Fig 9 :45). ON. OFF: "
+                          "the reach check after the contact read. MF: "
+                          "tests/test_design_bill.py.",
     "TETHER_OBG_CARRY": "STEP 10a carry (the reviewer 2026-11-12; Isaiah 23:10 'learned search "
                         "order should carry over'): ORDER_BY_GROUND's [ended, paid] per cue rides "
                         "the lineage as increments (obg_n in the counts blob, summed by the store "
@@ -2389,6 +2413,12 @@ ARMS: dict[str, str] = {
                           "produced (appeared / opened), settles them, then learns. RECORD-ONLY. "
                           "NEEDS TETHER_CAN_LEDGER. ON. OFF: no can_produce rows. MF: "
                           "tests/test_can_produce.py.",
+    "TETHER_CAN_SKIP_RESET": "F5, the reviewer r1900, r1901. Default ON. ON: the can lists count "
+                             "RESET untried only when not alive (interface.untried_here's test), "
+                             "so 'no route; every action tried' (BLOCKED) can be read "
+                             "and a later route reads as an OPENED crossing. OFF: RESET, never in "
+                             "the table, kept untried >= 1, so no crossing was ever 'opened' "
+                             "(0 of 198 on the step 10 retest). MF: tests/test_can_skip_reset.py.",
     "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
                           "the mint's depth-one trees that passed their own _cannot_pay are "
                           "deepened a tier at a time (tree_search.deepen), each priced by the "

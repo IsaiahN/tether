@@ -94,8 +94,8 @@
 <text x="180" y="2146" font-size="23" fill="#454545">The derivations were run before anyone asked for a minimality argument, which is why this is evidence rather than a case built to fit.</text>
 <line x1="180" y1="2192" x2="2220" y2="2192" stroke="#dcdcdc" stroke-width="2"/><text x="180" y="2248" font-size="21" fill="#8a8a80" font-weight="600" letter-spacing="2">WHAT THE COMBINATIONS COMPOSE</text>
 <text x="180" y="2294" font-size="27" fill="#1a1a1a" font-weight="600">Everything else is a composition across the two kinds, never within one.</text>
-<text x="180" y="2330" font-size="23" fill="#454545">Space and time compose conservation. Spectrum and gradient compose a continuum. Network and gradient compose a flow. And a gradient over a</text>
-<text x="180" y="2360" font-size="23" fill="#454545">network is a different term from a gradient over space, because which structure it is bonded to is part of what it is.</text>
+<text x="180" y="2330" font-size="23" fill="#454545">Two states never bond directly. It is not space-time but space, a structure, time; and two structures join only through a state. Energy</text>
+<text x="180" y="2360" font-size="23" fill="#454545">and a gradient compose a flow. A gradient over space and one over time are different terms, because which state it is bonded to is part of what it is.</text>
 <rect x="180" y="2392" width="1120" height="400" rx="10" fill="#fafaf8" stroke="#c8c8c8" stroke-width="2"/>
 <text x="220" y="2434" font-size="21" fill="#8a8a80" font-weight="600" letter-spacing="2">ONE CHAIN</text>
 <line x1="220" y1="2452" x2="1260" y2="2452" stroke="#dcdcdc" stroke-width="2"/>
