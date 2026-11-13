@@ -25,6 +25,12 @@ from pathlib import Path
 import armflag
 
 _NARRATE = armflag.arm("TETHER_NARRATE", default=True)
+# P7 (step 8, the reviewer 2026-11-12 r1835/r1838, DESIGN_STEP8 item 6; Isaiah 11-06 "when a
+# weight changes mid-game log that event and console it"): two more kinds of key row said aloud:
+# WEIGHT (a learned weight's standing crossing its threshold, or a reflex judged paid / against)
+# and SENSE (8b-1's prediction before the test, "src -> sense, expecting", and whether it held).
+# Say-only, like every narrator line: the ledger is the same OFF.
+_NARRATE_WEIGHT = armflag.arm("TETHER_NARRATE_WEIGHT", default=True)
 WIDTH = 200                 # one console line; a longer row is cut, its full form is the ledger
 
 
@@ -53,16 +59,57 @@ def say_row(step: str, event: str, d: dict, ends: tuple) -> tuple[str, str] | No
         return "PLAN", _short({k: v for k, v in d.items() if k != "reads"})
     if step == "PLAN" and event == "routine_refused":
         return "ROUTINE_REFUSED", _short(d.get("reason"))
+    if _NARRATE_WEIGHT:
+        got = _say_weight_or_sense(event, d)
+        if got is not None:
+            return got
     if step == "PERCEIVE" and event == "progress":
         on = _short(list(d.get("closer") or ()))
         return "CLOSER", f"on {on} selected={d.get('selected_want')}"
     return None
 
 
+def _say_weight_or_sense(event: str, d: dict) -> tuple[str, str] | None:
+    """P7: WEIGHT and SENSE lines (TETHER_NARRATE_WEIGHT). The rows they read:
+    standing_freed (tether._rf_crossed, r1356): a weight crossed 1 + carried + paid < against;
+    reflex_settled (tether._reflex_settle): a reflex judged paid or against;
+    sense_pick / sense_note (8b-1, P4): src (r1840; `cue` read if absent), subj, head, role,
+    pred / head, outcome, src."""
+    if event == "standing_freed":
+        return "WEIGHT", (f"{_short(d.get('form'))} {_short(d.get('situation'))} -> "
+                          f"{d.get('to')} by {d.get('by')} (against {d.get('against_before')} -> "
+                          f"{d.get('against')}, paid {d.get('paid')}, carried {d.get('carried')})")
+    if event == "reflex_settled":
+        return "WEIGHT", (f"{_short(d.get('form'))} {'paid' if d.get('held') else 'against'}: "
+                          f"paid {d.get('paid')}, against {d.get('against')}")
+    if event == "sense_pick":
+        return "SENSE", (f"src {_short(d.get('src', d.get('cue')))} on {_short(d.get('subj'))}"
+                         f" -> sense "
+                         f"{_short(d.get('head'))}/{d.get('role')}, expecting "
+                         f"{_short(d.get('pred'))}")
+    if event == "sense_note":
+        held = d.get("outcome") == "paid"
+        return "SENSE", (f"{_short(d.get('head'))} {'held' if held else 'missed'} "
+                         f"under {_short(d.get('src') or d.get('cue') or d.get('ctx'))}")
+    return None
+
+
+ROOT = Path(__file__).resolve().parent
+
+
+def log_beside(path: Path, name: str) -> Path:
+    """Where a log written beside the ledger goes: the ledger's own folder, except the repo root,
+    whose logs go to logs/ (git-ignored; 8e, the reviewer r1801, r1831)."""
+    if path.resolve().parent == ROOT:
+        (ROOT / "logs").mkdir(exist_ok=True)
+        return ROOT / "logs" / name
+    return path.with_name(name)
+
+
 class Narrator:
     def __init__(self, path: Path | None, ends: tuple) -> None:
         self.on = _NARRATE and path is not None
-        self._log = path.with_name("narrate.log") if self.on else None
+        self._log = log_beside(path, "narrate.log") if self.on else None
         if self._log is not None:
             self._log.write_text("", encoding="utf-8")
         self._ends = ends

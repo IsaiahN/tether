@@ -45,7 +45,9 @@ import lineage
 import reach
 import relations
 import retrieval
+import reuse
 import routine as Rt
+import shape_order
 import store as door  # the one door; `store` is a local name in three methods
 from gamma import _CARRY_W as G_CARRY_W
 from gamma import _FADE_BY_STORE as G_FADE_BY_STORE
@@ -245,6 +247,24 @@ _RECIPE_HELD_FREE = armflag.arm("TETHER_RECIPE_HELD_FREE", default=True)
 # best candidate (the one that read furthest into R). RECORD ONLY: every reader of the verdict
 # inside the agent sees the old one. OFF: the row is as before.
 _CLOSURE_VERDICT = armflag.arm("TETHER_CLOSURE_VERDICT", default=True)
+
+# 8a-0, THE PAY-GAP ROW (the reviewer r1767 2, r1809 3): per mint, how far the candidates
+# _cannot_pay cut were from paying. The cut stops at the first row that proves it, so the gap AT
+# the cut sits in [0, log2 V) and cannot tell "nearly paid" from "nowhere near"; the gap is counted
+# over ALL of R, UNCHARGED -- no head booked, the shape table's extent count restored -- and the
+# row says so. An instrument's notebook: nothing in the agent reads it. OFF: no row, no count.
+_PAY_GAP = armflag.arm("TETHER_PAY_GAP", default=False)
+
+# 8a-0, THE PICK-TIER FIELD (r1789, r1796): on the library row, the K1 tier each OFFERED entry came
+# from and the tier of each entry that LANDED in the lookup ("untiered" where no tier placed it). A
+# record: nothing reads it. OFF: the row as before.
+_PICK_TIER = armflag.arm("TETHER_PICK_TIER", default=False)
+
+# 8a-0, THE REACHED-AND-PAID FIELD (r1795, r1796, r1812 4): three facts kept apart, each with the
+# entry's K1 tier -- REACHED (offered in a lookup), MINTED (the mint's winner came from that offer;
+# on the "mint" row), SETTLED (that term later held out-of-fit; on the "settle" row) -- and one
+# run-end row of the three per tier. A record: nothing reads it. OFF: the rows as before.
+_REACH_PAID = armflag.arm("TETHER_REACH_PAID", default=False)
 
 # ARM G -- REBIND WHAT IS HELD. `_rebindings` returns early for any term that already carries an
 # operand, so only IMPORTS (which arrive unbound, `save` drops it) are ever re-bound. A term the
@@ -1421,6 +1441,13 @@ _COVER_PRUNE = armflag.arm("TETHER_COVER_PRUNE", default=True)
 # -- seeded ONLY from the two pair readings of a settled junction no existing shape can express,
 # lifted to the one source that moved, priced as a bonded arrangement. Depth one: leaves are slots.
 _TWO_SLOT_OPERAND = armflag.arm("TETHER_TWO_SLOT_OPERAND", default=True)
+# 10d, TIERED TERMS (the reviewer 2026-11-12; Isaiah 12:41 "f(g(h(i(...))))", 15:15 "it can start
+# now"): the operand tree RECURSES. A node whose own term names a second slot AND carries its own
+# operand tree reads that second leaf through _ops itself, so a leaf can be a computed value and the
+# tree can be as deep as the bargain pays for -- the depth-one bound in _ops' docstring was
+# structural (the branch's operand was a value, never a term); here the second leaf is a term.
+# OFF: the second leaf is read as a raw slot, as before (r1145).
+_TIERED_TERMS = armflag.arm("TETHER_TIERED_TERMS", default=True)
 # the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
@@ -3142,6 +3169,205 @@ def _unformed(kind: Any) -> Any:
     return tuple(x for x in kind if not (isinstance(x, str) and x.startswith("form=")))
 
 
+def _change_class(before: Any, after: Any) -> tuple:
+    """P3: how a slot's value moved in one step -- (sign, bit length) for ints, (moved?,) else."""
+    if isinstance(before, int) and isinstance(after, int) and not isinstance(after, bool):
+        v = after - before
+        return ("+" if v > 0 else "-" if v < 0 else "0", abs(v).bit_length())
+    return ("ne" if after != before else "0",)
+
+
+def _loo_hits(keys: list, cls: list) -> tuple[int, int]:
+    """P3: (hits, readable) -- rows whose change class is the strict majority of the OTHER rows
+    sharing their key, and the rows that have another row to be read from. A contingency count
+    read leave-one-out, so a key seen once predicts nothing."""
+    tab: dict = collections.defaultdict(collections.Counter)
+    for k, c in zip(keys, cls, strict=True):
+        tab[k][c] += 1
+    hits = readable = 0
+    for k, c in zip(keys, cls, strict=True):
+        cap.head()
+        t = tab[k]
+        t[c] -= 1
+        top = max(t.values(), default=0)
+        if top > 0:
+            readable += 1
+            win = [x for x, m in t.items() if m == top]
+            hits += len(win) == 1 and win[0] == c
+        t[c] += 1
+    return hits, readable
+
+
+def _kind_text(kind: Any) -> str:
+    """P3: a door kind as text -- the attribute types without the form code."""
+    k = _unformed(kind)
+    return "/".join(str(x) for x in k) if isinstance(k, tuple) else str(k)
+
+
+def source_of(ag: Any, slot: str) -> tuple:
+    """P3 (r1840, r1841; Isaiah 11:20, the general case): WHO the slot's change depends on --
+    (src, first_bind, gain, n). Over the slot's history, each candidate x scores the rows it adds
+    to the slot's own past: G(x) = hits(class | previous class, x) - hits(class | previous class),
+    read leave-one-out. Candidates in the cause-search order (Isaiah 10-17): my action, then each
+    slot of each object in contact with the owner, then the next ring out; ties to the earlier.
+    src: SELF (my action closes every row it can be read on) / COUPLED (my action, partly) /
+    BY:<door kind> / OWN (the own past closes it) / HIDDEN (nothing gains, the own past does not).
+    first_bind: the slot's own lag for SELF / COUPLED / OWN, x for BY. It orders and keys only."""
+    key = (slot, ag.cycle)
+    got = ag._src_cache.get(key)
+    if got is not None:
+        return got
+    hist = ag.history(slot)
+    if not hist:
+        ag._src_cache[key] = ("*", None, 0, 0)
+        return ag._src_cache[key]
+    cls = [_change_class(r[0].get(slot), r[2]) for r in hist]
+    prev = [None] + cls[:-1]
+    n = len(cls)
+    h0, r0 = _loo_hits(prev, cls)
+    owner = slot.split(".", 1)[0]
+    last = hist[-1][0]
+
+    def ring(objs: set) -> set:
+        out = set()
+        for s, v in last.items():
+            if v and "~" in s and s.endswith(".contact"):
+                a, b = s.split(".", 1)[0].split("~", 1)
+                if a in objs and b not in objs:
+                    out.add(b)
+                elif b in objs and a not in objs:
+                    out.add(a)
+        return out
+
+    r1 = ring({owner})
+    r2 = ring(r1 | {owner}) - r1
+    cands: list = [("act", None)]
+    for objs in (r1, r2):
+        cands += [("slot", s) for s in sorted(last) if "~" not in s and "." in s
+                  and s.split(".", 1)[0] in objs]
+    best = (0, None)
+    for kind_, x in cands:
+        cap.head()
+        xs = [r[1] for r in hist] if kind_ == "act" else [r[0].get(x) for r in hist]
+        hx, rx = _loo_hits(list(zip(prev, xs, strict=True)), cls)
+        g = hx - h0
+        if g > best[0]:
+            best = (g, (kind_, x, hx == rx))
+    if best[1] is None:
+        out = ("OWN", f"{slot}~1", 0, n) if r0 and h0 == r0 else ("HIDDEN", None, 0, n)
+    elif best[1][0] == "act":
+        out = ("SELF" if best[1][2] else "COUPLED", f"{slot}~1", best[0], n)
+    else:
+        x = best[1][1]
+        out = ("BY:" + _kind_text(ag._kind(x.split(".", 1)[0])), x, best[0], n)
+    ag._src_cache[key] = out
+    return out
+
+
+def facet_key(ag: Any, dk: Any, owner: str, slot: str | None = None, role: str = "*") -> tuple:
+    """P3: the facet key (src, subj, dk, role) -- src from source_of on the asking slot ("*" with
+    none), subj the owner's door kind, never its form code."""
+    src = source_of(ag, slot)[0] if slot else "*"
+    return (src, _kind_text(ag._kind(owner)), tuple(dk) if dk else None, role)
+
+
+def _fx_backoff(ag: Any, dk: Any, owner: str, slot: str | None) -> tuple:
+    """P3: (the key that held postings, its postings) -- exact (src, subj, dk); (*, subj, dk);
+    (*, *, dk), K1's key without the form. Every role summed; (None, {}) with none."""
+    src, subj, d, _role = facet_key(ag, dk, owner, slot)
+    tried: list = []
+    for key in ((src, subj, d, "*"), ("*", subj, d, "*"), ("*", "*", d, "*")):
+        if key in tried:
+            continue
+        tried.append(key)
+        agg: dict = {}
+        for store in (ag._fx, ag._fx_in):
+            for (s, sj, dd, _r), c in store.items():
+                cap.head()
+                if dd != d or key[1] not in ("*", sj) or key[0] not in ("*", s):
+                    continue
+                for tag, m in c.items():
+                    which, entry = tag.split("|", 1)
+                    if which not in ("P", "O", "L"):
+                        continue                    # P4's M / T / B ride the same postings
+                    a = agg.setdefault(entry, {"P": 0, "O": 0, "L": 0})
+                    a[which] = a.get(which, 0) + m
+        if agg:
+            return key, agg
+    return None, {}
+
+
+def fx_tags(ag: Any, key: tuple, which: str) -> dict:
+    """P4: tag -> n for one tag kind ("T" paid terms, "B" collocate kinds) over the postings whose
+    key matches `key` ("*" matches any facet; the role is never matched)."""
+    out: dict = {}
+    for store in (ag._fx, ag._fx_in):
+        for (s, sj, dd, _r), c in store.items():
+            cap.head()
+            if dd != key[2] or key[1] not in ("*", sj) or key[0] not in ("*", s):
+                continue
+            for tag, m in c.items():
+                w, rest = tag.split("|", 1)
+                if w == which:
+                    out[rest] = out.get(rest, 0) + m
+    return out
+
+
+def sense_lookup(ag: Any, ctx: tuple) -> list:
+    """P4 (8b-1, B2): the senses under ctx -- [(head, paid, missed, pred, merged)], paid first. A
+    sense is one head's P / M under one exact facet key; ctx's "*" facets match any. THE MERGE,
+    read here and never stored: two exact keys of one head one facet apart (src, subj or role; dk
+    is the prediction and must agree), each paid >= 2 and neither missed, read as one sense,
+    pooled -- so a miss in either splits them again, their own counts untouched."""
+    src, subj, d, role = ctx
+    per: dict = {}
+    for store in (ag._fx, ag._fx_in):
+        for k, c in store.items():
+            cap.head()
+            if k[2] != d:
+                continue
+            for tag, m in c.items():
+                w, head = tag.split("|", 1)
+                if w in ("P", "M"):
+                    per.setdefault(head, {}).setdefault(k, [0, 0])[w == "M"] += m
+    out = []
+    for head, ks in per.items():
+        mine = {k for k in ks if src in ("*", k[0]) and subj in ("*", k[1])
+                and role in ("*", k[3])}
+        if not mine:
+            continue
+        group = set(mine)
+        for a in mine:
+            if ks[a][0] < 2 or ks[a][1]:
+                continue
+            for b, (pb, mb) in ks.items():
+                cap.head()
+                if b not in group and pb >= 2 and not mb and sum(
+                        x != y for x, y in zip(a, b, strict=True)) == 1:
+                    group.add(b)
+        out.append((head, sum(ks[k][0] for k in group), sum(ks[k][1] for k in group), d,
+                    len(group) > len(mine)))
+    return sorted(out, key=lambda t: (-t[1], t[2]))      # ties keep the postings' order
+
+
+def context_key(ag: Any, dk: Any, owner: str, slot: str | None = None) -> tuple | None:
+    """P3: the asking key after back-off -- the first of (src, subj, dk), (*, subj, dk),
+    (*, *, dk) holding a posting; None with none."""
+    return _fx_backoff(ag, dk, owner, slot)[0]
+
+
+def facet_index(ag: Any, dk: Any, owner: str, slot: str | None = None) -> list:
+    """P3: the postings at the owner's context_key -- [(entry, paid, offered, landed,
+    form_match)], paid first, then offered, the form as a tiebreak, then landed; exact ties keep
+    the postings' order (the order the evidence arrived), never the name (r1850)."""
+    _key, agg = _fx_backoff(ag, dk, owner, slot)
+    form = next((x for x in (ag._kind(owner) or ()) if isinstance(x, str)
+                 and x.startswith("form=")), None)
+    return sorted(((e, a["P"], a["O"], a["L"], int(form in ag._fx_form.get(e, ())))
+                   for e, a in agg.items()),
+                  key=lambda t: (-t[1], -t[2], -t[4], -t[3]))
+
+
 def _delta_kind_of(a: Any, typ: Any, before: Any, after: Any) -> tuple | None:
     """K1: HOW a reading changed -- (cluster, sign, size class), from its attribute, its type and
     one transition. A change reading's kind is its own value's; a level's is its difference's.
@@ -3499,6 +3725,45 @@ _TOUCH_EACH_OBJECT = armflag.arm("TETHER_TOUCH_EACH_OBJECT", default=True)
 # booked try_first_owed) and the goal split is not offered. Bounded by the offered actions.
 # OFF: both run from the first press
 _BOARD_TRY_FIRST = armflag.arm("TETHER_BOARD_TRY_FIRST", default=True)
+# TRY_FIRST_ACTIONS (the reviewer r1821, r726's bound restored): the HOLD on the mint and the goal
+# split counts the unpressed offered actions only. Untouched kinds (r736) keep steering System 0's
+# touches (_contact_target, _system0_active) but no longer hold reasoning: a residual on a slot
+# after a press is already contact. OFF: the hold reads _try_first_open, kinds included
+_TRY_FIRST_ACTIONS = armflag.arm("TETHER_TRY_FIRST_ACTIONS", default=True)
+# P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
+# _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
+# skips every bind's _left when the term's cost -- the same for every bind, gamma.length keys the
+# atoms only -- already reaches the parked base and neither the carry credit nor a rescan can
+# apply: no bind can pay, and the refusal is written as reuse_refused "cost-at-or-over-base".
+# OFF: every bind's _left, as before
+_SWEEP_FILTER = armflag.arm("TETHER_SWEEP_FILTER", default=True)
+# P1 EXHAUSTED_WORD (r1838; DESIGN_STEP8 F4): the park verdict renamed depth_exhausted ->
+# priced_out_at_depth was still read under its old word at the owe/abstain write and in the sweep's
+# stale(), so a priced-out slot never owed, never parked and was never swept. The new word is read
+# there too. OFF: the old word only
+_EXHAUSTED_WORD = armflag.arm("TETHER_EXHAUSTED_WORD", default=True)
+# P2 SWEEP_DELTA (r1838; DESIGN_STEP8 D1): the sweep's rescan (_reach) walks only chains built with
+# a unit settled since the park (or since its last empty rescan): _reach's own claim is that the
+# unit set grew, and every chain without a new unit was there when the park was made (Fig 6 :49).
+# The park keeps its unit names for this. OFF: _reach re-walks the whole closure, as before
+_SWEEP_DELTA = armflag.arm("TETHER_SWEEP_DELTA", default=True)
+# P3 FACET_INDEX (8b-0; the reviewer r1838, r1840, r1841; DESIGN_STEP8 B1/B3): a change is filed
+# and looked up by what it is -- (src, subj, dk, role): who the change depends on (source_of), the
+# owner's door kind (its attribute types without the form code), the delta kind, the role -- and
+# what was offered or landed under that key comes back first (tier T0, an order, nothing cut). The
+# counts ride the counts blob as facet_n. OFF: no facet records, no T0, as before
+_FACET_INDEX = armflag.arm("TETHER_FACET_INDEX", default=True)
+# P5 SHAPE_WALK (8b-2; the reviewer's patch, r1838; DESIGN_STEP8 B4/B5): the mint's closure is
+# walked best-first by the gap's shape (gamma.ordered_closure keyed by shape_order: the wanted
+# readings an atom affects or reads first, the whole chain's fit as a tiebreak) and a stream ends
+# when no waiting chain's least price can beat min(base, its kind's best total). It orders, never
+# refuses. OFF: the shortest-first enumerate_closure walk by first-unit fit, as before
+_SHAPE_WALK = armflag.arm("TETHER_SHAPE_WALK", default=True)
+# P4 SENSES (8b-1; the reviewer r1838; DESIGN_STEP8 B2/B3/B6): a sense is a head's paid / missed
+# record under the facet key it was offered or minted under -- the P and M columns of P3's facet
+# postings, written on the settle. What paid under a context comes back first there: T0's P column,
+# the walk's stage 0, the bind order (order_bind), _library_fit's order. OFF: no P / M, as before
+_SENSES = armflag.arm("TETHER_SENSES", default=True)
 # C2 FINISH, S0_BEFORE_BORED (the reviewer 2026-11-01 r736): choose skipped the exit contest
 # whenever the drive was bored and nothing was starved, so a bored, uninformed probe took the
 # turn while System 0 was still active (lp85, measured at choose: 16 of 21 turns
@@ -4135,6 +4400,16 @@ class _DecoderView(Mapping):
         return len(self._m)
 
 
+def _pg_q(xs: list) -> dict | None:
+    """8a-0 pay-gap: min / p10 / p50 / p90 / max of a mint's readings, None when there are none."""
+    if not xs:
+        return None
+    s = sorted(xs)
+    at = lambda f: round(s[min(len(s) - 1, int(f * len(s)))], 3)  # noqa: E731
+    return {"n": len(s), "min": round(s[0], 3), "p10": at(0.1), "p50": at(0.5), "p90": at(0.9),
+            "max": round(s[-1], 3)}
+
+
 def _divide_cause(old: tuple, new: tuple) -> str:
     """1a: which parts of a slot's key moved, by name."""
     return "+".join(n for n, a, b in zip(_DIVIDE_PARTS, old, new, strict=True) if a != b) or "same"
@@ -4635,6 +4910,19 @@ class Agent:
                                                               # series
         self._thought_in: dict = {"tried": {}, "paid": {}}    # M1: the same, carried in
         self._thought_written: dict = {"tried": {}, "paid": {}}
+        # P3 (TETHER_FACET_INDEX): (src, subj, dk, role) -> "L|entry" / "O|entry" / "P|entry" -> n,
+        # this game; the same carried in (facet_n, summed at load); what the last save wrote; the
+        # forms each entry was filed under (a tiebreak); source_of's answers per (slot, cycle)
+        self._fx: dict = collections.defaultdict(collections.Counter)
+        self._fx_in: dict = {}
+        self._fx_written: dict = {}
+        self._fx_form: dict = {}
+        self._src_cache: dict = {}
+        self._shape_readings: dict | None = None   # P5: atom -> the readings it affects or reads
+        self._sense_ctx: dict = {}     # P4: term name -> (the facet key it was minted under, head)
+        # P6 H1 (TETHER_REUSE_BOOK): per-context chances / uses / payments of the heads; the age
+        # window is derived at load from the agent's own time to a second use
+        self._reuse = reuse.ReuseBook(kernel=self.gamma.kernel) if reuse.ON else None
         self._stopped_in: dict = {}                # M3: link -> games, carried in
         self._stopped_written: dict = {}
         self._lib_won: set = set()       # 7h (d) by route: library-route wins at a mint
@@ -4832,6 +5120,14 @@ class Agent:
         # taken, and would read low for a reason that is not the hold.
         self._hold_eligible = 0
         self._priced = 0                     # candidates priced by `_cannot_pay`, ever
+        self._pg = None                      # 8a-0 pay-gap: this mint's notebook (TETHER_PAY_GAP)
+        self._tier_of: dict | None = None    # 8a-0 pick-tier: this lookup's entry -> K1 tier
+        self._tier_land: dict = {}           # 8a-0 pick-tier: this lookup's landed entry -> tier
+        self._rp_reached: dict = {}          # 8a-0 reached-and-paid: (slot, entry) -> (cycle, tier)
+        self._rp_minted: dict = {}           # 8a-0 reached-and-paid: term -> its reached record
+        self._rp_settled: set = set()        # 8a-0 reached-and-paid: offer-minted terms settled
+        self._rp_bound: dict = {}            # 8a-0 bound_by: (slot | None, term) -> first path
+        self._rp_bound_n: Counter = Counter()   # 8a-0 bound_by: accepted settles per path
         self._memo: dict | None = None       # live only inside one `mint` -- see `mint`
         self._hold_withheld = 0
         # **AND THE KEY-LEVEL DENOMINATOR BESIDE IT, because the coin is flipped per
@@ -5676,6 +5972,8 @@ class Agent:
         if _MOLECULE_APPLY and self._mol_offers:
             self.led.record(self.cycle, self._running_step, "@molecule", "molecule_apply",
                             at="run", previous=self._mol_flush())
+        if _REACH_PAID:
+            self._rp_summary()
         if G_FADE_BY_STORE:
             self._fade_ev_books()
         self.led.end_game(self.cycle, f"end {how}")      # N2: where this game's chain stopped
@@ -7469,8 +7767,9 @@ class Agent:
         return _delta_kind_of(a, self.slot_types.get(slot), hist[-1][0].get(slot), hist[-1][2])
 
     def _tiers(self, lib: Any, lit: list, dk: tuple | None, mine: str, described: dict,
-               att: dict, more: tuple = ()) -> tuple[list, dict]:
+               att: dict, more: tuple = (), slot: str | None = None) -> tuple[list, dict]:
         """K1: the lit list as tiers, an ORDER and never a cut, each key once at its first tier:
+        T0 the postings at this change's facet context_key (P3, TETHER_FACET_INDEX);
         T1a / T1b / T1c what was OFFERED before under this delta kind and this object kind / this
         delta kind / this cluster (the back-off ladder; the probe); T2 carried landings with no
         delta kind, this object kind; T3 today's lit; T1d what only LANDED (the reviewer 20:43,
@@ -7488,6 +7787,8 @@ class Agent:
                     seen.add(k)
                     out.append((k, w))
                     c += 1
+                    if self._tier_of is not None:
+                        self._tier_of[k] = tier
             n[tier] = c
 
         # every order below ends in a tie-break: the recorded draw, keyed per lookup (OFF: the name)
@@ -7570,6 +7871,18 @@ class Agent:
                 # CONSOLIDATION's recency (the reviewer 04:43 2d, 04:55 3): an entry's latest
                 # landing over its K1 keys; it breaks ties only, so the 20:43 order stands
                 last = self._dk_last_k()
+            if _FACET_INDEX:
+                # P3: T0, what was offered or landed under this change's facet key, first
+                _fx0 = facet_index(self, dk, mine, slot)
+                if self._reuse is not None and _fx0:
+                    # P6 H6: among equally-paid entries, the keep-ready order; H2: each one offered
+                    # is a chance under this change's context
+                    _res = {h: i for i, h in enumerate(self._reuse.residency([t[0] for t in _fx0]))}
+                    _fx0 = sorted(_fx0, key=lambda t: (-t[1], _res[t[0]]))
+                    _rc = facet_key(self, dk, mine, slot)
+                    for t in _fx0:
+                        self._reuse.note_chance(_rc, t[0])
+                put("T0", [(e, float(p_ + o_ + l_)) for e, p_, o_, l_, _f in _fx0])
             for g_ in "abc":
                 put(f"T1{g_}", order(((k, float(m)) for k, m in off[g_].items()),
                                      lambda kv, g_=g_: (-kv[1], -land[g_][kv[0]],
@@ -7584,12 +7897,11 @@ class Agent:
             if self._kind_store is not None:
                 # the store load (the reviewer 10:45): the candidates are the game series' known
                 # keys with no dk landing (no_dk, kept at merge); only this run's dk landings remain
-                # to filter
-                cand = self._kind_store["t2"]
+                # to filter; read from ko's own bucket (lineage.t2_buckets, r1774 3b), in the order
+                # the scan of every candidate gave
+                cand = self._kind_store["t2_by"].get(ko, ())
                 run_dk = {e[1:] for e in self._kind_landed_dk}
-                t2 = [(k, r, o, x) for (k, r, o, x) in cand
-                      if (x if r == "CAUSE" else o) == ko
-                      and (k, x if r == "CAUSE" else o) not in run_dk]
+                t2 = [(k, r, o, x) for (k, r, o, x) in cand if (k, ko) not in run_dk]
             else:
                 with_dk = {e[1:] for e in itertools.chain(self._kind_landed_dk,
                                                           self._kind_known_dk)}
@@ -7697,10 +8009,12 @@ class Agent:
         for m in tg:
             cap.head()
             self._lib_offers[m] = []
+        if _PICK_TIER or _REACH_PAID:
+            self._tier_of, self._tier_land = {}, {}
         if k1:
             lit, tiers = self._tiers(lib, lit, dk, mine, described, att,
                                      more=tuple(d for m, d in (dks or {}).items()
-                                                if members and m != slot and d))
+                                                if members and m != slot and d), slot=slot)
         dl_key, dl_cut, tk_next = None, 0, None
         if _DESCRIBED_LOOKUP and tiers is not None and _INDEX_HOLD and lit:
             # 20: the key is the description -- the slot, its delta kind, the readings, its contact
@@ -7867,6 +8181,11 @@ class Agent:
                 for k_ in {o_["prov"].get("library") for o_ in offers if o_["offered"]} - {None}:
                     cap.head()
                     self._kind_offered_dk[(dk_m, k_, _ko)] += 1
+                if _FACET_INDEX:
+                    for k_, r_ in {(o_["prov"].get("library"), o_["prov"].get("role", "*"))
+                                   for o_ in offers if o_["offered"]}:
+                        if k_ is not None:
+                            self._fx_note("O", dk_m, k_, _ko, r_, m)
             rows = []
             for prov, if_c, then_c, v, off in sup:
                 cap.head()
@@ -7883,6 +8202,18 @@ class Agent:
                 self._rank_moved(slot, rank, n_tiers, explained=bool(rows),
                                  kind=f"{self._kind_str(mine)}|{att.get(slot)}")
             self._lib_offers[m] = [o_ for o_ in offers if o_["offered"]]
+            fx_row: dict = {}
+            if _FACET_INDEX and dk_m is not None and mine_m is not None:
+                # P3: the asking key and src's gain on n rows, read by 8d and P7 only
+                fk_, sg_ = facet_key(self, dk_m, mine_m, m), source_of(self, m)
+                fx_row = {"facet": [fk_[0], fk_[1], list(fk_[2]), fk_[3]],
+                          "src_gain": [sg_[2], sg_[3]]}
+            if _REACH_PAID:
+                for o_ in self._lib_offers[m]:
+                    e_ = o_["prov"].get("library")
+                    if e_ is not None:
+                        self._rp_reached.setdefault(
+                            (m, e_), (self.cycle, self._tier_of.get(e_, "untiered")))
             if _ENTRY_USE:
                 for o_ in offers:
                     cap.head()
@@ -7897,6 +8228,13 @@ class Agent:
                             **({"cue_norm": sorted(normed)} if normed else {}),
                             **({"rank": rank} if rank is not None and m == slot else {}),
                             **({"obj_event": self._event_of.get(slot)} if members else {}),
+                            **fx_row,
+                            **({"tier_offered": {
+                                k_: self._tier_of.get(k_, "untiered") for k_ in sorted(
+                                    {o_["prov"].get("library") for o_ in self._lib_offers[m]}
+                                    - {None})},
+                                "tier_landed": dict(sorted(self._tier_land.items()))}
+                               if _PICK_TIER and self._tier_of is not None else {}),
                             reads=("the library lit by this residual's description; the distinct "
                                    "views and CAUSE then-sides that compile onto this slot, tested "
                                    "and recorded, each with the count of entries that offered it"))
@@ -8960,9 +9298,76 @@ class Agent:
                                       if _DELTA_KIND and self._cur_dk is not None else {})})
         return views, causes, refused
 
+    def _fx_note(self, which: str, dk: tuple, entry: str, kind: Any, role: str,
+                 slot: str | None) -> None:
+        """P3: one landing ("L") or offer ("O") filed under its facet key (src, subj, dk, role)."""
+        src = source_of(self, slot)[0] if slot else "*"
+        self._fx[(src, _kind_text(kind), tuple(dk), role)][f"{which}|{entry}"] += 1
+        form = next((x for x in kind or () if isinstance(x, str) and x.startswith("form=")), None)
+        if form:
+            self._fx_form.setdefault(entry, set()).add(form)
+
+    def _slot_dk(self, slot: str) -> tuple | None:
+        """P4: the slot's delta kind now, as _lookup reads it (_dk_of holds only the slots the
+        last lookup asked), cached per (slot, cycle)."""
+        key = ("dk", slot, self.cycle)
+        if key not in self._src_cache:
+            self._src_cache[key] = (self._delta_kind(slot, self.history(slot))
+                                    if _DELTA_KIND else None)
+        return self._src_cache[key]
+
+    def _sense_pick(self, slot: str, name: str, head: str, role: str) -> None:
+        """P4: a head minted under a context -- its facet key kept for the settle that will judge
+        it, and the prediction said before the test (sense_pick). The first mint wins."""
+        dk = self._slot_dk(slot)
+        if name in self._sense_ctx or dk is None:
+            return
+        ctx = facet_key(self, dk, slot.split(".", 1)[0], slot, role)
+        self._sense_ctx[name] = (ctx, head)
+        self.led.record(self.cycle, self._running_step, slot, "sense_pick", src=ctx[0],
+                        subj=ctx[1], head=head, role=role, pred=list(dk), term=name,
+                        reads="a head minted under this context; its settle is the test")
+
+    def _sense_settle(self, slot: str, name: str, paid: bool) -> None:
+        """P4: the ground's verdict on a sensed head, under the context it was minted under --
+        P (and the settled chain, T, and its operand's door kind, B) or M."""
+        got = self._sense_ctx.get(name)
+        if got is None:
+            return
+        ctx, head = got
+        post = self._fx[ctx]
+        post[f"{'P' if paid else 'M'}|{head}"] += 1
+        if paid:
+            post[f"T|{name}"] += 1
+            t = self.gamma.library.get(name)
+            op = getattr(t, "operand", None)
+            if isinstance(op, str) and "." in op and "~" not in op:
+                post[f"B|{_kind_text(self._kind(op.split('.', 1)[0]))}"] += 1
+        if self._reuse is not None:
+            # P6 H3: the head used under its context (the role dropped, as the chances are kept)
+            self._reuse.note_use((*ctx[:3], "*"), head, paid=paid)
+        self.led.record(self.cycle, "SETTLE", slot, "sense_note", head=head, term=name,
+                        outcome="paid" if paid else "missed", src=ctx[0], subj=ctx[1],
+                        reads="the ground's verdict on the head, under its own context")
+
+    def _sense_terms(self, slot: str) -> list:
+        """P4: the terms that PAID under this slot's context (exact src, else any src, same door
+        kind and dk), most paid first -- P5's stage-0 heads and _library_fit's front."""
+        dk = self._slot_dk(slot)
+        if dk is None:
+            return []
+        src, subj, d, _r = facet_key(self, dk, slot.split(".", 1)[0], slot)
+        for key in ((src, subj, d, "*"), ("*", subj, d, "*")):
+            got = fx_tags(self, key, "T")
+            if got:
+                return [n for n, _m in sorted(got.items(), key=lambda kv: -kv[1])]
+        return []
+
     @cap.held      # C1 (A): one landing writes several kind stores the lineage carries (15:34 2)
     def _land_kind(self, entry: tuple, dk: tuple | None = None, slot: str | None = None) -> None:
         """7l: a landed (entry, role, kind_o, kind_x); 7m's pair set kept with it."""
+        if self._tier_of is not None:
+            self._tier_land[entry[0]] = self._tier_of.get(entry[0], "untiered")
         self._kind_landed.add(entry)
         self._kind_pairs.add((entry[2], entry[3]))
         if _CONSOLIDATE and ("7l", entry, slot) not in self._dk_this:
@@ -8989,6 +9394,8 @@ class Agent:
                 if ix_ok:
                     self._kix_add(e, 1)
                 self._kind_landed_dk[e] += 1
+                if _FACET_INDEX:
+                    self._fx_note("L", dk, entry[0], e[2], entry[1], slot)
                 if _CONSOLIDATE:
                     if _CYCLE_SEQ:
                         self._next_seq(per_landing=False)
@@ -12871,6 +13278,7 @@ class Agent:
             self.abstained.pop(slot, None)
         else:
             self.owed_import.add(slot)
+        self._rp_bind(slot, term.name, "invented")     # r1824 2: before any pull can name it
         self.led.record(self.cycle, "MINT", slot, "invent", of=(slot,), **detail)
         # (c) ACCEPT by design: this row records the ACCEPT this method itself performs, a later
         # step carried out inside MINT (the reviewer 2026-10-16 09:23)
@@ -12930,7 +13338,13 @@ class Agent:
             b = term.operand_term.operand if _TWO_SLOT_OPERAND else None
             if b is not None:
                 # r1145: the node slot_a − slot_b -- its second leaf is a slot, read in this state
-                vb = self._operand_value(b, state) if "~" in b else state.get(b, NOT_RESOLVED)
+                if _TIERED_TERMS and term.operand_term.operand_term is not None:
+                    # 10d: the second leaf is itself a tree -- read it through _ops (one tier
+                    # down); an unreadable leaf is NOT_RESOLVED, never a guessed value (12.2)
+                    inner = self._ops(term.operand_term, state)
+                    vb = inner[0] if inner else NOT_RESOLVED
+                else:
+                    vb = self._operand_value(b, state) if "~" in b else state.get(b, NOT_RESOLVED)
                 value = (NOT_RESOLVED if NOT_RESOLVED in (value, vb)
                          else term.operand_term.apply(value, Ctx(operands=(vb,))))
             else:
@@ -16870,6 +17284,7 @@ class Agent:
         # installed under a NEW name stamped `accepted`, so a column keyed on the
         # imported NAME could never match it however well transfer worked. The
         # composition is what crossed, and it is what the reading has to key on.
+        self._rp_bind(slot, n, "route_pull")
         self.led.record(self.cycle, self._running_step, slot, "pull", term=n,
                         held=held, chain=" . ".join(a.name for a in cand.atoms),
                         rebound=held != n,
@@ -17317,10 +17732,16 @@ class Agent:
                 _lw.clear()
 
         def _pairs():
-            for n in self._reach_pass(retrieval.retrieve(
-                    self.gamma.library, gap, track=self.gamma.track_of, youth=self.gamma.youth_of,
-                    relevance=self.gamma.relevance_of if G_RELEVANCE else None),
-                                     lambda: bool(_paying)):
+            _ret = retrieval.retrieve(
+                self.gamma.library, gap, track=self.gamma.track_of, youth=self.gamma.youth_of,
+                relevance=self.gamma.relevance_of if G_RELEVANCE else None)
+            if _SENSES:
+                # P4: what paid under this slot's context first, the rest in retrieve's order
+                _t0 = [n for n in self._sense_terms(slot) if n in self.gamma.library]
+                if _t0:
+                    _s0 = set(_t0)
+                    _ret = _t0 + [n for n in _ret if n not in _s0]
+            for n in self._reach_pass(_ret, lambda: bool(_paying)):
                 cap.head()
                 if n == exclude or (self._not and self._term_refused(n, _gk)):
                     continue
@@ -19719,6 +20140,8 @@ class Agent:
                             self._dv["answered"] += 1
                     if _CLOSURE_VERDICT:
                         self._cp_note(term, start, len(robs), cost, base, unit)
+                    if self._pg is not None:
+                        self._pg_note(term, slot, robs, cost, base, unit, start)
                     return True             # the stored prefix already proves it
         for i in range(start, len(robs)):
             cap.head()
@@ -19733,6 +20156,8 @@ class Agent:
                                                     cost) if _DIVIDE else (i + 1, wrong))
                 if _CLOSURE_VERDICT:
                     self._cp_note(term, i + 1, len(robs), cost, base, unit)
+                if self._pg is not None:
+                    self._pg_note(term, slot, robs, cost, base, unit, i + 1)
                 return True          # `wrong` only grows; the rest of R adds nothing
         if cell is not None:
             cell[term] = (self._divide_cell(term, len(robs), wrong, ref, start, was, e0, cost)
@@ -19740,6 +20165,122 @@ class Agent:
         if _DIVIDE and self._dv is not None:
             self._dv["passed"] += 1     # the term goes on to the bargain: not a lookup (CREDIT)
         return False
+
+    def _pg_note(self, term: Term, slot: str, robs: list, cost: float, base: float, unit: float,
+                 before: int) -> None:
+        """8a-0 pay-gap (r1809 3): a cut candidate's gap over ALL of R, counted uncharged -- the
+        heads and the extent count are restored and held, so the budget and every later stamp
+        are as if the count never ran; only its wall time is spent, and booked here. It reads
+        through its own memo: a hit it left in the mint's would spare the mint heads later."""
+        t0 = time.perf_counter()
+        pg = self._pg
+        memo, self._memo = self._memo, pg["memo"]
+        try:
+            with self._pg_uncharged():
+                wrong = sum(1 for r in robs if self._row_wrong(term, slot, r))
+        finally:
+            self._memo = memo
+        pg["s"] += time.perf_counter() - t0
+        pg["after"] += len(robs) - before
+        pg["max_r"] = max(pg["max_r"], len(robs))
+        gap = cost + unit * wrong - base
+        pg["gap"].append(gap)
+        pg["head"].append(base - cost)
+        pg["frac"].append(before / len(robs) if robs else 1.0)
+        pg["near"] = sorted([*pg["near"], (round(gap, 3), term.name, round(cost, 3),
+                                           round(base, 3), len(robs), wrong)])[:3]
+
+    def _pg_row(self, slot: str, pg: dict) -> None:
+        """8a-0 pay-gap: the mint's row. The counts it does not make itself it READS -- the book's
+        bargain counters across the mint, and the divide / space_closed / want_only rows the mint
+        wrote -- so nothing is counted twice. Uncharged as the count is."""
+        with self._pg_uncharged():
+            self._pg_write(slot, pg)
+
+    @contextmanager
+    def _pg_uncharged(self):
+        """8a-0 pay-gap: the block runs held and outside the step's purse (no head clock, so no
+        purse check inside it fires, writes a row or marks the step cut, and no scope books heads),
+        and what it moved that the purse or a later stamp reads is put back -- the heads, the step
+        clock's per-scope heads, the extent count, the cycle's derived-slot cache."""
+        heads, ext, dsl, clk_h, hs = cap.HEADS, _EXTENT[0], self._dslots, dict(self._clk_h), \
+            self._clk_hs
+        self._clk_hs = None
+        try:
+            with cap.hold():
+                yield
+        finally:
+            cap.HEADS, _EXTENT[0], self._dslots, self._clk_h = heads, ext, dsl, clk_h
+            self._clk_hs = hs
+
+    def _pg_write(self, slot: str, pg: dict) -> None:
+        rows = self.led.rows(pg["n0"])
+        mine = [r for r in rows if r["slot"] == slot]
+        book = {k: self.gamma.book.get(k, 0) - v for k, v in pg["book"].items()}
+        self.led.record(
+            self.cycle, "MINT", slot, "pay_gap", uncharged_instrument=True,
+            derived=bool(pg["want_only"] or slot in self._derived_now()),
+            want_only_ask=pg["want_only"], cuts=len(pg["gap"]),
+            rows_read_after_cut=pg["after"], wall_s_uncharged=round(pg["s"], 4),
+            max_R=pg["max_r"], gap_bits=_pg_q(pg["gap"]), headroom_bits=_pg_q(pg["head"]),
+            cut_on_cost_alone=sum(1 for h in pg["head"] if h <= 0),
+            rows_before_cut_frac=_pg_q(pg["frac"]),
+            closest=[{"gap_bits": g, "term": t, "cost": c, "base": b, "slot": slot, "R": n,
+                      "wrong": w} for g, t, c, b, n, w in pg["near"]],
+            read={"candidates_priced": self._priced - pg["priced"],
+                  "bounded_out": book["bargain_bounded_out"],
+                  "did_not_pay": book["bargain_does_not_pay"], "paid": book["bargain_paid"],
+                  "divide_survivors": [r["detail"].get("survivors") for r in mine
+                                       if r["event"] == "divide"],
+                  "space_closed_survivors": [
+                      r["detail"].get("survivors") for r in rows if r["event"] == "space_closed"
+                      and slot in (r["slot"], r["detail"].get("space"))],
+                  "want_written": [r["detail"].get("want") is not None for r in mine
+                                   if r["event"] == "want_only"]},
+            reads="8a-0 (r1767 2, r1809 3): an instrument's notebook, counted uncharged; the "
+                  "agent reads none of it")
+
+    def _rp_bind(self, slot: str, term: str, path: str) -> None:
+        """8a-0 bound_by (r1816 3): the first path that named `term` -- on this slot, and on any."""
+        if _REACH_PAID:
+            self._rp_bound.setdefault((slot, term), path)
+            self._rp_bound.setdefault((None, term), path)
+
+    def _rp_summary(self) -> None:
+        """8a-0 reached-and-paid: the run's counts per K1 tier, the ground's first (r1815 1) --
+        settled (offer-minted terms that later held out-of-fit), minted (terms minted from an
+        offer), reached (distinct (slot, entry) offered) -- and the two drop-offs by name."""
+        by: dict = {}
+
+        def cell(t: str) -> dict:
+            return by.setdefault(t, {"settled": 0, "minted": 0, "reached": 0})
+        for _c, t in self._rp_reached.values():
+            cell(t)["reached"] += 1
+        minted_e = set()
+        for name, m in self._rp_minted.items():
+            c = cell(m["tier"])
+            c["minted"] += 1
+            c["settled"] += name in self._rp_settled
+            minted_e.add((m["slot"], m["entry"]))
+        for t, c in by.items():
+            c["reached_never_minted"] = sum(1 for k, (_c, t_) in self._rp_reached.items()
+                                            if t_ == t and k not in minted_e)
+            c["minted_never_settled"] = c["minted"] - c["settled"]
+        # rows are written with sorted keys, so the headline is said, not left to key order
+        self.led.record(self.cycle, self._running_step, "@reach", "reached_paid",
+                        headline="settled", order=["settled", "minted", "reached",
+                                                   "reached_never_minted", "minted_never_settled"],
+                        by_tier={t: by[t] for t in sorted(by)},
+                        # r1817: every accepted settle by the path that bound it; tiers belong to
+                        # offers only, so this is per path; "none recorded" > 0 is a path unnamed
+                        settled_by_path=dict(sorted(self._rp_bound_n.items())),
+                        none_recorded=self._rp_bound_n.get("none recorded", 0),
+                        scope=("this process: kept across a level or game reset inside the run; "
+                               "not across runs, not in the lineage"),
+                        reads="8a-0 (r1795, r1796, r1812 4, r1815): settled = an offer-minted "
+                              "term later held out-of-fit (the ground's payment, the headline); "
+                              "minted = the mint's winner came from that offer; reached = "
+                              "offered in a lookup. A record; nothing reads it")
 
     def _divide_cell(self, term: Term, rows: int, wrong: int, ref, start: int, was,
                      e0: int, cost: float) -> tuple:
@@ -20633,6 +21174,11 @@ class Agent:
                     return n                   # touching kinds stopped paying: they hold nothing
             n += len(uk)
         return n
+
+    def _try_first_hold(self) -> int:
+        """TRY_FIRST's hold on the mint and the goal split (r726): the unpressed offered actions,
+        under TRY_FIRST_ACTIONS (r1821); OFF, _try_first_open's count, kinds included."""
+        return self._board_untried_n() if _TRY_FIRST_ACTIONS else self._try_first_open()
 
     def _board_untried_n(self) -> int:
         """C1 / TRY_FIRST: how many offered actions are not yet pressed on this board -- the
@@ -24668,7 +25214,7 @@ class Agent:
         keyed on the same evidence. And nothing here sums magnitudes across slots, because
         nothing here ranges over more than the ONE slot the selector chose.
         """
-        if _BOARD_TRY_FIRST and self._try_first_open():
+        if _BOARD_TRY_FIRST and self._try_first_hold():
             self._split_why = "try_first"   # the refusal row names the hold, not None
             return None                  # TRY_FIRST: this board's buttons are pressed first
         # ITEM 3 GATES ITEM 2. Before the selector this ranged over EVERY OBJ-bound slot,
@@ -25719,7 +26265,29 @@ class Agent:
             out = [None] + sorted(out[1:], key=lambda s: _tier.get(s, 3))
         if _WINDOW:
             out += self._window_lags(slot, robs)
+        if _SENSES and robs:
+            out = self._order_bind(slot, out)
         return out
+
+    def _order_bind(self, slot: str, out: list) -> list:
+        """P4 order_bind (B4's second order), the first key, stable, nothing filtered: 0 for the
+        slot's own lag when its change depends on my action (src SELF), or a bind whose owner's
+        door kind a head paid with under this context (its collocates, "B"); else 1."""
+        dk = self._slot_dk(slot)
+        if dk is None:
+            return out
+        src, subj, d, _r = facet_key(self, dk, slot.split(".", 1)[0], slot)
+        kinds = set(fx_tags(self, (src, subj, d, "*"), "B"))
+        own = f"{slot}~1"
+
+        def first(b: str) -> int:
+            if src == "SELF" and b == own:
+                return 0
+            if kinds and "~" not in b and _kind_text(self._kind(b.split(".", 1)[0])) in kinds:
+                return 0
+            return 1
+        return ([b for b in out if b is None]
+                + sorted((b for b in out if b is not None), key=first))
 
     def _window_lags(self, slot: str, robs: list) -> list[str]:
         """THE WINDOW'S OFFER (the reviewer 14:52Z, 18:10Z, 18:15Z): every lag the trace can
@@ -25801,7 +26369,7 @@ class Agent:
                                          if _GOAL_MINT_FIRST else "")
                                       + " -- unreached at this budget, never a verdict")
             return
-        if _BOARD_TRY_FIRST and self._try_first_open():
+        if _BOARD_TRY_FIRST and self._try_first_hold():
             self.owed_import.add(slot)
             _book_add(self.gamma.book, "try_first_owed")
             untried = self._board_untried_n()        # read where the row read them (r1411)
@@ -25935,12 +26503,21 @@ class Agent:
             return None
         out0 = self.outstanding(slot) if _7F_LEAVE else None
         self._memo = {}
+        if _PAY_GAP:
+            self._pg = {"n0": len(self.led), "priced": self._priced, "want_only": self._want_only,
+                        "book": {k: self.gamma.book.get(k, 0) for k in (
+                            "bargain_bounded_out", "bargain_does_not_pay", "bargain_paid")},
+                        "s": 0.0, "after": 0, "max_r": 0, "gap": [], "head": [], "frac": [],
+                        "near": [], "memo": {}}
         try:
             # a derived ask's mint is cut at its ask (_derived_wants), which owes it there
             got = (self._mint(slot) if self._want_only
                    else self._unit(partial(self._mint_purse_owed, slot, True), self._mint, slot))
         finally:
             self._memo = None
+            pg, self._pg = self._pg, None
+        if pg is not None:
+            self._pg_row(slot, pg)
         if got is _UNIT_CUT:
             return None
         if _7F_LEAVE and hasattr(self, "_leave_held"):   # an Agent built by __new__ has none
@@ -26404,7 +26981,7 @@ class Agent:
             _lf_of: dict = {}
             _pg: list = []                       # TETHER_PREFIX_PRUNE: the cheapest guard bits
 
-            def _prune(atoms: tuple, depth: int, closed: bool) -> bool:
+            def _pg_ready() -> None:
                 if not _pg:
                     _gs0 = self._guards_once(robs, slot, operand_binds)
                     _pg.append(min(_guard_bits(g, len(_gs0[1]) - 1, len(_gs0[6]) if
@@ -26413,6 +26990,9 @@ class Agent:
                     _pg.append(_gs0)
                     self._hold_eligible -= _gs0[3]    # the probe books no hold occasion
                     self._hold_withheld -= _gs0[4]
+
+            def _prune(atoms: tuple, depth: int, closed: bool) -> bool:
+                _pg_ready()
                 if self._bits((Term(atoms), _units)) + _pg[0] < base:
                     return False
                 if not guards["novelty"]:
@@ -26477,10 +27057,47 @@ class Agent:
                 _lf_names = {c.name for c in _lf}
                 _lf_of[_si] = _lf_names          # CREDIT: a library chain took no yield
                 _lf_seen.update(tuple(a.name for a in c.atoms) for c in _lf)
-                _clo = (c for c in self.gamma.enumerate_closure(
-                            in_t, out_t, self.cfg.max_depth, self.cfg.budget, st, order=by_fit,
-                            prune=_prune if _PREFIX_PRUNE and robs else None)
-                        if c.name not in _lf_names)
+                if _SHAPE_WALK:
+                    # P5: best-first by the gap's shape; the paid / sense heads are P4's (the
+                    # terms that paid under this slot's context), authority (P6) empty until it
+                    # lands; the stop bound needs rows to price against
+                    if self._shape_readings is None:
+                        lib_ = _library()
+                        self._shape_readings = shape_order.declared_readings(
+                            {**lib_.seed, **lib_.runtime, **lib_.learnings} if lib_ else {})
+                    _heads = ([tuple(a.name for a in self.gamma.library[n].atoms)
+                               for n in self._sense_terms(slot) if n in self.gamma.library]
+                              if _SENSES else [])
+                    if self._reuse is not None and _heads:
+                        _dk2 = self._slot_dk(slot)       # P6 H2: each stage-0 head is a chance
+                        for n in self._sense_terms(slot):
+                            self._reuse.note_chance(
+                                facet_key(self, _dk2, slot.split(".", 1)[0], slot), n)
+                    _key = shape_order.make_order_key(
+                        shape_order.wanted(slot.rsplit(".", 1)[-1]), self._shape_readings,
+                        paid_heads=_heads, sense_heads=_heads,
+                        authority=(self._reuse.authority() if self._reuse is not None
+                                   else None),         # P6 H7: 8c's tiebreak
+                        fits_whole=lambda ch, _b=by_fit: _b(Term(ch)))
+                    _bound = _stop_at = None
+                    if robs:
+                        def _bound(ch):
+                            _pg_ready()
+                            return self._bits((Term(ch), _units)) + _pg[0]
+
+                        def _stop_at(m, _k=kind):
+                            fc = _floor_champion(by_kind, _k, best, _STREAM_SHARE)
+                            return m >= (base if fc is None else min(base, fc[0]))
+                    _clo = (c for c in self.gamma.ordered_closure(
+                                in_t, out_t, self.cfg.max_depth, self.cfg.budget, st,
+                                order_key=_key, bound_of=_bound, stop=_stop_at,
+                                prune=_prune if _PREFIX_PRUNE and robs else None)
+                            if c.name not in _lf_names)
+                else:
+                    _clo = (c for c in self.gamma.enumerate_closure(
+                                in_t, out_t, self.cfg.max_depth, self.cfg.budget, st,
+                                order=by_fit, prune=_prune if _PREFIX_PRUNE and robs else None)
+                            if c.name not in _lf_names)
                 _stream = (_merge_by_depth(_lf, _clo, _lf_ev, f"{self.cycle}:{slot}:library:{_si}",
                                            self.draw_seed)
                            if _A1_LIBRARY else itertools.chain(_lf, _clo))
@@ -27231,7 +27848,8 @@ class Agent:
             # which is a capability loss wearing a speedup's clothes. The search is skipped;
             # the debt is not.
             _ds_wo = _DERIVED_SUBJECT and getattr(self, "_want_only", False)
-            if detail["verdict"] in ("budget_spent", "depth_exhausted", "under_floor"):
+            if detail["verdict"] in ("budget_spent", "depth_exhausted", "under_floor") + (
+                    ("priced_out_at_depth",) if _EXHAUSTED_WORD else ()):
                 if not _ds_wo:     # DS (4): a want-only ask owes no import; no sweep is sent
                     self.owed_import.add(slot)
                 self.abstained[slot] = {"depth": self.cfg.max_depth, "candidates": seen,
@@ -27239,7 +27857,10 @@ class Agent:
                                         "coverage": detail["coverage"],
                                         "verdict": detail["verdict"],
                                         "units_then": stats.get("units", 0),
-                                        "base_bits": round(base, 3)}
+                                        "base_bits": round(base, 3),
+                                        **({"unit_names": sorted(
+                                            u.name for u in self.gamma.units())}
+                                           if _SWEEP_DELTA else {})}
             if _skey is not None and detail["verdict"] in ("budget_spent", "priced_out_at_depth",
                                                            "not_novel"):
                 detail["chains_priced_in_scope"] = len(priced)
@@ -27419,6 +28040,17 @@ class Agent:
                              == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
                 if prov is not None:
                     detail["library"] = prov
+                    if _SENSES and prov.get("library") is not None:
+                        self._sense_pick(slot, term.name, prov["library"], prov.get("role", "*"))
+                    if _REACH_PAID:
+                        rc_, rt_ = self._rp_reached.get((slot, prov.get("library")),
+                                                        (None, "not reached"))
+                        # "from_offer", never "reached": that key is an int on this row (r1815 2)
+                        detail["from_offer"] = {"entry": prov.get("library"), "tier": rt_,
+                                                "reached_cycle": rc_}
+                        self._rp_minted[term.name] = {**detail["from_offer"], "slot": slot,
+                                                      "minted_cycle": self.cycle}
+                        self._rp_bind(slot, term.name, "from_offer")
                     if _ENTRY_USE:
                         self._use(prov.get("library"), "explained", last=True)
                     _core = (_core_kind(self._lib_offers.get(slot, ()), term)
@@ -27437,6 +28069,9 @@ class Agent:
                     else "chain_only" if any(names[:len(ch)] == ch for ch in _lf_seen) else "none")
                 if _7H_ROUTE_GRADE and detail["library_route"] != "none":
                     self._lib_won.add(term.name)
+            self._rp_bind(slot, term.name, "mint")        # the agent's own mint (first wins)
+            if _SENSES:
+                self._sense_pick(slot, term.name, term.name, "PROCESS")
             self.led.record(self.cycle, "MINT", slot, "mint", of=(slot,), **detail)
             # THE PART RIDES ON THE ACCEPT TOO (the reviewer 2026-10-11 23:03 CDT): a D5 part-B
             # accept
@@ -27452,7 +28087,8 @@ class Agent:
             self.chain.note_mint()
         self.sweep(term, slot)
 
-    def _reach(self, slot: str, hist: list, slots: list) -> tuple[float, Term] | None:
+    def _reach(self, slot: str, hist: list, slots: list,
+               new: frozenset | None = None) -> tuple[float, Term] | None:
         """Re-run the search for a parked slot because the UNIT SET grew.
 
         This is the chunking claim made falsifiable: closure(Gamma) is unchanged and no
@@ -27462,7 +28098,7 @@ class Agent:
         """
         best = None
         for cand in self.gamma.enumerate_closure("val", "val", self.cfg.max_depth,
-                                                 self.cfg.budget):
+                                                 self.cfg.budget, must_contain=new):
             cap.head()
             for bind in [None] + [s2 for s2 in slots if s2 != slot]:
                 # `_operand_fits` IS ALREADY RULED AND THIS SITE NEVER CALLED IT. Its own
@@ -27528,8 +28164,9 @@ class Agent:
             # RIGHT condition is a separate question and a separate change.
             # CARRY (item 3): the floor lemma bounds a NEW term's cost, not one already paid, so
             # under the arm an under_floor record is swept too.
-            return (rec.get("verdict") not in (("depth_exhausted",) if _CARRY_PRICE
-                                               else ("depth_exhausted", "under_floor"))
+            _ex = (("depth_exhausted", "priced_out_at_depth") if _EXHAUSTED_WORD
+                   else ("depth_exhausted",))
+            return (rec.get("verdict") not in (_ex if _CARRY_PRICE else _ex + ("under_floor",))
                     or units_now > rec.get("units_then", 0))
 
         eligible = [t for t in targets if stale(t[3]) and t[2]]
@@ -27559,9 +28196,29 @@ class Agent:
             cap.head()
             how = "direct"
             base = self._left(self.gamma.library[self.bound.get(slot, IDN)], slot, hist)
+            if _SWEEP_FILTER:
+                _cost0 = self._bits((Term(term.atoms), self._units_for(slot)))
+                _rescan = units_now > rec.get("units_then", units_now) and not (
+                    _SWEEP_STAMP and units_now <= rec.get("rescan_units", -1))
+                _credit = _CARRY_PRICE and (
+                    self.gamma.stamps.get(term.name) or {}).get("origin") == MINTED
+                if _cost0 >= base and not _rescan and not _credit:
+                    self.chain.note_reuse_attempt("cost-at-or-over-base")
+                    self.led.record(self.cycle, "MINT",
+                                    tkey if tkey != slot and slot in self.slots else slot,
+                                    "reuse_refused", reason="cost-at-or-over-base", term=term.name,
+                                    held=tkey, term_bits=round(_cost0, 4), left_bits=None,
+                                    base_bits=round(base, 4), would_pay=False, via=how,
+                                    cross_level=tkey != slot,
+                                    reads="the ONE bargain refused this term on its cost alone "
+                                          "(cost >= base, the same for every bind): no _left run")
+                    continue
             best = None
             for bind in [None] + [s for s in slots if s != slot]:
                 cap.head()
+                if _SWEEP_FILTER and not self._operand_fits(term, slot, bind):
+                    self.chain.reuse_branch["sweep:operand-refused"] += 1
+                    continue
                 cand = Term(term.atoms, operand=bind)
                 left = self._left(cand, slot, hist)
                 if best is None or left < best[0]:
@@ -27570,13 +28227,18 @@ class Agent:
             if left > 0.0 and units_now > rec.get("units_then", units_now) and not (
                     _SWEEP_STAMP and units_now <= rec.get("rescan_units", -1)):
                 self.chain.reuse_branch["rescan"] += 1
-                found = self._reach(slot, hist, slots)
+                _then = (rec.get("rescan_names") or rec.get("unit_names")) if _SWEEP_DELTA else None
+                _new = (frozenset(u.name for u in self.gamma.units()) - set(_then)
+                        if _then is not None else None)
+                found = self._reach(slot, hist, slots, _new)
                 if found is not None and found[0] < left:
                     left, cand, how = found[0], found[1], "chunk"
                 elif _SWEEP_STAMP:
                     # (S) r1626: a rescan that found nothing waits for the unit set to grow
                     # again; its own key, as units_then also gates stale() and floor_only
                     rec["rescan_units"] = units_now
+                    if _SWEEP_DELTA:
+                        rec["rescan_names"] = sorted(u.name for u in self.gamma.units())
             cross = tkey != slot
             if _CROWD_OUT and not cross and self._crowd_blocked(slot, cand.name):
                 continue
@@ -27604,6 +28266,7 @@ class Agent:
                     # THE SWEEP IS A PULL AND EMITTED NO PULL ROW. `reused()` counts `pull` rows
                     # and this is the only path that RE-BINDS, so every reuse it found was
                     # invisible to the bench-pull and transfer columns both.
+                    self._rp_bind(slot, cand.name, "route_pull")
                     self.led.record(self.cycle, self._running_step, slot, "pull", term=cand.name,
                                     held=tkey, chain=" . ".join(a.name for a in cand.atoms),
                                     rebound=True, via="sweep",
@@ -27736,6 +28399,7 @@ class Agent:
         # and its own `pull` row is a ROUTE row, so an `ACCEPT` here puts a later ROUTE for the
         # same slot out of order -- `chase: ROUTE after ACCEPT`, refused at seq 39. **The step
         # is a fact about WHEN the row is written, not about what the event feels like.**
+        self._rp_bind(slot, cand.name, "reuse_install")
         self.led.record(self.cycle, self._running_step, slot, "reuse_install", term=cand.name,
                         cost=round(cost, 4), left=round(left, 4),
                         base=None if base is None else round(base, 4),
@@ -27843,6 +28507,8 @@ class Agent:
                 _demoted_now = self.gamma.refute(
                     name, where=self._scope, slot=slot,
                     **({"contact": self._fail_contact(slot)} if G_FADE_BY_STORE else {}))
+                if _SENSES:
+                    self._sense_settle(slot, name, False)
                 if _REFUSE_RANK:
                     self._miss_at[slot] = (name, self.gamma.clock(), held)
                 if _found is not None and not _demoted_now:
@@ -27942,6 +28608,12 @@ class Agent:
                                         "not tipped")
                 continue
             if _MUSING_CHOSEN:
+                if self._reuse is not None and name in self._muse_offered:
+                    # P6 H4: a musing re-test that settled is a payment in its slot's context
+                    _dk4 = self._slot_dk(slot)
+                    if _dk4 is not None:
+                        self._reuse.note_use(facet_key(self, _dk4, slot.split(".", 1)[0], slot),
+                                             name, paid=True, source="muse")
                 self._muse_paid(name, "settle")           # item 24 (iii)
             if _COUNTERS:     # r692 4 (Q8, Q21): what settles, by where it came from
                 bk = self.gamma.book
@@ -27994,12 +28666,24 @@ class Agent:
             if _STOP_RULES and self._settle_pred(slot, r)["risky"]:
                 # 1c (i): a survival persistence would miss, under the space's key of now (r338)
                 self._risky[(slot, name)] = self._tally.get(slot, (None,))[0]
+            if _REACH_PAID and name in self._rp_minted:
+                self._rp_settled.add(name)
+            if _SENSES:
+                self._sense_settle(slot, name, True)
+            if _REACH_PAID:
+                self._rp_bound_n[self._rp_bound.get(
+                    (slot, name), self._rp_bound.get((None, name), "none recorded"))] += 1
             self.led.record(self.cycle, "SETTLE", slot, "settle", term=name,
                             status="accepted",
                             asked=[name, slot], ground_said=True,
                             verdict="held on a transition it was not fitted to",
                             held_out_cycle=self.cycle, fitted_through=born,
-                            **(self._settle_pred(slot, r) if _SETTLE_PRED else {}))
+                            **(self._settle_pred(slot, r) if _SETTLE_PRED else {}),
+                            **({"from_offer": self._rp_minted[name]}
+                               if _REACH_PAID and name in self._rp_minted else {}),
+                            **({"bound_by": self._rp_bound.get(
+                                (slot, name), self._rp_bound.get((None, name), "none recorded"))}
+                               if _REACH_PAID else {}))
 
     # -- the utterance: the only way an action is proposed --------------------------------
 
@@ -29276,6 +29960,7 @@ class Agent:
                     self._note_use(fit)
                     self.owed_import.discard(slot)
                     self.abstained.pop(slot, None)
+                    self._rp_bind(slot, fit, "rebind")
                     self.led.record(self.cycle, "ACCEPT", slot, "rebind", term=fit,
                                     status="candidate", note="refit; the library did not change")
                 elif b == REFUTED:

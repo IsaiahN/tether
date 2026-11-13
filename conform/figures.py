@@ -112,7 +112,8 @@ def selftest() -> None:
 
 if __name__ == "__main__":
     selftest()
-    bad = check((ROOT / "docs" / "INDEX.md").read_text(encoding="utf-8"))
+    index_doc = ROOT / "docs" / "03-DESIGN" / "06-INDEX_MECHANISM_TO_SOURCE.md"   # 8e
+    bad = check(index_doc.read_text(encoding="utf-8"))
     for b in bad:
         print(b)
     print(f"figures: {len(bad)} entries from F{FIRST} on without a census" if bad

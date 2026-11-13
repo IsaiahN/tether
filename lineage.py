@@ -38,6 +38,7 @@ import armflag
 import cap
 import gamma
 import ledger
+import reuse
 import sensors
 
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -150,7 +151,10 @@ def _key(row: dict) -> str:
     """A term row's atoms, guard and operand tree, WITHOUT the operand: coarser than what load
     installs by (see gamma.Gamma.row_key, the reviewer 2026-10-25 21:38). Never a row's identity
     in the record, which is (born, handle) below."""
-    return json.dumps([row["atoms"], row.get("guard"), row.get("operand_term")])
+    key = [row["atoms"], row.get("guard"), row.get("operand_term")]
+    if row.get("operand_tree") is not None:     # 10d: a deeper shape is a different term
+        key.append(row["operand_tree"])
+    return json.dumps(key)
 
 
 def _rid(row: dict) -> tuple:
@@ -623,6 +627,18 @@ def head(d: str | Path) -> tuple[str | None, dict]:
     return (chain[-1][0] if chain else None), fold(chain)
 
 
+def fx_text(k: tuple) -> str:
+    """P3: a facet key (src, subj, dk, role) as the text a save stores it under."""
+    src, subj, dk, role = k
+    return json.dumps([src, subj, list(dk) if dk is not None else None, role])
+
+
+def fx_key(t: str) -> tuple:
+    """P3: the facet key a save's text names (fx_text's inverse)."""
+    src, subj, dk, role = json.loads(t)
+    return (src, subj, tuple(dk) if dk is not None else None, role)
+
+
 def _ksorted(rows) -> list:
     """The kind lists sorted by a TOTAL order: a delta kind's third element is an int on some
     keys and a str on others (ar25, E4a 2026-10-18); plain sorting compares element by element."""
@@ -854,6 +870,18 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
             gen["thought_" + fld] = {k: {e: n - w.get(k, {}).get(e, 0) for e, n in sorted(c.items())
                                          if n > w.get(k, {}).get(e, 0)}
                                      for k, c in sorted(ag._thought[fld].items())}
+    if tether._FACET_INDEX and hasattr(ag, "_fx"):
+        # P3 (R1): each facet key's L / O / P counts since the last write; load sums (facet_n)
+        w = ag._fx_written
+        gen["facet_n"] = {fx_text(k): d
+                          for k, c in sorted(ag._fx.items(), key=lambda kc: repr(kc[0]))
+                          if (d := {e: n - w.get(k, {}).get(e, 0) for e, n in sorted(c.items())
+                                    if n > w.get(k, {}).get(e, 0)})}
+    if getattr(ag, "_reuse", None) is not None:
+        # P6 H5: the reuse book's counts since the last save; load sums (reuse_n)
+        _rn = ag._reuse.drain()
+        if _rn:
+            gen["reuse_n"] = _rn
     if tether._SELF_READ and hasattr(ag, "_stopped_written"):
         # M3: the games' stopped-at links since the last write; load sums
         now = getattr(getattr(ag.led, "narrator", None), "links", {})
@@ -991,6 +1019,8 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         if "thought_tried" in gen:
             ag._thought_written = {f: {k: dict(c) for k, c in ag._thought[f].items()}
                                    for f in ("tried", "paid")}
+        if "facet_n" in gen:
+            ag._fx_written = {k: dict(c) for k, c in ag._fx.items()}
         if "root_grades" in gen:
             ag._root_grade_written = {s: dict(c) for s, c in ag._root_grade.items()}
         if "inventions" in gen:
@@ -1540,7 +1570,8 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     if tether._7L_KIND and hasattr(ag, "_kind_known"):
         # the trio stays EMPTY: what its two readers need is held instead (tether _pair_counts,
         # _tiers' T2), as load-time snapshots, so a mid-game merge does not move them
-        ag._kind_store = {"pairs": v["pairs"], "nocount": v["nocount"], "t2": v["t2"]}
+        ag._kind_store = {"pairs": v["pairs"], "nocount": v["nocount"], "t2": v["t2"],
+                          "t2_by": t2_buckets(v["t2"])}
         ag._kind_store_ver += 1
         ag._kind_pairs = ag._kind_pairs | set(v["pairs"])
         rep["kinds_known"] = v["kinds_known"]
@@ -1574,6 +1605,15 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
             for k, d_ in c.get("thought_" + f, {}).items():
                 ag._thought_in[f].setdefault(k, {}).update(d_)
         rep["thought_keys_in"] = len(ag._thought_in["tried"])
+    if tether._FACET_INDEX and hasattr(ag, "_fx_in"):
+        for k, d_ in c.get("facet_n", {}).items():
+            ag._fx_in.setdefault(fx_key(k), {}).update(d_)
+        rep["facet_keys_in"] = len(ag._fx_in)
+    if getattr(ag, "_reuse", None) is not None:
+        # P6 H1: the store's summed reuse_n, then the age window from it
+        ag._reuse.load(c.get("reuse_n", {}))
+        ag._reuse.window = reuse.derive_window(ag._reuse)
+        rep["reuse_window"] = ag._reuse.window
     if tether._SELF_READ and hasattr(ag, "_stopped_in"):
         ag._stopped_in.update(c.get("stopped_at", {}))
         rep["stopped_at_in"] = ag._self_read()
@@ -1700,6 +1740,26 @@ def _ensure_dir(d: str | Path) -> None:
     Path(d).mkdir(parents=True, exist_ok=True)
 
 
+def t2_buckets(t2: dict) -> dict:
+    """The store load's T2 candidates by their target (kind_x for a CAUSE, kind_o otherwise), each
+    bucket in the dict's own order, so tether's T2 reads one bucket instead of every candidate
+    (r1774 3b: 124,249 candidates after the retro-fold)."""
+    out: dict = {}
+    for e_ in t2:
+        out.setdefault(e_[3] if e_[1] == "CAUSE" else e_[2], []).append(e_)
+    return out
+
+
+def _unknown(g: dict, dk: bool = False) -> set:
+    """A retro-fold save's folded keys (lineage_store._FOLD_UNKNOWN), keyed as the load reads."""
+    import lineage_store as ls
+    if not ls._FOLD_UNKNOWN:
+        return set()
+    if dk:
+        return {(tuple(d_), k, tuple(t_)) for d_, k, t_ in g.get("kinds_unknown_dk", ())}
+    return {(k, r, tuple(ko), tuple(kx)) for k, r, ko, kx in g.get("kinds_unknown", ())}
+
+
 def load(d: str | Path, ag: Any) -> dict:
     """The next instance's start: the chain folded into its Gamma as IMPORTED terms naming the tip,
     and the evidence record turned on. The fold's evidence and dormant record are not read back."""
@@ -1755,14 +1815,18 @@ def load(d: str | Path, ag: Any) -> dict:
     import tether
     if tether._7L_KIND and hasattr(ag, "_kind_known"):
         # 7l: every generation's kinds, root to tip, known to this instance (7m reads them)
-        ag._kind_known = {(k, r, tuple(ko), tuple(kx)) for _h, g in chain
-                          for k, r, ko, kx in g.get("kinds_landed", ())}
+        ag._kind_known = set()
+        for _h, g in chain:
+            ag._kind_known.update((k, r, tuple(ko), tuple(kx))
+                                  for k, r, ko, kx in g.get("kinds_landed", ()))
+            ag._kind_known.difference_update(_unknown(g))
         ag._kind_pairs = ag._kind_pairs | {(ko, kx) for _k, _r, ko, kx in ag._kind_known}
         rep["kinds_known"] = len(ag._kind_known)
         if tether._CONSOLIDATE:
             # CONSOLIDATION: landings summed root to tip; a generation written before the counts
             # (set form) gives each of its keys n = 1, counted; the latest landing wins by seq
             set_form = 0
+            seq_hi = ag._kind_seq
             for _h, g in chain:
                 if "kinds_landed_n" in g:
                     for k, r, ko, kx, n in g["kinds_landed_n"]:
@@ -1773,19 +1837,28 @@ def load(d: str | Path, ag: Any) -> dict:
                         set_form += 1
                 for k, r, ko, kx, *v in g.get("kinds_last", ()):
                     e_ = (k, r, tuple(ko), tuple(kx))
+                    seq_hi = max(seq_hi, v[3])
                     if v[3] >= ag._kind_last.get(e_, (0, 0, 0, -1))[3]:
                         ag._kind_last[e_] = tuple(v)
                 for d_, k, t_, *v in g.get("kinds_dk_last", ()):
                     e_ = (tuple(d_), k, tuple(t_))
                     if v[3] >= ag._kdk_last.get(e_, (0, 0, 0, -1))[3]:
                         ag._kdk_last[e_] = tuple(v)
-            ag._kind_seq = max([v[3] for v in ag._kind_last.values()] + [ag._kind_seq])
+                for e_ in _unknown(g):
+                    ag._kind_known_n.pop(e_, None)
+                    ag._kind_last.pop(e_, None)
+                for e_ in _unknown(g, dk=True):
+                    ag._kdk_last.pop(e_, None)
+            # the landing clock is the store's kind_seq_max: a fold never turns it back
+            ag._kind_seq = max([v[3] for v in ag._kind_last.values()] + [seq_hi])
             rep["kinds_set_form"] = set_form
     if tether._DELTA_KIND and hasattr(ag, "_kind_known_dk"):
         # K1: every generation's landings with their delta kind, root to tip
         for _h, g in chain:
             for dk_, k, tg, n in g.get("kinds_landed_dk", ()):
                 ag._kind_known_dk[(tuple(dk_), k, tuple(tg))] += n
+            for e_ in _unknown(g, dk=True):
+                ag._kind_known_dk.pop(e_, None)
             for dk_, k, ko, n in g.get("kinds_offered_dk", ()):
                 ag._kind_known_off[(tuple(dk_), k, tuple(ko))] += n
         ag._kix_ver = getattr(ag, "_kix_ver", 0) + 1    # (C): the tiers index rebuilds
@@ -1810,6 +1883,25 @@ def load(d: str | Path, ag: Any) -> dict:
                     for e, n in c.items():
                         into[e] = into.get(e, 0) + n
         rep["thought_keys_in"] = len(ag._thought_in["tried"])
+    if tether._FACET_INDEX and hasattr(ag, "_fx_in"):
+        # P3: every generation's facet counts, root to tip
+        for _h, g in chain:
+            for k, c in g.get("facet_n", {}).items():
+                into = ag._fx_in.setdefault(fx_key(k), {})
+                for e, n in c.items():
+                    into[e] = into.get(e, 0) + n
+        rep["facet_keys_in"] = len(ag._fx_in)
+    if getattr(ag, "_reuse", None) is not None:
+        # P6 H1: every generation's reuse_n, root to tip, then the age window from it
+        _sum: dict = {}
+        for _h, g in chain:
+            for k, c in g.get("reuse_n", {}).items():
+                into = _sum.setdefault(k, {})
+                for e, n in c.items():
+                    into[e] = into.get(e, 0) + n
+        ag._reuse.load(_sum)
+        ag._reuse.window = reuse.derive_window(ag._reuse)
+        rep["reuse_window"] = ag._reuse.window
     if tether._SELF_READ and hasattr(ag, "_stopped_in"):
         # M3: every generation's stopped-at links, root to tip, read into one self_read row
         for _h, g in chain:

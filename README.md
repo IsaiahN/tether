@@ -258,6 +258,11 @@ interface realiser. The reasoning above them does not change. Three worlds alrea
 Anything that can be read as objects with attributes, and acted on with a finite set of actions,
 is a candidate: puzzles, games, simulations, lab or control loops.
 
+## Documents
+
+The documents are in numbered folders under `docs/`; start at
+[docs/00-README.md](docs/00-README.md). Each folder has its own README.
+
 ## Quick start (about 2 minutes)
 
 Python 3.13. `requirements.lock` pins the whole runtime.

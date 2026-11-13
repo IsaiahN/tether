@@ -29,6 +29,7 @@ import time
 from pathlib import Path
 
 import armflag
+import narrate
 
 _PIPELINE_LOG = armflag.arm("TETHER_PIPELINE_LOG", default=True)
 SEG_BYTES = int(float(os.environ.get("TETHER_PIPELINE_SEG_MB", "100")) * 1024 * 1024)
@@ -54,8 +55,8 @@ class PipeLog:
         self.fault: str | None = None
         if not self.on:
             return
-        self._dir = path.parent
-        self._cur = path.with_name("pipeline.log")
+        self._cur = narrate.log_beside(path, "pipeline.log")
+        self._dir = self._cur.parent
         self._cur.write_text("", encoding="utf-8")
         self._seg, self._size, self._pin = 0, 0, False
         self._stack: list = []

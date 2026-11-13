@@ -83,6 +83,7 @@ if __name__ == "__main__":
         # r1195: the board's TRY_FIRST hold (untried actions, untouched kinds) defers the goal exit
         # before its target is read; this case is the target's own refusal, so the board is open
         ag._try_first_open = lambda: 0
+        ag._try_first_hold = lambda: 0      # 6adfec2: the goal split's hold reads this one
         n0 = sum(1 for r in ag.led.rows() if r["event"] == "split_refused")
         assert ag._goal_split(held, commit=False) is None
         assert ag._split_why == "no_goal_target"
