@@ -75,7 +75,7 @@ Triangulated: Fig 9 with Fig 4 (lookup and head start), Fig 9 :60 with Fig 2 / F
   - Predicts: anticipation buys speed with budget, so it must be priced (Fig 12). Corroborates.
 - **Isaiah's own rulings:**
   - 11-02: attributes as tags, like blog categories;
-  - 11-03: "PageRank-style ranking: if thats useful lets do it";
+  - 11-03: "PageRank-style ranking: if that's useful, let's do it";
   - 11-06: search "dynamically reweighted, with results cached so the same or a like-kind query isn't searched again unless the library changed", and the agent can "prime" itself, "preloading skills it expects to need when efficient, like web-page preloading".
   - Consistent with all of the above.
 

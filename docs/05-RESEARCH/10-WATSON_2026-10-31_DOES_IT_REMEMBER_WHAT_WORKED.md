@@ -1,8 +1,8 @@
 # WATSON + CODE AUDIT 2026-10-31 night — Does the agent remember what worked, and are library search, retrieval and saving accurate?
 
 Reviewer seat. Asked by Isaiah:
-- 21:30: "i also suspect that the agent doesnt recall the games its playing from before or cannot retrieve the rules or remember what worked and what didnt i.e what caused what effect and what didnt in particular games. i bet its just starting over from scratch again and again, thats the only way it couldnt have learned to pass level 1s. even random agents pass level"
-- 21:31: "when you are done with the changes, just run a watson on what i mentioned above + a code audit and see what needs to be fixed to prove that library search, retrieval, and saving is working accurately."
+- 21:30: "I also suspect that the agent doesn't recall the games it's playing from before, or cannot retrieve the rules or remember what worked and what didn't, i.e. what caused what effect and what didn't in particular games. I bet it's just starting over from scratch again and again; that's the only way it couldn't have learned to pass level 1s. Even random agents pass level"
+- 21:31: "When you are done with the changes, just run a WATSON on what I mentioned above + a code audit and see what needs to be fixed to prove that library search, retrieval, and saving is working accurately."
 
 The figure lines are verbatim from docs/FIGURES_TEXT.md at general-agent 1e9d4d5. Every world source below was opened and read. The code audit read general-agent 1e9d4d5 (read-only).
 

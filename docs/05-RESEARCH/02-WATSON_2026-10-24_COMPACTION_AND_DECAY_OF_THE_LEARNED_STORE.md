@@ -1,7 +1,7 @@
 # WATSON 2026-10-24 18:15 CDT: compaction and decay keep the learned store bounded over months and years
 
 Isaiah, 18:09, verbatim: "That's why compaction and decay were always important. You can see how I handled this in Ouroboros v1-v4, but you should also do a WATSON and Tether analysis to come up with"
-(It came after his 18:00 message: "please always think of scale. if the agent ran non stop for months or years, imagine how big the db would be".)
+(It came after his 18:00 message: "Please always think of scale. If the agent ran nonstop for months or years, imagine how big the DB would be".)
 
 ## QUESTION (effect terms)
 - The learned store grows with play. Which parts may be compacted, and which may decay, so that the agent's memory stays flat and its disk grows only with real novelty?

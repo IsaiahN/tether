@@ -1,8 +1,8 @@
 # WATSON 2026-10-31 19:10 CDT — Should the agent justify the time it spends, step by step?
 
 Reviewer seat. Asked by Isaiah:
-- 18:48: "Can the agent justify the time it spends based on the new data how drastic the change or effect from a previous change is and if they need to come up with strategy? As an llm you deal with this yourself you guage request by challenge lvevel etc and guage what level of reasoning is required system 0,1,2 etc. run a watson to get the answers we need"
-- 18:49: "I believe that in somw scenarios it moght really need the time just like llms do, in other cases without proper justification theres no reason. Think predator pret innature or hunter gatherer in your watson as well or in a separate watson"
+- 18:48: "Can the agent justify the time it spends based on the new data, how drastic the change or effect from a previous change is, and if they need to come up with strategy? As an LLM you deal with this yourself: you gauge requests by challenge level, etc., and gauge what level of reasoning is required, System 0, 1, 2, etc. Run a WATSON to get the answers we need"
+- 18:49: "I believe that in some scenarios it might really need the time, just like LLMs do; in other cases, without proper justification, there's no reason. Think predator-prey in nature or hunter-gatherer in your WATSON as well, or in a separate WATSON"
 
 The figure lines are verbatim from docs/FIGURES_TEXT.md at general-agent 1e9d4d5. Every world source below was opened and read.
 

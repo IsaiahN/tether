@@ -6,7 +6,7 @@ Reviewer, 2026-11-03 ~14:55 CST. A helper ran this under the tether-watson proce
 
 Isaiah, 14:29: "Habit is the wrong word; it's closer to reflexes. The reflex to dodge ... You can compose them via the grammar and the atoms so that the agent has them loaded in cache by default ... (not really deletable or always settled as part of umwelt)?"
 
-On musing: "an ability of the agent, but it chooses when to do that, and what to muse on ... if thought to be important should be acted on or remembered in cache ... and if proven effective stored longterm right?"
+On musing: "An ability of the agent, but it chooses when to do that, and what to muse on ... If thought to be important, should be acted on or remembered in cache ... and if proven effective, stored long-term, right?"
 
 ## DOMAIN CENSUS
 
