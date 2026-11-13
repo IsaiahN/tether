@@ -17,8 +17,6 @@ from test_contact_first import _child, _norm  # noqa: E402  the same probe and m
 
 sys.dont_write_bytecode = True
 
-BASE = "10cbfae"        # wip/finish after 4 UNTESTED_KEEP
-
 
 def _run(on: bool) -> tuple:
     import gamma
@@ -61,22 +59,17 @@ def check_mustfail_mixes() -> None:
 
 
 def check_off_identity() -> None:
-    import io
-    import tarfile
-    import tempfile
-
-    from _batch import off_env
+    # 7b (r1900, r1901): ON vs OFF on the same tree. On the fake nothing is carried, so the arm has
+    # nothing to mix and must leave the ledger as OFF writes it. The old form compared this tree's
+    # OFF ledger with 10cbfae's (the tree before the arm): a landing-time identity that stopped
+    # binding at the first later default-ON arm (ec02ac3, 11-01, by bisect)
     root = str(_repo.ROOT)
-    with tempfile.TemporaryDirectory() as d:
-        tar = subprocess.run(["git", "-C", root, "archive", BASE], capture_output=True, check=True)
-        with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
-            tf.extractall(d, filter="data")
-        base = _norm(_child(d))
-    cur = _norm(_child(root, off_env("TETHER_CARRY_W")))
-    diff = sum(1 for x, y in zip(base, cur, strict=False) if x != y) + abs(len(base) - len(cur))
-    assert len(base) > 50 and diff == 0, (len(base), len(cur), next(
-        (i for i, (x, y) in enumerate(zip(base, cur, strict=False)) if x != y), None))
-    print(f"  OFF identity (TETHER_CARRY_W=0, fake): {len(base)} rows against {BASE}, "
+    on = _norm(_child(root))
+    off = _norm(_child(root, {"TETHER_CARRY_W": "0"}))
+    diff = sum(1 for x, y in zip(on, off, strict=False) if x != y) + abs(len(on) - len(off))
+    assert len(on) > 50 and diff == 0, (len(on), len(off), next(
+        (i for i, (x, y) in enumerate(zip(on, off, strict=False)) if x != y), None))
+    print(f"  ON vs OFF (TETHER_CARRY_W, fake, nothing carried): {len(on)} rows each, "
           "0 differences")
 
 

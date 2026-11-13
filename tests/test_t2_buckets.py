@@ -12,6 +12,9 @@ candidate gave -- element for element, in order -- for every target and this run
       keeps. External MFs (tether.py mutated in a scratch worktree): no target filter, and the
       run-dk clause removed, each fail here. The bucket ORDER is not observable at this tier
       (n_ sums, l_ maxes, _draw_ties sorts), so it is pinned by B1 alone
+  B4  7d (r1900), TETHER_T2_METER: the agent's store-path T2 walk is one cap.head() per bucket
+      candidate read -- the heads of one _tiers call ON minus OFF equal the bucket's length, and
+      the T2 tier is the same. MF-B4: OFF meters none of the bucket (the difference is 0)
 
     python tests/test_t2_buckets.py
 """
@@ -26,6 +29,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, _repo.ROOT)
 
 import arc_holdout  # noqa: E402
+import cap  # noqa: E402
 import lineage  # noqa: E402
 import tether  # noqa: E402
 from test_entry import FakeWrapper  # noqa: E402
@@ -110,6 +114,29 @@ def main() -> int:
     assert got == {0: 4, 1: 3, 2: 4}, got
     print(f"B3 the agent's own T2 (Agent._tiers, store path) per target = the entries the scan "
           f"keeps: {got} (target 1 loses the entry its run dk landing filters); no other target's")
+    # B4: the bucket walk in the step's budget
+    t = tg[0]
+    ag._kind = lambda _mine, t=t: t
+    real = tether._T2_METER
+    heads = []
+    try:
+        for on in (False, True, False, True):
+            tether._T2_METER = on
+            h0 = cap.HEADS
+            _out, n = ag._tiers(lib, [], ("MOTION", "+", 1), "o1", {}, {})
+            heads.append((on, cap.HEADS - h0, n.get("T2")))
+    finally:
+        tether._T2_METER = real
+    off = {h for on, h, _ in heads if not on}
+    on_ = {h for on, h, _ in heads if on}
+    nb = len(ag._kind_store["t2_by"][t])
+    print(f"   heads per _tiers call (meter, heads, T2): {heads}; bucket {nb}")
+    assert len(off) == len(on_) == 1 and {x[2] for x in heads} == {4}, heads
+    print("B4 the T2 bucket walk is one head per candidate read: "
+          + ("GREEN" if next(iter(on_)) - next(iter(off)) == nb else "RED"))
+    assert next(iter(on_)) - next(iter(off)) == nb
+    print("MF-B4 OFF meters none of the bucket: RED (the difference is the bucket, so OFF "
+          "leaves it out of the budget)")
     print("t2_buckets: OK")
     return 0
 

@@ -23,9 +23,11 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 sys.dont_write_bytecode = True
 
 # test file -> the line it fails with, as recorded (red at dd1dad3 and 31f3d1e)
+# 7b (r1900): test_k1 (first bad 2c2a136: check C spent the old knob; the walk reads the purse)
+# and test_carry_w (first bad ec02ac3: a landing-time identity vs 10cbfae, rewritten ON vs OFF on
+# the same tree, r1901)
+# repaired and removed
 KNOWN = {
-    "test_k1.py": "AssertionError: (False, (58, 0))",
-    "test_carry_w.py": "AssertionError: check_off_identity",
     "test_index_carry.py": "ValueError: too many values to unpack (expected 2)",
 }
 UNSTABLE = {"test_index_carry.py"}          # r1723 2(b), r1742: fails-only

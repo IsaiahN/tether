@@ -1018,6 +1018,17 @@ _GAME_LOSS_VOTE = armflag.arm("TETHER_GAME_LOSS_VOTE", default=True,
 # it is held as the parent's subgoal (row subgoal_adopted, naming the operand read) and selected
 # while open; ends on arrival, on its own exhausted routes, or at the level. OFF: as before
 _SUBGOAL = armflag.arm("TETHER_SUBGOAL", default=True)
+# HTN, A REAL HIERARCHICAL TASK NETWORK (Isaiah 2026-11-13 04:39 "Lets build this ... and ship it";
+# DESIGN_2026-11-13_HTN; Fig 12 :112 "A plan is a sequence. A goal is a comparison"; Fig 3 :20
+# ordered by dependency; Fig 4 :23 "a method that can be reapplied"; Fig 12 :103-104 composition is
+# recursive; Fig 13 :133 reach before search; SHOP/SHOP2, Nau et al.). R-C's one detour becomes a
+# task STACK: a subtask whose routes run out is decomposed in turn (no slot twice on the stack, so
+# the dependency chain bounds the depth, never a number); its parent is selected again when it
+# pops. METHODS by KIND -- (the parent slot's kind, the subtask's kind) with [ended, paid] -- order
+# the candidate subtasks (validity (paid+1)/(ended+2), the model's order breaking ties), and the
+# WALKTHROUGH rejects a subtask out of reach before anything is pursued. Methods carry across the
+# lineage (htn_n). OFF: R-C's single detour, as before.
+_HTN = armflag.arm("TETHER_HTN", default=True)
 # (6a) R-D, UNREACHABLE AT BUDGET, THEN RE-ENGAGE (the 10-23 design; A11; Fig 8 :40-41): an
 # exhausted intent is kept as the verdict "unreachable at budget" with the situation it was read
 # in; when a route is offered for it again (its situation moved -- 4d -- or its refusals were set
@@ -1058,6 +1069,18 @@ _REACH_GATE = armflag.arm("TETHER_REACH_GATE", default=True)
 # reach_gate_lost one that accepted (a row names the terms). A measurement switch, never a play
 # setting. OFF: no check
 _REACH_GATE_CHECK = armflag.arm("TETHER_REACH_GATE_CHECK")
+# THE DESIGN BILL (Isaiah 2026-11-13 00:10, 00:18; WATSON 2026-11-13, the walkthrough and the bill;
+# Fig 9 :45 "Describing the residual is the expensive part. Leaving, looking up and recognising are
+# one step each, and cheap only in that order"; Fig 12 :125-127 two currencies; Fig 13 :133 reach
+# answered "before it searches"). Isaiah: "The trip back to the walk is apart of the design" --
+# a board read made in order to design is charged to MINT (TETHER_MINT_READ_CHARGED; OFF: the
+# r1871 label-only read, uncharged under the enclosing idle scope). And the walkthrough comes
+# first: the "is this possible?" reach check runs before the contact read, free, so an
+# impossible job stops before any design is charged (TETHER_REACH_FIRST; OFF: the reach check
+# after the contact read, as before). Each design read writes a design_read row (heads, and how
+# many design reads this slot's kind had before: a novice's first look against an expert's).
+_MINT_READ_CHARGED = armflag.arm("TETHER_MINT_READ_CHARGED", default=True)
+_REACH_FIRST = armflag.arm("TETHER_REACH_FIRST", default=True)
 # THE STEP CLOCK (the reviewer 2026-10-26 r263 (b)): a LEDGER INSTRUMENT, never read by the agent.
 # Each step's REPEAT row carries wall_s per step phase (exclusive, from _step_scope), trace_len,
 # wants_n, owed_import_n, gamma_reuse_live and gamma_reuse_on_board (r264); step_mint and each
@@ -1473,6 +1496,11 @@ _CAN_OFFER = armflag.arm("TETHER_CAN_OFFER", default=True)
 # opened after it), settles them against this reading, then learns (can_ledger.ProductionBook).
 # RECORD-ONLY, inside the ledger's uncharged scope; NEEDS TETHER_CAN_LEDGER. OFF: no rows.
 _CAN_PRODUCE = armflag.arm("TETHER_CAN_PRODUCE", default=True)
+# F5 (r1898, r1900, r1901): the can lists' "untried" leaves RESET out while alive, as
+# interface.untried_here and tether's other untried checks do. RESET is never in the table, so
+# counted it kept "no route; every action tried" (BLOCKED) unreachable and no crossing could ever
+# read "opened". OFF: RESET counted as untried
+_CAN_SKIP_RESET = armflag.arm("TETHER_CAN_SKIP_RESET", default=True)
 # 10a, THE PASS'S KIND TABLE (the reviewer 2026-11-12, from the dc22 profile: the goal proposer's
 # cost is the group FORM, not the text grammar -- _group_form re-read every owner's kind for every
 # text, 3.6M _kind calls in 25 steps, each asking the world for its shape code). One table per
@@ -1924,6 +1952,9 @@ _UNIT_CUT = object()        # TETHER_UNIT_PURSE: what a unit cut inside returns 
 # "mint" or ACCEPT row written, e.g. a cut in the post-accept sweep) owes nothing -- the item was
 # reached; the @cap unit_purse_cut row still records the cut. OFF: every mint cut owes the slot
 _MINT_CUT_LANDED = armflag.arm("TETHER_MINT_CUT_LANDED", default=True)
+# 7d (r1900): the store load's T2 bucket walk is one head per candidate read, in the step's budget,
+# as every other tier's walk; OFF: the bucket is filtered unmetered (a6f4f93's follow-up (iv))
+_T2_METER = armflag.arm("TETHER_T2_METER", default=True)
 # C2 THE PURSE FIRST (R2's fired refuter; the reviewer r1707 2): at a spent purse _library_fit wrote
 # budget_owed ("not asked ... owed") and skipped only the index walk, then fitted every library
 # candidate anyway (re86 after a ROUTE cut: 16 M heads in _delta_tier, 6 M in _rebindings/_pairs).
@@ -2827,6 +2858,25 @@ def _next_stream(live: list, spent: dict, share: bool, key: str | None = None,
     if share and key is not None:
         return min(live, key=lambda s: (spent[s], FR.draw_key(key, s, seed)))
     return min(live, key=lambda s: (spent[s], s)) if share else live[0]
+
+
+def _tally_authority(score, into: dict, heads: int):
+    """F4 (r1898, r1900): H7's authority tiebreak, counted into the mint's row -- chains scored,
+    how many scored above 0 (only those can move an order), the highest, and the book's paid
+    (context, head) pairs. Record-only: the score returned is the score given."""
+    into.setdefault("scored", 0)
+    into.setdefault("nonzero", 0)
+    into.setdefault("max", 0.0)
+    into["book_paid"] = heads
+
+    def counted(chain: tuple) -> float:
+        v = score(chain)
+        into["scored"] += 1
+        if v > 0:
+            into["nonzero"] += 1
+            into["max"] = max(into["max"], v)
+        return v
+    return counted
 
 
 def _merge_by_depth(lib_chains: list, closure, evidence: dict, key: str, seed: str | None = None):
@@ -4927,6 +4977,30 @@ class Agent:
         finally:
             self._running_step = prev
 
+    @contextmanager
+    def _design_read(self, slot: str, what: str):
+        """The design bill: a board read made in order to design -- charged to MINT under
+        _MINT_READ_CHARGED (a _step_scope push), else the r1871 label only. Writes a design_read
+        row when either design-bill arm is on: the heads it spent and the reads this slot's kind
+        had before it (0 = a first sighting)."""
+        h0 = cap.HEADS
+        scope = self._step_scope("MINT") if _MINT_READ_CHARGED else self._row_step("MINT")
+        with scope:
+            yield
+            if _MINT_READ_CHARGED or _REACH_FIRST:
+                # written inside the scope, so the row names the step running (the gate's G1)
+                try:
+                    kk = self._kind_key(slot)
+                except Exception:       # a slot whose owner names no kind is read as its own
+                    kk = slot
+                seen = self._design_seen.get(kk, 0)
+                self._design_seen[kk] = seen + 1
+                self.led.record(self.cycle, self._running_step, slot, "design_read", what=what,
+                                heads=cap.HEADS - h0, sighting=seen,
+                                charged=bool(_MINT_READ_CHARGED),
+                                reads="a board read made in order to design: its heads, and how "
+                                      "often this slot's kind was read for design before")
+
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
@@ -5177,6 +5251,7 @@ class Agent:
         self._b2_kinds_inh: dict = {}
         self._b2_wk: dict = {}
         self._obg = {"price": [0, 0], "class": [0, 0]}     # 10a ORDER_BY_GROUND: [ended, paid]
+        self._design_seen: dict = {}  # the design bill: design reads per slot kind
         self._obg_written = {"price": [0, 0], "class": [0, 0]}   # 10a carry: saved or loaded
         self._b2_evidenced: list = []   # r1481: the kinds placed by validity, at the last cue order
         self._indist_key = None       # INDIST_ON_CHANGE: the last grouping computed
@@ -5606,6 +5681,11 @@ class Agent:
         self._last_press_key: tuple | None = None
         self._press_situ: tuple | None = None
         self._subgoal: dict | None = None   # (4g) R-C: {"parent", "sub"} while a detour is held
+        self._tasks: list = []              # HTN: the task stack, top = _subgoal
+        self._htn: dict = {}                # HTN: method edge (kind -> kind) -> [ended, paid]
+        self._htn_written: dict = {}        # HTN: what the lineage already holds
+        self._htn_pending: dict = {}        # HTN: parent slot -> edges pursued for it, unsettled
+        self._htn_tried: dict = {}          # HTN: parent slot -> subs that ran out for it
         self._unreachable: dict = {}        # (6a) R-D: intent -> {"at", "situation"} at budget
         # (6c): kind forms loaded (key -> row), the keys this instance has written, and this
         # level's bound candidates (None until first asked)
@@ -6478,6 +6558,8 @@ class Agent:
         self._untried_done = set()
         self._3a_seen = set()
         self._subgoal = None                         # (4g): slot names do not cross
+        if _HTN:
+            self._htn_close("level")                 # HTN: a level end settles what is pending
         self._unreachable = {}                       # (6a): nor intents that name them
         self._rk_bound = None                        # (6c): bound again on the new board
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
@@ -7985,7 +8067,12 @@ class Agent:
                 # the scan of every candidate gave
                 cand = self._kind_store["t2_by"].get(ko, ())
                 run_dk = {e[1:] for e in self._kind_landed_dk}
-                t2 = [(k, r, o, x) for (k, r, o, x) in cand if (k, ko) not in run_dk]
+                t2 = []
+                for e_ in cand:
+                    if _T2_METER:
+                        cap.head()
+                    if (e_[0], ko) not in run_dk:
+                        t2.append(e_)
             else:
                 with_dk = {e[1:] for e in itertools.chain(self._kind_landed_dk,
                                                           self._kind_known_dk)}
@@ -10214,6 +10301,9 @@ class Agent:
         if _SUBGOAL and link.get("linked") and c.first.slot != c.then.slot:
             parent = (link.get("slots") or [c.then.slot])[0]
             self._subgoal = {"parent": parent, "sub": c.first.slot}
+            if _HTN:        # HTN: the held order's first step is the stack's one task
+                self._tasks = [{"parent": parent, "sub": c.first.slot,
+                                "edge": self._htn_edge(parent, c.first.slot)}]
             self.led.record(self.cycle, "PLAN", c.first.slot, "subgoal_adopted", parent=parent,
                             read="ordered goal",
                             reads="the held order's first step, pursued before its second (iv)")
@@ -15806,6 +15896,100 @@ class Agent:
         if sg is not None:
             self.led.record(self.cycle, "SETTLE", sg["sub"], "subgoal_end", parent=sg["parent"],
                             how=how, reads="the detour ends; the parent is chosen again (R-C)")
+        if _HTN and self._tasks:
+            t = self._tasks.pop()
+            if how != "arrived":
+                self._htn_tried.setdefault(t["parent"], set()).add(t["sub"])
+            self.led.record(self.cycle, "SETTLE", t["sub"], "htn_pop", parent=t["parent"],
+                            how=how, depth=len(self._tasks) + 1, edge=t["edge"],
+                            reads="the subtask leaves the stack; the task under it is "
+                                  "selected again")
+            if self._tasks:
+                top = self._tasks[-1]
+                self._subgoal = {"parent": top["parent"], "sub": top["sub"]}
+
+    def _htn_edge(self, parent: str, sub: str) -> str:
+        """HTN: a method's edge by KIND (Fig 4 :23), never by object names."""
+        def k(s):
+            try:
+                return self._kind_key(s)
+            except Exception:       # a slot whose owner names no kind reads as its type alone
+                return repr(str(self.slot_types.get(s)))
+        return f"{k(parent)} -> {k(sub)}"
+
+    def _htn_push(self, chosen: str) -> bool:
+        """HTN: decompose `chosen`, whose routes ran out. Its candidate subtasks are its open
+        enablers not already on the stack or tried for it; the walkthrough rejects any out of
+        reach (Fig 13 :133); the ground orders the rest by the method edge's validity. Pushes the
+        first and says so; False when nothing applies."""
+        on = {t["sub"] for t in self._tasks} | {t["parent"] for t in self._tasks} | {chosen}
+        tried = self._htn_tried.get(chosen, set())
+        en = [(b, ln) for b, ln in self._enablers(chosen)
+              if b in self._res and arrival(self._res[b]) == OPEN and b not in on
+              and b not in tried]
+        if not en:
+            return False
+        ok = []
+        for b, ln in en:
+            with self._row_step("PLAN"):     # the walkthrough: is this subtask possible at all
+                out = _REACH_GATE and self._out_of_reach(b)
+            if out:
+                self.led.record(self.cycle, "PLAN", b, "htn_method_rejected", parent=chosen,
+                                edge=self._htn_edge(chosen, b), why="out of reach",
+                                reads="the walkthrough: this subtask cannot be reached with "
+                                      "the vocabulary as it stands, so the method is not begun")
+            else:
+                ok.append((b, ln))
+        if not ok:
+            return False
+
+        def val(b):
+            st = self._htn.get(self._htn_edge(chosen, b), [0, 0])
+            return (st[1] + 1.0) / (st[0] + 2.0)
+        b, ln = sorted(enumerate(ok), key=lambda iv: (-val(iv[1][0]), iv[0]))[0][1]
+        edge = self._htn_edge(chosen, b)
+        self._tasks.append({"parent": chosen, "sub": b, "edge": edge})
+        self._subgoal = {"parent": chosen, "sub": b}
+        self._htn_pending.setdefault(chosen, set()).add(edge)
+        st = self._htn.get(edge, [0, 0])
+        self.led.record(self.cycle, "PLAN", b, "subgoal_adopted", parent=chosen, read=ln,
+                        reads="the parent's routes are exhausted; its settled term reads this "
+                              "slot, so it is pursued as a route (R-C, HTN)")
+        self.led.record(self.cycle, "PLAN", b, "htn_push", parent=chosen,
+                        depth=len(self._tasks), edge=edge, record=list(st),
+                        validity=round(val(b), 4), candidates=len(ok),
+                        rejected=len(en) - len(ok),
+                        reads="decomposed: the subtask goes on the stack, the parent waits")
+        return True
+
+    def _htn_settle(self) -> None:
+        """HTN: a parent pursued through subtasks pays each edge when it arrives; one gone from
+        the board ends them unpaid."""
+        for parent, edges in list(self._htn_pending.items()):
+            if parent in self._res and arrival(self._res[parent]) == OPEN:
+                continue
+            paid = parent in self._res
+            for e in sorted(edges):
+                st = self._htn.setdefault(e, [0, 0])
+                st[0] += 1
+                st[1] += 1 if paid else 0
+                self.led.record(self.cycle, "SETTLE", parent, "htn_credit", edge=e,
+                                paid=paid, record=list(st),
+                                reads="the task arrived after its subtask: the method paid"
+                                      if paid else "the task left the board: the method ended "
+                                                   "unpaid")
+            del self._htn_pending[parent]
+
+    def _htn_close(self, why: str) -> None:
+        """HTN: a level end -- every pending method ends unpaid, the stack and its tries clear."""
+        for parent, edges in sorted(self._htn_pending.items()):
+            for e in sorted(edges):
+                st = self._htn.setdefault(e, [0, 0])
+                st[0] += 1
+                self.led.record(self.cycle, "SETTLE", parent, "htn_credit", edge=e, paid=False,
+                                record=list(st), why=why,
+                                reads="the level ended before the task arrived: unpaid")
+        self._htn_pending, self._tasks, self._htn_tried = {}, [], {}
 
     def _press_kind(self, action: str, situ: tuple, slot: str | None = None) -> tuple:
         """(5c) A12: a press as a KIND -- the held goal's slot kind (Fig 11 :49: valence is relative
@@ -22526,15 +22710,20 @@ class Agent:
         hot = ({o for s, v in self._outstanding.items() if v > 0 for o in self._objs_named(s)}
                if _SURPRISE_NOMINATES else None)
         unnom: tuple | None = None                 # (5a): the pick nomination would not make
-        if _SUBGOAL and self._subgoal is not None and hyp is None:
+        if _HTN and self._htn_pending:
+            self._htn_settle()                   # HTN: pay or end the methods whose task ended
+        while _SUBGOAL and self._subgoal is not None and hyp is None:
             # (4g) R-C: a held detour is the end selected while its want is open; R-B then reads
-            # routes on its gap, and the parent's gap may grow meanwhile
+            # routes on its gap, and the parent's gap may grow meanwhile. HTN: the stack's next
+            # task down is tried in turn when the top one ends
             _sub = self._subgoal["sub"]
             if _sub in self._res and arrival(self._res[_sub]) == OPEN:
                 if why is not None:
                     why.update(tally, slots=len(self._res), subgoal=_sub)
                 return _sub
             self._subgoal_end("arrived" if _sub in self._res else "gone")
+            if not _HTN:
+                break
         for slot, series in sorted(self._res.items()):
             cap.head()
             if slot in ind:              # r674 1: its change is no reading of the choice
@@ -25581,7 +25770,14 @@ class Agent:
                     # (6a) R-D: kept as a verdict with its scope, so a route found later is read
                     # as a re-engagement and what changed is said (Fig 8 :40-41)
                     self._unreachable.setdefault(said, {"at": self.cycle, "situation": _rctx})
-                if _SUBGOAL and self._subgoal is not None and chosen == self._subgoal["sub"]:
+                if (_HTN and _SUBGOAL and not _restate
+                        and (self._subgoal is None or chosen == self._subgoal["sub"])):
+                    # HTN: decompose the task whose routes ran out; a subtask with no method left
+                    # leaves the stack and its parent is selected again
+                    if not self._htn_push(chosen) and self._subgoal is not None \
+                            and chosen == self._subgoal["sub"]:
+                        self._subgoal_end("routes")
+                elif _SUBGOAL and self._subgoal is not None and chosen == self._subgoal["sub"]:
                     self._subgoal_end("routes")      # (4g): the detour, too, ran out of routes
                 elif _SUBGOAL and not _restate and self._subgoal is None:
                     # (4g) R-C: the next subject is the one the agent's own model says enters
@@ -26326,7 +26522,7 @@ class Agent:
         routable = self._route_first_set(before)
         clock = set(self._own_clock_keys()) if _OWN_CLOCK_SUBJECT else set()
         table = self.iface.table
-        untried = sum(1 for a in self.actions if a not in table)
+        untried = self._can_untried(table)
         given_up = {tk[1] for tk, v in self._hyp_tried.items()
                     if isinstance(tk, tuple) and len(tk) > 1 and isinstance(v, tuple) and v
                     and v[0] in can_ledger.REFUTED_ENDS}
@@ -26376,6 +26572,13 @@ class Agent:
                                 crossings=len(cross), appeared=len(appear),
                                 reads="what I can do and what I can't, after the crossings")
         st.update(lists=now, state=dict(before), step=self.cycle, known=known)
+
+    def _can_untried(self, table: dict) -> int:
+        """How many of this board's actions the table has not seen; F5: RESET left out while
+        alive, the test interface.untried_here uses (r1901), so the counts agree."""
+        alive = getattr(self.iface, "alive", True)
+        return sum(1 for a in self.actions if a not in table
+                   and not (_CAN_SKIP_RESET and a == IFace.RESET and alive))
 
     def _can_kind_key(self, item: str) -> tuple:
         """10a+ "A then B": an item's kind key -- its object's kind (7l) and its reading."""
@@ -26774,8 +26977,20 @@ class Agent:
                                       "pressed on this board; owed, and minted once each has "
                                       "been")
             return
-        with self._row_step("MINT"):    # r1871: the mint's own read; its cut rows are MINT rows
-            fp = self._contact_fp(slot) if _CONTACT_FIRST else None
+        gated = None
+        if _REACH_FIRST:
+            # the design bill: the walkthrough first -- "is this possible?" before any design is
+            # charged (Fig 13 :133); free, as the look is (Fig 9 :45)
+            with self._row_step("MINT"):
+                gated = _REACH_GATE and self._out_of_reach(slot)
+            if gated and not _REACH_GATE_CHECK:
+                self._reach_gate_row(slot, b)
+                return
+        if _CONTACT_FIRST:
+            with self._design_read(slot, "contact"):   # the trip back to the wall: design
+                fp = self._contact_fp(slot)
+        else:
+            fp = None
         if _CONTACT_FIRST:
             why = ("same_rows" if fp is not None and self._cf_rows.get(slot) == fp
                    else "named" if (self._act_named == self.cycle
@@ -26795,17 +27010,16 @@ class Agent:
                                            "row arrives"))
                 return
             self._cf_owed.pop(slot, None)
-        with self._row_step("MINT"):    # r1871: as the contact read (its residual read can cut)
-            gated = _REACH_GATE and self._out_of_reach(slot)
+        if gated is None:
+            with self._design_read(slot, "reach"):   # r1871's place, now charged as design
+                gated = _REACH_GATE and self._out_of_reach(slot)
+            if gated:
+                self._reach_gate_row(slot, b)
+                if not _REACH_GATE_CHECK:
+                    return
+        elif gated:
+            self._reach_gate_row(slot, b)              # REACH_FIRST's check run: minted anyway
         if gated:
-            _book_add(self.gamma.book, "reach_gate_skipped")
-            self.led.record(self.cycle, "ACCEPT", slot, "reach_gate", bin=b,
-                            type=self.slot_types.get(slot), check=bool(_REACH_GATE_CHECK),
-                            reads="not minted: no residual row's new value is in the vocabulary's "
-                                  "reach for this nominal type -- outside in principle, never "
-                                  "searched to budget; the event is read through other slots")
-            if not _REACH_GATE_CHECK:
-                return
             minted0 = {n for n, s in self.gamma.stamps.items() if s.get("origin") == MINTED}
         self._mint_exhausted = False
         t0 = time.perf_counter() if _STEP_CLOCK else None
@@ -26827,6 +27041,15 @@ class Agent:
             if got:
                 self.led.record(self.cycle, "ACCEPT", slot, "reach_gate_lost", terms=got,
                                 reads="40 check run: a gated slot, minted anyway, accepted these")
+
+    def _reach_gate_row(self, slot: str, b: str) -> None:
+        """40: the reach gate's skip, booked and recorded (one place for both orders)."""
+        _book_add(self.gamma.book, "reach_gate_skipped")
+        self.led.record(self.cycle, "ACCEPT", slot, "reach_gate", bin=b,
+                        type=self.slot_types.get(slot), check=bool(_REACH_GATE_CHECK),
+                        reads="not minted: no residual row's new value is in the vocabulary's "
+                              "reach for this nominal type -- outside in principle, never "
+                              "searched to budget; the event is read through other slots")
 
     def _out_of_reach(self, slot: str) -> bool:
         """40: no residual row's new value is in reach (see _REACH_GATE). Never gates an ordered,
@@ -27255,6 +27478,7 @@ class Agent:
         rank = 0
         _tree_roots: list = []      # 10d 2b: (tree, guard bits, kind) that passed _cannot_pay
         _share: dict = {}        # D2: per-stream rank/pays/turns, recorded under the arm
+        _auth_n: dict = {}       # F4: what H7's authority tiebreak scored this mint (record-only)
         _widen: dict = {}        # L4: the widened streams' kinds and the gate's answer per round
         _skey = _hit = None
         priced, _skipped = {}, 0
@@ -27484,7 +27708,9 @@ class Agent:
                     _key = shape_order.make_order_key(
                         shape_order.wanted(slot.rsplit(".", 1)[-1]), self._shape_readings,
                         paid_heads=_heads, sense_heads=_heads,
-                        authority=(self._reuse.authority(self._reuse_head_names())
+                        authority=(_tally_authority(
+                                       self._reuse.authority(self._reuse_head_names()), _auth_n,
+                                       len(self._reuse.paid))
                                    if self._reuse is not None else None),   # P6 H7, keyed
                         # by the HEADS the chain starts with (H7's key fix, step 10)
                         fits_whole=lambda ch, _b=by_fit: _b(Term(ch)))
@@ -28154,6 +28380,8 @@ class Agent:
                   "depth": self.cfg.max_depth, "units": stats["units"],
                   "space_estimate": est,
                   "coverage": round(seen / est, 6) if est else 0.0}
+        if _auth_n:
+            detail["authority"] = _auth_n
         if _STREAM_SHARE and _share:
             detail["stream_share"] = {
                 **{_kind_of(streams[k][1]): v for k, v in _share.items()},
@@ -28706,7 +28934,10 @@ class Agent:
                     # and this is the only path that RE-BINDS, so every reuse it found was
                     # invisible to the bench-pull and transfer columns both.
                     self._rp_bind(slot, cand.name, "route_pull")
-                    self.led.record(self.cycle, self._running_step, slot, "pull", term=cand.name,
+                    # an earlier level's park is filed on the park, as reuse_refused is (step order)
+                    park_key = tkey if cross and slot in self.slots else slot
+                    self.led.record(self.cycle, self._running_step, park_key, "pull",
+                                    term=cand.name,
                                     held=tkey, chain=" . ".join(a.name for a in cand.atoms),
                                     rebound=True, via="sweep",
                                     **({"carry_credited": cred, "held_terms": h_,
@@ -28717,7 +28948,7 @@ class Agent:
                     self.chain.note_reused()
                     self.chain.note_cleared()
                     name = (cand.name if cand.name in self.gamma.library
-                            else self._install_reuse(cand, slot, partial=left > 0.0))
+                            else self._install_reuse(cand, slot, partial=left > 0.0, row=park_key))
                     # 3d: COUNT REUSE WHERE THE FUNNEL ALREADY DETECTS IT. The bind sites are
                     # once-per-term by construction -- a rebind picks a DIFFERENT term, since
                     # `_library_fit` excludes the incumbent -- so counting there reads 1 forever.
@@ -28812,7 +29043,8 @@ class Agent:
                                 would_pay=pays(cost, left, base), via=how, cross_level=cross,
                                 reads="the ONE bargain refused this candidate: cost+left >= base")
 
-    def _install_reuse(self, cand: Term, slot: str, partial: bool = False) -> str:
+    def _install_reuse(self, cand: Term, slot: str, partial: bool = False,
+                       row: str | None = None) -> str:
         """The SWEEP's entry into Gamma. **F32 RULED: it now consults THE ONE BARGAIN.**
 
         **ONE GATE ON ONE LIBRARY (was two).** `mint` requires `cost + left < base`, and the
@@ -28839,7 +29071,8 @@ class Agent:
         # same slot out of order -- `chase: ROUTE after ACCEPT`, refused at seq 39. **The step
         # is a fact about WHEN the row is written, not about what the event feels like.**
         self._rp_bind(slot, cand.name, "reuse_install")
-        self.led.record(self.cycle, self._running_step, slot, "reuse_install", term=cand.name,
+        self.led.record(self.cycle, self._running_step, row or slot, "reuse_install",
+                        term=cand.name,
                         cost=round(cost, 4), left=round(left, 4),
                         base=None if base is None else round(base, 4),
                         would_pay=None if base is None else pays(cost, left, base),
@@ -30286,7 +30519,9 @@ class Agent:
             self.led.record(self.cycle, "PLAN", "@ruin", "withheld", fingerprint=_w.fp,
                             withheld=sorted([a, list(c) if c else None] for a, c in _w.pairs),
                             chosen=[action, list(_c) if _c else None],
-                            all_vetoed=_w.action(action) or _w.at(action, _c), by=by)
+                            # the chosen press is held: every option vetoed, or a game-loss veto
+                            # taken last (C1 part 7); the old name said only the first (r1900 7c)
+                            chosen_held=_w.action(action) or _w.at(action, _c), by=by)
             hit = ((action, None) if (action, None) in _w.last
                    else (action, _c) if (action, _c) in _w.last else None)
             if _GAME_LOSS_SHARE and hit is not None:
