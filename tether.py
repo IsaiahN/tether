@@ -1468,6 +1468,11 @@ _CAN_LEDGER = armflag.arm("TETHER_CAN_LEDGER", default=True)
 # newly blocked item of a filed kind gets a can_offer row naming its openers. RECORD-ONLY, inside
 # the ledger's uncharged scope; NEEDS TETHER_CAN_LEDGER. OFF: no opener / offer rows.
 _CAN_OFFER = armflag.arm("TETHER_CAN_OFFER", default=True)
+# "A => B", first implementation (the reviewer 2026-11-12; DESIGN 10d item 3): every reading
+# predicts, from earlier readings only, the kinds the press just made has produced (appeared or
+# opened after it), settles them against this reading, then learns (can_ledger.ProductionBook).
+# RECORD-ONLY, inside the ledger's uncharged scope; NEEDS TETHER_CAN_LEDGER. OFF: no rows.
+_CAN_PRODUCE = armflag.arm("TETHER_CAN_PRODUCE", default=True)
 # 10a, THE PASS'S KIND TABLE (the reviewer 2026-11-12, from the dc22 profile: the goal proposer's
 # cost is the group FORM, not the text grammar -- _group_form re-read every owner's kind for every
 # text, 3.6M _kind calls in 25 steps, each asking the world for its shape code). One table per
@@ -26358,6 +26363,8 @@ class Agent:
                 self.led.record(self.cycle, "MINT", "@can", "can_appeared", n=len(appear),
                                 items=appear[:12], cue=cue, lag=lag,
                                 reads="items new to the lists since the last reading")
+            if _CAN_PRODUCE:
+                self._can_produce(cue["press"], cross, appear)
             if cross or appear:
                 self.led.record(self.cycle, "MINT", "@can", "can_lists", board=board, **cnt,
                                 crossings=len(cross), appeared=len(appear),
@@ -26379,6 +26386,22 @@ class Agent:
                         src=src, seen=n,
                         reads="a precondition met: the press just before it and who it reads "
                               "as moved by, filed under the item's kind (A then B)")
+
+    def _can_produce(self, press: str, cross: list, appear: list) -> None:
+        """"A => B": predict from earlier readings, settle against this one, then learn."""
+        book = self.__dict__.setdefault("_can_prod", can_ledger.ProductionBook())
+        observed = {self._can_kind_key(a["item"]) for a in appear} | \
+            {self._can_kind_key(r["item"]) for r in cross if r["kind"] in ("opened", "discovered")}
+        pred = book.predict(press)
+        if pred:
+            hit, miss = book.settle(press, pred, observed)
+            self.led.record(self.cycle, "MINT", "@can", "can_produce", press=press,
+                            predicted=[list(k) for k in pred[:6]], hit=[list(k) for k in hit[:6]],
+                            missed=len(miss),
+                            score={f"{k[1]}": book.score[(press, k)] for k in pred[:6]},
+                            reads="A => B: what this press produced before, predicted from "
+                                  "earlier readings and settled on this one (record-only)")
+        book.learn(press, observed)
 
     def _can_offer_row(self, item: str) -> None:
         """An item of a filed kind is closed or appears blocked: its openers offered, a row."""

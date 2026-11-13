@@ -2378,6 +2378,11 @@ ARMS: dict[str, str] = {
                          "text named; a shelf template's instance on such a kind is ordered "
                          "first inside its price group, after the class tier. ORDER ONLY. ON. "
                          "OFF: no kinds tier. MF: tests/test_kind_reuse.py.",
+    "TETHER_CAN_PRODUCE": "STEP 10 'A => B' first implementation (the reviewer 2026-11-12): each "
+                          "reading predicts from earlier readings the kinds the last press "
+                          "produced (appeared / opened), settles them, then learns. RECORD-ONLY. "
+                          "NEEDS TETHER_CAN_LEDGER. ON. OFF: no can_produce rows. MF: "
+                          "tests/test_can_produce.py.",
     "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
                           "the mint's depth-one trees that passed their own _cannot_pay are "
                           "deepened a tier at a time (tree_search.deepen), each priced by the "

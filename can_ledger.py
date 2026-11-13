@@ -101,3 +101,37 @@ class OpenerBook:
         return [{"press": p, "src": s, "seen": n}
                 for (p, s), n in sorted(d.items(), key=lambda kv: -kv[1])]
 
+
+class ProductionBook:
+    """"A => B", ITS FIRST IMPLEMENTATION (the reviewer 2026-11-12; DESIGN 10d item 3: "A produces
+    B; B did not exist before"). Evidence: after press A, an item of kind B APPEARED or OPENED
+    (10a+'s rows). Each reading first PREDICTS, from the evidence before it, the kinds press A has
+    produced, then settles those predictions against what this reading shows, then learns. So a
+    production that does not recur is refused by the ground (its misses), never by a rule
+    (Fig 7 :35). Record-only: a prediction is a row, not a held goal."""
+
+    def __init__(self) -> None:
+        self.seen: dict = {}            # (press, kind) -> times B followed A
+        self.score: dict = {}           # (press, kind) -> [predicted, hit]
+
+    def predict(self, press: str) -> list:
+        """The kinds press `press` has produced before, most seen first (ties by first seen)."""
+        got = [(k, n) for (p, k), n in self.seen.items() if p == press]
+        return [k for k, _n in sorted(got, key=lambda kv: -kv[1])]
+
+    def settle(self, press: str, predicted: list, observed: set) -> tuple[list, list]:
+        hit, miss = [], []
+        for k in predicted:
+            st = self.score.setdefault((press, k), [0, 0])
+            st[0] += 1
+            if k in observed:
+                st[1] += 1
+                hit.append(k)
+            else:
+                miss.append(k)
+        return hit, miss
+
+    def learn(self, press: str, observed: set) -> None:
+        for k in sorted(observed, key=str):
+            self.seen[(press, k)] = self.seen.get((press, k), 0) + 1
+
