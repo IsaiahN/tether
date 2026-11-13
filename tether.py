@@ -1854,6 +1854,10 @@ _BANK_PER_BOARD = armflag.arm("TETHER_BANK_PER_BOARD", default=True)
 # between whole units only
 _UNIT_PURSE = armflag.arm("TETHER_UNIT_PURSE", default=True)
 _UNIT_CUT = object()        # TETHER_UNIT_PURSE: what a unit cut inside returns to its caller
+# SHIP 1 (the reviewer r1869): a mint unit cut AFTER the slot's mint landed inside the unit (its
+# "mint" or ACCEPT row written, e.g. a cut in the post-accept sweep) owes nothing -- the item was
+# reached; the @cap unit_purse_cut row still records the cut. OFF: every mint cut owes the slot
+_MINT_CUT_LANDED = armflag.arm("TETHER_MINT_CUT_LANDED", default=True)
 # C2 THE PURSE FIRST (R2's fired refuter; the reviewer r1707 2): at a spent purse _library_fit wrote
 # budget_owed ("not asked ... owed") and skipped only the index walk, then fitted every library
 # candidate anyway (re86 after a ROUTE cut: 16 M heads in _delta_tier, 6 M in _rebindings/_pairs).
@@ -26509,10 +26513,11 @@ class Agent:
                             "bargain_bounded_out", "bargain_does_not_pay", "bargain_paid")},
                         "s": 0.0, "after": 0, "max_r": 0, "gap": [], "head": [], "frac": [],
                         "near": [], "memo": {}}
+        n0 = len(self.led)
         try:
             # a derived ask's mint is cut at its ask (_derived_wants), which owes it there
             got = (self._mint(slot) if self._want_only
-                   else self._unit(partial(self._mint_purse_owed, slot, True), self._mint, slot))
+                   else self._unit(partial(self._mint_cut, slot, n0), self._mint, slot))
         finally:
             self._memo = None
             pg, self._pg = self._pg, None
@@ -26523,6 +26528,18 @@ class Agent:
         if _7F_LEAVE and hasattr(self, "_leave_held"):   # an Agent built by __new__ has none
             self._leave_check(slot, out0)
         return got
+
+    def _mint_cut(self, slot: str, n0: int) -> object:
+        """the mint unit's on-cut (r1869): the slot is owed only if its mint has not landed since
+        row n0; landed, the cut owes nothing (the item was reached)."""
+        if _MINT_CUT_LANDED and self._mint_landed(slot, n0):
+            return _UNIT_CUT
+        return self._mint_purse_owed(slot, True)
+
+    def _mint_landed(self, slot: str, n0: int) -> bool:
+        """a "mint" row or an ACCEPT row on `slot` written since row n0."""
+        return any(r["slot"] == slot and (r["event"] == "mint" or r["step"] == "ACCEPT")
+                   for r in self.led.rows(n0))
 
     def _mint_purse_owed(self, slot: str, cut: bool = False) -> object:
         """mint at a spent purse (or, cut, inside it): owed, asked first next step."""
