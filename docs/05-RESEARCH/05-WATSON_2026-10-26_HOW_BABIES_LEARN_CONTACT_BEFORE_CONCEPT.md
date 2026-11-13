@@ -2,7 +2,7 @@
 
 ## Isaiah, verbatim (15:07 CDT)
 
-> "Are we missing something? Like how babies learn or something ? Do a watson check against umwelt repo and the reasoning. Also has reasoning or actions per sec increased?"
+> "Are we missing something? Like how babies learn or something? Do a WATSON check against the umwelt repo and the reasoning. Also, has reasoning or actions per sec increased?"
 
 ## 1. Actions per second (measured, from the round lines)
 

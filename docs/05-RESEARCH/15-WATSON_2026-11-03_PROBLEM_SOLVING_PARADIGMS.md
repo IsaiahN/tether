@@ -4,7 +4,7 @@ Reviewer, 2026-11-03 ~14:50 CST. Run by a helper under the tether-watson procedu
 
 ## QUESTION
 
-Isaiah, 14:29: "The jigsaw paradigm, yes its just one of several types of paradigms, some are navigation. check the prior list to obtain more info on whats expected of humans to be able to solve in their modes etc (you can also do a watson)."
+Isaiah, 14:29: "The jigsaw paradigm, yes, it's just one of several types of paradigms; some are navigation. Check the prior list to obtain more info on what's expected of humans to be able to solve in their modes, etc. (you can also do a WATSON)."
 
 What modes does a human bring to interactive puzzle games? For each, what does it ask of the player? How should the agent hold them, recognise which one a board needs, and switch when one fails?
 

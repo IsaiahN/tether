@@ -1,6 +1,6 @@
 # WATSON — second nature per task, and what carries over to all (2026-11-11 07:26 CST)
 
-Isaiah, 07:24, verbatim: "one nuance is if the agent is able to distinguish per task or per problem for instance my second nature moves in basketball differ from tennis or driving. how do we handle this? some carry over to all you might need to watson that too - and always do the full tether with watsons please"
+Isaiah, 07:24, verbatim: "One nuance is if the agent is able to distinguish per task or per problem; for instance, my second nature moves in basketball differ from tennis or driving. How do we handle this? Some carry over to all. You might need to WATSON that too - and always do the full Tether with WATSONs, please"
 
 Method: the full procedure. The census was written at 07:25, before any figure line was chosen. Every figure line below was checked in the original SVG (metadata stripped, tspans joined). The world sources were each read.
 

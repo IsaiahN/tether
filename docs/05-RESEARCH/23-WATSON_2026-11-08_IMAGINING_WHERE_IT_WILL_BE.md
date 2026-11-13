@@ -1,6 +1,6 @@
 # WATSON 2026-11-08 -- Imagining where it will be: leading a moving target, and strategy against agents
 
-Asked by Isaiah, 18:32 CST. The item-based islands and critical mass "might be leaving out the concept of 'imagining' ... where a fish will go when fishing, instead of where you last spotted it, because your senses and reflexes might be faster than your umwelt so you must compensate ... in galaxian ... volleyball/tennis, an enemy might sway from right to left. If i spend all my resources 'visually looking' and tracking their position, I will likely lose ... also counter applies to opponents with agency leading to the concept of misdirection and the 'need for strategy' itself."
+Asked by Isaiah, 18:32 CST. The item-based islands and critical mass "might be leaving out the concept of 'imagining' ... where a fish will go when fishing, instead of where you last spotted it, because your senses and reflexes might be slower than your umwelt so you must compensate ... in Galaxian ... volleyball/tennis, an enemy might sway from right to left. If I spend all my resources 'visually looking' and tracking their position, I will likely lose ... Also counter applies to opponents with agency leading to the concept of misdirection and the 'need for strategy' itself."
 
 ## TETHER (primary, verbatim)
 

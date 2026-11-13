@@ -2,7 +2,7 @@
 
 Isaiah, 21:04 CST, replying to "the comparison should be 'this game vs my earlier games', not 'me vs an ancestor'":
 
-"its this game versus my previous games (+ my recallable life experience in library (which includes priors and outcomes and past predictions etc etc). beings take all of their experiences into a situation or challenge. While they cant cherry pick per se, in terms of word_Clusters and thesauruses in our terminology, you cant rip out some without losing the connectivity or connective thread to others. theres never a clean break or delination that separates them (they are all connected). thats what also makes transfer possible too. or why a dog seeing a 'tennis ball' gets excited and anticipates playing fetch or maybe more"
+"It's this game versus my previous games (+ my recallable life experience in library (which includes priors and outcomes and past predictions, etc., etc.)). Beings take all of their experiences into a situation or challenge. While they can't cherry-pick per se, in terms of word clusters and thesauruses in our terminology, you can't rip out some without losing the connectivity or connective thread to others. There's never a clean break or delineation that separates them (they are all connected). That's what also makes transfer possible too, or why a dog seeing a 'tennis ball' gets excited and anticipates playing fetch, or maybe more"
 
 Builds on WATSON_2026-11-08_catalogs_and_word_clusters (thesaurus / sense cluster) and r1516 (the earlier save is the agent's past self).
 
@@ -22,7 +22,7 @@ Builds on WATSON_2026-11-08_catalogs_and_word_clusters (thesaurus / sense cluste
 - Fig 12 :107-110: "where the arrangement is recorded, re-deriving it is a lookup and the actions were spent once ... Inside a run the arrangement persists and nothing is re-earned".
   - Within the one run, nothing earned in an earlier game should be re-earned from zero.
 - Fig 12 :104: "A settled molecule becomes an atom for whatever composes over it."
-  - Learning is built on learning. Removing a part breaks what was composed over it. That is Isaiah's "you cant rip out some without losing the connectivity".
+  - Learning is built on learning. Removing a part breaks what was composed over it. That is Isaiah's "you can't rip out some without losing the connectivity".
 - Fig 13 :75-76: "which structure it is bonded to is part of what it is."
   - A sense lives in its connections. Cut out as a separate pool, it is no longer the same sense.
 - Fig 11 :67: "Move the residual and you must reproduce everything its goal required, and you inherit the new habitat's actors".

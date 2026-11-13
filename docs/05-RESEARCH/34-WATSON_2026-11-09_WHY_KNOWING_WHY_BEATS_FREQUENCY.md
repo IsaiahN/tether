@@ -1,6 +1,6 @@
 # WATSON 2026-11-09 -- Why knowing why beats knowing how often (and where frequency still earns its place)
 
-Isaiah, 06:41 CST: "in most cases, probability of occurence is nearly the weakest inference to go on, apart from just random choice. its usually better to know why something is happening than merely following its patterns. I am not able to explain well enough why this is the case (tacit knowledge) so you may need to watson this to find the nuance or send corrections my way on this"
+Isaiah, 06:41 CST: "In most cases, probability of occurrence is nearly the weakest inference to go on, apart from just random choice. It's usually better to know why something is happening than merely following its patterns. I am not able to explain well enough why this is the case (tacit knowledge), so you may need to WATSON this to find the nuance or send corrections my way on this"
 
 Builds on WATSON_2026-11-09_causation_needs_more_than_counting.
 

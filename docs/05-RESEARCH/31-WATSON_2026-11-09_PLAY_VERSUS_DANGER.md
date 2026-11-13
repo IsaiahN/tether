@@ -4,7 +4,7 @@
 
 Isaiah, 11:20 CST, on my phrase "the ended life's records to that life's last moment":
 
-"ended run or ended gameplay. the player's existence does not hinge on this game or its progress. however in some circumstances beings do have their lives at stake. best to not confuse the two, as one requires a different set of thinking than survival. think: when at play you have time to be curious --- when in danger, you barely have time to think at all nearly acting on instinct etc WATSON this. I am belaboring the point but ----> one lifetime. these are just games that the general rsi agent is learning how to use its library with, similar to have kids play with building blocks or toy trucks. this has no bearing on its actual lifespan, but will eventually help the agent to make harder and more riskier choices with the full experience needed delivered by paying the bill and acquiring the tacit knowledge through play, mock runs etc"
+"Ended run or ended gameplay. The player's existence does not hinge on this game or its progress. However, in some circumstances beings do have their lives at stake. Best to not confuse the two, as one requires a different set of thinking than survival. Think: when at play you have time to be curious --- when in danger, you barely have time to think at all, nearly acting on instinct, etc. WATSON this. I am belaboring the point, but ----> one lifetime. These are just games that the general RSI agent is learning how to use its library with, similar to having kids play with building blocks or toy trucks. This has no bearing on its actual lifespan, but will eventually help the agent to make harder and riskier choices with the full experience needed, delivered by paying the bill and acquiring the tacit knowledge through play, mock runs, etc."
 
 ## Unpacked (the five-step rule)
 
@@ -39,7 +39,7 @@ Triangulated: Fig 5 (curiosity when nothing presses), Fig 12 (the bill paid once
 - **Animal behaviour: play happens in the "relaxed field".** Burghardt's fifth criterion, via Miller 2017 (*Learning & Behavior* 45:330-334): play is "initiated when an animal is adequately fed, healthy, and free from stress", which the paper calls a "relaxed field".
   -> Predicts: play and danger are different states, and play needs safety. Corroborates.
 - **Play is training for the unexpected.** Špinka, Newberry & Bekoff 2001 (*Quarterly Review of Biology* 76(2):141-168): "play enables animals to develop flexible kinematic and emotional responses", in order to "enhance the ability of animals to cope emotionally with unexpected stressful situations."
-  -> Predicts: practice in safety builds what is used later under real stakes. That is Isaiah's "help the agent make harder and more riskier choices". Corroborates.
+  -> Predicts: practice in safety builds what is used later under real stakes. That is Isaiah's "help the agent make harder and riskier choices". Corroborates.
 - **Cognition: threat narrows attention.** Sørensen & Barratt 2014 (*Frontiers in Psychology* 5:1020), on the Easterbrook hypothesis: attentional selectivity rose only with negative (threatening) pictures; "arousal is a necessary but not a sufficient condition for attentional selectivity."
   -> Predicts: under threat a being uses fewer cues, so there is no room for curiosity. Corroborates "in danger you barely have time to think".
 

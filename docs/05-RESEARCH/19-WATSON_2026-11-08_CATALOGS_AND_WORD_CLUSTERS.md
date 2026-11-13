@@ -2,7 +2,7 @@
 
 > **NAMES RULED by Isaiah 19:37 (r1508): THESAURUS (each kind's organization) and SENSE CLUSTER (one group inside it).** They replace "catalog" and "cluster" below. "Catalogue" collides with ARC_AGENT §14.7 (the failure), and bare "cluster" collides with the cue-side attribute clusters (seat, 19:25).
 
-Asked by Isaiah, 18:47 CST: "catalog or word cluster makes more sense. the operators might be clear cut but every 'kind' in the NSM grammar /operator list will need this type of organization. in humans subtraction and addition are linked but hold separate 'islands' of what they are related too, in the realm of money, subtraction becomes a filter or expression as debt etc. these groupings (word clouds), contextualize concepts like a filter."
+Asked by Isaiah, 18:47 CST: "Catalog or word cluster makes more sense. The operators might be clear-cut, but every 'kind' in the NSM grammar/operator list will need this type of organization. In humans, subtraction and addition are linked but hold separate 'islands' of what they are related to; in the realm of money, subtraction becomes a filter or expression as debt, etc. These groupings (word clouds) contextualize concepts like a filter."
 
 This supersedes the name "ego networks" (18:55 WATSON). Isaiah's terms are adopted.
 

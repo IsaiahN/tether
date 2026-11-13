@@ -2,7 +2,7 @@
 
 > **REFINED 18:40 CST by WATSON_2026-11-08_thinking_without_words_cue_to_outcome.md** (Isaiah 18:19). T6/D3 is withdrawn as a requirement: inner speech is not needed for thinking, and NSM is a readout. D1 is restated as cue-kind-to-outcome-kind islands, not grammar verbs. D2 gains blocking. Read both.
 
-Asked by Isaiah, 18:16 CST: "humans that mature think in language. but there is a state before vocabulary forms and a state that after ... we need to understand the transition points here, because that is what will help the agent think better and draw the correct casuality and probability from the scenario of what its in contact with or cues."
+Asked by Isaiah, 18:16 CST: "Humans that mature think in language. But there is a state before vocabulary forms and a state that comes after ... We need to understand the transition points here, because that is what will help the agent think better and draw the correct causality and probability from the scenario of what it's in contact with, or cues."
 
 Figure quotes are from docs/FIGURES_TEXT.md (generated from the original SVGs), cited as Fig N :line.
 

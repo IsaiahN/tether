@@ -48,7 +48,7 @@ Sources:
 
 ## Part 2 (2026-11-10 20:45 CST): why reassess — different river, different man; who does the categorizing
 
-Isaiah, 20:43, verbatim: "the reason why we re-assess is because the contact is different and the agent is different (you never step in the same river twice - different river, different man) by different also think in terms of how we broke down contact into context earlier today. also that compression came from another past self of the agent. its present self cannot guarantee that it would categorize something the same way as it would when it was less experienced. a fun house might scare a kid, but amuse an adult - watson this too"
+Isaiah, 20:43, verbatim: "The reason why we re-assess is because the contact is different and the agent is different (you never step in the same river twice - different river, different man). By different, also think in terms of how we broke down contact into context earlier today. Also, that compression came from another past self of the agent. Its present self cannot guarantee that it would categorize something the same way as it would when it was less experienced. A fun house might scare a kid, but amuse an adult - WATSON this too"
 
 QUESTION: When a new failure arrives, WHO decides which old failures share its cause: the label the past self stored, or the present self re-reading the raw contact?
 

@@ -1,6 +1,6 @@
 # WATSON 2026-11-07 14:40 CST: what counts as "contact" for the goal grammar
 
-Asked by Isaiah, 14:34 CST: "touching, or affecting indirectly is considered contact. like how communcation through cell phones is contact or face to face or hand in hand, different levels of contact" / "you might need to watson this".
+Asked by Isaiah, 14:34 CST: "Touching, or affecting indirectly, is considered contact. Like how communication through cell phones is contact, or face to face, or hand in hand: different levels of contact" / "You might need to WATSON this".
 
 ## QUESTION (effect terms)
 When the goal proposer limits its list to what is "in contact with" the slot whose prediction missed, which objects count? A yes/no cut loses static targets (ls20: o10.row == o4.row, o4 never moves or touches). Enumerating everything is the measured bloat (0.09-18.5% of candidates name a missed slot).

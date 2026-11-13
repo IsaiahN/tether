@@ -4,7 +4,7 @@
 
 Isaiah, 14:46 CST, on my claim that "this game" is false for an agent instance that plays many games in a row:
 
-"is not a tournament still a game? its just a multitiered game with winners and losers determined by outcomes of previous games. like the superbowl etc. they would call that 'this game', if the winning team keeps winning, they dont change players, they are the same players just in a different game. or succession of linked games ... think of it as an author writing one book at a time, versus when they have finished the whole series ... would you say that these two cases are different readers? or that they vary in what they learned or understood from the story? you get different nuances out of both styles: the slow method, lets you sit and absorb and contextualize the story, and the other, the story guides you (almost like a movie)"
+"Is not a tournament still a game? It's just a multitiered game with winners and losers determined by outcomes of previous games, like the Super Bowl, etc. They would call that 'this game'. If the winning team keeps winning, they don't change players; they are the same players, just in a different game, or succession of linked games ... Think of it as an author writing one book at a time, versus when they have finished the whole series ... Would you say that these two cases are different readers? Or that they vary in what they learned or understood from the story? You get different nuances out of both styles: the slow method lets you sit and absorb and contextualize the story, and the other, the story guides you (almost like a movie)"
 
 ## Unpacked (the five-step rule)
 

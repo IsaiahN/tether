@@ -3,8 +3,8 @@
 **The question.** Inside idea-making, the agent reads the board twice: once for what it is in contact with, and once for whether an idea could reach its target. Since SHIP 1 those reads carry the idea-making label but are not charged to the thinking budget. Should they be charged?
 
 **Isaiah's answer, verbatim (2026-11-13 00:10).** Three key sentences:
-- "The trip back to the walk is apart of the design, every thing after the lookup is apart of the design up until the deal is presented and options laid out."
-- "what makes the looking expensive is the inexperienced agent. To the senior the looking is cheap and saves time and money."
+- "The trip back to the walk is a part of the design; everything after the lookup is a part of the design, up until the deal is presented and options laid out."
+- "What makes the looking expensive is the inexperienced agent. To the senior, the looking is cheap and saves time and money."
 - "For the novice the design is the most valuable part because he can make mistakes on paper instead of with materials."
 
 His full message also covers the following:
@@ -74,7 +74,7 @@ His full message also covers the following:
   - Their low-cost guard is the premortem: assume the project failed and write down why.
   - The senior's cheap look is valid only in a regular environment with feedback. On a new kind of board he is a novice again (VTE also rises when strategies conflict). **Corroborates and bounds the claim.**
 - **What to avoid: the inside view.** Flyvbjerg, *Project Management Journal* 37(3), 2006: reference-class forecasting, "a view that bypasses human biases by cutting directly to outcomes."
-  - This is the novice's borrowed expertise: price the job from how similar jobs went, not from his own plan. **Corroborates Isaiah's "borrow expertise from learning from others advice."**
+  - This is the novice's borrowed expertise: price the job from how similar jobs went, not from his own plan. **Corroborates Isaiah's "borrow expertise from learning from others' advice."**
 - **How to become senior.** Ericsson, Krampe & Tesch-Römer, *Psychological Review* 100(3), 1993: expert performance is "the end result of individuals' prolonged efforts to improve performance," through "effortful activities (deliberate practice) designed to optimize improvement."
   - Seniority is paid for in deliberate, measured attempts, not in time served. **Corroborates.**
 

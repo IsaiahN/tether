@@ -1,6 +1,6 @@
 # WATSON 2026-11-08 -- Naming the orbit: what to call "verb islands"
 
-Asked by Isaiah, 18:37 CST: "yes but we cannot call them verb islands. try to find the correct term that english majors use to explain an entourage (people) or an multidimensional array (programming) or when something 'orbits' around central object. in mapping and graphs these would be nodes, and the lines would be connections or 'contact'. the more 'contact'/connections, the more important that node becomes ... you will need to watson this to get the right or 'proper phrasing'."
+Asked by Isaiah, 18:37 CST: "Yes, but we cannot call them verb islands. Try to find the correct term that English majors use to explain an entourage (people) or a multidimensional array (programming) or when something 'orbits' around a central object. In mapping and graphs these would be nodes, and the lines would be connections or 'contact'. The more 'contact'/connections, the more important that node becomes ... You will need to WATSON this to get the right or 'proper phrasing'."
 
 ## QUESTION
 

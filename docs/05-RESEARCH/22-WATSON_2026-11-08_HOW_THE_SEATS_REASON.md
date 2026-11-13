@@ -1,6 +1,6 @@
 # WATSON 2026-11-08 -- How the seats reason: Isaiah's moves, made into rules both seats follow
 
-Asked by Isaiah, 12:59 CST: "how do we operationalize these? perhaps can you explain them in terms of the tether and those theories that you researched to better help guide you both in how to approach problems? because the agent can only inherit what you both understand"
+Asked by Isaiah, 12:59 CST: "How do we operationalize these? Perhaps can you explain them in terms of the Tether and those theories that you researched, to better help guide you both in how to approach problems? Because the agent can only inherit what you both understand"
 
 Figure quotes are from docs/FIGURES_TEXT.md at 93347e9 (generated from the original SVGs), cited as Fig N :line.
 
@@ -45,7 +45,7 @@ Each card gives the Tether lines (primary), the world source (corroboration only
 
 ### 1. Decide what the result could change, before running anything (value of information)
 
-- **Isaiah:** "why waste time with this if we know what we need to do. random is out." (11-08 12:47); "stop with the random tests" (10-29); "less test, more wiring" (10-30).
+- **Isaiah:** "Why waste time with this if we know what we need to do? Random is out." (11-08 12:47); "stop with the random tests" (10-29); "less test, more wiring" (10-30).
 - **Tether:**
   - Fig 13 :140: a hard decision needs "what would have had to be true for the answer to differ."
   - Fig 2 :42: "Buy independence in proportion to the cost of being wrong."
@@ -89,7 +89,7 @@ Each card gives the Tether lines (primary), the world source (corroboration only
 
 ### 4. Push it to the limit (one game, or a million)
 
-- **Isaiah:** "please always think of scale. if the agent ran non stop for months or years" (10-24); load design must scale to millions of games (10-19); "what if this ran for years? you'd need a cache" (10-14). It is also the 45-atom vs ~2,000-atom error.
+- **Isaiah:** "Please always think of scale. If the agent ran nonstop for months or years" (10-24); load design must scale to millions of games (10-19); "What if this ran for years? You'd need a cache" (10-14). It is also the 45-atom vs ~2,000-atom error.
 - **Tether:**
   - Fig 4 :19-20: the kernel is the same "whether one agent is running it or a thousand".
   - Fig 6 :50: search "Fails by spending budget on a region already swept."
@@ -176,7 +176,7 @@ Each card gives the Tether lines (primary), the world source (corroboration only
 
 ### 10. Cut fast, but keep the cut reversible (the guard on moves 1-2)
 
-- **Isaiah:** "turning off a feature is like cutting off a limb" (10-26); "refineable yes, refactorable yes, but necessary" (11-03).
+- **Isaiah:** "turning off a feature is like cutting off a limb" (10-26); "refinable yes, refactorable yes, but necessary" (11-03).
 - **Tether:**
   - Fig 9 :40-41 again: a wrong cut "removes the answer and speeds up", so cuts stay ranked and reversible.
   - Fig 6 :46: a store that deletes "could not tell never-held from held-and-given-up".

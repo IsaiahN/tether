@@ -1,8 +1,8 @@
 # WATSON 2026-11-02 10:05 CST: keep the concept, not every apple. The perception tallies, recall and search speed
 
-Isaiah, 09:59: "is this not the least useful data? ... animals dont save a copy of every apple or pair they encounter and every angle, just the general concept"
-Isaiah, 09:59: "perform a watson, no wonder our recall is so slow and search"
-Isaiah, 10:00: "today this changes. - because search speed depends on it"
+Isaiah, 09:59: "Is this not the least useful data? ... Animals don't save a copy of every apple or pair they encounter and every angle, just the general concept"
+Isaiah, 09:59: "Perform a WATSON. No wonder our recall is so slow, and search"
+Isaiah, 10:00: "Today this changes, because search speed depends on it"
 
 ## QUESTION (effect terms)
 What should the agent keep about the objects and changes it has perceived, across games? What should search read? And what must change TODAY so that search reads less?
@@ -63,7 +63,7 @@ STRAIN TESTS:
 - Search reads the recurring and the current. A one-occasion row from a past game is cold: never deleted, read only on a key miss, and back to hot the moment it recurs.
 - Cost if wrong: a cold row needed by an enumeration is missed until it recurs. Undoable: yes (n and l_game are kept, so the filter is a query). Reversed by: the measurement showing few n == 1 rows, or the 1-board slice reaching fewer levels.
 
-## TODAY'S BUILD (A4.7; Isaiah 10:00 "today this changes")
+## TODAY'S BUILD (A4.7; Isaiah 10:00 "Today this changes")
 1. MEASURE (read-only, on the merged tip): per tally table, rows, the share with n == 1, the share with n == 1 and l_game not the latest, and bytes.
 2. HOT/COLD BY RECURRENCE, one switch, default ON:
    - search's enumerations (the T1a-T1d tiers, kind_dk keyed lists, the held index lists) read only rows with n >= 2, OR l_game == this game, OR an entry that backs a held or settled term;

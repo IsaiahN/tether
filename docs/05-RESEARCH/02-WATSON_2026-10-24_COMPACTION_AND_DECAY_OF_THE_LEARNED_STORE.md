@@ -1,6 +1,6 @@
 # WATSON 2026-10-24 18:15 CDT: compaction and decay keep the learned store bounded over months and years
 
-Isaiah, 18:09, verbatim: "thats why compaction and decay where always important. you can see how i handled this in ouroboros v1-v4 but you should also do a watson and tether analysis to come up with"
+Isaiah, 18:09, verbatim: "That's why compaction and decay were always important. You can see how I handled this in Ouroboros v1-v4, but you should also do a WATSON and Tether analysis to come up with"
 (It came after his 18:00 message: "please always think of scale. if the agent ran non stop for months or years, imagine how big the db would be".)
 
 ## QUESTION (effect terms)

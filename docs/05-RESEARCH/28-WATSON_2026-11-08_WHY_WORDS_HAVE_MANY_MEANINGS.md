@@ -1,6 +1,6 @@
 # WATSON 2026-11-08 -- Why words have many meanings, why placement changes them, and why it is recursive
 
-Asked by Isaiah, 18:56 CST: "Why does every word have nearly multiple connotations or meanings? and also how you can take a word and based on the placement in the sentence change the meaning. like: 'this is how i live peacefully' vs 'coming to you live from the capital' ... the word itself while holding meaning is still being filtered or contextualized by the sentence it is in. this is so recursive ... humans say looks for visual cues ... versus 'that signal is your cue (to take an action)' we understand both simultaneously at least if they have been experienced or heard in that manner."
+Asked by Isaiah, 18:56 CST: "Why does every word have nearly multiple connotations or meanings? And also how you can take a word and, based on the placement in the sentence, change the meaning. Like: 'this is how I live peacefully' vs 'coming to you live from the capital' ... The word itself, while holding meaning, is still being filtered or contextualized by the sentence it is in. This is so recursive ... Humans say looks for visual cues ... versus 'that signal is your cue (to take an action)'; we understand both simultaneously, at least if they have been experienced or heard in that manner."
 
 Builds on WATSON_2026-11-08_catalogs_and_word_clusters.
 

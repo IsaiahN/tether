@@ -2,7 +2,7 @@
 
 Reviewer, 09:18 CDT. Isaiah, 09:17:
 
-> "lets do a watson on how a human would handle this. the agent has superior recall, and access to the tether itself, its reasoning capabilities can far than a human (you llms are proof of that), so we must find out how to make it reason accurately yet faster while still retaining its human prior origins and its human like reasoning"
+> "Let's do a WATSON on how a human would handle this. The agent has superior recall, and access to the Tether itself; its reasoning capabilities can far than a human (you LLMs are proof of that), so we must find out how to make it reason accurately yet faster while still retaining its human prior origins and its human-like reasoning"
 
 "This" is PLAY21's measured slowdown (r423, r424):
 - PERCEIVE per step grows along a round, in both PLAY20 and PLAY21. ls20 takes 1.1 s at 5th place but 21.9 s at 24th.

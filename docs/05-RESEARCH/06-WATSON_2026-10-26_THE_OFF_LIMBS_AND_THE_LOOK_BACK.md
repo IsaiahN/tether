@@ -2,7 +2,7 @@
 
 ## Isaiah, verbatim (08:24 CDT)
 
-> "turning off a feature is like cutting off a limb. it should be done with extreme scrutiny after perusing any other options. You may need to revamp to history window to work better with the new system and not overpower. its in a similar position to overthinking versus when action is better, and some sort of reasoning in that vein should hamper it. you can run a watson on these if you prefer to see whats useful or needed from the other 6 versus whats not, and if any others are needed, how should they adapt to current umwelt."
+> "Turning off a feature is like cutting off a limb. It should be done with extreme scrutiny after perusing any other options. You may need to revamp the history window to work better with the new system and not overpower. It's in a similar position to overthinking versus when action is better, and some sort of reasoning in that vein should hamper it. You can run a WATSON on these if you prefer, to see what's useful or needed from the other 6 versus what's not, and if any others are needed, how they should adapt to the current umwelt."
 
 ## QUESTION
 

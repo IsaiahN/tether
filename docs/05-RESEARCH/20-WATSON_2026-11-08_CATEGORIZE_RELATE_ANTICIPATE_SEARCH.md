@@ -1,6 +1,6 @@
 # WATSON 2026-11-08 -- Categorise, relate, anticipate: search the way search engines do, without a neural net
 
-Asked by Isaiah, 18:23 CST: "this is what llms have right, these are the vectors of data or 'neural net' but we cannot rely on that, but we can simulate the categorization process (which search engines also do ...) it seems this is more important semantic search and searches that casually relate to future searches (similar to how llms are primed to anticipate the users next prompt or query to help them with speed) ... you can borrow from the pagerank search but we still will need specific details"
+Asked by Isaiah, 18:23 CST: "This is what LLMs have, right? These are the vectors of data or 'neural net', but we cannot rely on that, but we can simulate the categorization process (which search engines also do ...). It seems this is more important semantic search and searches that causally relate to future searches (similar to how LLMs are primed to anticipate the user's next prompt or query to help them with speed) ... You can borrow from the PageRank search, but we still will need specific details"
 
 This builds on:
 - WATSON_2026-11-02_how_search_engines_keep_many_tags_fast (r810: top-K with fall-back, tiers, AND by smallest list first);

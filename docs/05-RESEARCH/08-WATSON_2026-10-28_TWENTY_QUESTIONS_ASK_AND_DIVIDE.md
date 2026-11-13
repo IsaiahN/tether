@@ -1,7 +1,7 @@
 # WATSON 2026-10-28 15:20 CDT — Twenty questions: does the agent ask good questions, and does it divide the space with the answers?
 
 ## Isaiah, verbatim (15:15 CDT)
-> "in a nutshell if i had to summarize what the metalaws of the tether are, its the proof behind why the 20 questions game works. and its also loosely the procedure needed. in that vein, we need to think about the quality of the questions the agent is asking, and is the agent dividing the search space properly when it gets answers or feedback from the board."
+> "In a nutshell, if I had to summarize what the metalaws of the Tether are, it's the proof behind why the 20 questions game works. And it's also loosely the procedure needed. In that vein, we need to think about the quality of the questions the agent is asking, and is the agent dividing the search space properly when it gets answers or feedback from the board."
 
 His framing, from the two attached conversations: the formula travels by narrowing, not by being stated. The generator expands from the base, and transmission contracts back toward it: the same procedure run in the opposite direction.
 

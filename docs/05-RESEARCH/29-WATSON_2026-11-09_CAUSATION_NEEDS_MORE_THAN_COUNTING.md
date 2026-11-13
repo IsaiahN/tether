@@ -2,7 +2,7 @@
 
 Isaiah, 06:30 CST, on "a settled term missed 9 of 12 and was never dropped":
 
-"you make the numbers of misses sound like they are significant. they would only be significant if they were part of the conditions to set off an event or to unlock part of the level or win. For instance, if i switch a computer switch on and off 50 times in such a way that it ends on the on switch, did the sequence of repeats or the actions i took cause the outcome? no, in that case only one outcome mattered. casuality requires correlation yes, but correlation does not equal causation. and casuality must be tested from several angle to remove what is fluff from what is required to create the conditions for the outcome."
+"You make the numbers of misses sound like they are significant. They would only be significant if they were part of the conditions to set off an event or to unlock part of the level or win. For instance, if I switch a computer switch on and off 50 times in such a way that it ends on the on switch, did the sequence of repeats or the actions I took cause the outcome? No, in that case only one outcome mattered. Causality requires correlation, yes, but correlation does not equal causation. And causality must be tested from several angles to remove what is fluff from what is required to create the conditions for the outcome."
 
 ## Unpacked (the five-step rule)
 

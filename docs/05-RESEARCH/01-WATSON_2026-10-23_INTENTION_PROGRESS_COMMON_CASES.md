@@ -4,9 +4,9 @@ Reviewer, ~19:20 CDT. Isaiah asked for this at 19:10. The Tether figures were re
 
 ## Isaiah, 19:10 (verbatim)
 
-> "my intention is to walk from one room to another so i signal my intention and it translates. I dont reallllly care how the mechanics work nor which actuators do what, im concerned if im making progress towards my intented goal or intention. If my intention is not possible this way like an obstacle course or an escape room, i must find another route even if the intention is the same overall i might be delayed or have to take a winding path of other things in order to reach the goal and finding it is part of the game. None. Of that cares which leg gets credit for which. Thats why the agent care about intention and in humam brains the subconscious cares about how to carry that out"
+> "My intention is to walk from one room to another, so I signal my intention and it translates. I don't really care how the mechanics work nor which actuators do what; I'm concerned if I'm making progress towards my intended goal or intention. If my intention is not possible this way, like an obstacle course or an escape room, I must find another route. Even if the intention is the same overall, I might be delayed or have to take a winding path of other things in order to reach the goal, and finding it is part of the game. None of that cares which leg gets credit for which. That's why the agent cares about intention, and in human brains the subconscious cares about how to carry that out"
 
-And at 18:47: an unreachable guess is not the problem; "The problem would be if it didnt know how to tell its assumption was wrong or right."
+And at 18:47: an unreachable guess is not the problem; "The problem would be if it didn't know how to tell its assumption was wrong or right."
 
 ## The split this sets
 
@@ -98,7 +98,7 @@ What a person does in each case, what the agent needs at each layer, and what we
 
 **ISAIAH'S CAVEAT, 19:19 (verbatim):**
 
-> "our interface mainly just takes the general intent and directional info so that would still belong to the agent like: move this here or i want to go there or i want this interaction. The interface mainly translates and works out how that logic translates just like we have it. But the agent will need to know when thats not working. Like be able to almost steer or course correct like if the interface interpreted wrongly?"
+> "Our interface mainly just takes the general intent and directional info, so that would still belong to the agent, like: move this here, or I want to go there, or I want this interaction. The interface mainly translates and works out how that logic translates, just like we have it. But the agent will need to know when that's not working. Like be able to almost steer or course-correct, like if the interface interpreted wrongly?"
 
 - **R-F. Steering: the agent checks the translation at the level of its own intent.**
   - The intent already carries its direction ("move this here", "go there", "this interaction"), so the agent knows what it EXPECTS to see. That expectation is the efference copy, held at the intention level, not the limb level. The agent's existing per-slot bet on the intent's subject is already this.

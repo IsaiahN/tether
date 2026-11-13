@@ -1,6 +1,6 @@
 # WATSON 2026-11-08 -- Thinking without words: the cue, the outcome, and what gets stored
 
-Asked by Isaiah, 18:19 CST: "humans with no inner monologue exists and can still reason ... even animals like dogs see the cue of a tennis ball or hear sounds or utterances that match the outcomes expected like 'park' 'go for a walk' 'eat' ... the complexity of the vocabulary or sound doesnt matter, the outcome is what is saved and compressed. I will need you to watson this as well."
+Asked by Isaiah, 18:19 CST: "Humans with no inner monologue exist and can still reason ... Even animals like dogs see the cue of a tennis ball or hear sounds or utterances that match the outcomes expected, like 'park', 'go for a walk', 'eat' ... The complexity of the vocabulary or sound doesn't matter; the outcome is what is saved and compressed. I will need you to WATSON this as well."
 
 This refines WATSON_2026-11-08_from_babbling_to_inner_speech (written 30 minutes earlier). Its T6/D3 is corrected here.
 

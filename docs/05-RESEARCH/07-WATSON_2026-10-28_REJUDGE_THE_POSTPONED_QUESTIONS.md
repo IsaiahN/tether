@@ -1,7 +1,7 @@
 # WATSON 2026-10-28 22:05 CDT — The growing queue of postponed questions: carry it, re-judge it, or release it?
 
 ## Isaiah, verbatim (22:00 CDT)
-> "'Re-judge the growing queue of postponed questions.' run a watson and then decide.this agent is running on human priors but machine substrate. its technically a unique unwelt but still has to follow the rules of systems ie the tether"
+> "'Re-judge the growing queue of postponed questions.' Run a WATSON and then decide. This agent is running on human priors but machine substrate. It's technically a unique umwelt, but still has to follow the rules of systems, i.e. the Tether"
 
 ## QUESTION
 B2 (merged 10-26) postpones each derived-want ask that cannot run this step and carries it "owed".

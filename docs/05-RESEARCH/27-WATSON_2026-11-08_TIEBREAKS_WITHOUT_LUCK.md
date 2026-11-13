@@ -1,6 +1,6 @@
 # WATSON 2026-11-08 -- Tie-breaks without luck: the 2nd and 3rd readings at every draw site
 
-Asked by Isaiah, 10:02 CST: "If by draw you mean random draws for these those are like last resort and should only happen when agent attempts something or encounters unknowns. Humans and animals never work this way. Try to do a watson to fill in the gaps on the second and third test metrics for each".
+Asked by Isaiah, 10:02 CST: "If by draw you mean random draws, for these those are like a last resort and should only happen when the agent attempts something or encounters unknowns. Humans and animals never work this way. Try to do a WATSON to fill in the gaps on the second and third test metrics for each".
 
 ## QUESTION
 

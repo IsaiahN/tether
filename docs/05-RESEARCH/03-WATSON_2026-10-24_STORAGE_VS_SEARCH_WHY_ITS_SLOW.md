@@ -1,6 +1,6 @@
 # WATSON 2026-10-24: why storage isn't what makes the agent slow, and what is
 
-Reviewer, 07:45 CDT. Isaiah asked at 07:39: "This is surprising. Please watson this but as a programmer this makes little sense". The Tether figures were read from the SVGs (tspans joined) before anything here was concluded. The numbers come from the seat's code reads and the timed-replay profile (07:31, 07:35) and from the overnight ledgers.
+Reviewer, 07:45 CDT. Isaiah asked at 07:39: "This is surprising. Please WATSON this, but as a programmer this makes little sense". The Tether figures were read from the SVGs (tspans joined) before anything here was concluded. The numbers come from the seat's code reads and the timed-replay profile (07:31, 07:35) and from the overnight ledgers.
 
 ## The short version
 

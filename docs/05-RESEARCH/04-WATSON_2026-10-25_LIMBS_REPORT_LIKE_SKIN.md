@@ -1,6 +1,6 @@
 # WATSON 2026-10-25 — what the limbs (the interface) should tell the agent: report like skin
 
-Asked by Isaiah 19:39 CDT: "you guys need to figure out how to make these "limbs" provide useful info. maybe something isnt possible they need to communicate to the agent but just not the details on the action level but inform ust like how the skin informs the brain of temperature, texture, pressure etc without the brain having to know everything about how the intracacies work. this needs a watson skill check"
+Asked by Isaiah 19:39 CDT: "You guys need to figure out how to make these "limbs" provide useful info. Maybe something isn't possible they need to communicate to the agent, but just not the details on the action level, but inform just like how the skin informs the brain of temperature, texture, pressure, etc., without the brain having to know everything about how the intricacies work. This needs a WATSON skill check"
 
 ## QUESTION
 The agent sends an intent down (make this object's row go down; reach that thing). The interface (the limbs) picks the press. What should come back UP to the agent, and in what form? The agent must not see actions, but it must learn whatever lets it choose better.

@@ -33,7 +33,7 @@ Can each step decide for itself how much thinking it is worth, by how big and ho
 - Fig 5 :10-14: "sort the gap into four kinds / held: the model was right, nothing owed / new: extend perception, aim the probe here / mis-attached: refit what you have, do not invent / mechanism broken: a new term is owed".
 - Fig 4 :36: "What is not borrowed is using the size of the gap to decide" when a new term is worth minting.
 - Fig 9 :53: "Nobody chooses. The gap does, and the gap is only as good as its description."
-- So the gap's own description sets the level of work. No controller sits above the step (Isaiah 10-30: "humans dont have governor in their brains").
+- So the gap's own description sets the level of work. No controller sits above the step (Isaiah 10-30: "humans don't have a governor in their brains").
 
 **The deliberation: thinking is a cost that must buy a press.**
 - Fig 12 :126-127: "Actions price finding out whether it holds ... It proposes arrangements it cannot afford to test, and the budget is what decides how much of the space is reached at all."
@@ -94,7 +94,7 @@ Three levels, chosen by the gap, never by a governor:
 **Reversed by:** the measurement below showing that in-range misses DO produce binds and accepts as often as out-of-range ones (then the range is not the line), or levels falling when the leave rule is ON.
 
 ## ADDENDUM 19:03: ISAIAH'S SYSTEM 0 GAUGE
-Isaiah, 19:00: "I feel like system 0 takes like <5 seconds not to put magic numbers on things but as a guage its a gut instinct almost subconscious or automated patter n matching novelty seeking like explorer am i wrong let me know if we need to watson that too".
+Isaiah, 19:00: "I feel like System 0 takes like <5 seconds, not to put magic numbers on things, but as a gauge it's a gut instinct, almost subconscious or automated pattern matching, novelty seeking like an explorer. Am I wrong? Let me know if we need to WATSON that too".
 - **Not wrong; it is already this WATSON's System 0.** The tracker on clear spoor (Liebenberg), and expected uncertainty that triggers no revision (Dayan & Yu). Novelty seeking is Fig 5 :12 and :15-17: "new: extend perception, aim the probe here" and "the curiosity drive / fires when nothing is scoring / aimed at the new bin". It is a press, not a deliberation.
 - **The data sit near his gauge where System 0 already happens.** Rehearsal 1's 22 steps with no failed prediction had a median of 5.8 s.
 - **The mismatch is in the label.** Steps whose exit is "system0" (explore unexplored contact) had a median of 36.3 s. The exit is the explorer, but each step still pays the full lookup and mint for every miss the last press left. System 0 as he means it is the exploring press PLUS in-range misses only noted.

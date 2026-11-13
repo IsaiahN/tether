@@ -5,6 +5,7 @@ The WATSON write-ups. WATSON stands for **World And Tether Search ONline**: the 
 ## How it works
 
 The Tether figures are the primary source and they decide. The world (published research, read online) is the secondary source and only corroborates. When the two disagree, the figures stand, and the disagreement is taken as a sign the question was framed in the wrong domain.
+Quotes from the project's author are edited for spelling and grammar only; the meaning is unchanged.
 
 ## The steps
 
