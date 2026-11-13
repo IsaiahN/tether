@@ -2384,6 +2384,13 @@ ARMS: dict[str, str] = {
                            "leaves once every action is tried. NEEDS TETHER_HTN. ON. OFF: "
                            "decomposition only after routes are exhausted. MF: "
                            "tests/test_htn_at_adopt.py.",
+    "TETHER_HTN_TIERS": "HTN TIERS, prerequisites learned bottom-up (Isaiah 2026-11-13 09:29, "
+                        "10:24 'build part 2'): tier 1 keeps each opened crossing whole (item, "
+                        "kind, press, other objects' changed slots); tier 2 counts by kind 'K "
+                        "opens after J changes'; a goal of kind K gets the open slots of kinds J "
+                        "seen at least MIN_REPEAT times as candidate subtasks, beside its law's "
+                        "enablers. NEEDS TETHER_HTN, TETHER_CAN_LEDGER. ON. OFF: no htn_tier1 "
+                        "rows, the law's enablers only. MF: tests/test_htn_tiers.py.",
     "TETHER_MINT_READ_CHARGED": "THE DESIGN BILL (Isaiah 2026-11-13 00:10 'the trip back to the "
                                 "walk is apart of the design'): a board read made in order to "
                                 "design (the contact read; the reach read when it runs inside "
