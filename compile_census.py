@@ -29,6 +29,7 @@ import gamma  # noqa: E402
 import tether  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parent / "library"))
+sys.path.append(str(Path(__file__).parent / "tests"))   # test_compile moved to tests/ (4d)
 import library_runtime as LR  # noqa: E402
 
 OUT = Path(__file__).parent / "docs" / "03-DESIGN" / "10-COMPILE_CENSUS.md"
