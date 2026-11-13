@@ -4,8 +4,8 @@ library/*.txt text eol=lf
 library/BUILD_REPORT.md text eol=lf
 library/MANIFEST.md text eol=lf
 # K1: Isaiah's ATTRIBUTE_INDEX, corpus, sha256-checked at load: stored byte-for-byte
-docs/corpus/ATTRIBUTE_INDEX.json -text
-# figures: Isaiah's SVGs, sha256-checked by conform/figtext.py --check against docs/FIGURES_TEXT.md: stored byte-for-byte
+library/ATTRIBUTE_INDEX.json -text
+# figures: Isaiah's SVGs, sha256-checked by conform/figtext.py --check against docs/01-FOUNDATIONS/03-FIGURES_TEXT.md: stored byte-for-byte
 figures/*.svg -text
 # the pass runners: byte-for-byte as run, and a shell script must keep LF to run under bash
 harness/passes/* -text

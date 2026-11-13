@@ -476,6 +476,10 @@ _DECAY_NEW_GAME_SERIES = armflag.arm("TETHER_DECAY_NEW_GAME_SERIES", default=Tru
 # downweighted and hard to surface until used again. OFF, the SPECIALIST agent: every fade switch is
 # forced OFF; it still learns, and nothing it holds fades
 _GENERAL = armflag.arm("TETHER_GENERAL", default=True)
+# 10d STEP 3 (the reviewer 2026-11-12): a tree deeper than one node saves and loads its nested
+# SHAPE (operand_tree; no bindings). The same switch as tether's recursive _ops. OFF: only the
+# first node's atom names cross, as before.
+_TREE_SAVE = armflag.arm("TETHER_TIERED_TERMS", default=True)
 # r1663 (C), FAILURES FADE (Isaiah 2026-11-10 11:49): ON, today's forgiveness -- Standing.decay and
 # the r1243 weights' `against` fade at the halflife. OFF (or TETHER_GENERAL OFF): no failure fades
 _FADE_FAILURES = armflag.arm("TETHER_FADE_FAILURES", default=True) and _GENERAL
@@ -1207,6 +1211,37 @@ class Code:
         return sum(2.0 ** -c for c in self.cost.values()) + 2.0 ** -self.end
 
 
+def tree_schema(t: Term | None) -> list | None:
+    """10d STEP 3: an operand tree's SHAPE, nested -- [[atom names], child schema or None] per node,
+    no slot bindings (the binding is per board; the shape is the method, Fig 4). Written only for
+    trees deeper than one node (`operand_term` already carries a one-node tree's atom names), so
+    every depth-one row and its row_key stay byte-identical."""
+    if t is None:
+        return None
+    return [[a.name for a in t.atoms], tree_schema(t.operand_term)]
+
+
+def tree_from_schema(sch: list | None, by_name: dict) -> Term | None:
+    """The unbound Term tree a schema names (None when any atom is not in this registry)."""
+    if sch is None:
+        return None
+    names, child = sch
+    if not all(n in by_name for n in names):
+        return None
+    inner = tree_from_schema(child, by_name) if child is not None else None
+    if child is not None and inner is None:
+        return None
+    return Term(tuple(by_name[n] for n in names), operand_term=inner)
+
+
+def _schema_names(sch: list | None) -> list:
+    out = []
+    while sch is not None:
+        out += sch[0]
+        sch = sch[1]
+    return out
+
+
 class Gamma:
     draw_seed: str | None = None    # the agent's, set at its start (HOLD_SEED Q4); None: random
 
@@ -1889,6 +1924,11 @@ class Gamma:
                         # (Fig 4); the slot it was bound to is not, and is not written.
                         "operand_term": ([a.name for a in t.operand_term.atoms]
                                          if t.operand_term is not None else None),
+                        # 10d STEP 3 (TETHER_TIERED_TERMS): a tree deeper than one node also
+                        # writes its nested SHAPE (no bindings); depth-one rows are unchanged
+                        **({"operand_tree": tree_schema(t.operand_term)}
+                           if _TREE_SAVE and t.operand_term is not None
+                           and t.operand_term.operand_term is not None else {}),
                         "handle": self.handles.get(name), "game": self.game,
                         # `stamps` holds DICTS: `getattr` on one returned None, so every term
                         # was saved with no admitting clause and no residual (F464).
@@ -2048,8 +2088,11 @@ class Gamma:
         operand tree, and its operand with the object ids blanked (the unbound form). Two rows
         with one key install the same term, so the later one can be saved as an alias."""
         op = r.get("operand")
-        return json.dumps([r["atoms"], r.get("guard"), r.get("operand_term"),
-                           Gamma.unbound_form(op) if op else None])
+        key = [r["atoms"], r.get("guard"), r.get("operand_term"),
+               Gamma.unbound_form(op) if op else None]
+        if r.get("operand_tree") is not None:      # 10d: deeper shapes are different terms
+            key.append(r["operand_tree"])
+        return json.dumps(key)
 
     def load_blob(self, blob: Any, parent: str | None = None,
                   hold_unbound: bool = False) -> dict:
@@ -2101,6 +2144,11 @@ class Gamma:
             seen_keys.add(rk)
             names = tuple(r["atoms"])
             tree = r.get("operand_term")
+            deep = r.get("operand_tree") if _TREE_SAVE else None
+            if deep is not None and not all(n in self._by_name for n in _schema_names(deep)):
+                refused.append({"atoms": list(r["atoms"]),
+                                "why": "operand tree names an atom not in this registry"})
+                continue
             if tree and not all(n in self._by_name for n in tree):
                 refused.append({"atoms": list(names),
                                 "why": "operand tree names an atom not in this registry"})
@@ -2126,7 +2174,8 @@ class Gamma:
                      # stayed "minted" and got no carry-candidacy (F468).
                      origin=IMPORTED,
                      guard=r.get("guard"),
-                     operand_term=(Term(tuple(self._by_name[n] for n in tree))
+                     operand_term=(tree_from_schema(deep, self._by_name) if deep is not None
+                                   else Term(tuple(self._by_name[n] for n in tree))
                                    if tree else None))
             unbound = None
             if ((parent or hold_unbound) and r.get("operand")
@@ -2476,8 +2525,12 @@ class Gamma:
                           stats: dict | None = None,
                           order: Callable[[Term], float] | None = None,
                           prune: Callable[[tuple, int, bool], bool] | None = None,
+                          must_contain: frozenset | None = None,
                           ) -> Iterator[Term]:
         """Type-valid pipelines over UNITS, shortest first, capped by budget.
+
+        `must_contain` (P2, TETHER_SWEEP_DELTA): unit names; only a chain built with at least one
+        of them is yielded (and charged), every chain is still extended. None: every chain.
 
         Yielding a term is a WITNESS that it is reachable. Stopping is one of two facts and
         they are not the same claim: `budget_spent` (we stopped early) or `depth_exhausted`
@@ -2517,12 +2570,13 @@ class Gamma:
                                               key=lambda x: (-x[0], x[1].name))]
         # CARRIED, NOT RECOMPUTED. The state is (chain, current type, element type or None);
         # re-deriving it per extension would walk every chain again inside the hot loop.
-        frontier = [(u.atoms, *Gamma._iter_step(in_type, None, u)) for u in start]
+        frontier = [(u.atoms, *Gamma._iter_step(in_type, None, u),
+                     must_contain is not None and u.name in must_contain) for u in start]
         depth = 1
         spent = False
         while frontier and depth <= max_depth:
             nxt: list[tuple] = []
-            for chain, cur, elem in frontier:
+            for chain, cur, elem, has_new in frontier:
                 # TETHER_PREFIX_PRUNE (the caller's): a chain whose cost alone already reaches
                 # what it must explain is neither yielded nor extended -- an extension never costs
                 # less -- and is not counted against the budget. It is told the walk's own depth
@@ -2535,7 +2589,7 @@ class Gamma:
                 # last atom's `out_type` says -- so it may only be emitted once a reducer has
                 # closed it, which is exactly `elem is None`.
                 cap.head()
-                if elem is None and cur == out_type:
+                if elem is None and cur == out_type and (must_contain is None or has_new):
                     # a yield the caller found already answered is credited back (tether's
                     # TETHER_DIVIDE_CREDIT writes "credit"; nothing else does)
                     if emitted - (stats.get("credit", 0) if stats is not None else 0) >= budget:
@@ -2569,10 +2623,147 @@ class Gamma:
                             continue
                         step = Gamma._iter_step(cur, elem, u)
                         if step is not None:
-                            nxt.append((chain + u.atoms, *step))
+                            nxt.append((chain + u.atoms, *step, has_new or (
+                                must_contain is not None and u.name in must_contain)))
             if spent:
                 break
             frontier, depth = nxt, depth + 1
+        if stats is not None:
+            stats["seen"] = emitted
+            stats["budget_spent"] = spent
+            stats["depth_exhausted"] = not spent
+
+    def ordered_closure(self, in_type: str, out_type: str, max_depth: int, budget: int,
+                        stats: dict | None = None,
+                        order_key: Callable[[tuple, bool, int], tuple] | None = None,
+                        bound_of: Callable[[tuple], float] | None = None,
+                        stop: Callable[[float], bool] | None = None,
+                        prune: Callable[[tuple, int, bool], bool] | None = None,
+                        ) -> Iterator[Term]:
+        """THE SAME CLOSURE AS `enumerate_closure`, WALKED BEST-FIRST (step 8b-2, TETHER_SHAPE_WALK;
+        the reviewer 2026-11-12 r1838, DESIGN_STEP8 B4/B5; Isaiah 11-12 09:24: "even if i can
+        only think 5-10 thoughts, these are the ten most likely").
+
+        **IT ORDERS, IT NEVER ADMITS.** With no budget and no stop it yields exactly the set
+        `enumerate_closure` yields (same start rule, same `_iter_step` typing, same `idn` rule,
+        same `prune`), only in another order -- Fig 9 :40-41 "keep every cut ranked and
+        reversible". What changes is which terms are REACHED inside `budget`.
+
+        `order_key(chain, closed, depth_left)` ranks an entry, lower first. For a CLOSED chain
+        it is the chain's own key; for an OPEN prefix (closed=False) it must be OPTIMISTIC: no
+        extension of the prefix may get a key below it. Then yields come out in exact key order
+        (the A* argument: when a closed chain pops, every open prefix still waiting has a key
+        at or above it, so nothing undiscovered can rank before it).
+
+        `bound_of(chain)` is a lower bound on the price of ANY closed chain extending `chain`
+        (the code length only grows under extension). `stop(m)` is asked before each pop with
+        `m` = the least bound still waiting; True ends the walk because no waiting chain can
+        do better (Fig 5 :43's bargain read as a floor; DESIGN_STEP8 B5's proof). That is an
+        exhaustion, so `depth_exhausted` stays True and `frontier_stop` says why.
+
+        Children are expanded lazily, one sorted sibling group per expanded prefix, so the heap
+        holds O(pops) entries rather than every generated chain.
+        """
+        import heapq
+        units = self.units()
+        emitted = 0
+        if stats is not None:
+            stats["units"] = len(units)
+            stats["estimate"] = self.space_exact(units, in_type, out_type, max_depth)
+            stats["seen"] = 0
+            stats["frontier_stop"] = False
+            stats["pops"] = 0
+        if order_key is None:
+            def order_key(chain: tuple, closed: bool, left: int) -> tuple:  # noqa: ARG001
+                return (len(chain),)
+        heap: list = []            # (key, seq, kind, payload)
+        bounds: list = []          # (bound, seq) -- the least waiting bound, lazily cleaned
+        live: set = set()
+        seq = 0
+
+        def push(key: tuple, kind: str, payload: tuple, bound: float) -> None:
+            nonlocal seq
+            seq += 1
+            heapq.heappush(heap, (key, seq, kind, payload))
+            if bound_of is not None:
+                heapq.heappush(bounds, (bound, seq))
+                live.add(seq)
+
+        def child_entries(chain: tuple, cur: str, elem: str | None, depth: int) -> list:
+            """The typed child's own entries, (key, kind, payload, bound); [] when pruned."""
+            if prune is not None and prune(chain, depth, elem is None):
+                if stats is not None:
+                    stats["pruned"] = stats.get("pruned", 0) + 1
+                return []
+            b = bound_of(chain) if bound_of is not None else 0.0
+            out = []
+            # AN UNCLOSED ITERATION IS NOT A TERM (as enumerate_closure).
+            if elem is None and cur == out_type:
+                out.append((order_key(chain, True, max_depth - depth), "yield", (chain,), b))
+            if depth < max_depth and not any(a.name == IDN_NAME for a in chain):
+                out.append((order_key(chain, False, max_depth - depth), "expand",
+                            (chain, cur, elem, depth), b))
+            return out
+
+        def group(children: list, parent_bound: float) -> None:
+            """Push the first of a sorted sibling group; the rest wait behind it."""
+            if children:
+                children.sort(key=lambda c: c[0])
+                push(children[0][0], "group", (children, 0), parent_bound)
+
+        start = []
+        for u in units:
+            cap.head()
+            if accepts_type(u, in_type):
+                step = Gamma._iter_step(in_type, None, u)
+                if step is not None:
+                    for e in child_entries(u.atoms, step[0], step[1], 1):
+                        start.append(e)
+        group(start, min((e[3] for e in start), default=0.0))
+
+        spent = False
+        while heap:
+            if bound_of is not None and stop is not None:
+                while bounds and bounds[0][1] not in live:
+                    heapq.heappop(bounds)
+                if bounds and stop(bounds[0][0]):
+                    if stats is not None:
+                        stats["frontier_stop"] = True
+                    break
+            key, s, kind, payload = heapq.heappop(heap)
+            live.discard(s)
+            cap.head()
+            if stats is not None:
+                stats["pops"] += 1
+            if kind == "group":
+                children, i = payload
+                if i + 1 < len(children):
+                    nxt_b = min(c[3] for c in children[i + 1:]) if bound_of is not None else 0.0
+                    push(children[i + 1][0], "group", (children, i + 1), nxt_b)
+                k, kd, pl, b = children[i]
+                push(k, kd, pl, b)
+                continue
+            if kind == "yield":
+                # a yield the caller found already answered is credited back (as
+                # enumerate_closure: TETHER_DIVIDE_CREDIT writes "credit")
+                if emitted - (stats.get("credit", 0) if stats is not None else 0) >= budget:
+                    spent = True
+                    break
+                emitted += 1
+                if stats is not None:
+                    stats["seen"] = emitted
+                yield Term(payload[0])
+                continue
+            chain, cur, elem, depth = payload            # "expand"
+            kids = []
+            for u in units:
+                cap.head()
+                if any(a.name == IDN_NAME for a in u.atoms):
+                    continue
+                step = Gamma._iter_step(cur, elem, u)
+                if step is not None:
+                    kids.extend(child_entries(chain + u.atoms, step[0], step[1], depth + 1))
+            group(kids, min((e[3] for e in kids), default=0.0))
         if stats is not None:
             stats["seen"] = emitted
             stats["budget_spent"] = spent

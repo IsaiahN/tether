@@ -24,6 +24,7 @@ import re
 from pathlib import Path
 
 import armflag
+import narrate
 import store
 
 _NSM = armflag.arm("TETHER_NSM_SPEAK", default=True)
@@ -359,7 +360,7 @@ def _say_weight(event: str, d: dict) -> str:
 class Speaker:
     def __init__(self, path: Path | None, ends: tuple) -> None:
         self.on = _NSM and path is not None
-        self._log = path.with_name("nsm.log") if self.on else None
+        self._log = narrate.log_beside(path, "nsm.log") if self.on else None
         if self._log is not None:
             self._log.write_text("", encoding="utf-8")
         self._ends = ends

@@ -58,3 +58,7 @@ docs/log_index/
 docs/TOMBSTONES/*.jsonl
 # the editor's own settings (the reviewer 2026-10-21 19:38)
 .vscode/
+
+# local logs (narrate / nsm / pipeline written beside a ledger at the repo root; 8e, r1801, r1831)
+logs/*
+!logs/README.md

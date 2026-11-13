@@ -682,6 +682,14 @@ ARMS: dict[str, str] = {
                          "share of all writes after its last event, 1 - W_last / W_now, so a "
                          "young agent forgets fast and a mature one slowly. OFF: the raw count "
                          "of writes, W_now - W_last -- a test setting only",
+    "TETHER_REUSE_BOOK": "8c (step 8; the reviewer 2026-11-12 r1835/r1838, DESIGN_STEP8 P6; Isaiah "
+                         "11-11 07:20-07:30): reuse.ReuseBook counts, per context (context_key), "
+                         "each head's chances, its uses inside an age window counted in chances "
+                         "(derived: the median chances to a second use), and its payments (a paid "
+                         "musing re-test counts); GENERAL after payment in 2 contexts; residency "
+                         "order kernel > general > reused > one-off; an authority TIEBREAK for the "
+                         "idea walk. Orders and keeps-ready only; never a verdict. The counts ride "
+                         "the counts blob as 'reuse_n'. default ON",
     "TETHER_RELEVANCE": "Piece 3, library relevance (r1679, r1720; spec 5.10.8). Default ON "
                         "(forced OFF by TETHER_GENERAL=0). ON: retrieve's one ranking site orders "
                         "equal fits by confidence x fade(age) + youth, the age on Piece 1's clock "
@@ -718,6 +726,13 @@ ARMS: dict[str, str] = {
                          "censored, never a verdict; the step runs on to its choice (settle, "
                          "step_act, REPEAT). cap.hold() units stay whole. OFF: the purse is "
                          "checked only between whole units",
+    "TETHER_MINT_CUT_LANDED": "SHIP 1, the reviewer r1869. Default ON. ON: a mint unit cut after "
+                              "the slot's mint landed inside the unit (its mint or ACCEPT row "
+                              "written, e.g. a cut in the post-accept sweep) owes nothing -- no "
+                              "purse_cut row, no owed entry; the @cap unit_purse_cut row still "
+                              "records the cut. OFF: every mint cut owes the slot, which wrote "
+                              "'owed' for a term just accepted and the demo's gate refused it "
+                              "(ladder: MINT after ACCEPT)",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "
@@ -2207,6 +2222,16 @@ ARMS: dict[str, str] = {
                          "reads later saves through it; the archive load reads the same "
                          "(alias_chain); a second canonical or a non-idempotent map is refused. "
                          "OFF: the field is ignored and every code stays as stored. default ON",
+    "TETHER_FOLD_UNKNOWN": "THE RETRO-FOLD'S UNKNOWN KEYS (the reviewer r1761 3 (1), parity with "
+                           "Piece 2): a save's kinds_unknown / kinds_unknown_dk name rows it "
+                           "folded into their concept; read in chain order after the save's "
+                           "increments, so the folded row stands as the live fold leaves one, "
+                           "never written and not known. The store keeps the row (n 0) with "
+                           "in_landed 0 and no l_*, recounts its pair (removed when no row is "
+                           "left) and re-reads its target's no_dk; the archive load drops it "
+                           "from _kind_known, _kind_known_n, _kind_last, _kind_known_dk, "
+                           "_kdk_last. No save before conform/retro_fold.py carries the fields, "
+                           "so ON is an identity there. OFF: the fields are not read. default ON",
     "TETHER_FORM_PAIRS": "K4, THE ALIAS AT ARRIVAL (the reviewer 2026-11-03 r888, r903, r906): "
                          "under K1, ArcWorld.shape_code gives a new shape's as-seen and canonical "
                          "codes at once (arc_percept.code_pair) and keeps as_seen -> (canonical, "
@@ -2319,6 +2344,12 @@ ARMS: dict[str, str] = {
                          "unclustered PERCEPT atoms (index by_cluster_derived, served only against "
                          "the corpus file it was derived from); enters compile_term.signature. "
                          "NEEDS TETHER_ATTR_BRIDGE. OFF: item 9's bridge as it was. default ON",
+    "TETHER_TIERED_TERMS": "STEP 10d (the reviewer 2026-11-12; Isaiah 12:41, 15:15): the "
+                           "operand tree recurses -- a node naming a second slot that "
+                           "carries its own operand tree reads that leaf through _ops, so a "
+                           "leaf is a computed value and depth is what the bargain pays for. "
+                           "ON. OFF: the second leaf is a raw slot (r1145). MF: "
+                           "tests/test_tiered_terms.py (depth-2 plant).",
     "TETHER_TWO_SLOT_OPERAND": "BUILD 3 ITEM 8b' (the reviewer 2026-11-04 r1145): an operand-"
                                "tree node slot_a − slot_b (the tree's own term names the second "
                                "slot), typed affinely, seeded ONLY from a settled junction whose "
@@ -2394,6 +2425,23 @@ ARMS: dict[str, str] = {
                               "'closure cannot cover R' (enumerated to its affordable depth), with "
                               "the best candidate; record only, the agent's readers keep the old "
                               "verdict. OFF: the row as before. default ON",
+    "TETHER_PAY_GAP": "8a-0, the reviewer r1767 2, r1809 3: per mint a pay_gap row -- the cut "
+                      "candidates' gap over ALL of R (counted uncharged: heads and the extent "
+                      "count restored), headroom, rows read before the cut, the closest 3, and "
+                      "the book's bargain counts and the divide / space_closed / want_only rows "
+                      "read back. An instrument; nothing in the agent reads it. OFF by default; "
+                      "8d sets it ON explicitly (r1811). OFF: no row, no count",
+    "TETHER_PICK_TIER": "8a-0, r1789, r1796: the library row carries tier_offered (each offered "
+                        "entry's K1 tier) and tier_landed (each landed entry's tier; 'untiered' "
+                        "where no tier placed it). A record; nothing reads it. OFF by default; "
+                        "8d sets it ON explicitly (r1811). OFF: the row as before",
+    "TETHER_REACH_PAID": "8a-0, r1795, r1796, r1812 4, r1815: reached (offered in a lookup), "
+                         "minted (the mint's winner came from that offer; the mint row's "
+                         "from_offer), settled (that term later held out-of-fit; the settle "
+                         "row's from_offer), each with the entry's K1 tier, and a run-end "
+                         "reached_paid row per tier (settled first). A record; nothing reads it. "
+                         "OFF by default; 8d sets it ON explicitly (r1811). OFF: the rows as "
+                         "before",
     "TETHER_RECIPE_HELD_FREE": "the reviewer 2026-11-04 r985 (Fig 12 :107-108): under "
                                "RECIPE_DEDUP a chain held as a recipe is tested once, before its "
                                "instances are generated, and takes no try (it was B x G tries, "
@@ -3003,6 +3051,11 @@ ARMS: dict[str, str] = {
                       "says its key rows aloud, one line per event kind per cycle (more counted), "
                       "copied to narrate.log, and each game's 'stopped at link X'. Writes nothing "
                       "back: the ledger is the same OFF. default ON",
+    "TETHER_NARRATE_WEIGHT": "P7 (step 8; the reviewer 2026-11-12 r1835/r1838, item 6; Isaiah "
+                             "11-06 'log that event and console it'): the narrator also says "
+                             "WEIGHT lines (standing_freed, reflex_settled) and SENSE lines "
+                             "(8b-1's sense_pick 'cue -> sense, expecting' and sense_note "
+                             "held/missed). Say-only: the ledger is the same OFF. default ON",
     "TETHER_WINDOW_BACKOFF": "BUILD 3 item 10 (the reviewer 2026-11-04 r1045; Fig 8 :39): a "
                              "described-lookup window that keeps 0 is followed in the same ask "
                              "by the next ranked window until one keeps > 0, the list ends or "
@@ -3165,6 +3218,49 @@ ARMS: dict[str, str] = {
                               "while an offered action is unpressed on this board the step's mint "
                               "is owed (try_first_owed) and the goal split is not offered. OFF: "
                               "both run from the first press (18c9ec4). default ON",
+    "TETHER_TRY_FIRST_ACTIONS": "the reviewer r1821, r726's bound restored: the hold on the mint "
+                                "and the goal split counts the unpressed offered actions only; "
+                                "untouched kinds (r736) keep steering System 0's touches "
+                                "(_contact_target, _system0_active) and no longer hold reasoning. "
+                                "8d reads it. OFF: the hold reads _try_first_open, kinds included. "
+                                "default ON",
+    "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
+                           "with _operand_fits before its _left, and skips every bind's _left "
+                           "when the term's cost (the same for every bind) already reaches the "
+                           "parked base and neither the carry credit nor a rescan can apply; "
+                           "that refusal is written as reuse_refused cost-at-or-over-base. "
+                           "8d reads the sweep's _left per accept. OFF: every bind's _left, as "
+                           "before. default ON",
+    "TETHER_EXHAUSTED_WORD": "P1 (the reviewer r1838; DESIGN_STEP8 F4): the renamed park verdict "
+                             "priced_out_at_depth is read where the old word depth_exhausted "
+                             "still was (the owe/abstain write; the sweep's stale()), so a "
+                             "priced-out slot owes, parks and is re-swept when the unit set "
+                             "grows. OFF: the old word only. default ON",
+    "TETHER_SWEEP_DELTA": "P2 (the reviewer r1838; DESIGN_STEP8 D1): the sweep's rescan (_reach) "
+                          "walks only chains built with a unit settled since the park, or since "
+                          "its last empty rescan (gamma.enumerate_closure must_contain); the "
+                          "park keeps its unit names for this. 8d reads _reach's _left per "
+                          "accept. OFF: _reach re-walks the whole closure, as before. default ON",
+    "TETHER_FACET_INDEX": "P3, 8b-0 (the reviewer r1838, r1840, r1841; DESIGN_STEP8 B1/B3): K1's "
+                          "landed/offered records are also kept under the facet key (src, subj, "
+                          "dk, role) -- subj the door kind (form code dropped), src from "
+                          "source_of (SELF/COUPLED/OWN/BY:<kind>/HIDDEN, leave-one-out over the "
+                          "slot's history) -- and served as tier T0 before T1a; facet_n rides "
+                          "the counts blob across lifetimes. OFF: no facet record, no T0. "
+                          "default ON",
+    "TETHER_SHAPE_WALK": "P5, 8b-2 (the reviewer's patch, r1838; DESIGN_STEP8 B4/B5): the mint's "
+                         "closure walked best-first by the gap's shape (gamma.ordered_closure "
+                         "keyed by shape_order: wanted readings affected or read first, the whole "
+                         "chain's fit a tiebreak), each stream ending when no waiting chain's "
+                         "least price can beat min(base, its kind's best total). Orders, never "
+                         "refuses. OFF: enumerate_closure shortest-first by first-unit fit. "
+                         "default ON",
+    "TETHER_SENSES": "P4, 8b-1 (the reviewer r1838; DESIGN_STEP8 B2/B3/B6): a sense is a head's "
+                     "paid / missed record under the facet key it was minted under -- P and M in "
+                     "P3's postings, written on the settle (with T, the settled chain, and B, its "
+                     "operand's door kind); sense_pick / sense_note rows; order_bind first in "
+                     "_bindings; paid terms first in _library_fit and as P5's stage-0 heads; "
+                     "sense_lookup's merge read, never stored. OFF: no P / M. default ON",
     "TETHER_ROUTE_KEY_GENERAL": "42, A REFUSED ROUTE SURVIVES A RE-WORDED INTENT (the reviewer "
                                 "2026-11-01 r717): R-B keys a route by the intent's general "
                                 "statement (slot and sign; a Specific's stated target dropped), so "

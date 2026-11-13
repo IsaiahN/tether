@@ -1,5 +1,5 @@
 """compile_term: a library candidate's condition, compiled to a Term over the atoms Gamma holds
-(M2, docs/cohesion/METAPROGRAMMING_DESIGN.md section 3; the reviewer 2026-10-08 21:08Z).
+(M2, docs/03-DESIGN/08-METAPROGRAMMING_DESIGN.md section 3; the reviewer 2026-10-08 21:08Z).
 
 `compile_candidate(cand, atoms) -> Compiled | Refusal`. The library is REACH; nothing enters
 Gamma's alphabet by being preloaded. A candidate becomes something the agent can bet with only as

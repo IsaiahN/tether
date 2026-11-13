@@ -60,7 +60,7 @@ ROOT = Path(__file__).parent / "library"
 # K1 (the reviewer 2026-10-17 17:35 A, 17:37, 17:47, 20:25): Isaiah's ATTRIBUTE_INDEX, CORPUS, read
 # only and hash-checked (his original, restored byte-for-byte from 03aae57^). Its by_cluster files
 # library entries under 17 semantic clusters; the lookup ORDERS by it and never excludes.
-CORPUS_INDEX = Path(__file__).parent / "docs" / "corpus" / "ATTRIBUTE_INDEX.json"
+CORPUS_INDEX = Path(__file__).parent / "library" / "ATTRIBUTE_INDEX.json"   # 8e: from docs/corpus/
 INDEX_SHA = "fa95115c17b5880a96aaed48b379f1a4282090d0ca9396eb3cc2a924a0e3c645"
 # THE AGENT'S READINGS TO THE INDEX'S CLUSTERS -- one declared convention (Fig 10), the primary
 # cluster first. The agent's own process readings (level, residual, standing, ...) are the agent's,
