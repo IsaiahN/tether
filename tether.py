@@ -4987,18 +4987,19 @@ class Agent:
         scope = self._step_scope("MINT") if _MINT_READ_CHARGED else self._row_step("MINT")
         with scope:
             yield
-        if _MINT_READ_CHARGED or _REACH_FIRST:
-            try:
-                kk = self._kind_key(slot)
-            except Exception:       # a slot whose owner names no kind is read as its own
-                kk = slot
-            seen = self._design_seen.get(kk, 0)
-            self._design_seen[kk] = seen + 1
-            self.led.record(self.cycle, "MINT", slot, "design_read", what=what,
-                            heads=cap.HEADS - h0, sighting=seen,
-                            charged=bool(_MINT_READ_CHARGED),
-                            reads="a board read made in order to design: its heads, and how "
-                                  "often this slot's kind was read for design before")
+            if _MINT_READ_CHARGED or _REACH_FIRST:
+                # written inside the scope, so the row names the step running (the gate's G1)
+                try:
+                    kk = self._kind_key(slot)
+                except Exception:       # a slot whose owner names no kind is read as its own
+                    kk = slot
+                seen = self._design_seen.get(kk, 0)
+                self._design_seen[kk] = seen + 1
+                self.led.record(self.cycle, self._running_step, slot, "design_read", what=what,
+                                heads=cap.HEADS - h0, sighting=seen,
+                                charged=bool(_MINT_READ_CHARGED),
+                                reads="a board read made in order to design: its heads, and how "
+                                      "often this slot's kind was read for design before")
 
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
