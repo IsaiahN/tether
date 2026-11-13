@@ -10,8 +10,9 @@ written into the tree this check guards). The REVIEW list (new files that say "k
 beyond the baseline's) is printed for a human read and does not fail the check.
 
 HARD (Isaiah 10-21, 10-22, 10-30, 10-31): no Kaggle material (kaggle/, docs/kaggle_export/,
-a notebook), no Kaggle username, nothing the agent learned or minted while playing ARC (lineage
-or save data, store dumps), no CLAUDE.md or .claude/ tracked, no hardcoded machine path.
+docs/kaggle/, a notebook), no Kaggle username, nothing the agent learned or minted while playing
+ARC (lineage or save data, store dumps), no CLAUDE.md or .claude/ tracked, no hardcoded machine
+path.
 """
 import os
 import re
@@ -21,6 +22,7 @@ import sys
 HARD_PATHS = [
     (re.compile(r"^kaggle/"), "Kaggle material (kaggle/)"),
     (re.compile(r"^docs/kaggle_export/"), "Kaggle material (docs/kaggle_export/)"),
+    (re.compile(r"^docs/kaggle/"), "Kaggle material (docs/kaggle/)"),
     (re.compile(r"\.ipynb$"), "a notebook"),
     (re.compile(r"(^|/)CLAUDE\.md$", re.I), "CLAUDE.md tracked"),
     (re.compile(r"(^|/)\.claude/"), ".claude/ tracked"),
