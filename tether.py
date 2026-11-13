@@ -4849,6 +4849,17 @@ class Agent:
                     if hs:
                         hs[-1] = h
 
+    @contextmanager
+    def _row_step(self, step: str):
+        """r1871: rows written inside carry `step` -- the label only. Not _step_scope: no clock
+        push and no stage line, so a read that runs before its step opens (under an idle scope)
+        stays uncharged to the purse, exactly as before; only its rows name the step it serves."""
+        prev, self._running_step = self._running_step, step
+        try:
+            yield
+        finally:
+            self._running_step = prev
+
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
@@ -26386,7 +26397,8 @@ class Agent:
                                       "pressed on this board; owed, and minted once each has "
                                       "been")
             return
-        fp = self._contact_fp(slot) if _CONTACT_FIRST else None
+        with self._row_step("MINT"):    # r1871: the mint's own read; its cut rows are MINT rows
+            fp = self._contact_fp(slot) if _CONTACT_FIRST else None
         if _CONTACT_FIRST:
             why = ("same_rows" if fp is not None and self._cf_rows.get(slot) == fp
                    else "named" if (self._act_named == self.cycle
@@ -26406,7 +26418,8 @@ class Agent:
                                            "row arrives"))
                 return
             self._cf_owed.pop(slot, None)
-        gated = _REACH_GATE and self._out_of_reach(slot)
+        with self._row_step("MINT"):    # r1871: as the contact read (its residual read can cut)
+            gated = _REACH_GATE and self._out_of_reach(slot)
         if gated:
             _book_add(self.gamma.book, "reach_gate_skipped")
             self.led.record(self.cycle, "ACCEPT", slot, "reach_gate", bin=b,
