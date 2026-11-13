@@ -1,7 +1,7 @@
 """compile_census: M3, record-only (METAPROGRAMMING_DESIGN section 8; the reviewer
 2026-10-08 21:58Z).
 
-    python compile_census.py      writes docs/cohesion/COMPILE_CENSUS.md and prints its summary
+    python compile_census.py      writes docs/03-DESIGN/10-COMPILE_CENSUS.md and prints its summary
 
 Two readings, both records, neither a gate:
 1. THE LIBRARY: every seed entry's candidates in every role, compiled by compile_term against
@@ -31,7 +31,7 @@ import tether  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent / "library"))
 import library_runtime as LR  # noqa: E402
 
-OUT = Path(__file__).parent / "docs" / "cohesion" / "COMPILE_CENSUS.md"
+OUT = Path(__file__).parent / "docs" / "03-DESIGN" / "10-COMPILE_CENSUS.md"
 DEPTHS = (2, 3, 4)
 
 
@@ -241,7 +241,8 @@ def main() -> int:
               f"that fell {fell}, refusals that rose {rose}; {fell} - {rose} = {fell - rose}, "
               f"the compiled gain over all roles is {on_ok - base_ok}."]
     lines += ["", "Family 2 (the RULE role, the reviewer 2026-10-11 14:50 CDT; "
-              "docs/cohesion/GROUP_ROW_NOTE.md, measured at 22d8273): a RULE row is a LAW, not a "
+              "docs/03-DESIGN/09-GROUP_ROW_NOTE.md, measured at 22d8273): a RULE row is a LAW, "
+              "not a "
               "goal. ROUTABLE, NO CONSUMER: 40,835 (20,043 all_same + 2,477 distinct + 18,315 "
               "per-object AND over peers) -- no reader asks for the RULE role, so no routing is "
               "built; VACUOUS AS WRITTEN: 35,132 (an order over all ordered pairs); the rest "

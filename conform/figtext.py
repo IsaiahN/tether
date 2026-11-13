@@ -1,9 +1,9 @@
 """figtext: one text of the figures, so both seats quote from the same version.
 
-    python conform/figtext.py --write DIR   regenerate docs/FIGURES_TEXT.md from the SVGs in DIR
-    python conform/figtext.py --check DIR   exit 1 if docs/FIGURES_TEXT.md differs from DIR's SVGs
+    python conform/figtext.py --write DIR   regenerate the figures' text (OUT) from the SVGs in DIR
+    python conform/figtext.py --check DIR   exit 1 if the figures' text (OUT) differs from DIR
     python conform/figtext.py --quotes [FILE]  every figure quote in INDEX from F506 on (or in FILE,
-                                            whole), matched EXACTLY against docs/FIGURES_TEXT.md;
+                                            whole), matched EXACTLY against the figures' text (OUT);
                                             prints the misses. A miss is a row to read, not a
                                             verdict: anything else quoted on a figure's line is
                                             attributed to that figure. The self-test runs first.
@@ -27,7 +27,8 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "docs" / "FIGURES_TEXT.md"
+OUT = ROOT / "docs" / "01-FOUNDATIONS" / "03-FIGURES_TEXT.md"       # 8e: was docs/FIGURES_TEXT.md
+INDEX_DOC = ROOT / "docs" / "03-DESIGN" / "06-INDEX_MECHANISM_TO_SOURCE.md"   # 8e: docs/INDEX.md
 # anchor: the census rule's first entry (figures.py FIRST); earlier quotes predate the rule.
 FIRST = 506
 _META = re.compile(rb"<metadata>.*?</metadata>", re.S)
@@ -147,7 +148,7 @@ def main(argv: list[str]) -> int:
         print("figtext: up to date" if same else "figtext: DIFFERS from the SVGs -- regenerate")
         return 0 if same else 1
     if argv[:1] == ["--quotes"] and len(argv) <= 2:
-        src = Path(argv[1]) if len(argv) == 2 else ROOT / "docs" / "INDEX.md"
+        src = Path(argv[1]) if len(argv) == 2 else INDEX_DOC
         rows = quotes(src.read_text(encoding="utf-8"))
         miss = [r for r in rows if not r[3]]
         for n, fig, q, _ in miss:
