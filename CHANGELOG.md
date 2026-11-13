@@ -2,6 +2,8 @@
 
 Tether is a recursively self-improving agent that runs on a CPU. No neural network, no training run. It composes ideas from NSM primes, plans with hierarchical task networks, and writes, prices and keeps its own programs. Everything it learns stays readable.
 
+Each release below is an operating-system update: it changes what grows on the kernel (ideas, search, reflexes, what the agent knows about kinds of objects), never the kernel itself, which stays fixed on the [`core`](https://github.com/IsaiahN/tether/tree/core) branch. For what that means and why, see [What recursive self-improvement means here](README.md#what-recursive-self-improvement-means-here).
+
 Releases are listed newest first.
 
 ## 2026-11-12: Ordered search
