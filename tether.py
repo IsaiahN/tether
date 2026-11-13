@@ -1029,6 +1029,17 @@ _SUBGOAL = armflag.arm("TETHER_SUBGOAL", default=True)
 # WALKTHROUGH rejects a subtask out of reach before anything is pursued. Methods carry across the
 # lineage (htn_n). OFF: R-C's single detour, as before.
 _HTN = armflag.arm("TETHER_HTN", default=True)
+# HTN AT THE PICK (Isaiah 2026-11-13 09:28-09:29, the contractor's walkthrough: the breakdown comes
+# FIRST and gates what follows; Fig 3 :20 "ordered by dependency"; Fig 13 :133 "can answer that
+# before it searches"; Fig 9 :45 "cheap only in that order"). The SHIP 3 HTN decomposed only after
+# every route was refused, which no archived game ledger shows (route_exhausted 0 in 1,206, r1907).
+# Now a goal is decomposed when it is PICKED and no route to it is known. A goal with a direct route
+# is acted on undecomposed (the expert skips the walkthrough's detail). A subtask with no route
+# stays held while this board has untried actions (NOT_FOUND: still exploring), and leaves the
+# stack once every action has been tried (the can ledger's BLOCKED "every action tried"). Not while
+# a goal hypothesis is held: that is the agent's own pursuit. NEEDS TETHER_HTN. OFF:
+# decomposition only after the routes are exhausted, as SHIP 3.
+_HTN_AT_ADOPT = armflag.arm("TETHER_HTN_AT_ADOPT", default=True)
 # (6a) R-D, UNREACHABLE AT BUDGET, THEN RE-ENGAGE (the 10-23 design; A11; Fig 8 :40-41): an
 # exhausted intent is kept as the verdict "unreachable at budget" with the situation it was read
 # in; when a route is offered for it again (its situation moved -- 4d -- or its refusals were set
@@ -15917,8 +15928,28 @@ class Agent:
                 return repr(str(self.slot_types.get(s)))
         return f"{k(parent)} -> {k(sub)}"
 
-    def _htn_push(self, chosen: str) -> bool:
-        """HTN: decompose `chosen`, whose routes ran out. Its candidate subtasks are its open
+    def _htn_adopt(self, chosen: str, why: str) -> bool:
+        """HTN AT THE PICK: `chosen` was picked and no route to it is known (`why`, the refusal's
+        name). Decompose it now rather than after its routes are refused. A subtask that cannot be
+        decomposed stays held while this board has untried actions, and leaves the stack once
+        every action has been tried. True when the stack changed."""
+        if not (_HTN and _HTN_AT_ADOPT and _SUBGOAL):
+            return False
+        if _GOAL_HYP and self._hyp is not None:
+            return False                 # a held hypothesis is the agent's own pursuit
+        if self._subgoal is not None and chosen != self._subgoal["sub"]:
+            return False
+        if self._htn_push(chosen, when="pick", why=why):
+            return True
+        if self._subgoal is not None and chosen == self._subgoal["sub"] \
+                and not self._can_untried(self.iface.table):
+            self._subgoal_end("routes")  # no method, no route, every action tried
+            return True
+        return False
+
+    def _htn_push(self, chosen: str, when: str = "routes", why: str | None = None) -> bool:
+        """HTN: decompose `chosen`, whose routes ran out (`when` "routes") or which was picked
+        with no route known (`when` "pick", HTN AT THE PICK). Its candidate subtasks are its open
         enablers not already on the stack or tried for it; the walkthrough rejects any out of
         reach (Fig 13 :133); the ground orders the rest by the method edge's validity. Pushes the
         first and says so; False when nothing applies."""
@@ -15952,13 +15983,18 @@ class Agent:
         self._subgoal = {"parent": chosen, "sub": b}
         self._htn_pending.setdefault(chosen, set()).add(edge)
         st = self._htn.get(edge, [0, 0])
+        at_pick = {"when": when, "why": why} if when != "routes" else {}
         self.led.record(self.cycle, "PLAN", b, "subgoal_adopted", parent=chosen, read=ln,
-                        reads="the parent's routes are exhausted; its settled term reads this "
-                              "slot, so it is pursued as a route (R-C, HTN)")
+                        **at_pick,
+                        reads="the parent was picked with no route known; its settled term "
+                              "reads this slot, so it is pursued first (HTN at the pick)"
+                        if at_pick else
+                        "the parent's routes are exhausted; its settled term reads this "
+                        "slot, so it is pursued as a route (R-C, HTN)")
         self.led.record(self.cycle, "PLAN", b, "htn_push", parent=chosen,
                         depth=len(self._tasks), edge=edge, record=list(st),
                         validity=round(val(b), 4), candidates=len(ok),
-                        rejected=len(en) - len(ok),
+                        rejected=len(en) - len(ok), **at_pick,
                         reads="decomposed: the subtask goes on the stack, the parent waits")
         return True
 
@@ -25835,6 +25871,7 @@ class Agent:
                 self.led.record(self.cycle, "PLAN", chosen, "split_refused",
                                 why="unordered_no_value_table", target=_tgt,
                                 slot_type=self.slot_types.get(chosen))
+                self._htn_adopt(chosen, "unordered_no_value_table")   # HTN AT THE PICK
             return None
         # **THE INTERFACE ABSTAINED, AND THERE IS NO FALLBACK BEHIND IT ON PURPOSE.**
         # `docs/ACTION_INTERFACE_PLAN.md`. What stood here voted over `self.actions` using
@@ -25854,6 +25891,7 @@ class Agent:
             self.led.record(self.cycle, "PLAN", chosen, "split_refused",
                             why="no_realisation", target=_tgt,
                             n_actions=len(self.actions))
+            self._htn_adopt(chosen, "no_realisation")     # HTN AT THE PICK: no route known
         return None
 
     def members(self) -> dict:
