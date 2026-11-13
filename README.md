@@ -136,6 +136,13 @@ ARC is only the adapter and the harness below.
   is why it learns this way: the same terms settle on abstract boards and in the world they
   describe, so it learns about the world while it learns abstractions, and its speech becomes more
   fluent as more of its words are grounded.
+- **From flat boards to depth** (planned, not built). A child lives in three dimensions first
+  and later learns that a flat picture stands for a solid thing; this agent starts the other way
+  round, on flat, rigid boards. Most of what it settles is relational (contact, blocking,
+  containment, order) and carries across, but ideas that need depth (something hidden behind
+  something, things that fall or squash) can only be held until a board with depth can settle
+  them. So its boards would widen in order: grids, then photographs (depth cues in its own flat
+  medium), then video, then simulated 3D worlds, then the physical world.
 
 ## Documents
 
