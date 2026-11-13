@@ -2369,6 +2369,11 @@ ARMS: dict[str, str] = {
                         "blocked item of that kind gets a can_offer row. RECORD-ONLY. NEEDS "
                         "TETHER_CAN_LEDGER. ON. OFF: no opener/offer rows. MF: "
                         "tests/test_can_offer.py.",
+    "TETHER_PART_ORDER": "STEP 10b (the reviewer 2026-11-12; Fig 3 :22-23; fail-first): a held "
+                         "goal's parts ordered -- 'A then B' as specified, else fewest routes "
+                         "first, none last; the route read in that order; the first part "
+                         "stalling by its trend parks the goal (a door, no verdict). ON. OFF: "
+                         "link order, stall only when all stuck. MF: tests/test_part_order.py.",
     "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
                           "the mint's depth-one trees that passed their own _cannot_pay are "
                           "deepened a tier at a time (tree_search.deepen), each priced by the "

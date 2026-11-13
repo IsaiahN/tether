@@ -1490,6 +1490,15 @@ _PURSE_FAST = armflag.arm("TETHER_PURSE_FAST", default=True)
 # above price once price has _B2_MIN_EVIDENCE disagreeing endings and class's validity (its
 # Laplace 0.5 while untried) is higher; it swaps back as evidence moves. OFF: price first always.
 _ORDER_BY_GROUND = armflag.arm("TETHER_GOAL_ORDER_BY_GROUND", default=True)
+# 10b, A GOAL'S PARTS, MOST LIKELY TO FAIL FIRST (the reviewer 2026-11-12; Fig 3 :22-23: "A step
+# whose input never arrives cannot be diagnosed, only its predecessor can"; fail-first, Haralick &
+# Elliott 1980). A held goal of two or more parts orders them: "A then B" keeps its spec's order (A
+# first); otherwise the part with the FEWEST routes (actions the delta table has seen move it)
+# first, a part with none LAST (no route orders, never refuses: it may move through a coupling).
+# The hold's route is read in that order, and when the first part stalls by its own trend the
+# whole goal PARKS ("not now", a door; a budget ending, no verdict) before effort goes to the
+# parts that need it. OFF: link order, and a stall only when every part is stuck, as before.
+_PART_ORDER = armflag.arm("TETHER_PART_ORDER", default=True)
 # the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
@@ -10743,7 +10752,9 @@ class Agent:
                 seg = h["reads"].get(sl, [])[at:]
                 seg = trend_of(seg, h.get("gaps", {}).get(sl, [])[at:])      # R-A
                 return len(seg) >= MIN_REPEAT + 1 and not shrinking(seg)
-            if _LEAVE_RATE and self._tc_rho() > 0:
+            if _PART_ORDER and self._fail_first(h, stuck):
+                self._hyp_end("parked", by="fail_first")    # 10b: "not now", a door
+            elif _LEAVE_RATE and self._tc_rho() > 0:
                 self._lr_hyp(h, stuck)          # item 26: the ceiling and trend are readings
             elif h["steps"] > h["budget"]:
                 self._hyp_end("stalled", by="ceiling")
@@ -10961,13 +10972,36 @@ class Agent:
         if not link.get("linked"):
             self._hyp_restore(displaced)
             return None, link.get("why")
-        route = next((a for a in (self._hyp_route(sl, before) for sl in link["slots"]) if a),
-                     None)
+        order = (self._part_order(link["slots"], isinstance(c, _Order))
+                 if _PART_ORDER and len(link["slots"]) > 1 else list(link["slots"]))
+        route = next((a for a in (self._hyp_route(sl, before) for sl in order) if a), None)
         if route is None:
             self._release_link(key)
             self._hyp_restore(displaced)
             return None, "no route"
-        return {**link, "route": route, "displaced": sorted(displaced), "_held": displaced}, None
+        return {**link, "route": route, "displaced": sorted(displaced), "_held": displaced,
+                **({"part_order": order} if _PART_ORDER and len(order) > 1 else {})}, None
+
+    def _part_routes(self, slot: str) -> int:
+        """10b: how many actions the agent's own delta table has seen move `slot`."""
+        return sum(1 for e in self.iface.table.values()
+                   if any(k[1] == slot for k in e.get("delta", {})))
+
+    def _part_order(self, slots: list, ordered: bool) -> list:
+        """10b: a held goal's parts, most likely to fail first. "A then B" (ordered) keeps its
+        order; otherwise fewest routes first, a part with none last, a tie by link order."""
+        if ordered:
+            return list(slots)
+        n = {sl: self._part_routes(sl) for sl in slots}
+        return [sl for _i, sl in sorted(enumerate(slots),
+                                        key=lambda t: (n[t[1]] == 0, n[t[1]], t[0]))]
+
+    @staticmethod
+    def _fail_first(h: dict, stuck) -> bool:
+        """10b: the held goal's FIRST part (part_order[0]) stalls by its own trend while the goal
+        has more than one part: the whole goal parks before the parts that need it."""
+        first = (h.get("part_order") or [None])[0]
+        return bool(first) and len(h.get("slots", ())) > 1 and stuck(first)
 
     def _hyp_restore(self, displaced: dict) -> None:
         for sl, (w, t, sc) in displaced.items():
@@ -11570,6 +11604,8 @@ class Agent:
                      "born": self.cycle, "displaced": link["_held"],
                      "reads": {}, "seg": {}, "touches": 0, "losses": 0,
                      "held_unreadable": 0, "acted": Counter()}
+        if link.get("part_order"):
+            self._hyp["part_order"] = link["part_order"]     # 10b: fail-first reads its head
         if _LEAVE_RATE:
             # item 26: its slots' outstanding at birth (its rate's base); a left line held again
             self._hyp["out0"] = {sl: self.outstanding(sl) for sl in link["slots"]}
