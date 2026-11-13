@@ -60,4 +60,5 @@ docs/TOMBSTONES/*.jsonl
 .vscode/
 
 # local logs (narrate / nsm / pipeline written beside a ledger at the repo root; 8e, r1801, r1831)
-logs/
+logs/*
+!logs/README.md
