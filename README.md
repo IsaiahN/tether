@@ -218,9 +218,6 @@ on a board are linked but separate. It is not built in this branch.
   at its next loop and is owed, and the step still makes and records its choice.
 - **Walks shared by pattern**: a library walk worked out for one set of objects is reused for any
   set in the same arrangement, the names substituted, so the same thinking costs less.
-
-## What this release adds (every switch on by default)
-
 - **Time counted by learning** (`TETHER_FADE_BY_STORE`): fading runs on how much the agent has
   written to memory, not on how many steps pass, so a board where nothing new happens ages
   nothing. When something fails again, its earlier failures are re-judged by what kind of thing
@@ -236,6 +233,22 @@ on a board are linked but separate. It is not built in this branch.
   a move that lost on this same board before, unless no other move is left.
 - **Goal-finding and invention stay inside the budget**: proposing goals and building new
   candidates stop when the step's allowance is spent and are owed, instead of running long.
+
+## What this release adds (every switch on by default)
+
+- **Step 8, a better-ordered search for explanations** (built): the agent indexes where each
+  change came from (itself, a neighbour, its own clock, or hidden), skips candidates that already
+  failed and rescans only what changed, walks the cheapest fitting ideas first and stops when
+  nothing better can come, keeps word senses apart by context, weights its narration, and keeps a
+  book of which settled ideas paid where -- each behind its own switch, on by default. Nested
+  ideas (an idea's input computed by another idea) are in place but not yet built by the agent.
+- **Played offline on five public games** (vc33, tn36, ft09, dc22, bp35, in the arcade's order)
+  from its carried library, this build met the rule set before the run: no faults, no game
+  finishing fewer levels, no doubling of empty lookups, and no game losing its goal-directed moves
+  (ft09 kept its one and reached it sooner; vc33 gained two). It took fewer steps in the same time
+  on all five games, most on tn36 and bp35; that cost is being profiled for the next release.
+- **The repository is reorganized**: docs/ in numbered folders with a README in each, and run
+  logs written to logs/.
 
 ## A general learner: swap the two layers, keep the mind
 
