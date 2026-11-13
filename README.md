@@ -143,6 +143,15 @@ ARC is only the adapter and the harness below.
   something, things that fall or squash) can only be held until a board with depth can settle
   them. So its boards would widen in order: grids, then photographs (depth cues in its own flat
   medium), then video, then simulated 3D worlds, then the physical world.
+- **A voice, by mapping rather than training** (planned, not built). Each layer above is a lookup,
+  not a model to train: a picture's ImageNet id is its WordNet entry, WordNet gives the words that
+  name the same thing, a relation layer gives the roles they play, the agent's library links them
+  to what it already holds, and a pronouncing dictionary turns each word into sounds a rule-based
+  synthesizer can speak. Every link is a written row, so any word the agent says can be traced
+  back, hop by hop, to its sources and to the board where it was settled. Speaking becomes talking
+  once it can also hear, with the listener as its board. Most of the joins are hours of work on
+  keys that already exist; linking words to the library is the reviewable part, and the place
+  where help is most welcome.
 
 ## Documents
 
