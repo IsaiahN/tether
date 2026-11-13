@@ -193,11 +193,12 @@ class Ledger:
         self._pass: tuple[str, str, str] | None = None   # r1564: (slot, pass key, naming field)
         self._path = Path(path) if path else None
         self._fh = None
+        if self._path is not None:              # before the logs below, which write beside it
+            self._path.parent.mkdir(parents=True, exist_ok=True)
         self.narrator = narrate.Narrator(self._path, (WIN, ADVANCE))   # N1: says key rows aloud
         self.pipe = pipelog.PipeLog(self._path, (WIN, ADVANCE))        # 7d: the stage lines
         self.speaker = nsm.Speaker(self._path, (WIN, ADVANCE))         # 7: the NSM trace
         if self._path is not None:
-            self._path.parent.mkdir(parents=True, exist_ok=True)
             self._path.write_text("", encoding="utf-8")
 
     def __len__(self) -> int:
