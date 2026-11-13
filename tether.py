@@ -1499,6 +1499,11 @@ _ORDER_BY_GROUND = armflag.arm("TETHER_GOAL_ORDER_BY_GROUND", default=True)
 # whole goal PARKS ("not now", a door; a budget ending, no verdict) before effort goes to the
 # parts that need it. OFF: link order, and a stall only when every part is stuck, as before.
 _PART_ORDER = armflag.arm("TETHER_PART_ORDER", default=True)
+# 10c, LIKE KINDS FIRST (the reviewer 2026-11-12; DESIGN 10c): a goal shelved at a clear also keeps
+# the KINDS of the objects its text named; a shelf template instantiated on an object of one of
+# those kinds is ordered before its other instances inside the same price group (after the class
+# tier: "can act on it" still leads). Ordering only, never a refusal. OFF: no kinds tier.
+_KIND_REUSE = armflag.arm("TETHER_KIND_REUSE", default=True)
 # the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
@@ -10403,6 +10408,9 @@ class Agent:
                "level": meta.get("level", self.level), "born": self.cycle, "how": how,
                "met_state": meta.get("met_state"), "templates": meta.get("templates", []),
                "record": record}
+        if _KIND_REUSE:                 # 10c: the kinds of the objects the won text named
+            objs = sorted(set(re.findall(r"\b(o\d+)\.", rec["text"] or "")))
+            rec["kinds"] = sorted({self._kind_tag(o) for o in objs})
         self._goal_shelf[key] = rec
         carried = []
         if _M7_INV:
@@ -10669,6 +10677,9 @@ class Agent:
         i = next((j for j in range(len(tiers)) if a[j] != b[j]), None)
         out["decided_by"] = ("equal" if i is None else tiers[i] if tiers[i] != "ttb" else
                              "ttb:" + cues[next(j for j in range(len(a[1])) if a[1][j] != b[1][j])])
+        if (out["decided_by"] == "class" and isinstance(a[0], tuple)
+                and a[0][0] == b[0][0]):
+            out["decided_by"] = "kind"          # 10c: the like-kind cue inside the class tier
         if out["decided_by"] == "round" and xa[2].slot == xb[2].slot and a[6] == b[6]:
             out["decided_by"], out["draw_in"] = "explore", "round"
         if out["decided_by"] == "explore":
@@ -10981,6 +10992,20 @@ class Agent:
             return None, "no route"
         return {**link, "route": route, "displaced": sorted(displaced), "_held": displaced,
                 **({"part_order": order} if _PART_ORDER and len(order) > 1 else {})}, None
+
+    def _kind_tag(self, owner: str) -> str:
+        """10c: an object's kind (7l) as a string that survives a save (JSON lists, not tuples)."""
+        return json.dumps(list(self._kind(owner)), default=str)
+
+    def _like_kind(self, x: tuple) -> int:
+        """10c: 0 when the candidate is a shelf template's instance on an object of a kind its
+        won text named, else 1 (a cue, ordered inside a price group)."""
+        rec = self._goal_shelf.get(x[4]) if isinstance(x[4], str) else None
+        kinds = rec.get("kinds") if rec else None
+        sl = getattr(x[2], "slot", None)
+        if not kinds or not isinstance(sl, str) or "." not in sl:
+            return 1
+        return 0 if self._kind_tag(sl.split(".", 1)[0]) in kinds else 1
 
     def _part_routes(self, slot: str) -> int:
         """10b: how many actions the agent's own delta table has seen move `slot`."""
@@ -11443,7 +11468,10 @@ class Agent:
                              "checked", "explore")
 
                     def _pre(x, pk=pk, cs=_cset, ttb=ttb):
-                        return (_xcls(x), ttb.get(id(x), ()), pk[x[3]], x[2].slot not in cs)
+                        # 10c: like kinds inside the class tier, (class, kind) -- the key keeps
+                        # its length, so every reader's index holds; _b1_decided names "kind"
+                        c0 = (_xcls(x), self._like_kind(x)) if _KIND_REUSE else _xcls(x)
+                        return (c0, ttb.get(id(x), ()), pk[x[3]], x[2].slot not in cs)
                     # r1474/r1478 (Fig 6 :49-50, distribute the search): inside a block equal on
                     # the tiers above, each subject's least-checked candidate, then each one's
                     # next, ...; inside a round the least-tried subject first
