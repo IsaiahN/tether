@@ -28706,7 +28706,10 @@ class Agent:
                     # and this is the only path that RE-BINDS, so every reuse it found was
                     # invisible to the bench-pull and transfer columns both.
                     self._rp_bind(slot, cand.name, "route_pull")
-                    self.led.record(self.cycle, self._running_step, slot, "pull", term=cand.name,
+                    # an earlier level's park is filed on the park, as reuse_refused is (step order)
+                    park_key = tkey if cross and slot in self.slots else slot
+                    self.led.record(self.cycle, self._running_step, park_key, "pull",
+                                    term=cand.name,
                                     held=tkey, chain=" . ".join(a.name for a in cand.atoms),
                                     rebound=True, via="sweep",
                                     **({"carry_credited": cred, "held_terms": h_,
@@ -28717,7 +28720,7 @@ class Agent:
                     self.chain.note_reused()
                     self.chain.note_cleared()
                     name = (cand.name if cand.name in self.gamma.library
-                            else self._install_reuse(cand, slot, partial=left > 0.0))
+                            else self._install_reuse(cand, slot, partial=left > 0.0, row=park_key))
                     # 3d: COUNT REUSE WHERE THE FUNNEL ALREADY DETECTS IT. The bind sites are
                     # once-per-term by construction -- a rebind picks a DIFFERENT term, since
                     # `_library_fit` excludes the incumbent -- so counting there reads 1 forever.
@@ -28812,7 +28815,8 @@ class Agent:
                                 would_pay=pays(cost, left, base), via=how, cross_level=cross,
                                 reads="the ONE bargain refused this candidate: cost+left >= base")
 
-    def _install_reuse(self, cand: Term, slot: str, partial: bool = False) -> str:
+    def _install_reuse(self, cand: Term, slot: str, partial: bool = False,
+                       row: str | None = None) -> str:
         """The SWEEP's entry into Gamma. **F32 RULED: it now consults THE ONE BARGAIN.**
 
         **ONE GATE ON ONE LIBRARY (was two).** `mint` requires `cost + left < base`, and the
@@ -28839,7 +28843,8 @@ class Agent:
         # same slot out of order -- `chase: ROUTE after ACCEPT`, refused at seq 39. **The step
         # is a fact about WHEN the row is written, not about what the event feels like.**
         self._rp_bind(slot, cand.name, "reuse_install")
-        self.led.record(self.cycle, self._running_step, slot, "reuse_install", term=cand.name,
+        self.led.record(self.cycle, self._running_step, row or slot, "reuse_install",
+                        term=cand.name,
                         cost=round(cost, 4), left=round(left, 4),
                         base=None if base is None else round(base, 4),
                         would_pay=None if base is None else pays(cost, left, base),
