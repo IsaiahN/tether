@@ -1924,6 +1924,9 @@ _UNIT_CUT = object()        # TETHER_UNIT_PURSE: what a unit cut inside returns 
 # "mint" or ACCEPT row written, e.g. a cut in the post-accept sweep) owes nothing -- the item was
 # reached; the @cap unit_purse_cut row still records the cut. OFF: every mint cut owes the slot
 _MINT_CUT_LANDED = armflag.arm("TETHER_MINT_CUT_LANDED", default=True)
+# 7d (r1900): the store load's T2 bucket walk is one head per candidate read, in the step's budget,
+# as every other tier's walk; OFF: the bucket is filtered unmetered (a6f4f93's follow-up (iv))
+_T2_METER = armflag.arm("TETHER_T2_METER", default=True)
 # C2 THE PURSE FIRST (R2's fired refuter; the reviewer r1707 2): at a spent purse _library_fit wrote
 # budget_owed ("not asked ... owed") and skipped only the index walk, then fitted every library
 # candidate anyway (re86 after a ROUTE cut: 16 M heads in _delta_tier, 6 M in _rebindings/_pairs).
@@ -7985,7 +7988,12 @@ class Agent:
                 # the scan of every candidate gave
                 cand = self._kind_store["t2_by"].get(ko, ())
                 run_dk = {e[1:] for e in self._kind_landed_dk}
-                t2 = [(k, r, o, x) for (k, r, o, x) in cand if (k, ko) not in run_dk]
+                t2 = []
+                for e_ in cand:
+                    if _T2_METER:
+                        cap.head()
+                    if (e_[0], ko) not in run_dk:
+                        t2.append(e_)
             else:
                 with_dk = {e[1:] for e in itertools.chain(self._kind_landed_dk,
                                                           self._kind_known_dk)}

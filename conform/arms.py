@@ -733,6 +733,12 @@ ARMS: dict[str, str] = {
                               "records the cut. OFF: every mint cut owes the slot, which wrote "
                               "'owed' for a term just accepted and the demo's gate refused it "
                               "(ladder: MINT after ACCEPT)",
+    "TETHER_T2_METER": "7d, the reviewer r1900. Default ON. ON: the store load's T2 bucket walk "
+                       "(the candidates of the change's own target, lineage.t2_buckets) is one "
+                       "cap.head() per candidate read, so a long bucket is paid from the step's "
+                       "budget and can be cut there like every other tier's walk. OFF: the bucket "
+                       "is filtered unmetered (a6f4f93). Its own switch because a cut there "
+                       "changes what is offered",
     "TETHER_PURSE_RISE": "C2 RISE (r1646). Default ON at landing (r1633). ON: while the median is "
                          "undefined (over half the steps cut) and the latest step was cut, the "
                          "purse is the last purse x PURSE_RISE (2, class E), never lowered, until "
