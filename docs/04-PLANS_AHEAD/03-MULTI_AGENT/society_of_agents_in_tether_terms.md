@@ -80,9 +80,9 @@ Every agent in a group leans partly on its own experience and partly on the crow
 
 Isaiah calls w "a crude representation" of something richer, and Figure 13 shows what it is made of.
 
-- **The collective is a continuum.** Figure 13 says a continuum is not one of its six building blocks: "Spectrum and gradient compose a continuum." A spectrum is an ordering, "so more and less can be said": agents lined up from self-reliant to crowd-reliant.
+- **The collective is a continuum.** Figure 13 says a continuum is not one of its six building blocks: it is "a spectrum without gaps". A spectrum is an ordering, "so more and less can be said": agents lined up from self-reliant to crowd-reliant.
 - **Each individual carries a gradient,** "a difference that can be spent": its own pull in one direction.
-- **The agents also relate,** which makes them a network, and "Energy and a gradient compose a flow." Knowledge flows between agents along those gradients.
+- **The agents also relate,** which makes them a network: the paths along which influence travels. And "Energy and a gradient compose a flow": what an agent holds, spent down the gradient between agents, is the flow of knowledge, and it travels along that network.
 
 That is why w felt nebulous. It is a composition, an agent's own history crossed with the collective's continuum and its own gradient, written as one symbol. Figure 12 calls this the flat formula: "the ingredients are recorded and the arrangement is not."
 
