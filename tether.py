@@ -1473,6 +1473,11 @@ _CAN_OFFER = armflag.arm("TETHER_CAN_OFFER", default=True)
 # opened after it), settles them against this reading, then learns (can_ledger.ProductionBook).
 # RECORD-ONLY, inside the ledger's uncharged scope; NEEDS TETHER_CAN_LEDGER. OFF: no rows.
 _CAN_PRODUCE = armflag.arm("TETHER_CAN_PRODUCE", default=True)
+# F5 (r1898, r1900, r1901): the can lists' "untried" leaves RESET out while alive, as
+# interface.untried_here and tether's other untried checks do. RESET is never in the table, so
+# counted it kept "no route; every action tried" (BLOCKED) unreachable and no crossing could ever
+# read "opened". OFF: RESET counted as untried
+_CAN_SKIP_RESET = armflag.arm("TETHER_CAN_SKIP_RESET", default=True)
 # 10a, THE PASS'S KIND TABLE (the reviewer 2026-11-12, from the dc22 profile: the goal proposer's
 # cost is the group FORM, not the text grammar -- _group_form re-read every owner's kind for every
 # text, 3.6M _kind calls in 25 steps, each asking the world for its shape code). One table per
@@ -26353,7 +26358,7 @@ class Agent:
         routable = self._route_first_set(before)
         clock = set(self._own_clock_keys()) if _OWN_CLOCK_SUBJECT else set()
         table = self.iface.table
-        untried = sum(1 for a in self.actions if a not in table)
+        untried = self._can_untried(table)
         given_up = {tk[1] for tk, v in self._hyp_tried.items()
                     if isinstance(tk, tuple) and len(tk) > 1 and isinstance(v, tuple) and v
                     and v[0] in can_ledger.REFUTED_ENDS}
@@ -26403,6 +26408,13 @@ class Agent:
                                 crossings=len(cross), appeared=len(appear),
                                 reads="what I can do and what I can't, after the crossings")
         st.update(lists=now, state=dict(before), step=self.cycle, known=known)
+
+    def _can_untried(self, table: dict) -> int:
+        """How many of this board's actions the table has not seen; F5: RESET left out while
+        alive, the test interface.untried_here uses (r1901), so the counts agree."""
+        alive = getattr(self.iface, "alive", True)
+        return sum(1 for a in self.actions if a not in table
+                   and not (_CAN_SKIP_RESET and a == IFace.RESET and alive))
 
     def _can_kind_key(self, item: str) -> tuple:
         """10a+ "A then B": an item's kind key -- its object's kind (7l) and its reading."""

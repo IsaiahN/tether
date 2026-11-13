@@ -2395,6 +2395,12 @@ ARMS: dict[str, str] = {
                           "produced (appeared / opened), settles them, then learns. RECORD-ONLY. "
                           "NEEDS TETHER_CAN_LEDGER. ON. OFF: no can_produce rows. MF: "
                           "tests/test_can_produce.py.",
+    "TETHER_CAN_SKIP_RESET": "F5, the reviewer r1900, r1901. Default ON. ON: the can lists count "
+                             "RESET untried only when not alive (interface.untried_here's test), "
+                             "so 'no route; every action tried' (BLOCKED) can be read "
+                             "and a later route reads as an OPENED crossing. OFF: RESET, never in "
+                             "the table, kept untried >= 1, so no crossing was ever 'opened' "
+                             "(0 of 198 on the step 10 retest). MF: tests/test_can_skip_reset.py.",
     "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
                           "the mint's depth-one trees that passed their own _cannot_pay are "
                           "deepened a tier at a time (tree_search.deepen), each priced by the "
