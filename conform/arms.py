@@ -2344,6 +2344,57 @@ ARMS: dict[str, str] = {
                          "unclustered PERCEPT atoms (index by_cluster_derived, served only against "
                          "the corpus file it was derived from); enters compile_term.signature. "
                          "NEEDS TETHER_ATTR_BRIDGE. OFF: item 9's bridge as it was. default ON",
+    "TETHER_CAN_LEDGER": "STEP 10a+ (the reviewer 2026-11-12; Isaiah 15:01-15:08): at each "
+                         "step every subject slot is read into CAN / BLOCKED / "
+                         "NOT_FOUND / GIVEN_UP (can_ledger.py); a crossing or an appearance is a "
+                         "row with its pretext, cue, lag and src. RECORD-ONLY and uncharged. "
+                         "ON. OFF: no rows. MF: tests/test_can_ledger.py.",
+    "TETHER_KIND_PASS": "STEP 10a (the reviewer 2026-11-12, the dc22 profile): one kind table "
+                        "per _group_cands pass (owner -> kind, kind -> owners in _owners' order) "
+                        "in place of re-reading every owner's kind for every text. EXACT: the "
+                        "same members, same order. ON. OFF: per-text reads. MF: "
+                        "tests/test_kind_pass.py.",
+    "TETHER_PURSE_FAST": "STEP 10a (the reviewer 2026-11-12, the dc22 profile): _purse_out "
+                         "answers 'not spent' without the idle-scope sum while the heads since "
+                         "the step began are under the allowance (spent <= those heads). EXACT. "
+                         "ON. OFF: the sum every check. MF: tests/test_purse_fast.py.",
+    "TETHER_GOAL_ORDER_BY_GROUND": "STEP 10a (the reviewer 2026-11-12; Isaiah 14:59 'the ground "
+                                   "decides'): the proposer's PRICE and CLASS cues ordered by "
+                                   "what paid on the holds they disagreed on; price first "
+                                   "(today's) until price has 3 such endings and class's "
+                                   "validity is higher. ON. OFF: price first always. MF: "
+                                   "tests/test_order_by_ground.py.",
+    "TETHER_OBG_CARRY": "STEP 10a carry (the reviewer 2026-11-12; Isaiah 23:10 'learned search "
+                        "order should carry over'): ORDER_BY_GROUND's [ended, paid] per cue rides "
+                        "the lineage as increments (obg_n in the counts blob, summed by the store "
+                        "and by the archive chain); a generation starts from its ancestors' "
+                        "record. ON. OFF: every generation starts from [0, 0]. MF: "
+                        "tests/test_obg_carry.py.",
+    "TETHER_CAN_OFFER": "STEP 10a+ 'A then B' (the reviewer 2026-11-12): an OPENED crossing "
+                        "files its opener (press, src) under the item's kind; a closed or newly "
+                        "blocked item of that kind gets a can_offer row. RECORD-ONLY. NEEDS "
+                        "TETHER_CAN_LEDGER. ON. OFF: no opener/offer rows. MF: "
+                        "tests/test_can_offer.py.",
+    "TETHER_PART_ORDER": "STEP 10b (the reviewer 2026-11-12; Fig 3 :22-23; fail-first): a held "
+                         "goal's parts ordered -- 'A then B' as specified, else fewest routes "
+                         "first, none last; the route read in that order; the first part "
+                         "stalling by its trend parks the goal (a door, no verdict). ON. OFF: "
+                         "link order, stall only when all stuck. MF: tests/test_part_order.py.",
+    "TETHER_KIND_REUSE": "STEP 10c (the reviewer 2026-11-12): a shelved goal keeps the kinds its "
+                         "text named; a shelf template's instance on such a kind is ordered "
+                         "first inside its price group, after the class tier. ORDER ONLY. ON. "
+                         "OFF: no kinds tier. MF: tests/test_kind_reuse.py.",
+    "TETHER_CAN_PRODUCE": "STEP 10 'A => B' first implementation (the reviewer 2026-11-12): each "
+                          "reading predicts from earlier readings the kinds the last press "
+                          "produced (appeared / opened), settles them, then learns. RECORD-ONLY. "
+                          "NEEDS TETHER_CAN_LEDGER. ON. OFF: no can_produce rows. MF: "
+                          "tests/test_can_produce.py.",
+    "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
+                          "the mint's depth-one trees that passed their own _cannot_pay are "
+                          "deepened a tier at a time (tree_search.deepen), each priced by the "
+                          "mint's bargain, best-first with the exact stop, within the work "
+                          "budget left; a deeper tree that beats the best is the best. ON. OFF: "
+                          "no deepening. MF: tests/test_tree_deepen.py.",
     "TETHER_TIERED_TERMS": "STEP 10d (the reviewer 2026-11-12; Isaiah 12:41, 15:15): the "
                            "operand tree recurses -- a node naming a second slot that "
                            "carries its own operand tree reads that leaf through _ops, so a "

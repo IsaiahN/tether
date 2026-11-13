@@ -31,6 +31,7 @@ from functools import cache, lru_cache, partial, wraps
 from typing import Any
 
 import armflag
+import can_ledger
 import cap
 import compile_term
 import composer
@@ -49,6 +50,7 @@ import reuse
 import routine as Rt
 import shape_order
 import store as door  # the one door; `store` is a local name in three methods
+import tree_search
 from gamma import _CARRY_W as G_CARRY_W
 from gamma import _FADE_BY_STORE as G_FADE_BY_STORE
 from gamma import _FADE_FAILURES as G_FADE_FAILURES
@@ -1448,6 +1450,70 @@ _TWO_SLOT_OPERAND = armflag.arm("TETHER_TWO_SLOT_OPERAND", default=True)
 # structural (the branch's operand was a value, never a term); here the second leaf is a term.
 # OFF: the second leaf is read as a raw slot, as before (r1145).
 _TIERED_TERMS = armflag.arm("TETHER_TIERED_TERMS", default=True)
+# 10d STEP 2b, THE MINT DEEPENS ITS TREES (the reviewer 2026-11-12; Isaiah 12:41, 15:15, 17:05
+# "finish step 10"): the depth-one trees that passed their own _cannot_pay are the roots of
+# tree_search.deepen after the streams end -- a unary branch grows by one atom, a node's raw second
+# leaf is fed by a one-atom term over another bind -- each priced by the same bargain (_cannot_pay,
+# _left, pays), best-first by cost with the exact stop, within what the mint's work budget left. A
+# deeper tree that beats the best is the best; nothing is refused. OFF: no deepening, as before.
+_TREE_DEEPEN = armflag.arm("TETHER_TREE_DEEPEN", default=True)
+# 10a+, WHAT I CAN DO AND WHAT I CAN'T (the reviewer 2026-11-12; Isaiah 15:01-15:08): at every
+# step every subject slot is read into CAN / BLOCKED / NOT_FOUND / GIVEN_UP
+# (can_ledger.py), and an item that crosses lists, or appears, is a row with its pretext, cue, lag
+# and src -- the evidence wall of what opened what. RECORD-ONLY: no choice reads it yet. OFF: no
+# rows.
+_CAN_LEDGER = armflag.arm("TETHER_CAN_LEDGER", default=True)
+# 10a+ -> "A then B" (the reviewer 2026-11-12; DESIGN 10a+ items 2-3): an OPENED crossing files its
+# opener (the press before it, its src) under the item's kind (can_ledger.OpenerBook); a closed or
+# newly blocked item of a filed kind gets a can_offer row naming its openers. RECORD-ONLY, inside
+# the ledger's uncharged scope; NEEDS TETHER_CAN_LEDGER. OFF: no opener / offer rows.
+_CAN_OFFER = armflag.arm("TETHER_CAN_OFFER", default=True)
+# "A => B", first implementation (the reviewer 2026-11-12; DESIGN 10d item 3): every reading
+# predicts, from earlier readings only, the kinds the press just made has produced (appeared or
+# opened after it), settles them against this reading, then learns (can_ledger.ProductionBook).
+# RECORD-ONLY, inside the ledger's uncharged scope; NEEDS TETHER_CAN_LEDGER. OFF: no rows.
+_CAN_PRODUCE = armflag.arm("TETHER_CAN_PRODUCE", default=True)
+# 10a, THE PASS'S KIND TABLE (the reviewer 2026-11-12, from the dc22 profile: the goal proposer's
+# cost is the group FORM, not the text grammar -- _group_form re-read every owner's kind for every
+# text, 3.6M _kind calls in 25 steps, each asking the world for its shape code). One table per
+# _group_cands pass: owner -> kind, kind -> owners in _owners' order, read once over that pass's
+# state. Exact: the same members in the same order. OFF: every kind read per text, as before.
+_KIND_PASS = armflag.arm("TETHER_KIND_PASS", default=True)
+# 10a, THE PURSE'S CHEAP BOUND (the reviewer 2026-11-12, the dc22 profile: the unseen walk asks
+# "is the purse spent?" between every ring, 18M times in 25 steps, and each answer summed the idle
+# scopes). The thinking spent is at most the heads since the step began (idle is never negative),
+# so while those are under the allowance the purse is not spent and the idle sum is not needed.
+# Exact: the same answer, the allowance still read (its source note). OFF: the sum every time.
+_PURSE_FAST = armflag.arm("TETHER_PURSE_FAST", default=True)
+# 10a, ORDER BY GROUND (the reviewer 2026-11-12; Isaiah 14:59: "I can walk and use my legs < i
+# cannot see anymore (blind) circumstantial - the ground decides"). The proposer's two cues -- PRICE
+# (the shorter description, bits) and CLASS ("can act on it": a live residual, routable, the rest)
+# -- are ordered by what paid, never by a fixed rule (Fig 2 :43; endings are the ground's votes,
+# Fig 7 :35). A held goal the two cues DISAGREE on (one would have put it first among its peers,
+# the other not) credits, at its ending, the cue that endorsed it; a budget ending is no verdict
+# (r1379). Validity (paid + 1) / (ended + 2). Default: price first, today's order. Class goes
+# above price once price has _B2_MIN_EVIDENCE disagreeing endings and class's validity (its
+# Laplace 0.5 while untried) is higher; it swaps back as evidence moves. OFF: price first always.
+_ORDER_BY_GROUND = armflag.arm("TETHER_GOAL_ORDER_BY_GROUND", default=True)
+# 10a CARRY (Isaiah 2026-11-12 23:10: "learned search order should carry over ... search ... getting
+# smarter over time reinforced by usage and results"): the cue order's record [ended, paid] rides
+# the lineage as increments ("obg_n" in the counts blob) and load sums it, so a generation starts
+# from what its ancestors' endings paid. OFF: every generation starts from [0, 0] (today's).
+_OBG_CARRY = armflag.arm("TETHER_OBG_CARRY", default=True)
+# 10b, A GOAL'S PARTS, MOST LIKELY TO FAIL FIRST (the reviewer 2026-11-12; Fig 3 :22-23: "A step
+# whose input never arrives cannot be diagnosed, only its predecessor can"; fail-first, Haralick &
+# Elliott 1980). A held goal of two or more parts orders them: "A then B" keeps its spec's order (A
+# first); otherwise the part with the FEWEST routes (actions the delta table has seen move it)
+# first, a part with none LAST (no route orders, never refuses: it may move through a coupling).
+# The hold's route is read in that order, and when the first part stalls by its own trend the
+# whole goal PARKS ("not now", a door; a budget ending, no verdict) before effort goes to the
+# parts that need it. OFF: link order, and a stall only when every part is stuck, as before.
+_PART_ORDER = armflag.arm("TETHER_PART_ORDER", default=True)
+# 10c, LIKE KINDS FIRST (the reviewer 2026-11-12; DESIGN 10c): a goal shelved at a clear also keeps
+# the KINDS of the objects its text named; a shelf template instantiated on an object of one of
+# those kinds is ordered before its other instances inside the same price group (after the class
+# tier: "can act on it" still leads). Ordering only, never a refusal. OFF: no kinds tier.
+_KIND_REUSE = armflag.arm("TETHER_KIND_REUSE", default=True)
 # the node's affine typing (r1103, r1142): a point less a point is a displacement, a displacement
 # less a displacement is a displacement, a point less a displacement is a point; nothing else
 _NODE_TYPE = {("POSITION", "POSITION"): "DELTA", ("DELTA", "DELTA"): "DELTA",
@@ -4782,6 +4848,7 @@ class Agent:
     _s0_int0 = 0.0             # item 28: pe_integral at this board's (or level's) start
     _s0_turn = None            # item 28: (cycle, kind, drives before) of the last System 0 turn
     _own_pass = None           # R2: (state, owners) for one _group_cands pass over that state
+    _kind_pass = None          # 10a: (state, owner -> kind, kind -> owners) for that pass
     _s0_stall_at = None        # item 28: the cycle directed work last stalled
 
     def _book_cycle(self) -> int:
@@ -5109,6 +5176,8 @@ class Agent:
         self._b2_cells_inh: dict = {}
         self._b2_kinds_inh: dict = {}
         self._b2_wk: dict = {}
+        self._obg = {"price": [0, 0], "class": [0, 0]}     # 10a ORDER_BY_GROUND: [ended, paid]
+        self._obg_written = {"price": [0, 0], "class": [0, 0]}   # 10a carry: saved or loaded
         self._b2_evidenced: list = []   # r1481: the kinds placed by validity, at the last cue order
         self._indist_key = None       # INDIST_ON_CHANGE: the last grouping computed
         self._indist_at = None        # INDIST_ON_CHANGE: the cycle of the last indistinct row
@@ -9646,6 +9715,11 @@ class Agent:
     def _kind(self, owner: str) -> tuple:
         """7l: an object's KIND as the agent holds it: the sorted attribute types of its slots;
         under 3c-CANON also its canonical shape code where the world publishes one."""
+        kp = self._kind_pass
+        if kp is not None:                  # 10a: read once for this pass's owners
+            got = kp[1].get(owner)
+            if got is not None:
+                return got
         code = None
         if _3C_CANON:
             fn = getattr(self.env, "shape_code", None)
@@ -9675,7 +9749,11 @@ class Agent:
         """Item 17 (i): the group row on `state`, its members the owners present whose kind (7l)
         is the scope's; `kind` fixed at binding, else read off the scope now."""
         kind = kind if kind is not None else self._kind(g.scope)
-        members = [o for o in self._owners(state) if self._kind(o) == kind]
+        kp = self._kind_pass
+        if kp is not None and kp[0] is state:
+            members = list(kp[2].get(kind, ()))     # 10a: the pass's table, same order
+        else:
+            members = [o for o in self._owners(state) if self._kind(o) == kind]
         held = kind in self.__dict__.get("_kinds_held", ()) or bool(members)
         return compile_term.run_group(g, state, members, held)
 
@@ -10341,6 +10419,9 @@ class Agent:
                "level": meta.get("level", self.level), "born": self.cycle, "how": how,
                "met_state": meta.get("met_state"), "templates": meta.get("templates", []),
                "record": record}
+        if _KIND_REUSE:                 # 10c: the kinds of the objects the won text named
+            objs = sorted(set(re.findall(r"\b(o\d+)\.", rec["text"] or "")))
+            rec["kinds"] = sorted({self._kind_tag(o) for o in objs})
         self._goal_shelf[key] = rec
         carried = []
         if _M7_INV:
@@ -10553,6 +10634,22 @@ class Agent:
         return tuple(next(placed) if k in ev else k for k in _B2_CUES)
 
     @staticmethod
+    def _obg_first(rec: dict) -> str:
+        """10a ORDER_BY_GROUND: which cue leads -- "class" once price has _B2_MIN_EVIDENCE ended
+        holds the cues disagreed on and class's validity is higher, else "price" (today's)."""
+        def val(st):
+            return (st[1] + 1.0) / (st[0] + 2.0)
+        return ("class" if rec["price"][0] >= _B2_MIN_EVIDENCE
+                and val(rec["class"]) > val(rec["price"]) else "price")
+
+    @staticmethod
+    def _obg_key(k: tuple, cls: int, first: str) -> tuple:
+        """10a: a candidate's sort key with the class cue placed by `first` -- price first leaves
+        the key as it is; class first puts the class before the bits (the key's last element stays
+        the bits, which every reader takes as k[-1])."""
+        return k if first == "price" else (*k[:-1], cls, k[-1])
+
+    @staticmethod
     def _b2_ttb_key(has, cues: tuple) -> tuple:
         """r1479 TAKE THE BEST as a sort key: 0 where the candidate has the kind, 1 where it
         lacks it, in cue order -- so the first cue on which two candidates differ decides, and
@@ -10591,6 +10688,9 @@ class Agent:
         i = next((j for j in range(len(tiers)) if a[j] != b[j]), None)
         out["decided_by"] = ("equal" if i is None else tiers[i] if tiers[i] != "ttb" else
                              "ttb:" + cues[next(j for j in range(len(a[1])) if a[1][j] != b[1][j])])
+        if (out["decided_by"] == "class" and isinstance(a[0], tuple)
+                and a[0][0] == b[0][0]):
+            out["decided_by"] = "kind"          # 10c: the like-kind cue inside the class tier
         if out["decided_by"] == "round" and xa[2].slot == xb[2].slot and a[6] == b[6]:
             out["decided_by"], out["draw_in"] = "explore", "round"
         if out["decided_by"] == "explore":
@@ -10674,7 +10774,9 @@ class Agent:
                 seg = h["reads"].get(sl, [])[at:]
                 seg = trend_of(seg, h.get("gaps", {}).get(sl, [])[at:])      # R-A
                 return len(seg) >= MIN_REPEAT + 1 and not shrinking(seg)
-            if _LEAVE_RATE and self._tc_rho() > 0:
+            if _PART_ORDER and self._fail_first(h, stuck):
+                self._hyp_end("parked", by="fail_first")    # 10b: "not now", a door
+            elif _LEAVE_RATE and self._tc_rho() > 0:
                 self._lr_hyp(h, stuck)          # item 26: the ceiling and trend are readings
             elif h["steps"] > h["budget"]:
                 self._hyp_end("stalled", by="ceiling")
@@ -10739,6 +10841,12 @@ class Agent:
             # reading the hold carried at its pick; paid is P1's word (an arrival, a win, a touch)
             self._b2_credit(h["b2"]["cells"],
                             won or why == "arrived_no_clear" or h.get("touches", 0) > 0, why)
+        if _ORDER_BY_GROUND and h.get("obg") and not budget_end and why not in ("untested",
+                                                                                "parked"):
+            # 10a: the ending is the ground's vote on the cue that put this pick first
+            st = self._obg[h["obg"]]
+            st[0] += 1
+            st[1] += 1 if (won or why == "arrived_no_clear" or h.get("touches", 0) > 0) else 0
         if h.get("shelf") in self._goal_shelf and (loss or won):
             self._goal_shelf[h["shelf"]]["record"]["lost" if loss else "won"] += 1
         if _LEAVE_RATE and h.get("reopened") is not None:
@@ -10886,13 +10994,50 @@ class Agent:
         if not link.get("linked"):
             self._hyp_restore(displaced)
             return None, link.get("why")
-        route = next((a for a in (self._hyp_route(sl, before) for sl in link["slots"]) if a),
-                     None)
+        order = (self._part_order(link["slots"], isinstance(c, _Order))
+                 if _PART_ORDER and len(link["slots"]) > 1 else list(link["slots"]))
+        route = next((a for a in (self._hyp_route(sl, before) for sl in order) if a), None)
         if route is None:
             self._release_link(key)
             self._hyp_restore(displaced)
             return None, "no route"
-        return {**link, "route": route, "displaced": sorted(displaced), "_held": displaced}, None
+        return {**link, "route": route, "displaced": sorted(displaced), "_held": displaced,
+                **({"part_order": order} if _PART_ORDER and len(order) > 1 else {})}, None
+
+    def _kind_tag(self, owner: str) -> str:
+        """10c: an object's kind (7l) as a string that survives a save (JSON lists, not tuples)."""
+        return json.dumps(list(self._kind(owner)), default=str)
+
+    def _like_kind(self, x: tuple) -> int:
+        """10c: 0 when the candidate is a shelf template's instance on an object of a kind its
+        won text named, else 1 (a cue, ordered inside a price group)."""
+        rec = self._goal_shelf.get(x[4]) if isinstance(x[4], str) else None
+        kinds = rec.get("kinds") if rec else None
+        sl = getattr(x[2], "slot", None)
+        if not kinds or not isinstance(sl, str) or "." not in sl:
+            return 1
+        return 0 if self._kind_tag(sl.split(".", 1)[0]) in kinds else 1
+
+    def _part_routes(self, slot: str) -> int:
+        """10b: how many actions the agent's own delta table has seen move `slot`."""
+        return sum(1 for e in self.iface.table.values()
+                   if any(k[1] == slot for k in e.get("delta", {})))
+
+    def _part_order(self, slots: list, ordered: bool) -> list:
+        """10b: a held goal's parts, most likely to fail first. "A then B" (ordered) keeps its
+        order; otherwise fewest routes first, a part with none last, a tie by link order."""
+        if ordered:
+            return list(slots)
+        n = {sl: self._part_routes(sl) for sl in slots}
+        return [sl for _i, sl in sorted(enumerate(slots),
+                                        key=lambda t: (n[t[1]] == 0, n[t[1]], t[0]))]
+
+    @staticmethod
+    def _fail_first(h: dict, stuck) -> bool:
+        """10b: the held goal's FIRST part (part_order[0]) stalls by its own trend while the goal
+        has more than one part: the whole goal parks before the parts that need it."""
+        first = (h.get("part_order") or [None])[0]
+        return bool(first) and len(h.get("slots", ())) > 1 and stuck(first)
 
     def _hyp_restore(self, displaced: dict) -> None:
         for sl, (w, t, sc) in displaced.items():
@@ -11260,6 +11405,9 @@ class Agent:
         if _GOAL_UNBUNDLE and self._hyp_split is not None:
             cands += self._compounds(cands)     # item 19 (c): kept AND c, in the same sort
         cands = _priced(cands)
+        obg_first = self._obg_first(self._obg) if _ORDER_BY_GROUND else "price"
+        if obg_first != "price":                # 10a: the ground put class above price
+            cands = [(self._obg_key(x[0], _xcls(x), obg_first), *x[1:]) for x in cands]
         cands.sort(key=lambda x: x[0])
         ranked_all = list(cands)                # the pick's rank is read against this order
         self._hyp_open = len(cands)              # C1 item 1: a cut's record counts against it
@@ -11268,6 +11416,8 @@ class Agent:
         detail = {"candidates": len(src), "open": len(cands), "refused": dict(refused),
                   "ranked": [{"if": x[1], "subject": x[2].slot, "bits": x[0][-1],
                               "source": x[4]} for x in cands[:5]]}
+        if _ORDER_BY_GROUND:
+            detail["order_first"] = obg_first   # 10a: the cue order this pass ranked by
         if _R4_RECORD:
             detail["self_moving"] = dict(sorted(_smw.items()))
         if desc is not None:
@@ -11287,6 +11437,8 @@ class Agent:
                 if _GOAL_UNBUNDLE and self._hyp_split is not None:
                     cands += self._compounds(cands)
                 cands = _priced(cands)
+                if obg_first != "price":
+                    cands = [(self._obg_key(x[0], _xcls(x), obg_first), *x[1:]) for x in cands]
                 cands.sort(key=lambda x: x[0])
                 ranked_all += cands
                 self._hyp_open += len(cands)
@@ -11327,7 +11479,10 @@ class Agent:
                              "checked", "explore")
 
                     def _pre(x, pk=pk, cs=_cset, ttb=ttb):
-                        return (_xcls(x), ttb.get(id(x), ()), pk[x[3]], x[2].slot not in cs)
+                        # 10c: like kinds inside the class tier, (class, kind) -- the key keeps
+                        # its length, so every reader's index holds; _b1_decided names "kind"
+                        c0 = (_xcls(x), self._like_kind(x)) if _KIND_REUSE else _xcls(x)
+                        return (c0, ttb.get(id(x), ()), pk[x[3]], x[2].slot not in cs)
                     # r1474/r1478 (Fig 6 :49-50, distribute the search): inside a block equal on
                     # the tiers above, each subject's least-checked candidate, then each one's
                     # next, ...; inside a round the least-tried subject first
@@ -11488,6 +11643,8 @@ class Agent:
                      "born": self.cycle, "displaced": link["_held"],
                      "reads": {}, "seg": {}, "touches": 0, "losses": 0,
                      "held_unreadable": 0, "acted": Counter()}
+        if link.get("part_order"):
+            self._hyp["part_order"] = link["part_order"]     # 10b: fail-first reads its head
         if _LEAVE_RATE:
             # item 26: its slots' outstanding at birth (its rate's base); a left line held again
             self._hyp["out0"] = {sl: self.outstanding(sl) for sl in link["slots"]}
@@ -11500,6 +11657,16 @@ class Agent:
             cells, _has = self._b2_text(b2ctx[0], x[1], _xcls(x))
             kind = x[2].slot.split(".", 1)[1] if "." in x[2].slot else x[2].slot
             self._hyp["b2"] = {"cells": [(kind, c) for c in cells]}
+        if _ORDER_BY_GROUND:
+            # 10a: which cue endorsed this pick among its peers (the same won / sign / moved
+            # tiers): the cheapest bits, the best class; credited at its ending only if they differ
+            peers = [y for y in ranked_all if y[0][:3] == x[0][:3]]
+            by_p = x[0][-1] <= min(y[0][-1] for y in peers)
+            by_c = _xcls(x) <= min(_xcls(y) for y in peers)
+            self._hyp["obg"] = None if by_p == by_c else ("price" if by_p else "class")
+            detail["order_by_ground"] = {"first": obg_first, "pick_by": self._hyp["obg"],
+                                         "price": list(self._obg["price"]),
+                                         "class": list(self._obg["class"])}
         if _UNTESTED_KEEP and x[3] in self._untested:
             since, ended_by = self._untested.pop(x[3])
             self.led.record(self.cycle, "PLAN", sl, "goal_hypothesis_reopened", text=x[1],
@@ -12143,11 +12310,19 @@ class Agent:
         still marked only inside _group_form, so a text that fails to form never blocks one
         that would. G1 (r1465): `guard`, the body's subject checks, refuses a formed row."""
         out, seen = [], set()
-        self._own_pass = (before, self._owners(before))
+        owners = self._owners(before)
+        self._own_pass = (before, owners)
+        if _KIND_PASS:
+            of = {o: self._kind(o) for o in owners}
+            by: dict = {}
+            for o in owners:
+                by.setdefault(of[o], []).append(o)
+            self._kind_pass = (before, of, by)
         try:
             return self._group_cands_pass(items, before, atoms, out, seen, guard)
         finally:
             self._own_pass = None
+            self._kind_pass = None
 
     def _group_key(self, text: str) -> tuple | None:
         """R2: _group_form's (kind, template) key read off the text's leading slot, the scope a
@@ -12205,7 +12380,11 @@ class Agent:
         if k in seen:
             return None
         seen.add(k)
-        members = [o for o in self._owners(state) if self._kind(o) == kind and o != partner]
+        kp = self._kind_pass
+        if kp is not None and kp[0] is state:   # 10a: the pass's table, in _owners' order
+            members = [o for o in kp[2].get(kind, ()) if o != partner]
+        else:
+            members = [o for o in self._owners(state) if self._kind(o) == kind and o != partner]
         if len(members) < 2:
             return None                         # a group of one is its single
         bound = (compile_term.bind(c, scope, m) for m in members)
@@ -26130,6 +26309,204 @@ class Agent:
         key = f"{self.draw_seed}:{self.cycle}:{slot}".encode()
         return hashlib.blake2b(key, digest_size=8).digest()[0] < 128      # ~0.5
 
+    def _can_update(self) -> None:
+        """10a+ (TETHER_CAN_LEDGER): read every subject slot into CAN / BLOCKED / NOT_FOUND /
+        GIVEN_UP, compare with the last reading on this board, and write a row per crossing and
+        one for the appearances -- record-only (can_ledger.py; Isaiah 11-12 15:01-15:08)."""
+        before = self.trace[-1][2]
+        board = getattr(self.iface, "board_n", None)
+        st = getattr(self, "_can_state", None)
+        if st is None or st["board"] != board:
+            st = self._can_state = {"board": board, "lists": None, "state": None,
+                                    "step": self.cycle, "known": None}
+        der = self.env.derived() if hasattr(self.env, "derived") else {}
+        slots = [k for k in before if "." in k and "~" not in k and "@" not in k
+                 and k in self.slots]
+        movable = {k for k in slots if k not in der}
+        routable = self._route_first_set(before)
+        clock = set(self._own_clock_keys()) if _OWN_CLOCK_SUBJECT else set()
+        table = self.iface.table
+        untried = sum(1 for a in self.actions if a not in table)
+        given_up = {tk[1] for tk, v in self._hyp_tried.items()
+                    if isinstance(tk, tuple) and len(tk) > 1 and isinstance(v, tuple) and v
+                    and v[0] in can_ledger.REFUTED_ENDS}
+        now = can_ledger.classify(slots, movable, routable, clock, untried, given_up)
+        known = (sum(len(v.get("delta", {})) for v in table.values()), len(self.gamma.library))
+        prev, pstate = st["lists"], st["state"]
+        lag = self.cycle - st["step"]
+        cnt = can_ledger.counts(now)
+        if prev is None:
+            self.led.record(self.cycle, "MINT", "@can", "can_lists", board=board, **cnt,
+                            first=True, reads="10a+: what I can do and what I can't, first "
+                                              "reading on this board (record-only)")
+        else:
+            learned = known != st["known"]
+            cross, appear = can_ledger.crossings(prev, now, learned)
+            changed = sorted(k for k in before if pstate is not None
+                             and pstate.get(k) != before[k])
+            cue = {"press": str(self.trace[-1][1]), "changed": changed[:12],
+                   "changed_n": len(changed)}
+            for row in cross:
+                cap.head()
+                try:
+                    src, first, gain, n = source_of(self, row["item"])[:4]
+                except Exception:   # noqa: BLE001  a hint, never a verdict: no src is honest
+                    src, first, gain, n = None, None, None, None
+                self.led.record(self.cycle, "MINT", "@can", "can_crossing", **row, cue=cue,
+                                lag=lag, src=src, first_bind=first, gain=gain, rows=n,
+                                learned_since=learned,
+                                reads="an item changed list: the old list and reason are the "
+                                      "pretext, the press and the changed slots the cue, src "
+                                      "who it reads as moved by -- a filter, never a verdict")
+                if _CAN_OFFER:
+                    self._can_offer_note(row, cue["press"], src)
+            if _CAN_OFFER:
+                for it in [r["item"] for r in cross if r["kind"] == "closed"] + \
+                        [a["item"] for a in appear if a["list"] == can_ledger.BLOCKED]:
+                    cap.head()
+                    self._can_offer_row(it)
+            if appear:
+                self.led.record(self.cycle, "MINT", "@can", "can_appeared", n=len(appear),
+                                items=appear[:12], cue=cue, lag=lag,
+                                reads="items new to the lists since the last reading")
+            if _CAN_PRODUCE:
+                self._can_produce(cue["press"], cross, appear)
+            if cross or appear:
+                self.led.record(self.cycle, "MINT", "@can", "can_lists", board=board, **cnt,
+                                crossings=len(cross), appeared=len(appear),
+                                reads="what I can do and what I can't, after the crossings")
+        st.update(lists=now, state=dict(before), step=self.cycle, known=known)
+
+    def _can_kind_key(self, item: str) -> tuple:
+        """10a+ "A then B": an item's kind key -- its object's kind (7l) and its reading."""
+        o, _d, r = item.partition(".")
+        return (self._kind(o), r)
+
+    def _can_offer_note(self, row: dict, press: str, src) -> None:
+        """An OPENED crossing files its opener under the item's kind (can_ledger.OpenerBook)."""
+        if row.get("kind") != "opened":
+            return
+        book = self.__dict__.setdefault("_can_openers", can_ledger.OpenerBook())
+        n = book.note(self._can_kind_key(row["item"]), press, src)
+        self.led.record(self.cycle, "MINT", "@can", "can_opener", item=row["item"], press=press,
+                        src=src, seen=n,
+                        reads="a precondition met: the press just before it and who it reads "
+                              "as moved by, filed under the item's kind (A then B)")
+
+    def _can_produce(self, press: str, cross: list, appear: list) -> None:
+        """"A => B": predict from earlier readings, settle against this one, then learn."""
+        book = self.__dict__.setdefault("_can_prod", can_ledger.ProductionBook())
+        observed = {self._can_kind_key(a["item"]) for a in appear} | \
+            {self._can_kind_key(r["item"]) for r in cross if r["kind"] in ("opened", "discovered")}
+        pred = book.predict(press)
+        if pred:
+            hit, miss = book.settle(press, pred, observed)
+            self.led.record(self.cycle, "MINT", "@can", "can_produce", press=press,
+                            predicted=[list(k) for k in pred[:6]], hit=[list(k) for k in hit[:6]],
+                            missed=len(miss),
+                            score={f"{k[1]}": book.score[(press, k)] for k in pred[:6]},
+                            reads="A => B: what this press produced before, predicted from "
+                                  "earlier readings and settled on this one (record-only)")
+        book.learn(press, observed)
+
+    def _can_offer_row(self, item: str) -> None:
+        """An item of a filed kind is closed or appears blocked: its openers offered, a row."""
+        book = self.__dict__.get("_can_openers")
+        if book is None:
+            return
+        got = book.offers(self._can_kind_key(item))
+        if got:
+            self.led.record(self.cycle, "MINT", "@can", "can_offer", item=item,
+                            offers=got[:3],
+                            reads="A then B: this kind was opened before by these -- offered, "
+                                  "not held (record-only)")
+
+    def _reuse_head_names(self):
+        """H7's KEY FIX (step 10; r1849 / the seat's 16:24 note): the reuse book counts HEADS --
+        settled terms by name, library entries -- while the walk scores CHAINS of atoms, so keying
+        authority by atom name scored almost nothing. This maps a chain to the book's heads whose
+        own atoms the chain STARTS with (a settled term's atoms, read from the library), so a
+        chain built on a head that paid in many contexts rises in order. Order only."""
+        heads: dict = {}
+        for (_c, h) in self._reuse.paid:
+            t = self.gamma.library.get(h)
+            if t is not None and h not in heads:
+                heads[h] = tuple(a.name for a in t.atoms)
+
+        def names(chain: tuple):
+            got = tuple(a.name for a in chain)
+            return [h for h, at in heads.items() if at and got[:len(at)] == at]
+        return names
+
+    def _deepen_trees(self, slot: str, roots: list, hist, base: float, robs: list, rkey: Any,
+                      units: Any, budget: int, beat: float) -> tuple:
+        """10d 2b: tree_search.deepen over the mint's depth-one trees. `roots` are (tree, guard
+        bits, kind). A child is one tier deeper: a unary branch grows by one branch atom, or a
+        node's raw second leaf is fed by a one-atom term over another of the slot's binds. Each
+        is priced by the mint's own bargain -- cost = bits + the root's guard bits (a lower bound
+        on every deeper tree, since depth only adds symbols); total = cost + _left when
+        _cannot_pay and pays admit it, else infinite. Returns ((total, left, cost, tree, kind) or
+        None, stats); a tree is returned only if its total is under `beat`."""
+        gb: dict = {}
+        kinds: dict = {}
+        start = []
+        for t, g_bits, k in roots:
+            if t.name not in gb:
+                gb[t.name], kinds[t.name] = g_bits, k
+                start.append(t)
+        br = [b.atoms[0] for b in self._branches()]
+        binds = [b for b in self._bindings(slot, robs) if b]
+        extra: dict = {}
+
+        def cost(t):
+            cap.head()
+            return self._bits((t, units)) + gb[t.name]
+
+        def total(t):
+            c = cost(t)
+            if self._cannot_pay(t, slot, robs, c, base, rkey):
+                return math.inf
+            left = self._left(t, slot, hist, base, c)
+            return c + left if self._pays_ev(slot, t, c, left, base) else math.inf
+
+        def children(t):
+            ot, out = t.operand_term, []
+            if ot is None:
+                return out
+            if ot.operand is None and ot.operand_term is None:
+                kids = [Term(t.atoms, origin=t.origin, operand=t.operand, guard=t.guard,
+                             guard_ref=t.guard_ref, operand_term=Term(ot.atoms + (a,)))
+                        for a in br]
+                add = 1
+            else:
+                path = tree_search.open_leaf(t)
+                if not path:
+                    return out
+                ls = path[-1].operand
+                kids = [tree_search.replace_leaf(t, Term((a,), operand=b2))
+                        for a in br for b2 in binds if b2 not in (ls, t.operand)]
+                add = 0
+            for k in kids:
+                cap.head()
+                if k is None or k.name in gb or self.gamma.is_atom(k) or (
+                        k.name in self.gamma.library) or not self._operand_fits(
+                        k, slot, t.operand):
+                    continue
+                gb[k.name], kinds[k.name] = gb[t.name], kinds[t.name]
+                extra[k.name] = extra.get(t.name, 0) + add
+                out.append(k)
+            return out
+
+        def depth(t):
+            return tree_search.term_depth(t) + extra.get(t.name, 0)
+
+        found, st = tree_search.deepen(start, children, cost, total, depth, beat, budget)
+        if found is None:
+            return None, st
+        c = cost(found)
+        tot = total(found)
+        return (tot, tot - c, c, found, kinds[found.name]), st
+
     def _operand_fits(self, cand, target: str, bind: str | None) -> bool:
         """`0a`'s TYPING half, whose trigger fired on a real board.
 
@@ -26876,6 +27253,7 @@ class Agent:
         by_kind: dict[str, tuple] = {}
         wanted: tuple[float, Term, int] | None = None
         rank = 0
+        _tree_roots: list = []      # 10d 2b: (tree, guard bits, kind) that passed _cannot_pay
         _share: dict = {}        # D2: per-stream rank/pays/turns, recorded under the arm
         _widen: dict = {}        # L4: the widened streams' kinds and the gate's answer per round
         _skey = _hit = None
@@ -27106,8 +27484,9 @@ class Agent:
                     _key = shape_order.make_order_key(
                         shape_order.wanted(slot.rsplit(".", 1)[-1]), self._shape_readings,
                         paid_heads=_heads, sense_heads=_heads,
-                        authority=(self._reuse.authority() if self._reuse is not None
-                                   else None),         # P6 H7: 8c's tiebreak
+                        authority=(self._reuse.authority(self._reuse_head_names())
+                                   if self._reuse is not None else None),   # P6 H7, keyed
+                        # by the HEADS the chain starts with (H7's key fix, step 10)
                         fits_whole=lambda ch, _b=by_fit: _b(Term(ch)))
                     _bound = _stop_at = None
                     if robs:
@@ -27447,6 +27826,9 @@ class Agent:
                                         + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
+                                if _TREE_DEEPEN:
+                                    _tree_roots.append((bt, _guard_bits(
+                                        g, len(_gs) - 1, _nr(g, len(_refs))), kind))
                                 bleft = self._left(bt, slot, hist, base, bcost)
                                 _sh["pays_called"] += 1
                                 if not self._pays_ev(slot, bt, bcost, bleft, base):
@@ -27529,6 +27911,9 @@ class Agent:
                             # the bound was already correct.
                             if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                 continue
+                            if _TREE_DEEPEN:
+                                _tree_roots.append((bt, _guard_bits(
+                                    g, len(_gs) - 1, _nr(g, len(_refs))), kind))
                             bleft = self._left(bt, slot, hist, base, bcost)
                             _sh["pays_called"] += 1
                             if not self._pays_ev(slot, bt, bcost, bleft, base):
@@ -27679,6 +28064,30 @@ class Agent:
                 # search skips nobody who was going to be asked.
             if _DIVIDE:
                 self._divide_row(slot, rkey)
+
+        if _TREE_DEEPEN and _tree_roots:
+            # 10d 2b: one tier down from the depth-one trees, within the work budget left; the
+            # best tree found beats `best` or nothing changes (deepen only returns a better one)
+            _beat = base if best is None else min(base, best[0])
+            _dfound, _dst = self._deepen_trees(slot, _tree_roots, hist, base, robs, rkey, _units,
+                                               max(0, self.cfg.work_budget - rank), _beat)
+            self.led.record(self.cycle, self._running_step, slot, "tree_deepen",
+                            roots=len(_tree_roots), priced=_dst["priced"],
+                            per_tier=_dst["per_tier"], tier_reached=_dst["tier_reached"],
+                            frontier_stop=_dst["frontier_stop"],
+                            budget_spent=_dst["budget_spent"],
+                            found=_dfound[3].name if _dfound else None,
+                            reads="10d 2b: the trees deepened a tier at a time, priced by the "
+                                  "same bargain, best-first with the exact stop")
+            if _dfound is not None:
+                _dk = _dfound[4]
+                _dfound = _dfound[:4]
+                self.gamma.book["bargain_paid"] = self.gamma.book.get("bargain_paid", 0) + 1
+                guards["reachability"] = True
+                if _dk not in by_kind or _dfound[0] < by_kind[_dk][0]:
+                    by_kind[_dk] = _dfound
+                if best is None or _dfound[0] < best[0]:
+                    best = _dfound
 
         # WHICH KIND WON THE SLOT, AND BY HOW MUCH. The residual alone buries the answer:
         # *did an objective ever out-predict a plain value bet* is the question the two-stream
@@ -29264,7 +29673,13 @@ class Agent:
             return self._spent >= STEP_BUDGET
         if self._clk_hs is None:
             return False
-        spent, allow = self._purse_spent(), self._allowance()
+        if _PURSE_FAST:
+            allow = self._allowance()
+            if 0 <= cap.HEADS - self._clk_h0 < allow:
+                return False                # 0 <= spent <= heads since the step began < allow
+            spent = self._purse_spent()
+        else:
+            spent, allow = self._purse_spent(), self._allowance()
         if spent >= allow and self._p_cross is None:
             # r1644: the unit that crossed the allowance is the scope running when it is first seen
             self._p_cross = {"at": self._clk_stack[-1][0] if self._clk_stack else None,
@@ -30048,6 +30463,13 @@ class Agent:
         if _DERIVED_WANT and self.trace and _plan:
             with self._step_scope("MINT"):
                 self._derived_wants()
+        if _CAN_LEDGER and self.trace:
+            # EVERY STEP, not only in a planning episode (dc22 c0-24 opened ONE episode, so a
+            # once-per-episode reading saw no crossing): Isaiah 15:01 "as soon as those change".
+            # Record-only, so uncharged: no head, purse, extent or derived-slot cache it touches
+            # may move a choice or a later reading (8a-0's pay-gap rule)
+            with self._step_scope("MINT"), self._pg_uncharged():
+                self._can_update()
         if _t_ep is not None:
             with self._step_scope("MINT"):   # G1: the row's label is the step running
                 self.led.record(self.cycle, "MINT", "@plan", "plan_episode",
