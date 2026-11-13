@@ -2364,6 +2364,12 @@ ARMS: dict[str, str] = {
                                    "(today's) until price has 3 such endings and class's "
                                    "validity is higher. ON. OFF: price first always. MF: "
                                    "tests/test_order_by_ground.py.",
+    "TETHER_OBG_CARRY": "STEP 10a carry (the reviewer 2026-11-12; Isaiah 23:10 'learned search "
+                        "order should carry over'): ORDER_BY_GROUND's [ended, paid] per cue rides "
+                        "the lineage as increments (obg_n in the counts blob, summed by the store "
+                        "and by the archive chain); a generation starts from its ancestors' "
+                        "record. ON. OFF: every generation starts from [0, 0]. MF: "
+                        "tests/test_obg_carry.py.",
     "TETHER_CAN_OFFER": "STEP 10a+ 'A then B' (the reviewer 2026-11-12): an OPENED crossing "
                         "files its opener (press, src) under the item's kind; a closed or newly "
                         "blocked item of that kind gets a can_offer row. RECORD-ONLY. NEEDS "

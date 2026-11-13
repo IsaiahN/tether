@@ -1495,6 +1495,11 @@ _PURSE_FAST = armflag.arm("TETHER_PURSE_FAST", default=True)
 # above price once price has _B2_MIN_EVIDENCE disagreeing endings and class's validity (its
 # Laplace 0.5 while untried) is higher; it swaps back as evidence moves. OFF: price first always.
 _ORDER_BY_GROUND = armflag.arm("TETHER_GOAL_ORDER_BY_GROUND", default=True)
+# 10a CARRY (Isaiah 2026-11-12 23:10: "learned search order should carry over ... search ... getting
+# smarter over time reinforced by usage and results"): the cue order's record [ended, paid] rides
+# the lineage as increments ("obg_n" in the counts blob) and load sums it, so a generation starts
+# from what its ancestors' endings paid. OFF: every generation starts from [0, 0] (today's).
+_OBG_CARRY = armflag.arm("TETHER_OBG_CARRY", default=True)
 # 10b, A GOAL'S PARTS, MOST LIKELY TO FAIL FIRST (the reviewer 2026-11-12; Fig 3 :22-23: "A step
 # whose input never arrives cannot be diagnosed, only its predecessor can"; fail-first, Haralick &
 # Elliott 1980). A held goal of two or more parts orders them: "A then B" keeps its spec's order (A
@@ -5172,6 +5177,7 @@ class Agent:
         self._b2_kinds_inh: dict = {}
         self._b2_wk: dict = {}
         self._obg = {"price": [0, 0], "class": [0, 0]}     # 10a ORDER_BY_GROUND: [ended, paid]
+        self._obg_written = {"price": [0, 0], "class": [0, 0]}   # 10a carry: saved or loaded
         self._b2_evidenced: list = []   # r1481: the kinds placed by validity, at the last cue order
         self._indist_key = None       # INDIST_ON_CHANGE: the last grouping computed
         self._indist_at = None        # INDIST_ON_CHANGE: the cycle of the last indistinct row

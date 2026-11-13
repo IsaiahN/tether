@@ -877,6 +877,16 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
                           for k, c in sorted(ag._fx.items(), key=lambda kc: repr(kc[0]))
                           if (d := {e: n - w.get(k, {}).get(e, 0) for e, n in sorted(c.items())
                                     if n > w.get(k, {}).get(e, 0)})}
+    if tether._ORDER_BY_GROUND and tether._OBG_CARRY and hasattr(ag, "_obg_written"):
+        # 10a carry: the cue order's [ended, paid] since the last save or load; load sums (obg_n)
+        _ob = {cue: d for cue, st in sorted(ag._obg.items())
+               if (d := {e: n - w
+                         for e, n, w in zip(("ended", "paid"), st,
+                                            ag._obg_written.get(cue, [0, 0]), strict=True)
+                         if n > w})}
+        if _ob:
+            gen["obg_n"] = _ob
+        ag._obg_written = {cue: list(st) for cue, st in ag._obg.items()}
     if getattr(ag, "_reuse", None) is not None:
         # P6 H5: the reuse book's counts since the last save; load sums (reuse_n)
         _rn = ag._reuse.drain()
@@ -1609,6 +1619,9 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         for k, d_ in c.get("facet_n", {}).items():
             ag._fx_in.setdefault(fx_key(k), {}).update(d_)
         rep["facet_keys_in"] = len(ag._fx_in)
+    if tether._ORDER_BY_GROUND and tether._OBG_CARRY and hasattr(ag, "_obg_written"):
+        # 10a carry: the store's summed obg_n starts this generation's cue order record
+        rep["obg_in"] = _obg_load(ag, c.get("obg_n", {}))
     if getattr(ag, "_reuse", None) is not None:
         # P6 H1: the store's summed reuse_n, then the age window from it
         ag._reuse.load(c.get("reuse_n", {}))
@@ -1760,6 +1773,18 @@ def _unknown(g: dict, dk: bool = False) -> set:
     return {(k, r, tuple(ko), tuple(kx)) for k, r, ko, kx in g.get("kinds_unknown", ())}
 
 
+def _obg_load(ag: Any, summed: dict) -> dict:
+    """10a carry: add the ancestors' summed obg_n {cue: {ended, paid}} into the agent's cue order
+    record, and mark it written (it is already in the lineage, so the next save carries only what
+    this generation adds)."""
+    for cue, d_ in summed.items():
+        if cue in ag._obg:
+            ag._obg[cue][0] += d_.get("ended", 0)
+            ag._obg[cue][1] += d_.get("paid", 0)
+    ag._obg_written = {cue: list(st) for cue, st in ag._obg.items()}
+    return {cue: list(st) for cue, st in sorted(ag._obg.items())}
+
+
 def load(d: str | Path, ag: Any) -> dict:
     """The next instance's start: the chain folded into its Gamma as IMPORTED terms naming the tip,
     and the evidence record turned on. The fold's evidence and dormant record are not read back."""
@@ -1891,6 +1916,15 @@ def load(d: str | Path, ag: Any) -> dict:
                 for e, n in c.items():
                     into[e] = into.get(e, 0) + n
         rep["facet_keys_in"] = len(ag._fx_in)
+    if tether._ORDER_BY_GROUND and tether._OBG_CARRY and hasattr(ag, "_obg_written"):
+        # 10a carry: every generation's obg_n, root to tip, summed into the cue order record
+        _ob: dict = {}
+        for _h, g in chain:
+            for cue, d_ in g.get("obg_n", {}).items():
+                into = _ob.setdefault(cue, {})
+                for e, n in d_.items():
+                    into[e] = into.get(e, 0) + n
+        rep["obg_in"] = _obg_load(ag, _ob)
     if getattr(ag, "_reuse", None) is not None:
         # P6 H1: every generation's reuse_n, root to tip, then the age window from it
         _sum: dict = {}
