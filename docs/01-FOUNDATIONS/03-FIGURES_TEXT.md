@@ -841,8 +841,8 @@ stripped 6eae62394c36655e995d66849e94c7d9dc6f43627409c5866ab2886444acb4cb
 
 ## Fig 13 -- Figure_13_The_Minimum_Viable_Set.svg
 
-original 436d3877f1f7eb96594b7b4edbcfa3cf071320610bcce0fa66c0a9d17a5825dd  
-stripped 704f2c75c417dfe2db4cffc8e0a99f161e585de364265a7f15c1467035c2ebe6
+original 29d81eb18ff67ffa260e2a4462a2aa827088351729838975561b36508f834798  
+stripped 87338ecfa45d7334239c1ac0aee247a2bc036cb1b0aeb4423c07f375550924c9
 
 ```
   1  FIGURE 13
@@ -919,8 +919,8 @@ stripped 704f2c75c417dfe2db4cffc8e0a99f161e585de364265a7f15c1467035c2ebe6
  72  The derivations were run before anyone asked for a minimality argument, which is why this is evidence rather than a case built to fit.
  73  WHAT THE COMBINATIONS COMPOSE
  74  Everything else is a composition across the two kinds, never within one.
- 75  Space and time compose conservation. Spectrum and gradient compose a continuum. Network and gradient compose a flow. And a gradient over a
- 76  network is a different term from a gradient over space, because which structure it is bonded to is part of what it is.
+ 75  Two states never bond directly. It is not space-time but space, a structure, time; and two structures join only through a state. Energy
+ 76  and a gradient compose a flow. A gradient over space and one over time are different terms, because which state it is bonded to is part of what it is.
  77  ONE CHAIN
  78  a state
  79  a structure
