@@ -128,6 +128,14 @@ ARC is only the adapter and the harness below.
   before. Nothing preloaded has standing until contact with the board pays for it, and anything
   built on a term the board refutes falls on its own, so the ground does the training, and the
   agent's own record of how its reach grew decides where it searches first.
+- **A visual lexicon, so its speech grows fluent** (planned, not built). Today the agent
+  describes what it sees in its own pointers ("o1 moved 5 columns right"). Linking pictures to
+  words and to how words relate (ImageNet, WordNet and a relation layer) would let recognition name
+  what it sees ("the ball rolls to the right"), and every name carries predictions the board can
+  test (a ball keeps rolling and bounces off walls), so a name that stops paying is dropped. That
+  is why it learns this way: the same terms settle on abstract boards and in the world they
+  describe, so it learns about the world while it learns abstractions, and its speech becomes more
+  fluent as more of its words are grounded.
 
 ## Documents
 
