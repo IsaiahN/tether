@@ -1,5 +1,5 @@
 """cue_bridge: which library READINGS changed this frame, from the observer's cue (M1,
-docs/cohesion/METAPROGRAMMING_DESIGN.md; the reviewer's ruling 2026-10-08 20:45Z, path B).
+docs/03-DESIGN/08-METAPROGRAMMING_DESIGN.md; the reviewer's ruling 2026-10-08 20:45Z, path B).
 
 `changed_readings(cue) -> {reading: count}`, the input `Library.light` ranks entries by. It
 reads `cue["mutations"]["deltas"]`, the observer's per-delta counts, and never the classes

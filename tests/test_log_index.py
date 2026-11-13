@@ -15,7 +15,8 @@ tests/fixtures/log_pins_hand.tsv; unset, MF6 / MF7 print SKIP-ENV.
   MF4  a torn last line is counted as bad, and the row still writes.
   MF5  retire refuses a list holding a ledger that fails verify, and renames nothing; the eligible
        one alone retires to .dead-<UTC> with a LOG_REMOVALS line.
-  MF6  the pins generated from docs/LEDGER.md pass --check; a planted LEDGER citation of a box
+  MF6  the pins generated from the LEDGER doc (docs/03-DESIGN/07-LEDGER.md) pass --check; a planted
+       LEDGER citation of a box
        with no folder and no pin makes --check FAIL.
   MF7  the same for a planted worktree citation (wt_..., the reviewer 2026-10-22 00:30 (c)).
   The planted tokens are built at run time, so no source the pins read can ever cite them.
@@ -168,17 +169,18 @@ def main() -> None:
             real_pins.write_text(hand.replace("<RUNS>", Path(runs).as_posix())
                                  .replace("<HOLDING>", Path(hold).as_posix())
                                  .replace("<REPO>", HERE.as_posix()), encoding="utf-8")
-            assert run("--pins", str(real_pins), "pins", str(HERE / "docs" / "LEDGER.md")) == 0
-            assert run("--pins", str(real_pins), "pins", str(HERE / "docs" / "LEDGER.md"),
+            ledger_doc = HERE / "docs" / "03-DESIGN" / "07-LEDGER.md"   # 8e: was docs/LEDGER.md
+            assert run("--pins", str(real_pins), "pins", str(ledger_doc)) == 0
+            assert run("--pins", str(real_pins), "pins", str(ledger_doc),
                        "--check") == 0
             n = len(li.read_pins(real_pins))
             planted = tmp / "LEDGER_planted.md"
             for mf, tok in (("MF6", "S9" + "ZQ"), ("MF7", "wt_" + "zz9")):
-                planted.write_text((HERE / "docs" / "LEDGER.md").read_text(encoding="utf-8")
+                planted.write_text(ledger_doc.read_text(encoding="utf-8")
                                    + f"\n- planted: the {tok} box measured nothing.\n",
                                    encoding="utf-8")
                 assert run("--pins", str(real_pins), "pins", str(planted), "--check") == 1, mf
-                print(f"  {mf}: {n} pins from docs/LEDGER.md pass --check; a planted {tok} "
+                print(f"  {mf}: {n} pins from the LEDGER doc pass --check; a planted {tok} "
                       "citation with no folder or pin FAILS it")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

@@ -726,8 +726,9 @@ def build(check_only: bool = False) -> dict:
 # r1159: an atom is ASSIGNED only on MIN_SHARED attributes (one shared word is a single source,
 # Fig 2); one shared is kept as a recorded CANDIDATE with its reason, never read by the bridge.
 MIN_SHARED = 2
-CORPUS_INDEX = Path(os.environ.get("ATTRIBUTE_INDEX") or Path(__file__).resolve().parent.parent
-                    / "docs" / "corpus" / "ATTRIBUTE_INDEX.json")
+# 8e: moved from docs/corpus/ to library/ (r1855)
+CORPUS_INDEX = Path(os.environ.get("ATTRIBUTE_INDEX")
+                    or Path(__file__).resolve().parent / "ATTRIBUTE_INDEX.json")
 
 
 def _cluster_derived(atoms: dict, mols: dict) -> dict:
