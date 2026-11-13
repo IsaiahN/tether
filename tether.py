@@ -1058,6 +1058,18 @@ _REACH_GATE = armflag.arm("TETHER_REACH_GATE", default=True)
 # reach_gate_lost one that accepted (a row names the terms). A measurement switch, never a play
 # setting. OFF: no check
 _REACH_GATE_CHECK = armflag.arm("TETHER_REACH_GATE_CHECK")
+# THE DESIGN BILL (Isaiah 2026-11-13 00:10, 00:18; WATSON 2026-11-13, the walkthrough and the bill;
+# Fig 9 :45 "Describing the residual is the expensive part. Leaving, looking up and recognising are
+# one step each, and cheap only in that order"; Fig 12 :125-127 two currencies; Fig 13 :133 reach
+# answered "before it searches"). Isaiah: "The trip back to the walk is apart of the design" --
+# a board read made in order to design is charged to MINT (TETHER_MINT_READ_CHARGED; OFF: the
+# r1871 label-only read, uncharged under the enclosing idle scope). And the walkthrough comes
+# first: the "is this possible?" reach check runs before the contact read, free, so an
+# impossible job stops before any design is charged (TETHER_REACH_FIRST; OFF: the reach check
+# after the contact read, as before). Each design read writes a design_read row (heads, and how
+# many design reads this slot's kind had before: a novice's first look against an expert's).
+_MINT_READ_CHARGED = armflag.arm("TETHER_MINT_READ_CHARGED", default=True)
+_REACH_FIRST = armflag.arm("TETHER_REACH_FIRST", default=True)
 # THE STEP CLOCK (the reviewer 2026-10-26 r263 (b)): a LEDGER INSTRUMENT, never read by the agent.
 # Each step's REPEAT row carries wall_s per step phase (exclusive, from _step_scope), trace_len,
 # wants_n, owed_import_n, gamma_reuse_live and gamma_reuse_on_board (r264); step_mint and each
@@ -4954,6 +4966,29 @@ class Agent:
         finally:
             self._running_step = prev
 
+    @contextmanager
+    def _design_read(self, slot: str, what: str):
+        """The design bill: a board read made in order to design -- charged to MINT under
+        _MINT_READ_CHARGED (a _step_scope push), else the r1871 label only. Writes a design_read
+        row when either design-bill arm is on: the heads it spent and the reads this slot's kind
+        had before it (0 = a first sighting)."""
+        h0 = cap.HEADS
+        scope = self._step_scope("MINT") if _MINT_READ_CHARGED else self._row_step("MINT")
+        with scope:
+            yield
+        if _MINT_READ_CHARGED or _REACH_FIRST:
+            try:
+                kk = self._kind_key(slot)
+            except Exception:       # a slot whose owner names no kind is read as its own
+                kk = slot
+            seen = self._design_seen.get(kk, 0)
+            self._design_seen[kk] = seen + 1
+            self.led.record(self.cycle, "MINT", slot, "design_read", what=what,
+                            heads=cap.HEADS - h0, sighting=seen,
+                            charged=bool(_MINT_READ_CHARGED),
+                            reads="a board read made in order to design: its heads, and how "
+                                  "often this slot's kind was read for design before")
+
     def __init__(self, env: Any, gam: Gamma, cfg: Config | None = None,
                  led: Ledger | None = None) -> None:
         self.env, self.gamma = env, gam
@@ -5204,6 +5239,7 @@ class Agent:
         self._b2_kinds_inh: dict = {}
         self._b2_wk: dict = {}
         self._obg = {"price": [0, 0], "class": [0, 0]}     # 10a ORDER_BY_GROUND: [ended, paid]
+        self._design_seen: dict = {}  # the design bill: design reads per slot kind
         self._obg_written = {"price": [0, 0], "class": [0, 0]}   # 10a carry: saved or loaded
         self._b2_evidenced: list = []   # r1481: the kinds placed by validity, at the last cue order
         self._indist_key = None       # INDIST_ON_CHANGE: the last grouping computed
@@ -26813,8 +26849,20 @@ class Agent:
                                       "pressed on this board; owed, and minted once each has "
                                       "been")
             return
-        with self._row_step("MINT"):    # r1871: the mint's own read; its cut rows are MINT rows
-            fp = self._contact_fp(slot) if _CONTACT_FIRST else None
+        gated = None
+        if _REACH_FIRST:
+            # the design bill: the walkthrough first -- "is this possible?" before any design is
+            # charged (Fig 13 :133); free, as the look is (Fig 9 :45)
+            with self._row_step("MINT"):
+                gated = _REACH_GATE and self._out_of_reach(slot)
+            if gated and not _REACH_GATE_CHECK:
+                self._reach_gate_row(slot, b)
+                return
+        if _CONTACT_FIRST:
+            with self._design_read(slot, "contact"):   # the trip back to the wall: design
+                fp = self._contact_fp(slot)
+        else:
+            fp = None
         if _CONTACT_FIRST:
             why = ("same_rows" if fp is not None and self._cf_rows.get(slot) == fp
                    else "named" if (self._act_named == self.cycle
@@ -26834,17 +26882,16 @@ class Agent:
                                            "row arrives"))
                 return
             self._cf_owed.pop(slot, None)
-        with self._row_step("MINT"):    # r1871: as the contact read (its residual read can cut)
-            gated = _REACH_GATE and self._out_of_reach(slot)
+        if gated is None:
+            with self._design_read(slot, "reach"):   # r1871's place, now charged as design
+                gated = _REACH_GATE and self._out_of_reach(slot)
+            if gated:
+                self._reach_gate_row(slot, b)
+                if not _REACH_GATE_CHECK:
+                    return
+        elif gated:
+            self._reach_gate_row(slot, b)              # REACH_FIRST's check run: minted anyway
         if gated:
-            _book_add(self.gamma.book, "reach_gate_skipped")
-            self.led.record(self.cycle, "ACCEPT", slot, "reach_gate", bin=b,
-                            type=self.slot_types.get(slot), check=bool(_REACH_GATE_CHECK),
-                            reads="not minted: no residual row's new value is in the vocabulary's "
-                                  "reach for this nominal type -- outside in principle, never "
-                                  "searched to budget; the event is read through other slots")
-            if not _REACH_GATE_CHECK:
-                return
             minted0 = {n for n, s in self.gamma.stamps.items() if s.get("origin") == MINTED}
         self._mint_exhausted = False
         t0 = time.perf_counter() if _STEP_CLOCK else None
@@ -26866,6 +26913,15 @@ class Agent:
             if got:
                 self.led.record(self.cycle, "ACCEPT", slot, "reach_gate_lost", terms=got,
                                 reads="40 check run: a gated slot, minted anyway, accepted these")
+
+    def _reach_gate_row(self, slot: str, b: str) -> None:
+        """40: the reach gate's skip, booked and recorded (one place for both orders)."""
+        _book_add(self.gamma.book, "reach_gate_skipped")
+        self.led.record(self.cycle, "ACCEPT", slot, "reach_gate", bin=b,
+                        type=self.slot_types.get(slot), check=bool(_REACH_GATE_CHECK),
+                        reads="not minted: no residual row's new value is in the vocabulary's "
+                              "reach for this nominal type -- outside in principle, never "
+                              "searched to budget; the event is read through other slots")
 
     def _out_of_reach(self, slot: str) -> bool:
         """40: no residual row's new value is in reach (see _REACH_GATE). Never gates an ordered,

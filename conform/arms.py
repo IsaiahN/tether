@@ -2370,6 +2370,18 @@ ARMS: dict[str, str] = {
                                    "(today's) until price has 3 such endings and class's "
                                    "validity is higher. ON. OFF: price first always. MF: "
                                    "tests/test_order_by_ground.py.",
+    "TETHER_MINT_READ_CHARGED": "THE DESIGN BILL (Isaiah 2026-11-13 00:10 'the trip back to the "
+                                "walk is apart of the design'): a board read made in order to "
+                                "design (the contact read; the reach read when it runs inside "
+                                "design) is charged to MINT; each writes a design_read row "
+                                "(heads, prior "
+                                "reads of the kind). ON. OFF: the r1871 label-only read, "
+                                "uncharged. MF: tests/test_design_bill.py.",
+    "TETHER_REACH_FIRST": "THE DESIGN BILL (Isaiah 2026-11-13 00:18): the 'is this possible?' "
+                          "reach check runs before the contact read, free, so an impossible job "
+                          "stops before any design is charged (Fig 13 :133; Fig 9 :45). ON. OFF: "
+                          "the reach check after the contact read. MF: "
+                          "tests/test_design_bill.py.",
     "TETHER_OBG_CARRY": "STEP 10a carry (the reviewer 2026-11-12; Isaiah 23:10 'learned search "
                         "order should carry over'): ORDER_BY_GROUND's [ended, paid] per cue rides "
                         "the lineage as increments (obg_n in the counts blob, summed by the store "

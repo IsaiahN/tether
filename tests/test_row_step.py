@@ -2,7 +2,8 @@
 contact read (CONTACT_FIRST) and reach-gate read run before the mint's step opens, under the step
 that called it (ACCEPT); a purse cut inside them wrote ACCEPT rows on the slot, and its MINT rows
 followed -- the demo's gate refused ("MINT after ACCEPT"). _row_step labels their rows MINT and
-moves no clock.
+moves no clock. Since the design bill (TETHER_MINT_READ_CHARGED, TETHER_REACH_FIRST), this
+holds with both of those switches OFF, which this file sets.
 
   RS1  every row on the slot from one _mint_in_step called under ACCEPT is labelled MINT.
        MF-RS1: the old order (no relabel) writes ACCEPT rows first -> RED.
@@ -23,6 +24,10 @@ import _repo  # noqa: F401  the repo root on sys.path (tests/, 4d)
 
 sys.dont_write_bytecode = True
 os.environ.setdefault("TETHER_AGENT_SEED", "0")
+# THE DESIGN BILL (Isaiah 2026-11-13; tests/test_design_bill.py) charges these reads and moves the
+# reach check first; this file pins the r1871 label-only path those two switches restore when OFF.
+os.environ["TETHER_MINT_READ_CHARGED"] = "0"
+os.environ["TETHER_REACH_FIRST"] = "0"
 
 import cap  # noqa: E402
 import gamma  # noqa: E402
