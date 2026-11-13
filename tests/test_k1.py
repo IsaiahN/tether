@@ -119,7 +119,7 @@ if mode == "p2k":
     res, n = ag._tiers(lib, [(lit_k, 1.0)], dk, mine, {}, {})
     order = [k for k, _w in res]
     out["planted"] = {"dk": list(dk), "rung": "a" if ag._kind(mine) == ko else "b", "n": n,
-                      "head": order[:n.get("T1a", 0) + n.get("T1b", 0)],
+                      "head": order[:n.get("T0", 0) + n.get("T1a", 0) + n.get("T1b", 0)],
                       "carried": sorted(carried_k), "lit_at": order.index(lit_k)}
 print("RESULT", json.dumps(out))
 '''
@@ -228,8 +228,14 @@ def in_process() -> None:
     print(f"C T5 lists {len(t5)} POSITION-filed entries after T3, atoms first "
           f"({mol5.count(False)} atoms, {mol5.count(True)} molecules)")
     late = frozenset(t5)
-    ag._spent, ag._late, ag._k1_trunc = tether.STEP_BUDGET, (0, 0), False
-    ag._index_reach(lib, out, slot, mine, (), late=late)
+    # the step's budget spent as the walk reads it (_purse_out): under PURSE_OWN (2c2a136) the
+    # walk reads the purse, so _spent = STEP_BUDGET alone spent nothing (7b, r1900)
+    ag._late, ag._k1_trunc = (0, 0), False
+    ag._purse_out = lambda: True
+    try:
+        ag._index_reach(lib, out, slot, mine, (), late=late)
+    finally:
+        del ag._purse_out
     assert ag._k1_trunc and ag._late == (0, len(t5)), (ag._k1_trunc, ag._late)
     print("C the step's budget spent: the walk stops at T4 / T5,", ag._late[1],
           "counted not asked, the index marked truncated (not memoised)")
@@ -272,11 +278,14 @@ def main() -> int:
     assert p1["dk_rows"] and p1["dk_carried"] == p1["dk_rows"], p1                          # pre
     assert p1["ask"] and p1["off_rows"] and p1["off_carried"] == p1["off_rows"], p1         # pre
     k2 = child("p2k", d, ask=p1["ask"])["planted"]
-    nt1 = k2["n"].get("T1a", 0) + k2["n"].get("T1b", 0)
-    assert nt1 > 0 and set(k2["head"]) == set(k2["carried"]), k2                            # K (a)
+    # 7b (r1900): since P3 (824c160, by bisect) T0 -- the facet key's records -- serves a carried
+    # entry ahead of T1, so the head is T0 + T1 and the carried entries open it (T1 may be empty)
+    nt1 = k2["n"].get("T0", 0) + k2["n"].get("T1a", 0) + k2["n"].get("T1b", 0)
+    nc = len(k2["carried"])
+    assert nt1 > 0 and nc and set(k2["head"][:nc]) == set(k2["carried"]), k2               # K (a)
     assert k2["lit_at"] >= t1(k2["n"]), k2
     print(f"K (a) asked under {k2['dk']} (process 1's most offered kind), rung T1{k2['rung']}: "
-          f"T1 lists the {nt1} carried entries first ({k2['n']}), today's lit entry at "
+          f"T0 + T1 ({nt1}) open with the {nc} carried entries ({k2['n']}), today's lit entry at "
           f"{k2['lit_at']}")
     p2 = child("p2", d)
     assert (p2["known_dk"], p2["known_off"]) == (p1["dk_rows"], p1["off_rows"]), (p2, p1)    # K (b)
@@ -289,8 +298,9 @@ def main() -> int:
           f"holds {p2['known_dk']} and {p2['known_off']}, and {len(reach)} of its "
           f"{len(p2['tiers'])} lookups list a T1")
     cut = child("p2k", tempfile.mkdtemp(), ask=p1["ask"])["planted"]
-    assert cut["n"].get("T1a", 0) + cut["n"].get("T1b", 0) == 0 and not cut["head"], cut  # MF
-    print(f"MF-K-CUT the same ask on an empty lineage: no T1 ({cut['n']})")
+    assert (cut["n"].get("T0", 0) + cut["n"].get("T1a", 0) + cut["n"].get("T1b", 0) == 0
+            and not cut["head"]), cut                                                        # MF
+    print(f"MF-K-CUT the same ask on an empty lineage: no T0 or T1 ({cut['n']})")
     q2 = child("p2", tempfile.mkdtemp(), {"TETHER_DELTA_KIND": "0"})
     assert all("T1a" not in r[2] for r in q2["tiers"]), q2["tiers"][:2]                   # MF-K
     print("MF-K TETHER_DELTA_KIND=0: no lookup lists a T1")

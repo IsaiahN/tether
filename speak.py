@@ -249,9 +249,10 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"slot(s) closed; {len(d.get('still_owed') or [])} still owe. I "
                                f"record what was live and change nothing."))
         elif ev == "reuse_install":
-            out.append(([seq], f"On {slot} the sweep put `{d.get('term')}` into my library "
-                               f"without asking the bargain. It would have said "
-                               f"{'yes' if d.get('would_pay') else 'no'}."))
+            pay = d.get("would_pay")
+            out.append(([seq], f"On {slot} `{d.get('term')}` entered my library as a re-binding; "
+                               + ("nothing was held there to price it against." if pay is None
+                                  else f"the bargain {'pays' if pay else 'does not pay'} for it.")))
         elif ev == "route" and d.get("bin") is None:
             out.append(([seq], f"On {slot} I was wrong: it left the board."))
         elif ev == "route" and d.get("bin") != "held":
