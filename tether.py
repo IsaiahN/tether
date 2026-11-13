@@ -1018,6 +1018,17 @@ _GAME_LOSS_VOTE = armflag.arm("TETHER_GAME_LOSS_VOTE", default=True,
 # it is held as the parent's subgoal (row subgoal_adopted, naming the operand read) and selected
 # while open; ends on arrival, on its own exhausted routes, or at the level. OFF: as before
 _SUBGOAL = armflag.arm("TETHER_SUBGOAL", default=True)
+# HTN, A REAL HIERARCHICAL TASK NETWORK (Isaiah 2026-11-13 04:39 "Lets build this ... and ship it";
+# DESIGN_2026-11-13_HTN; Fig 12 :112 "A plan is a sequence. A goal is a comparison"; Fig 3 :20
+# ordered by dependency; Fig 4 :23 "a method that can be reapplied"; Fig 12 :103-104 composition is
+# recursive; Fig 13 :133 reach before search; SHOP/SHOP2, Nau et al.). R-C's one detour becomes a
+# task STACK: a subtask whose routes run out is decomposed in turn (no slot twice on the stack, so
+# the dependency chain bounds the depth, never a number); its parent is selected again when it
+# pops. METHODS by KIND -- (the parent slot's kind, the subtask's kind) with [ended, paid] -- order
+# the candidate subtasks (validity (paid+1)/(ended+2), the model's order breaking ties), and the
+# WALKTHROUGH rejects a subtask out of reach before anything is pursued. Methods carry across the
+# lineage (htn_n). OFF: R-C's single detour, as before.
+_HTN = armflag.arm("TETHER_HTN", default=True)
 # (6a) R-D, UNREACHABLE AT BUDGET, THEN RE-ENGAGE (the 10-23 design; A11; Fig 8 :40-41): an
 # exhausted intent is kept as the verdict "unreachable at budget" with the situation it was read
 # in; when a route is offered for it again (its situation moved -- 4d -- or its refusals were set
@@ -5669,6 +5680,11 @@ class Agent:
         self._last_press_key: tuple | None = None
         self._press_situ: tuple | None = None
         self._subgoal: dict | None = None   # (4g) R-C: {"parent", "sub"} while a detour is held
+        self._tasks: list = []              # HTN: the task stack, top = _subgoal
+        self._htn: dict = {}                # HTN: method edge (kind -> kind) -> [ended, paid]
+        self._htn_written: dict = {}        # HTN: what the lineage already holds
+        self._htn_pending: dict = {}        # HTN: parent slot -> edges pursued for it, unsettled
+        self._htn_tried: dict = {}          # HTN: parent slot -> subs that ran out for it
         self._unreachable: dict = {}        # (6a) R-D: intent -> {"at", "situation"} at budget
         # (6c): kind forms loaded (key -> row), the keys this instance has written, and this
         # level's bound candidates (None until first asked)
@@ -6541,6 +6557,8 @@ class Agent:
         self._untried_done = set()
         self._3a_seen = set()
         self._subgoal = None                         # (4g): slot names do not cross
+        if _HTN:
+            self._htn_close("level")                 # HTN: a level end settles what is pending
         self._unreachable = {}                       # (6a): nor intents that name them
         self._rk_bound = None                        # (6c): bound again on the new board
         self._correct, self._overshoot = {}, {}      # R-C: keyed by slot names, which went too
@@ -10282,6 +10300,9 @@ class Agent:
         if _SUBGOAL and link.get("linked") and c.first.slot != c.then.slot:
             parent = (link.get("slots") or [c.then.slot])[0]
             self._subgoal = {"parent": parent, "sub": c.first.slot}
+            if _HTN:        # HTN: the held order's first step is the stack's one task
+                self._tasks = [{"parent": parent, "sub": c.first.slot,
+                                "edge": self._htn_edge(parent, c.first.slot)}]
             self.led.record(self.cycle, "PLAN", c.first.slot, "subgoal_adopted", parent=parent,
                             read="ordered goal",
                             reads="the held order's first step, pursued before its second (iv)")
@@ -15874,6 +15895,100 @@ class Agent:
         if sg is not None:
             self.led.record(self.cycle, "SETTLE", sg["sub"], "subgoal_end", parent=sg["parent"],
                             how=how, reads="the detour ends; the parent is chosen again (R-C)")
+        if _HTN and self._tasks:
+            t = self._tasks.pop()
+            if how != "arrived":
+                self._htn_tried.setdefault(t["parent"], set()).add(t["sub"])
+            self.led.record(self.cycle, "SETTLE", t["sub"], "htn_pop", parent=t["parent"],
+                            how=how, depth=len(self._tasks) + 1, edge=t["edge"],
+                            reads="the subtask leaves the stack; the task under it is "
+                                  "selected again")
+            if self._tasks:
+                top = self._tasks[-1]
+                self._subgoal = {"parent": top["parent"], "sub": top["sub"]}
+
+    def _htn_edge(self, parent: str, sub: str) -> str:
+        """HTN: a method's edge by KIND (Fig 4 :23), never by object names."""
+        def k(s):
+            try:
+                return self._kind_key(s)
+            except Exception:       # a slot whose owner names no kind reads as its type alone
+                return repr(str(self.slot_types.get(s)))
+        return f"{k(parent)} -> {k(sub)}"
+
+    def _htn_push(self, chosen: str) -> bool:
+        """HTN: decompose `chosen`, whose routes ran out. Its candidate subtasks are its open
+        enablers not already on the stack or tried for it; the walkthrough rejects any out of
+        reach (Fig 13 :133); the ground orders the rest by the method edge's validity. Pushes the
+        first and says so; False when nothing applies."""
+        on = {t["sub"] for t in self._tasks} | {t["parent"] for t in self._tasks} | {chosen}
+        tried = self._htn_tried.get(chosen, set())
+        en = [(b, ln) for b, ln in self._enablers(chosen)
+              if b in self._res and arrival(self._res[b]) == OPEN and b not in on
+              and b not in tried]
+        if not en:
+            return False
+        ok = []
+        for b, ln in en:
+            with self._row_step("PLAN"):     # the walkthrough: is this subtask possible at all
+                out = _REACH_GATE and self._out_of_reach(b)
+            if out:
+                self.led.record(self.cycle, "PLAN", b, "htn_method_rejected", parent=chosen,
+                                edge=self._htn_edge(chosen, b), why="out of reach",
+                                reads="the walkthrough: this subtask cannot be reached with "
+                                      "the vocabulary as it stands, so the method is not begun")
+            else:
+                ok.append((b, ln))
+        if not ok:
+            return False
+
+        def val(b):
+            st = self._htn.get(self._htn_edge(chosen, b), [0, 0])
+            return (st[1] + 1.0) / (st[0] + 2.0)
+        b, ln = sorted(enumerate(ok), key=lambda iv: (-val(iv[1][0]), iv[0]))[0][1]
+        edge = self._htn_edge(chosen, b)
+        self._tasks.append({"parent": chosen, "sub": b, "edge": edge})
+        self._subgoal = {"parent": chosen, "sub": b}
+        self._htn_pending.setdefault(chosen, set()).add(edge)
+        st = self._htn.get(edge, [0, 0])
+        self.led.record(self.cycle, "PLAN", b, "subgoal_adopted", parent=chosen, read=ln,
+                        reads="the parent's routes are exhausted; its settled term reads this "
+                              "slot, so it is pursued as a route (R-C, HTN)")
+        self.led.record(self.cycle, "PLAN", b, "htn_push", parent=chosen,
+                        depth=len(self._tasks), edge=edge, record=list(st),
+                        validity=round(val(b), 4), candidates=len(ok),
+                        rejected=len(en) - len(ok),
+                        reads="decomposed: the subtask goes on the stack, the parent waits")
+        return True
+
+    def _htn_settle(self) -> None:
+        """HTN: a parent pursued through subtasks pays each edge when it arrives; one gone from
+        the board ends them unpaid."""
+        for parent, edges in list(self._htn_pending.items()):
+            if parent in self._res and arrival(self._res[parent]) == OPEN:
+                continue
+            paid = parent in self._res
+            for e in sorted(edges):
+                st = self._htn.setdefault(e, [0, 0])
+                st[0] += 1
+                st[1] += 1 if paid else 0
+                self.led.record(self.cycle, "SETTLE", parent, "htn_credit", edge=e,
+                                paid=paid, record=list(st),
+                                reads="the task arrived after its subtask: the method paid"
+                                      if paid else "the task left the board: the method ended "
+                                                   "unpaid")
+            del self._htn_pending[parent]
+
+    def _htn_close(self, why: str) -> None:
+        """HTN: a level end -- every pending method ends unpaid, the stack and its tries clear."""
+        for parent, edges in sorted(self._htn_pending.items()):
+            for e in sorted(edges):
+                st = self._htn.setdefault(e, [0, 0])
+                st[0] += 1
+                self.led.record(self.cycle, "SETTLE", parent, "htn_credit", edge=e, paid=False,
+                                record=list(st), why=why,
+                                reads="the level ended before the task arrived: unpaid")
+        self._htn_pending, self._tasks, self._htn_tried = {}, [], {}
 
     def _press_kind(self, action: str, situ: tuple, slot: str | None = None) -> tuple:
         """(5c) A12: a press as a KIND -- the held goal's slot kind (Fig 11 :49: valence is relative
@@ -22594,15 +22709,20 @@ class Agent:
         hot = ({o for s, v in self._outstanding.items() if v > 0 for o in self._objs_named(s)}
                if _SURPRISE_NOMINATES else None)
         unnom: tuple | None = None                 # (5a): the pick nomination would not make
-        if _SUBGOAL and self._subgoal is not None and hyp is None:
+        if _HTN and self._htn_pending:
+            self._htn_settle()                   # HTN: pay or end the methods whose task ended
+        while _SUBGOAL and self._subgoal is not None and hyp is None:
             # (4g) R-C: a held detour is the end selected while its want is open; R-B then reads
-            # routes on its gap, and the parent's gap may grow meanwhile
+            # routes on its gap, and the parent's gap may grow meanwhile. HTN: the stack's next
+            # task down is tried in turn when the top one ends
             _sub = self._subgoal["sub"]
             if _sub in self._res and arrival(self._res[_sub]) == OPEN:
                 if why is not None:
                     why.update(tally, slots=len(self._res), subgoal=_sub)
                 return _sub
             self._subgoal_end("arrived" if _sub in self._res else "gone")
+            if not _HTN:
+                break
         for slot, series in sorted(self._res.items()):
             cap.head()
             if slot in ind:              # r674 1: its change is no reading of the choice
@@ -25649,7 +25769,14 @@ class Agent:
                     # (6a) R-D: kept as a verdict with its scope, so a route found later is read
                     # as a re-engagement and what changed is said (Fig 8 :40-41)
                     self._unreachable.setdefault(said, {"at": self.cycle, "situation": _rctx})
-                if _SUBGOAL and self._subgoal is not None and chosen == self._subgoal["sub"]:
+                if (_HTN and _SUBGOAL and not _restate
+                        and (self._subgoal is None or chosen == self._subgoal["sub"])):
+                    # HTN: decompose the task whose routes ran out; a subtask with no method left
+                    # leaves the stack and its parent is selected again
+                    if not self._htn_push(chosen) and self._subgoal is not None \
+                            and chosen == self._subgoal["sub"]:
+                        self._subgoal_end("routes")
+                elif _SUBGOAL and self._subgoal is not None and chosen == self._subgoal["sub"]:
                     self._subgoal_end("routes")      # (4g): the detour, too, ran out of routes
                 elif _SUBGOAL and not _restate and self._subgoal is None:
                     # (4g) R-C: the next subject is the one the agent's own model says enters

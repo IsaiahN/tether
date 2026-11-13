@@ -2370,6 +2370,12 @@ ARMS: dict[str, str] = {
                                    "(today's) until price has 3 such endings and class's "
                                    "validity is higher. ON. OFF: price first always. MF: "
                                    "tests/test_order_by_ground.py.",
+    "TETHER_HTN": "A REAL HTN (Isaiah 2026-11-13 04:39; DESIGN_2026-11-13_HTN): R-C's single "
+                  "detour becomes a task stack, recursive and bounded by the dependency "
+                  "chain; methods by kind order the candidate subtasks by what paid; the "
+                  "walkthrough rejects an unreachable subtask before it is pursued; methods "
+                  "carry in the lineage (htn_n). ON. OFF: R-C's single detour. MF: "
+                  "tests/test_htn.py.",
     "TETHER_MINT_READ_CHARGED": "THE DESIGN BILL (Isaiah 2026-11-13 00:10 'the trip back to the "
                                 "walk is apart of the design'): a board read made in order to "
                                 "design (the contact read; the reach read when it runs inside "

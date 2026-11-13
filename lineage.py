@@ -877,6 +877,16 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
                           for k, c in sorted(ag._fx.items(), key=lambda kc: repr(kc[0]))
                           if (d := {e: n - w.get(k, {}).get(e, 0) for e, n in sorted(c.items())
                                     if n > w.get(k, {}).get(e, 0)})}
+    if tether._HTN and hasattr(ag, "_htn_written"):
+        # HTN: the methods' [ended, paid] since the last save or load; load sums (htn_n)
+        _hn = {e: d for e, st in sorted(ag._htn.items())
+               if (d := {k: n - w
+                         for k, n, w in zip(("ended", "paid"), st,
+                                            ag._htn_written.get(e, [0, 0]), strict=True)
+                         if n > w})}
+        if _hn:
+            gen["htn_n"] = _hn
+        ag._htn_written = {e: list(st) for e, st in ag._htn.items()}
     if tether._ORDER_BY_GROUND and tether._OBG_CARRY and hasattr(ag, "_obg_written"):
         # 10a carry: the cue order's [ended, paid] since the last save or load; load sums (obg_n)
         _ob = {cue: d for cue, st in sorted(ag._obg.items())
@@ -1619,6 +1629,9 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
         for k, d_ in c.get("facet_n", {}).items():
             ag._fx_in.setdefault(fx_key(k), {}).update(d_)
         rep["facet_keys_in"] = len(ag._fx_in)
+    if tether._HTN and hasattr(ag, "_htn_written"):
+        # HTN: the store's summed htn_n starts this generation's methods
+        rep["htn_in"] = _htn_load(ag, c.get("htn_n", {}))
     if tether._ORDER_BY_GROUND and tether._OBG_CARRY and hasattr(ag, "_obg_written"):
         # 10a carry: the store's summed obg_n starts this generation's cue order record
         rep["obg_in"] = _obg_load(ag, c.get("obg_n", {}))
@@ -1773,6 +1786,17 @@ def _unknown(g: dict, dk: bool = False) -> set:
     return {(k, r, tuple(ko), tuple(kx)) for k, r, ko, kx in g.get("kinds_unknown", ())}
 
 
+def _htn_load(ag: Any, summed: dict) -> int:
+    """HTN: add the ancestors' summed htn_n {edge: {ended, paid}} into the agent's methods and mark
+    them written; returns how many methods the agent now holds."""
+    for e, d_ in summed.items():
+        st = ag._htn.setdefault(e, [0, 0])
+        st[0] += d_.get("ended", 0)
+        st[1] += d_.get("paid", 0)
+    ag._htn_written = {e: list(st) for e, st in ag._htn.items()}
+    return len(ag._htn)
+
+
 def _obg_load(ag: Any, summed: dict) -> dict:
     """10a carry: add the ancestors' summed obg_n {cue: {ended, paid}} into the agent's cue order
     record, and mark it written (it is already in the lineage, so the next save carries only what
@@ -1916,6 +1940,15 @@ def load(d: str | Path, ag: Any) -> dict:
                 for e, n in c.items():
                     into[e] = into.get(e, 0) + n
         rep["facet_keys_in"] = len(ag._fx_in)
+    if tether._HTN and hasattr(ag, "_htn_written"):
+        # HTN: every generation's htn_n, root to tip, summed into the methods
+        _hs: dict = {}
+        for _h, g in chain:
+            for e, d_ in g.get("htn_n", {}).items():
+                into = _hs.setdefault(e, {})
+                for k, n in d_.items():
+                    into[k] = into.get(k, 0) + n
+        rep["htn_in"] = _htn_load(ag, _hs)
     if tether._ORDER_BY_GROUND and tether._OBG_CARRY and hasattr(ag, "_obg_written"):
         # 10a carry: every generation's obg_n, root to tip, summed into the cue order record
         _ob: dict = {}
