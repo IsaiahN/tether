@@ -2832,6 +2832,25 @@ def _next_stream(live: list, spent: dict, share: bool, key: str | None = None,
     return min(live, key=lambda s: (spent[s], s)) if share else live[0]
 
 
+def _tally_authority(score, into: dict, heads: int):
+    """F4 (r1898, r1900): H7's authority tiebreak, counted into the mint's row -- chains scored,
+    how many scored above 0 (only those can move an order), the highest, and the book's paid
+    (context, head) pairs. Record-only: the score returned is the score given."""
+    into.setdefault("scored", 0)
+    into.setdefault("nonzero", 0)
+    into.setdefault("max", 0.0)
+    into["book_paid"] = heads
+
+    def counted(chain: tuple) -> float:
+        v = score(chain)
+        into["scored"] += 1
+        if v > 0:
+            into["nonzero"] += 1
+            into["max"] = max(into["max"], v)
+        return v
+    return counted
+
+
 def _merge_by_depth(lib_chains: list, closure, evidence: dict, key: str, seed: str | None = None):
     """A1 site 6 (the reviewer 2026-10-15 09:05 U3, 14:23): the library's chains enter the closure's
     own walk order (shortest first) at their own depth, never all ahead of it. Within a depth,
@@ -27263,6 +27282,7 @@ class Agent:
         rank = 0
         _tree_roots: list = []      # 10d 2b: (tree, guard bits, kind) that passed _cannot_pay
         _share: dict = {}        # D2: per-stream rank/pays/turns, recorded under the arm
+        _auth_n: dict = {}       # F4: what H7's authority tiebreak scored this mint (record-only)
         _widen: dict = {}        # L4: the widened streams' kinds and the gate's answer per round
         _skey = _hit = None
         priced, _skipped = {}, 0
@@ -27492,7 +27512,9 @@ class Agent:
                     _key = shape_order.make_order_key(
                         shape_order.wanted(slot.rsplit(".", 1)[-1]), self._shape_readings,
                         paid_heads=_heads, sense_heads=_heads,
-                        authority=(self._reuse.authority(self._reuse_head_names())
+                        authority=(_tally_authority(
+                                       self._reuse.authority(self._reuse_head_names()), _auth_n,
+                                       len(self._reuse.paid))
                                    if self._reuse is not None else None),   # P6 H7, keyed
                         # by the HEADS the chain starts with (H7's key fix, step 10)
                         fits_whole=lambda ch, _b=by_fit: _b(Term(ch)))
@@ -28162,6 +28184,8 @@ class Agent:
                   "depth": self.cfg.max_depth, "units": stats["units"],
                   "space_estimate": est,
                   "coverage": round(seen / est, 6) if est else 0.0}
+        if _auth_n:
+            detail["authority"] = _auth_n
         if _STREAM_SHARE and _share:
             detail["stream_share"] = {
                 **{_kind_of(streams[k][1]): v for k, v in _share.items()},
