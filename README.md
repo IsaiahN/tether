@@ -99,6 +99,19 @@ Swap the interface, keep the lineage.
   a move that lost on this same board before, unless no other move is left.
 - **Goal-finding and invention stay inside the budget**: proposing goals and building new
   candidates stop when the step's allowance is spent and are owed, instead of running long.
+- **Step 8, a better-ordered search for explanations** (built): the agent indexes where each
+  change came from (itself, a neighbour, its own clock, or hidden), skips candidates that already
+  failed and rescans only what changed, walks the cheapest fitting ideas first and stops when
+  nothing better can come, keeps word senses apart by context, weights its narration, and keeps a
+  book of which settled ideas paid where -- each behind its own switch, on by default. Nested
+  ideas (an idea's input computed by another idea) are in place but not yet built by the agent.
+- **Played offline on five public games** (vc33, tn36, ft09, dc22, bp35, in the arcade's order)
+  from its carried library, this build met the rule set before the run: no faults, no game
+  finishing fewer levels, no doubling of empty lookups, and no game losing its goal-directed moves
+  (ft09 kept its one and reached it sooner; vc33 gained two). It took fewer steps in the same time
+  on all five games, most on tn36 and bp35; that cost is being profiled for the next release.
+- **The repository is reorganized**: docs/ in numbered folders with a README in each, and run
+  logs written to logs/.
 
 **The agent's code is `general-agent`'s plus the build above;** once today's `general-agent`
 pull request merges, the agent's code is the same on both, and this branch adds only the ARC
