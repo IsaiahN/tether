@@ -8,6 +8,7 @@
 | frame.json | GIVEN vocabulary: 133 rows (READING, DOMAIN, CLUSTER, SOURCE) | build_library | old_files (Library.load, inherited.load, compile_term.readings) |
 | index.json | DERIVED: index + tag | build_library | old_files (Library.load, inherited.load) |
 | grammar.json | GIVEN, verbatim | nobody | nobody (no code opens it) |
+| tether_rules.json | GIVEN, verbatim: the Tether domain, method entries, run by the agenda (not built); kept apart; sha256 held by --check | nobody | nobody yet (no code opens it) |
 | BUILD_REPORT.md | DERIVED report | build_library | people |
 | MANIFEST.md | DERIVED: this file | build_library | people |
 | library.db | DERIVED: the same rows as the four JSON, NOT committed | build_library | nothing until store step (5) |
