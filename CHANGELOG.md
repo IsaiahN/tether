@@ -6,6 +6,27 @@ Each release below is an operating-system update: it changes what grows on the k
 
 Releases are listed newest first.
 
+## 2026-11-13: Search that learns its order
+
+### New
+- Search order learned from results: when the cheaper idea and the right type of object point different ways, the agent tracks which one paid and puts it first. The record carries across generations.
+- Goals with several parts try the part with the fewest routes first; a stall on the first part parks the goal.
+- Like kinds first: when a shelved goal's template comes up again, objects of the kinds that won before are tried first.
+- Idea trees grow one level at a time, each level priced by its own cost, with an exact stopping point.
+- "A then B": an action that opened one item is offered for a closed item of the same kind.
+- "A => B": each reading predicts what the last action will produce, then checks the prediction.
+- Every step records what can be done, what is blocked, what was not found and what was given up.
+
+### Improved
+- Faster kind lookups in the search pass, and a faster budget check, with identical results.
+- Reuse credit is keyed by the ideas a chain starts with.
+
+### Known issues
+- Not yet measured on full games; the five-game retest follows this release. Each new piece has its own switch.
+
+### Repository
+- docs/05-RESEARCH: 39 design write-ups, each settled from the Tether figures and checked against outside research.
+
 ## 2026-11-12: Ordered search
 
 ### New
