@@ -94,10 +94,22 @@ def _say_weight_or_sense(event: str, d: dict) -> tuple[str, str] | None:
     return None
 
 
+ROOT = Path(__file__).resolve().parent
+
+
+def log_beside(path: Path, name: str) -> Path:
+    """Where a log written beside the ledger goes: the ledger's own folder, except the repo root,
+    whose logs go to logs/ (git-ignored; 8e, the reviewer r1801, r1831)."""
+    if path.resolve().parent == ROOT:
+        (ROOT / "logs").mkdir(exist_ok=True)
+        return ROOT / "logs" / name
+    return path.with_name(name)
+
+
 class Narrator:
     def __init__(self, path: Path | None, ends: tuple) -> None:
         self.on = _NARRATE and path is not None
-        self._log = path.with_name("narrate.log") if self.on else None
+        self._log = log_beside(path, "narrate.log") if self.on else None
         if self._log is not None:
             self._log.write_text("", encoding="utf-8")
         self._ends = ends
