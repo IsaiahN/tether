@@ -73,3 +73,31 @@ def counts(now: dict) -> dict:
     for side, _why in now.values():
         c[side] += 1
     return c
+
+
+class OpenerBook:
+    """10a+ -> "A then B" (the reviewer 2026-11-12; Isaiah 15:01: "as soon as those change, that
+    is a cue or hint about contact or sequence"; DESIGN 10a+ items 2-3). An OPENED crossing
+    (BLOCKED -> CAN: a precondition met) files its opener -- the press just before it and who it
+    reads as moved by (src) -- under the opened item's KIND (its object's kind and its reading),
+    so the lesson carries to like items on this board and the next (the key-and-door method, not
+    one board's answer). When an item of a filed kind is CLOSED (CAN -> BLOCKED) or appears
+    BLOCKED, the book OFFERS its openers, most seen first: "A then B". Record-only here: an offer
+    is a row, not a held goal (Fig 9 :60: a filter, never a verdict)."""
+
+    def __init__(self) -> None:
+        self.seen: dict = {}            # kind key -> {(press, src): n}
+
+    def note(self, key: tuple, press: str, src) -> int:
+        d = self.seen.setdefault(key, {})
+        k = (press, src if src is None else str(src))
+        d[k] = d.get(k, 0) + 1
+        return d[k]
+
+    def offers(self, key: tuple) -> list:
+        """Openers filed under `key`, most seen first; a tie by first filed (dict order, never a
+        name)."""
+        d = self.seen.get(key) or {}
+        return [{"press": p, "src": s, "seen": n}
+                for (p, s), n in sorted(d.items(), key=lambda kv: -kv[1])]
+

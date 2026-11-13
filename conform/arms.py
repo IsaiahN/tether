@@ -2364,6 +2364,11 @@ ARMS: dict[str, str] = {
                                    "(today's) until price has 3 such endings and class's "
                                    "validity is higher. ON. OFF: price first always. MF: "
                                    "tests/test_order_by_ground.py.",
+    "TETHER_CAN_OFFER": "STEP 10a+ 'A then B' (the reviewer 2026-11-12): an OPENED crossing "
+                        "files its opener (press, src) under the item's kind; a closed or newly "
+                        "blocked item of that kind gets a can_offer row. RECORD-ONLY. NEEDS "
+                        "TETHER_CAN_LEDGER. ON. OFF: no opener/offer rows. MF: "
+                        "tests/test_can_offer.py.",
     "TETHER_TREE_DEEPEN": "STEP 10d 2b (the reviewer 2026-11-12; Isaiah 17:05 'finish step 10'): "
                           "the mint's depth-one trees that passed their own _cannot_pay are "
                           "deepened a tier at a time (tree_search.deepen), each priced by the "

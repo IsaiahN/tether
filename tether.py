@@ -1463,6 +1463,11 @@ _TREE_DEEPEN = armflag.arm("TETHER_TREE_DEEPEN", default=True)
 # and src -- the evidence wall of what opened what. RECORD-ONLY: no choice reads it yet. OFF: no
 # rows.
 _CAN_LEDGER = armflag.arm("TETHER_CAN_LEDGER", default=True)
+# 10a+ -> "A then B" (the reviewer 2026-11-12; DESIGN 10a+ items 2-3): an OPENED crossing files its
+# opener (the press before it, its src) under the item's kind (can_ledger.OpenerBook); a closed or
+# newly blocked item of a filed kind gets a can_offer row naming its openers. RECORD-ONLY, inside
+# the ledger's uncharged scope; NEEDS TETHER_CAN_LEDGER. OFF: no opener / offer rows.
+_CAN_OFFER = armflag.arm("TETHER_CAN_OFFER", default=True)
 # 10a, THE PASS'S KIND TABLE (the reviewer 2026-11-12, from the dc22 profile: the goal proposer's
 # cost is the group FORM, not the text grammar -- _group_form re-read every owner's kind for every
 # text, 3.6M _kind calls in 25 steps, each asking the world for its shape code). One table per
@@ -26278,6 +26283,13 @@ class Agent:
                                 reads="an item changed list: the old list and reason are the "
                                       "pretext, the press and the changed slots the cue, src "
                                       "who it reads as moved by -- a filter, never a verdict")
+                if _CAN_OFFER:
+                    self._can_offer_note(row, cue["press"], src)
+            if _CAN_OFFER:
+                for it in [r["item"] for r in cross if r["kind"] == "closed"] + \
+                        [a["item"] for a in appear if a["list"] == can_ledger.BLOCKED]:
+                    cap.head()
+                    self._can_offer_row(it)
             if appear:
                 self.led.record(self.cycle, "MINT", "@can", "can_appeared", n=len(appear),
                                 items=appear[:12], cue=cue, lag=lag,
@@ -26287,6 +26299,34 @@ class Agent:
                                 crossings=len(cross), appeared=len(appear),
                                 reads="what I can do and what I can't, after the crossings")
         st.update(lists=now, state=dict(before), step=self.cycle, known=known)
+
+    def _can_kind_key(self, item: str) -> tuple:
+        """10a+ "A then B": an item's kind key -- its object's kind (7l) and its reading."""
+        o, _d, r = item.partition(".")
+        return (self._kind(o), r)
+
+    def _can_offer_note(self, row: dict, press: str, src) -> None:
+        """An OPENED crossing files its opener under the item's kind (can_ledger.OpenerBook)."""
+        if row.get("kind") != "opened":
+            return
+        book = self.__dict__.setdefault("_can_openers", can_ledger.OpenerBook())
+        n = book.note(self._can_kind_key(row["item"]), press, src)
+        self.led.record(self.cycle, "MINT", "@can", "can_opener", item=row["item"], press=press,
+                        src=src, seen=n,
+                        reads="a precondition met: the press just before it and who it reads "
+                              "as moved by, filed under the item's kind (A then B)")
+
+    def _can_offer_row(self, item: str) -> None:
+        """An item of a filed kind is closed or appears blocked: its openers offered, a row."""
+        book = self.__dict__.get("_can_openers")
+        if book is None:
+            return
+        got = book.offers(self._can_kind_key(item))
+        if got:
+            self.led.record(self.cycle, "MINT", "@can", "can_offer", item=item,
+                            offers=got[:3],
+                            reads="A then B: this kind was opened before by these -- offered, "
+                                  "not held (record-only)")
 
     def _reuse_head_names(self):
         """H7's KEY FIX (step 10; r1849 / the seat's 16:24 note): the reuse book counts HEADS --
