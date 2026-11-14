@@ -6,6 +6,16 @@ Each release below is an operating-system update: it changes what grows on the k
 
 Releases are listed newest first.
 
+## 2026-11-13: Plans that start at the pick
+
+### New
+- A goal picked with no known route is broken into subtasks when it is picked, not only after its routes run out (TETHER_HTN_AT_ADOPT, on by default).
+- What has to hold first is learned from the bottom up: each opening is recorded whole, "K opens after J changes" is counted across openings, and the strongest are offered as subtasks (TETHER_HTN_TIERS, on by default).
+
+### Known issues
+- On the five-game retest at 10 minutes a game, neither the earlier planner nor these two parts broke down a goal: the exits they wait for almost never occur on these boards. With them off nothing changes, and with them on nothing measurable changed. Finding where goals actually stall comes next.
+- The "K opens after J changes" counts include readings that change on every step, which agree with everything. A contrast check that fixes this is planned.
+
 ## 2026-11-13: Plans with subtasks
 
 ### New
