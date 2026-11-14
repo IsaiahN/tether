@@ -3875,6 +3875,11 @@ _BOARD_TRY_FIRST = armflag.arm("TETHER_BOARD_TRY_FIRST", default=True)
 # touches (_contact_target, _system0_active) but no longer hold reasoning: a residual on a slot
 # after a press is already contact. OFF: the hold reads _try_first_open, kinds included
 _TRY_FIRST_ACTIONS = armflag.arm("TETHER_TRY_FIRST_ACTIONS", default=True)
+# HYP_AFTER_WORDS (the reviewer r1939; Fig 3 :20-21, Fig 9 :60): while BOARD_TRY_FIRST holds, no
+# goal is proposed -- WORDS unmet, so no GOAL work ("Which link first"), and a goal adopted inside
+# the hold was parked by the order, a filter's verdict. A goal already held is untouched. OFF:
+# proposed inside the hold, as before
+_HYP_AFTER_WORDS = armflag.arm("TETHER_HYP_AFTER_WORDS", default=True)
 # P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
 # _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
 # skips every bind's _left when the term's cost -- the same for every bind, gamma.length keys the
@@ -10584,6 +10589,8 @@ class Agent:
             holder = "exhausted"
         elif self.routine is not None:
             holder = "routine"
+        elif _HYP_AFTER_WORDS and _BOARD_TRY_FIRST and self._try_first_hold():
+            holder = "try_first"
         else:
             gc = self._goal_choice()
             holder = "goal_choice" if gc is not None else None
