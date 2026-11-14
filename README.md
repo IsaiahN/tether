@@ -310,10 +310,27 @@ is a candidate: puzzles, games, simulations, lab or control loops.
   describes what it sees in its own pointers ("o1 moved 5 columns right"). Linking pictures to
   words and to how words relate (ImageNet, WordNet and a relation layer) would let recognition name
   what it sees ("the ball rolls to the right"), and every name carries predictions the board can
-  test (a ball keeps rolling and bounces off walls), so a name that stops paying is dropped. That
-  is why it learns this way: the same terms settle on abstract boards and in the world they
-  describe, so it learns about the world while it learns abstractions, and its speech becomes more
-  fluent as more of its words are grounded.
+  test (a ball keeps rolling and bounces off walls), so a name that stops paying is dropped. Shapes
+  carry expected properties the same way (balls roll, blocks stack), each held as a prior that the
+  board can confirm, split by condition, or refuse. That is why it learns this way: the same terms
+  settle on abstract boards and in the world they describe, so it learns about the world while it
+  learns abstractions, and its speech becomes more fluent as more of its words are grounded.
+- **From flat boards to depth** (planned, not built). A child lives in three dimensions first
+  and later learns that a flat picture stands for a solid thing; this agent starts the other way
+  round, on flat, rigid boards. Most of what it settles is relational (contact, blocking,
+  containment, order) and carries across, but ideas that need depth (something hidden behind
+  something, things that fall or squash) can only be held until a board with depth can settle
+  them. So its boards would widen in order: grids, then photographs (depth cues in its own flat
+  medium), then video, then simulated 3D worlds, then the physical world.
+- **A voice, by mapping rather than training** (planned, not built). Each layer above is a lookup,
+  not a model to train: a picture's ImageNet id is its WordNet entry, WordNet gives the words that
+  name the same thing, a relation layer gives the roles they play, the agent's library links them
+  to what it already holds, and a pronouncing dictionary turns each word into sounds a rule-based
+  synthesizer can speak. Every link is a written row, so any word the agent says can be traced
+  back, hop by hop, to its sources and to the board where it was settled. Speaking becomes talking
+  once it can also hear, with the listener as its board. Most of the joins are hours of work on
+  keys that already exist; linking words to the library is the reviewable part, and the place
+  where help is most welcome.
 
 ## Documents
 
