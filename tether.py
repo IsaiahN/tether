@@ -3880,6 +3880,10 @@ _TRY_FIRST_ACTIONS = armflag.arm("TETHER_TRY_FIRST_ACTIONS", default=True)
 # the hold was parked by the order, a filter's verdict. A goal already held is untouched. OFF:
 # proposed inside the hold, as before
 _HYP_AFTER_WORDS = armflag.arm("TETHER_HYP_AFTER_WORDS", default=True)
+# AGENDA (BUILD_SEQUENCE 2a; r1948/r1949): the agenda reader runs a Tether card each PLAN step,
+# beside the goal path -- the card chosen by the residual's shape, its asks run in order, one
+# "agenda" decision row per step (agenda.py). OFF: the cards stay unread, as before
+_AGENDA = armflag.arm("TETHER_AGENDA", default=True)
 # P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
 # _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
 # skips every bind's _left when the term's cost -- the same for every bind, gamma.length keys the
@@ -5608,6 +5612,10 @@ class Agent:
         self._view_hold: dict = _cache()   # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
         self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
+        self._agenda = None
+        if _AGENDA:
+            import agenda  # 2a: the reader, its only importer of symbols
+            self._agenda = agenda.Reader()
         self._reach_frames: tuple | None = None
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
@@ -10576,6 +10584,8 @@ class Agent:
             self._mv_once = None
 
     def _goal_hypothesis_run(self, before: dict) -> None:
+        if self._agenda is not None:
+            self._agenda.step(self)      # 2a: the agent's card step, beside the goal path
         if self._hyp is not None:
             self._hyp_check()
         # exhausted means "none routable AT THIS KNOWLEDGE": a route comes from the agent's own

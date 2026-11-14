@@ -3327,6 +3327,13 @@ ARMS: dict[str, str] = {
                               "(a filter must not hand a verdict: a goal adopted inside the hold "
                               "was parked by the order). A goal already held is untouched. OFF: "
                               "proposed inside the hold, as before. default ON",
+    "TETHER_AGENDA": "BUILD_SEQUENCE 2a, the agenda reader (r1948/r1949): agenda.Reader runs a "
+                     "Tether card each PLAN step beside the goal path -- chosen by the residual's "
+                     "shape (agenda.SHAPES), never by a word; Which link first asks the first "
+                     "unmet link of SEE/WORDS/GOAL/ROUTE/KEEP; refuted_by drops a card for the "
+                     "board; one 'agenda' decision row per step with the card's do_sym through "
+                     "symbols ('unbound' never substituted). OFF: the cards stay unread. "
+                     "default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
