@@ -3928,6 +3928,16 @@ _GOAL_VARIES = armflag.arm("TETHER_GOAL_VARIES", default=True)
 # (TOUCH(object), realised by the interface as any other intent); a contact_route row says so. OFF:
 # no route, as before (the hold parks after _ROAD_CLOSED_N reads).
 _CONTACT_ROUTE = armflag.arm("TETHER_CONTACT_ROUTE", default=True)
+# THE GOAL'S FLOOR (the reviewer r1967; the lp85 replay r1966: GOAL_VARIES cut c16's IMPORT from
+# 3,192 s to 173 s and the pick was still "none paid"; the cheapest condition cost 12.886 bits,
+# term_bits(1, 86), the price of the SHORTEST term there can be). Every goal condition is priced by
+# _goal_price at term_bits(size) with size >= 1, plus mistakes >= 0; the bargain is strict
+# (pays: cost + left < base). So when base = k log2 n is at or under term_bits(1), no condition
+# of any kind can pay, and the pick is "none paid" before one is written. Fig 5 :42-44 (the
+# bargain); Fig 13 "unreachable as a verdict": named from two numbers, not found by search. The
+# templates are still read (the _inv_tpl later steps read, as OFF leaves it). OFF: every
+# condition priced, as before.
+_GOAL_FLOOR = armflag.arm("TETHER_GOAL_FLOOR", default=True)
 # A LEVER BY KIND (the reviewer r1965; r1963 4's pre-named next step: contact routes taken, count
 # goals still never met; Fig 4 :22-24 "Only methods cross up": what moved this READING on another
 # object is a head start for this one). Before the touch, CONTACT_ROUTE looks in the interface's
@@ -12777,6 +12787,14 @@ class Agent:
         the clearing step's after-state and before-state histories alike."""
         n, k = len(rows), sum(1 for _, hit in rows if hit)
         base = k * math.log2(n)
+        if _GOAL_FLOOR and base <= (floor := term_bits(1, self.gamma.alphabet)):
+            self._inv_conditions(rows[-1][0])   # the templates, as OFF leaves them for later steps
+            self._pair_bounded = 0
+            return None, {"steps": n, "reached": k, "base_bits": round(base, 3),
+                          "floor_bits": round(floor, 3), "conditions": 0,
+                          "refused": {"the base is at or under the shortest condition's cost: "
+                                      "none can pay": 1},
+                          "offered": {"plain": 0}, "cheapest": []}
         atoms = {a.name: a for a in self.gamma.atoms}
         refused: Counter = Counter()
         cands = []

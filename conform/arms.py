@@ -3372,6 +3372,12 @@ ARMS: dict[str, str] = {
                             "when _hyp_route knows no action that moves the goal's reading and "
                             "its object is on the board, the route is TOUCH(object), realised "
                             "by the interface; a contact_route row. OFF: no route. default ON",
+    "TETHER_GOAL_FLOOR": "the reviewer r1967 (the lp85 replay: 173 s for a stage whose cheapest "
+                         "condition was term_bits(1), the shortest term's price, and none paid): "
+                         "when the history's base k log2 n is at or under term_bits(1), no goal "
+                         "condition can pay; _goal_candidates returns none paid before pricing "
+                         "any. The pick is the same; the row says floor_bits. OFF: every "
+                         "condition priced. default ON",
     "TETHER_KIND_LEVER": "the reviewer r1965 (r1963 4's next step; Fig 4 :22-24): before the "
                          "touch, CONTACT_ROUTE asks the delta table for an action that moved the "
                          "same reading on another object the wanted way and realises that move "
