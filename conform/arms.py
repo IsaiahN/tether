@@ -2376,6 +2376,21 @@ ARMS: dict[str, str] = {
                   "walkthrough rejects an unreachable subtask before it is pursued; methods "
                   "carry in the lineage (htn_n). ON. OFF: R-C's single detour. MF: "
                   "tests/test_htn.py.",
+    "TETHER_HTN_AT_ADOPT": "HTN AT THE PICK (Isaiah 2026-11-13 09:28-09:29, the walkthrough "
+                           "first): a goal picked with no route known is decomposed then, not "
+                           "after its routes are refused (route_exhausted 0 in 1,206 archived "
+                           "ledgers, r1907). A goal with a direct route is acted on undecomposed; "
+                           "a subtask with no route stays held while actions are untried and "
+                           "leaves once every action is tried. NEEDS TETHER_HTN. ON. OFF: "
+                           "decomposition only after routes are exhausted. MF: "
+                           "tests/test_htn_at_adopt.py.",
+    "TETHER_HTN_TIERS": "HTN TIERS, prerequisites learned bottom-up (Isaiah 2026-11-13 09:29, "
+                        "10:24 'build part 2'): tier 1 keeps each opened crossing whole (item, "
+                        "kind, press, other objects' changed slots); tier 2 counts by kind 'K "
+                        "opens after J changes'; a goal of kind K gets the open slots of kinds J "
+                        "seen at least MIN_REPEAT times as candidate subtasks, beside its law's "
+                        "enablers. NEEDS TETHER_HTN, TETHER_CAN_LEDGER. ON. OFF: no htn_tier1 "
+                        "rows, the law's enablers only. MF: tests/test_htn_tiers.py.",
     "TETHER_MINT_READ_CHARGED": "THE DESIGN BILL (Isaiah 2026-11-13 00:10 'the trip back to the "
                                 "walk is apart of the design'): a board read made in order to "
                                 "design (the contact read; the reach read when it runs inside "
