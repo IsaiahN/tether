@@ -1029,6 +1029,31 @@ _SUBGOAL = armflag.arm("TETHER_SUBGOAL", default=True)
 # WALKTHROUGH rejects a subtask out of reach before anything is pursued. Methods carry across the
 # lineage (htn_n). OFF: R-C's single detour, as before.
 _HTN = armflag.arm("TETHER_HTN", default=True)
+# HTN AT THE PICK (Isaiah 2026-11-13 09:28-09:29, the contractor's walkthrough: the breakdown comes
+# FIRST and gates what follows; Fig 3 :20 "ordered by dependency"; Fig 13 :133 "can answer that
+# before it searches"; Fig 9 :45 "cheap only in that order"). The SHIP 3 HTN decomposed only after
+# every route was refused, which no archived game ledger shows (route_exhausted 0 in 1,206, r1907).
+# Now a goal is decomposed when it is PICKED and no route to it is known. A goal with a direct route
+# is acted on undecomposed (the expert skips the walkthrough's detail). A subtask with no route
+# stays held while this board has untried actions (NOT_FOUND: still exploring), and leaves the
+# stack once every action has been tried (the can ledger's BLOCKED "every action tried"). Not while
+# a goal hypothesis is held: that is the agent's own pursuit. NEEDS TETHER_HTN. OFF:
+# decomposition only after the routes are exhausted, as SHIP 3.
+_HTN_AT_ADOPT = armflag.arm("TETHER_HTN_AT_ADOPT", default=True)
+# HTN TIERS, WHAT HAS TO HOLD FIRST LEARNED BOTTOM-UP (Isaiah 2026-11-13 09:29 "for figuring out the
+# metarules of the board you go up the tier list from the bottom (detail rich) to abstract ...
+# strata ... core rule"; 10:24 "build part 2"; DESIGN_2026-11-13_HTN_at_the_pick part 2; Fig 4 :23
+# "upward: a method that can be reapplied. Never the recording of a particular success"; Fig 12
+# :103-104 a settled molecule becomes an atom for what composes over it). The planner's only
+# prerequisite source was a settled law on the goal reading another object's slot, and gridworld
+# has none (0 of 196 slots). TIER 1, detail rich: every OPENED crossing (BLOCKED -> CAN) is kept
+# whole -- the item, its kind, the press, every other object's slot that changed. TIER 2, abstract:
+# per opened kind K, how many of K's openings followed a change of kind J ("K opens after J
+# changes", validity (n+1)/(opened+2)). At decomposition a goal of kind K gets, beside its law's
+# enablers, the open slots of each kind J seen at least MIN_REPEAT times ("one observation is a
+# coincidence"), best validity first. Strata and the core rule are the next rungs, not built.
+# NEEDS TETHER_HTN and TETHER_CAN_LEDGER. OFF: no tier rows, the law's enablers only.
+_HTN_TIERS = armflag.arm("TETHER_HTN_TIERS", default=True)
 # (6a) R-D, UNREACHABLE AT BUDGET, THEN RE-ENGAGE (the 10-23 design; A11; Fig 8 :40-41): an
 # exhausted intent is kept as the verdict "unreachable at budget" with the situation it was read
 # in; when a route is offered for it again (its situation moved -- 4d -- or its refusals were set
@@ -5686,6 +5711,8 @@ class Agent:
         self._htn_written: dict = {}        # HTN: what the lineage already holds
         self._htn_pending: dict = {}        # HTN: parent slot -> edges pursued for it, unsettled
         self._htn_tried: dict = {}          # HTN: parent slot -> subs that ran out for it
+        self._tier1: list = []              # HTN TIERS: each opened crossing, kept whole
+        self._tier2: dict = {}              # HTN TIERS: kind K -> {"opened": n, "after": {J: n}}
         self._unreachable: dict = {}        # (6a) R-D: intent -> {"at", "situation"} at budget
         # (6c): kind forms loaded (key -> row), the keys this instance has written, and this
         # level's bound candidates (None until first asked)
@@ -15917,16 +15944,108 @@ class Agent:
                 return repr(str(self.slot_types.get(s)))
         return f"{k(parent)} -> {k(sub)}"
 
-    def _htn_push(self, chosen: str) -> bool:
-        """HTN: decompose `chosen`, whose routes ran out. Its candidate subtasks are its open
+    def _tier_note(self, row: dict, press: str, changed: list) -> None:
+        """HTN TIERS: an OPENED crossing (BLOCKED -> CAN) kept whole as a tier-1 instance -- the
+        item, its kind, the press, every other object's slot that changed -- and counted into the
+        tier-2 rule of the item's kind: which kinds of slot changed before this kind opened."""
+        item = row["item"]
+        try:
+            k = self._can_kind_key(item)
+        except Exception:       # noqa: BLE001  an item whose owner names no kind is not filed
+            return
+        mine = self._objs_named(item)
+        others, kinds = [], []
+        for s in changed:
+            cap.head()
+            if s == item or s not in self.slots or self._objs_named(s) & mine:
+                continue
+            try:
+                j = self._can_kind_key(s)
+            except Exception:   # noqa: BLE001
+                continue
+            others.append(s)
+            if j not in kinds:
+                kinds.append(j)
+        self._tier1.append({"cycle": self.cycle, "item": item, "kind": k, "press": press,
+                            "changed": others})
+        rule = self._tier2.setdefault(k, {"opened": 0, "after": {}})
+        rule["opened"] += 1
+        for j in kinds:
+            rule["after"][j] = rule["after"].get(j, 0) + 1
+        self.led.record(self.cycle, "MINT", item, "htn_tier1", kind=repr(k), press=press,
+                        changed=others, changed_kinds=[repr(j) for j in kinds],
+                        rule=[[repr(j), rule["after"][j], rule["opened"]] for j in kinds],
+                        reads="tier 1: this item opened; what else changed just before it, kept "
+                              "whole. Tier 2 counts it by kind (Isaiah's ladder, bottom-up)")
+
+    def _tier_candidates(self, chosen: str) -> list[tuple[str, str]]:
+        """HTN TIERS: the open slots of each kind J that tier 2 says this goal's kind K opens after
+        (seen at least MIN_REPEAT times), best validity first; [(slot, the rule read)]."""
+        if not (_HTN_TIERS and self._tier2):
+            return []
+        try:
+            k = self._can_kind_key(chosen)
+        except Exception:       # noqa: BLE001
+            return []
+        rule = self._tier2.get(k)
+        if not rule:
+            return []
+        mine, out = self._objs_named(chosen), []
+        n_open = rule["opened"]
+        for j, n in sorted(rule["after"].items(), key=lambda kv: -(kv[1] + 1) / (n_open + 2)):
+            if n < MIN_REPEAT:
+                continue
+            for s in self._res:
+                cap.head()
+                if s == chosen or self._objs_named(s) & mine:
+                    continue
+                try:
+                    if self._can_kind_key(s) != j:
+                        continue
+                except Exception:   # noqa: BLE001
+                    continue
+                out.append((s, f"tier2: this kind opened after a change of {j!r} in {n} of "
+                               f"{n_open}"))
+        return out
+
+    def _htn_adopt(self, chosen: str, why: str) -> bool:
+        """HTN AT THE PICK: `chosen` was picked and no route to it is known (`why`, the refusal's
+        name). Decompose it now rather than after its routes are refused. A subtask that cannot be
+        decomposed stays held while this board has untried actions, and leaves the stack once
+        every action has been tried. True when the stack changed."""
+        if not (_HTN and _HTN_AT_ADOPT and _SUBGOAL):
+            return False
+        if _GOAL_HYP and self._hyp is not None:
+            return False                 # a held hypothesis is the agent's own pursuit
+        if self._subgoal is not None and chosen != self._subgoal["sub"]:
+            return False
+        if self._htn_push(chosen, when="pick", why=why):
+            return True
+        if self._subgoal is not None and chosen == self._subgoal["sub"] \
+                and not self._can_untried(self.iface.table):
+            self._subgoal_end("routes")  # no method, no route, every action tried
+            return True
+        return False
+
+    def _htn_push(self, chosen: str, when: str = "routes", why: str | None = None) -> bool:
+        """HTN: decompose `chosen`, whose routes ran out (`when` "routes") or which was picked
+        with no route known (`when` "pick", HTN AT THE PICK). Its candidate subtasks are its open
         enablers not already on the stack or tried for it; the walkthrough rejects any out of
         reach (Fig 13 :133); the ground orders the rest by the method edge's validity. Pushes the
         first and says so; False when nothing applies."""
         on = {t["sub"] for t in self._tasks} | {t["parent"] for t in self._tasks} | {chosen}
         tried = self._htn_tried.get(chosen, set())
-        en = [(b, ln) for b, ln in self._enablers(chosen)
-              if b in self._res and arrival(self._res[b]) == OPEN and b not in on
-              and b not in tried]
+        src = self._enablers(chosen)
+        if _HTN_TIERS:          # HTN TIERS: what tier 2 says this kind opens after, after the law's
+            law = {b for b, _ln in src}
+            src = src + [(b, ln) for b, ln in self._tier_candidates(chosen) if b not in law]
+        seen: set = set()
+        en = []
+        for b, ln in src:
+            if b in self._res and arrival(self._res[b]) == OPEN and b not in on \
+                    and b not in tried and (b not in seen or not _HTN_TIERS):
+                seen.add(b)
+                en.append((b, ln))
         if not en:
             return False
         ok = []
@@ -15952,13 +16071,18 @@ class Agent:
         self._subgoal = {"parent": chosen, "sub": b}
         self._htn_pending.setdefault(chosen, set()).add(edge)
         st = self._htn.get(edge, [0, 0])
+        at_pick = {"when": when, "why": why} if when != "routes" else {}
         self.led.record(self.cycle, "PLAN", b, "subgoal_adopted", parent=chosen, read=ln,
-                        reads="the parent's routes are exhausted; its settled term reads this "
-                              "slot, so it is pursued as a route (R-C, HTN)")
+                        **at_pick,
+                        reads="the parent was picked with no route known; its settled term "
+                              "reads this slot, so it is pursued first (HTN at the pick)"
+                        if at_pick else
+                        "the parent's routes are exhausted; its settled term reads this "
+                        "slot, so it is pursued as a route (R-C, HTN)")
         self.led.record(self.cycle, "PLAN", b, "htn_push", parent=chosen,
                         depth=len(self._tasks), edge=edge, record=list(st),
                         validity=round(val(b), 4), candidates=len(ok),
-                        rejected=len(en) - len(ok),
+                        rejected=len(en) - len(ok), **at_pick,
                         reads="decomposed: the subtask goes on the stack, the parent waits")
         return True
 
@@ -25835,6 +25959,7 @@ class Agent:
                 self.led.record(self.cycle, "PLAN", chosen, "split_refused",
                                 why="unordered_no_value_table", target=_tgt,
                                 slot_type=self.slot_types.get(chosen))
+                self._htn_adopt(chosen, "unordered_no_value_table")   # HTN AT THE PICK
             return None
         # **THE INTERFACE ABSTAINED, AND THERE IS NO FALLBACK BEHIND IT ON PURPOSE.**
         # `docs/ACTION_INTERFACE_PLAN.md`. What stood here voted over `self.actions` using
@@ -25854,6 +25979,7 @@ class Agent:
             self.led.record(self.cycle, "PLAN", chosen, "split_refused",
                             why="no_realisation", target=_tgt,
                             n_actions=len(self.actions))
+            self._htn_adopt(chosen, "no_realisation")     # HTN AT THE PICK: no route known
         return None
 
     def members(self) -> dict:
@@ -26556,6 +26682,8 @@ class Agent:
                                       "who it reads as moved by -- a filter, never a verdict")
                 if _CAN_OFFER:
                     self._can_offer_note(row, cue["press"], src)
+                if _HTN_TIERS and _HTN and row.get("kind") == "opened":
+                    self._tier_note(row, cue["press"], changed)     # HTN TIERS: tier 1, 2
             if _CAN_OFFER:
                 for it in [r["item"] for r in cross if r["kind"] == "closed"] + \
                         [a["item"] for a in appear if a["list"] == can_ledger.BLOCKED]:
