@@ -3911,6 +3911,15 @@ _AGENDA = armflag.arm("TETHER_AGENDA", default=True)
 # again when the subtask pops (HTN). NEEDS TETHER_HTN and TETHER_SUBGOAL. OFF: the refusal ends
 # the goal, as before.
 _REPAIR_AT_REFUSAL = armflag.arm("TETHER_REPAIR_AT_REFUSAL", default=True)
+# GOAL CONDITIONS THAT COULD COME OUT THE OTHER WAY (the reviewer r1960; T0b 2026-11-14, lp85
+# cycle 16: one goal_condition choice over 43,102 pairwise conditions, every one priced the same,
+# took ~27 minutes inside one step after a frame break; cards v4 (e) "Could it have come out the
+# other way", Fig 2 :29-30). When the reach history holds both met and unmet rows, a condition
+# whose every slot held one value across those rows has one truth on all of them: it cannot tell
+# met from unmet, so it is not compiled or priced (counted as "constant"). With all rows met or
+# none, nothing changes. OFF: every condition priced, as before.
+_GOAL_VARIES = armflag.arm("TETHER_GOAL_VARIES", default=True)
+_SLOT_REF = re.compile(r"\bo\d+(?:~o\d+)?\.[A-Za-z_][\w]*")
 # P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
 # _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
 # skips every bind's _left when the term's cost -- the same for every bind, gamma.length keys the
@@ -12687,8 +12696,20 @@ class Agent:
         texts = self._inv_conditions(rows[-1][0])
         if compile_term._SLOT_CONSTANT:
             texts = texts + self._const_conditions(rows)
+        varied = None
+        if _GOAL_VARIES and 0 < k < n:      # the history can tell met from unmet
+            vals: dict = {}
+            for st, _hit in rows:
+                for key, v in st.items():
+                    vals.setdefault(key, set()).add(v if isinstance(v, (int, str)) else repr(v))
+            varied = {key for key, vs in vals.items() if len(vs) > 1}
         for text in texts:
             cap.head()
+            if varied is not None:
+                refs = _SLOT_REF.findall(text)
+                if refs and not any(r in varied for r in refs):
+                    refused["constant over the history: cannot tell met from unmet"] += 1
+                    continue
             c = self._compile_cache.get(text)
             if c is None:
                 c = self._compile_cache[text] = compile_term.compile_candidate(

@@ -3362,6 +3362,11 @@ ARMS: dict[str, str] = {
                                 "and the open goal slots of what touches its object; the agenda "
                                 "writes Three texts' row; a repair_at_refusal row either way. "
                                 "OFF: the refusal ends the goal, as before. default ON",
+    "TETHER_GOAL_VARIES": "the reviewer r1960 (T0b lp85 c16: 43,102 tied goal conditions, ~27 "
+                          "min in one step; cards v4 (e)): when the reach history holds met "
+                          "and unmet rows, a goal condition whose every slot held one value "
+                          "across them is not compiled or priced (refused 'constant over the "
+                          "history'). All met or none: unchanged. OFF: all priced. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
