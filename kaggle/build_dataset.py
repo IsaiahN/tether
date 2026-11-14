@@ -3,7 +3,7 @@ library/ and requirements.lock -- with a marker the notebook finds it by, and a 
 notebook checks after its copy. No lineage (it waits on Isaiah) and no key: the scan prints every line that assigns a
 key-, secret- or password-shaped value, for reading before any upload. Nothing is uploaded here.
     python kaggle/build_dataset.py SHA OUT_DIR
-Writes OUT_DIR/code/ (git archive SHA, less dot-named files, which Kaggle drops on upload),
+Writes OUT_DIR/code/ (git archive SHA, less dot-named files and archive-type files, which Kaggle unpacks on upload),
 OUT_DIR/TETHER_KAGGLE_DATASET.json (the marker), OUT_DIR/MANIFEST.sha256 and
 OUT_DIR/scan.txt. Refuses an OUT_DIR that already holds a dataset."""
 import hashlib
