@@ -36,7 +36,10 @@ def build(sha: str, out: str) -> dict:
         tf.extractall(code, filter="data")
     # Kaggle drops dot-named files and folders when it unpacks an uploaded dataset (2026-11-13: the notebook's check
     # failed on a missing .gitattributes), so they are left out here, named in the marker, and never listed in the
-    # manifest: the agent reads none of them (.gitattributes, .gitignore)
+    # manifest: the agent reads none of them (.gitattributes, .gitignore). Kaggle also unpacks archive-type files
+    # inside an upload (2026-11-13 ~21:36: tests/data/cue_key_path/dc22_c24.json.gz missing from the copy), so those
+    # are left out the same way; at 5f811fa they are two test-data files the agent never reads
+    UNPACKED = (".gz", ".zip", ".tar", ".tgz", ".bz2", ".xz", ".7z", ".rar")
     dropped = []
     for d, dirs, files in os.walk(code):
         for x in sorted(dirs):
@@ -45,7 +48,7 @@ def build(sha: str, out: str) -> dict:
                 shutil.rmtree(os.path.join(d, x))
                 dirs.remove(x)
         for f in sorted(files):
-            if f.startswith("."):
+            if f.startswith(".") or f.lower().endswith(UNPACKED):
                 dropped.append(os.path.relpath(os.path.join(d, f), code).replace(os.sep, "/"))
                 os.remove(os.path.join(d, f))
     rows, hits = [], []

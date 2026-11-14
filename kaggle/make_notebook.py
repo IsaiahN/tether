@@ -87,6 +87,29 @@ import json
 import zipfile
 
 
+EMPTY = hashlib.sha256(b"").hexdigest()
+
+
+def _missing(root, rows, what):
+    """Every manifest path absent from the copy, named in one pass, so one run shows every gap. An absent file
+    whose manifest sha256 is the empty file's is made again empty (its sha256 then equals the manifest exactly):
+    Kaggle may drop empty files from an upload (the lineage holds one, memory.db-wal)."""
+    made = []
+    for h, rel in rows:
+        p = os.path.join(root, rel)
+        if h == EMPTY and not os.path.exists(p):
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            open(p, "wb").close()
+            made.append(rel)
+    if made:
+        print(what, "empty files made again:", made)
+    gone = [rel for _h, rel in rows if not os.path.isfile(os.path.join(root, rel))]
+    for rel in gone[:10]:
+        d = os.path.dirname(os.path.join(root, rel))
+        print(what, "missing", rel, "| its folder holds", sorted(os.listdir(d))[:10] if os.path.isdir(d) else "nothing")
+    assert not gone, (what, len(gone), "manifest files missing from the copy", gone[:10])
+
+
 def _place(ds, name, dst):
     """The dataset's <name> folder to dst, the one writable copy: copied when the upload stayed a
     folder, extracted and moved into place when it was stored as <name>.zip (either layout inside)."""
@@ -132,6 +155,7 @@ def _sha(rel):
         return hashlib.sha256(fh.read()).hexdigest()
 
 
+_missing(CODE, rows, "code")
 bad = [rel for h, rel in rows if _sha(rel) != h]
 assert len(rows) == META["files"] and not bad, ("the copy differs from the manifest", len(rows), bad[:5])
 print(f"copied {len(rows)} files to {CODE}; every sha256 equals the manifest")
@@ -165,6 +189,7 @@ if lfound:
                 h.update(b)
         return h.hexdigest()
 
+    _missing(LIN, lrows, "lineage")
     lbad = [rel for h, rel in lrows if _lsha(rel) != h]
     assert len(lrows) == LMETA["names"] and not lbad, ("the lineage copy differs", len(lrows), lbad[:5])
     # the tip read one generation at a time (build_lineage.tip): lineage.head folds them all at once
