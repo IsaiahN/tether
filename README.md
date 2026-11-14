@@ -1,4 +1,8 @@
-# tether — a general learning agent
+# Tether — A Recursive Self Improving Agent for General Learning (RSI)
+
+[![Watch the video](https://img.youtube.com/vi/HjnRy4TzXsg/maxresdefault.jpg)](https://www.youtube.com/watch?v=HjnRy4TzXsg)
+
+**[Watch Video](https://www.youtube.com/watch?v=HjnRy4TzXsg)**
 
 A CPU-only agent that **teaches itself**. It is given no model of any world and no answers. It
 watches, predicts, acts, and keeps only the ideas that the world pays for. The ideas it keeps are
