@@ -86,7 +86,6 @@ import hashlib
 import json
 import zipfile
 
-
 EMPTY = hashlib.sha256(b"").hexdigest()
 
 
