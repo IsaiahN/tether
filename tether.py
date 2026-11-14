@@ -3928,6 +3928,14 @@ _GOAL_VARIES = armflag.arm("TETHER_GOAL_VARIES", default=True)
 # (TOUCH(object), realised by the interface as any other intent); a contact_route row says so. OFF:
 # no route, as before (the hold parks after _ROAD_CLOSED_N reads).
 _CONTACT_ROUTE = armflag.arm("TETHER_CONTACT_ROUTE", default=True)
+# A LEVER BY KIND (the reviewer r1965; r1963 4's pre-named next step: contact routes taken, count
+# goals still never met; Fig 4 :22-24 "Only methods cross up": what moved this READING on another
+# object is a head start for this one). Before the touch, CONTACT_ROUTE looks in the interface's
+# own delta table for an action that moved the same reading (the part after the dot) on another
+# object, the way this goal wants it to go, and asks the interface to realise that move: pressed,
+# it is a press-and-watch whose effect would answer the goal. A kind_lever_route row says so.
+# NEEDS TETHER_CONTACT_ROUTE. OFF: the touch only.
+_KIND_LEVER = armflag.arm("TETHER_KIND_LEVER", default=True)
 _SLOT_REF = re.compile(r"\bo\d+(?:~o\d+)?\.[A-Za-z_][\w]*")
 # P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
 # _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
@@ -11127,6 +11135,44 @@ class Agent:
                                f"touches the goal's object"))
         return out
 
+    def _kind_lever(self, slot: str, before: dict, acts: tuple, ctx: Any, withheld: Any,
+                    commit: bool) -> Any:
+        """A LEVER BY KIND: an action the delta table saw move the same reading on ANOTHER object,
+        the wanted way; the realised move of that other slot, or None."""
+        if "." not in slot or slot not in before:
+            return None
+        tgt = self._goal_target(slot, before)
+        if tgt is None or tgt == before[slot]:
+            return None
+        sign = 1 if tgt > before[slot] else -1
+        reading = slot.split(".", 1)[1]
+        mine = self._objs_named(slot)
+        moved: dict = {}
+        for a in acts:
+            for (_c, k, _rel), (n, tot) in (self.iface.table.get(a) or {}).get("delta", {}).items():
+                cap.head()
+                if (n and k != slot and k.split(".", 1)[-1] == reading and k in before
+                        and not (self._objs_named(k) & mine) and tot * sign > 0):
+                    moved[k] = moved.get(k, 0) + n
+        for other in sorted(moved, key=lambda k: (-moved[k], k)):
+            want = IFace.Intent(IFace.BECOME, other, "+" if sign > 0 else "-")
+            r = self.iface.realise(want, acts, ctx, before, self.env, withheld=withheld,
+                                   asker="kind_lever")
+            if r is None or getattr(r, "unmapped", False):
+                continue
+            if commit:
+                seen = self.__dict__.setdefault("_kind_levered", set())
+                if (self.cycle, slot) not in seen:
+                    seen.add((self.cycle, slot))
+                    self.led.record(self.cycle, self._running_step or "PLAN", slot,
+                                    "kind_lever_route", other=other, action=r.action,
+                                    direction="+" if sign > 0 else "-", seen=moved[other],
+                                    reads="no action is known to move this reading here; one "
+                                          "moved the same reading on another object the wanted "
+                                          "way: press it and watch (a method crosses by kind)")
+            return r
+        return None
+
     @staticmethod
     def _hyp_trend(h: dict) -> dict:
         """Item 21: per held slot, its readings since its approach opened -- first, last, n, and
@@ -11194,6 +11240,10 @@ class Agent:
         objs = sorted(self._objs_named(slot))
         if len(objs) != 1 or not acts or not any(k.startswith(objs[0] + ".") for k in before):
             return None
+        if _KIND_LEVER:
+            r = self._kind_lever(slot, before, acts, ctx, withheld, commit)
+            if r is not None:
+                return r
         r = self.iface.realise(IFace.Intent(IFace.TOUCH, object=objs[0]), acts, ctx, before,
                                self.env, withheld=withheld, asker="contact_route")
         if r is None or getattr(r, "unmapped", False):

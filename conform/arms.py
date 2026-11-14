@@ -3372,6 +3372,11 @@ ARMS: dict[str, str] = {
                             "when _hyp_route knows no action that moves the goal's reading and "
                             "its object is on the board, the route is TOUCH(object), realised "
                             "by the interface; a contact_route row. OFF: no route. default ON",
+    "TETHER_KIND_LEVER": "the reviewer r1965 (r1963 4's next step; Fig 4 :22-24): before the "
+                         "touch, CONTACT_ROUTE asks the delta table for an action that moved the "
+                         "same reading on another object the wanted way and realises that move "
+                         "(press-and-watch by kind); a kind_lever_route row. NEEDS "
+                         "TETHER_CONTACT_ROUTE. OFF: the touch only. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
