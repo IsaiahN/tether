@@ -908,6 +908,15 @@ class Objects:
             assign[i] = (best, score)
         kids = None
         maybe: dict = {}                        # rule 2: piece -> the names tied nearest
+        if _NAMES_HOLD:     # rule 2's indexes, built once per call: shape -> names / pieces
+            t_by_shape: dict = {}
+            for n, old in sorted(self.tracked.items()):
+                t_by_shape.setdefault(shape_of(old), []).append(n)
+            p_by_shape: dict = {}
+            p_by_kind = None
+            for j, q in enumerate(found):
+                if assign[j][0] is None:
+                    p_by_shape.setdefault(shape_of(q), []).append(j)
         for i, obj in enumerate(found):
             if assign[i][0] is not None:
                 continue
@@ -919,10 +928,10 @@ class Objects:
             # position-independent, so it carries identity across a move.
             tied: list = []
             if _NAMES_HOLD:                     # rule 2: the nearest same-shape name
-                same = [n for n, old in sorted(self.tracked.items())
-                        if n not in claimed and shape_of(old) == shape_of(obj)]
-                rivals = [q for j, q in enumerate(found) if j != i and assign.get(j, (0,))[0]
-                          is None and shape_of(q) == shape_of(obj)]
+                sh = shape_of(obj)
+                same = [n for n in t_by_shape.get(sh, ()) if n not in claimed]
+                rivals = [found[j] for j in p_by_shape.get(sh, ())
+                          if j != i and assign[j][0] is None] if same else []
                 best, tied = _nearest(obj, same, self.tracked, rivals)
             else:
                 best = next((n for n, old in sorted(self.tracked.items())
@@ -935,8 +944,13 @@ class Objects:
                 k = kind_code(shape_of(obj))
                 if _NAMES_HOLD:
                     same = [n for n in sorted(self.tracked) if n not in claimed and kids[n] == k]
-                    rivals = [q for j, q in enumerate(found) if j != i and assign.get(j, (0,))[0]
-                              is None and kind_code(shape_of(q)) == k]
+                    if same and p_by_kind is None:
+                        p_by_kind = {}
+                        for js in p_by_shape.values():
+                            for j in js:
+                                p_by_kind.setdefault(kind_code(shape_of(found[j])), []).append(j)
+                    rivals = [found[j] for j in (p_by_kind or {}).get(k, ())
+                              if j != i and assign[j][0] is None] if same else []
                     best, tied = _nearest(obj, same, self.tracked, rivals)
                 else:
                     best = next((n for n in sorted(self.tracked)
