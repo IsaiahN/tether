@@ -3919,6 +3919,15 @@ _REPAIR_AT_REFUSAL = armflag.arm("TETHER_REPAIR_AT_REFUSAL", default=True)
 # met from unmet, so it is not compiled or priced (counted as "constant"). With all rows met or
 # none, nothing changes. OFF: every condition priced, as before.
 _GOAL_VARIES = armflag.arm("TETHER_GOAL_VARIES", default=True)
+# CONTACT IS A ROUTE (the reviewer r1963; T0b 2026-11-14: all 8 goals held on four games were count
+# readings ("o13.rem_n > 0") and none was ever met even once: they ended parked by no route, stalled
+# or untested, because no action was yet known to change the count; cards v4 (c)+(g) "On this board,
+# can contact reach it: is there a press-and-watch whose effect would answer it?"; the hand test's
+# #86-#88; Symbols table :107-110 the habitat). When _hyp_route finds no action known to move the
+# goal's reading, and the goal's object is on the board, the route is to touch that object
+# (TOUCH(object), realised by the interface as any other intent); a contact_route row says so. OFF:
+# no route, as before (the hold parks after _ROAD_CLOSED_N reads).
+_CONTACT_ROUTE = armflag.arm("TETHER_CONTACT_ROUTE", default=True)
 _SLOT_REF = re.compile(r"\bo\d+(?:~o\d+)?\.[A-Za-z_][\w]*")
 # P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
 # _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
@@ -11165,12 +11174,40 @@ class Agent:
             self.iface.unrealised = None
             if u is not None:
                 self.iface._none(u["kind"], u["why"], u["asker"])
+            if _CONTACT_ROUTE:
+                r = self._contact_route(slot, before, acts, ctx, self._withheld)
+                return None if r is None else r.action
             return None
         r = self.iface.realise(want, acts, ctx, before, self.env, withheld=self._withheld,
                                asker="hyp_route")
         if mk is not None and r is None:
             self._route_memo[mk] = self.iface.unrealised
+        if r is None and _CONTACT_ROUTE:
+            r = self._contact_route(slot, before, acts, ctx, self._withheld)
         return None if r is None else r.action
+
+    def _contact_route(self, slot: str, before: dict, acts: tuple, ctx: Any, withheld: Any,
+                       commit: bool = True) -> Any:
+        """CONTACT IS A ROUTE: no action is known to move `slot`'s reading, so the first step is to
+        touch its object and watch (cards v4 (c)). The realised touch, or None when the object
+        isn't on the board or the interface can't realise the touch."""
+        objs = sorted(self._objs_named(slot))
+        if len(objs) != 1 or not acts or not any(k.startswith(objs[0] + ".") for k in before):
+            return None
+        r = self.iface.realise(IFace.Intent(IFace.TOUCH, object=objs[0]), acts, ctx, before,
+                               self.env, withheld=withheld, asker="contact_route")
+        if r is None or getattr(r, "unmapped", False):
+            return None
+        if not commit:
+            return r
+        seen = self.__dict__.setdefault("_contact_routed", set())
+        if (self.cycle, slot) not in seen:
+            seen.add((self.cycle, slot))
+            self.led.record(self.cycle, self._running_step or "PLAN", slot, "contact_route",
+                            object=objs[0], action=r.action,
+                            reads="no action is known to move this reading: touch its object and "
+                                  "watch (could it be reached at all: contact counts)")
+        return r
 
     def _hyp_hold(self, key: str, c: Any, before: dict, routable: set | None = None) -> tuple:
         """Link one candidate as its subject's want and read its route; kept only with a route.
@@ -26079,6 +26116,8 @@ class Agent:
             _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
                                      asker="goal")
                   if _offer or not _ROUTE_REFUSE else None)
+        if _r is None and _CONTACT_ROUTE and _offer:     # CONTACT IS A ROUTE (r1963)
+            _r = self._contact_route(chosen, before, tuple(_offer), _ctx, _wh, commit=commit)
         if commit and _r is not None:
             self._press_situ = _rctx      # (5c): the situation this goal press is counted under
         if _corr is not None and commit:

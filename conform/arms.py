@@ -3367,6 +3367,11 @@ ARMS: dict[str, str] = {
                           "and unmet rows, a goal condition whose every slot held one value "
                           "across them is not compiled or priced (refused 'constant over the "
                           "history'). All met or none: unchanged. OFF: all priced. default ON",
+    "TETHER_CONTACT_ROUTE": "the reviewer r1963 (T0b: 8 count-reading goals never met, ended "
+                            "parked/stalled/untested with no known lever; cards v4 (c)+(g)): "
+                            "when _hyp_route knows no action that moves the goal's reading and "
+                            "its object is on the board, the route is TOUCH(object), realised "
+                            "by the interface; a contact_route row. OFF: no route. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
