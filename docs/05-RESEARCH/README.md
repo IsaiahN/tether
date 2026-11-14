@@ -68,3 +68,5 @@ Numbered by date, oldest first. None is read by code.
 - [37](37-WATSON_2026-11-11_REINFORCEMENT_AND_SECOND_NATURE.md) 2026-11-11: Reinforcement of mundane things, and second nature
 - [38](38-WATSON_2026-11-11_SECOND_NATURE_PER_TASK_AND_WHAT_CARRIES_OVER.md) 2026-11-11: Second nature per task, and what carries over to all
 - [39](39-WATSON_2026-11-13_THE_WALKTHROUGH_AND_THE_DESIGN_BILL.md) 2026-11-13: The walkthrough and the design bill
+- [40](40-WATSON_2026-11-13_RECURSIVE_DIFFUSION_LEARNING.md) 2026-11-13: Recursive Diffusion Learning: a large corpus without pretraining, settled by the board (future state)
+- [41](41-WATSON_2026-11-13_STRATA_ISLANDS_AND_GAP_WIDTHS.md) 2026-11-13: Strata, islands and gap widths: placement by depth, neighbourhoods by paid bonds (future state)
