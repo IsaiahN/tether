@@ -7,7 +7,7 @@
       all return UNBOUND, never raise. MF-S3: "the ground" is UNBOUND by definition
   S4  kind_of_reading: position is a state (space), age a state (time), dcells a state (energy),
       scale a structure (spectrum), contact a structure (network); colour and shape are unknown
-  S5  nothing in the agent imports symbols (it only reads; the agenda reader is its first caller)
+  S5  only agenda.py (the agenda reader, 2a) imports symbols; nothing else in the agent reads it
 Seconds.
     python tests/test_symbols.py
 """
@@ -100,8 +100,8 @@ def main() -> None:
                            r"^\s*(import symbols|from symbols import)", "--", "*.py"],
                           capture_output=True, text=True).stdout.split()
     callers = [h for h in hits if not h.startswith("tests/")]
-    assert not callers, ("S5: something reads symbols already", callers)
-    print("  S5: no agent module imports symbols yet")
+    assert callers == ["agenda.py"], ("S5: only the agenda reader imports symbols", callers)
+    print("  S5: only agenda.py (the reader, 2a) imports symbols")
     print("symbols: OK")
 
 
