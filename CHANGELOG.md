@@ -6,6 +6,17 @@ Each release below is an operating-system update: it changes what grows on the k
 
 Releases are listed newest first.
 
+## 2026-11-13: Goals wait until the buttons are known
+
+### New
+- While the agent is still pressing each action once to learn what it does, it no longer adopts goals. Before, a goal adopted during that hold was parked by the hold and treated as given up (TETHER_HYP_AFTER_WORDS, on by default).
+
+### Known issues
+- Measured on three games at 10 minutes each: goals parked during the hold fell from 3 to 0, and goals given up with no route fell in all three games. The first goal on each board now comes 4 to 6 cycles later. With 1 to 6 goals per game, whether goals are pursued better is not shown yet; the next larger retest reads it again, and the switch goes off if goals park more.
+
+### Repository
+- New pages: the state of the agent (what works, what doesn't, where the gap is), and the build sequence ahead, each step with its switch, tests and deciding check.
+
 ## 2026-11-13: Plans that start at the pick
 
 ### New
