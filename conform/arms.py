@@ -3327,6 +3327,12 @@ ARMS: dict[str, str] = {
                               "(a filter must not hand a verdict: a goal adopted inside the hold "
                               "was parked by the order). A goal already held is untouched. OFF: "
                               "proposed inside the hold, as before. default ON",
+    "TETHER_NAMES_HOLD": "item 1b (the reviewer r1948/r1949; design 04-PLANS_AHEAD/02 1b; the "
+                         "hand test's finding (d)): the tracker's shape and turn fallback takes "
+                         "the NEAREST same-shape name, and a tie (two names, or a rival piece as "
+                         "near) is a birth with the candidates in maybe_same; a piece born exactly "
+                         "where a free name was first seen takes it back (route home, unsure). "
+                         "OFF: the first unclaimed name in name order. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
