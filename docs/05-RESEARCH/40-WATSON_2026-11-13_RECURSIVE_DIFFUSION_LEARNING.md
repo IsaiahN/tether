@@ -359,6 +359,28 @@ They can be held from day one (the mixed umwelt), but by C3 they cannot settle u
 
 **For contributors.** Hops 1, 2 and 5 are hours of work: exact keys. Hops 3 and 4 are the reviewable mapping work, and hop 4 is where help is most useful: one row per word sense, its cluster, its atom, and why. Every source has its own terms, and importing any corpus into the agent is Isaiah's decision alone. ImageNet's images are licensed for non-commercial research, and WordNet, ConceptNet and cmudict each carry their own licences.
 
+### Affordances: shape -> concept -> properties -> predictions
+
+**Isaiah (2026-11-13 18:03, spelling corrected):**
+
+> No, the shapes are to help the agent connect the shape of the object to the concept and then extract the properties. Babies know that balls roll, and blocks can stack.
+
+**The chain.** Shape -> concept -> properties -> predictions. For example: "round, one solid colour" -> ball -> rolls, bounces, does not stack. "Square, flat top" -> block -> stacks, stays put, blocks a path. In Gibson's term these are affordances: what an object offers an actor, not only what it is. It is the visual-lexicon chain carried one step further, from naming an object to expecting what it will do.
+
+**The guards.**
+- **Each property is a stamped prior** (C6): held, with no standing. The first press on that kind of object tests it.
+- **When the board disagrees, the rule is split by condition, not dropped.** A round thing that turns out to be a wall becomes "round things roll, except here". This is the misapplication row of the tacit-knowledge table, and it is Fig 5's refusal at work: Fig 5 :54, "A term that refuses another pays the same bargain."
+- **Each property is judged per context, and its record is kept per context.** Nothing is deleted (Fig 6).
+
+**What infants bring, stated carefully.** The early developmental findings concern a few core expectations about objects: solidity (they do not pass through each other), continuity (they do not vanish) and support (they fall without it). This is Spelke's core-knowledge work and Baillargeon's work on support; it is not quoted here. "Balls roll" and "blocks stack" are learned fast, through play, on top of those. That is the pattern this design copies: a few core expectations, then fast learning by contact.
+
+**Why it pays here.** In the 2026-11-13 hand test, the second level spent 21 presses finding walls by bumping into them. A "solid, blocks movement" prior would have turned those 21 probes into a handful of confirmations.
+
+**Measure (readable now, as a baseline).** The share of first presses on a new kind of object that produce an effect.
+- Read it from the existing ledgers today. That is the baseline, before anything is built.
+- With affordances in place, the share should rise. If it does, the affordances are paying.
+- If it does not rise, the shape-to-property priors are not earning their place on these boards, and they stay held without being ranked first.
+
 ## Pre-registered tests (when it is built)
 
 T0 is a prerequisite: the agent itself, reading the cards, forms a goal, repairs it when the board refuses, and clears a level on a game it has never seen (set after the 2026-11-13 hand test).
