@@ -3,13 +3,15 @@ library/ and requirements.lock -- with a marker the notebook finds it by, and a 
 notebook checks after its copy. No lineage (it waits on Isaiah) and no key: the scan prints every line that assigns a
 key-, secret- or password-shaped value, for reading before any upload. Nothing is uploaded here.
     python kaggle/build_dataset.py SHA OUT_DIR
-Writes OUT_DIR/code/ (git archive SHA), OUT_DIR/TETHER_KAGGLE_DATASET.json (the marker), OUT_DIR/MANIFEST.sha256 and
+Writes OUT_DIR/code/ (git archive SHA, less dot-named files and archive-type files, which Kaggle unpacks on upload),
+OUT_DIR/TETHER_KAGGLE_DATASET.json (the marker), OUT_DIR/MANIFEST.sha256 and
 OUT_DIR/scan.txt. Refuses an OUT_DIR that already holds a dataset."""
 import hashlib
 import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -32,6 +34,23 @@ def build(sha: str, out: str) -> dict:
     code = os.path.join(out, "code")
     with tarfile.open(fileobj=io.BytesIO(git("archive", full))) as tf:
         tf.extractall(code, filter="data")
+    # Kaggle drops dot-named files and folders when it unpacks an uploaded dataset (2026-11-13: the notebook's check
+    # failed on a missing .gitattributes), so they are left out here, named in the marker, and never listed in the
+    # manifest: the agent reads none of them (.gitattributes, .gitignore). Kaggle also unpacks archive-type files
+    # inside an upload (2026-11-13 ~21:36: tests/data/cue_key_path/dc22_c24.json.gz missing from the copy), so those
+    # are left out the same way; at 5f811fa they are two test-data files the agent never reads
+    UNPACKED = (".gz", ".zip", ".tar", ".tgz", ".bz2", ".xz", ".7z", ".rar")
+    dropped = []
+    for d, dirs, files in os.walk(code):
+        for x in sorted(dirs):
+            if x.startswith("."):
+                dropped.append(os.path.relpath(os.path.join(d, x), code).replace(os.sep, "/") + "/")
+                shutil.rmtree(os.path.join(d, x))
+                dirs.remove(x)
+        for f in sorted(files):
+            if f.startswith(".") or f.lower().endswith(UNPACKED):
+                dropped.append(os.path.relpath(os.path.join(d, f), code).replace(os.sep, "/"))
+                os.remove(os.path.join(d, f))
     rows, hits = [], []
     for d, _dirs, files in os.walk(code):
         for f in files:
@@ -53,6 +72,7 @@ def build(sha: str, out: str) -> dict:
     assert os.path.isdir(os.path.join(code, "library")), "the tree holds no library/"
     mark = {"commit": full, "tree": tree, "files": len(rows),
             "manifest_sha256": hashlib.sha256(manifest.encode()).hexdigest(), "lineage": None,
+            "dropped": sorted(dropped),
             "built_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     with open(os.path.join(out, MARK), "w", encoding="utf-8", newline="\n") as fh:
         json.dump(mark, fh, indent=1)
