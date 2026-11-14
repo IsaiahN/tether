@@ -726,6 +726,11 @@ def build(check_only: bool = False) -> dict:
 # r1159: an atom is ASSIGNED only on MIN_SHARED attributes (one shared word is a single source,
 # Fig 2); one shared is kept as a recorded CANDIDATE with its reason, never read by the bridge.
 MIN_SHARED = 2
+# THE TETHER DOMAIN, pilot (r1912 A; Isaiah 2026-11-13 10:44, a corpus import): the Tether's
+# rules as method cards, committed byte for byte and kept apart from given.json/index.json; no
+# build step reads or writes it. --check holds its sha256 to the approved file.
+TETHER_RULES = "tether_rules.json"
+TETHER_RULES_SHA256 = "542c92a3f6ce596310ed4d4bb20fea581634e073e16d93ff6b256f4226f2585e"
 # 8e: moved from docs/corpus/ to library/ (r1855)
 CORPUS_INDEX = Path(os.environ.get("ATTRIBUTE_INDEX")
                     or Path(__file__).resolve().parent / "ATTRIBUTE_INDEX.json")
@@ -964,6 +969,9 @@ def _write_manifest() -> None:
              "| index.json | DERIVED: index + tag | build_library | old_files (Library.load, "
              "inherited.load) |",
              "| grammar.json | GIVEN, verbatim | nobody | nobody (no code opens it) |",
+             "| tether_rules.json | GIVEN, verbatim: the Tether domain, method entries, run by the"
+             " agenda (not built); kept apart; sha256 held"
+             " by --check | nobody | nobody yet (no code opens it) |",
              "| BUILD_REPORT.md | DERIVED report | build_library | people |",
              "| MANIFEST.md | DERIVED: this file | build_library | people |",
              "| library.db | DERIVED: the same rows as the four JSON, NOT committed | build_library"
@@ -1011,12 +1019,16 @@ def check() -> int:
     a3 += [(s, "*") for s in ("sources", "records", "pending") if gin[s] != gout[s]]
     s1 = _s1(tmp / "library.db", tmp)
     shutil.rmtree(tmp)
+    import hashlib
+    tr = hashlib.sha256((LIB / TETHER_RULES).read_bytes()).hexdigest()
     print("library check:",
           "OK -- every derived file reproduced" if not bad else f"FAIL -- not reproduced: {bad}")
     print("  A3 source fields:", "OK -- the build computes none" if not a3
           else f"FAIL -- a SOURCE field was rewritten: {a3[:10]}")
     print("  S1 db rows:", "OK -- the DB holds the JSON's rows" if not s1 else f"FAIL -- {s1}")
-    return 1 if bad or a3 or s1 else 0
+    print("  tether_rules.json:", "OK -- the approved bytes" if tr == TETHER_RULES_SHA256
+          else f"FAIL -- sha256 {tr}, approved {TETHER_RULES_SHA256}")
+    return 1 if bad or a3 or s1 or tr != TETHER_RULES_SHA256 else 0
 
 
 if __name__ == "__main__":

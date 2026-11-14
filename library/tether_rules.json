@@ -1,0 +1,230 @@
+{
+  "meta": {
+    "what": "THE TETHER DOMAIN, pilot: the Tether's rules as library entries the agent can read, so its method is a term it holds and not only code it runs (Isaiah 2026-11-13 10:38-10:44: 'codify the rules of the tether from each frame into NSM grammar/operators and provide templates'; 'how else can we claim true recursion'). Approved as a corpus import by Isaiah 10:44.",
+    "kind": "method",
+    "run": "AGENDA: a card is not lit by a reading. It is looked up by the SHAPE of what is unexplained (its when), and running it means asking its child questions (asks) in order. No reader is built yet: the hand test (r1912) runs these cards by hand first.",
+    "status": "prior: inherited, protected from fading; its standing is still earned from the ground (LIBRARY_SPEC section 4: no head start for being given)",
+    "grammar": "library/grammar.json: operators + (and), ∥ (or), ≡ (same), → (then), ⇒ (implies), − (without), ⋛ (compare), ¬ (not); NSM primes SOMETHING, THIS, OTHER, PART, KIND, DO, HAPPEN, MOVE, BE, WHERE, WHEN, TOUCH, INSIDE, AND, NOT, IF, BECAUSE, THE SAME, MORE, LIKE, MAYBE, CAN",
+    "fields": {
+      "when": "the shape of the question this card applies to, in effect terms (never a cause)",
+      "asks": "the child questions, in order: the slots the Tether generates",
+      "do": "the rule as a molecule in the grammar's operators and NSM primes",
+      "because": "the figure line, verbatim, cited Fig N :line from docs/01-FOUNDATIONS/03-FIGURES_TEXT.md",
+      "refuted_by": "what reading on the board would show the rule failed here",
+      "order": "where it sits in the agenda (Fig 3: upstream first)",
+      "do_sym": "the same rule in the formula's symbols (grammar.json symbols), where a symbol exists"
+    },
+    "source": "the reviewer 2026-11-13, from the figure text at development c10a03a",
+    "symbols_bound": "NOT YET. grammar.json holds each symbol's definition as text only; nothing binds Γ, R, closure(Γ), φ, |φ|, |R|φ|, a, o′, Γ(b,a) to what the agent can read at run time. A symbol the agent cannot evaluate is a name with nothing behind it (Fig 9 :30 'your words are borrowed too'). The binding table (symbol -> the agent's own reading) is the 11-03 translation-table gap and is part of this build.",
+    "note_tacit": "The 'Three texts' card comes from Isaiah's tacit-knowledge paper (asked to be kept 11-13 11:09). The paper also gives the measure of transfer: 'the size of corrections shows how much knowledge is still tacit' -- track the trend of corrections, not the count of lessons."
+  },
+  "entries": {
+    "TETHER|Which link first": {
+      "figure": "Fig 3",
+      "when": "no progress: the goal's gap has not shrunk, or nothing is being tried",
+      "asks": [
+        "SEE: can I tell what is in front of me, and tell it apart from what was there before?",
+        "WORDS: do I have a term for what this thing affords (moved, opened, joined, blocked)?",
+        "GOAL: can I say, in my own terms, what would count as progress here?",
+        "ROUTE: do I have a route to that, chosen under incomplete information?",
+        "KEEP: did I name what worked, verify it, and carry it?"
+      ],
+      "do": "(¬SEE ⇒ ask SEE) → (¬WORDS ⇒ ask WORDS) → (¬GOAL ⇒ ask GOAL) → (¬ROUTE ⇒ ask ROUTE) → (¬KEEP ⇒ ask KEEP); IF the first link NOT met is k THEN NOT DO work above k",
+      "because": [
+        "Fig 3 :20 \"The chain is ordered by dependency, not by importance. Each link consumes what the one above produces, so effort spent above the break arrives at a step\"",
+        "Fig 3 :29 \"Before asking whether a system is good, ask which link it currently stops at, and whether the answer was measured or assumed.\""
+      ],
+      "refuted_by": "working on the first unmet link moves nothing, while work on a later link moves the goal's gap",
+      "order": 1,
+      "do_sym": "R⁺_s > 0 ∧ ¬shrinking(R_s) ⇒ ask the first unmet link"
+    },
+    "TETHER|Read the predecessor": {
+      "figure": "Fig 3",
+      "when": "a step never receives its input (a route never asked, a goal never formed)",
+      "asks": [
+        "What step feeds this one, and did it produce anything?"
+      ],
+      "do": "IF input(k) NOT HAPPEN ⇒ ask step(k−1) BECAUSE reading(k) = reading of nothing",
+      "because": [
+        "Fig 3 :22 \"A step whose input never arrives cannot be diagnosed, only its predecessor can. Which is why a reading taken below the break is not a weak\"",
+        "Fig 3 :23 \"reading. It is a reading of nothing.\""
+      ],
+      "refuted_by": "the predecessor's output is present and the step still fails, so the fault is in the step itself",
+      "order": 1,
+      "do_sym": "input(k) = ∅ ⇒ read step(k−1)"
+    },
+    "TETHER|Instrument the middle": {
+      "figure": "Fig 3",
+      "when": "the agent has percepts and actions but no stated goal for this board, or a goal with no reading of progress",
+      "asks": [
+        "What would an answer look like here? Write it down as a term, so it can be refuted like any other."
+      ],
+      "do": "IF ¬(GOAL has reading) ⇒ DO bind(THIS shape sought) → let it accrue a residual",
+      "because": [
+        "Fig 3 :25 \"Perception has obvious failures and obvious tests. Planning has obvious failures and obvious tests. The link between them, having terms for what a\"",
+        "Fig 3 :27 \"A link with no instrument is not a link that works. It is a link nobody has looked at.\""
+      ],
+      "refuted_by": "the committed goal shape's residual grows while play continues: the sought shape was wrong, refuse it and state another",
+      "order": 3,
+      "do_sym": "¬goal(s) ⇒ bind φ_sought as an ordinary term → let R accrue on it"
+    },
+    "TETHER|A state asks for its structure": {
+      "figure": "Fig 13",
+      "when": "a question about a STATE: where something is, when it changes, how much there is (space, time, energy)",
+      "asks": [
+        "ORDERED HOW (spectrum): what ordering makes more and less sayable for it?",
+        "WHAT DRIVES IT (gradient): what difference, when spent, moves it, and which way?",
+        "WHAT IT RELATES TO (network): what is it connected to, and where does influence travel?"
+      ],
+      "do": "state(Q) ⇒ ask spectrum(Q) + ask gradient(Q) + ask network(Q); only those that TOUCH the residual",
+      "because": [
+        "Fig 13 :29 \"A state with no structure has no magnitude: three of what, ordered how, varying across what? A structure with no state is empty: an ordering over\"",
+        "Fig 13 :28 \"They alternate, and the alternation is where both the recursion and the randomness come from.\""
+      ],
+      "refuted_by": "a child question answered and the parent state question no closer: that pairing did not bear on it here",
+      "order": 2
+    },
+    "TETHER|A structure asks for its states": {
+      "figure": "Fig 13",
+      "when": "a question about a STRUCTURE: why things order this way, what drives a change, what is linked (spectrum, gradient, network)",
+      "asks": [
+        "WHERE (space): near, far, between, contained?",
+        "WHEN, AFTER WHAT (time): in what succession does it change?",
+        "HOW MUCH, AT WHAT COST (energy): what is conserved or spent?"
+      ],
+      "do": "structure(Q) ⇒ ask space(Q) + ask time(Q) + ask energy(Q); only those that TOUCH the residual",
+      "because": [
+        "Fig 13 :29-30 \"A structure with no state is empty: an ordering over nothing, a network with nothing at the nodes.\"",
+        "Fig 13 :30-31 \"So each step acts on one kind and yields the other, and every link in the chain is changed by the link before it. That alternation is the recursion.\""
+      ],
+      "refuted_by": "as above: an answered child that brings the parent no closer",
+      "order": 2
+    },
+    "TETHER|Across the kinds only": {
+      "figure": "Fig 13",
+      "when": "a candidate answer joins two states directly or two structures directly",
+      "asks": [
+        "What structure (or state) sits between these two?"
+      ],
+      "do": "IF bond(state, state) ∥ bond(structure, structure) ⇒ ¬accept → ask the missing kind between them",
+      "because": [
+        "Fig 13 :74 \"Everything else is a composition across the two kinds, never within one.\"",
+        "Fig 13 :75 \"Two states never bond directly. It is not space-time but space, a structure, time; and two structures join only through a state.\""
+      ],
+      "refuted_by": "a within-kind pairing that predicts the board and pays its bargain: a case the figure must answer",
+      "order": 2
+    },
+    "TETHER|Could it be reached at all": {
+      "figure": "Fig 13",
+      "when": "before searching any question",
+      "asks": [
+        "With the library as it stands, could an answer of this shape be reached at all?"
+      ],
+      "do": "ask reach(Q) → IF ¬reach(Q) ⇒ answer(Q) = 'unreachable now' (a verdict, NOT a silence) → narrow",
+      "because": [
+        "Fig 13 :132-133 \"The second is decidability: given the library as it stands, could this have been reached at all. A system with a closure can answer that before it searches, and what it returns is a shape rather than a name.\"",
+        "Fig 13 :134 \"So the system can report that it lacks something rather than producing an answer anyway. Unreachable is a verdict here, not a silence,\""
+      ],
+      "refuted_by": "an answer found for a question this card ruled unreachable: the reach check missed a route",
+      "order": 0,
+      "do_sym": "φ ∈ closure(Γ) ? ; ¬ ⇒ answer = 'unreachable now'"
+    },
+    "TETHER|Narrow what is missing": {
+      "figure": "Fig 13",
+      "when": "a question ruled unreachable with the library as it stands",
+      "asks": [
+        "Is this one question, or several that must be split first?",
+        "What is missing, said by its effect (what it would do), not by a name?",
+        "Then: mark it owed to an import before it is asked again."
+      ],
+      "do": "unreachable(Q) ⇒ (ask split(Q) → ask effect(missing) → mark import owed)",
+      "because": [
+        "Fig 13 :136-138 \"What it can do is narrow. It can say the question is not one question and must be split before it is searched again. It can characterise what is missing in effect terms, which is the description that travels to a frame that may hold it. And it can say the answer is out of reach with the library as it stands, so something has to be imported before it is asked again.\""
+      ],
+      "refuted_by": "a split whose parts are each reachable and still do not compose an answer: the split was wrong",
+      "order": 7,
+      "do_sym": "∀φ ∈ closure(Γ): R|φ| ≈ R ⇒ split(R) → effect(R) → import owed"
+    },
+    "TETHER|Describe before you look": {
+      "figure": "Fig 9",
+      "when": "a new residual, before any lookup",
+      "asks": [
+        "What happened, in effect terms: what changed, how many things, what is interchangeable, at what scale?"
+      ],
+      "do": "describe(R) by effect → THEN lookup(KIND of R); NOT lookup(name)",
+      "because": [
+        "Fig 9 :27-28 \"describe it before you go looking, or any frame you pick will seem to fit\"",
+        "Fig 9 :45 \"Describing the residual is the expensive part. Leaving, looking up and recognising are one step each, and cheap only in that order.\""
+      ],
+      "refuted_by": "two residuals described the same that need different answers: the description missed a dimension",
+      "order": 0,
+      "do_sym": "describe(R_s) by effect → lookup KIND(R_s) in Γ"
+    },
+    "TETHER|Unbundle a union": {
+      "figure": "Fig 9",
+      "when": "one lever cleared part of a problem and the rest still binds",
+      "asks": [
+        "Which two conditions overlap in what is left, and what does the overlap need of its own?"
+      ],
+      "do": "IF lever(A) clears PART(R) AND R − PART ≠ nothing ⇒ ask overlap(A, B) as its own question",
+      "because": [
+        "Fig 9 :54 \"And when the split lands on a union rather than a partition, unbundle before you search again.\"",
+        "Fig 9 :57-58 \"What remains is smaller and it is also categorically different: a case in two conditions is not a harder case of either. It stops being a mixture and becomes a specific compound.\""
+      ],
+      "refuted_by": "the remainder clears with a second single lever: it was a partition, not a union",
+      "order": 6
+    },
+    "TETHER|Filters for the budget, witnesses for the verdict": {
+      "figure": "Fig 9",
+      "when": "a cut is about to decide an answer (a filter, a gate, a cheap screen)",
+      "asks": [
+        "Is this a filter (spends budget) or a witness (the board deciding)?"
+      ],
+      "do": "filter ⇒ order candidates (ranked, reversible); ONLY witness ⇒ verdict",
+      "because": [
+        "Fig 9 :60 \"Use filters for the budget and witnesses for the verdict. Never let a filter hand you a verdict.\"",
+        "Fig 9 :40 \"a wrong cut removes the answer and speeds up\"",
+        "Fig 9 :41 \"so keep every cut ranked and reversible\""
+      ],
+      "refuted_by": "an answer the filter removed turns out to be the one the board accepts: the cut was taken as a verdict",
+      "order": 5,
+      "do_sym": "filter: order φ by |φ| + |R|φ| ; verdict: the ground only"
+    },
+    "TETHER|Three texts before acting": {
+      "figure": "Isaiah's paper 'Decoding tacit knowledge' (adventuresinml, 2026), corroborated by Fig 9 and Fig 3",
+      "when": "before acting on an understanding of the board, and whenever an action did not do what it was for",
+      "asks": [
+        "PRETEXT: what do I bring to this? Have I seen this kind before, and what does my record say happened?",
+        "CONTEXT: what surrounds it now? What is on the board and in contact with it?",
+        "SUBTEXT: what is it for? What would doing this get me toward my goal?"
+      ],
+      "do": "IF ¬SUBTEXT ∧ PRETEXT ∧ CONTEXT ⇒ literalism → ask GOAL; IF ¬CONTEXT ∧ PRETEXT ∧ SUBTEXT ⇒ misapplication → ask what CONDITION here differs, and add it to the rule; IF ¬PRETEXT ∧ CONTEXT ∧ SUBTEXT ⇒ rote → ask WHY it worked before carrying it; IF only PRETEXT ⇒ projection → NOT DO, look at the board; IF only CONTEXT ⇒ noise → ask SEE and WORDS (Fig 3 links 1-2); IF only SUBTEXT ⇒ rumor → DO press-and-watch; IF none ⇒ nothing transfers → DO press-and-watch, transcribe",
+      "do_sym": "understanding ⇐ pretext(Γ, lineage) + context(o′, the habitat) + subtext(the goal's R)",
+      "because": [
+        "Isaiah, 'Decoding tacit knowledge': \"the way it gets rebuilt is contact.\"",
+        "Isaiah's table (11-13 11:09): pretext + context + subtext = understanding; without subtext, literalism; without context, misapplication; without pretext, rote; pretext only, projection; context only, noise; subtext only, rumor",
+        "Fig 9 :30 \"your words are borrowed too, so describe the effect\"",
+        "Fig 3 :10 \"it can say what would count as progress here, in its own terms\"",
+        "Isaiah 11-13 11:19-11:20: the table as the agent's failure guide; 'sounds good'"
+      ],
+      "refuted_by": "an action taken with all three present that still does not do what it was for: the understanding was wrong, so a correction is owed",
+      "order": 0,
+      "source": "Isaiah's corpus (his paper), not a figure; kept in this domain because it is a rule about how contact becomes understanding",
+      "learn_from_failure": {
+        "literalism": "form or fix the goal",
+        "misapplication": "a CONDITION that limits the rule (the rule gains a scope, not only a lower weight)",
+        "rote": "the REASON it worked (tier 1 -> tier 2 abstraction)",
+        "projection": "a board reading before acting",
+        "noise": "perception or vocabulary",
+        "rumor": "the situation and its history, by contact",
+        "nothing": "everything, by contact"
+      },
+      "readings_needed": {
+        "pretext": "does the record hold anything for this kind (tier-2 rules, settled terms, carried entries)?",
+        "context": "do the conditions now match those the rule was learned under (its situation key)?",
+        "subtext": "does this act serve a held goal (a goal hypothesis, an intent with a target)?"
+      },
+      "caution": "the record agreeing with itself is not proof (Fig 2; Isaiah's table: 'two experts drifting together, unchecked'); only the board decides"
+    }
+  }
+}
