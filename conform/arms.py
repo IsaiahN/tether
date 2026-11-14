@@ -3320,6 +3320,13 @@ ARMS: dict[str, str] = {
                                 "(_contact_target, _system0_active) and no longer hold reasoning. "
                                 "8d reads it. OFF: the hold reads _try_first_open, kinds included. "
                                 "default ON",
+    "TETHER_HYP_AFTER_WORDS": "the reviewer r1939 (design (a), r1938): while BOARD_TRY_FIRST "
+                              "holds, no goal is proposed -- a 'try_first' holder in "
+                              "_goal_hypothesis_run, rowed by proposal_gated. Fig 3 :20-21 (work "
+                              "above an unmet link arrives where it cannot be used) and Fig 9 :60 "
+                              "(a filter must not hand a verdict: a goal adopted inside the hold "
+                              "was parked by the order). A goal already held is untouched. OFF: "
+                              "proposed inside the hold, as before. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
