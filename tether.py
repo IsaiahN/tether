@@ -24,7 +24,7 @@ import sys
 import time
 from collections import Counter
 from collections.abc import Mapping
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field, fields, is_dataclass
 from dataclasses import replace as _replace
 from functools import cache, lru_cache, partial, wraps
@@ -1054,6 +1054,15 @@ _HTN_AT_ADOPT = armflag.arm("TETHER_HTN_AT_ADOPT", default=True)
 # coincidence"), best validity first. Strata and the core rule are the next rungs, not built.
 # NEEDS TETHER_HTN and TETHER_CAN_LEDGER. OFF: no tier rows, the law's enablers only.
 _HTN_TIERS = armflag.arm("TETHER_HTN_TIERS", default=True)
+# TIER CONTRAST (cards v4 (e), "Could it have come out the other way?"; the reviewer r1923 3,
+# r1925 4(e), r1948/r1949; Fig 2 :29-30 "If it moves when you push on it, it is not an anchor"):
+# a J that changes on every step agrees with every opening and carries nothing. Each can reading
+# counts, per kind K that had a BLOCKED item, the steps (K could have opened) and, per kind J, the
+# steps on which J changed.
+# A tier-2 candidate then needs J to have changed on some of those steps and not on others, and a
+# positive contrast P(K opens | J changed) - P(K opens | J did not); candidates are ordered by it.
+# NEEDS TETHER_HTN_TIERS. OFF: counted by n alone (n >= MIN_REPEAT), best validity first.
+_TIER_CONTRAST = armflag.arm("TETHER_TIER_CONTRAST", default=True)
 # (6a) R-D, UNREACHABLE AT BUDGET, THEN RE-ENGAGE (the 10-23 design; A11; Fig 8 :40-41): an
 # exhausted intent is kept as the verdict "unreachable at budget" with the situation it was read
 # in; when a route is offered for it again (its situation moved -- 4d -- or its refusals were set
@@ -15985,6 +15994,38 @@ class Agent:
                         reads="tier 1: this item opened; what else changed just before it, kept "
                               "whole. Tier 2 counts it by kind (Isaiah's ladder, bottom-up)")
 
+    @staticmethod
+    def _tier_contrast(rule: dict, j: Any) -> float:
+        """TIER CONTRAST: P(K opens | J changed) - P(K opens | J did not), over the steps on which
+        an item of K was blocked. 0.0 when J changed on every such step or on none (the second
+        term, or the first, is undefined: the reading could not have come out the other way)."""
+        steps, js = rule.get("steps", 0), rule.get("j_steps", {}).get(j, 0)
+        if not 0 < js < steps:
+            return 0.0
+        n = rule["after"].get(j, 0)
+        return min(1.0, n / js) - min(1.0, max(0, rule["opened"] - n) / (steps - js))
+
+    def _tier_count(self, prev: dict, changed: list) -> None:
+        """TIER CONTRAST: one can reading's step, counted per kind K that had a BLOCKED item in the
+        last reading (K could have opened now): the step, and each kind J that changed on it."""
+        ks, js = set(), set()
+        for s, (side, _why) in prev.items():
+            cap.head()
+            if side == can_ledger.BLOCKED:
+                with suppress(Exception):    # an owner with no kind is not filed
+                    ks.add(self._can_kind_key(s))
+        for s in changed:
+            if s in self.slots:
+                with suppress(Exception):
+                    js.add(self._can_kind_key(s))
+        for k in ks:
+            rule = self._tier2.setdefault(k, {"opened": 0, "after": {}})
+            rule["steps"] = rule.get("steps", 0) + 1
+            jst = rule.setdefault("j_steps", {})
+            for j in js:
+                if j != k:
+                    jst[j] = jst.get(j, 0) + 1
+
     def _tier_candidates(self, chosen: str) -> list[tuple[str, str]]:
         """HTN TIERS: the open slots of each kind J that tier 2 says this goal's kind K opens after
         (seen at least MIN_REPEAT times), best validity first; [(slot, the rule read)]."""
@@ -15999,7 +16040,11 @@ class Agent:
             return []
         mine, out = self._objs_named(chosen), []
         n_open = rule["opened"]
-        for j, n in sorted(rule["after"].items(), key=lambda kv: -(kv[1] + 1) / (n_open + 2)):
+        order = sorted(rule["after"].items(), key=lambda kv: -(kv[1] + 1) / (n_open + 2))
+        if _TIER_CONTRAST:
+            order = [(j, n) for j, n in order if self._tier_contrast(rule, j) > 0]
+            order.sort(key=lambda kv: -self._tier_contrast(rule, kv[0]))
+        for j, n in order:
             if n < MIN_REPEAT:
                 continue
             for s in self._res:
@@ -26675,6 +26720,8 @@ class Agent:
                              and pstate.get(k) != before[k])
             cue = {"press": str(self.trace[-1][1]), "changed": changed[:12],
                    "changed_n": len(changed)}
+            if _TIER_CONTRAST and _HTN_TIERS and _HTN:
+                self._tier_count(prev, changed)
             for row in cross:
                 cap.head()
                 try:

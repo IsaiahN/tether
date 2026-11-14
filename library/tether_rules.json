@@ -2,7 +2,7 @@
   "meta": {
     "what": "THE TETHER DOMAIN, pilot: the Tether's rules as library entries the agent can read, so its method is a term it holds and not only code it runs (Isaiah 2026-11-13 10:38-10:44: 'codify the rules of the tether from each frame into NSM grammar/operators and provide templates'; 'how else can we claim true recursion'). Approved as a corpus import by Isaiah 10:44.",
     "kind": "method",
-    "run": "AGENDA: a card is not lit by a reading. It is looked up by the SHAPE of what is unexplained (its when), and running it means asking its child questions (asks) in order. No reader is built yet: the hand test (r1912) runs these cards by hand first.",
+    "run": "AGENDA: a card is not lit by a reading. It is looked up by the SHAPE of what is unexplained (its when), and running it means asking its child questions (asks) in order. The agenda reader (item 2a, TETHER_AGENDA) runs them; the hand test (r1912) ran them by hand first.",
     "status": "prior: inherited, protected from fading; its standing is still earned from the ground (LIBRARY_SPEC section 4: no head start for being given)",
     "grammar": "library/grammar.json: operators + (and), ∥ (or), ≡ (same), → (then), ⇒ (implies), − (without), ⋛ (compare), ¬ (not); NSM primes SOMETHING, THIS, OTHER, PART, KIND, DO, HAPPEN, MOVE, BE, WHERE, WHEN, TOUCH, INSIDE, AND, NOT, IF, BECAUSE, THE SAME, MORE, LIKE, MAYBE, CAN",
     "fields": {
@@ -15,8 +15,9 @@
       "do_sym": "the same rule in the formula's symbols (grammar.json symbols), where a symbol exists"
     },
     "source": "the reviewer 2026-11-13, from the figure text at development c10a03a",
-    "symbols_bound": "NOT YET. grammar.json holds each symbol's definition as text only; nothing binds Γ, R, closure(Γ), φ, |φ|, |R|φ|, a, o′, Γ(b,a) to what the agent can read at run time. A symbol the agent cannot evaluate is a name with nothing behind it (Fig 9 :30 'your words are borrowed too'). The binding table (symbol -> the agent's own reading) is the 11-03 translation-table gap and is part of this build.",
-    "note_tacit": "The 'Three texts' card comes from Isaiah's tacit-knowledge paper (asked to be kept 11-13 11:09). The paper also gives the measure of transfer: 'the size of corrections shows how much knowledge is still tacit' -- track the trend of corrections, not the count of lessons."
+    "symbols_bound": "BOUND in symbols.py (item 2b): 13 of grammar.json's 22 symbols evaluate to an agent reading (symbols.evaluate); the other 9 are UNBOUND with their reasons (symbols.table()), and the ground is never bound. A card's do_sym with an unbound symbol is skipped and written 'unbound', never substituted.",
+    "note_tacit": "The 'Three texts' card comes from Isaiah's tacit-knowledge paper (asked to be kept 11-13 11:09). The paper also gives the measure of transfer: 'the size of corrections shows how much knowledge is still tacit' -- track the trend of corrections, not the count of lessons.",
+    "version": "v4 (2026-11-13, the reviewer r1952; Isaiah 23:28 'compete 1-9 and put into development'): the hand test's four corrections, r1923 1 (a)-(d) and r1925 4 (e)-(g); v3 sha 542c92a3 at development c10a03a"
   },
   "entries": {
     "TETHER|Which link first": {
@@ -82,7 +83,11 @@
         "Fig 13 :28 \"They alternate, and the alternation is where both the recursion and the randomness come from.\""
       ],
       "refuted_by": "a child question answered and the parent state question no closer: that pairing did not bear on it here",
-      "order": 2
+      "order": 2,
+      "examples": [
+        "where the body is (space), how long it has been still (time), how many bar cells are left (energy): states",
+        "the reader tags a reading with symbols.kind_of_reading (o3.row -> state, space); a corridor is NOT a state, see 'A structure asks for its states' (the hand test's #9)"
+      ]
     },
     "TETHER|A structure asks for its states": {
       "figure": "Fig 13",
@@ -98,7 +103,11 @@
         "Fig 13 :30-31 \"So each step acts on one kind and yields the other, and every link in the chain is changed by the link before it. That alternation is the recursion.\""
       ],
       "refuted_by": "as above: an answered child that brings the parent no closer",
-      "order": 2
+      "order": 2,
+      "examples": [
+        "a corridor or path of free cells, a group, what touches what (network); sizes ordered small to large (spectrum); a difference that pushes things one way (gradient): structures",
+        "'is the corridor wide enough' asks a structure for its states (space: near, far, between, contained?); the hand test's #9 asked it of a state and miscited the card"
+      ]
     },
     "TETHER|Across the kinds only": {
       "figure": "Fig 13",
@@ -116,18 +125,22 @@
     },
     "TETHER|Could it be reached at all": {
       "figure": "Fig 13",
-      "when": "before searching any question",
+      "when": "before searching any question, and before choosing a route on a board",
       "asks": [
-        "With the library as it stands, could an answer of this shape be reached at all?"
+        "With the library as it stands, could an answer of this shape be reached at all?",
+        "On this board, can contact reach it: is there a press-and-watch whose effect would answer it?",
+        "Does the budget left (moves, bar cells, the slice's time) cover the route, before it is chosen?"
       ],
-      "do": "ask reach(Q) → IF ¬reach(Q) ⇒ answer(Q) = 'unreachable now' (a verdict, NOT a silence) → narrow",
+      "do": "ask reach(Q) ≡ closure(Γ) ∥ contact(the habitat) → IF ¬reach(Q) ⇒ answer(Q) = 'unreachable now' (a verdict, NOT a silence) → narrow; IF budget < route ⇒ narrow what is missing (more budget is a missing thing, said by its effect)",
       "because": [
         "Fig 13 :132-133 \"The second is decidability: given the library as it stands, could this have been reached at all. A system with a closure can answer that before it searches, and what it returns is a shape rather than a name.\"",
-        "Fig 13 :134 \"So the system can report that it lacks something rather than producing an answer anyway. Unreachable is a verdict here, not a silence,\""
+        "Fig 13 :134 \"So the system can report that it lacks something rather than producing an answer anyway. Unreachable is a verdict here, not a silence,\"",
+        "Symbols table :107-110 \"the habitat / the field of contact / Everything in contact with the residual: actors, conditions, relations. Enumerated, never composed.\""
       ],
       "refuted_by": "an answer found for a question this card ruled unreachable: the reach check missed a route",
       "order": 0,
-      "do_sym": "φ ∈ closure(Γ) ? ; ¬ ⇒ answer = 'unreachable now'"
+      "do_sym": "φ ∈ closure(Γ) ? ; ¬ ⇒ answer = 'unreachable now'",
+      "v4_note": "r1923 (c) + r1925 (g): never used in level 1, used late in level 2 (#41 missed, #46 first); at #86 reach -> no, on this bar -> narrow by effect ('more bar') found the refill at #88"
     },
     "TETHER|Narrow what is missing": {
       "figure": "Fig 13",
@@ -224,7 +237,31 @@
         "context": "do the conditions now match those the rule was learned under (its situation key)?",
         "subtext": "does this act serve a held goal (a goal hypothesis, an intent with a target)?"
       },
-      "caution": "the record agreeing with itself is not proof (Fig 2; Isaiah's table: 'two experts drifting together, unchecked'); only the board decides"
+      "caution": "the record agreeing with itself is not proof (Fig 2; Isaiah's table: 'two experts drifting together, unchecked'); only the board decides",
+      "on_refuted": {
+        "first": "ask which text was thin; the block or the non-move itself is the reading",
+        "context": "the board showed a condition the context reading missed: it becomes a SUBGOAL of the goal this action served (the goal needs it first), and the rule gains it as a condition (the hand test's #11 -> level 1's second goal; r1923 (b))",
+        "pretext": "the record held nothing true for this kind here: press-and-watch, transcribe",
+        "subtext": "the goal was wrong: refuse it and state another ('Instrument the middle')"
+      }
+    },
+    "TETHER|Could it have come out the other way": {
+      "figure": "Fig 2, Fig 9",
+      "when": "before a reading carries a plan or a rule",
+      "asks": [
+        "Could this reading have come out the other way? Which press or board would have shown the opposite?",
+        "If it reads the same in both cases (kept and restored, opened and not), what does it carry? Nothing: find a reading that differs."
+      ],
+      "do": "IF reading(x) ≡ reading(¬x) ⇒ NOT carry; for a rule 'K opens after J changes': carry only IF J changed on some steps AND NOT on others, scored P(K | J changed) − P(K | ¬J changed) > 0, NOT by count alone",
+      "do_sym": "carry(J→K) ⇐ P(K | ΔJ) − P(K | ¬ΔJ) > 0, with 0 < |ΔJ| < |steps|",
+      "because": [
+        "Fig 2 :29-30 \"If it moves when you push on it, it is not an anchor.\"",
+        "Fig 9 :60 \"Use filters for the budget and witnesses for the verdict. Never let a filter hand you a verdict.\""
+      ],
+      "refuted_by": "a plan built on a reading that later proves uninformative (the hand test's #46 -> #121: 21 presses fell together), or a tier-2 rule whose contrast is 0",
+      "order": 5,
+      "built_with": "TETHER_TIER_CONTRAST (tether.py _tier_contrast, _tier_count): the tier-2 contrast check, as one test (tests/test_cards_v4.py)",
+      "source": "the reviewer 2026-11-13, r1925 4 (e) + r1923 3; the hand test's #46 -> #121"
     }
   }
 }

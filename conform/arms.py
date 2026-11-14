@@ -3327,6 +3327,13 @@ ARMS: dict[str, str] = {
                               "(a filter must not hand a verdict: a goal adopted inside the hold "
                               "was parked by the order). A goal already held is untouched. OFF: "
                               "proposed inside the hold, as before. default ON",
+    "TETHER_TIER_CONTRAST": "cards v4 (e) (the reviewer r1923 3, r1925 4(e), r1948/r1949; "
+                            "Fig 2 :29-30): each can reading counts, per kind K with a BLOCKED "
+                            "item, the steps and, per kind J, the steps J changed; a tier-2 "
+                            "candidate needs J to have changed on some steps and not others and "
+                            "a positive contrast P(K opens | J changed) - P(K opens | J did "
+                            "not), and is ordered by it. OFF: n >= MIN_REPEAT, best validity "
+                            "first. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
