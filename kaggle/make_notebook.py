@@ -91,9 +91,15 @@ def _place(ds, name, dst):
     """The dataset's <name> folder to dst, the one writable copy: copied when the upload stayed a
     folder, extracted and moved into place when it was stored as <name>.zip (either layout inside)."""
     assert not os.path.exists(dst), ("a copy already exists", dst)
-    if os.path.isdir(os.path.join(ds, name)):
-        shutil.copytree(os.path.join(ds, name), dst)
-        return "folder"
+    src = os.path.join(ds, name)
+    if os.path.isdir(src):
+        # Kaggle unpacks an uploaded <name>.zip into a <name>/ folder; a zip made from the <name> folder itself
+        # therefore lands as <name>/<name>/ (2026-11-13: the first manifest file missing, twice)
+        top = sorted(os.listdir(src))
+        print(name, "folder holds", len(top), "entries, first", top[:5])
+        nested = top == [name] and os.path.isdir(os.path.join(src, name))
+        shutil.copytree(os.path.join(src, name) if nested else src, dst)
+        return "folder, nested one level" if nested else "folder"
     z = os.path.join(ds, name + ".zip")
     assert os.path.isfile(z), ("neither a folder nor a zip", name, sorted(os.listdir(ds)))
     tmp = dst + ".unzip"
