@@ -3327,6 +3327,14 @@ ARMS: dict[str, str] = {
                               "(a filter must not hand a verdict: a goal adopted inside the hold "
                               "was parked by the order). A goal already held is untouched. OFF: "
                               "proposed inside the hold, as before. default ON",
+    "TETHER_PASSABILITY": "BUILD_SEQUENCE 1a, walls readable (hand-test finding f; r1948/r1949): "
+                          "per colour, contacts a body made with an object of it -- blocked "
+                          "(B4's _blocked_reading partner) and entered (a credited move onto it) "
+                          "-- give passable / blocking / mixed / unknown (passability rows); "
+                          "_goal_split does not offer a press whose predicted step lands on a "
+                          "blocking colour (pass_refused rows; all refused -> all kept, an order "
+                          "is not a verdict, Fig 9 :60). OFF: nothing recorded, every route "
+                          "offered as before. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "

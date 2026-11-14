@@ -3880,6 +3880,13 @@ _TRY_FIRST_ACTIONS = armflag.arm("TETHER_TRY_FIRST_ACTIONS", default=True)
 # the hold was parked by the order, a filter's verdict. A goal already held is untouched. OFF:
 # proposed inside the hold, as before
 _HYP_AFTER_WORDS = armflag.arm("TETHER_HYP_AFTER_WORDS", default=True)
+# PASSABILITY (BUILD_SEQUENCE 1a, hand-test finding f; r1948/r1949): a passability reading EARNED
+# from contact, never assumed -- no colour is declared wall or scenery. Per colour, contacts a body
+# made with an object of that colour: "blocked" (B4's _blocked_reading partner) and "entered" (a
+# credited move that newly overlaps it). Verdict passable / blocking / mixed / unknown; a route
+# whose predicted step lands on a blocking colour is not offered (unknown is where press-and-watch
+# goes). OFF: nothing recorded, every route offered as before
+_PASSABILITY = armflag.arm("TETHER_PASSABILITY", default=True)
 # P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
 # _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
 # skips every bind's _left when the term's cost -- the same for every bind, gamma.length keys the
@@ -5608,6 +5615,7 @@ class Agent:
         self._view_hold: dict = _cache()   # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
         self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
+        self._pass_contact: dict = {}      # 1a: colour -> [entered, blocked], this game
         self._reach_frames: tuple | None = None
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
@@ -17383,6 +17391,8 @@ class Agent:
         if _derived and not self._seam_now:
             self._relational_surprise(_derived, _dpred, res, after, before)
             self._blocked_reading(_derived, _ps, before, after, action)
+        if _PASSABILITY and not self._seam_now:
+            self._entered_reading(before, after, action)
         if _7H_REHEARSE and not self._seam_now:
             self._rehearse_read(res, before, after, action, coord, _rehearsed)
 
@@ -17883,6 +17893,90 @@ class Agent:
                             action=action, predicted={s: pred.get(s) for s in sorted(ms)},
                             actual={s: after.get(s) for s in sorted(ms)},
                             reads="predicted into a partner it touched, and did not move")
+            if _PASSABILITY:
+                for x in sorted(ps):
+                    self._pass_note(before.get(f"{x}.colour"), 1, subj, x, action)
+
+    def _pass_note(self, colour: Any, which: int, subj: str, x: str, action: str) -> None:
+        """1a: one contact with an object of `colour` (which: 0 entered, 1 blocked); a row when the
+        colour's verdict changes, so the record says when a colour became passable or blocking."""
+        if colour is None:
+            return
+        was = self._pass_verdict(colour)
+        self._pass_contact.setdefault(colour, [0, 0])[which] += 1
+        now = self._pass_verdict(colour)
+        if now != was:
+            e, b = self._pass_contact[colour]
+            self.led.record(self.cycle, "PERCEIVE", subj, "passability", colour=colour,
+                            verdict=now, was=was, entered=e, blocked=b, partner=x, action=action,
+                            reads="what contact with this colour has shown: earned, never assumed")
+
+    def _pass_verdict(self, colour: Any) -> str:
+        """1a: passable (entered, never blocked), blocking (blocked, never entered), mixed (both:
+        the colour is not what decides), unknown (no contact yet) -- a value, not a failure."""
+        e, b = self._pass_contact.get(colour, (0, 0))
+        return ("unknown" if not (e or b) else "passable" if not b else "blocking" if not e
+                else "mixed")
+
+    def _entered_reading(self, before: dict, after: dict, action: str) -> None:
+        """1a: a body whose move this press is credited with (net of what changed anyway) and whose
+        box now overlaps an object's box it did not overlap before: entered that object's colour."""
+        boxes = getattr(self.env, "boxes", None)
+        if boxes is None:
+            return
+        credited = {s.rsplit(".", 1)[0] for s in getattr(self.iface, "last_changed", ())
+                    if s.endswith((".row", ".col"))}
+        if not credited:
+            return
+        bb, ab = boxes(before), boxes(after)
+        for subj in sorted(credited):
+            cap.head()
+            if subj not in ab or subj not in bb:
+                continue
+            for x in sorted(ab):
+                if x == subj or x in credited or x not in bb:
+                    continue
+                if relations.overlaps(ab[subj], ab[x]) and not relations.overlaps(bb[subj], bb[x]):
+                    self._pass_note(after.get(f"{x}.colour"), 0, subj, x, action)
+
+    def _pass_filter(self, subj_slot: str, offer: tuple, before: dict) -> tuple:
+        """1a, the plug-in: an action whose predicted step (the delta table's mean signed change on
+        the subject's row and col) puts the subject's box onto an object of a blocking colour is not
+        offered. Unknown and no prediction stay offered; if every action would be withheld, all stay
+        (an order is not a verdict, Fig 9 :60) and the row says so."""
+        boxes = getattr(self.env, "boxes", None)
+        o = subj_slot.rsplit(".", 1)[0]
+        if boxes is None or not self._pass_contact:
+            return offer
+        bb = boxes(before)
+        if o not in bb:
+            return offer
+        out, refused = [], []
+        for a in offer:
+            cap.head()
+            delta = (self.iface.table.get(a) or {}).get("delta", {})
+            step = []
+            for ax in ("row", "col"):
+                n = sum(v[0] for k, v in delta.items() if k[1] == f"{o}.{ax}")
+                step.append(sum(v[1] for k, v in delta.items() if k[1] == f"{o}.{ax}") / n
+                            if n else 0.0)
+            if not any(step):
+                out.append(a)
+                continue
+            box = dict(bb[o])
+            box["row"], box["col"] = box["row"] + round(step[0]), box["col"] + round(step[1])
+            hit = sorted({before.get(f"{x}.colour") for x in bb if x != o
+                          and relations.overlaps(box, bb[x])
+                          and not relations.overlaps(bb[o], bb[x])} - {None}, key=repr)
+            bad = [c for c in hit if self._pass_verdict(c) == "blocking"]
+            (refused if bad else out).append(a if not bad else (a, bad))
+        if refused:
+            self.led.record(self.cycle, "PLAN", subj_slot, "pass_refused",
+                            refused=[[a, [repr(c) for c in cs]] for a, cs in refused],
+                            kept=list(out), all_refused=not out,
+                            reads=("these presses would step onto a colour contact showed blocking"
+                                   + ("; all would, so none is withheld" if not out else "")))
+        return tuple(out) if out else offer
 
     @staticmethod
     def _moved(res: dict, before: dict, after: dict) -> set:
@@ -25816,6 +25910,8 @@ class Agent:
         _offer, _wh = tuple(self.actions), self._withheld
         if _ROUTE_REFUSE:          # R-B: this intent's refused routes here are not offered
             _offer, _wh = self._route_offer(self._route_said(_want), _rctx, _offer, _wh)
+        if _PASSABILITY and _offer:  # 1a: no route onto a colour contact showed blocking
+            _offer = self._pass_filter(chosen, _offer, before)
         _r = None
         if _PRED_FIRST and _offer:
             # (4e) I-C: what the settled model predicts THIS press does HERE is asked first; the
