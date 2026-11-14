@@ -115,6 +115,40 @@ _KIND_CANON = armflag.arm("TETHER_KIND_CANON", default=True)
 # rotation or mirror) when no exact shape matches, by kind_code, whatever _KIND_CANON publishes.
 # OFF: an exact shape match only, so a turned object is a birth.
 _TURN_TRACK = armflag.arm("TETHER_TURN_TRACK", default=True)
+# NAMES THAT HOLD (the reviewer 2026-11-13 r1948/r1949; design: docs/04-PLANS_AHEAD/
+# 02-BUILD_SEQUENCE_FUTURE_STATE.md item 1b; the hand test's finding (d), r1923/r1925: names
+# reused for another object, an unchanged part renamed, everything renamed after a reset).
+#   1. UNCHANGED MEANS SAME: already guaranteed, so no code: a piece with a tracked object's exact
+#      cells has overlap 1.0 with it, no other piece can overlap those cells, and the frame break
+#      keeps exact claims. tests/test_names_hold.py N3 holds it, a break included.
+#   2. A SHARED SHAPE IS NOT AN IDENTITY: the shape (and turn) fallback takes the NEAREST
+#      same-shape name, not the first by name; two at the same nearest distance is no identity:
+#      a birth, the candidates recorded in `maybe_same` (add-only), never the old name.
+#   3. A RESET IS NOT A NEW WORLD: a piece that would be born, standing exactly (cells and
+#      colour) where a name was first seen, takes that name back when it is free this frame
+#      (route "home", read as unsure, so nothing carried by identity trusts it).
+# The counter only goes up: no name is issued to a new referent. OFF: today's tracker, exactly.
+_NAMES_HOLD = armflag.arm("TETHER_NAMES_HOLD", default=True)
+
+
+def _gap(a: dict, b: dict) -> int:
+    """Chebyshev distance between two objects' bounding-box top-left corners."""
+    return max(abs(a["row"] - b["row"]), abs(a["col"] - b["col"]))
+
+
+def _nearest(obj: dict, names: list, tracked: dict, rivals=()) -> tuple[str | None, list]:
+    """Rule 2: the same-shape candidate nearest to `obj`. (name, []) for one nearest; (None, tied)
+    when two candidates tie nearest, or when a rival piece (an unclaimed piece of the same shape)
+    is exactly as near to the chosen name as `obj` is: either way the board can't say which."""
+    if not names:
+        return None, []
+    dist = sorted((_gap(obj, tracked[n]), n) for n in names)
+    tied = [n for d, n in dist if d == dist[0][0]]
+    if len(tied) > 1:
+        return None, tied
+    if any(_gap(r, tracked[tied[0]]) == dist[0][0] for r in rivals):
+        return None, tied
+    return tied[0], []
 
 
 def _norm(cells: Any) -> frozenset:
@@ -873,6 +907,7 @@ class Objects:
                 best, score = None, 0.0
             assign[i] = (best, score)
         kids = None
+        maybe: dict = {}                        # rule 2: piece -> the names tied nearest
         for i, obj in enumerate(found):
             if assign[i][0] is not None:
                 continue
@@ -882,29 +917,54 @@ class Objects:
             # specified atom set, which is unobservable if translation destroys identity.
             # §12.3 sensor 5 is the answer: SHAPE at normalized offsets is
             # position-independent, so it carries identity across a move.
-            best = next((n for n, old in sorted(self.tracked.items())
-                         if n not in claimed and shape_of(old) == shape_of(obj)), None)
-            if best is None and _TURN_TRACK:
+            tied: list = []
+            if _NAMES_HOLD:                     # rule 2: the nearest same-shape name
+                same = [n for n, old in sorted(self.tracked.items())
+                        if n not in claimed and shape_of(old) == shape_of(obj)]
+                rivals = [q for j, q in enumerate(found) if j != i and assign.get(j, (0,))[0]
+                          is None and shape_of(q) == shape_of(obj)]
+                best, tied = _nearest(obj, same, self.tracked, rivals)
+            else:
+                best = next((n for n, old in sorted(self.tracked.items())
+                             if n not in claimed and shape_of(old) == shape_of(obj)), None)
+            if best is None and not tied and _TURN_TRACK:
                 # K3 (r797): A TURN IS A CHANGE, NOT A DEATH -- no exact shape match, so the same
                 # KIND (any rotation or mirror) carries identity; an exact match still wins
                 if kids is None:
                     kids = {n: kind_code(shape_of(old)) for n, old in self.tracked.items()}
                 k = kind_code(shape_of(obj))
-                best = next((n for n in sorted(self.tracked)
-                             if n not in claimed and kids[n] == k), None)
+                if _NAMES_HOLD:
+                    same = [n for n in sorted(self.tracked) if n not in claimed and kids[n] == k]
+                    rivals = [q for j, q in enumerate(found) if j != i and assign.get(j, (0,))[0]
+                              is None and kind_code(shape_of(q)) == k]
+                    best, tied = _nearest(obj, same, self.tracked, rivals)
+                else:
+                    best = next((n for n in sorted(self.tracked)
+                                 if n not in claimed and kids[n] == k), None)
             if best is not None:
                 claimed.add(best)
+            elif tied:
+                maybe[i] = tied
             assign[i] = (best, 0.0)
         self._break(board, found, assign)
         issued: dict = {}                       # K1: piece -> the name it is issued
 
+        home = self.__dict__.setdefault("_home", {}) if _NAMES_HOLD else None
         for i, obj in enumerate(found):
             best, score = assign[i]
             route = "overlap" if best is not None and score > 0.0 else "shape"
+            if best is None and home is not None:   # rule 3: back where a free name was born
+                n = home.get((obj["cells"], obj.get("colour")))
+                if n is not None and n not in claimed:
+                    best, route = n, "home"
             if best is None:
                 best = f"o{self._next}"
                 self._next += 1
                 route = "birth"
+                if home is not None:
+                    home.setdefault((obj["cells"], obj.get("colour")), best)
+                    if i in maybe:
+                        self.__dict__.setdefault("maybe_same", {})[best] = list(maybe[i])
             claimed.add(best)
             issued[i] = best
             self.matches[best] = (route, round(score, 4))
