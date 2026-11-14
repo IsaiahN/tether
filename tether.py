@@ -3900,6 +3900,17 @@ _PASSABILITY = armflag.arm("TETHER_PASSABILITY", default=True)
 # beside the goal path -- the card chosen by the residual's shape, its asks run in order, one
 # "agenda" decision row per step (agenda.py). OFF: the cards stay unread, as before
 _AGENDA = armflag.arm("TETHER_AGENDA", default=True)
+# REPAIR AT THE REFUSAL (the reviewer r1957; T0 2026-11-14: goals reached their own test and were
+# refused there in g50t and ar25, and nothing turned a refusal into a subgoal; cards v4 (b), "Three
+# texts" on_refuted: a thin CONTEXT makes the missing condition a SUBGOAL of the goal the action
+# served; Fig 3 :20 "ordered by dependency"; the hand test's #11 -> level 1's second goal). A goal
+# hypothesis that ends at contact without a win (arrived_no_clear, or stalled with touches) is
+# decomposed there: the agenda reader writes the card's row, and _htn_push(when="refused") offers
+# the goal's enablers, tier 2's candidates, and the open goal slots of the objects in contact with
+# the goal's object at the refusal (the habitat, Symbols table :107-110). The parent is taken up
+# again when the subtask pops (HTN). NEEDS TETHER_HTN and TETHER_SUBGOAL. OFF: the refusal ends
+# the goal, as before.
+_REPAIR_AT_REFUSAL = armflag.arm("TETHER_REPAIR_AT_REFUSAL", default=True)
 # P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
 # _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
 # skips every bind's _left when the term's cost -- the same for every bind, gamma.length keys the
@@ -11053,6 +11064,50 @@ class Agent:
                         **({"family": h.get("family"),
                             "board": getattr(self.iface, "board_n", None),
                             "trend": self._hyp_trend(h)} if _SHAPE_TRACE else {}))
+        if (_REPAIR_AT_REFUSAL and not won and not boundary and step == "PLAN"
+                and (why == "arrived_no_clear" or (why == "stalled" and h["touches"] > 0))):
+            self._repair_refused(h, why)
+
+    def _repair_refused(self, h: dict, why: str) -> bool:
+        """REPAIR AT THE REFUSAL: the goal reached its own test and the board refused it. The card
+        (Three texts, on_refuted) asks which text was thin; the goal was held (subtext) and acted on
+        (pretext), so the condition the board showed is missing from the context: it becomes a
+        subgoal. True when a subtask went on the stack."""
+        slot = h["slots"][0]
+        pushed = bool(_HTN and _SUBGOAL and self._htn_push(slot, when="refused", why=why))
+        if self._agenda is not None:
+            self._agenda.refused(self, slot, why, pushed)
+        self.led.record(self.cycle, "PLAN", slot, "repair_at_refusal", why=why, text=h["text"],
+                        touches=h["touches"], pushed=pushed,
+                        subgoal=(self._subgoal or {}).get("sub") if pushed else None,
+                        reads="the goal was refused at its own test: its missing condition is "
+                              "sought as a subgoal (Three texts, on_refuted; cards v4 (b))"
+                        if pushed else
+                        "the goal was refused at its own test and no open condition was found "
+                        "to pursue first: narrow what is missing")
+        return pushed
+
+    def _contact_candidates(self, chosen: str) -> list[tuple[str, str]]:
+        """REPAIR AT THE REFUSAL: the open goal slots of the objects in contact with (touching or
+        overlapping) the goal's object now, nearest first -- the habitat of the refusal."""
+        boxes = getattr(self.env, "boxes", None)
+        if boxes is None:
+            return []
+        try:
+            bx = boxes(self.env.observe())
+        except Exception:       # noqa: BLE001  a world that can't box its state offers nothing
+            return []
+        mine = self._objs_named(chosen)
+        near = [o for o in sorted(bx) if o not in mine and any(
+            o2 in bx and (relations.adjacent(bx[o2], bx[o]) or relations.overlaps(bx[o2], bx[o]))
+            for o2 in mine)]
+        out = []
+        for s in sorted(self._res):
+            cap.head()
+            if s != chosen and self._objs_named(s) & set(near):
+                out.append((s, f"contact at the refusal: {'/'.join(sorted(self._objs_named(s)))} "
+                               f"touches the goal's object"))
+        return out
 
     @staticmethod
     def _hyp_trend(h: dict) -> dict:
@@ -16109,6 +16164,9 @@ class Agent:
         if _HTN_TIERS:          # HTN TIERS: what tier 2 says this kind opens after, after the law's
             law = {b for b, _ln in src}
             src = src + [(b, ln) for b, ln in self._tier_candidates(chosen) if b not in law]
+        if when == "refused":   # REPAIR AT THE REFUSAL: then what the refused goal's object touches
+            have = {b for b, _ln in src}
+            src = src + [(b, ln) for b, ln in self._contact_candidates(chosen) if b not in have]
         seen: set = set()
         en = []
         for b, ln in src:

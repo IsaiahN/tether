@@ -136,6 +136,23 @@ class Reader:
                              "the agent has percepts and actions but no stated goal")
         return None
 
+    def refused(self, ag: Any, slot: str, why: str, pushed: bool) -> dict:
+        """REPAIR AT THE REFUSAL (r1957): a goal refused at its own test is "Three texts before
+        acting"'s residual ("whenever an action did not do what it was for"). The goal was held
+        and acted on, so the thin text is CONTEXT: the condition the board showed becomes a
+        subgoal (cards v4 (b), on_refuted). One row, whatever the push found."""
+        card = "Three texts before acting"
+        c = cards()[card]
+        on = c.get("on_refuted", {})
+        res = {"focal": slot, "live_mass": None, "shrinking": _shrinking(ag),
+               "slots": len(getattr(ag, "slot_types", {}) or {})}
+        ans = (f"CONTEXT thin ({why}): the missing condition is pursued first as a subgoal"
+               if pushed else
+               f"CONTEXT thin ({why}): no open condition found to pursue first; narrow what is "
+               "missing")
+        return self._row(ag, card, on.get("first", c["asks"][1]), ans, "board", res,
+                         on.get("context", "the goal was refused at its own test"))
+
     def _refuted_link(self, board: Any, first: str | None) -> bool:
         tail = [h for h in self.history if h[0] == board][-4:]
         return (first is not None and len(tail) >= 4 and all(h[1] == first for h in tail)

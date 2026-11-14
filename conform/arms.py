@@ -3355,6 +3355,13 @@ ARMS: dict[str, str] = {
                      "board; one 'agenda' decision row per step with the card's do_sym through "
                      "symbols ('unbound' never substituted). OFF: the cards stay unread. "
                      "default ON",
+    "TETHER_REPAIR_AT_REFUSAL": "the reviewer r1957 (T0: refused, not repaired; cards v4 "
+                                "(b)): a goal hypothesis that ends at contact without a win "
+                                "(arrived_no_clear, or stalled with touches) is decomposed "
+                                "there -- _htn_push(when='refused') over its enablers, tier 2 "
+                                "and the open goal slots of what touches its object; the agenda "
+                                "writes Three texts' row; a repair_at_refusal row either way. "
+                                "OFF: the refusal ends the goal, as before. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
