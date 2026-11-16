@@ -3946,6 +3946,15 @@ _GOAL_FLOOR = armflag.arm("TETHER_GOAL_FLOOR", default=True)
 # it is a press-and-watch whose effect would answer the goal. A kind_lever_route row says so.
 # NEEDS TETHER_CONTACT_ROUTE. OFF: the touch only.
 _KIND_LEVER = armflag.arm("TETHER_KIND_LEVER", default=True)
+# HTN RETURN (Isaiah 2026-11-16 "fix HTN"; T0c r1971: ka59's repair subtask arrived at c88 and the
+# agent then picked a different goal, cd82's ended "gone" -- the subtask ends without helping the
+# parent). Fig 3 :20 "Each link consumes what the one above produces": a subtask is pursued FOR its
+# parent, so when it arrives and the stack is empty the refused parent is re-adopted (the board is
+# no longer the one that refused it, so Fig 7 :36's "the next must differ" is met by the board).
+# A parent refused again after a return marks that subtask "not a prerequisite" for it (Fig 9 :60:
+# a filter, never a verdict -- only the pairing is dropped). The method edge is credited when the
+# returned parent ends (paid = won), never at the parent's earlier arrival. OFF: as before.
+_HTN_RETURN = armflag.arm("TETHER_HTN_RETURN", default=True)
 _SLOT_REF = re.compile(r"\bo\d+(?:~o\d+)?\.[A-Za-z_][\w]*")
 # P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
 # _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
@@ -5788,6 +5797,8 @@ class Agent:
         self._htn_written: dict = {}        # HTN: what the lineage already holds
         self._htn_pending: dict = {}        # HTN: parent slot -> edges pursued for it, unsettled
         self._htn_tried: dict = {}          # HTN: parent slot -> subs that ran out for it
+        self._htn_return: dict = {}         # HTN RETURN: refused parent slot -> its hold + edge
+        self._htn_returned: dict = {}       # HTN RETURN: parent slot -> subs already returned from
         self._tier1: list = []              # HTN TIERS: each opened crossing, kept whole
         self._tier2: dict = {}              # HTN TIERS: kind K -> {"opened": n, "after": {J: n}}
         self._unreachable: dict = {}        # (6a) R-D: intent -> {"at", "situation"} at budget
@@ -11080,6 +11091,15 @@ class Agent:
             self._desc_against(h, why, step, boundary)
         if _GOAL_UNBUNDLE and why == "stalled" and not won:
             self._goal_unbundle(h, step)
+        if _HTN_RETURN and h.get("htn_edge") and not budget_end:
+            # HTN RETURN: the method's edge is paid only if the returned parent won
+            st = self._htn.setdefault(h["htn_edge"], [0, 0])
+            st[0] += 1
+            st[1] += 1 if won else 0
+            self.led.record(self.cycle, "SETTLE", h["slots"][0], "htn_credit",
+                            edge=h["htn_edge"], paid=bool(won), record=list(st), why=why,
+                            reads="the returned parent won: the method paid" if won else
+                                  "the returned parent ended without a win: unpaid")
         # R1 (r1294): closed BY a boundary, the row joins retarget's own chain on "@boundary"
         # (_BOUNDARY_CHAIN), the object in a field -- on the object's slot it sat at IMPORT ahead
         # of the next step's PERCEIVE in the same cycle, and the gate refused the ledger
@@ -11110,7 +11130,26 @@ class Agent:
         (pretext), so the condition the board showed is missing from the context: it becomes a
         subgoal. True when a subtask went on the stack."""
         slot = h["slots"][0]
+        if _HTN_RETURN and self._htn_returned.get(slot):
+            # HTN RETURN: the parent was refused again after its subtask arrived -- that subtask
+            # is not this parent's missing condition; it is not pushed for it again
+            dropped = sorted(self._htn_returned.pop(slot))
+            self._htn_tried.setdefault(slot, set()).update(dropped)
+            self.led.record(self.cycle, "PLAN", slot, "htn_not_prerequisite", subs=dropped,
+                            why=why, reads="the parent was refused again after this subtask "
+                                           "arrived: it was not the missing condition")
         pushed = bool(_HTN and _SUBGOAL and self._htn_push(slot, when="refused", why=why))
+        if pushed and _HTN_RETURN and self._subgoal is not None:
+            sub = self._subgoal["sub"]
+            edge = self._htn_edge(slot, sub)
+            # credited when the returned parent ends, never at the arrival that preceded the push
+            pend = self._htn_pending.get(slot)
+            if pend is not None:
+                pend.discard(edge)
+                if not pend:
+                    del self._htn_pending[slot]
+            self._htn_return[slot] = {"h": h, "sub": sub, "edge": edge, "why": why,
+                                      "cycle": self.cycle}
         if self._agenda is not None:
             self._agenda.refused(self, slot, why, pushed)
         self.led.record(self.cycle, "PLAN", slot, "repair_at_refusal", why=why, text=h["text"],
@@ -16149,6 +16188,41 @@ class Agent:
             if self._tasks:
                 top = self._tasks[-1]
                 self._subgoal = {"parent": top["parent"], "sub": top["sub"]}
+            elif _HTN_RETURN and t["parent"] in self._htn_return:
+                self._htn_resume(t["parent"], t["sub"], how)
+
+    def _htn_resume(self, parent: str, sub: str, how: str) -> bool:
+        """HTN RETURN: the refused parent's repair subtask left an empty stack. Arrived: the parent
+        is held again (its hold re-adopted with fresh counters, a goal_hypotheses row with source
+        "htn_return" -- the repaired goal, G2). Gone or out of routes: nothing returns; the parent
+        stays tried. True when the parent is held again."""
+        ret = self._htn_return.pop(parent)
+        # held again whether or not its want reads met: a refusal at contact was often "arrived, no
+        # clear", and the board has changed since, so the parent's own test decides
+        back = bool(how == "arrived" and _GOAL_HYP and self._hyp is None and parent in self._res)
+        if back:
+            h0 = ret["h"]
+            h = dict(h0)
+            h.update(steps=0, touches=0, losses=0, held_unreadable=0, reads={}, seg={},
+                     acted=Counter(), born=self.cycle, obg=None, source="htn_return",
+                     htn_edge=ret["edge"], returned_from=sub)
+            self._hyp_tried.pop(h0["tkey"], None)
+            self._hyp = h
+            self._htn_returned.setdefault(parent, set()).add(sub)
+        self.led.record(self.cycle, "PLAN", parent, "htn_return", sub=sub, how=how,
+                        resumed=back, edge=ret["edge"], refused_at=ret["cycle"],
+                        refused_why=ret["why"],
+                        reads="the subtask arrived: the refused parent is held again on the "
+                              "changed board" if back else
+                              "the subtask ended without arriving: the parent stays refused")
+        if back:
+            self.led.record(self.cycle, "PLAN", parent, "goal_hypotheses", pick=h["text"],
+                            key=h["key"], slots=h["slots"], source="htn_return",
+                            returned_from=sub, budget=h["budget"],
+                            **({"family": h.get("family"),
+                                "board": getattr(self.iface, "board_n", None)}
+                               if _SHAPE_TRACE else {}))
+        return back
 
     def _htn_edge(self, parent: str, sub: str) -> str:
         """HTN: a method's edge by KIND (Fig 4 :23), never by object names."""
@@ -16368,6 +16442,7 @@ class Agent:
                                 record=list(st), why=why,
                                 reads="the level ended before the task arrived: unpaid")
         self._htn_pending, self._tasks, self._htn_tried = {}, [], {}
+        self._htn_return, self._htn_returned = {}, {}     # HTN RETURN: slot names do not cross
 
     def _press_kind(self, action: str, situ: tuple, slot: str | None = None) -> tuple:
         """(5c) A12: a press as a KIND -- the held goal's slot kind (Fig 11 :49: valence is relative
@@ -23186,6 +23261,9 @@ class Agent:
                     why.update(tally, slots=len(self._res), subgoal=_sub)
                 return _sub
             self._subgoal_end("arrived" if _sub in self._res else "gone")
+            if _HTN_RETURN and _GOAL_HYP and self._hyp is not None:
+                hyp = self._hyp["slots"]          # HTN RETURN: the parent is held again
+                break
             if not _HTN:
                 break
         for slot, series in sorted(self._res.items()):

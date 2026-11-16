@@ -3383,6 +3383,13 @@ ARMS: dict[str, str] = {
                          "same reading on another object the wanted way and realises that move "
                          "(press-and-watch by kind); a kind_lever_route row. NEEDS "
                          "TETHER_CONTACT_ROUTE. OFF: the touch only. default ON",
+    "TETHER_HTN_RETURN": "Isaiah 2026-11-16 'fix HTN' (T0c r1971: the repair subtask ended "
+                         "without helping its parent; Fig 3 :20): a refused parent's repair "
+                         "subtask that arrives with an empty stack re-adopts the parent (an "
+                         "htn_return row and a goal_hypotheses row, source htn_return); refused "
+                         "again, that subtask is htn_not_prerequisite for it; the edge is "
+                         "credited at the returned parent's end (paid = won). NEEDS "
+                         "TETHER_REPAIR_AT_REFUSAL. OFF: the parent stays tried. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
