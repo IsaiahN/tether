@@ -44,5 +44,31 @@ Isaiah 2026-11-16: "RDL matters most to me, start working on it." Design: `docs/
 - Every row carries the stamp (C6): pid, stage, tier, corpus, parser.
 - OFF: nothing loaded, no order change, no rows.
 
+## Built 2026-11-16 (the door)
+Piece 1 `fa208f3` (store and parser, `library/rdl_preload.json`: 1,494 preloads, 191 usable), Piece 2 `cd557b0` (release and codified reach), Piece 3 `0b1245c` (TETHER_RDL: tie-break in `Agent._topk`, stamped rdl_offer / rdl_settle / rdl_refuse rows, `rdl_n` carried in the lineage; OFF identical, 2,427 gridworld rows). Hops 1-2 of write-up 40's chain for the 1000 ImageNet classes: `library/lexicon_imagenet_wordnet.json`.
+
+## The plan ahead: "it's a ball (shaped like a ball, acts like a ball); balls can roll; does this roll?"
+
+Isaiah 2026-11-16 16:12-16:20: *"I want the agent to be like 'its a ball (shaped like a ball, acts like a ball)' and lets see, balls can roll, does this roll? that type of fluency"*; *"we have primitives and atoms in the library, but if we can connect them to other words, that might if in tandem with a dictionary ... let us derive word or concept -> action"*; *"does the agent know how to identify a ball versus rectangle? (We need to give it all the basic shapes in its visualizer - these are likely atoms, but they need to connect those atoms to those visual things)"*; *"go into the library and define if something is a thing, a shape, an action etc. categorize so that helps make search faster"*; *"opponent -> deception, trick, adversary"*.
+
+This is write-up 40's affordance chain, *shape -> concept -> properties -> predictions*, with the visual-lexicon gambit on top. The found gap (2026-11-16, read in code): perception gives each object `shape` (the exact cell pattern), `h`, `w`, holes, corners, solidity, but **no shape name**, and the library's shape atoms (`TOPOLOGICAL|Circle`, `TOPOLOGICAL|Sphere`, ...) are connected to nothing on the board. The library is already filed by kind (PERCEPT 1,739, COMPOSITE 2,164, PRIMITIVE 79, RELATION 66), default role (STATE 2,049, PROCESS 1,781, ...), 128 domains and 17 clusters; what it lacks is a plain category (object, shape, action, relation, property) and a bridge from words to entries.
+
+**The loop, link by link** (each link consumes what the one above produces, Fig 3 :20):
+
+| # | The thought | Piece | Switch | Status |
+|---|---|---|---|---|
+| L1 | "shaped like a ball" | **shape names in perception**: a `shape_name` reading per object from its own cells only (dot, line, square, rectangle, ring, cross, disc, ...), each a declared predicate (Fig 10), attached to the library's shape atoms (`SHAPE_ATOMS`) | TETHER_SHAPE_NAMES | building 2026-11-16 |
+| L2 | "it's a ball" | **the word map**: every library entry's words -> WordNet senses (chosen by its domain and clusters, never by spelling alone; ties recorded, never resolved silently), a category per entry (object, shape, action, relation, property, measure, rule) cross-checked with the library's own kind and role, and a synonym index (`opponent` -> `TRANSFORMATION|Adversary` through a shared synset) | data, `library/word_map.json` | building 2026-11-16 |
+| L3 | "balls can roll" | **affordance priors**, the dictionary half: the actions a concept's WordNet definition names ("ball: a round object that is hit or thrown or kicked") and its derivationally related verbs; each a stamped prior (C6), no standing (C3) | data, in the word map | building 2026-11-16 |
+| L4 | "does this roll?" | **the affordance bet**: at a new kind's first sighting, the prior's prediction is written; the first press on that kind tests it; the board settles it or refuses it, and a refusal splits the rule by the condition read ("round things roll, except when blocked"); nothing deleted | TETHER_AFFORDANCE | building 2026-11-16 |
+| L5 | saying it | NSM lines over those rows: "THIS IS LIKE `ball`. `ball` CAN MOVE. I DO SOMETHING TO THIS. THIS MOVES." Only listed primes; the word is a filler that unpacks to its primes | (in L4) | building 2026-11-16 |
+| L6 | "adversary -> deception, trick, decoy" | **the relation layer** (write-up 40 hop 3): roles and bonds between different things (UsedFor, CapableOf, Causes). Needs a corpus choice (ConceptNet or FrameNet): Isaiah's call | -- | next |
+| L7 | categories make search faster | the L2 categories as a **search-priority filter** (Fig 9 :60: a filter for the budget, never a verdict), beside RDL's tie-break | -- | next |
+| L8 | recognition from pictures | the ImageNet images through a swappable recognition front end at the edge (write-up 40 hop 1 with pictures); photos are not grids, structure transfers through the shared clusters | -- | later (the images are downloading) |
+| L9 | fluency measured | primes per explanation fall as words ground, at the same meaning; presses to settle a domain's first terms fall with each domain already learned | -- | later |
+| L10 | dictionary and voice | cmudict pronunciations (hop 5), a rule-based synthesizer (hop 6); talking needs an ear and a listener as the board | -- | later |
+
+**The rules every link keeps** (write-up 40): preloaded with no standing; attached by cluster and sense, never raw spelling; the board alone settles; a refusal splits by condition and is kept (Fig 6); every row stamped (C6); search priority only, never reach or standing; each piece behind its own switch, ON by default (Isaiah 2026-11-16: everything is tested together once the build is done).
+
 ## Checks every piece ships with
 Its switch (default ON, gw12 identical OFF where it touches the agent), one must-fail, tests under 5 minutes (Isaiah 2026-11-16), ruff clean from the root, `python -B conform/arms.py` exit 0.
