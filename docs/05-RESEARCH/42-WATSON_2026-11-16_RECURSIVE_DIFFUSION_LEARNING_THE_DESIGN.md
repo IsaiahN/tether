@@ -1,4 +1,4 @@
-# WATSON 2026-11-16: Recursive Diffusion Learning, the design (builds on 40)
+﻿# WATSON 2026-11-16: Recursive Diffusion Learning, the design (builds on 40)
 
 Status: PARTLY BUILT. This write-up carries [40](40-WATSON_2026-11-13_RECURSIVE_DIFFUSION_LEARNING.md) forward. Write-up 40 set out the idea and its constraints (C1-C6) as a future state. On 2026-11-16 the first layers were built, and the design gained the layers that go from a board pattern to a word, a concept, its actions and back to the board. Everything 40 says still holds. This page says what was built, what was added, and the whole design in one place. The interfaces are fixed in `docs/03-DESIGN/RDL_BUILD_SPEC_2026-11-16.md`.
 
@@ -182,7 +182,8 @@ Isaiah asked for these on 2026-11-16 and they did not fit before the day's cutof
 6. **More RDL ordering sites.** Today RDL orders only `Agent._topk` (the described lookup). Next: the library-first offer walk (`_library_chains`) and the atom-chain walk (`make_order_key` / `ordered_closure`), each as a last tie-break exactly like `_topk`'s, each with its OFF identity checked row for row.
 7. **Rebuilding the parser between generations.** `rdl_parse.parse(stats=...)` already sheds a source and tier the board refused more than it settled. Trigger it at lineage save from the carried `rdl_n` counts, writing a new `library/rdl_preload.json` beside the generation (stamped with the stats it used), so C5's loop runs without a hand rebuild.
 8. **Without OpenCV, if wanted.** Compile akaze-eigen (BSD 3-clause; its LICENSE goes with it) with a small Python binding behind `recognize.describe`, and replace the contour, Hu-moment and RANSAC calls with numpy versions.
-9. **The proving runs.** The together-test at 600 s a game; the T0 gate (a clear through goal, refusal, repair, return); a live settle of an affordance prior and of RDL material; then step 9 and T1-T4.
+9. **The verb senses for objects (built, not shipped).** In the worktree `C:\TETHER_RUNS\WT_SN` (branch `wip/fix-senses`, uncommitted): the word map picks contact, then motion senses for physical objects (ball: throw v01508368, kick v01371756) and drops implausible example hits ("have a ball"). It breaks `tests/test_affordance.py` A6, because `affordance.LEXNAME_READING` maps only `verb.motion` to "moves". The call to make: whether a contact verb on an object (hit, kick, throw) predicts that it moves. Then commit and ship.
+10. **The proving runs.** The together-test at 600 s a game; the T0 gate (a clear through goal, refusal, repair, return); a live settle of an affordance prior and of RDL material; then step 9 and T1-T4.
 
 ## Files
 
