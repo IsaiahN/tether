@@ -130,7 +130,8 @@ FLAT_NOTE = ("held on flat boards, settles as depth only on boards with depth; s
 # (and whose gloss holds the cue, when one is given); a name that does not resolve is dropped and
 # listed, never guessed
 SHAPE_BRIDGE = [
-    {"shape_2d": [("circle", "noun.shape", "ellipse"), ("disk", "noun.shape", "")],
+    {"shape_2d": [("circle", "noun.shape", "ellipse"), ("disk", "noun.shape", ""),
+                  ("disc", "noun.shape", "")],   # "disc": arc_percept's shape_name spelling
      "form_3d": [("sphere", "noun.shape", "")],
      "objects": [("ball", "noun.artifact", "round"), ("globe", "noun.artifact", "map"),
                  ("marble", "noun.artifact", "ball")]},
