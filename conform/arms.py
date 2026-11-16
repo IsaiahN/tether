@@ -3390,6 +3390,14 @@ ARMS: dict[str, str] = {
                          "ACCEPT): the level's bank is shared among the hard questions waiting -- "
                          "a step draws at most bank / (owed questions + 1); a lone hard question "
                          "still gets it all. OFF: a step may draw the whole bank. default ON",
+    "TETHER_SHAPE_NAMES": "Isaiah 2026-11-16 ('it's a ball (shaped like a ball, acts like a "
+                          "ball)'; 40-WATSON 'Isaiah's gambit' / 'Affordances'): each object gets "
+                          "one more STATE reading, shape_name -- the first of an ordered list of "
+                          "declared geometric predicates (dot line square rectangle ring plus L T "
+                          "diamond disc, else irregular) its own cells satisfy, pose-free, never "
+                          "colour or position; type NAME, alphabet the declared names. "
+                          "arc_percept.SHAPE_ATOMS records name -> library atoms, record-only. "
+                          "OFF: no shape_name reading. default ON",
     "TETHER_WORDS_CARRY": "BUILD_SEQUENCE 0b (the reviewer r1942; Isaiah 2026-11-13 21:22-21:24; "
                           "built on Isaiah's 2026-11-16 'build out'): within one game what each "
                           "action did carries to the next board as an expectation (kind-shape "
