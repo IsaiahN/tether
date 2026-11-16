@@ -108,7 +108,9 @@ class ProductionBook:
     (10a+'s rows). Each reading first PREDICTS, from the evidence before it, the kinds press A has
     produced, then settles those predictions against what this reading shows, then learns. So a
     production that does not recur is refused by the ground (its misses), never by a rule
-    (Fig 7 :35). Record-only: a prediction is a row, not a held goal."""
+    (Fig 7 :35). Record-only: a prediction is a row, not a held goal. Under TETHER_PRODUCE_KEYS
+    the agent reads `settled()` and routes each settled pair as a ⇒ guard KEY (offered, priced
+    and judged as any junction key; this book still decides nothing)."""
 
     def __init__(self) -> None:
         self.seen: dict = {}            # (press, kind) -> times B followed A
@@ -130,6 +132,13 @@ class ProductionBook:
             else:
                 miss.append(k)
         return hit, miss
+
+    def settled(self) -> list:
+        """The productions the ground has SETTLED (TETHER_PRODUCE_KEYS): (press, kind) pairs
+        predicted at least once whose hits outnumber their misses -- a spectrum that tips over, no
+        fixed count (Fig 7 :35). A pair only learned, never predicted, is unsettled. In the order
+        first predicted."""
+        return [pk for pk, (n, h) in self.score.items() if h > n - h]
 
     def learn(self, press: str, observed: set) -> None:
         for k in sorted(observed, key=str):
