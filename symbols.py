@@ -86,6 +86,108 @@ def _predict(ag: Any, slot: str, action: str) -> Any:
     return UNBOUND if v is None else v
 
 
+def _leftover(ag: Any, slot: str, name: str) -> Any:
+    """|R|φ|: Agent._accumulated(slot, term) -- the function mint() itself calls for the held
+    term's `base` (cost + left < base, Fig 5 :43): `_left` over the slot's whole history, in bits.
+    Called, never reimplemented. Held so no cap head can cut it, and the shared head count is put
+    back, so the read leaves the step's purse where it found it."""
+    t = _term(ag, name)
+    if t is UNBOUND or slot not in ag.alphabet:
+        return UNBOUND
+    import cap
+    heads = cap.HEADS
+    try:
+        with cap.hold():
+            return float(ag._accumulated(slot, t))
+    finally:
+        cap.HEADS = heads
+
+
+def _bond(ag: Any, a: str, b: str) -> Any:
+    """bond: the junction keys the agent holds between a and b, each with its bond -- read off
+    Agent._junction_conds (key -> (bond, u, v)), where _route_junction writes a settled junction
+    between two readings and O2's _jk_combine one between two keys. Both orders are read, so an
+    ordered bond (⋛, ⇒) keeps its direction in its key. None held: UNBOUND."""
+    held = {k: c[0] for k, c in sorted(ag._junction_conds.items())
+            if (c[1], c[2]) in ((a, b), (b, a))}
+    return held or UNBOUND
+
+
+def _grammar_operators() -> dict:
+    with open(os.path.join(HERE, "library", "grammar.json"), encoding="utf-8") as fh:
+        return json.load(fh)["operators"]
+
+
+def _bond_names() -> tuple[str | None, dict]:
+    """Read off grammar.json's operators: the bond a chain IS (the operator whose implemented_by
+    names gamma.Term's chain: "→"), and each two-operand bond's AGENT atoms -> (bond, the entry's
+    own qualifier or None). Nothing here is written by hand."""
+    chain, atoms = None, {}
+    for op, row in _grammar_operators().items():
+        for imp in row.get("implemented_by", ()):
+            if imp.startswith("a chain (gamma.Term)"):
+                chain = op
+            elif imp.startswith("AGENT|") and row.get("arity") == 2:
+                name, _, rest = imp[len("AGENT|"):].partition(" ")
+                atoms[name] = (op, rest.strip("() ") or None)
+    return chain, atoms
+
+
+def _arrangement(ag: Any, t: Any, chain: str | None, atoms: dict) -> dict:
+    """One node of a term's bonded arrangement, its operand tree nested where 10d nests it
+    (Term.operand_term, the same recursion gamma.tree_schema walks and Agent._ops evaluates)."""
+    node: dict = {"atoms": [a.name for a in t.atoms],
+                  "chain_bond": chain if len(t.atoms) > 1 else None,
+                  "operand": t.operand,
+                  "operand_bonds": [[a.name, *atoms.get(a.name, (None, None))]
+                                    for a in t.atoms if a.reads_operand],
+                  "operand_term": (None if t.operand_term is None
+                                   else _arrangement(ag, t.operand_term, chain, atoms))}
+    if t.guard:
+        jc = getattr(ag, "_junction_conds", {}).get(t.guard_ref) if t.guard_ref else None
+        node["guard"] = {"kind": t.guard, "ref": t.guard_ref,
+                         "bond": None if jc is None else jc[0]}
+    return node
+
+
+def _molecule(ag: Any, name: str) -> Any:
+    """molecule: the library term's bonded arrangement -- its atoms in chain order with the chain's
+    bond, each operand-reading atom with the bond grammar.json says it implements (None where the
+    grammar names none: unknown, never guessed), its guard with the junction's bond where the
+    guard is a routed key, and its operand tree nested."""
+    t = _term(ag, name)
+    if t is UNBOUND:
+        return UNBOUND
+    chain, atoms = _bond_names()
+    return _arrangement(ag, t, chain, atoms)
+
+
+def _bracket_row(ag: Any) -> Any:
+    """The latest PERCEIVE "@bracket" bet row where the agent ran its coarse view (perceive:
+    coarse_view=True); a row reporting CHANNEL_CLOSED is no reading."""
+    for e in reversed(ag.led.entries):
+        if e.step == "PERCEIVE" and e.event == "bet" and e.slot == "@bracket":
+            return e if e.detail.get("coarse_view") else UNBOUND
+    return UNBOUND
+
+
+def _round_trip(ag: Any) -> Any:
+    """R_T: the bracket row's mass -- perceive's `self._round_trip(self._view[1], before)`, i.e.
+    round_trip_gap, the gap between x and T_E(T_A(x)) in bits, recorded each step the world
+    offers a coarse view."""
+    e = _bracket_row(ag)
+    return e if e is UNBOUND else float(e.detail["mass"])
+
+
+def _abstraction(ag: Any) -> Any:
+    """T_A: the view the bracket channel applies going up (Agent._view: its name, recorded on the
+    row, and its map), applied to b -- only where the agent ran it (a coarse-view row)."""
+    e = _bracket_row(ag)
+    if e is UNBOUND or e.detail.get("view") != ag._view[0]:
+        return UNBOUND
+    return {"view": ag._view[0], "up": dict(ag._view[1](dict(ag.env.observe())))}
+
+
 # symbol -> (where it is read, the reading); the reading takes the agent and the named arguments
 BOUND: dict[str, tuple[str, Callable[..., Any]]] = {
     "Γ": ("agent.gamma: the atoms and the library's terms, counted",
@@ -111,22 +213,31 @@ BOUND: dict[str, tuple[str, Callable[..., Any]]] = {
     "φ": ("agent.gamma.library[name]: a term, by name", _term),
     "|φ|": ("term_bits(gamma.length(term), gamma.alphabet): its length under the uniform code",
             _cost),
+    "|R|φ|": ("agent._accumulated(slot, term): the bargain's own left(R, φ), the bits φ leaves "
+              "unexplained over the slot's history (mint's `base` for the held term); pass slot=, "
+              "name=", _leftover),
+    "bond": ("agent._junction_conds: the junction keys held between a= and b= (two readings, or "
+             "two keys for an O2 junction of conditions), key -> bond", _bond),
+    "molecule": ("agent.gamma.library[name]: the term's atoms with the chain bond, its "
+                 "operand-reading atoms' bonds (grammar.json operators), its guard's junction "
+                 "bond, and its operand tree nested (Term.operand_term, 10d)", _molecule),
+    "R_T": ("the last PERCEIVE @bracket bet row's mass where the coarse view ran: "
+            "round_trip_gap, x against T_E(T_A(x)), in bits (the ledger)", _round_trip),
+    "T_A": ("agent._view, applied to b: the view the bracket channel sends the state up through, "
+            "where it ran (a coarse-view @bracket row)", _abstraction),
 }
 
 UNBOUND_WHY: dict[str, str] = {
-    "|R|φ|": "computed inside the mint pipeline's bargain (left(R, φ)) at minting; no standalone "
-             "reading yet",
-    "bond": "the seven bond types are priced (BONDS) but no reading names the bond between two "
-            "given operands yet (O3, bond pricing, is planned)",
-    "molecule": "terms are compositions, but no reading returns a term's bonded arrangement",
-    "T_A": "abstraction (going up) runs inside carry and kind; no reading names one step of it",
-    "T_E": "concretisation (coming back) runs inside re-invention; no reading names one step of it",
-    "R_T": "the round-trip gap is not measured as a quantity yet",
-    "F": "the frame transform needs a pose; the agent has none to run it with",
+    "T_E": "concretisation exists only inside round_trip_gap, as 'the coarse value taken "
+           "literally' (the comparison of t_a(state) with state); no function or reading returns "
+           "one step of it, so binding it would write a map the agent does not run",
+    "F": "the frame transform needs a pose; the agent holds none. library_runtime crosses an "
+         "axis-bound relation across an episode with its axis as a variable (_AXIS_SWAP), an axis "
+         "renaming, not an allocentric<->egocentric transform the agent runs on a reading",
     "the ground": "never bound: the Symbols table says it is not in the library and the loop "
                   "cannot modify it. The board's own response is the ground",
     "the habitat": "everything in contact with the residual, enumerated; no single reading lists "
-                   "it yet",
+                   "it: no agent reading enumerates what is in contact with a given residual",
 }
 
 
