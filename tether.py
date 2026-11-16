@@ -1,4 +1,4 @@
-# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+﻿# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
 # git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 # RELATIONS.md's live successor: library/given.json (kind RELATION) + LIBRARY_SPEC section 3.
 """The loop. Steps 1 to 5.
@@ -17859,7 +17859,7 @@ class Agent:
         if _GOAL_FROM_ACTUATOR and not self._seam_now and getattr(self.iface, "last_changed", ()):
             _lc = set(self.iface.last_changed)     # G: a press that changed nothing says nothing
             self._press_every = _lc if self._press_every is None else self._press_every & _lc
-        if affordance.ON and self.__dict__.get("_aff_book") is not None and not self._seam_now:
+        if affordance._ON and self.__dict__.get("_aff_book") is not None and not self._seam_now:
             self._aff_keeps()           # TETHER_AFFORDANCE: a 'keeps moving' test, one step on
         if _TOUCH_FELT and self._contact_pending is not None:
             self._contact_felt()
@@ -21908,7 +21908,7 @@ class Agent:
                     act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
                     if why == "untouched-kind":
                         _kt = target                   # C2 FELT: this press is a kind touch
-                        if affordance.ON:              # the condition is read at press time
+                        if affordance._ON:              # the condition is read at press time
                             self._aff_ctx = (target, IFace.Interface.context(self.env, target))
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
@@ -26796,7 +26796,7 @@ class Agent:
                             owners=owners[:12],
                             reads=("a kind touch: what the press changed on the board, net of "
                                    "what changed anyway"))
-            if affordance.ON and self.__dict__.get("_aff_book") is not None:
+            if affordance._ON and self.__dict__.get("_aff_book") is not None:
                 self._aff_felt(pair[0], moved_all, landed)   # the first press judges the prior
             return
         moved = sorted(s for s in changed if self._objs_named(s) & set(pair))
@@ -31286,7 +31286,7 @@ class Agent:
         before = self.env.observe()
         if compile_term._GROUP_ROW:
             self._note_kinds(before)
-        if affordance.ON:   # TETHER_AFFORDANCE: new kind, shape -> concept -> prior row
+        if affordance._ON:   # TETHER_AFFORDANCE: new kind, shape -> concept -> prior row
             self._aff_see(before)
         if _GOAL_ORDER and self.__dict__.get("_order_next"):
             self._order_advance(before)

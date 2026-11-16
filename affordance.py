@@ -1,4 +1,4 @@
-"""AFFORDANCE BET (TETHER_AFFORDANCE, default ON; Isaiah 2026-11-16 "it's a ball (shaped like a
+﻿"""AFFORDANCE BET (TETHER_AFFORDANCE, default ON; Isaiah 2026-11-16 "it's a ball (shaped like a
 ball, acts like a ball) ... balls can roll, does this roll?"; write-up 40, "Affordances: shape ->
 concept -> properties -> predictions"; lead 16:20 "circle -> ball, that 2d-3d or abstraction").
 
@@ -28,7 +28,7 @@ from pathlib import Path
 
 import armflag
 
-ON = armflag.arm("TETHER_AFFORDANCE", default=True)  # prior/settle/refuse rows; record only
+_ON = armflag.arm("TETHER_AFFORDANCE", default=True)  # prior/settle/refuse rows; record only
 WORD_MAP = Path(__file__).resolve().parent / "library" / "word_map.json"
 # a verb's WordNet lexname -> the reading it predicts (a means: what to LOOK at, never the answer)
 LEXNAME_READING = {"verb.motion": "moves"}

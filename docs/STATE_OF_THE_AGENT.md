@@ -1,4 +1,4 @@
-# The state of the agent (2026-11-16)
+﻿# The state of the agent (2026-11-16)
 
 A handoff: what works, what doesn't, where the gap is, and what's designed next. Written so someone picking this up can start without the conversation history. Every claim points to a measurement or a commit.
 
@@ -51,6 +51,8 @@ And the fixes the T0 runs asked for, in the order they were found:
   - Counts carry in the lineage as `rdl_n`.
   - OFF is identical to the tree before it (gridworld 12 steps, 2,427 rows).
 - Not yet: other ordering sites (the library-first offer walk, the atom-chain walk), clusters on the feedback rows, and a live settle or refuse of RDL material. Tiers above 1 open only when the board settles tier-1 material.
+
+**And the meaning chain** (Isaiah: "it's a ball, shaped like a ball, acts like a ball; balls can roll, does this roll?"), in `docs/05-RESEARCH/42`: shape names in perception (TETHER_SHAPE_NAMES), a flat-to-solid shape bridge (disc -> sphere -> ball), a word map with categories and a synonym index, concept -> actions from WordNet both ways and ConceptNet, VerbNet classes, a vocabulary of WordNet minus NSM, and the affordance bet with its sentences (TETHER_AFFORDANCE). All preloaded with no standing; the board decides.
 
 **Also this afternoon:**
 - TETHER_BANK_SHARE (`68628e2`): one hard question no longer drains the level's whole thinking bank (T0d g50t: 52 M of allowance in one step).

@@ -1,4 +1,4 @@
-"""AFFORDANCE BET (TETHER_AFFORDANCE, default ON; Isaiah 2026-11-16 "balls can roll, does this
+﻿"""AFFORDANCE BET (TETHER_AFFORDANCE, default ON; Isaiah 2026-11-16 "balls can roll, does this
 roll?"; write-up 40 "Affordances: shape -> concept -> properties -> predictions"). Fixtures by hand:
 nothing here needs wip/shape-names or wip/word-map to have landed.
   A1  a prior row once per new kind, with the chain and its stamp, and no standing field
@@ -66,7 +66,7 @@ def rows(led, n0, prefix="affordance_"):
 
 
 def main() -> int:
-    assert affordance.ON is True, "the arm defaults ON"
+    assert affordance._ON is True, "the arm defaults ON"
     ag, led = agent()
     st = ag.env.observe()
     n0 = len(led.rows())
@@ -165,7 +165,7 @@ def main() -> int:
     else:
         print("A6 SKIP: shape names / word map not on this tree:", real[3])
 
-    affordance.ON = False
+    affordance._ON = False
     try:
         env = world.bind(gridworld.family("default", 0))
         led2 = ledger.Ledger()
@@ -176,11 +176,11 @@ def main() -> int:
         off = rows(led2, 0)
         assert not off and ag2.__dict__.get("_aff_book") is None, off
     finally:
-        affordance.ON = True
+        affordance._ON = True
     print("MF-A1 TETHER_AFFORDANCE OFF: no affordance rows -> RED as required")
 
     for on in (True, False):
-        affordance.ON = on
+        affordance._ON = on
         env = world.bind(gridworld.family("default", 0))
         led3 = ledger.Ledger()
         ag3 = tether.Agent(env, gamma.Gamma(env.atoms(), game="fam_default_0"), tether.Config(),
@@ -193,7 +193,7 @@ def main() -> int:
         if on:
             ev = sorted({r["event"] for r in rows(led3, 0)})
             print("   gridworld ON affordance rows:", ev)
-    affordance.ON = True
+    affordance._ON = True
     print("A5 gridworld 12 steps ON and OFF: both pass the gate: GREEN")
     print("affordance: OK")
     return 0
