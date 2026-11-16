@@ -1,4 +1,4 @@
-﻿# WATSON 2026-11-16: Recursive Diffusion Learning, the design (builds on 40)
+# WATSON 2026-11-16: Recursive Diffusion Learning, the design (builds on 40)
 
 Status: PARTLY BUILT. This write-up carries [40](40-WATSON_2026-11-13_RECURSIVE_DIFFUSION_LEARNING.md) forward. Write-up 40 set out the idea and its constraints (C1-C6) as a future state. On 2026-11-16 the first layers were built, and the design gained the layers that go from a board pattern to a word, a concept, its actions and back to the board. Everything 40 says still holds. This page says what was built, what was added, and the whole design in one place. The interfaces are fixed in `docs/03-DESIGN/RDL_BUILD_SPEC_2026-11-16.md`.
 
@@ -169,6 +169,20 @@ C1-C6 from 40 hold for every layer: head starts only, never recordings (C1); usa
 - WordNet read backwards (B4) built (`12f0ec0`). Layer C built (`c2a1408`): `library/vocabulary.json`, WordNet's 125,231 noun and verb lemmas minus the 54 that are NSM primes or allolexes (93 NSM terms, multi-word ones included), each with its categories and, for verbs, its VerbNet classes (609 classes, VerbNet 3.4); `library/relations.json`, 161,634 English ConceptNet 5.7 edges (CapableOf, ReceivesAction, UsedFor, IsA, HasProperty) over 69,097 concepts, licensed CC BY-SA 4.0 in its header. Ball: CapableOf roll, bounce; ReceivesAction kick, push, hit; UsedFor throw, catch, roll. Known rough: some ConceptNet targets are nouns read as verbs (game, toy). Nothing reads layer C yet.
 - The together-test (T0e, everything on, six games at 5 minutes each): lp85 cleared level 1; RDL released tier 1 on every level and changed a lookup order twice; no RDL material had yet settled or been refused, so the ladder has not moved; no object had a shape name on those boards that reached an affordance prior yet.
 - Next, in order: B7 (direction and manner), the categories as a search filter, a live settle of a prior, then B8 (recognition from pictures).
+
+## The handoff: what comes next, with exact pointers (2026-11-16, 17:45)
+
+Isaiah asked for these on 2026-11-16 and they did not fit before the day's cutoff. Each is written so it can be started cold.
+
+1. **The ImageNet class memory.** When `C:\TETHER_RUNS\DATA_2026-11-16\imagenet-1k\data\validation-*.parquet` (14 files) are present, run `recognize.build_from_parquet` over them with `per_class=50` into `C:\TETHER_RUNS\DATA_2026-11-16\recognition\` using `C:\TETHER_RUNS\venv313` (OpenCV 4.14 and pyarrow are installed there). Local only (ImageNet terms). Then the same over train for more pictures per class.
+2. **A fast nearest-neighbour index.** `recognize.recognise` matches by brute-force Hamming in numpy. Replace the inner search with a Hamming-space index (a multi-index hash or an HNSW over binary codes), behind `recognize.py`'s own functions; the vote, ratio test, RANSAC check and abstention stay as they are.
+3. **Abstraction-level centres.** Group class centres by shared WordNet hypernym (every kind of ball, dog, vehicle) into `abstraction`-stage centres (C6 stamps), so a picture that matches no single class can still match "a ball".
+4. **Recognition into the agent.** A `recognised` row (class, synset, votes, margin, inliers, abstained, stamp) written when a board carries a picture, read by `affordance._aff_see` exactly as a shape name is (`shape_name` -> concept). Behind its own switch; inert on grid boards.
+5. **Reading the language data.** `library/vocabulary.json` and `library/relations.json` are built and read by nothing. First readers: `affordance` (ConceptNet CapableOf/ReceivesAction verbs beside WordNet's in a concept's prediction) and the word map's `concept_actions` merge (a verb found in both ranks higher).
+6. **More RDL ordering sites.** Today RDL orders only `Agent._topk` (the described lookup). Next: the library-first offer walk (`_library_chains`) and the atom-chain walk (`make_order_key` / `ordered_closure`), each as a last tie-break exactly like `_topk`'s, each with its OFF identity checked row for row.
+7. **Rebuilding the parser between generations.** `rdl_parse.parse(stats=...)` already sheds a source and tier the board refused more than it settled. Trigger it at lineage save from the carried `rdl_n` counts, writing a new `library/rdl_preload.json` beside the generation (stamped with the stats it used), so C5's loop runs without a hand rebuild.
+8. **Without OpenCV, if wanted.** Compile akaze-eigen (BSD 3-clause; its LICENSE goes with it) with a small Python binding behind `recognize.describe`, and replace the contour, Hu-moment and RANSAC calls with numpy versions.
+9. **The proving runs.** The together-test at 600 s a game; the T0 gate (a clear through goal, refusal, repair, return); a live settle of an affordance prior and of RDL material; then step 9 and T1-T4.
 
 ## Files
 
