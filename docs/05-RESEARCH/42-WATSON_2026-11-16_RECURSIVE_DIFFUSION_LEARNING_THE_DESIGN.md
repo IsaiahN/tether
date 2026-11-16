@@ -1,4 +1,4 @@
-# WATSON 2026-11-16: Recursive Diffusion Learning, the design (builds on 40)
+﻿# WATSON 2026-11-16: Recursive Diffusion Learning, the design (builds on 40)
 
 Status: PARTLY BUILT. This write-up carries [40](40-WATSON_2026-11-13_RECURSIVE_DIFFUSION_LEARNING.md) forward. Write-up 40 set out the idea and its constraints (C1-C6) as a future state. On 2026-11-16 the first layers were built, and the design gained the layers that go from a board pattern to a word, a concept, its actions and back to the board. Everything 40 says still holds. This page says what was built, what was added, and the whole design in one place. The interfaces are fixed in `docs/03-DESIGN/RDL_BUILD_SPEC_2026-11-16.md`.
 
@@ -65,7 +65,7 @@ Each link consumes what the one above produces (Fig 3 :20).
 | B5 | "does this roll?" | **the affordance bet**: at a new kind's first sighting, the prior's prediction is written; the first press on that kind tests it; the board settles it, or refuses it and the rule is split by the condition read ("round things roll, except when touching a wall"); nothing deleted | `affordance.py`, TETHER_AFFORDANCE | built (`16a4ef2`); settle and refuse seen only on fixtures so far |
 | B6 | saying it | NSM lines over those rows: "THIS IS LIKE `ball` (`disc -> sphere -> ball`). `ball` CAN MOVE. ... I TOUCH THIS. THIS MOVES." Only listed primes; the word is a filler that unpacks to primes | `nsm.py` | built (`16a4ef2`) |
 | B7 | "the ball rolls to the right" | direction from the DIRECTION cluster and manner of motion (keeps moving between presses = rolls; moves only when pressed = is pushed) | -- | not built |
-| B8 | recognition from pictures | the ImageNet images through a swappable recognition front end at the edge; photos are not grids, structure transfers through the shared clusters (SHAPE, COLOUR, CONTACT, MOTION) | -- | later; the images are downloading (train and validation) |
+| B8 | recognition from pictures, no neural network | AKAZE key points, a per-class centroid memory, a vote checked by a geometric fit with abstention, and a contour route giving shape names (detail below) | `recognize.py` | code built (`be810c6`), tested on synthetic pictures; the ImageNet class memory is built once the validation pictures are downloaded |
 
 ### B8 in detail: recognising pictures without a neural network
 
@@ -92,6 +92,8 @@ Isaiah (2026-11-16, spelling corrected):
 - Key-point matching is strongest for a specific object seen again, like the source's paintings. ImageNet's classes are categories (any dog of a breed, any ball), where key points vary much more, so expect weaker recognition there than the source's 90%. That is acceptable here, because a recognition is a candidate with no standing: the board decides, and a wrong "ball" is refused when it does not act like a ball.
 - It matters for boards with pictures (stage 2 of layer D). On grid boards, shape names already do this job.
 - Nothing is learned in weights anywhere. The class memory is a record, compressed by a stated rule, and it can be rebuilt from the pictures at any time.
+
+**Status (2026-11-16).** `recognize.py` (`be810c6`) holds `describe` (AKAZE), `build_memory` with bitwise-majority centres, `recognise` (Hamming match, ratio test, RANSAC check, abstention below MIN_INLIERS = 10), `shape_from_contour`, and `build_from_parquet` for the ImageNet files; OpenCV 4.14 (the 5.0 wheel lacks AKAZE, so `<5` is pinned). Tested on synthetic pictures: transformed copies recognised, a blank picture abstains, the geometric check is what abstains. Not yet: an approximate nearest-neighbour index (matching is brute force), abstraction-stage centres across WordNet terms, the `recognised` row and its wiring into the agent, and a run on the real pictures. To build the memory once the validation split is down: `python -c "import recognize; recognize.build_from_parquet(<the 14 validation parquet paths>, r'C:\TETHER_RUNS\DATA_2026-11-16\recognition', per_class=50)"` with the repo's runner Python.
 
 **Where it plugs in.** A new builder writes the per-class descriptor memory from the downloaded ImageNet pictures (train and validation, about 154 GB, downloading on 2026-11-16) into a local data folder, never into the public repository (see the licences below). A recognition step on a picture writes a `recognised` row: class, synset, votes, margin, geometric inliers, abstained or not, and the stamp. The meaning chain reads that row like a shape name.
 
@@ -121,7 +123,7 @@ Each verb is mapped through the word map to the library's action entries, so a f
 
 **Senses are picked by context, never by spelling.** "Bait" the lure and "bait" the taunt are different senses (40; the 11-08 work on words with many meanings). The word map chooses a sense by the entry's domain and clusters and keeps ties; the agent's own sense clusters (step 8) choose at run time.
 
-**Categories.** Every entry gets one of object, shape, action, relation, property, measure, rule, cross-checked with the library's own kind (PERCEPT, COMPOSITE, PRIMITIVE, RELATION) and default role (STATE, PROCESS, ...). Disagreements are flagged, never overridden (2,148 today). Their use is search priority: when the residual is a motion, look among actions first. A filter for the budget, never a verdict (Fig 9 :60).
+**Categories.** Every entry gets one of object, shape, action, relation, property, measure, rule, cross-checked with the library's own kind (PERCEPT, COMPOSITE, PRIMITIVE, RELATION) and default role (STATE, PROCESS, ...). Disagreements are flagged, never overridden (2,148 today). Their use is search priority: when the residual is a motion, look among actions first. A filter for the budget, never a verdict (Fig 9 :60). Built (`TETHER_CATEGORY_ORDER`, after the AKAZE front end as Isaiah ordered): one more tie-break in the described lookup's ranking, after RDL's, from a declared table of residual reading -> category (position and motion -> action; shape change -> shape; count and extent -> measure; contact, inside -> relation; else no preference); same candidate set, different order; OFF identical to the tree before it.
 
 ### Layer D: the boards widen (from 40, unchanged)
 

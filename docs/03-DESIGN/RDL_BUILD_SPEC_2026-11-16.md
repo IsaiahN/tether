@@ -1,4 +1,4 @@
-# Recursive Diffusion Learning: the build spec (2026-11-16)
+﻿# Recursive Diffusion Learning: the build spec (2026-11-16)
 
 Isaiah 2026-11-16: "RDL matters most to me, start working on it." Design: `docs/05-RESEARCH/40-WATSON_2026-11-13_RECURSIVE_DIFFUSION_LEARNING.md` (constraints C1-C6, the tier ladder, the bridle, codified reach) and `41` (strata, islands, gap widths). This page fixes the interfaces so the pieces can be built in parallel. Every name below is binding for all builders.
 
@@ -65,8 +65,8 @@ This is write-up 40's affordance chain, *shape -> concept -> properties -> predi
 | L5 | saying it | NSM lines over those rows: "THIS IS LIKE `ball`. `ball` CAN MOVE. I DO SOMETHING TO THIS. THIS MOVES." Only listed primes; the word is a filler that unpacks to its primes | (in L4) | building 2026-11-16 |
 | L6 | "adversary -> deception, trick, decoy" | **the relation layer** (write-up 40 hop 3): roles and bonds between different things (UsedFor, CapableOf, Causes). Needs a corpus choice (ConceptNet or FrameNet): Isaiah's call | -- | next |
 | L7 | categories make search faster | the L2 categories as a **search-priority filter** (Fig 9 :60: a filter for the budget, never a verdict), beside RDL's tie-break | -- | next |
-| L8 | recognition from pictures, with no neural network | AKAZE key points (OpenCV `cv2.AKAZE_create`; akaze-eigen as the OpenCV-free alternative) with binary descriptors; a per-class memory compressed by bitwise-majority centres; approximate nearest-neighbour lookup; a vote checked by a geometric (RANSAC) fit, abstaining below a declared minimum; plus a contour route giving the grid's own shape names for objects without key points. The winning class is a WordNet synset, handed to the meaning chain. Design: write-up 42, "B8 in detail". ImageNet-derived memories stay local (ImageNet terms) | `recognize.py` | building 2026-11-16 (code; the class memory waits for the validation pictures) |
-| L7 (order) | after L8 | Isaiah 2026-11-16: the categories as a search filter come after the AKAZE inclusion | TETHER_CATEGORY_ORDER | building 2026-11-16 |
+| L8 | recognition from pictures, with no neural network | AKAZE key points (OpenCV `cv2.AKAZE_create`; akaze-eigen as the OpenCV-free alternative) with binary descriptors; a per-class memory compressed by bitwise-majority centres; approximate nearest-neighbour lookup; a vote checked by a geometric (RANSAC) fit, abstaining below a declared minimum; plus a contour route giving the grid's own shape names for objects without key points. The winning class is a WordNet synset, handed to the meaning chain. Design: write-up 42, "B8 in detail". ImageNet-derived memories stay local (ImageNet terms) | `recognize.py` | code built `be810c6`; the class memory waits for the validation pictures |
+| L7 (order) | after L8 | Isaiah 2026-11-16: the categories as a search filter come after the AKAZE inclusion | TETHER_CATEGORY_ORDER | built (the cherry-picked 6e5b9d2) |
 | L9 | fluency measured | primes per explanation fall as words ground, at the same meaning; presses to settle a domain's first terms fall with each domain already learned | -- | later |
 | L10 | dictionary and voice | cmudict pronunciations (hop 5), a rule-based synthesizer (hop 6); talking needs an ear and a listener as the board | -- | later |
 
