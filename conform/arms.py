@@ -3433,6 +3433,18 @@ ARMS: dict[str, str] = {
                   "parser; counts carried as rdl_n (the obg_n pattern). Pieces or file absent: "
                   "inert, one rdl_inert row. OFF: nothing loaded, no order change, no rows. "
                   "default ON",
+    "TETHER_CATEGORY_ORDER": "Isaiah 2026-11-16 'categorize the library ... so that helps make "
+                             "search faster' (WATSON 42 layer C 'Categories'; Fig 9 :60 a filter "
+                             "for the budget, never a verdict): library/word_map.json's per-entry "
+                             "category sets SEARCH PRIORITY ONLY -- one more LAST field in the "
+                             "described lookup's rank (_topk), after RDL's: an entry whose "
+                             "category is the one the residual's reading wants "
+                             "(CATEGORY_OF_READING, a declared Fig 10 table) sorts ahead of an "
+                             "otherwise-equal entry; same candidate set, nothing added, removed, "
+                             "made reachable or given standing. A category_order row the first "
+                             "time it reorders on a slot (wanted, entry category, source). No "
+                             "word map: inert, one category_inert row. OFF: nothing loaded, no "
+                             "order change, no rows. MF: tests/test_category_order.py. default ON",
     "TETHER_IMPLIES_BOND": "O1 (BUILD_SEQUENCE_FUTURE_STATE §5 'O1: ⇒ wired'; the reviewer "
                            "2026-11-13/14 '⇒ has no atom at all'; Operators Table :35-40, "
                            "production, symmetric: no): a settled ⇒ junction between two "
