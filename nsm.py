@@ -38,7 +38,7 @@ _DEDUPE = armflag.arm("TETHER_NSM_DEDUPE", default=True)
 _NEGATE_GUARD = armflag.arm("TETHER_NEGATE_GUARD", default=True)   # ¬ wired (tether's arm)
 _SUBTRACT = armflag.arm("TETHER_SUBTRACT", default=True)   # − is AGENT|subtract (r1160)
 _INFERRED_CAUSE = armflag.arm("TETHER_INFERRED_CAUSE", default=True)   # 14b: BECAUSE (tether's)
-_IMPLIES_BOND = armflag.arm("TETHER_IMPLIES_BOND", default=True)   # O1: ⇒ wired (tether's arm)
+_IMPLIES_BOND = armflag.arm("TETHER_IMPLIES_BOND", default=True)   # O1: implies wired (tether's)
 SAMPLE = 50           # the LOOKUP row keeps its first 50 held bonds (b2, 10-18); never widened here
 WIDTH = 240
 UNKNOWN = "?"
