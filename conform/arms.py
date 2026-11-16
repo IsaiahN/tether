@@ -3383,6 +3383,14 @@ ARMS: dict[str, str] = {
                          "same reading on another object the wanted way and realises that move "
                          "(press-and-watch by kind); a kind_lever_route row. NEEDS "
                          "TETHER_CONTACT_ROUTE. OFF: the touch only. default ON",
+    "TETHER_WORDS_CARRY": "BUILD_SEQUENCE 0b (the reviewer r1942; Isaiah 2026-11-13 21:22-21:24; "
+                          "built on Isaiah's 2026-11-16 'build out'): within one game what each "
+                          "action did carries to the next board as an expectation (kind-shape "
+                          "and object count, below the seam); a later board's hold counts only "
+                          "actions never pressed in this game or contradicted here; the first "
+                          "press checks (met / met, condition changed / contradicted), a "
+                          "words_carry row. OFF: every board holds every unpressed action. "
+                          "default ON",
     "TETHER_HTN_RETURN": "Isaiah 2026-11-16 'fix HTN' (T0c r1971: the repair subtask ended "
                          "without helping its parent; Fig 3 :20): a refused parent's repair "
                          "subtask that arrives with an empty stack re-adopts the parent (an "

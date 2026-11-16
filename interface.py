@@ -277,6 +277,18 @@ _AIM_ROUTED = armflag.arm("TETHER_AIM_ROUTED", default=True)
 # 3: all of ACTION1-7 by cycle 27). The agent reads only untried_here(), a count. OFF: "never taken"
 # = absent from the game series' table
 _BOARD_UNTRIED = armflag.arm("TETHER_BOARD_UNTRIED", default=True)
+# 0b WORDS_CARRY (BUILD_SEQUENCE 0b; the reviewer r1942, Isaiah 2026-11-13 21:22-21:24, built on
+# Isaiah's 2026-11-16 "build out" the sequence): within one game (this interface's lifetime: the
+# harness wires one agent per game), what each action did carries to the next board as an
+# EXPECTATION, never a fact (Fig 4 :22-24, a head start). Kept per action name below the seam: the
+# effect's shape at the level of kinds (which attributes moved, which way -- no object names) and,
+# apart, how many objects moved (its cost/extent). On a later board the hold counts only actions
+# never pressed in this game and actions CONTRADICTED on this board; the first ordinary press is the
+# check: the same shape confirms; a different shape contradicts it (back in the hold until pressed
+# again here); the same shape over a different number of objects stays met and is recorded as a
+# changed condition. No blanket "touch every kind first" (the retired kinds clause). OFF: every
+# board's hold counts every action not yet pressed on it, as before.
+_WORDS_CARRY = armflag.arm("TETHER_WORDS_CARRY", default=True)
 AIM_ROUTED_N: Counter = Counter()   # "<asker>:record" / ":object" / ":pair_no_record" / ":no_aim"
 
 
@@ -590,6 +602,12 @@ class Interface:
         self.epoch, self.alive = 0, True   # the agent's situation, handed over by situate
         # C1: the boards the agent has opened, and what was realised on each; grows, never cleared
         self.board_n, self.realised_board = 0, {}
+        # 0b WORDS_CARRY: action -> {"shape", "objs", "board"} (this game's expectation);
+        # board -> {action: pressed again since the contradiction}; the last check's note
+        self.words: dict[str, dict] = {}
+        self.words_contra: dict[int, dict[str, bool]] = {}
+        self.words_checked: dict[int, set[str]] = {}
+        self.last_words: dict | None = None
         # **LAYER 1's OTHER HALF -- INSTANCE MEMORY, AND IT IS DELIBERATELY NOT A KEY.**
         # `rel` says WHETHER acting on one object changes another in this world; it cannot say
         # WHICH object to press to move slot Y. That question is answered by what this agent
@@ -1277,7 +1295,38 @@ class Interface:
         """C1: how many offered actions are not yet realised on this board, RESET left out while
         alive (known a priori). A count: the names stay on this side of the seam."""
         done = self.realised_board.get(self.board_n, ())
+        if _WORDS_CARRY:
+            contra = self.words_contra.get(self.board_n, {})
+            return sum(1 for a in offered if not (a == RESET and self.alive) and (
+                (a in contra and not contra[a])                     # contradicted here, unpressed
+                or (a not in done and a not in self.words)))        # never pressed in this game
         return sum(1 for a in offered if a not in done and not (a == RESET and self.alive))
+
+    def _words_check(self, action: str, signature: tuple) -> None:
+        """0b WORDS_CARRY: record this game's expectation for `action`, or check it on the first
+        press of a later board. Sets last_words for the agent's row; None when nothing to say."""
+        self.last_words = None
+        shape = tuple(sorted({(k.rsplit(".", 1)[-1], s) for k, s in signature if s}))
+        objs = len({k.split(".", 1)[0] for k, s in signature if s})
+        contra = self.words_contra.setdefault(self.board_n, {})
+        if action in contra and not contra[action]:
+            contra[action] = True                   # pressed again after the contradiction
+        w = self.words.get(action)
+        if w is None:
+            self.words[action] = {"shape": shape, "objs": objs, "board": self.board_n}
+            return
+        seen = self.words_checked.setdefault(self.board_n, set())
+        if w["board"] == self.board_n or action in seen:
+            return
+        seen.add(action)
+        if shape == w["shape"]:
+            verdict = "met" if objs == w["objs"] else "met, condition changed"
+        else:
+            verdict = "contradicted"
+            contra[action] = False
+        self.last_words = {"verdict": verdict, "carried": list(w["shape"]), "seen": list(shape),
+                           "carried_objs": w["objs"], "seen_objs": objs, "from_board": w["board"]}
+        self.words[action] = {"shape": shape, "objs": objs, "board": self.board_n}
 
     def note_break(self) -> None:
         """TETHER_AIM_ROUTED: the agent read a frame break (its own boundary reading); a route's
@@ -2080,6 +2129,8 @@ class Interface:
         self.last_meant = meant          # (4a): the intent, why and mode this press came from
         signature = tuple(sorted(_eff(k) for k in changed
                                  if k.rsplit(".", 1)[-1] not in RELATIONAL))
+        if _WORDS_CARRY:
+            self._words_check(r.action, signature)
         e = self.table.setdefault(r.action, {"by_ctx": {}, "n": 0, "delta": {}})
         e["n"] += 1
         if _CHANGE_TALLY:

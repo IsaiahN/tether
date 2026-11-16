@@ -17590,6 +17590,15 @@ class Agent:
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
+        if IFace._WORDS_CARRY and not self._seam_now and self.iface.last_words is not None:
+            # 0b WORDS_CARRY: the first press of an action on a later board checks what it did on
+            # an earlier one (the action's name stays below the seam: the row says its kind-shape)
+            self.led.record(self.cycle, "PERCEIVE", "@interface", "words_carry",
+                            board=self.iface.board_n, **self.iface.last_words,
+                            reads="an action's effect carried from an earlier board of this game, "
+                                  "checked by its first press here: " + self.iface.last_words[
+                                      "verdict"])
+            self.iface.last_words = None
         if IFace._EFFECT_WRAPPED and self.iface.effect_ties:
             self.led.record(self.cycle, "PERCEIVE", "@interface", "effect_tie",
                             of=(action,), slots=list(self.iface.effect_ties),
