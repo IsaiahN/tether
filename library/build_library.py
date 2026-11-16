@@ -730,7 +730,7 @@ MIN_SHARED = 2
 # rules as method cards, committed byte for byte and kept apart from given.json/index.json; no
 # build step reads or writes it. --check holds its sha256 to the approved file.
 TETHER_RULES = "tether_rules.json"
-TETHER_RULES_SHA256 = "542c92a3f6ce596310ed4d4bb20fea581634e073e16d93ff6b256f4226f2585e"
+TETHER_RULES_SHA256 = "8ff64855f0a06b03caf7b418b2da027d351bdccb3c6c9e5ccf202e63af7f577e"
 # 8e: moved from docs/corpus/ to library/ (r1855)
 CORPUS_INDEX = Path(os.environ.get("ATTRIBUTE_INDEX")
                     or Path(__file__).resolve().parent / "ATTRIBUTE_INDEX.json")

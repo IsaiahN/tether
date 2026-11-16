@@ -76,6 +76,11 @@ else:
     n = 1 if mode in ("bar", "bar_plant") else 3
     for _ in range(n):
         ag._tier_note(row, "up", [B])
+    # TETHER_TIER_CONTRAST (cards v4 (e), r1952): B's kind changed on n of the n + 3 steps on which
+    # A's kind was blocked, so the reading could have come out the other way (contrast 1.0)
+    rule = ag._tier2[ag._can_kind_key(A)]
+    rule["steps"] = n + 3
+    rule["j_steps"] = {ag._can_kind_key(B): n}
     ag._res = {A: [3, 3], B: [2, 2]}
     ag._enablers = lambda s: []
     ag._out_of_reach = lambda s: False

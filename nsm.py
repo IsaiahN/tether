@@ -38,6 +38,7 @@ _DEDUPE = armflag.arm("TETHER_NSM_DEDUPE", default=True)
 _NEGATE_GUARD = armflag.arm("TETHER_NEGATE_GUARD", default=True)   # ¬ wired (tether's arm)
 _SUBTRACT = armflag.arm("TETHER_SUBTRACT", default=True)   # − is AGENT|subtract (r1160)
 _INFERRED_CAUSE = armflag.arm("TETHER_INFERRED_CAUSE", default=True)   # 14b: BECAUSE (tether's)
+_IMPLIES_BOND = armflag.arm("TETHER_IMPLIES_BOND", default=True)   # O1: implies wired (tether's)
 SAMPLE = 50           # the LOOKUP row keeps its first 50 held bonds (b2, 10-18); never widened here
 WIDTH = 240
 UNKNOWN = "?"
@@ -45,7 +46,8 @@ UNKNOWN = "?"
 ALLOLEX = {"HAPPENED": ("HAPPEN",), "SAW": ("SEE",), "WAS": ("BE",), "CAN'T": ("CAN", "NOT")}
 # The listed refusals of read_node / read_term; a reason outside this list is a defect (MF-T).
 # r1052 (b), r1059: "has no atom" only where implemented_by is empty; a condition bond (≡ ⋛ +) says
-# where it is routed; ¬ (AGENT|negate) is not wired as a term.
+# where it is routed; ¬ (AGENT|negate) is not wired as a term; ⇒ is a condition (O1,
+# TETHER_IMPLIES_BOND) and "has no atom" only with that arm OFF.
 REFUSALS = ("has no NSM word (open item)", "BECAUSE has no atom (r896)", "has no atom",
             "not wired as a term", "a condition, routed to the guard offer",
             "a negated condition, routed to the guard offer",
@@ -197,6 +199,9 @@ def read_node(sentence: str, atoms: dict):
         if bond == UNKNOWN:
             raise Refused("an unknown bond is not a term")
         if bond == "⇒":
+            if _IMPLIES_BOND:     # O1: a condition between two truth readings, like ∥
+                raise Refused("⇒ BECAUSE (implies, ordered): a condition, routed to the guard "
+                              "offer")
             raise Refused("⇒ BECAUSE has no atom (r896)")
         if bond == "−" and not _SUBTRACT:
             raise Refused("− has no atom")

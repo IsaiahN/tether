@@ -24,7 +24,7 @@ import sys
 import time
 from collections import Counter
 from collections.abc import Mapping
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field, fields, is_dataclass
 from dataclasses import replace as _replace
 from functools import cache, lru_cache, partial, wraps
@@ -1054,6 +1054,15 @@ _HTN_AT_ADOPT = armflag.arm("TETHER_HTN_AT_ADOPT", default=True)
 # coincidence"), best validity first. Strata and the core rule are the next rungs, not built.
 # NEEDS TETHER_HTN and TETHER_CAN_LEDGER. OFF: no tier rows, the law's enablers only.
 _HTN_TIERS = armflag.arm("TETHER_HTN_TIERS", default=True)
+# TIER CONTRAST (cards v4 (e), "Could it have come out the other way?"; the reviewer r1923 3,
+# r1925 4(e), r1948/r1949; Fig 2 :29-30 "If it moves when you push on it, it is not an anchor"):
+# a J that changes on every step agrees with every opening and carries nothing. Each can reading
+# counts, per kind K that had a BLOCKED item, the steps (K could have opened) and, per kind J, the
+# steps on which J changed.
+# A tier-2 candidate then needs J to have changed on some of those steps and not on others, and a
+# positive contrast P(K opens | J changed) - P(K opens | J did not); candidates are ordered by it.
+# NEEDS TETHER_HTN_TIERS. OFF: counted by n alone (n >= MIN_REPEAT), best validity first.
+_TIER_CONTRAST = armflag.arm("TETHER_TIER_CONTRAST", default=True)
 # (6a) R-D, UNREACHABLE AT BUDGET, THEN RE-ENGAGE (the 10-23 design; A11; Fig 8 :40-41): an
 # exhausted intent is kept as the verdict "unreachable at budget" with the situation it was read
 # in; when a route is offered for it again (its situation moved -- 4d -- or its refusals were set
@@ -1599,6 +1608,31 @@ _GUARD_BONDS = ("≡", "⋛", "+", "∥")   # ∥ (r1073): either suffices
 # where k is resolved and false -- an unresolved reading is not a negation. Offered on the guard
 # only where ¬k holds throughout R and separates it. OFF: no ¬ key, ¬ "not wired as a term".
 _NEGATE_GUARD = armflag.arm("TETHER_NEGATE_GUARD", default=True)
+# O1, ⇒ WIRED (docs/04-PLANS_AHEAD/02-BUILD_SEQUENCE_FUTURE_STATE.md §5 "O1: ⇒ wired (implication
+# usable in terms)"; Operators Table :35-40 "production · A produces B; B did not exist before ·
+# symmetric: no · is there a B before A fires? No."): a settled ⇒ junction between two truth-typed
+# (PRED/BOOL) readings is a CONDITION routed to the guard offer for B, like + and ∥; the key
+# "⇒:A|B" holds where the readings resolve and (not A) or B -- never B without A having fired, read
+# on one state. ORDERED (:38 "no"), so A⇒B and B⇒A are two keys, never canonical; value-typed
+# readings are refused for typing. NEEDS TETHER_BOND_TERMS. OFF: ⇒ "bond has no atom", as before.
+_IMPLIES_BOND = armflag.arm("TETHER_IMPLIES_BOND", default=True)
+# O2, NESTING WITH A BUDGET (docs/04-PLANS_AHEAD/02-BUILD_SEQUENCE_FUTURE_STATE.md §5 "O2: nesting
+# with a budget and a guard on nesting depth"; the reviewer 2026-11-14 "guards that hold combined
+# conditions (guard-join pricing lands with O2)"): a guard condition may be a junction of two
+# CONDITIONS (routed junction keys), not only of two readings -- the key "+:(k1)|(k2)" for a bond in
+# _NEST_BONDS, read recursively by _jc_holds (an operand that is a key evaluates that key). Offered
+# on a slot's guard only where it holds on all of R, is false somewhere outside R, and sorts
+# strictly more of the slot's history than EACH component (states counted). Priced as the sum of
+# its parts'
+# descriptions plus one bond (term_bits' own bond term), so it never costs less than a part.
+# Deeper than GUARD_NEST_DEPTH is refused with the counted reason "nesting depth". NEEDS
+# TETHER_BOND_TERMS. OFF: no combined key is offered or read, as before.
+_GUARD_NEST = armflag.arm("TETHER_GUARD_NEST", default=True)   # O2: nested guard conditions
+# A DECLARED CONVENTION (Figure 10), NOT A TUNED NUMBER: a junction of two readings is depth 1, a
+# junction of two such conditions depth 2; nothing deeper is offered or read. Visible and movable by
+# the reviewer, never claimed correct.
+GUARD_NEST_DEPTH = 2
+_NEST_BONDS = ("+", "∥", "⇒")         # O2: the bonds joining two conditions (both, either, implies)
 # BUILD 4 ITEM 13, CONTACT-SEEDED CANDIDATE GENERATION (the reviewer 2026-11-03 r978; Isaiah
 # 11-01, "not blind enumeration"): the step's mint slots are ordered by two seeds ranked together
 # -- (a) the contact slots whose value changed this step, (b) a settled residual-lit → junction
@@ -3880,6 +3914,73 @@ _TRY_FIRST_ACTIONS = armflag.arm("TETHER_TRY_FIRST_ACTIONS", default=True)
 # the hold was parked by the order, a filter's verdict. A goal already held is untouched. OFF:
 # proposed inside the hold, as before
 _HYP_AFTER_WORDS = armflag.arm("TETHER_HYP_AFTER_WORDS", default=True)
+# PASSABILITY (BUILD_SEQUENCE 1a, hand-test finding f; r1948/r1949): a passability reading EARNED
+# from contact, never assumed -- no colour is declared wall or scenery. Per colour, contacts a body
+# made with an object of that colour: "blocked" (B4's _blocked_reading partner) and "entered" (a
+# credited move that newly overlaps it). Verdict passable / blocking / mixed / unknown; a route
+# whose predicted step lands on a blocking colour is not offered (unknown is where press-and-watch
+# goes). OFF: nothing recorded, every route offered as before
+_PASSABILITY = armflag.arm("TETHER_PASSABILITY", default=True)
+# AGENDA (BUILD_SEQUENCE 2a; r1948/r1949): the agenda reader runs a Tether card each PLAN step,
+# beside the goal path -- the card chosen by the residual's shape, its asks run in order, one
+# "agenda" decision row per step (agenda.py). OFF: the cards stay unread, as before
+_AGENDA = armflag.arm("TETHER_AGENDA", default=True)
+# REPAIR AT THE REFUSAL (the reviewer r1957; T0 2026-11-14: goals reached their own test and were
+# refused there in g50t and ar25, and nothing turned a refusal into a subgoal; cards v4 (b), "Three
+# texts" on_refuted: a thin CONTEXT makes the missing condition a SUBGOAL of the goal the action
+# served; Fig 3 :20 "ordered by dependency"; the hand test's #11 -> level 1's second goal). A goal
+# hypothesis that ends at contact without a win (arrived_no_clear, or stalled with touches) is
+# decomposed there: the agenda reader writes the card's row, and _htn_push(when="refused") offers
+# the goal's enablers, tier 2's candidates, and the open goal slots of the objects in contact with
+# the goal's object at the refusal (the habitat, Symbols table :107-110). The parent is taken up
+# again when the subtask pops (HTN). NEEDS TETHER_HTN and TETHER_SUBGOAL. OFF: the refusal ends
+# the goal, as before.
+_REPAIR_AT_REFUSAL = armflag.arm("TETHER_REPAIR_AT_REFUSAL", default=True)
+# GOAL CONDITIONS THAT COULD COME OUT THE OTHER WAY (the reviewer r1960; T0b 2026-11-14, lp85
+# cycle 16: one goal_condition choice over 43,102 pairwise conditions, every one priced the same,
+# took ~27 minutes inside one step after a frame break; cards v4 (e) "Could it have come out the
+# other way", Fig 2 :29-30). When the reach history holds both met and unmet rows, a condition
+# whose every slot held one value across those rows has one truth on all of them: it cannot tell
+# met from unmet, so it is not compiled or priced (counted as "constant"). With all rows met or
+# none, nothing changes. OFF: every condition priced, as before.
+_GOAL_VARIES = armflag.arm("TETHER_GOAL_VARIES", default=True)
+# CONTACT IS A ROUTE (the reviewer r1963; T0b 2026-11-14: all 8 goals held on four games were count
+# readings ("o13.rem_n > 0") and none was ever met even once: they ended parked by no route, stalled
+# or untested, because no action was yet known to change the count; cards v4 (c)+(g) "On this board,
+# can contact reach it: is there a press-and-watch whose effect would answer it?"; the hand test's
+# #86-#88; Symbols table :107-110 the habitat). When _hyp_route finds no action known to move the
+# goal's reading, and the goal's object is on the board, the route is to touch that object
+# (TOUCH(object), realised by the interface as any other intent); a contact_route row says so. OFF:
+# no route, as before (the hold parks after _ROAD_CLOSED_N reads).
+_CONTACT_ROUTE = armflag.arm("TETHER_CONTACT_ROUTE", default=True)
+# THE GOAL'S FLOOR (the reviewer r1967; the lp85 replay r1966: GOAL_VARIES cut c16's IMPORT from
+# 3,192 s to 173 s and the pick was still "none paid"; the cheapest condition cost 12.886 bits,
+# term_bits(1, 86), the price of the SHORTEST term there can be). Every goal condition is priced by
+# _goal_price at term_bits(size) with size >= 1, plus mistakes >= 0; the bargain is strict
+# (pays: cost + left < base). So when base = k log2 n is at or under term_bits(1), no condition
+# of any kind can pay, and the pick is "none paid" before one is written. Fig 5 :42-44 (the
+# bargain); Fig 13 "unreachable as a verdict": named from two numbers, not found by search. The
+# templates are still read (the _inv_tpl later steps read, as OFF leaves it). OFF: every
+# condition priced, as before.
+_GOAL_FLOOR = armflag.arm("TETHER_GOAL_FLOOR", default=True)
+# A LEVER BY KIND (the reviewer r1965; r1963 4's pre-named next step: contact routes taken, count
+# goals still never met; Fig 4 :22-24 "Only methods cross up": what moved this READING on another
+# object is a head start for this one). Before the touch, CONTACT_ROUTE looks in the interface's
+# own delta table for an action that moved the same reading (the part after the dot) on another
+# object, the way this goal wants it to go, and asks the interface to realise that move: pressed,
+# it is a press-and-watch whose effect would answer the goal. A kind_lever_route row says so.
+# NEEDS TETHER_CONTACT_ROUTE. OFF: the touch only.
+_KIND_LEVER = armflag.arm("TETHER_KIND_LEVER", default=True)
+# HTN RETURN (Isaiah 2026-11-16 "fix HTN"; T0c r1971: ka59's repair subtask arrived at c88 and the
+# agent then picked a different goal, cd82's ended "gone" -- the subtask ends without helping the
+# parent). Fig 3 :20 "Each link consumes what the one above produces": a subtask is pursued FOR its
+# parent, so when it arrives and the stack is empty the refused parent is re-adopted (the board is
+# no longer the one that refused it, so Fig 7 :36's "the next must differ" is met by the board).
+# A parent refused again after a return marks that subtask "not a prerequisite" for it (Fig 9 :60:
+# a filter, never a verdict -- only the pairing is dropped). The method edge is credited when the
+# returned parent ends (paid = won), never at the parent's earlier arrival. OFF: as before.
+_HTN_RETURN = armflag.arm("TETHER_HTN_RETURN", default=True)
+_SLOT_REF = re.compile(r"\bo\d+(?:~o\d+)?\.[A-Za-z_][\w]*")
 # P1 SWEEP_FILTER (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind with
 # _operand_fits (the ruled necessary condition mint and _reach already apply) before its _left, and
 # skips every bind's _left when the term's cost -- the same for every bind, gamma.length keys the
@@ -4484,6 +4585,24 @@ def _guard_bits(guard: Any, offered: int, refs: int = 0) -> float:
     # margin (9.8138 against a base of 18.0), so it should still pay -- and its new cost is
     # reported rather than assumed.
     return math.log2(offered + 1) + (math.log2(refs + 1) if refs else 0.0)
+
+
+def _jc_bond(bond: str, u: Any, v: Any) -> bool | None:
+    """BOND TERMS: a junction's truth on two operand values, three-valued -- None where either is
+    None or the two do not compare. ≡ same, ⋛ above, ⇒ (O1) ordered with u the antecedent, ∥
+    either, + both. O2 calls it with the truths of two conditions as u and v."""
+    if u is None or v is None:
+        return None
+    try:
+        if bond == "≡":
+            return bool(u == v)
+        if bond == "⋛":
+            return bool(u > v)
+        if bond == "⇒":
+            return (not bool(u)) or bool(v)
+        return (bool(u) or bool(v)) if bond == "∥" else (bool(u) and bool(v))
+    except TypeError:
+        return None
 
 
 def _same_object(landed_on: str | None, slot: str) -> bool:
@@ -5545,6 +5664,8 @@ class Agent:
         self._tk_nofit: dict = {}          # S3: a key -> entries its windows judged no-fit
         self._junction_conds: dict = {}    # BOND TERMS: a junction key -> (bond, a, b)
         self._junction_of: dict = {}       # BOND TERMS: a slot -> its routed junction keys
+        self._junction_nest: dict = {}     # O2: a slot -> the combined keys offered on it
+        self._guard_nest_why: collections.Counter = collections.Counter()   # O2: counted reasons
         self._tk_win: tuple = (None, (), None)   # S3: the last window (key, entries, no-fit key)
         self._dl_owed = False              # 20: this lookup was due from the owed queue
         self._dl_n: Counter = Counter()    # 20: this step's described-lookup counts
@@ -5608,6 +5729,11 @@ class Agent:
         self._view_hold: dict = _cache()   # 7e: (entry, role) -> the view under "{o}"/"{x}"
         self._view_hold_n: Counter = Counter()   # 7e: held/served/bypass_<why>; nothing reads it
         self._blocked_now: dict = {}       # B4: this step's blocked slots -> the partner
+        self._pass_contact: dict = {}      # 1a: colour -> [entered, blocked], this game
+        self._agenda = None
+        if _AGENDA:
+            import agenda  # 2a: the reader, its only importer of symbols
+            self._agenda = agenda.Reader()
         self._reach_frames: tuple | None = None
         self.abstained: dict[str, dict] = {}
         self.candidates: dict[str, int] = {}     # term -> cycle accepted, awaiting the ground
@@ -5716,6 +5842,8 @@ class Agent:
         self._htn_written: dict = {}        # HTN: what the lineage already holds
         self._htn_pending: dict = {}        # HTN: parent slot -> edges pursued for it, unsettled
         self._htn_tried: dict = {}          # HTN: parent slot -> subs that ran out for it
+        self._htn_return: dict = {}         # HTN RETURN: refused parent slot -> its hold + edge
+        self._htn_returned: dict = {}       # HTN RETURN: parent slot -> subs already returned from
         self._tier1: list = []              # HTN TIERS: each opened crossing, kept whole
         self._tier2: dict = {}              # HTN TIERS: kind K -> {"opened": n, "after": {J: n}}
         self._unreachable: dict = {}        # (6a) R-D: intent -> {"at", "situation"} at budget
@@ -6654,6 +6782,7 @@ class Agent:
         self._tk_off = {}
         self._tk_nofit = {}
         self._junction_conds, self._junction_of = {}, {}   # their keys name slots too
+        self._junction_nest = {}           # O2: a slot -> its offered combined keys (same rule)
         if _NOOP_WITHHOLD:
             self._noops.clear()            # 23: the level's own boards
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
@@ -10576,6 +10705,8 @@ class Agent:
             self._mv_once = None
 
     def _goal_hypothesis_run(self, before: dict) -> None:
+        if self._agenda is not None:
+            self._agenda.step(self)      # 2a: the agent's card step, beside the goal path
         if self._hyp is not None:
             self._hyp_check()
         # exhausted means "none routable AT THIS KNOWLEDGE": a route comes from the agent's own
@@ -11006,6 +11137,15 @@ class Agent:
             self._desc_against(h, why, step, boundary)
         if _GOAL_UNBUNDLE and why == "stalled" and not won:
             self._goal_unbundle(h, step)
+        if _HTN_RETURN and h.get("htn_edge") and not budget_end:
+            # HTN RETURN: the method's edge is paid only if the returned parent won
+            st = self._htn.setdefault(h["htn_edge"], [0, 0])
+            st[0] += 1
+            st[1] += 1 if won else 0
+            self.led.record(self.cycle, "SETTLE", h["slots"][0], "htn_credit",
+                            edge=h["htn_edge"], paid=bool(won), record=list(st), why=why,
+                            reads="the returned parent won: the method paid" if won else
+                                  "the returned parent ended without a win: unpaid")
         # R1 (r1294): closed BY a boundary, the row joins retarget's own chain on "@boundary"
         # (_BOUNDARY_CHAIN), the object in a field -- on the object's slot it sat at IMPORT ahead
         # of the next step's PERCEIVE in the same cycle, and the gate refused the ledger
@@ -11026,6 +11166,107 @@ class Agent:
                         **({"family": h.get("family"),
                             "board": getattr(self.iface, "board_n", None),
                             "trend": self._hyp_trend(h)} if _SHAPE_TRACE else {}))
+        if (_REPAIR_AT_REFUSAL and not won and not boundary and step == "PLAN"
+                and (why == "arrived_no_clear" or (why == "stalled" and h["touches"] > 0))):
+            self._repair_refused(h, why)
+
+    def _repair_refused(self, h: dict, why: str) -> bool:
+        """REPAIR AT THE REFUSAL: the goal reached its own test and the board refused it. The card
+        (Three texts, on_refuted) asks which text was thin; the goal was held (subtext) and acted on
+        (pretext), so the condition the board showed is missing from the context: it becomes a
+        subgoal. True when a subtask went on the stack."""
+        slot = h["slots"][0]
+        if _HTN_RETURN and self._htn_returned.get(slot):
+            # HTN RETURN: the parent was refused again after its subtask arrived -- that subtask
+            # is not this parent's missing condition; it is not pushed for it again
+            dropped = sorted(self._htn_returned.pop(slot))
+            self._htn_tried.setdefault(slot, set()).update(dropped)
+            self.led.record(self.cycle, "PLAN", slot, "htn_not_prerequisite", subs=dropped,
+                            why=why, reads="the parent was refused again after this subtask "
+                                           "arrived: it was not the missing condition")
+        pushed = bool(_HTN and _SUBGOAL and self._htn_push(slot, when="refused", why=why))
+        if pushed and _HTN_RETURN and self._subgoal is not None:
+            sub = self._subgoal["sub"]
+            edge = self._htn_edge(slot, sub)
+            # credited when the returned parent ends, never at the arrival that preceded the push
+            pend = self._htn_pending.get(slot)
+            if pend is not None:
+                pend.discard(edge)
+                if not pend:
+                    del self._htn_pending[slot]
+            self._htn_return[slot] = {"h": h, "sub": sub, "edge": edge, "why": why,
+                                      "cycle": self.cycle}
+        if self._agenda is not None:
+            self._agenda.refused(self, slot, why, pushed)
+        self.led.record(self.cycle, "PLAN", slot, "repair_at_refusal", why=why, text=h["text"],
+                        touches=h["touches"], pushed=pushed,
+                        subgoal=(self._subgoal or {}).get("sub") if pushed else None,
+                        reads="the goal was refused at its own test: its missing condition is "
+                              "sought as a subgoal (Three texts, on_refuted; cards v4 (b))"
+                        if pushed else
+                        "the goal was refused at its own test and no open condition was found "
+                        "to pursue first: narrow what is missing")
+        return pushed
+
+    def _contact_candidates(self, chosen: str) -> list[tuple[str, str]]:
+        """REPAIR AT THE REFUSAL: the open goal slots of the objects in contact with (touching or
+        overlapping) the goal's object now, nearest first -- the habitat of the refusal."""
+        boxes = getattr(self.env, "boxes", None)
+        if boxes is None:
+            return []
+        try:
+            bx = boxes(self.env.observe())
+        except Exception:       # noqa: BLE001  a world that can't box its state offers nothing
+            return []
+        mine = self._objs_named(chosen)
+        near = [o for o in sorted(bx) if o not in mine and any(
+            o2 in bx and (relations.adjacent(bx[o2], bx[o]) or relations.overlaps(bx[o2], bx[o]))
+            for o2 in mine)]
+        out = []
+        for s in sorted(self._res):
+            cap.head()
+            if s != chosen and self._objs_named(s) & set(near):
+                out.append((s, f"contact at the refusal: {'/'.join(sorted(self._objs_named(s)))} "
+                               f"touches the goal's object"))
+        return out
+
+    def _kind_lever(self, slot: str, before: dict, acts: tuple, ctx: Any, withheld: Any,
+                    commit: bool) -> Any:
+        """A LEVER BY KIND: an action the delta table saw move the same reading on ANOTHER object,
+        the wanted way; the realised move of that other slot, or None."""
+        if "." not in slot or slot not in before:
+            return None
+        tgt = self._goal_target(slot, before)
+        if tgt is None or tgt == before[slot]:
+            return None
+        sign = 1 if tgt > before[slot] else -1
+        reading = slot.split(".", 1)[1]
+        mine = self._objs_named(slot)
+        moved: dict = {}
+        for a in acts:
+            for (_c, k, _rel), (n, tot) in (self.iface.table.get(a) or {}).get("delta", {}).items():
+                cap.head()
+                if (n and k != slot and k.split(".", 1)[-1] == reading and k in before
+                        and not (self._objs_named(k) & mine) and tot * sign > 0):
+                    moved[k] = moved.get(k, 0) + n
+        for other in sorted(moved, key=lambda k: (-moved[k], k)):
+            want = IFace.Intent(IFace.BECOME, other, "+" if sign > 0 else "-")
+            r = self.iface.realise(want, acts, ctx, before, self.env, withheld=withheld,
+                                   asker="kind_lever")
+            if r is None or getattr(r, "unmapped", False):
+                continue
+            if commit:
+                seen = self.__dict__.setdefault("_kind_levered", set())
+                if (self.cycle, slot) not in seen:
+                    seen.add((self.cycle, slot))
+                    self.led.record(self.cycle, self._running_step or "PLAN", slot,
+                                    "kind_lever_route", other=other, action=r.action,
+                                    direction="+" if sign > 0 else "-", seen=moved[other],
+                                    reads="no action is known to move this reading here; one "
+                                          "moved the same reading on another object the wanted "
+                                          "way: press it and watch (a method crosses by kind)")
+            return r
+        return None
 
     @staticmethod
     def _hyp_trend(h: dict) -> dict:
@@ -11074,12 +11315,44 @@ class Agent:
             self.iface.unrealised = None
             if u is not None:
                 self.iface._none(u["kind"], u["why"], u["asker"])
+            if _CONTACT_ROUTE:
+                r = self._contact_route(slot, before, acts, ctx, self._withheld)
+                return None if r is None else r.action
             return None
         r = self.iface.realise(want, acts, ctx, before, self.env, withheld=self._withheld,
                                asker="hyp_route")
         if mk is not None and r is None:
             self._route_memo[mk] = self.iface.unrealised
+        if r is None and _CONTACT_ROUTE:
+            r = self._contact_route(slot, before, acts, ctx, self._withheld)
         return None if r is None else r.action
+
+    def _contact_route(self, slot: str, before: dict, acts: tuple, ctx: Any, withheld: Any,
+                       commit: bool = True) -> Any:
+        """CONTACT IS A ROUTE: no action is known to move `slot`'s reading, so the first step is to
+        touch its object and watch (cards v4 (c)). The realised touch, or None when the object
+        isn't on the board or the interface can't realise the touch."""
+        objs = sorted(self._objs_named(slot))
+        if len(objs) != 1 or not acts or not any(k.startswith(objs[0] + ".") for k in before):
+            return None
+        if _KIND_LEVER:
+            r = self._kind_lever(slot, before, acts, ctx, withheld, commit)
+            if r is not None:
+                return r
+        r = self.iface.realise(IFace.Intent(IFace.TOUCH, object=objs[0]), acts, ctx, before,
+                               self.env, withheld=withheld, asker="contact_route")
+        if r is None or getattr(r, "unmapped", False):
+            return None
+        if not commit:
+            return r
+        seen = self.__dict__.setdefault("_contact_routed", set())
+        if (self.cycle, slot) not in seen:
+            seen.add((self.cycle, slot))
+            self.led.record(self.cycle, self._running_step or "PLAN", slot, "contact_route",
+                            object=objs[0], action=r.action,
+                            reads="no action is known to move this reading: touch its object and "
+                                  "watch (could it be reached at all: contact counts)")
+        return r
 
     def _hyp_hold(self, key: str, c: Any, before: dict, routable: set | None = None) -> tuple:
         """Link one candidate as its subject's want and read its route; kept only with a route.
@@ -12599,14 +12872,34 @@ class Agent:
         the clearing step's after-state and before-state histories alike."""
         n, k = len(rows), sum(1 for _, hit in rows if hit)
         base = k * math.log2(n)
+        if _GOAL_FLOOR and base <= (floor := term_bits(1, self.gamma.alphabet)):
+            self._inv_conditions(rows[-1][0])   # the templates, as OFF leaves them for later steps
+            self._pair_bounded = 0
+            return None, {"steps": n, "reached": k, "base_bits": round(base, 3),
+                          "floor_bits": round(floor, 3), "conditions": 0,
+                          "refused": {"the base is at or under the shortest condition's cost: "
+                                      "none can pay": 1},
+                          "offered": {"plain": 0}, "cheapest": []}
         atoms = {a.name: a for a in self.gamma.atoms}
         refused: Counter = Counter()
         cands = []
         texts = self._inv_conditions(rows[-1][0])
         if compile_term._SLOT_CONSTANT:
             texts = texts + self._const_conditions(rows)
+        varied = None
+        if _GOAL_VARIES and 0 < k < n:      # the history can tell met from unmet
+            vals: dict = {}
+            for st, _hit in rows:
+                for key, v in st.items():
+                    vals.setdefault(key, set()).add(v if isinstance(v, (int, str)) else repr(v))
+            varied = {key for key, vs in vals.items() if len(vs) > 1}
         for text in texts:
             cap.head()
+            if varied is not None:
+                refs = _SLOT_REF.findall(text)
+                if refs and not any(r in varied for r in refs):
+                    refused["constant over the history: cannot tell met from unmet"] += 1
+                    continue
             c = self._compile_cache.get(text)
             if c is None:
                 c = self._compile_cache[text] = compile_term.compile_candidate(
@@ -14641,7 +14934,8 @@ class Agent:
                                           else "not settled")] += 1
                         continue
                     if not chained(got):
-                        if _BOND_TERMS and got in _GUARD_BONDS:
+                        if _BOND_TERMS and (got in _GUARD_BONDS
+                                            or (got == "⇒" and _IMPLIES_BOND)):
                             why["lookup: " + self._route_junction(got, x, y)] += 1
                             continue
                         why[f"lookup: {got}: bond has no atom (r896)" if not impl.get(got) else
@@ -15941,6 +16235,41 @@ class Agent:
             if self._tasks:
                 top = self._tasks[-1]
                 self._subgoal = {"parent": top["parent"], "sub": top["sub"]}
+            elif _HTN_RETURN and t["parent"] in self._htn_return:
+                self._htn_resume(t["parent"], t["sub"], how)
+
+    def _htn_resume(self, parent: str, sub: str, how: str) -> bool:
+        """HTN RETURN: the refused parent's repair subtask left an empty stack. Arrived: the parent
+        is held again (its hold re-adopted with fresh counters, a goal_hypotheses row with source
+        "htn_return" -- the repaired goal, G2). Gone or out of routes: nothing returns; the parent
+        stays tried. True when the parent is held again."""
+        ret = self._htn_return.pop(parent)
+        # held again whether or not its want reads met: a refusal at contact was often "arrived, no
+        # clear", and the board has changed since, so the parent's own test decides
+        back = bool(how == "arrived" and _GOAL_HYP and self._hyp is None and parent in self._res)
+        if back:
+            h0 = ret["h"]
+            h = dict(h0)
+            h.update(steps=0, touches=0, losses=0, held_unreadable=0, reads={}, seg={},
+                     acted=Counter(), born=self.cycle, obg=None, source="htn_return",
+                     htn_edge=ret["edge"], returned_from=sub)
+            self._hyp_tried.pop(h0["tkey"], None)
+            self._hyp = h
+            self._htn_returned.setdefault(parent, set()).add(sub)
+        self.led.record(self.cycle, "PLAN", parent, "htn_return", sub=sub, how=how,
+                        resumed=back, edge=ret["edge"], refused_at=ret["cycle"],
+                        refused_why=ret["why"],
+                        reads="the subtask arrived: the refused parent is held again on the "
+                              "changed board" if back else
+                              "the subtask ended without arriving: the parent stays refused")
+        if back:
+            self.led.record(self.cycle, "PLAN", parent, "goal_hypotheses", pick=h["text"],
+                            key=h["key"], slots=h["slots"], source="htn_return",
+                            returned_from=sub, budget=h["budget"],
+                            **({"family": h.get("family"),
+                                "board": getattr(self.iface, "board_n", None)}
+                               if _SHAPE_TRACE else {}))
+        return back
 
     def _htn_edge(self, parent: str, sub: str) -> str:
         """HTN: a method's edge by KIND (Fig 4 :23), never by object names."""
@@ -15985,6 +16314,38 @@ class Agent:
                         reads="tier 1: this item opened; what else changed just before it, kept "
                               "whole. Tier 2 counts it by kind (Isaiah's ladder, bottom-up)")
 
+    @staticmethod
+    def _tier_contrast(rule: dict, j: Any) -> float:
+        """TIER CONTRAST: P(K opens | J changed) - P(K opens | J did not), over the steps on which
+        an item of K was blocked. 0.0 when J changed on every such step or on none (the second
+        term, or the first, is undefined: the reading could not have come out the other way)."""
+        steps, js = rule.get("steps", 0), rule.get("j_steps", {}).get(j, 0)
+        if not 0 < js < steps:
+            return 0.0
+        n = rule["after"].get(j, 0)
+        return min(1.0, n / js) - min(1.0, max(0, rule["opened"] - n) / (steps - js))
+
+    def _tier_count(self, prev: dict, changed: list) -> None:
+        """TIER CONTRAST: one can reading's step, counted per kind K that had a BLOCKED item in the
+        last reading (K could have opened now): the step, and each kind J that changed on it."""
+        ks, js = set(), set()
+        for s, (side, _why) in prev.items():
+            cap.head()
+            if side == can_ledger.BLOCKED:
+                with suppress(Exception):    # an owner with no kind is not filed
+                    ks.add(self._can_kind_key(s))
+        for s in changed:
+            if s in self.slots:
+                with suppress(Exception):
+                    js.add(self._can_kind_key(s))
+        for k in ks:
+            rule = self._tier2.setdefault(k, {"opened": 0, "after": {}})
+            rule["steps"] = rule.get("steps", 0) + 1
+            jst = rule.setdefault("j_steps", {})
+            for j in js:
+                if j != k:
+                    jst[j] = jst.get(j, 0) + 1
+
     def _tier_candidates(self, chosen: str) -> list[tuple[str, str]]:
         """HTN TIERS: the open slots of each kind J that tier 2 says this goal's kind K opens after
         (seen at least MIN_REPEAT times), best validity first; [(slot, the rule read)]."""
@@ -15999,7 +16360,11 @@ class Agent:
             return []
         mine, out = self._objs_named(chosen), []
         n_open = rule["opened"]
-        for j, n in sorted(rule["after"].items(), key=lambda kv: -(kv[1] + 1) / (n_open + 2)):
+        order = sorted(rule["after"].items(), key=lambda kv: -(kv[1] + 1) / (n_open + 2))
+        if _TIER_CONTRAST:
+            order = [(j, n) for j, n in order if self._tier_contrast(rule, j) > 0]
+            order.sort(key=lambda kv: -self._tier_contrast(rule, kv[0]))
+        for j, n in order:
             if n < MIN_REPEAT:
                 continue
             for s in self._res:
@@ -16046,6 +16411,9 @@ class Agent:
         if _HTN_TIERS:          # HTN TIERS: what tier 2 says this kind opens after, after the law's
             law = {b for b, _ln in src}
             src = src + [(b, ln) for b, ln in self._tier_candidates(chosen) if b not in law]
+        if when == "refused":   # REPAIR AT THE REFUSAL: then what the refused goal's object touches
+            have = {b for b, _ln in src}
+            src = src + [(b, ln) for b, ln in self._contact_candidates(chosen) if b not in have]
         seen: set = set()
         en = []
         for b, ln in src:
@@ -16121,6 +16489,7 @@ class Agent:
                                 record=list(st), why=why,
                                 reads="the level ended before the task arrived: unpaid")
         self._htn_pending, self._tasks, self._htn_tried = {}, [], {}
+        self._htn_return, self._htn_returned = {}, {}     # HTN RETURN: slot names do not cross
 
     def _press_kind(self, action: str, situ: tuple, slot: str | None = None) -> tuple:
         """(5c) A12: a press as a KIND -- the held goal's slot kind (Fig 11 :49: valence is relative
@@ -17268,6 +17637,15 @@ class Agent:
             self.led.record(self.cycle, "PERCEIVE", "@interface", "conditional",
                             of=(action,), reads=("this action has now been seen to do more "
                                                  "than one thing -- it is conditional"))
+        if IFace._WORDS_CARRY and not self._seam_now and self.iface.last_words is not None:
+            # 0b WORDS_CARRY: the first press of an action on a later board checks what it did on
+            # an earlier one (the action's name stays below the seam: the row says its kind-shape)
+            self.led.record(self.cycle, "PERCEIVE", "@interface", "words_carry",
+                            board=self.iface.board_n, **self.iface.last_words,
+                            reads="an action's effect carried from an earlier board of this game, "
+                                  "checked by its first press here: " + self.iface.last_words[
+                                      "verdict"])
+            self.iface.last_words = None
         if IFace._EFFECT_WRAPPED and self.iface.effect_ties:
             self.led.record(self.cycle, "PERCEIVE", "@interface", "effect_tie",
                             of=(action,), slots=list(self.iface.effect_ties),
@@ -17383,6 +17761,8 @@ class Agent:
         if _derived and not self._seam_now:
             self._relational_surprise(_derived, _dpred, res, after, before)
             self._blocked_reading(_derived, _ps, before, after, action)
+        if _PASSABILITY and not self._seam_now:
+            self._entered_reading(before, after, action)
         if _7H_REHEARSE and not self._seam_now:
             self._rehearse_read(res, before, after, action, coord, _rehearsed)
 
@@ -17883,6 +18263,90 @@ class Agent:
                             action=action, predicted={s: pred.get(s) for s in sorted(ms)},
                             actual={s: after.get(s) for s in sorted(ms)},
                             reads="predicted into a partner it touched, and did not move")
+            if _PASSABILITY:
+                for x in sorted(ps):
+                    self._pass_note(before.get(f"{x}.colour"), 1, subj, x, action)
+
+    def _pass_note(self, colour: Any, which: int, subj: str, x: str, action: str) -> None:
+        """1a: one contact with an object of `colour` (which: 0 entered, 1 blocked); a row when the
+        colour's verdict changes, so the record says when a colour became passable or blocking."""
+        if colour is None:
+            return
+        was = self._pass_verdict(colour)
+        self._pass_contact.setdefault(colour, [0, 0])[which] += 1
+        now = self._pass_verdict(colour)
+        if now != was:
+            e, b = self._pass_contact[colour]
+            self.led.record(self.cycle, "PERCEIVE", subj, "passability", colour=colour,
+                            verdict=now, was=was, entered=e, blocked=b, partner=x, action=action,
+                            reads="what contact with this colour has shown: earned, never assumed")
+
+    def _pass_verdict(self, colour: Any) -> str:
+        """1a: passable (entered, never blocked), blocking (blocked, never entered), mixed (both:
+        the colour is not what decides), unknown (no contact yet) -- a value, not a failure."""
+        e, b = self._pass_contact.get(colour, (0, 0))
+        return ("unknown" if not (e or b) else "passable" if not b else "blocking" if not e
+                else "mixed")
+
+    def _entered_reading(self, before: dict, after: dict, action: str) -> None:
+        """1a: a body whose move this press is credited with (net of what changed anyway) and whose
+        box now overlaps an object's box it did not overlap before: entered that object's colour."""
+        boxes = getattr(self.env, "boxes", None)
+        if boxes is None:
+            return
+        credited = {s.rsplit(".", 1)[0] for s in getattr(self.iface, "last_changed", ())
+                    if s.endswith((".row", ".col"))}
+        if not credited:
+            return
+        bb, ab = boxes(before), boxes(after)
+        for subj in sorted(credited):
+            cap.head()
+            if subj not in ab or subj not in bb:
+                continue
+            for x in sorted(ab):
+                if x == subj or x in credited or x not in bb:
+                    continue
+                if relations.overlaps(ab[subj], ab[x]) and not relations.overlaps(bb[subj], bb[x]):
+                    self._pass_note(after.get(f"{x}.colour"), 0, subj, x, action)
+
+    def _pass_filter(self, subj_slot: str, offer: tuple, before: dict) -> tuple:
+        """1a, the plug-in: an action whose predicted step (the delta table's mean signed change on
+        the subject's row and col) puts the subject's box onto an object of a blocking colour is not
+        offered. Unknown and no prediction stay offered; if every action would be withheld, all stay
+        (an order is not a verdict, Fig 9 :60) and the row says so."""
+        boxes = getattr(self.env, "boxes", None)
+        o = subj_slot.rsplit(".", 1)[0]
+        if boxes is None or not self._pass_contact:
+            return offer
+        bb = boxes(before)
+        if o not in bb:
+            return offer
+        out, refused = [], []
+        for a in offer:
+            cap.head()
+            delta = (self.iface.table.get(a) or {}).get("delta", {})
+            step = []
+            for ax in ("row", "col"):
+                n = sum(v[0] for k, v in delta.items() if k[1] == f"{o}.{ax}")
+                step.append(sum(v[1] for k, v in delta.items() if k[1] == f"{o}.{ax}") / n
+                            if n else 0.0)
+            if not any(step):
+                out.append(a)
+                continue
+            box = dict(bb[o])
+            box["row"], box["col"] = box["row"] + round(step[0]), box["col"] + round(step[1])
+            hit = sorted({before.get(f"{x}.colour") for x in bb if x != o
+                          and relations.overlaps(box, bb[x])
+                          and not relations.overlaps(bb[o], bb[x])} - {None}, key=repr)
+            bad = [c for c in hit if self._pass_verdict(c) == "blocking"]
+            (refused if bad else out).append(a if not bad else (a, bad))
+        if refused:
+            self.led.record(self.cycle, "PLAN", subj_slot, "pass_refused",
+                            refused=[[a, [repr(c) for c in cs]] for a, cs in refused],
+                            kept=list(out), all_refused=not out,
+                            reads=("these presses would step onto a colour contact showed blocking"
+                                   + ("; all would, so none is withheld" if not out else "")))
+        return tuple(out) if out else offer
 
     @staticmethod
     def _moved(res: dict, before: dict, after: dict) -> set:
@@ -22853,6 +23317,9 @@ class Agent:
                     why.update(tally, slots=len(self._res), subgoal=_sub)
                 return _sub
             self._subgoal_end("arrived" if _sub in self._res else "gone")
+            if _HTN_RETURN and _GOAL_HYP and self._hyp is not None:
+                hyp = self._hyp["slots"]          # HTN RETURN: the parent is held again
+                break
             if not _HTN:
                 break
         for slot, series in sorted(self._res.items()):
@@ -25816,6 +26283,8 @@ class Agent:
         _offer, _wh = tuple(self.actions), self._withheld
         if _ROUTE_REFUSE:          # R-B: this intent's refused routes here are not offered
             _offer, _wh = self._route_offer(self._route_said(_want), _rctx, _offer, _wh)
+        if _PASSABILITY and _offer:  # 1a: no route onto a colour contact showed blocking
+            _offer = self._pass_filter(chosen, _offer, before)
         _r = None
         if _PRED_FIRST and _offer:
             # (4e) I-C: what the settled model predicts THIS press does HERE is asked first; the
@@ -25849,6 +26318,8 @@ class Agent:
             _r = (self.iface.realise(_want, _offer, _ctx, before, self.env, withheld=_wh,
                                      asker="goal")
                   if _offer or not _ROUTE_REFUSE else None)
+        if _r is None and _CONTACT_ROUTE and _offer:     # CONTACT IS A ROUTE (r1963)
+            _r = self._contact_route(chosen, before, tuple(_offer), _ctx, _wh, commit=commit)
         if commit and _r is not None:
             self._press_situ = _rctx      # (5c): the situation this goal press is counted under
         if _corr is not None and commit:
@@ -26492,23 +26963,145 @@ class Agent:
         """BOND TERMS: the routed junction `key` read on `state`; a missing or unresolved reading,
         or one that does not compare, is False -- never an exception."""
         neg = bool(_NEGATE_GUARD and key and key.startswith("¬"))
-        c = self._junction_conds.get(key[1:] if neg else key) if key else None
-        if c is None:
-            return False
-        bond, a, b = c
-        u, v = state.get(a), state.get(b)
-        if u is None or v is None or u is NOT_RESOLVED or v is NOT_RESOLVED:
-            return False
-        try:
-            if bond == "≡":
-                h = bool(u == v)
-            elif bond == "⋛":
-                h = bool(u > v)
-            else:
-                h = (bool(u) or bool(v)) if bond == "∥" else (bool(u) and bool(v))
-        except TypeError:
+        h = self._jc_value(key[1:] if neg else key, state) if key else None
+        if h is None:
             return False
         return not h if neg else h
+
+    def _jc_value(self, key: str, state: dict, depth: int = 1) -> bool | None:
+        """The routed junction `key` on `state`, three-valued: None where a reading is missing,
+        unresolved or does not compare (an unresolved reading is not a negation). O2
+        (TETHER_GUARD_NEST): a combined key's operands are KEYS, each evaluated by this same rule;
+        past GUARD_NEST_DEPTH nothing is read (None)."""
+        c = self._junction_conds.get(key)
+        if c is None:
+            return None
+        bond, a, b = c
+        if _GUARD_NEST and self._jk_nested(key):
+            if self._jk_depth(key) + depth - 1 > GUARD_NEST_DEPTH:
+                return None     # past the declared budget nothing is read
+            return _jc_bond(bond, self._jc_operand(a, state, depth + 1),
+                            self._jc_operand(b, state, depth + 1))
+        u, v = state.get(a), state.get(b)
+        if u is None or v is None or u is NOT_RESOLVED or v is NOT_RESOLVED:
+            return None
+        return _jc_bond(bond, u, v)
+
+    def _jc_operand(self, op: str, state: dict, depth: int) -> bool | None:
+        """O2: one operand of a combined key -- a key (¬ allowed, under TETHER_NEGATE_GUARD)."""
+        neg = bool(_NEGATE_GUARD and op.startswith("¬"))
+        h = self._jc_value(op[1:] if neg else op, state, depth)
+        return None if h is None else (not h if neg else h)
+
+    @staticmethod
+    def _jk_nested(key: str | None) -> bool:
+        """O2: is `key` a junction of two CONDITIONS -- the form f"{bond}:({k1})|({k2})"?"""
+        return bool(key) and any(key.startswith(f"{b}:(") and key.endswith(")")
+                                 for b in _NEST_BONDS)
+
+    def _jk_depth(self, key: str) -> int:
+        """O2: a junction of two readings is depth 1; a junction of two conditions is one more
+        than its deeper operand. ¬ adds no depth."""
+        k = key[1:] if key.startswith("¬") else key
+        c = self._junction_conds.get(k)
+        if c is None or not self._jk_nested(k):
+            return 1
+        return 1 + max(self._jk_depth(c[1]), self._jk_depth(c[2]))
+
+    def _jk_combine(self, bond: str, k1: str, k2: str, store: bool = True) -> str | None:
+        """O2: the combined key f"{bond}:({k1})|({k2})", stored for _jc_holds, or None with the
+        reason counted: "nesting depth" past GUARD_NEST_DEPTH (the declared budget), "not a
+        condition bond" for a bond outside _NEST_BONDS, "unknown operand" for an operand that is
+        not a routed key. Nothing is stored with the arm OFF."""
+        if not (_BOND_TERMS and _GUARD_NEST):
+            return None
+        if bond not in _NEST_BONDS:
+            self._guard_nest_why["not a condition bond"] += 1
+            return None
+        if any((k[1:] if k.startswith("¬") else k) not in self._junction_conds for k in (k1, k2)):
+            self._guard_nest_why["unknown operand"] += 1
+            return None
+        if 1 + max(self._jk_depth(k1), self._jk_depth(k2)) > GUARD_NEST_DEPTH:
+            self._guard_nest_why["nesting depth"] += 1
+            return None
+        key = f"{bond}:({k1})|({k2})"
+        if store:
+            self._junction_conds[key] = (bond, k1, k2)
+        return key
+
+    def _jk_bits(self, key: str, refs: int) -> float:
+        """O2, WHAT NAMING A GUARD KEY COSTS, as a description: a junction of two readings is one
+        choice among the `refs` keys on offer -- `log2(refs+1)`, the referent term `_guard_bits`
+        already charges; a combined key names BOTH its parts and one bond, so its description is
+        the sum of its parts' plus the bond's bits, read off `term_bits`' own bond term for the
+        bonds that join conditions (no new constant). Never less than the sum of the parts."""
+        k = key[1:] if key.startswith("¬") else key
+        c = self._junction_conds.get(k)
+        if c is None or not self._jk_nested(k):
+            return math.log2(refs + 1)
+        nb = len(_NEST_BONDS)
+        bond_bits = term_bits(2, 0, nb) - term_bits(1, 0, nb)     # one more bond: log2(|bonds|)
+        return self._jk_bits(c[1], refs) + self._jk_bits(c[2], refs) + bond_bits
+
+    def _jk_nest_bits(self, g: Any, gref: str | None, refs: int) -> float:
+        """O2: the guard price's extra over `_guard_bits` for a combined key -- its description
+        less the one referent choice `_guard_bits` already charged. 0 for every other guard, so
+        no existing price moves."""
+        if g != JUNCTION_GUARD or not (_GUARD_NEST and self._jk_nested(gref)):
+            return 0.0
+        return self._jk_bits(gref, refs) - math.log2(refs + 1)
+
+    def _jc_score(self, hist: list, robs: list, vals_h: list, vals_r: list) -> int:
+        """O2: how many of the slot's history states a condition sorts as R sorts them -- true on
+        a state of R, false (or unresolved) outside it. `vals_*` are its values on hist / robs."""
+        h_true = sum(1 for v in vals_h if v is True)
+        r_true = sum(1 for v in vals_r if v is True)
+        return r_true + (len(hist) - h_true) - (len(robs) - r_true)
+
+    def _jk_nest_offer(self, robs: list, slot: str) -> list:
+        """O2 (TETHER_GUARD_NEST): the combined keys on this slot's guard offer. Every pair of the
+        slot's routed keys (and the combined keys already offered on it, so the budget is reached
+        and refused, counted) joined by + and ∥ (symmetric, one order) and ⇒ (both orders); one is
+        offered only where it holds on all of R, is false somewhere outside R, and its count
+        (_jc_score) is STRICTLY greater than each component's."""
+        if not (_BOND_TERMS and _GUARD_NEST) or not robs:
+            return []
+        pool = (sorted(self._junction_of.get(slot, ()))
+                + sorted(self._junction_nest.get(slot, ())))
+        if len(pool) < 2:
+            return []
+        hist = self.history(slot)
+        vh = {k: [self._jc_value(k, s) for s, *_r in hist] for k in pool}
+        vr = {k: [self._jc_value(k, s) for s, *_r in robs] for k in pool}
+        sc = {k: self._jc_score(hist, robs, vh[k], vr[k]) for k in pool}
+        out = []
+        for i, k1 in enumerate(pool):
+            for k2 in pool[i + 1:]:
+                for bond, (x, y) in (("+", (k1, k2)), ("∥", (k1, k2)), ("⇒", (k1, k2)),
+                                     ("⇒", (k2, k1))):
+                    key = self._jk_combine(bond, x, y, store=False)
+                    if key is None or key in out:
+                        continue
+                    cr = [_jc_bond(bond, u, v) for u, v in zip(vr[x], vr[y], strict=True)]
+                    if not all(v is True for v in cr):
+                        self._guard_nest_why["not true on all of R"] += 1
+                        continue
+                    ch = [_jc_bond(bond, u, v) for u, v in zip(vh[x], vh[y], strict=True)]
+                    s = self._jc_score(hist, robs, ch, cr)
+                    if s <= len(robs) or s <= max(sc[x], sc[y]):
+                        self._guard_nest_why["does not separate R strictly better"] += 1
+                        continue
+                    self._jk_combine(bond, x, y)
+                    new = key not in self._junction_nest.get(slot, ())
+                    self._junction_nest.setdefault(slot, set()).add(key)
+                    self._guard_nest_why["offered"] += 1
+                    out.append(key)
+                    if new:
+                        self.led.record(self.cycle, "ROUTE", slot, "nest", key=key,
+                                        parts=[x, y], states=s, part_states=[sc[x], sc[y]],
+                                        reads="nest: a junction of two conditions, sorts R "
+                                              "strictly better than each part (O2)")
+        return out
 
     def _jc_separates(self, robs: list, slot: str, key: str) -> bool:
         """_separates for a junction key (r1060 1): constant on R, the other value outside R."""
@@ -26525,7 +27118,8 @@ class Agent:
             return []
         keys = sorted(self._junction_of.get(slot, ()))
         if not _NEGATE_GUARD:
-            return [k for k in keys if self._jc_separates(robs, slot, k)]
+            return ([k for k in keys if self._jc_separates(robs, slot, k)]
+                    + self._jk_nest_offer(robs, slot))    # O2: [] with TETHER_GUARD_NEST OFF
         out = []
         for k in keys:
             n = "¬" + k
@@ -26539,18 +27133,22 @@ class Agent:
                                     reads="polarity: false on R -> offered as ¬k (r1160)")
             elif self._jc_separates(robs, slot, k):
                 out.append(k)
-        return out
+        return out + self._jk_nest_offer(robs, slot)     # O2: [] with TETHER_GUARD_NEST OFF
 
     def _route_junction(self, bond: str, a: str, b: str) -> str:
         """BOND TERMS (r1059): a settled ≡ / ⋛ / + junction between readings a and b, a CONDITION,
         routed to b's guard offer: ≡ one canonical key (symmetric, Operators Table :26, :59-60), ⋛
-        both orders (:50), + only between two truth-typed readings (r1057). The reason, counted."""
-        if bond in ("+", "∥") and not all(str(self.slot_types.get(s)) in ("PRED", "BOOL")
-                                          for s in (a, b)):
-            atom = "both" if bond == "+" else "either"
+        both orders (:50), + only between two truth-typed readings (r1057). O1
+        (TETHER_IMPLIES_BOND): ⇒ like ∥ between two truth-typed readings, but ORDERED (:38): the
+        one key a⇒b, never sorted. The reason, counted."""
+        if bond == "⇒" and not (_BOND_TERMS and _IMPLIES_BOND):
+            return "⇒: bond has no atom (r896)"
+        if bond in ("+", "∥", "⇒") and not all(str(self.slot_types.get(s)) in ("PRED", "BOOL")
+                                               for s in (a, b)):
+            atom = {"+": "both", "∥": "either"}.get(bond, "implies")
             return f"bond {bond}: {atom}: the operands are not conditions (typing)"
         p, q = sorted((a, b))
-        pairs = [(a, b), (b, a)] if bond == "⋛" else [(p, q)]
+        pairs = [(a, b), (b, a)] if bond == "⋛" else [(a, b)] if bond == "⇒" else [(p, q)]
         for u, v in pairs:
             k = f"{bond}:{u}|{v}"
             self._junction_conds[k] = (bond, u, v)
@@ -26675,6 +27273,8 @@ class Agent:
                              and pstate.get(k) != before[k])
             cue = {"press": str(self.trace[-1][1]), "changed": changed[:12],
                    "changed_n": len(changed)}
+            if _TIER_CONTRAST and _HTN_TIERS and _HTN:
+                self._tier_count(prev, changed)
             for row in cross:
                 cap.head()
                 try:
@@ -28124,10 +28724,15 @@ class Agent:
                         # PRICED IN UNITS, so a settled sub-composition costs what the
                         # ground already paid for it. `routine.length`'s rule, applied to
                         # the space it was always stated over.
-                        cost = _price.get(g)
+                        # O2: a combined guard key adds its parts' description and one bond
+                        # (_jk_nest_bits; 0 for every other guard, so those keys are unchanged)
+                        _nb = self._jk_nest_bits(g, gref, _nr(g, len(_refs)))
+                        _pk = (g, gref) if _nb else g
+                        cost = _price.get(_pk)
                         if cost is None:
-                            cost = _price[g] = (self._bits((term, _units))
-                                                + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
+                            cost = _price[_pk] = (self._bits((term, _units))
+                                                  + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs)))
+                                                  + _nb)
                         # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
                         # every candidate is exhaustive search; R already names the
                         # observations that need fixing, and a term that cannot fix enough of
@@ -28179,17 +28784,17 @@ class Agent:
                                 # ONE TERM TWO PRICES depending on which path reached it.
                                 # L1: keyed by the branch too -- under the code a branch's
                                 # weight is its own; under term_bits every branch costs the same
-                                _bk = (g, True, bt.operand_term.atoms)
+                                _bk = (_pk, True, bt.operand_term.atoms)
                                 bcost = _price.get(_bk)
                                 if bcost is None:
                                     bcost = _price[_bk] = (
                                         self._bits((bt, _units))
-                                        + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
+                                        + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))) + _nb)
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
                                 if _TREE_DEEPEN:
                                     _tree_roots.append((bt, _guard_bits(
-                                        g, len(_gs) - 1, _nr(g, len(_refs))), kind))
+                                        g, len(_gs) - 1, _nr(g, len(_refs))) + _nb, kind))
                                 bleft = self._left(bt, slot, hist, base, bcost)
                                 _sh["pays_called"] += 1
                                 if not self._pays_ev(slot, bt, bcost, bleft, base):
@@ -28259,12 +28864,12 @@ class Agent:
                             if self.gamma.is_atom(bt) or (
                                     _maybe_lib and bt.name in self.gamma.library):
                                 continue
-                            _bk = (g, True, bt.operand_term.atoms)    # L1: keyed by the branch
+                            _bk = (_pk, True, bt.operand_term.atoms)  # L1: keyed by the branch
                             bcost = _price.get(_bk)
                             if bcost is None:
                                 bcost = _price[_bk] = (
                                     self._bits((bt, _units))
-                                    + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
+                                    + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))) + _nb)
                             # **THE SAME BOUND HERE, AND IT CHANGES NO OUTCOME.** `_cannot_pay`
                             # PROVES `cost + left >= base`, which is exactly `not pays` -- so
                             # anything it refuses, `pays` refuses too. A short-circuit, not a
@@ -28274,7 +28879,7 @@ class Agent:
                                 continue
                             if _TREE_DEEPEN:
                                 _tree_roots.append((bt, _guard_bits(
-                                    g, len(_gs) - 1, _nr(g, len(_refs))), kind))
+                                    g, len(_gs) - 1, _nr(g, len(_refs))) + _nb, kind))
                             bleft = self._left(bt, slot, hist, base, bcost)
                             _sh["pays_called"] += 1
                             if not self._pays_ev(slot, bt, bcost, bleft, base):
