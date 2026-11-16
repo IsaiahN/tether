@@ -96,7 +96,9 @@ def check_l3() -> None:
     # the builders, not the agent: build_lexicon writes it; rdl_parse (RDL Piece 1, spec
     # docs/03-DESIGN/RDL_BUILD_SPEC_2026-11-16.md) parses it into library/rdl_preload.json,
     # imports no agent module, and the agent reads only that output (Piece 3)
-    builders = ("build_lexicon.py", "rdl_parse.py")
+    # build_word_map (2026-11-16) reads it for the 1000 classes' affordance priors into
+    # library/word_map.json, itself readers: [] (tests/test_word_map.py W0)
+    builders = ("build_lexicon.py", "rdl_parse.py", "build_word_map.py")
     files = [p for p in files if os.path.basename(p) not in builders]
     named = ("tether.py", "gamma.py")
     assert all(os.path.join(ROOT, n) in files for n in named), "agent modules not found"
