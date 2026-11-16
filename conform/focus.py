@@ -59,8 +59,8 @@ def streak() -> int:
     the streak starts clean."""
     out = subprocess.run(
         ["git", "log", "-n", "80", "--format=%B%x1e"],
-        cwd=ROOT, capture_output=True, text=True,
-    ).stdout
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace",
+    ).stdout or ""
     n = 0
     for entry in out.split("\x1e"):
         if not entry.strip():
@@ -109,8 +109,8 @@ def share() -> tuple[int, int]:
     """
     out = subprocess.run(
         ["git", "log", "-n", "80", "--format=%B%x1e"],
-        cwd=ROOT, capture_output=True, text=True,
-    ).stdout
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace",
+    ).stdout or ""
     off = tot = 0
     for entry in out.split(""):
         if not entry.strip():

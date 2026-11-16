@@ -1,10 +1,39 @@
-# Changelog
+﻿# Changelog
 
 Tether is a recursively self-improving agent that runs on a CPU. No neural network, no training run. It composes ideas from NSM primes, plans with hierarchical task networks, and writes, prices and keeps its own programs. Everything it learns stays readable.
 
 Each release below is an operating-system update: it changes what grows on the kernel (ideas, search, reflexes, what the agent knows about kinds of objects), never the kernel itself, which stays fixed on the [`core`](https://github.com/IsaiahN/tether/tree/core) branch. For what that means and why, see [What recursive self-improvement means here](README.md#what-recursive-self-improvement-means-here).
 
 Releases are listed newest first.
+
+## 2026-11-16: The agent repairs a refused goal and returns to it
+
+### New
+- Walls become readable from contact. Each colour the agent's body bumps into or passes through is recorded as passable, blocking or mixed, and routes no longer plan through cells known to block (TETHER_PASSABILITY, on by default).
+- Object names hold. An unchanged object keeps its name, a shared shape alone is no longer an identity, and an object back where a name was first seen gets that name back (TETHER_NAMES_HOLD, on by default).
+- The agent runs the Tether cards itself. Each planning step it describes what is unexplained, picks a card by the shape of that residual, asks the card's first unmet question and writes a decision row (TETHER_AGENDA, on by default).
+- A symbol table ties each symbol of the formula to the reading that evaluates it, or marks it unbound with the reason. It never invents a value.
+- Cards v4: state versus structure, a refused goal's missing condition becomes a subgoal, the reach check counts contact and budget, and a new card asks whether a reading could have come out the other way. Tier 2 rules are scored by contrast, not by count (TETHER_TIER_CONTRAST, on by default).
+- A goal refused at its own test is repaired there: its missing condition is pursued as a subgoal (TETHER_REPAIR_AT_REFUSAL, on by default).
+- When that subgoal is reached, the refused goal is taken up again on the changed board. If it is refused again, that subgoal is marked as not its missing condition and a different one is tried (TETHER_HTN_RETURN, on by default).
+- When no known action moves a goal's reading, the first step is to touch the goal's object and watch (TETHER_CONTACT_ROUTE, on by default). Before touching, the agent presses an action that moved the same kind of reading on another object the wanted way (TETHER_KIND_LEVER, on by default).
+- What each action did carries to the next board of the same game as an expectation. The first press on the new board checks it; only actions never pressed in this game, or contradicted on this board, are held for trying first (TETHER_WORDS_CARRY, on by default).
+- The production bond ⇒ can be used in an idea's guard: A ⇒ B holds unless A holds and B does not, and it is ordered (TETHER_IMPLIES_BOND, on by default).
+- A guard can join two conditions, not only two readings, up to a declared depth of two. A joined guard is offered only where it sorts the history better than each part, and it costs its parts plus one bond (TETHER_GUARD_NEST, on by default).
+- A lexicon joins the 1000 ImageNet classes to their WordNet 3.0 meanings (words, definition, broader terms), from the label list alone, with its sources and licences in its header. Nothing reads it yet.
+
+### Fixed
+- One step on lp85 spent 53 minutes weighing 43,102 tied goal conditions. Conditions whose readings never varied are now skipped before pricing (TETHER_GOAL_VARIES), and when no condition can pay at all the agent says so before pricing any (TETHER_GOAL_FLOOR). Both on by default.
+- A refused goal's subtask method was credited as paid at the goal's earlier arrival. It is now credited when the goal taken up again ends, and only if it won.
+- The commit check that counts off-agent commits crashed on Windows when reading commit messages with non-ASCII characters.
+
+### Known issues
+- On the T0 gate runs (six games the seats had not studied, 10 minutes each) no level has yet been cleared through the chain of refusal, subgoal and return. In the latest run the lever by kind replaced touching, so goals rarely reached their own test; it stays on until the full build is tested together. lp85 clears its first level in each run, without the chain.
+- Carrying what the buttons do across boards only acts once a second board is reached, which few runs do today.
+- Nine of the formula's symbols are still unbound; each has its reason in the table.
+
+### Repository
+- 306 older tests retired; 108 kept (everything since 2026-11-10, everything the checks or the agent name, and the gate checks). Git history keeps them all.
 
 ## 2026-11-13: Goals wait until the buttons are known
 
