@@ -53,6 +53,16 @@ grouping key during play; the name is the identity key across play.** At the bou
 the names stay, and that is not housekeeping — **the losing is the mechanism.** What survives the loss
 is what transfers.
 
+**And each object's form is named, by declared convention (2026-11-16, `TETHER_SHAPE_NAMES`).** Besides
+its exact cell pattern, every object reads `shape_name`: the first of an ordered list of declared
+geometric predicates its own cells satisfy — `dot`, `line`, `square`, `rectangle`, `ring`, `plus`, `L`,
+`T`, `diamond`, `disc`, else `irregular` (definitions at `arc_percept._SHAPE_TESTS`). It is read from the
+cells alone, never colour or position, and is the same whichever way the object is turned or mirrored.
+It is a label the agent can compare, never order, and it changes only when the cells do. **The names are
+ours, declared and movable (Fig 10); what a disc DOES on this board is still the agent's to find out.**
+`arc_percept.SHAPE_ATOMS` records which library atoms a name attaches to (`disc` → `TOPOLOGICAL|Circle`,
+`TOPOLOGICAL|Sphere`), for later readers only.
+
 ## Grouping, and who moves with whom
 
 **Colour makes the first cut; structure makes the rest.** Everything sharing a placement is one class,

@@ -36,7 +36,14 @@ from dataclasses import replace
 from typing import Any
 
 import armflag
-from arc_percept import _CELL_CHANGE, _KIND_SCALE, _POSE_READ, holes_of, perimeter_of
+from arc_percept import (
+    _CELL_CHANGE,
+    _KIND_SCALE,
+    _POSE_READ,
+    _SHAPE_NAMES,
+    holes_of,
+    perimeter_of,
+)
 from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx, declare_turns
 from sensors import (
     BOOL,
@@ -83,7 +90,11 @@ OBJ = "OBJ"          # `OBJECT` is imported from `sensors`; this one is the obje
 # hands a scalar, and `touching(0, ctx)` is `NOT_RESOLVED` -- the SAME flattening that makes
 # the eight extract atoms abstain. **The relational vocabulary and the extract space are
 # blocked by one cause, not two.**
-COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE, BOOL)   # equality is meaningful on all
+# NAME -- a declared shape name (`shape_name`, arm TETHER_SHAPE_NAMES): a label, so equality and
+# never order. Its own type and not SHAPE: a SHAPE int decodes through the shape table
+# (`_as_shape`), and a name index decoded there would read some unrelated cell set.
+NAME = "NAME"
+COMPARABLE = (COLOUR, POSITION, EXTENT, DELTA, SHAPE, BOOL, NAME)   # equality meaningful on all
 ORDERED = (POSITION, EXTENT, DELTA)       # order is meaningful only on these
 PRED, QUANT, VAL = "PRED", "QUANT", "val"
 
@@ -199,6 +210,10 @@ if _KIND_SCALE:
 # the kind's first-seen member, SHAPE like `shape`; `turned` a matched object's pose changing, BOOL.
 if _POSE_READ:
     ATTRIBUTE_TYPE.update({"kind": SHAPE, "turned": BOOL})
+# SHAPE NAMES -- arm `TETHER_SHAPE_NAMES` (`arc_percept`): the first declared predicate the cells
+# satisfy, a NAME label. Under the arm only.
+if _SHAPE_NAMES:
+    ATTRIBUTE_TYPE.update({"shape_name": NAME})
 
 # AN ATTRIBUTE'S ATOM EXISTS ONLY WHERE ITS ARM PUBLISHES IT -- F503, the reviewer 2026-10-07. Every
 # key above becomes an atom, and each atom widens the alphabet every term is priced over; on the
@@ -212,6 +227,7 @@ ATTRIBUTE_ARM = {
     **dict.fromkeys(("age", "speed", "stability"), ("arc_percept", "_INSTRUMENTS")),
     **dict.fromkeys(("scale", "grew", "shrank"), ("arc_percept", "_KIND_SCALE")),
     **dict.fromkeys(("kind", "turned"), ("arc_percept", "_POSE_READ")),
+    "shape_name": ("arc_percept", "_SHAPE_NAMES"),
 }
 
 
@@ -378,7 +394,7 @@ CLAUSE_ONE = frozenset({
     # perception's own readings -- what a slot IS. `ATTRIBUTE_TYPE`'s keys become atoms.
     "row", "col", "colour", "h", "w", "bbox", "shape", "age", "speed", "stability",
     "completed", "colour_changed", "contact", "touching", "scale", "grew", "shrank",
-    "kind", "turned",
+    "kind", "turned", "shape_name",
     # the deltas -- what CHANGED. Without them there is no residual to price.
     "drow", "dcol", "dh", "dw", "dcells", "dholes", "dperimeter",
     "add_n", "rem_n", "add_row", "add_col", "rem_row", "rem_col",

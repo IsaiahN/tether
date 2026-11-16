@@ -30,7 +30,7 @@ from __future__ import annotations
 import copy
 import math
 import sys
-from typing import Any
+from typing import Any, NamedTuple
 
 import armflag
 import cap
@@ -199,6 +199,122 @@ _KIND_SCALE = armflag.arm("TETHER_KIND_SCALE", default=True)
 # (the form as seen, unchanged by K1) same as seen; `turned` (BOOL) is a matched object's pose
 # changing at the same kind (a size change alone is grew / shrank). OFF: neither reading.
 _POSE_READ = armflag.arm("TETHER_POSE_READ", default=True)
+
+# SHAPE NAMES (Isaiah 2026-11-16, "it's a ball (shaped like a ball, acts like a ball)"; 40-WATSON
+# "Isaiah's gambit" / "Affordances": recognition runs through perception). Each object gets ONE
+# more STATE reading, `shape_name`: the first of an ordered list of DECLARED geometric predicates
+# its own cells satisfy (Fig 10: declared conventions, visible and movable -- never learned, never
+# tuned). Computed from the cell pattern alone: never colour, never position; every predicate is
+# tested on all 8 dihedral images, so a turned or mirrored object keeps its name. OFF: no reading.
+_SHAPE_NAMES = armflag.arm("TETHER_SHAPE_NAMES", default=True)  # MF-S1; conform/arms.py
+
+# DECLARED CONVENTION (Fig 10), not derived: a disc fills at least half its bounding square. A
+# digital circle fills about pi/4 of it; the 4-corner-cut 4x4 fills 12/16 and the 5x5 diamond 13/25.
+DISC_SOLIDITY = (1, 2)
+
+
+def _rows_of(s: frozenset, h: int) -> list[list[int]]:
+    return [sorted(c for r, c in s if r == i) for i in range(h)]
+
+
+def _run(xs: list[int]) -> bool:
+    """One contiguous run of cells (a row or a column with no gap)."""
+    return bool(xs) and xs[-1] - xs[0] + 1 == len(xs)
+
+
+def _any_image(s: frozenset, want: Any) -> bool:
+    """`want(image, h, w)` holds on some dihedral image of `s` (so the name is pose-free)."""
+    return any(want(im, max(r for r, _ in im) + 1, max(c for _, c in im) + 1) for im in _images(s))
+
+
+class _Cells(NamedTuple):
+    """One object's cells as the predicates read them: normalised cells, box h and w, count n."""
+    s: frozenset
+    h: int
+    w: int
+    n: int
+
+
+def _is_l(s: frozenset, h: int, w: int) -> bool:
+    # L: exactly the left column plus the bottom row of the box, both arms >= 2 cells
+    return h >= 2 and w >= 2 and s == frozenset(
+        {(r, 0) for r in range(h)} | {(h - 1, c) for c in range(w)})
+
+
+def _is_t(s: frozenset, h: int, w: int) -> bool:
+    # T: exactly the full top row plus the centre column below it; odd width >= 3, height >= 2
+    return h >= 2 and w >= 3 and w % 2 == 1 and s == frozenset(
+        {(0, c) for c in range(w)} | {(r, w // 2) for r in range(h)})
+
+
+def _is_disc(s: frozenset, h: int, w: int) -> bool:
+    # disc (round): a square box >= 3 wide; the cell set is identical under all 8 dihedral images
+    # (both mirrors and the quarter turn); every row AND every column is one gap-free run (convex,
+    # so no hole); the 4 box corners are empty (corners cut, so not a filled square); and it fills
+    # at least DISC_SOLIDITY of the box
+    if h != w or h < 3 or any(im != s for im in _images(s)):
+        return False
+    if any((r, c) in s for r in (0, h - 1) for c in (0, w - 1)):
+        return False
+    cols = _rows_of(frozenset((c, r) for r, c in s), w)
+    if not all(_run(x) for x in _rows_of(s, h)) or not all(_run(x) for x in cols):
+        return False
+    return len(s) * DISC_SOLIDITY[1] >= h * w * DISC_SOLIDITY[0]
+
+
+# THE ORDERED PREDICATES, FIRST MATCH WINS -- each (name, test(g)), g a _Cells (cells normalised
+# to the object's own top-left). The published reading is the INDEX into SHAPE_NAMES, a label: equal
+# or not, never ordered (the same rule as `colour` and `shape`); the alphabet is len(SHAPE_NAMES).
+_SHAPE_TESTS: tuple = (
+    # dot: exactly one cell
+    ("dot", lambda g: g.n == 1),
+    # line: one row or one column thick, with no gap (cells == the longer side)
+    ("line", lambda g: (g.h == 1 or g.w == 1) and g.n == max(g.h, g.w)),
+    # square: fills its box (cells == h*w) and h == w
+    ("square", lambda g: g.n == g.h * g.w and g.h == g.w),
+    # rectangle: fills its box (cells == h*w), h != w (both >= 2: a 1-thick box is a line)
+    ("rectangle", lambda g: g.n == g.h * g.w),
+    # ring: exactly the box's border cells, box >= 3x3 (so exactly one hole, the box's inside)
+    ("ring", lambda g: g.h >= 3 and g.w >= 3 and g.s == frozenset(
+        (r, c) for r in range(g.h) for c in range(g.w)
+        if r in (0, g.h - 1) or c in (0, g.w - 1))),
+    # plus: an odd square box >= 3; exactly the full middle row and the full middle column
+    ("plus", lambda g: g.h == g.w and g.h >= 3 and g.h % 2 == 1 and g.s == frozenset(
+        {(g.h // 2, c) for c in range(g.w)} | {(r, g.w // 2) for r in range(g.h)})),
+    # L / T: as _is_l / _is_t, on any dihedral image
+    ("L", lambda g: _any_image(g.s, _is_l)),
+    ("T", lambda g: _any_image(g.s, _is_t)),
+    # diamond: odd square box >= 3; exactly the cells within city-block distance h//2 of the centre
+    # (row i is one centred run of h - 2*|i - h//2| cells)
+    ("diamond", lambda g: g.h == g.w and g.h >= 3 and g.h % 2 == 1 and g.s == frozenset(
+        (r, c) for r in range(g.h) for c in range(g.w)
+        if abs(r - g.h // 2) + abs(c - g.w // 2) <= g.h // 2)),
+    # disc: round -- see _is_disc
+    ("disc", lambda g: _is_disc(g.s, g.h, g.w)),
+)
+SHAPE_NAMES: tuple = tuple(n for n, _ in _SHAPE_TESTS) + ("irregular",)
+
+
+def shape_name(cells: Any) -> str:
+    """The first declared predicate the cell set satisfies, else 'irregular'. Cells alone."""
+    s = _norm(cells)
+    g = _Cells(s, max(r for r, _ in s) + 1, max(c for _, c in s) + 1, len(s))
+    for name, test in _SHAPE_TESTS:
+        if test(g):
+            return name
+    return "irregular"
+
+
+# shape_name -> the library atom(s) it attaches to (library/given.json `entries` keys only; checked
+# by tests/test_shape_names.py). RECORD-ONLY: nothing decides on it, it is exported for later
+# readers. A name is left unmapped rather than guessed: `ring` (TOPOLOGICAL|Circle is S^1, but the
+# ask maps the circle to the round solid), `plus` (TOPOLOGICAL|Crossing is a path crossing), `dot`,
+# `rectangle`, `L`, `T`, `diamond`, `irregular` have no entry that names them.
+SHAPE_ATOMS: dict[str, tuple[str, ...]] = {
+    "disc": ("TOPOLOGICAL|Circle", "TOPOLOGICAL|Sphere"),
+    "line": ("RAW DATA|Line",),
+    "square": ("AGENT|is_square",),
+}
 
 
 def descale(cells: Any) -> tuple[frozenset, int]:
@@ -1219,4 +1335,8 @@ class Objects:
                 state[f"{name}.kind"] = (
                     NOT_RESOLVED if covered
                     else kl.setdefault(_entry(obj["shape"])[2], state[f"{name}.shape"]))
+            if _SHAPE_NAMES:
+                # a STATE reading of the cells alone: it moves only when the cells change
+                state[f"{name}.shape_name"] = (
+                    NOT_RESOLVED if covered else SHAPE_NAMES.index(shape_name(obj["shape"])))
         return state

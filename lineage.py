@@ -897,6 +897,15 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         if _ob:
             gen["obg_n"] = _ob
         ag._obg_written = {cue: list(st) for cue, st in ag._obg.items()}
+    if tether._RDL and getattr(ag, "_rdl", None) is not None:
+        # RDL piece 3 (C5): offered / settled / refused per (corpus, tier) since the last save or
+        # load, keyed "corpus|tier"; load sums (rdl_n)
+        _rd = {f"{c_}|{t_}": dict(sorted(d_.items()))
+               for (c_, t_), d_ in sorted(ag._rdl["stats_n"].items(), key=lambda kv: repr(kv[0]))
+               if d_}
+        if _rd:
+            gen["rdl_n"] = _rd
+        ag._rdl["stats_n"] = {}
     if getattr(ag, "_reuse", None) is not None:
         # P6 H5: the reuse book's counts since the last save; load sums (reuse_n)
         _rn = ag._reuse.drain()
@@ -1635,6 +1644,9 @@ def _load_from_store(d: str | Path, ag: Any) -> dict:
     if tether._ORDER_BY_GROUND and tether._OBG_CARRY and hasattr(ag, "_obg_written"):
         # 10a carry: the store's summed obg_n starts this generation's cue order record
         rep["obg_in"] = _obg_load(ag, c.get("obg_n", {}))
+    if tether._RDL and getattr(ag, "_rdl", None) is not None:
+        # RDL piece 3: the store's summed rdl_n starts this generation's release stats
+        rep["rdl_in"] = _rdl_load(ag, c.get("rdl_n", {}))
     if getattr(ag, "_reuse", None) is not None:
         # P6 H1: the store's summed reuse_n, then the age window from it
         ag._reuse.load(c.get("reuse_n", {}))
@@ -1809,6 +1821,25 @@ def _obg_load(ag: Any, summed: dict) -> dict:
     return {cue: list(st) for cue, st in sorted(ag._obg.items())}
 
 
+def _rdl_load(ag: Any, summed: dict) -> dict:
+    """RDL piece 3: the ancestors' summed rdl_n {"corpus|tier": {offered, settled, refused}} into
+    the agent's carried release stats {(corpus, tier): {...}}; stats_n is left as this generation's
+    increments only (the carried part is already in the lineage). The release is re-read."""
+    rd = ag._rdl
+    for k, d_ in summed.items():
+        corpus, _bar, tier = str(k).rpartition("|")
+        try:
+            key = (corpus, int(tier))
+        except ValueError:
+            key = (corpus, tier)
+        into = rd["carried"].setdefault(key, {})
+        for e, n in d_.items():
+            into[e] = into.get(e, 0) + n
+    ag._rdl_release("lineage")
+    return {f"{c_}|{t_}": dict(d_) for (c_, t_), d_ in sorted(rd["carried"].items(),
+                                                              key=lambda kv: repr(kv[0]))}
+
+
 def load(d: str | Path, ag: Any) -> dict:
     """The next instance's start: the chain folded into its Gamma as IMPORTED terms naming the tip,
     and the evidence record turned on. The fold's evidence and dormant record are not read back."""
@@ -1958,6 +1989,15 @@ def load(d: str | Path, ag: Any) -> dict:
                 for e, n in d_.items():
                     into[e] = into.get(e, 0) + n
         rep["obg_in"] = _obg_load(ag, _ob)
+    if tether._RDL and getattr(ag, "_rdl", None) is not None:
+        # RDL piece 3: every generation's rdl_n, root to tip, summed into the release stats
+        _rs: dict = {}
+        for _h, g in chain:
+            for k, d_ in g.get("rdl_n", {}).items():
+                into = _rs.setdefault(k, {})
+                for e, n in d_.items():
+                    into[e] = into.get(e, 0) + n
+        rep["rdl_in"] = _rdl_load(ag, _rs)
     if getattr(ag, "_reuse", None) is not None:
         # P6 H1: every generation's reuse_n, root to tip, then the age window from it
         _sum: dict = {}

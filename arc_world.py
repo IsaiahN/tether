@@ -70,7 +70,7 @@ _OBJ_DERIVED = {"h": ("shape",), "w": ("shape",), "dh": ("shape",), "dw": ("shap
                 "drow": ("row",), "dcol": ("col",), "speed": ("row", "col"),
                 "colour_changed": ("colour",),
                 "scale": ("shape",), "grew": ("shape",), "shrank": ("shape",),
-                "kind": ("shape",), "turned": ("shape",)}
+                "kind": ("shape",), "turned": ("shape",), "shape_name": ("shape",)}
 # E0b: the observer-item-4 pair slots (_relation_slots), each a function of both parties' cells
 _OBS_PAIR = ("contact", "bbox", "inside")
 
@@ -98,6 +98,8 @@ ALPHABET: dict[str, Callable[[int, int, dict], int]] = {
     "scale": lambda h, w, _d: max(h, w) + 1,
     "grew": lambda _h, _w, _d: 2, "shrank": lambda _h, _w, _d: 2,
     "turned": lambda _h, _w, _d: 2,                                     # the pose, readable
+    # SHAPE NAMES (TETHER_SHAPE_NAMES): a label among the declared names, fixed, never orderable
+    "shape_name": lambda _h, _w, _d: len(arc_percept.SHAPE_NAMES),
     # FRAMES, which no board quantity bounds: no object is older than the oldest, and
     # `stability` (frames unchanged) never exceeds its `age`. Varies per call, as `shape` does.
     "age": lambda _h, _w, d: _oldest(d) + 1, "stability": lambda _h, _w, d: _oldest(d) + 1,

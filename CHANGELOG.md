@@ -6,6 +6,39 @@ Each release below is an operating-system update: it changes what grows on the k
 
 Releases are listed newest first.
 
+## 2026-11-16: Recursive Diffusion Learning begins
+
+### New
+- Recursive Diffusion Learning starts (TETHER_RDL, on by default). Material is preloaded, never pretrained:
+  - The WordNet lexicon, the attribute index and the Tether cards are parsed into four tiers: instances, regularities, abstractions and core rules. Each tier loses more detail than the one below. Every entry is stamped with its stage and its source, and none has standing.
+  - Only entries that carry bonds and reach something the agent can compose over, by cluster and never by raw name, are offered: 191 of 1,494. The rest are recorded.
+  - A tier is released only after the board has settled enough of the tier below. The inherited library counts as settled for the first tier.
+  - What settles and what is refused is counted by tier and source, carried across generations, and turned into an ordered search policy.
+  - Released material changes only where the agent looks first among equally good candidates. Only the board gives standing.
+- Objects have shape names. Each object's own cells are read as a dot, line, square, rectangle, ring, plus, L, T, diamond, disc or irregular shape. Each name is a stated geometric rule, and colour and position play no part. The disc, line and square are tied to the library's shape concepts (TETHER_SHAPE_NAMES, on by default).
+- A word map links the library's entries to WordNet meanings. A meaning is chosen by the entry's domain and clusters, never by spelling alone, and ties are kept. Each entry gets a category (object, shape, action, relation, property, measure or rule) for faster search later. A synonym index takes a new word to an entry the agent already holds: "opponent" leads to the adversary. Nothing reads the map yet.
+- The dictionary half of word to action: 3,577 action priors read from WordNet definitions ("a ball is hit, thrown or kicked"). Each is stamped and has no standing until the board tests it.
+- A shape bridge from flat to solid: a disc stands for a sphere, which a ball, globe or marble has; a square for a cube; a ring for a torus or hoop. On a flat board this meaning is held, and an object earns "ball" only by acting like one.
+- Concepts have action lists. Verbs are also read backwards from WordNet's example sentences ("Catch the ball!", "bounce a ball"), so a ball gets catch, bounce, dribble, hit and kick beside the verbs in its own definition, for 1,439 concepts. Each has its sources and no standing.
+- The affordance bet. The first time the agent meets a new kind of object with a shape name, it says what the shape suggests ("this is like a ball; a ball can move") and checks it on its first press. If the board disagrees, the rule is kept with an exception for the condition it saw, and nothing is deleted. The narrator says both (TETHER_AFFORDANCE, on by default).
+- Recognising pictures without a neural network: AKAZE key points from each picture are compared with a memory of each class's key points, kept small by replacing groups of similar points with their centre. A match must agree on one geometry, and the agent says it cannot tell rather than guess when the evidence is thin. Plain objects with no key points are read by their outline into the same shape names the grid uses. The memory is built from the ImageNet pictures once they are downloaded and stays on the local machine, as ImageNet's terms require. Nothing in the agent calls it yet.
+- A preloaded shape library: 44 standard flat and solid shapes generated as pictures (352 in all, kept in the repository), each tied to its WordNet word and to the grid's shape names, with a memory the recogniser loads at once. Most shapes are recognised from new pictures; squares, hexagons, many-sided polygons, cubes, cylinders and cones are still weak.
+- The library's categories guide where the agent looks first. When what changed is a movement, actions are tried first among equally good candidates; a change of shape, shapes first; a count or size, measures first (TETHER_CATEGORY_ORDER, on by default).
+- A vocabulary and a relation layer. The vocabulary is WordNet's nouns and verbs less the NSM words the agent already speaks with, so what is left is what needs grounding. Verbs carry their VerbNet class, so throw brings toss and hurl. ConceptNet's English relations say what things can do, what is done to them and what they are for: a ball rolls and bounces, is kicked and hit, and is for throwing and catching. Nothing reads these yet; the ConceptNet file is CC BY-SA 4.0.
+- A settled "pressing A makes kind B appear" is now offered as a guard condition, keyed by kind, never by object (TETHER_PRODUCE_KEYS, on by default).
+- Five more symbols of the formula are read from the agent: the leftover once an idea explains what it can, the bond held between two readings, an idea's bonded arrangement, the round-trip gap, and the coarse view. Four stay unbound, each with its reason.
+
+### Improved
+- One hard question no longer spends a level's whole saved thinking time. The time saved is shared among the hard questions waiting, and a question waiting alone still gets all of it (TETHER_BANK_SHARE, on by default).
+
+### Fixed
+- The library index listed 142 effects that their own entries deny ("never moves", "cannot pass"), and 38 entries defaulted to a process because of them. Both are corrected through the library builder; 253 cases that need a ruling on what counts as an effect are listed for review in docs/03-DESIGN/INDEX_AUDIT_2026-11-16.md.
+
+### Known issues
+- On six games at 5 minutes each with everything on, lp85 clears its first level and the others reach their goals' objects without meeting them. No goal was refused at contact, so repairing and returning had no occasion yet. Thinking ran about twice as fast per step as the day before.
+- Recursive Diffusion Learning orders one lookup site so far. In these short runs its material was offered twice and has not yet been settled or refused, so its ladder has not moved past the first tier.
+- The word map's verb picking from definitions is rough, and its categories disagree with the library's own roles in 2,148 places. Both are flagged in the map, not hidden.
+
 ## 2026-11-16: The agent repairs a refused goal and returns to it
 
 ### New

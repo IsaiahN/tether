@@ -28,7 +28,9 @@ The order is set by Fig 3 :20, "Each link consumes what the one above produces",
 | 3 cards v4 | built (`9b9f7bf`, TETHER_TIER_CONTRAST) |
 | 4 the T0 gate | running: T0, T0b, T0c, T0d (see docs/STATE_OF_THE_AGENT.md); fixes it asked for are built (REPAIR_AT_REFUSAL, GOAL_VARIES, GOAL_FLOOR, CONTACT_ROUTE, KIND_LEVER, HTN_RETURN) |
 | 5 housekeeping | old tests: 306 retired (`16a4b3b`). Operators: O1 built (`bc49790`, TETHER_IMPLIES_BOND), O2 built (`580f9ab`, TETHER_GUARD_NEST), O3 covered by O2's guard-join price (r1953: BONDS = 1 is correct where used). Index audit: open. SHIP 4: this release |
-| 6 step 9, RDL | not started; RDL opens when T0 passes. Groundwork for the voice layer: `library/lexicon_imagenet_wordnet.json` |
+| 5b index audit | done (`2ed264a`): 142 misfiled effects fixed through the builder; 253 judgement calls listed for review |
+| 6 RDL | started ahead of T0 at Isaiah's word (2026-11-16): store and parser (`fa208f3`), release and codified reach (`cd557b0`), agent wiring as search priority (`0b1245c`, TETHER_RDL). T1-T4 (format, schedule, reach policy, drift guard) are the experiments still to run |
+| 6 step 9 | not started (testing: the noise floor and the four experiments) |
 
 ## The rules every item follows
 

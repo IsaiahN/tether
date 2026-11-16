@@ -43,7 +43,8 @@ SAMPLE = 50           # the LOOKUP row keeps its first 50 held bonds (b2, 10-18)
 WIDTH = 240
 UNKNOWN = "?"
 # Inflections said for a prime (NSM's allolexes); each maps to the primes it inflects.
-ALLOLEX = {"HAPPENED": ("HAPPEN",), "SAW": ("SEE",), "WAS": ("BE",), "CAN'T": ("CAN", "NOT")}
+ALLOLEX = {"HAPPENED": ("HAPPEN",), "SAW": ("SEE",), "WAS": ("BE",), "CAN'T": ("CAN", "NOT"),
+           "MOVES": ("MOVE",), "DOES": ("DO",)}
 # The listed refusals of read_node / read_term; a reason outside this list is a defect (MF-T).
 # r1052 (b), r1059: "has no atom" only where implemented_by is empty; a condition bond (≡ ⋛ +) says
 # where it is routed; ¬ (AGENT|negate) is not wired as a term; ⇒ is a condition (O1,
@@ -301,7 +302,35 @@ def say_row(event: str, d: dict, ends: tuple) -> list:
         return [("WIN" if d["how"] == win else "LEVEL", "SOMETHING GOOD HAPPENED: I WANT THIS")]
     if event in WEIGHT_ROWS:
         return [("WEIGHT", _say_weight(event, d))]
+    if event in AFFORD_ROWS:
+        return [("AFFORD", say_affordance(event, d))]
     return []
+
+
+# TETHER_AFFORDANCE (affordance.py; Isaiah's gambit 2026-11-16): the grounded word with the primes
+# underneath -- the concept and its verb as fillers, what the board did in primes.
+AFFORD_ROWS = ("affordance_prior", "affordance_settle", "affordance_refuse", "affordance_inert")
+
+
+def say_affordance(event: str, d: dict) -> str:
+    c = _f(d.get("concept"))
+    keeps = d.get("property") == "keeps moving"
+    if event == "affordance_inert":
+        return f"I CAN'T SAY THIS IS LIKE SOMETHING ({_f(d.get('reads'))})"
+    if event == "affordance_prior":
+        chain = " -> ".join(str(x) for x in (d.get("shape_name"), d.get("form"), d.get("concept"))
+                            if x)
+        can = "CAN MOVE FOR A LONG TIME" if keeps else "CAN MOVE"
+        verb = f" ({_f(d.get('action_verb'))})" if d.get("action_verb") else ""
+        return f"THIS IS LIKE {c} ({_f(chain)}). {c} {can}{verb}. MAYBE THIS IS NOT TRUE HERE"
+    did = "AFTER THIS, THIS MOVES MORE" if keeps else "I TOUCH THIS. THIS MOVES"
+    if event == "affordance_settle":
+        verb = f"{c} {_f(d.get('action_verb'))}: " if d.get("action_verb") else ""
+        return f"{verb}{did}. THIS IS LIKE {c}"
+    didnt = ("AFTER THIS, THIS DOES NOT MOVE MORE" if keeps
+             else "I TOUCH THIS. THIS DOES NOT MOVE")
+    return (f"{didnt}. NOT LIKE {c} WHEN {_f(d.get('condition'))}. THIS IS "
+            f"{_f(d.get('shape_name'))}")
 
 
 # (5) v (the reviewer 2026-11-07 r1356; Isaiah 07:56 "log that event and console it"): every row a
