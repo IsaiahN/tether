@@ -1,4 +1,4 @@
-﻿"""THE LEXICON (library/lexicon_imagenet_wordnet.json, built by library/build_lexicon.py):
+"""THE LEXICON (library/lexicon_imagenet_wordnet.json, built by library/build_lexicon.py):
 ImageNet-1k class index -> WordNet 3.0 noun synset. Library data that nothing in the agent reads.
 
   L1     1000 entries, index i at position i, wnids strictly ascending with index, and every
@@ -93,7 +93,11 @@ def check_l2(doc: dict) -> None:
 
 def check_l3() -> None:
     files = glob.glob(os.path.join(ROOT, "*.py")) + glob.glob(os.path.join(ROOT, "library", "*.py"))
-    files = [p for p in files if os.path.basename(p) != "build_lexicon.py"]
+    # the builders, not the agent: build_lexicon writes it; rdl_parse (RDL Piece 1, spec
+    # docs/03-DESIGN/RDL_BUILD_SPEC_2026-11-16.md) parses it into library/rdl_preload.json,
+    # imports no agent module, and the agent reads only that output (Piece 3)
+    builders = ("build_lexicon.py", "rdl_parse.py")
+    files = [p for p in files if os.path.basename(p) not in builders]
     named = ("tether.py", "gamma.py")
     assert all(os.path.join(ROOT, n) in files for n in named), "agent modules not found"
     assert any(os.path.basename(p).startswith("arc_") for p in files), "no arc_*.py found"
