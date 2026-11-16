@@ -1,4 +1,4 @@
-﻿# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
 # git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 # RELATIONS.md's live successor: library/given.json (kind RELATION) + LIBRARY_SPEC section 3.
 """The loop. Steps 1 to 5.
@@ -2011,6 +2011,49 @@ _RDL = armflag.arm("TETHER_RDL", default=True)  # RDL piece 3: released preloads
 # the preload file, relative to this module's own directory (tests point it at a fixture)
 RDL_PRELOAD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library",
                            "rdl_preload.json")
+# CATEGORY ORDER (Isaiah 2026-11-16 "categorize the library ... so that helps make search faster";
+# WATSON 42 layer C "Categories"): library/word_map.json gives each library entry a category
+# (object, shape, action, relation, property, measure, rule, other; WordNet lexnames,
+# cross-checked with the library's by_kind / by_default_role). Categories set SEARCH PRIORITY ONLY
+# (Fig 9 :60, a filter for the budget, never a verdict): in the described lookup's rank (_topk) an
+# entry whose category is the one the residual's kind wants sorts ahead of an otherwise-equal
+# entry, as one more LAST field after RDL's. Nothing added to or removed from a candidate set;
+# reach and standing untouched. A category_order row the first time it reorders on a slot. No
+# word map: inert, one row saying why. OFF: nothing loaded, no order change, no rows.
+_CATEGORY_ORDER = armflag.arm("TETHER_CATEGORY_ORDER", default=True)  # categories order ties
+# the word map, relative to this module's own directory (tests may point it at a fixture)
+WORD_MAP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library", "word_map.json")
+# Fig 10, a DECLARED convention: the residual's kind (the slot's reading, as the lookup already
+# has it in attribute_of) -> the entry category to try first. A reading not listed: no preference.
+# A per-partner reading (dcol_o1, touches_o2, inside_o3 ...) is read through its base name.
+CATEGORY_OF_READING = {
+    # a position / motion change -> action entries first
+    "row": "action", "col": "action", "drow": "action", "dcol": "action",
+    "came": "action", "speed": "action", "action": "action", "press": "action",
+    # a shape change -> shape entries first
+    "shape": "shape", "dperimeter": "shape", "dholes": "shape", "filled": "shape",
+    # a count / extent -> measure entries first
+    "dcells": "measure", "add_n": "measure", "rem_n": "measure", "h": "measure", "w": "measure",
+    "dh": "measure", "dw": "measure", "bbox": "measure", "dbbox": "measure",
+    "distance": "measure", "dist": "measure", "proximity": "measure",
+    # a relation reading (contact, inside) -> relation entries first
+    "contact": "relation", "dcontact": "relation", "touching": "relation",
+    "touches": "relation", "inside": "relation", "dinside": "relation",
+    "obstacle": "relation", "surface": "relation",
+}
+
+
+def _category_wanted(reads: set) -> str | None:
+    """The one category the lookup's readings want, or None (none listed, or they disagree)."""
+    got = set()
+    for r in reads:
+        if not isinstance(r, str):
+            continue
+        base = re.sub(r"_o\d+$", "", r)
+        c = CATEGORY_OF_READING.get(r, CATEGORY_OF_READING.get(base))
+        if c is not None:
+            got.add(c)
+    return next(iter(got)) if len(got) == 1 else None
 
 
 def _rdl_modules() -> tuple[Any, Any, str | None]:
@@ -5558,6 +5601,9 @@ class Agent:
                             **I.Attribution.code(), **I.Attribution.run(env, gam))
         # RDL piece 3 (TETHER_RDL): the released preloads, loaded at birth; None when OFF or inert
         self._rdl: dict | None = self._rdl_birth() if _RDL else None
+        # CATEGORY ORDER (TETHER_CATEGORY_ORDER): the entry -> category map, loaded on first use;
+        # None when OFF. {"map": None until loaded, "noted": slots already reordered (one row each)}
+        self._cat: dict | None = {"map": None, "noted": set()} if _CATEGORY_ORDER else None
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
 
@@ -8759,6 +8805,54 @@ class Agent:
         for pid in pids:
             self._rdl_row(step, slot, event, rd["preloads"][pid], term=name, entry=entry)
 
+    # ------------------------------------------------------ CATEGORY ORDER (TETHER_CATEGORY_ORDER)
+    def _cat_load(self) -> dict:
+        """The entry -> category map from WORD_MAP, read once (lazily, at the first lookup that
+        wants a category). Absent or unreadable: {} and ONE category_inert row saying why."""
+        why, out = None, {}
+        try:
+            with open(WORD_MAP, encoding="utf-8") as fh:
+                ents = json.load(fh).get("entries") or {}
+            out = {k: v["category"] for k, v in ents.items()
+                   if isinstance(v, dict) and isinstance(v.get("category"), str)}
+            if not out:
+                why = "the word map holds no entry categories"
+        except (OSError, ValueError, AttributeError) as e:
+            why = f"no word map at {WORD_MAP}: {e}"
+        if why is not None:
+            self.led.record(getattr(self, "cycle", 0), "IMPORT", "@category", "category_inert",
+                            why=why[:300], reads="category order is inert this run: no search "
+                                                 "priority, no rows")
+        return out
+
+    def _cat_want(self, reads: set) -> str | None:
+        """The category this lookup's residual wants (CATEGORY_OF_READING), or None. None too when
+        the word map is inert, so an inert run orders exactly as OFF."""
+        want = _category_wanted(reads)
+        if want is None:
+            return None
+        if self._cat["map"] is None:
+            self._cat["map"] = self._cat_load()
+        return want if self._cat["map"] else None
+
+    def _cat_note(self, keyed4: list, ranked: list, slot: str, want: str) -> None:
+        """category_order, once per slot: the first time the category field moved an order (an
+        entry of the wanted category put ahead of an otherwise-equal entry of another)."""
+        base = [x[3][0] for x in sorted(keyed4, key=lambda x: x[:2])]
+        now = [e[0] for e in ranked]
+        if base == now:
+            return
+        cmap = self._cat["map"]
+        moved = next(k for k, b in zip(now, base, strict=True) if k != b)
+        passed = next(b for k, b in zip(now, base, strict=True) if k != b)
+        self._cat["noted"].add(slot)
+        self.led.record(self.cycle, self._running_step, slot, "category_order", wanted=want,
+                        entry=moved, entry_category=cmap.get(moved), ahead_of=passed,
+                        ahead_of_category=cmap.get(passed), source="library/word_map.json",
+                        reads="search priority only: the wanted category first among otherwise-"
+                              "equal candidates; same set, nothing added, removed or given "
+                              "standing")
+
     def _topk(self, full: list, lit: list, tiers: dict, att: dict, tg: tuple,
               key: tuple) -> tuple[list, int | None]:
         """TK: the kept list ranked (its tier as listed, then the count of the asked readings it
@@ -8816,12 +8910,24 @@ class Agent:
         else:
             def order(e):
                 return (tier_of.get(e[0], len(tiers)), -overlap(e))
-        if self._rdl is not None and self._rdl["released"]:
+        use_rdl = self._rdl is not None and bool(self._rdl["released"])
+        want = self._cat_want(reads) if self._cat is not None else None
+        if use_rdl or want is not None:
             # RDL piece 3: the released preloads' attachment is the LAST field, so it only orders
-            # entries every other field left equal; the same list, re-ordered, never cut
-            keyed = [(order(e), self._rdl_rank(e[0]), e) for e in lit]
-            keyed.sort(key=lambda x: x[:2])
-            ranked = [x[2] for x in keyed]
+            # entries every other field left equal; the same list, re-ordered, never cut.
+            # CATEGORY ORDER: one more field after RDL's -- the wanted category first among
+            # entries every other field (RDL's included) left equal; same set, never cut
+            cmap = self._cat["map"] if want is not None else {}
+            keyed4 = [(order(e), self._rdl_rank(e[0]) if use_rdl else (),
+                       ((0,) if cmap.get(e[0]) == want else (1,)) if want is not None else (), e)
+                      for e in lit]
+            note = want is not None and tg[0] not in self._cat["noted"]
+            pre = list(keyed4) if note else None      # the lit order, for the note's comparison
+            keyed4.sort(key=lambda x: x[:3])
+            ranked = [x[3] for x in keyed4]
+            keyed = [(b, r, e) for b, r, _c, e in keyed4] if use_rdl else None
+            if note:
+                self._cat_note(pre, ranked, tg[0], want)
         else:
             keyed = None
             ranked = sorted(lit, key=order)
