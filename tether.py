@@ -8772,6 +8772,17 @@ class Agent:
         by (corpus, tier): what the next save carries."""
         rd = self._rdl
         st = _rdl_stamp(p)
+        # the cluster the attach reached the entry through: neither the Preload nor the preload
+        # file keeps the cluster per attach, so it is DERIVED from ATTRIBUTE_INDEX.by_cluster
+        # membership of the entry, the first cluster in sorted order ("" when filed under none)
+        if "cluster_of" not in rd:
+            bc, _why = inherited.by_cluster()
+            co: dict = {}
+            for c in sorted(bc or {}):
+                for e in bc[c]:
+                    co.setdefault(e, c)
+            rd["cluster_of"] = co
+        st["cluster"] = rd["cluster_of"].get(detail.get("entry"), "")
         self.led.record(self.cycle, step, slot, event, **st, **detail)
         rd["rows"].append({"event": event, "detail": {**st, **detail}})
         n = rd["stats_n"].setdefault((st["corpus"], st["tier"]), {})
@@ -26933,6 +26944,7 @@ class Agent:
             bk = self._aff_book = affordance.Book()
             self._aff_src = affordance.load_sources()
         atoms, bridge, priors, why = self._aff_src
+        bk.before = before                  # B7: the press's before-state, for its direction
         if why is None:
             fn = getattr(self.env, "shape_name", None)
             named = 0
@@ -26982,7 +26994,10 @@ class Agent:
             cond = "touching " + ", ".join(str(c) for c in ctx)
         else:
             cond = "landed, touching nothing"
-        ev, d = bk.judge(kind, obj, "moves", moved, cond)
+        dirn = affordance.direction(bk.before, state, obj) if moved else None
+        bk.dirn[kind] = dirn
+        ev, d = bk.judge(kind, obj, "moves", moved, cond,
+                         {"direction": dirn} if dirn else None)
         if ev is not None:
             self.led.record(self.cycle, "PERCEIVE", obj, ev, **d,
                             reads="the prior judged by its first press; nothing deleted")
@@ -27009,7 +27024,10 @@ class Agent:
                 continue
             again = any(state.get(k) != v for k, v in snap.items())
             cond = "no new press on it; " + cond
-            ev, d = bk.judge(kind, obj, affordance.KEEPS, again, cond)
+            mo = {"direction": bk.dirn.get(kind),
+                  "manner": affordance.manner(again, bk.verbs.get(kind) or ())}
+            ev, d = bk.judge(kind, obj, affordance.KEEPS, again, cond,
+                             {k: v for k, v in mo.items() if v})
             if ev is not None:
                 self.led.record(self.cycle, "PERCEIVE", obj, ev, **d,
                                 reads="the step after the press, no new press on it")

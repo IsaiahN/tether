@@ -1,4 +1,4 @@
-﻿"""AFFORDANCE BET (TETHER_AFFORDANCE, default ON; Isaiah 2026-11-16 "balls can roll, does this
+"""AFFORDANCE BET (TETHER_AFFORDANCE, default ON; Isaiah 2026-11-16 "balls can roll, does this
 roll?"; write-up 40 "Affordances: shape -> concept -> properties -> predictions"). Fixtures by hand:
 nothing here needs wip/shape-names or wip/word-map to have landed.
   A1  a prior row once per new kind, with the chain and its stamp, and no standing field
@@ -124,6 +124,38 @@ def main() -> int:
     assert not rows(led, n1)
     print(f"A3 it did not move -> affordance_refuse when {dr['condition']!r}; prior kept, "
           f"except_when {rec['except_when']}, name back to {rec['name_now']!r}: GREEN")
+
+    def motion(on):
+        affordance._MOTION_UPPER = on
+        try:
+            ag7, led7 = agent()
+            s0 = dict(ag7.env.observe())
+            s0["o1.row"], s0["o1.col"] = 3, 2
+            ag7._aff_see(s0)
+            s1 = dict(s0, **{"o1.col": 3})                   # dcol > 0 at the press
+            ag7.env.observe = lambda: s1
+            n7 = len(led7.rows())
+            ag7._last_landed = None
+            ag7._aff_felt("o1", ["o1.col"], True)
+            s2 = dict(s1, **{"o1.col": 4})                   # it moved again, no press on it
+            ag7.env.observe = lambda: s2
+            ag7.cycle += 1
+            ag7._aff_keeps()
+            return [r["detail"] for r in rows(led7, n7) if r["event"] == "affordance_settle"]
+        finally:
+            affordance._MOTION_UPPER = True
+    b7 = motion(True)
+    assert [d.get("direction") for d in b7] == ["right", "right"], b7
+    assert b7[1].get("manner") == "rolls" and "manner" not in b7[0], b7
+    assert affordance.direction({"o.row": 2, "o.col": 2}, {"o.row": 1, "o.col": 3}, "o") == \
+        "up-right" and affordance.manner(False, ["roll"]) == "is pushed" and \
+        affordance.manner(True, ["slide"]) == "glides"
+    say7 = nsm.say_row("affordance_settle", b7[1], ("w", "a"))[0][1]
+    assert "`ball` `rolls` `to the right`" in say7 and not nsm.unlisted(say7), say7
+    print("B7 dcol>0 -> direction right; keeps moving + roll -> rolls:", say7, "GREEN")
+    b7off = motion(False)
+    assert len(b7off) == 2 and not any("direction" in d or "manner" in d for d in b7off), b7off
+    print("MF-B7 TETHER_MOTION_WORDS OFF: no direction/manner fields -> RED as required")
 
     lines = [nsm.say_row(r["event"], r["detail"], ("win", "advance"))[0][1]
              for r in pr + st1 + st2 + rf]

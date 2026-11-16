@@ -1,4 +1,3 @@
-# ruff: noqa: E501, C416
 """test_shapes -- the generated core shape list and its preloaded memory (seconds).
 
 S1 deterministic build (--check); S2 held-out accuracy per class (printed); S3 noise abstains;
@@ -19,8 +18,9 @@ import build_shapes as B  # noqa: E402
 
 import recognize as R  # noqa: E402
 
-# The classes the brief named as required. Measured 2026-11-16: square, hexagon, cube, cylinder and cone do NOT
-# reach this yet (see the printout); they are reported, and the assert covers the ones that do.
+# The classes the brief named as required. Measured 2026-11-16: square, hexagon, cube, cylinder
+# and cone do NOT reach this yet (see the printout); they are reported, and the assert covers
+# the ones that do.
 REQUIRED = [
     "circle",
     "square",
@@ -77,7 +77,7 @@ def test_s4_index():
     names = [e["name"] for e in idx["classes"]]
     assert names == [n for n, _ in B.classes()]
     for e in idx["classes"]:
-        assert len(e["variants"]) == B.VARIANTS and e["standing"] == "none"
+        assert len(e["variants"]) == B.n_variants(e["dim"]) and e["standing"] == "none"
         for v in e["variants"]:
             assert (B.OUT / v["file"]).exists(), v
 
