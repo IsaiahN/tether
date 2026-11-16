@@ -39,6 +39,7 @@ def agent_first_reading(plant: bool) -> list:
     ns = types.SimpleNamespace(cycle=1)
     ns._can_kind_key = lambda item: ("K", item.split(".", 1)[1])
     ns.led = types.SimpleNamespace(record=lambda *_a, **k: rows.append(k))
+    ns._produce_keys = lambda _book: None   # TETHER_PRODUCE_KEYS: tested in test_produce_keys.py
     if plant:
         book = ns.__dict__.setdefault("_can_prod", cl.ProductionBook())
         book.learn("A", {("K", "row")})

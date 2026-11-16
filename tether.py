@@ -1,4 +1,4 @@
-# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
+﻿# RELATIONS.md (cited below) are docs/library-closure/ files DELETED 2026-10-11 (Section A);
 # git holds them at the parent of the deleting commit (DOCS_CONSOLIDATION.md section A).
 # RELATIONS.md's live successor: library/given.json (kind RELATION) + LIBRARY_SPEC section 3.
 """The loop. Steps 1 to 5.
@@ -30,6 +30,7 @@ from dataclasses import replace as _replace
 from functools import cache, lru_cache, partial, wraps
 from typing import Any
 
+import affordance
 import armflag
 import can_ledger
 import cap
@@ -1633,6 +1634,21 @@ _GUARD_NEST = armflag.arm("TETHER_GUARD_NEST", default=True)   # O2: nested guar
 # the reviewer, never claimed correct.
 GUARD_NEST_DEPTH = 2
 _NEST_BONDS = ("+", "∥", "⇒")         # O2: the bonds joining two conditions (both, either, implies)
+# O1 FOLLOW-ON, PRODUCTIONS AS ⇒ KEYS (the O1 author's "next step": CAN_PRODUCE's pairs are (press,
+# item kind), not two readings): a SETTLED production of the step-10 ledger (TETHER_CAN_PRODUCE;
+# can_ledger.ProductionBook.settled: predicted at least once, its hits outnumber its misses) is
+# mapped onto two truth readings, each a record-backed predicate (no board reading exists for
+# either): "@press:A" -- the press the trace records just before this state was A (the press as
+# the ledger keys it); "@kind:K" -- the can ledger's reading of this state had an item whose kind
+# key (_can_kind_key: its object's kind, its reading) is K on the CAN list (actionable; presence is
+# true on every state of a kind-K slot's own history, so it could never separate R). Either reads
+# unresolved where the record does not hold the state. KIND ONLY, never an object name: the key
+# ⇒:@press:A|@kind:K goes through _route_junction onto the guard offer of EVERY slot of kind K, so
+# like items share it, and is offered only where it separates R as every junction key is
+# (_jk_offer; no new rule, no new price). A production that tips back to unsettled is taken off
+# the offer. NEEDS TETHER_CAN_PRODUCE, TETHER_BOND_TERMS and TETHER_IMPLIES_BOND. OFF: no
+# production key is routed or read, as before.
+_PRODUCE_KEYS = armflag.arm("TETHER_PRODUCE_KEYS", default=True)   # O1+: productions as keys
 # BUILD 4 ITEM 13, CONTACT-SEEDED CANDIDATE GENERATION (the reviewer 2026-11-03 r978; Isaiah
 # 11-01, "not blind enumeration"): the step's mint slots are ordered by two seeds ranked together
 # -- (a) the contact slots whose value changed this step, (b) a settled residual-lit → junction
@@ -1975,6 +1991,43 @@ STEP_BUDGET = int(os.environ.get("TETHER_STEP_BUDGET_N", "50000"))
 # STEP_BUDGET gate reads it; a spent purse stops a site "unreached at this budget", owed, never a
 # verdict (Fig 8 :40-42, Fig 9 :60). OFF: STEP_BUDGET's evaluation count, as before
 _PURSE_OWN = armflag.arm("TETHER_PURSE_OWN", default=True)
+# BANK SHARE (Isaiah 2026-11-16, the open 11-14 question r1970: may one hard question spend ALL the
+# savings?). T0d g50t c94: the step's allowance was 51,992,292 heads against a purse of ~4.7 M --
+# one question drew the level's whole bank (483 s MINT + 501 s ACCEPT) while 21 owed questions
+# waited; ar25 c125-c129 ~24 M each, 60-95 s steps. Isaiah 11-06: "any time saved per question can
+# be allocated to harder questions" -- plural: the bank is shared among the hard questions waiting,
+# a step drawing at most bank / (owed questions + 1). No new constant; a lone hard question still
+# gets it all. OFF: a step may draw the whole bank, as before.
+_BANK_SHARE = armflag.arm("TETHER_BANK_SHARE", default=True)
+# RDL PIECE 3 (Isaiah 2026-11-16 "RDL matters most"; docs/03-DESIGN/RDL_BUILD_SPEC_2026-11-16.md
+# "Piece 3"; WATSON 40 C4-C6): the preloads the release has RELEASED set SEARCH PRIORITY ONLY --
+# an entry attached to one sorts ahead of an otherwise-equal entry in the described lookup's rank
+# (_topk), by rdl_release.priority. It never makes anything reachable, never adds to the library,
+# never writes standing (the three quantities). Feedback (C5): rdl_offer / rdl_settle / rdl_refuse
+# rows, each stamped (C6) pid, stage, tier, corpus, parser; their counts ride the lineage as
+# increments (rdl_n, the obg_n pattern). rdl_store / rdl_release missing, or no preload file: inert,
+# one row saying why. OFF: nothing loaded, no order change, no rows.
+_RDL = armflag.arm("TETHER_RDL", default=True)  # RDL piece 3: released preloads order ties
+# the preload file, relative to this module's own directory (tests point it at a fixture)
+RDL_PRELOAD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library",
+                           "rdl_preload.json")
+
+
+def _rdl_modules() -> tuple[Any, Any, str | None]:
+    """(rdl_store, rdl_release, None), or (None, None, why) when either piece is not built yet."""
+    try:
+        import rdl_release
+        import rdl_store
+    except ImportError as e:
+        return None, None, f"rdl_store / rdl_release not importable: {e}"
+    return rdl_store, rdl_release, None
+
+
+def _rdl_stamp(p: Any) -> dict:
+    """C6: every RDL row names the preload it is about and where it came from."""
+    src = getattr(p, "source", None) or {}
+    return {"pid": p.pid, "stage": p.stage, "tier": p.tier, "corpus": src.get("corpus"),
+            "parser": src.get("parser")}
 # C2 P3 (r1610 Q3): TETHER_PURSE_DEADLINE, a think is priced in the purse's own unit: offline the
 # deadline is actions_left x purse, so a think displaces think heads / purse presses; online the
 # runner's seconds per remaining press over the agent's own seconds per step, x purse. OFF: today's
@@ -5503,6 +5556,8 @@ class Agent:
                             library=library_state(),
                             budget_bytes=self._w_budget, ram_bytes=_ram_bytes(),   # W-1
                             **I.Attribution.code(), **I.Attribution.run(env, gam))
+        # RDL piece 3 (TETHER_RDL): the released preloads, loaded at birth; None when OFF or inert
+        self._rdl: dict | None = self._rdl_birth() if _RDL else None
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
 
@@ -5665,6 +5720,7 @@ class Agent:
         self._junction_conds: dict = {}    # BOND TERMS: a junction key -> (bond, a, b)
         self._junction_of: dict = {}       # BOND TERMS: a slot -> its routed junction keys
         self._junction_nest: dict = {}     # O2: a slot -> the combined keys offered on it
+        self._pk_ops: dict = {}            # PRODUCE_KEYS: operand name -> (press|kind, A|K)
         self._guard_nest_why: collections.Counter = collections.Counter()   # O2: counted reasons
         self._tk_win: tuple = (None, (), None)   # S3: the last window (key, entries, no-fit key)
         self._dl_owed = False              # 20: this lookup was due from the owed queue
@@ -6803,6 +6859,10 @@ class Agent:
         self._view = ("full", dict)
         self._prev_bet = self._prev_pred = None
         self.drive = Drive()
+        if self._rdl is not None:
+            # RDL piece 3: a level start re-reads the release from carried + this run's stats
+            self._rdl["levels"] += 1
+            self._rdl_release(f"retarget ({how})")
 
     # -- step 1 -----------------------------------------------------------------------
 
@@ -8581,6 +8641,124 @@ class Agent:
                 and self._tk_after(dl_key, tk_next):
             self._dl_miss(dl_key, tiers, len(lit), dl_cut)
 
+    # ---------------------------------------------------------------- RDL piece 3 (TETHER_RDL)
+    def _rdl_birth(self) -> dict | None:
+        """At birth: the preload file and the two pieces that read it, or None and ONE row saying
+        why (inert). Only `usable` preloads (C2) index an entry; nothing is added to the library."""
+        store, rel, why = _rdl_modules()
+        pre: list = []
+        if why is None and not os.path.exists(RDL_PRELOAD):
+            why = f"no preload file at {RDL_PRELOAD}"
+        if why is None:
+            try:
+                pre = list(store.load(RDL_PRELOAD))
+            except (OSError, ValueError, KeyError, TypeError) as e:
+                why = f"the preload file did not load: {e}"
+        if why is None and not pre:
+            why = "the preload file holds no preloads"
+        if why is not None:
+            self.led.record(0, "IMPORT", "@rdl", "rdl_inert", why=why[:300],
+                            reads="RDL is inert this run: no search priority, no rows")
+            return None
+        by_entry: dict = {}
+        for p in pre:
+            if store.usable(p):                     # C2: else recorded, never offered
+                for e in p.attaches:
+                    by_entry.setdefault(e, []).append(p.pid)
+        rd = {"store": store, "release": rel, "preloads": {p.pid: p for p in pre},
+              "by_entry": by_entry, "stats_n": {}, "released": set(), "offered": set(),
+              "carried": {}, "rows": [], "policy": [], "released_at": {}, "levels": 0,
+              "rank": {}, "term_entry": {}}
+        self._rdl_release("birth", rd)
+        return rd
+
+    def _rdl_release(self, at: str, rd: dict | None = None) -> None:
+        """At each level start (and at birth and lineage load): `released` recomputed from the
+        carried stats plus this generation's rows, and the reach policy from the rows. Priority
+        only: the released set orders ties and decides nothing else."""
+        rd = rd if rd is not None else self._rdl
+        if rd is None:
+            return
+        rel, store = rd["release"], rd["store"]
+        pre = list(rd["preloads"].values())
+        stats = rel.merge_stats(rd["carried"], rel.stats_from_rows(rd["rows"]))
+        try:
+            got = set(rel.released(pre, stats, inherited_settled=True, usable=store.usable))
+        except TypeError:                           # a released() without the usable argument
+            got = set(rel.released(pre, stats, inherited_settled=True))
+        new = got - rd["released"]
+        for pid in new:
+            rd["released_at"].setdefault(pid, rd["levels"])
+        rd["released"], rd["rank"] = got, {}
+        rd["policy"] = rel.reach_policy(rd["rows"])
+        self.led.record(getattr(self, "cycle", 0), "IMPORT", "@rdl", "rdl_release", at=at,
+                        preloads=len(pre), released=len(got), newly=len(new),
+                        entries=sum(1 for ps in rd["by_entry"].values()
+                                    if any(p in got for p in ps)),
+                        by_tier=dict(sorted(Counter(rd["preloads"][p].tier
+                                                    for p in got).items())),
+                        reads="search priority only: entries attached to these preloads sort "
+                              "first among otherwise-equal lookup candidates; nothing reachable, "
+                              "added or given standing")
+
+    def _rdl_rank(self, entry: str) -> tuple:
+        """The tiebreak appended to the lookup's rank: (0, rdl_release.priority) for an entry
+        attached to a released preload, (1,) otherwise; () when RDL is off or inert."""
+        rd = self._rdl
+        if rd is None:
+            return ()
+        got = rd["rank"].get(entry)
+        if got is None:
+            rel, lv = rd["release"], rd["levels"]
+            best = None
+            for pid in rd["by_entry"].get(entry, ()):
+                if pid in rd["released"]:
+                    k = rel.priority(rd["preloads"][pid], rd["policy"],
+                                     lv - rd["released_at"].get(pid, lv))
+                    if best is None or k < best[0]:
+                        best = (k, pid)
+            got = ((1,), None) if best is None else ((0, best[0]), best[1])
+            rd["rank"][entry] = got
+        return got[0]
+
+    def _rdl_row(self, step: str, slot: str, event: str, p: Any, **detail) -> None:
+        """One C5 row with its C6 stamp, kept for the release's stats and counted into stats_n
+        by (corpus, tier): what the next save carries."""
+        rd = self._rdl
+        st = _rdl_stamp(p)
+        self.led.record(self.cycle, step, slot, event, **st, **detail)
+        rd["rows"].append({"event": event, "detail": {**st, **detail}})
+        n = rd["stats_n"].setdefault((st["corpus"], st["tier"]), {})
+        f = {"rdl_offer": "offered", "rdl_settle": "settled", "rdl_refuse": "refused"}[event]
+        n[f] = n.get(f, 0) + 1
+
+    def _rdl_offers(self, keyed: list, window: list, slot: str) -> None:
+        """rdl_offer, once per preload: an entry in the asked window that priority put AHEAD of an
+        otherwise-equal unattached entry (the first time the release moved an order)."""
+        rd = self._rdl
+        info = {e[0]: (b, r) for b, r, e in keyed}
+        plain = {b for b, r, _e in keyed if r == (1,)}
+        for e in window:
+            b, r = info[e[0]]
+            if r[:1] != (0,) or b not in plain:
+                continue
+            pid = rd["rank"][e[0]][1]
+            if pid in rd["offered"]:
+                continue
+            rd["offered"].add(pid)
+            self._rdl_row(self._running_step, slot, "rdl_offer", rd["preloads"][pid],
+                          entry=e[0], reads="ordered first among equals by the release's priority")
+
+    def _rdl_feedback(self, name: str, slot: str, event: str, step: str) -> None:
+        """rdl_settle / rdl_refuse: a term minted from an entry attached to a released preload
+        settled or was refused; one row per such preload."""
+        rd = self._rdl
+        if rd is None or name not in rd["term_entry"]:
+            return
+        entry, pids = rd["term_entry"][name]
+        for pid in pids:
+            self._rdl_row(step, slot, event, rd["preloads"][pid], term=name, entry=entry)
+
     def _topk(self, full: list, lit: list, tiers: dict, att: dict, tg: tuple,
               key: tuple) -> tuple[list, int | None]:
         """TK: the kept list ranked (its tier as listed, then the count of the asked readings it
@@ -8635,9 +8813,18 @@ class Agent:
                 p = paid.get(e[0], 0)
                 return (tier_of.get(e[0], len(tiers)), -p, bool(tried.get(e[0]) and not p),
                         -overlap(e))
-            ranked = sorted(lit, key=order)
         else:
-            ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)), -overlap(e)))
+            def order(e):
+                return (tier_of.get(e[0], len(tiers)), -overlap(e))
+        if self._rdl is not None and self._rdl["released"]:
+            # RDL piece 3: the released preloads' attachment is the LAST field, so it only orders
+            # entries every other field left equal; the same list, re-ordered, never cut
+            keyed = [(order(e), self._rdl_rank(e[0]), e) for e in lit]
+            keyed.sort(key=lambda x: x[:2])
+            ranked = [x[2] for x in keyed]
+        else:
+            keyed = None
+            ranked = sorted(lit, key=order)
         if _SERP_CACHE:
             # S3: what this key already judged no-fit is skipped; the window is the next unjudged
             nk = key
@@ -8657,6 +8844,8 @@ class Agent:
         nxt = off + TOPK_K
         self._tk_win = (key, tuple(k for k, _w in ranked[off:nxt]),
                         nk if _SERP_CACHE else None)
+        if keyed is not None:
+            self._rdl_offers(keyed, ranked[off:nxt], tg[0])
         return ranked[off:nxt], (nxt if nxt < len(ranked) else None)
 
     def _sa_edge_p(self, a: str, b: str, board: int) -> float:
@@ -17670,6 +17859,8 @@ class Agent:
         if _GOAL_FROM_ACTUATOR and not self._seam_now and getattr(self.iface, "last_changed", ()):
             _lc = set(self.iface.last_changed)     # G: a press that changed nothing says nothing
             self._press_every = _lc if self._press_every is None else self._press_every & _lc
+        if affordance._ON and self.__dict__.get("_aff_book") is not None and not self._seam_now:
+            self._aff_keeps()           # TETHER_AFFORDANCE: a 'keeps moving' test, one step on
         if _TOUCH_FELT and self._contact_pending is not None:
             self._contact_felt()
         if _GAME_LOSS_VOTE and not self._seam_now:
@@ -21717,6 +21908,8 @@ class Agent:
                     act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
                     if why == "untouched-kind":
                         _kt = target                   # C2 FELT: this press is a kind touch
+                        if affordance._ON:              # the condition is read at press time
+                            self._aff_ctx = (target, IFace.Interface.context(self.env, target))
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
                 elif _untried is not None:
@@ -24369,6 +24562,8 @@ class Agent:
         self._not.setdefault(k, []).append(self._refusal_scope())
         self.led.record(self.cycle, "MINT", slot, "refuse", term=name,
                         refused_under=len(self._not[k]), **detail)
+        if self._rdl is not None:
+            self._rdl_feedback(name, slot, "rdl_refuse", "MINT")         # RDL C5: refused
         if self.gamma.is_settled(name):
             self.led.record(self.cycle, "MINT", slot, "contradiction", term=name,
                             reads=("a settled term and its refusal both stand: two scopes, an "
@@ -26601,6 +26796,8 @@ class Agent:
                             owners=owners[:12],
                             reads=("a kind touch: what the press changed on the board, net of "
                                    "what changed anyway"))
+            if affordance._ON and self.__dict__.get("_aff_book") is not None:
+                self._aff_felt(pair[0], moved_all, landed)   # the first press judges the prior
             return
         moved = sorted(s for s in changed if self._objs_named(s) & set(pair))
         made = landed or bool(moved)
@@ -26613,6 +26810,103 @@ class Agent:
                         explored=k in self._contact_seen,
                         reads=("contact made: the press reached the pair" if made else
                                "no contact felt: the pair did not respond to the press"))
+
+    # ---- TETHER_AFFORDANCE (affordance.py): record and test only, never an action choice
+    _AFF_POS = frozenset(("row", "col", "x", "y", "cx", "cy", "r", "c"))
+
+    def _aff_pos(self, obj: str, state: dict) -> set:
+        """The object's position readings: POSITION-typed slots, else row/col/x/y by name."""
+        mine = [k for k in state if k.split(".", 1)[0] == obj and "." in k]
+        typed = {k for k in mine if "POSITION" in str(self.slot_types.get(k))}
+        return typed or {k for k in mine if k.split(".", 1)[1] in self._AFF_POS}
+
+    def _aff_see(self, before: dict) -> None:
+        """A kind new this run whose shape_name resolves to a concept: affordance_prior rows."""
+        bk = self.__dict__.get("_aff_book")
+        if bk is None:
+            bk = self._aff_book = affordance.Book()
+            self._aff_src = affordance.load_sources()
+        atoms, bridge, priors, why = self._aff_src
+        if why is None:
+            fn = getattr(self.env, "shape_name", None)
+            named = 0
+            for o in self._owners(before):
+                if not (o[:1] == "o" and o[1:].isdigit()):
+                    continue
+                sn = before.get(o + ".shape_name")
+                if sn is None and fn is not None:
+                    sn = fn(o)
+                sn = affordance.shape_name_of(sn)    # wip/shape-names publishes an index
+                if sn is None:
+                    continue
+                named += 1
+                kind = self._kind_str(o)
+                if kind in bk.seen:
+                    continue
+                chain = affordance.resolve(sn, atoms, bridge, priors)
+                if chain is None:
+                    bk.seen.add(kind)       # no concept for this shape: nothing to bet
+                    continue
+                for d in bk.offer(kind, o, chain):
+                    self.led.record(self.cycle, "PERCEIVE", o, "affordance_prior", **d,
+                                    reads="a stamped prior (C6), no standing: the first press on "
+                                          "this kind tests it")
+            if named or not self._owners(before):
+                return
+            why = "no shape_name read on any object (TETHER_SHAPE_NAMES absent or off)"
+        if not bk.inert_said:
+            bk.inert_said = True
+            self.led.record(self.cycle, "PERCEIVE", "@affordance", "affordance_inert", reads=why)
+
+    def _aff_felt(self, obj: str, moved_all: list, landed: bool) -> None:
+        """The first press on a kind with a prior: settle or refuse it (refuse = split by the
+        condition read at press time; the prior is kept)."""
+        bk = self._aff_book
+        kind = self._kind_str(obj)
+        if (kind, "moves") not in bk.prior:
+            return
+        state = self.env.observe()
+        pos = self._aff_pos(obj, state)
+        moved = bool(pos & set(moved_all))
+        ctx = self.__dict__.get("_aff_ctx")
+        ctx = ctx[1] if ctx is not None and ctx[0] == obj else None
+        if not landed:
+            cond = "the press did not land on it"
+        elif ctx:
+            cond = "touching " + ", ".join(str(c) for c in ctx)
+        else:
+            cond = "landed, touching nothing"
+        ev, d = bk.judge(kind, obj, "moves", moved, cond)
+        if ev is not None:
+            self.led.record(self.cycle, "PERCEIVE", obj, ev, **d,
+                            reads="the prior judged by its first press; nothing deleted")
+        if (kind, affordance.KEEPS) in bk.prior:
+            if moved:
+                bk.pending[kind] = (obj, self.cycle, {k: state.get(k) for k in pos}, cond)
+            else:
+                ev, d = bk.judge(kind, obj, affordance.KEEPS, False, cond)
+                if ev is not None:
+                    self.led.record(self.cycle, "PERCEIVE", obj, ev, **d,
+                                    reads="it did not move at all, so it did not keep moving")
+
+    def _aff_keeps(self) -> None:
+        """'keeps moving': the object's position readings changed again on the next step with no
+        new press landing on it."""
+        bk = self._aff_book
+        for kind, (obj, cyc, snap, cond) in list(bk.pending.items()):
+            if self.cycle == cyc:
+                continue
+            del bk.pending[kind]
+            state = self.env.observe()
+            if self.__dict__.get("_last_landed") == obj:     # pressed again: not this test yet
+                bk.pending[kind] = (obj, self.cycle, {k: state.get(k) for k in snap}, cond)
+                continue
+            again = any(state.get(k) != v for k, v in snap.items())
+            cond = "no new press on it; " + cond
+            ev, d = bk.judge(kind, obj, affordance.KEEPS, again, cond)
+            if ev is not None:
+                self.led.record(self.cycle, "PERCEIVE", obj, ev, **d,
+                                reads="the step after the press, no new press on it")
 
     def _reafferent(self, after: dict) -> frozenset:
         """(2a) I-B, REAFFERENCE (von Holst & Mittelstaedt 1950; the 10-23 design): the slots whose
@@ -26982,10 +27276,99 @@ class Agent:
                 return None     # past the declared budget nothing is read
             return _jc_bond(bond, self._jc_operand(a, state, depth + 1),
                             self._jc_operand(b, state, depth + 1))
-        u, v = state.get(a), state.get(b)
+        u, v = self._jc_read(a, state), self._jc_read(b, state)
         if u is None or v is None or u is NOT_RESOLVED or v is NOT_RESOLVED:
             return None
         return _jc_bond(bond, u, v)
+
+    def _jc_read(self, x: str, state: dict) -> Any:
+        """A junction operand on `state`: the board reading `x`, or under TETHER_PRODUCE_KEYS a
+        production operand's record-backed predicate (_pk_value)."""
+        op = self._pk_ops.get(x) if _PRODUCE_KEYS else None
+        return state.get(x) if op is None else self._pk_value(op, state)
+
+    def _pk_value(self, op: tuple, state: dict) -> bool | None:
+        """PRODUCE_KEYS, both record-backed and None (unresolved, never a guess) where the record
+        does not hold `state`: ("press", A) -- the press the trace records just before `state` was
+        A; ("kind", K) -- the can ledger's reading of `state` had an item of kind key K on the CAN
+        list (actionable: what a production's evidence is, an item of kind K appearing or opening).
+        NOT "present": every state in a kind-K slot's own history holds that slot, so presence is
+        true throughout it and could never separate R."""
+        at = self._pk_at(state)
+        if at is None:
+            return None
+        idx, press = at
+        if op[0] == "press":
+            return press == op[1]
+        c = self.__dict__.get("_pk_can")
+        can = c[1].get(idx) if c is not None and c[0] is self.trace else None
+        return None if can is None else op[1] in can
+
+    def _pk_at(self, state: dict) -> tuple | None:
+        """(the trace row whose after-reading `state` is, the press of that row): row i's before-
+        state follows row i-1, the last row's after-state its own row. Read off the trace by
+        identity (env.observe gives each a fresh dict), rebuilt when it grows."""
+        tr = self.trace
+        c = self.__dict__.get("_pk_pc")
+        if c is None or c[0] is not tr or c[1] != len(tr):
+            m = {}
+            for i in range(1, len(tr)):
+                m[id(tr[i][0])] = (tr[i][0], i - 1, str(tr[i - 1][1]))
+            if tr:
+                m[id(tr[-1][2])] = (tr[-1][2], len(tr) - 1, str(tr[-1][1]))
+            c = self._pk_pc = (tr, len(tr), m)
+        got = c[2].get(id(state))
+        return (got[1], got[2]) if got is not None and got[0] is state else None
+
+    def _pk_note_can(self, now: dict) -> None:
+        """PRODUCE_KEYS: the kind keys on the CAN list in the can ledger's reading of the last trace
+        row's after-state, kept by row so _pk_value can read any state of this trace."""
+        c = self.__dict__.get("_pk_can")
+        if c is None or c[0] is not self.trace:
+            c = self._pk_can = (self.trace, {})
+        c[1][len(self.trace) - 1] = {self._can_kind_key(s) for s, (side, _w) in now.items()
+                                     if side == can_ledger.CAN}
+
+    def _produce_keys(self, book: Any) -> None:
+        """PRODUCE_KEYS: each SETTLED production (press A, kind K) routed through _route_junction as
+        the ⇒ key ⇒:@press:A|@kind:K onto the guard offer of every slot of kind K (kind, never a
+        name); one taken back off the offer when it tips back to unsettled. A ROUTE row each."""
+        if not (_PRODUCE_KEYS and _BOND_TERMS and _IMPLIES_BOND):
+            return
+        settled = book.settled()
+        routed = self.__dict__.setdefault("_pk_routed", {})     # key -> (press, kind)
+        live = {f"⇒:@press:{p}|@kind:{k!r}" for p, k in settled}
+        for key in [k for k in routed if k not in live]:
+            off = sorted(s for s, ks in self._junction_of.items() if key in ks)
+            for s in off:
+                self._junction_of[s].discard(key)
+            p, k = routed.pop(key)
+            if off:
+                self.led.record(self.cycle, "ROUTE", "@can", "produce_key_off", key=key, press=p,
+                                kind=list(k), slots=off[:12], n=len(off),
+                                score=list(book.score.get((p, k), ())),
+                                reads="A => B no longer settled: its ⇒ key off the guard offer")
+        if not settled:
+            return
+        by_kind: dict = {}
+        for s in self.slots:
+            if "." in s and "~" not in s and "@" not in s:
+                by_kind.setdefault(self._can_kind_key(s), []).append(s)
+        for p, k in settled:
+            a, b = f"@press:{p}", f"@kind:{k!r}"
+            key = f"⇒:{a}|{b}"
+            new = sorted(s for s in by_kind.get(k, ()) if key not in self._junction_of.get(s, ()))
+            if not new:
+                continue
+            self._pk_ops[a], self._pk_ops[b] = ("press", p), ("kind", k)
+            why = self._route_junction("⇒", a, b, to=new)
+            routed[key] = (p, k)
+            self.led.record(self.cycle, "ROUTE", "@can", "produce_key", key=key, press=p,
+                            kind=list(k), slots=new[:12], n=len(new), why=why,
+                            score=list(book.score.get((p, k), ())),
+                            reads="A => B settled: its ⇒ key routed to the guard offer of every "
+                                  "slot of kind B, offered where it separates R (record-backed: "
+                                  "@press reads the trace, @kind the can ledger's CAN list)")
 
     def _jc_operand(self, op: str, state: dict, depth: int) -> bool | None:
         """O2: one operand of a combined key -- a key (¬ allowed, under TETHER_NEGATE_GUARD)."""
@@ -27135,24 +27518,31 @@ class Agent:
                 out.append(k)
         return out + self._jk_nest_offer(robs, slot)     # O2: [] with TETHER_GUARD_NEST OFF
 
-    def _route_junction(self, bond: str, a: str, b: str) -> str:
+    def _route_junction(self, bond: str, a: str, b: str, to: list | None = None) -> str:
         """BOND TERMS (r1059): a settled ≡ / ⋛ / + junction between readings a and b, a CONDITION,
         routed to b's guard offer: ≡ one canonical key (symmetric, Operators Table :26, :59-60), ⋛
         both orders (:50), + only between two truth-typed readings (r1057). O1
         (TETHER_IMPLIES_BOND): ⇒ like ∥ between two truth-typed readings, but ORDERED (:38): the
-        one key a⇒b, never sorted. The reason, counted."""
+        one key a⇒b, never sorted. The reason, counted. TETHER_PRODUCE_KEYS: a production operand
+        (_pk_ops) is truth-typed by construction, and `to` names the slots whose guard offer gets
+        the key (every slot of the consequent's kind) where b is not itself a slot."""
         if bond == "⇒" and not (_BOND_TERMS and _IMPLIES_BOND):
             return "⇒: bond has no atom (r896)"
-        if bond in ("+", "∥", "⇒") and not all(str(self.slot_types.get(s)) in ("PRED", "BOOL")
-                                               for s in (a, b)):
+        if bond in ("+", "∥", "⇒") and not all(
+                str(self.slot_types.get(s)) in ("PRED", "BOOL")
+                or (_PRODUCE_KEYS and s in self._pk_ops) for s in (a, b)):
             atom = {"+": "both", "∥": "either"}.get(bond, "implies")
             return f"bond {bond}: {atom}: the operands are not conditions (typing)"
         p, q = sorted((a, b))
         pairs = [(a, b), (b, a)] if bond == "⋛" else [(a, b)] if bond == "⇒" else [(p, q)]
+        dest = list(to) if (to and _PRODUCE_KEYS) else [b]
         for u, v in pairs:
             k = f"{bond}:{u}|{v}"
             self._junction_conds[k] = (bond, u, v)
-            self._junction_of.setdefault(b, set()).add(k)
+            for d in dest:
+                self._junction_of.setdefault(d, set()).add(k)
+        if dest != [b]:
+            return f"condition: routed to the guard offer for {len(dest)} slot(s) of {b}"
         return f"condition: routed to the guard offer for {b}"
 
     def _guards_once(self, robs: list, slot: str, binds) -> tuple:
@@ -27258,6 +27648,8 @@ class Agent:
                     if isinstance(tk, tuple) and len(tk) > 1 and isinstance(v, tuple) and v
                     and v[0] in can_ledger.REFUTED_ENDS}
         now = can_ledger.classify(slots, movable, routable, clock, untried, given_up)
+        if _PRODUCE_KEYS and _CAN_PRODUCE:
+            self._pk_note_can(now)          # the reading the "@kind" operand reads back
         known = (sum(len(v.get("delta", {})) for v in table.values()), len(self.gamma.library))
         prev, pstate = st["lists"], st["state"]
         lag = self.cycle - st["step"]
@@ -27346,6 +27738,8 @@ class Agent:
                             reads="A => B: what this press produced before, predicted from "
                                   "earlier readings and settled on this one (record-only)")
         book.learn(press, observed)
+        if _PRODUCE_KEYS:
+            self._produce_keys(book)        # settled pairs as ⇒ guard keys (inert OFF)
 
     def _can_offer_row(self, item: str) -> None:
         """An item of a filed kind is closed or appears blocked: its openers offered, a row."""
@@ -29447,6 +29841,12 @@ class Agent:
                              == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
                 if prov is not None:
                     detail["library"] = prov
+                    if self._rdl is not None:
+                        # RDL C5: the term carries its entry's released preloads to its verdict
+                        _rp = [p for p in self._rdl["by_entry"].get(prov.get("library"), ())
+                               if p in self._rdl["released"]]
+                        if _rp:
+                            self._rdl["term_entry"][term.name] = (prov.get("library"), _rp)
                     if _SENSES and prov.get("library") is not None:
                         self._sense_pick(slot, term.name, prov["library"], prov.get("role", "*"))
                     if _REACH_PAID:
@@ -29956,6 +30356,8 @@ class Agent:
                                     verdict="mispredicted on fresh evidence",
                                     rejections=round(self.gamma.rejection_of(name), 3),
                                     note="defeasible: the rejection decays and it may settle again")
+                    if self._rdl is not None:
+                        self._rdl_feedback(name, slot, "rdl_refuse", "SETTLE")   # RDL C5: refuted
                     # YOU CAN PROPOSE ON A CANDIDATE; YOU CANNOT STAND ON ONE. Only
                     # on a REFUTATION -- the ground reversing a settlement it had made.
                     # A candidate that mispredicts has not been refused; it has not yet
@@ -30096,6 +30498,8 @@ class Agent:
                             **({"bound_by": self._rp_bound.get(
                                 (slot, name), self._rp_bound.get((None, name), "none recorded"))}
                                if _REACH_PAID else {}))
+            if self._rdl is not None:
+                self._rdl_feedback(name, slot, "rdl_settle", "SETTLE")     # RDL C5: the ground paid
 
     # -- the utterance: the only way an action is proposed --------------------------------
 
@@ -30636,8 +31040,13 @@ class Agent:
 
     def _allowance(self) -> int:
         """C2: what this step may think: the purse plus this level's bank (r1399 3; Isaiah 11-06:
-        "any time saved per question can be allocated to harder questions")."""
-        return self._purse() + (self._bank if self._bank_lvl == self.level else 0)
+        "any time saved per question can be allocated to harder questions"). BANK SHARE: the bank
+        is shared among the hard questions waiting -- this step draws at most bank / (owed + 1),
+        the owed queue being the questions still unasked (the budget row's owed_questions)."""
+        bank = self._bank if self._bank_lvl == self.level else 0
+        if _BANK_SHARE and bank:
+            bank //= len(set(self._owed_q.values())) + 1
+        return self._purse() + bank
 
     def _purse_out(self) -> bool:
         """Is this step's thinking budget spent? ON: thinking heads against the allowance (never
@@ -30877,6 +31286,8 @@ class Agent:
         before = self.env.observe()
         if compile_term._GROUP_ROW:
             self._note_kinds(before)
+        if affordance._ON:   # TETHER_AFFORDANCE: new kind, shape -> concept -> prior row
+            self._aff_see(before)
         if _GOAL_ORDER and self.__dict__.get("_order_next"):
             self._order_advance(before)
         if _NO_LEVER:       # item 18: each held slot's context, read BEFORE this step's press

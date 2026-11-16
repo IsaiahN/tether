@@ -70,3 +70,4 @@ Numbered by date, oldest first. None is read by code.
 - [39](39-WATSON_2026-11-13_THE_WALKTHROUGH_AND_THE_DESIGN_BILL.md) 2026-11-13: The walkthrough and the design bill
 - [40](40-WATSON_2026-11-13_RECURSIVE_DIFFUSION_LEARNING.md) 2026-11-13: Recursive Diffusion Learning: a large corpus without pretraining, settled by the board (future state)
 - [41](41-WATSON_2026-11-13_STRATA_ISLANDS_AND_GAP_WIDTHS.md) 2026-11-13: Strata, islands and gap widths: placement by depth, neighbourhoods by paid bonds (future state)
+- [42](42-WATSON_2026-11-16_RECURSIVE_DIFFUSION_LEARNING_THE_DESIGN.md) 2026-11-16: Recursive Diffusion Learning, the design: what is built, and the chain from a board pattern to a word, a concept, its actions and back (builds on 40; partly built)

@@ -34,12 +34,36 @@ And the fixes the T0 runs asked for, in the order they were found:
 | T0b | `b4cb279` | no refusal rows; every goal a count goal with no known first step |
 | T0c | `dd1b793`, KIND_LEVER off | not a pass, the best yet: refusals in 4 games, subgoals in 3, ka59 returned to a parent once; no clear through the chain. lp85 cleared level 1 without the chain |
 | T0d | `16a4b3b` (= `dd1b793` agent), KIND_LEVER on | not a pass. KIND_LEVER fired 114 times and replaced touching (21 -> 2), so goals mostly ended untested and nothing was refused or repaired (repairs 4 -> 0). Its pre-registered refuter fired; the switch stays ON until the whole build is tested together (Isaiah 2026-11-16). The run shared the machine with a download and builds, so its step counts do not compare with T0c. lp85 cleared level 1 again, without the chain. HTN_RETURN (606f96a) was not in this run |
+| T0e (together-test) | `0b1245c`, every switch ON, 300 s a game, quiet machine | not a pass. **lp85 cleared level 1** (without the chain). About twice the steps per second of T0d (lf52 15 in 341 s against 14 in 742 s; ka59 16 in 305 s against 19 in 662 s) and one step over 60 s (65 s) against T0d's 483 + 501 s; the bank share and the quiet machine together, not separated. The new pieces fire on real games: `words_carry` 24, `produce_key` 86, `rdl_release` 8, `rdl_offer` 2, kind lever 23 and touches 24. No goal was refused at contact, so the repair and the return had no occasion; no RDL material settled or was refused yet |
 
 **Also added:** `library/lexicon_imagenet_wordnet.json` (the 1000 ImageNet-1k classes, each with its WordNet 3.0 synset, lemmas, gloss and hypernym chain, provenanced and licensed in its header; nothing reads it yet), the groundwork for the "voice by mapping" future-state item. 306 older tests were retired (108 kept), because the full suite took hours.
 
 **The operators:** O1, ⇒ usable in an idea's guard, ordered, read as (not A) or B (TETHER_IMPLIES_BOND, `bc49790`). O2, a guard may join two conditions, not only two readings, to a declared depth of 2, offered only where it sorts the history strictly better than each part and priced as its parts plus one bond (TETHER_GUARD_NEST, `580f9ab`). O3, bond pricing: `BONDS = 1` is correct where it is used (the predict signature, r1953); the price that was missing was the joined guard's, and it landed with O2. Not yet: offering the production ledger's learned A ⇒ B pairs as guard keys (they are press and kind pairs, not two readings), and joining conditions across slots.
 
-**Still open:** the T0 gate itself (a clear through the chain); nine of the formula's symbols are unbound, each with its reason in `symbols.py`; and the keep rules of every item above are read at the next retest that reaches enough goals and boards.
+**Recursive Diffusion Learning has started** (2026-11-16 afternoon; design `docs/05-RESEARCH/40`, interfaces `docs/03-DESIGN/RDL_BUILD_SPEC_2026-11-16.md`):
+- `rdl_store.py` (C1 no recordings, C2 usable needs bonds and an attach, C3 no standing field anywhere, C6 every preload stamped with stage and source) and `rdl_parse.py`, which writes `library/rdl_preload.json`: 1,494 preloads over tiers 1-4 (1000 / 36 / 445 / 13), 191 usable. They attach to library entries by cluster, never by raw name. `fa208f3`.
+- `rdl_release.py` (`cd557b0`):
+  - C4: tier k opens when tier k-1 has 2 settled, which is MIN_REPEAT reused. The inherited library counts as settled for tier 1.
+  - Codified reach: an ordered validity table from the rdl rows. No weights.
+- The agent (TETHER_RDL, `0b1245c`):
+  - Released preloads break ties in the described lookup's ranking. That is search priority only: nothing becomes reachable and nothing gains standing.
+  - `rdl_offer`, `rdl_settle` and `rdl_refuse` rows carry the stamp.
+  - Counts carry in the lineage as `rdl_n`.
+  - OFF is identical to the tree before it (gridworld 12 steps, 2,427 rows).
+- Not yet: other ordering sites (the library-first offer walk, the atom-chain walk), clusters on the feedback rows, and a live settle or refuse of RDL material. Tiers above 1 open only when the board settles tier-1 material.
+
+**And the meaning chain** (Isaiah: "it's a ball, shaped like a ball, acts like a ball; balls can roll, does this roll?"), in `docs/05-RESEARCH/42`: shape names in perception (TETHER_SHAPE_NAMES), a flat-to-solid shape bridge (disc -> sphere -> ball), a word map with categories and a synonym index, concept -> actions from WordNet both ways and ConceptNet, VerbNet classes, a vocabulary of WordNet minus NSM, and the affordance bet with its sentences (TETHER_AFFORDANCE). All preloaded with no standing; the board decides.
+
+**Also this afternoon:**
+- TETHER_BANK_SHARE (`68628e2`): one hard question no longer drains the level's whole thinking bank (T0d g50t: 52 M of allowance in one step).
+- TETHER_PRODUCE_KEYS (`519ad1b`): settled productions become ⇒ guard keys by kind.
+- 18 of 22 symbols bound (`5667f1a`).
+- The step-5 index audit (`2ed264a`): 142 filings fixed through the builder, 253 judgement calls listed in `docs/03-DESIGN/INDEX_AUDIT_2026-11-16.md`.
+
+**Still open:**
+- The T0 gate itself: a clear through the chain.
+- Four symbols unbound, each with its reason in `symbols.py`.
+- The keep rules of every item above, read at the next retest that reaches enough goals and boards.
 
 The sections below are as of 2026-11-13 and are kept as the record of how the order above was decided.
 

@@ -559,7 +559,7 @@ class Clocks:
 ARM_MODULES = ("tether", "arc_percept", "arc_world", "arc_atoms", "compile_term", "gridworld",
                "interface", "lineage", "gamma", "instruments", "sensors_heavy", "relations",
                "ledger", "lineage_store", "cap", "arc_holdout", "narrate", "composer",
-               "pipelog", "nsm", "arc_predict", "reuse")
+               "pipelog", "nsm", "arc_predict", "reuse", "affordance")
 
 
 class Attribution:
