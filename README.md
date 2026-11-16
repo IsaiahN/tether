@@ -1,4 +1,4 @@
-# tether — the ARC-AGI-3 solver agent
+﻿# tether — the ARC-AGI-3 solver agent
 
 The [general tether agent](https://github.com/IsaiahN/tether/tree/general-agent), pointed at
 [ARC-AGI-3](https://arcprize.org/): interactive games it has never seen, with no instructions,
@@ -167,14 +167,14 @@ ARC is only the adapter and the harness below.
 
 ## Future state
 
-- **Recursive Diffusion Learning** (planned, not built). The agent has no weights to pretrain,
+- **Recursive Diffusion Learning** (started 2026-11-16: the preload store, the parser, the release by what the board settled, the codified search order and the agent's wiring are built, behind TETHER_RDL). The agent has no weights to pretrain,
   since its mind is search and reason, so a large corpus is preloaded instead: a parser rewrites
   it into the agent's own grammar in stages that each lose more detail (instances, regularities,
   abstractions, core rules), and each stage is released only as fast as the board settles the one
   before. Nothing preloaded has standing until contact with the board pays for it, and anything
   built on a term the board refutes falls on its own, so the ground does the training, and the
   agent's own record of how its reach grew decides where it searches first.
-- **A visual lexicon, so its speech grows fluent** (planned, not built). Today the agent
+- **A visual lexicon, so its speech grows fluent** (first links built 2026-11-16: shape names in perception, a preloaded library of 44 standard flat and solid shapes recognised without a neural network (AKAZE key points and outline signatures), a word map to WordNet, action lists for concepts, and the affordance bet: "this is like a ball; a ball can move; does this move?"). Today the agent
   describes what it sees in its own pointers ("o1 moved 5 columns right"). Linking pictures to
   words and to how words relate (ImageNet, WordNet and a relation layer) would let recognition name
   what it sees ("the ball rolls to the right"), and every name carries predictions the board can
@@ -183,14 +183,14 @@ ARC is only the adapter and the harness below.
   board can confirm, split by condition, or refuse. That is why it learns this way: the same terms
   settle on abstract boards and in the world they describe, so it learns about the world while it
   learns abstractions, and its speech becomes more fluent as more of its words are grounded.
-- **From flat boards to depth** (planned, not built). A child lives in three dimensions first
+- **From flat boards to depth** (a first bridge built 2026-11-16: a flat shape stands for a solid one, disc to sphere to ball, held on flat boards and earned by behaviour). A child lives in three dimensions first
   and later learns that a flat picture stands for a solid thing; this agent starts the other way
   round, on flat, rigid boards. Most of what it settles is relational (contact, blocking,
   containment, order) and carries across, but ideas that need depth (something hidden behind
   something, things that fall or squash) can only be held until a board with depth can settle
   them. So its boards would widen in order: grids, then photographs (depth cues in its own flat
   medium), then video, then simulated 3D worlds, then the physical world.
-- **A voice, by mapping rather than training** (planned, not built). Each layer above is a lookup,
+- **A voice, by mapping rather than training** (hops 1 and 2 built 2026-11-16, ImageNet to WordNet to its words; a relation layer imported from ConceptNet and VerbNet; the pronouncing dictionary and the voice are not built). Each layer above is a lookup,
   not a model to train: a picture's ImageNet id is its WordNet entry, WordNet gives the words that
   name the same thing, a relation layer gives the roles they play, the agent's library links them
   to what it already holds, and a pronouncing dictionary turns each word into sounds a rule-based
@@ -199,6 +199,8 @@ ARC is only the adapter and the harness below.
   once it can also hear, with the listener as its board. Most of the joins are hours of work on
   keys that already exist; linking words to the library is the reviewable part, and the place
   where help is most welcome.
+
+Design and status, layer by layer: [docs/05-RESEARCH/42](docs/05-RESEARCH/42-WATSON_2026-11-16_RECURSIVE_DIFFUSION_LEARNING_THE_DESIGN.md). Third-party data and software, with their licences: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Documents
 
