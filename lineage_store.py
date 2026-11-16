@@ -230,7 +230,7 @@ def _counts_apply(c: dict, g: dict, amap: dict | None = None, k: int = 0) -> dic
     _add(c.setdefault("unit_used", {}), g.get("unit_used") or {})
     for fld in ("line_grades", "root_grades", "kind_counts", "hazard_3a", "thought_tried",
                 "thought_paid", "b2_kinds", "b2_cells", "facet_n", "reuse_n", "obg_n",
-                "htn_n"):
+                "htn_n", "rdl_n"):
         for k, d in g.get(fld, {}).items():
             _add(c.setdefault(fld, {}).setdefault(k, {}), d)
     _add(c.setdefault("cause_kinds", {}), g.get("cause_kinds", {}))

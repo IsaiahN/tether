@@ -3405,6 +3405,15 @@ ARMS: dict[str, str] = {
                          "again, that subtask is htn_not_prerequisite for it; the edge is "
                          "credited at the returned parent's end (paid = won). NEEDS "
                          "TETHER_REPAIR_AT_REFUSAL. OFF: the parent stays tried. default ON",
+    "TETHER_RDL": "Isaiah 2026-11-16 'RDL matters most' (RDL_BUILD_SPEC_2026-11-16 Piece 3; "
+                  "WATSON 40 C4-C6): the released preloads (library/rdl_preload.json, read by "
+                  "rdl_store / rdl_release) set SEARCH PRIORITY ONLY -- an entry attached to one "
+                  "sorts ahead of an otherwise-equal entry in the described lookup's rank (_topk), "
+                  "by rdl_release.priority; nothing made reachable, added or given standing. "
+                  "rdl_offer / rdl_settle / rdl_refuse rows stamped pid, stage, tier, corpus, "
+                  "parser; counts carried as rdl_n (the obg_n pattern). Pieces or file absent: "
+                  "inert, one rdl_inert row. OFF: nothing loaded, no order change, no rows. "
+                  "default ON",
     "TETHER_IMPLIES_BOND": "O1 (BUILD_SEQUENCE_FUTURE_STATE §5 'O1: ⇒ wired'; the reviewer "
                            "2026-11-13/14 '⇒ has no atom at all'; Operators Table :35-40, "
                            "production, symmetric: no): a settled ⇒ junction between two "

@@ -1998,6 +1998,35 @@ _PURSE_OWN = armflag.arm("TETHER_PURSE_OWN", default=True)
 # a step drawing at most bank / (owed questions + 1). No new constant; a lone hard question still
 # gets it all. OFF: a step may draw the whole bank, as before.
 _BANK_SHARE = armflag.arm("TETHER_BANK_SHARE", default=True)
+# RDL PIECE 3 (Isaiah 2026-11-16 "RDL matters most"; docs/03-DESIGN/RDL_BUILD_SPEC_2026-11-16.md
+# "Piece 3"; WATSON 40 C4-C6): the preloads the release has RELEASED set SEARCH PRIORITY ONLY --
+# an entry attached to one sorts ahead of an otherwise-equal entry in the described lookup's rank
+# (_topk), by rdl_release.priority. It never makes anything reachable, never adds to the library,
+# never writes standing (the three quantities). Feedback (C5): rdl_offer / rdl_settle / rdl_refuse
+# rows, each stamped (C6) pid, stage, tier, corpus, parser; their counts ride the lineage as
+# increments (rdl_n, the obg_n pattern). rdl_store / rdl_release missing, or no preload file: inert,
+# one row saying why. OFF: nothing loaded, no order change, no rows.
+_RDL = armflag.arm("TETHER_RDL", default=True)  # RDL piece 3: released preloads order ties
+# the preload file, relative to this module's own directory (tests point it at a fixture)
+RDL_PRELOAD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library",
+                           "rdl_preload.json")
+
+
+def _rdl_modules() -> tuple[Any, Any, str | None]:
+    """(rdl_store, rdl_release, None), or (None, None, why) when either piece is not built yet."""
+    try:
+        import rdl_release
+        import rdl_store
+    except ImportError as e:
+        return None, None, f"rdl_store / rdl_release not importable: {e}"
+    return rdl_store, rdl_release, None
+
+
+def _rdl_stamp(p: Any) -> dict:
+    """C6: every RDL row names the preload it is about and where it came from."""
+    src = getattr(p, "source", None) or {}
+    return {"pid": p.pid, "stage": p.stage, "tier": p.tier, "corpus": src.get("corpus"),
+            "parser": src.get("parser")}
 # C2 P3 (r1610 Q3): TETHER_PURSE_DEADLINE, a think is priced in the purse's own unit: offline the
 # deadline is actions_left x purse, so a think displaces think heads / purse presses; online the
 # runner's seconds per remaining press over the agent's own seconds per step, x purse. OFF: today's
@@ -5526,6 +5555,8 @@ class Agent:
                             library=library_state(),
                             budget_bytes=self._w_budget, ram_bytes=_ram_bytes(),   # W-1
                             **I.Attribution.code(), **I.Attribution.run(env, gam))
+        # RDL piece 3 (TETHER_RDL): the released preloads, loaded at birth; None when OFF or inert
+        self._rdl: dict | None = self._rdl_birth() if _RDL else None
         self.slots = env.slots()
         self.bound: dict[str, str] = {}
 
@@ -6827,6 +6858,10 @@ class Agent:
         self._view = ("full", dict)
         self._prev_bet = self._prev_pred = None
         self.drive = Drive()
+        if self._rdl is not None:
+            # RDL piece 3: a level start re-reads the release from carried + this run's stats
+            self._rdl["levels"] += 1
+            self._rdl_release(f"retarget ({how})")
 
     # -- step 1 -----------------------------------------------------------------------
 
@@ -8605,6 +8640,124 @@ class Agent:
                 and self._tk_after(dl_key, tk_next):
             self._dl_miss(dl_key, tiers, len(lit), dl_cut)
 
+    # ---------------------------------------------------------------- RDL piece 3 (TETHER_RDL)
+    def _rdl_birth(self) -> dict | None:
+        """At birth: the preload file and the two pieces that read it, or None and ONE row saying
+        why (inert). Only `usable` preloads (C2) index an entry; nothing is added to the library."""
+        store, rel, why = _rdl_modules()
+        pre: list = []
+        if why is None and not os.path.exists(RDL_PRELOAD):
+            why = f"no preload file at {RDL_PRELOAD}"
+        if why is None:
+            try:
+                pre = list(store.load(RDL_PRELOAD))
+            except (OSError, ValueError, KeyError, TypeError) as e:
+                why = f"the preload file did not load: {e}"
+        if why is None and not pre:
+            why = "the preload file holds no preloads"
+        if why is not None:
+            self.led.record(0, "IMPORT", "@rdl", "rdl_inert", why=why[:300],
+                            reads="RDL is inert this run: no search priority, no rows")
+            return None
+        by_entry: dict = {}
+        for p in pre:
+            if store.usable(p):                     # C2: else recorded, never offered
+                for e in p.attaches:
+                    by_entry.setdefault(e, []).append(p.pid)
+        rd = {"store": store, "release": rel, "preloads": {p.pid: p for p in pre},
+              "by_entry": by_entry, "stats_n": {}, "released": set(), "offered": set(),
+              "carried": {}, "rows": [], "policy": [], "released_at": {}, "levels": 0,
+              "rank": {}, "term_entry": {}}
+        self._rdl_release("birth", rd)
+        return rd
+
+    def _rdl_release(self, at: str, rd: dict | None = None) -> None:
+        """At each level start (and at birth and lineage load): `released` recomputed from the
+        carried stats plus this generation's rows, and the reach policy from the rows. Priority
+        only: the released set orders ties and decides nothing else."""
+        rd = rd if rd is not None else self._rdl
+        if rd is None:
+            return
+        rel, store = rd["release"], rd["store"]
+        pre = list(rd["preloads"].values())
+        stats = rel.merge_stats(rd["carried"], rel.stats_from_rows(rd["rows"]))
+        try:
+            got = set(rel.released(pre, stats, inherited_settled=True, usable=store.usable))
+        except TypeError:                           # a released() without the usable argument
+            got = set(rel.released(pre, stats, inherited_settled=True))
+        new = got - rd["released"]
+        for pid in new:
+            rd["released_at"].setdefault(pid, rd["levels"])
+        rd["released"], rd["rank"] = got, {}
+        rd["policy"] = rel.reach_policy(rd["rows"])
+        self.led.record(getattr(self, "cycle", 0), "IMPORT", "@rdl", "rdl_release", at=at,
+                        preloads=len(pre), released=len(got), newly=len(new),
+                        entries=sum(1 for ps in rd["by_entry"].values()
+                                    if any(p in got for p in ps)),
+                        by_tier=dict(sorted(Counter(rd["preloads"][p].tier
+                                                    for p in got).items())),
+                        reads="search priority only: entries attached to these preloads sort "
+                              "first among otherwise-equal lookup candidates; nothing reachable, "
+                              "added or given standing")
+
+    def _rdl_rank(self, entry: str) -> tuple:
+        """The tiebreak appended to the lookup's rank: (0, rdl_release.priority) for an entry
+        attached to a released preload, (1,) otherwise; () when RDL is off or inert."""
+        rd = self._rdl
+        if rd is None:
+            return ()
+        got = rd["rank"].get(entry)
+        if got is None:
+            rel, lv = rd["release"], rd["levels"]
+            best = None
+            for pid in rd["by_entry"].get(entry, ()):
+                if pid in rd["released"]:
+                    k = rel.priority(rd["preloads"][pid], rd["policy"],
+                                     lv - rd["released_at"].get(pid, lv))
+                    if best is None or k < best[0]:
+                        best = (k, pid)
+            got = ((1,), None) if best is None else ((0, best[0]), best[1])
+            rd["rank"][entry] = got
+        return got[0]
+
+    def _rdl_row(self, step: str, slot: str, event: str, p: Any, **detail) -> None:
+        """One C5 row with its C6 stamp, kept for the release's stats and counted into stats_n
+        by (corpus, tier): what the next save carries."""
+        rd = self._rdl
+        st = _rdl_stamp(p)
+        self.led.record(self.cycle, step, slot, event, **st, **detail)
+        rd["rows"].append({"event": event, "detail": {**st, **detail}})
+        n = rd["stats_n"].setdefault((st["corpus"], st["tier"]), {})
+        f = {"rdl_offer": "offered", "rdl_settle": "settled", "rdl_refuse": "refused"}[event]
+        n[f] = n.get(f, 0) + 1
+
+    def _rdl_offers(self, keyed: list, window: list, slot: str) -> None:
+        """rdl_offer, once per preload: an entry in the asked window that priority put AHEAD of an
+        otherwise-equal unattached entry (the first time the release moved an order)."""
+        rd = self._rdl
+        info = {e[0]: (b, r) for b, r, e in keyed}
+        plain = {b for b, r, _e in keyed if r == (1,)}
+        for e in window:
+            b, r = info[e[0]]
+            if r[:1] != (0,) or b not in plain:
+                continue
+            pid = rd["rank"][e[0]][1]
+            if pid in rd["offered"]:
+                continue
+            rd["offered"].add(pid)
+            self._rdl_row(self._running_step, slot, "rdl_offer", rd["preloads"][pid],
+                          entry=e[0], reads="ordered first among equals by the release's priority")
+
+    def _rdl_feedback(self, name: str, slot: str, event: str, step: str) -> None:
+        """rdl_settle / rdl_refuse: a term minted from an entry attached to a released preload
+        settled or was refused; one row per such preload."""
+        rd = self._rdl
+        if rd is None or name not in rd["term_entry"]:
+            return
+        entry, pids = rd["term_entry"][name]
+        for pid in pids:
+            self._rdl_row(step, slot, event, rd["preloads"][pid], term=name, entry=entry)
+
     def _topk(self, full: list, lit: list, tiers: dict, att: dict, tg: tuple,
               key: tuple) -> tuple[list, int | None]:
         """TK: the kept list ranked (its tier as listed, then the count of the asked readings it
@@ -8659,9 +8812,18 @@ class Agent:
                 p = paid.get(e[0], 0)
                 return (tier_of.get(e[0], len(tiers)), -p, bool(tried.get(e[0]) and not p),
                         -overlap(e))
-            ranked = sorted(lit, key=order)
         else:
-            ranked = sorted(lit, key=lambda e: (tier_of.get(e[0], len(tiers)), -overlap(e)))
+            def order(e):
+                return (tier_of.get(e[0], len(tiers)), -overlap(e))
+        if self._rdl is not None and self._rdl["released"]:
+            # RDL piece 3: the released preloads' attachment is the LAST field, so it only orders
+            # entries every other field left equal; the same list, re-ordered, never cut
+            keyed = [(order(e), self._rdl_rank(e[0]), e) for e in lit]
+            keyed.sort(key=lambda x: x[:2])
+            ranked = [x[2] for x in keyed]
+        else:
+            keyed = None
+            ranked = sorted(lit, key=order)
         if _SERP_CACHE:
             # S3: what this key already judged no-fit is skipped; the window is the next unjudged
             nk = key
@@ -8681,6 +8843,8 @@ class Agent:
         nxt = off + TOPK_K
         self._tk_win = (key, tuple(k for k, _w in ranked[off:nxt]),
                         nk if _SERP_CACHE else None)
+        if keyed is not None:
+            self._rdl_offers(keyed, ranked[off:nxt], tg[0])
         return ranked[off:nxt], (nxt if nxt < len(ranked) else None)
 
     def _sa_edge_p(self, a: str, b: str, board: int) -> float:
@@ -24393,6 +24557,8 @@ class Agent:
         self._not.setdefault(k, []).append(self._refusal_scope())
         self.led.record(self.cycle, "MINT", slot, "refuse", term=name,
                         refused_under=len(self._not[k]), **detail)
+        if self._rdl is not None:
+            self._rdl_feedback(name, slot, "rdl_refuse", "MINT")         # RDL C5: refused
         if self.gamma.is_settled(name):
             self.led.record(self.cycle, "MINT", slot, "contradiction", term=name,
                             reads=("a settled term and its refusal both stand: two scopes, an "
@@ -29571,6 +29737,12 @@ class Agent:
                              == tuple(a.name for a in term.atoms)[:len(o_["term"].atoms)]), None)
                 if prov is not None:
                     detail["library"] = prov
+                    if self._rdl is not None:
+                        # RDL C5: the term carries its entry's released preloads to its verdict
+                        _rp = [p for p in self._rdl["by_entry"].get(prov.get("library"), ())
+                               if p in self._rdl["released"]]
+                        if _rp:
+                            self._rdl["term_entry"][term.name] = (prov.get("library"), _rp)
                     if _SENSES and prov.get("library") is not None:
                         self._sense_pick(slot, term.name, prov["library"], prov.get("role", "*"))
                     if _REACH_PAID:
@@ -30080,6 +30252,8 @@ class Agent:
                                     verdict="mispredicted on fresh evidence",
                                     rejections=round(self.gamma.rejection_of(name), 3),
                                     note="defeasible: the rejection decays and it may settle again")
+                    if self._rdl is not None:
+                        self._rdl_feedback(name, slot, "rdl_refuse", "SETTLE")   # RDL C5: refuted
                     # YOU CAN PROPOSE ON A CANDIDATE; YOU CANNOT STAND ON ONE. Only
                     # on a REFUTATION -- the ground reversing a settlement it had made.
                     # A candidate that mispredicts has not been refused; it has not yet
@@ -30220,6 +30394,8 @@ class Agent:
                             **({"bound_by": self._rp_bound.get(
                                 (slot, name), self._rp_bound.get((None, name), "none recorded"))}
                                if _REACH_PAID else {}))
+            if self._rdl is not None:
+                self._rdl_feedback(name, slot, "rdl_settle", "SETTLE")     # RDL C5: the ground paid
 
     # -- the utterance: the only way an action is proposed --------------------------------
 
