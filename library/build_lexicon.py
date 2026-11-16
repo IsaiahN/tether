@@ -1,4 +1,4 @@
-"""THE LEXICON, groundwork: the 1000 ImageNet-1k classes mapped onto WordNet 3.0, as provenanced
+﻿"""THE LEXICON, groundwork: the 1000 ImageNet-1k classes mapped onto WordNet 3.0, as provenanced
 library data that NOTHING in the agent reads yet ("readers": [] in the header; the same rule as
 library/tether_rules.json, kept apart from lookups).
 
@@ -6,7 +6,7 @@ README Future state, "a voice, by mapping rather than training" (Isaiah): an Ima
 a WordNet noun offset, so a label carries its synonym set, its definition and its hypernym chain
 up to entity without anything being trained. This file builds only that mapping.
 
-Inputs (read-only, outside the repo; root from --data or env TETHER_LEXICON_DATA):
+Inputs (read-only, outside the repo; root from --data or env LEXICON_DATA_DIR):
   wordnet/dict/data.noun, wordnet/dict/index.noun   Princeton WordNet 3.0 (WNdb-3.0.tar.gz)
   imagenet-1k/classes.py                            the HF ILSVRC/imagenet-1k label list
   thesaurus/en_thesaurus.jsonl                      zaibacu thesaurus (extracted from WordNet)
@@ -75,7 +75,7 @@ IMAGENET_NOTE = (
 
 
 def data_root(arg: str | None = None) -> str:
-    return arg or os.environ.get("TETHER_LEXICON_DATA") or DATA_DEFAULT
+    return arg or os.environ.get("LEXICON_DATA_DIR") or DATA_DEFAULT
 
 
 def _sha(path: str) -> str:

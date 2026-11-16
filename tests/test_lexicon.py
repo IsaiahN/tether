@@ -1,4 +1,4 @@
-"""THE LEXICON (library/lexicon_imagenet_wordnet.json, built by library/build_lexicon.py):
+﻿"""THE LEXICON (library/lexicon_imagenet_wordnet.json, built by library/build_lexicon.py):
 ImageNet-1k class index -> WordNet 3.0 noun synset. Library data that nothing in the agent reads.
 
   L1     1000 entries, index i at position i, wnids strictly ascending with index, and every
@@ -10,7 +10,7 @@ ImageNet-1k class index -> WordNet 3.0 noun synset. Library data that nothing in
          them -- and library/*.py other than its builder)
   MF-L1  corrupt one wnid in memory: the ascending / resolve check goes RED
 
-The data.noun resolve needs the WordNet dict (TETHER_LEXICON_DATA or the builder's default
+The data.noun resolve needs the WordNet dict (LEXICON_DATA_DIR or the builder's default
 root); without it that one half is skipped and says so. Runs in seconds.
 
     python tests/test_lexicon.py
