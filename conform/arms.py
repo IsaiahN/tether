@@ -3424,6 +3424,14 @@ ARMS: dict[str, str] = {
                          "affordance_inert row. Record only: no action choice reads it "
                          "(affordance.py; nsm says the rows). OFF: no rows. MF: "
                          "tests/test_affordance.py. default ON",
+    "TETHER_MOTION_WORDS": "write-up 42 B7 'the ball rolls to the right': an affordance settle "
+                           "row for moves carries direction (sign of the object's own drow, "
+                           "dcol at the press; rows grow downward), and the keeps-moving "
+                           "judgement carries manner (kept moving with no new press -> rolls "
+                           "if the concept's actions include roll else glides; only on the "
+                           "press -> is pushed); nsm says e.g. `ball` `rolls` `to the right`. "
+                           "Record only. OFF: no direction/manner fields. MF: "
+                           "tests/test_affordance.py. default ON",
     "TETHER_RDL": "Isaiah 2026-11-16 'RDL matters most' (RDL_BUILD_SPEC_2026-11-16 Piece 3; "
                   "WATSON 40 C4-C6): the released preloads (library/rdl_preload.json, read by "
                   "rdl_store / rdl_release) set SEARCH PRIORITY ONLY -- an entry attached to one "

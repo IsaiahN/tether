@@ -204,9 +204,13 @@ def main() -> int:
     got = rdl_rows(led, n0)
     st = [r for r in got if r["event"] == "rdl_settle"]
     rf = [r for r in got if r["event"] == "rdl_refuse"]
-    stamp = {"pid", "stage", "tier", "corpus", "parser"}
+    stamp = {"pid", "stage", "tier", "corpus", "parser", "cluster"}
+    bc, _why = tether.inherited.by_cluster()
+    c0 = min((c for c in (bc or {}) if bc[c]), default=None)   # a filed entry -> its first cluster
     ok3 = (len(st) == 1 and len(rf) == 1
            and all(stamp <= set(r["detail"]) for r in got)
+           and all(isinstance(r["detail"]["cluster"], str) for r in got)
+           and (c0 is None or rd["cluster_of"][bc[c0][0]] <= c0)
            and st[0]["detail"]["pid"] == PID["p1"] and st[0]["detail"]["corpus"] == "fixture"
            and st[0]["detail"]["tier"] == 1 and st[0]["detail"]["term"] == name)
     print(f"A3 settle -> rdl_settle, refuse_term -> rdl_refuse, stamped {sorted(stamp)}: "

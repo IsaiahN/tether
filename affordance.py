@@ -1,4 +1,4 @@
-﻿"""AFFORDANCE BET (TETHER_AFFORDANCE, default ON; Isaiah 2026-11-16 "it's a ball (shaped like a
+"""AFFORDANCE BET (TETHER_AFFORDANCE, default ON; Isaiah 2026-11-16 "it's a ball (shaped like a
 ball, acts like a ball) ... balls can roll, does this roll?"; write-up 40, "Affordances: shape ->
 concept -> properties -> predictions"; lead 16:20 "circle -> ball, that 2d-3d or abstraction").
 
@@ -33,6 +33,33 @@ WORD_MAP = Path(__file__).resolve().parent / "library" / "word_map.json"
 # a verb's WordNet lexname -> the reading it predicts (a means: what to LOOK at, never the answer)
 LEXNAME_READING = {"verb.motion": "moves"}
 KEEPS = "keeps moving"
+# B7 motion words (write-up 42 "the ball rolls to the right"); record only
+_MOTION_UPPER = armflag.arm("TETHER_MOTION_WORDS", default=True)
+_ROW, _COL = ("row", "r", "cy", "y"), ("col", "c", "cx", "x")
+
+
+def direction(before: dict, after: dict, obj: str) -> str | None:
+    """The sign of the object's own (drow, dcol) at the press: right/left/up/down/up-right ...
+    (grid rows grow downward). None when no position reading moved."""
+    def d(names):
+        for n in names:
+            a, b = before.get(f"{obj}.{n}"), after.get(f"{obj}.{n}")
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return (b > a) - (b < a)
+        return 0
+    dr, dc = d(_ROW), d(_COL)
+    v = {-1: "up", 1: "down"}.get(dr, "")
+    h = {-1: "left", 1: "right"}.get(dc, "")
+    return "-".join(x for x in (v, h) if x) or None
+
+
+def manner(keeps: bool, verbs) -> str:
+    """The concept's expectation confirmed by the object's own motion: it kept moving with no new
+    press -> 'rolls' if the concept's actions include roll, else 'glides'; only on the press ->
+    'is pushed'."""
+    if not keeps:
+        return "is pushed"
+    return "rolls" if any(str(v or "").split()[:1] == ["roll"] for v in verbs) else "glides"
 
 
 def _priors_of(wm: dict) -> list:
@@ -165,6 +192,9 @@ class Book:
         self.judged: set = set()        # (kind, property) judged by its first press
         self.pending: dict = {}         # kind -> keeps-moving test waiting a step
         self.inert_said = False
+        self.before: dict = {}          # B7: the state read before the press (direction)
+        self.verbs: dict = {}           # B7: kind -> the concept's action verbs (manner)
+        self.dirn: dict = {}            # B7: kind -> the direction read at its press
 
     def _c(self, kind: str) -> dict:
         return self.counts.setdefault(kind, {"held": 0, "settled": 0, "refused": 0,
@@ -175,6 +205,7 @@ class Book:
         if kind in self.seen:
             return []
         self.seen.add(kind)
+        self.verbs[kind] = [p.get("action_verb") for p in chain["priors"]]
         out = []
         for p in chain["priors"]:
             for prop in readings(p):
@@ -191,8 +222,10 @@ class Book:
                 out.append(dict(rec, except_when=[]))
         return out
 
-    def judge(self, kind: str, obj: str, prop: str, happened: bool, condition: str) -> tuple:
-        """(event, detail) for the first test of (kind, prop), or (None, None)."""
+    def judge(self, kind: str, obj: str, prop: str, happened: bool, condition: str,
+              motion: dict | None = None) -> tuple:
+        """(event, detail) for the first test of (kind, prop), or (None, None). motion (B7):
+        {direction, manner} added to a settle row when TETHER_MOTION_WORDS is on."""
         rec = self.prior.get((kind, prop))
         if rec is None or (kind, prop) in self.judged:
             return None, None
@@ -201,12 +234,15 @@ class Book:
         if happened:
             c["settled"] += 1
             rec["name_now"] = rec["concept"]
+            mo = motion if _MOTION_UPPER and motion else {}
             return "affordance_settle", dict(rec, object=obj, happened=True,
                                              except_when=list(rec["except_when"]),
-                                             counts=dict(c))
+                                             counts=dict(c), **mo)
         rec["except_when"].append(condition)      # the split: the prior kept, an exception added
         c["refused"] += 1
         c["exceptions"] += 1
         rec["name_now"] = rec["shape_name"]       # a name that stops paying drops to the shape
+        mo = motion if _MOTION_UPPER and motion else {}
         return "affordance_refuse", dict(rec, object=obj, happened=False, condition=condition,
-                                         except_when=list(rec["except_when"]), counts=dict(c))
+                                         except_when=list(rec["except_when"]), counts=dict(c),
+                                         **mo)
