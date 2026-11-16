@@ -6,9 +6,9 @@ Tether uses data and software from the projects below. Each keeps its own licenc
 
 Used in: `library/relations.json` (English edges for CapableOf, ReceivesAction, UsedFor, IsA, HasProperty). That file is licensed under the Creative Commons Attribution-ShareAlike 4.0 license (CC BY-SA 4.0), as ConceptNet requires: ConceptNet data may not be combined into a data set under an incompatible licence or with added restrictions such as "non-commercial" or "research use only".
 
-Credit text, as ConceptNet asks for it:
+Credit text, verbatim as ConceptNet asks for it (its page licenses the complete data under CC BY-SA 4.0; the credit text it supplies still names 3.0):
 
-> This work includes data from ConceptNet 5, which was compiled by the Commonsense Computing Initiative. ConceptNet 5 is freely available under the Creative Commons Attribution-ShareAlike license (CC BY SA 4.0) from http://conceptnet.io.
+> This work includes data from ConceptNet 5, which was compiled by the Commonsense Computing Initiative. ConceptNet 5 is freely available under the Creative Commons Attribution-ShareAlike license (CC BY SA 3.0) from http://conceptnet.io.
 >
 > The included data was created by contributors to Commonsense Computing projects, contributors to Wikimedia projects, DBPedia, OpenCyc, Games with a Purpose, Princeton University's WordNet, Francis Bond's Open Multilingual WordNet, and Jim Breen's JMDict.
 
