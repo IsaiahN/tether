@@ -458,11 +458,11 @@ def _wordnet():
 def _bridge(name, bridge):
     term = BRIDGE_TERM.get(name, name)
     for e in bridge:
-        forms = [x.get("name") for x in e.get("form_3d", [])] + list(e.get("shape_2d", []))
+        forms = [x.get("name") for x in e.get("form_3d", [])] + [x.get("name") if isinstance(x, dict) else x for x in e.get("shape_2d", [])]
         if term in forms:
             return {
                 "form_3d": [x.get("name") for x in e.get("form_3d", [])],
-                "shape_2d": list(e.get("shape_2d", [])),
+                "shape_2d": [x.get("name") if isinstance(x, dict) else x for x in e.get("shape_2d", [])],
                 "objects": [x.get("name") for x in e.get("objects", [])],
             }
     return None
