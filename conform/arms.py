@@ -3383,6 +3383,11 @@ ARMS: dict[str, str] = {
                          "same reading on another object the wanted way and realises that move "
                          "(press-and-watch by kind); a kind_lever_route row. NEEDS "
                          "TETHER_CONTACT_ROUTE. OFF: the touch only. default ON",
+    "TETHER_BANK_SHARE": "Isaiah 2026-11-16 (the open 11-14 question r1970; T0d g50t c94: one step "
+                         "allowed 51,992,292 heads against a ~4.7 M purse, 483 s MINT + 501 s "
+                         "ACCEPT): the level's bank is shared among the hard questions waiting -- "
+                         "a step draws at most bank / (owed questions + 1); a lone hard question "
+                         "still gets it all. OFF: a step may draw the whole bank. default ON",
     "TETHER_WORDS_CARRY": "BUILD_SEQUENCE 0b (the reviewer r1942; Isaiah 2026-11-13 21:22-21:24; "
                           "built on Isaiah's 2026-11-16 'build out'): within one game what each "
                           "action did carries to the next board as an expectation (kind-shape "

@@ -1975,6 +1975,14 @@ STEP_BUDGET = int(os.environ.get("TETHER_STEP_BUDGET_N", "50000"))
 # STEP_BUDGET gate reads it; a spent purse stops a site "unreached at this budget", owed, never a
 # verdict (Fig 8 :40-42, Fig 9 :60). OFF: STEP_BUDGET's evaluation count, as before
 _PURSE_OWN = armflag.arm("TETHER_PURSE_OWN", default=True)
+# BANK SHARE (Isaiah 2026-11-16, the open 11-14 question r1970: may one hard question spend ALL the
+# savings?). T0d g50t c94: the step's allowance was 51,992,292 heads against a purse of ~4.7 M --
+# one question drew the level's whole bank (483 s MINT + 501 s ACCEPT) while 21 owed questions
+# waited; ar25 c125-c129 ~24 M each, 60-95 s steps. Isaiah 11-06: "any time saved per question can
+# be allocated to harder questions" -- plural: the bank is shared among the hard questions waiting,
+# a step drawing at most bank / (owed questions + 1). No new constant; a lone hard question still
+# gets it all. OFF: a step may draw the whole bank, as before.
+_BANK_SHARE = armflag.arm("TETHER_BANK_SHARE", default=True)
 # C2 P3 (r1610 Q3): TETHER_PURSE_DEADLINE, a think is priced in the purse's own unit: offline the
 # deadline is actions_left x purse, so a think displaces think heads / purse presses; online the
 # runner's seconds per remaining press over the agent's own seconds per step, x purse. OFF: today's
@@ -30636,8 +30644,13 @@ class Agent:
 
     def _allowance(self) -> int:
         """C2: what this step may think: the purse plus this level's bank (r1399 3; Isaiah 11-06:
-        "any time saved per question can be allocated to harder questions")."""
-        return self._purse() + (self._bank if self._bank_lvl == self.level else 0)
+        "any time saved per question can be allocated to harder questions"). BANK SHARE: the bank
+        is shared among the hard questions waiting -- this step draws at most bank / (owed + 1),
+        the owed queue being the questions still unasked (the budget row's owed_questions)."""
+        bank = self._bank if self._bank_lvl == self.level else 0
+        if _BANK_SHARE and bank:
+            bank //= len(set(self._owed_q.values())) + 1
+        return self._purse() + bank
 
     def _purse_out(self) -> bool:
         """Is this step's thinking budget spent? ON: thinking heads against the allowance (never
