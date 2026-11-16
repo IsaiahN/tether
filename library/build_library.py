@@ -298,10 +298,49 @@ def _dedup(xs):
     return list(dict.fromkeys(xs))
 
 
+# STEP 5, THE INDEX AUDIT (2026-11-16; conform/index_audit.py, the report
+# docs/03-DESIGN/INDEX_AUDIT_2026-11-16.md):
+# an AFFECT_VERBS match files the entry as PRODUCING the readings, so a match the description
+# itself denies is a filing under an effect the source does not declare. Two kinds, both plain:
+# the verb is NEGATED in its own clause ("an object no action can change or remove", "never moves")
+# or the stem caught a word that is not the effect (the noun "appearance"; "turns" as the time step
+# under the greedy `turn .* colour`). Data, not logic; a trigger ("deforms when pushed") or a
+# hypothetical ("would fall") is NOT skipped here -- those are judgement calls, listed for Isaiah.
+AFFECT_CLAUSE_END = re.compile(r"[,.;:()]|\b(but|until|while|so that|then|whereas|instead)\b", re.I)
+AFFECT_NEGATOR = re.compile(r"\b(not|no|never|nothing|none|nor|cannot|without)\b|n't\b", re.I)
+AFFECT_NEG_REACH = 6   # words from the negator to the verb, in one clause
+AFFECT_NOT_A_NEGATOR = re.compile(
+    r"\b(no|nothing)\s+(below|under|underneath|beneath|above|behind|beside)\b|\b(the|a)\s+nothing\b",
+    re.I,
+)  # "with nothing below it falls" (it falls); "the nothing from which being emerges" (it emerges)
+AFFECT_NOT_THE_EFFECT = ("appearance", "appearances", "passage", "passages")
+AFFECT_TURN_AS_TIME = re.compile(
+    r"\b(across|per|each|every|over|between|of|by|a|the|one|two|few|many)\s+turns?\b", re.I
+)
+
+
+def _declares(meaning: str, m: re.Match) -> bool:
+    """False when the match at m is denied by its own description (negated, or not the effect)."""
+    word = re.match(r"\w+", meaning[m.start():]).group(0).lower()
+    if word in AFFECT_NOT_THE_EFFECT:
+        return False
+    if word.startswith("turn") and AFFECT_TURN_AS_TIME.search(
+        meaning[max(0, m.start() - 12):m.start() + 6]
+    ):
+        return False
+    head = meaning[: m.start()]
+    cut = max((c.end() for c in AFFECT_CLAUSE_END.finditer(head)), default=0)
+    clause = head[cut:]
+    skip = [(n.start(), n.end()) for n in AFFECT_NOT_A_NEGATOR.finditer(clause)]
+    negs = [n for n in AFFECT_NEGATOR.finditer(clause)
+            if not any(a <= n.start() < b for a, b in skip)]
+    return not (negs and len(clause[negs[-1].end():].split()) <= AFFECT_NEG_REACH)
+
+
 def _affects(meaning: str) -> list[str]:
     out = []
     for pat, rd in AFFECT_VERBS:
-        if re.search(pat, meaning, re.I):
+        if any(_declares(meaning, m) for m in re.finditer(pat, meaning, re.I)):
             out += rd
     return _dedup(out)
 

@@ -13548,10 +13548,7 @@
     "dcol",
     "touching"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "network",
     "space",
@@ -13569,7 +13566,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 8,
      "PROCESS": 9,
@@ -14437,9 +14434,7 @@
     "action",
     "press"
    ],
-   "affects": [
-    "gone"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "space",
@@ -14457,7 +14452,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 5,
      "PROCESS": 3,
@@ -26798,11 +26793,7 @@
     "dcol",
     "came"
    ],
-   "affects": [
-    "drow",
-    "dcol",
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "space",
     "time"
@@ -26819,7 +26810,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 11,
      "PROCESS": 7,
@@ -28575,10 +28566,7 @@
     "stability",
     "prev"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "space",
     "time"
@@ -28597,7 +28585,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 14,
      "PROCESS": 8,
@@ -39323,9 +39311,7 @@
     "dcol",
     "action"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "network",
@@ -39349,7 +39335,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 19,
      "PROCESS": 15,
@@ -44108,15 +44094,11 @@
     "dcol",
     "action"
    ],
-   "affects": [
-    "colour_changed",
-    "dcells"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "network",
     "space",
-    "spectrum",
     "time"
    ],
    "run": {
@@ -44132,18 +44114,18 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 10,
-     "PROCESS": 14,
+     "PROCESS": 10,
      "RELATION": 4,
      "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 14,
+     "INSTRUMENT": 10,
      "TEST": 6,
      "RULE": 10,
-     "AGENT": 14
+     "AGENT": 10
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
@@ -58927,9 +58909,7 @@
     "predicted",
     "residual"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "gradient",
     "space",
@@ -58950,7 +58930,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 15,
      "PROCESS": 8,
@@ -65988,10 +65968,7 @@
     "dcol",
     "action"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "space",
@@ -66009,7 +65986,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 8,
      "PROCESS": 7,
@@ -72947,9 +72924,7 @@
     "shape",
     "colour"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "space",
     "spectrum",
@@ -72967,7 +72942,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 9,
      "PROCESS": 5,
@@ -81954,10 +81929,7 @@
     "drow",
     "dcol"
    ],
-   "affects": [
-    "colour",
-    "colour_changed"
-   ],
+   "affects": [],
    "substrate": [
     "network",
     "space",
@@ -81983,7 +81955,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 22,
      "PROCESS": 12,
@@ -89497,9 +89469,7 @@
     "drow",
     "dcol"
    ],
-   "affects": [
-    "completed"
-   ],
+   "affects": [],
    "substrate": [
     "gradient",
     "network",
@@ -89521,7 +89491,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 10,
      "PROCESS": 12,
@@ -115289,9 +115259,7 @@
     "gone",
     "action"
    ],
-   "affects": [
-    "gone"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "time"
@@ -115307,7 +115275,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 3,
      "PROCESS": 2,
@@ -122453,9 +122421,7 @@
     "came",
     "action"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "time"
@@ -122471,7 +122437,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 7,
      "PROCESS": 2,
@@ -135663,10 +135629,7 @@
     "dcol",
     "standing"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "space",
     "spectrum",
@@ -135684,7 +135647,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 10,
      "PROCESS": 9,
@@ -143628,13 +143591,9 @@
     "dholes",
     "dperimeter"
    ],
-   "affects": [
-    "colour_changed",
-    "dcells"
-   ],
+   "affects": [],
    "substrate": [
     "space",
-    "spectrum",
     "time"
    ],
    "run": {
@@ -143651,18 +143610,18 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 8,
-     "PROCESS": 16,
+     "PROCESS": 12,
      "RELATION": 9,
      "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 16,
+     "INSTRUMENT": 12,
      "TEST": 4,
      "RULE": 8,
-     "AGENT": 16
+     "AGENT": 12
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
@@ -146356,10 +146315,7 @@
     "stability",
     "prev"
    ],
-   "affects": [
-    "colour_changed",
-    "dcells"
-   ],
+   "affects": [],
    "substrate": [
     "space",
     "spectrum",
@@ -146382,7 +146338,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 21,
      "PROCESS": 11,
@@ -164576,10 +164532,7 @@
     "stability",
     "prev"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "space",
     "time"
@@ -164598,7 +164551,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 14,
      "PROCESS": 8,
@@ -173901,9 +173854,7 @@
     "dw",
     "dcells"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "space",
     "spectrum",
@@ -173928,7 +173879,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 34,
      "PROCESS": 21,
@@ -177671,13 +177622,9 @@
     "drow",
     "dcol"
    ],
-   "affects": [
-    "colour_changed",
-    "dcells"
-   ],
+   "affects": [],
    "substrate": [
     "space",
-    "spectrum",
     "time"
    ],
    "run": {
@@ -177693,18 +177640,18 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 6,
-     "PROCESS": 10,
+     "PROCESS": 6,
      "RELATION": 10,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 10,
+     "INSTRUMENT": 6,
      "TEST": 2,
      "RULE": 6,
-     "AGENT": 10
+     "AGENT": 6
     },
     "example": {
      "STATE": "o1.row < o2.row",
@@ -196318,9 +196265,7 @@
     "completed",
     "level"
    ],
-   "affects": [
-    "gone"
-   ],
+   "affects": [],
    "substrate": [
     "gradient",
     "spectrum",
@@ -196338,7 +196283,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 3,
      "PROCESS": 4,
@@ -199213,9 +199158,7 @@
     "stability",
     "prev"
    ],
-   "affects": [
-    "gone"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "space",
@@ -199242,7 +199185,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 31,
      "PROCESS": 19,
@@ -230154,10 +230097,7 @@
     "drow",
     "dcol"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "space",
     "time"
@@ -230173,7 +230113,7 @@
     "standing": null
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 6,
      "PROCESS": 6,
@@ -233503,10 +233443,7 @@
     "press",
     "shape"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "network",
@@ -233521,7 +233458,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 39,
      "PROCESS": 31,
@@ -237438,10 +237375,7 @@
     "action",
     "press"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "network",
@@ -237456,7 +237390,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 37,
      "PROCESS": 28,
@@ -251037,10 +250971,7 @@
     "level",
     "touching"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "gradient",
@@ -251056,7 +250987,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 20,
      "PROCESS": 15,
@@ -254587,8 +254518,7 @@
    ],
    "affects": [
     "completed",
-    "came",
-    "gone"
+    "came"
    ],
    "substrate": [
     "energy",
@@ -266720,8 +266650,7 @@
    "affects": [
     "shape",
     "dholes",
-    "dperimeter",
-    "came"
+    "dperimeter"
    ],
    "substrate": [
     "network",
@@ -275416,8 +275345,7 @@
    "affects": [
     "drow",
     "dcol",
-    "gone",
-    "came"
+    "gone"
    ],
    "substrate": [
     "network",
@@ -295226,7 +295154,6 @@
     "col"
    ],
    "affects": [
-    "came",
     "drow",
     "dcol"
    ],
@@ -295259,10 +295186,10 @@
     },
     "example": {
      "STATE": "frame.came > 0",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.drow != 0",
      "RELATION": "o1.colour == o2.colour",
      "MEASURE": "o1.age > o2.age",
-     "CAUSE": "frame.came > 0 ⇒ frame.came > 0"
+     "CAUSE": "frame.came > 0 ⇒ o2.drow != 0"
     }
    }
   },
@@ -295381,7 +295308,6 @@
     "press"
    ],
    "affects": [
-    "came",
     "drow",
     "dcol"
    ],
@@ -295420,9 +295346,9 @@
     },
     "example": {
      "STATE": "frame.came > 0",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.drow != 0",
      "RELATION": "o1.colour == o2.colour",
-     "CAUSE": "frame.came > 0 ⇒ frame.came > 0"
+     "CAUSE": "frame.came > 0 ⇒ o2.drow != 0"
     }
    }
   },
@@ -295582,7 +295508,6 @@
     "stability"
    ],
    "affects": [
-    "came",
     "drow",
     "dcol"
    ],
@@ -295615,10 +295540,10 @@
     },
     "example": {
      "STATE": "frame.came > 0",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.drow != 0",
      "RELATION": "o1.colour == o2.colour",
      "MEASURE": "o1.age > o2.age",
-     "CAUSE": "frame.came > 0 ⇒ frame.came > 0"
+     "CAUSE": "frame.came > 0 ⇒ o2.drow != 0"
     }
    }
   },
@@ -299266,7 +299191,6 @@
     "bbox"
    ],
    "affects": [
-    "came",
     "drow",
     "dcol"
    ],
@@ -299299,10 +299223,10 @@
     },
     "example": {
      "STATE": "frame.came > 0",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.drow != 0",
      "RELATION": "o1.colour == o2.colour",
      "MEASURE": "o1.age > o2.age",
-     "CAUSE": "frame.came > 0 ⇒ frame.came > 0"
+     "CAUSE": "frame.came > 0 ⇒ o2.drow != 0"
     }
    }
   },
@@ -307928,8 +307852,6 @@
     "w"
    ],
    "affects": [
-    "colour_changed",
-    "dcells",
     "came"
    ],
    "substrate": [
@@ -307961,10 +307883,10 @@
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
-     "PROCESS": "o1.colour_changed == 1",
+     "PROCESS": "frame.came > 0",
      "RELATION": "o1.drow == o2.drow",
      "MEASURE": "o1.row < o2.row",
-     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.colour_changed == 1"
+     "CAUSE": "touching(o1, o2) == 1 ⇒ frame.came > 0"
     }
    }
   },
@@ -325197,9 +325119,7 @@
     "predicted",
     "residual"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "gradient",
@@ -325235,10 +325155,10 @@
     },
     "example": {
      "STATE": "o1.h > o2.h",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "frame.action > 0",
      "RELATION": "o1.h > o2.h",
      "MEASURE": "o1.h > o2.h",
-     "CAUSE": "o1.h > o2.h ⇒ frame.came > 0"
+     "CAUSE": "o1.h > o2.h ⇒ frame.action > 0"
     }
    }
   },
@@ -339873,10 +339793,7 @@
     "dcells",
     "colour_changed"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "gradient",
@@ -339892,7 +339809,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 41,
      "PROCESS": 28,
@@ -351801,9 +351718,7 @@
     "colour",
     "shape"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "space",
@@ -351817,7 +351732,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 36,
      "PROCESS": 22,
@@ -351832,9 +351747,9 @@
     },
     "example": {
      "STATE": "frame.action > 0",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.drow != 0",
      "RELATION": "o1.drow == o2.drow",
-     "CAUSE": "frame.action > 0 ⇒ frame.came > 0"
+     "CAUSE": "frame.action > 0 ⇒ o2.drow != 0"
     }
    }
   },
@@ -375673,9 +375588,7 @@
     "prev"
    ],
    "affects": [
-    "gone",
-    "colour",
-    "colour_changed"
+    "gone"
    ],
    "substrate": [
     "network",
@@ -384177,7 +384090,6 @@
     "inside"
    ],
    "affects": [
-    "completed",
     "drow",
     "dcol"
    ],
@@ -401577,8 +401489,7 @@
    ],
    "affects": [
     "drow",
-    "dcol",
-    "came"
+    "dcol"
    ],
    "substrate": [
     "energy",
@@ -401607,15 +401518,15 @@
     "default": "PROCESS",
     "available": {
      "STATE": 20,
-     "PROCESS": 21,
+     "PROCESS": 20,
      "RELATION": 13,
      "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 21,
+     "INSTRUMENT": 20,
      "TEST": 14,
      "RULE": 20,
-     "AGENT": 21
+     "AGENT": 20
     },
     "example": {
      "STATE": "o1.colour == o2.colour",
@@ -409060,8 +408971,7 @@
    ],
    "affects": [
     "drow",
-    "dcol",
-    "came"
+    "dcol"
    ],
    "substrate": [
     "energy",
@@ -409079,15 +408989,15 @@
     "default": "PROCESS",
     "available": {
      "STATE": 18,
-     "PROCESS": 15,
+     "PROCESS": 14,
      "RELATION": 11,
      "MEASURE": 0,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 15,
+     "INSTRUMENT": 14,
      "TEST": 12,
      "RULE": 18,
-     "AGENT": 15
+     "AGENT": 14
     },
     "example": {
      "STATE": "o1.colour == o2.colour",
@@ -411415,7 +411325,6 @@
    "affects": [
     "drow",
     "dcol",
-    "came",
     "gone"
    ],
    "substrate": [
@@ -411797,8 +411706,7 @@
    ],
    "affects": [
     "drow",
-    "dcol",
-    "came"
+    "dcol"
    ],
    "substrate": [
     "energy",
@@ -411816,15 +411724,15 @@
     "default": "PROCESS",
     "available": {
      "STATE": 30,
-     "PROCESS": 24,
+     "PROCESS": 23,
      "RELATION": 26,
      "MEASURE": 6,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 24,
+     "INSTRUMENT": 23,
      "TEST": 18,
      "RULE": 30,
-     "AGENT": 24
+     "AGENT": 23
     },
     "example": {
      "STATE": "o1.colour == o2.colour",
@@ -424589,8 +424497,7 @@
    ],
    "affects": [
     "drow",
-    "dcol",
-    "came"
+    "dcol"
    ],
    "substrate": [
     "energy",
@@ -445318,9 +445225,7 @@
     "came",
     "action"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "space",
@@ -445334,7 +445239,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 35,
      "PROCESS": 24,
@@ -445349,10 +445254,10 @@
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.dh != 0",
      "RELATION": "o1.shape == o2.shape",
      "MEASURE": "o1.row < o2.row",
-     "CAUSE": "o1.shape == o2.shape ⇒ frame.came > 0"
+     "CAUSE": "o1.shape == o2.shape ⇒ o2.dh != 0"
     }
    }
   },
@@ -474511,8 +474416,6 @@
     "standing"
    ],
    "affects": [
-    "drow",
-    "dcol",
     "completed"
    ],
    "substrate": [
@@ -474544,10 +474447,10 @@
     },
     "example": {
      "STATE": "frame.action > 0",
-     "PROCESS": "o1.drow != 0",
+     "PROCESS": "frame.action > 0",
      "RELATION": "o1.drow == o2.drow",
      "MEASURE": "o1.standing > o2.standing",
-     "CAUSE": "frame.action > 0 ⇒ o2.drow != 0"
+     "CAUSE": "frame.action > 0 ⇒ frame.action > 0"
     }
    }
   },
@@ -476215,8 +476118,6 @@
     "col"
    ],
    "affects": [
-    "drow",
-    "dcol",
     "completed"
    ],
    "substrate": [
@@ -476249,10 +476150,10 @@
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
-     "PROCESS": "o1.drow != 0",
+     "PROCESS": "o1.dperimeter != 0",
      "RELATION": "o1.dperimeter == o2.dperimeter",
      "MEASURE": "o1.stability > o2.stability",
-     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.drow != 0"
+     "CAUSE": "touching(o1, o2) == 1 ⇒ o2.dperimeter != 0"
     }
    }
   },
@@ -477731,10 +477632,7 @@
     "colour_changed",
     "dcells",
     "drow",
-    "dcol",
-    "shape",
-    "dholes",
-    "dperimeter"
+    "dcol"
    ],
    "substrate": [
     "network",
@@ -477752,15 +477650,15 @@
     "default": "PROCESS",
     "available": {
      "STATE": 33,
-     "PROCESS": 27,
+     "PROCESS": 21,
      "RELATION": 23,
      "MEASURE": 10,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 27,
+     "INSTRUMENT": 21,
      "TEST": 17,
      "RULE": 33,
-     "AGENT": 27
+     "AGENT": 21
     },
     "example": {
      "STATE": "touching(o1, o2) == 1",
@@ -483807,9 +483705,7 @@
     "dholes",
     "dperimeter",
     "drow",
-    "dcol",
-    "colour_changed",
-    "dcells"
+    "dcol"
    ],
    "substrate": [
     "network",
@@ -483827,15 +483723,15 @@
     "default": "PROCESS",
     "available": {
      "STATE": 27,
-     "PROCESS": 27,
+     "PROCESS": 24,
      "RELATION": 20,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 27,
+     "INSTRUMENT": 24,
      "TEST": 17,
      "RULE": 27,
-     "AGENT": 27
+     "AGENT": 24
     },
     "example": {
      "STATE": "o1.age > o2.age",
@@ -484673,9 +484569,7 @@
     "dholes",
     "dperimeter",
     "drow",
-    "dcol",
-    "colour_changed",
-    "dcells"
+    "dcol"
    ],
    "substrate": [
     "network",
@@ -485233,9 +485127,7 @@
     "dholes",
     "dperimeter",
     "drow",
-    "dcol",
-    "colour_changed",
-    "dcells"
+    "dcol"
    ],
    "substrate": [
     "network",
@@ -486683,9 +486575,7 @@
     "dholes",
     "dperimeter",
     "drow",
-    "dcol",
-    "colour_changed",
-    "dcells"
+    "dcol"
    ],
    "substrate": [
     "network",
@@ -487085,14 +486975,11 @@
     "dholes",
     "dperimeter",
     "drow",
-    "dcol",
-    "colour_changed",
-    "dcells"
+    "dcol"
    ],
    "substrate": [
     "network",
     "space",
-    "spectrum",
     "time"
    ],
    "grid": {
@@ -487105,15 +486992,15 @@
     "default": "PROCESS",
     "available": {
      "STATE": 23,
-     "PROCESS": 27,
+     "PROCESS": 24,
      "RELATION": 18,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 27,
+     "INSTRUMENT": 24,
      "TEST": 13,
      "RULE": 23,
-     "AGENT": 27
+     "AGENT": 24
     },
     "example": {
      "STATE": "o1.age > o2.age",
@@ -488380,8 +488267,6 @@
     "gone"
    ],
    "affects": [
-    "colour_changed",
-    "dcells",
     "drow",
     "dcol",
     "gone"
@@ -488414,10 +488299,10 @@
     },
     "example": {
      "STATE": "frame.came > 0",
-     "PROCESS": "o1.colour_changed == 1",
+     "PROCESS": "o1.drow != 0",
      "RELATION": "o1.dcells == o2.dcells",
      "MEASURE": "o1.row < o2.row",
-     "CAUSE": "frame.came > 0 ⇒ o2.colour_changed == 1"
+     "CAUSE": "frame.came > 0 ⇒ o2.drow != 0"
     }
    }
   },
@@ -490284,10 +490169,9 @@
     "filled"
    ],
    "affects": [
-    "colour_changed",
-    "dcells",
     "h",
-    "w"
+    "w",
+    "dcells"
    ],
    "substrate": [
     "space",
@@ -490316,10 +490200,10 @@
     },
     "example": {
      "STATE": "frame.came > 0",
-     "PROCESS": "o1.colour_changed == 1",
+     "PROCESS": "o1.dcells != 0",
      "RELATION": "o1.dcells == o2.dcells",
      "MEASURE": "o1.row < o2.row",
-     "CAUSE": "frame.came > 0 ⇒ o2.colour_changed == 1"
+     "CAUSE": "frame.came > 0 ⇒ o2.dcells != 0"
     }
    }
   },
@@ -492706,10 +492590,7 @@
     "action",
     "colour"
    ],
-   "affects": [
-    "colour_changed",
-    "dcells"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "network",
@@ -492724,7 +492605,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 30,
      "PROCESS": 19,
@@ -492739,10 +492620,10 @@
     },
     "example": {
      "STATE": "frame.came > 0",
-     "PROCESS": "o1.colour_changed == 1",
+     "PROCESS": "o1.dcells != 0",
      "RELATION": "o1.dcells == o2.dcells",
      "MEASURE": "o1.row < o2.row",
-     "CAUSE": "frame.came > 0 ⇒ o2.colour_changed == 1"
+     "CAUSE": "frame.came > 0 ⇒ o2.dcells != 0"
     }
    }
   },
@@ -516516,13 +516397,9 @@
     "dw",
     "dcells"
    ],
-   "affects": [
-    "touching",
-    "gone"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
-    "network",
     "space",
     "spectrum",
     "time"
@@ -516534,7 +516411,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 34,
      "PROCESS": 20,
@@ -516549,10 +516426,10 @@
     },
     "example": {
      "STATE": "frame.action > 0",
-     "PROCESS": "frame.gone > 0",
+     "PROCESS": "frame.action > 0",
      "RELATION": "o1.row < o2.row",
      "MEASURE": "o1.row < o2.row",
-     "CAUSE": "frame.action > 0 ⇒ frame.gone > 0"
+     "CAUSE": "frame.action > 0 ⇒ frame.action > 0"
     }
    }
   },
@@ -518282,10 +518159,7 @@
     "age",
     "prev"
    ],
-   "affects": [
-    "drow",
-    "dcol"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "gradient",
@@ -518301,7 +518175,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 33,
      "PROCESS": 26,
@@ -518316,10 +518190,10 @@
     },
     "example": {
      "STATE": "frame.action > 0",
-     "PROCESS": "o1.drow != 0",
+     "PROCESS": "frame.action > 0",
      "RELATION": "inside(o1, o2) > 0",
      "MEASURE": "o1.row < o2.row",
-     "CAUSE": "frame.action > 0 ⇒ o2.drow != 0"
+     "CAUSE": "frame.action > 0 ⇒ frame.action > 0"
     }
    }
   },
@@ -523855,10 +523729,7 @@
     "stability",
     "prev"
    ],
-   "affects": [
-    "colour",
-    "colour_changed"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "gradient",
@@ -523874,7 +523745,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 24,
      "PROCESS": 15,
@@ -523889,10 +523760,10 @@
     },
     "example": {
      "STATE": "frame.came > 0",
-     "PROCESS": "o1.colour_changed == 1",
+     "PROCESS": "frame.came > 0",
      "RELATION": "o1.drow == o2.drow",
      "MEASURE": "o1.age > o2.age",
-     "CAUSE": "frame.came > 0 ⇒ o2.colour_changed == 1"
+     "CAUSE": "frame.came > 0 ⇒ frame.came > 0"
     }
    }
   },
@@ -527299,7 +527170,6 @@
     "dcells"
    ],
    "affects": [
-    "came",
     "gone"
    ],
    "substrate": [
@@ -527330,10 +527200,10 @@
     },
     "example": {
      "STATE": "frame.action > 0",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "frame.gone > 0",
      "RELATION": "o1.drow == o2.drow",
      "MEASURE": "o1.age > o2.age",
-     "CAUSE": "frame.action > 0 ⇒ frame.came > 0"
+     "CAUSE": "frame.action > 0 ⇒ frame.gone > 0"
     }
    }
   },
@@ -527681,9 +527551,7 @@
     "stability",
     "prev"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "network",
@@ -527698,7 +527566,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 37,
      "PROCESS": 28,
@@ -529816,7 +529684,6 @@
     "touching"
    ],
    "affects": [
-    "came",
     "drow",
     "dcol"
    ],
@@ -529850,10 +529717,10 @@
     },
     "example": {
      "STATE": "frame.came > 0",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.drow != 0",
      "RELATION": "o1.colour == o2.colour",
      "MEASURE": "o1.age > o2.age",
-     "CAUSE": "frame.came > 0 ⇒ frame.came > 0"
+     "CAUSE": "frame.came > 0 ⇒ o2.drow != 0"
     }
    }
   },
@@ -530592,9 +530459,7 @@
     "age",
     "stability"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "space",
@@ -530608,7 +530473,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 36,
      "PROCESS": 22,
@@ -538585,14 +538450,10 @@
     "bbox",
     "shape"
    ],
-   "affects": [
-    "colour_changed",
-    "dcells"
-   ],
+   "affects": [],
    "substrate": [
     "network",
     "space",
-    "spectrum",
     "time"
    ],
    "grid": {
@@ -538602,25 +538463,25 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 13,
-     "PROCESS": 22,
+     "PROCESS": 18,
      "RELATION": 14,
      "MEASURE": 4,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 22,
+     "INSTRUMENT": 18,
      "TEST": 9,
      "RULE": 13,
-     "AGENT": 22
+     "AGENT": 18
     },
     "example": {
      "STATE": "o1.row < o2.row",
-     "PROCESS": "o1.colour_changed == 1",
+     "PROCESS": "o1.drow != 0",
      "RELATION": "o1.row < o2.row",
      "MEASURE": "o1.row < o2.row",
-     "CAUSE": "o1.row < o2.row ⇒ o2.colour_changed == 1"
+     "CAUSE": "o1.row < o2.row ⇒ o2.drow != 0"
     }
    }
   },
@@ -549257,9 +549118,7 @@
     "standing",
     "predicted"
    ],
-   "affects": [
-    "came"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "space",
@@ -549273,25 +549132,25 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 18,
-     "PROCESS": 12,
+     "PROCESS": 11,
      "RELATION": 10,
      "MEASURE": 6,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 12,
+     "INSTRUMENT": 11,
      "TEST": 14,
      "RULE": 18,
-     "AGENT": 12
+     "AGENT": 11
     },
     "example": {
      "STATE": "o1.colour == o2.colour",
-     "PROCESS": "frame.came > 0",
+     "PROCESS": "o1.colour_changed == 1",
      "RELATION": "o1.colour == o2.colour",
      "MEASURE": "o1.standing > o2.standing",
-     "CAUSE": "o1.colour == o2.colour ⇒ frame.came > 0"
+     "CAUSE": "o1.colour == o2.colour ⇒ o2.colour_changed == 1"
     }
    }
   },
@@ -551314,10 +551173,7 @@
     "age",
     "prev"
    ],
-   "affects": [
-    "colour_changed",
-    "dcells"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "gradient",
@@ -551332,25 +551188,25 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 16,
-     "PROCESS": 10,
+     "PROCESS": 7,
      "RELATION": 7,
      "MEASURE": 6,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 10,
+     "INSTRUMENT": 7,
      "TEST": 12,
      "RULE": 16,
-     "AGENT": 10
+     "AGENT": 7
     },
     "example": {
      "STATE": "board.completed > 0",
-     "PROCESS": "o1.colour_changed == 1",
+     "PROCESS": "frame.action > 0",
      "RELATION": "o1.stability > o2.stability",
      "MEASURE": "o1.stability > o2.stability",
-     "CAUSE": "board.completed > 0 ⇒ o2.colour_changed == 1"
+     "CAUSE": "board.completed > 0 ⇒ frame.action > 0"
     }
    }
   },
@@ -570624,9 +570480,7 @@
     "w",
     "filled"
    ],
-   "affects": [
-    "gone"
-   ],
+   "affects": [],
    "substrate": [
     "energy",
     "gradient",
@@ -570641,7 +570495,7 @@
     "lineage": "composed from the operands' grid meanings; '?' = bond UNKNOWN"
    },
    "roles": {
-    "default": "PROCESS",
+    "default": "STATE",
     "available": {
      "STATE": 36,
      "PROCESS": 23,
@@ -570656,10 +570510,10 @@
     },
     "example": {
      "STATE": "frame.action > 0",
-     "PROCESS": "frame.gone > 0",
+     "PROCESS": "frame.action > 0",
      "RELATION": "o1.colour_changed == o2.colour_changed",
      "MEASURE": "o1.stability > o2.stability",
-     "CAUSE": "frame.action > 0 ⇒ frame.gone > 0"
+     "CAUSE": "frame.action > 0 ⇒ frame.action > 0"
     }
    }
   },
@@ -631506,10 +631360,7 @@
     "action"
    ],
    "affects": [
-    "gone",
-    "shape",
-    "dholes",
-    "dperimeter"
+    "gone"
    ],
    "substrate": [
     "energy",
@@ -631528,15 +631379,15 @@
     "default": "PROCESS",
     "available": {
      "STATE": 36,
-     "PROCESS": 31,
+     "PROCESS": 28,
      "RELATION": 26,
      "MEASURE": 8,
      "CAUSE": 36,
      "RESULT": 36,
-     "INSTRUMENT": 31,
+     "INSTRUMENT": 28,
      "TEST": 20,
      "RULE": 36,
-     "AGENT": 31
+     "AGENT": 28
     },
     "example": {
      "STATE": "o1.shape == o2.shape",
