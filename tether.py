@@ -1616,6 +1616,23 @@ _NEGATE_GUARD = armflag.arm("TETHER_NEGATE_GUARD", default=True)
 # on one state. ORDERED (:38 "no"), so A⇒B and B⇒A are two keys, never canonical; value-typed
 # readings are refused for typing. NEEDS TETHER_BOND_TERMS. OFF: ⇒ "bond has no atom", as before.
 _IMPLIES_BOND = armflag.arm("TETHER_IMPLIES_BOND", default=True)
+# O2, NESTING WITH A BUDGET (docs/04-PLANS_AHEAD/02-BUILD_SEQUENCE_FUTURE_STATE.md §5 "O2: nesting
+# with a budget and a guard on nesting depth"; the reviewer 2026-11-14 "guards that hold combined
+# conditions (guard-join pricing lands with O2)"): a guard condition may be a junction of two
+# CONDITIONS (routed junction keys), not only of two readings -- the key "+:(k1)|(k2)" for a bond in
+# _NEST_BONDS, read recursively by _jc_holds (an operand that is a key evaluates that key). Offered
+# on a slot's guard only where it holds on all of R, is false somewhere outside R, and sorts
+# strictly more of the slot's history than EACH component (states counted). Priced as the sum of
+# its parts'
+# descriptions plus one bond (term_bits' own bond term), so it never costs less than a part.
+# Deeper than GUARD_NEST_DEPTH is refused with the counted reason "nesting depth". NEEDS
+# TETHER_BOND_TERMS. OFF: no combined key is offered or read, as before.
+_GUARD_NEST = armflag.arm("TETHER_GUARD_NEST", default=True)   # O2: nested guard conditions
+# A DECLARED CONVENTION (Figure 10), NOT A TUNED NUMBER: a junction of two readings is depth 1, a
+# junction of two such conditions depth 2; nothing deeper is offered or read. Visible and movable by
+# the reviewer, never claimed correct.
+GUARD_NEST_DEPTH = 2
+_NEST_BONDS = ("+", "∥", "⇒")         # O2: the bonds joining two conditions (both, either, implies)
 # BUILD 4 ITEM 13, CONTACT-SEEDED CANDIDATE GENERATION (the reviewer 2026-11-03 r978; Isaiah
 # 11-01, "not blind enumeration"): the step's mint slots are ordered by two seeds ranked together
 # -- (a) the contact slots whose value changed this step, (b) a settled residual-lit → junction
@@ -4570,6 +4587,24 @@ def _guard_bits(guard: Any, offered: int, refs: int = 0) -> float:
     return math.log2(offered + 1) + (math.log2(refs + 1) if refs else 0.0)
 
 
+def _jc_bond(bond: str, u: Any, v: Any) -> bool | None:
+    """BOND TERMS: a junction's truth on two operand values, three-valued -- None where either is
+    None or the two do not compare. ≡ same, ⋛ above, ⇒ (O1) ordered with u the antecedent, ∥
+    either, + both. O2 calls it with the truths of two conditions as u and v."""
+    if u is None or v is None:
+        return None
+    try:
+        if bond == "≡":
+            return bool(u == v)
+        if bond == "⋛":
+            return bool(u > v)
+        if bond == "⇒":
+            return (not bool(u)) or bool(v)
+        return (bool(u) or bool(v)) if bond == "∥" else (bool(u) and bool(v))
+    except TypeError:
+        return None
+
+
 def _same_object(landed_on: str | None, slot: str) -> bool:
     """Did the press LAND ON the object this slot belongs to? Relative, never a name.
 
@@ -5629,6 +5664,8 @@ class Agent:
         self._tk_nofit: dict = {}          # S3: a key -> entries its windows judged no-fit
         self._junction_conds: dict = {}    # BOND TERMS: a junction key -> (bond, a, b)
         self._junction_of: dict = {}       # BOND TERMS: a slot -> its routed junction keys
+        self._junction_nest: dict = {}     # O2: a slot -> the combined keys offered on it
+        self._guard_nest_why: collections.Counter = collections.Counter()   # O2: counted reasons
         self._tk_win: tuple = (None, (), None)   # S3: the last window (key, entries, no-fit key)
         self._dl_owed = False              # 20: this lookup was due from the owed queue
         self._dl_n: Counter = Counter()    # 20: this step's described-lookup counts
@@ -6745,6 +6782,7 @@ class Agent:
         self._tk_off = {}
         self._tk_nofit = {}
         self._junction_conds, self._junction_of = {}, {}   # their keys name slots too
+        self._junction_nest = {}           # O2: a slot -> its offered combined keys (same rule)
         if _NOOP_WITHHOLD:
             self._noops.clear()            # 23: the level's own boards
         # THE MOVE MAP SURVIVES A BOUNDARY for `_contact_seen`'s reason: what an action does
@@ -26925,25 +26963,145 @@ class Agent:
         """BOND TERMS: the routed junction `key` read on `state`; a missing or unresolved reading,
         or one that does not compare, is False -- never an exception."""
         neg = bool(_NEGATE_GUARD and key and key.startswith("¬"))
-        c = self._junction_conds.get(key[1:] if neg else key) if key else None
-        if c is None:
-            return False
-        bond, a, b = c
-        u, v = state.get(a), state.get(b)
-        if u is None or v is None or u is NOT_RESOLVED or v is NOT_RESOLVED:
-            return False
-        try:
-            if bond == "≡":
-                h = bool(u == v)
-            elif bond == "⋛":
-                h = bool(u > v)
-            elif bond == "⇒":
-                h = (not bool(u)) or bool(v)     # O1: ordered, u the antecedent
-            else:
-                h = (bool(u) or bool(v)) if bond == "∥" else (bool(u) and bool(v))
-        except TypeError:
+        h = self._jc_value(key[1:] if neg else key, state) if key else None
+        if h is None:
             return False
         return not h if neg else h
+
+    def _jc_value(self, key: str, state: dict, depth: int = 1) -> bool | None:
+        """The routed junction `key` on `state`, three-valued: None where a reading is missing,
+        unresolved or does not compare (an unresolved reading is not a negation). O2
+        (TETHER_GUARD_NEST): a combined key's operands are KEYS, each evaluated by this same rule;
+        past GUARD_NEST_DEPTH nothing is read (None)."""
+        c = self._junction_conds.get(key)
+        if c is None:
+            return None
+        bond, a, b = c
+        if _GUARD_NEST and self._jk_nested(key):
+            if self._jk_depth(key) + depth - 1 > GUARD_NEST_DEPTH:
+                return None     # past the declared budget nothing is read
+            return _jc_bond(bond, self._jc_operand(a, state, depth + 1),
+                            self._jc_operand(b, state, depth + 1))
+        u, v = state.get(a), state.get(b)
+        if u is None or v is None or u is NOT_RESOLVED or v is NOT_RESOLVED:
+            return None
+        return _jc_bond(bond, u, v)
+
+    def _jc_operand(self, op: str, state: dict, depth: int) -> bool | None:
+        """O2: one operand of a combined key -- a key (¬ allowed, under TETHER_NEGATE_GUARD)."""
+        neg = bool(_NEGATE_GUARD and op.startswith("¬"))
+        h = self._jc_value(op[1:] if neg else op, state, depth)
+        return None if h is None else (not h if neg else h)
+
+    @staticmethod
+    def _jk_nested(key: str | None) -> bool:
+        """O2: is `key` a junction of two CONDITIONS -- the form f"{bond}:({k1})|({k2})"?"""
+        return bool(key) and any(key.startswith(f"{b}:(") and key.endswith(")")
+                                 for b in _NEST_BONDS)
+
+    def _jk_depth(self, key: str) -> int:
+        """O2: a junction of two readings is depth 1; a junction of two conditions is one more
+        than its deeper operand. ¬ adds no depth."""
+        k = key[1:] if key.startswith("¬") else key
+        c = self._junction_conds.get(k)
+        if c is None or not self._jk_nested(k):
+            return 1
+        return 1 + max(self._jk_depth(c[1]), self._jk_depth(c[2]))
+
+    def _jk_combine(self, bond: str, k1: str, k2: str, store: bool = True) -> str | None:
+        """O2: the combined key f"{bond}:({k1})|({k2})", stored for _jc_holds, or None with the
+        reason counted: "nesting depth" past GUARD_NEST_DEPTH (the declared budget), "not a
+        condition bond" for a bond outside _NEST_BONDS, "unknown operand" for an operand that is
+        not a routed key. Nothing is stored with the arm OFF."""
+        if not (_BOND_TERMS and _GUARD_NEST):
+            return None
+        if bond not in _NEST_BONDS:
+            self._guard_nest_why["not a condition bond"] += 1
+            return None
+        if any((k[1:] if k.startswith("¬") else k) not in self._junction_conds for k in (k1, k2)):
+            self._guard_nest_why["unknown operand"] += 1
+            return None
+        if 1 + max(self._jk_depth(k1), self._jk_depth(k2)) > GUARD_NEST_DEPTH:
+            self._guard_nest_why["nesting depth"] += 1
+            return None
+        key = f"{bond}:({k1})|({k2})"
+        if store:
+            self._junction_conds[key] = (bond, k1, k2)
+        return key
+
+    def _jk_bits(self, key: str, refs: int) -> float:
+        """O2, WHAT NAMING A GUARD KEY COSTS, as a description: a junction of two readings is one
+        choice among the `refs` keys on offer -- `log2(refs+1)`, the referent term `_guard_bits`
+        already charges; a combined key names BOTH its parts and one bond, so its description is
+        the sum of its parts' plus the bond's bits, read off `term_bits`' own bond term for the
+        bonds that join conditions (no new constant). Never less than the sum of the parts."""
+        k = key[1:] if key.startswith("¬") else key
+        c = self._junction_conds.get(k)
+        if c is None or not self._jk_nested(k):
+            return math.log2(refs + 1)
+        nb = len(_NEST_BONDS)
+        bond_bits = term_bits(2, 0, nb) - term_bits(1, 0, nb)     # one more bond: log2(|bonds|)
+        return self._jk_bits(c[1], refs) + self._jk_bits(c[2], refs) + bond_bits
+
+    def _jk_nest_bits(self, g: Any, gref: str | None, refs: int) -> float:
+        """O2: the guard price's extra over `_guard_bits` for a combined key -- its description
+        less the one referent choice `_guard_bits` already charged. 0 for every other guard, so
+        no existing price moves."""
+        if g != JUNCTION_GUARD or not (_GUARD_NEST and self._jk_nested(gref)):
+            return 0.0
+        return self._jk_bits(gref, refs) - math.log2(refs + 1)
+
+    def _jc_score(self, hist: list, robs: list, vals_h: list, vals_r: list) -> int:
+        """O2: how many of the slot's history states a condition sorts as R sorts them -- true on
+        a state of R, false (or unresolved) outside it. `vals_*` are its values on hist / robs."""
+        h_true = sum(1 for v in vals_h if v is True)
+        r_true = sum(1 for v in vals_r if v is True)
+        return r_true + (len(hist) - h_true) - (len(robs) - r_true)
+
+    def _jk_nest_offer(self, robs: list, slot: str) -> list:
+        """O2 (TETHER_GUARD_NEST): the combined keys on this slot's guard offer. Every pair of the
+        slot's routed keys (and the combined keys already offered on it, so the budget is reached
+        and refused, counted) joined by + and ∥ (symmetric, one order) and ⇒ (both orders); one is
+        offered only where it holds on all of R, is false somewhere outside R, and its count
+        (_jc_score) is STRICTLY greater than each component's."""
+        if not (_BOND_TERMS and _GUARD_NEST) or not robs:
+            return []
+        pool = (sorted(self._junction_of.get(slot, ()))
+                + sorted(self._junction_nest.get(slot, ())))
+        if len(pool) < 2:
+            return []
+        hist = self.history(slot)
+        vh = {k: [self._jc_value(k, s) for s, *_r in hist] for k in pool}
+        vr = {k: [self._jc_value(k, s) for s, *_r in robs] for k in pool}
+        sc = {k: self._jc_score(hist, robs, vh[k], vr[k]) for k in pool}
+        out = []
+        for i, k1 in enumerate(pool):
+            for k2 in pool[i + 1:]:
+                for bond, (x, y) in (("+", (k1, k2)), ("∥", (k1, k2)), ("⇒", (k1, k2)),
+                                     ("⇒", (k2, k1))):
+                    key = self._jk_combine(bond, x, y, store=False)
+                    if key is None or key in out:
+                        continue
+                    cr = [_jc_bond(bond, u, v) for u, v in zip(vr[x], vr[y], strict=True)]
+                    if not all(v is True for v in cr):
+                        self._guard_nest_why["not true on all of R"] += 1
+                        continue
+                    ch = [_jc_bond(bond, u, v) for u, v in zip(vh[x], vh[y], strict=True)]
+                    s = self._jc_score(hist, robs, ch, cr)
+                    if s <= len(robs) or s <= max(sc[x], sc[y]):
+                        self._guard_nest_why["does not separate R strictly better"] += 1
+                        continue
+                    self._jk_combine(bond, x, y)
+                    new = key not in self._junction_nest.get(slot, ())
+                    self._junction_nest.setdefault(slot, set()).add(key)
+                    self._guard_nest_why["offered"] += 1
+                    out.append(key)
+                    if new:
+                        self.led.record(self.cycle, "ROUTE", slot, "nest", key=key,
+                                        parts=[x, y], states=s, part_states=[sc[x], sc[y]],
+                                        reads="nest: a junction of two conditions, sorts R "
+                                              "strictly better than each part (O2)")
+        return out
 
     def _jc_separates(self, robs: list, slot: str, key: str) -> bool:
         """_separates for a junction key (r1060 1): constant on R, the other value outside R."""
@@ -26960,7 +27118,8 @@ class Agent:
             return []
         keys = sorted(self._junction_of.get(slot, ()))
         if not _NEGATE_GUARD:
-            return [k for k in keys if self._jc_separates(robs, slot, k)]
+            return ([k for k in keys if self._jc_separates(robs, slot, k)]
+                    + self._jk_nest_offer(robs, slot))    # O2: [] with TETHER_GUARD_NEST OFF
         out = []
         for k in keys:
             n = "¬" + k
@@ -26974,7 +27133,7 @@ class Agent:
                                     reads="polarity: false on R -> offered as ¬k (r1160)")
             elif self._jc_separates(robs, slot, k):
                 out.append(k)
-        return out
+        return out + self._jk_nest_offer(robs, slot)     # O2: [] with TETHER_GUARD_NEST OFF
 
     def _route_junction(self, bond: str, a: str, b: str) -> str:
         """BOND TERMS (r1059): a settled ≡ / ⋛ / + junction between readings a and b, a CONDITION,
@@ -28565,10 +28724,15 @@ class Agent:
                         # PRICED IN UNITS, so a settled sub-composition costs what the
                         # ground already paid for it. `routine.length`'s rule, applied to
                         # the space it was always stated over.
-                        cost = _price.get(g)
+                        # O2: a combined guard key adds its parts' description and one bond
+                        # (_jk_nest_bits; 0 for every other guard, so those keys are unchanged)
+                        _nb = self._jk_nest_bits(g, gref, _nr(g, len(_refs)))
+                        _pk = (g, gref) if _nb else g
+                        cost = _price.get(_pk)
                         if cost is None:
-                            cost = _price[g] = (self._bits((term, _units))
-                                                + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
+                            cost = _price[_pk] = (self._bits((term, _units))
+                                                  + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs)))
+                                                  + _nb)
                         # LET THE RESIDUAL SAY WHERE TO LOOK. Walking the whole history for
                         # every candidate is exhaustive search; R already names the
                         # observations that need fixing, and a term that cannot fix enough of
@@ -28620,17 +28784,17 @@ class Agent:
                                 # ONE TERM TWO PRICES depending on which path reached it.
                                 # L1: keyed by the branch too -- under the code a branch's
                                 # weight is its own; under term_bits every branch costs the same
-                                _bk = (g, True, bt.operand_term.atoms)
+                                _bk = (_pk, True, bt.operand_term.atoms)
                                 bcost = _price.get(_bk)
                                 if bcost is None:
                                     bcost = _price[_bk] = (
                                         self._bits((bt, _units))
-                                        + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
+                                        + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))) + _nb)
                                 if self._cannot_pay(bt, slot, robs, bcost, base, rkey):
                                     continue
                                 if _TREE_DEEPEN:
                                     _tree_roots.append((bt, _guard_bits(
-                                        g, len(_gs) - 1, _nr(g, len(_refs))), kind))
+                                        g, len(_gs) - 1, _nr(g, len(_refs))) + _nb, kind))
                                 bleft = self._left(bt, slot, hist, base, bcost)
                                 _sh["pays_called"] += 1
                                 if not self._pays_ev(slot, bt, bcost, bleft, base):
@@ -28700,12 +28864,12 @@ class Agent:
                             if self.gamma.is_atom(bt) or (
                                     _maybe_lib and bt.name in self.gamma.library):
                                 continue
-                            _bk = (g, True, bt.operand_term.atoms)    # L1: keyed by the branch
+                            _bk = (_pk, True, bt.operand_term.atoms)  # L1: keyed by the branch
                             bcost = _price.get(_bk)
                             if bcost is None:
                                 bcost = _price[_bk] = (
                                     self._bits((bt, _units))
-                                    + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))))
+                                    + _guard_bits(g, len(_gs) - 1, _nr(g, len(_refs))) + _nb)
                             # **THE SAME BOUND HERE, AND IT CHANGES NO OUTCOME.** `_cannot_pay`
                             # PROVES `cost + left >= base`, which is exactly `not pays` -- so
                             # anything it refuses, `pays` refuses too. A short-circuit, not a
@@ -28715,7 +28879,7 @@ class Agent:
                                 continue
                             if _TREE_DEEPEN:
                                 _tree_roots.append((bt, _guard_bits(
-                                    g, len(_gs) - 1, _nr(g, len(_refs))), kind))
+                                    g, len(_gs) - 1, _nr(g, len(_refs))) + _nb, kind))
                             bleft = self._left(bt, slot, hist, base, bcost)
                             _sh["pays_called"] += 1
                             if not self._pays_ev(slot, bt, bcost, bleft, base):

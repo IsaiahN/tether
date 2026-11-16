@@ -3407,6 +3407,18 @@ ARMS: dict[str, str] = {
                            "readings refused for typing; nsm says ⇒ is a condition routed to the "
                            "guard offer. NEEDS TETHER_BOND_TERMS. OFF: ⇒ 'bond has no atom', as "
                            "before. default ON",
+    "TETHER_GUARD_NEST": "O2 (BUILD_SEQUENCE_FUTURE_STATE §5 'O2: nesting with a budget and a "
+                         "guard on nesting depth'; the reviewer 2026-11-14 'guards that hold "
+                         "combined conditions (guard-join pricing lands with O2)'): a guard "
+                         "condition may be a junction of two routed junction KEYS -- "
+                         "bond:(k1)|(k2) for + ∥ ⇒ -- read recursively by _jc_holds; offered on a "
+                         "slot's guard only where it holds on all of R, is false somewhere outside "
+                         "R, and sorts strictly more history states than each part (counted); "
+                         "priced as its parts' descriptions plus one bond (term_bits' bond term), "
+                         "never less than the parts; deeper than GUARD_NEST_DEPTH = 2 (a declared "
+                         "convention) refused with the counted reason 'nesting depth'. NEEDS "
+                         "TETHER_BOND_TERMS. OFF: no combined key offered or read, as before. "
+                         "default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "
