@@ -1,6 +1,47 @@
-# The state of the agent (2026-11-13)
+﻿# The state of the agent (2026-11-16)
 
 A handoff: what works, what doesn't, where the gap is, and what's designed next. Written so someone picking this up can start without the conversation history. Every claim points to a measurement or a commit.
+
+## Since 2026-11-13: the build sequence is built, and the T0 gate is running
+
+Every item of `docs/04-PLANS_AHEAD/02-BUILD_SEQUENCE_FUTURE_STATE.md` up to the T0 gate is now built, each behind its own switch (default ON, gridworld gw12 identical OFF):
+
+| Item | Switch | Commit |
+|---|---|---|
+| 0 Goals wait until the buttons are known | TETHER_HYP_AFTER_WORDS | `eb1fed6` |
+| 0b What the buttons did carries to the next board | TETHER_WORDS_CARRY | `dcac0e8` |
+| 1a Walls readable from contact | TETHER_PASSABILITY | `36c727f` |
+| 1b Names that hold | TETHER_NAMES_HOLD | `b10d2bb`, cost `87b8822` |
+| 2a The agenda reader | TETHER_AGENDA | `be06f93` |
+| 2b The symbol binding table | (record only, `symbols.py`) | `81dc628` |
+| 3 Cards v4 and the tier-2 contrast | TETHER_TIER_CONTRAST | `9b9f7bf` |
+
+And the fixes the T0 runs asked for, in the order they were found:
+
+| Found by | Fix | Switch | Commit |
+|---|---|---|---|
+| T0: refused, never repaired | the refusal's missing condition becomes a subgoal | TETHER_REPAIR_AT_REFUSAL | `b4cb279` |
+| T0b: one lp85 step took 53 min over 43,102 tied conditions | conditions that never varied are not priced; when none can pay, say so first | TETHER_GOAL_VARIES, TETHER_GOAL_FLOOR | `8df0d55`, `dd1b793` |
+| T0b: count goals with no known first step | touch the goal's object and watch | TETHER_CONTACT_ROUTE | `1efbe45` |
+| T0c: touching never moved the count | press what moved the same reading on another object | TETHER_KIND_LEVER | `d9ea763` |
+| T0c: the subgoal ended without helping its parent | when the subgoal arrives, the refused parent is held again; refused again, that subgoal is dropped for it | TETHER_HTN_RETURN | `606f96a` |
+
+**The T0 runs** (six games neither seat had studied, ar25 cd82 g50t ka59 lf52 lp85, 600 s each, fresh copy of central; pass = goal, refusal, repair row, subgoal, the goal again, a clear, in that order on one board):
+
+| Run | Code | Result |
+|---|---|---|
+| T0 (3 games) | `acd2ca3` | refused, not repaired |
+| T0b | `b4cb279` | no refusal rows; every goal a count goal with no known first step |
+| T0c | `dd1b793`, KIND_LEVER off | not a pass, the best yet: refusals in 4 games, subgoals in 3, ka59 returned to a parent once; no clear through the chain. lp85 cleared level 1 without the chain |
+| T0d | `16a4b3b` (= `dd1b793` agent), KIND_LEVER on | not a pass. KIND_LEVER fired 114 times and replaced touching (21 -> 2), so goals mostly ended untested and nothing was refused or repaired (repairs 4 -> 0). Its pre-registered refuter fired; the switch stays ON until the whole build is tested together (Isaiah 2026-11-16). The run shared the machine with a download and builds, so its step counts do not compare with T0c. lp85 cleared level 1 again, without the chain. HTN_RETURN (606f96a) was not in this run |
+
+**Also added:** `library/lexicon_imagenet_wordnet.json` (the 1000 ImageNet-1k classes, each with its WordNet 3.0 synset, lemmas, gloss and hypernym chain, provenanced and licensed in its header; nothing reads it yet), the groundwork for the "voice by mapping" future-state item. 306 older tests were retired (108 kept), because the full suite took hours.
+
+**The operators:** O1, ⇒ usable in an idea's guard, ordered, read as (not A) or B (TETHER_IMPLIES_BOND, `bc49790`). O2, a guard may join two conditions, not only two readings, to a declared depth of 2, offered only where it sorts the history strictly better than each part and priced as its parts plus one bond (TETHER_GUARD_NEST, `580f9ab`). O3, bond pricing: `BONDS = 1` is correct where it is used (the predict signature, r1953); the price that was missing was the joined guard's, and it landed with O2. Not yet: offering the production ledger's learned A ⇒ B pairs as guard keys (they are press and kind pairs, not two readings), and joining conditions across slots.
+
+**Still open:** the T0 gate itself (a clear through the chain); nine of the formula's symbols are unbound, each with its reason in `symbols.py`; and the keep rules of every item above are read at the next retest that reaches enough goals and boards.
+
+The sections below are as of 2026-11-13 and are kept as the record of how the order above was decided.
 
 ## What it is
 

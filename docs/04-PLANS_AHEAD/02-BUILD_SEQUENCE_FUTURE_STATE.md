@@ -15,6 +15,21 @@ The order is set by Fig 3 :20, "Each link consumes what the one above produces",
 6. step 9                                      the noise floor and the experiments; then Recursive Diffusion Learning (T1-T4)
 ```
 
+## Status, 2026-11-16
+
+| Step | Status |
+|---|---|
+| 0 the goal fix | built, ON (`eb1fed6`); keep rule read at the next retest with more goals |
+| 0b words carry across boards | built, ON (`dcac0e8`, TETHER_WORDS_CARRY). Its precondition (board 2 reached often enough) is not met yet (1 of 454 game-runs), so it is inert on first boards and its DECIDES line waits for boards to be reached |
+| 1a walls readable | built, ON (`36c727f`, TETHER_PASSABILITY); DECIDES not yet read |
+| 1b names that hold | built, ON (`b10d2bb`, `87b8822`, TETHER_NAMES_HOLD); DECIDES not yet read |
+| 2a the agenda reader | built, ON (`be06f93`, TETHER_AGENDA): reader rows in every T0 game |
+| 2b the symbol binding table | built (`81dc628`): 13 of 22 symbols bound, 9 unbound with reasons |
+| 3 cards v4 | built (`9b9f7bf`, TETHER_TIER_CONTRAST) |
+| 4 the T0 gate | running: T0, T0b, T0c, T0d (see docs/STATE_OF_THE_AGENT.md); fixes it asked for are built (REPAIR_AT_REFUSAL, GOAL_VARIES, GOAL_FLOOR, CONTACT_ROUTE, KIND_LEVER, HTN_RETURN) |
+| 5 housekeeping | old tests: 306 retired (`16a4b3b`). Operators: O1 built (`bc49790`, TETHER_IMPLIES_BOND), O2 built (`580f9ab`, TETHER_GUARD_NEST), O3 covered by O2's guard-join price (r1953: BONDS = 1 is correct where used). Index audit: open. SHIP 4: this release |
+| 6 step 9, RDL | not started; RDL opens when T0 passes. Groundwork for the voice layer: `library/lexicon_imagenet_wordnet.json` |
+
 ## The rules every item follows
 
 - **Its own switch, default ON.** Switched OFF, the agent behaves byte for byte as before; gridworld gw12 proves it.
