@@ -3398,6 +3398,15 @@ ARMS: dict[str, str] = {
                          "again, that subtask is htn_not_prerequisite for it; the edge is "
                          "credited at the returned parent's end (paid = won). NEEDS "
                          "TETHER_REPAIR_AT_REFUSAL. OFF: the parent stays tried. default ON",
+    "TETHER_IMPLIES_BOND": "O1 (BUILD_SEQUENCE_FUTURE_STATE §5 'O1: ⇒ wired'; the reviewer "
+                           "2026-11-13/14 '⇒ has no atom at all'; Operators Table :35-40, "
+                           "production, symmetric: no): a settled ⇒ junction between two "
+                           "truth-typed (PRED/BOOL) readings is a CONDITION routed to the guard "
+                           "offer for its right reading, like + and ∥; the key ⇒:a|b holds where "
+                           "(not a) or b, ORDERED (a⇒b and b⇒a are two keys); value-typed "
+                           "readings refused for typing; nsm says ⇒ is a condition routed to the "
+                           "guard offer. NEEDS TETHER_BOND_TERMS. OFF: ⇒ 'bond has no atom', as "
+                           "before. default ON",
     "TETHER_SWEEP_FILTER": "P1 (the reviewer r1838; DESIGN_STEP8 D2): the sweep checks each bind "
                            "with _operand_fits before its _left, and skips every bind's _left "
                            "when the term's cost (the same for every bind) already reaches the "

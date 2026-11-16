@@ -1608,6 +1608,14 @@ _GUARD_BONDS = ("≡", "⋛", "+", "∥")   # ∥ (r1073): either suffices
 # where k is resolved and false -- an unresolved reading is not a negation. Offered on the guard
 # only where ¬k holds throughout R and separates it. OFF: no ¬ key, ¬ "not wired as a term".
 _NEGATE_GUARD = armflag.arm("TETHER_NEGATE_GUARD", default=True)
+# O1, ⇒ WIRED (docs/04-PLANS_AHEAD/02-BUILD_SEQUENCE_FUTURE_STATE.md §5 "O1: ⇒ wired (implication
+# usable in terms)"; Operators Table :35-40 "production · A produces B; B did not exist before ·
+# symmetric: no · is there a B before A fires? No."): a settled ⇒ junction between two truth-typed
+# (PRED/BOOL) readings is a CONDITION routed to the guard offer for B, like + and ∥; the key
+# "⇒:A|B" holds where the readings resolve and (not A) or B -- never B without A having fired, read
+# on one state. ORDERED (:38 "no"), so A⇒B and B⇒A are two keys, never canonical; value-typed
+# readings are refused for typing. NEEDS TETHER_BOND_TERMS. OFF: ⇒ "bond has no atom", as before.
+_IMPLIES_BOND = armflag.arm("TETHER_IMPLIES_BOND", default=True)
 # BUILD 4 ITEM 13, CONTACT-SEEDED CANDIDATE GENERATION (the reviewer 2026-11-03 r978; Isaiah
 # 11-01, "not blind enumeration"): the step's mint slots are ordered by two seeds ranked together
 # -- (a) the contact slots whose value changed this step, (b) a settled residual-lit → junction
@@ -14888,7 +14896,8 @@ class Agent:
                                           else "not settled")] += 1
                         continue
                     if not chained(got):
-                        if _BOND_TERMS and got in _GUARD_BONDS:
+                        if _BOND_TERMS and (got in _GUARD_BONDS
+                                            or (got == "⇒" and _IMPLIES_BOND)):
                             why["lookup: " + self._route_junction(got, x, y)] += 1
                             continue
                         why[f"lookup: {got}: bond has no atom (r896)" if not impl.get(got) else
@@ -26928,6 +26937,8 @@ class Agent:
                 h = bool(u == v)
             elif bond == "⋛":
                 h = bool(u > v)
+            elif bond == "⇒":
+                h = (not bool(u)) or bool(v)     # O1: ordered, u the antecedent
             else:
                 h = (bool(u) or bool(v)) if bond == "∥" else (bool(u) and bool(v))
         except TypeError:
@@ -26968,13 +26979,17 @@ class Agent:
     def _route_junction(self, bond: str, a: str, b: str) -> str:
         """BOND TERMS (r1059): a settled ≡ / ⋛ / + junction between readings a and b, a CONDITION,
         routed to b's guard offer: ≡ one canonical key (symmetric, Operators Table :26, :59-60), ⋛
-        both orders (:50), + only between two truth-typed readings (r1057). The reason, counted."""
-        if bond in ("+", "∥") and not all(str(self.slot_types.get(s)) in ("PRED", "BOOL")
-                                          for s in (a, b)):
-            atom = "both" if bond == "+" else "either"
+        both orders (:50), + only between two truth-typed readings (r1057). O1
+        (TETHER_IMPLIES_BOND): ⇒ like ∥ between two truth-typed readings, but ORDERED (:38): the
+        one key a⇒b, never sorted. The reason, counted."""
+        if bond == "⇒" and not (_BOND_TERMS and _IMPLIES_BOND):
+            return "⇒: bond has no atom (r896)"
+        if bond in ("+", "∥", "⇒") and not all(str(self.slot_types.get(s)) in ("PRED", "BOOL")
+                                               for s in (a, b)):
+            atom = {"+": "both", "∥": "either"}.get(bond, "implies")
             return f"bond {bond}: {atom}: the operands are not conditions (typing)"
         p, q = sorted((a, b))
-        pairs = [(a, b), (b, a)] if bond == "⋛" else [(p, q)]
+        pairs = [(a, b), (b, a)] if bond == "⋛" else [(a, b)] if bond == "⇒" else [(p, q)]
         for u, v in pairs:
             k = f"{bond}:{u}|{v}"
             self._junction_conds[k] = (bond, u, v)
