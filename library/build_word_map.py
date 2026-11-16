@@ -16,6 +16,9 @@ Sections:
   priors         object concept -> action verbs named in its gloss or derivationally related ('+')
   shape_bridge   a DECLARED 2D shape -> 3D form -> object table (a convention), each resolved to
                  a verified synset and attached to the objects' priors
+  concept_actions  object/shape concept -> ranked verbs from the REVERSE dictionary read (verb
+                 synsets whose gloss or quoted example names the noun) merged with the priors,
+                 each verb mapped to library entries sharing its sense (library_atoms)
 
 Inputs (read-only, outside the repo; root from --data or env WORDMAP_DATA_DIR):
   wordnet/dict/data.{noun,verb,adj,adv}, index.{noun,verb,adj,adv}   Princeton WordNet 3.0
@@ -122,6 +125,13 @@ SENSE_RULE = (
     "(status 'tie'), none dropped. A sole candidate is chosen as 'sole_sense' (no choice to "
     "make). Several candidates and no context evidence: status 'no_context', nothing chosen -- "
     "never a pick by spelling or by frequency rank.")
+# concept_actions: DECLARED conventions (Figure 10), visible and movable, not derived
+ACTIONS_CAP = 25  # actions kept per concept after ranking
+ACTION_LEXNAMES = ("verb.motion", "verb.contact", "verb.change", "verb.creation",
+                   "verb.consumption", "verb.possession", "verb.competition", "verb.perception",
+                   "verb.social")
+REVERSE_NGRAM = 4  # longest noun collocation looked up in a verb gloss/example
+PLURAL_STRIP = (("ies", "y"), ("es", ""), ("s", ""))
 FLAT_NOTE = ("held on flat boards, settles as depth only on boards with depth; settles as "
              "behaviour on any board")
 
@@ -411,6 +421,108 @@ def concept_priors(wn: WordNet, concept: str, sid: str, stamp: dict) -> list[dic
     return rows
 
 
+def _ngrams_text(text: str) -> list[str]:
+    return re.findall(r"[a-z0-9]+(?:[-'][a-z0-9]+)*", (text or "").lower())
+
+
+def reverse_index(wn: WordNet) -> dict[str, list[tuple[str, str]]]:
+    """THE REVERSE DICTIONARY READ: noun lemma -> [(verb synset, 'gloss'|'example')] for every verb
+    synset whose definition or quoted example sentence names that noun lemma. Each verb gloss is
+    split into its definition (before the first quote) and its quoted examples; each is tokenized
+    at word boundaries, lower-cased, and every 1..REVERSE_NGRAM-token span is looked up in the noun
+    index (multi-word lemmas joined by spaces), as written and with a simple plural strip of the
+    last token (-ies -> -y, -es, -s). STOP words are never indexed."""
+    nouns = {k.replace("_", " ") for k in wn.index["n"] if k not in STOP}
+    out: dict[str, list[tuple[str, str]]] = {}
+    for sid in sorted(s for s in wn.syn if s.startswith("v")):
+        g = wn.syn[sid]["gloss"]
+        parts = [("gloss", g.split('"')[0])] + [("example", x) for x in re.findall(r'"([^"]*)"', g)]
+        seen = set()
+        for where, text in parts:
+            toks = _ngrams_text(text)
+            for i in range(len(toks)):
+                for n in range(1, REVERSE_NGRAM + 1):
+                    if i + n > len(toks):
+                        break
+                    span = toks[i:i + n]
+                    last = span[-1]
+                    forms = [last] + [last[: -len(s)] + r for s, r in PLURAL_STRIP
+                                      if last.endswith(s) and len(last) > len(s) + 2]
+                    for f in forms:
+                        lem = " ".join(span[:-1] + [f])
+                        if lem in nouns and (lem, where) not in seen:
+                            seen.add((lem, where))
+                            out.setdefault(lem, []).append((sid, where))
+                            break
+    return out
+
+
+SOURCE_RANK = {"reverse-example": 0, "reverse-gloss": 1}
+
+
+def concept_actions(wn: WordNet, rev: dict, concept: str, sid: str, extra: list[str],
+                    prior_rows: list[dict], stamp: dict, lemma_entries: dict) -> tuple[dict, int]:
+    """One concept: the verbs from the reverse index (its synset's lemmas plus any extra names,
+    e.g. an ImageNet label's head noun) merged with its forward priors, keyed by verb synset;
+    kept by ACTION_LEXNAMES, ranked, capped at ACTIONS_CAP. Returns (row, dropped by lexname)."""
+    names = sorted({lem.lower().replace("_", " ") for lem in wn.syn[sid]["lemmas"]}
+                   | {e.lower() for e in extra if e})
+    acts: dict[str, dict] = {}
+
+    def add(vsid: str, verb: str, source: str, matched: str | None = None) -> None:
+        a = acts.get(vsid)
+        if a is None:
+            a = acts[vsid] = {"verb": verb, "verb_synset": vsid,
+                              "verb_lexname": wn.syn[vsid]["lexname"],
+                              "verb_lemmas": [x.lower().replace("_", " ")
+                                              for x in wn.syn[vsid]["lemmas"]],
+                              "sources": [], "matched": []}
+        if source not in a["sources"]:
+            a["sources"].append(source)
+        if matched and matched not in a["matched"]:
+            a["matched"].append(matched)
+
+    for name in names:
+        for vsid, where in rev.get(name, []):
+            add(vsid, wn.syn[vsid]["lemmas"][0].lower().replace("_", " "),
+                f"reverse-{where}", f"{name}@{where}")
+    for p in prior_rows:
+        vsid = p["verb_synset"]
+        if vsid not in wn.syn:
+            continue
+        src = ("derivation" if p["source"] == "derivation" else
+               f"hypernym:{p['via_hypernym']}" if p.get("via_hypernym") else "gloss-forward")
+        add(vsid, p["action_verb"], src)
+    kept, dropped = [], 0
+    for a in acts.values():
+        if a["verb_lexname"] not in ACTION_LEXNAMES:
+            dropped += 1
+            continue
+        a["sources"].sort(key=lambda s: (SOURCE_RANK.get(s, 2), s))
+        a["n_sources"] = len(a["sources"])
+        a["matched"].sort()
+        atoms = set()
+        for w in a["verb_lemmas"]:
+            for r in lemma_entries.get(w, []):
+                if r["synset"] == a["verb_synset"]:   # a shared sense, never a spelling alone
+                    atoms.add(r["entry"])
+        a["library_atoms"] = sorted(atoms)
+        kept.append(a)
+    kept.sort(key=lambda a: (-a["n_sources"], min(SOURCE_RANK.get(s, 2) for s in a["sources"]),
+                             a["verb"], a["verb_synset"]))
+    # the merge never loses an existing forward prior: every action carrying a forward source is
+    # kept, and the cap's remaining slots go to reverse-only actions in rank order
+    fwd = [a for a in kept if any(s not in SOURCE_RANK for s in a["sources"])]
+    room = max(0, ACTIONS_CAP - len(fwd))
+    rev_only = [a for a in kept if all(s in SOURCE_RANK for s in a["sources"])]
+    chosen = {id(a) for a in fwd + rev_only[:room]}
+    out = [a for a in kept if id(a) in chosen]
+    row = {"concept": concept, "synset": sid, "names_matched": names, "stamp": stamp,
+           "standing": "none", "actions": out, "actions_total": len(kept),
+           "actions_capped": len(kept) - len(out), "dropped_by_lexname": dropped}
+    return row, dropped
+
+
 def resolve(wn: WordNet, lemma: str, lexname: str, cue: str) -> str | None:
     for sid in wn.index["n"].get(lemma, []):
         s = wn.syn[sid]
@@ -496,6 +608,36 @@ def build(root: str) -> bytes:
     for w in synonym_index:
         synonym_index[w].sort(key=lambda r: (r["entry"], r["synset"]))
     priors.sort(key=lambda p: (p["concept"], p["source"], p["action_verb"]))
+
+    # concept_actions: the reverse dictionary read merged with the forward priors above
+    rev = reverse_index(wn)
+    prior_of: dict[tuple[str, str], list[dict]] = {}
+    for p in priors:
+        prior_of.setdefault((p["concept"], p["concept_synset"]), []).append(p)
+    todo: list[tuple[str, str, list[str]]] = []
+    for sid, rows in sorted(by_concept_sid.items()):
+        todo.append((rows[0]["concept"] if rows else
+                     f"bridge:{wn.syn[sid]['lemmas'][0].lower()}", sid, []))
+    for c in lib["lexicon"]["classes"]:
+        sid = "n" + c["wnid"][1:]
+        if sid in wn.syn:
+            head = re.findall(r"[a-z0-9'-]+", c["label"].split(",")[0].lower())
+            todo.append((f"imagenet:{c['index']}:{c['label']}", sid,
+                         [lem.replace("_", " ") for lem in c.get("lemmas") or []]
+                         + head[-1:]))
+    for full, e in sorted(entries.items()):
+        if e["category"] in ("object", "shape"):
+            for sid in e["chosen"]:
+                todo.append((full, sid, []))
+    actions_rows, dropped_lex = [], 0
+    for concept, sid, extra in todo:
+        row, d = concept_actions(wn, rev, concept, sid, extra, prior_of.get((concept, sid), []),
+                                 stamp, synonym_index)
+        actions_rows.append(row)
+        dropped_lex += d
+    actions_rows.sort(key=lambda r: (r["concept"], r["synset"]))
+    rev_hits = [h for hs in rev.values() for h in hs]
+    act_src = Counter(s for r in actions_rows for a in r["actions"] for s in a["sources"])
     hist = Counter(e["category"] for e in entries.values())
     sources = {}
     for role, rel in INPUTS.items():
@@ -550,10 +692,48 @@ def build(root: str) -> bytes:
             "priors_concepts": len({p["concept"] for p in priors}),
             "shape_bridge_rows": len(bridge),
         },
+        "concept_actions_method": (
+            "REVERSE DICTIONARY READ: every verb synset in data.verb is split into its definition "
+            "and its quoted example sentences; each is tokenized at word boundaries, lower-cased, "
+            f"and every 1..{REVERSE_NGRAM}-token span is looked up in index.noun (as written, then "
+            "with the last token's plural stripped: -ies->-y, -es, -s); STOP words never indexed. "
+            "A concept (each shape_bridge object; each lexicon class, by its synset lemmas, its "
+            "lemmas and its label's head noun; each entry of category object or shape, by its "
+            "chosen synsets' lemmas) collects the verb synsets naming any of its names "
+            "('reverse-example' / 'reverse-gloss'), merged by verb synset with its forward priors "
+            "('gloss-forward', 'derivation', 'hypernym:<sid>'). The noun's SENSE in the verb text "
+            "is not disambiguated (a spelling match on a noun lemma), which is why every row has "
+            "standing none. Kept: verb_lexname in concept_actions_lexnames; ranked n_sources desc, "
+            "then best source (reverse-example > reverse-gloss > others), then verb, then synset; "
+            "capped: every action with a forward source (an existing prior) is kept, and the "
+            "remaining slots up to the cap go to reverse-only actions in rank order, so the merge "
+            "never loses an existing prior (a concept whose forward priors alone exceed the cap "
+            "keeps them all). library_atoms: entries whose chosen sense IS the verb synset, "
+            "reached through the synonym index by the verb's lemmas (every tie carried; a "
+            "spelling alone never attaches)."),
+        "concept_actions_cap": ACTIONS_CAP,
+        "concept_actions_cap_note": "a DECLARED CONVENTION (build_word_map.ACTIONS_CAP), "
+                                    "visible and movable, not derived; actions_total and "
+                                    "actions_capped per row show what it cut",
+        "concept_actions_lexnames": list(ACTION_LEXNAMES),
+        "concept_actions_counts": {
+            "concepts": len(actions_rows),
+            "concepts_with_actions": sum(bool(r["actions"]) for r in actions_rows),
+            "actions_kept": sum(len(r["actions"]) for r in actions_rows),
+            "actions_capped": sum(r["actions_capped"] for r in actions_rows),
+            "dropped_by_lexname": dropped_lex,
+            "actions_by_source": dict(sorted(act_src.items())),
+            "actions_with_library_atoms": sum(bool(a["library_atoms"]) for r in actions_rows
+                                              for a in r["actions"]),
+            "reverse_index_noun_lemmas": len(rev),
+            "reverse_index_hits": len(rev_hits),
+            "reverse_index_hits_by_where": dict(sorted(Counter(w for _, w in rev_hits).items())),
+            "reverse_index_verb_synsets": len({s for s, _ in rev_hits}),
+        },
     }
     doc = {"header": header, "entries": entries, "synonym_index": dict(sorted(
         synonym_index.items())), "priors": priors, "shape_bridge": bridge,
-        "shape_bridge_dropped": dropped}
+        "shape_bridge_dropped": dropped, "concept_actions": actions_rows}
     return (json.dumps(doc, sort_keys=True, indent=1, ensure_ascii=False) + "\n").encode("utf-8")
 
 

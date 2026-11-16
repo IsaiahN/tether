@@ -6,7 +6,10 @@
   W3     ball-like lexicon classes carry priors, at least one verb.motion/verb.contact from a gloss
   W4     every prior carries a stamp {stage, corpus, sha} and standing none
   W5     shape_bridge: disc -> sphere -> ball -> a verb.motion/verb.contact action, stamped
+  W6     concept_actions for ball (n02778669): catch/bounce/dribble from reverse-example AND
+         throw or kick; every action has a source; every row stamped, standing none
   MF     a planted 'o12' or move-list entry name is refused by the builder
+  MF6    the ball row rebuilt WITHOUT the reverse index fails W6 (RED as required)
   CHECK  --check rebuilds byte-identical (skipped when the WordNet data root is absent)
 
     python -B tests/test_word_map.py
@@ -106,6 +109,55 @@ def check_w5(doc: dict) -> None:
           f"{[(a['verb'], a['verb_lexname']) for a in acts]}")
 
 
+REVERSE_VERBS = ("catch", "bounce", "dribble")
+FORWARD_VERBS = ("throw", "kick")
+
+
+def w6_row(row: dict) -> list[str]:
+    acts = row["actions"]
+    assert all(a["sources"] and a["n_sources"] == len(a["sources"]) for a in acts), row
+    rev = sorted({a["verb"] for a in acts if a["verb"] in REVERSE_VERBS
+                  and "reverse-example" in a["sources"]})
+    fwd = sorted({a["verb"] for a in acts if a["verb"] in FORWARD_VERBS})
+    assert rev, f"ball: none of {REVERSE_VERBS} from reverse-example"
+    assert fwd, f"ball: none of {FORWARD_VERBS}"
+    return rev + fwd
+
+
+def check_w6(doc: dict) -> None:
+    rows = doc["concept_actions"]
+    for r in rows:
+        assert r["stamp"]["stage"] == "regularity" and r["stamp"]["sha"], r["concept"]
+        assert r["standing"] == "none" and all(a["sources"] for a in r["actions"]), r["concept"]
+    ball = [r for r in rows if r["synset"] == "n02778669"]
+    assert ball, "no concept_actions row for ball n02778669"
+    got = [w6_row(r) for r in ball]
+    print(f"  W6: ball n02778669 ({[r['concept'] for r in ball]}) -> {got}; "
+          f"{len(rows)} concept rows, every action sourced")
+
+
+def check_mf6(doc: dict) -> None:
+    if not os.path.isdir(os.path.join(bwm.data_root(), "wordnet", "dict")):
+        print("  MF6: skipped (WordNet data root absent)")
+        return
+    wn = bwm.WordNet(bwm.data_root())
+    row = next(r for r in doc["concept_actions"] if r["synset"] == "n02778669")
+    pri = [p for p in doc["priors"] if p["concept"] == row["concept"]
+           and p["concept_synset"] == row["synset"]]
+    stamp = row["stamp"]
+    same, _ = bwm.concept_actions(wn, bwm.reverse_index(wn), row["concept"], row["synset"], [],
+                                  pri, stamp, doc["synonym_index"])
+    assert same == row, "the ball row does not rebuild from its own inputs"
+    blind, _ = bwm.concept_actions(wn, {}, row["concept"], row["synset"], [], pri, stamp,
+                                   doc["synonym_index"])
+    try:
+        w6_row(blind)
+    except AssertionError as e:
+        print(f"  MF6: without the reverse index W6 fails ({e}): RED as required")
+        return
+    raise AssertionError("MUST-FAIL: W6 passed without the reverse index")
+
+
 def check_mf() -> None:
     for planted in (["GAME|o12"], ["GAME|up, up, left"], ["GAME|ACTION1,ACTION3"]):
         try:
@@ -134,7 +186,9 @@ def main() -> int:
     check_w3(doc)
     check_w4(doc)
     check_w5(doc)
+    check_w6(doc)
     check_mf()
+    check_mf6(doc)
     check_rebuild()
     print("word_map: OK")
     return 0
