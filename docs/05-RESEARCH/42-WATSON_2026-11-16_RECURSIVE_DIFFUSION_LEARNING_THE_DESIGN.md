@@ -65,7 +65,37 @@ Each link consumes what the one above produces (Fig 3 :20).
 | B5 | "does this roll?" | **the affordance bet**: at a new kind's first sighting, the prior's prediction is written; the first press on that kind tests it; the board settles it, or refuses it and the rule is split by the condition read ("round things roll, except when touching a wall"); nothing deleted | `affordance.py`, TETHER_AFFORDANCE | built (`16a4ef2`); settle and refuse seen only on fixtures so far |
 | B6 | saying it | NSM lines over those rows: "THIS IS LIKE `ball` (`disc -> sphere -> ball`). `ball` CAN MOVE. ... I TOUCH THIS. THIS MOVES." Only listed primes; the word is a filler that unpacks to primes | `nsm.py` | built (`16a4ef2`) |
 | B7 | "the ball rolls to the right" | direction from the DIRECTION cluster and manner of motion (keeps moving between presses = rolls; moves only when pressed = is pushed) | -- | not built |
-| B8 | recognition from pictures | the ImageNet images through a swappable recognition front end at the edge; photos are not grids, structure transfers through the shared clusters (SHAPE, COLOUR, CONTACT, MOTION) | -- | later; the images are downloading (train and validation) |
+| B8 | recognition from pictures, no neural network | AKAZE key points, a per-class centroid memory, a vote checked by a geometric fit with abstention, and a contour route giving shape names (detail below) | `recognize.py` | code built (`be810c6`), tested on synthetic pictures; the ImageNet class memory is built once the validation pictures are downloaded |
+
+### B8 in detail: recognising pictures without a neural network
+
+Isaiah (2026-11-16, spelling corrected):
+
+> How is the agent supposed to learn these without using a neural net? Read "Image Recognition Without Neural Networks": we can use OpenCV and KAZE to check key points of ImageNet, which should help us close the loop on image recognition. Actually, I learned about AKAZE (akaze-eigen), which is faster. We just need to include the information in accordance with their BSD licensing.
+
+**Why it fits.** Write-up 40 already says recognition is "the one place a learned model might enter; it stays a swappable front end at the edge". Key-point matching needs no learned model at all. As the source puts it, "The algorithm requires no training, and image recognition is done only by using a mathematical approach" ([Kokorin 2023](https://hackernoon.com/ditch-the-ai-for-a-second-image-recognition-without-neural-networks)). That keeps the whole chain whitebox: every recognition can be traced to the key points that voted for it.
+
+**The method, step by step** (the source's pipeline, with its own fixes, mapped onto RDL):
+
+1. **Key points and descriptors: AKAZE.** Each picture gives points of high contrast, each with a binary descriptor compared by Hamming distance. AKAZE is the fast successor of the KAZE detector the source used. OpenCV's built-in `cv2.AKAZE_create` (in the main modules) is the easiest route from Python; [akaze-eigen](https://github.com/sweeneychris/akaze-eigen) is the same algorithm with the OpenCV dependency removed (C++ with Eigen), for a build without OpenCV.
+2. **A memory per class, compressed by centroids.** Descriptors from a class's pictures (the 50 validation pictures per class are enough to start) are grouped, and each group of similar key points is replaced by its centre. For binary descriptors the centre is the bitwise majority. This is the source's own fix for one class winning only because it had more pictures ("replacing groups of similar key points with a centroid"; 60% to 90% on their museum set). In RDL terms: per-picture key points are stage `instance`; class centres are stage `regularity`; centres shared across a broader WordNet term (every kind of ball) are stage `abstraction`. All stamped (C6), none with standing (C3).
+3. **Fast lookup: approximate nearest neighbours.** The source replaced brute-force matching with HNSW ("from multiple seconds to 1 to 3 fps"). For binary descriptors, a Hamming-space index does the same job.
+4. **The vote, with the source's three warnings answered.**
+   - *Class size bias*: votes are counted per class centre, never per raw picture (step 2).
+   - *No confidence score*: the margin between the best and the second-best class, and the share of matches that agree on one geometry, are the reading. Geometric check: the matched points must fit one transform (a RANSAC fit, `cv2.findHomography`); matches that don't fit are discarded.
+   - *False positives* ("it will always find the closest similar image"): an abstention rule, a declared minimum of geometrically consistent matches (C8). Below it the agent says "I CAN'T SAY THIS IS LIKE SOMETHING", the same refusal the affordance bet already writes.
+5. **Hand over to the meaning chain.** The winning class IS a WordNet synset (hop 1: the ImageNet id is the WordNet 3.0 noun offset). From there the existing links take over: concept -> its actions -> the affordance bet -> the board.
+
+**The second route: shape from contours, for what has no key points.** The source names its own limit: "Solid color or very low contrast objects can't be detected or recognized using a key point approach." Contours cover exactly that case. OpenCV's `findContours`, polygon approximation and roundness (4πA/P²) read a photographed object's outline as the **same shape names** grid perception already uses (disc, rectangle, square, triangle, line, ring). The shape bridge (B2) then takes it from there: a round outline -> disc -> sphere -> ball. This is write-up 40's guard made concrete: "photos are not grids; what transfers is structure through the shared clusters", and SHAPE is the shared cluster.
+
+**What it can and cannot do, stated plainly.**
+- Key-point matching is strongest for a specific object seen again, like the source's paintings. ImageNet's classes are categories (any dog of a breed, any ball), where key points vary much more, so expect weaker recognition there than the source's 90%. That is acceptable here, because a recognition is a candidate with no standing: the board decides, and a wrong "ball" is refused when it does not act like a ball.
+- It matters for boards with pictures (stage 2 of layer D). On grid boards, shape names already do this job.
+- Nothing is learned in weights anywhere. The class memory is a record, compressed by a stated rule, and it can be rebuilt from the pictures at any time.
+
+**Status (2026-11-16).** `recognize.py` (`be810c6`) holds `describe` (AKAZE), `build_memory` with bitwise-majority centres, `recognise` (Hamming match, ratio test, RANSAC check, abstention below MIN_INLIERS = 10), `shape_from_contour`, and `build_from_parquet` for the ImageNet files; OpenCV 4.14 (the 5.0 wheel lacks AKAZE, so `<5` is pinned). Tested on synthetic pictures: transformed copies recognised, a blank picture abstains, the geometric check is what abstains. Not yet: an approximate nearest-neighbour index (matching is brute force), abstraction-stage centres across WordNet terms, the `recognised` row and its wiring into the agent, and a run on the real pictures. To build the memory once the validation split is down: `python -c "import recognize; recognize.build_from_parquet(<the 14 validation parquet paths>, r'C:\TETHER_RUNS\DATA_2026-11-16\recognition', per_class=50)"` with the repo's runner Python.
+
+**Where it plugs in.** A new builder writes the per-class descriptor memory from the downloaded ImageNet pictures (train and validation, about 154 GB, downloading on 2026-11-16) into a local data folder, never into the public repository (see the licences below). A recognition step on a picture writes a `recognised` row: class, synset, votes, margin, geometric inliers, abstained or not, and the stamp. The meaning chain reads that row like a shape name.
 
 **The rule for B1-B6 (from 40):** a name carries predictions, and a name that stops paying is refused. On a flat board, "ball" is earned only by acting like one; a disc that never moves drops back to "disc", with the refusal recorded.
 
@@ -93,7 +123,7 @@ Each verb is mapped through the word map to the library's action entries, so a f
 
 **Senses are picked by context, never by spelling.** "Bait" the lure and "bait" the taunt are different senses (40; the 11-08 work on words with many meanings). The word map chooses a sense by the entry's domain and clusters and keeps ties; the agent's own sense clusters (step 8) choose at run time.
 
-**Categories.** Every entry gets one of object, shape, action, relation, property, measure, rule, cross-checked with the library's own kind (PERCEPT, COMPOSITE, PRIMITIVE, RELATION) and default role (STATE, PROCESS, ...). Disagreements are flagged, never overridden (2,148 today). Their use is search priority: when the residual is a motion, look among actions first. A filter for the budget, never a verdict (Fig 9 :60).
+**Categories.** Every entry gets one of object, shape, action, relation, property, measure, rule, cross-checked with the library's own kind (PERCEPT, COMPOSITE, PRIMITIVE, RELATION) and default role (STATE, PROCESS, ...). Disagreements are flagged, never overridden (2,148 today). Their use is search priority: when the residual is a motion, look among actions first. A filter for the budget, never a verdict (Fig 9 :60). Built (`TETHER_CATEGORY_ORDER`, after the AKAZE front end as Isaiah ordered): one more tie-break in the described lookup's ranking, after RDL's, from a declared table of residual reading -> category (position and motion -> action; shape change -> shape; count and extent -> measure; contact, inside -> relation; else no preference); same candidate set, different order; OFF identical to the tree before it.
 
 ### Layer D: the boards widen (from 40, unchanged)
 
@@ -109,7 +139,19 @@ C1-C6 from 40 hold for every layer: head starts only, never recordings (C1); usa
 
 - **C7, exact joins between pieces.** Pieces built apart join on exact keys; a mismatch is fixed at the source, never with a fuzzy match. (The shape names said "disc" and the bridge said "disk"; the bridge gained "disc".)
 - **C8, declared conventions are visible.** Every hand-set table (the shape predicates, the shape bridge, the category map, the 25-verb cap) is marked as a convention in its file (Fig 10): visible, movable, never claimed correct.
-- **C9, imports are recorded and licensed.** Every imported corpus carries its source, sha256 and licence in the file's header. ConceptNet is CC BY-SA 4.0, so a file derived from it carries that licence. Importing a corpus is Isaiah's decision alone (40); WordNet, the ImageNet label list, ConceptNet and VerbNet were approved on 2026-11-16.
+- **C9, imports are recorded and licensed.** Every imported corpus carries its source, sha256 and licence in the file's header, and the repository's `THIRD_PARTY_NOTICES.md` carries every required notice. Importing a corpus is Isaiah's decision alone (40); WordNet, ImageNet, ConceptNet, VerbNet and AKAZE were approved on 2026-11-16.
+
+### The licences, clause by clause (checked 2026-11-16 at each source)
+
+| Source | Licence | What it requires of us | Where we stand |
+|---|---|---|---|
+| **WordNet 3.0** (Princeton) | WordNet licence | the copyright notice and disclaimer on ALL copies, including modifications; Princeton's name not used in advertising | the notice is in the headers of `lexicon_imagenet_wordnet.json` and `word_map.json`, and in `THIRD_PARTY_NOTICES.md` |
+| **ImageNet** (Princeton and Stanford, via Hugging Face) | ImageNet terms of access | non-commercial research and educational use only; the researcher is responsible for use; the images belong to their owners, not to ImageNet | **the pictures and anything computed from them (descriptor memories) stay local, never in the public repository**. Only the label list is used in repository files |
+| **ConceptNet 5.7** | CC BY-SA 4.0 | attribution (its stated credit text, user-visible) and share-alike; "You may not use ConceptNet in a data set with an incompatible license. You may not add restrictions such as 'non-commercial' or 'research use only'" ([ConceptNet](https://github.com/commonsense/conceptnet5/wiki/Copying-and-sharing-ConceptNet)) | `relations.json` is CC BY-SA 4.0 in its header; credit text in `THIRD_PARTY_NOTICES.md`. **Because of share-alike, ConceptNet data is never mixed into a file that carries ImageNet's non-commercial terms**: the two stay in separate files |
+| **VerbNet 3.x** (University of Colorado) | VerbNet licence, WordNet-style | the copyright notice and disclaimer on ALL copies ([VerbNet 3.X licence](https://verbs.colorado.edu/~mpalmer/projects/verbnet/license.3.0.txt)) | attribution in `relations.json`'s header; notice in `THIRD_PARTY_NOTICES.md` |
+| **AKAZE / akaze-eigen** (Sweeney, Alcantarilla, Nuevo) | BSD 3-clause | keep the copyright notice, the conditions and the disclaimer in source copies; reproduce them in documentation for binary copies; no endorsement by the authors' names ([licence](https://github.com/sweeneychris/akaze-eigen/blob/master/LICENSE)) | not vendored yet; when it is, its LICENSE file goes with it; notice in `THIRD_PARTY_NOTICES.md` |
+| **OpenCV 4.x** | Apache 2.0 | a copy of the licence and its notices with any redistribution; marked changes | used as an installed package, not redistributed; noted in `THIRD_PARTY_NOTICES.md` |
+| zaibacu thesaurus | WordNet-derived, the WordNet licence | as WordNet | used only as a cross-check |
 
 ## How to tell it works (measures, unchanged in spirit from 40)
 

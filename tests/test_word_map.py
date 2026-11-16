@@ -38,7 +38,7 @@ def _load() -> dict:
 # choice): affordance.py, TETHER_AFFORDANCE (Isaiah 2026-11-16 "does this roll?"; its priors are
 # bets with no standing, judged by the first press). The header's "readers" is the builder's and
 # still [] -- to be brought level at the next rebuild.
-READERS_RECORD_ONLY = ("affordance.py",)
+READERS_RECORD_ONLY = ("affordance.py", "tether.py")  # tether.py: TETHER_CATEGORY_ORDER, order only
 
 
 def check_w0(doc: dict) -> None:
