@@ -31,16 +31,24 @@ def _load() -> dict:
         return json.load(f)
 
 
+# the root modules admitted to read the word map, as data (each RECORD-ONLY: rows, no action
+# choice): affordance.py, TETHER_AFFORDANCE (Isaiah 2026-11-16 "does this roll?"; its priors are
+# bets with no standing, judged by the first press). The header's "readers" is the builder's and
+# still [] -- to be brought level at the next rebuild.
+READERS_RECORD_ONLY = ("affordance.py",)
+
+
 def check_w0(doc: dict) -> None:
     assert doc["header"]["readers"] == [] and doc["header"]["standing"] == "none"
     files = glob.glob(os.path.join(ROOT, "*.py"))
     hits = []
     for p in files:
         with open(p, encoding="utf-8", errors="replace") as fh:
-            if "word_map" in fh.read():
+            if "word_map" in fh.read() and os.path.basename(p) not in READERS_RECORD_ONLY:
                 hits.append(p)
     assert not hits, f"an agent module reads the word map: {hits}"
-    print(f"  W0: readers [] and no reader among {len(files)} root modules")
+    print(f"  W0: readers [] and no reader among {len(files)} root modules but the record-only "
+          f"{READERS_RECORD_ONLY}")
 
 
 def check_w1(doc: dict) -> None:

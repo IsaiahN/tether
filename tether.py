@@ -30,6 +30,7 @@ from dataclasses import replace as _replace
 from functools import cache, lru_cache, partial, wraps
 from typing import Any
 
+import affordance
 import armflag
 import can_ledger
 import cap
@@ -17858,6 +17859,8 @@ class Agent:
         if _GOAL_FROM_ACTUATOR and not self._seam_now and getattr(self.iface, "last_changed", ()):
             _lc = set(self.iface.last_changed)     # G: a press that changed nothing says nothing
             self._press_every = _lc if self._press_every is None else self._press_every & _lc
+        if affordance.ON and self.__dict__.get("_aff_book") is not None and not self._seam_now:
+            self._aff_keeps()           # TETHER_AFFORDANCE: a 'keeps moving' test, one step on
         if _TOUCH_FELT and self._contact_pending is not None:
             self._contact_felt()
         if _GAME_LOSS_VOTE and not self._seam_now:
@@ -21905,6 +21908,8 @@ class Agent:
                     act = self._took(_t, IFace.Intent(IFace.TOUCH, object=target))
                     if why == "untouched-kind":
                         _kt = target                   # C2 FELT: this press is a kind touch
+                        if affordance.ON:              # the condition is read at press time
+                            self._aff_ctx = (target, IFace.Interface.context(self.env, target))
                     self.led.record(self.cycle, "PLAN", target, "intent",
                                     reads=(f"{IFace.TOUCH} {target}", _t.why))
                 elif _untried is not None:
@@ -26791,6 +26796,8 @@ class Agent:
                             owners=owners[:12],
                             reads=("a kind touch: what the press changed on the board, net of "
                                    "what changed anyway"))
+            if affordance.ON and self.__dict__.get("_aff_book") is not None:
+                self._aff_felt(pair[0], moved_all, landed)   # the first press judges the prior
             return
         moved = sorted(s for s in changed if self._objs_named(s) & set(pair))
         made = landed or bool(moved)
@@ -26803,6 +26810,103 @@ class Agent:
                         explored=k in self._contact_seen,
                         reads=("contact made: the press reached the pair" if made else
                                "no contact felt: the pair did not respond to the press"))
+
+    # ---- TETHER_AFFORDANCE (affordance.py): record and test only, never an action choice
+    _AFF_POS = frozenset(("row", "col", "x", "y", "cx", "cy", "r", "c"))
+
+    def _aff_pos(self, obj: str, state: dict) -> set:
+        """The object's position readings: POSITION-typed slots, else row/col/x/y by name."""
+        mine = [k for k in state if k.split(".", 1)[0] == obj and "." in k]
+        typed = {k for k in mine if "POSITION" in str(self.slot_types.get(k))}
+        return typed or {k for k in mine if k.split(".", 1)[1] in self._AFF_POS}
+
+    def _aff_see(self, before: dict) -> None:
+        """A kind new this run whose shape_name resolves to a concept: affordance_prior rows."""
+        bk = self.__dict__.get("_aff_book")
+        if bk is None:
+            bk = self._aff_book = affordance.Book()
+            self._aff_src = affordance.load_sources()
+        atoms, bridge, priors, why = self._aff_src
+        if why is None:
+            fn = getattr(self.env, "shape_name", None)
+            named = 0
+            for o in self._owners(before):
+                if not (o[:1] == "o" and o[1:].isdigit()):
+                    continue
+                sn = before.get(o + ".shape_name")
+                if sn is None and fn is not None:
+                    sn = fn(o)
+                sn = affordance.shape_name_of(sn)    # wip/shape-names publishes an index
+                if sn is None:
+                    continue
+                named += 1
+                kind = self._kind_str(o)
+                if kind in bk.seen:
+                    continue
+                chain = affordance.resolve(sn, atoms, bridge, priors)
+                if chain is None:
+                    bk.seen.add(kind)       # no concept for this shape: nothing to bet
+                    continue
+                for d in bk.offer(kind, o, chain):
+                    self.led.record(self.cycle, "PERCEIVE", o, "affordance_prior", **d,
+                                    reads="a stamped prior (C6), no standing: the first press on "
+                                          "this kind tests it")
+            if named or not self._owners(before):
+                return
+            why = "no shape_name read on any object (TETHER_SHAPE_NAMES absent or off)"
+        if not bk.inert_said:
+            bk.inert_said = True
+            self.led.record(self.cycle, "PERCEIVE", "@affordance", "affordance_inert", reads=why)
+
+    def _aff_felt(self, obj: str, moved_all: list, landed: bool) -> None:
+        """The first press on a kind with a prior: settle or refuse it (refuse = split by the
+        condition read at press time; the prior is kept)."""
+        bk = self._aff_book
+        kind = self._kind_str(obj)
+        if (kind, "moves") not in bk.prior:
+            return
+        state = self.env.observe()
+        pos = self._aff_pos(obj, state)
+        moved = bool(pos & set(moved_all))
+        ctx = self.__dict__.get("_aff_ctx")
+        ctx = ctx[1] if ctx is not None and ctx[0] == obj else None
+        if not landed:
+            cond = "the press did not land on it"
+        elif ctx:
+            cond = "touching " + ", ".join(str(c) for c in ctx)
+        else:
+            cond = "landed, touching nothing"
+        ev, d = bk.judge(kind, obj, "moves", moved, cond)
+        if ev is not None:
+            self.led.record(self.cycle, "PERCEIVE", obj, ev, **d,
+                            reads="the prior judged by its first press; nothing deleted")
+        if (kind, affordance.KEEPS) in bk.prior:
+            if moved:
+                bk.pending[kind] = (obj, self.cycle, {k: state.get(k) for k in pos}, cond)
+            else:
+                ev, d = bk.judge(kind, obj, affordance.KEEPS, False, cond)
+                if ev is not None:
+                    self.led.record(self.cycle, "PERCEIVE", obj, ev, **d,
+                                    reads="it did not move at all, so it did not keep moving")
+
+    def _aff_keeps(self) -> None:
+        """'keeps moving': the object's position readings changed again on the next step with no
+        new press landing on it."""
+        bk = self._aff_book
+        for kind, (obj, cyc, snap, cond) in list(bk.pending.items()):
+            if self.cycle == cyc:
+                continue
+            del bk.pending[kind]
+            state = self.env.observe()
+            if self.__dict__.get("_last_landed") == obj:     # pressed again: not this test yet
+                bk.pending[kind] = (obj, self.cycle, {k: state.get(k) for k in snap}, cond)
+                continue
+            again = any(state.get(k) != v for k, v in snap.items())
+            cond = "no new press on it; " + cond
+            ev, d = bk.judge(kind, obj, affordance.KEEPS, again, cond)
+            if ev is not None:
+                self.led.record(self.cycle, "PERCEIVE", obj, ev, **d,
+                                reads="the step after the press, no new press on it")
 
     def _reafferent(self, after: dict) -> frozenset:
         """(2a) I-B, REAFFERENCE (von Holst & Mittelstaedt 1950; the 10-23 design): the slots whose
@@ -31182,6 +31286,8 @@ class Agent:
         before = self.env.observe()
         if compile_term._GROUP_ROW:
             self._note_kinds(before)
+        if affordance.ON:   # TETHER_AFFORDANCE: new kind, shape -> concept -> prior row
+            self._aff_see(before)
         if _GOAL_ORDER and self.__dict__.get("_order_next"):
             self._order_advance(before)
         if _NO_LEVER:       # item 18: each held slot's context, read BEFORE this step's press

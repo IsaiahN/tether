@@ -3413,6 +3413,17 @@ ARMS: dict[str, str] = {
                          "again, that subtask is htn_not_prerequisite for it; the edge is "
                          "credited at the returned parent's end (paid = won). NEEDS "
                          "TETHER_REPAIR_AT_REFUSAL. OFF: the parent stays tried. default ON",
+    "TETHER_AFFORDANCE": "Isaiah 2026-11-16 'balls can roll, does this roll?' (WATSON 40 "
+                         "'Affordances: shape -> concept -> properties -> predictions'; C6): "
+                         "a kind new this run whose shape_name resolves to a concept (word_map "
+                         "shape_bridge, else arc_percept.SHAPE_ATOMS) gets an affordance_prior "
+                         "row per predicted reading (moves / keeps moving), stamped, NO "
+                         "standing; the C2 kind touch judges it: affordance_settle, or "
+                         "affordance_refuse with the condition read at press time (the prior "
+                         "kept, except_when grows, nothing deleted); sources absent -> one "
+                         "affordance_inert row. Record only: no action choice reads it "
+                         "(affordance.py; nsm says the rows). OFF: no rows. MF: "
+                         "tests/test_affordance.py. default ON",
     "TETHER_RDL": "Isaiah 2026-11-16 'RDL matters most' (RDL_BUILD_SPEC_2026-11-16 Piece 3; "
                   "WATSON 40 C4-C6): the released preloads (library/rdl_preload.json, read by "
                   "rdl_store / rdl_release) set SEARCH PRIORITY ONLY -- an entry attached to one "
