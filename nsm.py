@@ -324,6 +324,11 @@ def say_affordance(event: str, d: dict) -> str:
         verb = f" ({_f(d.get('action_verb'))})" if d.get("action_verb") else ""
         return f"THIS IS LIKE {c} ({_f(chain)}). {c} {can}{verb}. MAYBE THIS IS NOT TRUE HERE"
     did = "AFTER THIS, THIS MOVES MORE" if keeps else "I TOUCH THIS. THIS MOVES"
+    if d.get("direction") or d.get("manner"):     # B7: "ball rolls to the right"
+        m = " ".join(_f(x) for x in (d.get("manner") or "moves",
+                                     f"to the {d['direction']}" if d.get("direction") else None)
+                     if x)
+        did = f"{did}. {c} {m}"
     if event == "affordance_settle":
         verb = f"{c} {_f(d.get('action_verb'))}: " if d.get("action_verb") else ""
         return f"{verb}{did}. THIS IS LIKE {c}"
