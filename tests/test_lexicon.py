@@ -98,7 +98,9 @@ def check_l3() -> None:
     # imports no agent module, and the agent reads only that output (Piece 3)
     # build_word_map (2026-11-16) reads it for the 1000 classes' affordance priors into
     # library/word_map.json, itself readers: [] (tests/test_word_map.py W0)
-    builders = ("build_lexicon.py", "rdl_parse.py", "build_word_map.py")
+    # build_relations (2026-11-16) names it only for its size fallback (vocabulary.json, itself
+    # readers: [], tests/test_relations.py R0)
+    builders = ("build_lexicon.py", "rdl_parse.py", "build_word_map.py", "build_relations.py")
     files = [p for p in files if os.path.basename(p) not in builders]
     named = ("tether.py", "gamma.py")
     assert all(os.path.join(ROOT, n) in files for n in named), "agent modules not found"
