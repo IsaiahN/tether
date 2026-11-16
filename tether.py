@@ -8772,6 +8772,17 @@ class Agent:
         by (corpus, tier): what the next save carries."""
         rd = self._rdl
         st = _rdl_stamp(p)
+        # the cluster the attach reached the entry through: neither the Preload nor the preload
+        # file keeps the cluster per attach, so it is DERIVED from ATTRIBUTE_INDEX.by_cluster
+        # membership of the entry, the first cluster in sorted order ("" when filed under none)
+        if "cluster_of" not in rd:
+            bc, _why = inherited.by_cluster()
+            co: dict = {}
+            for c in sorted(bc or {}):
+                for e in bc[c]:
+                    co.setdefault(e, c)
+            rd["cluster_of"] = co
+        st["cluster"] = rd["cluster_of"].get(detail.get("entry"), "")
         self.led.record(self.cycle, step, slot, event, **st, **detail)
         rd["rows"].append({"event": event, "detail": {**st, **detail}})
         n = rd["stats_n"].setdefault((st["corpus"], st["tier"]), {})
