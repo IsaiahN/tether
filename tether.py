@@ -1633,6 +1633,21 @@ _GUARD_NEST = armflag.arm("TETHER_GUARD_NEST", default=True)   # O2: nested guar
 # the reviewer, never claimed correct.
 GUARD_NEST_DEPTH = 2
 _NEST_BONDS = ("+", "∥", "⇒")         # O2: the bonds joining two conditions (both, either, implies)
+# O1 FOLLOW-ON, PRODUCTIONS AS ⇒ KEYS (the O1 author's "next step": CAN_PRODUCE's pairs are (press,
+# item kind), not two readings): a SETTLED production of the step-10 ledger (TETHER_CAN_PRODUCE;
+# can_ledger.ProductionBook.settled: predicted at least once, its hits outnumber its misses) is
+# mapped onto two truth readings, each a record-backed predicate (no board reading exists for
+# either): "@press:A" -- the press the trace records just before this state was A (the press as
+# the ledger keys it); "@kind:K" -- the can ledger's reading of this state had an item whose kind
+# key (_can_kind_key: its object's kind, its reading) is K on the CAN list (actionable; presence is
+# true on every state of a kind-K slot's own history, so it could never separate R). Either reads
+# unresolved where the record does not hold the state. KIND ONLY, never an object name: the key
+# ⇒:@press:A|@kind:K goes through _route_junction onto the guard offer of EVERY slot of kind K, so
+# like items share it, and is offered only where it separates R as every junction key is
+# (_jk_offer; no new rule, no new price). A production that tips back to unsettled is taken off
+# the offer. NEEDS TETHER_CAN_PRODUCE, TETHER_BOND_TERMS and TETHER_IMPLIES_BOND. OFF: no
+# production key is routed or read, as before.
+_PRODUCE_KEYS = armflag.arm("TETHER_PRODUCE_KEYS", default=True)   # O1+: productions as keys
 # BUILD 4 ITEM 13, CONTACT-SEEDED CANDIDATE GENERATION (the reviewer 2026-11-03 r978; Isaiah
 # 11-01, "not blind enumeration"): the step's mint slots are ordered by two seeds ranked together
 # -- (a) the contact slots whose value changed this step, (b) a settled residual-lit → junction
@@ -5673,6 +5688,7 @@ class Agent:
         self._junction_conds: dict = {}    # BOND TERMS: a junction key -> (bond, a, b)
         self._junction_of: dict = {}       # BOND TERMS: a slot -> its routed junction keys
         self._junction_nest: dict = {}     # O2: a slot -> the combined keys offered on it
+        self._pk_ops: dict = {}            # PRODUCE_KEYS: operand name -> (press|kind, A|K)
         self._guard_nest_why: collections.Counter = collections.Counter()   # O2: counted reasons
         self._tk_win: tuple = (None, (), None)   # S3: the last window (key, entries, no-fit key)
         self._dl_owed = False              # 20: this lookup was due from the owed queue
@@ -26990,10 +27006,99 @@ class Agent:
                 return None     # past the declared budget nothing is read
             return _jc_bond(bond, self._jc_operand(a, state, depth + 1),
                             self._jc_operand(b, state, depth + 1))
-        u, v = state.get(a), state.get(b)
+        u, v = self._jc_read(a, state), self._jc_read(b, state)
         if u is None or v is None or u is NOT_RESOLVED or v is NOT_RESOLVED:
             return None
         return _jc_bond(bond, u, v)
+
+    def _jc_read(self, x: str, state: dict) -> Any:
+        """A junction operand on `state`: the board reading `x`, or under TETHER_PRODUCE_KEYS a
+        production operand's record-backed predicate (_pk_value)."""
+        op = self._pk_ops.get(x) if _PRODUCE_KEYS else None
+        return state.get(x) if op is None else self._pk_value(op, state)
+
+    def _pk_value(self, op: tuple, state: dict) -> bool | None:
+        """PRODUCE_KEYS, both record-backed and None (unresolved, never a guess) where the record
+        does not hold `state`: ("press", A) -- the press the trace records just before `state` was
+        A; ("kind", K) -- the can ledger's reading of `state` had an item of kind key K on the CAN
+        list (actionable: what a production's evidence is, an item of kind K appearing or opening).
+        NOT "present": every state in a kind-K slot's own history holds that slot, so presence is
+        true throughout it and could never separate R."""
+        at = self._pk_at(state)
+        if at is None:
+            return None
+        idx, press = at
+        if op[0] == "press":
+            return press == op[1]
+        c = self.__dict__.get("_pk_can")
+        can = c[1].get(idx) if c is not None and c[0] is self.trace else None
+        return None if can is None else op[1] in can
+
+    def _pk_at(self, state: dict) -> tuple | None:
+        """(the trace row whose after-reading `state` is, the press of that row): row i's before-
+        state follows row i-1, the last row's after-state its own row. Read off the trace by
+        identity (env.observe gives each a fresh dict), rebuilt when it grows."""
+        tr = self.trace
+        c = self.__dict__.get("_pk_pc")
+        if c is None or c[0] is not tr or c[1] != len(tr):
+            m = {}
+            for i in range(1, len(tr)):
+                m[id(tr[i][0])] = (tr[i][0], i - 1, str(tr[i - 1][1]))
+            if tr:
+                m[id(tr[-1][2])] = (tr[-1][2], len(tr) - 1, str(tr[-1][1]))
+            c = self._pk_pc = (tr, len(tr), m)
+        got = c[2].get(id(state))
+        return (got[1], got[2]) if got is not None and got[0] is state else None
+
+    def _pk_note_can(self, now: dict) -> None:
+        """PRODUCE_KEYS: the kind keys on the CAN list in the can ledger's reading of the last trace
+        row's after-state, kept by row so _pk_value can read any state of this trace."""
+        c = self.__dict__.get("_pk_can")
+        if c is None or c[0] is not self.trace:
+            c = self._pk_can = (self.trace, {})
+        c[1][len(self.trace) - 1] = {self._can_kind_key(s) for s, (side, _w) in now.items()
+                                     if side == can_ledger.CAN}
+
+    def _produce_keys(self, book: Any) -> None:
+        """PRODUCE_KEYS: each SETTLED production (press A, kind K) routed through _route_junction as
+        the ⇒ key ⇒:@press:A|@kind:K onto the guard offer of every slot of kind K (kind, never a
+        name); one taken back off the offer when it tips back to unsettled. A ROUTE row each."""
+        if not (_PRODUCE_KEYS and _BOND_TERMS and _IMPLIES_BOND):
+            return
+        settled = book.settled()
+        routed = self.__dict__.setdefault("_pk_routed", {})     # key -> (press, kind)
+        live = {f"⇒:@press:{p}|@kind:{k!r}" for p, k in settled}
+        for key in [k for k in routed if k not in live]:
+            off = sorted(s for s, ks in self._junction_of.items() if key in ks)
+            for s in off:
+                self._junction_of[s].discard(key)
+            p, k = routed.pop(key)
+            if off:
+                self.led.record(self.cycle, "ROUTE", "@can", "produce_key_off", key=key, press=p,
+                                kind=list(k), slots=off[:12], n=len(off),
+                                score=list(book.score.get((p, k), ())),
+                                reads="A => B no longer settled: its ⇒ key off the guard offer")
+        if not settled:
+            return
+        by_kind: dict = {}
+        for s in self.slots:
+            if "." in s and "~" not in s and "@" not in s:
+                by_kind.setdefault(self._can_kind_key(s), []).append(s)
+        for p, k in settled:
+            a, b = f"@press:{p}", f"@kind:{k!r}"
+            key = f"⇒:{a}|{b}"
+            new = sorted(s for s in by_kind.get(k, ()) if key not in self._junction_of.get(s, ()))
+            if not new:
+                continue
+            self._pk_ops[a], self._pk_ops[b] = ("press", p), ("kind", k)
+            why = self._route_junction("⇒", a, b, to=new)
+            routed[key] = (p, k)
+            self.led.record(self.cycle, "ROUTE", "@can", "produce_key", key=key, press=p,
+                            kind=list(k), slots=new[:12], n=len(new), why=why,
+                            score=list(book.score.get((p, k), ())),
+                            reads="A => B settled: its ⇒ key routed to the guard offer of every "
+                                  "slot of kind B, offered where it separates R (record-backed: "
+                                  "@press reads the trace, @kind the can ledger's CAN list)")
 
     def _jc_operand(self, op: str, state: dict, depth: int) -> bool | None:
         """O2: one operand of a combined key -- a key (¬ allowed, under TETHER_NEGATE_GUARD)."""
@@ -27143,24 +27248,31 @@ class Agent:
                 out.append(k)
         return out + self._jk_nest_offer(robs, slot)     # O2: [] with TETHER_GUARD_NEST OFF
 
-    def _route_junction(self, bond: str, a: str, b: str) -> str:
+    def _route_junction(self, bond: str, a: str, b: str, to: list | None = None) -> str:
         """BOND TERMS (r1059): a settled ≡ / ⋛ / + junction between readings a and b, a CONDITION,
         routed to b's guard offer: ≡ one canonical key (symmetric, Operators Table :26, :59-60), ⋛
         both orders (:50), + only between two truth-typed readings (r1057). O1
         (TETHER_IMPLIES_BOND): ⇒ like ∥ between two truth-typed readings, but ORDERED (:38): the
-        one key a⇒b, never sorted. The reason, counted."""
+        one key a⇒b, never sorted. The reason, counted. TETHER_PRODUCE_KEYS: a production operand
+        (_pk_ops) is truth-typed by construction, and `to` names the slots whose guard offer gets
+        the key (every slot of the consequent's kind) where b is not itself a slot."""
         if bond == "⇒" and not (_BOND_TERMS and _IMPLIES_BOND):
             return "⇒: bond has no atom (r896)"
-        if bond in ("+", "∥", "⇒") and not all(str(self.slot_types.get(s)) in ("PRED", "BOOL")
-                                               for s in (a, b)):
+        if bond in ("+", "∥", "⇒") and not all(
+                str(self.slot_types.get(s)) in ("PRED", "BOOL")
+                or (_PRODUCE_KEYS and s in self._pk_ops) for s in (a, b)):
             atom = {"+": "both", "∥": "either"}.get(bond, "implies")
             return f"bond {bond}: {atom}: the operands are not conditions (typing)"
         p, q = sorted((a, b))
         pairs = [(a, b), (b, a)] if bond == "⋛" else [(a, b)] if bond == "⇒" else [(p, q)]
+        dest = list(to) if (to and _PRODUCE_KEYS) else [b]
         for u, v in pairs:
             k = f"{bond}:{u}|{v}"
             self._junction_conds[k] = (bond, u, v)
-            self._junction_of.setdefault(b, set()).add(k)
+            for d in dest:
+                self._junction_of.setdefault(d, set()).add(k)
+        if dest != [b]:
+            return f"condition: routed to the guard offer for {len(dest)} slot(s) of {b}"
         return f"condition: routed to the guard offer for {b}"
 
     def _guards_once(self, robs: list, slot: str, binds) -> tuple:
@@ -27266,6 +27378,8 @@ class Agent:
                     if isinstance(tk, tuple) and len(tk) > 1 and isinstance(v, tuple) and v
                     and v[0] in can_ledger.REFUTED_ENDS}
         now = can_ledger.classify(slots, movable, routable, clock, untried, given_up)
+        if _PRODUCE_KEYS and _CAN_PRODUCE:
+            self._pk_note_can(now)          # the reading the "@kind" operand reads back
         known = (sum(len(v.get("delta", {})) for v in table.values()), len(self.gamma.library))
         prev, pstate = st["lists"], st["state"]
         lag = self.cycle - st["step"]
@@ -27354,6 +27468,8 @@ class Agent:
                             reads="A => B: what this press produced before, predicted from "
                                   "earlier readings and settled on this one (record-only)")
         book.learn(press, observed)
+        if _PRODUCE_KEYS:
+            self._produce_keys(book)        # settled pairs as ⇒ guard keys (inert OFF)
 
     def _can_offer_row(self, item: str) -> None:
         """An item of a filed kind is closed or appears blocked: its openers offered, a row."""
