@@ -2425,7 +2425,9 @@ ARMS: dict[str, str] = {
                          "OFF: no kinds tier. MF: tests/test_kind_reuse.py.",
     "TETHER_CAN_PRODUCE": "STEP 10 'A => B' first implementation (the reviewer 2026-11-12): each "
                           "reading predicts from earlier readings the kinds the last press "
-                          "produced (appeared / opened), settles them, then learns. RECORD-ONLY. "
+                          "produced (appeared / opened), settles them, then learns. Record-only "
+                          "by itself; under TETHER_PRODUCE_KEYS (2026-11-16) its settled pairs "
+                          "become guard keys. "
                           "NEEDS TETHER_CAN_LEDGER. ON. OFF: no can_produce rows. MF: "
                           "tests/test_can_produce.py.",
     "TETHER_CAN_SKIP_RESET": "F5, the reviewer r1900, r1901. Default ON. ON: the can lists count "
