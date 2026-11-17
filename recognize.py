@@ -53,6 +53,17 @@ MIN_INLIERS = 10
 TOP_CLASSES = 3
 # RANSAC reprojection threshold in pixels. Declared convention, Fig 10.
 RANSAC_PX = 5.0
+# The match radius of the Hamming index (bits): recognise() matches a key point only to centres
+# within it, and the index finds every one of those exactly (HammingIndex). Set to HAMMING_RADIUS,
+# the radius already declared as "the same key point" for centroids, so one radius means one thing;
+# with exact-match buckets it makes 61 substrings, one per byte of AKAZE's 61-byte code. Declared
+# convention, Fig 10: visible and movable, never claimed correct. Its cost, measured on the test's
+# synthetic pictures (opencv 4.14.0): ratio-test matches whose nearest centre lies beyond 60 bits no
+# longer vote (brute force had no radius at all).
+INDEX_RADIUS = HAMMING_RADIUS
+# Raw candidate pairs (before the union is deduplicated) the index materialises at once. A memory
+# bound, not a result-affecting setting. Declared convention, Fig 10.
+INDEX_PAIR_BUDGET = 1_000_000
 
 # Contour route thresholds. Declared conventions, Fig 10.
 DISC_ROUNDNESS = 0.85     # 4*pi*A/P^2 at or above -> disc (a square is pi/4 ~ 0.785)
@@ -98,11 +109,113 @@ def hamming(a: np.ndarray, b: np.ndarray, chunk: int = 512) -> np.ndarray:
     return out
 
 
-def centroids(des: np.ndarray, pts: np.ndarray, radius: int = HAMMING_RADIUS):
-    """Group descriptors within `radius` of a group leader (greedy, in input order) and replace each
-    group by its bitwise-majority centre. Returns (centres uint8, positions float32, sizes int)."""
-    if des is None or len(des) == 0:
-        return np.zeros((0, 61), np.uint8), np.zeros((0, 2), np.float32), np.zeros(0, int)
+class HammingIndex:
+    """Multi-index hash over binary codes, exact-match buckets only, pure numpy.
+
+    The code's bits are split into m contiguous substrings of near-equal length, and each substring
+    gets a bucket table (a sorted key array: a bucket is one run of equal keys). A query's
+    candidates are the union of its m buckets; their exact Hamming distances are then computed and
+    within `radius` are kept. Pigeonhole: if d(q, c) <= m - 1, then at least one of the m substrings
+    of q and c is identical, so c is in that substring's bucket. The index is therefore EXACT --
+    every centre within the radius is found, with its true distance -- whenever radius <= m - 1,
+    and m defaults to radius + 1 (for AKAZE's 61-byte code and radius 60 that is one byte a
+    substring). With m <= radius the guarantee is gone (`guaranteed` says so); the test uses that as
+    its mutation.
+
+    Method: Norouzi, Punjani, Fleet, "Fast Search in Hamming Space with Multi-Index Hashing", CVPR
+    2012 -- here the special case of substring search radius 0 (exact buckets). No code taken."""
+
+    def __init__(self, codes: np.ndarray, radius: int = None, m: int = None):
+        radius = INDEX_RADIUS if radius is None else int(radius)
+        self.src = codes                      # identity, so a memory can tell its index is current
+        self.codes = np.ascontiguousarray(codes, dtype=np.uint8)
+        nbits = self.codes.shape[1] * 8 if self.codes.ndim == 2 else 0
+        self.m = int(m) if m is not None else radius + 1
+        if not 1 <= self.m <= max(nbits, 1):
+            raise ValueError(f"m={self.m} substrings for a {nbits}-bit code")
+        self.radius = radius
+        self.guaranteed = radius <= self.m - 1
+        self.bounds = np.linspace(0, nbits, self.m + 1).round().astype(int)
+        keys = self._keys(self.codes)
+        self.order = np.argsort(keys, axis=0, kind="stable")          # (n, m)
+        self.sorted = np.take_along_axis(keys, self.order, axis=0)    # (n, m), each column sorted
+
+    def _keys(self, codes):
+        """(n, m) int64: substring j's bits [bounds[j], bounds[j+1]) read big-endian from the bytes
+        that span it (no unpacked copy of the whole code)."""
+        out = np.empty((len(codes), self.m), np.int64)
+        for j in range(self.m):
+            lo, hi = int(self.bounds[j]), int(self.bounds[j + 1])
+            b0, b1 = lo // 8, (hi - 1) // 8
+            if (b1 - b0 + 1) * 8 > 62:
+                raise ValueError(f"substring {j} spans {hi - lo} bits; use more substrings")
+            v = np.zeros(len(codes), np.int64)
+            for b in range(b0, b1 + 1):
+                v = (v << 8) | codes[:, b].astype(np.int64)
+            v >>= (b1 + 1) * 8 - hi
+            out[:, j] = v & ((1 << (hi - lo)) - 1)
+        return out
+
+    def pairs(self, q: np.ndarray):
+        """Yield (query row, centre, distance) arrays for every pair within the radius, in chunks
+        bounded by INDEX_PAIR_BUDGET raw candidates (a row is never split)."""
+        q = np.ascontiguousarray(q, dtype=np.uint8)
+        n = len(self.codes)
+        if len(q) == 0 or n == 0:
+            return
+        qk = self._keys(q)
+        lo = np.empty(qk.shape, np.int64)
+        cnt = np.empty(qk.shape, np.int64)
+        for j in range(self.m):
+            lo[:, j] = np.searchsorted(self.sorted[:, j], qk[:, j], "left")
+            cnt[:, j] = np.searchsorted(self.sorted[:, j], qk[:, j], "right") - lo[:, j]
+        cum = np.cumsum(cnt.sum(axis=1))
+        start = 0
+        while start < len(q):
+            base = cum[start - 1] if start else 0
+            stop = max(start + 1, int(np.searchsorted(cum, base + INDEX_PAIR_BUDGET, "right")))
+            c = cnt[start:stop].ravel()
+            tot = int(c.sum())
+            if tot:
+                rows = np.arange(start, stop)
+                row_rep = np.repeat(np.repeat(rows, self.m), c)
+                j_rep = np.repeat(np.tile(np.arange(self.m), len(rows)), c)
+                offs = np.arange(tot) - np.repeat(np.cumsum(c) - c, c)
+                cid = self.order[np.repeat(lo[start:stop].ravel(), c) + offs, j_rep]
+                key = np.unique(row_rep * n + cid)        # the union of the m buckets, per row
+                qi, ci = key // n, key % n
+                d = _POP[np.bitwise_xor(q[qi], self.codes[ci])].sum(axis=1).astype(np.int32)
+                w = d <= self.radius
+                yield qi[w], ci[w], d[w]
+            start = stop
+
+    def search(self, q: np.ndarray):
+        """Nearest and second-nearest within the radius, per query row: (index, best, second).
+        A row with nothing within the radius gets index -1 and best = second = radius + 1; a row
+        with one centre within it gets second = radius + 1. radius + 1 is a LOWER BOUND there
+        ("beyond the radius"), never a measured distance."""
+        nq = len(q)
+        beyond = self.radius + 1
+        idx = np.full(nq, -1, np.int64)
+        best = np.full(nq, beyond, np.int32)
+        second = np.full(nq, beyond, np.int32)
+        for qi, ci, d in self.pairs(q):
+            if not len(qi):
+                continue
+            o = np.lexsort((ci, d, qi))
+            qi, ci, d = qi[o], ci[o], d[o]
+            f = np.nonzero(np.r_[True, qi[1:] != qi[:-1]])[0]
+            idx[qi[f]] = ci[f]
+            best[qi[f]] = d[f]
+            nxt = np.minimum(f + 1, len(qi) - 1)
+            two = (f + 1 < len(qi)) & (qi[nxt] == qi[f])
+            second[qi[f[two]]] = d[f[two] + 1]
+        return idx, best, second
+
+
+def _greedy_groups(des: np.ndarray, radius: int = HAMMING_RADIUS):
+    """Leaders and members: each descriptor joins the nearest existing leader within `radius`
+    (greedy, in input order), else leads a new group."""
     leaders: list[int] = []
     members: list[list[int]] = []
     lead_des = np.zeros((0, des.shape[1]), np.uint8)
@@ -116,10 +229,23 @@ def centroids(des: np.ndarray, pts: np.ndarray, radius: int = HAMMING_RADIUS):
         leaders.append(i)
         members.append([i])
         lead_des = np.vstack([lead_des, des[i:i + 1]])
+    return leaders, members
+
+
+def _majority(des: np.ndarray) -> np.ndarray:
+    bits = np.unpackbits(des, axis=1)
+    return np.packbits((bits.sum(axis=0) * 2 > len(des)).astype(np.uint8))
+
+
+def centroids(des: np.ndarray, pts: np.ndarray, radius: int = HAMMING_RADIUS):
+    """Group descriptors within `radius` of a group leader (greedy, in input order) and replace each
+    group by its bitwise-majority centre. Returns (centres uint8, positions float32, sizes int)."""
+    if des is None or len(des) == 0:
+        return np.zeros((0, 61), np.uint8), np.zeros((0, 2), np.float32), np.zeros(0, int)
+    leaders, members = _greedy_groups(des, radius)
     centres = np.empty((len(members), des.shape[1]), np.uint8)
     for g, idx in enumerate(members):
-        bits = np.unpackbits(des[idx], axis=1)
-        centres[g] = np.packbits((bits.sum(axis=0) * 2 > len(idx)).astype(np.uint8))
+        centres[g] = _majority(des[idx])
     # A centre's position is its LEADER's key point in its own picture (declared convention, Fig 10:
     # across pictures of a category the geometry is weak; the check stays a check, not a claim).
     positions = pts[leaders].astype(np.float32)
@@ -379,6 +505,15 @@ SHAPE_CORNER_EPS = 0.01
 # Added to a 2D class's distance when its expected corner count (memory.json "corners"; curved
 # classes 0, exempt) differs from the picture's. Declared convention, Fig 10.
 SHAPE_CORNER_PENALTY = 10.0
+# FIG 10 CONVENTION: a "dot" is a TINY blob. Hu moments are scale-invariant, so a dot and a
+# circle have the same signature and the tie-break alone would name a large disc a dot; the
+# largest contour's share of the picture separates them (2% of the frames; visible, movable).
+DOT_MAX_SHARE = 0.02
+# FIG 10 CONVENTION: an abs-log10 Hu moment at or above this has collapsed to zero (the clamp),
+# so it says nothing about the shape. A dim saturated on EITHER side is left out of the distance
+# and the distance is rescaled to its usual units, so an ideal circle is not charged for the
+# higher moments its own symmetry zeroes.
+HU_SATURATED = 11.5
 _SHAPE_CACHE: dict = {}
 
 
@@ -417,6 +552,35 @@ def shape_features(image_bgr):
     return np.concatenate([lhu, extra]).astype(np.float32)
 
 
+def roundness(image_bgr):
+    """4*pi*A/P^2 of the largest outer contour (1.0 a circle, pi/4 ~ 0.785 a square). Read by
+    recognise_shape as a rule against polygons; never a feature, so the memory stays valid."""
+    cv2 = _cv2()
+    bw = _foreground(image_bgr)
+    contours, hier = cv2.findContours(bw, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    outer = [k for k in range(len(contours)) if hier[0][k][3] < 0]
+    if not outer:
+        return 0.0
+    c = contours[max(outer, key=lambda m: cv2.contourArea(contours[m]))]
+    area, per = float(cv2.contourArea(c)), float(cv2.arcLength(c, True))
+    return float(4.0 * np.pi * area / (per * per)) if per > 0 else 0.0
+
+
+def blob_share(image_bgr):
+    """The largest outer contour's area as a share of the picture (0.0 when there is none).
+    Read by recognise_shape for the dot rule; never part of shape_features, so the committed
+    memory stays valid."""
+    cv2 = _cv2()
+    bw = _foreground(image_bgr)
+    contours, hier = cv2.findContours(bw, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    outer = [k for k in range(len(contours)) if hier[0][k][3] < 0]
+    if not outer:
+        return 0.0
+    k = max(outer, key=lambda m: cv2.contourArea(contours[m]))
+    frame = float(image_bgr.shape[0] * image_bgr.shape[1])
+    return float(cv2.contourArea(contours[k])) / frame if frame else 0.0
+
+
 def corner_count(image_bgr):
     """Corners of approxPolyDP (SHAPE_CORNER_EPS x perimeter) on the largest outer contour."""
     cv2 = _cv2()
@@ -451,9 +615,13 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
     (1) contour route: nearest class by L1 distance over shape_features (2D classes for flat
     pictures, 3D classes for shaded ones), with the margin to the next class; a 2D class whose
     expected corner count differs from the picture's (corner_count) is penalised by
-    SHAPE_CORNER_PENALTY, so among matching classes the Hu distance decides; (2) AKAZE vote over the
+    SHAPE_CORNER_PENALTY, so among matching classes the Hu distance decides; a class named "dot"
+    is penalised the same way when its blob fills more than DOT_MAX_SHARE of the picture, and a
+    polygon class is penalised when the picture's outline is at least DISC_ROUNDNESS round;
+    (2) AKAZE vote over the
     shape memory. The contour winner stands unless AKAZE has >= MIN_INLIERS for a different class.
     Abstains when the distance exceeds SHAPE_MAX_DISTANCE or the margin is below SHAPE_MIN_MARGIN.
+    A Hu dim saturated on either side (HU_SATURATED) is left out of the distance.
     hu_route=False exists only for the test's mutation check (AKAZE alone)."""
     m = memory or load_shapes()
     names = m["classes"]
@@ -465,7 +633,14 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
         shaded = f[-1] > SHADED_STD
         want = 3 if shaded else 2
         feats = m["hu"].copy()
-        d = (np.abs(feats - f) * SHAPE_W).sum(axis=1)
+        # a dim saturated on either side is uninformative (HU_SATURATED): mask it, rescale
+        diff = np.abs(feats - f)
+        inform = (np.minimum(feats, f) < HU_SATURATED).astype(np.float32)
+        w = inform * SHAPE_W
+        denom = w.sum(axis=1)
+        full = float(SHAPE_W.sum())
+        with np.errstate(invalid="ignore", divide="ignore"):
+            d = np.where(denom > 0, (diff * w).sum(axis=1) / denom * full, np.inf)
         best: dict = {}
         for k, lab in enumerate(m["hu_labels"]):
             n = names[int(lab)]
@@ -474,9 +649,19 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
             best[n] = min(best.get(n, np.inf), float(d[k]))
         seen = corner_count(image_bgr) if want == 2 else None
         out["corners"] = seen
+        share = blob_share(image_bgr)
+        out["share"] = round(share, 4)
+        rnd = roundness(image_bgr)
+        out["roundness"] = round(rnd, 4)
         for n in best:
             exp = m["corners"].get(n)
             if seen is not None and exp and exp != seen:
+                best[n] += SHAPE_CORNER_PENALTY
+            if n == "dot" and share > DOT_MAX_SHARE:
+                best[n] += SHAPE_CORNER_PENALTY   # a large blob is not a dot (DOT_MAX_SHARE)
+            if rnd >= DISC_ROUNDNESS and (m["corners"].get(n) or 0) >= 3:
+                # a round outline is not a polygon: Hu moments clamp on symmetric shapes, so an
+                # ideal circle can sit nearer a square template than its own (DISC_ROUNDNESS)
                 best[n] += SHAPE_CORNER_PENALTY
         ranked = sorted(best.items(), key=lambda kv: kv[1])
         if ranked:
