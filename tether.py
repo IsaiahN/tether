@@ -26937,6 +26937,43 @@ class Agent:
         typed = {k for k in mine if "POSITION" in str(self.slot_types.get(k))}
         return typed or {k for k in mine if k.split(".", 1)[1] in self._AFF_POS}
 
+    def _rec_see(self, before: dict) -> None:
+        """TETHER_RECOGNISED (write-up 42 item 4): each picture the board carries, recognised once
+        per (holder, picture) -- a `recognised` row per route; a class that did not abstain is kept
+        for _aff_see to read like a shape_name. No picture this run: one recognised_inert row.
+        Record only: no action choice reads it."""
+        rs = self.__dict__.get("_rec")
+        if rs is None:
+            rs = self._rec = {"sha": {}, "names": {}, "inert": False}
+        pics = affordance.pictures(self.env, before)
+        if not pics:
+            if not rs["inert"] and not rs["sha"]:
+                rs["inert"] = True
+                self.led.record(self.cycle, "PERCEIVE", "@recognised", "recognised_inert",
+                                reads="no picture on this board (no image field or attribute "
+                                      "named " + "/".join(affordance.PICTURE_NAMES) + ")")
+            return
+        for holder, img in pics.items():
+            sha = affordance.picture_sha(img)
+            if rs["sha"].get(holder) == sha:
+                continue
+            rs["sha"][holder] = sha
+            rows, why = affordance.recognise_rows(img)
+            if why is not None:
+                if not rs["inert"]:
+                    rs["inert"] = True
+                    self.led.record(self.cycle, "PERCEIVE", "@recognised", "recognised_inert",
+                                    reads=why)
+                continue
+            rs["names"].pop(holder, None)        # a new picture: its class is read afresh
+            for d in rows:
+                self.led.record(self.cycle, "PERCEIVE", holder, "recognised", **d, picture=sha,
+                                reads=("a candidate (C3), no standing: the board decides" if
+                                       not d.get("abstained") else
+                                       "abstained: I can't say this is like something"))
+                if not d.get("abstained") and d.get("class") and holder not in rs["names"]:
+                    rs["names"][holder] = d       # the first route that names it (shape first)
+
     def _aff_see(self, before: dict) -> None:
         """A kind new this run whose shape_name resolves to a concept: affordance_prior rows."""
         bk = self.__dict__.get("_aff_book")
@@ -26947,21 +26984,23 @@ class Agent:
         bk.before = before                  # B7: the press's before-state, for its direction
         if why is None:
             fn = getattr(self.env, "shape_name", None)
+            # TETHER_RECOGNISED: a picture's class (not abstained), read like a shape_name
+            rec = (self.__dict__.get("_rec") or {}).get("names") or {}
             named = 0
-            for o in self._owners(before):
-                if not (o[:1] == "o" and o[1:].isdigit()):
-                    continue
+            objs = [o for o in self._owners(before) if o[:1] == "o" and o[1:].isdigit()]
+            for o in objs + sorted(h for h in rec if h not in objs):
                 sn = before.get(o + ".shape_name")
-                if sn is None and fn is not None:
+                if sn is None and fn is not None and o in objs:
                     sn = fn(o)
                 sn = affordance.shape_name_of(sn)    # wip/shape-names publishes an index
-                if sn is None:
+                if sn is None and o not in rec:
                     continue
                 named += 1
-                kind = self._kind_str(o)
+                kind = self._kind_str(o) if o in objs else o    # '@picture': the board's own
                 if kind in bk.seen:
                     continue
-                chain = affordance.resolve(sn, atoms, bridge, priors)
+                chain = (affordance.resolve(sn, atoms, bridge, priors) if sn is not None else
+                         affordance.resolve_recognised(rec[o], atoms, bridge, priors))
                 if chain is None:
                     bk.seen.add(kind)       # no concept for this shape: nothing to bet
                     continue
@@ -31410,6 +31449,8 @@ class Agent:
         before = self.env.observe()
         if compile_term._GROUP_ROW:
             self._note_kinds(before)
+        if affordance._RECOGNISED:   # TETHER_RECOGNISED: a picture's class, else one inert row
+            self._rec_see(before)
         if affordance._ON:   # TETHER_AFFORDANCE: new kind, shape -> concept -> prior row
             self._aff_see(before)
         if _GOAL_ORDER and self.__dict__.get("_order_next"):

@@ -7,6 +7,9 @@ concept -> properties -> predictions"; lead 16:20 "circle -> ball, that 2d-3d or
            arc_percept.SHAPE_ATOMS shape_name -> atom names, else the shape_name itself), gets ONE
            affordance_prior row per (kind, property): the chain, the predicted reading and the
            prior's stamp (C6). It carries NO standing: a prior is a bet, never a credit.
+           A prior predicts 'moves' when its verb is verb.motion, or (TETHER_CONTACT_MOVES)
+           when word_map marks it moves_object: its sense's WordNet '@' chain reaches
+           verb.motion (throw -> propel -> move), the chain carried as moves_via.
   JUDGE    the first press that touches a member of that kind (C2's kind touch, felt in perceive)
            compares the prediction with the board:
              moves         the object's position readings changed on the step after the press
@@ -19,23 +22,80 @@ concept -> properties -> predictions"; lead 16:20 "circle -> ball, that 2d-3d or
   RECORD   it never moves an action choice: rows and per-kind counts {held, settled, refused,
            exceptions} only.
   SOURCES  read lazily; absent -> inert, one affordance_inert row saying why.
+  CN       (TETHER_RELATIONS_READ, default ON; write-up 42 handoff item 5) the prior lookup merges
+           the concept's ConceptNet verbs (library/relations.json concept_actions_cn: CapableOf /
+           ReceivesAction / UsedFor, with VerbNet classes) beside the word map's. Each merged prior
+           keeps its own source and stamp and has standing none; a verb found in BOTH sources
+           ranks first (found_in lists them). A ConceptNet verb predicts a reading only through
+           the declared CN_READING table, and only for an OBJECT concept (library/
+           vocabulary.json: a noun lexname in OBJECT_LEXNAMES). A concept absent from
+           relations.json is unchanged. OFF: word-map-only, as before.
+
+ RECOGNISED (TETHER_RECOGNISED, default ON; write-up 42 handoff item 4, "Recognition into the
+agent"): when an observation carries a PICTURE -- an env attribute or an observation field named in
+PICTURE_NAMES holding an image array, board-wide ('picture') or per object ('o1.picture') -- the
+picture is recognised once per (holder, picture): recognize.recognise_shape over the preloaded shape
+memory, and recognize.recognise when a class memory is present under CLASS_MEMORY_DIR. Each route
+writes one `recognised` row {class, synset, dim, grid_shape_name, bridge, route, votes/distance,
+margin, abstained, stamp}; a class that did not abstain is then read by the PRIOR step exactly as a
+shape_name is (class -> concept through the word map's shape_bridge; else the class's grid shape
+name; else its own bridge's 2D names). Grid boards carry no picture: one recognised_inert row per
+run. recognize (and with it cv2) is imported lazily, inside the call, never at module level.
 """
 from __future__ import annotations
 
 import functools
+import hashlib
 import json
 from pathlib import Path
 
 import armflag
 
 _ON = armflag.arm("TETHER_AFFORDANCE", default=True)  # prior/settle/refuse rows; record only
+# write-up 42 item 4: a picture's recognised class read like a shape_name; inert on grid boards
+_RECOGNISED = armflag.arm("TETHER_RECOGNISED", default=True)
+# the field / attribute names a picture is read from. Declared convention, Fig 10: visible, movable
+PICTURE_NAMES = ("picture", "image")
+# a picture is a uint8 array at least this many pixels on each side. Declared convention, Fig 10
+PICTURE_MIN_SIDE = 16
+# the local class memory (ImageNet terms: never in the repository); absent -> shape route only
+CLASS_MEMORY_DIR = Path(r"C:\TETHER_RUNS\DATA_2026-11-16\recognition")
+_CLASS_MEMORY: dict = {}
 WORD_MAP = Path(__file__).resolve().parent / "library" / "word_map.json"
 # a verb's WordNet lexname -> the reading it predicts (a means: what to LOOK at, never the answer)
 LEXNAME_READING = {"verb.motion": "moves"}
+# a contact verb on an object predicts it moves when WordNet's own '@' chain makes the sense a
+# cause-to-move verb (throw -> propel -> move): word_map's prior.moves_object, record only
+_CONTACT_MOVES = armflag.arm("TETHER_CONTACT_MOVES", default=True)
 KEEPS = "keeps moving"
 # B7 motion words (write-up 42 "the ball rolls to the right"); record only
 _MOTION_UPPER = armflag.arm("TETHER_MOTION_WORDS", default=True)
 _ROW, _COL = ("row", "r", "cy", "y"), ("col", "c", "cx", "x")
+# write-up 42 handoff item 5: ConceptNet verbs beside the word map's in a concept's prior lookup
+_RELATIONS_READ = armflag.arm("TETHER_RELATIONS_READ", default=True)  # merged priors; record only
+RELATIONS = Path(__file__).resolve().parent / "library" / "relations.json"
+VOCABULARY = Path(__file__).resolve().parent / "library" / "vocabulary.json"
+# (ConceptNet relation, verb) -> the reading it predicts for an OBJECT concept. A declared table
+# (Fig 10: a convention, visible and movable), a means of what to LOOK at, never an answer: what
+# a thing can do by itself (CapableOf) or what is done to it that displaces it (ReceivesAction).
+# UsedFor is not in it: what a thing is for says what an actor does with it, not that it moves.
+CN_READING = {
+    ("CapableOf", "roll"): "moves",
+    ("CapableOf", "bounce"): "moves",
+    ("CapableOf", "move"): "moves",
+    ("CapableOf", "slide"): "moves",
+    ("CapableOf", "fall"): "moves",
+    ("ReceivesAction", "push"): "moves",
+    ("ReceivesAction", "kick"): "moves",
+    ("ReceivesAction", "throw"): "moves",
+}
+# the noun lexnames that make a concept an OBJECT: word_map.json header category_map -> "object"
+# (tests/test_relations_read.py checks the two agree)
+OBJECT_LEXNAMES = frozenset(("noun.animal", "noun.artifact", "noun.body", "noun.food",
+                             "noun.object", "noun.person", "noun.plant", "noun.possession",
+                             "noun.substance"))
+CN_SOURCE = "conceptnet"
+WM_SOURCE = "word_map"
 
 
 def direction(before: dict, after: dict, obj: str) -> str | None:
@@ -83,6 +143,75 @@ def _read(path: str) -> dict:
         return (json.loads(p.read_text(encoding="utf-8")) or {}) if p.exists() else {}
     except Exception:                   # noqa: BLE001
         return {}
+
+
+@functools.cache
+def cn_sources(rel_path: str | None = None, vocab_path: str | None = None) -> tuple:
+    """(concept_actions_cn, noun lexnames by lemma, the ConceptNet stamp), read once per process
+    and only the parts the lookup uses; ({}, {}, None) when absent or unreadable. Never raises."""
+    def load(p):
+        try:
+            p = Path(p)
+            return (json.loads(p.read_text(encoding="utf-8")) or {}) if p.exists() else {}
+        except Exception:                   # noqa: BLE001
+            return {}
+    rel = load(rel_path or RELATIONS)
+    acts = rel.get("concept_actions_cn") if isinstance(rel, dict) else None
+    if not isinstance(acts, dict) or not acts:
+        return {}, {}, None
+    src = ((rel.get("header") or {}).get("sources") or {}).get("conceptnet") or {}
+    stamp = {"corpus": "conceptnet-5.7", "sha": str(src.get("sha256") or "")[:16],
+             "stage": "regularity"}
+    voc = load(vocab_path or VOCABULARY)
+    voc = voc.get("vocabulary") if isinstance(voc, dict) else None
+    nouns = {w: e["n"] for w, e in (voc or {}).items() if isinstance(e, dict) and e.get("n")}
+    return acts, nouns, stamp
+
+
+def cn_key(concept) -> str:
+    """A concept name as a ConceptNet/WordNet lemma: the text after the last '|' or ':' (the
+    library's 'DOMAIN|Name', 'bridge:ball', 'imagenet:417:balloon'), lower case, '_' for space."""
+    s = str(concept or "")
+    for sep in ("|", ":"):
+        s = s.rsplit(sep, 1)[-1]
+    return s.strip().lower().replace(" ", "_")
+
+
+def _vkey(p: dict) -> str:
+    return str(p.get("action_verb") or "").strip().lower().replace(" ", "_")
+
+
+def merge(concept, wm_priors, cn: tuple | None = None) -> list:
+    """The concept's priors: the word map's beside ConceptNet's (TETHER_RELATIONS_READ). Each keeps
+    its own source and stamp, standing none; found_in names the sources the verb was found in, and
+    a verb in both ranks first (stable within a rank, the word map's first). A ConceptNet verb
+    predicts a reading only through CN_READING, and only when the concept is an object. Arm OFF,
+    or the concept absent from relations.json: the word map's list unchanged."""
+    wm_priors = list(wm_priors or ())
+    if not _RELATIONS_READ:
+        return wm_priors
+    acts, nouns, stamp = cn if cn is not None else cn_sources()
+    key = cn_key(concept)
+    got = (acts or {}).get(key)
+    if not isinstance(got, dict) or not got:
+        return wm_priors
+    is_obj = bool(set((nouns or {}).get(key) or ()) & OBJECT_LEXNAMES)
+    wm_verbs = {_vkey(p) for p in wm_priors}
+    out = [dict(p, found_in=[WM_SOURCE, CN_SOURCE] if _vkey(p) in got else [WM_SOURCE])
+           for p in wm_priors]
+    for v in sorted(got):
+        a = got[v] if isinstance(got[v], dict) else {}
+        rels = list(a.get("relations") or ())
+        row = {"concept": concept, "action_verb": v.replace("_", " "), "relations": rels,
+               "verbnet": list(a.get("vn") or ()), "source": CN_SOURCE, "stamp": stamp,
+               "standing": "none",
+               "found_in": [WM_SOURCE, CN_SOURCE] if v in wm_verbs else [CN_SOURCE]}
+        r = next((CN_READING[(rl, v)] for rl in rels if (rl, v) in CN_READING), None)
+        if r and is_obj:
+            row["reading"] = r
+        out.append(row)
+    out.sort(key=lambda p: -len(p["found_in"]))
+    return out
 
 
 def load_sources(word_map: Path | None = None) -> tuple:
@@ -134,8 +263,11 @@ def _bridge_chain(shape_name: str, bridge: list | None) -> dict | None:
             ps = [{"concept": c, "action_verb": a.get("verb"),
                    "verb_lexname": a.get("verb_lexname"), "source": a.get("source"),
                    "stamp": row.get("stamp"),
+                   **({"moves_object": a["moves_object"], "moves_via": a.get("moves_via")}
+                      if "moves_object" in a else {}),
                    **({"reading": a["reading"]} if a.get("reading") else {})}
                   for a in acts if isinstance(a, dict)]
+            ps = merge(c, ps) if c else ps      # TETHER_RELATIONS_READ: ConceptNet beside
             if c and any(readings(p_) for p_ in ps):
                 return {"shape_name": shape_name, "form": forms[0] if forms else None,
                         "concept": c, "via": "shape_bridge", "priors": ps}
@@ -145,7 +277,8 @@ def _bridge_chain(shape_name: str, bridge: list | None) -> dict | None:
 def resolve(shape_name: str, atoms: dict | None, bridge: list | None, priors: list) -> dict | None:
     """The chain for a shape_name: {shape_name, form, concept, via, priors[...]}, or None. The
     bridge first (2D -> 3D -> object, lead 16:20), else SHAPE_ATOMS' atoms, else the shape name,
-    each looked up in word_map's priors; a concept counts only if a prior predicts a reading."""
+    each looked up in word_map's priors (and, TETHER_RELATIONS_READ, ConceptNet's verbs beside
+    them: merge); a concept counts only if a prior predicts a reading."""
     got = _bridge_chain(shape_name, bridge)
     if got is not None:
         return got
@@ -155,7 +288,7 @@ def resolve(shape_name: str, atoms: dict | None, bridge: list | None, priors: li
     cands = [("SHAPE_ATOMS", a) for a in ((atoms or {}).get(shape_name) or ())]
     cands.append(("shape_name", shape_name))
     for via, c in cands:
-        ps = by_c.get(c) or []
+        ps = merge(c, by_c.get(c) or [])        # TETHER_RELATIONS_READ: ConceptNet beside
         if any(readings(p_) for p_ in ps):
             return {"shape_name": shape_name, "form": None, "concept": c, "via": via,
                     "priors": ps}
@@ -163,10 +296,13 @@ def resolve(shape_name: str, atoms: dict | None, bridge: list | None, priors: li
 
 
 def readings(prior: dict) -> list:
-    """The reading predictions a prior makes: its own 'reading'/'property' field, else by lexname;
-    'keeps moving' implies 'moves'."""
+    """The reading predictions a prior makes: its own 'reading'/'property' field, else by lexname,
+    else 'moves' when the prior's moves_object is True (TETHER_CONTACT_MOVES: its verb sense's
+    WordNet hypernym chain reaches verb.motion); 'keeps moving' implies 'moves'."""
     r = prior.get("reading") or prior.get("property") or LEXNAME_READING.get(
         str(prior.get("verb_lexname") or ""))
+    if not r and _CONTACT_MOVES and prior.get("moves_object") is True:
+        r = "moves"
     if not r:
         return []
     return ["moves", KEEPS] if r == KEEPS else [str(r)]
@@ -215,8 +351,14 @@ class Book:
                        "form": chain["form"], "concept": chain["concept"], "via": chain["via"],
                        "property": prop, "action_verb": p.get("action_verb"),
                        "verb_lexname": p.get("verb_lexname"),
+                       **({"moves_via": p["moves_via"]} if prop == "moves" and p.get("moves_via")
+                          and p.get("moves_object") is True and not LEXNAME_READING.get(
+                              str(p.get("verb_lexname") or "")) else {}),
                        "stamp": _stamp(p),
+                       **{k: list(p[k]) for k in ("found_in", "relations") if k in p},
                        "except_when": [], "name_now": chain["concept"]}
+                if chain.get("recognised"):           # TETHER_RECOGNISED: the picture's class
+                    rec["recognised"] = chain["recognised"]
                 self.prior[(kind, prop)] = rec
                 self._c(kind)["held"] += 1
                 out.append(dict(rec, except_when=[]))
@@ -246,3 +388,131 @@ class Book:
         return "affordance_refuse", dict(rec, object=obj, happened=False, condition=condition,
                                          except_when=list(rec["except_when"]), counts=dict(c),
                                          **mo)
+
+
+# ---- TETHER_RECOGNISED (write-up 42 handoff item 4): a picture's class, read like a shape_name
+def is_picture(v) -> bool:
+    """An image array: uint8, 2D (grey) or 3D with 1, 3 or 4 channels, each side no smaller
+    than PICTURE_MIN_SIDE.
+    Read by attributes only, so numpy is not imported here."""
+    nd, sh, dt = getattr(v, "ndim", None), getattr(v, "shape", None), getattr(v, "dtype", None)
+    if nd not in (2, 3) or sh is None or str(dt) != "uint8":
+        return False
+    if nd == 3 and sh[2] not in (1, 3, 4):
+        return False
+    return min(sh[0], sh[1]) >= PICTURE_MIN_SIDE
+
+
+def pictures(env, obs: dict) -> dict:
+    """{holder: image}: '@picture' for a board-wide field or env attribute named in PICTURE_NAMES,
+    the object's id for an '<object>.<name>' field. {} on a board that carries no picture."""
+    out: dict = {}
+    for n in PICTURE_NAMES:
+        v = obs.get(n) if isinstance(obs, dict) else None
+        if v is None:
+            v = getattr(env, n, None)
+        if is_picture(v):
+            out.setdefault("@picture", v)
+    for k, v in (obs.items() if isinstance(obs, dict) else ()):
+        if "." in k and k.split(".", 1)[1] in PICTURE_NAMES and is_picture(v):
+            out.setdefault(k.split(".", 1)[0], v)
+    return out
+
+
+def picture_sha(img) -> str:
+    return hashlib.sha256(img.tobytes()).hexdigest()[:16]
+
+
+def _bgr(img):
+    """The recognisers read BGR: grey and one-channel pictures are widened, alpha dropped."""
+    import numpy as np  # lazy: only when a picture is present
+    a = np.ascontiguousarray(img)
+    if a.ndim == 2:
+        return np.repeat(a[:, :, None], 3, axis=2)
+    if a.shape[2] == 1:
+        return np.repeat(a, 3, axis=2)
+    return np.ascontiguousarray(a[:, :, :3])
+
+
+def _num(x):
+    """JSON-safe: an infinite margin (one candidate class) is written as None."""
+    try:
+        return None if x is None or x != x or abs(x) == float("inf") else x
+    except TypeError:
+        return x
+
+
+def _class_memory(path: Path):
+    """The local class memory, loaded once per process; None when absent."""
+    key = str(path)
+    if key not in _CLASS_MEMORY:
+        mem = None
+        if (path / "memory.json").exists() and (path / "memory.npz").exists():
+            import recognize  # lazy: recognize imports cv2 only inside its calls
+            mem = recognize.load(path / "memory")
+        _CLASS_MEMORY[key] = mem
+    return _CLASS_MEMORY[key]
+
+
+def recognise_rows(img, class_dir: Path | None = None) -> tuple:
+    """(rows, why_inert). One `recognised` detail per route: the preloaded shape memory always,
+    the class memory when present. why_inert names the failure when no route could run (cv2 or
+    the shape memory absent); a route's own abstention is a row, never an inert."""
+    try:
+        import recognize  # lazy: never at module level (cv2 stays unimported)
+        pic = _bgr(img)
+        mem = recognize.load_shapes()
+        r = recognize.recognise_shape(pic, mem)
+    except Exception as e:              # noqa: BLE001  cv2 or the shape memory absent: inert
+        return [], f"recognition unavailable: {type(e).__name__}: {e}"
+    cls = r.get("class")
+    meta = (mem.get("meta") or {}).get(cls) or {}
+    st = dict(mem["akaze"].stamp or {})
+    stamp = {"stage": (meta.get("stamp") or {}).get("stage") or st.get("stage"),
+             "source": st.get("source"), "memory": "library/shapes/memory",
+             **{k: st[k] for k in ("akaze_sha", "hu_sha") if k in st}}
+    rows = [{"class": cls, "synset": meta.get("wordnet_synset"), "dim": r.get("dim"),
+             "grid_shape_name": r.get("grid_shape_name"), "bridge": r.get("bridge"),
+             "route": r.get("route") or "shape", "distance": _num(r.get("distance")),
+             "votes": None, "inliers": (r.get("akaze") or {}).get("inliers"),
+             "margin": _num(r.get("margin")), "abstained": bool(r.get("abstained")),
+             "candidate": (r.get("akaze") or {}).get("candidate"), "corners": r.get("corners"),
+             "reason": r.get("reason"), "memory": "shapes", "stamp": stamp, "standing": None}]
+    try:
+        cm = _class_memory(Path(class_dir) if class_dir else CLASS_MEMORY_DIR)
+        if cm is not None:
+            c = recognize.recognise(pic, cm)
+            cst = dict(c.get("stamp") or {})
+            rows.append({"class": c.get("class"), "synset": c.get("synset"), "dim": None,
+                         "grid_shape_name": None, "bridge": None, "route": "class_memory",
+                         "distance": None, "votes": c.get("votes"), "inliers": c.get("inliers"),
+                         "margin": _num(c.get("margin")), "abstained": bool(c.get("abstained")),
+                         "candidate": c.get("candidate"), "reason": c.get("reason"),
+                         "memory": "class_memory",
+                         "stamp": {k: cst.get(k) for k in ("stage", "source", "sha")},
+                         "standing": None})
+    except Exception as e:              # noqa: BLE001  the class memory unreadable: said, not hidden
+        rows.append({"class": None, "route": "class_memory", "abstained": True,
+                     "reason": f"class memory unreadable: {type(e).__name__}: {e}",
+                     "memory": "class_memory", "stamp": None, "standing": None})
+    return rows, None
+
+
+def resolve_recognised(row: dict, atoms: dict | None, bridge: list | None,
+                       priors: list) -> dict | None:
+    """A recognised class read exactly as a shape_name: the class itself, then its grid shape
+    name, then its own bridge's 2D names (a sphere is read through circle); the first that
+    resolves to a concept. The chain carries the class as 'recognised'."""
+    if not row or row.get("abstained") or not row.get("class"):
+        return None
+    names = [row["class"], row.get("grid_shape_name")]
+    names += [_name(x) for x in ((row.get("bridge") or {}).get("shape_2d") or ())]
+    seen: list = []
+    for n in names:
+        if not n or n in seen:
+            continue
+        seen.append(n)
+        chain = resolve(n, atoms, bridge, priors)
+        if chain is not None:
+            return dict(chain, recognised=row["class"])
+    return None

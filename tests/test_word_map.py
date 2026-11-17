@@ -8,6 +8,9 @@
   W5     shape_bridge: disc -> sphere -> ball -> a verb.motion/verb.contact action, stamped
   W6     concept_actions for ball (n02778669): catch/bounce/dribble from reverse-example AND
          throw or kick; every action has a source; every row stamped, standing none
+  W7     every prior carries moves_object (its sense is verb.motion, or its '@' chain reaches
+         one) and moves_via; ball's throw (v01508368, verb.contact) is True via propel; kick's
+         value is reported as WordNet gives it; some priors read False
   MF     a planted 'o12' or move-list entry name is refused by the builder
   MF6    the ball row rebuilt WITHOUT the reverse index fails W6 (RED as required)
   CHECK  --check rebuilds byte-identical (skipped when the WordNet data root is absent)
@@ -132,8 +135,39 @@ def check_w6(doc: dict) -> None:
     ball = [r for r in rows if r["synset"] == "n02778669"]
     assert ball, "no concept_actions row for ball n02778669"
     got = [w6_row(r) for r in ball]
+    for r in ball:
+        sense = {a["verb"]: a["verb_synset"] for a in r["actions"] if a["verb"] in FORWARD_VERBS}
+        assert sense.get("throw") == "v01508368", (r["concept"], sense)  # propel through the air
+        assert sense.get("kick") == "v01371756", (r["concept"], sense)   # strike with the foot
+        assert not any(a["verb"] == "have a ball" for a in r["actions"]), r["concept"]
     print(f"  W6: ball n02778669 ({[r['concept'] for r in ball]}) -> {got}; "
           f"{len(rows)} concept rows, every action sourced")
+
+
+def check_w7(doc: dict) -> None:
+    for p in doc["priors"]:
+        assert isinstance(p["moves_object"], bool) and p["moves_via"], p
+        assert p["moves_via"][0].split()[0] == p["verb_synset"], p
+        if p["verb_lexname"] == "verb.motion":
+            assert p["moves_object"] and len(p["moves_via"]) == 1, p
+        elif p["moves_object"]:     # the chain ends at the verb.motion synset it reached
+            assert p["moves_via"][-1].endswith("(verb.motion)"), p
+        else:                       # the closure searched names no verb.motion synset
+            assert not any(v.endswith("(verb.motion)") for v in p["moves_via"]), p
+    ball = {p["action_verb"]: p for p in doc["priors"] if p["concept"] == "bridge:ball"}
+    th = ball["throw"]
+    assert th["verb_synset"] == "v01508368" and th["verb_lexname"] == "verb.contact", th
+    assert th["moves_object"] is True and any(" propel " in v for v in th["moves_via"]), th
+    row = next(r for r in doc["shape_bridge"] if any(s["name"] == "disc" for s in r["shape_2d"]))
+    acts = {a["verb"]: a for o in row["objects"] if o["name"] == "ball" for a in o["actions"]}
+    assert acts["throw"]["moves_object"] is True and acts["throw"]["moves_via"] == th["moves_via"]
+    falses = sum(not p["moves_object"] for p in doc["priors"])
+    assert falses, "no prior reads False: the rule cannot fail"
+    kick = ball.get("kick")
+    print(f"  W7: ball throw {th['verb_synset']} moves_object {th['moves_object']} via "
+          f"{th['moves_via']}; kick (WordNet's answer, not forced): "
+          f"{kick and (kick['moves_object'], kick['moves_via'])}; "
+          f"{doc['header']['counts']['priors_moves_object']} ({falses} priors read False)")
 
 
 def check_mf6(doc: dict) -> None:
@@ -145,10 +179,10 @@ def check_mf6(doc: dict) -> None:
     pri = [p for p in doc["priors"] if p["concept"] == row["concept"]
            and p["concept_synset"] == row["synset"]]
     stamp = row["stamp"]
-    same, _ = bwm.concept_actions(wn, bwm.reverse_index(wn), row["concept"], row["synset"], [],
+    same, _, _ = bwm.concept_actions(wn, bwm.reverse_index(wn), row["concept"], row["synset"], [],
                                   pri, stamp, doc["synonym_index"])
     assert same == row, "the ball row does not rebuild from its own inputs"
-    blind, _ = bwm.concept_actions(wn, {}, row["concept"], row["synset"], [], pri, stamp,
+    blind, _, _ = bwm.concept_actions(wn, {}, row["concept"], row["synset"], [], pri, stamp,
                                    doc["synonym_index"])
     try:
         w6_row(blind)
@@ -187,6 +221,7 @@ def main() -> int:
     check_w4(doc)
     check_w5(doc)
     check_w6(doc)
+    check_w7(doc)
     check_mf()
     check_mf6(doc)
     check_rebuild()
