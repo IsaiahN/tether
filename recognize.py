@@ -491,7 +491,8 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
     expected corner count differs from the picture's (corner_count) is penalised by
     SHAPE_CORNER_PENALTY, so among matching classes the Hu distance decides; a class named "dot"
     is penalised the same way when its blob fills more than DOT_MAX_SHARE of the picture, and a
-    polygon class is penalised when the picture's outline is at least DISC_ROUNDNESS round; (2) AKAZE vote over the
+    polygon class is penalised when the picture's outline is at least DISC_ROUNDNESS round;
+    (2) AKAZE vote over the
     shape memory. The contour winner stands unless AKAZE has >= MIN_INLIERS for a different class.
     Abstains when the distance exceeds SHAPE_MAX_DISTANCE or the margin is below SHAPE_MIN_MARGIN.
     A Hu dim saturated on either side (HU_SATURATED) is left out of the distance.

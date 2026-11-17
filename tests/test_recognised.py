@@ -46,9 +46,8 @@ def circle(seed=4242):
     at once). The ideal case is recorded as a known limit in the status page."""
     import numpy as np
 
-    import _repo  # noqa: F401
     import recognize as R
-    sys.path.insert(0, str(__import__("pathlib").Path(_repo.ROOT) / "library"))
+    sys.path.insert(0, str(Path(_repo.ROOT) / "library"))
     import build_shapes  # the generator itself: the same drawing the memory came from
     return build_shapes._render_2d(R._cv2(), "circle", np.random.default_rng(seed))
 
