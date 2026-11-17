@@ -53,6 +53,17 @@ MIN_INLIERS = 10
 TOP_CLASSES = 3
 # RANSAC reprojection threshold in pixels. Declared convention, Fig 10.
 RANSAC_PX = 5.0
+# The match radius of the Hamming index (bits): recognise() matches a key point only to centres
+# within it, and the index finds every one of those exactly (HammingIndex). Set to HAMMING_RADIUS,
+# the radius already declared as "the same key point" for centroids, so one radius means one thing;
+# with exact-match buckets it makes 61 substrings, one per byte of AKAZE's 61-byte code. Declared
+# convention, Fig 10: visible and movable, never claimed correct. Its cost, measured on the test's
+# synthetic pictures (opencv 4.14.0): ratio-test matches whose nearest centre lies beyond 60 bits no
+# longer vote (brute force had no radius at all).
+INDEX_RADIUS = HAMMING_RADIUS
+# Raw candidate pairs (before the union is deduplicated) the index materialises at once. A memory
+# bound, not a result-affecting setting. Declared convention, Fig 10.
+INDEX_PAIR_BUDGET = 1_000_000
 
 # Contour route thresholds. Declared conventions, Fig 10.
 DISC_ROUNDNESS = 0.85     # 4*pi*A/P^2 at or above -> disc (a square is pi/4 ~ 0.785)
@@ -98,11 +109,113 @@ def hamming(a: np.ndarray, b: np.ndarray, chunk: int = 512) -> np.ndarray:
     return out
 
 
-def centroids(des: np.ndarray, pts: np.ndarray, radius: int = HAMMING_RADIUS):
-    """Group descriptors within `radius` of a group leader (greedy, in input order) and replace each
-    group by its bitwise-majority centre. Returns (centres uint8, positions float32, sizes int)."""
-    if des is None or len(des) == 0:
-        return np.zeros((0, 61), np.uint8), np.zeros((0, 2), np.float32), np.zeros(0, int)
+class HammingIndex:
+    """Multi-index hash over binary codes, exact-match buckets only, pure numpy.
+
+    The code's bits are split into m contiguous substrings of near-equal length, and each substring
+    gets a bucket table (a sorted key array: a bucket is one run of equal keys). A query's
+    candidates are the union of its m buckets; their exact Hamming distances are then computed and
+    within `radius` are kept. Pigeonhole: if d(q, c) <= m - 1, then at least one of the m substrings
+    of q and c is identical, so c is in that substring's bucket. The index is therefore EXACT --
+    every centre within the radius is found, with its true distance -- whenever radius <= m - 1,
+    and m defaults to radius + 1 (for AKAZE's 61-byte code and radius 60 that is one byte a
+    substring). With m <= radius the guarantee is gone (`guaranteed` says so); the test uses that as
+    its mutation.
+
+    Method: Norouzi, Punjani, Fleet, "Fast Search in Hamming Space with Multi-Index Hashing", CVPR
+    2012 -- here the special case of substring search radius 0 (exact buckets). No code taken."""
+
+    def __init__(self, codes: np.ndarray, radius: int = None, m: int = None):
+        radius = INDEX_RADIUS if radius is None else int(radius)
+        self.src = codes                      # identity, so a memory can tell its index is current
+        self.codes = np.ascontiguousarray(codes, dtype=np.uint8)
+        nbits = self.codes.shape[1] * 8 if self.codes.ndim == 2 else 0
+        self.m = int(m) if m is not None else radius + 1
+        if not 1 <= self.m <= max(nbits, 1):
+            raise ValueError(f"m={self.m} substrings for a {nbits}-bit code")
+        self.radius = radius
+        self.guaranteed = radius <= self.m - 1
+        self.bounds = np.linspace(0, nbits, self.m + 1).round().astype(int)
+        keys = self._keys(self.codes)
+        self.order = np.argsort(keys, axis=0, kind="stable")          # (n, m)
+        self.sorted = np.take_along_axis(keys, self.order, axis=0)    # (n, m), each column sorted
+
+    def _keys(self, codes):
+        """(n, m) int64: substring j's bits [bounds[j], bounds[j+1]) read big-endian from the bytes
+        that span it (no unpacked copy of the whole code)."""
+        out = np.empty((len(codes), self.m), np.int64)
+        for j in range(self.m):
+            lo, hi = int(self.bounds[j]), int(self.bounds[j + 1])
+            b0, b1 = lo // 8, (hi - 1) // 8
+            if (b1 - b0 + 1) * 8 > 62:
+                raise ValueError(f"substring {j} spans {hi - lo} bits; use more substrings")
+            v = np.zeros(len(codes), np.int64)
+            for b in range(b0, b1 + 1):
+                v = (v << 8) | codes[:, b].astype(np.int64)
+            v >>= (b1 + 1) * 8 - hi
+            out[:, j] = v & ((1 << (hi - lo)) - 1)
+        return out
+
+    def pairs(self, q: np.ndarray):
+        """Yield (query row, centre, distance) arrays for every pair within the radius, in chunks
+        bounded by INDEX_PAIR_BUDGET raw candidates (a row is never split)."""
+        q = np.ascontiguousarray(q, dtype=np.uint8)
+        n = len(self.codes)
+        if len(q) == 0 or n == 0:
+            return
+        qk = self._keys(q)
+        lo = np.empty(qk.shape, np.int64)
+        cnt = np.empty(qk.shape, np.int64)
+        for j in range(self.m):
+            lo[:, j] = np.searchsorted(self.sorted[:, j], qk[:, j], "left")
+            cnt[:, j] = np.searchsorted(self.sorted[:, j], qk[:, j], "right") - lo[:, j]
+        cum = np.cumsum(cnt.sum(axis=1))
+        start = 0
+        while start < len(q):
+            base = cum[start - 1] if start else 0
+            stop = max(start + 1, int(np.searchsorted(cum, base + INDEX_PAIR_BUDGET, "right")))
+            c = cnt[start:stop].ravel()
+            tot = int(c.sum())
+            if tot:
+                rows = np.arange(start, stop)
+                row_rep = np.repeat(np.repeat(rows, self.m), c)
+                j_rep = np.repeat(np.tile(np.arange(self.m), len(rows)), c)
+                offs = np.arange(tot) - np.repeat(np.cumsum(c) - c, c)
+                cid = self.order[np.repeat(lo[start:stop].ravel(), c) + offs, j_rep]
+                key = np.unique(row_rep * n + cid)        # the union of the m buckets, per row
+                qi, ci = key // n, key % n
+                d = _POP[np.bitwise_xor(q[qi], self.codes[ci])].sum(axis=1).astype(np.int32)
+                w = d <= self.radius
+                yield qi[w], ci[w], d[w]
+            start = stop
+
+    def search(self, q: np.ndarray):
+        """Nearest and second-nearest within the radius, per query row: (index, best, second).
+        A row with nothing within the radius gets index -1 and best = second = radius + 1; a row
+        with one centre within it gets second = radius + 1. radius + 1 is a LOWER BOUND there
+        ("beyond the radius"), never a measured distance."""
+        nq = len(q)
+        beyond = self.radius + 1
+        idx = np.full(nq, -1, np.int64)
+        best = np.full(nq, beyond, np.int32)
+        second = np.full(nq, beyond, np.int32)
+        for qi, ci, d in self.pairs(q):
+            if not len(qi):
+                continue
+            o = np.lexsort((ci, d, qi))
+            qi, ci, d = qi[o], ci[o], d[o]
+            f = np.nonzero(np.r_[True, qi[1:] != qi[:-1]])[0]
+            idx[qi[f]] = ci[f]
+            best[qi[f]] = d[f]
+            nxt = np.minimum(f + 1, len(qi) - 1)
+            two = (f + 1 < len(qi)) & (qi[nxt] == qi[f])
+            second[qi[f[two]]] = d[f[two] + 1]
+        return idx, best, second
+
+
+def _greedy_groups(des: np.ndarray, radius: int = HAMMING_RADIUS):
+    """Leaders and members: each descriptor joins the nearest existing leader within `radius`
+    (greedy, in input order), else leads a new group."""
     leaders: list[int] = []
     members: list[list[int]] = []
     lead_des = np.zeros((0, des.shape[1]), np.uint8)
@@ -116,10 +229,23 @@ def centroids(des: np.ndarray, pts: np.ndarray, radius: int = HAMMING_RADIUS):
         leaders.append(i)
         members.append([i])
         lead_des = np.vstack([lead_des, des[i:i + 1]])
+    return leaders, members
+
+
+def _majority(des: np.ndarray) -> np.ndarray:
+    bits = np.unpackbits(des, axis=1)
+    return np.packbits((bits.sum(axis=0) * 2 > len(des)).astype(np.uint8))
+
+
+def centroids(des: np.ndarray, pts: np.ndarray, radius: int = HAMMING_RADIUS):
+    """Group descriptors within `radius` of a group leader (greedy, in input order) and replace each
+    group by its bitwise-majority centre. Returns (centres uint8, positions float32, sizes int)."""
+    if des is None or len(des) == 0:
+        return np.zeros((0, 61), np.uint8), np.zeros((0, 2), np.float32), np.zeros(0, int)
+    leaders, members = _greedy_groups(des, radius)
     centres = np.empty((len(members), des.shape[1]), np.uint8)
     for g, idx in enumerate(members):
-        bits = np.unpackbits(des[idx], axis=1)
-        centres[g] = np.packbits((bits.sum(axis=0) * 2 > len(idx)).astype(np.uint8))
+        centres[g] = _majority(des[idx])
     # A centre's position is its LEADER's key point in its own picture (declared convention, Fig 10:
     # across pictures of a category the geometry is weak; the check stays a check, not a claim).
     positions = pts[leaders].astype(np.float32)
