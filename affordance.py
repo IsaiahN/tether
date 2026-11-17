@@ -19,16 +19,37 @@ concept -> properties -> predictions"; lead 16:20 "circle -> ball, that 2d-3d or
   RECORD   it never moves an action choice: rows and per-kind counts {held, settled, refused,
            exceptions} only.
   SOURCES  read lazily; absent -> inert, one affordance_inert row saying why.
+
+RECOGNISED (TETHER_RECOGNISED, default ON; write-up 42 handoff item 4, "Recognition into the
+agent"): when an observation carries a PICTURE -- an env attribute or an observation field named in
+PICTURE_NAMES holding an image array, board-wide ('picture') or per object ('o1.picture') -- the
+picture is recognised once per (holder, picture): recognize.recognise_shape over the preloaded shape
+memory, and recognize.recognise when a class memory is present under CLASS_MEMORY_DIR. Each route
+writes one `recognised` row {class, synset, dim, grid_shape_name, bridge, route, votes/distance,
+margin, abstained, stamp}; a class that did not abstain is then read by the PRIOR step exactly as a
+shape_name is (class -> concept through the word map's shape_bridge; else the class's grid shape
+name; else its own bridge's 2D names). Grid boards carry no picture: one recognised_inert row per
+run. recognize (and with it cv2) is imported lazily, inside the call, never at module level.
 """
 from __future__ import annotations
 
 import functools
+import hashlib
 import json
 from pathlib import Path
 
 import armflag
 
 _ON = armflag.arm("TETHER_AFFORDANCE", default=True)  # prior/settle/refuse rows; record only
+# write-up 42 item 4: a picture's recognised class read like a shape_name; inert on grid boards
+_RECOGNISED = armflag.arm("TETHER_RECOGNISED", default=True)
+# the field / attribute names a picture is read from. Declared convention, Fig 10: visible, movable
+PICTURE_NAMES = ("picture", "image")
+# a picture is a uint8 array at least this many pixels on each side. Declared convention, Fig 10
+PICTURE_MIN_SIDE = 16
+# the local class memory (ImageNet terms: never in the repository); absent -> shape route only
+CLASS_MEMORY_DIR = Path(r"C:\TETHER_RUNS\DATA_2026-11-16\recognition")
+_CLASS_MEMORY: dict = {}
 WORD_MAP = Path(__file__).resolve().parent / "library" / "word_map.json"
 # a verb's WordNet lexname -> the reading it predicts (a means: what to LOOK at, never the answer)
 LEXNAME_READING = {"verb.motion": "moves"}
@@ -217,6 +238,8 @@ class Book:
                        "verb_lexname": p.get("verb_lexname"),
                        "stamp": _stamp(p),
                        "except_when": [], "name_now": chain["concept"]}
+                if chain.get("recognised"):           # TETHER_RECOGNISED: the picture's class
+                    rec["recognised"] = chain["recognised"]
                 self.prior[(kind, prop)] = rec
                 self._c(kind)["held"] += 1
                 out.append(dict(rec, except_when=[]))
@@ -246,3 +269,131 @@ class Book:
         return "affordance_refuse", dict(rec, object=obj, happened=False, condition=condition,
                                          except_when=list(rec["except_when"]), counts=dict(c),
                                          **mo)
+
+
+# ---- TETHER_RECOGNISED (write-up 42 handoff item 4): a picture's class, read like a shape_name
+def is_picture(v) -> bool:
+    """An image array: uint8, 2D (grey) or 3D with 1, 3 or 4 channels, each side no smaller
+    than PICTURE_MIN_SIDE.
+    Read by attributes only, so numpy is not imported here."""
+    nd, sh, dt = getattr(v, "ndim", None), getattr(v, "shape", None), getattr(v, "dtype", None)
+    if nd not in (2, 3) or sh is None or str(dt) != "uint8":
+        return False
+    if nd == 3 and sh[2] not in (1, 3, 4):
+        return False
+    return min(sh[0], sh[1]) >= PICTURE_MIN_SIDE
+
+
+def pictures(env, obs: dict) -> dict:
+    """{holder: image}: '@picture' for a board-wide field or env attribute named in PICTURE_NAMES,
+    the object's id for an '<object>.<name>' field. {} on a board that carries no picture."""
+    out: dict = {}
+    for n in PICTURE_NAMES:
+        v = obs.get(n) if isinstance(obs, dict) else None
+        if v is None:
+            v = getattr(env, n, None)
+        if is_picture(v):
+            out.setdefault("@picture", v)
+    for k, v in (obs.items() if isinstance(obs, dict) else ()):
+        if "." in k and k.split(".", 1)[1] in PICTURE_NAMES and is_picture(v):
+            out.setdefault(k.split(".", 1)[0], v)
+    return out
+
+
+def picture_sha(img) -> str:
+    return hashlib.sha256(img.tobytes()).hexdigest()[:16]
+
+
+def _bgr(img):
+    """The recognisers read BGR: grey and one-channel pictures are widened, alpha dropped."""
+    import numpy as np  # lazy: only when a picture is present
+    a = np.ascontiguousarray(img)
+    if a.ndim == 2:
+        return np.repeat(a[:, :, None], 3, axis=2)
+    if a.shape[2] == 1:
+        return np.repeat(a, 3, axis=2)
+    return np.ascontiguousarray(a[:, :, :3])
+
+
+def _num(x):
+    """JSON-safe: an infinite margin (one candidate class) is written as None."""
+    try:
+        return None if x is None or x != x or abs(x) == float("inf") else x
+    except TypeError:
+        return x
+
+
+def _class_memory(path: Path):
+    """The local class memory, loaded once per process; None when absent."""
+    key = str(path)
+    if key not in _CLASS_MEMORY:
+        mem = None
+        if (path / "memory.json").exists() and (path / "memory.npz").exists():
+            import recognize  # lazy: recognize imports cv2 only inside its calls
+            mem = recognize.load(path / "memory")
+        _CLASS_MEMORY[key] = mem
+    return _CLASS_MEMORY[key]
+
+
+def recognise_rows(img, class_dir: Path | None = None) -> tuple:
+    """(rows, why_inert). One `recognised` detail per route: the preloaded shape memory always,
+    the class memory when present. why_inert names the failure when no route could run (cv2 or
+    the shape memory absent); a route's own abstention is a row, never an inert."""
+    try:
+        import recognize  # lazy: never at module level (cv2 stays unimported)
+        pic = _bgr(img)
+        mem = recognize.load_shapes()
+        r = recognize.recognise_shape(pic, mem)
+    except Exception as e:              # noqa: BLE001  cv2 or the shape memory absent: inert
+        return [], f"recognition unavailable: {type(e).__name__}: {e}"
+    cls = r.get("class")
+    meta = (mem.get("meta") or {}).get(cls) or {}
+    st = dict(mem["akaze"].stamp or {})
+    stamp = {"stage": (meta.get("stamp") or {}).get("stage") or st.get("stage"),
+             "source": st.get("source"), "memory": "library/shapes/memory",
+             **{k: st[k] for k in ("akaze_sha", "hu_sha") if k in st}}
+    rows = [{"class": cls, "synset": meta.get("wordnet_synset"), "dim": r.get("dim"),
+             "grid_shape_name": r.get("grid_shape_name"), "bridge": r.get("bridge"),
+             "route": r.get("route") or "shape", "distance": _num(r.get("distance")),
+             "votes": None, "inliers": (r.get("akaze") or {}).get("inliers"),
+             "margin": _num(r.get("margin")), "abstained": bool(r.get("abstained")),
+             "candidate": (r.get("akaze") or {}).get("candidate"), "corners": r.get("corners"),
+             "reason": r.get("reason"), "memory": "shapes", "stamp": stamp, "standing": None}]
+    try:
+        cm = _class_memory(Path(class_dir) if class_dir else CLASS_MEMORY_DIR)
+        if cm is not None:
+            c = recognize.recognise(pic, cm)
+            cst = dict(c.get("stamp") or {})
+            rows.append({"class": c.get("class"), "synset": c.get("synset"), "dim": None,
+                         "grid_shape_name": None, "bridge": None, "route": "class_memory",
+                         "distance": None, "votes": c.get("votes"), "inliers": c.get("inliers"),
+                         "margin": _num(c.get("margin")), "abstained": bool(c.get("abstained")),
+                         "candidate": c.get("candidate"), "reason": c.get("reason"),
+                         "memory": "class_memory",
+                         "stamp": {k: cst.get(k) for k in ("stage", "source", "sha")},
+                         "standing": None})
+    except Exception as e:              # noqa: BLE001  the class memory unreadable: said, not hidden
+        rows.append({"class": None, "route": "class_memory", "abstained": True,
+                     "reason": f"class memory unreadable: {type(e).__name__}: {e}",
+                     "memory": "class_memory", "stamp": None, "standing": None})
+    return rows, None
+
+
+def resolve_recognised(row: dict, atoms: dict | None, bridge: list | None,
+                       priors: list) -> dict | None:
+    """A recognised class read exactly as a shape_name: the class itself, then its grid shape
+    name, then its own bridge's 2D names (a sphere is read through circle); the first that
+    resolves to a concept. The chain carries the class as 'recognised'."""
+    if not row or row.get("abstained") or not row.get("class"):
+        return None
+    names = [row["class"], row.get("grid_shape_name")]
+    names += [_name(x) for x in ((row.get("bridge") or {}).get("shape_2d") or ())]
+    seen: list = []
+    for n in names:
+        if not n or n in seen:
+            continue
+        seen.append(n)
+        chain = resolve(n, atoms, bridge, priors)
+        if chain is not None:
+            return dict(chain, recognised=row["class"])
+    return None
