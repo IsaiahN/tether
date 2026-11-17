@@ -3432,6 +3432,17 @@ ARMS: dict[str, str] = {
                            "press -> is pushed); nsm says e.g. `ball` `rolls` `to the right`. "
                            "Record only. OFF: no direction/manner fields. MF: "
                            "tests/test_affordance.py. default ON",
+    "TETHER_RELATIONS_READ": "write-up 42 handoff item 5 (library/relations.json and "
+                             "vocabulary.json read by nothing): affordance's prior lookup "
+                             "merges the concept's ConceptNet verbs (concept_actions_cn: "
+                             "CapableOf / ReceivesAction / UsedFor, with VerbNet classes) beside "
+                             "the word map's; each merged prior keeps its source and stamp, "
+                             "standing none; a verb found in both ranks first (found_in); a "
+                             "ConceptNet verb predicts 'moves' only through the declared "
+                             "CN_READING table and only for an object concept (vocabulary.json "
+                             "noun lexnames). A concept absent from relations.json is "
+                             "unchanged. Record only. OFF: word-map-only priors. MF: "
+                             "tests/test_relations_read.py. default ON",
     "TETHER_RDL": "Isaiah 2026-11-16 'RDL matters most' (RDL_BUILD_SPEC_2026-11-16 Piece 3; "
                   "WATSON 40 C4-C6): the released preloads (library/rdl_preload.json, read by "
                   "rdl_store / rdl_release) set SEARCH PRIORITY ONLY -- an entry attached to one "
