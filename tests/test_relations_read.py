@@ -66,7 +66,8 @@ def main() -> int:
         assert p.get("standing") in ("none", None) and p.get("source"), p
         st = affordance._stamp(p)
         if p["source"] == "conceptnet":
-            assert (st["corpus"] == "conceptnet-5.7" and st["stage"] == "regularity" and st["sha"]), st
+            assert st["corpus"] == "conceptnet-5.7", st
+            assert st["stage"] == "regularity" and st["sha"], st
         else:
             assert (st["source"] == "gloss" and st.get("corpus") != "conceptnet-5.7"), st
     assert all(p["standing"] == "none" for p in ps if p["source"] == "conceptnet")
