@@ -505,6 +505,15 @@ SHAPE_CORNER_EPS = 0.01
 # Added to a 2D class's distance when its expected corner count (memory.json "corners"; curved
 # classes 0, exempt) differs from the picture's. Declared convention, Fig 10.
 SHAPE_CORNER_PENALTY = 10.0
+# FIG 10 CONVENTION: a "dot" is a TINY blob. Hu moments are scale-invariant, so a dot and a
+# circle have the same signature and the tie-break alone would name a large disc a dot; the
+# largest contour's share of the picture separates them (2% of the frames; visible, movable).
+DOT_MAX_SHARE = 0.02
+# FIG 10 CONVENTION: an abs-log10 Hu moment at or above this has collapsed to zero (the clamp),
+# so it says nothing about the shape. A dim saturated on EITHER side is left out of the distance
+# and the distance is rescaled to its usual units, so an ideal circle is not charged for the
+# higher moments its own symmetry zeroes.
+HU_SATURATED = 11.5
 _SHAPE_CACHE: dict = {}
 
 
@@ -543,6 +552,35 @@ def shape_features(image_bgr):
     return np.concatenate([lhu, extra]).astype(np.float32)
 
 
+def roundness(image_bgr):
+    """4*pi*A/P^2 of the largest outer contour (1.0 a circle, pi/4 ~ 0.785 a square). Read by
+    recognise_shape as a rule against polygons; never a feature, so the memory stays valid."""
+    cv2 = _cv2()
+    bw = _foreground(image_bgr)
+    contours, hier = cv2.findContours(bw, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    outer = [k for k in range(len(contours)) if hier[0][k][3] < 0]
+    if not outer:
+        return 0.0
+    c = contours[max(outer, key=lambda m: cv2.contourArea(contours[m]))]
+    area, per = float(cv2.contourArea(c)), float(cv2.arcLength(c, True))
+    return float(4.0 * np.pi * area / (per * per)) if per > 0 else 0.0
+
+
+def blob_share(image_bgr):
+    """The largest outer contour's area as a share of the picture (0.0 when there is none).
+    Read by recognise_shape for the dot rule; never part of shape_features, so the committed
+    memory stays valid."""
+    cv2 = _cv2()
+    bw = _foreground(image_bgr)
+    contours, hier = cv2.findContours(bw, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    outer = [k for k in range(len(contours)) if hier[0][k][3] < 0]
+    if not outer:
+        return 0.0
+    k = max(outer, key=lambda m: cv2.contourArea(contours[m]))
+    frame = float(image_bgr.shape[0] * image_bgr.shape[1])
+    return float(cv2.contourArea(contours[k])) / frame if frame else 0.0
+
+
 def corner_count(image_bgr):
     """Corners of approxPolyDP (SHAPE_CORNER_EPS x perimeter) on the largest outer contour."""
     cv2 = _cv2()
@@ -577,9 +615,13 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
     (1) contour route: nearest class by L1 distance over shape_features (2D classes for flat
     pictures, 3D classes for shaded ones), with the margin to the next class; a 2D class whose
     expected corner count differs from the picture's (corner_count) is penalised by
-    SHAPE_CORNER_PENALTY, so among matching classes the Hu distance decides; (2) AKAZE vote over the
+    SHAPE_CORNER_PENALTY, so among matching classes the Hu distance decides; a class named "dot"
+    is penalised the same way when its blob fills more than DOT_MAX_SHARE of the picture, and a
+    polygon class is penalised when the picture's outline is at least DISC_ROUNDNESS round;
+    (2) AKAZE vote over the
     shape memory. The contour winner stands unless AKAZE has >= MIN_INLIERS for a different class.
     Abstains when the distance exceeds SHAPE_MAX_DISTANCE or the margin is below SHAPE_MIN_MARGIN.
+    A Hu dim saturated on either side (HU_SATURATED) is left out of the distance.
     hu_route=False exists only for the test's mutation check (AKAZE alone)."""
     m = memory or load_shapes()
     names = m["classes"]
@@ -591,7 +633,14 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
         shaded = f[-1] > SHADED_STD
         want = 3 if shaded else 2
         feats = m["hu"].copy()
-        d = (np.abs(feats - f) * SHAPE_W).sum(axis=1)
+        # a dim saturated on either side is uninformative (HU_SATURATED): mask it, rescale
+        diff = np.abs(feats - f)
+        inform = (np.minimum(feats, f) < HU_SATURATED).astype(np.float32)
+        w = inform * SHAPE_W
+        denom = w.sum(axis=1)
+        full = float(SHAPE_W.sum())
+        with np.errstate(invalid="ignore", divide="ignore"):
+            d = np.where(denom > 0, (diff * w).sum(axis=1) / denom * full, np.inf)
         best: dict = {}
         for k, lab in enumerate(m["hu_labels"]):
             n = names[int(lab)]
@@ -600,9 +649,19 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
             best[n] = min(best.get(n, np.inf), float(d[k]))
         seen = corner_count(image_bgr) if want == 2 else None
         out["corners"] = seen
+        share = blob_share(image_bgr)
+        out["share"] = round(share, 4)
+        rnd = roundness(image_bgr)
+        out["roundness"] = round(rnd, 4)
         for n in best:
             exp = m["corners"].get(n)
             if seen is not None and exp and exp != seen:
+                best[n] += SHAPE_CORNER_PENALTY
+            if n == "dot" and share > DOT_MAX_SHARE:
+                best[n] += SHAPE_CORNER_PENALTY   # a large blob is not a dot (DOT_MAX_SHARE)
+            if rnd >= DISC_ROUNDNESS and (m["corners"].get(n) or 0) >= 3:
+                # a round outline is not a polygon: Hu moments clamp on symmetric shapes, so an
+                # ideal circle can sit nearer a square template than its own (DISC_ROUNDNESS)
                 best[n] += SHAPE_CORNER_PENALTY
         ranked = sorted(best.items(), key=lambda kv: kv[1])
         if ranked:
