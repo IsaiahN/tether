@@ -1,5 +1,17 @@
 # Status of the four in-flight branches (2026-11-16, 18:15 CST)
 
+## Outcome, 19:00 CST: all three merged, green
+
+`wip/rec-index`, `wip/read-relations` and `wip/rec-agent` were finished, made ruff-clean, tested, and merged into development in that order (`5afae479`, `1cf6bd8e`, `00fac2c9`), with every check re-run on the merged tree: `test_recognize`, `test_shapes`, `test_recognised`, `test_affordance`, `test_relations_read`, `test_gate` (60/60), `test_arm_modules`, `test_root_logs`, `conform/arms.py`, ruff. What finishing them changed:
+
+- **Two registry rows conflicted and both were kept**, and so were both module docstrings; the arms seat and its gate check confirm it (`1cf6bd8e`, `00fac2c9`).
+- **`test_affordance`'s must-fail MF-A6 had to isolate its own arm.** ConceptNet's verbs predict `moves` on their own once `TETHER_RELATIONS_READ` is on, so the block that tests `TETHER_CONTACT_MOVES` now switches relations off as well; otherwise the must-fail would have passed for the wrong reason.
+- **The "dot" defect was real and its cause is the interesting part.** Hu moments are scale-invariant, so a rendered `dot` and a rendered `circle` share a signature, and a large circle was named `dot`. Two declared rules fixed it: `DOT_MAX_SHARE` (a blob covering more than 2% of the picture is not a dot) and `DISC_ROUNDNESS` (a polygon class is penalised when the outline is at least `DISC_ROUNDNESS` round). Measured: hexagon 1/4 → 4/4.
+- **A third rule came out of the same investigation**: a Hu moment saturated on either side (`HU_SATURATED`) is left out of the distance and the distance rescaled, because an invariant that has collapsed to zero carries no information. Held-out shape accuracy is **134/176**; square, cube, cylinder and cone remain weak.
+- **A known limit, recorded rather than tuned away**: a *mathematically ideal* circle (every higher Hu moment exactly zero) abstains at distance 7.58, while a rendered circle is named at once. The test fixture is a rendered variant from `library/build_shapes.py`, and the ideal case stays a limit.
+
+The notes below are the survey taken before that work; they are kept as the record of what the helpers left behind.
+
 Written after the four helpers started at 17:53 were stopped by the day's cutoff. None of them committed; all their work survives, uncommitted, in four worktrees. Each branch was cut from development `dc7314ff`; development itself is now at `9a9d034f`, and the difference between the two is the `03-NEXT_STEPS_AFTER_2026-11-16.md` page.
 
 Everything below was measured just now, not taken from a helper's claim.
