@@ -7,6 +7,9 @@ nothing here needs wip/shape-names or wip/word-map to have landed.
   A4  nsm says all of them with only listed capitals
   A0  sources absent -> inert, one affordance_inert row saying why
   MF-A1 TETHER_AFFORDANCE OFF: no rows -> RED as required
+  A6  the landed sources: disc -> sphere -> ball predicts moves through a contact verb whose
+      WordNet '@' chain reaches verb.motion (TETHER_CONTACT_MOVES, moves_via carried)
+  MF-A6 TETHER_CONTACT_MOVES OFF: ball's contact-only priors predict nothing -> RED as required
   A5  gridworld 12 steps ON and OFF both pass the gate
 Seconds.
     python tests/test_affordance.py
@@ -194,6 +197,28 @@ def main() -> int:
               f"{d6['shape_name']} -> {d6['form']} -> {d6['concept']} ({d6['action_verb']}, "
               f"{d6['verb_lexname']}, stamp {d6['stamp']}): GREEN")
         print("   nsm:", nsm.say_row(r6[0]["event"], d6, ("w", "a"))[0][1])
+        chain = affordance.resolve("disc", real[0], real[1], real[2])
+        contact = [p for p in chain["priors"] if p.get("verb_lexname") == "verb.contact"
+                   and p.get("moves_object") is True]
+        assert d6["property"] == "moves" and d6["verb_lexname"] == "verb.contact", d6
+        assert d6.get("moves_via") and d6["moves_via"][-1].endswith("(verb.motion)"), d6
+        print("A6 the contact prior predicts moves through its WordNet chain:", d6["action_verb"],
+              d6["moves_via"], "GREEN")
+        affordance._CONTACT_MOVES = False
+        try:
+            assert contact and not any(affordance.readings(p) for p in contact), contact
+            ag6x, led6x = agent(src=real)
+            ag6x.env.shape_name = lambda _o: None
+            n0 = len(led6x.rows())
+            ag6x._aff_see(st6)
+            r6x = [r for r in rows(led6x, n0) if r["slot"] == "o1"]
+            assert not any(r["detail"].get("concept") == "ball" for r in r6x), r6x
+        finally:
+            affordance._CONTACT_MOVES = True
+        print("MF-A6 TETHER_CONTACT_MOVES OFF: ball's contact-only priors",
+              [p["action_verb"] for p in contact], "predict nothing; o1 ->",
+              [(r["detail"].get("concept"), r["detail"].get("property")) for r in r6x],
+              "-> RED as required")
     else:
         print("A6 SKIP: shape names / word map not on this tree:", real[3])
 

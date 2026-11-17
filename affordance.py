@@ -7,6 +7,9 @@ concept -> properties -> predictions"; lead 16:20 "circle -> ball, that 2d-3d or
            arc_percept.SHAPE_ATOMS shape_name -> atom names, else the shape_name itself), gets ONE
            affordance_prior row per (kind, property): the chain, the predicted reading and the
            prior's stamp (C6). It carries NO standing: a prior is a bet, never a credit.
+           A prior predicts 'moves' when its verb is verb.motion, or (TETHER_CONTACT_MOVES)
+           when word_map marks it moves_object: its sense's WordNet '@' chain reaches
+           verb.motion (throw -> propel -> move), the chain carried as moves_via.
   JUDGE    the first press that touches a member of that kind (C2's kind touch, felt in perceive)
            compares the prediction with the board:
              moves         the object's position readings changed on the step after the press
@@ -32,6 +35,9 @@ _ON = armflag.arm("TETHER_AFFORDANCE", default=True)  # prior/settle/refuse rows
 WORD_MAP = Path(__file__).resolve().parent / "library" / "word_map.json"
 # a verb's WordNet lexname -> the reading it predicts (a means: what to LOOK at, never the answer)
 LEXNAME_READING = {"verb.motion": "moves"}
+# a contact verb on an object predicts it moves when WordNet's own '@' chain makes the sense a
+# cause-to-move verb (throw -> propel -> move): word_map's prior.moves_object, record only
+_CONTACT_MOVES = armflag.arm("TETHER_CONTACT_MOVES", default=True)
 KEEPS = "keeps moving"
 # B7 motion words (write-up 42 "the ball rolls to the right"); record only
 _MOTION_UPPER = armflag.arm("TETHER_MOTION_WORDS", default=True)
@@ -134,6 +140,8 @@ def _bridge_chain(shape_name: str, bridge: list | None) -> dict | None:
             ps = [{"concept": c, "action_verb": a.get("verb"),
                    "verb_lexname": a.get("verb_lexname"), "source": a.get("source"),
                    "stamp": row.get("stamp"),
+                   **({"moves_object": a["moves_object"], "moves_via": a.get("moves_via")}
+                      if "moves_object" in a else {}),
                    **({"reading": a["reading"]} if a.get("reading") else {})}
                   for a in acts if isinstance(a, dict)]
             if c and any(readings(p_) for p_ in ps):
@@ -163,10 +171,13 @@ def resolve(shape_name: str, atoms: dict | None, bridge: list | None, priors: li
 
 
 def readings(prior: dict) -> list:
-    """The reading predictions a prior makes: its own 'reading'/'property' field, else by lexname;
-    'keeps moving' implies 'moves'."""
+    """The reading predictions a prior makes: its own 'reading'/'property' field, else by lexname,
+    else 'moves' when the prior's moves_object is True (TETHER_CONTACT_MOVES: its verb sense's
+    WordNet hypernym chain reaches verb.motion); 'keeps moving' implies 'moves'."""
     r = prior.get("reading") or prior.get("property") or LEXNAME_READING.get(
         str(prior.get("verb_lexname") or ""))
+    if not r and _CONTACT_MOVES and prior.get("moves_object") is True:
+        r = "moves"
     if not r:
         return []
     return ["moves", KEEPS] if r == KEEPS else [str(r)]
@@ -215,6 +226,9 @@ class Book:
                        "form": chain["form"], "concept": chain["concept"], "via": chain["via"],
                        "property": prop, "action_verb": p.get("action_verb"),
                        "verb_lexname": p.get("verb_lexname"),
+                       **({"moves_via": p["moves_via"]} if prop == "moves" and p.get("moves_via")
+                          and p.get("moves_object") is True and not LEXNAME_READING.get(
+                              str(p.get("verb_lexname") or "")) else {}),
                        "stamp": _stamp(p),
                        "except_when": [], "name_now": chain["concept"]}
                 self.prior[(kind, prop)] = rec

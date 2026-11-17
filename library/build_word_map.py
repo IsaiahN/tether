@@ -13,7 +13,9 @@ Sections:
                  chosen sense(s) -> category (WordNet lexname) beside the library's own
                  by_kind/by_default_role category; disagreements flagged, never overridden
   synonym_index  word -> library entries through a shared synset of a chosen sense
-  priors         object concept -> action verbs named in its gloss or derivationally related ('+')
+  priors         object concept -> action verbs named in its gloss or derivationally related ('+'),
+                 each with moves_object / moves_via (its sense is verb.motion or its '@' chain
+                 reaches one)
   shape_bridge   a DECLARED 2D shape -> 3D form -> object table (a convention), each resolved to
                  a verified synset and attached to the objects' priors
   concept_actions  object/shape concept -> ranked verbs from the REVERSE dictionary read (verb
@@ -371,27 +373,99 @@ def gloss_verbs(wn: WordNet, gloss: str) -> list[tuple[str, str]]:
     return out
 
 
-def verb_sense(wn: WordNet, verb: str, concept_ctx: set[str]) -> dict:
+# DECLARED conventions (Figure 10), visible and movable: what counts as a physical object concept,
+# the verb lexnames that fit one, and the plausibility test on a reverse-index example hit
+OBJECT_NOUN_LEXNAMES = ("noun.artifact", "noun.object")
+OBJECT_VERB_LEXNAMES = ("verb.contact", "verb.motion")
+EXAMPLE_VERB_LEXNAMES = ("verb.contact", "verb.motion", "verb.possession", "verb.competition",
+                         "verb.consumption", "verb.creation", "verb.change")
+EXAMPLE_NOUN_LEXNAMES = ("noun.artifact", "noun.object", "noun.shape", "noun.animal",
+                         "noun.plant", "noun.food", "noun.body")
+
+
+def verb_sense(wn: WordNet, verb: str, concept_ctx: set[str], physical: bool = False) -> dict:
+    """The verb's sense for a concept: when the concept is a physical object (artifact/object),
+    a sense whose lexname is in OBJECT_VERB_LEXNAMES is preferred over any other (in that
+    order: contact, then motion) and among those WordNet sense order decides (gloss overlap
+    picked figurative senses); for any other concept the most context-word overlap, then WordNet
+    sense order. The reason is recorded."""
     best = None
     for rank, sid in enumerate(wn.index["v"].get(verb, [])):
         score = len(concept_ctx & wn.context_words(sid))
-        if best is None or score > best[0]:
-            best = (score, rank, sid)
-    _, rank, sid = best
+        ln = wn.syn[sid]["lexname"]
+        fit = physical and ln in OBJECT_VERB_LEXNAMES
+        order = len(OBJECT_VERB_LEXNAMES) - OBJECT_VERB_LEXNAMES.index(ln) if fit else 0
+        key = (order, 0 if fit else score, -rank)
+        if best is None or key > best[0]:
+            best = (key, rank, sid)
+    (order, score, _), rank, sid = best
+    fit = order > 0
+    reason = (f"object concept: lexname {wn.syn[sid]['lexname']} fits a physical object "
+              "(preferred over other lexnames; contact before motion), then sense order" if fit else
+              f"context overlap {score}, then sense order")
     return {"verb_synset": sid, "verb_lexname": wn.syn[sid]["lexname"],
-            "verb_sense_order": rank + 1}
+            "verb_sense_order": rank + 1, "verb_sense_reason": reason, **moves_object(wn, sid)}
+
+
+MOVES_LEXNAME = "verb.motion"
+
+
+def moves_object(wn: WordNet, vsid: str) -> dict:
+    """Does acting on an object with this verb sense predict that the object moves? True when the
+    sense's own lexname is verb.motion, or when its WordNet hypernym chain ('@' pointers in
+    data.verb, followed breadth-first in pointer order to the root, every branch) reaches a
+    verb.motion synset: a cause-to-move verb (throw -> propel -> move, displace). moves_via is the
+    path from the sense to the first verb.motion synset reached; when none is reached it is every
+    ancestor searched, in visit order (the closure named, so the False is readable). Read from
+    WordNet's own hierarchy, never a hand list."""
+    def tag(s: str) -> str:
+        return f"{s} {wn.syn[s]['lemmas'][0].lower()} ({wn.syn[s]['lexname']})"
+    parent: dict[str, str | None] = {vsid: None}
+    queue, order = [vsid], []
+    while queue:
+        cur = queue.pop(0)
+        order.append(cur)
+        if wn.syn[cur]["lexname"] == MOVES_LEXNAME:
+            path = []
+            while cur is not None:
+                path.append(tag(cur))
+                cur = parent[cur]
+            return {"moves_object": True, "moves_via": path[::-1]}
+        for sym, tgt, _, _ in wn.syn[cur]["ptrs"]:
+            if sym == "@" and tgt in wn.syn and tgt not in parent:
+                parent[tgt] = cur
+                queue.append(tgt)
+    return {"moves_object": False, "moves_via": [tag(s) for s in order]}
+
+
+def example_noun_sense(wn: WordNet, noun: str, vsid: str) -> str | None:
+    """The noun's sense in a verb's example: the noun synset with most context-word overlap with
+    the verb synset; ties go to WordNet sense order. None when the noun is a word of the verb's
+    own multi-word lemma (an idiom such as 'have a ball': the noun names no object there)."""
+    for lem in wn.syn[vsid]["lemmas"]:
+        toks = lem.lower().split("_")
+        if len(toks) > 1 and noun in toks:
+            return None
+    vctx = wn.context_words(vsid)
+    best = None
+    for rank, nsid in enumerate(wn.index["n"].get(noun.replace(" ", "_"), [])):
+        key = (len(vctx & wn.context_words(nsid)), -rank)
+        if best is None or key > best[0]:
+            best = (key, nsid)
+    return best[1] if best else None
 
 
 def concept_priors(wn: WordNet, concept: str, sid: str, stamp: dict) -> list[dict]:
     s = wn.syn[sid]
     ctx = wn.context_words(sid)
+    phys = s["lexname"] in OBJECT_NOUN_LEXNAMES
     rows, seen = [], set()
     for verb, how in gloss_verbs(wn, s["gloss"]):
         if (verb, "gloss") in seen:
             continue
         seen.add((verb, "gloss"))
         rows.append({"concept": concept, "concept_synset": sid, "action_verb": verb,
-                     **verb_sense(wn, verb, ctx), "source": "gloss", "evidence": how,
+                     **verb_sense(wn, verb, ctx, phys), "source": "gloss", "evidence": how,
                      "stamp": stamp, "standing": "none"})
     # one level of inheritance (shape -> concept -> properties): the first hypernym's gloss verbs
     # are carried as gloss priors with the hypernym named (a soccer ball is a ball: hit, kick)
@@ -402,7 +476,7 @@ def concept_priors(wn: WordNet, concept: str, sid: str, stamp: dict) -> list[dic
                 continue
             seen.add((verb, "gloss"))
             rows.append({"concept": concept, "concept_synset": sid, "action_verb": verb,
-                         **verb_sense(wn, verb, ctx), "source": "gloss",
+                         **verb_sense(wn, verb, ctx, phys), "source": "gloss",
                          "evidence": f"{how}; via hypernym {hyp} "
                                      f"{wn.syn[hyp]['lemmas'][0]}",
                          "via_hypernym": hyp, "stamp": stamp, "standing": "none"})
@@ -415,7 +489,8 @@ def concept_priors(wn: WordNet, concept: str, sid: str, stamp: dict) -> list[dic
             seen.add((verb, "derivation"))
             rows.append({"concept": concept, "concept_synset": sid, "action_verb": verb,
                          "verb_synset": tgt, "verb_lexname": t["lexname"],
-                         "verb_sense_order": None, "source": "derivation",
+                         "verb_sense_order": None, **moves_object(wn, tgt),
+                         "source": "derivation",
                          "evidence": f"'+' from {s['lemmas'][src - 1 if src else 0]}",
                          "stamp": stamp, "standing": "none"})
     return rows
@@ -461,7 +536,8 @@ SOURCE_RANK = {"reverse-example": 0, "reverse-gloss": 1}
 
 
 def concept_actions(wn: WordNet, rev: dict, concept: str, sid: str, extra: list[str],
-                    prior_rows: list[dict], stamp: dict, lemma_entries: dict) -> tuple[dict, int]:
+                    prior_rows: list[dict], stamp: dict, lemma_entries: dict
+                    ) -> tuple[dict, int, int]:
     """One concept: the verbs from the reverse index (its synset's lemmas plus any extra names,
     e.g. an ImageNet label's head noun) merged with its forward priors, keyed by verb synset;
     kept by ACTION_LEXNAMES, ranked, capped at ACTIONS_CAP. Returns (row, dropped by lexname)."""
@@ -482,8 +558,15 @@ def concept_actions(wn: WordNet, rev: dict, concept: str, sid: str, extra: list[
         if matched and matched not in a["matched"]:
             a["matched"].append(matched)
 
+    implausible = 0
     for name in names:
         for vsid, where in rev.get(name, []):
+            if where == "example":
+                nsid = example_noun_sense(wn, name, vsid)
+                if (wn.syn[vsid]["lexname"] not in EXAMPLE_VERB_LEXNAMES or nsid is None
+                        or wn.syn[nsid]["lexname"] not in EXAMPLE_NOUN_LEXNAMES):
+                    implausible += 1
+                    continue
             add(vsid, wn.syn[vsid]["lemmas"][0].lower().replace("_", " "),
                 f"reverse-{where}", f"{name}@{where}")
     for p in prior_rows:
@@ -519,8 +602,9 @@ def concept_actions(wn: WordNet, rev: dict, concept: str, sid: str, extra: list[
     out = [a for a in kept if id(a) in chosen]
     row = {"concept": concept, "synset": sid, "names_matched": names, "stamp": stamp,
            "standing": "none", "actions": out, "actions_total": len(kept),
-           "actions_capped": len(kept) - len(out), "dropped_by_lexname": dropped}
-    return row, dropped
+           "actions_capped": len(kept) - len(out), "dropped_by_lexname": dropped,
+           "dropped_implausible_example": implausible}
+    return row, dropped, implausible
 
 
 def resolve(wn: WordNet, lemma: str, lexname: str, cue: str) -> str | None:
@@ -594,7 +678,9 @@ def build(root: str) -> bytes:
                     if sid not in by_concept_sid:
                         by_concept_sid[sid] = concept_priors(wn, f"bridge:{lem}", sid, stamp)
                     item["actions"] = [{"verb": p["action_verb"], "verb_synset": p["verb_synset"],
-                                        "verb_lexname": p["verb_lexname"], "source": p["source"]}
+                                        "verb_lexname": p["verb_lexname"], "source": p["source"],
+                                        "moves_object": p["moves_object"],
+                                        "moves_via": p["moves_via"]}
                                        for p in by_concept_sid[sid]]
                 got.append(item)
             out[part] = got
@@ -629,12 +715,13 @@ def build(root: str) -> bytes:
         if e["category"] in ("object", "shape"):
             for sid in e["chosen"]:
                 todo.append((full, sid, []))
-    actions_rows, dropped_lex = [], 0
+    actions_rows, dropped_lex, dropped_ex = [], 0, 0
     for concept, sid, extra in todo:
-        row, d = concept_actions(wn, rev, concept, sid, extra, prior_of.get((concept, sid), []),
+        row, d, dx = concept_actions(wn, rev, concept, sid, extra, prior_of.get((concept, sid), []),
                                  stamp, synonym_index)
         actions_rows.append(row)
         dropped_lex += d
+        dropped_ex += dx
     actions_rows.sort(key=lambda r: (r["concept"], r["synset"]))
     rev_hits = [h for hs in rev.values() for h in hs]
     act_src = Counter(s for r in actions_rows for a in r["actions"] for s in a["sources"])
@@ -690,6 +777,9 @@ def build(root: str) -> bytes:
             "priors": len(priors),
             "priors_by_source": dict(sorted(Counter(p["source"] for p in priors).items())),
             "priors_concepts": len({p["concept"] for p in priors}),
+            "priors_moves_object": dict(sorted(Counter(
+                ("own_lexname" if p["verb_lexname"] == MOVES_LEXNAME else "via_hypernym")
+                if p["moves_object"] else "false" for p in priors).items())),
             "shape_bridge_rows": len(bridge),
         },
         "concept_actions_method": (
@@ -702,8 +792,14 @@ def build(root: str) -> bytes:
             "chosen synsets' lemmas) collects the verb synsets naming any of its names "
             "('reverse-example' / 'reverse-gloss'), merged by verb synset with its forward priors "
             "('gloss-forward', 'derivation', 'hypernym:<sid>'). The noun's SENSE in the verb text "
-            "is not disambiguated (a spelling match on a noun lemma), which is why every row has "
-            "standing none. Kept: verb_lexname in concept_actions_lexnames; ranked n_sources desc, "
+            "is disambiguated only for example hits: the noun sense with most context overlap with "
+            "the verb synset; an example hit is kept only when the verb's lexname is in "
+            "example_verb_lexnames AND that noun sense's lexname is in example_noun_lexnames "
+            "(a noun inside the verb's own multi-word lemma is an idiom with no object sense: "
+            "'have a ball' drops; counted in dropped_implausible_example); every row "
+            "has standing none. Forward priors of an artifact/object concept prefer a verb sense "
+            "in object_verb_lexnames (verb_sense_reason). Kept: verb_lexname in "
+            "concept_actions_lexnames; ranked n_sources desc, "
             "then best source (reverse-example > reverse-gloss > others), then verb, then synset; "
             "capped: every action with a forward source (an existing prior) is kept, and the "
             "remaining slots up to the cap go to reverse-only actions in rank order, so the merge "
@@ -716,12 +812,25 @@ def build(root: str) -> bytes:
                                     "visible and movable, not derived; actions_total and "
                                     "actions_capped per row show what it cut",
         "concept_actions_lexnames": list(ACTION_LEXNAMES),
+        "object_noun_lexnames": list(OBJECT_NOUN_LEXNAMES),
+        "object_verb_lexnames": list(OBJECT_VERB_LEXNAMES),
+        "moves_object_rule": (
+            "every prior (and every shape_bridge object action) carries moves_object: True when "
+            f"its verb sense's lexname is {MOVES_LEXNAME}, or when its WordNet hypernym chain "
+            "('@' pointers in data.verb, followed breadth-first to the root, every branch) "
+            f"reaches a {MOVES_LEXNAME} synset (a cause-to-move verb: throw -> propel -> move, "
+            "displace); moves_via is the path to that synset, or every ancestor searched when "
+            "none is reached. Read from WordNet's hierarchy, never a hand list; a prediction "
+            "with no standing, the board tests it"),
+        "example_verb_lexnames": list(EXAMPLE_VERB_LEXNAMES),
+        "example_noun_lexnames": list(EXAMPLE_NOUN_LEXNAMES),
         "concept_actions_counts": {
             "concepts": len(actions_rows),
             "concepts_with_actions": sum(bool(r["actions"]) for r in actions_rows),
             "actions_kept": sum(len(r["actions"]) for r in actions_rows),
             "actions_capped": sum(r["actions_capped"] for r in actions_rows),
             "dropped_by_lexname": dropped_lex,
+            "dropped_implausible_example": dropped_ex,
             "actions_by_source": dict(sorted(act_src.items())),
             "actions_with_library_atoms": sum(bool(a["library_atoms"]) for r in actions_rows
                                               for a in r["actions"]),

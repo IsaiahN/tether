@@ -3432,6 +3432,16 @@ ARMS: dict[str, str] = {
                            "press -> is pushed); nsm says e.g. `ball` `rolls` `to the right`. "
                            "Record only. OFF: no direction/manner fields. MF: "
                            "tests/test_affordance.py. default ON",
+    "TETHER_CONTACT_MOVES": "WATSON 42 item 9 (does a contact verb on an object predict that it "
+                            "moves?): an affordance prior predicts 'moves' when its verb is "
+                            "verb.motion OR word_map marks it moves_object -- its verb sense's "
+                            "WordNet hypernym chain ('@' to the root) reaches a verb.motion synset "
+                            "(throw -> propel -> move, displace), the chain kept as moves_via; "
+                            "read from WordNet's hierarchy, never a hand list "
+                            "(library/build_word_map.moves_object). Record only, no standing. "
+                            "OFF: verb.motion alone predicts 'moves', so ball's contact priors "
+                            "(throw, kick) predict nothing. MF: tests/test_affordance.py. "
+                            "default ON",
     "TETHER_RDL": "Isaiah 2026-11-16 'RDL matters most' (RDL_BUILD_SPEC_2026-11-16 Piece 3; "
                   "WATSON 40 C4-C6): the released preloads (library/rdl_preload.json, read by "
                   "rdl_store / rdl_release) set SEARCH PRIORITY ONLY -- an entry attached to one "
