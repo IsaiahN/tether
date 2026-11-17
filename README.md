@@ -1,4 +1,4 @@
-﻿# tether — the ARC-AGI-3 solver agent
+# tether — the ARC-AGI-3 solver agent
 
 The [general tether agent](https://github.com/IsaiahN/tether/tree/general-agent), pointed at
 [ARC-AGI-3](https://arcprize.org/): interactive games it has never seen, with no instructions,
@@ -153,6 +153,29 @@ ARC is only the adapter and the harness below.
   once it can also hear, with the listener as its board. Most of the joins are hours of work on
   keys that already exist; linking words to the library is the reviewable part, and the place
   where help is most welcome.
+
+  **If it were built, no neural text-to-speech would be needed.** A rule-based synthesizer driven
+  by a pronunciation dictionary is enough, and two established free ones exist:
+  [Flite](https://github.com/festvox/flite) (a small, fast C engine from the CMU/Edinburgh
+  FestVox line) and [espeak-ng](https://github.com/espeak-ng/espeak-ng) (formant synthesis with
+  its own dictionaries for many languages). Both are lookups and rules, not learned weights, so
+  the whole chain from a board reading to a spoken word stays inspectable.
+
+  **Two-way communication would need the interface widened first.** Hearing turns the loop around:
+  the interface would have to accept input data, not only send actions and read the board
+  ("text, images", then sound), and the listener becomes the board that settles a sentence, the
+  way the game board settles a term. No such input path exists today; this agent will not be
+  built that way now. It is recorded as proof of possibility.
+
+  **And speech-to-text could also be built without training.** Almost all speech-to-text today
+  uses deep learning, but the classical HMM-GMM stack (hidden Markov models over Gaussian mixture
+  acoustics) needs no neural network; see, for one worked example,
+  [Speech-to-Text_Traditional_Method](https://github.com/DaivikPatel0/Speech-to-Text_Traditional_Method).
+  It is archaic and far less accurate and efficient than a modern model, and it needs a recorded
+  corpus to estimate its statistics, so it is not proposed here. Its point is narrower and it is
+  the point worth keeping: a fully interpretable agent could in principle speak, listen and answer
+  with no learned model anywhere in the loop, every part of it a table, a rule or a count, which
+  is the same claim this repository makes about thinking.
 
 Design and status, layer by layer: [docs/05-RESEARCH/42](docs/05-RESEARCH/42-WATSON_2026-11-16_RECURSIVE_DIFFUSION_LEARNING_THE_DESIGN.md). Third-party data and software, with their licences: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
