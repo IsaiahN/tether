@@ -205,6 +205,12 @@ def main() -> int:
         print("A6 the contact prior predicts moves through its WordNet chain:", d6["action_verb"],
               d6["moves_via"], "GREEN")
         affordance._CONTACT_MOVES = False
+        # ALSO off: TETHER_RELATIONS_READ. ConceptNet's own verbs predict "moves" through
+        # CN_READING, so leaving it on would supply a ball prior for a reason this must-fail is
+        # not testing; the arm under test here is TETHER_CONTACT_MOVES alone (2026-11-16 merge).
+        _rel_saved = getattr(affordance, "_RELATIONS_READ", None)
+        if _rel_saved is not None:
+            affordance._RELATIONS_READ = False
         try:
             assert contact and not any(affordance.readings(p) for p in contact), contact
             ag6x, led6x = agent(src=real)
@@ -215,6 +221,8 @@ def main() -> int:
             assert not any(r["detail"].get("concept") == "ball" for r in r6x), r6x
         finally:
             affordance._CONTACT_MOVES = True
+            if _rel_saved is not None:
+                affordance._RELATIONS_READ = _rel_saved
         print("MF-A6 TETHER_CONTACT_MOVES OFF: ball's contact-only priors",
               [p["action_verb"] for p in contact], "predict nothing; o1 ->",
               [(r["detail"].get("concept"), r["detail"].get("property")) for r in r6x],

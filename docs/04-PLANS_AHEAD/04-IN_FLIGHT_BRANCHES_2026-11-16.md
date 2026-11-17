@@ -1,6 +1,6 @@
 # Status of the four in-flight branches (2026-11-16, 18:15 CST)
 
-Written after the four helpers started at 17:53 were stopped by the day's cutoff. None committed. All their work survives, uncommitted, in four worktrees. Each branch is based on development `dc7314ff`, which is one docs-only commit past the released `9a9d034f`... correction: development is at `9a9d034f` and the branches were cut from `dc7314ff`; the difference is the `03-NEXT_STEPS` page only.
+Written after the four helpers started at 17:53 were stopped by the day's cutoff. None of them committed; all their work survives, uncommitted, in four worktrees. Each branch was cut from development `dc7314ff`; development itself is now at `9a9d034f`, and the difference between the two is the `03-NEXT_STEPS_AFTER_2026-11-16.md` page.
 
 Everything below was measured just now, not taken from a helper's claim.
 
