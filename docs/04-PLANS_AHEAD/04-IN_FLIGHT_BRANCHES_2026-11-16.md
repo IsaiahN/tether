@@ -10,6 +10,8 @@
 - **A third rule came out of the same investigation**: a Hu moment saturated on either side (`HU_SATURATED`) is left out of the distance and the distance rescaled, because an invariant that has collapsed to zero carries no information. Held-out shape accuracy is **134/176**; square, cube, cylinder and cone remain weak.
 - **A known limit, recorded rather than tuned away**: a *mathematically ideal* circle (every higher Hu moment exactly zero) abstains at distance 7.58, while a rendered circle is named at once. The test fixture is a rendered variant from `library/build_shapes.py`, and the ideal case stays a limit.
 
+**Shipping (2026-11-19 refresh).** The release carrying all of this went out on 11-16: arc-solver-agent `21ecd7b5`. Isaiah merged the general-agent PR as **#18, `90c02632`** on 11-19 after the four helpers were finished. The verb-senses piece closed the one call the cutoff left open (`40228c63`): a contact verb predicts motion when WordNet's own hypernym chain reaches a motion verb (throw -> propel -> move), and ball's throw and kick senses were corrected. The Kaggle bundle at the released commit is `C:\TETHER_RUNS\KAGGLE_2026-11-16\code_21ecd7b5` (925 files, manifest `3be248e93cf03c09`), still to be uploaded.
+
 The notes below are the survey taken before that work; they are kept as the record of what the helpers left behind.
 
 Written after the four helpers started at 17:53 were stopped by the day's cutoff. None of them committed; all their work survives, uncommitted, in four worktrees. Each branch was cut from development `dc7314ff`; development itself is now at `9a9d034f`, and the difference between the two is the `03-NEXT_STEPS_AFTER_2026-11-16.md` page.
