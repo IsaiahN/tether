@@ -91,6 +91,22 @@ def test_mf_hu_route_off():
     assert off["circle"] + off["square"] < on["circle"] + on["square"]
 
 
+def test_ns_share_guard_off():
+    """Plant the defect: disable the closed-outline guard and the noise false positive returns."""
+    old = R.SHAPE_MAX_SHARE
+    R.SHAPE_MAX_SHARE = 2.0  # no share can exceed it: the guard is off
+    try:
+        rng = np.random.default_rng(7)
+        named = sum(
+            not R.recognise_shape(rng.integers(0, 256, (128, 128, 3), dtype=np.uint8))["abstained"]
+            for _ in range(3)
+        )
+        print(f"  NS: {named}/3 noise images wrongly named with guard off (RED as required)")
+        assert named > 0, "disabling the guard must restore the false positive"
+    finally:
+        R.SHAPE_MAX_SHARE = old
+
+
 if __name__ == "__main__":
     for f in [
         test_s1_deterministic,
@@ -98,6 +114,7 @@ if __name__ == "__main__":
         test_s3_noise_abstains,
         test_s4_index,
         test_mf_hu_route_off,
+        test_ns_share_guard_off,
     ]:
         f()
         print("PASS", f.__name__)
