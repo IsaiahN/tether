@@ -8711,7 +8711,13 @@ class Agent:
             if store.usable(p):                     # C2: else recorded, never offered
                 for e in p.attaches:
                     by_entry.setdefault(e, []).append(p.pid)
-        rd = {"store": store, "release": rel, "preloads": {p.pid: p for p in pre},
+        # Modules are never kept in agent state: copy.deepcopy(agent) must work (test_m2's
+        # warmed fixture deep-copies the agent), and a module object cannot be copied. Keep the
+        # plain module-level functions -- deepcopy returns a function as itself. Same behaviour.
+        fns = {"usable": store.usable, "merge_stats": rel.merge_stats,
+               "stats_from_rows": rel.stats_from_rows, "released": rel.released,
+               "reach_policy": rel.reach_policy, "priority": rel.priority}
+        rd = {"fns": fns, "preloads": {p.pid: p for p in pre},
               "by_entry": by_entry, "stats_n": {}, "released": set(), "offered": set(),
               "carried": {}, "rows": [], "policy": [], "released_at": {}, "levels": 0,
               "rank": {}, "term_entry": {}}
@@ -8725,18 +8731,19 @@ class Agent:
         rd = rd if rd is not None else self._rdl
         if rd is None:
             return
-        rel, store = rd["release"], rd["store"]
+        fns = rd["fns"]
         pre = list(rd["preloads"].values())
-        stats = rel.merge_stats(rd["carried"], rel.stats_from_rows(rd["rows"]))
+        stats = fns["merge_stats"](rd["carried"], fns["stats_from_rows"](rd["rows"]))
         try:
-            got = set(rel.released(pre, stats, inherited_settled=True, usable=store.usable))
+            got = set(fns["released"](pre, stats, inherited_settled=True,
+                                      usable=fns["usable"]))
         except TypeError:                           # a released() without the usable argument
-            got = set(rel.released(pre, stats, inherited_settled=True))
+            got = set(fns["released"](pre, stats, inherited_settled=True))
         new = got - rd["released"]
         for pid in new:
             rd["released_at"].setdefault(pid, rd["levels"])
         rd["released"], rd["rank"] = got, {}
-        rd["policy"] = rel.reach_policy(rd["rows"])
+        rd["policy"] = fns["reach_policy"](rd["rows"])
         self.led.record(getattr(self, "cycle", 0), "IMPORT", "@rdl", "rdl_release", at=at,
                         preloads=len(pre), released=len(got), newly=len(new),
                         entries=sum(1 for ps in rd["by_entry"].values()
@@ -8755,11 +8762,11 @@ class Agent:
             return ()
         got = rd["rank"].get(entry)
         if got is None:
-            rel, lv = rd["release"], rd["levels"]
+            fns, lv = rd["fns"], rd["levels"]
             best = None
             for pid in rd["by_entry"].get(entry, ()):
                 if pid in rd["released"]:
-                    k = rel.priority(rd["preloads"][pid], rd["policy"],
+                    k = fns["priority"](rd["preloads"][pid], rd["policy"],
                                      lv - rd["released_at"].get(pid, lv))
                     if best is None or k < best[0]:
                         best = (k, pid)
