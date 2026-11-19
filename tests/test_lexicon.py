@@ -100,7 +100,11 @@ def check_l3() -> None:
     # library/word_map.json, itself readers: [] (tests/test_word_map.py W0)
     # build_relations (2026-11-16) names it only for its size fallback (vocabulary.json, itself
     # readers: [], tests/test_relations.py R0)
-    builders = ("build_lexicon.py", "rdl_parse.py", "build_word_map.py", "build_relations.py")
+    # recognize.py (2026-11-16) is the edge front end, not an agent module: build_from_parquet
+    # maps a picture's label to its WordNet id through the lexicon, and the agent never imports it
+    # at module level (affordance imports it lazily, inside the call, TETHER_RECOGNISED)
+    builders = ("build_lexicon.py", "rdl_parse.py", "build_word_map.py", "build_relations.py",
+                "recognize.py")
     files = [p for p in files if os.path.basename(p) not in builders]
     named = ("tether.py", "gamma.py")
     assert all(os.path.join(ROOT, n) in files for n in named), "agent modules not found"
