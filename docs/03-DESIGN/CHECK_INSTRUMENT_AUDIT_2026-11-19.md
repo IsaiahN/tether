@@ -1,0 +1,29 @@
+# Check-instrument audit, 2026-11-19
+
+Read-only audit of `conform/check.py`'s 25 seats at HEAD `31718e75`: **17 clean, 6 found something, 2 DID-NOT-RUN**. This page records which findings are real, which are stale instruments, and which need a ruling. It does not weaken any check.
+
+## Real findings (already or being addressed)
+
+| seat | finding | status |
+|---|---|---|
+| `shipped` | `test_the_residual_bound_loses_nothing`: with `_cannot_pay` live, seed 0 bound 2 terms / library 10 / 655 rows; exhaustive arm bound 0 / library 8 / 564 rows. | **OPEN — derive before ruling.** The A/B was repeated in four SEPARATE processes: same-arm structural state is stable (seed 1: bound `s0:take`, library 8, ledger 590/600 in one pair — note the row-count variance), so this is not warm-state contamination of the compared tuple. A NECESSARY filter that removes candidates can change WHICH candidates win a bargain in a finite run; the invariant's claim "neutering it changes nothing at all" may be the stale premise, not the filter. Do NOT edit the test until the write site is read and the claim is derived from the figures. |
+| `m2` | 45/68 checks pass. | Grouped work in `04-IN_FLIGHT_BRANCHES_2026-11-16.md`: book declarations, narration, fixture attributes, trajectory re-pins. |
+| `panel` | ledgers MISSING/STALE. | **Instrument needs a detached job**: `conform/panel.py --produce` runs real board panels and was killed by a 120 s shell cap (the "cap below estimate is a kill by setup" rule). Relaunched fully detached 2026-11-19 17:47; do not read its result until that job reports. |
+
+## Stale instruments — the check no longer measures what its docstring says
+
+| seat | finding | evidence at the write site | action |
+|---|---|---|---|
+| `layers` | flags `arc_percept`, `compile_term`, `composer`, `gamma`, `inherited`, `ledger` for importing `cap`, `store`, `narrate` as "worlds" | `conform/layers.py` REASONING is an enumerated set; BRIDGE = {world, interface}; anything not enumerated is treated as environment-side. `cap.py` imports only contextlib/functools/time/armflag — it is the agent's own overrun net, not a world. The docstring itself warns "a rule that ENUMERATES WORLDS protects only the worlds someone remembered"; the enumeration has drifted as new agent infrastructure was added. | **Record, do not mass-edit.** Re-derive the agent/world line from the figures; the fix is a derived set, not adding 23 names one by one. |
+| `recshape` | 26 findings, e.g. `for s, *_r in hist` "hides a widening" | `tether.py:27627` uses only the before-state of each history row (`_jc_value(k, s)`); the trailing fields are deliberately ignored by the O2 junction-scoring code. The seat's message `_invent did this and raised on its first call` is a fixed string, not derived from each site — and `_invent` is RETIRED. The check's SOURCES = {hist, robs, obs, trace} also matches unrelated 5-tuples named `obs`. | **Record, do not mass-edit.** Several unpacks are correct by construction. A leading-star check has merit; a blanket trailing-star refusal is wrong. Re-derive from the actual consumers. |
+| `wiring` | 68 status transitions the manifest does not record; 25+ NEW-in-declared-set entries | `conform/wiring.json` binds status to artifact stamps; the tree gained a large amount of new machinery after the newest recorded board artifact (2026-09-21). Some of these are genuinely new capabilities whose status never occurred on a recorded run. | **Needs a ruling** on whether a never-occurred capability is a defect or an unexercised arm. Do not bulk-update the manifest. |
+| `library` | 14 findings on the real library; all 5 planted must-fails CAUGHT | The must-fail paths work — this is not a dead check. The 14 real findings need reading one by one before any edit. | **Open — read each finding**, then fix library data through its generator, never by hand. |
+| `lint` | DID-NOT-RUN, timed out after 180 s | `STAGE_TIMEOUT = 180` is explicitly Isaiah's calibration constant (`conform/check.py:182-205`), ~50% headroom over a 2m01s measurement from 2026-09-28. Today's suite is longer; the cap is a measurement, not a verdict. | **Isaiah's constant to move.** Record the new measurement; do not silently raise it. |
+
+## The lesson to carry
+
+A seat that finds nothing can be a seat that no longer looks at the thing it names: `layers` and `recshape` are green-until-irrelevant in exactly the way `conform/focus.py`'s own docstring describes for guards whose failure path is never exercised. Their fixes are derivations, not edits to the code they police. `shipped` is the opposite: a red check whose premise may be older than the mechanism it pins. Both need the figures at the write site before either the code or the check moves.
+
+## RDL feedback gap (verified 2026-11-19, not a wiring bug)
+
+RDL's store, parser, release, tie-ordering, lineage carry and deepcopy all verify (5 test files green, 1494 preloads / 191 usable, a controlled rank flip with a real released pid, `rdl_n` present in `memory.db`). On a real 12-step gridworld run only `rdl_release`×1 and `rdl_offer`×4 appear; `rdl_settle`/`rdl_refuse` never fire because `term_entry` stays empty — its only writer (`tether.py:30014-30019`) needs library-first provenance whose `library` key is an RDL-attached entry. 419 of 420 attach names ARE real library entries, but they are overwhelmingly ARC-domain (`ACOUSTIC|…`) that gridworld never reaches. **This is a test-world limitation, not a defect.** Fabricating a gridworld path would be a synthetic solve; the ground for RDL is the ARC board, where those entries live. Record it as a known limit and do not "fix" it with a fake match.
