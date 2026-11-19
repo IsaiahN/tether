@@ -14,13 +14,17 @@ record is not documentation of the term. It is the term."). Every line cites its
              sentence back to a Term over THIS Gamma's atoms, typed as compile_term types a
              chain, or a Refusal whose reason is one of REFUSALS (r895 2: "Every sentence compiles
              back to the same Term, or is refused with a listed typing reason").
-  GUARD      as narrate: nothing raises into play; the first error turns the trace off, counted.
+  GUARD      nothing raises into play; the first error is written to the record with its source
+             and type, that row alone is skipped and counted, and the trace stays on. A silent
+             narrator is indistinguishable from one with nothing to say, so it is not allowed.
 """
 from __future__ import annotations
 
 import collections
 import functools
 import re
+import traceback
+from contextlib import suppress
 from pathlib import Path
 
 import armflag
@@ -412,16 +416,46 @@ class Speaker:
         self.counts: collections.Counter = collections.Counter()
         self.faults = 0
         self.fault: str | None = None
+        self.skipped = 0                          # rows a fault made us skip, counted not hidden
+        self._ledger = None                       # bound by Ledger, which owns the record
+
+    def bind(self, ledger) -> None:
+        """The ledger hands itself over; the trace stays a reader of rows, never their author,
+        except for the one fault row that says where it broke."""
+        self._ledger = ledger
+
+    def _record_fault(self, cycle: int, src: str, etype: str, message: str, where: str) -> None:
+        led = self._ledger
+        try:
+            if led is not None:
+                led.record_fault(cycle, src, etype, message=message, where=where)
+        except Exception:                          # a broken recorder must not kill the trace
+            with suppress(Exception):
+                self._emit(f"c{cycle} FAULT @: {src} {etype}")
+
+    def _fault(self, e: Exception, cycle: int, where: str, skip: bool = False) -> None:
+        """NOTHING SILENT. The first fault goes to the run record with its source and type;
+        only that row is skipped, and the trace stays on for the rest of the run. A narrator
+        that dies quietly would look exactly like one with nothing to say."""
+        first = self.faults == 0
+        self.faults += 1
+        if skip:
+            self.skipped += 1
+        self.fault = f"{type(e).__name__}: {e}"
+        tb = traceback.extract_tb(e.__traceback__)
+        frame = tb[-1] if tb else None
+        src = (f"{Path(frame.filename).name}:{frame.lineno} in {frame.name}" if frame
+               else f"{where}: unknown line")
+        if first:
+            self._record_fault(cycle, src, type(e).__name__, str(e)[:160], where)
 
     def see(self, seq: int, cycle: int, step: str, slot: str, event: str, d: dict) -> None:
         if not self.on:
             return
         try:
             self._see(seq, cycle, step, slot, event, d)
-        except Exception as e:           # the trace must never reach play
-            self.on = False
-            self.faults += 1
-            self.fault = repr(e)[:200]
+        except Exception as e:           # the trace must never reach play, nor die silently
+            self._fault(e, cycle, "nsm.Speaker.see", skip=True)
 
     def _emit(self, line: str) -> None:
         line = line if len(line) <= WIDTH else line[:WIDTH - 3] + "..."
@@ -491,11 +525,10 @@ class Speaker:
             self._emit(f"c{cycle} #{seq} {kind} {slot}: {text}")
 
     def close(self) -> None:
-        if self.on:
-            try:
-                self._flush()
-                self._last = {}          # a game's last lines do not silence the next game's
-            except Exception as e:
-                self.on = False
-                self.faults += 1
-                self.fault = repr(e)[:200]
+        if not self.on:
+            return
+        try:
+            self._flush()
+            self._last = {}              # a game's last lines do not silence the next game's
+        except Exception as e:
+            self._fault(e, self._cyc or 0, "nsm.Speaker.close")

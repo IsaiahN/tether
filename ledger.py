@@ -198,6 +198,7 @@ class Ledger:
         self.narrator = narrate.Narrator(self._path, (WIN, ADVANCE))   # N1: says key rows aloud
         self.pipe = pipelog.PipeLog(self._path, (WIN, ADVANCE))        # 7d: the stage lines
         self.speaker = nsm.Speaker(self._path, (WIN, ADVANCE))         # 7: the NSM trace
+        self.speaker.bind(self)               # 7: a narrator's fault goes on the record
         if self._path is not None:
             self._path.write_text("", encoding="utf-8")
 
@@ -265,23 +266,41 @@ class Ledger:
             self._last_step[(cycle, slot)] = step
         self._wat.append(self.written)
         self.written += 1
-        if self._path is not None:
-            line = json.dumps(self._row(e), sort_keys=True, default=str) + "\n"
-            if _LEDGER_HANDLE:
-                if self._fh is None:
-                    self._fh = self._path.open("a", encoding="utf-8")
-                    _OPEN.add(self)
-                self._fh.write(line)
-                self._fh.flush()
-            else:
-                with self._path.open("a", encoding="utf-8") as fh:
-                    fh.write(line)
+        self._write_row(e)
         if self.narrator.on:
             self.narrator.see(cycle, step, slot, event, detail)
         if self.pipe.on:
             self.pipe.see(cycle, step, slot, event, detail)
         if self.speaker.on:
             self.speaker.see(e.seq, cycle, step, slot, event, detail)
+        return e
+
+    def _write_row(self, e: Entry) -> None:
+        """The one place a row reaches disk, shared by an ordinary row and a fault row."""
+        if self._path is None:
+            return
+        line = json.dumps(self._row(e), sort_keys=True, default=str) + "\n"
+        if _LEDGER_HANDLE:
+            if self._fh is None:
+                self._fh = self._path.open("a", encoding="utf-8")
+                _OPEN.add(self)
+            self._fh.write(line)
+            self._fh.flush()
+        else:
+            with self._path.open("a", encoding="utf-8") as fh:
+                fh.write(line)
+
+    def record_fault(self, cycle: int, source: str, exception: str,
+                     message: str = "", where: str = "") -> Entry:
+        """A narrator's fault, written where the run can read it. Deliberately does NOT call
+        `speaker.see` -- that is the call that faulted, and re-entering it would loop. One row
+        on its own slot, so the gate's per-(cycle, slot) step order cannot see it."""
+        d = {"source": source, "exception": exception, "message": message, "where": where}
+        e = Entry(len(self._entries), cycle, "PLAN", "@nsm", "nsm_fault", d)
+        self._entries.append(e)
+        self._wat.append(self.written)
+        self.written += 1
+        self._write_row(e)
         return e
 
     def narrate(self, cycle: int, kind: str, slot: str, text: str) -> None:
