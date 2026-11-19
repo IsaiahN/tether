@@ -180,6 +180,35 @@ def sentences(rows: list[dict]) -> list[tuple[list[int], str]]:
                                f"{d.get('outcome')} and I took the fallback instead. The "
                                f"body's ending is not a refutation of the plan -- I never "
                                f"finished putting it to the test."))
+        # THE SIX SILENT SELF-ACCOUNT EVENTS THE AUDIT FOUND. Each is a row the agent wrote
+        # about itself and could not say; one sentence each, in the voice of the events above.
+        elif ev == "routine_bound":
+            out.append(([seq], f"On {slot} I brought {d.get('carried')} plans I kept from "
+                               f"earlier boards onto this one: {d.get('bound')} bound to the "
+                               f"kinds I can see here and {d.get('unbound')} I could not bind. "
+                               f"They are offered on trial, never settled."))
+        elif ev == "routine_formed":
+            out.append(([seq], f"On {slot} I kept the {d.get('presses')} presses that closed the "
+                               f"gap as one plan, `{d.get('routine')}`, in a form I can carry to "
+                               f"another board; the presses stay here. It came from "
+                               f"{d.get('why')}."))
+        elif ev == "routine_not_formed":
+            out.append(([seq], f"On {slot} I could not carry the presses that closed the gap as "
+                               f"one plan, `{d.get('routine')}`: {d.get('reason')}. It came from "
+                               f"{d.get('why')}, and I did not add it to what I can carry."))
+        elif ev == "routine_hold":
+            out.append(([seq], f"On {slot} my guard touched zero once and was not confirmed, so "
+                               f"I held the plan `{d.get('routine')}` without ending it or "
+                               f"acting on it this step. I read it again before I let it end."))
+        elif ev == "routine_rebid":
+            got = "won" if d.get("won") else "lost"
+            out.append(([seq], f"On {slot} my held plan re-bid at its checkpoint against the "
+                               f"other offers and {got}; the winner was `{d.get('winner')}`. "
+                               f"A loss leaves its state as it was before the bid."))
+        elif ev == "routine_recheck":
+            out.append(([seq], f"On {slot} my objective read {_n(d.get('r_goal'))}, touched at "
+                               f"zero and not confirmed, so I formed no plan. I read it again "
+                               f"next step rather than treat one zero as arrival."))
         elif ev == "books":
             # **THE AGENT'S ACCOUNT OF ITSELF, WHICH THIS FILE IS ALSO FOR, AND THE TWO NEVER
             # MET.** The books are what let the agent set a term instead of guessing one, and
