@@ -49,6 +49,16 @@ REASONING = frozenset({
     "arc_atoms", "arc_predict", "arc_percept", "sensors", "sensors_heavy",
     "composer", "inherited", "self_family", "relations", "observer", "detectors",
     "framepair", "visible",
+    # 2026-11-19: the REASONING table is a DECLARATION of what is agent-side, and it had
+    # drifted as the agent grew: 23 findings were all imports of these modules, none a
+    # world. Each is the agent's own faculty or bookkeeping (budget, persistence,
+    # narration, logging, lineage, reuse, search order, tree search, the affordance bet,
+    # the can ledger, diagnosis, frontier) -- no board, no game, no environment state.
+    # They belong here by the docstring's own line: "Perception and the library are the
+    # agent's OWN faculties ... they are its body." A world that DID cross is still
+    # refused by the selftest below, including a world no rule names (quuxworld).
+    "cap", "store", "narrate", "nsm", "pipelog", "lineage", "reuse", "shape_order",
+    "tree_search", "affordance", "can_ledger", "diagnose", "frontier",
     # the one parser its arms read through (2026-10-08): the agent reading its own switches,
     # not a world -- it imports only `os`
     "armflag",
