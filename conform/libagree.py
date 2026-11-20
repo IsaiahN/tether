@@ -44,8 +44,16 @@ def wired() -> list[tuple[str, str]]:
 
 
 def env_of(mod: str, flag: str) -> str | None:
+    """The env var that drives this arm, or None if the declaration has no env var.
+
+    2026-11-19: the old pattern required `armflag.arm("TETHER_...")` to END at the
+    closing quote. Every arc_percept arm now declares `default=True` after it, so the
+    pattern matched none of them, `build(on=...)` never forced the named arm on, and
+    six correct atoms were reported as "built with that arm OFF". A declaration may
+    carry a default; only the name is load-bearing here.
+    """
     src = (ROOT / f"{mod}.py").read_text(encoding="utf-8")
-    m = re.search(rf'^{flag} = armflag\.arm\("(TETHER_[A-Z_]+)"\)', src, re.M)
+    m = re.search(rf'^{flag} = armflag\.arm\("(TETHER_[A-Z_]+)"', src, re.M)
     return m.group(1) if m else None
 
 
@@ -56,6 +64,10 @@ def build(on: tuple[str, str] | None = None, off: tuple[str, str] | None = None)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     if on and env_of(*on):
         env[env_of(*on)] = "1"
+    # An arm marked "(import-time)" is baked into the atom list when the module is
+    # imported, so a setattr AFTER import cannot turn it off. Set the env var too.
+    if off and env_of(*off):
+        env[env_of(*off)] = "0"
     sets = wired() + ([on] if on else [])
     code = ("import sys, json, importlib; sys.dont_write_bytecode = True; sys.path.insert(0, '.')\n"
             "import arc_holdout, arc_atoms, arc_predict\n"

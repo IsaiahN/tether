@@ -6,6 +6,9 @@ agent"): a picture's class read exactly as a shape_name. Fixtures by hand.
   R2  the same picture again: no second row (once per holder and picture); a per-object picture
       ('o1.picture') is recognised for that object
   R3  a class memory present -> a second row, route class_memory (votes, margin, inliers)
+  R6  MUST-FAIL: env var RDL_RECOGNITION_DIR -> empty dir -> one recognised_inert naming the
+      absence (the old hardcoded path dropped this route silently on Kaggle); real memory ->
+      a class_memory row. Both halves are asserted.
   R4  cv2 is not imported by importing affordance / tether (lazy, never at module level)
   MF-R1 TETHER_RECOGNISED OFF: no recognised rows and no prior from the picture -> RED as required
   R5  gridworld 12 steps ON and OFF both pass the gate; ON carries only the one recognised_inert
@@ -97,7 +100,9 @@ def main() -> int:
     see(ag, obs)
     see(ag, obs)                                  # the same picture again: no second row
     rr = rows(led, n0, "recognised")
-    assert [r["event"] for r in rr] == ["recognised"], rr
+    # the class-memory dir here is empty (NO_MEMORY), so one recognised_inert names its absence
+    assert [r["event"] for r in rr] == ["recognised", "recognised_inert"], rr
+    assert "absent" in rr[1]["detail"]["reads"] and rr[1]["detail"]["route"] == "class_memory", rr
     d = rr[0]["detail"]
     assert d["class"] == "circle" and d["grid_shape_name"] == "disc" and not d["abstained"], d
     for k in ("class", "synset", "dim", "grid_shape_name", "bridge", "route", "votes", "distance",
@@ -118,7 +123,7 @@ def main() -> int:
     obs2 = dict(ag2.env.observe(), **{"o1.picture": pic[:, :, 0].copy()})   # grey, per object
     n0 = len(led2.rows())
     see(ag2, obs2)
-    r2 = rows(led2, n0, "recognised")
+    r2 = [r for r in rows(led2, n0, "recognised") if r["event"] == "recognised"]
     assert [(r["slot"], r["detail"]["class"]) for r in r2] == [("o1", "circle")], r2
     p2 = [r for r in rows(led2, n0, "affordance_prior") if r["slot"] == "o1"]
     assert p2 and p2[0]["detail"]["concept"] == "ball", p2
@@ -141,6 +146,9 @@ def main() -> int:
             r3 = [r for r in rows(led3, 0, "recognised") if r["event"] == "recognised"]
             routes = [r["detail"]["route"] for r in r3]
             assert len(r3) == 2 and routes[1] == "class_memory", r3
+            assert not [r for r in rows(led3, 0, "recognised")
+                        if r["event"] == "recognised_inert"
+                        and r["detail"].get("route") == "class_memory"], r3
             c3 = r3[1]["detail"]
             assert "votes" in c3 and "margin" in c3 and c3["stamp"]["source"] == "fixture", c3
             print(f"R3 class memory present -> a class_memory row: class {c3['class']}, votes "
@@ -149,6 +157,54 @@ def main() -> int:
         finally:
             affordance.CLASS_MEMORY_DIR = NO_MEMORY
             affordance._CLASS_MEMORY.clear()
+
+    # R6 (AKAZE verification 2026-11-16, MUST-FAIL): the class-memory dir comes from the plain
+    # env var RDL_RECOGNITION_DIR. An EMPTY dir must write one recognised_inert naming the
+    # absence -- the old hardcoded Windows path dropped the route SILENTLY on Kaggle. A real
+    # memory at the configured dir must write a class_memory row. Delete either assertion and
+    # the corresponding half fails: this is a must-fail, not a smoke test.
+    _saved_rdl = os.environ.get("RDL_RECOGNITION_DIR")
+    try:
+        with tempfile.TemporaryDirectory() as empty:
+            os.environ["RDL_RECOGNITION_DIR"] = empty
+            affordance._CLASS_MEMORY.clear()
+            ag6, led6 = agent()
+            see(ag6, dict(ag6.env.observe(), picture=pic))
+            ev6 = rows(led6, 0, "recognised")
+            inert6 = [r for r in ev6 if r["event"] == "recognised_inert"
+                      and r["detail"].get("route") == "class_memory"]
+            assert len(inert6) == 1 and "absent" in inert6[0]["detail"]["reads"], ev6
+            assert inert6[0]["detail"]["route"] == "class_memory", ev6
+            assert not any(r["event"] == "recognised"
+                           and r["detail"].get("route") == "class_memory" for r in ev6), ev6
+            print("R6 env var -> empty dir: one recognised_inert naming the absence:",
+                  inert6[0]["detail"]["reads"], "GREEN")
+
+        with tempfile.TemporaryDirectory() as real:
+            import cv2 as _cv
+            root = recognize.SHAPES_DIR
+            pics = {c: [_cv.imread(str(root / "2d" / c / f"{i}.png")) for i in range(4)]
+                    for c in ("circle", "star")}
+            recognize.save(recognize.build_memory(pics, synsets={"circle": "n13873502"},
+                                                  source="fixture-env"), Path(real) / "memory")
+            os.environ["RDL_RECOGNITION_DIR"] = real
+            affordance._CLASS_MEMORY.clear()
+            ag7, led7 = agent()
+            see(ag7, dict(ag7.env.observe(), picture=pics["star"][0]))
+            ev7 = rows(led7, 0, "recognised")
+            cm7 = [r for r in ev7 if r["event"] == "recognised"
+                   and r["detail"].get("route") == "class_memory"]
+            assert len(cm7) == 1 and cm7[0]["detail"]["stamp"]["source"] == "fixture-env", ev7
+            assert not [r for r in ev7 if r["event"] == "recognised_inert"
+                        and r["detail"].get("route") == "class_memory"], ev7
+            print("R6 env var -> real memory: one class_memory row:", cm7[0]["detail"]["class"],
+                  "GREEN")
+    finally:
+        if _saved_rdl is None:
+            os.environ.pop("RDL_RECOGNITION_DIR", None)
+        else:
+            os.environ["RDL_RECOGNITION_DIR"] = _saved_rdl
+        affordance._CLASS_MEMORY.clear()
 
     affordance._RECOGNISED = False
     try:

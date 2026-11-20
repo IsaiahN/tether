@@ -23,7 +23,8 @@ THIRD-PARTY (akaze / opencv):
   (https://github.com/sweeneychris/akaze-eigen), BSD 3-clause, Copyright (c) 2014 Chris Sweeney,
   Pablo Fernandez Alcantarilla, Jesus Nuevo -- NOT vendored; we call OpenCV's cv2.AKAZE_create.
 - ImageNet (https://image-net.org) terms of access: non-commercial research and educational use
-  only. Every ImageNet-derived memory stays LOCAL under DEFAULT_DIR and never enters the repository.
+  only. Every ImageNet-derived memory stays LOCAL under the dir named by the plain env var
+  RDL_RECOGNITION_DIR (default: the repo's shipped generated shapes) and is never committed.
 """
 
 from __future__ import annotations
@@ -31,13 +32,18 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
 
-# LOCAL ONLY: ImageNet-derived data never goes in the repository.
-DEFAULT_DIR = Path(r"C:\TETHER_RUNS\DATA_2026-11-16\recognition")
+# LOCAL ONLY: ImageNet-derived data never goes in the repository. The PLAIN env var
+# RDL_RECOGNITION_DIR (NOT a TETHER_ arm -- the arms seat forbids raw TETHER_ reads) names the
+# local dir; absent, the default is the repo's shipped generated shape memory, so Kaggle needs no
+# absolute path in the code. Local ImageNet files stay out of the repo (never committed).
+_SHIPPED_DIR = Path(__file__).resolve().parent / "library" / "shapes" / "memory"
+DEFAULT_DIR = Path(os.environ.get("RDL_RECOGNITION_DIR") or str(_SHIPPED_DIR))
 
 # ---- declared conventions (Fig 10: visible and movable, never claimed correct) ----
 # Hamming radius (bits, of AKAZE's 486-bit MLDB descriptor) within which two descriptors join one
@@ -499,6 +505,11 @@ SHAPE_MIN_MARGIN = 0.02
 # contour route compares it only with 3D classes, else only with 2D ones. Declared convention,
 # Fig 10.
 SHADED_STD = 8.0
+# A discrete object sits on a background: the largest outer contour of a real shape never fills the
+# frame. Measured over all 176 held-out renders (2026-11-19) the max blob_share is 0.4803 (sphere);
+# uniform noise renders at ~0.98 (its foreground mask swallows the frame). Declared convention,
+# Fig 10, set between the two measured values; visible and movable, never claimed correct.
+SHAPE_MAX_SHARE = 0.75
 # approxPolyDP epsilon for the corner feature, as a share of the outer contour's perimeter. Declared
 # convention, Fig 10: at 0.01 every drawn polygon reads its own vertex count on the held-outs.
 SHAPE_CORNER_EPS = 0.01
@@ -620,7 +631,8 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
     polygon class is penalised when the picture's outline is at least DISC_ROUNDNESS round;
     (2) AKAZE vote over the
     shape memory. The contour winner stands unless AKAZE has >= MIN_INLIERS for a different class.
-    Abstains when the distance exceeds SHAPE_MAX_DISTANCE or the margin is below SHAPE_MIN_MARGIN.
+    Abstains when the foreground fills more than SHAPE_MAX_SHARE of the frame (no closed outline),
+    the distance exceeds SHAPE_MAX_DISTANCE, or the margin is below SHAPE_MIN_MARGIN.
     A Hu dim saturated on either side (HU_SATURATED) is left out of the distance.
     hu_route=False exists only for the test's mutation check (AKAZE alone)."""
     m = memory or load_shapes()
@@ -653,28 +665,36 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
         out["share"] = round(share, 4)
         rnd = roundness(image_bgr)
         out["roundness"] = round(rnd, 4)
-        for n in best:
-            exp = m["corners"].get(n)
-            if seen is not None and exp and exp != seen:
-                best[n] += SHAPE_CORNER_PENALTY
-            if n == "dot" and share > DOT_MAX_SHARE:
-                best[n] += SHAPE_CORNER_PENALTY   # a large blob is not a dot (DOT_MAX_SHARE)
-            if rnd >= DISC_ROUNDNESS and (m["corners"].get(n) or 0) >= 3:
-                # a round outline is not a polygon: Hu moments clamp on symmetric shapes, so an
-                # ideal circle can sit nearer a square template than its own (DISC_ROUNDNESS)
-                best[n] += SHAPE_CORNER_PENALTY
-        ranked = sorted(best.items(), key=lambda kv: kv[1])
-        if ranked:
-            winner, dist = ranked[0]
-            margin = ranked[1][1] - dist if len(ranked) > 1 else float("inf")
-            out.update(distance=round(dist, 4), margin=round(margin, 4))
-            route = "contour"
-            if dist > SHAPE_MAX_DISTANCE:
-                out["reason"] = f"distance {dist:.3f} > SHAPE_MAX_DISTANCE {SHAPE_MAX_DISTANCE}"
-                winner = None
-            elif margin < SHAPE_MIN_MARGIN:
-                out["reason"] = f"margin {margin:.3f} < SHAPE_MIN_MARGIN {SHAPE_MIN_MARGIN}"
-                winner = None
+        if share > SHAPE_MAX_SHARE:
+            # The foreground fills the frame: no closed outline encloses a bounded object, so no
+            # class can be named (the false-positive failure mode on uniform noise).
+            out["reason"] = (
+                f"blob fills {share:.3f} of frame > SHAPE_MAX_SHARE {SHAPE_MAX_SHARE}"
+            )
+            winner = None
+        else:
+            for n in best:
+                exp = m["corners"].get(n)
+                if seen is not None and exp and exp != seen:
+                    best[n] += SHAPE_CORNER_PENALTY
+                if n == "dot" and share > DOT_MAX_SHARE:
+                    best[n] += SHAPE_CORNER_PENALTY   # a large blob is not a dot (DOT_MAX_SHARE)
+                if rnd >= DISC_ROUNDNESS and (m["corners"].get(n) or 0) >= 3:
+                    # a round outline is not a polygon: Hu moments clamp on symmetric shapes, so an
+                    # ideal circle can sit nearer a square template than its own (DISC_ROUNDNESS)
+                    best[n] += SHAPE_CORNER_PENALTY
+            ranked = sorted(best.items(), key=lambda kv: kv[1])
+            if ranked:
+                winner, dist = ranked[0]
+                margin = ranked[1][1] - dist if len(ranked) > 1 else float("inf")
+                out.update(distance=round(dist, 4), margin=round(margin, 4))
+                route = "contour"
+                if dist > SHAPE_MAX_DISTANCE:
+                    out["reason"] = f"distance {dist:.3f} > SHAPE_MAX_DISTANCE {SHAPE_MAX_DISTANCE}"
+                    winner = None
+                elif margin < SHAPE_MIN_MARGIN:
+                    out["reason"] = f"margin {margin:.3f} < SHAPE_MIN_MARGIN {SHAPE_MIN_MARGIN}"
+                    winner = None
     ak = recognise(image_bgr, m["akaze"])
     out["akaze"] = {"candidate": ak.get("candidate"), "inliers": ak.get("inliers", 0)}
     if not ak["abstained"] and ak["class"] != winner and (winner is not None or not hu_route

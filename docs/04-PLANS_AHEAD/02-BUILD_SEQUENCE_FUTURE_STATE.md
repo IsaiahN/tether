@@ -15,7 +15,7 @@ The order is set by Fig 3 :20, "Each link consumes what the one above produces",
 6. step 9                                      the noise floor and the experiments; then Recursive Diffusion Learning (T1-T4)
 ```
 
-## Status, 2026-11-16
+## Status, 2026-11-16 (refreshed 2026-11-19 after the GA PR merge)
 
 | Step | Status |
 |---|---|
@@ -24,12 +24,12 @@ The order is set by Fig 3 :20, "Each link consumes what the one above produces",
 | 1a walls readable | built, ON (`36c727f`, TETHER_PASSABILITY); DECIDES not yet read |
 | 1b names that hold | built, ON (`b10d2bb`, `87b8822`, TETHER_NAMES_HOLD); DECIDES not yet read |
 | 2a the agenda reader | built, ON (`be06f93`, TETHER_AGENDA): reader rows in every T0 game |
-| 2b the symbol binding table | built (`81dc628`): 13 of 22 symbols bound, 9 unbound with reasons |
+| 2b the symbol binding table | built (`81dc628`), then extended (`5667f1a`): 18 of 22 symbols bound, 4 unbound with reasons |
 | 3 cards v4 | built (`9b9f7bf`, TETHER_TIER_CONTRAST) |
-| 4 the T0 gate | running: T0, T0b, T0c, T0d (see docs/STATE_OF_THE_AGENT.md); fixes it asked for are built (REPAIR_AT_REFUSAL, GOAL_VARIES, GOAL_FLOOR, CONTACT_ROUTE, KIND_LEVER, HTN_RETURN) |
-| 5 housekeeping | old tests: 306 retired (`16a4b3b`). Operators: O1 built (`bc49790`, TETHER_IMPLIES_BOND), O2 built (`580f9ab`, TETHER_GUARD_NEST), O3 covered by O2's guard-join price (r1953: BONDS = 1 is correct where used). Index audit: open. SHIP 4: this release |
+| 4 the T0 gate | runs completed: T0, T0b, T0c, T0d and the T0e together-test (see docs/STATE_OF_THE_AGENT.md). Still not passed: no level cleared through goal → refusal → repair → return. Fixes it asked for are built (REPAIR_AT_REFUSAL, GOAL_VARIES, GOAL_FLOOR, CONTACT_ROUTE, KIND_LEVER, HTN_RETURN) |
+| 5 housekeeping | old tests: 306 retired (`16a4b3b`). Operators: O1 built (`bc49790`, TETHER_IMPLIES_BOND), O2 built (`580f9ab`, TETHER_GUARD_NEST), O3 covered by O2's guard-join price (r1953: BONDS = 1 is correct where used). Index audit: done (`2ed264a`). SHIP 4 released through `90c02632` (PR #18, 2026-11-19) |
 | 5b index audit | done (`2ed264a`): 142 misfiled effects fixed through the builder; 253 judgement calls listed for review |
-| 6 RDL | started ahead of T0 at Isaiah's word (2026-11-16): store and parser (`fa208f3`), release and codified reach (`cd557b0`), agent wiring as search priority (`0b1245c`, TETHER_RDL). T1-T4 (format, schedule, reach policy, drift guard) are the experiments still to run |
+| 6 RDL | started ahead of T0 at Isaiah's word (2026-11-16): store and parser (`fa208f3`), release and codified reach (`cd557b0`), agent wiring as search priority (`0b1245c`, TETHER_RDL). Then the meaning chain (shape names, word map, concept→actions, affordance bet, direction and manner), the language data (WordNet-minus-NSM vocabulary, ConceptNet and VerbNet), and recognition without a neural network (AKAZE front end, the 44-class generated shape library, a fast Hamming index, abstraction centres and the agent's `recognised` row) — all shipped in PR #18 (`90c02632`, 2026-11-19). Design and status: write-up 42 and the RDL build spec; remaining items: `03-NEXT_STEPS_AFTER_2026-11-16.md`. T1-T4 (format, schedule, reach policy, drift guard) are the experiments still to run |
 | 6 step 9 | not started (testing: the noise floor and the four experiments) |
 
 ## The rules every item follows
