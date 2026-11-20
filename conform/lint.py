@@ -802,7 +802,11 @@ def run(paths: list[Path]) -> dict[str, dict]:
     srcs, unusable = {}, []
     for p in paths:
         try:
-            text = p.read_text(encoding="utf-8")
+            # utf-8-sig, not utf-8: Python's own tokenizer strips a leading BOM, so
+            # `library/build_lexicon.py` imports fine. Reading it as plain utf-8 put
+            # U+FEFF into the string and `ast.parse` called it a SyntaxError -- a file
+            # that imports was reported as unchecked, which is a silent blind spot.
+            text = p.read_text(encoding="utf-8-sig")
             ast.parse(text)
         except (UnicodeDecodeError, OSError) as e:
             unusable.append(f"{p.name}: {type(e).__name__}")
