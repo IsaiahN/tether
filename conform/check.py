@@ -97,8 +97,10 @@ STAGES = (
     # THE CONDITION COMPILER's own grammar suite. Five texts that MUST NOT parse, including a
     # real line of corpus prose and a bare reading -- a grammar that accepts `holes(o1)` as a
     # condition has invented the comparison nobody wrote.
-    # THE ARMS SEAT. Eighteen capability switches, every one default OFF, and nothing in the
-    # repository sets one -- so the agent that runs is the most starved variant of itself and
+    # THE ARMS SEAT. "Eighteen capability switches, every one default OFF" was the headline;
+    # MEASURED 2026-11-16 the registry holds 525, so the old number is kept only as the
+    # historical note it is, not silently rewritten. The finding survives: nothing in the
+    # repository sets one, so the agent that runs is the most starved variant of itself and
     # nobody chose that. Each site's reason is good; no place held the SUM, which is the
     # ground-focus seat's own origin one level up. It flips nothing: it refuses an arm entering
     # silently, a stale row, and half of a pair whose own site declares they belong together.

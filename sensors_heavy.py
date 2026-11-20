@@ -1,14 +1,24 @@
-"""Heavy sensors -- the mapping layer that was built to make the 2,700 searchable.
+"""Heavy sensors -- the mapping layer that makes the 2,700 searchable. LIVE on the agent path.
 
-SUPERSEDED, AND PENDING DELETION -- reviewer, 2026-09-23. Do not build on this module. Read
-the four corrections below before using any reading in it.
+CURRENT ROLE (audits at HEAD 31718e75, 2026-11-16): this module is reached and CALLED on the
+default path. `observer._obj_vector` calls its `scalar` and `state` readings and `_mutations`
+calls its `temporal` ones -- 3,473 calls / 10 cycles ALL-ON on gridworld; cue_mutated 6 against
+a cue_seen denominator of 11 on gridworld seed 3. Isaiah ruled KEEP on 2026-10-12. It stays out
+of the BETTING path only as a side effect of its two importers being guarded. Read the four
+corrections below before using any reading in it.
+
+HISTORICAL, NOT CURRENT: the reviewer wrote "SUPERSEDED, AND PENDING DELETION" on 2026-09-23
+and "IT WAS NEVER WIRED" from a `sys.modules` probe. Both were TRUE then and are FALSE now --
+kept as the record of a reached-mechanism misread, superseded by the measurement above.
 
   1  IT IS NOT LINT-GUARDED. This docstring claimed "lint-guarded out of the betting path
      (like observer/detectors)" and `conform/lint.py`'s `_CUE_MODULES` is
      {relations, observer, mapping, detectors, composer} -- this module is NOT in it. It
      stays out of the betting path only as a side effect of its two importers being guarded.
-  2  STALE SINCE 81114da (REPO_AUDIT, 2026-10-12): it IS loaded and called on the default path
-     through observer (3,473 calls / 10 cycles ALL-ON on gridworld). The original note follows.
+  2  IT IS REACHED, NOT DEAD. Measured REACHED SINCE 81114da (REPO_AUDIT, 2026-10-12): loaded
+     and called on the default path through observer (3,473 calls / 10 cycles ALL-ON on
+     gridworld). The original note follows, KEPT as the evidence for the standing "is it
+     reached" question -- an error entry whose evidence is edited away stops being evidence:
      IT WAS NEVER WIRED, WHICH IS WHY IT WAS NEVER VALIDATED. Measured with all five arms
      ON: it does not appear in `sys.modules` after the agent steps. No flag turns it on;
      there is no import edge to turn on.
@@ -25,10 +35,10 @@ the four corrections below before using any reading in it.
      published, which is the agent's job rather than perception's. The two that survived --
      `dholes` and `dperimeter` -- were extracted and now live behind `TETHER_SHAPE_DELTA`.
 
-DELETION IS BLOCKED ON A SCOPE QUESTION, NOT ON WORK. `observer.py` consumes `scalar`,
-`state`, `relation` and `temporal` -- the whole surface -- so removing this file means
-removing the seat-side mapping cluster (observer, detectors, mapping, synth) with it. That is
-wider than the ruling, so it is asked rather than assumed."""
+IT STAYS, AND IT IS USED. `observer.py` consumes `scalar`, `state`, `relation` and `temporal` --
+the whole surface -- so these readings are live inputs to what the agent perceives, not a dead
+mapping layer. Isaiah's KEEP ruling 2026-10-12 closed the deletion question; the historical
+"pending deletion" above is kept only as the record of the misread."""
 from __future__ import annotations
 
 import sys
