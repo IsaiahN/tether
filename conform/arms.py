@@ -3480,6 +3480,15 @@ ARMS: dict[str, str] = {
                   "parser; counts carried as rdl_n (the obg_n pattern). Pieces or file absent: "
                   "inert, one rdl_inert row. OFF: nothing loaded, no order change, no rows. "
                   "default ON",
+    "TETHER_RDL_REBUILD": "Isaiah's C5 loop closed between generations (NEXT_STEPS 2026-11-16 "
+                          "item 4; write-up 42 item 7): at lineage save, ONE rdl_parse.render "
+                          "(parse(stats=...)) call re-renders the preload from the carried rdl_n "
+                          "counts, shedding a (corpus, tier) the ground refused more than it "
+                          "settled. Written BESIDE THE GENERATION in the lineage folder, "
+                          "generation-hash stamped and never overwritten; NOT into library/, "
+                          "which is a read-only dataset on Kaggle and ships the original file. "
+                          "Nothing loaded back here and no standing written. Needs TETHER_RDL. "
+                          "OFF: no call, no file, no row. default ON",
     "TETHER_CATEGORY_ORDER": "Isaiah 2026-11-16 'categorize the library ... so that helps make "
                              "search faster' (WATSON 42 layer C 'Categories'; Fig 9 :60 a filter "
                              "for the budget, never a verdict): library/word_map.json's per-entry "
