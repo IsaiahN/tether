@@ -189,6 +189,38 @@ def _wide(ag, slot="o1.dcol"):
     return slot
 
 
+def _can_occasion(ag):
+    """Build the MEANS-END occasion `check_can_gates_until` needs: a slot ACHIEVABLE
+    (can=YES) while still OWING a discrepancy against a real goal target.
+
+    **RE-PINNED 2026-11-20 BY OCCASION KIND (WATSON).** `can=YES` is earned by POSITIVE
+    CAUSAL EVIDENCE, never absentially: holds now (disc=0), a goal hypothesis with a
+    delta-table route, or a bound term with an observed action moving it toward its
+    target. No gridworld slot satisfies can=YES ^ disc>0 ^ a goal target by the first
+    two routes: `o0.add_n`/`o0.rem_n` are can=yes ONLY at disc=0, `o1.col`/`o2.col`
+    carry disc and a target but no bound term, and installing a goal hypothesis
+    collapses disc to 0 (the structural tension). Widening the group to make a
+    shrinking series -- what `_wide` did for the old slot -- is the SAME tension: it
+    drives `o1.col` to disc=0/target=None, so can=YES is then the holds-now route, not
+    the means-end route this check verifies (measured: group (0,12) -> (0,12,7,8,9,11)).
+
+    So this fixture keeps the slot's REAL group/target/disc and supplies only what the
+    warm run left unformed: a shrinking series on the selector's axis, and the bound
+    term that PREDICTS the target under the action whose honest deltas are already in
+    the trace. On `o1.col` the warm trace already holds 11 ACTION1 deltas of +1
+    (0..11, toward target 12); `sum_group` predicts exactly 12 under ACTION1, so
+    can(o1.col)=YES is earned by the delta table while disc=1 and target=12 remain.
+    Fig 11 :39-40/:70: a SUBSTITUTED HABITAT proving a MECHANISM (the nested-guard
+    gate), never the agent clearing a game; Fig 6 :27 distinguishes depth from absence.
+    """
+    slot = "o1.col"
+    ag._res = {slot: [0.9, 0.87, 0.84]}   # selector's shrinking series; group INTACT
+    ag.routine = ag.routine_for = None
+    ag.refuted, ag.refuted_at = {}, {}
+    ag.bound[slot] = "sum_group"          # predicts target 12 under the observed action
+    return slot
+
+
 def _mint(ag, state):
     n0 = len(ag.led.entries)
     ag._mint_routine(state)
@@ -203,9 +235,11 @@ def check_can_gates_until():
     SLOT-level check refused first -- so it passed with the per-guard sweep deleted.
     """
     ag = _agent()
+    slot = _can_occasion(ag)  # re-pinned 2026-11-20: the occasion, not a name -- see helper
     b = dict(ag.env.observe())
-    slot = _wide(ag)
     assert ag.can(slot, b) == YES, "fixture: the slot's own guard must stay reachable"
+    assert ag._discrepancy(slot, b) > 0, (
+        "fixture: can must be earned by the delta route, not by disc=0 (holds now)")
     dead = Rt.Until("no.such.slot", Rt.Act(ag.actions[0]), 3)
     real_enum = Rt.enumerate_routines
     # every candidate carries the unreachable nested guard
