@@ -85,8 +85,9 @@ The usual picture is a system that rewrites its own core, faster each time, taki
 Python 3.13. `requirements.lock` pins the whole runtime.
 
 ```bash
-git clone -b general-agent https://github.com/IsaiahN/tether.git
+git clone https://github.com/IsaiahN/tether.git
 cd tether
+git checkout <the branch you are reading>   # core, general-agent, arc-solver-agent or development
 python -m venv .venv
 # activate .venv; python below is the venv interpreter on any OS
 python -m pip install --no-deps -r requirements.lock
@@ -142,6 +143,8 @@ The kernel is the same whether one agent runs it or a thousand. Only the actors,
 Swap the interface, keep the lineage.
 
 ## What the agent can do
+
+These are design commitments, not results. Results are reported where they are measured.
 
 - **Learn a new task from contact alone.** No instructions, no stated goal, no rules.
 - **Set its own goals** from its own grammar over what it sees, and keep what held.
@@ -288,5 +291,3 @@ There is no official Tether community yet. Links will be added here only when th
 - How intelligence actually works: https://medium.com/@IsaiahNwukor/how-intelligence-actually-works-40ac40fe32b0
 - Zenodo record: https://zenodo.org/records/24403207
 - Kaggle notebook: https://www.kaggle.com/code/thezetaproject/tether-rsi-agent
-
-No em dashes are used in this document.
