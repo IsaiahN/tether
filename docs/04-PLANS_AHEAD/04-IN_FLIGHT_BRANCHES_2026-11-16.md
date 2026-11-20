@@ -10,6 +10,20 @@
 - **A third rule came out of the same investigation**: a Hu moment saturated on either side (`HU_SATURATED`) is left out of the distance and the distance rescaled, because an invariant that has collapsed to zero carries no information. Held-out shape accuracy is **134/176**; square, cube, cylinder and cone remain weak.
 - **A known limit, recorded rather than tuned away**: a *mathematically ideal* circle (every higher Hu moment exactly zero) abstains at distance 7.58, while a rendered circle is named at once. The test fixture is a rendered variant from `library/build_shapes.py`, and the ideal case stays a limit.
 
+**Shipping (2026-11-19 refresh).** The release carrying all of this went out on 11-16: arc-solver-agent `21ecd7b5`. Isaiah merged the general-agent PR as **#18, `90c02632`** on 11-19 after the four helpers were finished. The verb-senses piece closed the one call the cutoff left open (`40228c63`): a contact verb predicts motion when WordNet's own hypernym chain reaches a motion verb (throw -> propel -> move), and ball's throw and kick senses were corrected. The Kaggle bundle at the released commit is `C:\TETHER_RUNS\KAGGLE_2026-11-16\code_21ecd7b5` (925 files, manifest `3be248e93cf03c09`), still to be uploaded.
+
+## The m2 seat, 2026-11-19: one regression fixed, an older set still open
+
+`conform/check.py` was run on the shipped tree. **m2 was FAIL**: the RDL wiring (`0b1245c`) stored the `rdl_store` and `rdl_release` MODULES in `ag._rdl`, and `tests/test_m2.py` deep-copies one warmed agent for every check — a module object cannot be deep-copied. Fixed at `66e57a3c`: `rd['fns']` now holds the six plain module-level functions the readers call, so deepcopy works and RDL behaviour is unchanged. The full re-run is **45/68 checks pass, 23 fail**; every `cannot pickle` failure is gone.
+
+**Correction to commit `66e57a3c`'s message.** It says "44 of the 47 m2 checks died". The 47 was `conform/check.py`'s "3 of 47 finding *lines* shown" — a display limit, not the check population. The real denominator is **68 checks**; the number of pickling failures was not counted. This is the project's own "every count is restricted to the population it names" applied to a commit message: two different quantities under one number. The message stands (an error entry whose evidence is edited away stops being evidence); this note corrects it.
+
+The 23 remaining failures are NOT from the deepcopy fix and were not addressed here. Grouped by their own assertions:
+- **fixture trajectory** (`fixture: the routine did not exhaust`, `no bound want was bet on`, `library-first changed no winner`, `the slot's own guard must stay reachable`, `the dense channel must still owe`, `the M2 suite no longer reaches: exhausted`) — the file documents that these checks are pinned to one action policy, so a policy change reads as a fixture failure.
+- **new attributes from 11-16** — `grew, kind, scale, shape_name, shrank, turned` are declared in `arc_world.ALPHABET` but the fixture's `check_an_attribute_atom_follows_its_arm` arm list and `_ranges()` table do not know them.
+- **undeclared book keys** — 14 keys (`fade_ctx_hit`, `fold_total`, etc.) entered at commits on 11-10 and 11-02 without a `BOOKS` declaration; the seat's rule is that a zero must be visible, so each needs a reason, not a bulk addition.
+- **narration and routine state** — `routine_bound`, `routine_formed`, `routine_hold`, `routine_not_formed`, `routine_rebid`, `routine_recheck` have ledger rows but no NSM sentence; plus `check_spent_plan_is_settled_in_its_deciding_cycle: held`, `check_one_bargain: wrong reason`, and two agent-rate refutation readings.
+
 The notes below are the survey taken before that work; they are kept as the record of what the helpers left behind.
 
 Written after the four helpers started at 17:53 were stopped by the day's cutoff. None of them committed; all their work survives, uncommitted, in four worktrees. Each branch was cut from development `dc7314ff`; development itself is now at `9a9d034f`, and the difference between the two is the `03-NEXT_STEPS_AFTER_2026-11-16.md` page.

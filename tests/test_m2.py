@@ -495,21 +495,39 @@ def check_every_book_key_is_declared():
     other three got in.**
     """
     import re
-    src = (pathlib.Path(tether.__file__)).read_text(encoding="utf-8")
-    # BOTH WRITE PATHS. Direct subscripting, and `_book_add`, which exists because a grep
-    # cannot guard a CONSTRUCTED key -- the depth buckets evaded this check entirely until the
-    # write site started validating them itself.
-    lit = set(re.findall(r'book\[\"([a-z_]+)\"\]', src))
-    lit |= set(re.findall(r'book\.get\(\"([a-z_]+)\"', src))
-    lit |= set(re.findall(r'_book_add\([^,]+,\s*\"([a-z_]+)\"', src))
+    # BOTH WRITE PATHS, AND BOTH FILES. Direct subscripting, and `_book_add`, which exists
+    # because a grep cannot guard a CONSTRUCTED key -- the depth buckets evaded this check
+    # entirely until the write site started validating them itself. The guard originally
+    # scanned ONLY tether.py, so three keys written in gamma.py (contradictions,
+    # store_vind_n, store_vind_sum_ppm) entered with no declaration; and its `[a-z_]+`
+    # class could not see digit-bearing keys (fit_tier0_*) or the else-branch of a
+    # conditional booking (`_book_add(book, "a" if c else "b")`), so nine conditional
+    # bookings read as "nothing writes them". Both are blind spots in the CHECK, not in
+    # the declarations: close them here rather than add a hand-maintained exemption list.
+    def _writes(path):
+        src = pathlib.Path(path).read_text(encoding="utf-8")
+        lit = set(re.findall(r'book\[\"([a-z0-9_]+)\"\]', src))
+        lit |= set(re.findall(r'book\.get\(\"([a-z0-9_]+)\"', src))
+        stems = set(re.findall(r'book\[f\"([a-z_]+)\{', src))
+        stems |= set(re.findall(r'_book_add\([^,]+,\s*f\"([a-z_]+)\{', src))
+        # every literal in the key slot of a `_book_add` call, so a conditional writes BOTH
+        # its branches; a negative lookbehind skips f-strings (caught as stems above).
+        for expr in re.findall(r'_book_add\([^,]+,\s*([^)]*)\)', src):
+            lit |= set(re.findall(r'(?<!f)"([a-z0-9_]+)"', expr))
+            stems |= set(re.findall(r'f"([a-z_]+)\{', expr))
+        return lit, stems
+
+    lit, stems = set(), set()
+    for _f in ("tether.py", "gamma.py"):
+        _l, _s = _writes(pathlib.Path(tether.__file__).parent / _f)
+        lit |= _l
+        stems |= _s
     missing = sorted(lit - set(tether.BOOKS))
     assert not missing, f"book keys written but not declared in BOOKS: {missing}"
 
     # AND THE DECLARATION IS NOT A LIST OF NAMES NOBODY WRITES. A stale row is the other half:
     # it would report a zero forever for a quantity nothing measures, which is worse than
     # silence, because it looks like evidence.
-    stems = set(re.findall(r'book\[f\"([a-z_]+)\{', src))
-    stems |= set(re.findall(r'_book_add\([^,]+,\s*f\"([a-z_]+)\{', src))
     unwritten = [k for k in tether.BOOKS
                  if k not in lit and not any(k.startswith(x) for x in stems)]
     assert not unwritten, f"BOOKS declares keys nothing writes: {unwritten}"
