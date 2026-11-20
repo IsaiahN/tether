@@ -1519,7 +1519,13 @@ def check_every_attribute_declares_its_alphabet():
         alpha = env.alphabet()
     except KeyError as exc:
         raise AssertionError(f"an attribute has no declared alphabet: {exc}") from None
-    assert len(alpha) == len(keys), "fixture: not every attribute was ranged"
+    # RE-PINNED BY OCCASION KIND, NOT COUNT: with TETHER_RELATION_SET default ON,
+    # `alphabet()` also publishes `{a}.{rel}_{b}` pair slots. The contract is that
+    # every declared attribute is ranged, not that nothing else is; compare the
+    # attribute names themselves rather than the length of the whole alphabet.
+    ranged = {s.split(".", 1)[1] for s in alpha}
+    missing = sorted(keys - ranged)
+    assert not missing, f"fixture: attributes with no declared alphabet: {missing}"
     exempt = getattr(arc_world, "PALETTE_BY_DESIGN", {})
     fell = sorted(k for k in keys if k not in exempt
                   and alpha[f"o0.{k}"] == PALETTE)
@@ -1542,6 +1548,9 @@ def _ranges(h: int, w: int, palette: int, shapes: int, levels: int, oldest: int)
            "add_n": (0, hw), "rem_n": (0, hw),
            "colour": (0, palette - 1), "colour_changed": (0, 1), "inside": (0, 1),
            "completed": (0, levels), "shape": (0, shapes - 1),
+           "scale": (0, max(h, w)), "grew": (0, 1), "shrank": (0, 1),
+           "turned": (0, 1), "shape_name": (0, len(arc_percept.SHAPE_NAMES) - 1),
+           "kind": (0, max(2, shapes) - 1),
            "age": (0, oldest), "stability": (0, oldest)}
 
 
@@ -2054,7 +2063,12 @@ def check_an_attribute_atom_follows_its_arm():
     construction: the shape-delta flag set AFTER import, as `arc_holdout.wire` sets it, must bring
     its atoms back."""
     flags = [(arc_percept, "_OBSERVER"), (arc_world, "_OBSERVER"),
-             (arc_percept, "_SHAPE_DELTA"), (arc_percept, "_INSTRUMENTS")]
+             (arc_percept, "_SHAPE_DELTA"), (arc_percept, "_INSTRUMENTS"),
+             # The 11-16 attributes grew / shrank / scale (KIND_SCALE), kind / turned
+             # (POSE_READ) and shape_name (SHAPE_NAMES) grew behind their own arms;
+             # hold them with the rest so "arm off" means the same thing for all 33.
+             (arc_percept, "_KIND_SCALE"), (arc_percept, "_POSE_READ"),
+             (arc_percept, "_SHAPE_NAMES")]
     was = [getattr(m, f) for m, f in flags]
     try:
         for m, f in flags:
