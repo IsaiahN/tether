@@ -752,7 +752,8 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
     if f is not None:
         # A gently-lit solid can have interior grey std below SHADED_STD (measured: cone views at
         # 6.06/6.21). Its interior still holds more than one grey level, while a flat filled outline
-        # holds exactly one (measured over all 31 generated 2D classes). Either reading says "solid".
+        # holds exactly one (measured over all 31 generated 2D classes). Either reading
+        # says "solid".
         shaded = f[-1] > SHADED_STD or interior_grey_levels(image_bgr) > 1
         want = 3 if shaded else 2
         feats = m["hu"].copy()
