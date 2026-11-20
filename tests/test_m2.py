@@ -1119,6 +1119,12 @@ def check_the_accumulation_commits_where_the_bargain_refused():
     ag2.cfg.accumulate = True
     slot2 = _wide(ag2)
     ag2._last_commit = ag2.cycle                   # no idle relief
+    # 2026-11-20: under TETHER_URGENCY_PROGRESS (default ON) the idle that drives
+    # relief is read from `_last_progress`, NOT `_last_commit` (tether.py:25038).
+    # Setting only `_last_commit` left cold idle=9 and warm idle=49, both already
+    # past the quorum floor where relief stops lowering the bar (2.0->1.5 at idle=4),
+    # so the assertion failed on a field the live path never reads. Pin the live field.
+    ag2._last_progress = ag2.cycle
     # **AND NO RECURRENCE EITHER -- SET, NOT INHERITED. Isaiah's isolation ruling, 2026-09-30.**
     # This case used to take whatever the 25-cycle warm-up happened to leave in `wants`, and
     # that DECIDED IT: measured, `wants[o1.dcol]` is None on the default arm, so `lean` was
