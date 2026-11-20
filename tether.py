@@ -26972,7 +26972,8 @@ class Agent:
         Record only: no action choice reads it."""
         rs = self.__dict__.get("_rec")
         if rs is None:
-            rs = self._rec = {"sha": {}, "names": {}, "inert": False, "cm_inert": False}
+            rs = self._rec = {"sha": {}, "names": {}, "inert": False, "cm_inert": False,
+                              "cm_active": False}
         pics = affordance.pictures(self.env, before)
         if not pics:
             if not rs["inert"] and not rs["sha"]:
@@ -26986,7 +26987,7 @@ class Agent:
             if rs["sha"].get(holder) == sha:
                 continue
             rs["sha"][holder] = sha
-            rows, why, cm_why = affordance.recognise_rows(img)
+            rows, why, cm_why, cm_status = affordance.recognise_rows(img)
             if why is not None:
                 if not rs["inert"]:
                     rs["inert"] = True
@@ -27001,9 +27002,18 @@ class Agent:
                                        "abstained: I can't say this is like something"))
                 if not d.get("abstained") and d.get("class") and holder not in rs["names"]:
                     rs["names"][holder] = d       # the first route that names it (shape first)
-            # An ABSENT class memory used to drop this route with no row at all (the hardcoded
-            # Windows path did so silently on Kaggle). Say so once per run, naming the reason.
-            if cm_why is not None and not rs["cm_inert"]:
+            # The OPTIONAL ImageNet class memory (Isaiah 2026-11-20): ONE state row naming the
+            # exact state, legible from the ledger alone. class_memory_active carries the class
+            # count when a memory loaded; otherwise recognised_inert carries the detector's exact
+            # reason (no data / parquet not found / not built / load failed). It used to drop the
+            # route with no row at all on Kaggle; now the zero is always visible. Once per run.
+            if cm_status is not None and cm_status.get("active"):
+                if not rs["cm_active"]:
+                    rs["cm_active"] = True
+                    self.led.record(self.cycle, "PERCEIVE", "@recognised", "class_memory_active",
+                                    route="class_memory", classes=cm_status["classes"],
+                                    reason=cm_status["reason"], reads=cm_status["reason"])
+            elif cm_why is not None and not rs["cm_inert"]:
                 rs["cm_inert"] = True
                 self.led.record(self.cycle, "PERCEIVE", "@recognised", "recognised_inert",
                                 reads=cm_why, route="class_memory")
