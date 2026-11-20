@@ -38,4 +38,55 @@ Measured by the m2-fixture agent at `63fe70f9`: the full suite gives **45/68**, 
 
 `conform/wiring.py` reports 68 transitions: terms whose occurrence set in four recent artifacts (`demo.jsonl` and bodies) no longer matches the manifest, plus newly-declared terms that have not occurred. The manifest records a long-lived history; the artifacts are a short recent sample. This is a sampling-window mismatch, not a capability regression. Bulk-updating the manifest would rubber-stamp it.
 
-`conform/libagree.py` reports 14. **Eight are a pure instrument bug**: `env_of()` (line 46) matches `armflag.arm("TETHER_...")` with *nothing after the closing quote*, but all 13 `arc_percept` arms now declare `default=True`, so `env_of` returns `None` for every one of them and `build(on=...)` never forces the named arm on. The six `(c)` findings (`add_col`/`add_n`/`add_row`/`rem_col`/`rem_n`/`rem_row` "built with arm off") are artifacts of that regex. The other six `(a)` findings (`grew`/`kind`/`scale`/`shape_name`/`shrank`/`turned`/`subtract` built but not in `agent_atoms.json`) are genuine divergence from the GIVEN corpus, which is Isaiah's and may not be edited — a fact to record, not a library defect to repair. The instrument's must-fails (a)-(e) all still fire, so this is a reader that has gone Blind to its own declarations rather than a dead check. Fix is one regex line (`armflag.arm("TETHER_..."` with a non-greedy tail), left for the next L2 slot after the focus stall; the m2 merge took the only remaining one.
+`conform/libagree.py` reported 14. **Six were an instrument bug, now repaired** (measured: 14 → 8 findings). Two separate defects, both at the instrument's own write site:
+  1. `env_of()` required `armflag.arm("TETHER_...")` to end at the closing quote, but all 13 `arc_percept` arms declare `default=True`, so it returned `None` for every one and never forced the named arm on. The regex now reads only the name.
+  2. The six cell-change atoms are declared `arc_percept._CELL_CHANGE (import-time)`, but `build(off=...)` only did `setattr` **after** import — too late for an arm baked into the atom list at import. It now sets the env var to `0` for the off arm as well.
+
+The six `(c)` findings (`add_col`/`add_n`/`add_row`/`rem_col`/`rem_n`/`rem_row`) were artifacts of those two lines and are gone. The remaining eight `(a)` findings (`below`/`grew`/`kind`/`scale`/`shape_name`/`shrank`/`subtract`/`turned` built but not in `agent_atoms.json`) are genuine divergence from the GIVEN corpus, which is Isaiah's and may not be edited — a fact to record, not a library defect to repair. The planted must-fails (a)-(e) all still fire.
+
+## ERRATUM, 2026-11-19 — the "hash-seed nondeterminism" finding above is WITHDRAWN
+
+The section above claimed the agent and the m2 suite were hash-seed nondeterministic. **That was wrong.** It was a satisfying causal story attached to a number, which is the exact failure this file warns about. The original text is kept so the error stays evidence; the correction follows.
+
+What actually varies is the **agent's own draw seed**, and that is by design:
+
+- `_AGENT_SEED = armflag.arm("TETHER_AGENT_SEED", default=True)` (`tether.py:3862`). `_seed_at_start()` (`tether.py:3888-3898`) therefore draws `secrets.token_hex(8)` for each fresh process. Two runs at the *same* `PYTHONHASHSEED=0` gave different `draw_seed`s and different tallies (`bargain_bounded_out` 15542 vs 15526). Hash seed is not the variable.
+- The four "flipping" checks were each run in isolation under `PYTHONHASHSEED` 0, 1 and 2: **all four passed under all three**. The earlier attribution was one sample per seed, not a controlled comparison — and the agent's seed was redrawn each time.
+- The first bound-call divergence (call 8228) is `inc . take<s1>` vs `inc . take<s2>` at identical cost and base. `FR.draw_key` is `blake2b` (`frontier.py:34-40`, deterministic) and `_lookup_order` passes `self.draw_seed` (`tether.py:3114-3115`), so the tie is broken by the recorded draw, not by Python hashing.
+- Across all the variation the agent's **decisions were identical**: the same 10 library terms, the same bound, the same `bargain_paid` (5). Only the effort tallies (`bargain_bounded_out`, `bargain_does_not_pay`) and the ledger row count moved — which is the draw choosing which candidate is examined first under a finite budget, exactly what `_bindings` says order does.
+
+**The README standard does hold.** A fresh run draws its own seed and records it in a `@run` row; replay names that record with `TETHER_SEED_FROM` (`tether.py:3866-3885`). Measured here: a record written from one run was replayed twice, and both replays reproduced the same `draw_seed 3377de0c2a477759:0`, the same tallies `14884 / 258 / 5`, the same **1255** ledger rows and the same library. *Results reproduce* means a recorded run replays — not that two fresh runs with independent draws are byte-identical.
+
+**What remains true and what to do.** The m2 count is a reading from one particular agent draw and can move between fresh runs because its warm-up fixture (`tests/test_m2.py::_agent()`) builds a fresh agent; that is a fixture-reproducibility observation, not an agent defect and not a hash-seed one. If a stable count is needed, pin the *replay* seed in the fixture, not `PYTHONHASHSEED`. The four checks were not shown to be flaky by controlled measurement; no assertion was weakened and no seed was pinned.
+
+**Correction to the `shipped` row too.** Its note about "row-count variance" between same-arm repeats is also explained by the fresh draw per process, not by warm memo contamination. The bound-loses-zero-terms measurement stands; the must-fail trap stands; no code was changed.
+
+## The `shipped` seat's masked chain, 2026-11-19
+
+`conform/stateful.py --fast --tether` stops at its first failing invariant, so fixing the bound check uncovered three older failures that had been masked behind it. `gamma.py` and `interface.py` are byte-identical to parent `31718e75`, so none is a regression from this session's work.
+
+1. **`test_a_per_slot_refusal_decays_like_the_term` — repaired.** It passed `halflife=None` as the "use the seed" case, but under `TETHER_FADE_BY_STORE` (default ON) the live caller passes `SeedCycles` or an explicit store halflife (`gamma.py:1996-2003`), and `_store_fade` reads `None` as "no step yet → no fade" (`gamma.py:531-536`). It now passes `gamma.REJECTION_HALFLIFE`; the `inf` control still unsettles. Measured: `None` gave `refusals_on=2.0` (cliff), the seed gives `1.9259` (survives).
+2. **`test_the_admitting_clause_crosses_into_gamma` — repaired.** It compared Γ's stamps against `arc_atoms.ADMITTED` alone (31 built atoms), but the code admits from `{**ADMITTED, **_fold_admissions()}` (`arc_atoms.py:1295,1335`), which adds nine built atoms (`all_of`, `cell_col`, `cell_row`, `cells`, `count_true`, `none_of`, `one_of`, `size`, `some_of`). Γ stamped 40 and the test called that a defect. It now reads the clause from each atom's own `admitted` field — the value Γ actually installs so a stamp overwritten downstream is still caught.
+3. **`test_the_seam_varies_what_it_explores_with` — LEFT RED, deliberately.** It builds a bare `Interface()` (constant draw seed `FR.SEED="0"`) and asserts that six `ELICIT` realisations never repeat an action more than twice. Measured: `['C','A','B','A','A','A']` — the first-three-distinct assertion passes, the variety ceiling fails. This is a statistical assertion over six seeded draws, the same class as the m2 count: a fixed draw can violate it without any mechanism failing. The live agent sets `iface.draw_seed` per run, so the bare-interface fixture is not the live condition. Repairing it means asserting the *mechanism* (frontier/tally path taken, forbidden action not repeated by a degenerate realiser) rather than a count over one draw — a derivation, not a threshold tweak. Do NOT raise the cap or pin a lucky seed. The check stays red and readable.
+
+## Final consolidation, 2026-11-19
+
+### The reproducible m2 count is 48/68, not 45/68
+
+The earlier 45/68 and the debt agent's 44/68 and 46/68 were readings taken with a fresh agent draw each process. With the agent's own draw pinned (`TETHER_AGENT_SEED=0`, i.e. the constant draw seed the arm's OFF value selects), the full suite gives **48/68** for twenty failures, reproducibly. This is the count to quote going forward with its arm state named. The eight fixture-class failures the m2-fixture agent identified are among the twenty; the rest are pre-existing narration, rate and `Want.atoms` failures documented in `04-IN_FLIGHT_BRANCHES_2026-11-16.md`. **No check was weakened and no seed was pinned in the repository** — this is a measurement arm state, not a code change.
+
+The controlled head-to-head closes the accounting exactly. With both arms pinned, the debt commit `b9020827` scores **45/68** and its parent `31718e75` scores **44/68**; the mechanical failure-set diff is one baseline-only failure (`check_every_book_key_is_declared`) and **zero** new ones. The m2-fixture commit `63fe70f9` fixes three more attribute checks (measured `ATTR OK` and three names gone from its failure list). `44 + 1 + 3 = 48`, which is the development count. There is no regression and no unexplained spread left.
+
+### `recshape` is a name collision, left red with proof
+
+All 26 findings come from `SOURCES = {"hist","robs","obs","trace"}` (`conform/recshape.py:44`) and `add()`'s test `names(itr) & SOURCES` (line 83): *any* variable named `obs` anywhere in an iterable expression is treated as a history record. Measured at the reported sites:
+
+- `tether.py:3679` is `(t for _a, t in obs)` where `obs` is the fifth field of a six-field `contact` tuple (`a, typ, before, after, obs, code = contact` at 3678), not a history row.
+- `tether.py:8029` is `frames = [b for b, *_r in hist]` — a deliberate trailing-star discard of fields the reader does not use.
+- The fixed message *"`_invent` did this and raised on its first call"* is printed at every short-unpack site even though `_invent` was retired 2026-10-05.
+
+A correct fix needs to tie the iterable to an actual `history()`/`self.trace` producer by data flow, not by variable name — a derivation, not a list of exemptions. The check stays red and readable; do not mass-edit the 26 call sites.
+
+### Panel: a duplicate production, both jobs left to finish
+
+The first `conform/panel.py --produce` call was moved to background by a shell cap rather than killed; a second was then launched detached. Both (pids 9328 and 3720) are running the same members against the same `runs/panel/` artifacts. The output is deterministic for a given tree, so the result should be identical; the standing rule is that a running job always finishes, so neither was killed. Verify the `panel` seat after both report and regenerate once cleanly only if a stamp is corrupt.
