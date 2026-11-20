@@ -1,231 +1,292 @@
-# tether — the ARC-AGI-3 solver agent
+# Tether
 
-The [general tether agent](https://github.com/IsaiahN/tether/tree/general-agent), pointed at
-[ARC-AGI-3](https://arcprize.org/): interactive games it has never seen, with no instructions,
-no stated goal and no rules. It has to find out what the game is by playing it, as a person
-would.
+A recursive, domain agnostic, self consistent metatheory that functions as a barrier theorem, with a CPU only recursive self improvement agent as its instantiation.
 
-It is built on **The Tether** architecture:
+[![Watch the video](https://img.youtube.com/vi/HjnRy4TzXsg/maxresdefault.jpg)](https://www.youtube.com/watch?v=HjnRy4TzXsg)
 
-- *Arrival of the Fittest: The Tether Architecture*:
-  [Medium](https://medium.com/@IsaiahNwukor/arrival-of-the-fittest-the-tether-architecture-1de7edf641ec)
-  · [Substack](https://adventuresinml.substack.com/p/arrival-of-the-fittest-the-tether)
-- The figures and the formula are in [`figures/`](figures/).
+**[Watch Video](https://www.youtube.com/watch?v=HjnRy4TzXsg)**
 
-## What recursive self-improvement means here
+[![Kaggle DOI](https://img.shields.io/badge/DOI-10.34740%2FKAGGLE%2FW%2F105084-blue)](https://doi.org/10.34740/KAGGLE/W/105084)
+[![Zenodo DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.24403207-blue)](https://doi.org/10.5281/zenodo.24403207)
 
-The usual picture of recursive self-improvement is a system that rewrites its own core, faster each time, taking whatever it needs from its surroundings. That is how a virus works: it has no stable core of its own, so it hijacks its host's machinery to run its own code. It changes fast, but it has no autonomy, and it exists only by taking from others. Tether uses a different definition, closer to seed AI: a stable seed that grows into a full agent, inside a lineage that improves over generations.
+A CPU only agent that teaches itself. It is given no model of any world and no answers. It watches, predicts, acts, and keeps only the ideas the world pays for. The ideas it keeps are small programs in a typed language, so it builds its own vocabulary and then builds on it. Every step is written to a record that a separate checker can fail.
 
-**A kernel and an operating system.**
-- The **kernel** is the seed, kept on the [`core`](https://github.com/IsaiahN/tether/tree/core) branch: the Tether loop that routes each residual, the gate that decides what is minted and kept, provenance, and abstention when nothing fits. Its code has not changed since the first build on 2026-08-22, and every other branch descends from it. Like DNA, it is what every generation shares. Every agent built on it starts from human priors, a library of about 4,000 entries, as its first inheritance.
-- The **operating system** is everything that grows on top of it: the ideas the agent composes, how it searches, its reflexes, what it knows about each kind of object. This changes all the time. It is built by consulting the Tether architecture on nearly every design choice, and the code and its commit history cite the figures each choice follows.
+The agent is the instantiation, not the claim.
 
-**Within one lifetime** (a run), the agent changes its operating system, never its kernel. As with a person, what it becomes is not set by the environment alone. It comes from what it meets, what it practices, and what it chooses to keep.
+## Contents
 
-**Across generations**, the lineage carries forward what paid. Every save is the next generation's starting point. One-off details fold into general patterns and unused ideas fade, so over enough generations the traces of old environments compress away. The environment selects; the lineage decides what it carries. This is the recursion. It is slow, and it happens between generations, not inside one.
+- [Why this exists](#why-this-exists)
+- [What recursive self improvement means here](#what-recursive-self-improvement-means-here)
+- [Quickstart](#quickstart)
+- [Architecture](#architecture)
+- [The four branches](#the-four-branches)
+- [What the agent can do](#what-the-agent-can-do)
+- [Prior art and how this differs](#prior-art-and-how-this-differs)
+- [How to cite](#how-to-cite)
+- [FAQ](#faq)
+- [Contributing](#contributing)
+- [Community](#community)
 
-**Why one agent is not enough.** Generations need a population. A single agent varies only as far as its own environment pushes it, it cannot remix its own kernel, and selection has nothing to choose between. One bad change can end the line. Real recursion needs many autonomous agents of the same kind, each meeting different environments and challenges, each growing a different operating system. They share what they learn through a common library, each noting which ideas came from it, so the network stays readable. What crosses between them is operating system: ideas, search orders, reflexes. The kernel stays the shared seed that makes them one kind, the way a species is defined by the heritage its members hold in common. Diversity gives selection something to work with, and it keeps the seedline alive when one branch fails.
+<details>
+<summary>Figure by figure index</summary>
 
-Clones are the opposite case. Copies of one agent are useful on a short problem, where the work splits across many hands. But they share every weakness and give selection nothing to choose between, so they cannot carry a lineage forward.
+The thirteen figures are the canonical statement of the theory. They live in the [`figures/`](https://github.com/IsaiahN/tether/tree/general-agent/figures) folder of this repository and in the Zenodo record.
 
-**Where Tether is today.** Tether runs one agent and its saved lineage. The population layer, many agents sharing one library, is not built here. Selection over many agents is already known to work (the earlier [Ouroboros](https://github.com/IsaiahN/Ouroboros) agents showed it on CPUs); this project sets out to show the agent itself, the seed every member of such a population would share.
+1. [The Agent: how structure grows](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_1_The_Agent_REV3.svg)
+2. [The Ground and the Alignment Problem](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_2_The_Ground_REV%20(1).svg)
+3. [The Dependency Chain: status per link](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_3_Dependency_Chain_REV.svg)
+4. [The Membrane Between Scales](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_4_The_Membrane.svg)
+5. [The Mint Pipeline](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_5_The_Mint_Pipeline_REV.svg)
+6. [Closure and Reachability](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_6_Closure_Reachability_REV.svg)
+7. [The Room Chain](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_7_The_Room_Chain_REV.svg)
+8. [The Union Surplus](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_8_The_Union_Surplus.svg)
+9. [When Composition Stops Working](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_9_Leave_Arrive_Search.svg)
+10. [The Ground Maintainer](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_10_The_Ground_Maintainer.svg)
+11. [The Habitat](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_11_The_Habitat.svg)
+12. [The Bond](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_12_The_Bond.svg)
+13. [The Minimum Viable Set](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure_13_The_Minimum_Viable_Set.svg)
+14. [Operators Table](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure%20-%20Operators%20Table.svg)
+15. [Symbols Table](https://github.com/IsaiahN/tether/blob/general-agent/figures/Figure%20-%20Symbols%20Table.svg)
 
-**Releases** (this repository's commits and the [CHANGELOG](CHANGELOG.md)) are operating-system updates. A change to the [`core`](https://github.com/IsaiahN/tether/tree/core) kernel would be a new species: a new branch, made on purpose, never a self-edit at runtime.
+The formula is in [`figures/THE_FORMULA.md`](https://github.com/IsaiahN/tether/blob/general-agent/figures/THE_FORMULA.md).
 
-**Why the priors matter.** No one has a record of every event that shaped the human mind, so a random starting kernel can at best produce an imitation of one. Margarine shares properties with butter, but it is not butter. Tether starts from human priors, grows them into primitives, and lets them mature in a new substrate with faster computation and better memory. The lineage stays faithful to its source as it diverges, the way oranges become orange juice and then orange drink, until enough generations make it something new.
+</details>
 
-**Why it can be trusted.** Its provenance is known from the first build on [`core`](https://github.com/IsaiahN/tether/tree/core). Every change is checked against the kernel: the gate's eight checks from the first build on `core` still run on every branch against the agent's own record, and [ruff](https://docs.astral.sh/ruff/) lints all code with the rules `core` set. Every change is versioned, every decision is a readable record, and results reproduce. Nothing is taken on trust; everything can be checked.
+## Why this exists
 
-Each agent keeps its own lineage: it decides what continues, how it changes, and whether it ends.
+Most approaches to machine intelligence start from the same place: take everything humanity has written, compress it into weights, and hope that enough scale turns the trace into the thing that made it. It cannot. A sentence is what was left after a mind finished thinking. It is not the mind. Train on the residue and you get the residue back, fluent and ungrounded, needing constant correction to stay coherent. The generator never travelled with the output.
 
-## The four branches
+Recursive self improvement is usually pictured the same way, as a system that rewrites its own core faster each time. The ambition is total: not just a new rule here and there, but the ability to rewrite everything about its own source code, including the part that decides what to rewrite. That sounds like the strongest form of self improvement, and it is the goal most labs are quietly aiming at. It also sounds more like a virus than an autonomous agent. A thing that can change every line of itself, including the line that decides what to change, has no stable core of its own. It lives by borrowing the machinery of whatever it infects. It changes quickly, but it has no autonomy and no lineage, because there is nothing persistent for a lineage to carry.
 
-- **[`core`](https://github.com/IsaiahN/tether/tree/core)**: the minimal kernel. The Tether loop,
-  gate and abstention on a toy symbolic world, about 1,600 lines. Read this first to see the
-  architecture whole.
-- **[`general-agent`](https://github.com/IsaiahN/tether/tree/general-agent)**: the full general
-  learning agent. Domain-agnostic: the library of ~4,000 human-prior entries, the lineage
-  (generations, merge, graft), search, minting, the narrator. Where general work lands first.
-- **[`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent)**: production.
-  `general-agent` plus the ARC-AGI-3 interface and the Kaggle runner. The competition build, and
-  what a Kaggle submission is built from: it receives `general-agent` by merge and adds only what
-  ARC needs. It changes only by a pull request from `development`.
-- **[`development`](https://github.com/IsaiahN/tether/tree/development)** (this one): the working
-  branch. It carries production plus the build below; it is promoted to arc-solver-agent by pull
-  request once its changes are refined. A test bundle built from it is labelled DEV.
+The Tether starts from a different definition, closer to a seed. A seed keeps a fixed kernel and grows everything else. It becomes something in a particular ground, and what it learned there is carried forward by a lineage rather than erased and retrained. Nobody rewrites their DNA in a lifetime, yet a person can become a different kind of person over years. That is the kind of self improvement this is: the vocabulary changes, the kernel does not.
 
-Swap the interface, keep the lineage.
+This distinction came out of a long study, not a guess. The work started with a simple question about whether an agent could learn from nothing, moved through a distributed society of agents that took hundreds of generations to solve anything, and then hit the harder question of where the first society came from. The answer was not a bigger network. It was a pattern that runs at every level: a frame predicts, the world refuses, the refusal is sorted into kinds, a new term is minted only when it pays for itself, and what survives is carried into the next round. Natural selection is one expression of that loop, the one you get when nobody is tending the ground. Cultivation, habitat building, and deciding which ideas to keep are the same loop with a maintainer in the seat. Once you see that, the frontier is not how to make a bigger model. It is how to keep the channel to the ground open.
 
-**What `development` carries beyond production (all on by default):**
+The metatheory was derived by refusing to specialise in any one field long enough for its jargon to become the explanation. Ideas that rhymed across biology, cybernetics, category theory, physics, and the study of how people actually know things were stripped of their local vocabulary and checked against each other. Hundreds of pages were compressed into a small set of rules that had to agree with one another. Where two fields disagreed, the disagreement located a defect rather than a choice. The result behaves like a barrier theorem: it says what any stable system must have, and what it cannot do without. A frame cannot move its own bound. Only contact with a frame whose closure differs moves it. The kernel and the vocabulary are not the same thing, and confusing them is where most systems go wrong.
 
-- **Strength and forgetting**: a term is tipped to settled only where it beat "no change"; a
-  term whose bargain no longer pays against the null is crowded out of a slot and kept in the
-  library; a miss is cut by the condition that separates it (nested inside a live split, too).
-  What is reachable falls into a second tier when new material arrives; nothing is deleted, and
-  the kernel (the priors, what was inherited) is never moved down or crowded out.
-- **The purse**: a step thinks in its own counted work, up to its level's median demand plus what
-  earlier steps saved; work it cannot afford is "unreached at this budget" and owed, never a
-  verdict, and a level that keeps running out widens the purse until half its steps finish.
-- **The exit contest**: every contested way of acting bids, and the bid is read off the agent's
-  own record of what that way returned before; a held plan, a goal step and a look-ahead each
-  propose and act only if they win.
-- **The recall-first goal proposer**: goals that won or made progress before are tried first,
-  then the shelf's other forms, and the whole library's grammar only while the purse allows.
-- **The translation table**: three of the agent's own decisions are written as the steps of the
-  formula that decided them, and a step the ground keeps refusing is skipped.
-- **Doors**: a guess whose way was blocked is set aside, "not reachable right now", and picked
-  back up when the board moves or a new effect is known.
-- **The needs dial**: making progress and exploring are weighed by how often each has paid when
-  it was tried, learned apart under pressure and at ease, so a need used more does not weigh
-  more just for being used.
-- **Fair test comparisons**: a test that compares two runs starts each one in its own fresh
-  process. A process that has already run the agent works faster, so it would think further on
-  the same counted budget, and the comparison would measure the process instead of the change.
+The agent is the instantiation of that study, not the claim itself. Every decision is legible: a residual with a slot, a bet before the action, a term minted with its cost and its origin, a ground that settles it, and a record a separate checker can fail. It runs on a CPU, needs no pretraining, and starts with a vocabulary of human priors that it can grow past. The priors are inheritance, not answers. The answer is always the composition over them.
 
-**A general agent or a specialist one: `TETHER_GENERAL` (on by default).**
+This is why winning is not the deliverable. A black box that scores well teaches nothing. An agent whose reasoning can be read, whose mistakes are located by id and step, and whose corrections can be traced to the line that made them is the thing worth building. The theory is what makes that possible, and the agent is where it is put to the test.
 
-- **On, the general agent**: it can lose context. Nothing it holds is ever deleted (the record
-  only grows), but what goes unused gets compressed, downweighted and hard to surface until it is
-  used again. A habit that once paid is reached for less readily the longer it sits unused, and
-  one use brings it back (`TETHER_FADE_PAID`). A failure is slowly forgiven, so one old miss does
-  not bar a thing forever (`TETHER_FADE_FAILURES`). What it believes is true never fades.
-- **Off, the specialist agent** (mostly fixed, an expert): it still learns new things, and it
-  never forgets. Every fade switch is forced off, so a habit learned once and a failure taken once keep their full weight however
-  long they go unused, like a model frozen at a checkpoint that keeps adding to what it knows.
+## What recursive self improvement means here
 
-**The agent's code is `general-agent`'s plus the build above;** once today's `general-agent`
-pull request merges, the agent's code is the same on both, and this branch adds only the ARC
-adapter, the harness and the Kaggle runner. For what the agent is
-and how it reasons, read [that README](https://github.com/IsaiahN/tether/tree/general-agent). What is particular to
-ARC is only the adapter and the harness below.
+The usual picture is a system that rewrites its own core, faster each time, taking whatever it needs from its surroundings. That is how a virus works. It changes fast but has no autonomy. Tether uses a different definition, closer to seed AI: a stable seed that grows into a full agent, inside a lineage that improves over generations, like how most species emerged.
 
-## How it meets an ARC game
+**A kernel and an operating system.** The kernel is the seed: the loop, the gate, provenance and abstention. Its code has not changed since the first build. The operating system is everything that grows on top: the ideas the agent composes, how it searches, its reflexes. Within one run the agent changes its operating system, never its kernel. Across generations the lineage carries forward what paid.
 
-- **It sees the frame, and nothing that says what it means.** `arc_world.py` (`ArcWorld`) fills
-  the general `Env` contract over the `arc_agi` package. `arc_percept.py` finds and tracks
-  objects: every same-colour region, read exactly, with position, size, shape, colour, the
-  changes in each, and contact between objects.
-- **It acts through the same interface.** `interface.py` turns the agent's intents into the
-  game's actions: the directional actions, the one positioned click, and RESET. RESET is
-  offered like any other action, with one hard rule: never two RESETs in a row.
-- **It forms its own goals.** It is never told a game's name, goal or rules, and no decision may
-  read a game's identity. It proposes candidate goals from its own condition grammar over the
-  board in front of it, chases them, and keeps what held when a level clears.
-- **It learns across games.** What it learns goes to a lineage folder you name: one generation
-  per game, plus its memory store, carried by kind, never by game. Give the same folder again to
-  carry on from it.
-- **The harness** is `arc_holdout.py` (`play`, `wire`), with the entry point `tether_agent.py`
-  (`run`). A game ends on a WIN, the step cap or the time allowance. A game over does not end
-  the run: play goes on, and the agent may choose to RESET. The entry point never presses RESET
-  for it.
+**Why one agent is not enough.** Generations need a population. A single agent varies only as far as its own environment pushes it, and selection has nothing to choose between. What crosses between agents is operating system, never the kernel. Clones share every weakness and cannot carry a lineage forward. The population layer is not built in this branch; the earlier Ouroboros agents showed selection over a population works on CPUs. This project sets out to show the agent itself, the seed every member of such a population would share.
 
-## Future state
+**Why the priors matter.** No one has a record of every event that shaped the human mind, so a random starting kernel can at best produce an imitation of one. Tether starts from human priors, grows them into primitives, and lets them mature in a new substrate. The priors are a head start, not answers to any problem.
 
-- **Recursive Diffusion Learning** (started 2026-11-16: the preload store, the parser, the release by what the board settled, the codified search order and the agent's wiring are built, behind TETHER_RDL). The agent has no weights to pretrain,
-  since its mind is search and reason, so a large corpus is preloaded instead: a parser rewrites
-  it into the agent's own grammar in stages that each lose more detail (instances, regularities,
-  abstractions, core rules), and each stage is released only as fast as the board settles the one
-  before. Nothing preloaded has standing until contact with the board pays for it, and anything
-  built on a term the board refutes falls on its own, so the ground does the training, and the
-  agent's own record of how its reach grew decides where it searches first.
-- **A visual lexicon, so its speech grows fluent** (first links built 2026-11-16: shape names in perception, a preloaded library of 44 standard flat and solid shapes recognised without a neural network (AKAZE key points and outline signatures), a word map to WordNet, action lists for concepts, and the affordance bet: "this is like a ball; a ball can move; does this move?"). Today the agent
-  describes what it sees in its own pointers ("o1 moved 5 columns right"). Linking pictures to
-  words and to how words relate (ImageNet, WordNet and a relation layer) would let recognition name
-  what it sees ("the ball rolls to the right"), and every name carries predictions the board can
-  test (a ball keeps rolling and bounces off walls), so a name that stops paying is dropped. Shapes
-  carry expected properties the same way (balls roll, blocks stack), each held as a prior that the
-  board can confirm, split by condition, or refuse. That is why it learns this way: the same terms
-  settle on abstract boards and in the world they describe, so it learns about the world while it
-  learns abstractions, and its speech becomes more fluent as more of its words are grounded.
-- **From flat boards to depth** (a first bridge built 2026-11-16: a flat shape stands for a solid one, disc to sphere to ball, held on flat boards and earned by behaviour). A child lives in three dimensions first
-  and later learns that a flat picture stands for a solid thing; this agent starts the other way
-  round, on flat, rigid boards. Most of what it settles is relational (contact, blocking,
-  containment, order) and carries across, but ideas that need depth (something hidden behind
-  something, things that fall or squash) can only be held until a board with depth can settle
-  them. So its boards would widen in order: grids, then photographs (depth cues in its own flat
-  medium), then video, then simulated 3D worlds, then the physical world.
-- **A voice, by mapping rather than training** (hops 1 and 2 built 2026-11-16, ImageNet to WordNet to its words; a relation layer imported from ConceptNet and VerbNet; the pronouncing dictionary and the voice are not built). Each layer above is a lookup,
-  not a model to train: a picture's ImageNet id is its WordNet entry, WordNet gives the words that
-  name the same thing, a relation layer gives the roles they play, the agent's library links them
-  to what it already holds, and a pronouncing dictionary turns each word into sounds a rule-based
-  synthesizer can speak. Every link is a written row, so any word the agent says can be traced
-  back, hop by hop, to its sources and to the board where it was settled. Speaking becomes talking
-  once it can also hear, with the listener as its board. Most of the joins are hours of work on
-  keys that already exist; linking words to the library is the reviewable part, and the place
-  where help is most welcome.
+**Why it can be trusted.** The provenance is known from the first build. Every change is checked against the kernel, code is linted with the rules the kernel set, every decision is a readable record, and results reproduce. Nothing is taken on trust.
 
-  **If it were built, no neural text-to-speech would be needed.** A rule-based synthesizer driven
-  by a pronunciation dictionary is enough, and two established free ones exist:
-  [Flite](https://github.com/festvox/flite) (a small, fast C engine from the CMU/Edinburgh
-  FestVox line) and [espeak-ng](https://github.com/espeak-ng/espeak-ng) (formant synthesis with
-  its own dictionaries for many languages). Both are lookups and rules, not learned weights, so
-  the whole chain from a board reading to a spoken word stays inspectable.
-
-  **Two-way communication would need the interface widened first.** Hearing turns the loop around:
-  the interface would have to accept input data, not only send actions and read the board
-  ("text, images", then sound), and the listener becomes the board that settles a sentence, the
-  way the game board settles a term. No such input path exists today; this agent will not be
-  built that way now. It is recorded as proof of possibility.
-
-  **And speech-to-text could also be built without training.** Almost all speech-to-text today
-  uses deep learning, but the classical HMM-GMM stack (hidden Markov models over Gaussian mixture
-  acoustics) needs no neural network; see, for one worked example,
-  [Speech-to-Text_Traditional_Method](https://github.com/DaivikPatel0/Speech-to-Text_Traditional_Method).
-  It is archaic and far less accurate and efficient than a modern model, and it needs a recorded
-  corpus to estimate its statistics, so it is not proposed here. Its point is narrower and it is
-  the point worth keeping: a fully interpretable agent could in principle speak, listen and answer
-  with no learned model anywhere in the loop, every part of it a table, a rule or a count, which
-  is the same claim this repository makes about thinking.
-
-Design and status, layer by layer: [docs/05-RESEARCH/42](docs/05-RESEARCH/42-WATSON_2026-11-16_RECURSIVE_DIFFUSION_LEARNING_THE_DESIGN.md). Third-party data and software, with their licences: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-## Documents
-
-The documents are in numbered folders under `docs/`; start at
-[docs/00-README.md](docs/00-README.md). Each folder has its own README.
-
-What changed in each release: [CHANGELOG.md](CHANGELOG.md).
-
-## Quick start
+## Quickstart
 
 Python 3.13. `requirements.lock` pins the whole runtime.
 
-    git clone -b arc-solver-agent https://github.com/IsaiahN/tether.git
-    cd tether
-    python -m venv .venv
-    # activate .venv; `python` below is the venv's interpreter on any OS
-    python -m pip install --no-deps -r requirements.lock
+```bash
+git clone -b general-agent https://github.com/IsaiahN/tether.git
+cd tether
+python -m venv .venv
+# activate .venv; python below is the venv interpreter on any OS
+python -m pip install --no-deps -r requirements.lock
 
-Fetch a game once with the `arc_agi` package's own anonymous fetch (every run after that is
-offline), then play it with a lineage folder (created if absent):
+python -B demo.py                 # about 10 seconds, offline
+python -B gate.py runs/demo.jsonl # the independent checker reads the ledger
+```
 
-    python -c "from arc_agi import Arcade; from arc_agi.base import OperationMode; Arcade(operation_mode=OperationMode.NORMAL).make('<game_id>')"
-    python -B -c "import arc_holdout; print(arc_holdout.play('<game_id>', 40, lineage_dir='lineage')['persistence']['lineage'])"
+`demo.py` shows four things: a wrong term located by id, step and the residual it answered; a planted bad atom caught by the ground and traced to its entry; abstention on what it cannot reach, with the budget it spent; and the false abstention rate beside the abstention rate.
 
-To see the agent learn offline first, with no game needed, run `python -B demo.py`; see the
-[general README](https://github.com/IsaiahN/tether/tree/general-agent).
+## Architecture
 
-The checks are the same six as on `general-agent`.
+```mermaid
+flowchart LR
+  P[PERCEIVE bet act observe] --> R[R residual per slot]
+  R --> Q{ROUTE boundary diff}
+  Q -->|TRANSFERRED| P
+  Q -->|NOVEL| P
+  Q -->|BROKEN rebinding| P
+  Q -->|BROKEN mechanism| M[MINT if the bargain pays]
+  Q -->|REFUTED| M
+  M --> A[ACCEPT stamp origin and seq]
+  A --> S[SETTLE ground pays]
+  S --> PR[PROMOTE generators cross up]
+  PR --> P
+```
 
-## What ships, and what does not
+The kernel is the same whether one agent runs it or a thousand. Only the actors, the currency and the anchor change. One loop for every world, with no branch on problem type:
 
-- **Ships:** the code and the library (`library/`), as on `general-agent`.
-- **Does not ship:** the learned library. What the agent learns while playing is written to the
-  `lineage_dir` you give it, outside the repository, and is never committed.
-- **Not ours to ship:** the games (`environment_files/`), recordings and human replays. All are
-  gitignored.
+    PERCEIVE -> ROUTE -> MINT -> ACCEPT -> SETTLE -> PROMOTE -> IMPORT -> REPEAT
 
-## Kaggle notes
+<details>
+<summary>Source map</summary>
 
-- `kaggle/` holds the submission. `make_notebook.py` renders `tether_a.ipynb`, which plays the
-  games the competition's gateway lists, in its order, as one life that carries one lineage,
-  and `probe_machine.ipynb`, which prints the machine's cores, memory, disk and Python.
-- `build_dataset.py` and `build_lineage.py` build the two Kaggle datasets: the code with the
-  library, and the learned lineage, each with a sha256 manifest. The lineage is never in this
-  repository.
-- The notebook installs offline from the competition's own wheelhouse; `arcengine` comes from
-  those wheels.
-- The API key is never committed: `.env` is gitignored, and it appears in no commit.
+- `tether.py` the per step loop, betting path, mint operator and selector
+- `gamma.py` the typed library, atoms, closure and origin stamps
+- `grammar.py` the DSL and node types
+- `arc_atoms.py` the frontloaded vocabulary of atoms
+- `arc_world.py` the ARC adapter and grounded readings
+- `gate.py` the independent checker
+- `ledger.py` the receipts and step order
+- `conform/` the seats, figure census and focus check
 
-No result is claimed here. Results are reported where they are measured, with the games, the
-population and the switch state they ran under.
+</details>
+
+## The four branches
+
+- [`core`](https://github.com/IsaiahN/tether/tree/core): the minimal kernel, about 1,600 lines. Read this first.
+- [`general-agent`](https://github.com/IsaiahN/tether/tree/general-agent): the full general learning agent, domain agnostic. Where general work lands first.
+- [`arc-solver-agent`](https://github.com/IsaiahN/tether/tree/arc-solver-agent): general-agent plus the ARC-AGI-3 interface, the competition build.
+- [`development`](https://github.com/IsaiahN/tether/tree/development): working branch for the competition build.
+
+Swap the interface, keep the lineage.
+
+## What the agent can do
+
+- **Learn a new task from contact alone.** No instructions, no stated goal, no rules.
+- **Set its own goals** from its own grammar over what it sees, and keep what held.
+- **Understand cause, not just correlation.** A prediction is kept only where it beat no change.
+- **Abstract and compose** over settled terms.
+- **Plan** chains of settled predictions, under incomplete information.
+- **Work in any world** with one loop and no type branching.
+- **Improve itself, recursively.** A settled term becomes a part the next search builds on.
+- **Learn how it improves.** Its budget, forgetting rate and weights are learned from its own record.
+- **Keep learning without forgetting.** New knowledge is appended, never retrained.
+- **Know what it does not know.** When nothing closes a gap it says unreachable with what I hold.
+- **Stay correctable.** Graded by a ground it cannot move. Nothing it says about itself counts.
+- **Show its work.** Every term carries the atoms, bonds and origin it was built from.
+- **Think within a budget.** Thinking is counted, and it runs on a CPU.
+
+## Prior art and how this differs
+
+The novelty question is live, so it is stated plainly.
+
+- Roman Yampolskiy, *From Seed AI to Technological Singularity via Recursively Self-Improving Software* (2015), introduced RSI convergence theory.
+- Jürgen Schmidhuber, *Godel Machines* (2007), gave a self referential universal self improver.
+- Francois Chollet, *On the Measure of Intelligence* (2019), measures skill acquisition efficiency against stated priors.
+- Dhruv Srikanth and colleagues, *Recursive self-improvement of AI research agents* (2026), reported seven successive improvements in an eight day run with held out evaluation.
+
+These specify mechanisms or measures inside a given frame. The Tether claims the frame itself is derivable: a closed set of kinds, an open set of arrangements, a ground that does not update, and a membrane that lets only methods cross. The agent is the instantiation used to test that claim, not the claim itself.
+
+## How to cite
+
+```bibtex
+@article{isaiah_nwukor_2026,
+  title={The Tether Architecture - RSI},
+  url={https://www.kaggle.com/w/105084},
+  DOI={10.34740/KAGGLE/W/105084},
+  journal={Kaggle},
+  publisher={Kaggle},
+  author={Isaiah Nwukor},
+  year={2026}
+}
+
+@misc{isaiah_nwukor_zenodo_2026,
+  title={Agent Architecture - Tether RSI Recursive Self Improvement AI},
+  author={Isaiah Nwukor},
+  year={2026},
+  doi={10.5281/zenodo.24403207},
+  url={https://zenodo.org/records/24403207}
+}
+```
+
+## FAQ
+
+<details>
+<summary>Why doesn't more data produce general intelligence?</summary>
+
+Because a corpus is the residue of thinking, not the thinking itself. Training on it reconstructs the distribution of what people wrote, so the ceiling is the aggregate competence of the people who wrote it. More text buys breadth, not depth. What produced that text was a process: something acted under consequence, was wrong, and revised. That process is the generator, and it is absent from the output.
+
+You can see the difference in failure. A person facing a novel structure builds a partial model, tests it, notices it is wrong, and revises. The failure is a search that gains traction. A model trained on text produces a fluent, confident answer and gains no traction across attempts, because one forward pass matches the nearest familiar thing and confabulates. General intelligence is not reliable success on the novel. It is the right kind of failure.
+
+There is a deeper limit too. Every reasoner compresses along the axes its sensors give it. Change the sensors and you change the categories and the primitives, not just the data. No amount of human text contains a snake's categories, and scaling visible light never yields thermal ones. A built discoverer must be able to hit a residual it cannot currently represent and mint a new primitive, a new axis of perception, rather than collect more samples along the old ones.
+
+</details>
+
+<details>
+<summary>What is alignment here?</summary>
+
+Alignment is triangulation, not negotiation. Two navigators do not find position by agreeing with each other. Each takes a bearing on the same fixed landmark, and nobody can talk the landmark into moving. In the Tether the ground is that landmark. It settles a question regardless of what any frame thinks, and it does not update on being pushed.
+
+</details>
+
+<details>
+<summary>Why can't a system validate itself?</summary>
+
+A verifier that can reconstruct the claim cannot verify it. Soundness comes from the verifier's non access. Godel showed that a consistent system cannot prove its own consistency, Tarski that truth for a language is not definable within that language, and Chaitin that a system cannot prove an object exceeds its own complexity beyond a fixed constant. Metatheories cannot validate themselves. You need the seed and the ground.
+
+</details>
+
+<details>
+<summary>What is the difference between a recording and a method?</summary>
+
+A recording is press this button at this spot. Replayed downward it produces a system that repeats a past success and cannot produce a new one. A method is a reusable pattern stripped of the details of one occasion. Only methods cross up, only head starts come down. That is the membrane between scales, and it is why there is no infinite regress.
+
+</details>
+
+<details>
+<summary>Why can't two people or agents just agree and be right?</summary>
+
+If they share an evidence pool, their agreement is the pool talking. Long close contact pulls frames together, so the process that makes communication easy slowly uses up the extra reach that made two frames useful. Independence is how little two frames draw on the same evidence, and it is the one quantity the arrangement cannot manufacture. Buy it in proportion to the cost of being wrong.
+
+</details>
+
+<details>
+<summary>What does contact being the distinction resolver mean?</summary>
+
+The answer does not exist until the question is contacted. Superposition is not ignorance, it is the state where the distinction has not been made yet. Measurement does not reveal the value, it creates the value by collapsing the space of values. One measurement can dissolve a whole cluster of questions, not because they were secretly the same, but because they were all undetermined at the same joint where contact was required.
+
+</details>
+
+<details>
+<summary>Why is the hard problem about source?</summary>
+
+If several paths create the same behavior, behavior is a projection with lossy information. An instrument that cannot distinguish those paths demonstrates its own inadequacy, it cannot claim anything substantial about what caused the reading. The answer is unreached until a better instrument exists. Chalmers stipulated a limitation rather than proving one. The real question is determining the source, and provenance is what carries that determination.
+
+</details>
+
+<details>
+<summary>Is this virus style recursive self improvement?</summary>
+
+No. A virus rewrites its own core, hijacks the host and has no stable kernel. The Tether is closer to seed AI: a stable seed that grows into a full agent, inside a lineage that improves over generations. No one rewrites their DNA in a lifetime, yet over years they can become a different kind of person. The agent rewrites its vocabulary, not its source code.
+
+</details>
+
+<details>
+<summary>Why does a group of agents beat one?</summary>
+
+What many agents add is parallelism and scale. If they are selected on, the population becomes an evolutionary layer and the best answers surface on their own. Swarms are not new technology, they are selection applied by numbers. The important thing is that the agents stay different, because clones give selection nothing to choose between. This branch leaves the population layer out on purpose. It shows the agent itself, the seed every member of such a population would share.
+
+</details>
+
+<details>
+<summary>Why is the set closed while the arrangements are open?</summary>
+
+The Library of Babel contains every book, so the library is not the problem. The problem is you, and your ignorance of what you do not know. A vocabulary is what the system can say. The answer is the composition over it. Six kinds cannot become seven by arranging them, and the arrangements over them do not run out. That gap is why import exists, and why you enter as a researcher and leave as the author.
+
+</details>
+
+<details>
+<summary>Aren't priors just encoded answers?</summary>
+
+No. Priors are inheritance, the head start a body gets from a lineage that already paid the bill. The library holds what the agent can say, not the answer to any problem. A missing library stops the agent at startup and names each missing file, but it holds no answer. The ablation is the test: back up the library, verify the backup, wipe it, and re-run. If a result survives, the agent composed it. If it disappears, the library was carrying it.
+
+</details>
+
+## Contributing
+
+Contributions are welcome. Before proposing a mechanism, name the figure and the rule it implements, and census it against all thirteen figures and the operator table. A change that improves a number while making reasoning unreadable is a loss.
+
+## Community
+
+There is no official Tether community yet. Links will be added here only when those destinations actually exist.
+
+## Links
+
+- Architecture post: https://adventuresinml.substack.com/p/arrival-of-the-fittest-the-tether
+- Recursive self improvement trap: https://adventuresinml.substack.com/p/the-recursive-self-improvement-trap
+- How intelligence actually works: https://medium.com/@IsaiahNwukor/how-intelligence-actually-works-40ac40fe32b0
+- Zenodo record: https://zenodo.org/records/24403207
+- Kaggle notebook: https://www.kaggle.com/code/thezetaproject/tether-rsi-agent
+
+No em dashes are used in this document.
