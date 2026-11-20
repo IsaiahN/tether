@@ -43,6 +43,11 @@ import sensors
 
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _CARRY = armflag.arm("TETHER_LINEAGE_CARRY", default=True)   # _UPPER, so the @run header records it
+# THE PARSER REBUILT BETWEEN GENERATIONS (NEXT_STEPS 2026-11-16 item 4; write-up 42 item 7): at
+# lineage save, ONE rdl_parse.render(stats=...) call re-renders the preload from the carried rdl_n
+# counts. library/ is a READ-ONLY DATASET ON KAGGLE, so the stamped copy goes BESIDE THE GENERATION,
+# never over the shipped file. Needs tether._RDL as well. default ON.
+_RDL_REBUILD = armflag.arm("TETHER_RDL_REBUILD", default=True)
 _B2_FIELDS = ("holds", "parked", "untested", "paid")   # tether's B2 counts, in their list order
 
 
@@ -784,6 +789,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
     d0, e0 = marks.get("dormant", 0), marks.get("evidence", 0)
     dormant_all = getattr(ag, "_dormant", [])
     dormant, refused = dormant_items(dormant_all[d0:], d0)
+    _rdl_gen_n: dict = {}       # C5: this generation's rdl_n, for the parser's re-render at save
     gen = {"lineage": 1, "parent": parent, "game": game, "terms": terms, "status": status,
            "evidence": ([[e[0], _kind_name(ag.gamma, e[1]), *e[2:]]
                          for e in list(ag.gamma.evidence)[e0:]] if _KIND_SAVE
@@ -905,6 +911,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
                if d_}
         if _rd:
             gen["rdl_n"] = _rd
+            _rdl_gen_n = _rd
         ag._rdl["stats_n"] = {}
     if getattr(ag, "_reuse", None) is not None:
         # P6 H5: the reuse book's counts since the last save; load sums (reuse_n)
@@ -1019,6 +1026,13 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         if store_con is not None:
             store_con.close()
         return {"refused": f"{PREFIX}{h}.json exists; a generation is never overwritten"}
+    # C5's loop closed: re-render the preload from the stats this generation carries. The stamped
+    # copy goes beside the generation, never over library/ (a read-only dataset on Kaggle). Its
+    # failure never costs the generation, the same rule as the index and the memo below.
+    try:
+        rdl_rebuilt = _rdl_rebuild(ag, p, h, _rdl_gen_n)
+    except Exception as e:  # noqa: BLE001 -- recorded in the report, never raised past here
+        rdl_rebuilt = {"failed": f"{type(e).__name__}: {e}"[:200]}
     if _BOUNDARY:   # the next write in this instance extends THIS one: one line (F2)
         ag.lineage_parent = h
         ag._lineage_written = {**written, **{n: {"born": h, "handle": hd} for n, hd in new_names},
@@ -1130,7 +1144,7 @@ def _write(d: str | Path, ag: Any, game: str, sleep: bool, held: list,
         finally:
             store_con.close()
     return {"written": f"{PREFIX}{h}.json", "hash": h, "parent": parent, **counts,
-            "index": idx, "memo": memo,
+            "index": idx, "memo": memo, "rdl_rebuilt": rdl_rebuilt,
             "slot_memo": slot_memo, "asked": asked, **({"store": store} if store else {})}
 
 
@@ -1838,6 +1852,56 @@ def _rdl_load(ag: Any, summed: dict) -> dict:
     ag._rdl_release("lineage")
     return {f"{c_}|{t_}": dict(d_) for (c_, t_), d_ in sorted(rd["carried"].items(),
                                                               key=lambda kv: repr(kv[0]))}
+
+
+def _rdl_rebuild(ag: Any, d: Path, h: str, gen_n: dict) -> dict:
+    """C5's loop CLOSED between generations: ONE rdl_parse.render(stats=...) call re-renders the
+    preload from the stats the chain carries plus this generation's increments. The parser sheds a
+    (corpus, tier) the ground refused more than it settled; the decision is in the rendered header.
+
+    WHERE IT WRITES: beside the generation, in the lineage folder, named from the generation's own
+    hash and opened 'x' (never overwritten). NOT into library/: on Kaggle that is a READ-ONLY
+    DATASET and the shipped rdl_preload.json is the agent's inherited vocabulary -- a write there
+    would either fail or silently rewrite what the next code bundle ships. Nothing is loaded back
+    here, no reach or standing is touched, and the arm is inert unless TETHER_RDL also holds."""
+    import tether
+    if not _RDL_REBUILD or not tether._RDL or getattr(ag, "_rdl", None) is None:
+        return {}
+    try:
+        import rdl_parse
+    except ImportError as e:
+        return {"inert": f"rdl_parse not importable: {e}"}
+    stats: dict = {}
+    for source in (ag._rdl.get("carried") or {}, gen_n or {}):
+        for k, v in source.items():
+            corpus, _bar, tier = str(k).rpartition("|")
+            try:
+                key = (corpus, int(tier))
+            except ValueError:
+                key = (corpus, tier)
+            into = stats.setdefault(key, {})
+            for f, n in (v or {}).items():
+                into[f] = into.get(f, 0) + int(n)
+    if not stats:
+        return {"skipped": "no rdl_n counts carried yet"}
+    out = d / f"rdl_preload_gen_{h}.json"
+    try:
+        text = rdl_parse.render(stats=stats)   # ONE call: parse(stats=...) inside render
+        with open(out, "x", encoding="utf-8") as fh:
+            fh.write(text)
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        ag.led.record(getattr(ag, "cycle", 0), "IMPORT", "@rdl", "rdl_rebuild_failed",
+                      generation=h, reason=str(e)[:300],
+                      reads="the parser could not re-render this generation; the shipped "
+                            "library/rdl_preload.json is untouched")
+        return {"failed": str(e)[:200]}
+    ag.led.record(getattr(ag, "cycle", 0), "IMPORT", "@rdl", "rdl_rebuild",
+                  generation=h, path=out.name,
+                  sources=sorted(f"{c}|{t}" for c, t in stats),
+                  bytes=len(text.encode("utf-8")),
+                  reads="the parser shed what the ground refused more than it settled; a "
+                        "generation-stamped copy beside the generation, never over library/")
+    return {"written": out.name, "sources": len(stats)}
 
 
 def load(d: str | Path, ag: Any) -> dict:
