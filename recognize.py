@@ -534,7 +534,7 @@ def build_from_parquet(parquet_paths, out_dir=None, per_class=50, lexicon=None, 
     proof build over a handful of classes, rather than the whole shard. Never used on the agent
     path; the caller supplies it for an offline demonstration."""
     cv2 = _cv2()
-    wanted = set(int(x) for x in labels) if labels is not None else None
+    wanted = {int(x) for x in labels} if labels is not None else None
     rows = None
     try:
         import pyarrow.parquet as pq
