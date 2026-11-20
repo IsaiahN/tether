@@ -34,19 +34,23 @@ concept -> properties -> predictions"; lead 16:20 "circle -> ball, that 2d-3d or
  RECOGNISED (TETHER_RECOGNISED, default ON; write-up 42 handoff item 4, "Recognition into the
 agent"): when an observation carries a PICTURE -- an env attribute or an observation field named in
 PICTURE_NAMES holding an image array, board-wide ('picture') or per object ('o1.picture') -- the
-picture is recognised once per (holder, picture): recognize.recognise_shape over the preloaded shape
-memory, and recognize.recognise when a class memory is present under CLASS_MEMORY_DIR. Each route
-writes one `recognised` row {class, synset, dim, grid_shape_name, bridge, route, votes/distance,
-margin, abstained, stamp}; a class that did not abstain is then read by the PRIOR step exactly as a
-shape_name is (class -> concept through the word map's shape_bridge; else the class's grid shape
-name; else its own bridge's 2D names). Grid boards carry no picture: one recognised_inert row per
-run. recognize (and with it cv2) is imported lazily, inside the call, never at module level.
+picture is recognised once per (holder, picture): recognize.recognise_shape over the repo-relative
+shape memory, and recognize.recognise when a class memory is present under the dir named by the
+plain env var RDL_RECOGNITION_DIR (default: the shipped generated shapes; no absolute path). An
+ABSENT class memory writes one explicit recognised_inert row naming the reason, so the route is
+never silently dropped on Kaggle. Each live route writes one `recognised` row {class, synset, dim,
+grid_shape_name, bridge, route, votes/distance, margin, abstained, stamp}; a class that did not
+abstain is then read by the PRIOR step exactly as a shape_name is (class -> concept through the
+word map's shape_bridge; else the class's grid shape name; else its own bridge's 2D names). Grid
+boards carry no picture: one recognised_inert row per run. recognize (and with it cv2) is imported
+lazily, inside the call, never at module level.
 """
 from __future__ import annotations
 
 import functools
 import hashlib
 import json
+import os
 from pathlib import Path
 
 import armflag
@@ -58,8 +62,13 @@ _RECOGNISED = armflag.arm("TETHER_RECOGNISED", default=True)
 PICTURE_NAMES = ("picture", "image")
 # a picture is a uint8 array at least this many pixels on each side. Declared convention, Fig 10
 PICTURE_MIN_SIDE = 16
-# the local class memory (ImageNet terms: never in the repository); absent -> shape route only
-CLASS_MEMORY_DIR = Path(r"C:\TETHER_RUNS\DATA_2026-11-16\recognition")
+# The class memory (local ImageNet terms: never in the repository). The PLAIN env var
+# RDL_RECOGNITION_DIR (NOT a TETHER_ arm -- the arms seat forbids raw TETHER_ reads) names the
+# local dir; absent, the default is the repo's shipped generated shape memory, so recognition
+# still runs on Kaggle with no absolute path in the code. Absent dir -> shape route only, and
+# the class-memory route says WHY it is inert rather than dropping silently (AKAZE 2026-11-16).
+_SHIPPED_CLASS_MEMORY = Path(__file__).resolve().parent / "library" / "shapes" / "memory"
+CLASS_MEMORY_DIR = Path(os.environ.get("RDL_RECOGNITION_DIR") or str(_SHIPPED_CLASS_MEMORY))
 _CLASS_MEMORY: dict = {}
 WORD_MAP = Path(__file__).resolve().parent / "library" / "word_map.json"
 # a verb's WordNet lexname -> the reading it predicts (a means: what to LOOK at, never the answer)
@@ -442,6 +451,23 @@ def _num(x):
         return x
 
 
+def class_memory_dir() -> Path:
+    """The configured class-memory dir, resolved at call time so a Kaggle env var is honoured
+    even though this module was imported before the environment was finalised."""
+    raw = os.environ.get("RDL_RECOGNITION_DIR")
+    return Path(raw) if raw else CLASS_MEMORY_DIR
+
+
+def _class_memory_why(path: Path) -> str | None:
+    """Why the class-memory route is inert at `path`, or None when a memory is present there.
+    A missing dir used to drop the route with no row at all; name the reason so the zero is
+    visible (the m2 seat's rule, one level down from the book keys)."""
+    if (path / "memory.json").exists() and (path / "memory.npz").exists():
+        return None
+    return (f"class memory absent at {path} (memory.json / memory.npz not found; "
+            "set RDL_RECOGNITION_DIR to the local recognition dir)")
+
+
 def _class_memory(path: Path):
     """The local class memory, loaded once per process; None when absent."""
     key = str(path)
@@ -455,9 +481,11 @@ def _class_memory(path: Path):
 
 
 def recognise_rows(img, class_dir: Path | None = None) -> tuple:
-    """(rows, why_inert). One `recognised` detail per route: the preloaded shape memory always,
-    the class memory when present. why_inert names the failure when no route could run (cv2 or
-    the shape memory absent); a route's own abstention is a row, never an inert."""
+    """(rows, why_inert, class_memory_why). One `recognised` detail per route: the preloaded
+    shape memory always, the class memory when present. why_inert names the failure when no
+    route could run (cv2 or the shape memory absent); class_memory_why names an ABSENT class
+    memory so the caller can write one explicit inert row instead of dropping the route. A
+    route's own abstention is a row, never an inert."""
     try:
         import recognize  # lazy: never at module level (cv2 stays unimported)
         pic = _bgr(img)
@@ -478,8 +506,10 @@ def recognise_rows(img, class_dir: Path | None = None) -> tuple:
              "margin": _num(r.get("margin")), "abstained": bool(r.get("abstained")),
              "candidate": (r.get("akaze") or {}).get("candidate"), "corners": r.get("corners"),
              "reason": r.get("reason"), "memory": "shapes", "stamp": stamp, "standing": None}]
+    cm_dir = Path(class_dir) if class_dir else class_memory_dir()
+    cm_why = _class_memory_why(cm_dir)
     try:
-        cm = _class_memory(Path(class_dir) if class_dir else CLASS_MEMORY_DIR)
+        cm = _class_memory(cm_dir)
         if cm is not None:
             c = recognize.recognise(pic, cm)
             cst = dict(c.get("stamp") or {})
@@ -495,7 +525,9 @@ def recognise_rows(img, class_dir: Path | None = None) -> tuple:
         rows.append({"class": None, "route": "class_memory", "abstained": True,
                      "reason": f"class memory unreadable: {type(e).__name__}: {e}",
                      "memory": "class_memory", "stamp": None, "standing": None})
-    return rows, None
+        # present but unreadable: the row above says why, not "absent"
+        cm_why = None
+    return rows, None, cm_why
 
 
 def resolve_recognised(row: dict, atoms: dict | None, bridge: list | None,

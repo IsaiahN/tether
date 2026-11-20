@@ -4561,6 +4561,26 @@ BOOKS: tuple[str, ...] = (
     # never recorded* are different readings, and this book exists to be read as a SHAPE.
     # It was written through a CONSTRUCTED key, so the grep-based guard could not see it.
     *(f"arrived_at_depth_{_i}" for _i in range(1, 10)),
+    # DECLARED AT THE m2 SEAT'S DEMAND (a zero must be visible). Each of these was written
+    # directly to gamma.book with no row here, so its zero read as ABSENT rather than as the
+    # fact it is. One line each: what ZERO means. The last three are written in gamma.py.
+    "win_credit",                       # zero: no term settled on a clearing segment
+    "fold_total",                       # zero: no table rows folded into a snapshot
+    "press_new",                        # zero: every press repeated a seen (action, cell)
+    "indifferent_refused",              # zero: no action-independent slot refused
+    "first_contact_own_askings",        # zero: no first-contact bet skipped an own slot
+    "probe_restart_withheld",           # zero: no restart action withheld from a probe
+    "press_carried",                    # zero: no kind_test (carried) press
+    "carried_reused",                   # zero: no term re-bound to its carried identity
+    "reset_refused",                    # zero: no reasonless RESET refused on a live board
+    "fade_ev_max",                      # zero: no evidence lists existed (empty max)
+    "fade_ev_total",                    # zero: no evidence events counted across lists
+    "fade_ev_nocontact",                # zero: no evidence event lacked raw contact
+    "fade_ctx_hit",                     # zero: categorizer cache never hit
+    "fade_ctx_miss",                    # zero: categorizer cache never missed
+    "contradictions",                   # zero: no settled term contradicted on a slot
+    "store_vind_n",                     # zero: no vindication in store-clock units
+    "store_vind_sum_ppm",               # zero: no vindicated ages summed
 )
 
 # why not the neighbouring bin. A bin without its discriminator is a label, not a diagnosis.
@@ -8711,7 +8731,13 @@ class Agent:
             if store.usable(p):                     # C2: else recorded, never offered
                 for e in p.attaches:
                     by_entry.setdefault(e, []).append(p.pid)
-        rd = {"store": store, "release": rel, "preloads": {p.pid: p for p in pre},
+        # Modules are never kept in agent state: copy.deepcopy(agent) must work (test_m2's
+        # warmed fixture deep-copies the agent), and a module object cannot be copied. Keep the
+        # plain module-level functions -- deepcopy returns a function as itself. Same behaviour.
+        fns = {"usable": store.usable, "merge_stats": rel.merge_stats,
+               "stats_from_rows": rel.stats_from_rows, "released": rel.released,
+               "reach_policy": rel.reach_policy, "priority": rel.priority}
+        rd = {"fns": fns, "preloads": {p.pid: p for p in pre},
               "by_entry": by_entry, "stats_n": {}, "released": set(), "offered": set(),
               "carried": {}, "rows": [], "policy": [], "released_at": {}, "levels": 0,
               "rank": {}, "term_entry": {}}
@@ -8725,18 +8751,19 @@ class Agent:
         rd = rd if rd is not None else self._rdl
         if rd is None:
             return
-        rel, store = rd["release"], rd["store"]
+        fns = rd["fns"]
         pre = list(rd["preloads"].values())
-        stats = rel.merge_stats(rd["carried"], rel.stats_from_rows(rd["rows"]))
+        stats = fns["merge_stats"](rd["carried"], fns["stats_from_rows"](rd["rows"]))
         try:
-            got = set(rel.released(pre, stats, inherited_settled=True, usable=store.usable))
+            got = set(fns["released"](pre, stats, inherited_settled=True,
+                                      usable=fns["usable"]))
         except TypeError:                           # a released() without the usable argument
-            got = set(rel.released(pre, stats, inherited_settled=True))
+            got = set(fns["released"](pre, stats, inherited_settled=True))
         new = got - rd["released"]
         for pid in new:
             rd["released_at"].setdefault(pid, rd["levels"])
         rd["released"], rd["rank"] = got, {}
-        rd["policy"] = rel.reach_policy(rd["rows"])
+        rd["policy"] = fns["reach_policy"](rd["rows"])
         self.led.record(getattr(self, "cycle", 0), "IMPORT", "@rdl", "rdl_release", at=at,
                         preloads=len(pre), released=len(got), newly=len(new),
                         entries=sum(1 for ps in rd["by_entry"].values()
@@ -8755,11 +8782,11 @@ class Agent:
             return ()
         got = rd["rank"].get(entry)
         if got is None:
-            rel, lv = rd["release"], rd["levels"]
+            fns, lv = rd["fns"], rd["levels"]
             best = None
             for pid in rd["by_entry"].get(entry, ()):
                 if pid in rd["released"]:
-                    k = rel.priority(rd["preloads"][pid], rd["policy"],
+                    k = fns["priority"](rd["preloads"][pid], rd["policy"],
                                      lv - rd["released_at"].get(pid, lv))
                     if best is None or k < best[0]:
                         best = (k, pid)
@@ -18369,8 +18396,8 @@ class Agent:
         return [s for s in readable if s not in um]
 
     def _indiff_book(self) -> None:
-        """r674 1: one refusal of a slot whose change does not depend on the action (undeclared in
-        BOOKS, so OFF stays exact)."""
+        """r674 1: one refusal of a slot whose change does not depend on the action. Booked only
+        while its arm is on; now declared in BOOKS, so its zero is visible (m2 seat)."""
         self.gamma.book["indifferent_refused"] = self.gamma.book.get("indifferent_refused", 0) + 1
 
     def _s2_plan_len(self) -> int:
@@ -18407,7 +18434,8 @@ class Agent:
         lib, forms, bk = self.gamma.library, {}, self.gamma.book
         slot_form: dict | None = None
 
-        def _fc_book(_b: dict, key: str) -> None:    # undeclared in BOOKS, so OFF stays exact
+        # booked only while its arm is on; declared so its zero is visible (m2 seat)
+        def _fc_book(_b: dict, key: str) -> None:
             bk[key] = bk.get(key, 0) + 1
         for n, fs in self.gamma.settled_forms.items():
             if n in self.gamma.carried and n in lib:
@@ -26944,7 +26972,7 @@ class Agent:
         Record only: no action choice reads it."""
         rs = self.__dict__.get("_rec")
         if rs is None:
-            rs = self._rec = {"sha": {}, "names": {}, "inert": False}
+            rs = self._rec = {"sha": {}, "names": {}, "inert": False, "cm_inert": False}
         pics = affordance.pictures(self.env, before)
         if not pics:
             if not rs["inert"] and not rs["sha"]:
@@ -26958,7 +26986,7 @@ class Agent:
             if rs["sha"].get(holder) == sha:
                 continue
             rs["sha"][holder] = sha
-            rows, why = affordance.recognise_rows(img)
+            rows, why, cm_why = affordance.recognise_rows(img)
             if why is not None:
                 if not rs["inert"]:
                     rs["inert"] = True
@@ -26973,6 +27001,12 @@ class Agent:
                                        "abstained: I can't say this is like something"))
                 if not d.get("abstained") and d.get("class") and holder not in rs["names"]:
                     rs["names"][holder] = d       # the first route that names it (shape first)
+            # An ABSENT class memory used to drop this route with no row at all (the hardcoded
+            # Windows path did so silently on Kaggle). Say so once per run, naming the reason.
+            if cm_why is not None and not rs["cm_inert"]:
+                rs["cm_inert"] = True
+                self.led.record(self.cycle, "PERCEIVE", "@recognised", "recognised_inert",
+                                reads=cm_why, route="class_memory")
 
     def _aff_see(self, before: dict) -> None:
         """A kind new this run whose shape_name resolves to a concept: affordance_prior rows."""
