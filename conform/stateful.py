@@ -678,11 +678,19 @@ def test_the_admitting_clause_crosses_into_gamma():
     # table read 31 against Gamma's 40 and called a correct crossing a defect. Read the
     # clause from the atom Γ actually installs; a stamp overwritten downstream still fails.
     handed = {a.name for a in atoms if a.admitted == HANDED}
+    # NEEDED (Isaiah 2026-11-20) is a THIRD clause, not a rename of clause one: atoms
+    # acquired during the lineage's life and later load-bearing. It must cross into Γ
+    # separately or the wipe cannot tell it from a handed head start or a birth prior.
+    from gamma import NEEDED
+    needed = {a.name for a in atoms if a.admitted == NEEDED}
     assert got.get(HANDED) == len(handed), (
         f"the admitting clause did not cross into Gamma: {got}. Every atom reads "
         f"`necessary` -- the category the ablation stays BLIND to -- while "
         f"`arc_atoms.ADMITTED` names {len(handed)} built atoms that were handed")
-    assert got.get(NECESSARY) == len(atoms) - len(handed), (
+    assert got.get(NEEDED) == len(needed), (
+        f"the NEEDED clause did not cross into Gamma: {got}. {sorted(needed)} were "
+        "acquired during the lineage's life and became load-bearing")
+    assert got.get(NECESSARY) == len(atoms) - len(handed) - len(needed), (
         f"the clause-one population is wrong: {got}. If this is `handed` for everything "
         f"the default inverted and the base vocabulary is filed in the WIPED category")
 
