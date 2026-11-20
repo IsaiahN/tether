@@ -278,3 +278,38 @@ Method (derive-first): residual (row calls the guard missing) -> figure line (Fi
 one-pass check") -> write site (characterise/key_of/fits + live call sites) -> anchor (F303
 collapse numbers in the code and check_paths assertions) -> round trip: row corrected.
 No ARC-game tuning, no check weakened.
+
+## 2026-11-20 — ImageNet to AKAZE, demonstrated end to end (opt-in, offline)
+
+The optional ImageNet class memory was previously only verified structurally (detector,
+header, inert rows). It is now DEMONSTRATED: ImageNet images built into an AKAZE memory and
+named back to the correct WordNet synset.
+
+- **Build**: one validation shard, six classes (`labels=[575,761,159,700,209,116]`),
+  `per_class=8`, offline into `C:\TETHER_RUNS\CLEANUP_2026-11-16\imagenet_val_small`.
+  Completed in **93 s**. Memory: 6 classes, 38,172 AKAZE centres, 2.2 MB npz, 6 WordNet synsets.
+- **Activation**: with `RDL_RECOGNITION_DIR` pointed at the built memory and
+  `IMAGENET_PARQUET_DIR` at the local data, `class_memory_status` returns
+  `active=True, classes=6, event=class_memory_active`.
+- **Recognition**: 6 source images from the same shard were named with the correct synset
+  (e.g. `n03445924`, `n01955084`, `n04074963`), RANSAC inliers 314–1,573, zero abstentions.
+  This is the same AKAZE index and vote/geometry path used by the shipped shape memory; only
+  the source images differ.
+
+Two builder defects were found and fixed while doing this, both measured:
+1. `build_from_parquet` materialized all image bytes of a shard into Python objects BEFORE
+   the `per_class` filter (`read_table(["image","label"]).to_pylist()`). A 458 MB validation
+   shard reached 2.96 GB RAM and 8+ min, while reading the label column alone took 0.1 s.
+   Fixed by choosing row indices from labels first and decoding only selected rows.
+2. Even fixed, an unfiltered full-shard proof (~974 classes, ~2,900 images) is a large
+   clustering job (~9 min CPU, 3.2 GB) — the centroid pass, not AKAZE. Added an optional
+   `labels` filter so a proof build can select a handful of classes; the six-class build took
+   93 s.
+
+Scope: this is a demonstration of capability for people who have ImageNet locally. Nothing
+was committed to the repo (the memory lives in a temp dir), the builder is offline-only and
+never on the agent path, the data was never uploaded, and real boards still carry no picture
+field so the route remains inert in the live task. No ARC-game tuning, no neural network.
+
+The 142.8 GB for the full 1,000-class train set is data, not training: the cost is reading
+and indexing example images once offline. The proof shows a subset takes seconds per class.
