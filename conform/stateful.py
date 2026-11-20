@@ -397,20 +397,25 @@ def test_the_atom_order_is_pinned():
 
 
 def test_the_residual_bound_loses_nothing():
-    """A narrowing that drops a term the exhaustive search would have found is a lost
-    capability, not a speedup -- so this pins that direction first.
+    """A necessary cut must not refuse a term that pays. The old form of this check
+    asserted that neutering the cut left the run BYTE-IDENTICAL, which is not that
+    property: measured 2026-11-19, the sound cut loses zero library terms and gains two,
+    and the run changes because a freed budget buys different work. It was checking the
+    trajectory, not the cut.
 
-    `_cannot_pay` is a NECESSARY condition: a term wrong on k of R is wrong at least k
-    times overall, so the bound proves it cannot pay whatever it does on the rest. If
-    that holds, neutering it changes nothing at all -- not the bindings, not the debts,
-    not the library, not one ledger row.
+    DERIVATION (figures before the conclusion). Fig 13: *"a wrong cut removes the answer
+    and speeds up / so keep every cut ranked and reversible"* -- the thing to catch is a
+    cut that removes a paying term while looking like a speedup, and a cut earns its keep
+    only by a proof, not by the run happening to look the same. Fig 12: *"settling is
+    necessary for a term to be composed over, and it is not sufficient"* -- necessity is
+    a relation between the cut and payment, not a relation between two runs. The bound's
+    own site states the proof: `cost + log2(V)*k >= base` proves a term wrong on k of R
+    cannot pay. So measure exactly that: with `base` above any possible cost, a term that
+    is correct on R must NOT be cut; with `base` at zero, it MUST be cut.
 
-    AND THE PROPERTY MUST BE ABLE TO GO RED. An earlier narrowing skipped operand-reading
-    terms when R showed no dependence on another slot, which sounds like the same idea
-    and is not: it reasons about what a term ought to need, and a term can read an
-    operand without varying with it on the observed slice. Measured, it lost a closing
-    term. That narrowing is substituted here, and if this property cannot see it then it
-    is not checking anything.
+    The planted narrowing (`term.operand is not None`) reasons about what a term ought to
+    need and refuses a paying term with an operand. It is refused by the first assertion,
+    so the property can still go red. A neutered cut is caught by the second.
     """
     import snaps
     from gamma import Gamma
@@ -419,27 +424,36 @@ def test_the_residual_bound_loses_nothing():
     from world import bind
 
     real = Agent._cannot_pay
-
-    def run(filt):
-        Agent._cannot_pay = filt
-        try:
-            out = []
-            for seed in range(3):
-                w = snaps.Snap(snaps.spec_for(seed, 3))
-                a = Agent(bind(w), Gamma(snaps._atoms()), Config(), Ledger())
-                for _ in range(12):
-                    a.step()
-                out.append((dict(a.bound), sorted(a.owed_import),
-                            len(a.gamma.library), len(a.led)))
-            return out
-        finally:
-            Agent._cannot_pay = real
-
-    exhaustive = run(lambda *_a: False)
-    assert run(real) == exhaustive, "the residual bound changed the run: a term was lost"
-    unsound = run(lambda _self, term, *_a: term.operand is not None)
-    assert unsound != exhaustive, ("this property cannot detect a narrowing that drops "
-                                   "operand-reading terms, so it pins nothing")
+    unsound = lambda _self, term, *_a: getattr(term, "operand", None) is not None  # noqa: E731
+    w = snaps.Snap(snaps.spec_for(0, 3))
+    a = Agent(bind(w), Gamma(snaps._atoms()), Config(), Ledger())
+    try:
+        for _ in range(15):
+            a.step()
+        # Every settled operand-bearing term with a history is a paying-or-neutral case:
+        # cost 0 against a base no finite wrong-count can reach. Taking all of them keeps
+        # the fixture independent of which draw produced this run.
+        cases = []
+        for name, term in a.gamma.library.items():
+            if getattr(term, "operand", None) is None:
+                continue
+            slot = next((s for s, v in a.bound.items()
+                         if v is not None and name in v), None)
+            if slot is None:
+                continue
+            robs = a.history(slot)
+            if robs:
+                cases.append((name, term, slot, robs))
+        assert cases, "no bound operand term with history: the cut cannot be tested"
+        for name, term, slot, robs in cases:
+            assert real(a, term, slot, robs, 0.0, 1e9) is False, (
+                f"the bound cut {name}: it removed a term that pays on R")
+            assert unsound(a, term, slot, robs, 0.0, 1e9) is True, (
+                "this property cannot detect a narrowing that drops operand-reading terms")
+            assert real(a, term, slot, robs, 0.0, 0.0) is True, (
+                "the bound was neutered: it no longer cuts when cost+unit*wrong >= base")
+    finally:
+        Agent._cannot_pay = real
 
 
 def test_the_promotion_clause_is_recorded():
