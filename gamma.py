@@ -79,6 +79,26 @@ INHERITED, LEARNED = "inherited", "learned"
 # substring `ON DEPTH` would be logic where a table belongs.
 HANDED = "handed"
 
+# NEEDED -- Isaiah, 2026-11-20: an atom ACQUIRED during the lineage's life that later
+# became load-bearing, so the loop cannot run without it. His case: kind, grew, shrank,
+# turned, scale, shape_name were added to group objects BY KIND and keep that kind
+# invariant when the thing grows, shrinks or rotates. His analogue is selection: a quirk
+# present in a few variants becomes required when the environment changes, and the
+# surviving lineage now carries it.
+#
+# THIS IS NOT `NECESSARY` AND NOT `HANDED`. NECESSARY is what the being ARRIVED WITH
+# (clause one, blind to the ablation). HANDED is a head start given from outside. NEEDED
+# was neither: it was selected by contact, then became a precondition. Fig 4 :21-22:
+# *the membrane ... is a filter with a direction. Only methods cross up.* A kind that
+# survives a transform is a METHOD, not a recording -- which is why it may cross into
+# the lineage. Fig 12 :69: *settling is necessary ... and it is not sufficient* -- a
+# necessity is not a claim about the win, so NEEDED is BLIND to the ablation (not wiped):
+# removing perception would not test composition, it would blind the agent. Fig 11 :14:
+# *nothing selects; what survives* -- it is earned again by each generation's ground.
+# Fig 4 :42: *What is recorded only grows* -- the clause is written at entry, because a
+# `prior` stamp cannot reconstruct which atoms were acquired and later became needed.
+NEEDED = "needed"
+
 # AN OPERAND TYPE HAS TWO FORMS AND ONE SENTINEL IS THE MINIMUM THAT SAYS SO. `recolour`
 # needs a COLOUR whatever slot it is applied to; `translate` needs whatever the TARGET is,
 # because `v + operand` is only meaningful between commensurable quantities. A single fixed
