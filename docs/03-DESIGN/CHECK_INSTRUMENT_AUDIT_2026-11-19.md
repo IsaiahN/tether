@@ -209,3 +209,39 @@ per-object / a miss starts inference; Fig 11 capability is agent-and-habitat; Fi
 unreachable is a verdict) → write site (`_htn_push` open-enabler gate) → ledger anchor
 (the two `repair_at_refusal` rows) → round trip (the refuter: a goal already satisfied at
 its own test cannot yield an open enabler). No ARC-game tuning, no code change.
+
+## 2026-11-20 — the two "ARC-blocking" rows are already done (audit correction)
+
+Both rows in the 06-INDEX audit were marked "BLOCKING FOR ARC" and "not started" in the
+2026-11-20 progress table. That was a stale reading of the audit doc, not the code. Verified
+at the write sites:
+
+1. **`actions()` is a fixed tuple; ARC's action set varies per frame.**
+   - `arc_world.py:678-679`: `def actions(self): """What the FRAME advertises, re-read every call."""`
+   - `tether.py:26899-26921`: the loop re-reads `now = tuple(self.env.actions())` every step,
+     refreshes `self.actions`, and writes an `advertised` row when a capability opens or closes
+     (`opened`/`closed`/`was`/`now`/`after`). The docstring at 26891-26898 states the exact
+     reasoning the audit row called missing: an action appearing or disappearing is a CONDITION
+     met or unmet, an observation and not bookkeeping.
+   - So action-set growth is read as the import/condition event the doctrine names; shrinkage
+     is recorded with the same `advertised` row.
+
+2. **`tried` has no state context (false abstention from a wall).**
+   - `probe.py:51`: `self.tried: dict[str, set] = {}  # action -> distinct states it was drawn from`
+     (blame: e23b4228, 2026-08-27; later refined by 8a6c05db "coverage test no longer compares
+     action NAMES above the seam").
+   - `probe.py:91-100`: `never_live` requires `covered(n_actions)`, and `covered` counts actions
+     tried from >= 2 DISTINCT STATES (`len(seen) > 1`), with the anchor reason inline: two states
+     is the smallest number that can separate a dead action from a positional artefact.
+   - `probe.py:102-105`: `trials()` publishes the evidence per action so the claim is checkable.
+
+So the capability the audit rows called "blocking" is present and was present before this audit.
+No code change is owed. The correction is to the RECORD: do not list these as outstanding work.
+The remaining ARC-facing gaps are the measured ones — T0 chain never completes (0/6), HTN
+triggers rarely fire, recognition/RDL inert on real boards — not these two contracts.
+
+Method carried (derive-first): residual (a row calls a capability missing) -> figure lines
+(Fig 11 :39-40 capability is agent-and-habitat, a claim about what the agent CAN reach) ->
+write site (arc_world.actions, tether advertised, probe.tried/covered) -> anchor (git blame and
+the inline reasoning) -> round trip: the row is corrected, the contract was already honoured.
+No ARC-game tuning, no check weakened.
