@@ -23,7 +23,8 @@ THIRD-PARTY (akaze / opencv):
   (https://github.com/sweeneychris/akaze-eigen), BSD 3-clause, Copyright (c) 2014 Chris Sweeney,
   Pablo Fernandez Alcantarilla, Jesus Nuevo -- NOT vendored; we call OpenCV's cv2.AKAZE_create.
 - ImageNet (https://image-net.org) terms of access: non-commercial research and educational use
-  only. Every ImageNet-derived memory stays LOCAL under DEFAULT_DIR and never enters the repository.
+  only. Every ImageNet-derived memory stays LOCAL under the dir named by the plain env var
+  RDL_RECOGNITION_DIR (default: the repo's shipped generated shapes) and is never committed.
 """
 
 from __future__ import annotations
@@ -31,13 +32,18 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
 
-# LOCAL ONLY: ImageNet-derived data never goes in the repository.
-DEFAULT_DIR = Path(r"C:\TETHER_RUNS\DATA_2026-11-16\recognition")
+# LOCAL ONLY: ImageNet-derived data never goes in the repository. The PLAIN env var
+# RDL_RECOGNITION_DIR (NOT a TETHER_ arm -- the arms seat forbids raw TETHER_ reads) names the
+# local dir; absent, the default is the repo's shipped generated shape memory, so Kaggle needs no
+# absolute path in the code. Local ImageNet files stay out of the repo (never committed).
+_SHIPPED_DIR = Path(__file__).resolve().parent / "library" / "shapes" / "memory"
+DEFAULT_DIR = Path(os.environ.get("RDL_RECOGNITION_DIR") or str(_SHIPPED_DIR))
 
 # ---- declared conventions (Fig 10: visible and movable, never claimed correct) ----
 # Hamming radius (bits, of AKAZE's 486-bit MLDB descriptor) within which two descriptors join one

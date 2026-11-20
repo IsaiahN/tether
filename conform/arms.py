@@ -2,6 +2,11 @@
 seat prints the count and how many are ON (this line said "eighteen, all default OFF" long after
 that stopped being true -- the reviewer 2026-10-30 r452 C), and nothing computed the sum.
 
+**MEASURED 2026-11-16 (audits at HEAD 31718e75): the registry below holds 525 arms, not
+"eighteen"/"21". The old headline is kept above as the historical note it is, not silently
+rewritten -- but a stale count is a defect in a statement a reader meets first, so the live
+one is stated here. The table under both is the exact part; the headline was the approximation.**
+
 **ENVIRONMENT SWITCHES ONLY, AND THE COUNT ABOVE IS THEREFORE NOT THE AGENT'S TOTAL --
 ANNOTATED 2026-09-28.** The detector is `os.environ.get("TETHER_X")`, so a capability switch
 that is a `Config` FIELD is invisible here. There is exactly ONE: `Config.accumulate`.
