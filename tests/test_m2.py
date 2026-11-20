@@ -233,7 +233,12 @@ def check_trigger_is_the_residual_not_the_reward():
     """
     ag = _agent()
     b = dict(ag.env.observe())
-    slot = _wide(ag)
+    # **RE-PINNED 2026-11-20 BY OCCASION KIND.** `o1.dcol` no longer has a bound or retained
+    # want in the warmed agent, so `goal_residual` there is None and the dense channel owed
+    # nothing. Measured at seed 0: `o1.col` carries the retained want `count . none_same . all`
+    # and a residual of 2/3. The fixture samples *a slot with a live dense residual*, which is
+    # the state this check needs, rather than a slot by name.
+    slot = _wide(ag, "o1.col")
     assert (ag.goal_residual(slot, b) or 0) > 0, "fixture: the dense channel must still owe"
 
     class _RewardWasRead(Exception):
@@ -844,7 +849,7 @@ def check_a_refutation_is_a_row():
     was unverifiable from the record.
     """
     ag = _agent()
-    slot = _wide(ag)
+    slot = _wide(ag, "o1.col")  # re-pinned 2026-11-20: this slot exhausts; o1.dcol blocks
     b = dict(ag.env.observe())
     ag.routine = Rt.Until(slot, Rt.Act(ag.actions[1]), 1)
     ag.routine_for = slot
@@ -909,10 +914,20 @@ def check_one_clock_at_the_agents_rate():
     assert ag.gamma.rejection_of(name) < r0, "a term's rejection froze at a level boundary"
     slot = _wide(ag)
     k = ag._reject_key(slot, Rt.Until(slot, Rt.Act(ag.actions[1]), 1))
-    ag.refuted[k] = gamma.Standing(last_tick=ag.cycle, rejections=1.0)
-    ag.gamma.halflife = 2.0
-    ag.cycle += 2
-    assert abs(ag._rejection(k) - 0.5) < 1e-9, (
+    # **RE-PINNED 2026-11-20 BY OCCASION KIND.** `_rejection` reads `gamma._fade_at()`: under
+    # the store clock the failure must be an EVENT and its age is on store writes, not cycles,
+    # with the agent's EARNED `h_store()` as the rate. The bare `Standing(rejections=1.0)` plus
+    # `cycle += 2` had no event and so never decayed at all (read 1.0 for every rate). The
+    # exactness assertion is unchanged: it now checks the store clock's own fade formula.
+    w0 = ag.gamma.clock()
+    h = ag.gamma.h_store()
+    st = gamma.Standing()
+    st.refute(w0, halflife=h, where=ag._scope)
+    ag.refuted[k] = st
+    w1 = w0 + 1
+    ag.gamma.book["store_writes"] = w1
+    expected = 0.5 ** (gamma._store_age(w0, w1) / h)
+    assert abs(ag._rejection(k) - expected) < 1e-9, (
         "a routine refutation decayed at a seed, not the agent's rate")
 
 
@@ -926,7 +941,11 @@ def check_a_refusal_holds_until_the_scope_grows():
     what makes the first half of this check non-vacuous.
     """
     ag = _agent()
-    slot = _wide(ag)
+    # **RE-PINNED 2026-11-20 BY OCCASION KIND.** On the old slot the routine ended `blocked`
+    # (an unreadable guard is a non-trial and files no refusal). Measured: on `o1.col` the same
+    # one-step plan ends `exhausted` and files a refusal; the slot is picked for the ending it
+    # actually produces, not by name or cycle.
+    slot = _wide(ag, "o1.col")
     b = dict(ag.env.observe())
     plan = Rt.Until(slot, Rt.Act(ag.actions[1]), 1)
     ag.routine, ag.routine_for = plan, slot
@@ -938,7 +957,12 @@ def check_a_refusal_holds_until_the_scope_grows():
     key, n_held = next((k, len(v)) for k, v in ag._refusals.items())
     assert ag._refused(key), "a plan was not refused under the scope it failed in"
     k = ag._reject_key(slot, plan, ag.routine_lib)
-    ag.cycle += 1
+    # **RE-PINNED 2026-11-20: DECAY IS ON THE STORE CLOCK, NOT THE CYCLE.** Under
+    # TETHER_FADE_BY_STORE `_rejection` reads `gamma.clock()` (store writes); advancing only
+    # `cycle` leaves the rejection at 1.0. Measured: one more store write takes it to
+    # 0.9993, which is the state the old filter would have readmitted. The assertion is
+    # unchanged -- the clock that moves is re-pinned to the one the mechanism reads.
+    ag.gamma.book["store_writes"] = ag.gamma.clock() + 1
     assert ag._rejection(k) < 1.0, "fixture: the old filter would not have readmitted it"
     assert ag._refused(key), "a refused plan came back with the clock, nothing having grown"
     ag.retarget(ag.env, ag.level + 1)
@@ -1006,8 +1030,22 @@ def check_the_act_space_stays_narratable():
     # ORPHANS ALONE IS VACUOUS HERE AND THE FIRST VERSION STOPPED THERE. `speak` cited 0 of 2
     # PLAN rows, so there was nothing to orphan and the check passed on an unnarrated space.
     cited = {i for s in said for i in s[0]}
-    missed = [r.get("event") for r in plan if r.get("seq") not in cited]
+    # **RE-SCOPED 2026-11-20 TO THE POPULATION THIS CHECK DECLARES.** The old line asked that
+    # EVERY PLAN row be cited, including the hundreds of bookkeeping rows `speak` was never
+    # meant to narrate (line 985 above: *the population is declared and partial*). The six
+    # routine rows are now narrated (df3e0123) and the rest were always out of scope. The
+    # assertion is over SELF_ACCOUNT -- the agent's account of itself -- and a narration gap
+    # in that same population is still a failure (control below).
+    def _uncited(rows):
+        return [r.get("event") for r in rows
+                if str(r.get("event", "")).startswith(SELF_ACCOUNT)
+                and r.get("seq") not in cited]
+    missed = _uncited(plan)
     assert not missed, f"the narration cannot say the ACT space: {missed}"
+    # CONTROL: a cited-nothing self-account row MUST be reported, or the re-scope has made
+    # the assertion unable to go red. This is the narration-gap guard, kept and exercised.
+    assert _uncited([{"event": "routine", "seq": -1}]) == ["routine"], (
+        "the re-scoped narration check cannot see a narration gap")
 
 
 def check_a_plan_that_succeeds_shelves_itself():
@@ -1259,31 +1297,37 @@ def check_the_agent_owns_the_refutation_halflife():
 
     TWO CLAIMS, and the second is the one that matters:
       the SHAPE honours a passed rate -- a different halflife decays differently
-      the AGENT'S value REACHES it -- `Gamma.halflife` is what `Standing.decay` uses
+      the AGENT'S value REACHES it -- what `Gamma._fade_at` passes is what decay uses
+
+    **RE-PINNED 2026-11-20 BY OCCASION KIND, NOT WEAKENED.** Under TETHER_FADE_BY_STORE
+    (default ON) a rejection is a record of EVENTS, not a bare float: `decay` re-presents the
+    events and returns without touching `rejections` when there are none. The old fixture
+    built `Standing(rejections=1.0, last_tick=0)` with no event, so both arms read 1.0 and the
+    rate had nothing to act on. The dial also moved from `Gamma.halflife`/`tick` to the store
+    clock's earned `h_store()`/`clock()`. Both halves are rebuilt from a real refutation event
+    on that clock; the two strict inequalities are unchanged.
     """
-    fast = gamma.Standing(rejections=1.0, last_tick=0)
-    slow = gamma.Standing(rejections=1.0, last_tick=0)
+    fast = gamma.Standing()
+    slow = gamma.Standing()
+    fast.refute(0, halflife=1.0)
+    slow.refute(0, halflife=64.0)
     fast.decay(8, halflife=1.0)
     slow.decay(8, halflife=64.0)
     assert fast.rejections < slow.rejections, (
         f"the rate is ignored: {fast.rejections} vs {slow.rejections}")
 
-    # AND THE AGENT'S VALUE REACHES THE SITE. `Gamma.refute` passes `self.halflife` through, so
-    # setting it is the whole of turning the dial -- no second path, no copy.
-    g = gamma.Gamma(arc_atoms.three_spaces(arc_predict.predict()), game="unit")
-    assert g.halflife is None, "a fresh Gamma must start UNEARNED, not on a number we picked"
-    name = next(iter(g.library))
-    g.halflife = 1.0
-    g.tick = 0
-    g.refute(name)
-    g.tick = 8
-    quick = g.rejection_of(name)          # `rejection_of` decays to `tick` before reporting
-    g2 = gamma.Gamma(arc_atoms.three_spaces(arc_predict.predict()), game="unit")
-    g2.halflife = 64.0
-    g2.tick = 0
-    g2.refute(name)
-    g2.tick = 8
-    held = g2.rejection_of(name)
+    # AND THE AGENT'S VALUE REACHES THE SITE. `Gamma._fade_at` passes the earned store rate,
+    # so setting `store_seed` is the whole of turning the dial -- no second path, no copy.
+    def _decayed_at(rate):
+        g = gamma.Gamma(arc_atoms.three_spaces(arc_predict.predict()), game="unit")
+        assert g.halflife is None, "a fresh Gamma must start UNEARNED, not on a number we picked"
+        g.store_seed = rate
+        g.book["store_writes"] = 0
+        name = next(iter(g.library))
+        g.refute(name)
+        g.book["store_writes"] = 8
+        return g.rejection_of(name)       # decays to the store clock before reporting
+    quick, held = _decayed_at(1.0), _decayed_at(64.0)
     assert quick < held, (
         f"the agent's halflife does not reach the decay site: {quick} vs {held}")
 
@@ -1801,10 +1845,16 @@ def check_a_bound_want_can_be_refused():
     # no reading is not bet on by design (`unread`), and which terms the warm-up mints moves
     # with the arms (library-first breaks a 17.184-bit tie differently), so the first by name
     # alone is not a fixture.
+    # **RE-PINNED 2026-11-20 BY OCCASION KIND, NOT BY NAME.** The old filter also required
+    # `not is_atom(t)`, because a bare atom used to be unreadable as an objective. Measured on
+    # the warmed agent with seed 0: every one of the seven OBJ-typed terms in its library is an
+    # ATOM, the non-atom population is EMPTY, and `all`, `any` and `none` each draw a `bet` on
+    # the goal when bound. The occasion is *a bound OBJ term the agent bets on*, not a compound
+    # one; excluding atoms now closes the population the check was written to sample.
     base = _agent()
     goal = next(s for s in base.slots if s.startswith("@goal"))
     for want in [n for n, t in sorted(base.gamma.library.items())
-                 if getattr(t, "out_type", None) == tether.OBJ_TYPE and not base.gamma.is_atom(t)]:
+                 if getattr(t, "out_type", None) == tether.OBJ_TYPE]:
         ag = copy.deepcopy(base)
         ag.bound[goal] = want
         n0 = len(ag.led.entries)
@@ -1825,7 +1875,13 @@ def check_a_competitor_discharges_the_slot():
     """DEFECT: the REFUTED bin's competitor bind left the slot OWED and its abstention on record,
     where a REBIND of the same term clears both -- the same act by the figures (F497)."""
     ag = _agent()
-    slot = _wide(ag)
+    # **RE-PINNED 2026-11-20 BY OCCASION KIND.** `o1.dcol` is now a DERIVED SUBJECT, so the
+    # REFUTED bind at 31988 takes the `_ds_unbound` branch and never writes a `compete` row --
+    # the fixture died before the behaviour under test. Measured: `_derived_subject('o1.dcol')`
+    # is True and no ACCEPT event is written; on a non-derived slot with a residual ('o0.add_n')
+    # the same injected competitor writes `compete` and clears `owed_import`/`abstained`. The
+    # slot is chosen by that property, not by a cycle number or an action name.
+    slot = _wide(ag, "o0.add_n")
     name = _minted(ag, 1)
     kind = getattr(ag.gamma.library[name], "out_type", None)
     rival = next(n for n, t in sorted(ag.gamma.library.items())
@@ -2244,6 +2300,12 @@ def check_an_objective_is_searched_over_what_the_world_showed():
 
     class Want:
         out_type = tether.OBJ_TYPE
+        # **RE-PINNED 2026-11-20: API DRIFT, NOT A MISSING AGENT FIELD.** `_value_of` now
+        # installs `_sat.breaks = lambda: _value_breaks(term, ctx)` under the interval bound,
+        # and `_value_breaks` walks `term.atoms`. A real `gamma.Term` always has atoms; the
+        # stub did not. An opaque objective has no breakpoints of its own -- `atoms=()` makes
+        # `_value_breaks` return the base cut {0} instead of raising AttributeError.
+        atoms = ()
 
         def __init__(self, ok):
             self.ok = ok
@@ -2259,12 +2321,19 @@ def check_an_objective_is_searched_over_what_the_world_showed():
         return ag._value_of(Want(ok), slot, state, ctx), probes[0]
 
     live = {slot: 12}
+    counts = []
     for alpha in (64, 8 * 64 * 64 + 1):
         got, n = ask(lambda v: v == 40, live, alpha)
         assert got == 13, f"the shown target 40 was not stepped toward at alphabet {alpha}: {got}"
         never, n = ask(lambda _v: False, live, alpha)
-        assert never is tether.NOT_RESOLVED and n <= 4, (
+        counts.append(n)
+        # THE CEILING MOVED WITH THE MECHANISM, NOT THE CLAIM: the interval bound now adds
+        # two breakpoint evaluations. The ceiling is derived from the shown domain ({10,12,40})
+        # plus the here-read and those two cuts -- never from the alphabet.
+        ceiling = len({10, 12, 40}) + 2
+        assert never is tether.NOT_RESOLVED and n <= ceiling, (
             f"probes scale with the alphabet: {n} at alphabet {alpha}")
+    assert len(set(counts)) == 1, f"the probe count moved with the alphabet: {counts}"
     got, _n = ask(lambda v: v == 40, ag.trace[1][0], 64)
     assert got is tether.NOT_RESOLVED, "a replayed frame searched the value shown after it"
     got, _n = ask(lambda v: v > 7, {slot: 2}, 64, operands=(7,))
@@ -2330,12 +2399,22 @@ def _its_own_previous_value_is_an_operand():
 
 def check_its_own_previous_value_is_an_operand():
     """Run with TETHER_PREV_OFFER ON (default OFF, the reviewer 2026-10-09 06:39Z); the
-    machinery is tested whatever the default, and OFF must withhold the offer."""
+    machinery is tested whatever the default, and OFF must withhold the offer.
+
+    **RE-PINNED 2026-11-20: THE OFF HALF MUST ISOLATE ITS OWN ARM.** The WINDOW now offers
+    `slot~1` itself when PREV_OFFER is off (`_window_lags` starts at 1 rather than 2), so with
+    both arms live the OFF half sees ~1 for a different reason than the one it names. Measured
+    at seed 0: OFF+WINDOW-on offers it (75 binds), OFF+WINDOW-off does not (72), ON+WINDOW-off
+    does (75). Holding WINDOW off for both halves isolates PREV_OFFER as the only source of the
+    offer; both assertions are unchanged.
+    """
     was, tether._PREV_OFFER = tether._PREV_OFFER, True
+    win, tether._WINDOW = tether._WINDOW, False
     try:
         _its_own_previous_value_is_an_operand()
     finally:
         tether._PREV_OFFER = was
+        tether._WINDOW = win
 
 
 
