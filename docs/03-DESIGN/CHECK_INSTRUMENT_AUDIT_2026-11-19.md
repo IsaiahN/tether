@@ -152,3 +152,60 @@ Pass = goal → refusal → repair row → subgoal → goal again → clear, in 
 - **`check_the_suite_reaches_the_hard_cases`** — REAL, LEFT RED. It correctly reports `unadvertised` not reached. Cause is a *different quiet check*, `check_only_a_trial_refutes` (test_m2.py:828), which plants on the derived slot o1.dcol (guard unreadable → ends `blocked`) and never asserts the outcome, so it stays green. Fix the companion, not the tripwire (being done on wip/m2-redfix).
 - **Seven stale instruments** — measured re-pins with controls intact: claim/spent sample a slot absent from observe(); two DONE-shelving checks assume one zero ends a guard (GQ3 needs two consecutive); one-bargain and shelf-runnable stall at `discrepancy NOT_RESOLVED` on o1.dcol; library-winner has no moved winner in this world. Being applied on wip/m2-redfix.
 - **`check_can_gates_until`** — NEEDS-DESIGN, LEFT RED honestly. Measured at seed 0: `o0.add_n`/`o0.rem_n` have `can=yes` but `disc=0`; `o1.col` has `disc=1` but `can=unknown`; `o1.dcol` has `can=unknown`/`disc=NOT_RESOLVED`. **No slot has can=YES ∧ positive gap ∧ goal target simultaneously.** I probed installing a goal hypothesis on o1.col (the agent's own record): that makes `can=yes` honestly, but only by driving disc to 0 — the tension is structural, not a field swap. `can=YES` requires the slot to hold its goal now (disc=0), have a route from the delta table, or a bound term with observed motion toward the target; none co-occurs with a positive gap in this fixture. Resolving it needs a NEW OCCASION (a world where the objective is reachable-but-not-yet-held with a known route) or a ruling to re-scope — not a weakened assertion. The guard mechanism itself is intact at tether.py:26018-26027, with an exercised control: deleting the `all(can(g)==YES ...)` clause makes a guarded candidate commit. No ARC-game tuning.
+
+## T0 chain-stop diagnosis — READ ONLY, no code changed (2026-11-20)
+
+Question: in the full T0 run (0/6 pass), why does the chain reach repair but never produce
+a subgoal? Answer traced to the write site and the actual T0 ledgers.
+
+### The chain as measured
+Goal and goal-again on 6/6 games; refusal on 5/6; repair on 3/6; **subgoal 0/6; clear 0/6**.
+On the two games that repaired (ka59, lf52), the `repair_at_refusal` row reads:
+
+    ka59: {pushed: False, subgoal: None, text: 'o1.rem_n > 0', touches: 1, why: 'arrived_no_clear'}
+    lf52: {pushed: False, subgoal: None, text: 'o3.add_n == o2.add_n', touches: 2, why: 'arrived_no_clear'}
+    reads: "the goal was refused at its own test and no open condition was found to pursue first"
+
+### Where it stops (tether.py, traced)
+- `repair_at_refusal` is emitted at tether.py:11548-11588 only when a goal ends
+  `arrived_no_clear` (or stalled with touches), calling `_repair_refused`.
+- `_repair_refused` (11552) sets `pushed = bool(_HTN and _SUBGOAL and self._htn_push(slot, when="refused"))`.
+  Both arms default ON; so `pushed=False` means `_htn_push` returned False.
+- `_htn_push` (16782) builds candidate subtasks from `_enablers(chosen)` plus, when
+  `when=="refused"`, `_contact_candidates(chosen)`; it keeps only slots `b` with
+  `b in self._res` AND `arrival(self._res[b]) == OPEN` AND not on the task stack AND not
+  already tried (line 16800-16803). **If no such slot exists it returns False (16804-16805).**
+
+### The concrete reason on ka59 / lf52
+The preceding `goal_series` row shows the goal's own series are already RESOLVED/SATISFIED,
+not OPEN:
+- ka59: `o1.rem_n: [0.0, 0.0]` → satisfied; `o14.add_n: [1.0, 0.…]` → resolved.
+- lf52: `o2.add_n: [0.0039, 0.0, 0.0]`, `o3.add_n` → both satisfied.
+
+So at the refusal the goal has already reached its own target — the board simply did not
+clear. Every open-enabler candidate is either resolved/satisfied, on the stack, or already
+tried, so `_htn_push` finds no OPEN slot and returns False. The agent has nothing it can
+name as "the missing condition" — correctly, because its own record says there isn't one.
+The refusal is `arrived_no_clear`: the objective was met but the level did not advance.
+
+### What this means (and does not)
+This is NOT a broken repair primitive — the mechanism fires and honestly reports it found
+no open condition. It is a GAP between the agent's goal (a slot condition it achieved) and
+the game's actual clear condition (something else the board required). The agent's goal was
+too local: it satisfied `o1.rem_n > 0` / `o3.add_n == o2.add_n` and expected a clear.
+
+Two honest readings, neither a tuned fix:
+1. **Goal formation** proposes a condition that is satisfiable without being the game's
+   clear condition. The T0 pass criterion demands the chain on one board; this goal is a
+   plausible but insufficient proxy.
+2. **The clear signal** `arrived_no_clear` is itself informative — the agent DID reach its
+   goal and the ground said "not enough." A next design (Fig 9 :"a miss starts the
+   inference cycle") would make `arrived_no_clear` re-open the goal rather than try to
+   decompose it — but that is a design change for Isaiah, not a patch.
+
+### Method carried
+This is derive-first: residual (repair with no subgoal) → figure lines (Fig 9 the gap is
+per-object / a miss starts inference; Fig 11 capability is agent-and-habitat; Fig 13
+unreachable is a verdict) → write site (`_htn_push` open-enabler gate) → ledger anchor
+(the two `repair_at_refusal` rows) → round trip (the refuter: a goal already satisfied at
+its own test cannot yield an open enabler). No ARC-game tuning, no code change.
