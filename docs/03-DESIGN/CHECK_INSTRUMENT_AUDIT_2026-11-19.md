@@ -245,3 +245,36 @@ Method carried (derive-first): residual (a row calls a capability missing) -> fi
 write site (arc_world.actions, tether advertised, probe.tried/covered) -> anchor (git blame and
 the inline reasoning) -> round trip: the row is corrected, the contract was already honoured.
 No ARC-game tuning, no check weakened.
+
+## 2026-11-20 — the "HIGHEST PRIORITY" retrieval row is already implemented
+
+The 06-INDEX audit row "retrieval by characterised residual — open, HIGHEST PRIORITY, the
+only open row where a specified guard is missing" was written before the mechanism landed.
+Verified at the write sites today:
+
+- The specified keys are all present. `retrieval.characterise` (retrieval.py:38) publishes
+  arity, `varies`, `varies_types`, `invariant` and `n`, computed from the residual and scoped
+  to the object — types and arity, never ids (Fig 9 form). `retrieval.key_of` (:98) publishes
+  the term's type signature, arity, reads and reaches. `retrieval.fits` (:142-201) scores in
+  one pass: type signature (2), arity (1), aimed-at-a-varying-slot (1), relational effect (1).
+- The collapse the row feared is documented as fixed in the code's own comments: the old
+  `aimed = bool(varies)` read 154/154 gaps as aimed (87.3% collapse onto arity); the scoped
+  `varies_types` key brought it to median 0%, 92/102 objects changing nothing (F303,
+  retrieval.py:51-60, 187-195).
+- It is wired into the LIVE path, not a proposal: `tether.py` imports retrieval (:49) and
+  calls `characterise` at :7893, :18931, :25675, :28874; `retrieve` at :19090; `fits` at
+  :29050. `shape_order.py` fits the whole chain; `inherited.py:358` derives the tier bound
+  from fits' 0..5 range. `check_paths.py:45-69` asserts the type-scoped key is identical across
+  different slots and instances and that an empty residual reads n=0.
+- The structure hash that landed this session is complementary (a stable hash of term FORM
+  for provenance), not the retrieval guard.
+
+So no code change is owed for this row. The correction is to the RECORD: it is done, not open.
+The genuinely open retrieval-adjacent rows are "no gating on the library" and "IMPORT/step 7
+OUTWARD", which are separate and were not claimed here.
+
+Method (derive-first): residual (row calls the guard missing) -> figure line (Fig 9 :26-29
+"R's own predicates name the habitat... describe it before you go looking... matching is a
+one-pass check") -> write site (characterise/key_of/fits + live call sites) -> anchor (F303
+collapse numbers in the code and check_paths assertions) -> round trip: row corrected.
+No ARC-game tuning, no check weakened.
