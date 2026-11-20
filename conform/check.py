@@ -206,20 +206,36 @@ NEVER_STARTED = ("can't open file", "No module named", "cannot find the file")
 # decided pass from DID-NOT-RUN.
 STAGE_TIMEOUT = 180
 
+# ISAIAH, 2026-11-20: "per-stage timeouts from measurement". The default above keeps its
+# 2026-09-28 anchor for the ordinary seats. Two seats are an order of magnitude slower,
+# and one global value large enough for them would let every other hung stage run for
+# that long before being reported. A DATA table keyed by stage name, not logic: adding a
+# row is recording a measurement, not widening a rule quietly.
+STAGE_TIMEOUTS: dict[str, int] = {
+    # Measured 2026-11-20: `conform/lint.py` ran 1261.6s (21m01s) over 323 files.
+    # 1900s is ~50% headroom, the same margin as the 180s anchor above. A single global
+    # value this large would hide every other hung stage behind it, hence the table.
+    "lint": 1900,
+    # Measured 2026-11-19: full `tests/test_m2.py` ~16 min (960s) with the agent's draw
+    # pinned; the same order unpinned. 1500s keeps the anchor's ~50% headroom.
+    "m2": 1500,
+}
 
-def run_stage(argv: list[str], needs: Path | None = None) -> tuple[str, str]:
+
+def run_stage(argv: list[str], needs: Path | None = None,
+              timeout: int = STAGE_TIMEOUT) -> tuple[str, str]:
     """(status, detail). DID-NOT-RUN is its own state: a stage that could not start has
     not passed, and folding it into a FAIL asserts a cause that was never observed."""
     if needs is not None and not needs.exists():
         return "DID-NOT-RUN", f"{needs.name} does not exist"
     try:
         p = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True,
-                           timeout=STAGE_TIMEOUT,
+                           timeout=timeout,
                            creationflags=getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0))
     except FileNotFoundError as e:
         return "DID-NOT-RUN", f"{type(e).__name__}: {e}"
     except subprocess.TimeoutExpired:
-        return "DID-NOT-RUN", f"timed out after {STAGE_TIMEOUT}s"
+        return "DID-NOT-RUN", f"timed out after {timeout}s"
     if p.returncode == 0:
         return "ok", ""
     if p.returncode == 2:
@@ -243,7 +259,7 @@ def run_stage(argv: list[str], needs: Path | None = None) -> tuple[str, str]:
 
 
 def main(argv: list[str]) -> int:
-    results = [(name, *run_stage(cmd, needs), why)
+    results = [(name, *run_stage(cmd, needs, STAGE_TIMEOUTS.get(name, STAGE_TIMEOUT)), why)
                for name, cmd, why, needs in STAGES]
     bad = [r for r in results if r[1] != "ok"]
 

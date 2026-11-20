@@ -39,9 +39,60 @@ sys.dont_write_bytecode = True
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TARGET = ROOT / "tether.py"
 
-# The names that hold a history/trace-shaped sequence. DATA, not logic -- a table can be
-# pinned and read, a condition widens quietly.
+# The PARAMETER names that may hold a history/trace-shaped sequence. 2026-11-19: this
+# table used to be read as "any mention of one of these names anywhere in an iterable is
+# a record", which flagged a 2-field unpack of `obs` where `obs` was the fifth field of
+# a `contact` tuple (tether.py:3678) and a deliberate trailing-star discard (8029). A
+# name alone is not evidence of a record: it must be a parameter with one of these names
+# or be ASSIGNED from a producer below. DATA, not logic -- a table can be pinned.
 SOURCES = {"hist", "robs", "obs", "trace"}
+
+
+def _names(node) -> set[str]:
+    out: set[str] = set()
+    for n in ast.walk(node):
+        if isinstance(n, ast.Name):
+            out.add(n.id)
+        elif isinstance(n, ast.Attribute):
+            out.add(n.attr)
+    return out
+
+
+def _record_names(fn, want: int | None) -> set[str]:
+    """Names in ONE function that provably hold a history/trace record.
+
+    A parameter named in SOURCES is a record by the function's own contract. A local is
+    one only when assigned from `history()`, `_residual_obs`, `self.trace`, or an
+    expression already built from a record (a filtered/derived list). An ordinary local
+    named `obs` is NOT a record -- that name collision was 26 false findings.
+    """
+    rec = {a.arg for a in (*fn.args.args, *fn.args.kwonlyargs, *fn.args.posonlyargs)
+           if a.arg in SOURCES}
+    for n in ast.walk(fn):
+        if not isinstance(n, ast.Assign) or len(n.targets) != 1:
+            continue
+        tgt, val = n.targets[0], n.value
+        if not isinstance(tgt, ast.Name):
+            continue
+        produced = (isinstance(val, ast.Call) and isinstance(val.func, ast.Attribute)
+                    and val.func.attr in ("history", "_residual_obs"))
+        produced = produced or (isinstance(val, ast.Attribute) and val.attr == "trace")
+        # A filtered/derived list of records is itself a record -- but ONLY through a
+        # comprehension over a known record. A broad "mentions a record anywhere"
+        # rule made ordinary 2- and 4-tuples (`r`, `_v`, `best`) look like history rows.
+        if isinstance(val, (ast.ListComp, ast.SetComp, ast.GeneratorExp)):
+            over_record = any(
+                (isinstance(g.iter, ast.Name) and g.iter.id in rec)
+                or (isinstance(g.iter, ast.Attribute) and g.iter.attr == "trace")
+                for g in val.generators)
+            # A projection to a DIFFERENT tuple shape is a new record with its own
+            # contract, not a history row: `_unbundle` builds 3-tuples from trace rows.
+            preserves = isinstance(val.elt, ast.Name) or (
+                isinstance(val.elt, ast.Tuple) and len(val.elt.elts) == want)
+            produced = produced or (over_record and preserves)
+        if produced:
+            rec.add(tgt.id)
+    return rec
 
 
 def _width_of_record(tree) -> int | None:
@@ -66,24 +117,43 @@ def _owner(fns, ln):
 
 def _sites(src: str):
     tree = ast.parse(src)
-    fns = [(n.lineno, n.end_lineno, n.name) for n in ast.walk(tree)
+    fns = [(n.lineno, n.end_lineno, n.name, n) for n in ast.walk(tree)
            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
     found = []
+    _rec_cache: dict[int, set[str]] = {}
 
-    def names(node):
-        out = set()
-        for n in ast.walk(node):
-            if isinstance(n, ast.Name):
-                out.add(n.id)
-            if isinstance(n, ast.Attribute):
-                out.add(n.attr)
-        return out
+    def is_record(itr, ln) -> bool:
+        owner = next((f for f in fns if f[0] <= ln <= f[1]), None)
+        if owner is None:
+            return False
+        if owner[3] not in _rec_cache:
+            _rec_cache[owner[3]] = _record_names(owner[3], want)
+        rec = _rec_cache[owner[3]]
+        # The iterable must BE a record name, not merely mention one in a subscript,
+        # a field unpack, or a nested expression. `self.trace` is a record directly.
+        if isinstance(itr, ast.Name):
+            return itr.id in rec
+        if isinstance(itr, ast.Attribute):
+            return itr.attr == "trace"
+        return False
+
+    want = _width_of_record(tree)
 
     def add(ln, tgt, itr):
-        if not isinstance(tgt, ast.Tuple) or not (names(itr) & SOURCES):
+        if not isinstance(tgt, ast.Tuple) or not is_record(itr, ln):
             return
-        star = any(isinstance(e, ast.Starred) for e in tgt.elts)
-        found.append((ln, _owner(fns, ln), len(tgt.elts), star))
+        elts = tgt.elts
+        # A TRAILING star (`first, *_rest`) anchors the named field to element 0 and
+        # discards the tail -- safe under a widening, so it is not a finding unless the
+        # named prefix already exceeds the record's width. A LEADING or MIDDLE star
+        # (`*_head, last`) shifts every name after it onto a different field, which is
+        # the silent rebind this seat exists to catch.
+        trailing = bool(elts) and isinstance(elts[-1], ast.Starred)
+        star = any(isinstance(e, ast.Starred) for e in elts[:-1])
+        named = len(elts) - 1 if trailing else len(elts)
+        if trailing and not star and want is not None and named <= want:
+            return
+        found.append((ln, _owner(fns, ln), named, star))
 
     for n in ast.walk(tree):
         # COMPREHENSIONS TOO. The first census of this class walked only `For` nodes and
@@ -124,7 +194,7 @@ def _self_test(src: str) -> list[str]:
         ("short", src.replace("        for state, action, actual, intent, landed in hist:",
                               "        for state, action, actual in hist:", 1)),
         ("starred", src.replace("        for st, _a, _v, _intent, _landed in robs:",
-                                "        for st, _a, _v, *_ in robs:", 1)),
+                                "        for *_head, _landed in robs:", 1)),
     ):
         if hurt == src:
             out.append(f"self-test could not reintroduce the {name} defect -- anchor missing")

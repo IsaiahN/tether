@@ -103,3 +103,27 @@ The first `conform/panel.py --produce` call was moved to background by a shell c
 | `check_a_zero_act_routine_still_ends_at_planning` | 4/8 | 6/8 |
 
 Both columns vary in the same range, so the draw is the variable and Python hashing is not. This is the measured basis for the erratum above: an m2 count taken with a fresh draw is a reading from one draw, not a property of the agent; pinning `TETHER_AGENT_SEED=0` makes it 48/68 reproducibly. No repository code or test was pinned as a result — only the measurement's arm state is named.
+
+## The atom registry gap (Isaiah's question, 2026-11-20)
+
+Measured, not asserted. `library/given.json` (the immutable GIVEN corpus) reconstructs `agent_atoms.json` with **79 declared atoms**. `arc_atoms.three_spaces(arc_predict.predict())` builds **84 atoms** under all arms. Eight built atoms are absent from the corpus registry:
+
+    below    subtract   -- already carry a `handed` reason in arc_atoms.ADMITTED
+    grew     kind  scale  shape_name  shrank  turned
+             -- no admission clause; Gamma therefore stamps them NECESSARY
+
+This is **not** game learning and **not** RDL. Playing a game and RDL preloads add TERMS to Γ's library; ATOMS are the irreducible vocabulary installed at construction. These eight are code-side atoms added after the corpus was written, with no entry record.
+
+Why it matters: the terminal condition's ablation partitions entries by *which clause admitted them*. NECESSARY is the category the ablation stays BLIND to. If an atom we handed the agent is silently stamped NECESSARY, the wipe cannot remove it and the agent appears to have composed what it was given. The project's own rule requires the admitting clause to be written **as entries happen**, because it cannot be reconstructed later from a `PRIOR` stamp.
+
+Rectification (proposed, needs Isaiah's ruling on the six):
+1. Add a WORKING registry `library/atom_births.json` recording name, admitting clause, date/commit, in/out type, form, reading and tags for every post-GIVEN atom.
+2. Have `libagree.load()` compare code-built atoms against GIVEN **∪** births, so `(a)` stops reporting eight false absences while real drift still fires.
+3. Port the two existing `handed` reasons verbatim — no new judgement there.
+4. Rule on the six clause-less attributes: if the loop cannot run without them, stamp NECESSARY **with a recorded reason**; if a measurement named them, stamp ON DEPTH / HANDED with that reason. Either way the clause must be recorded now, or the WIPE half of the ablation stays unrunnable for them.
+
+The GIVEN corpus is NOT to be edited — its derivational independence is the property the whole check runs on.
+
+## Lint after the timeout was lifted
+
+`conform/lint.py` measured **1261.6 s** (21m01s) over 323 files, rc=1: ANCHOR, ISOLATED, REACH and SINGLETON fail with accumulated findings that the old 180 s cap had hidden as DID-NOT-RUN. One "file could not be parsed" (`library/build_lexicon.py`) was an instrument bug: the file has a UTF-8 BOM, imports fine under Python's tokenizer, but lint read it as plain utf-8 and `ast.parse` saw U+FEFF. Fixed by reading `utf-8-sig`. The four rule failures are real accumulated debt and are NOT classified or repaired here — a rule that was never able to run has no clean baseline, so its findings need reading one by one before any mass edit.

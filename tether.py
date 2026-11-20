@@ -473,6 +473,10 @@ PHASE_OF: dict[str, str] = {
     "untried:goal": I.DIRECTED,   # 16b: a formed intent not yet pressed here, at a static goal
     "reflex": I.DIRECTED,      # 22: a stored When(reading, intent) its witnesses let fire (r1243)
     "muse_test": I.DIRECTED,   # 24 (i): a muse rival's discriminating press (r1252)
+    "lookahead": I.STRATEGY,   # C3 exit (arc_holdout/_c3_offer): chained settled predictions,
+                              # a plan, so STRATEGY like the other C3 exit `routine`.
+                              # Classified here because `choose` returns it through the
+                              # runtime variable `take`, which the phase census cannot read.
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")
@@ -2008,6 +2012,11 @@ _BANK_SHARE = armflag.arm("TETHER_BANK_SHARE", default=True)
 # increments (rdl_n, the obg_n pattern). rdl_store / rdl_release missing, or no preload file: inert,
 # one row saying why. OFF: nothing loaded, no order change, no rows.
 _RDL = armflag.arm("TETHER_RDL", default=True)  # RDL piece 3: released preloads order ties
+# THE PARSER REBUILT BETWEEN GENERATIONS (NEXT_STEPS 2026-11-16 item 4; write-up 42 item 7):
+# at lineage save, rdl_parse.parse(stats=...) re-renders the preload from the carried rdl_n
+# counts. The shipped library/ is a READ-ONLY DATASET ON KAGGLE, so the stamped copy is written
+# BESIDE THE GENERATION in the lineage folder, never over library/rdl_preload.json. Needs _RDL.
+_RDL_REBUILD = armflag.arm("TETHER_RDL_REBUILD", default=True)
 # the preload file, relative to this module's own directory (tests point it at a fixture)
 RDL_PRELOAD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library",
                            "rdl_preload.json")
@@ -8794,6 +8803,32 @@ class Agent:
             rd["rank"][entry] = got
         return got[0]
 
+    def _rdl_chain_rank(self, chain: tuple) -> tuple:
+        """The RDL component for an ATOM CHAIN (the mint's ordered_closure walk): the best
+        `_rdl_rank` over the library entries whose DECLARED implementation is one of the chain's
+        atoms (`run.impl` = `arc_atoms:<name>` -- the declared route, never a raw-name
+        intersection, Fig 9). () when RDL is off/inert or no atom of the chain is attached.
+        The caller APPENDS this as the LAST field of the walk's order key, so it can only order
+        chains every earlier field left equal; it never excludes or replaces a reading. The
+        atom->entry map is plain data in `rd` (no module object in agent state: deepcopy works)."""
+        rd = self._rdl
+        if rd is None or not chain:
+            return ()
+        if "atom_entry" not in rd:
+            ae: dict = {}
+            for name, e in self.gamma.library.items():
+                impl = (e.get("run") or {}).get("impl") if isinstance(e, dict) else None
+                if isinstance(impl, str) and impl.startswith("arc_atoms:"):
+                    ae.setdefault(impl.split(":", 1)[1], []).append(name)
+            rd["atom_entry"] = {k: tuple(sorted(v)) for k, v in ae.items()}
+        best: tuple | None = None
+        for a in chain:
+            for entry in rd["atom_entry"].get(a.name, ()):
+                k = self._rdl_rank(entry)
+                if best is None or k < best:
+                    best = k
+        return () if best is None else best
+
     def _rdl_row(self, step: str, slot: str, event: str, p: Any, **detail) -> None:
         """One C5 row with its C6 stamp, kept for the release's stats and counted into stats_n
         by (corpus, tier): what the next save carries."""
@@ -10640,6 +10675,17 @@ class Agent:
         offers = self._lib_offers.get(slot, ())
         if _MOLECULE_APPLY and self._mol_offers.get(slot):
             offers = list(offers) + self._mol_offers[slot]   # r962: the same door, after them
+        if self._rdl is not None and len(offers) > 1:
+            # RDL, the library-first OFFER WALK (NEXT_STEPS item 3; write-up 42 item 6): one more
+            # LAST field over the offers this walk takes -- (the offer's own position, which IS
+            # the reading: lit order, then molecule offers), then the release's priority. Stable
+            # sort: every offer the earlier field already separated keeps its place; only offers
+            # the walk left equal can be reordered. Never first, never a reading replaced, never
+            # an offer dropped. RDL off/inert -> `_rdl` is None, the walk is byte for byte old.
+            offers = [o_ for _i, o_ in sorted(
+                enumerate(offers),
+                key=lambda io: (io[0], self._rdl_rank(
+                    (io[1].get("prov") or {}).get("library") or "")))]
         for o_ in offers:
             cap.head()
             atoms = tuple(o_["term"].atoms)
@@ -26972,7 +27018,8 @@ class Agent:
         Record only: no action choice reads it."""
         rs = self.__dict__.get("_rec")
         if rs is None:
-            rs = self._rec = {"sha": {}, "names": {}, "inert": False, "cm_inert": False}
+            rs = self._rec = {"sha": {}, "names": {}, "inert": False, "cm_inert": False,
+                              "cm_active": False}
         pics = affordance.pictures(self.env, before)
         if not pics:
             if not rs["inert"] and not rs["sha"]:
@@ -26986,7 +27033,7 @@ class Agent:
             if rs["sha"].get(holder) == sha:
                 continue
             rs["sha"][holder] = sha
-            rows, why, cm_why = affordance.recognise_rows(img)
+            rows, why, cm_why, cm_status = affordance.recognise_rows(img)
             if why is not None:
                 if not rs["inert"]:
                     rs["inert"] = True
@@ -27001,9 +27048,18 @@ class Agent:
                                        "abstained: I can't say this is like something"))
                 if not d.get("abstained") and d.get("class") and holder not in rs["names"]:
                     rs["names"][holder] = d       # the first route that names it (shape first)
-            # An ABSENT class memory used to drop this route with no row at all (the hardcoded
-            # Windows path did so silently on Kaggle). Say so once per run, naming the reason.
-            if cm_why is not None and not rs["cm_inert"]:
+            # The OPTIONAL ImageNet class memory (Isaiah 2026-11-20): ONE state row naming the
+            # exact state, legible from the ledger alone. class_memory_active carries the class
+            # count when a memory loaded; otherwise recognised_inert carries the detector's exact
+            # reason (no data / parquet not found / not built / load failed). It used to drop the
+            # route with no row at all on Kaggle; now the zero is always visible. Once per run.
+            if cm_status is not None and cm_status.get("active"):
+                if not rs["cm_active"]:
+                    rs["cm_active"] = True
+                    self.led.record(self.cycle, "PERCEIVE", "@recognised", "class_memory_active",
+                                    route="class_memory", classes=cm_status["classes"],
+                                    reason=cm_status["reason"], reads=cm_status["reason"])
+            elif cm_why is not None and not rs["cm_inert"]:
                 rs["cm_inert"] = True
                 self.led.record(self.cycle, "PERCEIVE", "@recognised", "recognised_inert",
                                 reads=cm_why, route="class_memory")
@@ -29040,6 +29096,20 @@ class Agent:
                                    if self._reuse is not None else None),   # P6 H7, keyed
                         # by the HEADS the chain starts with (H7's key fix, step 10)
                         fits_whole=lambda ch, _b=by_fit: _b(Term(ch)))
+                    if self._rdl is not None:
+                        # RDL, the ATOM-CHAIN WALK (NEXT_STEPS item 3; write-up 42 item 6): one
+                        # more LAST field in shape_order's key -- released preloads' attachments
+                        # order chains every earlier field (stage, E, sense, authority, fit,
+                        # length) left equal. An OPEN prefix carries () (the optimistic minimum:
+                        # no extension can rank below its prefix), so ordered_closure's A*
+                        # argument is untouched. Never first, no reading replaced, no chain
+                        # excluded. RDL off/inert -> `_rdl` is None, `_key` is shape_order's own,
+                        # byte for byte; every OPEN key is unchanged either way.
+                        _base_key = _key
+
+                        def _key(ch, closed, left, _base=_base_key):
+                            k = _base(ch, closed, left)
+                            return (*k, self._rdl_chain_rank(ch) if closed else ())
                     _bound = _stop_at = None
                     if robs:
                         def _bound(ch):

@@ -119,9 +119,25 @@ def index_keys(tags: dict) -> set[str]:
     return out
 
 
-def verdicts(lib: dict, builds: dict) -> list[str]:
+def working_clause_names() -> set[str]:
+    """Atoms declared by a WORKING clause table, outside the immutable GIVEN corpus.
+
+    `agent_atoms.json` is reconstructed from `given.json`, which may not be edited.
+    Atoms added after that corpus was written carry their admitting clause in the
+    working code instead (`ADMITTED`, `_fold_admissions`, `_NEEDED`, `CLAUSE_ONE`).
+    Those names are registered -- just not in the corpus. A code-built atom with no
+    clause at all still fails (a), and `arc_atoms.three_spaces` refuses to build it.
+    """
+    import arc_atoms
+    return (set(arc_atoms.ADMITTED) | set(arc_atoms._fold_admissions())
+            | set(getattr(arc_atoms, "_NEEDED", {})) | set(arc_atoms.CLAUSE_ONE))
+
+
+def verdicts(lib: dict, builds: dict, working: set[str] | None = None) -> list[str]:
     import inherited
     agent, readings = lib["agent"], lib["readings"]
+    if working is None:
+        working = working_clause_names()
     by_name = {e["name"]: (k, e) for k, e in agent.items()}
     base = builds[None]
     built: dict[str, bool] = {}
@@ -129,9 +145,10 @@ def verdicts(lib: dict, builds: dict) -> list[str]:
         built.update(b)
     bad = []
     for name, extract in sorted(built.items()):
-        if name not in by_name:
-            bad.append(f"(a) {name}: the code builds it, agent_atoms.json does not record it")
-        elif extract and by_name[name][1].get("form") != "EXTRACT":
+        if name not in by_name and name not in working:
+            bad.append(f"(a) {name}: the code builds it, and neither agent_atoms.json nor "
+                       "a working clause registry records it")
+        elif name in by_name and extract and by_name[name][1].get("form") != "EXTRACT":
             form = by_name[name][1].get("form")
             bad.append(f"(b) {name}: built as an extract atom, recorded as {form}")
     for key, e in sorted(agent.items()):
@@ -176,20 +193,24 @@ def plants(lib: dict) -> dict[str, tuple[dict, str]]:
     extract = next(k for k, e in lib["agent"].items() if e.get("form") == "EXTRACT")
     lib_a = copy.deepcopy(lib)
     del lib_a["agent"][unarmed]
-    out["(a) an atom the code builds removed from agent_atoms.json"] = (lib_a, "(a)")
+    # (a) must plant an atom with NO clause anywhere -- removing it only from the
+    # corpus is not a defect now that a working clause registry also declares it.
+    removed_name = lib["agent"][unarmed]["name"]
+    unregistered = working_clause_names() - {removed_name}
+    out["(a) a code-built atom with no clause in either registry"] = (lib_a, "(a)", unregistered)
     lib_b = copy.deepcopy(lib)
     del lib_b["readings"][lib_b["agent"][extract]["reading"]]["code"]
-    out["(b) an extract atom's reading no longer points back"] = (lib_b, "(b)")
+    out["(b) an extract atom's reading no longer points back"] = (lib_b, "(b)", None)
     lib_c = copy.deepcopy(lib)
     lib_c["agent"][unarmed]["arm"] = "arc_percept._INSTRUMENTS"
-    out["(c) an entry given an arm that does not publish it"] = (lib_c, "(c)")
+    out["(c) an entry given an arm that does not publish it"] = (lib_c, "(c)", None)
     lib_d = copy.deepcopy(lib)
     lib_d["agent"][unarmed].setdefault("tags", {})["primary"] = ["NOT_A_TAG"]
-    out["(d) an agent atom's stored tags drifted"] = (lib_d, "(d)")
+    out["(d) an agent atom's stored tags drifted"] = (lib_d, "(d)", None)
     lib_e = copy.deepcopy(lib)
     lib_e["tags"].setdefault("by_tag", {}).setdefault("COUNT", {}).setdefault("atoms", []).append(
         "NOWHERE|Dangling")
-    out["(e) a tag_index key the library does not hold"] = (lib_e, "(e)")
+    out["(e) a tag_index key the library does not hold"] = (lib_e, "(e)", None)
     return out
 
 
@@ -199,8 +220,8 @@ def main(argv: list[str]) -> int:
     builds = all_builds(lib)
     if "--must-fail" in argv:
         missed = 0
-        for what, (planted, tag) in plants(lib).items():
-            hit = [b for b in verdicts(planted, builds) if b.startswith(tag)]
+        for what, (planted, tag, working) in plants(lib).items():
+            hit = [b for b in verdicts(planted, builds, working) if b.startswith(tag)]
             print(f"  must-fail {what}: {'CAUGHT -- ' + hit[0] if hit else 'MISSED'}")
             missed += not hit
         clean = verdicts(lib, builds)

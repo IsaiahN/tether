@@ -35,10 +35,14 @@ concept -> properties -> predictions"; lead 16:20 "circle -> ball, that 2d-3d or
 agent"): when an observation carries a PICTURE -- an env attribute or an observation field named in
 PICTURE_NAMES holding an image array, board-wide ('picture') or per object ('o1.picture') -- the
 picture is recognised once per (holder, picture): recognize.recognise_shape over the repo-relative
-shape memory, and recognize.recognise when a class memory is present under the dir named by the
-plain env var RDL_RECOGNITION_DIR (default: the shipped generated shapes; no absolute path). An
-ABSENT class memory writes one explicit recognised_inert row naming the reason, so the route is
-never silently dropped on Kaggle. Each live route writes one `recognised` row {class, synset, dim,
+shape memory, and recognize.recognise when a class memory is LOADED under the dir named by the
+plain env var RDL_RECOGNITION_DIR (default: the shipped generated shapes; no absolute path). The
+ImageNet class memory is OPTIONAL (Isaiah 2026-11-20): it activates only when a memory has been
+built and loads, with parquet data detected via the plain env var IMAGENET_PARQUET_DIR. ONE state
+row is legible from the ledger alone -- class_memory_active (with the class count) when loaded,
+else recognised_inert naming the exact reason (no data / parquet not found / not built / load
+failed) -- so the route is never silently dropped on Kaggle and never requires committed data.
+Each live route writes one `recognised` row {class, synset, dim,
 grid_shape_name, bridge, route, votes/distance, margin, abstained, stamp}; a class that did not
 abstain is then read by the PRIOR step exactly as a shape_name is (class -> concept through the
 word map's shape_bridge; else the class's grid shape name; else its own bridge's 2D names). Grid
@@ -458,14 +462,20 @@ def class_memory_dir() -> Path:
     return Path(raw) if raw else CLASS_MEMORY_DIR
 
 
+def class_memory_status(cm_dir: Path | None = None) -> dict:
+    """The detector's status for the configured class-memory dir. Lazy import (cv2 stays out of
+    the module), no side effects, no large reads -- see recognize.class_memory_status."""
+    import recognize  # lazy: recognize imports cv2 only inside its calls
+
+    return recognize.class_memory_status(Path(cm_dir) if cm_dir is not None else class_memory_dir())
+
+
 def _class_memory_why(path: Path) -> str | None:
-    """Why the class-memory route is inert at `path`, or None when a memory is present there.
-    A missing dir used to drop the route with no row at all; name the reason so the zero is
-    visible (the m2 seat's rule, one level down from the book keys)."""
-    if (path / "memory.json").exists() and (path / "memory.npz").exists():
-        return None
-    return (f"class memory absent at {path} (memory.json / memory.npz not found; "
-            "set RDL_RECOGNITION_DIR to the local recognition dir)")
+    """Why the class-memory route is inert at `path`, or None when a memory is loaded there.
+    Derived from the detector so the inert row and the detector cannot disagree: a missing dir
+    used to drop the route with no row at all; name the exact reason so the zero is visible."""
+    st = class_memory_status(path)
+    return None if st["active"] else st["reason"]
 
 
 def _class_memory(path: Path):
@@ -481,18 +491,20 @@ def _class_memory(path: Path):
 
 
 def recognise_rows(img, class_dir: Path | None = None) -> tuple:
-    """(rows, why_inert, class_memory_why). One `recognised` detail per route: the preloaded
-    shape memory always, the class memory when present. why_inert names the failure when no
-    route could run (cv2 or the shape memory absent); class_memory_why names an ABSENT class
-    memory so the caller can write one explicit inert row instead of dropping the route. A
-    route's own abstention is a row, never an inert."""
+    """(rows, why_inert, class_memory_why, class_memory_status). One `recognised` detail per route:
+    the preloaded shape memory always, the class memory when it is LOADED (detector says active).
+    why_inert names the failure when no route could run (cv2 or the shape memory absent);
+    class_memory_why is None when active, else the detector's exact reason; class_memory_status is
+    the full detector dict so the caller can write ONE legible state row -- class_memory_active
+    (with the class count) or recognised_inert (the precise reason). A route's own abstention is a
+    row, never an inert."""
     try:
         import recognize  # lazy: never at module level (cv2 stays unimported)
         pic = _bgr(img)
         mem = recognize.load_shapes()
         r = recognize.recognise_shape(pic, mem)
     except Exception as e:              # noqa: BLE001  cv2 or the shape memory absent: inert
-        return [], f"recognition unavailable: {type(e).__name__}: {e}"
+        return [], f"recognition unavailable: {type(e).__name__}: {e}", None, None
     cls = r.get("class")
     meta = (mem.get("meta") or {}).get(cls) or {}
     st = dict(mem["akaze"].stamp or {})
@@ -507,27 +519,29 @@ def recognise_rows(img, class_dir: Path | None = None) -> tuple:
              "candidate": (r.get("akaze") or {}).get("candidate"), "corners": r.get("corners"),
              "reason": r.get("reason"), "memory": "shapes", "stamp": stamp, "standing": None}]
     cm_dir = Path(class_dir) if class_dir else class_memory_dir()
-    cm_why = _class_memory_why(cm_dir)
-    try:
-        cm = _class_memory(cm_dir)
-        if cm is not None:
-            c = recognize.recognise(pic, cm)
-            cst = dict(c.get("stamp") or {})
-            rows.append({"class": c.get("class"), "synset": c.get("synset"), "dim": None,
-                         "grid_shape_name": None, "bridge": None, "route": "class_memory",
-                         "distance": None, "votes": c.get("votes"), "inliers": c.get("inliers"),
-                         "margin": _num(c.get("margin")), "abstained": bool(c.get("abstained")),
-                         "candidate": c.get("candidate"), "reason": c.get("reason"),
-                         "memory": "class_memory",
-                         "stamp": {k: cst.get(k) for k in ("stage", "source", "sha")},
-                         "standing": None})
-    except Exception as e:              # noqa: BLE001  the class memory unreadable: said, not hidden
-        rows.append({"class": None, "route": "class_memory", "abstained": True,
-                     "reason": f"class memory unreadable: {type(e).__name__}: {e}",
-                     "memory": "class_memory", "stamp": None, "standing": None})
-        # present but unreadable: the row above says why, not "absent"
-        cm_why = None
-    return rows, None, cm_why
+    st = class_memory_status(cm_dir)
+    cm_why = None if st["active"] else st["reason"]
+    if st["active"]:
+        try:
+            cm = _class_memory(cm_dir)
+            if cm is not None:
+                c = recognize.recognise(pic, cm)
+                cst = dict(c.get("stamp") or {})
+                rows.append({"class": c.get("class"), "synset": c.get("synset"), "dim": None,
+                             "grid_shape_name": None, "bridge": None, "route": "class_memory",
+                             "distance": None, "votes": c.get("votes"), "inliers": c.get("inliers"),
+                             "margin": _num(c.get("margin")), "abstained": bool(c.get("abstained")),
+                             "candidate": c.get("candidate"), "reason": c.get("reason"),
+                             "memory": "class_memory",
+                             "stamp": {k: cst.get(k) for k in ("stage", "source", "sha")},
+                             "standing": None})
+        except Exception as e:          # noqa: BLE001  present but unreadable: said, not hidden
+            rows.append({"class": None, "route": "class_memory", "abstained": True,
+                         "reason": f"class memory unreadable: {type(e).__name__}: {e}",
+                         "memory": "class_memory", "stamp": None, "standing": None})
+            cm_why = f"class memory load failed at {cm_dir}: {type(e).__name__}: {e}"
+            st = dict(st, active=False, event="recognised_inert", reason=cm_why)
+    return rows, None, cm_why, st
 
 
 def resolve_recognised(row: dict, atoms: dict | None, bridge: list | None,

@@ -277,13 +277,25 @@ def _anchor(src: str, *_: Any) -> tuple[list[str], int]:
     return out, seen
 
 
+# A module-level name fixed on first use, or a counter that IS the shared state, does not
+# drift with what it checks -- the premise SINGLETON protects. DATA keyed by (file, name),
+# with a reason; a new `global` anywhere else is still reported. mod.py is never in here.
+SINGLETON_OK = {
+    ("agenda.py", "_CARDS"): "lazy load of library/tether_rules.json; fixed after first call",
+    ("cap.py", "HEADS"): "loop-head counter; the shared deadline IS the state, by design",
+    ("cap.py", "_HOLD"): "re-entrant hold depth; raised and restored inside one context manager",
+    ("game_one.py", "DEADLINE"): "per-game cap set once from cap_s at the first step",
+    ("tether.py", "_PMC_CALL"): "Windows call built once on first use, never rebound after",
+}
+
+
 @rule("SINGLETON",
       "Step 2 generalised: 'the sorter must not be the composer' -- a module-level "
       "mutable lets a reference drift with the thing it is checking",
       "_C = None\ndef get():\n    global _C\n    _C = build()\n    return _C\n",
       "_C = None\ndef get():\n    return build(_C)\n",
       n_bad=1, n_ok=1)
-def _singleton(src: str, *_: Any) -> tuple[list[str], int]:
+def _singleton(src: str, _others: tuple = (), _scan=None, name: str = "") -> tuple[list[str], int]:
     """The subject is every module-level binding that COULD be rebound from inside a
     function -- not the rebindings themselves. Counting only violations makes subject
     and violation the same set, so the rule can never report PASS and a clean file is
@@ -295,7 +307,7 @@ def _singleton(src: str, *_: Any) -> tuple[list[str], int]:
     for node in ast.walk(tree):
         if isinstance(node, ast.Global):
             out.extend(f"`{n}`: module-level state rebound inside a function"
-                       for n in node.names)
+                       for n in node.names if (name, n) not in SINGLETON_OK)
     return out, seen
 
 
@@ -326,6 +338,18 @@ def _nofail(src: str, *_: Any) -> tuple[list[str], int]:
         if len(consts) == len(rets) and all(bool(c.value) for c in consts):
             out.append(f"`{fn.name}`: every return is a truthy constant; it cannot fail")
     return out, seen
+
+
+# A test plants state by writing a Gamma's library directly; that is fixture setup, not a
+# second producer of the agent's reach. DATA, by module prefix, so a production writer still counts.
+REACH_TEST_PREFIX = "test_"
+
+# `.atoms +` that builds ONE Term is composition, not a second producer of the closure.
+# DATA keyed by (file, function), each with the reason it cannot be a stored reach.
+REACH_COMPOSE_OK = {
+    ("nsm.py", "walk"): "read_node composes one Term from a parsed sentence; never stored",
+    ("tether.py", "children"): "builds one operand-tree child (§4); gb[] holds counts, not a reach",
+}
 
 
 @rule("REACH",
@@ -390,10 +414,16 @@ def _reach(src: str, others: tuple = (), _scan=None, name: str = "") -> tuple[li
         walk(ast.parse(text), "<module>", False)
         return writes, comps
 
+    def is_test(fname):
+        return (fname[:-3] if fname.endswith(".py") else fname).startswith(REACH_TEST_PREFIX)
+
     here_w, here_c = sites(src)
+    if is_test(name or "mod.py"):
+        here_w = set()
     everywhere = set()
-    for text in files.values():
-        everywhere |= sites(text)[0]
+    for fname, text in files.items():
+        if not is_test(fname):
+            everywhere |= sites(text)[0]
 
     out = []
     if here_w and len(everywhere) > 1:
@@ -401,10 +431,18 @@ def _reach(src: str, others: tuple = (), _scan=None, name: str = "") -> tuple[li
                    "accept() is not its only writer, so a stored reach is indistinguishable "
                    "from the library")
     for fn, gen in here_c:
-        if not gen:
+        if not gen and (name, fn) not in REACH_COMPOSE_OK:
             out.append(f"`{fn}` extends an atom sequence and does not yield: reach has a "
                        "second producer, so enumerate_closure is not the only one")
     return out, len(here_w) + len(here_c)
+
+
+# A reference a static pass cannot see: this name is called from source the test exec's at
+# runtime (SPY in test_facet_index.py). DATA keyed by (file, name), with the reason; mod.py is
+# never in here, so the fixture still catches a scope that exempts everything.
+ISOLATED_OK = {
+    ("tether.py", "context_key"): "called from the exec'd SPY source string in test_facet_index.py",
+}
 
 
 @rule("ISOLATED",
@@ -522,6 +560,8 @@ def _isolated(src: str, others: tuple[str, ...] = (),
         if _collected(fname, name):
             continue                       # collected by an external runner
         seen += 1
+        if (fname, name) in ISOLATED_OK:
+            continue                       # reason recorded in the data table
         own = sum(1 for n in ast.walk(node)
                   if (isinstance(n, ast.Name) and n.id == name)
                   or (isinstance(n, ast.Attribute) and n.attr == name))
@@ -802,7 +842,11 @@ def run(paths: list[Path]) -> dict[str, dict]:
     srcs, unusable = {}, []
     for p in paths:
         try:
-            text = p.read_text(encoding="utf-8")
+            # utf-8-sig, not utf-8: Python's own tokenizer strips a leading BOM, so
+            # `library/build_lexicon.py` imports fine. Reading it as plain utf-8 put
+            # U+FEFF into the string and `ast.parse` called it a SyntaxError -- a file
+            # that imports was reported as unchecked, which is a silent blind spot.
+            text = p.read_text(encoding="utf-8-sig")
             ast.parse(text)
         except (UnicodeDecodeError, OSError) as e:
             unusable.append(f"{p.name}: {type(e).__name__}")
@@ -822,7 +866,8 @@ def run(paths: list[Path]) -> dict[str, dict]:
             others = allsrc if r.crossfile else ()
             # no SyntaxError guard here: a file that does not parse never enters
             # `srcs`, so by this point every source is a real subject
-            f, n = (r.fn(src, others, shared, p.name) if r.crossfile else r.fn(src))
+            # one signature for every rule, as in selftest: name keys the data exemptions
+            f, n = r.fn(src, others if r.crossfile else (), shared, p.name)
             found += [f"{p.name}: {x}" for x in f]
             seen += n
         if found:
