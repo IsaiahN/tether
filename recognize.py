@@ -535,9 +535,24 @@ def build_from_parquet(parquet_paths, out_dir=None, per_class=50, lexicon=None):
         import pyarrow.parquet as pq
 
         def rows():  # noqa: F811
+            # CHOOSE ROWS BY LABEL FIRST, THEN DECODE ONLY THE SELECTED IMAGES.
+            # The old form did read_table(["image","label"]).to_pylist(), which
+            # materialized every image in the shard as a Python object BEFORE the
+            # per_class filter in the caller. Measured 2026-11-20: one 458 MB
+            # validation shard reached 2.96 GB RAM and 8+ min at per_class=3,
+            # while reading the label column alone took 0.1 s. The image bytes stay
+            # in the Arrow column until a selected row is converted, one at a time.
             for p in parquet_paths:
-                t = pq.read_table(p, columns=["image", "label"]).to_pylist()
-                yield from t
+                t = pq.read_table(p, columns=["image", "label"])
+                labels = t.column("label").to_pylist()
+                img_col = t.column("image")
+                counts: dict = {}
+                for i, lab in enumerate(labels):
+                    k = int(lab)
+                    if per_class and counts.get(k, 0) >= per_class:
+                        continue
+                    counts[k] = counts.get(k, 0) + 1
+                    yield {"label": lab, "image": img_col[i].as_py()}
     except ImportError:
         try:
             import pandas as pd
