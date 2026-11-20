@@ -68,3 +68,25 @@ What actually varies is the **agent's own draw seed**, and that is by design:
 1. **`test_a_per_slot_refusal_decays_like_the_term` — repaired.** It passed `halflife=None` as the "use the seed" case, but under `TETHER_FADE_BY_STORE` (default ON) the live caller passes `SeedCycles` or an explicit store halflife (`gamma.py:1996-2003`), and `_store_fade` reads `None` as "no step yet → no fade" (`gamma.py:531-536`). It now passes `gamma.REJECTION_HALFLIFE`; the `inf` control still unsettles. Measured: `None` gave `refusals_on=2.0` (cliff), the seed gives `1.9259` (survives).
 2. **`test_the_admitting_clause_crosses_into_gamma` — repaired.** It compared Γ's stamps against `arc_atoms.ADMITTED` alone (31 built atoms), but the code admits from `{**ADMITTED, **_fold_admissions()}` (`arc_atoms.py:1295,1335`), which adds nine built atoms (`all_of`, `cell_col`, `cell_row`, `cells`, `count_true`, `none_of`, `one_of`, `size`, `some_of`). Γ stamped 40 and the test called that a defect. It now reads the clause from each atom's own `admitted` field — the value Γ actually installs so a stamp overwritten downstream is still caught.
 3. **`test_the_seam_varies_what_it_explores_with` — LEFT RED, deliberately.** It builds a bare `Interface()` (constant draw seed `FR.SEED="0"`) and asserts that six `ELICIT` realisations never repeat an action more than twice. Measured: `['C','A','B','A','A','A']` — the first-three-distinct assertion passes, the variety ceiling fails. This is a statistical assertion over six seeded draws, the same class as the m2 count: a fixed draw can violate it without any mechanism failing. The live agent sets `iface.draw_seed` per run, so the bare-interface fixture is not the live condition. Repairing it means asserting the *mechanism* (frontier/tally path taken, forbidden action not repeated by a degenerate realiser) rather than a count over one draw — a derivation, not a threshold tweak. Do NOT raise the cap or pin a lucky seed. The check stays red and readable.
+
+## Final consolidation, 2026-11-19
+
+### The reproducible m2 count is 48/68, not 45/68
+
+The earlier 45/68 and the debt agent's 44/68 and 46/68 were readings taken with a fresh agent draw each process. With the agent's own draw pinned (`TETHER_AGENT_SEED=0`, i.e. the constant draw seed the arm's OFF value selects), the full suite gives **48/68** for twenty failures, reproducibly. This is the count to quote going forward with its arm state named. The eight fixture-class failures the m2-fixture agent identified are among the twenty; the rest are pre-existing narration, rate and `Want.atoms` failures documented in `04-IN_FLIGHT_BRANCHES_2026-11-16.md`. **No check was weakened and no seed was pinned in the repository** — this is a measurement arm state, not a code change.
+
+The controlled head-to-head closes the accounting exactly. With both arms pinned, the debt commit `b9020827` scores **45/68** and its parent `31718e75` scores **44/68**; the mechanical failure-set diff is one baseline-only failure (`check_every_book_key_is_declared`) and **zero** new ones. The m2-fixture commit `63fe70f9` fixes three more attribute checks (measured `ATTR OK` and three names gone from its failure list). `44 + 1 + 3 = 48`, which is the development count. There is no regression and no unexplained spread left.
+
+### `recshape` is a name collision, left red with proof
+
+All 26 findings come from `SOURCES = {"hist","robs","obs","trace"}` (`conform/recshape.py:44`) and `add()`'s test `names(itr) & SOURCES` (line 83): *any* variable named `obs` anywhere in an iterable expression is treated as a history record. Measured at the reported sites:
+
+- `tether.py:3679` is `(t for _a, t in obs)` where `obs` is the fifth field of a six-field `contact` tuple (`a, typ, before, after, obs, code = contact` at 3678), not a history row.
+- `tether.py:8029` is `frames = [b for b, *_r in hist]` — a deliberate trailing-star discard of fields the reader does not use.
+- The fixed message *"`_invent` did this and raised on its first call"* is printed at every short-unpack site even though `_invent` was retired 2026-10-05.
+
+A correct fix needs to tie the iterable to an actual `history()`/`self.trace` producer by data flow, not by variable name — a derivation, not a list of exemptions. The check stays red and readable; do not mass-edit the 26 call sites.
+
+### Panel: a duplicate production, both jobs left to finish
+
+The first `conform/panel.py --produce` call was moved to background by a shell cap rather than killed; a second was then launched detached. Both (pids 9328 and 3720) are running the same members against the same `runs/panel/` artifacts. The output is deterministic for a given tree, so the result should be identical; the standing rule is that a running job always finishes, so neither was killed. Verify the `panel` seat after both report and regenerate once cleanly only if a stamp is corrupt.
