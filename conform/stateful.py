@@ -672,7 +672,12 @@ def test_the_admitting_clause_crosses_into_gamma():
     got = Gamma(atoms, game="clause").admissions()
     # Only the admitted atoms that were BUILT: since F503 an atom whose arm is off is never
     # constructed (`inside` follows `arc_world._OBSERVER`), so it cannot be filed either way.
-    handed = {a.name for a in atoms} & set(arc_atoms.ADMITTED)
+    # 2026-11-19: the source was `set(arc_atoms.ADMITTED)`, but the code admits from
+    # `{**ADMITTED, **_fold_admissions()}` (arc_atoms.py:1295,1335). Nine built atoms
+    # (`all_of`, the `cell_*` family, `some_of`, ...) are filed by the fold, so the old
+    # table read 31 against Gamma's 40 and called a correct crossing a defect. Read the
+    # clause from the atom Γ actually installs; a stamp overwritten downstream still fails.
+    handed = {a.name for a in atoms if a.admitted == HANDED}
     assert got.get(HANDED) == len(handed), (
         f"the admitting clause did not cross into Gamma: {got}. Every atom reads "
         f"`necessary` -- the category the ablation stays BLIND to -- while "
@@ -2099,7 +2104,14 @@ def test_a_per_slot_refusal_decays_like_the_term():
         st.refute(1 + h, halflife=halflife, slot="o1")
         return "o1" in st.settled_on
 
-    assert history(None), "two per-slot refusals a halflife apart unsettled the term: a cliff"
+    # 2026-11-19: this used to pass `None` as the "use the seed" case. Under
+    # TETHER_FADE_BY_STORE (default ON) the live caller passes a SeedCycles or a store
+    # halflife (`Gamma._fade_at`, gamma.py:1996-2003); `_store_fade` reads `None` as
+    # "no step yet -> do not fade" (gamma.py:531-536). So `None` was not the seed case
+    # and the test asserted a cliff against a path the agent never takes. Give it the
+    # seed's actual value; the control (inf, no fade) still refuses to unsettle.
+    assert history(gamma.REJECTION_HALFLIFE), (
+        "two per-slot refusals a halflife apart unsettled the term: a cliff")
     assert not history(float("inf")), "control did not unsettle: the history cannot show a cliff"
 
 
