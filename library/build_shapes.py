@@ -565,7 +565,8 @@ def build():
         "corners": {n: expected_corners(n, d) for n, d in classes()},
         "akaze_classes": mem.classes,
         "features": "abs log10 Hu moments (7) of the largest outer contour, + hole share, "
-        "+ solidity, + interior shading (recognize.shape_features)",
+        "+ solidity, + interior grey std, + log2 distinct interior grey levels (capped, "
+        "SHADE_LEVELS_CAP) (recognize.shape_features)",
         "stamp": {
             "stage": "regularity",
             "source": SOURCE,
