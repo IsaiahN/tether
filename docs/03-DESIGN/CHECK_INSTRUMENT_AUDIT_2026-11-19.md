@@ -127,3 +127,28 @@ The GIVEN corpus is NOT to be edited — its derivational independence is the pr
 ## Lint after the timeout was lifted
 
 `conform/lint.py` measured **1261.6 s** (21m01s) over 323 files, rc=1: ANCHOR, ISOLATED, REACH and SINGLETON fail with accumulated findings that the old 180 s cap had hidden as DID-NOT-RUN. One "file could not be parsed" (`library/build_lexicon.py`) was an instrument bug: the file has a UTF-8 BOM, imports fine under Python's tokenizer, but lint read it as plain utf-8 and `ast.parse` saw U+FEFF. Fixed by reading `utf-8-sig`. The four rule failures are real accumulated debt and are NOT classified or repaired here — a rule that was never able to run has no clean baseline, so its findings need reading one by one before any mass edit.
+
+## 2026-11-20 — the two remaining investigations, resolved
+
+### T0 gate: 0 of 6 games pass (the full 600 s run)
+
+Six unseen games, every switch ON, 600 s each, fresh copy, `TETHER_AGENT_SEED=0`, offline.
+Pass = goal → refusal → repair row → subgoal → goal again → clear, in ledger order on one board.
+
+| game | goal | refuse | repair | subgoal | goal-again | clear | actions |
+|---|---|---|---|---|---|---|---|
+| ar25 | ✓ | — | — | — | ✓ | — | 28 |
+| cd82 | ✓ | ✓ | ✓ | — | ✓ | — | 19 |
+| g50t | ✓ | ✓ | — | — | ✓ | — | 20 |
+| ka59 | ✓ | ✓ | ✓ | — | ✓ | — | 34 |
+| lf52 | ✓ | — | ✓ | — | ✓ | — | 22 |
+| lp85 | ✓ | ✓ | — | — | ✓ | — | 55 (reached level 1, not through the chain) |
+
+**Verdict:** the chain gets partway every time — goal and goal-again on 6/6, refusal on 5/6, repair on 3/6 — but **no game ever files a subgoal or clears a level**. This is the honest ground reading on unseen games; the T0 gate has not passed. It is a capability gap, not a test failure. The together-test duration contradiction is resolved by parameterizing the harness: the written protocol is 600 s/game (the run above), while the earlier T0e executed at 300 s. Do not tune to clear a level; diagnose where the chain stops (repair → subgoal never fires).
+
+### The remaining red m2 checks — full triage (seed 0)
+
+- **`check_the_accumulation_commits_where_the_bargain_refused`** — STALE, FIXED (`ffd7ba27`). It set `_last_commit`, but `TETHER_URGENCY_PROGRESS` (default ON) reads idle from `_last_progress` (tether.py:25038). Both cold and warm idle were already past the quorum floor (bar 2.0 → floor 1.5 at idle 4), so relief never moved. Pinning the live field gives cold threshold 2.0, warm 1.5; control intact.
+- **`check_the_suite_reaches_the_hard_cases`** — REAL, LEFT RED. It correctly reports `unadvertised` not reached. Cause is a *different quiet check*, `check_only_a_trial_refutes` (test_m2.py:828), which plants on the derived slot o1.dcol (guard unreadable → ends `blocked`) and never asserts the outcome, so it stays green. Fix the companion, not the tripwire (being done on wip/m2-redfix).
+- **Seven stale instruments** — measured re-pins with controls intact: claim/spent sample a slot absent from observe(); two DONE-shelving checks assume one zero ends a guard (GQ3 needs two consecutive); one-bargain and shelf-runnable stall at `discrepancy NOT_RESOLVED` on o1.dcol; library-winner has no moved winner in this world. Being applied on wip/m2-redfix.
+- **`check_can_gates_until`** — NEEDS-DESIGN, LEFT RED honestly. Measured at seed 0: `o0.add_n`/`o0.rem_n` have `can=yes` but `disc=0`; `o1.col` has `disc=1` but `can=unknown`; `o1.dcol` has `can=unknown`/`disc=NOT_RESOLVED`. **No slot has can=YES ∧ positive gap ∧ goal target simultaneously.** I probed installing a goal hypothesis on o1.col (the agent's own record): that makes `can=yes` honestly, but only by driving disc to 0 — the tension is structural, not a field swap. `can=YES` requires the slot to hold its goal now (disc=0), have a route from the delta table, or a bound term with observed motion toward the target; none co-occurs with a positive gap in this fixture. Resolving it needs a NEW OCCASION (a world where the objective is reachable-but-not-yet-held with a known route) or a ruling to re-scope — not a weakened assertion. The guard mechanism itself is intact at tether.py:26018-26027, with an exercised control: deleting the `all(can(g)==YES ...)` clause makes a guarded candidate commit. No ARC-game tuning.
