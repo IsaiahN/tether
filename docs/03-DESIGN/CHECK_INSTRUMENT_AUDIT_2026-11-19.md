@@ -90,3 +90,16 @@ A correct fix needs to tie the iterable to an actual `history()`/`self.trace` pr
 ### Panel: a duplicate production, both jobs left to finish
 
 The first `conform/panel.py --produce` call was moved to background by a shell cap rather than killed; a second was then launched detached. Both (pids 9328 and 3720) are running the same members against the same `runs/panel/` artifacts. The output is deterministic for a given tree, so the result should be identical; the standing rule is that a running job always finishes, so neither was killed. Verify the `panel` seat after both report and regenerate once cleanly only if a stamp is corrupt.
+
+### Measured flake rate of the four m2 checks, 2026-11-19
+
+`flake_count.py` rebuilt the fixture eight times in one process (clearing `_BUILT` each time, so the agent drew a fresh `secrets.token_hex(8)` seed) for each of PYTHONHASHSEED 0 and 1:
+
+| check | hash 0 | hash 1 |
+|---|---|---|
+| `check_only_a_trial_refutes` | 6/8 | 4/8 |
+| `check_a_blocked_routine_ends_at_planning_with_no_verdict` | 6/8 | 3/8 |
+| `check_an_unreadable_guard_blocks_at_execution` | 7/8 | 4/8 |
+| `check_a_zero_act_routine_still_ends_at_planning` | 4/8 | 6/8 |
+
+Both columns vary in the same range, so the draw is the variable and Python hashing is not. This is the measured basis for the erratum above: an m2 count taken with a fresh draw is a reading from one draw, not a property of the agent; pinning `TETHER_AGENT_SEED=0` makes it 48/68 reproducibly. No repository code or test was pinned as a result — only the measurement's arm state is named.
