@@ -31,10 +31,15 @@ k32 = ctypes.WinDLL("kernel32", use_last_error=True)
 psapi = ctypes.WinDLL("psapi", use_last_error=True)
 ntdll = ctypes.WinDLL("ntdll")
 
+# anchor: Win32 JOB_OBJECT_LIMIT_PROCESS_MEMORY (winnt.h), the per-process commit ceiling flag
 LIMIT_PROCESS_MEMORY = 0x100
+# anchor: Win32 JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE (winnt.h)
 LIMIT_KILL_ON_JOB_CLOSE = 0x2000
+# anchor: Win32 JOB_OBJECT_LIMIT_PRIORITY_CLASS (winnt.h)
 LIMIT_PRIORITY_CLASS = 0x20
+# anchor: Win32 BELOW_NORMAL_PRIORITY_CLASS (winnt.h)
 BELOW_NORMAL = 0x4000
+# anchor: Win32 CREATE_SUSPENDED (winnt.h); the child resumes after the job is assigned
 CREATE_SUSPENDED = 0x4
 EXT_LIMITS, ASSOC_PORT, PID_LIST = 9, 7, 3
 MSG_EXIT, MSG_ABNORMAL_EXIT, MSG_NEW, MSG_ZERO, MSG_MEMORY = 7, 8, 6, 4, 9

@@ -23,9 +23,9 @@ CODE, OUT, LIN, DL, *rest = sys.argv[1:]
 assert os.environ.get("PYTHONHASHSEED") == "0", "the hash seed must be pinned by the launcher"
 os.makedirs(OUT, exist_ok=True)
 sys.path.insert(0, CODE)
-# ONE WORKER'S PEAK, MB, a measurement: PLAY25 round_01 switch.tsv row 24 (tn36), commit_mb_end 7086, the highest of the
-# round's 25 games, read at the switch after the game (the reviewer 2026-10-31 r541 3(a)). B writes no lineage, so the
-# end path's write (its 9.88 GiB) never runs in a worker.
+# anchor: ONE WORKER'S PEAK, MB, a measurement: PLAY25 round_01 switch.tsv row 24 (tn36),
+# commit_mb_end 7086, the highest of the round's 25 games, read at the switch after the game
+# (the reviewer 2026-10-31 r541 3(a)). B writes no lineage, so the end path's write never runs.
 PEAK_MB = 7086
 SIDE = ("-shm", "-wal", "-journal")      # SQLite's side files: an open reader makes them; they hold no lineage
 # K-W (the reviewer 2026-11-02 r789; Isaiah 08:24 "it will need to learn and prove learning"): ONE worker playing the
