@@ -588,8 +588,18 @@ SHAPES_DIR = Path(__file__).resolve().parent / "library" / "shapes"
 # Abstain when the nearest class's feature distance exceeds this. Declared convention, Fig 10.
 SHAPE_MAX_DISTANCE = 3.5
 # Per-feature weights of the L1 distance: Hu 1-4, Hu 5-7 (off: near-zero for symmetric shapes, so
-# their logs are noise), hole share, solidity, shading. Declared convention, Fig 10.
-SHAPE_W = np.array([1, 1, 1, 1, 0, 0, 0, 1, 1, 0.05], np.float32)
+# their logs are noise), hole share, solidity, shading std, log2 of the distinct interior grey
+# levels (capped, see SHADE_LEVELS_CAP). The last reads shading TEXTURE, which the std alone misses
+# on gently-lit solids; it is 0 for a flat outline, ~1.6 for a three-face solid and ~3.6 for a
+# gently shaded one, so weight 1 puts it on the same scale as a Hu dimension. Declared convention,
+# Fig 10.
+SHAPE_W = np.array([1, 1, 1, 1, 0, 0, 0, 1, 1, 0.05, 1.0], np.float32)
+# Distinct interior grey levels at or above this read as "smoothly shaded"; finer counts do not
+# change the geometry (faceted solids carry 2-14 levels, smooth ones 55-100, measured over all 13
+# generated 3D classes). Capping the tail keeps a frame-filling noise mask -- which carries ~245
+# levels -- from looking unlike every smooth template once the share guard is removed. Declared
+# convention, Fig 10: visible and movable, never claimed correct.
+SHADE_LEVELS_CAP = 16
 # Abstain when the second class is within this of the first. Declared convention, Fig 10.
 SHAPE_MIN_MARGIN = 0.02
 # Interior grey standard deviation above which the picture is read as SHADED (a 3D solid), so the
@@ -630,7 +640,7 @@ def _foreground(image_bgr):
 
 def shape_features(image_bgr):
     """abs log10 Hu moments (7) of the largest outer contour, then hole share, solidity, interior
-    shading (grey std, scaled). None when there is no foreground."""
+    shading (grey std) and log2 of the distinct interior grey levels. None when no foreground."""
     cv2 = _cv2()
     bw = _foreground(image_bgr)
     contours, hier = cv2.findContours(bw, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
@@ -650,8 +660,30 @@ def shape_features(image_bgr):
     inside = cv2.erode(inside, np.ones((5, 5), np.uint8)) & bw
     g = image_bgr if image_bgr.ndim == 2 else cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
     std = float(g[inside > 0].std()) if (inside > 0).sum() > 10 else 0.0
-    extra = [10 * holes / max(area, 1.0), 10 * solidity, std]
+    levels = min(interior_grey_levels(image_bgr), SHADE_LEVELS_CAP)
+    extra = [10 * holes / max(area, 1.0), 10 * solidity, std, math.log2(max(levels, 1))]
     return np.concatenate([lhu, extra]).astype(np.float32)
+
+
+def interior_grey_levels(image_bgr):
+    """Distinct grey levels in the eroded interior of the largest foreground contour (0 when the
+    outline is too thin to leave an interior). A flat filled outline has exactly one; a shaded
+    solid has more, including when its shading is too gentle to raise the grey std above SHADED_STD.
+    Read by shape_features as the shading-texture feature and by recognise_shape for the 2D/3D
+    gate."""
+    cv2 = _cv2()
+    bw = _foreground(image_bgr)
+    contours, hier = cv2.findContours(bw, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+    outer = [k for k in range(len(contours)) if hier[0][k][3] < 0]
+    if not outer:
+        return 0
+    c = contours[max(outer, key=lambda m: cv2.contourArea(contours[m]))]
+    inside = np.zeros_like(bw)
+    cv2.drawContours(inside, [c], -1, 255, -1)
+    inside = cv2.erode(inside, np.ones((5, 5), np.uint8)) & bw
+    g = image_bgr if image_bgr.ndim == 2 else cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
+    vals = g[inside > 0]
+    return int(np.unique(vals).size) if len(vals) > 10 else 0
 
 
 def roundness(image_bgr):
@@ -733,7 +765,11 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
     winner, route = None, None
     f = shape_features(image_bgr) if hu_route else None
     if f is not None:
-        shaded = f[-1] > SHADED_STD
+        # A gently-lit solid can have interior grey std below SHADED_STD (measured: cone views at
+        # 6.06/6.21). Its interior still holds more than one grey level, while a flat filled outline
+        # holds exactly one (measured over all 31 generated 2D classes). Either reading
+        # says "solid".
+        shaded = f[-1] > SHADED_STD or interior_grey_levels(image_bgr) > 1
         want = 3 if shaded else 2
         feats = m["hu"].copy()
         # a dim saturated on either side is uninformative (HU_SATURATED): mask it, rescale
