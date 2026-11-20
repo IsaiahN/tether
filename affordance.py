@@ -86,6 +86,15 @@ _MOTION_UPPER = armflag.arm("TETHER_MOTION_WORDS", default=True)
 _ROW, _COL = ("row", "r", "cy", "y"), ("col", "c", "cx", "x")
 # write-up 42 handoff item 5: ConceptNet verbs beside the word map's in a concept's prior lookup
 _RELATIONS_READ = armflag.arm("TETHER_RELATIONS_READ", default=True)  # merged priors; record only
+# WATSON 42 :116 "one found verb brings its class: throw, toss, hurl, fling". The class is a
+# BOND between verbs (Fig 12 :46), not a synonym: a sister is a CANDIDATE the board settles,
+# never a belief. One-pass lookup from the found verb's declared class; priced like any prior.
+_VN_WIDEN = armflag.arm("TETHER_VERBNET_WIDEN", default=True)
+# A bound, not a free pass: an unpriced 394-sister widening on 'ball' (21 -> 415 priors)
+# would drown the grounded verbs and flood the lookup. The bound is the smallest that keeps
+# the documented example ("throw brings toss, hurl, fling" = 3 sisters) with room for ties.
+_VN_MAX_SISTERS = 8
+_VN_INDEX: dict | None = None
 RELATIONS = Path(__file__).resolve().parent / "library" / "relations.json"
 VOCABULARY = Path(__file__).resolve().parent / "library" / "vocabulary.json"
 # (ConceptNet relation, verb) -> the reading it predicts for an OBJECT concept. A declared table
@@ -194,6 +203,37 @@ def _vkey(p: dict) -> str:
     return str(p.get("action_verb") or "").strip().lower().replace(" ", "_")
 
 
+def _vn_sisters(verbs: list[str], acts: dict) -> list[str]:
+    """One-pass VerbNet widening of the FOUND verbs: a verb's declared class brings its sisters.
+
+    Builds the class->verbs index once per process from the same relations data (data, not a
+    frame reading). A sister is returned only when the found verb has a declared class; the
+    found verbs themselves are excluded, and the caller marks every sister NO STANDING.
+    """
+    global _VN_INDEX
+    if _VN_INDEX is None:
+        idx: dict[str, set] = {}
+        for _c, vs in acts.items():
+            if not isinstance(vs, dict):
+                continue
+            for v, a in vs.items():
+                if isinstance(a, dict):
+                    for cls in a.get("vn") or ():
+                        idx.setdefault(cls, set()).add(str(v))
+        _VN_INDEX = idx
+    found = {str(v).strip().lower().replace(" ", "_") for v in verbs}
+    out: set[str] = set()
+    for _c, vs in acts.items():
+        if not isinstance(vs, dict):
+            continue
+        for v, a in vs.items():
+            if not isinstance(a, dict) or str(v).strip().lower().replace(" ", "_") not in found:
+                continue
+            for cls in a.get("vn") or ():
+                out |= _VN_INDEX.get(cls, set())
+    return sorted(out - found)
+
+
 def merge(concept, wm_priors, cn: tuple | None = None) -> list:
     """The concept's priors: the word map's beside ConceptNet's (TETHER_RELATIONS_READ). Each keeps
     its own source and stamp, standing none; found_in names the sources the verb was found in, and
@@ -223,6 +263,15 @@ def merge(concept, wm_priors, cn: tuple | None = None) -> list:
         if r and is_obj:
             row["reading"] = r
         out.append(row)
+    # VERBNET WIDENING: a found verb's declared class brings its sisters as NO-STANDING
+    # candidates (WATSON 42 :116, Fig 12 :46). They carry the same source/stamp and no
+    # standing; the ground alone settles any of them. Arm OFF -> byte-identical list.
+    if _VN_WIDEN and got:
+        for sister in _vn_sisters(list(got), acts)[:_VN_MAX_SISTERS]:
+            out.append({"concept": concept, "action_verb": sister.replace("_", " "),
+                        "relations": [], "verbnet_widened": True,
+                        "source": CN_SOURCE, "stamp": stamp, "standing": "none",
+                        "found_in": [CN_SOURCE]})
     out.sort(key=lambda p: -len(p["found_in"]))
     return out
 

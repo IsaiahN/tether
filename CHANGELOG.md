@@ -6,6 +6,38 @@ Each release below is an operating-system update: it changes what grows on the k
 
 Releases are listed newest first.
 
+## 2026-11-20: Semantic reading, optional recognition, and a measured kernel (v1.0.5)
+
+Since v1.0.4 (2026-11-13) the operating system gained a semantic layer and a way to grow it without training. The kernel is unchanged. This entry summarises 8 release PRs merged to general-agent (#14-#21) and the stability work on development.
+
+### New
+- **Recursive Diffusion Learning (RDL) grew up.** Two more strict-last ordering sites (library-first offers, ordered closure) behind TETHER_RDL; a generation-stamped parser rebuild from carried `rdl_n` counts, written beside the generation, never over the read-only Kaggle `library/`. OFF is byte-identical. The two new tie-breaks fired zero times on the panel because there were no ties — no synthetic match was manufactured.
+- **Recognition without a neural network.** AKAZE keypoints, bitwise-majority centroid memory, Lowe-ratio voting, RANSAC geometry and abstention; a 44-class preloaded shape library (352 generated images) shipped in the repo; a fast Hamming index and abstraction-level centres; corner counting separates hexagons to decagons. Held-out accuracy 134 of 176 (the earlier record of 136 was corrected). A measured closed-outline guard (SHAPE_MAX_SHARE 0.75, set between held-out max 0.4803 and noise ~0.98) stops frame-filling noise being named `sphere`.
+- **An optional, data-detected ImageNet class memory.** The class memory activates only when parquet data is detected AND a built memory loads, emitting one legible `class_memory_active` or `recognised_inert` row naming the exact reason. It is never committed, never on the agent path, and inert when absent. Detection uses `rglob` so the real 308-shard download under `data/` is seen. A small offline builder maps ImageNet labels to WordNet ids, the same AKAZE index used for shapes. A picture on a board observation is named once per holder and picture through `TETHER_RECOGNISED`.
+- **Words, relations and affordances.** Shape names on every object; a word map linking library entries to WordNet meanings; 3,577 action priors from WordNet definitions; reverse dictionary from example sentences; the affordance bet ("this is like a ball; a ball can move") checked against the board; motion words when a concept predicts movement; ConceptNet/VerbNet relations feeding the bet.
+- **Operators and symbols.** O1 (⇒ as a guard junction) and O2 (nested junction guards with a depth budget); CAN_PRODUCE's settled productions offered as kind-keyed guards; five more formula symbols bound to readings that now exist.
+- **A NEEDED admission clause** (Isaiah, 2026-11-20): the third category, for atoms acquired during the build and later load-bearing (`kind`, `grew`, `shrank`, `turned`, `scale`, `shape_name`), each with a recorded reason. Admissions read `necessary: 38, handed: 40, needed: 6`. The ablation can now tell birth-given, handed and acquired-and-required apart.
+- **A 2-D domain-agnostic test world** where derived relations and deltas are load-bearing: 12 distinct minted atom names with hooks on, 0 with them off, each episode in a fresh process.
+- **A structure-hash primitive:** a stable SHA-256 of term form (atom order, operand tree, guard structure, types), never slots or ids; unwired, with a must-fail control.
+- **A new README** (figure-by-figure index, DOI badges, FAQ, prior art, quickstart), with the capability list marked as design commitments, not results.
+
+### Improved
+- **Per-stage timeouts from measurement**, approved by Isaiah: lint 1900 s from a measured 1261.6 s, m2 1500 s from ~960 s, the 180 s default kept. A single global value large enough for m2 would hide every other hung stage.
+- **m2 stability:** 44 to 66 of 68 checks with the agent draw pinned, zero new failures. The accounting closed exactly (44 parent + 1 book declarations + 3 attribute flags = 48, plus 18 re-pins). The apparent hash-seed nondeterminism was withdrawn: it was the agent's own recorded draw (`TETHER_AGENT_SEED` defaults ON); replay from a named record reproduces exactly.
+- **Instrument fidelity:** recshape detects records by producer data-flow; wiring abstains (rc 2) across a changed artifact set instead of inventing transitions; lint triaged with reason-bearing DATA exemptions (REACH/SINGLETON fixed, findings that have no documented source left standing honestly); the shipped seat green at 36 of 36 invariants; the book registry declares every key with its zero-meaning; narration faults are recorded instead of silent.
+
+### Fixed
+- Shape-noise false positive, RDL module objects in agent state breaking `copy.deepcopy`, an undocumented hardcoded recognition path, six silent narration rows, the ImageNet parquet detector's top-level-only glob (the real shards live under `data/`), and the class-memory detector reading a fully populated directory as "no data."
+
+### Measured, not claimed
+- **T0 gate on six unseen games, 600 s each, every switch on: 0 of 6 pass.** Goal and goal-again on 6 of 6, refusal on 5 of 6, repair on 3 of 6, subgoal and clear on 0 of 6. The chain stops because the goal was already satisfied at its own test (`arrived_no_clear`), so no open condition exists to decompose. Diagnosed at the write site; no game was tuned to. A WATSON (research note 43) directs goal formation to describe that residual, look up a frame predicting the win condition's shape, then narrow ranked candidates.
+- **RDL ground feedback has never fired on gridworld** (its attach names are ARC-domain entries that world never reaches) and **recognition is inert on real boards** (no picture field). Both recorded as test-world limits; no synthetic path fabricated.
+
+### Known issues
+- Two m2 checks left red as NEEDS-DESIGN (no moved winner in this world; the library-winner route). No assertion was weakened.
+- 61 ANCHOR and 15 ISOLATED lint findings left standing: no documented source for those constants, and no safe mass-deletion; no anchors were invented.
+- The full conform check is 21 of 25 seats clean. The two FAILs are stale local panel artifacts and the remaining m2 fixture debt. One stage reports INCOMPLETE and one DID-NOT-RUN, neither folded into a pass.
+
 ## 2026-11-16: Recursive Diffusion Learning begins
 
 ### New
