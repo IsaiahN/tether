@@ -525,11 +525,16 @@ def _lexicon_wnids(path=None) -> dict:
     return {int(c["index"]): c["wnid"] for c in data["classes"]}
 
 
-def build_from_parquet(parquet_paths, out_dir=None, per_class=50, lexicon=None):
+def build_from_parquet(parquet_paths, out_dir=None, per_class=50, lexicon=None, labels=None):
     """Read ImageNet-1k parquet shards (columns image{bytes}, label), decode, build and save the
     memory with labels mapped to WordNet ids. Returns the saved path, or None (with a message) when
-    neither pyarrow nor pandas is installed. Writes only under out_dir (default DEFAULT_DIR)."""
+    neither pyarrow nor pandas is installed. Writes only under out_dir (default DEFAULT_DIR).
+
+    `labels`, when given, restricts the build to those integer ImageNet labels: a small opt-in
+    proof build over a handful of classes, rather than the whole shard. Never used on the agent
+    path; the caller supplies it for an offline demonstration."""
     cv2 = _cv2()
+    wanted = set(int(x) for x in labels) if labels is not None else None
     rows = None
     try:
         import pyarrow.parquet as pq
@@ -549,6 +554,8 @@ def build_from_parquet(parquet_paths, out_dir=None, per_class=50, lexicon=None):
                 counts: dict = {}
                 for i, lab in enumerate(labels):
                     k = int(lab)
+                    if wanted is not None and k not in wanted:
+                        continue
                     if per_class and counts.get(k, 0) >= per_class:
                         continue
                     counts[k] = counts.get(k, 0) + 1
