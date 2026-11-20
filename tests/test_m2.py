@@ -189,6 +189,38 @@ def _wide(ag, slot="o1.dcol"):
     return slot
 
 
+def _can_occasion(ag):
+    """Build the MEANS-END occasion `check_can_gates_until` needs: a slot ACHIEVABLE
+    (can=YES) while still OWING a discrepancy against a real goal target.
+
+    **RE-PINNED 2026-11-20 BY OCCASION KIND (WATSON).** `can=YES` is earned by POSITIVE
+    CAUSAL EVIDENCE, never absentially: holds now (disc=0), a goal hypothesis with a
+    delta-table route, or a bound term with an observed action moving it toward its
+    target. No gridworld slot satisfies can=YES ^ disc>0 ^ a goal target by the first
+    two routes: `o0.add_n`/`o0.rem_n` are can=yes ONLY at disc=0, `o1.col`/`o2.col`
+    carry disc and a target but no bound term, and installing a goal hypothesis
+    collapses disc to 0 (the structural tension). Widening the group to make a
+    shrinking series -- what `_wide` did for the old slot -- is the SAME tension: it
+    drives `o1.col` to disc=0/target=None, so can=YES is then the holds-now route, not
+    the means-end route this check verifies (measured: group (0,12) -> (0,12,7,8,9,11)).
+
+    So this fixture keeps the slot's REAL group/target/disc and supplies only what the
+    warm run left unformed: a shrinking series on the selector's axis, and the bound
+    term that PREDICTS the target under the action whose honest deltas are already in
+    the trace. On `o1.col` the warm trace already holds 11 ACTION1 deltas of +1
+    (0..11, toward target 12); `sum_group` predicts exactly 12 under ACTION1, so
+    can(o1.col)=YES is earned by the delta table while disc=1 and target=12 remain.
+    Fig 11 :39-40/:70: a SUBSTITUTED HABITAT proving a MECHANISM (the nested-guard
+    gate), never the agent clearing a game; Fig 6 :27 distinguishes depth from absence.
+    """
+    slot = "o1.col"
+    ag._res = {slot: [0.9, 0.87, 0.84]}   # selector's shrinking series; group INTACT
+    ag.routine = ag.routine_for = None
+    ag.refuted, ag.refuted_at = {}, {}
+    ag.bound[slot] = "sum_group"          # predicts target 12 under the observed action
+    return slot
+
+
 def _mint(ag, state):
     n0 = len(ag.led.entries)
     ag._mint_routine(state)
@@ -203,9 +235,11 @@ def check_can_gates_until():
     SLOT-level check refused first -- so it passed with the per-guard sweep deleted.
     """
     ag = _agent()
+    slot = _can_occasion(ag)  # re-pinned 2026-11-20: the occasion, not a name -- see helper
     b = dict(ag.env.observe())
-    slot = _wide(ag)
     assert ag.can(slot, b) == YES, "fixture: the slot's own guard must stay reachable"
+    assert ag._discrepancy(slot, b) > 0, (
+        "fixture: can must be earned by the delta route, not by disc=0 (holds now)")
     dead = Rt.Until("no.such.slot", Rt.Act(ag.actions[0]), 3)
     real_enum = Rt.enumerate_routines
     # every candidate carries the unreachable nested guard
@@ -298,9 +332,23 @@ def check_route_is_learned():
 
 def check_shelf_must_be_runnable_here():
     """DEFECT: composing over a settled routine whose action this level does not advertise."""
-    ag = _agent()
-    b = dict(ag.env.observe())
-    slot = _wide(ag)
+
+    def _gap_agent():
+        # RE-PINNED 2026-11-20, same as check_one_bargain: o1.col carries a real gap (1) and
+        # target (12); `_wide`'s phantom widening would zero the gap and no slot has can==YES
+        # with a positive gap and a target, so CAN is held YES as a precondition. The shelf
+        # filter, not the affordance, is what this check tests.
+        ag = _agent()
+        b = dict(ag.env.observe())
+        slot = "o1.col"
+        ag._res = {slot: [0.9, 0.87, 0.84]}
+        ag.routine = ag.routine_for = None
+        ag.refuted, ag.refuted_at = {}, {}
+        real_can = ag.can
+        ag.can = lambda s, st: YES if s == slot else real_can(s, st)
+        return ag, b, slot
+
+    ag, b, slot = _gap_agent()
     ag.routines = [Rt.Until(slot, Rt.Act("ACTION9"), 3)]
     rows = _mint(ag, b)
     # THE ROW, NOT THE OUTCOME. Asserting on what got minted passes vacuously whenever the
@@ -309,9 +357,7 @@ def check_shelf_must_be_runnable_here():
     row = next((e.detail for e in rows if e.event in ("routine", "routine_cut")), None)
     assert row is not None and row["shelf"] == 0, (
         f"an unrunnable shelf routine entered the candidate set: shelf={row and row['shelf']}")
-    ag2 = _agent()
-    b2 = dict(ag2.env.observe())
-    s2 = _wide(ag2)
+    ag2, b2, s2 = _gap_agent()
     ag2.routines = [Rt.Until(s2, Rt.Act(ag2.actions[0]), 3)]
     row2 = next((e.detail for e in _mint(ag2, b2)
                  if e.event in ("routine", "routine_cut")), None)
@@ -342,7 +388,18 @@ def check_one_bargain():
     """
     ag = _agent()
     b = dict(ag.env.observe())
-    _wide(ag)
+    # RE-PINNED 2026-11-20. `_wide`'s default o1.dcol has no integer discrepancy, so the mint
+    # refused upstream and wrote no bargain row. o1.col has a REAL gap (1) and target (12) in
+    # this world; `_wide`'s phantom scope widening would zero that gap, so take only its state
+    # reset. No slot here has can==YES together with a positive gap and a target at once (the
+    # finding check_can_gates_until records), so CAN is held YES as a precondition -- this
+    # check prices a plan; it does not test the affordance.
+    slot = "o1.col"
+    ag._res = {slot: [0.9, 0.87, 0.84]}
+    ag.routine = ag.routine_for = None
+    ag.refuted, ag.refuted_at = {}, {}
+    real_can = ag.can
+    ag.can = lambda s, st: YES if s == slot else real_can(s, st)
     ag.goal_residual = lambda _s, _st, **_k: 0.02  # a real residual, too small to buy a plan
     rows = _mint(ag, b)
     assert any(e.detail.get("reason") == "does-not-pay" for e in rows), "wrong reason"
@@ -829,7 +886,12 @@ def check_only_a_trial_refutes():
     """DEFECT: `I could not read the guard` recorded as `this plan does not work`."""
     ag = _agent()
     b = dict(ag.env.observe())
-    slot = _wide(ag)
+    # RE-PINNED 2026-11-20. `_wide`'s default o1.dcol has an unreadable guard here, so the
+    # planted plan ended `blocked` -- a different non-trial -- and the two assertions below
+    # never named the outcome, so this check stayed green while the suite lost `unadvertised`.
+    # o1.col's guard reads; the plan reaches interface realisation and ends `unadvertised`
+    # (measured at seed 0).
+    slot = _wide(ag, "o1.col")
     ag.routine = Rt.Until(slot, Rt.Act("NOT_ADVERTISED"), 3)
     ag.routine_for = slot
     n0 = len(ag.led.entries)
@@ -838,6 +900,10 @@ def check_only_a_trial_refutes():
     rows = [e for e in ag.led.entries[n0:] if e.event == "routine_end"]
     assert rows and rows[-1].detail.get("status") != "refuted", (
         "a non-trial was RECORDED as a refutation even though none was filed")
+    # THE OUTCOME, NAMED. Without this the two assertions above also pass on `blocked`, which
+    # is exactly how the quiet failure hid from `check_the_suite_reaches_the_hard_cases`.
+    assert rows and rows[-1].detail.get("outcome") == "unadvertised", (
+        f"a non-trial ended {rows and rows[-1].detail.get('outcome')}, not unadvertised")
 
 
 def check_a_refutation_is_a_row():
@@ -1067,6 +1133,11 @@ def check_a_plan_that_succeeds_shelves_itself():
     """
     ag = _agent()
     slot = _wide(ag)
+    # RE-PINNED 2026-11-20: GQ3 confirms only MIN_REPEAT consecutive <=0 readings. One 0.0
+    # in the old fixture's series left the guard TOUCHED -> routine_hold, no ending; a
+    # confirmed series ends at the first advance. With the exit contest ON the routine bids
+    # instead and is not ended at PLAN (tether.py:21875), so hold it off for the two calls.
+    ag._res[slot] = [0.9, 0.0, 0.0]
     b = dict(ag.env.observe())
     seen = []
 
@@ -1077,8 +1148,12 @@ def check_a_plan_that_succeeds_shelves_itself():
     r = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
     ag.routine, ag.routine_for = r, slot
     n0 = len(ag.led.entries)
-    ag.choose(b)                                # emits the action; guard still false
-    ag.choose(dict(ag.env.observe()))           # guard now true -> DONE, having acted
+    was, tether._EXIT_CONTEST = tether._EXIT_CONTEST, False
+    try:
+        ag.choose(b)                                # emits the action; guard still false
+        ag.choose(dict(ag.env.observe()))           # guard now true -> DONE, having acted
+    finally:
+        tether._EXIT_CONTEST = was
     row = next((e.detail for e in ag.led.entries[n0:] if e.event == "routine_end"), None)
     assert row and row["outcome"] == Rt.DONE, f"ended {row and row['outcome']}, not done"
     assert r in ag.routines, "a plan that achieved its guard was not shelved"
@@ -1119,6 +1194,12 @@ def check_the_accumulation_commits_where_the_bargain_refused():
     ag2.cfg.accumulate = True
     slot2 = _wide(ag2)
     ag2._last_commit = ag2.cycle                   # no idle relief
+    # 2026-11-20: under TETHER_URGENCY_PROGRESS (default ON) the idle that drives
+    # relief is read from `_last_progress`, NOT `_last_commit` (tether.py:25038).
+    # Setting only `_last_commit` left cold idle=9 and warm idle=49, both already
+    # past the quorum floor where relief stops lowering the bar (2.0->1.5 at idle=4),
+    # so the assertion failed on a field the live path never reads. Pin the live field.
+    ag2._last_progress = ag2.cycle
     # **AND NO RECURRENCE EITHER -- SET, NOT INHERITED. Isaiah's isolation ruling, 2026-09-30.**
     # This case used to take whatever the 25-cycle warm-up happened to leave in `wants`, and
     # that DECIDED IT: measured, `wants[o1.dcol]` is None on the default arm, so `lean` was
@@ -1220,12 +1301,19 @@ def check_a_plan_that_ends_without_acting_is_not_shelved():
     """
     ag = _agent()
     slot = _wide(ag)
+    # RE-PINNED 2026-11-20, same GQ3 confirmation as the succeeding-plan check: a single
+    # zero left the guard TOUCHED and no `done` ending was written at all.
+    ag._res[slot] = [0.9, 0.0, 0.0]
     b = dict(ag.env.observe())
     ag.goal_residual = lambda _s, _st, **_k: 0.0   # the guard holds BEFORE the routine runs
     r = Rt.Until(slot, Rt.Act(ag.actions[1]), 3)
     ag.routine, ag.routine_for = r, slot
     n0 = len(ag.led.entries)
-    ag.choose(b)
+    was, tether._EXIT_CONTEST = tether._EXIT_CONTEST, False
+    try:
+        ag.choose(b)
+    finally:
+        tether._EXIT_CONTEST = was
     row = next((e.detail for e in ag.led.entries[n0:] if e.event == "routine_end"), None)
     assert row and row["outcome"] == Rt.DONE, f"ended {row and row['outcome']}, not done"
     assert r not in ag.routines, "a routine that emitted NOTHING was shelved as settled"
@@ -1978,7 +2066,12 @@ def check_a_sweep_skips_a_slot_past_its_turn():
 def _plant(ag, acts):
     """An Until routine held on a slot with `acts` already taken, its guard read by a stub."""
     import routine as Rt
-    slot = next(s for s in sorted(ag.slots) if not s.startswith("@"))
+    # RE-PINNED 2026-11-20. The first non-@ slot is o0.add_col, which observe() does not
+    # publish; `before.get(slot, was)` then returns `was`, so a held claim always reads as
+    # unchanged and the two claim checks fail on the fixture. Sample a slot the observation
+    # actually carries (the property that was missing, not a fitted slot name).
+    observe = ag.env.observe()
+    slot = next(s for s in sorted(ag.slots) if not s.startswith("@") and s in observe)
     ag.routine, ag.routine_for = Rt.Until(slot, Rt.Act("up"), 3), slot
     ag._routine_adopted, ag._routine_acts = ag.routine, acts
     ag._routine_next, ag._expect = None, None
