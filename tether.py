@@ -473,6 +473,10 @@ PHASE_OF: dict[str, str] = {
     "untried:goal": I.DIRECTED,   # 16b: a formed intent not yet pressed here, at a static goal
     "reflex": I.DIRECTED,      # 22: a stored When(reading, intent) its witnesses let fire (r1243)
     "muse_test": I.DIRECTED,   # 24 (i): a muse rival's discriminating press (r1252)
+    "lookahead": I.STRATEGY,   # C3 exit (arc_holdout/_c3_offer): chained settled predictions,
+                              # a plan, so STRATEGY like the other C3 exit `routine`.
+                              # Classified here because `choose` returns it through the
+                              # runtime variable `take`, which the phase census cannot read.
 }
 
 ORDERED_TYPES = ("POSITION", "EXTENT", "DELTA")

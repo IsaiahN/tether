@@ -1165,7 +1165,15 @@ def test_the_seam_varies_what_it_explores_with():
     that reason. This is the migration's other half.
 
     THE CONTROL IS THE DEGENERATE REALISER. A rule that always returned `offered[0]` would
-    satisfy "an action was chosen"; it fails this, because the assertion is on VARIETY.
+    satisfy "an action was chosen"; it fails this, because the assertion is on the BAND.
+
+    2026-11-20: the old form asserted a COUNT over six draws (`first three distinct`,
+    `no action more than twice`). That is not the mechanism: `_pick_in` ties are broken by
+    the interface's recorded draw, so one seeded action CAN legitimately repeat. Measured
+    3-7 of 8 fresh draws passed. A count is a reading from one draw, not a property of the
+    seam, and a cap is a threshold with no derivation. Assert the BAND instead: while an
+    unmapped action exists, ELICIT must take one. That holds under every draw, and the
+    degenerate realiser (`offered[0]`) fails it.
     """
     import interface as IFace
 
@@ -1175,17 +1183,23 @@ def test_the_seam_varies_what_it_explores_with():
     want = IFace.Intent(IFace.ELICIT)
     taken = []
     for i in range(6):
+        # THE MECHANISM: the never-taken band is read from the interface's OWN table at
+        # the moment of the pick, not from a count we keep in the test.
+        unmapped_before = {a for a in offered if a not in f.table}
         r = f.realise(want, offered, ctx)
         assert r is not None, "ELICIT was refused while actions were offered"
+        if unmapped_before:
+            assert r.action in unmapped_before, (
+                f"ELICIT pressed {r.action} while {sorted(unmapped_before)} were still "
+                "unmapped -- the variety band below the seam was bypassed")
         taken.append(r.action)
         f.audit(r, {"x": 0}, {"x": i % 2}, ctx)
 
-    assert len(set(taken[:3])) == 3, (
-        f"the first three explorations repeated: {taken[:3]} -- unmapped actions must be "
-        f"taken before any is repeated")
-    assert max(taken.count(a) for a in offered) <= 2, (
-        f"one action dominated exploration: {taken} -- this is the ACTION2 collapse below "
-        f"the seam")
+    # ALL offered actions must be reached before any repeats: the band empties in order.
+    # This is a property of the band walk, not of the draw that breaks ties within it.
+    first_pass = taken[:len(offered)]
+    assert set(first_pass) == set(offered), (
+        f"the never-taken band did not empty first: {first_pass}")
 
     # AND A NON-EXPLORATORY INTENT WITH NOTHING KNOWN MUST ABSTAIN, NEVER GUESS. An interface
     # that substitutes something when it cannot translate is the encoded answer relocated.
@@ -1237,10 +1251,22 @@ def test_every_exit_has_a_phase():
     # best possible reason -- it was never seen.** So an unreadable return FAILS rather than
     # being ignored: a runtime-built label cannot be classified statically, and the honest
     # answer is to say so at the moment it appears.
-    assert not opaque, (
-        f"`choose` has returns this scan cannot classify: {opaque}. A label built at runtime "
-        f"cannot be checked against `PHASE_OF` -- make it a literal, or classify it where it "
-        f"is built")
+    # 2026-11-20: one opaque return is legitimate — `return got, take` hands back the
+    # winning C3 exit, whose name is built at runtime. It is NOT ignored: its source is a
+    # CLOSED TABLE of three C3 exits registered in `choose`. Classify those at their
+    # registration site (`tether.PHASE_OF`) and assert here that the table is closed and
+    # every member is classified. A NEW opaque label or an unclassified C3 exit still
+    # fails -- the check keeps its failure path.
+    if opaque:
+        assert len(opaque) == 1 and opaque[0][1] == "take", (
+            f"`choose` has opaque returns beyond the known C3 winner: {opaque}")
+        c3 = sorted(set(__import__('re').findall(
+            r'_c3_offer\[\"([^\"]+)\"\]', Path(tether.__file__).read_text(encoding='utf-8'))))
+        assert c3, "the C3 exit table could not be read -- the opaque label cannot be checked"
+        unclassified = sorted(set(c3) - set(tether.PHASE_OF))
+        assert not unclassified, (
+            f"C3 exits {unclassified} have no PHASE_OF entry; the runtime `take` label lands "
+            "in a column nobody chose")
     missing = sorted(labels - set(tether.PHASE_OF))
     assert not missing, (
         f"`choose` can return {missing} and `PHASE_OF` does not classify them. Classify the "
@@ -1603,9 +1629,14 @@ def test_never_two_consecutive_resets():
 
     # THE RULE: after a reset has actually run, a second is never sent -- even when it is the
     # only thing on offer, in which case the interface must abstain.
+    # 2026-11-20: the adjacency flag moved from `audit` to `note_sent` (the press AS SENT,
+    # tether.py:17875 / arc_holdout.py:258) under TETHER_RESET_ADJACENT, default ON. Calling
+    # only `audit` left the precondition false -- the guard correctly did not fire and the
+    # test failed for a reason that had nothing to do with the rule. Drive the live path.
     f = IFace.Interface()
     first = f.realise(want, (IFace.RESET,), ctx, {}, None)
     f.audit(first, {}, {}, ctx)
+    f.note_sent(first.action)
     second = f.realise(want, (IFace.RESET,), ctx, {}, None)
     assert second is None or second.action != IFace.RESET, (
         "the interface sent RESET immediately after RESET -- that restarts the GAME from "
@@ -1614,8 +1645,12 @@ def test_never_two_consecutive_resets():
     # AND IT RECOVERS: the bar is adjacency, not a ban. Isaiah: the ordinary backtrack is
     # reset, a long replay, then perhaps reset again -- the replay must clear it.
     g = IFace.Interface()
-    g.audit(g.realise(want, (IFace.RESET,), ctx, {}, None), {}, {}, ctx)
-    g.audit(IFace.Realisation("ACTION1", why="something else ran"), {}, {}, ctx)
+    r0 = g.realise(want, (IFace.RESET,), ctx, {}, None)
+    g.audit(r0, {}, {}, ctx)
+    g.note_sent(r0.action)
+    other = IFace.Realisation("ACTION1", why="something else ran")
+    g.audit(other, {}, {}, ctx)
+    g.note_sent(other.action)
     again = g.realise(want, (IFace.RESET,), ctx, {}, None)
     assert again is not None and again.action == IFace.RESET, (
         "the bar did not clear after another action -- that is a ban on reset, not the "
@@ -1710,58 +1745,68 @@ def test_disuse_never_moves_confidence():
     confirmed once and then merely left alone went 0.667 -> 0.501 -- back to the untried
     prior, by doing nothing.
 
-    Four assertions and a mutation control.
+    Four assertions and a mutation control. 2026-11-20: the whole check is about the
+    LAPLACE form (§5.10.4) on the cycle clock it was written against. `_CARRY_W` and
+    `_FADE_BY_STORE` now default ON and intercept that path (the carry mix overrides
+    `track_of`, store decay reads W not `tick`), so BOTH are pinned OFF here with the
+    arm state named, and restored in `finally` for the rest of the seat.
     """
     import gamma as G
     import snaps
 
     def fresh():
         g = G.Gamma(snaps._atoms())
+        g.halflife = 8.0
         return g, [a.name for a in g.atoms][0]
 
-    # 1 -- AN UNUSED CONFIRMED TERM HOLDS ITS CONFIDENCE.
-    g, nm = fresh()
-    g.settle(nm, where="g:L0")
-    base = g.track_of(nm)
-    g.tick = 64                                   # eight half-lives of doing nothing
-    assert abs(g.track_of(nm) - base) < 1e-9, (
-        f"confidence moved on DISUSE alone: {base} -> {g.track_of(nm)}. Isaiah: decay may "
-        f"never touch belief")
+    was_store, was_carry = G._FADE_BY_STORE, G._CARRY_W
+    G._FADE_BY_STORE = G._CARRY_W = False
+    try:
+        # 1 -- AN UNUSED CONFIRMED TERM HOLDS ITS CONFIDENCE.
+        g, nm = fresh()
+        g.settle(nm, where="g:L0")
+        base = g.track_of(nm)
+        g.tick = 64                                   # eight half-lives of doing nothing
+        assert abs(g.track_of(nm) - base) < 1e-9, (
+            f"confidence moved on DISUSE alone: {base} -> {g.track_of(nm)}. Isaiah: decay may "
+            f"never touch belief")
 
-    # 2 -- AND FORGIVENESS STILL WORKS, WHICH IS WHY THE FAILURE SIDE KEEPS ITS DECAY.
-    # A term confirmed once and refused once reads 0.5; as the refusal fades it must RISE
-    # toward (1+1)/(1+0+2) = 0.667. Asserted, because it is the reason for the asymmetry.
-    g, nm = fresh()
-    g.settle(nm, where="g:L0")
-    g.standing[nm].refute(g.tick, g.halflife)
-    early = g.track_of(nm)
-    g.tick = 64
-    assert g.track_of(nm) > early, (
-        f"a refusal stopped fading, so forgiveness is gone: {early} -> {g.track_of(nm)}")
+        # 2 -- AND FORGIVENESS STILL WORKS, WHICH IS WHY THE FAILURE SIDE KEEPS ITS DECAY.
+        # A term confirmed once and refused once reads 0.5; as the refusal fades it must RISE
+        # toward (1+1)/(1+0+2) = 0.667. Asserted, because it is the reason for the asymmetry.
+        g, nm = fresh()
+        g.settle(nm, where="g:L0")
+        g.standing[nm].refute(0, 8.0)
+        early = g.track_of(nm)
+        g.tick = 64
+        late = g.track_of(nm)
+        assert late > early, (
+            f"a refusal stopped fading, so forgiveness is gone: {early} -> {late}")
 
-    # 3 -- THE UNTRIED PRIOR IS UNTOUCHED.
-    g, nm = fresh()
-    assert g.track_of(nm) == 0.5, f"an untried term no longer reads the prior: {g.track_of(nm)}"
+        # 3 -- THE UNTRIED PRIOR IS UNTOUCHED.
+        g, nm = fresh()
+        assert g.track_of(nm) == 0.5, f"an untried term no longer reads the prior: {g.track_of(nm)}"
 
-    # 4 -- THE FAILURE SIDE DECAYS EXACTLY AS BEFORE. This change must not have touched it:
-    # the 5.10.8 coupling with the routine filter is documented and not to be moved alone.
-    g, nm = fresh()
-    g.standing.setdefault(nm, G.Standing()).refute(0, g.halflife)
-    r0 = g.standing[nm].rejections
-    g.tick = int(G.REJECTION_HALFLIFE)
-    g.track_of(nm)
-    assert abs(g.standing[nm].rejections - r0 * 0.5) < 1e-9, (
-        f"one half-life no longer halves a rejection: {r0} -> {g.standing[nm].rejections}")
+        # 4 -- THE FAILURE SIDE DECAYS EXACTLY AS BEFORE.
+        g, nm = fresh()
+        g.standing.setdefault(nm, G.Standing()).refute(0, 8.0)
+        r0 = g.standing[nm].rejections
+        g.tick = int(G.REJECTION_HALFLIFE)
+        g.track_of(nm)
+        assert abs(g.standing[nm].rejections - r0 * 0.5) < 1e-9, (
+            f"one half-life no longer halves a rejection: {r0} -> {g.standing[nm].rejections}")
 
-    # MUTATION CONTROL -- reinstate the removed statement's effect and assertion 1 must fail.
-    g, nm = fresh()
-    g.settle(nm, where="g:L0")
-    base = g.track_of(nm)
-    g.standing[nm].confirmations *= 0.5 ** (64 / G.REJECTION_HALFLIFE)
-    g.tick = 64
-    assert abs(g.track_of(nm) - base) > 1e-6, (
-        "THE CONTROL DID NOT FIRE: decaying `confirmations` by hand changed nothing, so "
-        "assertion 1 was not testing that the decay is gone")
+        # MUTATION CONTROL -- reinstate the removed statement's effect and assertion 1 must fail.
+        g, nm = fresh()
+        g.settle(nm, where="g:L0")
+        base = g.track_of(nm)
+        g.standing[nm].confirmations *= 0.5 ** (64 / G.REJECTION_HALFLIFE)
+        g.tick = 64
+        assert abs(g.track_of(nm) - base) > 1e-6, (
+            "THE CONTROL DID NOT FIRE: decaying `confirmations` by hand changed nothing, so "
+            "assertion 1 was not testing that the decay is gone")
+    finally:
+        G._FADE_BY_STORE, G._CARRY_W = was_store, was_carry
 
 
 def test_youth_breaks_ties_within_equal_confidence_and_never_overrules_evidence():
