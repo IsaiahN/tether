@@ -209,3 +209,107 @@ per-object / a miss starts inference; Fig 11 capability is agent-and-habitat; Fi
 unreachable is a verdict) → write site (`_htn_push` open-enabler gate) → ledger anchor
 (the two `repair_at_refusal` rows) → round trip (the refuter: a goal already satisfied at
 its own test cannot yield an open enabler). No ARC-game tuning, no code change.
+
+## 2026-11-20 — the two "ARC-blocking" rows are already done (audit correction)
+
+Both rows in the 06-INDEX audit were marked "BLOCKING FOR ARC" and "not started" in the
+2026-11-20 progress table. That was a stale reading of the audit doc, not the code. Verified
+at the write sites:
+
+1. **`actions()` is a fixed tuple; ARC's action set varies per frame.**
+   - `arc_world.py:678-679`: `def actions(self): """What the FRAME advertises, re-read every call."""`
+   - `tether.py:26899-26921`: the loop re-reads `now = tuple(self.env.actions())` every step,
+     refreshes `self.actions`, and writes an `advertised` row when a capability opens or closes
+     (`opened`/`closed`/`was`/`now`/`after`). The docstring at 26891-26898 states the exact
+     reasoning the audit row called missing: an action appearing or disappearing is a CONDITION
+     met or unmet, an observation and not bookkeeping.
+   - So action-set growth is read as the import/condition event the doctrine names; shrinkage
+     is recorded with the same `advertised` row.
+
+2. **`tried` has no state context (false abstention from a wall).**
+   - `probe.py:51`: `self.tried: dict[str, set] = {}  # action -> distinct states it was drawn from`
+     (blame: e23b4228, 2026-08-27; later refined by 8a6c05db "coverage test no longer compares
+     action NAMES above the seam").
+   - `probe.py:91-100`: `never_live` requires `covered(n_actions)`, and `covered` counts actions
+     tried from >= 2 DISTINCT STATES (`len(seen) > 1`), with the anchor reason inline: two states
+     is the smallest number that can separate a dead action from a positional artefact.
+   - `probe.py:102-105`: `trials()` publishes the evidence per action so the claim is checkable.
+
+So the capability the audit rows called "blocking" is present and was present before this audit.
+No code change is owed. The correction is to the RECORD: do not list these as outstanding work.
+The remaining ARC-facing gaps are the measured ones — T0 chain never completes (0/6), HTN
+triggers rarely fire, recognition/RDL inert on real boards — not these two contracts.
+
+Method carried (derive-first): residual (a row calls a capability missing) -> figure lines
+(Fig 11 :39-40 capability is agent-and-habitat, a claim about what the agent CAN reach) ->
+write site (arc_world.actions, tether advertised, probe.tried/covered) -> anchor (git blame and
+the inline reasoning) -> round trip: the row is corrected, the contract was already honoured.
+No ARC-game tuning, no check weakened.
+
+## 2026-11-20 — the "HIGHEST PRIORITY" retrieval row is already implemented
+
+The 06-INDEX audit row "retrieval by characterised residual — open, HIGHEST PRIORITY, the
+only open row where a specified guard is missing" was written before the mechanism landed.
+Verified at the write sites today:
+
+- The specified keys are all present. `retrieval.characterise` (retrieval.py:38) publishes
+  arity, `varies`, `varies_types`, `invariant` and `n`, computed from the residual and scoped
+  to the object — types and arity, never ids (Fig 9 form). `retrieval.key_of` (:98) publishes
+  the term's type signature, arity, reads and reaches. `retrieval.fits` (:142-201) scores in
+  one pass: type signature (2), arity (1), aimed-at-a-varying-slot (1), relational effect (1).
+- The collapse the row feared is documented as fixed in the code's own comments: the old
+  `aimed = bool(varies)` read 154/154 gaps as aimed (87.3% collapse onto arity); the scoped
+  `varies_types` key brought it to median 0%, 92/102 objects changing nothing (F303,
+  retrieval.py:51-60, 187-195).
+- It is wired into the LIVE path, not a proposal: `tether.py` imports retrieval (:49) and
+  calls `characterise` at :7893, :18931, :25675, :28874; `retrieve` at :19090; `fits` at
+  :29050. `shape_order.py` fits the whole chain; `inherited.py:358` derives the tier bound
+  from fits' 0..5 range. `check_paths.py:45-69` asserts the type-scoped key is identical across
+  different slots and instances and that an empty residual reads n=0.
+- The structure hash that landed this session is complementary (a stable hash of term FORM
+  for provenance), not the retrieval guard.
+
+So no code change is owed for this row. The correction is to the RECORD: it is done, not open.
+The genuinely open retrieval-adjacent rows are "no gating on the library" and "IMPORT/step 7
+OUTWARD", which are separate and were not claimed here.
+
+Method (derive-first): residual (row calls the guard missing) -> figure line (Fig 9 :26-29
+"R's own predicates name the habitat... describe it before you go looking... matching is a
+one-pass check") -> write site (characterise/key_of/fits + live call sites) -> anchor (F303
+collapse numbers in the code and check_paths assertions) -> round trip: row corrected.
+No ARC-game tuning, no check weakened.
+
+## 2026-11-20 — ImageNet to AKAZE, demonstrated end to end (opt-in, offline)
+
+The optional ImageNet class memory was previously only verified structurally (detector,
+header, inert rows). It is now DEMONSTRATED: ImageNet images built into an AKAZE memory and
+named back to the correct WordNet synset.
+
+- **Build**: one validation shard, six classes (`labels=[575,761,159,700,209,116]`),
+  `per_class=8`, offline into `C:\TETHER_RUNS\CLEANUP_2026-11-16\imagenet_val_small`.
+  Completed in **93 s**. Memory: 6 classes, 38,172 AKAZE centres, 2.2 MB npz, 6 WordNet synsets.
+- **Activation**: with `RDL_RECOGNITION_DIR` pointed at the built memory and
+  `IMAGENET_PARQUET_DIR` at the local data, `class_memory_status` returns
+  `active=True, classes=6, event=class_memory_active`.
+- **Recognition**: 6 source images from the same shard were named with the correct synset
+  (e.g. `n03445924`, `n01955084`, `n04074963`), RANSAC inliers 314–1,573, zero abstentions.
+  This is the same AKAZE index and vote/geometry path used by the shipped shape memory; only
+  the source images differ.
+
+Two builder defects were found and fixed while doing this, both measured:
+1. `build_from_parquet` materialized all image bytes of a shard into Python objects BEFORE
+   the `per_class` filter (`read_table(["image","label"]).to_pylist()`). A 458 MB validation
+   shard reached 2.96 GB RAM and 8+ min, while reading the label column alone took 0.1 s.
+   Fixed by choosing row indices from labels first and decoding only selected rows.
+2. Even fixed, an unfiltered full-shard proof (~974 classes, ~2,900 images) is a large
+   clustering job (~9 min CPU, 3.2 GB) — the centroid pass, not AKAZE. Added an optional
+   `labels` filter so a proof build can select a handful of classes; the six-class build took
+   93 s.
+
+Scope: this is a demonstration of capability for people who have ImageNet locally. Nothing
+was committed to the repo (the memory lives in a temp dir), the builder is offline-only and
+never on the agent path, the data was never uploaded, and real boards still carry no picture
+field so the route remains inert in the live task. No ARC-game tuning, no neural network.
+
+The 142.8 GB for the full 1,000-class train set is data, not training: the cost is reading
+and indexing example images once offline. The proof shows a subset takes seconds per class.
