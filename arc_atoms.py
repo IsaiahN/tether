@@ -44,7 +44,7 @@ from arc_percept import (
     holes_of,
     perimeter_of,
 )
-from gamma import HANDED, SAME_AS_TARGET, Atom, Ctx, declare_turns
+from gamma import HANDED, NEEDED, SAME_AS_TARGET, Atom, Ctx, declare_turns
 from sensors import (
     BOOL,
     CELL,
@@ -390,11 +390,24 @@ def _fold_admissions() -> dict[str, str]:
         "none_of": q + "holds for no member",
     }
 
+# NEEDED, not clause one: Isaiah 2026-11-20. These were ADDED during the build to group
+# objects by kind and keep that kind invariant when the object grows, shrinks or turns.
+# They are not what the being arrived with; they were selected by contact and became
+# preconditions. Their clause and reason are recorded here at entry -- a `prior` stamp
+# cannot reconstruct that later, and the ablation may not wipe perception (Fig 12 :69).
+_NEEDED = {
+    "kind": "needed-2026-11-20: group objects by kind; the invariant survives a transform",
+    "grew": "needed-2026-11-20: a growth delta, so the kind is kept while size changes",
+    "shrank": "needed-2026-11-20: a shrink delta, so the kind is kept while size changes",
+    "turned": "needed-2026-11-20: a rotation delta, so the kind is kept while pose changes",
+    "scale": "needed-2026-11-20: the size reading the growth/shrink deltas are measured on",
+    "shape_name": "needed-2026-11-20: the named kind an object keeps across those changes",
+}
+
 CLAUSE_ONE = frozenset({
     # perception's own readings -- what a slot IS. `ATTRIBUTE_TYPE`'s keys become atoms.
     "row", "col", "colour", "h", "w", "bbox", "shape", "age", "speed", "stability",
-    "completed", "colour_changed", "contact", "touching", "scale", "grew", "shrank",
-    "kind", "turned", "shape_name",
+    "completed", "colour_changed", "contact", "touching",
     # the deltas -- what CHANGED. Without them there is no residual to price.
     "drow", "dcol", "dh", "dw", "dcells", "dholes", "dperimeter",
     "add_n", "rem_n", "add_row", "add_col", "rem_row", "rem_col",
@@ -1293,11 +1306,13 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
     # `inside`: admitted 2026-09-08, dated, with the batch's best reach number, and ABSENT
     # FROM THE REGISTRY FOR A FORTNIGHT.
     _admitted = {**ADMITTED, **_fold_admissions()}
-    unclassified = sorted(n for n in seen if n not in _admitted and n not in CLAUSE_ONE)
+    unclassified = sorted(n for n in seen if n not in _admitted and n not in CLAUSE_ONE
+                          and n not in _NEEDED)
     if unclassified:
         raise ValueError(
-            f"atoms with no admitting clause: {unclassified}. Add an `ADMITTED` entry saying "
-            f"what named the gap and why no chain yields it, or add the name to `CLAUSE_ONE` "
+            f"atoms with no admitting clause: {unclassified}. Add an `ADMITTED` or "
+            f"`_NEEDED` entry saying what named the gap and why no chain yields it, "
+            f"or add the name to `CLAUSE_ONE` "
             f"if the loop cannot run without it. The ablation partitions by which clause let "
             f"a thing in and that cannot be rebuilt afterwards.")
     # AN ATTRIBUTE ATOM WHOSE ARM IS OFF IS GATED, NOT PHANTOM (F498): it is declared and built
@@ -1332,4 +1347,7 @@ def three_spaces(predict: list[Atom]) -> list[Atom]:
                          f"atom's definition, or 'walk'.")
     for a in out:
         declare_turns(a, turns[a.name][0])
-    return [replace(a, admitted=HANDED) if a.name in _admitted else a for a in out]
+    # A NEEDED atom keeps its own clause: it is neither a handed head start nor a
+    # birth-given necessity, and the ablation must be able to tell the three apart.
+    return [replace(a, admitted=NEEDED) if a.name in _NEEDED else
+            replace(a, admitted=HANDED) if a.name in _admitted else a for a in out]

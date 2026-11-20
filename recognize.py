@@ -45,6 +45,12 @@ import numpy as np
 _SHIPPED_DIR = Path(__file__).resolve().parent / "library" / "shapes" / "memory"
 DEFAULT_DIR = Path(os.environ.get("RDL_RECOGNITION_DIR") or str(_SHIPPED_DIR))
 
+# The ImageNet PARQUET SOURCE is detected separately from the memory dir (both PLAIN env vars,
+# never TETHER_ arms). The default is a repo-relative path that does NOT exist in the repo, so no
+# absolute path is baked in and the data is never committed. A person with the data sets
+# IMAGENET_PARQUET_DIR; the detector below only reports the state and writes nothing.
+_PARQUET_DEFAULT = Path(__file__).resolve().parent / "library" / "imagenet" / "parquet-1k"
+
 # ---- declared conventions (Fig 10: visible and movable, never claimed correct) ----
 # Hamming radius (bits, of AKAZE's 486-bit MLDB descriptor) within which two descriptors join one
 # centroid group. Declared convention, Fig 10: visible and movable, never claimed correct.
@@ -339,6 +345,73 @@ def load(path=None) -> Memory:
     return Memory(classes=header["classes"], centres=z["centres"], labels=z["labels"],
                   positions=z["positions"], synsets=header.get("synsets", {}),
                   stamp=header.get("stamp", {}), raw_count=header.get("raw_count", 0))
+
+
+def class_memory_status(dir=None) -> dict:
+    """The state of the OPTIONAL ImageNet class memory at `dir` (default: the configured
+    RDL_RECOGNITION_DIR, resolved at import). NO side effects and NO large reads: the small header
+    JSON is parsed and the npz is only OPENED (its array keys checked, never the arrays loaded).
+
+    Returns a dict: dir, dir_exists, parquet_dir, parquet_source ('env' or 'default'),
+    parquet_detected (the parquet dir is a directory holding at least one .parquet shard),
+    present (memory.json + memory.npz both exist), loadable (header parses, npz opens with the
+    three expected arrays), classes (count from the header, 0 if absent), active (present and
+    loadable with at least one class), event ('class_memory_active' or 'recognised_inert') and
+    one 'reason' string. The reason names the exact state: no data / parquet not found /
+    not built / load failed, or the active class count. The memory being loadable is the
+    activation condition; parquet detection explains WHY an absent memory cannot be used."""
+    d = Path(dir) if dir is not None else DEFAULT_DIR
+    raw_pq = os.environ.get("IMAGENET_PARQUET_DIR")
+    pq = Path(raw_pq) if raw_pq else _PARQUET_DEFAULT
+    pq_source = "env" if raw_pq else "default"
+    pq_detected = pq.is_dir() and any(pq.glob("*.parquet"))
+
+    present = (d / "memory.json").is_file() and (d / "memory.npz").is_file()
+    classes = 0
+    loadable = False
+    err = None
+    if present:
+        try:
+            header = json.loads((d / "memory.json").read_text(encoding="utf-8"))
+            classes = len(header.get("classes") or ())
+            z = np.load(d / "memory.npz")
+            try:
+                missing = {"centres", "labels", "positions"} - set(z.files)
+                if missing:
+                    raise KeyError(f"npz missing {sorted(missing)}")
+            finally:
+                z.close()
+            loadable = True
+            if classes == 0:
+                err = "header carries 0 classes"
+        except Exception as e:                   # noqa: BLE001  a present-but-broken memory is said
+            err = f"{type(e).__name__}: {e}"
+
+    active = present and loadable and classes > 0
+    if active:
+        event = "class_memory_active"
+        reason = f"class memory active: {classes} classes loaded from {d}"
+    elif present and not active:
+        event = "recognised_inert"
+        reason = f"class memory load failed at {d}: {err or 'unknown error'}"
+    elif pq_source == "env" and not pq.is_dir():
+        event = "recognised_inert"
+        reason = (f"parquet not found at {pq}: class memory absent at {d}; point "
+                  "IMAGENET_PARQUET_DIR at the ImageNet parquet dir")
+    elif not pq_detected:
+        event = "recognised_inert"
+        reason = (f"no data: class memory absent at {d}; no ImageNet parquet at {pq} "
+                  "(set IMAGENET_PARQUET_DIR); memory.json/memory.npz not built")
+    else:
+        event = "recognised_inert"
+        reason = (f"class memory not built: ImageNet parquet detected at {pq} but "
+                  f"memory.json/memory.npz absent at {d}; run python recognize.py "
+                  "--build-class-memory")
+
+    return {"dir": str(d), "dir_exists": d.is_dir(), "parquet_dir": str(pq),
+            "parquet_source": pq_source, "parquet_detected": bool(pq_detected),
+            "present": bool(present), "loadable": bool(loadable), "classes": int(classes),
+            "active": bool(active), "event": event, "reason": reason}
 
 
 def _abstain(reason, **kw):
@@ -709,3 +782,54 @@ def recognise_shape(image_bgr, memory=None, hu_route: bool = True) -> dict:
                 "grid_shape_name": meta.get("grid_shape_name"), "bridge": meta.get("bridge"),
                 "route": route, "abstained": False})
     return out
+
+
+# ---- OFFLINE class-memory builder: CLI only, NEVER on the agent path (Isaiah 2026-11-20) ----
+def build_class_memory_from_parquet(parquet_dir, out_dir, per_class=50, lexicon=None):
+    """OFFLINE builder for the OPTIONAL ImageNet class memory. Discovers *.parquet shards under
+    `parquet_dir` (data the person supplies locally -- never committed) and delegates to
+    build_from_parquet, so the SAME lexicon/WordNet mapping and build_memory shape are reused.
+    Writes only under `out_dir`. Returns the saved path, or None when there are no shards or no
+    parquet reader. The agent never calls this; only the CLI below and the tests do."""
+    d = Path(parquet_dir)
+    if not d.is_dir():
+        print(f"SKIP build_class_memory_from_parquet: {d} is not a directory")
+        return None
+    paths = sorted(d.glob("*.parquet"))
+    if not paths:
+        print(f"SKIP build_class_memory_from_parquet: no .parquet shards under {d}")
+        return None
+    return build_from_parquet(paths, out_dir=Path(out_dir), per_class=per_class,
+                              lexicon=lexicon)
+
+
+def _main(argv=None) -> int:
+    """CLI: `python recognize.py --build-class-memory --parquet-dir DIR --out-dir DIR`.
+    The offline build is the ONLY thing this entry point does; importing recognize (the agent
+    path) never builds anything."""
+    import argparse
+
+    p = argparse.ArgumentParser(description="recognize: the optional image class memory")
+    p.add_argument("--build-class-memory", action="store_true",
+                   help="OFFLINE: build a class memory from local ImageNet parquet shards")
+    p.add_argument("--parquet-dir", default=None,
+                   help="dir holding *.parquet shards (default: $IMAGENET_PARQUET_DIR)")
+    p.add_argument("--out-dir", default=None,
+                   help="dir to write memory.json / memory.npz (default: $RDL_RECOGNITION_DIR)")
+    p.add_argument("--per-class", type=int, default=50)
+    p.add_argument("--lexicon", default=None, help="optional lexicon JSON override")
+    a = p.parse_args(argv)
+    if not a.build_class_memory:
+        p.print_help()
+        return 0
+    pq = Path(a.parquet_dir) if a.parquet_dir else Path(
+        os.environ.get("IMAGENET_PARQUET_DIR") or str(_PARQUET_DEFAULT))
+    out = Path(a.out_dir) if a.out_dir else DEFAULT_DIR
+    saved = build_class_memory_from_parquet(pq, out, per_class=a.per_class,
+                                             lexicon=a.lexicon)
+    print(f"built class memory at {saved}" if saved else "no class memory built")
+    return 0 if saved else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(_main())

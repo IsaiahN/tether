@@ -240,6 +240,12 @@ def transitions(old: dict[str, Any], new: dict[str, Any],
     oi, ni = old.get("items", {}), new.get("items", {})
     for name in sorted(set(oi) | set(ni)):
         a, b = oi.get(name), ni.get(name)
+        # A grammar prime is DECLARED vocabulary with no producing atom (ONE, WANT, ...).
+        # It can never occur as a term, so an occurrence/position comparison on it is a
+        # category error. A name that GAINS a producer is still reported below: that is
+        # a real capability change.
+        if not (a or {}).get("producer") and not (b or {}).get("producer"):
+            continue
         if a is None:
             if b["occurred"]:
                 out.append(f"{name}: NEW in the declared set -> {b['occurred']}")
@@ -313,6 +319,19 @@ def selftest() -> dict[str, str]:
         and unknown and "AGE UNKNOWN" in unknown[0]
         else f"UNWITNESSED ({young} / {aged} / {unknown})")
 
+    # The denominator guard and the declared-only skip must be ABLE to fire. A manifest
+    # computed over a different artifact set is not a capability transition; a grammar
+    # prime has no producer and cannot occur as a term.
+    changed = artifact_change({"computed_over": ["board.jsonl"]},
+                              {"computed_over": ["demo.jsonl"]})
+    same = artifact_change({"computed_over": ["board.jsonl"]},
+                           {"computed_over": ["board.jsonl"]})
+    prime = {"WANT": {"producer": False, "occurred": [], "positions": []}}
+    out["F denominator"] = ("ok" if changed == (["board.jsonl"], ["demo.jsonl"])
+                            and same is None and not transitions(
+                                {"items": prime}, {"items": prime})
+                            else f"UNWITNESSED (changed={changed}, same={same})")
+
     parsed = dict(parse_term("above . negate . all<o11.h>?ACTION1"))
     want = {"above": "head", "negate": "mid", "all": "tail",
             "o11.h": "operand", "ACTION1": "guard"}
@@ -326,6 +345,14 @@ def selftest() -> dict[str, str]:
     out["D control"] = ("ok" if "negate" not in ends_only
                         else "UNWITNESSED (the ends-only reading still finds it)")
     return out
+
+
+def artifact_change(old: dict[str, Any], new: dict[str, Any]) -> tuple[list[str], list[str]] | None:
+    """(removed, added) artifact names when the denominator changed, else None."""
+    was, now = set(old.get("computed_over", ())), set(new.get("computed_over", ()))
+    if was == now:
+        return None
+    return sorted(was - now), sorted(now - was)
 
 
 def main(argv: list[str]) -> int:
@@ -367,6 +394,25 @@ def main(argv: list[str]) -> int:
         print("wiring: no manifest. Run --update to record the current status.")
         return 1
     old = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    # A status is a reading FROM a set of artifacts. Comparing two readings taken over
+    # DIFFERENT sets is not a capability transition -- it is two different instruments.
+    # The manifest records `computed_over` for exactly this reason, so refuse to read
+    # across a changed denominator instead of reporting 68 false transitions. Return 2:
+    # the seat ran, it could not check everything, and check.py must not assert a cause.
+    change = artifact_change(old, new)
+    if change is not None:
+        gone, added = change
+        print("wiring: INCOMPLETE -- the artifact set changed, so no status transition can "
+              "be read from it.")
+        print(f"  manifest was computed over {len(old.get('computed_over', ()))} "
+              f"artifact(s); now {len(new['computed_over'])}.")
+        for label, names in (("removed", gone), ("added", added)):
+            if names:
+                shown = ", ".join(names[:6]) + ("..." if len(names) > 6 else "")
+                print(f"  {label}: {len(names)} -- {shown}")
+        print("  Regenerate the board artifacts the manifest was computed over, or run "
+              "`python conform/wiring.py --update` knowingly and commit both together.")
+        return 2
     moved = transitions(old, new)
     if moved:
         print(f"WIRING: {len(moved)} status transition(s) the manifest does not record.\n")
