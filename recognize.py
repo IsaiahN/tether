@@ -364,7 +364,10 @@ def class_memory_status(dir=None) -> dict:
     raw_pq = os.environ.get("IMAGENET_PARQUET_DIR")
     pq = Path(raw_pq) if raw_pq else _PARQUET_DEFAULT
     pq_source = "env" if raw_pq else "default"
-    pq_detected = pq.is_dir() and any(pq.glob("*.parquet"))
+    # rglob, not glob: the real download puts shards under data/ (and train/validation
+    # subfolders), not at the top level. A top-level glob reports "no data" for a
+    # fully-populated directory -- measured 2026-11-20: 308 shards present, detector False.
+    pq_detected = pq.is_dir() and any(pq.rglob("*.parquet"))
 
     present = (d / "memory.json").is_file() and (d / "memory.npz").is_file()
     classes = 0
@@ -795,7 +798,7 @@ def build_class_memory_from_parquet(parquet_dir, out_dir, per_class=50, lexicon=
     if not d.is_dir():
         print(f"SKIP build_class_memory_from_parquet: {d} is not a directory")
         return None
-    paths = sorted(d.glob("*.parquet"))
+    paths = sorted(d.rglob("*.parquet"))   # shards live under data/, not at the top level
     if not paths:
         print(f"SKIP build_class_memory_from_parquet: no .parquet shards under {d}")
         return None
