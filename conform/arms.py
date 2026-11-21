@@ -3458,6 +3458,13 @@ ARMS: dict[str, str] = {
                              "noun lexnames). A concept absent from relations.json is "
                              "unchanged. Record only. OFF: word-map-only priors. MF: "
                              "tests/test_relations_read.py. default ON",
+    "TETHER_VERBNET_WIDEN": "WATSON 42 :116 'one found verb brings its class: throw, toss, "
+                             "hurl, fling'. A found verb's declared VerbNet class brings its "
+                             "sisters as NO-STANDING prior candidates (same source/stamp, "
+                             "ranked by agreement), capped at 8 -- measured unpriced 21->415 "
+                             "on 'ball'. Fig 12 :46 the class is a bond, not a synonym; :41 "
+                             "the sister is charged like any prior. OFF: byte-identical prior "
+                             "list. MF: tests/test_verbnet_widen.py. default ON",
     "TETHER_RECOGNISED": "write-up 42 handoff item 4 'Recognition into the agent' (B8; C3, C6): "
                          "when an observation carries a picture (an env attribute or observation "
                          "field named picture/image holding an image array, board-wide or "

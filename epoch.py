@@ -43,6 +43,13 @@ def summarise(rows: list[dict[str, Any]]) -> dict[str, Any]:
     settles = refusals = wins = 0
     pressed = 0
     first_settle_at: int | None = None
+    # THE CORRECTION-SIZE SIGNAL (Isaiah, "Decoding Tacit Knowledge" 2026-11-10:
+    # "watch the trend in correction size, not the count of lessons given"). A correction
+    # is a goal that reached its own test and was refused: the gap between what the agent
+    # did and what the board showed. Its SIZE in the record is how far the run went before
+    # the correction — positions of arrived_no_clear / refuse / gap rows relative to the
+    # run. A shrinking distance (later-run corrections arriving sooner) is tacit transfer.
+    corrections: list[int] = []
     for i, r in enumerate(rows):
         ev = r.get("event")
         d = r.get("detail") or {}
@@ -53,6 +60,11 @@ def summarise(rows: list[dict[str, Any]]) -> dict[str, Any]:
                 first_settle_at = i
         elif ev == "refuse":
             refusals += 1
+            corrections.append(i)
+        elif ev == "goal_hypothesis_end" and d.get("why") == "arrived_no_clear":
+            # a correction whose meaning is subtext on the return trip: my condition
+            # was met, the board did not clear. Record WHERE it arrived.
+            corrections.append(i)
         elif ev == "win_credit":
             wins += 1
         elif ev == "bet" and d.get("bound") not in (None, "no_change"):
@@ -70,6 +82,9 @@ def summarise(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "words_n": len(words),
         "sentences_n": len(sentences),
         "presses_to_first_settle": (first_settle_at if first_settle_at is not None else -1),
+        "corrections": corrections,
+        "correction_count": len(corrections),
+        "first_correction_at": (corrections[0] if corrections else -1),
         "ground_rows": settles + refusals + wins,
     }
 
@@ -87,6 +102,8 @@ def trend(summaries: list[dict[str, Any]]) -> dict[str, Any]:
     new_sent: list[int] = []
     ground: list[int] = []
     wins: list[int] = []
+    corrections: list[int] = []
+    first_corrections: list[int] = []
     for s in summaries:
         w, x = set(s.get("words_grounded", ())), set(s.get("sentences_formed", ()))
         new_words.append(len(w - seen_words))
@@ -95,11 +112,23 @@ def trend(summaries: list[dict[str, Any]]) -> dict[str, Any]:
         seen_sent |= x
         ground.append(int(s.get("ground_rows", 0)))
         wins.append(int(s.get("wins", 0)))
+        corrections.append(int(s.get("correction_count", 0)))
+        first_corrections.append(int(s.get("first_correction_at", -1)))
+    # Correction SIZE trend: number of corrections per generation, and how early the first
+    # one arrives. Isaiah's measure is the trend in correction size, not lessons counted.
+    # A learner getting the tacit point needs FEWER corrections, arriving LATER in a run.
+    valid_first = [x for x in first_corrections if x >= 0]
     return {
         "new_words_per_generation": new_words,
         "new_sentences_per_generation": new_sent,
         "ground_rows_per_generation": ground,
         "wins_per_generation": wins,
+        "corrections_per_generation": corrections,
+        "first_correction_at_per_generation": first_corrections,
+        "correction_size_trend_down": (
+            sum(corrections) > 0 and corrections[-1] <= corrections[0]
+            and len(valid_first) >= 2 and valid_first[-1] >= valid_first[0]
+        ),
         "total_new_words": sum(new_words),
         "total_new_sentences": sum(new_sent),
         "words_trend_up": sum(new_words) > 0 and new_words[-1] >= new_words[0],
