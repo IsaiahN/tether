@@ -2671,6 +2671,21 @@ ARMS: dict[str, str] = {
                          "one reader, the option of the line kind that stopped (a goal shape's "
                          "proposer price, a slot kind's walk weight, a routine form's order); "
                          "within a game, nothing crosses. OFF: no steer. default ON",
+    "TETHER_VERBNET_WIDEN": "WATSON 42 :116 'one found verb brings its class: throw, toss, "
+                             "hurl, fling'. A found verb's declared VerbNet class brings its "
+                             "sisters as NO-STANDING prior candidates, capped at 8 (unpriced "
+                             "21->415 on 'ball'). Fig 12 :46 the class is a bond. OFF: "
+                             "byte-identical prior list. MF: tests/test_verbnet_widen.py. ON",
+    "TETHER_CORRECTION_SUBTEXT": "Isaiah 'Decoding Tacit Knowledge' 2026-11-10; WATSON "
+                                  "2026-11-21: an arrived_no_clear is a correction whose meaning "
+                                  "is the unstated gap between what the agent did and what the "
+                                  "board showed. Publish that gap on the goal's KIND as a named "
+                                  "reversible steer stop ('subtext', objective), read by the "
+                                  "proposer so another kind of condition can win; a later paid "
+                                  "success undoes it. No new state, no game id, no threshold. "
+                                  "Fig 9 :53 the gap chooses; Fig 4 :30-32 the gap is a "
+                                  "measurement. OFF: byte-identical choices and ledger. MF: "
+                                  "tests/test_correction_subtext.py. default ON",
     "TETHER_LEAVE_RATE": "BUILD 7 ITEM 26 (the reviewer 2026-11-05 r1268, r1269): patch-leaving "
                          "inside item 25's chooser -- a goal hypothesis (and a mint line under a "
                          "clock) is left when its own rate (bits explained on its slots since its "
