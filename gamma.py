@@ -449,6 +449,16 @@ _SETTLED_CORE = armflag.arm("TETHER_SETTLED_CORE", default=True)
 # Held under a key of everything it reads: the atoms, the settled set (scanned from standing, so no
 # writer can be missed) and the rank's version. OFF: rebuilt each call (ffbdf14)
 _UNITS_MEMO = armflag.arm("TETHER_UNITS_MEMO", default=True)
+# F325 / WATSON 54 -- KEEP THE METHOD WHEN A SETTLED TERM IS PROMOTED TO A UNIT.
+# Fig 12 :103-106 "a settled molecule becomes an atom for whatever composes over it", and
+# :5-14 "the ingredients are recorded and the arrangement is not ... the parts are not the
+# thing". Before this arm, promotion rebuilt the term from `.atoms` alone, dropping the
+# operand_term/guard it settled UNDER -- so the reusable chunk was a different computation
+# from the one the ground paid for. F325 said that had "never bitten" because operand_term
+# was dead; it is live now (trees, F470/F348). This carries the METHOD (the schema), never the
+# per-board BINDING (operand/guard_ref), which Fig 4 says is a recording and must not cross.
+# OFF: the old behavior byte-for-byte (Term(t.atoms, origin=...)).
+_UNITS_KEEP_METHOD = armflag.arm("TETHER_UNITS_KEEP_METHOD", default=True)
 # 37, THE UNBOUND-FORM MEMO (the reviewer 2026-11-01 r700, generation): unbound_form is a pure
 # function of one slot string, and _rebindings and the mint call it per candidate slot (2.55M calls,
 # 36.2 s of a 6-step wa30 profile, nearly all regex). Held per string, so each name is split once.
@@ -2475,7 +2485,16 @@ class Gamma:
             cap.head()
             if len(t) <= 1:
                 continue
-            unit = Term(t.atoms, origin=t.origin)
+            if _UNITS_KEEP_METHOD:
+                # Carry the settled SCHEMA (the method): the operand tree and guard, which is
+                # what the ground paid for. Leave the per-board BINDINGS (operand, guard_ref)
+                # unset -- they are re-decided per slot at mint and must not cross a board
+                # (Fig 4: a binding is a recording). `name` already namespaces the schema, so
+                # two trees with the same outer atoms but different branches stay distinct.
+                unit = Term(t.atoms, origin=t.origin,
+                            operand_term=t.operand_term, guard=t.guard)
+            else:
+                unit = Term(t.atoms, origin=t.origin)
             if unit.name not in seen:
                 seen.add(unit.name)
                 out.append(unit)
