@@ -53,6 +53,18 @@ def test_must_fail_frame_proxy():
     print("MF frame-proxy cannot move progress: OK")
 
 
+def test_correction_size_trend():
+    # Isaiah's "Decoding Tacit Knowledge": watch the trend in correction SIZE, not the
+    # count of lessons given. Fewer corrections arriving later = tacit transfer.
+    early = [_row("refuse"), _row("refuse"), _row("settle", term="inc")]
+    late = [_row("bet"), _row("bet"), _row("refuse"), _row("settle", term="inc")]
+    t = epoch.trend([epoch.summarise(early), epoch.summarise(late)])
+    assert t["corrections_per_generation"] == [2, 1], t
+    assert t["first_correction_at_per_generation"] == [0, 2], t
+    assert t["correction_size_trend_down"] is True, t
+    print("correction-size trend: OK")
+
+
 def test_wall_recorded_beside_not_netted():
     g1 = epoch.summarise([_row("settle", term="inc", status="accepted")])
     g2 = epoch.summarise([_row("settle", term="inc", status="accepted"),
@@ -69,5 +81,6 @@ if __name__ == "__main__":
     test_replay_not_new()
     test_no_agent_import()
     test_must_fail_frame_proxy()
+    test_correction_size_trend()
     test_wall_recorded_beside_not_netted()
     print("epoch: OK")
