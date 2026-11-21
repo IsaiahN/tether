@@ -2,9 +2,9 @@
 
 A recursive, domain agnostic, self consistent metatheory that functions as a barrier theorem, with a CPU only recursive self improvement agent as its instantiation.
 
-[![Watch the video](https://img.youtube.com/vi/HjnRy4TzXsg/maxresdefault.jpg)](https://www.youtube.com/watch?v=HjnRy4TzXsg)
+[![Watch the video](https://img.youtube.com/vi/bL5R7PhVCbM/maxresdefault.jpg)](https://www.youtube.com/watch?v=bL5R7PhVCbM)
 
-**[Watch Video](https://www.youtube.com/watch?v=HjnRy4TzXsg)**
+**[Watch Video](https://www.youtube.com/watch?v=bL5R7PhVCbM)**
 
 [![Kaggle DOI](https://img.shields.io/badge/DOI-10.34740%2FKAGGLE%2FW%2F105084-blue)](https://doi.org/10.34740/KAGGLE/W/105084)
 [![Zenodo DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.24403207-blue)](https://doi.org/10.5281/zenodo.24403207)
