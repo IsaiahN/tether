@@ -120,3 +120,14 @@ this habitat change, which preserves the architecture. Recorded, not patched.
 Cost note: 150 direct cycles consumed ~370 s CPU — the 122-bets/action signal again. The
 smoke had no deadline/supervisor; that is a lapse against the cap-long-runs rule and is
 recorded, not repeated.
+
+## CORRECTION, 2026-11-21 (WATSON 53) -- read this before the world-design claim above
+Isaiah corrected the framing: the agent should NOT key a cause on colour ("games change their
+colour -- a cheap temporary key, sticking something to the wall with gum"). The intent/interface
+seam is Fig 4 ("only the actors, the currency and the anchor change") and is ALREADY BUILT:
+the agent emits NSM intents (ELICIT/TOUCH/BE_AT/BECOME/DISTINGUISH) and \Interface.realise\
+turns them into actions from an observed table (25 call sites, WATSON 53). So the fix I wrote
+above ("BOOL latch -> COLOUR cause") is the wrong target. The real not-built part is narrower
+and domain-general: interface-side outcome -> action-SEQUENCE search (interface.py:1410,
+tether.py:18296). The latch habitat remains useful only as a SURFACE that made the agent say
+"composition of actions is not built" -- not as a cause-keying proposal. Kernel untouched.

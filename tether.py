@@ -5292,6 +5292,10 @@ class Agent:
         # and never closed over at construction -- which is `tether.py:2876`'s defect in
         # the toy `act` atom, where *the primitive it was given already knew*. The strip
         # that moves CHOOSING through it is step 2 and is not done.
+        # STALE 2026-11-21: CHOOSING DID move through it -- 25 `.realise()` sites, audit-built
+        # table, routines re-realise intent per step (WATSON 53, verified at those sites). The
+        # line above is kept as the record; the two things still NOT built are the interface-
+        # side outcome->action-SEQUENCE search (interface.py:1410) and its remedy at :18296.
         self.iface = IFace.Interface()
         self.iface.chooser = self._choose_known      # F480: the agent prices the known
         if _KIND_CARRY and _KIND_EFFECTS:
