@@ -83,3 +83,33 @@ FIGURE CENSUS: Fig 1 mint if it pays · Fig 4 methods up/bindings down · Fig 5 
 sufficient · Fig 6 more search at same reach · Fig 9 filters not verdicts · Fig 11 contact /
 capability=agent-and-habitat · Fig 12 arrangement-is-substance / two currencies · Fig 13
 closed set open arrangements / lineage. Strained: none.
+
+
+## CORRECTION, 2026-11-21 ( Isaiah, live ) -- Fix 2 is NOT a kernel edit to apply
+The section above called the routine-price change "held pending a ground run." That framing is
+wrong and is corrected here. Fig 4 :19-20: *"The kernel is the part that does not change with
+size: the same loop and the same rule for naming what worked... Only the actors, the currency
+and the anchor change."* The bargain `pays(cost,left,base)` IS "the rule for naming what
+worked," and `base` at tether.py:25864 is part of it. Hand-editing it would replace the
+invariant -- a new species, not a more capable one.
+
+Fig 9 :33-35: *"variation inside, selection between ... A room's agreement is variation, not a
+verdict. Selection between rooms is where the ground votes."* Fig 11 :36: *"Where nothing
+maintains anything, intelligence is a label applied afterwards to a lineage that met its
+ground. Nothing was intelligent; selection ran."* So the agent is evolved, not re-authored:
+variation from the loop, selection by the ground, inheritance of methods (Fig 4 :22-23).
+
+What I meant by "change contact first" was Fig 11 :39-40 -- *"capability is a property of
+agent-and-habitat, never of the agent alone. An improvement that does not change contact
+changes nothing"* -- a hand-edited price is an agent-only improvement. The right move is a
+habitat with a large integer gap where the EXISTING rule pays for a multi-step plan (as cd82
+already does at reach-31), so selection buys it rather than the seat discounting it.
+
+Fix 1 is NOT in the same category: gamma.py:2478 dropped the settled term's method on
+promotion, contradicting Fig 12 :103 "a settled molecule becomes an atom for whatever composes
+over it." Repairing it restores the kernel's own rule (conformance), it does not amend the
+rule. Fix 2 as written would amend the rule, so it is RETRACTED as a proposed change and kept
+only as a finding: if a large-gap habitat still refuses, the honest report is "unreachable at
+this rule" (Fig 8 :40-41), which goes to Isaiah for a ruling -- never a silent edit by the seat.
+
+Full lineage held: no price rule changed; the only code change remains Fix 1 behind its arm.
