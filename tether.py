@@ -2866,6 +2866,12 @@ _LEAVE_RATE = armflag.arm("TETHER_LEAVE_RATE", default=True)
 # read by ONE reader, the option of the line kind that stopped: a goal shape's proposer price, a
 # slot kind's walk weight, a routine form's order. Within a game; nothing crosses. OFF: no steer
 _SELF_STEER = armflag.arm("TETHER_SELF_STEER", default=True)
+# CORRECTION AS SUBTEXT (Isaiah, "Decoding Tacit Knowledge" 2026-11-10; WATSON 2026-11-21):
+# an arrived_no_clear is a correction whose meaning is the unstated gap between what the
+# agent did and what the board showed. Publish that gap as a NAMED stop on the goal's own
+# KIND, and let the proposer read it, so a different kind of condition can win next time.
+# Reversible: a later paid success at that kind restores it. Same store, no new state field.
+_CORRECTION_SUBTEXT = armflag.arm("TETHER_CORRECTION_SUBTEXT", default=True)
 # Build 7 item 28, SYSTEM 0 HANDS OFF BY UNDERSTANDING (the reviewer 2026-11-05 r1277, r1278):
 # System 0 is always an option in the exit contest, weighed by what its target hides x the board's
 # UNexplained share (1 at a board's start) x its ("system0", kind) standing's p; with every drive
@@ -11496,9 +11502,20 @@ class Agent:
             link = {"stalled": "plan", "arrived_no_clear": "objective"}.get(why)
             if link is not None:
                 self._ss_stop(link, "hyp", sk)
+                # CORRECTION SUBTEXT: name the gap in effect terms on the goal's own kind.
+                # A no-clear is the board's correction whose meaning is the unstated gap;
+                # publish it as a readable, reversible stop so a different kind can be tried.
+                if _CORRECTION_SUBTEXT and why == "arrived_no_clear":
+                    self._ss_stop("objective", "subtext", sk)
+                    self.led.record(self.cycle, self._running_step, "@self", "correction_subtext",
+                                    kind=str(sk), text=h["text"],
+                                    reads="my condition was met; the board did not clear: "
+                                          "this kind is priced up until a success pays it")
             elif won:
                 for lk in ("plan", "objective"):
                     self._ss_pay(lk, "hyp", sk)
+                    if _CORRECTION_SUBTEXT:
+                        self._ss_pay("objective", "subtext", sk)
         if _S0_HANDOFF:
             if by == "rate":
                 self._s0_close("the stalled line was left")   # item 28 (r1279), before re-stall
@@ -25505,6 +25522,12 @@ class Agent:
         kind = (self._ss_form(tpl), self._kind_key(slot))
         ps = [p for p in (self._ss_reads(lk, "hyp", kind) for lk in ("plan", "objective"))
               if p is not None]
+        # CORRECTION SUBTEXT: a kind that just arrived-without-clear carries a third,
+        # reversible witness against it, so another kind of condition can win the comparison.
+        if _CORRECTION_SUBTEXT:
+            q = self._ss_reads("objective", "subtext", kind)
+            if q is not None:
+                ps.append(q)
         return -math.log2(min(ps)) if ps else 0.0
 
     def _ss_routine_order(self, cands: list, failed) -> list:
