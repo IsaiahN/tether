@@ -84,3 +84,39 @@ arrangements. Strained: none.
 
 Status: built, ruff-clean, 8/8 must-fail tests pass; smoke run on the direct agent driver in
 progress. No capability conclusion until the ground run is read.
+
+## Latch habitat — first ground read (2026-11-21, development d9b28beb)
+
+Smoke: `ag.step()` directly on `LatchWorld(seed=0)`, 150 cycles, `TETHER_AGENT_SEED=0`,
+every arm default. Purpose was write-site execution + a first contact reading, NOT a
+capability claim. Agent completed cleanly: 149 actions, 13,673 ledger rows, 0 crashes.
+Both harnesses: the 8 unit tests are the tape/write half; this is the live direct-driver half.
+
+### What exhibited on the habitat (verbatim ledger)
+- `goal_hypotheses`: 48 candidates formed, **0 checked**, on cycles 3/4/5/7/11 — the goal
+  machinery ran and had candidates but admitted none.
+- `route @objective`: 2,400 rows, `why_not` = "not mechanism: too little history on the
+  objective" / "nothing in the library advances the degree"; `remedy` = "deferred:
+  **composition of actions is not built at agent scale**" (tether.py:18281-18297 states the
+  remedy is not built). This is GAP 2 exhibited at the write site, not a stale record.
+- `invent` fired at cycles 12/21 on `latch.armed` and `o2.colour`: 3-5 cause candidates,
+  but `park_verdict = "priced_out_at_depth"`, `pick = "none paid"`, `priced = 0`, with
+  refusals like "above does not accept POSITION". This is GAP 1 (composition can't stack /
+  type ceiling) exhibited: the BOOL latch could not bind into a cause over the COLOUR goal.
+- `latch.armed` was heavily perceived (1,112 rows: 150 bet, 153 think_choice, 146
+  design_read) — so this is NOT a "no occasion" null. The mechanism had occasion and did not
+  fire. That distinction is the whole point of this habitat.
+- End: `levels 0, won 0, minted 1, settled 1`. The two-step chain was never bought.
+
+### Verdict
+The habitat does its job: it is a MEANS that EXHIBITS the two audited gaps on a real run,
+without any kernel/prior change. It produced a *sharper* null than a synthetic solve would —
+`0 checked`, `priced_out_at_depth`, `none paid` — each a refuter that would flip if composition
+or the type bridge existed. No capability improvement is claimed. The fix the agent names
+("composition of actions is not built at agent scale"; BOOL→COLOUR cause refused by type) is
+exactly the GAP 1/GAP 2 kernel work this project has NOT done — deliberately out of scope for
+this habitat change, which preserves the architecture. Recorded, not patched.
+
+Cost note: 150 direct cycles consumed ~370 s CPU — the 122-bets/action signal again. The
+smoke had no deadline/supervisor; that is a lapse against the cap-long-runs rule and is
+recorded, not repeated.
