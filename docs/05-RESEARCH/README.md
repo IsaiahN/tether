@@ -71,3 +71,18 @@ Numbered by date, oldest first. None is read by code.
 - [40](40-WATSON_2026-11-13_RECURSIVE_DIFFUSION_LEARNING.md) 2026-11-13: Recursive Diffusion Learning: a large corpus without pretraining, settled by the board (future state)
 - [41](41-WATSON_2026-11-13_STRATA_ISLANDS_AND_GAP_WIDTHS.md) 2026-11-13: Strata, islands and gap widths: placement by depth, neighbourhoods by paid bonds (future state)
 - [42](42-WATSON_2026-11-16_RECURSIVE_DIFFUSION_LEARNING_THE_DESIGN.md) 2026-11-16: Recursive Diffusion Learning, the design: what is built, and the chain from a board pattern to a word, a concept, its actions and back (builds on 40; refreshed 2026-11-19: the door, the meaning chain and recognition are shipped; the ImageNet class memory is deferred, and the proving runs are owed)
+- [43](43-WATSON_2026-11-20_GOAL_DIRECTION_TO_UNCOVER_HIDDEN_WIN.md) 2026-11-21: Goal direction to uncover a hidden win - describe the arrived_no_clear residual before looking
+- [44](44-WATSON_2026-11-20_ARCHITECTURE_AUDIT_SYNTHESIS.md) 2026-11-21: Architecture audit synthesis - faculty census, what to build next
+- [45](45-WATSON_2026-11-21_CORRECTION_AS_SUBTEXT.md) 2026-11-21: Correction as subtext - the gap directs the next goal (shipped)
+- [46](46-WATSON_2026-11-21_TIME_CAP_AND_CORRECTION.md) 2026-11-21: Time cap and correction - raise to 1800 under supervisor, never remove
+- [47](47-WATSON_2026-11-21_ANALYSIS_PARALYSIS_AND_THE_TWO_CURRENCIES.md) 2026-11-21: Analysis paralysis and the two currencies - the think-or-act gate already exists
+- [48](48-WATSON_2026-11-21_AGENT_VS_LLM_ARCHITECTURE.md) 2026-11-21: Agent vs LLM architecture - mechanism for RSI, not the result
+- [49](49-WATSON_2026-11-21_PHYSICS_AND_COMPOSABLE_SUPPORT.md) 2026-11-21: Physics and composable support - why colour is not the key
+- [50](50-WATSON_2026-11-21_CARDS_RECORDED_NOT_REASONED_AND_SPEECH.md) 2026-11-21: Cards recorded not reasoned; speech is typed term grammar + templates
+- [51](51-WATSON_2026-11-21_COGNITIVE_GAP_TO_FRONTIER_MODELS.md) 2026-11-21: Cognitive gap to frontier models - the gap is the arrangement, not the dictionary
+- [52](52-WATSON_2026-11-21_LATCH_HABITAT_DESIGN.md) 2026-11-21: Latch habitat design - a two-step contact surface (with ground read + correction)
+- [53](53-WATSON_2026-11-21_INTENT_INTERFACE_AND_WHY_COLOUR_IS_THE_WRONG_KEY.md) 2026-11-21: Intent/interface seam - the agent emits intent, the interface resolves actions
+- [54](54-WATSON_2026-11-21_TWO_KERNEL_FIXES_PROMOTION_METHOD_AND_ROUTINE_PRICE.md) 2026-11-21: Two candidate kernel fixes - promotion method (built); routine price (retracted)
+- [55](55-WATSON_2026-11-21_FIX1_OCCASIONS_AND_NEXT.md) 2026-11-21: Fix 1 occasions and next - representation confirmed, payoff not shown
+- [56](56-WATSON_2026-11-22_ROUTINE_ABSTENTION_SETTLED.md) 2026-11-22: Routine abstention settled - reach-1 refusals are correct, cd82 buys plans
+- [57](57-WATSON_2026-11-22_NESTED_METHOD_CENSUS.md) 2026-11-22: Nested-method census - settled methods are never composed over in the baseline
