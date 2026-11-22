@@ -183,3 +183,50 @@ the anchor's role. Everything else is built-but-starved wiring. No code changed 
 Write sites verified directly: can_ledger.py:20,48-68,78-113; tether.py:2516-2534 (arrival/shrinking),
 11409-11420 (stuck/arrived_no_clear), 11567-11607 (repair_at_refusal), 11609-11629 (contact
 candidates), 16800-16854 (_htn_push). Ledger: ka59 c7 repair_at_refusal pushed=False.
+
+
+## CORRECTION (2026-11-22) — falsification of my own "restructure trigger is the gap" claim
+
+I tried to falsify my "blocked on external frame" conclusion. The ledger refuted PART of it and,
+with it, a claim in the WATSON above. Recorded honestly; the earlier text is kept as the record.
+
+WHAT I CLAIMED IN WATSON 66: "the one genuine figure-derived gap is a restructure trigger on a
+flat progress signal (Fig 10): `stuck()` detects flat progress but only parks/stalls — it never
+switches the comparison room." I also implied the agent has no alternative room to switch to.
+
+WHAT THE LEDGER SHOWS (ka59, proving_1800, read directly):
+- `goal_series` rows carry 10–16 distinct slots on ka59/cd82 (histogram: ar25 up to 13, cd82 up to
+  16, ka59 up to 10). The agent has MANY alternatives, not one. My "no room to switch" premise is
+  false.
+- After the ONE `arrived_no_clear` at c7 (`goal_hypothesis_end why=arrived_no_clear`,
+  `repair_at_refusal pushed=False`), the very next `goal_hypotheses` row at c7 targets a DIFFERENT
+  slot: `o1.rem_n` -> `o11.rem_n`. So "Fig 7 :36 the next must differ" is SLOT-level, not merely
+  name-level: **the agent restructures on a no-clear already.** It is built and firing.
+- The cycle then goes o11 -> o9 (c11 lost) -> o1 (c19) -> o13 (c31) -> o12.colour/o1.colour (c35)
+  -> o12.add_n (c43, c50) -> o9 (c55), with most ends `untested` (c18,31,34,41,48,55).
+- `untested` is NOT a defect: tether.py:11402-11406 names it — "a budget hands no verdict (Fig 9
+  :44, :60), kept on the shelf by UNTESTED_KEEP, so one the board never presses for cannot hold the
+  goal slot." The agent correctly drops goals the board never presses for.
+
+CORRECTED VERDICT: the restructure trigger is NOT a gap — it is built, reached, and fires at the
+exact moment WATSON 66 said it did not. What remains is not "switch the room" but "the switched-to
+goals never reach a ground verdict" — the alternatives are all things the board never presses for.
+That is a perception/reach problem (Fig 6 "depth vs absence"; Fig 9 "a budget hands no verdict"),
+and the corpus names the resulting abstention as correct behavior, not a fault to fix.
+
+So the "what must change" list in the WATSON above is revised:
+1. External frame content (anchor's role) — STANDS as the single dependency.
+2. Restructure trigger — WITHDRAWN: it exists and fires. Corrected from "gap" to "already built."
+3. Starved wiring / thin signal — REFINED: subgoal 0/6 is not only a thin no-clear signal; the agent
+   restructures by switching goal slots, but those slots end untested because the board never
+   presses for them. Raising a budget or loosening UNTESTED_KEEP would be a magic-number tweak that
+   the corpus explicitly rules out.
+
+The exhausted-line verdict (Fig 13) is UNCHANGED in outcome but NARROWER in reason: no agent code
+change is licensed, and now with a stronger ground — the two mechanisms I suspected missing
+(restructure, room-switching) are both present. What is missing is external frame content so the
+switched-to goals are on-target, plus a habitat/ground that presses them to a verdict. No code
+changed.
+
+Evidence: proving_1800 ka59.jsonl (goal_series slot histograms; c7 END arrived_no_clear + REPAIR
+pushed=False + FORM o11.rem_n; c11-c55 FORM/END cycle); tether.py:11402-11406 (UNTESTED_KEEP).
