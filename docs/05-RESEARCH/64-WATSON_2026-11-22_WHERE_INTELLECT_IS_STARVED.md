@@ -91,3 +91,36 @@ from SVGs). Strained: none.
 
 Sources: two read-only audits (2026-11-22), tether.py/agenda.py/symbols.py/gamma.py write sites,
 six proving ledgers, WATSONs 43/45/63.
+
+
+
+## Task 1 (goal-direction) — precise blocker, 2026-11-22
+
+Verified: on `arrived_no_clear`, the goal's series is CONFIRMED, so `_htn_push` finds no OPEN
+condition (`b in self._res and arrival(b)==OPEN` fails for the refused slot) and subgoal stays 0/6.
+Ledgers: no-clear ends are thin (ka59 1, others 0 in the proving set); goal_series shows
+`met:None satisfied:[]` at the diagnostic. The break is real and located.
+
+The Fig 9 fix (WATSON 43) needs three moves; two are present, one is missing:
+1. DESCRIBE the gap — present (`arrived_no_clear` row + correction_subtext).
+2. BIND the sought shape as an ordinary term — present (`_want_terms`, `_retain_unpaid_want`,
+   `_register_no_search_want`; Fig 5 :65-66's machinery exists).
+3. LOOK UP a frame whose closure predicts the WIN CONDITION'S SHAPE — **MISSING**. The library
+   holds rule cards (NSM procedure shapes) and WordNet/ConceptNet priors (object actions), none of
+   which encode "what counts as clearing on an unseen board." That frame is outside the closure.
+
+This is why the loop is not built: move 3 requires a frame the agent does not hold and cannot
+manufacture from its own residual without guessing — and Fig 9 :27 ("describe before you look, or
+any frame will seem to fit") forbids guessing the frame. Supplying it from the web is Isaiah's task
+3 bridge, but WATSON 62 refuted the cheap compile path and the hard rule forbids an in-loop LLM.
+
+So task 1 and task 3 are the SAME dependency: an offline, proposer-only, source-gated import of a
+frame that predicts win-condition shapes. Neither can be built alone without an answer-shaped guess.
+
+DECISION: do NOT build a goal heuristic that proposes conditions without a frame — that would be
+the "one witness / fitted guess" failure and would encode an answer. Record the dependency. Task 2
+is already built (composition_corrected.md). No code changed.
+
+WHAT WOULD UNBLOCK: a sourced frame set (from walkthroughs/nature, frontloaded offline with
+provenance and no standing) whose closure predicts goal shapes; then move 3 becomes a lookup and
+the existing want-binding machinery does the rest. That is the bridge Isaiah described.
