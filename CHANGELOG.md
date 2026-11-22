@@ -6,6 +6,59 @@ Each release below is an operating-system update: it changes what grows on the k
 
 Releases are listed newest first.
 
+## 2026-11-22: Two conformance repairs and the correction-as-subtext mechanism
+
+A session of derivation from the figures. The kernel is unchanged; every addition is a
+library/habitat object the agent can reach, behind an arm with OFF byte-identical. Full
+lineage and the whitebox record are preserved. The capability question was audited deeply
+and is recorded honestly as open, not closed by a number.
+
+### New
+- **Correction as subtext** (`TETHER_CORRECTION_SUBTEXT`, default ON): an `arrived_no_clear`
+  publishes a named, reversible stop on the goal's KIND, read by the proposer so a different
+  kind of condition can win next proposal; a later paid success undoes it. No new state field,
+  no game id, no threshold. A real-game A/B (cd82) showed the row fires (ON 1 / OFF 0) but did
+  not change a decision — one witness is not a basis, and the two-stop quorum was not lowered.
+- **A two-step latch test world** (`latchworld.py`, standalone like world2d): the goal advances
+  only through press-arm-then-press-fire; no single press ever can. Standalone so gridworld's
+  four families stay byte-identical. Eight must-fail refuter tests, ruff clean.
+- **A correction-size trend** in the epoch instrument (count and first-correction position per
+  generation), from the tacit-knowledge article — watch the trend in correction size, not the
+  count of lessons given.
+
+### Fixed (conformance — code that contradicted a figure)
+- **A settled term keeps its method on promotion** (`TETHER_UNITS_KEEP_METHOD`, default ON).
+  `gamma.units()` rebuilt a promoted term from its atoms alone, dropping the operand tree and
+  guard it settled under — F325's "a term settles under one identity and is promoted under
+  another." Fig 12: "a settled molecule becomes an atom for whatever composes over it"; "the
+  ingredients are recorded and the arrangement is not." The fix carries the method and drops
+  only per-board bindings (Fig 4). OFF byte-identical; four must-fail tests. The write site,
+  the figure lines, and the falsifiers are recorded in
+  `docs/03-DESIGN/CONFORMANCE_2026-11-21_GAMMA_PROMOTION.md`.
+- **A stale comment** at `tether.py:5289` ("the strip that moves CHOOSING through [the action
+  interface] is not done") was annotated: 25 `realise()` sites show the intent/interface seam
+  is built. Kept as the record, not silently rewritten.
+
+### Measured, not claimed
+- **The cognitive gap to frontier models is in the arrangement, not the dictionary** (WATSONs
+  48/51). Three code-grounded facts: composition cannot stack (depth-1 operand trees, 0 nested
+  in six ledgers); metaprograms are built but the composer pays only reach-1 plans; all priors
+  are search-priority-only (0 of 1,494 RDL preloads become terms). World research corroborates
+  that reasoning gains come from composing existing steps, not more parameters. No ARC tuning.
+- **Fix 1's payoff is NOT demonstrated.** Representation is confirmed (a settled tree promotes
+  to a distinct schema unit keeping its method), but the closure composes chains over
+  `unit.atoms`, so no composed term uses the method and `must_contain` is identical ON/OFF.
+  A performance A/B was inconclusive by instrument cost (~35 s/cycle) and a detector bug.
+- **The routine `does-not-pay` refusals are correct abstention** (WATSON 56): every refused plan
+  has reach 1; cd82, the one large-gap board, buys 6 plans under the same kernel. No price
+  change was made or is warranted.
+
+### Held (deliberately, not forgotten)
+- **Nested-method composition and the large-gap A/B** are open capability items. No kernel
+  edit: the bargain is "the rule for naming what worked" (Fig 4), and changing it would be a
+  species change rather than evolution. Evolution supplies the habitat and the ground, never
+  a hand-authored discount.
+
 ## 2026-11-20: Semantic reading, optional recognition, and a measured kernel (v1.0.5)
 
 Since v1.0.4 (2026-11-13) the operating system gained a semantic layer and a way to grow it without training. The kernel is unchanged. This entry summarises 8 release PRs merged to general-agent (#14-#21) and the stability work on development.
