@@ -3724,6 +3724,15 @@ ARMS: dict[str, str] = {
                          "only writer) -- and _units_for under the units, the slot's refusal key "
                          "and the grow-only refusal scope's lengths; exact by construction. "
                          "OFF: rebuilt each call (ffbdf14). default ON",
+    "TETHER_UNITS_KEEP_METHOD": "F325 / WATSON 54: a settled term promoted to a unit keeps its "
+                                "METHOD (operand_term, guard) and drops only its per-board "
+                                "BINDING (operand, guard_ref) -- Fig 12 'a settled molecule "
+                                "becomes an atom for whatever composes over it' and 'the parts "
+                                "are not the thing'; Fig 4 methods cross, bindings do not. Before, "
+                                "promotion rebuilt from .atoms alone so the reusable chunk was a "
+                                "different computation from the one paid for. MF: "
+                                "tests/test_units_keep_method.py. OFF: old Term(t.atoms) "
+                                "byte-identical. default ON",
     "TETHER_UNITS_VER": "S6 (iv) (the reviewer 2026-10-19 14:56, 15:05): R1's key scanned all of "
                         "standing on every units_held call; now one count is bumped by every "
                         "mutation of the library and standing dicts and by a Standing's settled_at "
