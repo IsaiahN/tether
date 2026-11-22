@@ -71,3 +71,35 @@ a game where re-proposing the same kind after a no-clear clears (then the stop i
 or Isaiah ruling that the correction should name a different key.
 
 HOLD: this is a SEAT-side design derived from the figures and the article. No ARC-game tuning.
+
+
+
+## CORRECTION to the regression claim (2026-11-22)
+
+I initially reported that merging correction-subtext introduced flaky m2 FAILs. Repeated runs
+show that was WRONG: the m2 seat is inherently nondeterministic because `conform/check.py` does
+not set `TETHER_AGENT_SEED`, and the fixture is documented as trajectory-dependent. Evidence:
+
+- pre-session baseline `c56ebc77` (3 runs): OK/OK/OK, OK/FAIL/OK, OK/FAIL/OK
+- `a75e543d` (gamma fix, BEFORE correction-subtext; 3 runs): OK/FAIL/OK, FAIL/FAIL/FAIL, OK/FAIL/OK
+- HEAD with `TETHER_CORRECTION_SUBTEXT=0` (3 runs): FAIL/FAIL/FAIL, FAIL/FAIL/FAIL, OK/OK/FAIL
+- HEAD after the fix (4 runs): FAIL/FAIL/FAIL, OK/FAIL/OK, OK/FAIL/OK, FAIL/FAIL/FAIL
+
+The all-FAIL pattern appears at `a75e543d`, before correction-subtext existed. So my change did
+NOT introduce the flakiness. The single-run bisect I cited earlier was confounded by this
+nondeterminism; I retract the "regression I introduced" claim.
+
+WHAT THE FIX STILL IS: a correct, figure-faithful cleanup independent of the flakiness. On
+`arrived_no_clear`, one stop at `(objective, hyp)` already prices the kind up (item 27 -- that
+is what lets another kind win). Correction-subtext added a SECOND stop at `(objective, subtext)`
+for the SAME event and read it as a third price witness. That is A6i "two producers of one fact"
+and Fig 12 "two currencies do not add". The fix keeps the mechanism's VALUE -- a legible,
+reversible `correction_subtext` ledger row naming the gap -- and removes the redundant second
+witness. Nothing weakened; the single hyp stop still does the pricing.
+
+The rewritten `tests/test_correction_subtext.py` locks the single-witness design with a must-fail
+(`test_no_second_witness_must_fail`). Ruff clean; tests pass. The A/B had already shown one
+witness never changed a decision, so no demonstrated behavior was lost.
+
+OPEN, NOT MINE TO FIX: conform/check.py should set TETHER_AGENT_SEED for a deterministic m2 seat.
+That is harness infrastructure, not agent code; recorded, not changed here.
