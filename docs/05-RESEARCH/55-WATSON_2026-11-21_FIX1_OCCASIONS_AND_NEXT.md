@@ -42,3 +42,32 @@ ledger-visible Terms; arm declared; OFF byte-identical; no output routes around 
 FIGURE CENSUS: Fig 1 mint-if-pays · Fig 4 kernel/only-methods-cross · Fig 8 unreachable-at-
 budget · Fig 11 contact · Fig 12 settled-molecule-becomes-atom · Fig 13 closed-set-open-
 arrangements. Strained: none.
+
+## CONTACT CHECK RESULT (2026-11-21, appended) -- representation confirmed, payoff NOT shown
+Three checks, all honest:
+1. OCCASIONS (from proving ledgers, corrected detector): method-bearing trees DO settle
+   (ar25 15, ka59 62, lf52 58, lp85 1, cd82 0, g50t 0), e.g.
+   \ecolour . subtract . recolour<subtract(o41.colour)>\. Falsifier (i) REFUTED -- the fix is
+   not inert on those boards.
+2. A/B perf probe (fix1_contact_probe.py): inconclusive by instrument cost. 26 cycles of the
+   ON arm consumed the 900 s budget (~35 s/cycle, the 122-bets/action bottleneck again), and
+   seeds 1/11 never ran. Its \paid_schema\ detector also counted a BOUND operand
+   (\<o0.dcol_o3>\) as a schema, which is a binding, not a method -- a second instrument bug.
+   No OFF arm was run. NOT a valid A/B; do not read a result from it.
+3. DETERMINISTIC structural test (fix1_structural.py): a settled tree \<g(:ANY)>\ promotes
+   to a schema-named unit that keeps operand_term=True (OFF gives bare \\), and the schema
+   unit passes the closure's start set. But enumerate_closure composes chains by \unit.atoms\
+   (gamma.py:2545), so no COMPOSED term carries the method in its name, and \must_contain\
+   counts are identical ON/OFF (45/45). So Fix 1 makes the method REPRESENTABLE and DISTINCT
+   in the unit set -- its actual contract (Fig 12 :103, Fig 5 'settled not sufficient') -- but
+   it does NOT by itself produce a deeper composed term the closure will pay.
+
+VERDICT: Fix 1 is a correct CONFORMANCE fix (representation), fully documented and tested.
+Its capability payoff is NOT demonstrated and is NOT claimed. The deeper question -- can the
+composer build a term that USES a settled method as a nested operand and pay for it -- is the
+GAP 1 price problem, which stays HELD (never a kernel edit, per Fig 4). Next real step, if
+pursued: a large-gap, properly-supervised per-seed A/B with the expensive cycles budgeted as a
+detached job; do not treat this inconclusive probe as evidence either way.
+
+ANCHOR: gamma.py:2545 (closure walks atoms); fix1_structural.py output; fix1_contact_probe.py
+output; ledger method-bearing counts above. Full lineage preserved; no code changed here.
