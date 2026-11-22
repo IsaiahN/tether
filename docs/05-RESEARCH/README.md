@@ -89,3 +89,5 @@ Numbered by date, oldest first. None is read by code.
 - [58](58-WATSON_2026-11-22_COUNTERWORLD.md) 2026-11-22: Counterworld - same-type contact for the count-cause mechanism
 - [59](59-WATSON_2026-11-22_NESTED_METHOD_AND_REAL_WORLD_HABITATS.md) 2026-11-22: Nested methods were always planned; habitats must be real-world with implicit goals
 - [60](60-WATSON_2026-11-22_FIGURES_AS_METALAWS.md) 2026-11-22: Figures as metalaws; the seat must not ask for rulings the figures decide
+- [63](63-WATSON_2026-11-22_WHAT_INTELLECT_MEANS_HERE.md) 2026-11-22: What boosting intellect means in the Tether: levels, the break, carry
+- [64](64-WATSON_2026-11-22_WHERE_INTELLECT_IS_STARVED.md) 2026-11-22: Two audits locate the break: no open condition to decompose; round trip/self-read are record-only
