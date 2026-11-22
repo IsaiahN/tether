@@ -88,3 +88,4 @@ Numbered by date, oldest first. None is read by code.
 - [57](57-WATSON_2026-11-22_NESTED_METHOD_CENSUS.md) 2026-11-22: Nested-method census - settled methods are never composed over in the baseline
 - [58](58-WATSON_2026-11-22_COUNTERWORLD.md) 2026-11-22: Counterworld - same-type contact for the count-cause mechanism
 - [59](59-WATSON_2026-11-22_NESTED_METHOD_AND_REAL_WORLD_HABITATS.md) 2026-11-22: Nested methods were always planned; habitats must be real-world with implicit goals
+- [60](60-WATSON_2026-11-22_FIGURES_AS_METALAWS.md) 2026-11-22: Figures as metalaws; the seat must not ask for rulings the figures decide
