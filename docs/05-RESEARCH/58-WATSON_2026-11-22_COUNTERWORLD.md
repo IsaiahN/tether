@@ -115,3 +115,50 @@ exact failure this project refuses. The habitat is a neutral means; the ground d
 
 The open question stands and is now sharper: on a longer, properly-budgeted run, with the cheap
 colour causes settled, does the goal's count cause ever pay? That needs a run, not a habitat edit.
+
+
+
+## LONGER RUN RESULT + CORRECTED DIAGNOSTIC, 2026-11-22
+
+300 cycles/seed (7.5x the short run), unchanged neutral counterworld, 3 seeds, supervised
+(sup.json rc=0, peak 0.46 GB, wall 75 s). Written directly to counter_long/summary.jsonl.
+
+| seed | cycles | completed | invent total | invent on goal | goal cause paid | paid causes |
+|---|---|---|---|---|---|---|
+| 0 | 300 | 0 | 5 | 0 | false | 2 (inc on colour) |
+| 1 | 300 | 0 | 5 | 0 | false | 2 (inc on colour) |
+| 2 | 300 | 0 | 4 | 0 | false | 2 (inc on colour) |
+
+More budget changed NOTHING: same invent count, same two cheap colour causes, goal never completed.
+
+CORRECTION to the earlier "invent never TARGETS the goal" reading — that was a filter bug.
+The park event is labelled `park` (not `MINT ... park`); re-reading with the correct label:
+
+| seed | park slots | invent slots |
+|---|---|---|
+| 0 | o0.colour 4, o1.colour 3, **o0.size 3** | o0.colour 3, o1.colour 2 |
+| 1 | o0.colour 5, o2.colour 4, **o0.size 2** | o0.colour 3, o2.colour 2 |
+| 2 | o0.colour 5, o2.colour 5, **o2.size 3** | o0.colour 2, o0.colour 2 |
+
+So the goal size slot DOES park (2-3x/seed) and therefore DOES reach the `_invent` call site
+(tether.py:29982). It simply produces no cause candidates: `_cause_candidates` (13784-13818)
+requires a count "presses of action a since slot changed == n" whose truth holds on ALL moved
+rows and not all rows. Because the size advances only once per N presses of a HIDDEN counter
+among three actions the agent presses freely, there is no single action-press count consistent
+across the size's changed rows. The colour slots churn every press and DO yield clean count
+causes (e.g. "presses of action press_0 since o1.colour changed == 1", priced cost 10.421 vs
+base 10.0, later an `inc` cause pays).
+
+VERDICT: the mechanism is built and reached, the goal slot has an occasion (it parks), and the
+mechanism correctly declines to form a cause that the trace does not support. This is CORRECT
+ABSTENTION at the cause level (Fig 5 "mint if it pays"; Fig 9 filters are not verdicts) — not a
+defect, not a representation gap, not starvation. The habitat is a neutral means and behaved as
+one. No kernel change, no habitat tuning.
+
+WHAT WOULD CHANGE IT: a habitat where the goal's change is driven by a single identifiable
+action the agent can actually press (so a count cause is supportable) — but designing that is
+tuning to the mechanism, which this project refuses without Isaiah's ruling. Recorded as the
+sharper open item; not built.
+
+Lineage: counter_long/summary.jsonl + s{0,1,2}.jsonl; supervisor sup_counter_long/sup.json.
+No code change; habitat and tests unchanged.
