@@ -86,3 +86,4 @@ Numbered by date, oldest first. None is read by code.
 - [55](55-WATSON_2026-11-21_FIX1_OCCASIONS_AND_NEXT.md) 2026-11-21: Fix 1 occasions and next - representation confirmed, payoff not shown
 - [56](56-WATSON_2026-11-22_ROUTINE_ABSTENTION_SETTLED.md) 2026-11-22: Routine abstention settled - reach-1 refusals are correct, cd82 buys plans
 - [57](57-WATSON_2026-11-22_NESTED_METHOD_CENSUS.md) 2026-11-22: Nested-method census - settled methods are never composed over in the baseline
+- [58](58-WATSON_2026-11-22_COUNTERWORLD.md) 2026-11-22: Counterworld - same-type contact for the count-cause mechanism
