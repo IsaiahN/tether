@@ -162,3 +162,26 @@ sharper open item; not built.
 
 Lineage: counter_long/summary.jsonl + s{0,1,2}.jsonl; supervisor sup_counter_long/sup.json.
 No code change; habitat and tests unchanged.
+
+
+
+## Conform-gate claim grounded, 2026-11-22
+
+I had repeatedly claimed the conform gate's "3 findings" are known artifacts and that this
+session's changes introduced no regression — but I had only read the COUNT (21/25), not which
+seats. Re-ran `conform/check.py` with full output captured to
+`C:\TETHER_RUNS\CLEANUP_2026-11-21\check_full.txt` (exit 1, 3858 bytes) and read every seat.
+
+| seat | result | detail |
+|---|---|---|
+| lint | FAIL | ANCHOR: `affordance.py` PICTURE_MIN_SIDE=16, _VN_MAX_SISTER — pre-existing, untouched this session (part of the recorded 61 ANCHOR set) |
+| panel | FAIL | "a panel ledger is missing, stale, or refused by the gate" — stale local gitignored artifacts (known) |
+| m2 | FAIL | `check_a_blocked_routine_ends_at_planning_with_no_verdict` — fixture debt, a known NEEDS-DESIGN check |
+| wiring | INCOMPLETE | ran but could not check everything; not a finding about the code |
+| all others | ok | ruff, kernel, stateful, shipped, census, recshape, evalctx, aim, landed, arms, layers, fixture, condition, demo, gate, library, compile, figures, tests, entry, percept |
+
+VERDICT: 21/25 clean, exactly the recorded baseline. NONE of the named findings is in a file
+this session touched (`gamma.py`, `tether.py`, arms, latchworld/counterworld, tests, docs). The
+"no regression" claim is now GROUNDED at the seat level, not assumed from the count.
+
+No code change; this is a verification record. Full output preserved at check_full.txt.
