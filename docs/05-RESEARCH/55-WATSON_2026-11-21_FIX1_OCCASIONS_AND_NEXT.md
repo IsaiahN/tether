@@ -71,3 +71,36 @@ detached job; do not treat this inconclusive probe as evidence either way.
 
 ANCHOR: gamma.py:2545 (closure walks atoms); fix1_structural.py output; fix1_contact_probe.py
 output; ledger method-bearing counts above. Full lineage preserved; no code changed here.
+
+
+## CORRECTION (2026-11-22): composition DOES stack and pay — the "can't stack" premise was a detector bug
+
+Before building operand-composition (task 2) I checked the real ledgers. The premise is FALSE:
+- `proving_1800` ledgers (created 2026-11-21 03:55, BEFORE Fix 1 at 14:24) already show nested
+  method terms settling: ar25 `subtract . recolour . translate<subtract(o1.age)>?TOUCH` settled at
+  c38; ka59 62 distinct nested terms; lf52 58; lp85 1.
+- The lift machinery is BUILT and REACHED: `_DERIVED_LIFT` default ON, a molecule offer at a
+  derived slot is re-filed at its source as an operand branch (`_lift_branches` at tether.py:15603),
+  and `_trees` consumes it (15815). Lift counts: cd82 1009, lf52 1373; tree rows on all six boards.
+- `_ops` already evaluates nested operand terms recursively under `_TIERED_TERMS` (14351-14355).
+
+So Fig 12's "a settled molecule becomes an atom for whatever composes over it" is already
+implemented in the operand arm. My earlier census (WATSON 55/57) that reported "0 nested operand
+terms, must_contain 45/45 ON/OFF" used a detector counting `name.count('<')>=2`; the real nested
+form is a SINGLE `<` with a computed term inside (`translate<subtract(o1.age)>`), so the detector
+was blind to it. A6i-class error: a wrong detector read as a finding about the mechanism.
+
+WHAT THIS MEANS:
+- Task 2 (operand-composition) is NOT an open capability. It is built, reached, and paid. There is
+  nothing to build; adding a "settled units as branches" change would duplicate `_lift_branches`.
+- Fix 1's real effect is narrower than claimed: it preserves the method on PROMOTION (units()), so
+  a settled nested term re-enters the closure with its schema. Whether that changes any decision
+  is still unmeasured (the deterministic test showed must_contain 45/45 with the old detector, which
+  was the wrong test) — but the underlying composition was never broken.
+- Task 1 (goal-direction: no OPEN condition to decompose on arrived_no_clear, subgoal 0/6) is
+  UNAFFECTED by this correction and remains the genuine measured break.
+
+DECISION: do NOT build operand-composition. Report the correction. Build task 1 (goal-direction)
+if proceeding, since that is the one real break the audits located. No code changed.
+
+Anchor: proving_1800 ar25/k a59/lf52 ledgers; tether.py:14351/15603/15815; Fix 1 commit a75e543d.
