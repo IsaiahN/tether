@@ -47,3 +47,41 @@ ground run, per game, never pooled. No kernel change, no prior given standing, n
 FIGURE CENSUS: Fig 1 mint-if-pays · Fig 3 dependency order · Fig 4 kernel/actors-currency-anchor ·
 Fig 9 filters-not-verdicts · Fig 11 capability=agent-and-habitat / enumerate / contact · Fig 12
 bond-is-the-rest · Fig 13 closed-set-open-arrangements. Strained: none.
+
+
+
+## GROUND READ, 2026-11-22 (appended) — counterworld gave an occasion, but the goal cause was not bought
+
+Bounded run: 3 seeds × 40 cycles, direct agent driver, every arm default, supervised (24 GB
+ceiling, 1800 s cap; actual wall 51 s, peak 0.37 GB). Per game, never pooled.
+
+| seed | cycles | invent events | settled causes | completed | goal rows |
+|---|---|---|---|---|---|
+| 0 | 40 | 5 | 1 (`inc?INVENTED` on o0.colour) | 0 | 40 |
+| 1 | 40 | 5 | 2 (`inc?INVENTED` on o0/o2.colour) | 0 | 40 |
+| 2 | 40 | 4 | 2 (`inc?INVENTED` on o0/o2.colour) | 0 | 40 |
+
+`invent_picks` breakdown: 2 caused causes paid per seed (always `inc?INVENTED` over a distractor
+COLOUR slot), and 2–3 `none paid` refusals. The write-site narration shows the cause candidates
+were formed (cycles 12–16), so — unlike latchworld, where the BOOL latch was type-refused
+("above does not accept POSITION") — the same-type numeric occasion here let cause CANDIDATES
+form. That is the specific thing the habitat was built to exhibit, and it exhibited it.
+
+WHAT THIS IS: evidence the mechanism has an occasion on a numeric slot (candidates formed,
+no type-refusal). A MEANS working as designed.
+
+WHAT THIS IS NOT: not a capability result. The two PAID causes are the easy `inc` over a
+distractor colour, not the count cause over the goal's numeric size slot; the goal's cause was
+refused (`none paid`). The goal was not completed in 40 cycles (it needs several N-press
+groups). So the agent bought the cheap cause available to it and not the one that closes the
+objective. This is consistent with the bargain being strict (Fig 5 "mint if it pays") — a
+cheap cause that explains a colour change can pay while the harder goal cause cannot yet.
+
+REFUTERS / next: a longer, properly-budgeted run (more cycles, per seed) would be needed to see
+whether the goal's count cause ever pays when the cheap colour causes are exhausted. A null in a
+40-cycle run is NOT a finding about the mechanism — "executes is not has occasions" in reverse:
+here it HAS occasions and the short run is simply too short for the target. Do not read a
+capability verdict either way from this bounded read.
+
+Lineage: full ledger at C:\TETHER_RUNS\CLEANUP_2026-11-21\counter_ground\s{0,1,2}.jsonl;
+supervisor sup.json rc=0, peak 0.37 GB. No code or kernel change; habitat and tests unchanged.
