@@ -92,3 +92,4 @@ Numbered by date, oldest first. None is read by code.
 - [63](63-WATSON_2026-11-22_WHAT_INTELLECT_MEANS_HERE.md) 2026-11-22: What boosting intellect means in the Tether: levels, the break, carry
 - [64](64-WATSON_2026-11-22_WHERE_INTELLECT_IS_STARVED.md) 2026-11-22: Two audits locate the break: no open condition to decompose; round trip/self-read are record-only
 - [65](65-WATSON_2026-11-22_ANALOGY_TACIT_AND_COMPREHENSION.md) 2026-11-22: Analogy/tacit/comprehension as a third capability; audit found the pieces already built and starved
+- [66](66-WATSON_2026-11-22_PUZZLE_ORIENTATION.md) 2026-11-22: Puzzle orientation, not a goal vocabulary: read constraints, momentum, possible moves, brute-force-vs-structure, restructure on flat progress
