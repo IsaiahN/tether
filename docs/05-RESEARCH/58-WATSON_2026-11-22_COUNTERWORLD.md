@@ -85,3 +85,33 @@ capability verdict either way from this bounded read.
 
 Lineage: full ledger at C:\TETHER_RUNS\CLEANUP_2026-11-21\counter_ground\s{0,1,2}.jsonl;
 supervisor sup.json rc=0, peak 0.37 GB. No code or kernel change; habitat and tests unchanged.
+
+
+
+## Write-site diagnostic, 2026-11-22 (appended) — why the goal cause was not bought
+
+Read the actual `invent` rows from the three counterworld ledgers. Across all seeds:
+- `invent` fires ONLY on colour slots (`o0.colour`, `o1.colour`, `o2.colour`), never on the
+  numeric goal `oG.size`.
+- Every candidate is type-refused (`above does not accept POSITION`, `other does not accept
+  COLOUR`, ...); the sole paying cause is `inc?INVENTED` on a colour slot.
+- `base_bits` grows with history (8 -> 37); `moved` is 3-6; `held_on_moved` is 1.
+
+At the write site, `_cause_candidates` (tether.py:13784-13818) DOES generate the count cause:
+`Cause("count", slot, a, n)` with text "presses of action a since slot changed == n" (13810-11),
+plus the latch cause. So the mechanism is fully built and the specific cause the habitat was
+designed to occasion exists in code.
+
+Why it did not fire on the goal: the goal size advances once per N presses (N=2..4), so `oG.size`
+has few `changed` rows in 40 cycles, while colour slots churn every press and dominate `moved`.
+The cheap `inc` colour cause pays first; the goal cause never gets enough occasions.
+
+WHAT THIS IS: a precise, write-site explanation of the bounded null — the mechanism is built and
+reached; the short run's cheap causes won. Consistent with the strict bargain (Fig 5).
+
+WHAT I WILL NOT DO: modify counterworld so the goal cause wins (e.g., make size churn every
+press). That would tune the habitat to my own hypothesis to manufacture a green result — the
+exact failure this project refuses. The habitat is a neutral means; the ground decides.
+
+The open question stands and is now sharper: on a longer, properly-budgeted run, with the cheap
+colour causes settled, does the goal's count cause ever pay? That needs a run, not a habitat edit.
