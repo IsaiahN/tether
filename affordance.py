@@ -64,7 +64,7 @@ _ON = armflag.arm("TETHER_AFFORDANCE", default=True)  # prior/settle/refuse rows
 _RECOGNISED = armflag.arm("TETHER_RECOGNISED", default=True)
 # the field / attribute names a picture is read from. Declared convention, Fig 10: visible, movable
 PICTURE_NAMES = ("picture", "image")
-# anchor: a picture is a uint8 array at least this many pixels on each side. Declared convention, Fig 10
+# anchor: a uint8 array at least this many pixels per side. Declared convention, Fig 10
 PICTURE_MIN_SIDE = 16
 # The class memory (local ImageNet terms: never in the repository). The PLAIN env var
 # RDL_RECOGNITION_DIR (NOT a TETHER_ arm -- the arms seat forbids raw TETHER_ reads) names the
