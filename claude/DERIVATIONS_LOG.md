@@ -89,3 +89,16 @@ stale instances this session: `_trees` "never reached" (CLAUDE.md:774), "routine
 
 Entries are numbered for reference; add a method only when it survives use on a real case. A
 one-off finding with no reusable shape belongs in its WATSON, not here.
+
+## M8 -- Never ask the anchor for a ruling the figures decide
+
+**Residual shape:** I am about to ask Isaiah to choose A vs B on a design question.
+**Method (Fig 10: the seat reads the ground; it does not ask the maintainer to decide design):**
+(1) Check the record first -- code and docs -- because he has likely already thought of it (the
+real-world-habitat idea was Phase 2; nested methods were in 08-METAPROGRAMMING_DESIGN). (2) If not
+in the record, derive it with WATSON from the figures as metalaws (they govern every level). Only
+if both fail is it a genuine gap for the anchor. "Needing a human RLHF ruling" is the signal I
+stopped deriving too early -- the seat's own failure mode.
+**Cases:** WATSON 60 retracted three rulings I had deferred (nested methods, habitat, composer
+change); all were decidable from Fig 12 / Fig 11 / the record.
+**Falsifier:** a question that survives the record check AND the figure derivation with no verdict.

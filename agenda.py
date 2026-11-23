@@ -168,10 +168,20 @@ class Reader:
     def _row(self, ag, card, q, answer, src, res, why) -> dict:
         do_sym = cards()[card].get("do_sym")
         sym = None
-        if do_sym and "R⁺_s" in do_sym:
-            v = (symbols.evaluate("R⁺_s", ag, slot=res["focal"]) if res["focal"]
+        # The card text uses `R_s`; the bound symbol is `R⁺_s` (symbols.BOUND). Accept both
+        # spellings so the "Describe before you look" row's reading is not silently null. This is
+        # a truthfulness fix on the ledger row (Fig 1: a row that says null when the reading
+        # exists is a false record), NOT a decision input -- the `sym` field is written only.
+        _sym_name = None
+        if do_sym:
+            if "R⁺_s" in do_sym:
+                _sym_name = "R⁺_s"
+            elif "R_s" in do_sym:
+                _sym_name = "R⁺_s"      # card spelling -> the bound reading
+        if _sym_name is not None:
+            v = (symbols.evaluate(_sym_name, ag, slot=res["focal"]) if res["focal"]
                  else symbols.UNBOUND)
-            sym = {"R⁺_s": "unbound" if v is symbols.UNBOUND else round(float(v), 3)}
+            sym = {_sym_name: "unbound" if v is symbols.UNBOUND else round(float(v), 3)}
         row = {"card": card, "question": q, "answer": answer, "from": src, "why": why,
                "residual": {k: res[k] for k in ("focal", "live_mass", "shrinking", "slots")},
                "do_sym": do_sym, "sym": sym}
