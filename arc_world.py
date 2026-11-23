@@ -42,6 +42,10 @@ PLATFORM_UNIVERSAL = (GameAction.RESET.name,)
 # bounds the operand axis the wider slot set would otherwise multiply.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
 _OBSERVER = armflag.arm("TETHER_OBSERVER", default=True)
+# THE BOARD AS A PICTURE (WATSON 72/73, 2026-11-23): expose the settled frame as `env.picture` so
+# the recogniser route can read it. DEFAULT OFF until the pre-registered A/B (conform/ab) says the
+# reading moves the ground; OFF is byte-identical (the attribute reads None, as it always did).
+_BOARD_PICTURE = armflag.arm("TETHER_BOARD_PICTURE", default=False)
 # ARC B2 (the reviewer 2026-10-11 10:11, 10:20, 11:48 CDT): pair relations as slots over the contact
 # pairs and the agent's actor pairs. ON; reason in conform/arms.py.
 # default ON (Isaiah 2026-10-15 07:53); the switch is kept for the checklist's culprit isolation.
@@ -834,6 +838,27 @@ class ArcWorld:
         if f is None or f.is_empty():
             return ()
         return tuple(f.frame)
+
+    @property
+    def picture(self) -> Any:
+        """THE BOARD AS AN IMAGE (WATSON 72; arm TETHER_BOARD_PICTURE, default OFF).
+
+        The settled frame, exposed under the field name affordance.PICTURE_NAMES reads, so the
+        recogniser route (affordance.pictures -> recognise_shape) sees the board it was built for.
+        It is the same ndarray `board()` returns -- no copy, no new reading. None on an empty
+        stack or with the arm OFF, so OFF is exactly the old attribute-absent case.
+
+        THE DTYPE IS THE BRIDGE'S REPRESENTATION, NOT THE GATE'S. A real ARC frame is an
+        int8 ndarray (measured 64x64); affordance.is_picture requires uint8 (affordance.py:461).
+        The palette is 0..15, so the cast loses no information; it is done here, once, so the
+        recogniser's gate stays exactly as it is."""
+        if not _BOARD_PICTURE:
+            return None
+        b = self.board()
+        if b is None:
+            return None
+        import numpy as np
+        return np.asarray(b).astype(np.uint8, copy=False)
 
     def board(self) -> Any:
         """The SETTLED board, as a numpy ndarray.
