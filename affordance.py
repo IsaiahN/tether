@@ -64,7 +64,7 @@ _ON = armflag.arm("TETHER_AFFORDANCE", default=True)  # prior/settle/refuse rows
 _RECOGNISED = armflag.arm("TETHER_RECOGNISED", default=True)
 # the field / attribute names a picture is read from. Declared convention, Fig 10: visible, movable
 PICTURE_NAMES = ("picture", "image")
-# a picture is a uint8 array at least this many pixels on each side. Declared convention, Fig 10
+# anchor: a picture is a uint8 array at least this many pixels on each side. Declared convention, Fig 10
 PICTURE_MIN_SIDE = 16
 # The class memory (local ImageNet terms: never in the repository). The PLAIN env var
 # RDL_RECOGNITION_DIR (NOT a TETHER_ arm -- the arms seat forbids raw TETHER_ reads) names the
@@ -92,7 +92,7 @@ _RELATIONS_READ = armflag.arm("TETHER_RELATIONS_READ", default=True)  # merged p
 _VN_WIDEN = armflag.arm("TETHER_VERBNET_WIDEN", default=True)
 # A bound, not a free pass: an unpriced 394-sister widening on 'ball' (21 -> 415 priors)
 # would drown the grounded verbs and flood the lookup. The bound is the smallest that keeps
-# the documented example ("throw brings toss, hurl, fling" = 3 sisters) with room for ties.
+# anchor: the documented example ("throw brings toss, hurl, fling" = 3 sisters) with room for ties.
 _VN_MAX_SISTERS = 8
 _VN_INDEX: dict | None = None
 RELATIONS = Path(__file__).resolve().parent / "library" / "relations.json"
