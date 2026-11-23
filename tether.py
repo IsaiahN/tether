@@ -4036,6 +4036,16 @@ _PASSABILITY = armflag.arm("TETHER_PASSABILITY", default=True)
 # beside the goal path -- the card chosen by the residual's shape, its asks run in order, one
 # "agenda" decision row per step (agenda.py). OFF: the cards stay unread, as before
 _AGENDA = armflag.arm("TETHER_AGENDA", default=True)
+# AGENDA STEER (WATSON 74, 2026-11-23): the card's refusal reading was RECORDED, not reasoned
+# (WATSON 50: 4 of 13 cards fire; the `do` rule never executes; agenda.step's return is discarded
+# at 11098). THIS makes the "Three texts before acting" on_refuted reading causal: when a goal is
+# refused and the card finds PRETEXT thin (the record held no enabler -- `pushed=False`), the next
+# holder is press-and-watch (TRY_FIRST), per on_refuted.pretext "press-and-watch, transcribe",
+# instead of immediately proposing another goal that fizzles. CONTEXT thin (pushed=True) keeps the
+# subgoal path. The steer is a HOLDER choice among existing mechanisms, never a new procedure and
+# never the hand-written _ANSWER table (Fig 11: change contact; WATSON 50's answer-encoding).
+# OFF: the card remains a legible record, byte-identical to development.
+_AGENDA_STEER = armflag.arm("TETHER_AGENDA_STEER", default=True)
 # REPAIR AT THE REFUSAL (the reviewer r1957; T0 2026-11-14: goals reached their own test and were
 # refused there in g50t and ar25, and nothing turned a refusal into a subgoal; cards v4 (b), "Three
 # texts" on_refuted: a thin CONTEXT makes the missing condition a SUBGOAL of the goal the action
@@ -11105,10 +11115,18 @@ class Agent:
             return
         # the same order of reads as ever (goal_choice is asked only when the rest let it)
         gc = None
+        steer = getattr(self, "_agenda_steer", None) if _AGENDA_STEER else None
+        if steer is not None:
+            self._agenda_steer = None               # one step: the steer is consumed here
         if self._hyp_exhausted == known:
             holder = "exhausted"
         elif self.routine is not None:
             holder = "routine"
+        elif steer == "press-and-watch" and _BOARD_TRY_FIRST and self._try_first_hold():
+            # WATSON 74: the card's PRETEXT-thin refusal steers the next holder to press-and-watch
+            # (on_refuted.pretext) instead of proposing another goal that fizzles. A holder choice
+            # among existing mechanisms, NOT a new action and NOT the hand-written _ANSWER table.
+            holder = "try_first"
         elif _HYP_AFTER_WORDS and _BOARD_TRY_FIRST and self._try_first_hold():
             holder = "try_first"
         else:
@@ -11595,7 +11613,11 @@ class Agent:
             self._htn_return[slot] = {"h": h, "sub": sub, "edge": edge, "why": why,
                                       "cycle": self.cycle}
         if self._agenda is not None:
-            self._agenda.refused(self, slot, why, pushed)
+            arow = self._agenda.refused(self, slot, why, pushed)
+            # WATSON 74: make the card's PRETEXT-thin reading causal. The card RETURNS the steer;
+            # the arm decides whether to act on it. OFF leaves the card a legible record only.
+            if _AGENDA_STEER and arow and arow.get("steer"):
+                self._agenda_steer = arow["steer"]
         self.led.record(self.cycle, "PLAN", slot, "repair_at_refusal", why=why, text=h["text"],
                         touches=h["touches"], pushed=pushed,
                         subgoal=(self._subgoal or {}).get("sub") if pushed else None,

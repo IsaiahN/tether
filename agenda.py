@@ -138,20 +138,30 @@ class Reader:
 
     def refused(self, ag: Any, slot: str, why: str, pushed: bool) -> dict:
         """REPAIR AT THE REFUSAL (r1957): a goal refused at its own test is "Three texts before
-        acting"'s residual ("whenever an action did not do what it was for"). The goal was held
-        and acted on, so the thin text is CONTEXT: the condition the board showed becomes a
-        subgoal (cards v4 (b), on_refuted). One row, whatever the push found."""
+        acting"'s residual ("whenever an action did not do what it was for"). The card's on_refuted
+        names which text is thin: if a subgoal was pushed, CONTEXT was thin (the board showed a
+        condition the goal lacked); if none was found, PRETEXT was thin (the record held nothing
+        true for this kind) -- on_refuted.pretext says "press-and-watch, transcribe". WATSON 74
+        makes that reading CAUSAL: it sets the next-holder steer to press-and-watch on pretext
+        thin, so the agent does not immediately propose another goal that fizzles. The steer is a
+        choice among existing holders, not a new procedure (WATSON 50's answer-encoding caution)."""
         card = "Three texts before acting"
         c = cards()[card]
         on = c.get("on_refuted", {})
         res = {"focal": slot, "live_mass": None, "shrinking": _shrinking(ag),
                "slots": len(getattr(ag, "slot_types", {}) or {})}
-        ans = (f"CONTEXT thin ({why}): the missing condition is pursued first as a subgoal"
-               if pushed else
-               f"CONTEXT thin ({why}): no open condition found to pursue first; narrow what is "
-               "missing")
+        if pushed:
+            ans = f"CONTEXT thin ({why}): the missing condition is pursued first as a subgoal"
+            steer = None
+        else:
+            ans = (f"PRETEXT thin ({why}): no enabler in the record; press-and-watch, transcribe "
+                   "(on_refuted.pretext)")
+            steer = "press-and-watch"
+        # The steer is RETURNED in the row; tether.py decides whether to act on it behind the
+        # TETHER_AGENDA_STEER arm. agenda.py never writes agent state -- the arm lives in tether.
         return self._row(ag, card, on.get("first", c["asks"][1]), ans, "board", res,
-                         on.get("context", "the goal was refused at its own test"))
+                         on.get("context" if pushed else "pretext",
+                                "the goal was refused at its own test"), steer=steer)
 
     def _refuted_link(self, board: Any, first: str | None) -> bool:
         tail = [h for h in self.history if h[0] == board][-4:]
@@ -165,7 +175,7 @@ class Reader:
             return None
         return self._row(ag, card, q, answer, src, res, why)
 
-    def _row(self, ag, card, q, answer, src, res, why) -> dict:
+    def _row(self, ag, card, q, answer, src, res, why, steer: str | None = None) -> dict:
         do_sym = cards()[card].get("do_sym")
         sym = None
         # The card text uses `R_s`; the bound symbol is `R⁺_s` (symbols.BOUND). Accept both
@@ -184,7 +194,8 @@ class Reader:
             sym = {_sym_name: "unbound" if v is symbols.UNBOUND else round(float(v), 3)}
         row = {"card": card, "question": q, "answer": answer, "from": src, "why": why,
                "residual": {k: res[k] for k in ("focal", "live_mass", "shrinking", "slots")},
-               "do_sym": do_sym, "sym": sym}
+               "do_sym": do_sym, "sym": sym,
+               **({"steer": steer} if steer else {})}
         ag.led.record(ag.cycle, ag._running_step, "@agenda", "agenda", **row,
                       reads="the agent's own card step: residual | card | question | answer | "
                             "from | why")
