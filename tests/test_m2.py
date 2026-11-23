@@ -13,8 +13,16 @@ import collections
 import contextlib
 import copy
 import math
+import os
 import pathlib
 import sys
+
+# These checks are trajectory-dependent (see _agent's docstring); with the agent's random
+# start seed they test a different 25-step warm-up each process, so the m2 gate's verdict
+# flips between runs (measured: three different checks failed across three processes).
+# Every other trajectory-pinned test sets this before importing tether; m2 was the one that
+# did not, and inherited 0 only when pytest imported a sibling first.
+os.environ["TETHER_AGENT_SEED"] = "0"
 
 import numpy as np
 from arcengine import FrameDataRaw, GameState

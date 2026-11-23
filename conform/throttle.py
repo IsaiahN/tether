@@ -69,10 +69,17 @@ def run(jobs: list[tuple]) -> int:
                 print(f"[throttle] done {name} exit={p.returncode}", flush=True)
         if pending and may_start(len(live), seen):
             argv, cwd, log, *extra = pending.pop(0)
-            env = {**os.environ, **extra[0]} if extra else None
+            # anchor: a piped python - that keeps stdin open enters 3.13's _pyrepl; with stdout
+            # redirected to this file there is no console, and windows_console.getheightwidth()
+            # fails on the invalid handle in a loop, appending tracebacks until the disk fills
+            # (measured 57 GB on 2026-11-22). Basic REPL does not query the console; DEVNULL stdin
+            # removes the pipe. Both are needed: another launcher may forget one.
+            env = {**os.environ, "PYTHON_BASIC_REPL": "1"}
+            if extra:
+                env.update(extra[0])
             # held open for the run's whole life and closed when it exits (above)
             fh = open(log, "w", encoding="utf-8")  # noqa: SIM115
-            p = subprocess.Popen(argv, cwd=cwd, env=env, stdout=fh,
+            p = subprocess.Popen(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL, stdout=fh,
                                  stderr=subprocess.STDOUT, creationflags=BELOW_NORMAL)
             live.append((p, log.stem, fh))
             print(f"[throttle] start {log.stem} (cpu {seen[-1]:.0f}%, live {len(live)}/{CAP})",

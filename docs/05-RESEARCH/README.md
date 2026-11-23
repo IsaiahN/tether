@@ -87,3 +87,12 @@ Numbered by date, oldest first. None is read by code.
 - [56](56-WATSON_2026-11-22_ROUTINE_ABSTENTION_SETTLED.md) 2026-11-22: Routine abstention settled - reach-1 refusals are correct, cd82 buys plans
 - [57](57-WATSON_2026-11-22_NESTED_METHOD_CENSUS.md) 2026-11-22: Nested-method census - settled methods are never composed over in the baseline
 - [58](58-WATSON_2026-11-22_COUNTERWORLD.md) 2026-11-22: Counterworld - same-type contact for the count-cause mechanism
+- [59](59-WATSON_2026-11-22_NESTED_METHOD_AND_REAL_WORLD_HABITATS.md) 2026-11-22: Nested methods were always planned; habitats must be real-world with implicit goals
+- [60](60-WATSON_2026-11-22_FIGURES_AS_METALAWS.md) 2026-11-22: Figures as metalaws; the seat must not ask for rulings the figures decide
+- [63](63-WATSON_2026-11-22_WHAT_INTELLECT_MEANS_HERE.md) 2026-11-22: What boosting intellect means in the Tether: levels, the break, carry
+- [64](64-WATSON_2026-11-22_WHERE_INTELLECT_IS_STARVED.md) 2026-11-22: Two audits locate the break: no open condition to decompose; round trip/self-read are record-only
+- [65](65-WATSON_2026-11-22_ANALOGY_TACIT_AND_COMPREHENSION.md) 2026-11-22: Analogy/tacit/comprehension as a third capability; audit found the pieces already built and starved
+- [66](66-WATSON_2026-11-22_PUZZLE_ORIENTATION.md) 2026-11-22: Puzzle orientation, not a goal vocabulary: read constraints, momentum, possible moves, brute-force-vs-structure, restructure on flat progress
+- [67](67-WATSON_2026-11-22_BORN_WITH_THE_MEANS.md) 2026-11-22: no training catch-22 -- Fig 4 forbids recordings crossing down, frontload the MEANS (uncopyrightable, already shipped); precocial animals are born with a PAID head start then earn skill through provisioning+play; real problems = a habitat change (Fig 11)
+- [68](68-WATSON_2026-11-22_NCM_JEPA_AND_WHATS_MISSING.md) 2026-11-22: NCM/JEPA named by figures first (predict in repr space, discard detail, stack settled compositions, external ground); agent has all four; their library is TRAINED on data (the catch-22); what is missing = contact (starved loop) + instruments for real frames (Fig 6), no copyright needed
+- [69](69-WATSON_2026-11-22_CHUNKING_FEEDER_RECONCILED.md) 2026-11-22: chunking + human replay is BUILT (feeder.py, spacing ladder) but never settled to a ground verdict; the fret is answered by KEY_BOUNDARY (frames only, never the derivation); contact missing in MEASUREMENT not mechanism -- run the sweep
