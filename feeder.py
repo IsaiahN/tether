@@ -299,15 +299,20 @@ def watch_many(games=ALL_GAMES, cycles: int | None = None, offset: int = 0, spac
 
 def watch(game: str, cycles: int | None = None, offset: int = 0, spacing: int = 1,
           skip: int = 0, take: int | None = None,
-          library: str | None = None, led_path: str | None = None) -> dict:
+          library: str | None = None, led_path: str | None = None,
+          seed: int = SHUFFLE_SEED) -> dict:
     """Run the agent over a replay tape. `cycles=None` walks the WHOLE tape exactly once.
 
     The default is the whole tape because a prefix makes rungs incomparable: 20 cycles of a
     coherent tape is the game's opening and 20 of a shuffled one is a random chunk mid-game --
     a difference in CONTENT wearing a difference in ORDER's clothes.
+
+    `seed` is the block-shuffle seed, threaded through so a ladder can be REPEATED across seeds:
+    the falsifier in `chunk_order` says a reading that moves when this changes was seed noise and
+    the sweep owes a result across seeds, not one. OFF (the default) is the fixed 1618 exactly.
     """
     steps, seq, n_chunks = chunk_order(game, offset=offset, spacing=spacing,
-                                       skip=skip, take=take)
+                                       skip=skip, take=take, seed=seed)
     tape = ReplayTape(steps, seq)
     fr = tape.reset()
     board = fr.frame[-1]
@@ -436,7 +441,7 @@ def probe(game: str, library: str, cycles: int = 25, control: bool = True) -> di
 def sweep(game: str, rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
           offset: int = 0, skip: int = 0, take: int | None = None,
           on: str | None = None, store: str | None = None,
-          led_dir: str | None = None) -> dict:
+          led_dir: str | None = None, seed: int = SHUFFLE_SEED) -> dict:
     """The spacing sweep. PRIORITY 0 -- Isaiah 2026-09-20; pre-registered by the reviewer 09-18.
 
     RAMP UPWARD ONLY, so a regression is unambiguous. ONE library across every rung, because
@@ -460,7 +465,7 @@ def sweep(game: str, rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
         # recorder to a file, not a new instrument.
         led = f"{led_dir}/rung_{game}_s{s}.jsonl" if led_dir else None
         row = watch(game, cycles=cycles, offset=offset, spacing=s,
-                    skip=skip, take=take, library=path, led_path=led)
+                    skip=skip, take=take, library=path, led_path=led, seed=seed)
         row["ledger"] = led
         if on:
             row.update(probe(on, path))
@@ -468,7 +473,7 @@ def sweep(game: str, rungs=(1, 2, 4, 8, 16), cycles: int | None = None,
         rows.append(row)
         with trail.open("a", encoding="utf-8") as fh:
             print(json.dumps(row), file=fh)
-    return {"sweep": game, "probe_on": on, "offset": offset,
+    return {"sweep": game, "probe_on": on, "offset": offset, "shuffle_seed": seed,
             "window": {"skip": skip, "take": take}, "rungs": sorted(rungs),
             "carried": path, "trail": str(trail), "rows": rows,
             "reads": ("the witness is the SHAPE across rungs, not any endpoint: gradual "
