@@ -93,3 +93,4 @@ Numbered by date, oldest first. None is read by code.
 - [64](64-WATSON_2026-11-22_WHERE_INTELLECT_IS_STARVED.md) 2026-11-22: Two audits locate the break: no open condition to decompose; round trip/self-read are record-only
 - [65](65-WATSON_2026-11-22_ANALOGY_TACIT_AND_COMPREHENSION.md) 2026-11-22: Analogy/tacit/comprehension as a third capability; audit found the pieces already built and starved
 - [66](66-WATSON_2026-11-22_PUZZLE_ORIENTATION.md) 2026-11-22: Puzzle orientation, not a goal vocabulary: read constraints, momentum, possible moves, brute-force-vs-structure, restructure on flat progress
+- [67](67-WATSON_2026-11-22_BORN_WITH_THE_MEANS.md) 2026-11-22: no training catch-22 -- Fig 4 forbids recordings crossing down, frontload the MEANS (uncopyrightable, already shipped); precocial animals are born with a PAID head start then earn skill through provisioning+play; real problems = a habitat change (Fig 11)
